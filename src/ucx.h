@@ -1,23 +1,13 @@
 /*
- * The Unidex library
+ * The UCX library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
 */
-#ifndef UNICODEX_H
-#define UNICODEX_H
+#ifndef UCX_H
+#define UCX_H
 
 #include <stddef.h>
 #include <stdint.h>
-
-#define UCX_VERSION "1.0.0"
-#define UCX_VERSION_NUMBER 0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
-#define UCX_VERSION_MAJOR 1
-#define UCX_VERSION_MINOR 0
-#define UCX_VERSION_REVISION 0
-
-#define UCX_UNICODE_VERSION "10.0"
-#define UCX_UNICODE_VERSION_MAJOR 10
-#define UCX_UNICODE_VERSION_MINOR 0
 
 #define UCX_OK 0
 #define UCX_ERRNO -1
@@ -109,4 +99,4 @@ const ucx_character* ucx_codepoint_get_character(ucx_codepoint codepoint);
 }
 #endif
 
-#endif /* UNICODEX_H */
+#endif /* UCX_UNICODEX_H */
