@@ -1,17 +1,19 @@
 #!/bin/sh
 
-lines=$(wc -l < $1)
+./load.sh
+
+source="UCD/UnicodeData.txt"
+lines=$(wc -l < $source)
 lines=$(echo "${lines}" | sed -e 's/^[ ]*//')
 
 # unicode_data.h
-cat > unicode_data.h <<- EOM
-/*
- * The UCX library
- *
- * This file is distributed under the MIT License. See LICENSE for details.
-*/
-#ifndef UCX_UNICODE_DATA_H
-#define UCX_UNICODE_DATA_H
+header=$(./header_guard.sh unicode_data)
+footer=$(./header_guard.sh -l unicode_data)
+license=$(./license.sh)
+file="../src/unicode_data"
+
+cat > "${file}.h" <<- EOM
+$header
 
 #include "ucx.h"
 
@@ -19,18 +21,17 @@ cat > unicode_data.h <<- EOM
 
 extern ucx_character ucx_characters[UCX_CHARACTER_MAX];
 
-#endif /* UNICODE_DATA_H */
+$footer
 EOM
 
 # unicode_data.c
-cat > unicode_data.c <<- EOM
-/*
- The Unidex library
- */
+cat > "${file}.c" <<- EOM
+${license}
+
 #include "unicode_data.h"
 
 ucx_character ucx_characters[] = {
 EOM
 
-awk -v "lines=$lines" -F ';' '{ printf "    { 0x" $1 ", 0, \"" $2 "\" }" } NR < lines { print "," }' $1 >> unicode_data.c
-echo "\n};" >> unicode_data.c
+awk -v "lines=$lines" -F ';' '{ printf "    { 0x" $1 ", 0, \"" $2 "\" }" } NR < lines { print "," }' $source >> "${file}.c"
+echo "\n};" >> "${file}.c"
