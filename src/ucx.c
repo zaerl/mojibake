@@ -1,11 +1,14 @@
-/*
+/**
  * The UCX library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
-*/
-#include "unicodex.h"
-#include "unicode_data.h"
+ */
+
 #include <string.h>
+
+#include "ucx.h"
+#include "version.h"
+#include "unicode_data.h"
 
 #ifndef UCX_EXTERN
 #define UCX_EXTERN extern

@@ -1,8 +1,9 @@
-/*
+/**
  * The UCX library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
-*/
+ */
+
 #ifndef UCX_H
 #define UCX_H
 
