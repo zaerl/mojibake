@@ -34,13 +34,13 @@ typedef struct ucx_character {
     char* name;
 } ucx_character;
 
-#define UCX_CODEPOINT_GENERAL_CATEGORY_LETTER 0
-#define UCX_CODEPOINT_GENERAL_CATEGORY_MARK 1
-#define UCX_CODEPOINT_GENERAL_CATEGORY_NUMBER 2
-#define UCX_CODEPOINT_GENERAL_CATEGORY_PUNCTUATION 3
-#define UCX_CODEPOINT_GENERAL_CATEGORY_SYMBOL 4
-#define UCX_CODEPOINT_GENERAL_CATEGORY_SEPARATOR 5
-#define UCX_CODEPOINT_GENERAL_CATEGORY_OTHER 6
+#define UCX_GC_L 0
+#define UCX_GC_MARK 1
+#define UCX_GC_NUMBER 2
+#define UCX_GC_PUNCTUATION 3
+#define UCX_GC_SYMBOL 4
+#define UCX_GC_SEPARATOR 5
+#define UCX_GC_OTHER 6
 
 /* A unicode plane [see: https://www.unicode.org/glossary/#plane] */
 typedef uint8_t ucx_codespace_plane;
