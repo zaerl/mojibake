@@ -3,6 +3,7 @@
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  */
+
 #ifndef UCX_UNICODE_DATA_H
 #define UCX_UNICODE_DATA_H
 

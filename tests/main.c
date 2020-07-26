@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ucx.h"
-#include "version.h"
+#include "../src/ucx.h"
+#include "../src/version.h"
 
 typedef void (*ucxt_test)(void);
 

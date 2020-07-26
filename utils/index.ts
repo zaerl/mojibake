@@ -1,3 +1,4 @@
+import { writeFileSync } from 'fs';
 import { createInterface } from 'readline';
 
 interface Buffer {
@@ -9,6 +10,8 @@ const nameBuffer: { [name: string]: number } = {};
 const categoryBuffer: { [name: string]: number } = {};
 let charsCount = 0;
 let wordsCount = 0;
+let lines = 0;
+let entries: string[] = [];
 
 const rl = createInterface({
   input: process.stdin,
@@ -21,8 +24,11 @@ rl.on('line', (line) => {
   const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
   const words = name.split(' ');
 
+  ++lines;
   charsCount += name.length;
   wordsCount += words.length;
+
+  entries.push(`    { 0x${split[0]}, UCX_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
 
   for(const word of words) {
     if(typeof(nameBuffer[word]) === 'undefined') {
@@ -64,6 +70,28 @@ rl.on('line', (line) => {
   console.log('\nCOUNT\n');
   console.log(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
   console.log(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
+
+  const fheader = `${header('unicode_data')}
+
+#include "ucx.h"
+
+#define UCX_CHARACTER_MAX ${lines}
+
+extern ucx_character ucx_characters[UCX_CHARACTER_MAX];
+
+${footer('unicode_data')}
+`;
+
+  const ffile = `${license()}
+
+#include "unicode_data.h"
+
+ucx_character ucx_characters[] = {
+${entries.join(',\n')}
+};\n`;
+
+  writeFileSync('../src/unicode_data.h', fheader);
+  writeFileSync('../src/unicode_data.c', ffile);
 });
 
 function compareFn(a: Buffer, b: Buffer): number {
@@ -80,4 +108,27 @@ function compareFn(a: Buffer, b: Buffer): number {
   }
 
   return ret;
+}
+
+function header(name: string): string {
+  name = name.toUpperCase();
+
+  return `${license()}
+
+#ifndef UCX_${name}_H
+#define UCX_${name}_H`;
+}
+
+function footer(name: string): string {
+  name = name.toUpperCase();
+
+  return `#endif /* UCX_${name}_H */`;
+}
+
+function license(): string {
+  return `/**
+ * The UCX library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */`;
 }
