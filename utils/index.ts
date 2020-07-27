@@ -13,36 +13,39 @@ let wordsCount = 0;
 let lines = 0;
 let entries: string[] = [];
 
-const rl = createInterface({
-  input: createReadStream('./UCD/UnicodeData.txt'),
-  crlfDelay: Infinity
-});
+readUnicodeData();
 
-rl.on('line', (line) => {
-  const split = line.split(';');
-  const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
-  const words = name.split(' ');
+async function readUnicodeData() {
+  const rl = createInterface({
+    input: createReadStream('./UCD/UnicodeData.txt'),
+    crlfDelay: Infinity
+  });
 
-  ++lines;
-  charsCount += name.length;
-  wordsCount += words.length;
+  for await (const line of rl) {
+    const split = line.split(';');
+    const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
+    const words = name.split(' ');
 
-  entries.push(`    { 0x${split[0]}, UCX_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
+    ++lines;
+    charsCount += name.length;
+    wordsCount += words.length;
 
-  for(const word of words) {
-    if(typeof(nameBuffer[word]) === 'undefined') {
-      nameBuffer[word] = 1;
-    } else {
-      ++nameBuffer[word];
+    entries.push(`    { 0x${split[0]}, UCX_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
+
+    for(const word of words) {
+      if(typeof(nameBuffer[word]) === 'undefined') {
+        nameBuffer[word] = 1;
+      } else {
+        ++nameBuffer[word];
+      }
+
+      if(typeof(categoryBuffer[split[2]]) === 'undefined') {
+        categoryBuffer[split[2]] = 1;
+      } else {
+        ++categoryBuffer[split[2]];
+      }
     }
-
-    if(typeof(categoryBuffer[split[2]]) === 'undefined') {
-      categoryBuffer[split[2]] = 1;
-    } else {
-      ++categoryBuffer[split[2]];
-    }
-  }
-}).on('close', () => {
+  };
   const ret: Buffer[] = [];
   const ret2: Buffer[] = [];
 
@@ -91,7 +94,7 @@ ${entries.join(',\n')}
 
   writeFileSync('../src/unicode_data.h', fheader);
   writeFileSync('../src/unicode_data.c', ffile);
-});
+}
 
 function compareFn(a: Buffer, b: Buffer): number {
   const ret = b.count - a.count;
