@@ -6,16 +6,53 @@ interface Buffer {
   count: number;
 }
 
-const nameBuffer: { [name: string]: number } = {};
-const categoryBuffer: { [name: string]: number } = {};
-let charsCount = 0;
-let wordsCount = 0;
-let lines = 0;
-let entries: string[] = [];
+function compareFn(a: Buffer, b: Buffer): number {
+  const ret = b.count - a.count;
 
-readUnicodeData();
+  if(ret === 0) {
+    if(a.name < b.name) {
+      return -1;
+    } else if(a.name > b.name) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  return ret;
+}
+
+function header(name: string): string {
+  name = name.toUpperCase();
+
+  return `${license()}
+
+#ifndef UCX_${name}_H
+#define UCX_${name}_H`;
+}
+
+function footer(name: string): string {
+  name = name.toUpperCase();
+
+  return `#endif /* UCX_${name}_H */`;
+}
+
+function license(): string {
+  return `/**
+ * The UCX library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */`;
+}
 
 async function readUnicodeData() {
+  const nameBuffer: { [name: string]: number } = {};
+  const categoryBuffer: { [name: string]: number } = {};
+  let charsCount = 0;
+  let wordsCount = 0;
+  let lines = 0;
+  let entries: string[] = [];
+
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
     crlfDelay: Infinity
@@ -46,6 +83,7 @@ async function readUnicodeData() {
       }
     }
   };
+
   const ret: Buffer[] = [];
   const ret2: Buffer[] = [];
 
@@ -96,41 +134,35 @@ ${entries.join(',\n')}
   writeFileSync('../src/unicode_data.c', ffile);
 }
 
-function compareFn(a: Buffer, b: Buffer): number {
-  const ret = b.count - a.count;
+async function readBlocks() {
+  const entries: string[] = [];
 
-  if(ret === 0) {
-    if(a.name < b.name) {
-      return -1;
-    } else if(a.name > b.name) {
-      return 1;
+  const rl = createInterface({
+    input: createReadStream('./UCD/Blocks.txt'),
+    crlfDelay: Infinity
+  });
+
+  for await (const line of rl) {
+    if(line.startsWith('#') || line === '') { // Comment
+      continue;
     }
 
-    return 0;
+    const split = line.split('; ');
+    const blockName = split[1].toUpperCase().replace(/[ \-]/g, '_');
+    const value = split[0].split('..')[0];
+
+    entries.push(`#define UCX_BLOCK_${blockName} 0x${value}`);
   }
 
-  return ret;
+  const fheader = `${header('blocks')}
+
+${entries.join('\n')}
+
+${footer('blocks')}
+`;
+
+  writeFileSync('../src/blocks.h', fheader);
 }
 
-function header(name: string): string {
-  name = name.toUpperCase();
-
-  return `${license()}
-
-#ifndef UCX_${name}_H
-#define UCX_${name}_H`;
-}
-
-function footer(name: string): string {
-  name = name.toUpperCase();
-
-  return `#endif /* UCX_${name}_H */`;
-}
-
-function license(): string {
-  return `/**
- * The UCX library
- *
- * This file is distributed under the MIT License. See LICENSE for details.
- */`;
-}
+readUnicodeData();
+readBlocks();
