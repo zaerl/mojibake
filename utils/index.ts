@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs';
+import { writeFileSync, createReadStream } from 'fs';
 import { createInterface } from 'readline';
 
 interface Buffer {
@@ -14,9 +14,8 @@ let lines = 0;
 let entries: string[] = [];
 
 const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false
+  input: createReadStream('./UCD/UnicodeData.txt'),
+  crlfDelay: Infinity
 });
 
 rl.on('line', (line) => {
