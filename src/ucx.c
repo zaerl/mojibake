@@ -250,6 +250,14 @@ UCX_EXPORT ucx_character* ucx_get_codepoint_character(ucx_codepoint codepoint) {
     return &ucx_characters[codepoint];
 }
 
+UCX_EXPORT const ucx_character* ucx_codepoint_get_character(ucx_codepoint codepoint) {
+    if(!ucx_codepoint_is_valid(codepoint)) {
+        return NULL;
+    }
+
+    return &ucx_characters[codepoint];
+}
+
 /* UCX_EXPORT const unsigned char* ucx_convert_encoding(const unsigned char *buffer,
  unsigned int size, ucx_encoding encoding) {
  if(buffer == 0 || size == 0 || encoding > UCX_ENCODING_UTF_32_LE) {

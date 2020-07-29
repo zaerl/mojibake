@@ -6,6 +6,12 @@ interface Buffer {
   count: number;
 }
 
+interface Numeric {
+  name: string;
+  value: number;
+  count: number;
+}
+
 function compareFn(a: Buffer, b: Buffer): number {
   const ret = b.count - a.count;
 
@@ -54,6 +60,7 @@ async function readUnicodeData() {
   let wordsCount = 0;
   let lines = 0;
   let entries: string[] = [];
+  let hasNumber: { [name: string]: number } = {};
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -68,6 +75,14 @@ async function readUnicodeData() {
     ++lines;
     charsCount += name.length;
     wordsCount += words.length;
+
+    if(split[8] !== '') {
+      if(typeof(hasNumber[split[8]]) === 'undefined') {
+        hasNumber[split[8]] = 1;
+      } else {
+        ++hasNumber[split[8]];
+      }
+    }
 
     entries.push(`    { 0x${split[0]}, UCX_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
 
@@ -107,6 +122,25 @@ async function readUnicodeData() {
 
   for(const entry of ret.sort(compareFn)) {
     console.log(`${entry.count} :: ${entry.name}`);
+  }
+
+  console.log('\nNUMBERS\n');
+
+  const numbersBuffer: Numeric[] = [];
+
+  for(const name in hasNumber) {
+    const values = name.split('/'); // Check if it's a fraction
+    const value = values.length === 1 ? parseFloat(values[0]) :
+      Math.floor((parseFloat(values[0]) / parseFloat(values[1])) * 100) / 100;
+    const count = hasNumber[name];
+
+    numbersBuffer.push({ name, value, count });
+  }
+
+  numbersBuffer.sort((a: Numeric, b: Numeric) => b.count - a.count);
+
+  for(const num of numbersBuffer) {
+    console.log(`${num.name} (${num.value}): ${num.count}`);
   }
 
   console.log('\nCOUNT\n');

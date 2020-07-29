@@ -13,8 +13,6 @@
 #define UCX_OK 0
 #define UCX_ERRNO -1
 
-#define UCX_NULL null
-
 /*
  A unicode codepoint
  [see: https://www.unicode.org/glossary/#code_point]
@@ -71,6 +69,7 @@ typedef uint8_t ucx_codespace_plane;
 
 #define UCX_CODESPACE_PLANE_MIN 0
 #define UCX_CODESPACE_PLANE_MAX 16
+#define UCX_CODESPACE_PLANE_SIZE 65536 /* 2^16 code points */
 
 /*
  A unicode encoding
