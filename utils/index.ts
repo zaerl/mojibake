@@ -171,6 +171,7 @@ ${entries.join(',\n')}
 }
 
 async function readBlocks() {
+  const macros: string[] = [];
   const entries: string[] = [];
 
   const rl = createInterface({
@@ -187,17 +188,30 @@ async function readBlocks() {
     const blockName = split[1].toUpperCase().replace(/[ \-]/g, '_');
     const value = split[0].split('..')[0];
 
-    entries.push(`#define UCX_BLOCK_${blockName} 0x${value}`);
+    macros.push(`#define UCX_BLOCK_${blockName} 0x${value}`);
+    entries.push(`    "${split[1]}"`);
   }
 
   const fheader = `${header('blocks')}
 
-${entries.join('\n')}
+${macros.join('\n')}
+
+#define UCX_BLOCK_NUM ${macros.length}
+
+extern const char* ucx_blocks[UCX_BLOCK_NUM];
 
 ${footer('blocks')}
 `;
 
+  const ffile = `${license()}
+
+const char* ucx_blocks[] = {
+${entries.join(',\n')}
+};
+`;
+
   writeFileSync('../src/blocks.h', fheader);
+  writeFileSync('../src/blocks.c', ffile);
 }
 
 readUnicodeData();
