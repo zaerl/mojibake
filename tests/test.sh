@@ -1,3 +1,3 @@
 #!/bin/bash
 
-clang -o build/test tests/main.c src/*.c && ./build/test
+clang -o ../build/test main.c ../src/*.c && ../build/test

@@ -17,15 +17,14 @@ typedef void (*ucxt_test)(void);
 static int tests_run;
 static int tests_valid;
 
-void uctx_assert(char *message, int test) {
-    printf("Test: %s ", message);
+void uctx_assert(char *message, bool test) {
     ++tests_run;
 
     if(test) {
-        printf("ok\n");
+        printf("Test: %s \x1B[32mOK\x1B[0m\n", message);
         ++tests_valid;
     } else {
-        printf("fail\n");
+        printf("\x1B[31mTest: %s FAIL\x1B[0m\n", message);
     }
 }
 
@@ -58,7 +57,7 @@ static void ucx_get_unicode_version_test() {
 }
 
 static void ucx_codepoint_is_valid_test() {
-    int validity = ucx_codepoint_is_valid(UCX_CODEPOINT_MIN + 1);
+    bool validity = ucx_codepoint_is_valid(UCX_CODEPOINT_MIN + 1);
     uctx_assert("valid codepoint", validity);
 
     validity = ucx_codepoint_is_valid(UCX_CODEPOINT_MIN - 1);
@@ -91,25 +90,45 @@ static void ucx_codepoint_is_valid_test() {
 }
 
 static void ucx_codespace_plane_is_valid_test() {
-    int validity = ucx_codespace_plane_is_valid(UCX_CODESPACE_PLANE_MIN + 1);
+    bool validity = ucx_codespace_plane_is_valid(1);
     uctx_assert("valid codespace plane", validity);
 
-    validity = ucx_codespace_plane_is_valid(UCX_CODESPACE_PLANE_MIN - 1);
+    validity = ucx_codespace_plane_is_valid(-1);
     uctx_assert("not valid negative codespace plane", !validity);
 
-    validity = ucx_codespace_plane_is_valid(UCX_CODESPACE_PLANE_MAX + 1);
+    validity = ucx_codespace_plane_is_valid(UCX_CODESPACE_PLANE_NUM);
     uctx_assert("not valid exceed codespace plane", !validity);
+}
+
+static void ucx_codespace_plane_name_test() {
+    bool validity = strcmp(ucx_codespace_plane_name(0, false), "BMP") == 0;
+    uctx_assert("valid codespace plane name abbreviation", validity);
+
+    validity = strcmp(ucx_codespace_plane_name(0, true), "Basic Multilingual Plane") == 0;
+    uctx_assert("valid codespace plane name full", validity);
+
+    validity = ucx_codespace_plane_name(-1, false) == NULL;
+    uctx_assert("invalid codespace plane low", validity);
+
+    validity = ucx_codespace_plane_name(UCX_CODESPACE_PLANE_NUM, false) == NULL;
+    uctx_assert("invalid codespace plane high", validity);
+
+    validity = strcmp(ucx_codespace_plane_name(4, false), "Unassigned") == 0;
+    uctx_assert("unassigned codespace plane abbreviation", validity);
+
+    validity = strcmp(ucx_codespace_plane_name(4, true), "Unassigned") == 0;
+    uctx_assert("unassigned codespace plane full", validity);
 }
 
 static void ucx_string_get_encoding_test() {
     ucx_encoding encoding = ucx_string_get_encoding(0, 10);
-    uctx_assert("void string", encoding == UCX_ERRNO);
+    uctx_assert("void string", encoding == UCX_ENCODING_UNKNOWN);
 
     encoding = ucx_string_get_encoding("", 0);
     uctx_assert("void length", encoding == UCX_ENCODING_UNKNOWN);
 
     encoding = ucx_string_get_encoding(0, 0);
-    uctx_assert("void string and length", encoding == UCX_ERRNO);
+    uctx_assert("void string and length", encoding == UCX_ENCODING_UNKNOWN);
 
     const char *test1 = "The quick brown fox jumps over the lazy dog";
     encoding = ucx_string_get_encoding(test1, 43);
@@ -140,14 +159,14 @@ static void ucx_string_get_encoding_test() {
 }
 
 static void ucx_string_is_ascii_test() {
-    int is_ascii = ucx_string_is_ascii("", 0);
+    bool is_ascii = ucx_string_is_ascii("", 0);
     uctx_assert("void string", !is_ascii);
 
     is_ascii = ucx_string_is_ascii("", 0);
     uctx_assert("void length", !is_ascii);
 
     is_ascii = ucx_string_is_ascii(0, 0);
-    uctx_assert("void string and length", is_ascii == UCX_ERRNO);
+    uctx_assert("void string and length", !is_ascii);
 
     const char *test = "The quick brown fox jumps over the lazy dog";
     is_ascii = ucx_string_is_ascii(test, 43);
@@ -176,14 +195,14 @@ static void ucx_string_is_ascii_test() {
 }
 
 static void ucx_string_is_utf8_test() {
-    int is_utf8 = ucx_string_is_utf8("", 0);
+    bool is_utf8 = ucx_string_is_utf8("", 0);
     uctx_assert("void string", !is_utf8);
 
     is_utf8 = ucx_string_is_utf8("", 0);
     uctx_assert("void length", !is_utf8);
 
     is_utf8 = ucx_string_is_utf8(0, 0);
-    uctx_assert("void string and length", is_utf8 == UCX_ERRNO);
+    uctx_assert("void string and length", !is_utf8);
 
     const char *test = "The quick brown fox jumps over the lazy dog";
     is_utf8 = ucx_string_is_utf8(test, 43);
@@ -206,17 +225,16 @@ int main(int argc, const char * argv[]) {
     ucxt_run_test("Get version number", ucx_get_version_number_test);
     ucxt_run_test("Get unicode version", ucx_get_unicode_version_test);
     ucxt_run_test("Codepoint is valid", ucx_codepoint_is_valid_test);
-    ucxt_run_test("Codespace plane is valid",
-        ucx_codespace_plane_is_valid_test);
+    ucxt_run_test("Codespace plane is valid", ucx_codespace_plane_is_valid_test);
+    ucxt_run_test("Codespace plane name", ucx_codespace_plane_name_test);
     ucxt_run_test("String get encoding", ucx_string_get_encoding_test);
     ucxt_run_test("String is ASCII", ucx_string_is_ascii_test);
     ucxt_run_test("String is UTF-8", ucx_string_is_utf8_test);
 
-    printf("Tests valid/run: %d/%d\n", tests_valid, tests_run);
+    /* Green if valid and red if not */
+    const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";
 
-    if(tests_valid == tests_run) {
-        printf("All tests passed\n");
-    }
+    printf("%sTests valid/run: %d/%d\n\x1B[0m", colorCode, tests_valid, tests_run);
 
     return tests_run == tests_valid ? 0 : -1;
 }

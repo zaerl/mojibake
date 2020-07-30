@@ -14,9 +14,6 @@
 #define UCX_EXTERN extern
 #endif
 
-/* awk -F ';' '{ print $2 }' UnicodeData.txt | tr -s ' ' '\n' | sort | uniq -c | sort -r | head -n 100 */
-/* awk -F ';' '{ print $2 }' UnicodeData.txt */
-
 #ifndef UCX_EXPORT
 #define UCX_EXPORT __attribute__((visibility("default")))
 #endif
@@ -89,28 +86,54 @@ UCX_EXPORT char* ucx_get_unicode_version() {
     return UCX_UNICODE_VERSION;
 }
 
-UCX_EXPORT int ucx_codepoint_is_valid(ucx_codepoint codepoint) {
+UCX_EXPORT bool ucx_codepoint_is_valid(ucx_codepoint codepoint) {
     if(codepoint < UCX_CODEPOINT_MIN || codepoint > UCX_CODEPOINT_MAX ||
        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||
        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) {
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-UCX_EXPORT int ucx_codespace_plane_is_valid(ucx_codespace_plane plane) {
-    return plane >= UCX_CODESPACE_PLANE_MIN &&
-        plane <= UCX_CODESPACE_PLANE_MAX;
+UCX_EXPORT bool ucx_codespace_plane_is_valid(ucx_codespace_plane plane) {
+    return plane >= 0 && plane < UCX_CODESPACE_PLANE_NUM;
+}
+
+UCX_EXPORT const char* ucx_codespace_plane_name(ucx_codespace_plane plane, bool full) {
+    if(!ucx_codespace_plane_is_valid(plane)) {
+        return NULL;
+    }
+
+    switch(plane) {
+        case 0:
+            return full ? "Basic Multilingual Plane" : "BMP";
+
+        case 1:
+            return full ? "Supplementary Multilingual Plane" : "SMP";
+
+        case 2:
+            return full ? "Supplementary Ideographic Plane" : "SIP";
+
+        case 3:
+            return full ? "Tertiary Ideographic Plane" : "TIP";
+
+        case 14:
+            return full ? "Supplementary Special-purpose Plane" : "SSP";
+
+        case 15:
+            return full ? "Supplementary Private Use Area-A" : "PUA-A";
+
+        case 16:
+            return full ? "Supplementary Private Use Area-B" : "PUA-B";
+    }
+
+    return "Unassigned";
 }
 
 UCX_EXPORT ucx_encoding ucx_string_get_encoding(const char *buffer,
     size_t size) {
-    if(buffer == 0) {
-        return UCX_ERRNO;
-    }
-
-    if(size == 0) {
+    if(buffer == 0 || size == 0) {
         return UCX_ENCODING_UNKNOWN;
     }
 
@@ -133,19 +156,15 @@ UCX_EXPORT ucx_encoding ucx_string_get_encoding(const char *buffer,
     return bom_encoding;
 }
 
-UCX_EXPORT int ucx_string_is_utf8(const char *string, size_t size) {
+UCX_EXPORT bool ucx_string_is_utf8(const char *string, size_t size) {
     const unsigned char *buffer = (const unsigned char*)string;
     const unsigned char *end = buffer + size;
     unsigned char byte;
     unsigned int code_length, i;
     uint32_t ch;
 
-    if(string == 0) {
-        return UCX_ERRNO;
-    }
-
-    if(size == 0) {
-        return 0;
+    if(string == 0 || size == 0) {
+        return false;
     }
 
     while(buffer != end) {
@@ -168,19 +187,19 @@ UCX_EXPORT int ucx_string_is_utf8(const char *string, size_t size) {
             code_length = 4;
         } else {
             /* invalid first byte of a multibyte character */
-            return 0;
+            return false;
         }
 
         if(buffer + (code_length - 1) >= end) {
             /* truncated string or invalid byte sequence */
-            return 0;
+            return false;
         }
 
         /* Check continuation bytes: bit 7 should be set, bit 6 should be
          * unset (b10xxxxxx). */
         for(i = 1; i < code_length; ++i) {
             if((buffer[i] & 0xC0) != 0x80) {
-                return 0;
+                return false;
             }
         }
 
@@ -196,13 +215,13 @@ UCX_EXPORT int ucx_string_is_utf8(const char *string, size_t size) {
             /* (0xff & 0x0f) << 12 | (0xff & 0x3f) << 6 | (0xff & 0x3f) = 0xffff,
              so ch <= 0xffff */
             if(ch < 0x0800) {
-                return 0;
+                return false;
             }
 
             /* surrogates (U+D800-U+DFFF) are invalid in UTF-8:
              test if (0xD800 <= ch && ch <= 0xDFFF) */
             if((ch >> 11) == 0x1b) {
-                return 0;
+                return false;
             }
         } else if(code_length == 4) {
             /* 4 bytes sequence: U+10000..U+10FFFF */
@@ -210,32 +229,28 @@ UCX_EXPORT int ucx_string_is_utf8(const char *string, size_t size) {
             ((buffer[2] & 0x3f) << 6) + (buffer[3] & 0x3f);
 
             if((ch < 0x10000) || (0x10FFFF < ch)) {
-                return 0;
+                return false;
             }
         }
 
         buffer += code_length;
     }
 
-    return 1;
+    return true;
 }
 
-UCX_EXPORT int ucx_string_is_ascii(const char *string, size_t size) {
+UCX_EXPORT bool ucx_string_is_ascii(const char *string, size_t size) {
     const unsigned char *buffer = (const unsigned char*)string;
     const unsigned char *end = buffer + size;
 
-    if(string == 0) {
-        return UCX_ERRNO;
-    }
-
-    if(size == 0) {
-        return 0;
+    if(string == 0 || size == 0) {
+        return false;
     }
 
     for(; buffer != end; ++buffer) {
         /* every character must have leading bit at zero */
         if(*buffer & 0x80) {
-            return 0;
+            return false;
         }
     }
 
@@ -244,7 +259,7 @@ UCX_EXPORT int ucx_string_is_ascii(const char *string, size_t size) {
 
 UCX_EXPORT ucx_character* ucx_get_codepoint_character(ucx_codepoint codepoint) {
     if(codepoint > UCX_CHARACTER_MAX) {
-        return 0;
+        return NULL;
     }
 
     return &ucx_characters[codepoint];

@@ -9,9 +9,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-#define UCX_OK 0
-#define UCX_ERRNO -1
+#include <stdbool.h>
 
 /*
  A unicode codepoint
@@ -64,12 +62,11 @@ typedef struct ucx_character {
 #define UCX_GENERAL_CATEGORY_CO 28 /* Co Other, Private Use */
 #define UCX_GENERAL_CATEGORY_CN 29 /* Cn Other, Not Assigned (no characters in the file have this property) */
 
-/* A unicode plane [see: https://www.unicode.org/glossary/#plane] */
+/* Unicode planes */
 typedef uint8_t ucx_codespace_plane;
 
-#define UCX_CODESPACE_PLANE_MIN 0
-#define UCX_CODESPACE_PLANE_MAX 16
-#define UCX_CODESPACE_PLANE_SIZE 65536 /* 2^16 code points */
+#define UCX_CODESPACE_PLANE_NUM 17 /* 17 planes */
+#define UCX_CODESPACE_PLANE_SIZE 65536 /* 2^16 code points per plane */
 
 /*
  A unicode encoding
@@ -98,20 +95,23 @@ unsigned int ucx_get_version_number(void);
 /* Output the current supported unicode version (UCX_UNICODE_VERSION) */
 char* ucx_get_unicode_version(void);
 
-/* Return 1 (true) if the codepoint is valid */
-int ucx_codepoint_is_valid(ucx_codepoint codepoint);
+/* Return true if the codepoint is valid */
+bool ucx_codepoint_is_valid(ucx_codepoint codepoint);
 
-/* Return 1 (true) if the plane is valid */
-int ucx_codespace_plane_is_valid(ucx_codespace_plane plane);
+/* Return true if the plane is valid */
+bool ucx_codespace_plane_is_valid(ucx_codespace_plane plane);
+
+/* Return the name of a plane, NULL if the place specified is not valid */
+const char* ucx_codespace_plane_name(ucx_codespace_plane plane, bool abbreviation);
 
 /* Return the string encoding (the most probable) */
 ucx_encoding ucx_string_get_encoding(const char *buffer, size_t size);
 
 /* Return 1 if the string is encoded in UTF-8 */
-int ucx_string_is_utf8(const char *buffer, size_t size);
+bool ucx_string_is_utf8(const char *buffer, size_t size);
 
 /* Return 1 if the string is encoded in ASCII */
-int ucx_string_is_ascii(const char *buffer, size_t size);
+bool ucx_string_is_ascii(const char *buffer, size_t size);
 
 /* Return the codepoint general category */
 const ucx_character* ucx_codepoint_get_character(ucx_codepoint codepoint);
