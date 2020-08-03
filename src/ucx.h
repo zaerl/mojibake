@@ -30,6 +30,16 @@ typedef struct ucx_character {
     char* name;
 } ucx_character;
 
+/*
+ A unicode block
+ [see: https://www.unicode.org/glossary/#block]
+ */
+typedef struct ucx_block {
+    uint32_t start;
+    uint32_t size;
+    char* name;
+} ucx_block;
+
 /* General categories */
 #define UCX_GENERAL_CATEGORY_LU  0 /* Lu Letter, Uppercase */
 #define UCX_GENERAL_CATEGORY_LL  1 /* Ll Letter, Lowercase */

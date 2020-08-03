@@ -257,14 +257,6 @@ UCX_EXPORT bool ucx_string_is_ascii(const char *string, size_t size) {
     return 1;
 }
 
-UCX_EXPORT ucx_character* ucx_get_codepoint_character(ucx_codepoint codepoint) {
-    if(codepoint > UCX_CHARACTER_MAX) {
-        return NULL;
-    }
-
-    return &ucx_characters[codepoint];
-}
-
 UCX_EXPORT const ucx_character* ucx_codepoint_get_character(ucx_codepoint codepoint) {
     if(!ucx_codepoint_is_valid(codepoint)) {
         return NULL;

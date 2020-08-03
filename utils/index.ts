@@ -61,6 +61,7 @@ async function readUnicodeData() {
   let lines = 0;
   let entries: string[] = [];
   let hasNumber: { [name: string]: number } = {};
+  let previousCodepoint = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -71,7 +72,13 @@ async function readUnicodeData() {
     const split = line.split(';');
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     const words = name.split(' ');
+    const codepoint = parseInt(split[0], 16);
 
+    if(codepoint - previousCodepoint > 1) {
+      console.log(`STEP (${codepoint} -- ${codepoint - previousCodepoint})`);
+    }
+
+    previousCodepoint = codepoint;
     ++lines;
     charsCount += name.length;
     wordsCount += words.length;
@@ -110,8 +117,19 @@ async function readUnicodeData() {
 
   console.log('GENERAL CATEGORIES\n');
 
-  for(const entry of ret2.sort(compareFn)) {
-    console.log(`${entry.count} :: ${entry.name}`);
+  ret2.sort(compareFn);
+  let buffer: string[] = [];
+  let prevCount = ret2[0].count;
+
+  for(const entry of ret2) {
+    buffer.push(entry.name);
+
+    if(entry.count !== prevCount) {
+      console.log(`${entry.count} :: ${buffer.join(', ')}`);
+
+      prevCount = entry.count;
+      buffer = [];
+    }
   }
 
   console.log('\nWORDS\n');
@@ -120,8 +138,19 @@ async function readUnicodeData() {
     ret.push({ name, count: nameBuffer[name] });
   }
 
+  ret.sort(compareFn);
+  buffer = [];
+  prevCount = ret[0].count;
+
   for(const entry of ret.sort(compareFn)) {
-    console.log(`${entry.count} :: ${entry.name}`);
+    buffer.push(entry.name);
+
+    if(entry.count !== prevCount) {
+      console.log(`${entry.count} :: ${buffer.join(', ')}`);
+
+      prevCount = entry.count;
+      buffer = [];
+    }
   }
 
   console.log('\nNUMBERS\n');
@@ -179,6 +208,8 @@ async function readBlocks() {
     crlfDelay: Infinity
   });
 
+  let i = 0;
+
   for await (const line of rl) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
@@ -186,26 +217,31 @@ async function readBlocks() {
 
     const split = line.split('; ');
     const blockName = split[1].toUpperCase().replace(/[ \-]/g, '_');
-    const value = split[0].split('..')[0];
+    const values = split[0].split('..');
+    const size = parseInt(values[1], 16) - parseInt(values[0], 16);
 
-    macros.push(`#define UCX_BLOCK_${blockName} 0x${value}`);
-    entries.push(`    "${split[1]}"`);
+    macros.push(`#define UCX_BLOCK_${blockName} ${i++}`);
+    entries.push(`    { 0x${values[0]}, ${size}, "${split[1]}" }`);
   }
 
   const fheader = `${header('blocks')}
 
-${macros.join('\n')}
+#include "ucx.h"
 
 #define UCX_BLOCK_NUM ${macros.length}
 
-extern const char* ucx_blocks[UCX_BLOCK_NUM];
+${macros.join('\n')}
+
+extern ucx_block ucx_blocks[UCX_BLOCK_NUM];
 
 ${footer('blocks')}
 `;
 
   const ffile = `${license()}
 
-const char* ucx_blocks[] = {
+#include "blocks.h"
+
+ucx_block ucx_blocks[] = {
 ${entries.join(',\n')}
 };
 `;

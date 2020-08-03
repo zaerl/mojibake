@@ -67,16 +67,16 @@ static void ucx_codepoint_is_valid_test() {
     uctx_assert("not valid exceed codepoint", !validity);
 
     validity = ucx_codepoint_is_valid(0x1FFFE);
-    uctx_assert("not valid codepoint ending in 0XFFFE", !validity);
+    uctx_assert("not valid codepoint ending in 0xFFFE", !validity);
 
     validity = ucx_codepoint_is_valid(0x1FFFF);
-    uctx_assert("not valid codepoint ending in 0XFFFF", !validity);
+    uctx_assert("not valid codepoint ending in 0xFFFF", !validity);
 
     validity = ucx_codepoint_is_valid(0xFFFE);
-    uctx_assert("not valid codepoint 0XFFFE", !validity);
+    uctx_assert("not valid codepoint 0xFFFE", !validity);
 
     validity = ucx_codepoint_is_valid(0xFFFF);
-    uctx_assert("not valid codepoint 0XFFFF", !validity);
+    uctx_assert("not valid codepoint 0xFFFF", !validity);
 
     char buffer[32];
 
@@ -218,6 +218,22 @@ static void ucx_string_is_utf8_test() {
     uctx_assert("Invalid continuation byte", is_utf8);
 }
 
+static void ucx_codepoint_get_character_test() {
+    const ucx_character* character = ucx_codepoint_get_character(UCX_CODEPOINT_MAX);
+    uctx_assert("invalid codepoint", character == NULL);
+
+    character = ucx_codepoint_get_character('$');
+    uctx_assert("Codepoint $", strcmp(character->name, "DOLLAR SIGN") == 0);
+
+    /* 0xE0 = à */
+    character = ucx_codepoint_get_character(0xE0);
+    uctx_assert("Codepoint $", strcmp(character->name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
+
+    /* 0x1F642 = 🙂 */
+    character = ucx_codepoint_get_character(0x1F642);
+    uctx_assert("Codepoint $", strcmp(character->name, "SLIGHTLY SMILING FACE") == 0);
+}
+
 int main(int argc, const char * argv[]) {
     printf("Unicodex %s test\n\n", ucx_get_version());
 
@@ -230,6 +246,7 @@ int main(int argc, const char * argv[]) {
     ucxt_run_test("String get encoding", ucx_string_get_encoding_test);
     ucxt_run_test("String is ASCII", ucx_string_is_ascii_test);
     ucxt_run_test("String is UTF-8", ucx_string_is_utf8_test);
+    ucxt_run_test("Codepoint get character", ucx_codepoint_get_character_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";
