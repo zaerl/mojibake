@@ -1,4 +1,4 @@
-This is the Unidex library.
+This is the mojibake library.
 
-Repository: https://github.com/XXX
-Issues:     https://github.com/XXX/issues
+Repository: https://github.com/zaerl/mojibake
+Issues:     https://github.com/zaerl/mojibake/issues

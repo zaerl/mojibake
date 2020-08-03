@@ -33,19 +33,19 @@ function header(name: string): string {
 
   return `${license()}
 
-#ifndef UCX_${name}_H
-#define UCX_${name}_H`;
+#ifndef MB_${name}_H
+#define MB_${name}_H`;
 }
 
 function footer(name: string): string {
   name = name.toUpperCase();
 
-  return `#endif /* UCX_${name}_H */`;
+  return `#endif /* MB_${name}_H */`;
 }
 
 function license(): string {
   return `/**
- * The UCX library
+ * The mojibake library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  *
@@ -91,7 +91,7 @@ async function readUnicodeData() {
       }
     }
 
-    entries.push(`    { 0x${split[0]}, UCX_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
+    entries.push(`    { 0x${split[0]}, MB_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -178,11 +178,11 @@ async function readUnicodeData() {
 
   const fheader = `${header('unicode_data')}
 
-#include "ucx.h"
+#include "mb.h"
 
-#define UCX_CHARACTER_MAX ${lines}
+#define MB_CHARACTER_MAX ${lines}
 
-extern ucx_character ucx_characters[UCX_CHARACTER_MAX];
+extern mb_character mb_characters[MB_CHARACTER_MAX];
 
 ${footer('unicode_data')}
 `;
@@ -191,7 +191,7 @@ ${footer('unicode_data')}
 
 #include "unicode_data.h"
 
-ucx_character ucx_characters[] = {
+mb_character mb_characters[] = {
 ${entries.join(',\n')}
 };\n`;
 
@@ -220,19 +220,19 @@ async function readBlocks() {
     const values = split[0].split('..');
     const size = parseInt(values[1], 16) - parseInt(values[0], 16);
 
-    macros.push(`#define UCX_BLOCK_${blockName} ${i++}`);
+    macros.push(`#define MB_BLOCK_${blockName} ${i++}`);
     entries.push(`    { 0x${values[0]}, ${size}, "${split[1]}" }`);
   }
 
   const fheader = `${header('blocks')}
 
-#include "ucx.h"
+#include "mb.h"
 
-#define UCX_BLOCK_NUM ${macros.length}
+#define MB_BLOCK_NUM ${macros.length}
 
 ${macros.join('\n')}
 
-extern ucx_block ucx_blocks[UCX_BLOCK_NUM];
+extern mb_block mb_blocks[MB_BLOCK_NUM];
 
 ${footer('blocks')}
 `;
@@ -241,7 +241,7 @@ ${footer('blocks')}
 
 #include "blocks.h"
 
-ucx_block ucx_blocks[] = {
+mb_block mb_blocks[] = {
 ${entries.join(',\n')}
 };
 `;

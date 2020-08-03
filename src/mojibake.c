@@ -1,93 +1,93 @@
 /**
- * The UCX library
+ * The mojibake library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
 #include <string.h>
 
-#include "ucx.h"
+#include "mb.h"
 #include "version.h"
 #include "unicode_data.h"
 
-#ifndef UCX_EXTERN
-#define UCX_EXTERN extern
+#ifndef MB_EXTERN
+#define MB_EXTERN extern
 #endif
 
-#ifndef UCX_EXPORT
-#define UCX_EXPORT __attribute__((visibility("default")))
+#ifndef MB_EXPORT
+#define MB_EXPORT __attribute__((visibility("default")))
 #endif
 
-#define UCX_CONSTRUCTOR __attribute__((constructor))
-#define UCX_DESTRUCTOR __attribute__((destructor))
+#define MB_CONSTRUCTOR __attribute__((constructor))
+#define MB_DESTRUCTOR __attribute__((destructor))
 
-#define UCX_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
-#define UCX_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
-#define UCX_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
-#define UCX_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
-#define UCX_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
+#define MB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
+#define MB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
+#define MB_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
+#define MB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
+#define MB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
 /* Initializer. */
-UCX_CONSTRUCTOR static void initializer(void) {
+MB_CONSTRUCTOR static void initializer(void) {
 
 }
 
 /* Finalizer. */
-UCX_DESTRUCTOR static void finalizer(void) {
+MB_DESTRUCTOR static void finalizer(void) {
 
 }
 
-static ucx_encoding ucx_get_encoding_from_bom(const char *string,
+static mb_encoding mb_get_encoding_from_bom(const char *string,
     size_t length) {
     const unsigned char *buffer = (const unsigned char*)string;
 
     if(length < 2) {
         /* BOM are at least 2 characters */
-        return UCX_ENCODING_UNKNOWN;
+        return MB_ENCODING_UNKNOWN;
     }
 
     if(length >= 3) {
-        if(memcmp(buffer, UCX_ENCODING_UTF_8_BOM, 3) == 0) {
-            return UCX_ENCODING_UTF_8;
+        if(memcmp(buffer, MB_ENCODING_UTF_8_BOM, 3) == 0) {
+            return MB_ENCODING_UTF_8;
         }
     }
 
-    ucx_encoding bom_encoding = UCX_ENCODING_UNKNOWN;
+    mb_encoding bom_encoding = MB_ENCODING_UNKNOWN;
 
     if(length >= 4) {
-        if(memcmp(buffer, UCX_ENCODING_UTF_32_BE_BOM, 4) == 0) {
-            bom_encoding = UCX_ENCODING_UTF_32_BE;
-        } else if(memcmp(buffer, UCX_ENCODING_UTF_32_LE_BOM, 4) == 0) {
-            bom_encoding = UCX_ENCODING_UTF_32_LE;
+        if(memcmp(buffer, MB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
+            bom_encoding = MB_ENCODING_UTF_32_BE;
+        } else if(memcmp(buffer, MB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
+            bom_encoding = MB_ENCODING_UTF_32_LE;
         }
     }
 
     if(length >= 2) {
-        if(memcmp(buffer, UCX_ENCODING_UTF_16_BE_BOM, 2) == 0) {
-            bom_encoding = UCX_ENCODING_UTF_16_BE;
-        } else if(memcmp(buffer, UCX_ENCODING_UTF_16_LE_BOM, 2) == 0) {
+        if(memcmp(buffer, MB_ENCODING_UTF_16_BE_BOM, 2) == 0) {
+            bom_encoding = MB_ENCODING_UTF_16_BE;
+        } else if(memcmp(buffer, MB_ENCODING_UTF_16_LE_BOM, 2) == 0) {
             /* A UTF-32-LE document is also valid UTF-16-LE */
-            bom_encoding |= UCX_ENCODING_UTF_16_LE;
+            bom_encoding |= MB_ENCODING_UTF_16_LE;
         }
     }
 
     return bom_encoding;
 }
 
-UCX_EXPORT char* ucx_get_version() {
-    return UCX_VERSION;
+MB_EXPORT char* mb_get_version() {
+    return MB_VERSION;
 }
 
-UCX_EXPORT unsigned int ucx_get_version_number(void) {
-    return UCX_VERSION_NUMBER;
+MB_EXPORT unsigned int mb_get_version_number(void) {
+    return MB_VERSION_NUMBER;
 }
 
-UCX_EXPORT char* ucx_get_unicode_version() {
-    return UCX_UNICODE_VERSION;
+MB_EXPORT char* mb_get_unicode_version() {
+    return MB_UNICODE_VERSION;
 }
 
-UCX_EXPORT bool ucx_codepoint_is_valid(ucx_codepoint codepoint) {
-    if(codepoint < UCX_CODEPOINT_MIN || codepoint > UCX_CODEPOINT_MAX ||
+MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
+    if(codepoint < MB_CODEPOINT_MIN || codepoint > MB_CODEPOINT_MAX ||
        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||
        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) {
         return false;
@@ -96,12 +96,12 @@ UCX_EXPORT bool ucx_codepoint_is_valid(ucx_codepoint codepoint) {
     return true;
 }
 
-UCX_EXPORT bool ucx_codespace_plane_is_valid(ucx_codespace_plane plane) {
-    return plane >= 0 && plane < UCX_CODESPACE_PLANE_NUM;
+MB_EXPORT bool mb_codespace_plane_is_valid(mb_codespace_plane plane) {
+    return plane >= 0 && plane < MB_CODESPACE_PLANE_NUM;
 }
 
-UCX_EXPORT const char* ucx_codespace_plane_name(ucx_codespace_plane plane, bool full) {
-    if(!ucx_codespace_plane_is_valid(plane)) {
+MB_EXPORT const char* mb_codespace_plane_name(mb_codespace_plane plane, bool full) {
+    if(!mb_codespace_plane_is_valid(plane)) {
         return NULL;
     }
 
@@ -131,32 +131,32 @@ UCX_EXPORT const char* ucx_codespace_plane_name(ucx_codespace_plane plane, bool 
     return "Unassigned";
 }
 
-UCX_EXPORT ucx_encoding ucx_string_get_encoding(const char *buffer,
+MB_EXPORT mb_encoding mb_string_get_encoding(const char *buffer,
     size_t size) {
     if(buffer == 0 || size == 0) {
-        return UCX_ENCODING_UNKNOWN;
+        return MB_ENCODING_UNKNOWN;
     }
 
-    ucx_encoding bom_encoding = ucx_get_encoding_from_bom(buffer, size);
+    mb_encoding bom_encoding = mb_get_encoding_from_bom(buffer, size);
 
-    if(bom_encoding != UCX_ENCODING_UNKNOWN) {
+    if(bom_encoding != MB_ENCODING_UNKNOWN) {
         return bom_encoding;
     }
 
     /* No BOM, let's try UTF-8 */
-    if(ucx_string_is_utf8(buffer, size)) {
-        bom_encoding |= UCX_ENCODING_UTF_8;
+    if(mb_string_is_utf8(buffer, size)) {
+        bom_encoding |= MB_ENCODING_UTF_8;
     }
 
     /* No BOM, let's try ASCII */
-    if(ucx_string_is_ascii(buffer, size)) {
-        bom_encoding |= UCX_ENCODING_ASCII;
+    if(mb_string_is_ascii(buffer, size)) {
+        bom_encoding |= MB_ENCODING_ASCII;
     }
 
     return bom_encoding;
 }
 
-UCX_EXPORT bool ucx_string_is_utf8(const char *string, size_t size) {
+MB_EXPORT bool mb_string_is_utf8(const char *string, size_t size) {
     const unsigned char *buffer = (const unsigned char*)string;
     const unsigned char *end = buffer + size;
     unsigned char byte;
@@ -239,7 +239,7 @@ UCX_EXPORT bool ucx_string_is_utf8(const char *string, size_t size) {
     return true;
 }
 
-UCX_EXPORT bool ucx_string_is_ascii(const char *string, size_t size) {
+MB_EXPORT bool mb_string_is_ascii(const char *string, size_t size) {
     const unsigned char *buffer = (const unsigned char*)string;
     const unsigned char *end = buffer + size;
 
@@ -257,17 +257,17 @@ UCX_EXPORT bool ucx_string_is_ascii(const char *string, size_t size) {
     return 1;
 }
 
-UCX_EXPORT const ucx_character* ucx_codepoint_get_character(ucx_codepoint codepoint) {
-    if(!ucx_codepoint_is_valid(codepoint)) {
+MB_EXPORT const mb_character* mb_codepoint_get_character(mb_codepoint codepoint) {
+    if(!mb_codepoint_is_valid(codepoint)) {
         return NULL;
     }
 
-    return &ucx_characters[codepoint];
+    return &mb_characters[codepoint];
 }
 
-/* UCX_EXPORT const unsigned char* ucx_convert_encoding(const unsigned char *buffer,
- unsigned int size, ucx_encoding encoding) {
- if(buffer == 0 || size == 0 || encoding > UCX_ENCODING_UTF_32_LE) {
+/* MB_EXPORT const unsigned char* mb_convert_encoding(const unsigned char *buffer,
+ unsigned int size, mb_encoding encoding) {
+ if(buffer == 0 || size == 0 || encoding > MB_ENCODING_UTF_32_LE) {
  return 0;
  }
 

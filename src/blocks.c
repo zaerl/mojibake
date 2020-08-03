@@ -1,5 +1,5 @@
 /**
- * The UCX library
+ * The mojibake library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  *
@@ -8,7 +8,7 @@
 
 #include "blocks.h"
 
-ucx_block ucx_blocks[] = {
+mb_block mb_blocks[] = {
     { 0x0000, 127, "Basic Latin" },
     { 0x0080, 127, "Latin-1 Supplement" },
     { 0x0100, 127, "Latin Extended-A" },
