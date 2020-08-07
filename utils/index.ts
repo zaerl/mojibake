@@ -62,6 +62,8 @@ async function readUnicodeData() {
   let entries: string[] = [];
   let hasNumber: { [name: string]: number } = {};
   let previousCodepoint = 0;
+  let diffs = 0;
+  let codepoint = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -72,9 +74,12 @@ async function readUnicodeData() {
     const split = line.split(';');
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     const words = name.split(' ');
-    const codepoint = parseInt(split[0], 16);
+    const diff = codepoint - previousCodepoint;
 
-    if(codepoint - previousCodepoint > 1) {
+    codepoint = parseInt(split[0], 16);
+
+    if(diff > 1) {
+      diffs += diff;
       console.log(`STEP (${codepoint} -- ${codepoint - previousCodepoint})`);
     }
 
@@ -107,6 +112,8 @@ async function readUnicodeData() {
       }
     }
   };
+
+  console.log(`STEP TOTAL ${diffs}/${codepoint}`);
 
   const ret: Buffer[] = [];
   const ret2: Buffer[] = [];
@@ -142,11 +149,13 @@ async function readUnicodeData() {
   buffer = [];
   prevCount = ret[0].count;
 
-  for(const entry of ret.sort(compareFn)) {
+  for(const entry of ret) {
     buffer.push(entry.name);
 
     if(entry.count !== prevCount) {
-      console.log(`${entry.count} :: ${buffer.join(', ')}`);
+      const line = buffer.length > 10 ? buffer.slice(0, 10).join(', ') + '...' : buffer.join(', ');
+
+      console.log(`${entry.count} :: ${line}`);
 
       prevCount = entry.count;
       buffer = [];

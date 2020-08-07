@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#ifndef MB_H
-#define MB_H
+#ifndef MB_MOJIBAKE_H
+#define MB_MOJIBAKE_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -18,7 +18,8 @@
 typedef uint32_t mb_codepoint;
 
 #define MB_CODEPOINT_MIN 0x0
-#define MB_CODEPOINT_MAX 0x10FFFF
+#define MB_CODEPOINT_MAX 0x10FFFF // Maximum valid unicode code point
+#define MB_CODEPOINT_REPLACEMENT = 0xFFFD // The character used when there is invalid data
 
 /*
  A unicode codepoint general category
@@ -133,4 +134,4 @@ const mb_character* mb_codepoint_get_character(mb_codepoint codepoint);
 }
 #endif
 
-#endif /* MB_UNICODEX_H */
+#endif /* MB_MOJIBAKE_H */

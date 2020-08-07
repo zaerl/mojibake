@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-#include "mb.h"
+#include "mojibake.h"
 #include "version.h"
 #include "unicode_data.h"
 

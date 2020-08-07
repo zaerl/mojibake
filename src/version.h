@@ -16,4 +16,4 @@
 #define MB_UNICODE_VERSION_MAJOR 13
 #define MB_UNICODE_VERSION_MINOR 0
 
-#endif /* MB_UNICODEX_H */
+#endif /* MB_VERSION_H */
