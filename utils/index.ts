@@ -1,5 +1,6 @@
 import { writeFileSync, createReadStream } from 'fs';
 import { createInterface } from 'readline';
+import { exit } from 'process';
 
 interface Buffer {
   name: string;
@@ -74,13 +75,12 @@ async function readUnicodeData() {
     const split = line.split(';');
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     const words = name.split(' ');
-    const diff = codepoint - previousCodepoint;
-
     codepoint = parseInt(split[0], 16);
+    const diff = codepoint - previousCodepoint;
 
     if(diff > 1) {
       diffs += diff;
-      console.log(`STEP (${codepoint} -- ${codepoint - previousCodepoint})`);
+      console.log(`STEP (${split[0]} -- ${codepoint - previousCodepoint})`);
     }
 
     previousCodepoint = codepoint;
@@ -113,7 +113,7 @@ async function readUnicodeData() {
     }
   };
 
-  console.log(`STEP TOTAL ${diffs}/${codepoint}`);
+  console.log(`STEP TOTAL ${diffs}/${codepoint}\n`);
 
   const ret: Buffer[] = [];
   const ret2: Buffer[] = [];
