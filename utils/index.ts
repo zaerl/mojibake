@@ -1,6 +1,6 @@
-import { writeFileSync, createReadStream } from 'fs';
+import { createReadStream, writeFileSync, unlinkSync } from 'fs';
 import { createInterface } from 'readline';
-import { exit } from 'process';
+import { verbose, Statement } from 'sqlite3';
 
 interface Buffer {
   name: string;
@@ -54,7 +54,7 @@ function license(): string {
  */`;
 }
 
-async function readUnicodeData() {
+async function readUnicodeData(stmt: Statement) {
   const nameBuffer: { [name: string]: number } = {};
   const categoryBuffer: { [name: string]: number } = {};
   let charsCount = 0;
@@ -97,6 +97,7 @@ async function readUnicodeData() {
     }
 
     entries.push(`    { 0x${split[0]}, MB_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
+    stmt.run(codepoint, name);
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -112,6 +113,8 @@ async function readUnicodeData() {
       }
     }
   };
+
+  stmt.finalize();
 
   console.log(`STEP TOTAL ${diffs}/${codepoint}\n`);
 
@@ -208,7 +211,7 @@ ${entries.join(',\n')}
   writeFileSync('../src/unicode_data.c', ffile);
 }
 
-async function readBlocks() {
+async function readBlocks(stmt: Statement) {
   const macros: string[] = [];
   const entries: string[] = [];
 
@@ -250,7 +253,7 @@ ${footer('blocks')}
 
 #include "blocks.h"
 
-mb_block mb_blocks[] = {
+mb_block mb_blocks[] = {  3€dt
 ${entries.join(',\n')}
 };
 `;
@@ -259,5 +262,28 @@ ${entries.join(',\n')}
   writeFileSync('../src/blocks.c', ffile);
 }
 
-readUnicodeData();
-readBlocks();
+// Remove old database
+unlinkSync('./out.db');
+
+const sqlite = verbose();
+const db = new sqlite.Database('./out.db', (err: Error | null) => {
+  console.error(err?.message);
+});
+
+db.serialize(() => {
+  db.run('CREATE TABLE data(id INTEGER NOT NULL PRIMARY KEY, name TEXT NOT NULL) WITHOUT ROWID');
+  const stmt = db.prepare('INSERT INTO data VALUES (?, ?)');
+
+  db.run('BEGIN TRANSACTION');
+
+  readUnicodeData(stmt);
+  readBlocks(stmt);
+
+  db.run('END');
+});
+
+db.close((err: Error | null) => {
+  if(err) {
+    return console.error(err.message);
+  }
+});

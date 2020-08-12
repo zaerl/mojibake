@@ -9,7 +9,7 @@
 #ifndef MB_BLOCKS_H
 #define MB_BLOCKS_H
 
-#include "mb.h"
+#include "mojibake.h"
 
 #define MB_BLOCK_NUM 308
 
