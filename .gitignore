@@ -1,5 +1,6 @@
 build
 utils/node_modules
 utils/UCD
-utils/Unihan
+utils/unihan
+utils/sqlite
 *.db
