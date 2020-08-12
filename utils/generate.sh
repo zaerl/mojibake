@@ -22,8 +22,8 @@ if [ ! -d "./sqlite" ] ; then
     mv "sqlite-amalgamation-$SQLITE_VERSION" sqlite
     rm sqlite.zip
     mkdir ../src/sqlite
-    mv sqlite/sqlite3.h ../src/sqlite/sqlite3.h
-    mv sqlite/sqlite3.c ../src/sqlite/sqlite3.c
+    cp sqlite/sqlite3.h ../src/sqlite
+    cp sqlite/sqlite3.c ../src/sqlite
 fi
 
 npm run generate
