@@ -53,23 +53,23 @@ typedef struct mb_block {
 } mb_block;
 
 /* General categories */
-#define MB_GENERAL_CATEGORY_LU  0 /* Lu Letter, Uppercase */
-#define MB_GENERAL_CATEGORY_LL  1 /* Ll Letter, Lowercase */
-#define MB_GENERAL_CATEGORY_LT  2 /* Lt Letter, Titlecase */
-#define MB_GENERAL_CATEGORY_LM  3 /* Lm Letter, Modifier */
-#define MB_GENERAL_CATEGORY_LO  4 /* Lo Letter, Other */
-#define MB_GENERAL_CATEGORY_MN  5 /* Mn Mark, Non-Spacing */
-#define MB_GENERAL_CATEGORY_MC  6 /* Mc Mark, Spacing Combining */
-#define MB_GENERAL_CATEGORY_ME  7 /* Me Mark, Enclosing */
-#define MB_GENERAL_CATEGORY_ND  8 /* Nd Number, Decimal Digit */
-#define MB_GENERAL_CATEGORY_NL  9 /* Nl Number, Letter */
+#define MB_GENERAL_CATEGORY_LU 0 /* Lu Letter, Uppercase */
+#define MB_GENERAL_CATEGORY_LL 1 /* Ll Letter, Lowercase */
+#define MB_GENERAL_CATEGORY_LT 2 /* Lt Letter, Titlecase */
+#define MB_GENERAL_CATEGORY_LM 3 /* Lm Letter, Modifier */
+#define MB_GENERAL_CATEGORY_LO 4 /* Lo Letter, Other */
+#define MB_GENERAL_CATEGORY_MN 5 /* Mn Mark, Non-Spacing */
+#define MB_GENERAL_CATEGORY_MC 6 /* Mc Mark, Spacing Combining */
+#define MB_GENERAL_CATEGORY_ME 7 /* Me Mark, Enclosing */
+#define MB_GENERAL_CATEGORY_ND 8 /* Nd Number, Decimal Digit */
+#define MB_GENERAL_CATEGORY_NL 9 /* Nl Number, Letter */
 #define MB_GENERAL_CATEGORY_NO 10 /* No Number, Other */
 #define MB_GENERAL_CATEGORY_PC 11 /* Pc Punctuation, Connector */
 #define MB_GENERAL_CATEGORY_PD 12 /* Pd Punctuation, Dash */
 #define MB_GENERAL_CATEGORY_PS 13 /* Ps Punctuation, Open */
 #define MB_GENERAL_CATEGORY_PE 14 /* Pe Punctuation, Close */
-#define MB_GENERAL_CATEGORY_PI 15 /* Pi Punctuation, Initial quote (may behave like Ps or Pe depending on usage) */
-#define MB_GENERAL_CATEGORY_PF 16 /* Pf Punctuation, Final quote (may behave like Ps or Pe depending on usage) */
+#define MB_GENERAL_CATEGORY_PI 15 /* Pi Punctuation, Initial quote */
+#define MB_GENERAL_CATEGORY_PF 16 /* Pf Punctuation, Final quote */
 #define MB_GENERAL_CATEGORY_PO 17 /* Po Punctuation, Other */
 #define MB_GENERAL_CATEGORY_SM 18 /* Sm Symbol, Math */
 #define MB_GENERAL_CATEGORY_SC 19 /* Sc Symbol, Currency */
@@ -82,7 +82,7 @@ typedef struct mb_block {
 #define MB_GENERAL_CATEGORY_CF 26 /* Cf Other, Format */
 #define MB_GENERAL_CATEGORY_CS 27 /* Cs Other, Surrogate */
 #define MB_GENERAL_CATEGORY_CO 28 /* Co Other, Private Use */
-#define MB_GENERAL_CATEGORY_CN 29 /* Cn Other, Not Assigned (no characters in the file have this property) */
+#define MB_GENERAL_CATEGORY_CN 29 /* Cn Other, Not Assigned */
 
 /* Unicode planes */
 typedef uint8_t mb_codespace_plane;
