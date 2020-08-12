@@ -385,7 +385,7 @@ async function readUnicodeData(stmt: Statement) {
   console.log(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
 }
 
-const dbName = './out.db';
+const dbName = '../src/mojibake.db';
 const sqlite = verbose();
 
 // Remove old database

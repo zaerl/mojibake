@@ -3,4 +3,3 @@ utils/node_modules
 utils/UCD
 utils/unihan
 utils/sqlite
-*.db
