@@ -1,4 +1,4 @@
-import { createReadStream, writeFileSync, unlinkSync } from 'fs';
+import { createReadStream, writeFileSync, unlinkSync, existsSync } from 'fs';
 import { createInterface } from 'readline';
 import { verbose, Statement } from 'sqlite3';
 
@@ -101,21 +101,22 @@ type CharacterDecomposition = [
 type Mirrored = 'Y' | 'N';
 
 type UnicodeDataRow = [
-  string, // codepoint
-  string, // character name
-  GeneralCategoriesStrings, // general category
-  string, // canonical combining classes
-  BidirectionalCategoriesStrings, // bidirectional category
-  string, // character decomposition mapping
-  string, // decimal digit value
-  string, // digit value
-  string, // numeric value
-  Mirrored, // mirrored
-  string, // unicode 1.0 name
-  string, // 10646 comment field
-  string, // uppercase mapping
-  string, // lowercase mapping
-  string // titlecase mapping
+  string, // 0 codepoint
+  string, // 1 character name
+  // block
+  GeneralCategoriesStrings, // 2 general category
+  string, // 3 canonical combining classes
+  BidirectionalCategoriesStrings, // 4 bidirectional category
+  string, // 5 character decomposition mapping
+  string, // 6 decimal digit value
+  string, // 7 digit value
+  string, // 8 numeric value
+  Mirrored, // 9 mirrored
+  string, // 10 unicode 1.0 name
+  string, // 11 10646 comment field
+  string, // 12 uppercase mapping
+  string, // 13 lowercase mapping
+  string // 14 titlecase mapping
 ];
 
 function compareFn(a: Buffer, b: Buffer): number {
@@ -159,6 +160,54 @@ function license(): string {
  */`;
 }
 
+async function readBlocks(stmt: Statement) {
+  console.log('READ BLOCKS');
+
+  const macros: string[] = [];
+
+  const rl = createInterface({
+    input: createReadStream('./UCD/Blocks.txt'),
+    crlfDelay: Infinity
+  });
+
+  let i = 0;
+
+  for await (const line of rl) {
+    if(line.startsWith('#') || line === '') { // Comment
+      continue;
+    }
+
+    const split = line.split('; ');
+    const name = split[1].toUpperCase().replace(/[ \-]/g, '_');
+    const values = split[0].split('..');
+    const start = parseInt(values[0], 16);
+    const end = parseInt(values[1], 16);
+
+    macros.push(`#define MB_BLOCK_${name} ${i++}`);
+
+    stmt.run(
+      split[1],
+      start,
+      end
+    );
+  }
+
+  stmt.finalize();
+
+  const fheader = `${header('blocks')}
+
+#include "mojibake.h"
+
+#define MB_BLOCK_NUM ${macros.length}
+
+${macros.join('\n')}
+
+${footer('blocks')}
+`;
+
+  writeFileSync('../src/blocks.h', fheader);
+}
+
 async function readUnicodeData(stmt: Statement) {
   console.log('READ UNICODE DATA');
 
@@ -166,7 +215,6 @@ async function readUnicodeData(stmt: Statement) {
   const categoryBuffer: { [name: string]: number } = {};
   let charsCount = 0;
   let wordsCount = 0;
-  let lines = 0;
   let entries: string[] = [];
   let hasNumber: { [name: string]: number } = {};
   let previousCodepoint = 0;
@@ -191,7 +239,6 @@ async function readUnicodeData(stmt: Statement) {
     }
 
     previousCodepoint = codepoint;
-    ++lines;
     charsCount += name.length;
     wordsCount += words.length;
 
@@ -208,21 +255,24 @@ async function readUnicodeData(stmt: Statement) {
     const decomposition = split[5].split(' ') as CharacterDecomposition;
 
     stmt.run(
-      codepoint,
-      name,
+      codepoint, // 0
+      name, // 1
       0, // Block
       GeneralCategory[split[2]],
       split[3],
       split[4] === '' ? null : BidirectionalCategories[split[4]],
       decomposition[0] === '' ? null : CharacterDecompositionMapping[decomposition[0]],
+
       split[6] === '' ? null : split[6],
       split[7] === '' ? null : split[7],
-      split[8] === 'Y' ? 1 : 0,
+      split[8] === '' ? null : split[8],
+
+      split[9] === 'Y' ? 1 : 0,
       // unicode 1.0 name
       // 10646 comment field
-      split[11] === '' ? null : split[11],
       split[12] === '' ? null : split[12],
-      split[13] === '' ? null : split[13]
+      split[13] === '' ? null : split[13],
+      split[14] === '' ? null : split[14]
     );
 
     for(const word of words) {
@@ -313,88 +363,17 @@ async function readUnicodeData(stmt: Statement) {
   console.log('\nCOUNT\n');
   console.log(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
   console.log(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
-
-  const fheader = `${header('unicode_data')}
-
-#include "mojibake.h"
-
-#define MB_CHARACTER_MAX ${lines}
-
-extern mb_character mb_characters[MB_CHARACTER_MAX];
-
-${footer('unicode_data')}
-`;
-
-  const ffile = `${license()}
-
-#include "unicode_data.h"
-
-mb_character mb_characters[] = {
-${entries.join(',\n')}
-};\n`;
-
-  writeFileSync('../src/unicode_data.h', fheader);
-  writeFileSync('../src/unicode_data.c', ffile);
 }
 
-async function readBlocks(stmt: Statement) {
-  console.log('READ BLOCKS');
-
-  const macros: string[] = [];
-  const entries: string[] = [];
-
-  const rl = createInterface({
-    input: createReadStream('./UCD/Blocks.txt'),
-    crlfDelay: Infinity
-  });
-
-  let i = 0;
-
-  for await (const line of rl) {
-    if(line.startsWith('#') || line === '') { // Comment
-      continue;
-    }
-
-    const split = line.split('; ');
-    const blockName = split[1].toUpperCase().replace(/[ \-]/g, '_');
-    const values = split[0].split('..');
-    const size = parseInt(values[1], 16) - parseInt(values[0], 16);
-
-    macros.push(`#define MB_BLOCK_${blockName} ${i++}`);
-    entries.push(`    { 0x${values[0]}, ${size}, "${split[1]}" }`);
-  }
-
-  const fheader = `${header('blocks')}
-
-#include "mojibake.h"
-
-#define MB_BLOCK_NUM ${macros.length}
-
-${macros.join('\n')}
-
-extern mb_block mb_blocks[MB_BLOCK_NUM];
-
-${footer('blocks')}
-`;
-
-  const ffile = `${license()}
-
-#include "blocks.h"
-
-mb_block mb_blocks[] = {
-${entries.join(',\n')}
-};
-`;
-
-  writeFileSync('../src/blocks.h', fheader);
-  writeFileSync('../src/blocks.c', ffile);
-}
+const dbName = './out.db';
+const sqlite = verbose();
 
 // Remove old database
-unlinkSync('./out.db');
+if(existsSync(dbName)) {
+  unlinkSync(dbName);
+}
 
-const sqlite = verbose();
-const db = new sqlite.Database('./out.db', (err: Error | null) => {
+const db = new sqlite.Database(dbName, (err: Error | null) => {
   console.error(err?.message);
 });
 
@@ -403,7 +382,7 @@ db.serialize(async () => {
   db.run('BEGIN TRANSACTION');
 
   db.run(
-`CREATE TABLE data(
+`CREATE TABLE characters(
   codepoint INTEGER NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   block INTEGER NOT NULL,
@@ -420,10 +399,18 @@ db.serialize(async () => {
   tc TEXT
 ) WITHOUT ROWID`);
 
-  const stmt = db.prepare('INSERT INTO data VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+db.run(
+`CREATE TABLE blocks(
+  name TEXT NOT NULL,
+  start INTEGER NOT NULL,
+  end INTEGER NOT NULL
+)`);
 
-  await readUnicodeData(stmt);
-  await readBlocks(stmt);
+  const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
+  const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+  await readBlocks(blockStmt);
+  await readUnicodeData(dataStmt);
 
   db.run('END');
 
