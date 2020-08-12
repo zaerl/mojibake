@@ -2,3 +2,4 @@ build
 utils/node_modules
 utils/UCD
 utils/Unihan
+*.db
