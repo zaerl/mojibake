@@ -190,7 +190,7 @@ async function readUnicodeData(stmt: Statement) {
 
   const fheader = `${header('unicode_data')}
 
-#include "mb.h"
+#include "mojibake.h"
 
 #define MB_CHARACTER_MAX ${lines}
 
@@ -238,7 +238,7 @@ async function readBlocks(stmt: Statement) {
 
   const fheader = `${header('blocks')}
 
-#include "mb.h"
+#include "mojibake.h"
 
 #define MB_BLOCK_NUM ${macros.length}
 
