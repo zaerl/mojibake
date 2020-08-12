@@ -8,7 +8,7 @@
 
 #include "mojibake.h"
 #include "version.h"
-#include "unicode_data.h"
+#include "sqlite/sqlite3.h"
 
 #ifndef MB_EXTERN
 #define MB_EXTERN extern
@@ -261,8 +261,6 @@ MB_EXPORT const mb_character* mb_codepoint_get_character(mb_codepoint codepoint)
     if(!mb_codepoint_is_valid(codepoint)) {
         return NULL;
     }
-
-    return &mb_characters[codepoint];
 }
 
 /* MB_EXPORT const unsigned char* mb_convert_encoding(const unsigned char *buffer,

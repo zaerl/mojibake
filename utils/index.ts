@@ -394,9 +394,9 @@ db.serialize(async () => {
   digit TEXT,
   numeric TEXT,
   mirrored INTEGER,
-  uc TEXT,
-  lc TEXT,
-  tc TEXT
+  uppercase TEXT,
+  lowercase TEXT,
+  titlecase TEXT
 ) WITHOUT ROWID`);
 
 db.run(
