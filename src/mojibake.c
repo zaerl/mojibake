@@ -83,12 +83,12 @@ MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
     return true;
 }
 
-MB_EXPORT bool mb_codespace_plane_is_valid(mb_codespace_plane plane) {
-    return plane >= 0 && plane < MB_CODESPACE_PLANE_NUM;
+MB_EXPORT bool mb_plane_is_valid(mb_plane plane) {
+    return plane >= 0 && plane < MB_PLANE_NUM;
 }
 
-MB_EXPORT const char* mb_codespace_plane_name(mb_codespace_plane plane, bool full) {
-    if(!mb_codespace_plane_is_valid(plane)) {
+MB_EXPORT const char* mb_plane_name(mb_plane plane, bool full) {
+    if(!mb_plane_is_valid(plane)) {
         return NULL;
     }
 

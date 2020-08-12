@@ -87,34 +87,34 @@ static void mb_codepoint_is_valid_test() {
     }
 }
 
-static void mb_codespace_plane_is_valid_test() {
-    bool validity = mb_codespace_plane_is_valid(1);
+static void mb_plane_is_valid_test() {
+    bool validity = mb_plane_is_valid(1);
     mb_assert("valid codespace plane", validity);
 
-    validity = mb_codespace_plane_is_valid(-1);
+    validity = mb_plane_is_valid(-1);
     mb_assert("not valid negative codespace plane", !validity);
 
-    validity = mb_codespace_plane_is_valid(MB_CODESPACE_PLANE_NUM);
+    validity = mb_plane_is_valid(MB_PLANE_NUM);
     mb_assert("not valid exceed codespace plane", !validity);
 }
 
-static void mb_codespace_plane_name_test() {
-    bool validity = strcmp(mb_codespace_plane_name(0, false), "BMP") == 0;
+static void mb_plane_name_test() {
+    bool validity = strcmp(mb_plane_name(0, false), "BMP") == 0;
     mb_assert("valid codespace plane name abbreviation", validity);
 
-    validity = strcmp(mb_codespace_plane_name(0, true), "Basic Multilingual Plane") == 0;
+    validity = strcmp(mb_plane_name(0, true), "Basic Multilingual Plane") == 0;
     mb_assert("valid codespace plane name full", validity);
 
-    validity = mb_codespace_plane_name(-1, false) == NULL;
+    validity = mb_plane_name(-1, false) == NULL;
     mb_assert("invalid codespace plane low", validity);
 
-    validity = mb_codespace_plane_name(MB_CODESPACE_PLANE_NUM, false) == NULL;
+    validity = mb_plane_name(MB_PLANE_NUM, false) == NULL;
     mb_assert("invalid codespace plane high", validity);
 
-    validity = strcmp(mb_codespace_plane_name(4, false), "Unassigned") == 0;
+    validity = strcmp(mb_plane_name(4, false), "Unassigned") == 0;
     mb_assert("unassigned codespace plane abbreviation", validity);
 
-    validity = strcmp(mb_codespace_plane_name(4, true), "Unassigned") == 0;
+    validity = strcmp(mb_plane_name(4, true), "Unassigned") == 0;
     mb_assert("unassigned codespace plane full", validity);
 }
 
@@ -239,8 +239,8 @@ int main(int argc, const char * argv[]) {
     mb_run_test("Get version number", mb_get_version_number_test);
     mb_run_test("Get unicode version", mb_get_unicode_version_test);
     mb_run_test("Codepoint is valid", mb_codepoint_is_valid_test);
-    mb_run_test("Codespace plane is valid", mb_codespace_plane_is_valid_test);
-    mb_run_test("Codespace plane name", mb_codespace_plane_name_test);
+    mb_run_test("Codespace plane is valid", mb_plane_is_valid_test);
+    mb_run_test("Codespace plane name", mb_plane_name_test);
     mb_run_test("String get encoding", mb_string_get_encoding_test);
     mb_run_test("String is ASCII", mb_string_is_ascii_test);
     mb_run_test("String is UTF-8", mb_string_is_utf8_test);

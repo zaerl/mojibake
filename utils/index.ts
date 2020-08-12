@@ -13,7 +13,7 @@ interface Numeric {
   count: number;
 }
 
-enum GeneralCategory {
+enum Category {
   Lu,
   Ll,
   Lt,
@@ -46,7 +46,7 @@ enum GeneralCategory {
   Cn
 }
 
-const generalCategories = [
+const categories = [
   'Letter, Uppercase',
   'Letter, Lowercase',
   'Letter, Titlecase',
@@ -79,7 +79,7 @@ const generalCategories = [
   'Other, Not Assigned',
 ];
 
-type GeneralCategoriesStrings = keyof typeof GeneralCategory;
+type CategoriesStrings = keyof typeof Category;
 
 enum BidirectionalCategories {
   L,
@@ -137,7 +137,7 @@ type UnicodeDataRow = [
   string, // 0 codepoint
   string, // 1 character name
   // block
-  GeneralCategoriesStrings, // 2 general category
+  CategoriesStrings, // 2 category
   string, // 3 canonical combining classes
   BidirectionalCategoriesStrings, // 4 bidirectional category
   string, // 5 character decomposition mapping
@@ -191,7 +191,7 @@ function license(): string {
  */`;
 }
 
-async function readBlocks(stmt: Statement) {
+async function readBlocks(stmt: Statement): Promise<string[]> {
   console.log('READ BLOCKS');
 
   const macros: string[] = [];
@@ -225,19 +225,7 @@ async function readBlocks(stmt: Statement) {
 
   stmt.finalize();
 
-  const fheader =
-`${header('blocks')}
-
-#include "mojibake.h"
-
-#define MB_BLOCK_NUM ${macros.length}
-
-${macros.join('\n')}
-
-${footer('blocks')}
-`;
-
-  writeFileSync('../src/blocks.h', fheader);
+  return macros;
 }
 
 async function readUnicodeData(stmt: Statement) {
@@ -282,7 +270,7 @@ async function readUnicodeData(stmt: Statement) {
       }
     }
 
-    entries.push(`    { 0x${split[0]}, MB_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
+    entries.push(`    { 0x${split[0]}, MB_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
 
     const decomposition = split[5].split(' ') as CharacterDecomposition;
 
@@ -290,7 +278,7 @@ async function readUnicodeData(stmt: Statement) {
       codepoint, // 0
       name, // 1
       0, // Block
-      GeneralCategory[split[2]],
+      Category[split[2]],
       split[3],
       split[4] === '' ? null : BidirectionalCategories[split[4]],
       decomposition[0] === '' ? null : CharacterDecompositionMapping[decomposition[0]],
@@ -333,7 +321,7 @@ async function readUnicodeData(stmt: Statement) {
     ret2.push({ name, count: categoryBuffer[name] });
   }
 
-  console.log('GENERAL CATEGORIES\n');
+  console.log('CATEGORIES\n');
 
   ret2.sort(compareFn);
   let buffer: string[] = [];
@@ -441,13 +429,13 @@ db.run(
   const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
   const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-  await readBlocks(blockStmt);
+  const blocks = await readBlocks(blockStmt);
   await readUnicodeData(dataStmt);
 
-  const categories: string[] = [];
+  const categoryMacros: string[] = [];
 
-  for(let i = 0; i < generalCategories.length; ++i) {
-    categories.push(`#define MB_GENERAL_CATEGORY_${GeneralCategory[i].toUpperCase()} ${i} /* ${GeneralCategory[i]} ${generalCategories[i]} */`);
+  for(let i = 0; i < categories.length; ++i) {
+    categoryMacros.push(`#define MB_CATEGORY_${Category[i].toUpperCase()} ${i} /* ${Category[i]} ${categories[i]} */`);
   }
 
   const fheader =
@@ -464,12 +452,12 @@ db.run(
 typedef uint32_t mb_codepoint;
 
 #define MB_CODEPOINT_MIN 0x0
-#define MB_CODEPOINT_MAX 0x10FFFF // Maximum valid unicode code point
-#define MB_CODEPOINT_REPLACEMENT = 0xFFFD // The character used when there is invalid data
+#define MB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
+#define MB_CODEPOINT_REPLACEMENT = 0xFFFD /* The character used when there is invalid data */
 
 /*
- A unicode codepoint general category
- [see: https://www.unicode.org/glossary/#general_category]
+ A unicode character
+ [see: https://www.unicode.org/glossary/#character]
  */
 typedef struct mb_character {
     mb_codepoint codepoint;
@@ -489,27 +477,41 @@ typedef struct mb_character {
 } mb_character;
 
 /*
- A unicode block
- [see: https://www.unicode.org/glossary/#block]
+ Unicode codepoint general category
+ [see: https://www.unicode.org/glossary/#general_category]
  */
-typedef struct mb_block {
-    uint32_t start;
-    uint32_t size;
-    char* name;
-} mb_block;
+typedef uint32_t mb_category;
 
-/* General categories */
-${categories.join('\n')}
+#define MB_CATEGORY_NUM ${categoryMacros.length}
 
-/* Unicode planes */
-typedef uint8_t mb_codespace_plane;
-
-#define MB_CODESPACE_PLANE_NUM 17 /* 17 planes */
-#define MB_CODESPACE_PLANE_SIZE 65536 /* 2^16 code points per plane */
+${categoryMacros.join('\n')}
 
 /*
- A unicode encoding
- [see: https://www.unicode.org/glossary/#code_point]
+ Unicode block
+ [see: https://www.unicode.org/glossary/#block]
+*/
+typedef struct mb_block {
+  char* name;
+  uint32_t start;
+  uint32_t end;
+} mb_block;
+
+#define MB_BLOCK_NUM ${blocks.length}
+
+${blocks.join('\n')}
+
+/*
+ Unicode plane
+ [see: https://www.unicode.org/glossary/#plane]
+*/
+typedef uint8_t mb_plane;
+
+#define MB_PLANE_NUM 17 /* 17 planes */
+#define MB_PLANE_SIZE 65536 /* 2^16 code points per plane */
+
+/*
+ Unicode encoding
+ [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef uint32_t mb_encoding;
 
@@ -538,10 +540,10 @@ char* mb_get_unicode_version(void);
 bool mb_codepoint_is_valid(mb_codepoint codepoint);
 
 /* Return true if the plane is valid */
-bool mb_codespace_plane_is_valid(mb_codespace_plane plane);
+bool mb_plane_is_valid(mb_plane plane);
 
 /* Return the name of a plane, NULL if the place specified is not valid */
-const char* mb_codespace_plane_name(mb_codespace_plane plane, bool abbreviation);
+const char* mb_plane_name(mb_plane plane, bool abbreviation);
 
 /* Return the string encoding (the most probable) */
 mb_encoding mb_string_get_encoding(const char *buffer, size_t size);
@@ -552,7 +554,7 @@ bool mb_string_is_utf8(const char *buffer, size_t size);
 /* Return 1 if the string is encoded in ASCII */
 bool mb_string_is_ascii(const char *buffer, size_t size);
 
-/* Return the codepoint general category */
+/* Return the codepoint character */
 const mb_character* mb_codepoint_get_character(mb_codepoint codepoint);
 
 /* Return true if the codepoint is an high-surrogate or a low-surrogate */
