@@ -32,22 +32,22 @@ static void mb_run_test(char *name, mb_test test) {
     printf("\n");
 }
 
-static void mb_get_version_test() {
-    char *version = mb_get_version();
+static void mb_version_test() {
+    char *version = mb_version();
     size_t size = sizeof(MB_VERSION);
     int result = strncmp(version, MB_VERSION, size);
 
     mb_assert("valid version", result == 0);
 }
 
-static void mb_get_version_number_test() {
-    unsigned int version_number = mb_get_version_number();
+static void mb_version_number_test() {
+    unsigned int version_number = mb_version_number();
 
     mb_assert("valid version number", version_number == MB_VERSION_NUMBER);
 }
 
-static void mb_get_unicode_version_test() {
-    char *version = mb_get_unicode_version();
+static void mb_unicode_version_test() {
+    char *version = mb_unicode_version();
     size_t size = sizeof(MB_UNICODE_VERSION);
     int result = strncmp(version, MB_UNICODE_VERSION, size);
 
@@ -99,10 +99,10 @@ static void mb_plane_is_valid_test() {
 }
 
 static void mb_plane_name_test() {
-    bool validity = strcmp(mb_plane_name(0, false), "BMP") == 0;
+    bool validity = strcmp(mb_plane_name(0, true), "BMP") == 0;
     mb_assert("valid codespace plane name abbreviation", validity);
 
-    validity = strcmp(mb_plane_name(0, true), "Basic Multilingual Plane") == 0;
+    validity = strcmp(mb_plane_name(0, false), "Basic Multilingual Plane") == 0;
     mb_assert("valid codespace plane name full", validity);
 
     validity = mb_plane_name(-1, false) == NULL;
@@ -118,40 +118,40 @@ static void mb_plane_name_test() {
     mb_assert("unassigned codespace plane full", validity);
 }
 
-static void mb_string_get_encoding_test() {
-    mb_encoding encoding = mb_string_get_encoding(0, 10);
+static void mb_string_encoding_test() {
+    mb_encoding encoding = mb_string_encoding(0, 10);
     mb_assert("void string", encoding == MB_ENCODING_UNKNOWN);
 
-    encoding = mb_string_get_encoding("", 0);
+    encoding = mb_string_encoding("", 0);
     mb_assert("void length", encoding == MB_ENCODING_UNKNOWN);
 
-    encoding = mb_string_get_encoding(0, 0);
+    encoding = mb_string_encoding(0, 0);
     mb_assert("void string and length", encoding == MB_ENCODING_UNKNOWN);
 
     const char *test1 = "The quick brown fox jumps over the lazy dog";
-    encoding = mb_string_get_encoding(test1, 43);
+    encoding = mb_string_encoding(test1, 43);
     mb_assert("Plain ASCII (and UTF-8)", encoding == (MB_ENCODING_ASCII |
         MB_ENCODING_UTF_8));
 
     test1 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
-    encoding = mb_string_get_encoding(test1, 43 + 3);
+    encoding = mb_string_encoding(test1, 43 + 3);
     mb_assert("UTF-8 BOM", encoding == MB_ENCODING_UTF_8);
 
     test1 = "\xFE\xFFThe quick brown fox jumps over the lazy dog";
-    encoding = mb_string_get_encoding(test1, 43 + 2);
+    encoding = mb_string_encoding(test1, 43 + 2);
     mb_assert("UTF-16-BE BOM", encoding == MB_ENCODING_UTF_16_BE);
 
     test1 = "\xFF\xFEThe quick brown fox jumps over the lazy dog";
-    encoding = mb_string_get_encoding(test1, 43 + 2);
+    encoding = mb_string_encoding(test1, 43 + 2);
     mb_assert("UTF-16-LE BOM", encoding == MB_ENCODING_UTF_16_LE);
 
     test1 = "\x00\x00\xFE\xFFThe quick brown fox jumps over the lazy dog";
 
-    encoding = mb_string_get_encoding(test1, 43 + 4);
+    encoding = mb_string_encoding(test1, 43 + 4);
     mb_assert("UTF-32-BE BOM", encoding == MB_ENCODING_UTF_32_BE);
 
     test1 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
-    encoding = mb_string_get_encoding(test1, 43 + 4);
+    encoding = mb_string_encoding(test1, 43 + 4);
     mb_assert("UTF-32-LE BOM", encoding == (MB_ENCODING_UTF_32_LE |
         MB_ENCODING_UTF_16_LE));
 }
@@ -216,35 +216,35 @@ static void mb_string_is_utf8_test() {
     mb_assert("Invalid continuation byte", is_utf8);
 }
 
-static void mb_codepoint_get_character_test() {
-    const mb_character* character = mb_codepoint_get_character(MB_CODEPOINT_MAX);
+static void mb_codepoint_character_test() {
+    const mb_character* character = mb_codepoint_character(MB_CODEPOINT_MAX);
     mb_assert("invalid codepoint", character == NULL);
 
-    character = mb_codepoint_get_character('$');
-    mb_assert("Codepoint $", strcmp(character->name, "DOLLAR SIGN") == 0);
+    character = mb_codepoint_character('$');
+    mb_assert("Codepoint $", character && strcmp(character->name, "DOLLAR SIGN") == 0);
 
     /* 0xE0 = à */
-    character = mb_codepoint_get_character(0xE0);
-    mb_assert("Codepoint $", strcmp(character->name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
+    character = mb_codepoint_character(0xE0);
+    mb_assert("Codepoint à", character && strcmp(character->name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
 
     /* 0x1F642 = 🙂 */
-    character = mb_codepoint_get_character(0x1F642);
-    mb_assert("Codepoint $", strcmp(character->name, "SLIGHTLY SMILING FACE") == 0);
+    character = mb_codepoint_character(0x1F642);
+    mb_assert("Codepoint 🙂", character && strcmp(character->name, "SLIGHTLY SMILING FACE") == 0);
 }
 
 int main(int argc, const char * argv[]) {
-    printf("Mojibake %s test\n\n", mb_get_version());
+    printf("Mojibake %s test\n\n", mb_version());
 
-    mb_run_test("Get version", mb_get_version_test);
-    mb_run_test("Get version number", mb_get_version_number_test);
-    mb_run_test("Get unicode version", mb_get_unicode_version_test);
+    mb_run_test("Get version", mb_version_test);
+    mb_run_test("Get version number", mb_version_number_test);
+    mb_run_test("Get unicode version", mb_unicode_version_test);
     mb_run_test("Codepoint is valid", mb_codepoint_is_valid_test);
     mb_run_test("Codespace plane is valid", mb_plane_is_valid_test);
     mb_run_test("Codespace plane name", mb_plane_name_test);
-    mb_run_test("String get encoding", mb_string_get_encoding_test);
+    mb_run_test("String get encoding", mb_string_encoding_test);
     mb_run_test("String is ASCII", mb_string_is_ascii_test);
     mb_run_test("String is UTF-8", mb_string_is_utf8_test);
-    mb_run_test("Codepoint get character", mb_codepoint_get_character_test);
+    mb_run_test("Codepoint get character", mb_codepoint_character_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

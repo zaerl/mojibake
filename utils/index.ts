@@ -528,23 +528,31 @@ typedef uint32_t mb_encoding;
 #define MB_ENCODING_UNKNOWN 0
 #define MB_ENCODING_ASCII 0x1
 #define MB_ENCODING_UTF_8 0x2
-#define MB_ENCODING_UTF_16_BE 0x4
-#define MB_ENCODING_UTF_16_LE 0x8
-#define MB_ENCODING_UTF_32_BE 0x10
-#define MB_ENCODING_UTF_32_LE 0x20
+#define MB_ENCODING_UTF_16 0x4
+#define MB_ENCODING_UTF_16_BE 0x8
+#define MB_ENCODING_UTF_16_LE 0x10
+#define MB_ENCODING_UTF_32 0x20
+#define MB_ENCODING_UTF_32_BE 0x40
+#define MB_ENCODING_UTF_32_LE 0x80
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Initialize the library */
+bool mb_initialize(const char* filename);
+
+/* Close the library */
+bool mb_close();
+
 /* Output the current library version (MB_VERSION) */
-char* mb_get_version(void);
+char* mb_version();
 
 /* Output the current library version number (MB_VERSION_NUMBER) */
-unsigned int mb_get_version_number(void);
+unsigned int mb_version_number();
 
 /* Output the current supported unicode version (MB_UNICODE_VERSION) */
-char* mb_get_unicode_version(void);
+char* mb_unicode_version();
 
 /* Return true if the codepoint is valid */
 bool mb_codepoint_is_valid(mb_codepoint codepoint);
@@ -556,19 +564,16 @@ bool mb_plane_is_valid(mb_plane plane);
 const char* mb_plane_name(mb_plane plane, bool abbreviation);
 
 /* Return the string encoding (the most probable) */
-mb_encoding mb_string_get_encoding(const char *buffer, size_t size);
+mb_encoding mb_string_encoding(const char* buffer, size_t size);
 
-/* Return 1 if the string is encoded in UTF-8 */
-bool mb_string_is_utf8(const char *buffer, size_t size);
+/* Return true if the string is encoded in UTF-8 */
+bool mb_string_is_utf8(const char* buffer, size_t size);
 
-/* Return 1 if the string is encoded in ASCII */
-bool mb_string_is_ascii(const char *buffer, size_t size);
+/* Return true if the string is encoded in ASCII */
+bool mb_string_is_ascii(const char* buffer, size_t size);
 
 /* Return the codepoint character */
-const mb_character* mb_codepoint_get_character(mb_codepoint codepoint);
-
-/* Return true if the codepoint is an high-surrogate or a low-surrogate */
-/*int mb_codepoint_is_surrogate(mb_codepoint);*/
+const mb_character* mb_codepoint_character(mb_codepoint codepoint);
 
 #ifdef __cplusplus
 }

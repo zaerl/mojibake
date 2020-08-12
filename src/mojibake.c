@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "mojibake.h"
-#include "version.h"
 #include "sqlite/sqlite3.h"
 
 #ifndef MB_EXTERN
@@ -24,9 +23,13 @@
 #define MB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
 #define MB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
-static mb_encoding mb_get_encoding_from_bom(const char *string,
-    size_t length) {
-    const unsigned char *buffer = (const unsigned char*)string;
+typedef struct mb_connection {
+    sqlite3* db;
+} mb_connection;
+
+static mb_connection mb_internal = { NULL };
+
+static mb_encoding mb_encoding_from_bom(const char* buffer, size_t length) {
 
     if(length < 2) {
         /* BOM are at least 2 characters */
@@ -61,18 +64,42 @@ static mb_encoding mb_get_encoding_from_bom(const char *string,
     return bom_encoding;
 }
 
-MB_EXPORT char* mb_get_version() {
+/* Initialize the library */
+MB_EXPORT bool mb_initialize(const char* filename) {
+    if(!mb_internal.db) {
+        /*int rc = sqlite3_open_v2(filename, &mb_internal.db, NULL, NULL);
+
+        if(rc == SQLITE_ERROR) {
+            mb_close();
+
+            return false;
+        }*/
+    }
+
+    return true;
+}
+
+/* Close the library */
+MB_EXPORT bool mb_close() {
+    return sqlite3_close(mb_internal.db) == SQLITE_OK;
+}
+
+/* Output the current library version (MB_VERSION) */
+MB_EXPORT char* mb_version() {
     return MB_VERSION;
 }
 
-MB_EXPORT unsigned int mb_get_version_number(void) {
+/* Output the current library version number (MB_VERSION_NUMBER) */
+MB_EXPORT unsigned int mb_version_number() {
     return MB_VERSION_NUMBER;
 }
 
-MB_EXPORT char* mb_get_unicode_version() {
+/* Output the current supported unicode version (MB_UNICODE_VERSION) */
+MB_EXPORT char* mb_unicode_version() {
     return MB_UNICODE_VERSION;
 }
 
+/* Return true if the codepoint is valid */
 MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
     if(codepoint < MB_CODEPOINT_MIN || codepoint > MB_CODEPOINT_MAX ||
        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||
@@ -83,48 +110,50 @@ MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
     return true;
 }
 
+/* Return true if the plane is valid */
 MB_EXPORT bool mb_plane_is_valid(mb_plane plane) {
     return plane >= 0 && plane < MB_PLANE_NUM;
 }
 
-MB_EXPORT const char* mb_plane_name(mb_plane plane, bool full) {
+/* Return the name of a plane, NULL if the place specified is not valid */
+MB_EXPORT const char* mb_plane_name(mb_plane plane, bool abbreviation) {
     if(!mb_plane_is_valid(plane)) {
         return NULL;
     }
 
     switch(plane) {
         case 0:
-            return full ? "Basic Multilingual Plane" : "BMP";
+            return abbreviation ? "BMP" : "Basic Multilingual Plane";
 
         case 1:
-            return full ? "Supplementary Multilingual Plane" : "SMP";
+            return abbreviation ? "SMP" : "Supplementary Multilingual Plane";
 
         case 2:
-            return full ? "Supplementary Ideographic Plane" : "SIP";
+            return abbreviation ? "SIP" : "Supplementary Ideographic Plane";
 
         case 3:
-            return full ? "Tertiary Ideographic Plane" : "TIP";
+            return abbreviation ? "TIP" : "Tertiary Ideographic Plane";
 
         case 14:
-            return full ? "Supplementary Special-purpose Plane" : "SSP";
+            return abbreviation ? "SSP" : "Supplementary Special-purpose Plane";
 
         case 15:
-            return full ? "Supplementary Private Use Area-A" : "PUA-A";
+            return abbreviation ? "PUA-A" : "Supplementary Private Use Area-A";
 
         case 16:
-            return full ? "Supplementary Private Use Area-B" : "PUA-B";
+            return abbreviation ? "PUA-B" : "Supplementary Private Use Area-B";
     }
 
     return "Unassigned";
 }
 
-MB_EXPORT mb_encoding mb_string_get_encoding(const char *buffer,
-    size_t size) {
+/* Return the string encoding (the most probable) */
+MB_EXPORT mb_encoding mb_string_encoding(const char *buffer, size_t size) {
     if(buffer == 0 || size == 0) {
         return MB_ENCODING_UNKNOWN;
     }
 
-    mb_encoding bom_encoding = mb_get_encoding_from_bom(buffer, size);
+    mb_encoding bom_encoding = mb_encoding_from_bom(buffer, size);
 
     if(bom_encoding != MB_ENCODING_UNKNOWN) {
         return bom_encoding;
@@ -143,14 +172,14 @@ MB_EXPORT mb_encoding mb_string_get_encoding(const char *buffer,
     return bom_encoding;
 }
 
-MB_EXPORT bool mb_string_is_utf8(const char *string, size_t size) {
-    const unsigned char *buffer = (const unsigned char*)string;
-    const unsigned char *end = buffer + size;
+/* Return true if the string is encoded in UTF-8 */
+MB_EXPORT bool mb_string_is_utf8(const char* buffer, size_t size) {
+    const char* end = buffer + size;
     unsigned char byte;
     unsigned int code_length, i;
     uint32_t ch;
 
-    if(string == 0 || size == 0) {
+    if(buffer == 0 || size == 0) {
         return false;
     }
 
@@ -226,11 +255,11 @@ MB_EXPORT bool mb_string_is_utf8(const char *string, size_t size) {
     return true;
 }
 
-MB_EXPORT bool mb_string_is_ascii(const char *string, size_t size) {
-    const unsigned char *buffer = (const unsigned char*)string;
-    const unsigned char *end = buffer + size;
+/* Return true if the string is encoded in ASCII */
+MB_EXPORT bool mb_string_is_ascii(const char* buffer, size_t size) {
+    const char* end = buffer + size;
 
-    if(string == 0 || size == 0) {
+    if(buffer == 0 || size == 0) {
         return false;
     }
 
@@ -244,13 +273,16 @@ MB_EXPORT bool mb_string_is_ascii(const char *string, size_t size) {
     return 1;
 }
 
-MB_EXPORT const mb_character* mb_codepoint_get_character(mb_codepoint codepoint) {
+/* Return the codepoint character */
+MB_EXPORT const mb_character* mb_codepoint_character(mb_codepoint codepoint) {
     if(!mb_codepoint_is_valid(codepoint)) {
         return NULL;
     }
+
+    return NULL;
 }
 
-/* MB_EXPORT const unsigned char* mb_convert_encoding(const unsigned char *buffer,
+/* MB_EXPORT const char* mb_convert_encoding(const unsigned char *buffer,
  unsigned int size, mb_encoding encoding) {
  if(buffer == 0 || size == 0 || encoding > MB_ENCODING_UTF_32_LE) {
  return 0;
