@@ -216,6 +216,26 @@ static void mb_string_is_utf8_test() {
     mb_assert("Invalid continuation byte", is_utf8);
 }
 
+static void mb_ready_test() {
+    mb_assert("Not ready", !mb_ready());
+
+    bool result = mb_initialize("null.db");
+    mb_assert("Invalid DB call", !result);
+    mb_assert("Invalid DB", !mb_ready());
+
+    result = mb_close();
+    mb_assert("Invalid DB close call", !result);
+    mb_assert("DB closed", !mb_ready());
+
+    result = mb_initialize("../src/mojibake.db");
+    mb_assert("Valid DB call", result);
+    mb_assert("Valid DB", mb_ready());
+
+    result = mb_close();
+    mb_assert("Valid DB close call", result);
+    mb_assert("DB closed", !mb_ready());
+}
+
 static void mb_codepoint_character_test() {
     const mb_character* character = mb_codepoint_character(MB_CODEPOINT_MAX);
     mb_assert("invalid codepoint", character == NULL);
@@ -244,6 +264,9 @@ int main(int argc, const char * argv[]) {
     mb_run_test("String get encoding", mb_string_encoding_test);
     mb_run_test("String is ASCII", mb_string_is_ascii_test);
     mb_run_test("String is UTF-8", mb_string_is_utf8_test);
+
+    /* Init tests */
+    mb_run_test("Ready", mb_ready_test);
     mb_run_test("Codepoint get character", mb_codepoint_character_test);
 
     /* Green if valid and red if not */

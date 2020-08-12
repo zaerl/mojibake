@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include "mojibake.h"
@@ -25,12 +26,12 @@
 
 typedef struct mb_connection {
     sqlite3* db;
+    sqlite3_stmt* char_stmt;
 } mb_connection;
 
 static mb_connection mb_internal = { NULL };
 
 static mb_encoding mb_encoding_from_bom(const char* buffer, size_t length) {
-
     if(length < 2) {
         /* BOM are at least 2 characters */
         return MB_ENCODING_UNKNOWN;
@@ -66,22 +67,45 @@ static mb_encoding mb_encoding_from_bom(const char* buffer, size_t length) {
 
 /* Initialize the library */
 MB_EXPORT bool mb_initialize(const char* filename) {
-    if(!mb_internal.db) {
-        /*int rc = sqlite3_open_v2(filename, &mb_internal.db, NULL, NULL);
-
-        if(rc == SQLITE_ERROR) {
-            mb_close();
-
-            return false;
-        }*/
+    if(mb_ready()) {
+        return true;
     }
 
-    return true;
+    if(sqlite3_open_v2(filename, &mb_internal.db, SQLITE_OPEN_READONLY, NULL) == SQLITE_OK &&
+        sqlite3_prepare_v3(mb_internal.db, "SELECT * FROM characters WHERE codepoint = ?", -1,
+            SQLITE_PREPARE_PERSISTENT, &mb_internal.char_stmt, NULL) == SQLITE_OK) {
+        return true;
+    }
+
+    mb_close();
+
+    return false;
+}
+
+/* The library is ready */
+MB_EXPORT bool mb_ready() {
+    return mb_internal.db != NULL;
 }
 
 /* Close the library */
 MB_EXPORT bool mb_close() {
-    return sqlite3_close(mb_internal.db) == SQLITE_OK;
+    if(!mb_ready()) {
+        return false;
+    }
+
+    int ret = SQLITE_ERROR;
+
+    if(mb_internal.char_stmt) {
+        ret = sqlite3_finalize(mb_internal.char_stmt);
+        mb_internal.char_stmt = NULL;
+    }
+
+    if(mb_internal.db) {
+        ret = sqlite3_close(mb_internal.db);
+        mb_internal.db = NULL;
+    }
+
+    return ret == SQLITE_OK;
 }
 
 /* Output the current library version (MB_VERSION) */
@@ -102,8 +126,8 @@ MB_EXPORT char* mb_unicode_version() {
 /* Return true if the codepoint is valid */
 MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
     if(codepoint < MB_CODEPOINT_MIN || codepoint > MB_CODEPOINT_MAX ||
-       (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||
-       (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) {
+        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||
+        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) {
         return false;
     }
 
@@ -275,7 +299,7 @@ MB_EXPORT bool mb_string_is_ascii(const char* buffer, size_t size) {
 
 /* Return the codepoint character */
 MB_EXPORT const mb_character* mb_codepoint_character(mb_codepoint codepoint) {
-    if(!mb_codepoint_is_valid(codepoint)) {
+    if(!mb_codepoint_is_valid(codepoint) || !mb_ready()) {
         return NULL;
     }
 

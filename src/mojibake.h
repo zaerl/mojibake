@@ -444,6 +444,9 @@ extern "C" {
 /* Initialize the library */
 bool mb_initialize(const char* filename);
 
+/* The library is ready */
+bool mb_ready();
+
 /* Close the library */
 bool mb_close();
 
