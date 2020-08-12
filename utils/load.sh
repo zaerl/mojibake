@@ -1,6 +1,7 @@
 #!/bin/sh
 
 UNICODE_VERSION="13.0.0"
+SQLITE_YEAR="2020"
 SQLITE_VERSION="3320300"
 
 if [ ! -d "./UCD" ] ; then
@@ -17,13 +18,16 @@ if [ ! -d "./unihan" ] ; then
     rm unihan.zip
 else
     echo "Skip unihan"
-fi
+fi\
 
 if [ ! -d "./sqlite" ] ; then
-    curl -o sqlite.zip "https://sqlite.com/2020/sqlite-amalgamation-$SQLITE_VERSION.zip"
+    curl -o sqlite.zip "https://sqlite.com/$SQLITE_YEAR/sqlite-amalgamation-$SQLITE_VERSION.zip"
     unzip sqlite.zip
     mv "sqlite-amalgamation-$SQLITE_VERSION" sqlite
     rm sqlite.zip
+    mkdir ../src/sqlite
+    mv sqlite/sqlite3.h ../src/sqlite/sqlite3.h
+    mv sqlite/sqlite3.c ../src/sqlite/sqlite3.c
 else
     echo "Skip sqlite"
 fi

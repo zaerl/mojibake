@@ -9,7 +9,7 @@
 #ifndef MB_UNICODE_DATA_H
 #define MB_UNICODE_DATA_H
 
-#include "mb.h"
+#include "mojibake.h"
 
 #define MB_CHARACTER_MAX 33797
 

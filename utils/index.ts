@@ -13,6 +13,111 @@ interface Numeric {
   count: number;
 }
 
+enum GeneralCategory {
+  Lu,
+  Ll,
+  Lt,
+  Lm,
+  Lo,
+  Mn,
+  Mc,
+  Me,
+  Nd,
+  Nl,
+  No,
+  Pc,
+  Pd,
+  Ps,
+  Pe,
+  Pi,
+  Pf,
+  Po,
+  Sm,
+  Sc,
+  Sk,
+  So,
+  Zs,
+  Zl,
+  Zp,
+  Cc,
+  Cf,
+  Cs,
+  Co,
+  Cn,
+};
+
+type GeneralCategoriesStrings = keyof typeof GeneralCategory;
+
+enum BidirectionalCategories {
+  L,
+  LRE,
+  LRO,
+  R,
+  AL,
+  RLE,
+  RLO,
+  PDF,
+  EN,
+  ES,
+  ET,
+  AN,
+  CS,
+  NSM,
+  BN,
+  B,
+  S,
+  WS,
+  ON
+};
+
+type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
+
+enum CharacterDecompositionMapping {
+  '<font>',
+  '<noBreak>',
+  '<initial>',
+  '<medial>',
+  '<final>',
+  '<isolated>',
+  '<circle>',
+  '<super>',
+  '<sub>',
+  '<vertical>',
+  '<wide>',
+  '<narrow>',
+  '<small>',
+  '<square>',
+  '<fraction>',
+  '<compat>'
+};
+
+type CharacterDecompositionMappingStrings = (keyof typeof CharacterDecompositionMapping) | '';
+
+type CharacterDecomposition = [
+  CharacterDecompositionMappingStrings,
+  ...string[]
+];
+
+type Mirrored = 'Y' | 'N';
+
+type UnicodeDataRow = [
+  string, // codepoint
+  string, // character name
+  GeneralCategoriesStrings, // general category
+  string, // canonical combining classes
+  BidirectionalCategoriesStrings, // bidirectional category
+  string, // character decomposition mapping
+  string, // decimal digit value
+  string, // digit value
+  string, // numeric value
+  Mirrored, // mirrored
+  string, // unicode 1.0 name
+  string, // 10646 comment field
+  string, // uppercase mapping
+  string, // lowercase mapping
+  string // titlecase mapping
+];
+
 function compareFn(a: Buffer, b: Buffer): number {
   const ret = b.count - a.count;
 
@@ -55,6 +160,8 @@ function license(): string {
 }
 
 async function readUnicodeData(stmt: Statement) {
+  console.log('READ UNICODE DATA');
+
   const nameBuffer: { [name: string]: number } = {};
   const categoryBuffer: { [name: string]: number } = {};
   let charsCount = 0;
@@ -72,7 +179,7 @@ async function readUnicodeData(stmt: Statement) {
   });
 
   for await (const line of rl) {
-    const split = line.split(';');
+    const split = line.split(';') as UnicodeDataRow;
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     const words = name.split(' ');
     codepoint = parseInt(split[0], 16);
@@ -97,7 +204,26 @@ async function readUnicodeData(stmt: Statement) {
     }
 
     entries.push(`    { 0x${split[0]}, MB_GENERAL_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
-    stmt.run(codepoint, name);
+
+    const decomposition = split[5].split(' ') as CharacterDecomposition;
+
+    stmt.run(
+      codepoint,
+      name,
+      0, // Block
+      GeneralCategory[split[2]],
+      split[3],
+      split[4] === '' ? null : BidirectionalCategories[split[4]],
+      decomposition[0] === '' ? null : CharacterDecompositionMapping[decomposition[0]],
+      split[6] === '' ? null : split[6],
+      split[7] === '' ? null : split[7],
+      split[8] === 'Y' ? 1 : 0,
+      // unicode 1.0 name
+      // 10646 comment field
+      split[11] === '' ? null : split[11],
+      split[12] === '' ? null : split[12],
+      split[13] === '' ? null : split[13]
+    );
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -212,6 +338,8 @@ ${entries.join(',\n')}
 }
 
 async function readBlocks(stmt: Statement) {
+  console.log('READ BLOCKS');
+
   const macros: string[] = [];
   const entries: string[] = [];
 
@@ -253,7 +381,7 @@ ${footer('blocks')}
 
 #include "blocks.h"
 
-mb_block mb_blocks[] = {  3€dt
+mb_block mb_blocks[] = {
 ${entries.join(',\n')}
 };
 `;
@@ -270,20 +398,34 @@ const db = new sqlite.Database('./out.db', (err: Error | null) => {
   console.error(err?.message);
 });
 
-db.serialize(() => {
-  db.run('CREATE TABLE data(id INTEGER NOT NULL PRIMARY KEY, name TEXT NOT NULL) WITHOUT ROWID');
-  const stmt = db.prepare('INSERT INTO data VALUES (?, ?)');
+db.serialize(async () => {
 
   db.run('BEGIN TRANSACTION');
 
-  readUnicodeData(stmt);
-  readBlocks(stmt);
+  db.run(
+`CREATE TABLE data(
+  codepoint INTEGER NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  block INTEGER NOT NULL,
+  category INTEGER NOT NULL,
+  combining TEXT,
+  bidirectional INTEGER,
+  decomposition INTEGER,
+  decimal TEXT,
+  digit TEXT,
+  numeric TEXT,
+  mirrored INTEGER,
+  uc TEXT,
+  lc TEXT,
+  tc TEXT
+) WITHOUT ROWID`);
+
+  const stmt = db.prepare('INSERT INTO data VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+  await readUnicodeData(stmt);
+  await readBlocks(stmt);
 
   db.run('END');
-});
 
-db.close((err: Error | null) => {
-  if(err) {
-    return console.error(err.message);
-  }
+  db.close();
 });
