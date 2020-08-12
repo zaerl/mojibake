@@ -233,7 +233,7 @@ static void mb_codepoint_get_character_test() {
 }
 
 int main(int argc, const char * argv[]) {
-    printf("Unicodex %s test\n\n", mb_get_version());
+    printf("Mojibake %s test\n\n", mb_get_version());
 
     mb_run_test("Get version", mb_get_version_test);
     mb_run_test("Get version number", mb_get_version_number_test);
