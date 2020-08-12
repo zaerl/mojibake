@@ -18,24 +18,11 @@
 #define MB_EXPORT __attribute__((visibility("default")))
 #endif
 
-#define MB_CONSTRUCTOR __attribute__((constructor))
-#define MB_DESTRUCTOR __attribute__((destructor))
-
 #define MB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
 #define MB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
 #define MB_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
 #define MB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
 #define MB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
-
-/* Initializer. */
-MB_CONSTRUCTOR static void initializer(void) {
-
-}
-
-/* Finalizer. */
-MB_DESTRUCTOR static void finalizer(void) {
-
-}
 
 static mb_encoding mb_get_encoding_from_bom(const char *string,
     size_t length) {
