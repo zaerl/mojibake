@@ -483,6 +483,9 @@ bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint);
 /* Return true if the codepoint has the category */
 bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category);
 
+/* Return true if the codepoint has the category */
+bool mb_codepoint_is_graphic(mb_codepoint codepoint);
+
 #ifdef __cplusplus
 }
 #endif

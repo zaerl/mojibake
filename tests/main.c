@@ -67,7 +67,7 @@ static void print_character(mb_character* character, mb_codepoint codepoint) {
 }
 
 static void mb_run_test(char *name, mb_test test) {
-    printf("%s\n", name);
+    printf("\x1b[36m%s\x1B[0m\n", name);
     test();
     printf("\n");
 }
@@ -328,7 +328,6 @@ static void mb_codepoint_block_test() {
     mb_assert("Tags block", character.block == MB_BLOCK_TAGS);
 
     ret = mb_codepoint_character(&character, 0xF0000 + 3);
-    print_character(&character, 0xF0000 + 3);
     mb_assert("Supplementary Private Use Area-A block", !ret);
 
     ret = mb_codepoint_character(&character, MB_CODEPOINT_MAX - 1);
@@ -357,8 +356,31 @@ static void mb_codepoint_is_test() {
     mb_close();
 }
 
+static void mb_codepoint_is_graphic_test() {
+    mb_initialize(db_name);
+
+    bool ret = mb_codepoint_is_graphic(0);
+    mb_assert("NULL: not graphic", !ret);
+
+    ret = mb_codepoint_is_graphic('#');
+    mb_assert("#: graphic", ret);
+
+    /* 0x1F642 = 🙂 */
+    ret = mb_codepoint_is_graphic(0x1F642);
+    mb_assert("🙂: graphic", ret);
+
+    ret = mb_codepoint_is_graphic(0x1FFFE);
+    mb_assert("Not valid codepoint: not graphic", !ret);
+
+    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
+    ret = mb_codepoint_is_graphic(0x0377 + 1);
+    mb_assert("Not mapped codepoint: not graphic", !ret);
+
+    mb_close();
+}
+
 int main(int argc, const char * argv[]) {
-    printf("Mojibake %s test\n\n", mb_version());
+    printf("\x1b[36mMojibake %s test\x1B[0m\n\n", mb_version());
 
     mb_run_test("Get version", mb_version_test);
     mb_run_test("Get version number", mb_version_number_test);
@@ -375,6 +397,7 @@ int main(int argc, const char * argv[]) {
     mb_run_test("Codepoint character", mb_codepoint_character_test);
     mb_run_test("Codepoint block", mb_codepoint_block_test);
     mb_run_test("Codepoint is", mb_codepoint_is_test);
+    mb_run_test("Codepoint is graphic", mb_codepoint_is_graphic_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

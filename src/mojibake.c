@@ -368,3 +368,24 @@ MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category) 
 
     return character.category == category;
 }
+
+/* Return true if the codepoint has the category */
+MB_EXPORT bool mb_codepoint_is_graphic(mb_codepoint codepoint) {
+    mb_character character;
+
+    if(!mb_codepoint_character(&character, codepoint)) {
+        return false;
+    }
+
+    /* All C categories can be printed */
+    switch(character.category) {
+        case MB_CATEGORY_CC:
+        case MB_CATEGORY_CF:
+        case MB_CATEGORY_CS:
+        case MB_CATEGORY_CO:
+        case MB_CATEGORY_CN:
+            return false;
+    }
+
+    return true;
+}
