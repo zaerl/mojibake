@@ -16,7 +16,7 @@ static int tests_run;
 static int tests_valid;
 static const char* db_name = "../src/mojibake.db";
 
-void mb_assert(char *message, bool test) {
+static void mb_assert(char *message, bool test) {
     ++tests_run;
 
     if(test) {
@@ -25,6 +25,45 @@ void mb_assert(char *message, bool test) {
     } else {
         printf("\x1B[31mTest: %s FAIL\x1B[0m\n", message);
     }
+}
+
+static void print_character(mb_character* character, mb_codepoint codepoint) {
+    if(!character) {
+        return;
+    }
+
+    const char* format = "Character %u\n"
+        "codepoint: %u\n"
+        "name: '%s'\n"
+        "block: %u\n"
+        "category: %u\n"
+        "combining: %u\n"
+        "bidirectional: %u\n"
+        "decomposition: %u\n"
+        "decimal: '%s'\n"
+        "digit: '%s'\n"
+        "numeric: '%s'\n"
+        "mirrored: %s\n"
+        "uppercase: %u\n"
+        "lowercase: %u\n"
+        "titlecase: %u\n";
+
+    printf(format,
+        codepoint,
+        character->codepoint,
+        character->name,
+        character->block,
+        character->category,
+        character->combining,
+        character->bidirectional,
+        character->decomposition,
+        character->decimal,
+        character->digit,
+        character->numeric,
+        character->mirrored ? "true" : "false",
+        character->uppercase,
+        character->lowercase,
+        character->titlecase);
 }
 
 static void mb_run_test(char *name, mb_test test) {
@@ -247,16 +286,20 @@ static void mb_codepoint_character_test() {
     ret = mb_codepoint_character(&character, MB_CODEPOINT_MAX);
     mb_assert("Not valid codepoint", !ret);
 
+    ret = mb_codepoint_character(&character, 0);
+    print_character(&character, 0);
+    mb_assert("Codepoint: 0", strcmp((char*)character.name, "NULL") == 0);
+
     ret = mb_codepoint_character(&character, '$');
-    mb_assert("Codepoint: $", character.name && strcmp((char*)character.name, "DOLLAR SIGN") == 0);
+    mb_assert("Codepoint: $", strcmp((char*)character.name, "DOLLAR SIGN") == 0);
 
     /* 0xE0 = à */
     ret = mb_codepoint_character(&character, 0xE0);
-    mb_assert("Codepoint: à", character.name && strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
+    mb_assert("Codepoint: à", strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
 
     /* 0x1F642 = 🙂 */
     ret = mb_codepoint_character(&character, 0x1F642);
-    mb_assert("Codepoint: 🙂", character.name && strcmp((char*)character.name, "SLIGHTLY SMILING FACE") == 0);
+    mb_assert("Codepoint: 🙂", strcmp((char*)character.name, "SLIGHTLY SMILING FACE") == 0);
 
     mb_close();
 }

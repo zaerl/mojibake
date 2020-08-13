@@ -279,7 +279,7 @@ async function readUnicodeData(stmt: Statement) {
       name, // 1
       0, // Block
       Category[split[2]],
-      split[3],
+      parseInt(split[3], 10),
       split[4] === '' ? null : BidirectionalCategories[split[4]],
       decomposition[0] === '' ? null : CharacterDecompositionMapping[decomposition[0]],
 
@@ -290,9 +290,9 @@ async function readUnicodeData(stmt: Statement) {
       split[9] === 'Y' ? 1 : 0,
       // unicode 1.0 name
       // 10646 comment field
-      split[12] === '' ? null : split[12],
-      split[13] === '' ? null : split[13],
-      split[14] === '' ? null : split[14]
+      split[12] === '' ? null : parseInt(split[12], 16),
+      split[13] === '' ? null : parseInt(split[13], 16),
+      split[14] === '' ? null : parseInt(split[14], 16)
     );
 
     for(const word of words) {
@@ -407,16 +407,16 @@ db.serialize(async () => {
   name TEXT NOT NULL,
   block INTEGER NOT NULL,
   category INTEGER NOT NULL,
-  combining TEXT,
+  combining INTEGER NOT NULL,
   bidirectional INTEGER,
   decomposition INTEGER,
   decimal TEXT,
   digit TEXT,
   numeric TEXT,
   mirrored INTEGER,
-  uppercase TEXT,
-  lowercase TEXT,
-  titlecase TEXT
+  uppercase INTEGER,
+  lowercase INTEGER,
+  titlecase INTEGER
 ) WITHOUT ROWID`);
 
 db.run(
@@ -471,19 +471,19 @@ typedef uint32_t mb_codepoint;
  */
 typedef struct mb_character {
     mb_codepoint codepoint;
-    const unsigned char* name;
+    unsigned char name[128];
     unsigned short block;
     unsigned short category;
-    const unsigned char* combining;
+    unsigned short combining;
     unsigned short bidirectional;
     unsigned short decomposition;
-    const unsigned char* decimal;
-    const unsigned char* digit;
-    const unsigned char* numeric;
+    unsigned char decimal[128];
+    unsigned char digit[128];
+    unsigned char numeric[128];
     bool mirrored;
-    const unsigned char* uppercase;
-    const unsigned char* lowercase;
-    const unsigned char* titlecase;
+    mb_codepoint uppercase;
+    mb_codepoint lowercase;
+    mb_codepoint titlecase;
 } mb_character;
 
 /*

@@ -12,6 +12,8 @@
 
 #define DB_CHECK(db_result, ret) if(db_result != SQLITE_OK) { mb_db_error(); return ret; }
 #define DB_CHECK_CLOSE(db_result, ret) if(db_result != SQLITE_OK) { mb_db_error(); mb_close(); return ret; }
+#define DB_COLUMN_INT(stmt, name, col) name = sqlite3_column_int(stmt, col);
+#define DB_COLUMN_TEXT(stmt, name, col) strncpy((char*)&name, (const char*)sqlite3_column_text(stmt, col), sqlite3_column_bytes(stmt, col));
 
 #ifndef MB_EXTERN
 #define MB_EXTERN extern
@@ -325,20 +327,20 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
 
     ret = sqlite3_step(mb_internal.char_stmt);
 
-    character->codepoint = sqlite3_column_int(mb_internal.char_stmt, 0);
-    character->name = sqlite3_column_text(mb_internal.char_stmt, 1);
-    character->block = sqlite3_column_int(mb_internal.char_stmt, 2);
-    character->category = sqlite3_column_int(mb_internal.char_stmt, 3);
-    character->combining = sqlite3_column_text(mb_internal.char_stmt, 4);
-    character->bidirectional = sqlite3_column_int(mb_internal.char_stmt, 5);
-    character->decomposition = sqlite3_column_int(mb_internal.char_stmt, 6);
-    character->decimal = sqlite3_column_text(mb_internal.char_stmt, 7);
-    character->digit = sqlite3_column_text(mb_internal.char_stmt, 8);
-    character->numeric = sqlite3_column_text(mb_internal.char_stmt, 9);
-    character->mirrored = sqlite3_column_int(mb_internal.char_stmt, 10);
-    character->uppercase = sqlite3_column_text(mb_internal.char_stmt, 11);
-    character->lowercase = sqlite3_column_text(mb_internal.char_stmt, 12);
-    character->titlecase = sqlite3_column_text(mb_internal.char_stmt, 13);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->codepoint, 0);
+    DB_COLUMN_TEXT(mb_internal.char_stmt, character->name, 1)
+    DB_COLUMN_INT(mb_internal.char_stmt, character->block, 2);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->category, 3);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->combining, 4);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->bidirectional, 5);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->decomposition, 6);
+    DB_COLUMN_TEXT(mb_internal.char_stmt, character->decimal, 7)
+    DB_COLUMN_TEXT(mb_internal.char_stmt, character->digit, 8)
+    DB_COLUMN_TEXT(mb_internal.char_stmt, character->numeric, 9)
+    DB_COLUMN_INT(mb_internal.char_stmt, character->mirrored, 10);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->uppercase, 11);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->lowercase, 12);
+    DB_COLUMN_INT(mb_internal.char_stmt, character->titlecase, 13);
 
     ret = sqlite3_step(mb_internal.char_stmt);
 

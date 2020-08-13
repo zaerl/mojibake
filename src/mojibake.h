@@ -37,19 +37,19 @@ typedef uint32_t mb_codepoint;
  */
 typedef struct mb_character {
     mb_codepoint codepoint;
-    const unsigned char* name;
+    unsigned char name[128];
     unsigned short block;
     unsigned short category;
-    const unsigned char* combining;
+    unsigned short combining;
     unsigned short bidirectional;
     unsigned short decomposition;
-    const unsigned char* decimal;
-    const unsigned char* digit;
-    const unsigned char* numeric;
+    unsigned char decimal[128];
+    unsigned char digit[128];
+    unsigned char numeric[128];
     bool mirrored;
-    const unsigned char* uppercase;
-    const unsigned char* lowercase;
-    const unsigned char* titlecase;
+    mb_codepoint uppercase;
+    mb_codepoint lowercase;
+    mb_codepoint titlecase;
 } mb_character;
 
 /*
