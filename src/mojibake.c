@@ -369,7 +369,7 @@ MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category) 
     return character.category == category;
 }
 
-/* Return true if the codepoint has the category */
+/* Return true if the codepoint is graphic */
 MB_EXPORT bool mb_codepoint_is_graphic(mb_codepoint codepoint) {
     mb_character character;
 
