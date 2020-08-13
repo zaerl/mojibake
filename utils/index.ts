@@ -152,6 +152,14 @@ type UnicodeDataRow = [
   string // 14 titlecase mapping
 ];
 
+// All blocks
+interface Block {
+  name: string;
+  macro: string;
+  start: number;
+  end: number;
+};
+
 function compareFn(a: Buffer, b: Buffer): number {
   const ret = b.count - a.count;
 
@@ -191,10 +199,10 @@ function license(): string {
  */`;
 }
 
-async function readBlocks(stmt: Statement): Promise<string[]> {
+async function readBlocks(stmt: Statement): Promise<Block[]> {
   console.log('READ BLOCKS');
 
-  const macros: string[] = [];
+  const blocks: Block[] = [];
 
   const rl = createInterface({
     input: createReadStream('./UCD/Blocks.txt'),
@@ -209,12 +217,18 @@ async function readBlocks(stmt: Statement): Promise<string[]> {
     }
 
     const split = line.split('; ');
-    const name = split[1].toUpperCase().replace(/[ \-]/g, '_');
+    const name = split[1];
+    const macro = `#define MB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')} ${i++}`;
     const values = split[0].split('..');
     const start = parseInt(values[0], 16);
     const end = parseInt(values[1], 16);
 
-    macros.push(`#define MB_BLOCK_${name} ${i++}`);
+    blocks.push({
+      name,
+      macro,
+      start,
+      end
+    });
 
     stmt.run(
       split[1],
@@ -225,10 +239,10 @@ async function readBlocks(stmt: Statement): Promise<string[]> {
 
   stmt.finalize();
 
-  return macros;
+  return blocks;
 }
 
-async function readUnicodeData(stmt: Statement) {
+async function readUnicodeData(stmt: Statement, blocks: Block[]) {
   console.log('READ UNICODE DATA');
 
   const nameBuffer: { [name: string]: number } = {};
@@ -240,6 +254,7 @@ async function readUnicodeData(stmt: Statement) {
   let previousCodepoint = 0;
   let diffs = 0;
   let codepoint = 0;
+  let currentBlock = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -274,10 +289,14 @@ async function readUnicodeData(stmt: Statement) {
 
     const decomposition = split[5].split(' ') as CharacterDecomposition;
 
+    if(codepoint > blocks[currentBlock].end) {
+      ++currentBlock;
+    }
+
     stmt.run(
       codepoint, // 0
       name, // 1
-      0, // Block
+      currentBlock, // Block
       Category[split[2]],
       parseInt(split[3], 10),
       split[4] === '' ? null : BidirectionalCategories[split[4]],
@@ -430,7 +449,7 @@ db.run(
   const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
   const blocks = await readBlocks(blockStmt);
-  await readUnicodeData(dataStmt);
+  await readUnicodeData(dataStmt, blocks);
 
   const categoryMacros: string[] = [];
 
@@ -508,7 +527,7 @@ typedef struct mb_block {
 
 #define MB_BLOCK_NUM ${blocks.length}
 
-${blocks.join('\n')}
+${blocks.map((value: Block) => value.macro).join('\n')}
 
 /*
  Unicode plane

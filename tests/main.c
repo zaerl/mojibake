@@ -287,7 +287,6 @@ static void mb_codepoint_character_test() {
     mb_assert("Not valid codepoint", !ret);
 
     ret = mb_codepoint_character(&character, 0);
-    print_character(&character, 0);
     mb_assert("Codepoint: 0", strcmp((char*)character.name, "NULL") == 0);
 
     ret = mb_codepoint_character(&character, '$');
@@ -300,6 +299,32 @@ static void mb_codepoint_character_test() {
     /* 0x1F642 = 🙂 */
     ret = mb_codepoint_character(&character, 0x1F642);
     mb_assert("Codepoint: 🙂", strcmp((char*)character.name, "SLIGHTLY SMILING FACE") == 0);
+
+    mb_close();
+}
+
+static void mb_codepoint_block_test() {
+    mb_initialize(db_name);
+    mb_character character;
+
+    bool ret = mb_codepoint_character(&character, 0);
+    mb_assert("Basic Latin block", character.block == MB_BLOCK_BASIC_LATIN);
+
+    ret = mb_codepoint_character(&character, 0x80 - 1);
+    mb_assert("Basic Latin end block", character.block == MB_BLOCK_BASIC_LATIN);
+
+    ret = mb_codepoint_character(&character, 0x80 + 1);
+    mb_assert("Latin-1 Supplement block", character.block == MB_BLOCK_LATIN_1_SUPPLEMENT);
+
+    ret = mb_codepoint_character(&character, 0xE0000 + 1);
+    mb_assert("Tags block", character.block == MB_BLOCK_TAGS);
+
+    ret = mb_codepoint_character(&character, 0xF0000 + 3);
+    print_character(&character, 0xF0000 + 3);
+    mb_assert("Supplementary Private Use Area-A block", !ret);
+
+    ret = mb_codepoint_character(&character, MB_CODEPOINT_MAX - 1);
+    mb_assert("Supplementary Private Use Area-B block", !ret);
 
     mb_close();
 }
@@ -320,6 +345,7 @@ int main(int argc, const char * argv[]) {
     /* Init tests */
     mb_run_test("Ready", mb_ready_test);
     mb_run_test("Codepoint character", mb_codepoint_character_test);
+    mb_run_test("Codepoint block", mb_codepoint_block_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

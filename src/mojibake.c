@@ -142,8 +142,8 @@ MB_EXPORT char* mb_unicode_version() {
 /* Return true if the codepoint is valid */
 MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
     if(codepoint < MB_CODEPOINT_MIN || codepoint > MB_CODEPOINT_MAX ||
-        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||
-        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) {
+        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || /* Noncharacter */
+        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { /* Noncharacter */
         return false;
     }
 
@@ -343,10 +343,7 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
     DB_COLUMN_INT(mb_internal.char_stmt, character->titlecase, 13);
 
     ret = sqlite3_step(mb_internal.char_stmt);
-
-    /*if(ret == SQLITE_ROW) {
-        return false;
-    }*/
+    bool done = ret == SQLITE_ROW;
 
     ret = sqlite3_clear_bindings(mb_internal.char_stmt);
     DB_CHECK(ret, false)
@@ -354,7 +351,7 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
     ret = sqlite3_reset(mb_internal.char_stmt);
     DB_CHECK(ret, false)
 
-    return true;
+    return done;
 }
 
 /* MB_EXPORT const char* mb_convert_encoding(const unsigned char *buffer,
