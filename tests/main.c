@@ -379,6 +379,39 @@ static void mb_codepoint_is_graphic_test() {
     mb_close();
 }
 
+static void mb_codepoint_lc_uc_tc_test() {
+    mb_initialize(db_name);
+
+    mb_codepoint ret = mb_codepoint_to_lowercase('#');
+    mb_assert("Lowercase #: #", ret == '#');
+
+    ret = mb_codepoint_to_uppercase('#');
+    mb_assert("Uppercase #: #", ret == '#');
+
+    ret = mb_codepoint_to_titlecase('#');
+    mb_assert("Titlecase #: #", ret == '#');
+
+    ret = mb_codepoint_to_lowercase('A');
+    mb_assert("Lowercase: A > a", ret == 'a');
+
+    ret = mb_codepoint_to_lowercase('a');
+    mb_assert("Lowercase: a > a", ret == 'a');
+
+    ret = mb_codepoint_to_uppercase('b');
+    mb_assert("Uppercase: b > B", ret == 'B');
+
+    ret = mb_codepoint_to_uppercase('B');
+    mb_assert("Uppercase: B > B", ret == 'B');
+
+    ret = mb_codepoint_to_titlecase('c');
+    mb_assert("Titlecase: c > C", ret == 'C');
+
+    ret = mb_codepoint_to_titlecase('C');
+    mb_assert("Titlecase: C > C", ret == 'C');
+
+    mb_close();
+}
+
 int main(int argc, const char * argv[]) {
     printf("\x1b[36mMojibake %s test\x1B[0m\n\n", mb_version());
 
@@ -398,6 +431,7 @@ int main(int argc, const char * argv[]) {
     mb_run_test("Codepoint block", mb_codepoint_block_test);
     mb_run_test("Codepoint is", mb_codepoint_is_test);
     mb_run_test("Codepoint is graphic", mb_codepoint_is_graphic_test);
+    mb_run_test("Codepoint is LC/UC/TC", mb_codepoint_lc_uc_tc_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

@@ -389,3 +389,36 @@ MB_EXPORT bool mb_codepoint_is_graphic(mb_codepoint codepoint) {
 
     return true;
 }
+
+/* Return the codepoint lowercase codepoint */
+MB_EXPORT mb_codepoint mb_codepoint_to_lowercase(mb_codepoint codepoint) {
+    mb_character character;
+
+    if(!mb_codepoint_character(&character, codepoint)) {
+        return codepoint;
+    }
+
+    return character.lowercase == 0 ? codepoint : character.lowercase;
+}
+
+/* Return the codepoint uppercase codepoint */
+MB_EXPORT mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint) {
+    mb_character character;
+
+    if(!mb_codepoint_character(&character, codepoint)) {
+        return codepoint;
+    }
+
+    return character.uppercase == 0 ? codepoint : character.uppercase;
+}
+
+/* Return the codepoint titlecase codepoint */
+MB_EXPORT mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint) {
+    mb_character character;
+
+    if(!mb_codepoint_character(&character, codepoint)) {
+        return codepoint;
+    }
+
+    return character.titlecase == 0 ? codepoint : character.titlecase;
+}

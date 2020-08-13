@@ -482,7 +482,7 @@ typedef uint32_t mb_codepoint;
 
 #define MB_CODEPOINT_MIN 0x0
 #define MB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
-#define MB_CODEPOINT_REPLACEMENT = 0xFFFD /* The character used when there is invalid data */
+#define MB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
 /*
  A unicode character
@@ -602,6 +602,15 @@ bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category);
 
 /* Return true if the codepoint is graphic */
 bool mb_codepoint_is_graphic(mb_codepoint codepoint);
+
+/* Return the codepoint lowercase codepoint */
+mb_codepoint mb_codepoint_to_lowercase(mb_codepoint codepoint);
+
+/* Return the codepoint uppercase codepoint */
+mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint);
+
+/* Return the codepoint titlecase codepoint */
+mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint);
 
 #ifdef __cplusplus
 }
