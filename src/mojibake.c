@@ -326,24 +326,24 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
     DB_CHECK(ret, false)
 
     ret = sqlite3_step(mb_internal.char_stmt);
+    bool found = ret == SQLITE_ROW;
 
-    DB_COLUMN_INT(mb_internal.char_stmt, character->codepoint, 0);
-    DB_COLUMN_TEXT(mb_internal.char_stmt, character->name, 1)
-    DB_COLUMN_INT(mb_internal.char_stmt, character->block, 2);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->category, 3);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->combining, 4);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->bidirectional, 5);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->decomposition, 6);
-    DB_COLUMN_TEXT(mb_internal.char_stmt, character->decimal, 7)
-    DB_COLUMN_TEXT(mb_internal.char_stmt, character->digit, 8)
-    DB_COLUMN_TEXT(mb_internal.char_stmt, character->numeric, 9)
-    DB_COLUMN_INT(mb_internal.char_stmt, character->mirrored, 10);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->uppercase, 11);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->lowercase, 12);
-    DB_COLUMN_INT(mb_internal.char_stmt, character->titlecase, 13);
-
-    ret = sqlite3_step(mb_internal.char_stmt);
-    bool done = ret == SQLITE_ROW;
+    if(found) {
+        DB_COLUMN_INT(mb_internal.char_stmt, character->codepoint, 0);
+        DB_COLUMN_TEXT(mb_internal.char_stmt, character->name, 1)
+        DB_COLUMN_INT(mb_internal.char_stmt, character->block, 2);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->category, 3);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->combining, 4);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->bidirectional, 5);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->decomposition, 6);
+        DB_COLUMN_TEXT(mb_internal.char_stmt, character->decimal, 7)
+        DB_COLUMN_TEXT(mb_internal.char_stmt, character->digit, 8)
+        DB_COLUMN_TEXT(mb_internal.char_stmt, character->numeric, 9)
+        DB_COLUMN_INT(mb_internal.char_stmt, character->mirrored, 10);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->uppercase, 11);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->lowercase, 12);
+        DB_COLUMN_INT(mb_internal.char_stmt, character->titlecase, 13);
+    }
 
     ret = sqlite3_clear_bindings(mb_internal.char_stmt);
     DB_CHECK(ret, false)
@@ -351,14 +351,20 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
     ret = sqlite3_reset(mb_internal.char_stmt);
     DB_CHECK(ret, false)
 
-    return done;
+    return found;
 }
 
-/* MB_EXPORT const char* mb_convert_encoding(const unsigned char *buffer,
- unsigned int size, mb_encoding encoding) {
- if(buffer == 0 || size == 0 || encoding > MB_ENCODING_UTF_32_LE) {
- return 0;
- }
+/* Return true if the codepoint has the category */
+MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category) {
+    if(category >= MB_CATEGORY_NUM) {
+        return false;
+    }
 
- return "";
- }*/
+    mb_character character;
+
+    if(!mb_codepoint_character(&character, codepoint)) {
+        return false;
+    }
+
+    return character.category == category;
+}

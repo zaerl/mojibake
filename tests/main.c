@@ -300,6 +300,10 @@ static void mb_codepoint_character_test() {
     ret = mb_codepoint_character(&character, 0x1F642);
     mb_assert("Codepoint: 🙂", strcmp((char*)character.name, "SLIGHTLY SMILING FACE") == 0);
 
+    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
+    ret = mb_codepoint_character(&character, 0x0377 + 1);
+    mb_assert("Codepoint not mapped: ͷ + 1", !ret);
+
     mb_close();
 }
 
@@ -316,6 +320,10 @@ static void mb_codepoint_block_test() {
     ret = mb_codepoint_character(&character, 0x80 + 1);
     mb_assert("Latin-1 Supplement block", character.block == MB_BLOCK_LATIN_1_SUPPLEMENT);
 
+    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
+    ret = mb_codepoint_character(&character, 0x0377 + 1);
+    mb_assert("Greek and Coptic not mapped: ͷ + 1", !ret);
+
     ret = mb_codepoint_character(&character, 0xE0000 + 1);
     mb_assert("Tags block", character.block == MB_BLOCK_TAGS);
 
@@ -325,6 +333,26 @@ static void mb_codepoint_block_test() {
 
     ret = mb_codepoint_character(&character, MB_CODEPOINT_MAX - 1);
     mb_assert("Supplementary Private Use Area-B block", !ret);
+
+    mb_close();
+}
+
+static void mb_codepoint_is_test() {
+    mb_initialize(db_name);
+
+    bool ret = mb_codepoint_is(0, MB_CATEGORY_CC);
+    mb_assert("NULL: category other, control", ret);
+
+    /* 0x1F642 = 🙂 */
+    ret = mb_codepoint_is(0x1F642, MB_CATEGORY_SO);
+    mb_assert("🙂: category Symbol, Other", ret);
+
+    ret = mb_codepoint_is(0x1FFFE, MB_CATEGORY_LU);
+    mb_assert("Not valid codepoint: category invalid", !ret);
+
+    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
+    ret = mb_codepoint_is(0x0377 + 1, MB_CATEGORY_LL);
+    mb_assert("Not mapped codepoint: category invalid", !ret);
 
     mb_close();
 }
@@ -346,6 +374,7 @@ int main(int argc, const char * argv[]) {
     mb_run_test("Ready", mb_ready_test);
     mb_run_test("Codepoint character", mb_codepoint_character_test);
     mb_run_test("Codepoint block", mb_codepoint_block_test);
+    mb_run_test("Codepoint is", mb_codepoint_is_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

@@ -597,6 +597,9 @@ bool mb_string_is_ascii(const char* buffer, size_t size);
 /* Return the codepoint character */
 bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint);
 
+/* Return true if the codepoint has the category */
+bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category);
+
 #ifdef __cplusplus
 }
 #endif
