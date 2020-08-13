@@ -14,6 +14,7 @@ typedef void (*mb_test)(void);
 
 static int tests_run;
 static int tests_valid;
+static const char* db_name = "../src/mojibake.db";
 
 void mb_assert(char *message, bool test) {
     ++tests_run;
@@ -37,13 +38,13 @@ static void mb_version_test() {
     size_t size = sizeof(MB_VERSION);
     int result = strncmp(version, MB_VERSION, size);
 
-    mb_assert("valid version", result == 0);
+    mb_assert("Valid version", result == 0);
 }
 
 static void mb_version_number_test() {
     unsigned int version_number = mb_version_number();
 
-    mb_assert("valid version number", version_number == MB_VERSION_NUMBER);
+    mb_assert("Valid version number", version_number == MB_VERSION_NUMBER);
 }
 
 static void mb_unicode_version_test() {
@@ -51,30 +52,30 @@ static void mb_unicode_version_test() {
     size_t size = sizeof(MB_UNICODE_VERSION);
     int result = strncmp(version, MB_UNICODE_VERSION, size);
 
-    mb_assert("valid unicode version", result == 0);
+    mb_assert("Valid unicode version", result == 0);
 }
 
 static void mb_codepoint_is_valid_test() {
     bool validity = mb_codepoint_is_valid(MB_CODEPOINT_MIN + 1);
-    mb_assert("valid codepoint", validity);
+    mb_assert("Valid codepoint", validity);
 
     validity = mb_codepoint_is_valid(MB_CODEPOINT_MIN - 1);
-    mb_assert("not valid negative codepoint", !validity);
+    mb_assert("Not valid negative codepoint", !validity);
 
     validity = mb_codepoint_is_valid(MB_CODEPOINT_MAX + 1);
-    mb_assert("not valid exceed codepoint", !validity);
+    mb_assert("Not valid exceed codepoint", !validity);
 
     validity = mb_codepoint_is_valid(0x1FFFE);
-    mb_assert("not valid codepoint ending in 0xFFFE", !validity);
+    mb_assert("Not valid codepoint ending in 0xFFFE", !validity);
 
     validity = mb_codepoint_is_valid(0x1FFFF);
-    mb_assert("not valid codepoint ending in 0xFFFF", !validity);
+    mb_assert("Not valid codepoint ending in 0xFFFF", !validity);
 
     validity = mb_codepoint_is_valid(0xFFFE);
-    mb_assert("not valid codepoint 0xFFFE", !validity);
+    mb_assert("Not valid codepoint 0xFFFE", !validity);
 
     validity = mb_codepoint_is_valid(0xFFFF);
-    mb_assert("not valid codepoint 0xFFFF", !validity);
+    mb_assert("Not valid codepoint 0xFFFF", !validity);
 
     char buffer[32];
 
@@ -82,51 +83,51 @@ static void mb_codepoint_is_valid_test() {
     for(mb_codepoint i = 0xFDD0; i <= 0xFDEF; ++i) {
         validity = mb_codepoint_is_valid(i);
 
-        snprintf(buffer, 32, "invalid codepoint %#X", i);
+        snprintf(buffer, 32, "Not valid codepoint %#X", i);
         mb_assert(buffer, !validity);
     }
 }
 
 static void mb_plane_is_valid_test() {
     bool validity = mb_plane_is_valid(1);
-    mb_assert("valid codespace plane", validity);
+    mb_assert("Valid codespace plane", validity);
 
     validity = mb_plane_is_valid(-1);
-    mb_assert("not valid negative codespace plane", !validity);
+    mb_assert("Not valid negative codespace plane", !validity);
 
     validity = mb_plane_is_valid(MB_PLANE_NUM);
-    mb_assert("not valid exceed codespace plane", !validity);
+    mb_assert("Not valid exceed codespace plane", !validity);
 }
 
 static void mb_plane_name_test() {
     bool validity = strcmp(mb_plane_name(0, true), "BMP") == 0;
-    mb_assert("valid codespace plane name abbreviation", validity);
+    mb_assert("Valid codespace plane name abbreviation", validity);
 
     validity = strcmp(mb_plane_name(0, false), "Basic Multilingual Plane") == 0;
-    mb_assert("valid codespace plane name full", validity);
+    mb_assert("Valid codespace plane name full", validity);
 
     validity = mb_plane_name(-1, false) == NULL;
-    mb_assert("invalid codespace plane low", validity);
+    mb_assert("Not valid codespace plane low", validity);
 
     validity = mb_plane_name(MB_PLANE_NUM, false) == NULL;
-    mb_assert("invalid codespace plane high", validity);
+    mb_assert("Not valid codespace plane high", validity);
 
     validity = strcmp(mb_plane_name(4, false), "Unassigned") == 0;
-    mb_assert("unassigned codespace plane abbreviation", validity);
+    mb_assert("Unassigned codespace plane abbreviation", validity);
 
     validity = strcmp(mb_plane_name(4, true), "Unassigned") == 0;
-    mb_assert("unassigned codespace plane full", validity);
+    mb_assert("Unassigned codespace plane full", validity);
 }
 
 static void mb_string_encoding_test() {
     mb_encoding encoding = mb_string_encoding(0, 10);
-    mb_assert("void string", encoding == MB_ENCODING_UNKNOWN);
+    mb_assert("Void string", encoding == MB_ENCODING_UNKNOWN);
 
     encoding = mb_string_encoding("", 0);
-    mb_assert("void length", encoding == MB_ENCODING_UNKNOWN);
+    mb_assert("Void length", encoding == MB_ENCODING_UNKNOWN);
 
     encoding = mb_string_encoding(0, 0);
-    mb_assert("void string and length", encoding == MB_ENCODING_UNKNOWN);
+    mb_assert("Void string and length", encoding == MB_ENCODING_UNKNOWN);
 
     const char *test1 = "The quick brown fox jumps over the lazy dog";
     encoding = mb_string_encoding(test1, 43);
@@ -158,76 +159,76 @@ static void mb_string_encoding_test() {
 
 static void mb_string_is_ascii_test() {
     bool is_ascii = mb_string_is_ascii("", 0);
-    mb_assert("void string", !is_ascii);
+    mb_assert("Void string", !is_ascii);
 
     is_ascii = mb_string_is_ascii("", 0);
-    mb_assert("void length", !is_ascii);
+    mb_assert("Void length", !is_ascii);
 
     is_ascii = mb_string_is_ascii(0, 0);
-    mb_assert("void string and length", !is_ascii);
+    mb_assert("Void string and length", !is_ascii);
 
     const char *test = "The quick brown fox jumps over the lazy dog";
     is_ascii = mb_string_is_ascii(test, 43);
-    mb_assert("void string and length", is_ascii);
+    mb_assert("Valid string and length", is_ascii);
 
     /* \xF0\x9F\x99\x82 = 🙂 */
     test = "\xF0\x9F\x99\x82";
     is_ascii = mb_string_is_ascii(test, 5);
-    mb_assert("string with emoji", !is_ascii);
+    mb_assert("String with emoji", !is_ascii);
 
     test = "\x80";
     is_ascii = mb_string_is_ascii(test, 2);
-    mb_assert("lone continuation byte", !is_ascii);
+    mb_assert("Lone continuation byte", !is_ascii);
 
     test = "\xC0";
     is_ascii = mb_string_is_ascii(test, 2);
-    mb_assert("lone first 2-bytes sequence", !is_ascii);
+    mb_assert("Lone first 2-bytes sequence", !is_ascii);
 
     test = "\xE0";
     is_ascii = mb_string_is_ascii(test, 2);
-    mb_assert("lone first 3-bytes sequence", !is_ascii);
+    mb_assert("Lone first 3-bytes sequence", !is_ascii);
 
     test = "\xF0";
     is_ascii = mb_string_is_ascii(test, 2);
-    mb_assert("lone first 4-bytes sequence", !is_ascii);
+    mb_assert("Lone first 4-bytes sequence", !is_ascii);
 }
 
 static void mb_string_is_utf8_test() {
     bool is_utf8 = mb_string_is_utf8("", 0);
-    mb_assert("void string", !is_utf8);
+    mb_assert("Void string", !is_utf8);
 
     is_utf8 = mb_string_is_utf8("", 0);
-    mb_assert("void length", !is_utf8);
+    mb_assert("Void length", !is_utf8);
 
     is_utf8 = mb_string_is_utf8(0, 0);
-    mb_assert("void string and length", !is_utf8);
+    mb_assert("Void string and length", !is_utf8);
 
     const char *test = "The quick brown fox jumps over the lazy dog";
     is_utf8 = mb_string_is_utf8(test, 43);
-    mb_assert("void string and length", is_utf8);
+    mb_assert("Valid string and length", is_utf8);
 
     /* \xF0\x9F\x99\x82 = 🙂 */
     test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
     is_utf8 = mb_string_is_utf8(test, 48);
-    mb_assert("string with emoji", is_utf8);
+    mb_assert("String with emoji", is_utf8);
 
     test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
     is_utf8 = mb_string_is_utf8(test, 48);
-    mb_assert("Invalid continuation byte", is_utf8);
+    mb_assert("Not valid continuation byte", is_utf8);
 }
 
 static void mb_ready_test() {
     mb_assert("Not ready", !mb_ready());
 
     bool result = mb_initialize("null.db");
-    mb_assert("Invalid DB call", !result);
-    mb_assert("Invalid DB", !mb_ready());
+    mb_assert("Not valid DB call", !result);
+    mb_assert("Not valid DB", !mb_ready());
 
     result = mb_close();
-    mb_assert("Invalid DB close call", !result);
+    mb_assert("Not valid DB close call", !result);
     mb_assert("DB closed", !mb_ready());
 
-    result = mb_initialize("../src/mojibake.db");
+    result = mb_initialize(db_name);
     mb_assert("Valid DB call", result);
     mb_assert("Valid DB", mb_ready());
 
@@ -237,19 +238,27 @@ static void mb_ready_test() {
 }
 
 static void mb_codepoint_character_test() {
-    const mb_character* character = mb_codepoint_character(MB_CODEPOINT_MAX);
-    mb_assert("invalid codepoint", character == NULL);
+    mb_initialize(db_name);
+    mb_character character;
 
-    character = mb_codepoint_character('$');
-    mb_assert("Codepoint $", character && strcmp(character->name, "DOLLAR SIGN") == 0);
+    bool ret = mb_codepoint_character(NULL, MB_CODEPOINT_MAX);
+    mb_assert("Void character", !ret);
+
+    ret = mb_codepoint_character(&character, MB_CODEPOINT_MAX);
+    mb_assert("Not valid codepoint", !ret);
+
+    ret = mb_codepoint_character(&character, '$');
+    mb_assert("Codepoint: $", character.name && strcmp((char*)character.name, "DOLLAR SIGN") == 0);
 
     /* 0xE0 = à */
-    character = mb_codepoint_character(0xE0);
-    mb_assert("Codepoint à", character && strcmp(character->name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
+    ret = mb_codepoint_character(&character, 0xE0);
+    mb_assert("Codepoint: à", character.name && strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
 
     /* 0x1F642 = 🙂 */
-    character = mb_codepoint_character(0x1F642);
-    mb_assert("Codepoint 🙂", character && strcmp(character->name, "SLIGHTLY SMILING FACE") == 0);
+    ret = mb_codepoint_character(&character, 0x1F642);
+    mb_assert("Codepoint: 🙂", character.name && strcmp((char*)character.name, "SLIGHTLY SMILING FACE") == 0);
+
+    mb_close();
 }
 
 int main(int argc, const char * argv[]) {
@@ -261,13 +270,13 @@ int main(int argc, const char * argv[]) {
     mb_run_test("Codepoint is valid", mb_codepoint_is_valid_test);
     mb_run_test("Codespace plane is valid", mb_plane_is_valid_test);
     mb_run_test("Codespace plane name", mb_plane_name_test);
-    mb_run_test("String get encoding", mb_string_encoding_test);
+    mb_run_test("String encoding", mb_string_encoding_test);
     mb_run_test("String is ASCII", mb_string_is_ascii_test);
     mb_run_test("String is UTF-8", mb_string_is_utf8_test);
 
     /* Init tests */
     mb_run_test("Ready", mb_ready_test);
-    mb_run_test("Codepoint get character", mb_codepoint_character_test);
+    mb_run_test("Codepoint character", mb_codepoint_character_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

@@ -10,6 +10,9 @@
 #include "mojibake.h"
 #include "sqlite/sqlite3.h"
 
+#define DB_CHECK(db_result, ret) if(db_result != SQLITE_OK) { mb_db_error(); return ret; }
+#define DB_CHECK_CLOSE(db_result, ret) if(db_result != SQLITE_OK) { mb_db_error(); mb_close(); return ret; }
+
 #ifndef MB_EXTERN
 #define MB_EXTERN extern
 #endif
@@ -27,9 +30,11 @@
 typedef struct mb_connection {
     sqlite3* db;
     sqlite3_stmt* char_stmt;
+    bool ok;
 } mb_connection;
 
-static mb_connection mb_internal = { NULL };
+static mb_connection mb_internal = { NULL, NULL, false };
+static const mb_character empty_character;
 
 static mb_encoding mb_encoding_from_bom(const char* buffer, size_t length) {
     if(length < 2) {
@@ -65,31 +70,38 @@ static mb_encoding mb_encoding_from_bom(const char* buffer, size_t length) {
     return bom_encoding;
 }
 
+static void mb_db_error() {
+    fprintf(stderr, "Error: %s\n", sqlite3_errmsg(mb_internal.db));
+}
+
 /* Initialize the library */
 MB_EXPORT bool mb_initialize(const char* filename) {
     if(mb_ready()) {
         return true;
     }
 
-    if(sqlite3_open_v2(filename, &mb_internal.db, SQLITE_OPEN_READONLY, NULL) == SQLITE_OK &&
-        sqlite3_prepare_v3(mb_internal.db, "SELECT * FROM characters WHERE codepoint = ?", -1,
-            SQLITE_PREPARE_PERSISTENT, &mb_internal.char_stmt, NULL) == SQLITE_OK) {
-        return true;
-    }
+    int ret = sqlite3_open_v2(filename, &mb_internal.db, SQLITE_OPEN_READONLY, NULL);
+    DB_CHECK_CLOSE(ret, false)
 
-    mb_close();
+    ret = sqlite3_prepare_v3(mb_internal.db, "SELECT * FROM characters WHERE codepoint = ?", -1,
+        SQLITE_PREPARE_PERSISTENT, &mb_internal.char_stmt, NULL);
+    DB_CHECK_CLOSE(ret, false)
 
-    return false;
+    mb_internal.ok = true;
+
+    return true;
 }
 
 /* The library is ready */
 MB_EXPORT bool mb_ready() {
-    return mb_internal.db != NULL;
+    return mb_internal.ok;
 }
 
 /* Close the library */
 MB_EXPORT bool mb_close() {
     if(!mb_ready()) {
+        mb_db_error();
+
         return false;
     }
 
@@ -104,6 +116,8 @@ MB_EXPORT bool mb_close() {
         ret = sqlite3_close(mb_internal.db);
         mb_internal.db = NULL;
     }
+
+    mb_internal.ok = false;
 
     return ret == SQLITE_OK;
 }
@@ -298,12 +312,47 @@ MB_EXPORT bool mb_string_is_ascii(const char* buffer, size_t size) {
 }
 
 /* Return the codepoint character */
-MB_EXPORT const mb_character* mb_codepoint_character(mb_codepoint codepoint) {
-    if(!mb_codepoint_is_valid(codepoint) || !mb_ready()) {
-        return NULL;
+MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint) {
+    if(character == NULL || !mb_codepoint_is_valid(codepoint) || !mb_ready()) {
+        return false;
     }
 
-    return NULL;
+    /* Reset character */
+    *character = empty_character;
+
+    int ret = sqlite3_bind_int(mb_internal.char_stmt, 1, codepoint);
+    DB_CHECK(ret, false)
+
+    ret = sqlite3_step(mb_internal.char_stmt);
+
+    character->codepoint = sqlite3_column_int(mb_internal.char_stmt, 0);
+    character->name = sqlite3_column_text(mb_internal.char_stmt, 1);
+    character->block = sqlite3_column_int(mb_internal.char_stmt, 2);
+    character->category = sqlite3_column_int(mb_internal.char_stmt, 3);
+    character->combining = sqlite3_column_text(mb_internal.char_stmt, 4);
+    character->bidirectional = sqlite3_column_int(mb_internal.char_stmt, 5);
+    character->decomposition = sqlite3_column_int(mb_internal.char_stmt, 6);
+    character->decimal = sqlite3_column_text(mb_internal.char_stmt, 7);
+    character->digit = sqlite3_column_text(mb_internal.char_stmt, 8);
+    character->numeric = sqlite3_column_text(mb_internal.char_stmt, 9);
+    character->mirrored = sqlite3_column_int(mb_internal.char_stmt, 10);
+    character->uppercase = sqlite3_column_text(mb_internal.char_stmt, 11);
+    character->lowercase = sqlite3_column_text(mb_internal.char_stmt, 12);
+    character->titlecase = sqlite3_column_text(mb_internal.char_stmt, 13);
+
+    ret = sqlite3_step(mb_internal.char_stmt);
+
+    /*if(ret == SQLITE_ROW) {
+        return false;
+    }*/
+
+    ret = sqlite3_clear_bindings(mb_internal.char_stmt);
+    DB_CHECK(ret, false)
+
+    ret = sqlite3_reset(mb_internal.char_stmt);
+    DB_CHECK(ret, false)
+
+    return true;
 }
 
 /* MB_EXPORT const char* mb_convert_encoding(const unsigned char *buffer,

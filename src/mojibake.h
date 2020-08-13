@@ -37,19 +37,19 @@ typedef uint32_t mb_codepoint;
  */
 typedef struct mb_character {
     mb_codepoint codepoint;
-    char* name;
+    const unsigned char* name;
     unsigned short block;
     unsigned short category;
-    char* combining;
+    const unsigned char* combining;
     unsigned short bidirectional;
     unsigned short decomposition;
-    char* decimal;
-    char* digit;
-    char* numeric;
+    const unsigned char* decimal;
+    const unsigned char* digit;
+    const unsigned char* numeric;
     bool mirrored;
-    char* uppercase;
-    char* lowercase;
-    char* titlecase;
+    const unsigned char* uppercase;
+    const unsigned char* lowercase;
+    const unsigned char* titlecase;
 } mb_character;
 
 /*
@@ -478,7 +478,7 @@ bool mb_string_is_utf8(const char* buffer, size_t size);
 bool mb_string_is_ascii(const char* buffer, size_t size);
 
 /* Return the codepoint character */
-const mb_character* mb_codepoint_character(mb_codepoint codepoint);
+bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint);
 
 #ifdef __cplusplus
 }
