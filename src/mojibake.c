@@ -356,7 +356,7 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
 
 /* Return true if the codepoint has the category */
 MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category) {
-    if(category >= MB_CATEGORY_NUM) {
+    if(category >= MB_CATEGORY_COUNT) {
         return false;
     }
 

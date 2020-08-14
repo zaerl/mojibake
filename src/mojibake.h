@@ -32,6 +32,22 @@ typedef uint32_t mb_codepoint;
 #define MB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
 /*
+ Unicode codepoint general category
+ [see: https://www.unicode.org/glossary/#general_category]
+ */
+typedef uint32_t mb_category;
+
+/*
+ Unicode block
+ [see: https://www.unicode.org/glossary/#block]
+*/
+typedef struct mb_block {
+  char* name;
+  uint32_t start;
+  uint32_t end;
+} mb_block;
+
+/*
  A unicode character
  [see: https://www.unicode.org/glossary/#character]
  */
@@ -39,7 +55,7 @@ typedef struct mb_character {
     mb_codepoint codepoint;
     unsigned char name[128];
     unsigned short block;
-    unsigned short category;
+    mb_category category;
     unsigned short combining;
     unsigned short bidirectional;
     unsigned short decomposition;
@@ -52,13 +68,7 @@ typedef struct mb_character {
     mb_codepoint titlecase;
 } mb_character;
 
-/*
- Unicode codepoint general category
- [see: https://www.unicode.org/glossary/#general_category]
- */
-typedef uint32_t mb_category;
-
-#define MB_CATEGORY_NUM 30
+#define MB_CATEGORY_COUNT 30
 
 #define MB_CATEGORY_LU 0 /* Lu Letter, Uppercase */
 #define MB_CATEGORY_LL 1 /* Ll Letter, Lowercase */
@@ -90,16 +100,6 @@ typedef uint32_t mb_category;
 #define MB_CATEGORY_CS 27 /* Cs Other, Surrogate */
 #define MB_CATEGORY_CO 28 /* Co Other, Private Use */
 #define MB_CATEGORY_CN 29 /* Cn Other, Not Assigned */
-
-/*
- Unicode block
- [see: https://www.unicode.org/glossary/#block]
-*/
-typedef struct mb_block {
-  char* name;
-  uint32_t start;
-  uint32_t end;
-} mb_block;
 
 #define MB_BLOCK_NUM 308
 
@@ -494,6 +494,9 @@ mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint);
 
 /* Return the codepoint titlecase codepoint */
 mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint);
+
+/* Return the codepoint titlecase codepoint */
+mb_codepoint mb_string_clean(const char* buffer, size_t size);
 
 #ifdef __cplusplus
 }
