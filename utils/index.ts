@@ -160,6 +160,10 @@ interface Block {
   end: number;
 };
 
+function log(message?: any, ...optionalParams: any[]) {
+  console.log(message, ...optionalParams);
+}
+
 function compareFn(a: Buffer, b: Buffer): number {
   const ret = b.count - a.count;
 
@@ -200,7 +204,7 @@ function license(): string {
 }
 
 async function readBlocks(stmt: Statement): Promise<Block[]> {
-  console.log('READ BLOCKS');
+  log('READ BLOCKS');
 
   const blocks: Block[] = [];
 
@@ -243,18 +247,18 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
 }
 
 async function readUnicodeData(stmt: Statement, blocks: Block[]) {
-  console.log('READ UNICODE DATA');
+  log('READ UNICODE DATA');
 
   const nameBuffer: { [name: string]: number } = {};
   const categoryBuffer: { [name: string]: number } = {};
   let charsCount = 0;
   let wordsCount = 0;
-  let entries: string[] = [];
   let hasNumber: { [name: string]: number } = {};
   let previousCodepoint = 0;
   let diffs = 0;
   let codepoint = 0;
   let currentBlock = 0;
+  let maxDecomposition = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -270,7 +274,7 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
 
     if(diff > 1) {
       diffs += diff;
-      console.log(`STEP (${split[0]} -- ${codepoint - previousCodepoint})`);
+      // log(`STEP (${split[0]} -- ${codepoint - previousCodepoint})`);
     }
 
     previousCodepoint = codepoint;
@@ -285,9 +289,12 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
       }
     }
 
-    entries.push(`    { 0x${split[0]}, MB_CATEGORY_${split[2].toUpperCase()}, "${name}" }`);
-
     const decomposition = split[5].split(' ') as CharacterDecomposition;
+    maxDecomposition = Math.max(maxDecomposition, decomposition.length);
+
+    if(decomposition.length === 19) {
+      log(codepoint, name, decomposition);
+    }
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
@@ -297,7 +304,7 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
       codepoint, // 0
       name, // 1
       currentBlock, // Block
-      Category[split[2]],
+      1 << Category[split[2]],
       parseInt(split[3], 10),
       split[4] === '' ? null : BidirectionalCategories[split[4]],
       decomposition[0] === '' ? null : CharacterDecompositionMapping[decomposition[0]],
@@ -331,7 +338,9 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
 
   stmt.finalize();
 
-  console.log(`STEP TOTAL ${diffs}/${codepoint}\n`);
+  log(`MAX DECOMPOSITION ${maxDecomposition}\n`);
+
+  log(`STEP TOTAL ${diffs}/${codepoint}\n`);
 
   const ret: Buffer[] = [];
   const ret2: Buffer[] = [];
@@ -340,7 +349,7 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     ret2.push({ name, count: categoryBuffer[name] });
   }
 
-  console.log('CATEGORIES\n');
+  log('CATEGORIES\n');
 
   ret2.sort(compareFn);
   let buffer: string[] = [];
@@ -350,14 +359,14 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     buffer.push(entry.name);
 
     if(entry.count !== prevCount) {
-      console.log(`${entry.count} :: ${buffer.join(', ')}`);
+      log(`${entry.count} :: ${buffer.join(', ')}`);
 
       prevCount = entry.count;
       buffer = [];
     }
   }
 
-  console.log('\nWORDS\n');
+  log('\nWORDS\n');
 
   for(const name in nameBuffer) {
     ret.push({ name, count: nameBuffer[name] });
@@ -373,14 +382,14 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     if(entry.count !== prevCount) {
       const line = buffer.length > 10 ? buffer.slice(0, 10).join(', ') + '...' : buffer.join(', ');
 
-      console.log(`${entry.count} :: ${line}`);
+      log(`${entry.count} :: ${line}`);
 
       prevCount = entry.count;
       buffer = [];
     }
   }
 
-  console.log('\nNUMBERS\n');
+  log('\nNUMBERS\n');
 
   const numbersBuffer: Numeric[] = [];
 
@@ -396,12 +405,12 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
   numbersBuffer.sort((a: Numeric, b: Numeric) => b.count - a.count);
 
   for(const num of numbersBuffer) {
-    console.log(`${num.name} (${num.value}): ${num.count}`);
+    log(`${num.name} (${num.value}): ${num.count}`);
   }
 
-  console.log('\nCOUNT\n');
-  console.log(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
-  console.log(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
+  log('\nCOUNT\n');
+  log(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
+  log(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
 }
 
 const dbName = '../src/mojibake.db';
@@ -454,7 +463,7 @@ db.run(
   const categoryMacros: string[] = [];
 
   for(let i = 0; i < categories.length; ++i) {
-    categoryMacros.push(`#define MB_CATEGORY_${Category[i].toUpperCase()} ${i} /* ${Category[i]} ${categories[i]} */`);
+    categoryMacros.push(`#define MB_CATEGORY_${Category[i].toUpperCase()} 0x${(1 << i).toString(16)} /* ${i} (${Category[i]}) ${categories[i]} */`);
   }
 
   const fheader =

@@ -70,36 +70,36 @@ typedef struct mb_character {
 
 #define MB_CATEGORY_COUNT 30
 
-#define MB_CATEGORY_LU 0 /* Lu Letter, Uppercase */
-#define MB_CATEGORY_LL 1 /* Ll Letter, Lowercase */
-#define MB_CATEGORY_LT 2 /* Lt Letter, Titlecase */
-#define MB_CATEGORY_LM 3 /* Lm Letter, Modifier */
-#define MB_CATEGORY_LO 4 /* Lo Letter, Other */
-#define MB_CATEGORY_MN 5 /* Mn Mark, Non-Spacing */
-#define MB_CATEGORY_MC 6 /* Mc Mark, Spacing Combining */
-#define MB_CATEGORY_ME 7 /* Me Mark, Enclosing */
-#define MB_CATEGORY_ND 8 /* Nd Number, Decimal Digit */
-#define MB_CATEGORY_NL 9 /* Nl Number, Letter */
-#define MB_CATEGORY_NO 10 /* No Number, Other */
-#define MB_CATEGORY_PC 11 /* Pc Punctuation, Connector */
-#define MB_CATEGORY_PD 12 /* Pd Punctuation, Dash */
-#define MB_CATEGORY_PS 13 /* Ps Punctuation, Open */
-#define MB_CATEGORY_PE 14 /* Pe Punctuation, Close */
-#define MB_CATEGORY_PI 15 /* Pi Punctuation, Initial quote */
-#define MB_CATEGORY_PF 16 /* Pf Punctuation, Final quote */
-#define MB_CATEGORY_PO 17 /* Po Punctuation, Other */
-#define MB_CATEGORY_SM 18 /* Sm Symbol, Math */
-#define MB_CATEGORY_SC 19 /* Sc Symbol, Currency */
-#define MB_CATEGORY_SK 20 /* Sk Symbol, Modifier */
-#define MB_CATEGORY_SO 21 /* So Symbol, Other */
-#define MB_CATEGORY_ZS 22 /* Zs Separator, Space */
-#define MB_CATEGORY_ZL 23 /* Zl Separator, Line */
-#define MB_CATEGORY_ZP 24 /* Zp Separator, Paragraph */
-#define MB_CATEGORY_CC 25 /* Cc Other, Control */
-#define MB_CATEGORY_CF 26 /* Cf Other, Format */
-#define MB_CATEGORY_CS 27 /* Cs Other, Surrogate */
-#define MB_CATEGORY_CO 28 /* Co Other, Private Use */
-#define MB_CATEGORY_CN 29 /* Cn Other, Not Assigned */
+#define MB_CATEGORY_LU 0x1 /* 0 (Lu) Letter, Uppercase */
+#define MB_CATEGORY_LL 0x2 /* 1 (Ll) Letter, Lowercase */
+#define MB_CATEGORY_LT 0x4 /* 2 (Lt) Letter, Titlecase */
+#define MB_CATEGORY_LM 0x8 /* 3 (Lm) Letter, Modifier */
+#define MB_CATEGORY_LO 0x10 /* 4 (Lo) Letter, Other */
+#define MB_CATEGORY_MN 0x20 /* 5 (Mn) Mark, Non-Spacing */
+#define MB_CATEGORY_MC 0x40 /* 6 (Mc) Mark, Spacing Combining */
+#define MB_CATEGORY_ME 0x80 /* 7 (Me) Mark, Enclosing */
+#define MB_CATEGORY_ND 0x100 /* 8 (Nd) Number, Decimal Digit */
+#define MB_CATEGORY_NL 0x200 /* 9 (Nl) Number, Letter */
+#define MB_CATEGORY_NO 0x400 /* 10 (No) Number, Other */
+#define MB_CATEGORY_PC 0x800 /* 11 (Pc) Punctuation, Connector */
+#define MB_CATEGORY_PD 0x1000 /* 12 (Pd) Punctuation, Dash */
+#define MB_CATEGORY_PS 0x2000 /* 13 (Ps) Punctuation, Open */
+#define MB_CATEGORY_PE 0x4000 /* 14 (Pe) Punctuation, Close */
+#define MB_CATEGORY_PI 0x8000 /* 15 (Pi) Punctuation, Initial quote */
+#define MB_CATEGORY_PF 0x10000 /* 16 (Pf) Punctuation, Final quote */
+#define MB_CATEGORY_PO 0x20000 /* 17 (Po) Punctuation, Other */
+#define MB_CATEGORY_SM 0x40000 /* 18 (Sm) Symbol, Math */
+#define MB_CATEGORY_SC 0x80000 /* 19 (Sc) Symbol, Currency */
+#define MB_CATEGORY_SK 0x100000 /* 20 (Sk) Symbol, Modifier */
+#define MB_CATEGORY_SO 0x200000 /* 21 (So) Symbol, Other */
+#define MB_CATEGORY_ZS 0x400000 /* 22 (Zs) Separator, Space */
+#define MB_CATEGORY_ZL 0x800000 /* 23 (Zl) Separator, Line */
+#define MB_CATEGORY_ZP 0x1000000 /* 24 (Zp) Separator, Paragraph */
+#define MB_CATEGORY_CC 0x2000000 /* 25 (Cc) Other, Control */
+#define MB_CATEGORY_CF 0x4000000 /* 26 (Cf) Other, Format */
+#define MB_CATEGORY_CS 0x8000000 /* 27 (Cs) Other, Surrogate */
+#define MB_CATEGORY_CO 0x10000000 /* 28 (Co) Other, Private Use */
+#define MB_CATEGORY_CN 0x20000000 /* 29 (Cn) Other, Not Assigned */
 
 #define MB_BLOCK_NUM 308
 
