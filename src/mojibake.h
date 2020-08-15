@@ -21,6 +21,11 @@
 #define MB_UNICODE_VERSION_MAJOR 13
 #define MB_UNICODE_VERSION_MINOR 0
 
+/* See c standard memory allocation functions */
+typedef void* (*mb_alloc)(size_t size);
+typedef void* (*mb_realloc)(void* ptr, size_t new_size);
+typedef void (*mb_free)(void* ptr);
+
 /*
  A unicode codepoint
  [see: https://www.unicode.org/glossary/#code_point]
@@ -481,7 +486,7 @@ bool mb_string_is_ascii(const char* buffer, size_t size);
 bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint);
 
 /* Return true if the codepoint has the category */
-bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category);
+bool mb_codepoint_is(mb_codepoint codepoint, mb_category category);
 
 /* Return true if the codepoint is graphic */
 bool mb_codepoint_is_graphic(mb_codepoint codepoint);

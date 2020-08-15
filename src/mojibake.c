@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "mojibake.h"
@@ -33,6 +34,9 @@ typedef struct mb_connection {
     sqlite3* db;
     sqlite3_stmt* char_stmt;
     bool ok;
+    mb_alloc memory_alloc;
+    mb_realloc memory_realloc;
+    mb_free memory_free;
 } mb_connection;
 
 static mb_connection mb_internal = { NULL, NULL, false };
@@ -90,6 +94,10 @@ MB_EXPORT bool mb_initialize(const char* filename) {
     DB_CHECK_CLOSE(ret, false)
 
     mb_internal.ok = true;
+
+    mb_internal.memory_alloc = &malloc;
+    mb_internal.memory_realloc = &realloc;
+    mb_internal.memory_free = &free;
 
     return true;
 }
@@ -355,11 +363,7 @@ MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint code
 }
 
 /* Return true if the codepoint has the category */
-MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, unsigned short category) {
-    if(category >= MB_CATEGORY_COUNT) {
-        return false;
-    }
-
+MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, mb_category category) {
     mb_character character;
 
     if(!mb_codepoint_character(&character, codepoint)) {
