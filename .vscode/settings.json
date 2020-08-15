@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "*.lock": "json",
+    "typeinfo": "c"
+  }
+}

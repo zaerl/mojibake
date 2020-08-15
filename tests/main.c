@@ -412,6 +412,15 @@ static void mb_codepoint_lc_uc_tc_test() {
     mb_close();
 }
 
+static void mb_codepoint_normalize_test() {
+    mb_initialize(db_name);
+
+    mb_normalize("\xE2\x84\xAB", 1, MB_NORMALIZATION_NFD);
+    mb_assert("ANGSTROM SIGN (U+212B) NFD", true);
+
+    mb_close();
+}
+
 int main(int argc, const char * argv[]) {
     printf("\x1b[36mMojibake %s test\x1B[0m\n\n", mb_version());
 
@@ -432,6 +441,7 @@ int main(int argc, const char * argv[]) {
     mb_run_test("Codepoint is", mb_codepoint_is_test);
     mb_run_test("Codepoint is graphic", mb_codepoint_is_graphic_test);
     mb_run_test("Codepoint is LC/UC/TC", mb_codepoint_lc_uc_tc_test);
+    mb_run_test("Normalize NFD/NFC/NFKD/NFKC", mb_codepoint_normalize_test);
 
     /* Green if valid and red if not */
     const char* colorCode = tests_valid == tests_run ? "\x1B[32m" : "\x1B[31m";

@@ -426,3 +426,8 @@ MB_EXPORT mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint) {
 
     return character.titlecase == 0 ? codepoint : character.titlecase;
 }
+
+/* Normalize a string */
+MB_EXPORT void mb_normalize(const char* buffer, size_t size, mb_normalization form) {
+
+}

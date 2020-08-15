@@ -568,6 +568,17 @@ typedef uint32_t mb_encoding;
 #define MB_ENCODING_UTF_32_BE 0x40
 #define MB_ENCODING_UTF_32_LE 0x80
 
+/*
+ Normalization form
+ https://www.unicode.org/glossary/#normalization_form
+*/
+typedef unsigned short mb_normalization;
+
+#define MB_NORMALIZATION_NFD 0
+#define MB_NORMALIZATION_NFC 1
+#define MB_NORMALIZATION_NFKD 2
+#define MB_NORMALIZATION_NFKC 3
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -626,8 +637,8 @@ mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint);
 /* Return the codepoint titlecase codepoint */
 mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint);
 
-/* Return the codepoint titlecase codepoint */
-mb_codepoint mb_string_clean(const char* buffer, size_t size);
+/* Normalize a string */
+void mb_normalize(const char* buffer, size_t size, mb_normalization form);
 
 #ifdef __cplusplus
 }
