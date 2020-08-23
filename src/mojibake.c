@@ -16,14 +16,6 @@
 #define DB_COLUMN_INT(stmt, name, col) name = sqlite3_column_int(stmt, col);
 #define DB_COLUMN_TEXT(stmt, name, col) strncpy((char*)&name, (const char*)sqlite3_column_text(stmt, col), sqlite3_column_bytes(stmt, col));
 
-#ifndef MB_EXTERN
-#define MB_EXTERN extern
-#endif
-
-#ifndef MB_EXPORT
-#define MB_EXPORT __attribute__((visibility("default")))
-#endif
-
 #define MB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
 #define MB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
 #define MB_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
