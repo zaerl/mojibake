@@ -48,8 +48,6 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
-#define MJB_BLOCK_NUM 308
-
 typedef enum mjb_block_name {
     MJB_BLOCK_BASIC_LATIN = 0,
     MJB_BLOCK_LATIN_1_SUPPLEMENT = 1,
@@ -361,6 +359,8 @@ typedef enum mjb_block_name {
     MJB_BLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_B = 307
 } mjb_block_name;
 
+#define MJB_BLOCK_NUM 308
+
 /*
  Unicode block
  [see: https://www.unicode.org/glossary/#block]
@@ -370,8 +370,6 @@ typedef struct mjb_block {
     uint32_t start;
     uint32_t end;
 } mjb_block;
-
-#define MJB_CATEGORY_COUNT 30
 
 /*
  Unicode codepoint general category
@@ -410,32 +408,21 @@ typedef enum mjb_category {
     MJB_CATEGORY_CN = 0x20000000 /* 29 (Cn) Other, Not Assigned */
 } mjb_category;
 
-/*
- A unicode character
- [see: https://www.unicode.org/glossary/#character]
- */
-typedef struct mjb_character {
-    mjb_codepoint codepoint;
-    unsigned char name[128];
-    unsigned short block;
-    mjb_category category;
-    unsigned short combining;
-    unsigned short bidirectional;
-    unsigned short decomposition;
-    unsigned char decimal[128];
-    unsigned char digit[128];
-    unsigned char numeric[128];
-    bool mirrored;
-    mjb_codepoint uppercase;
-    mjb_codepoint lowercase;
-    mjb_codepoint titlecase;
-} mjb_character;
+#define MJB_CATEGORY_COUNT 30
 
 /*
  Unicode plane
  [see: https://www.unicode.org/glossary/#plane]
 */
-typedef uint8_t mjb_plane;
+typedef enum mjb_plane {
+    MJB_PLANE_BMP = 0,
+    MJB_PLANE_SMP = 1,
+    MJB_PLANE_SIP = 2,
+    MJB_PLANE_TIP = 3,
+    MJB_PLANE_SSP = 14,
+    MJB_PLANE_PUA_A = 15,
+    MJB_PLANE_PUA_B = 16
+} mjb_plane;
 
 #define MJB_PLANE_NUM 17 /* 17 planes */
 #define MJB_PLANE_SIZE 65536 /* 2^16 code points per plane */
@@ -466,6 +453,27 @@ typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFKD = 2,
     MJB_NORMALIZATION_NFKC = 3
 } mjb_normalization;
+
+/*
+ A unicode character
+ [see: https://www.unicode.org/glossary/#character]
+ */
+typedef struct mjb_character {
+    mjb_codepoint codepoint;
+    unsigned char name[128];
+    unsigned short block;
+    mjb_category category;
+    unsigned short combining;
+    unsigned short bidirectional;
+    unsigned short decomposition;
+    unsigned char decimal[128];
+    unsigned char digit[128];
+    unsigned char numeric[128];
+    bool mirrored;
+    mjb_codepoint uppercase;
+    mjb_codepoint lowercase;
+    mjb_codepoint titlecase;
+} mjb_character;
 
 /* Initialize the library */
 bool mjb_initialize(const char* filename);

@@ -162,30 +162,29 @@ MJB_EXPORT const char* mjb_plane_name(mjb_plane plane, bool abbreviation) {
     }
 
     switch(plane) {
-        case 0:
+        case MJB_PLANE_BMP:
             return abbreviation ? "BMP" : "Basic Multilingual Plane";
 
-        case 1:
+        case MJB_PLANE_SMP:
             return abbreviation ? "SMP" : "Supplementary Multilingual Plane";
 
-        case 2:
+        case MJB_PLANE_SIP:
             return abbreviation ? "SIP" : "Supplementary Ideographic Plane";
 
-        case 3:
+        case MJB_PLANE_TIP:
             return abbreviation ? "TIP" : "Tertiary Ideographic Plane";
 
-        case 14:
+        case MJB_PLANE_SSP:
             return abbreviation ? "SSP" : "Supplementary Special-purpose Plane";
 
-        case 15:
+        case MJB_PLANE_PUA_A:
             return abbreviation ? "PUA-A" : "Supplementary Private Use Area-A";
 
-        case 16:
+        case MJB_PLANE_PUA_B:
             return abbreviation ? "PUA-B" : "Supplementary Private Use Area-B";
-
-        default:
-            return "Unassigned";
     }
+
+    return "Unassigned";
 }
 
 /* Return the string encoding (the most probable) */
