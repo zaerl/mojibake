@@ -381,9 +381,9 @@ MB_EXPORT bool mb_codepoint_is_graphic(mb_codepoint codepoint) {
         case MB_CATEGORY_CO:
         case MB_CATEGORY_CN:
             return false;
+        default:
+            return true;
     }
-
-    return true;
 }
 
 /* Return the codepoint lowercase codepoint */

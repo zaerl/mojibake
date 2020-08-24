@@ -155,7 +155,7 @@ type UnicodeDataRow = [
 // All blocks
 interface Block {
   name: string;
-  macro: string;
+  enumName: string;
   start: number;
   end: number;
 };
@@ -222,14 +222,13 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
 
     const split = line.split('; ');
     const name = split[1];
-    const macro = `#define MB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')} ${i++}`;
     const values = split[0].split('..');
     const start = parseInt(values[0], 16);
     const end = parseInt(values[1], 16);
 
     blocks.push({
       name,
-      macro,
+      enumName: `MB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
       start,
       end
     });
@@ -460,10 +459,10 @@ db.run(
   const blocks = await readBlocks(blockStmt);
   await readUnicodeData(dataStmt, blocks);
 
-  const categoryMacros: string[] = [];
+  const categoryEnums: string[] = [];
 
   for(let i = 0; i < categories.length; ++i) {
-    categoryMacros.push(`#define MB_CATEGORY_${Category[i].toUpperCase()} 0x${(1 << i).toString(16)} /* ${i} (${Category[i]}) ${categories[i]} */`);
+    categoryEnums.push(`    MB_CATEGORY_${Category[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Category[i]}) ${categories[i]} */`);
   }
 
   const fheader =
@@ -510,21 +509,31 @@ typedef uint32_t mb_codepoint;
 #define MB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
 #define MB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
-/*
- Unicode codepoint general category
- [see: https://www.unicode.org/glossary/#general_category]
- */
-typedef uint32_t mb_category;
+#define MB_BLOCK_NUM ${blocks.length}
+
+typedef enum mb_block_name {
+${blocks.map((value: Block, index: number) => `    ${value.enumName} = ${index}`).join(',\n')}
+} mb_block_name;
 
 /*
  Unicode block
  [see: https://www.unicode.org/glossary/#block]
 */
 typedef struct mb_block {
-  char* name;
-  uint32_t start;
-  uint32_t end;
+    char* name;
+    uint32_t start;
+    uint32_t end;
 } mb_block;
+
+#define MB_CATEGORY_COUNT ${categoryEnums.length}
+
+/*
+ Unicode codepoint general category
+ [see: https://www.unicode.org/glossary/#general_category]
+ */
+typedef enum mb_category {
+${categoryEnums.join('\n')}
+} mb_category;
 
 /*
  A unicode character
@@ -546,14 +555,6 @@ typedef struct mb_character {
     mb_codepoint lowercase;
     mb_codepoint titlecase;
 } mb_character;
-
-#define MB_CATEGORY_COUNT ${categoryMacros.length}
-
-${categoryMacros.join('\n')}
-
-#define MB_BLOCK_NUM ${blocks.length}
-
-${blocks.map((value: Block) => value.macro).join('\n')}
 
 /*
  Unicode plane
