@@ -569,28 +569,28 @@ typedef uint8_t mjb_plane;
  Unicode encoding
  [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
-typedef uint32_t mjb_encoding;
-
-#define MJB_ENCODING_UNKNOWN 0
-#define MJB_ENCODING_ASCII 0x1
-#define MJB_ENCODING_UTF_8 0x2
-#define MJB_ENCODING_UTF_16 0x4
-#define MJB_ENCODING_UTF_16_BE 0x8
-#define MJB_ENCODING_UTF_16_LE 0x10
-#define MJB_ENCODING_UTF_32 0x20
-#define MJB_ENCODING_UTF_32_BE 0x40
-#define MJB_ENCODING_UTF_32_LE 0x80
+typedef enum mjb_encoding {
+    MJB_ENCODING_UNKNOWN = 0,
+    MJB_ENCODING_ASCII = 0x1,
+    MJB_ENCODING_UTF_8 = 0x2,
+    MJB_ENCODING_UTF_16 = 0x4,
+    MJB_ENCODING_UTF_16_BE = 0x8,
+    MJB_ENCODING_UTF_16_LE = 0x10,
+    MJB_ENCODING_UTF_32 = 0x20,
+    MJB_ENCODING_UTF_32_BE = 0x40,
+    MJB_ENCODING_UTF_32_LE = 0x80
+} mjb_encoding;
 
 /*
  Normalization form
  https://www.unicode.org/glossary/#normalization_form
 */
-typedef unsigned short mjb_normalization;
-
-#define MJB_NORMALIZATION_NFD 0
-#define MJB_NORMALIZATION_NFC 1
-#define MJB_NORMALIZATION_NFKD 2
-#define MJB_NORMALIZATION_NFKC 3
+typedef enum mjb_normalization {
+    MJB_NORMALIZATION_NFD = 0,
+    MJB_NORMALIZATION_NFC = 1,
+    MJB_NORMALIZATION_NFKD = 2,
+    MJB_NORMALIZATION_NFKC = 3
+} mjb_normalization;
 
 /* Initialize the library */
 bool mjb_initialize(const char* filename);
