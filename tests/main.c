@@ -10,7 +10,7 @@
 #include "test.h"
 #include "../src/mojibake.h"
 
-static const char* db_name = "../src/mojibake.db";
+static const char *db_name = "../src/mojibake.db";
 
 static void mjb_ready_test() {
     mjb_assert("Not ready", !mjb_ready());
@@ -32,7 +32,7 @@ static void mjb_ready_test() {
     mjb_assert("DB closed", !mjb_ready());
 }
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char *argv[]) {
     printf("\x1b[36mMojibake %s test\x1B[0m\n\n", mjb_version());
 
     mjb_run_test("Get version", mjb_version_test);
@@ -58,7 +58,7 @@ int main(int argc, const char * argv[]) {
     unsigned int total = mjb_total_count();
 
     /* Green if valid and red if not */
-    const char* colorCode = valid == total ? "\x1B[32m" : "\x1B[31m";
+    const char *colorCode = valid == total ? "\x1B[32m" : "\x1B[31m";
 
     printf("%sTests valid/run: %d/%d\n\x1B[0m", colorCode, valid, total);
 

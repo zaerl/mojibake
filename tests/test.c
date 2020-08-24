@@ -23,12 +23,12 @@ MJB_EXPORT void mjb_assert(char *message, bool test) {
     }
 }
 
-MJB_EXPORT void mjb_print_character(mjb_character* character, mjb_codepoint codepoint) {
+MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint codepoint) {
     if(!character) {
         return;
     }
 
-    const char* format = "Character %u\n"
+    const char *format = "Character %u\n"
         "codepoint: %u\n"
         "name: '%s'\n"
         "block: %u\n"

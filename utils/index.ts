@@ -495,9 +495,9 @@ extern "C" {
 #endif
 
 /* See c standard memory allocation functions */
-typedef void* (*mjb_alloc)(size_t size);
-typedef void* (*mjb_realloc)(void* ptr, size_t new_size);
-typedef void (*mjb_free)(void* ptr);
+typedef void *(*mjb_alloc)(size_t size);
+typedef void *(*mjb_realloc)(void *ptr, size_t new_size);
+typedef void (*mjb_free)(void *ptr);
 
 /*
  A unicode codepoint
@@ -520,7 +520,7 @@ ${blocks.map((value: Block, index: number) => `    ${value.enumName} = ${index}`
  [see: https://www.unicode.org/glossary/#block]
 */
 typedef struct mjb_block {
-    char* name;
+    char *name;
     uint32_t start;
     uint32_t end;
 } mjb_block;
@@ -601,7 +601,7 @@ typedef struct mjb_character {
 } mjb_character;
 
 /* Initialize the library */
-bool mjb_initialize(const char* filename);
+bool mjb_initialize(const char *filename);
 
 /* The library is ready */
 bool mjb_ready();
@@ -610,13 +610,13 @@ bool mjb_ready();
 bool mjb_close();
 
 /* Output the current library version (MJB_VERSION) */
-char* mjb_version();
+char *mjb_version();
 
 /* Output the current library version number (MJB_VERSION_NUMBER) */
 unsigned int mjb_version_number();
 
 /* Output the current supported unicode version (MJB_UNICODE_VERSION) */
-char* mjb_unicode_version();
+char *mjb_unicode_version();
 
 /* Return true if the codepoint is valid */
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -625,19 +625,19 @@ bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 bool mjb_plane_is_valid(mjb_plane plane);
 
 /* Return the name of a plane, NULL if the place specified is not valid */
-const char* mjb_plane_name(mjb_plane plane, bool abbreviation);
+const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 /* Return the string encoding (the most probable) */
-mjb_encoding mjb_string_encoding(const char* buffer, size_t size);
+mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
 /* Return true if the string is encoded in UTF-8 */
-bool mjb_string_is_utf8(const char* buffer, size_t size);
+bool mjb_string_is_utf8(const char *buffer, size_t size);
 
 /* Return true if the string is encoded in ASCII */
-bool mjb_string_is_ascii(const char* buffer, size_t size);
+bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 /* Return the codepoint character */
-bool mjb_codepoint_character(mjb_character* character, mjb_codepoint codepoint);
+bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 /* Return true if the codepoint has the category */
 bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
@@ -655,7 +655,7 @@ mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 /* Normalize a string */
-void mjb_normalize(const char* buffer, size_t size, mjb_normalization form);
+void mjb_normalize(const char *buffer, size_t size, mjb_normalization form);
 
 #ifdef __cplusplus
 }

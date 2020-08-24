@@ -23,8 +23,8 @@
 #define MJB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
 typedef struct mjb_connection {
-    sqlite3* db;
-    sqlite3_stmt* char_stmt;
+    sqlite3 *db;
+    sqlite3_stmt *char_stmt;
     bool ok;
     mjb_alloc memory_alloc;
     mjb_realloc memory_realloc;
@@ -34,7 +34,7 @@ typedef struct mjb_connection {
 static mjb_connection mjb_internal = { NULL, NULL, false };
 static const mjb_character empty_character;
 
-static mjb_encoding mjb_encoding_from_bom(const char* buffer, size_t length) {
+static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
     if(length < 2) {
         /* BOM are at least 2 characters */
         return MJB_ENCODING_UNKNOWN;
@@ -73,7 +73,7 @@ static void mjb_db_error() {
 }
 
 /* Initialize the library */
-MJB_EXPORT bool mjb_initialize(const char* filename) {
+MJB_EXPORT bool mjb_initialize(const char *filename) {
     if(mjb_ready()) {
         return true;
     }
@@ -125,7 +125,7 @@ MJB_EXPORT bool mjb_close() {
 }
 
 /* Output the current library version (MJB_VERSION) */
-MJB_EXPORT char* mjb_version() {
+MJB_EXPORT char *mjb_version() {
     return MJB_VERSION;
 }
 
@@ -135,7 +135,7 @@ MJB_EXPORT unsigned int mjb_version_number() {
 }
 
 /* Output the current supported unicode version (MJB_UNICODE_VERSION) */
-MJB_EXPORT char* mjb_unicode_version() {
+MJB_EXPORT char *mjb_unicode_version() {
     return MJB_UNICODE_VERSION;
 }
 
@@ -156,7 +156,7 @@ MJB_EXPORT bool mjb_plane_is_valid(mjb_plane plane) {
 }
 
 /* Return the name of a plane, NULL if the place specified is not valid */
-MJB_EXPORT const char* mjb_plane_name(mjb_plane plane, bool abbreviation) {
+MJB_EXPORT const char *mjb_plane_name(mjb_plane plane, bool abbreviation) {
     if(!mjb_plane_is_valid(plane)) {
         return NULL;
     }
@@ -213,8 +213,8 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 }
 
 /* Return true if the string is encoded in UTF-8 */
-MJB_EXPORT bool mjb_string_is_utf8(const char* buffer, size_t size) {
-    const char* end = buffer + size;
+MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
+    const char *end = buffer + size;
     unsigned char byte;
     unsigned int code_length, i;
     uint32_t ch;
@@ -296,8 +296,8 @@ MJB_EXPORT bool mjb_string_is_utf8(const char* buffer, size_t size) {
 }
 
 /* Return true if the string is encoded in ASCII */
-MJB_EXPORT bool mjb_string_is_ascii(const char* buffer, size_t size) {
-    const char* end = buffer + size;
+MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
+    const char *end = buffer + size;
 
     if(buffer == 0 || size == 0) {
         return false;
@@ -314,7 +314,7 @@ MJB_EXPORT bool mjb_string_is_ascii(const char* buffer, size_t size) {
 }
 
 /* Return the codepoint character */
-MJB_EXPORT bool mjb_codepoint_character(mjb_character* character, mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint) {
     if(character == NULL || !mjb_codepoint_is_valid(codepoint) || !mjb_ready()) {
         return false;
     }
@@ -420,6 +420,6 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
 }
 
 /* Normalize a string */
-MJB_EXPORT void mjb_normalize(const char* buffer, size_t size, mjb_normalization form) {
+MJB_EXPORT void mjb_normalize(const char *buffer, size_t size, mjb_normalization form) {
 
 }

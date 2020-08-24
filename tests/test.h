@@ -18,7 +18,7 @@ extern "C" {
 typedef void (*mjb_test)(void);
 
 void mjb_assert(char *message, bool test);
-void mjb_print_character(mjb_character* character, mjb_codepoint codepoint);
+void mjb_print_character(mjb_character *character, mjb_codepoint codepoint);
 void mjb_run_test(char *name, mjb_test test);
 unsigned int mjb_valid_count();
 unsigned int mjb_total_count();
