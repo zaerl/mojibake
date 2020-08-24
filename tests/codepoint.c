@@ -171,12 +171,3 @@ MJB_EXPORT void mjb_codepoint_lc_uc_tc_test() {
 
     mjb_close();
 }
-
-MJB_EXPORT void mjb_codepoint_normalize_test() {
-    mjb_initialize(MJB_DB_PATH);
-
-    mjb_normalize("\xE2\x84\xAB", 1, MJB_NORMALIZATION_NFD);
-    mjb_assert("ANGSTROM SIGN (U+212B) NFD", true);
-
-    mjb_close();
-}

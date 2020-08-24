@@ -420,6 +420,6 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
 }
 
 /* Normalize a string */
-MJB_EXPORT void mjb_normalize(const char *buffer, size_t size, mjb_normalization form) {
+MJB_EXPORT void mjb_normalize(mjb_codepoint *buffer, size_t size, mjb_normalization form) {
 
 }
