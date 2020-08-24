@@ -12,7 +12,7 @@
 static unsigned int tests_run;
 static unsigned int tests_valid;
 
-MB_EXPORT void mb_assert(char *message, bool test) {
+MJB_EXPORT void mjb_assert(char *message, bool test) {
     ++tests_run;
 
     if(test) {
@@ -23,7 +23,7 @@ MB_EXPORT void mb_assert(char *message, bool test) {
     }
 }
 
-MB_EXPORT void mb_print_character(mb_character* character, mb_codepoint codepoint) {
+MJB_EXPORT void mjb_print_character(mjb_character* character, mjb_codepoint codepoint) {
     if(!character) {
         return;
     }
@@ -62,16 +62,16 @@ MB_EXPORT void mb_print_character(mb_character* character, mb_codepoint codepoin
         character->titlecase);
 }
 
-MB_EXPORT void mb_run_test(char *name, mb_test test) {
+MJB_EXPORT void mjb_run_test(char *name, mjb_test test) {
     printf("\x1b[36m%s\x1B[0m\n", name);
     test();
     printf("\n");
 }
 
-MB_EXPORT unsigned int mb_valid_count() {
+MJB_EXPORT unsigned int mjb_valid_count() {
     return tests_valid;
 }
 
-MB_EXPORT unsigned int mb_total_count() {
+MJB_EXPORT unsigned int mjb_total_count() {
     return tests_run;
 }

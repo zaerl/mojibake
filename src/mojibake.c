@@ -11,137 +11,137 @@
 #include "mojibake.h"
 #include "sqlite/sqlite3.h"
 
-#define DB_CHECK(db_result, ret) if(db_result != SQLITE_OK) { mb_db_error(); return ret; }
-#define DB_CHECK_CLOSE(db_result, ret) if(db_result != SQLITE_OK) { mb_db_error(); mb_close(); return ret; }
+#define DB_CHECK(db_result, ret) if(db_result != SQLITE_OK) { mjb_db_error(); return ret; }
+#define DB_CHECK_CLOSE(db_result, ret) if(db_result != SQLITE_OK) { mjb_db_error(); mjb_close(); return ret; }
 #define DB_COLUMN_INT(stmt, name, col) name = sqlite3_column_int(stmt, col);
 #define DB_COLUMN_TEXT(stmt, name, col) strncpy((char*)&name, (const char*)sqlite3_column_text(stmt, col), sqlite3_column_bytes(stmt, col));
 
-#define MB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
-#define MB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
-#define MB_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
-#define MB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
-#define MB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
+#define MJB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
+#define MJB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
+#define MJB_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
+#define MJB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
+#define MJB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
-typedef struct mb_connection {
+typedef struct mjb_connection {
     sqlite3* db;
     sqlite3_stmt* char_stmt;
     bool ok;
-    mb_alloc memory_alloc;
-    mb_realloc memory_realloc;
-    mb_free memory_free;
-} mb_connection;
+    mjb_alloc memory_alloc;
+    mjb_realloc memory_realloc;
+    mjb_free memory_free;
+} mjb_connection;
 
-static mb_connection mb_internal = { NULL, NULL, false };
-static const mb_character empty_character;
+static mjb_connection mjb_internal = { NULL, NULL, false };
+static const mjb_character empty_character;
 
-static mb_encoding mb_encoding_from_bom(const char* buffer, size_t length) {
+static mjb_encoding mjb_encoding_from_bom(const char* buffer, size_t length) {
     if(length < 2) {
         /* BOM are at least 2 characters */
-        return MB_ENCODING_UNKNOWN;
+        return MJB_ENCODING_UNKNOWN;
     }
 
     if(length >= 3) {
-        if(memcmp(buffer, MB_ENCODING_UTF_8_BOM, 3) == 0) {
-            return MB_ENCODING_UTF_8;
+        if(memcmp(buffer, MJB_ENCODING_UTF_8_BOM, 3) == 0) {
+            return MJB_ENCODING_UTF_8;
         }
     }
 
-    mb_encoding bom_encoding = MB_ENCODING_UNKNOWN;
+    mjb_encoding bom_encoding = MJB_ENCODING_UNKNOWN;
 
     if(length >= 4) {
-        if(memcmp(buffer, MB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
-            bom_encoding = MB_ENCODING_UTF_32_BE;
-        } else if(memcmp(buffer, MB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
-            bom_encoding = MB_ENCODING_UTF_32_LE;
+        if(memcmp(buffer, MJB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
+            bom_encoding = MJB_ENCODING_UTF_32_BE;
+        } else if(memcmp(buffer, MJB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
+            bom_encoding = MJB_ENCODING_UTF_32_LE;
         }
     }
 
     if(length >= 2) {
-        if(memcmp(buffer, MB_ENCODING_UTF_16_BE_BOM, 2) == 0) {
-            bom_encoding = MB_ENCODING_UTF_16_BE;
-        } else if(memcmp(buffer, MB_ENCODING_UTF_16_LE_BOM, 2) == 0) {
+        if(memcmp(buffer, MJB_ENCODING_UTF_16_BE_BOM, 2) == 0) {
+            bom_encoding = MJB_ENCODING_UTF_16_BE;
+        } else if(memcmp(buffer, MJB_ENCODING_UTF_16_LE_BOM, 2) == 0) {
             /* A UTF-32-LE document is also valid UTF-16-LE */
-            bom_encoding |= MB_ENCODING_UTF_16_LE;
+            bom_encoding |= MJB_ENCODING_UTF_16_LE;
         }
     }
 
     return bom_encoding;
 }
 
-static void mb_db_error() {
-    fprintf(stderr, "Error: %s\n", sqlite3_errmsg(mb_internal.db));
+static void mjb_db_error() {
+    fprintf(stderr, "Error: %s\n", sqlite3_errmsg(mjb_internal.db));
 }
 
 /* Initialize the library */
-MB_EXPORT bool mb_initialize(const char* filename) {
-    if(mb_ready()) {
+MJB_EXPORT bool mjb_initialize(const char* filename) {
+    if(mjb_ready()) {
         return true;
     }
 
-    int ret = sqlite3_open_v2(filename, &mb_internal.db, SQLITE_OPEN_READONLY, NULL);
+    int ret = sqlite3_open_v2(filename, &mjb_internal.db, SQLITE_OPEN_READONLY, NULL);
     DB_CHECK_CLOSE(ret, false)
 
-    ret = sqlite3_prepare_v3(mb_internal.db, "SELECT * FROM characters WHERE codepoint = ?", -1,
-        SQLITE_PREPARE_PERSISTENT, &mb_internal.char_stmt, NULL);
+    ret = sqlite3_prepare_v3(mjb_internal.db, "SELECT * FROM characters WHERE codepoint = ?", -1,
+        SQLITE_PREPARE_PERSISTENT, &mjb_internal.char_stmt, NULL);
     DB_CHECK_CLOSE(ret, false)
 
-    mb_internal.ok = true;
+    mjb_internal.ok = true;
 
-    mb_internal.memory_alloc = &malloc;
-    mb_internal.memory_realloc = &realloc;
-    mb_internal.memory_free = &free;
+    mjb_internal.memory_alloc = &malloc;
+    mjb_internal.memory_realloc = &realloc;
+    mjb_internal.memory_free = &free;
 
     return true;
 }
 
 /* The library is ready */
-MB_EXPORT bool mb_ready() {
-    return mb_internal.ok;
+MJB_EXPORT bool mjb_ready() {
+    return mjb_internal.ok;
 }
 
 /* Close the library */
-MB_EXPORT bool mb_close() {
-    if(!mb_ready()) {
-        mb_db_error();
+MJB_EXPORT bool mjb_close() {
+    if(!mjb_ready()) {
+        mjb_db_error();
 
         return false;
     }
 
     int ret = SQLITE_ERROR;
 
-    if(mb_internal.char_stmt) {
-        ret = sqlite3_finalize(mb_internal.char_stmt);
-        mb_internal.char_stmt = NULL;
+    if(mjb_internal.char_stmt) {
+        ret = sqlite3_finalize(mjb_internal.char_stmt);
+        mjb_internal.char_stmt = NULL;
     }
 
-    if(mb_internal.db) {
-        ret = sqlite3_close(mb_internal.db);
-        mb_internal.db = NULL;
+    if(mjb_internal.db) {
+        ret = sqlite3_close(mjb_internal.db);
+        mjb_internal.db = NULL;
     }
 
-    mb_internal.ok = false;
+    mjb_internal.ok = false;
 
     return ret == SQLITE_OK;
 }
 
-/* Output the current library version (MB_VERSION) */
-MB_EXPORT char* mb_version() {
-    return MB_VERSION;
+/* Output the current library version (MJB_VERSION) */
+MJB_EXPORT char* mjb_version() {
+    return MJB_VERSION;
 }
 
-/* Output the current library version number (MB_VERSION_NUMBER) */
-MB_EXPORT unsigned int mb_version_number() {
-    return MB_VERSION_NUMBER;
+/* Output the current library version number (MJB_VERSION_NUMBER) */
+MJB_EXPORT unsigned int mjb_version_number() {
+    return MJB_VERSION_NUMBER;
 }
 
-/* Output the current supported unicode version (MB_UNICODE_VERSION) */
-MB_EXPORT char* mb_unicode_version() {
-    return MB_UNICODE_VERSION;
+/* Output the current supported unicode version (MJB_UNICODE_VERSION) */
+MJB_EXPORT char* mjb_unicode_version() {
+    return MJB_UNICODE_VERSION;
 }
 
 /* Return true if the codepoint is valid */
-MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
-    if(codepoint < MB_CODEPOINT_MIN || codepoint > MB_CODEPOINT_MAX ||
+MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
+    if(codepoint < MJB_CODEPOINT_MIN || codepoint > MJB_CODEPOINT_MAX ||
         (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || /* Noncharacter */
         (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { /* Noncharacter */
         return false;
@@ -151,13 +151,13 @@ MB_EXPORT bool mb_codepoint_is_valid(mb_codepoint codepoint) {
 }
 
 /* Return true if the plane is valid */
-MB_EXPORT bool mb_plane_is_valid(mb_plane plane) {
-    return plane >= 0 && plane < MB_PLANE_NUM;
+MJB_EXPORT bool mjb_plane_is_valid(mjb_plane plane) {
+    return plane >= 0 && plane < MJB_PLANE_NUM;
 }
 
 /* Return the name of a plane, NULL if the place specified is not valid */
-MB_EXPORT const char* mb_plane_name(mb_plane plane, bool abbreviation) {
-    if(!mb_plane_is_valid(plane)) {
+MJB_EXPORT const char* mjb_plane_name(mjb_plane plane, bool abbreviation) {
+    if(!mjb_plane_is_valid(plane)) {
         return NULL;
     }
 
@@ -182,38 +182,39 @@ MB_EXPORT const char* mb_plane_name(mb_plane plane, bool abbreviation) {
 
         case 16:
             return abbreviation ? "PUA-B" : "Supplementary Private Use Area-B";
-    }
 
-    return "Unassigned";
+        default:
+            return "Unassigned";
+    }
 }
 
 /* Return the string encoding (the most probable) */
-MB_EXPORT mb_encoding mb_string_encoding(const char *buffer, size_t size) {
+MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
     if(buffer == 0 || size == 0) {
-        return MB_ENCODING_UNKNOWN;
+        return MJB_ENCODING_UNKNOWN;
     }
 
-    mb_encoding bom_encoding = mb_encoding_from_bom(buffer, size);
+    mjb_encoding bom_encoding = mjb_encoding_from_bom(buffer, size);
 
-    if(bom_encoding != MB_ENCODING_UNKNOWN) {
+    if(bom_encoding != MJB_ENCODING_UNKNOWN) {
         return bom_encoding;
     }
 
     /* No BOM, let's try UTF-8 */
-    if(mb_string_is_utf8(buffer, size)) {
-        bom_encoding |= MB_ENCODING_UTF_8;
+    if(mjb_string_is_utf8(buffer, size)) {
+        bom_encoding |= MJB_ENCODING_UTF_8;
     }
 
     /* No BOM, let's try ASCII */
-    if(mb_string_is_ascii(buffer, size)) {
-        bom_encoding |= MB_ENCODING_ASCII;
+    if(mjb_string_is_ascii(buffer, size)) {
+        bom_encoding |= MJB_ENCODING_ASCII;
     }
 
     return bom_encoding;
 }
 
 /* Return true if the string is encoded in UTF-8 */
-MB_EXPORT bool mb_string_is_utf8(const char* buffer, size_t size) {
+MJB_EXPORT bool mjb_string_is_utf8(const char* buffer, size_t size) {
     const char* end = buffer + size;
     unsigned char byte;
     unsigned int code_length, i;
@@ -296,7 +297,7 @@ MB_EXPORT bool mb_string_is_utf8(const char* buffer, size_t size) {
 }
 
 /* Return true if the string is encoded in ASCII */
-MB_EXPORT bool mb_string_is_ascii(const char* buffer, size_t size) {
+MJB_EXPORT bool mjb_string_is_ascii(const char* buffer, size_t size) {
     const char* end = buffer + size;
 
     if(buffer == 0 || size == 0) {
@@ -314,51 +315,51 @@ MB_EXPORT bool mb_string_is_ascii(const char* buffer, size_t size) {
 }
 
 /* Return the codepoint character */
-MB_EXPORT bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint) {
-    if(character == NULL || !mb_codepoint_is_valid(codepoint) || !mb_ready()) {
+MJB_EXPORT bool mjb_codepoint_character(mjb_character* character, mjb_codepoint codepoint) {
+    if(character == NULL || !mjb_codepoint_is_valid(codepoint) || !mjb_ready()) {
         return false;
     }
 
     /* Reset character */
     *character = empty_character;
 
-    int ret = sqlite3_bind_int(mb_internal.char_stmt, 1, codepoint);
+    int ret = sqlite3_bind_int(mjb_internal.char_stmt, 1, codepoint);
     DB_CHECK(ret, false)
 
-    ret = sqlite3_step(mb_internal.char_stmt);
+    ret = sqlite3_step(mjb_internal.char_stmt);
     bool found = ret == SQLITE_ROW;
 
     if(found) {
-        DB_COLUMN_INT(mb_internal.char_stmt, character->codepoint, 0);
-        DB_COLUMN_TEXT(mb_internal.char_stmt, character->name, 1)
-        DB_COLUMN_INT(mb_internal.char_stmt, character->block, 2);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->category, 3);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->combining, 4);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->bidirectional, 5);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->decomposition, 6);
-        DB_COLUMN_TEXT(mb_internal.char_stmt, character->decimal, 7)
-        DB_COLUMN_TEXT(mb_internal.char_stmt, character->digit, 8)
-        DB_COLUMN_TEXT(mb_internal.char_stmt, character->numeric, 9)
-        DB_COLUMN_INT(mb_internal.char_stmt, character->mirrored, 10);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->uppercase, 11);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->lowercase, 12);
-        DB_COLUMN_INT(mb_internal.char_stmt, character->titlecase, 13);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->codepoint, 0);
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->name, 1)
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->block, 2);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->category, 3);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->combining, 4);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->bidirectional, 5);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->decomposition, 6);
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->decimal, 7)
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->digit, 8)
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->numeric, 9)
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->mirrored, 10);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->uppercase, 11);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->lowercase, 12);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->titlecase, 13);
     }
 
-    ret = sqlite3_clear_bindings(mb_internal.char_stmt);
+    ret = sqlite3_clear_bindings(mjb_internal.char_stmt);
     DB_CHECK(ret, false)
 
-    ret = sqlite3_reset(mb_internal.char_stmt);
+    ret = sqlite3_reset(mjb_internal.char_stmt);
     DB_CHECK(ret, false)
 
     return found;
 }
 
 /* Return true if the codepoint has the category */
-MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, mb_category category) {
-    mb_character character;
+MJB_EXPORT bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category) {
+    mjb_character character;
 
-    if(!mb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return false;
     }
 
@@ -366,20 +367,20 @@ MB_EXPORT bool mb_codepoint_is(mb_codepoint codepoint, mb_category category) {
 }
 
 /* Return true if the codepoint is graphic */
-MB_EXPORT bool mb_codepoint_is_graphic(mb_codepoint codepoint) {
-    mb_character character;
+MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
+    mjb_character character;
 
-    if(!mb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return false;
     }
 
     /* All C categories can be printed */
     switch(character.category) {
-        case MB_CATEGORY_CC:
-        case MB_CATEGORY_CF:
-        case MB_CATEGORY_CS:
-        case MB_CATEGORY_CO:
-        case MB_CATEGORY_CN:
+        case MJB_CATEGORY_CC:
+        case MJB_CATEGORY_CF:
+        case MJB_CATEGORY_CS:
+        case MJB_CATEGORY_CO:
+        case MJB_CATEGORY_CN:
             return false;
         default:
             return true;
@@ -387,10 +388,10 @@ MB_EXPORT bool mb_codepoint_is_graphic(mb_codepoint codepoint) {
 }
 
 /* Return the codepoint lowercase codepoint */
-MB_EXPORT mb_codepoint mb_codepoint_to_lowercase(mb_codepoint codepoint) {
-    mb_character character;
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
+    mjb_character character;
 
-    if(!mb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return codepoint;
     }
 
@@ -398,10 +399,10 @@ MB_EXPORT mb_codepoint mb_codepoint_to_lowercase(mb_codepoint codepoint) {
 }
 
 /* Return the codepoint uppercase codepoint */
-MB_EXPORT mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint) {
-    mb_character character;
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
+    mjb_character character;
 
-    if(!mb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return codepoint;
     }
 
@@ -409,10 +410,10 @@ MB_EXPORT mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint) {
 }
 
 /* Return the codepoint titlecase codepoint */
-MB_EXPORT mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint) {
-    mb_character character;
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
+    mjb_character character;
 
-    if(!mb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return codepoint;
     }
 
@@ -420,6 +421,6 @@ MB_EXPORT mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint) {
 }
 
 /* Normalize a string */
-MB_EXPORT void mb_normalize(const char* buffer, size_t size, mb_normalization form) {
+MJB_EXPORT void mjb_normalize(const char* buffer, size_t size, mjb_normalization form) {
 
 }

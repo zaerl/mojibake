@@ -185,14 +185,14 @@ function header(name: string): string {
 
   return `${license()}
 
-#ifndef MB_${name}_H
-#define MB_${name}_H`;
+#ifndef MJB_${name}_H
+#define MJB_${name}_H`;
 }
 
 function footer(name: string): string {
   name = name.toUpperCase();
 
-  return `#endif /* MB_${name}_H */`;
+  return `#endif /* MJB_${name}_H */`;
 }
 
 function license(): string {
@@ -228,7 +228,7 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
 
     blocks.push({
       name,
-      enumName: `MB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
+      enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
       start,
       end
     });
@@ -462,7 +462,7 @@ db.run(
   const categoryEnums: string[] = [];
 
   for(let i = 0; i < categories.length; ++i) {
-    categoryEnums.push(`    MB_CATEGORY_${Category[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Category[i]}) ${categories[i]} */`);
+    categoryEnums.push(`    MJB_CATEGORY_${Category[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Category[i]}) ${categories[i]} */`);
   }
 
   const fheader =
@@ -476,74 +476,74 @@ db.run(
 extern "C" {
 #endif
 
-#define MB_VERSION "1.0.0"
-#define MB_VERSION_NUMBER 0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
-#define MB_VERSION_MAJOR 1
-#define MB_VERSION_MINOR 0
-#define MB_VERSION_REVISION 0
+#define MJB_VERSION "1.0.0"
+#define MJB_VERSION_NUMBER 0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
+#define MJB_VERSION_MAJOR 1
+#define MJB_VERSION_MINOR 0
+#define MJB_VERSION_REVISION 0
 
-#define MB_UNICODE_VERSION "13.0"
-#define MB_UNICODE_VERSION_MAJOR 13
-#define MB_UNICODE_VERSION_MINOR 0
+#define MJB_UNICODE_VERSION "13.0"
+#define MJB_UNICODE_VERSION_MAJOR 13
+#define MJB_UNICODE_VERSION_MINOR 0
 
-#ifndef MB_EXTERN
-#define MB_EXTERN extern
+#ifndef MJB_EXTERN
+#define MJB_EXTERN extern
 #endif
 
-#ifndef MB_EXPORT
-#define MB_EXPORT __attribute__((visibility("default")))
+#ifndef MJB_EXPORT
+#define MJB_EXPORT __attribute__((visibility("default")))
 #endif
 
 /* See c standard memory allocation functions */
-typedef void* (*mb_alloc)(size_t size);
-typedef void* (*mb_realloc)(void* ptr, size_t new_size);
-typedef void (*mb_free)(void* ptr);
+typedef void* (*mjb_alloc)(size_t size);
+typedef void* (*mjb_realloc)(void* ptr, size_t new_size);
+typedef void (*mjb_free)(void* ptr);
 
 /*
  A unicode codepoint
  [see: https://www.unicode.org/glossary/#code_point]
  */
-typedef uint32_t mb_codepoint;
+typedef uint32_t mjb_codepoint;
 
-#define MB_CODEPOINT_MIN 0x0
-#define MB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
-#define MB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
+#define MJB_CODEPOINT_MIN 0x0
+#define MJB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
+#define MJB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
-#define MB_BLOCK_NUM ${blocks.length}
+#define MJB_BLOCK_NUM ${blocks.length}
 
-typedef enum mb_block_name {
+typedef enum mjb_block_name {
 ${blocks.map((value: Block, index: number) => `    ${value.enumName} = ${index}`).join(',\n')}
-} mb_block_name;
+} mjb_block_name;
 
 /*
  Unicode block
  [see: https://www.unicode.org/glossary/#block]
 */
-typedef struct mb_block {
+typedef struct mjb_block {
     char* name;
     uint32_t start;
     uint32_t end;
-} mb_block;
+} mjb_block;
 
-#define MB_CATEGORY_COUNT ${categoryEnums.length}
+#define MJB_CATEGORY_COUNT ${categoryEnums.length}
 
 /*
  Unicode codepoint general category
  [see: https://www.unicode.org/glossary/#general_category]
  */
-typedef enum mb_category {
+typedef enum mjb_category {
 ${categoryEnums.join('\n')}
-} mb_category;
+} mjb_category;
 
 /*
  A unicode character
  [see: https://www.unicode.org/glossary/#character]
  */
-typedef struct mb_character {
-    mb_codepoint codepoint;
+typedef struct mjb_character {
+    mjb_codepoint codepoint;
     unsigned char name[128];
     unsigned short block;
-    mb_category category;
+    mjb_category category;
     unsigned short combining;
     unsigned short bidirectional;
     unsigned short decomposition;
@@ -551,103 +551,103 @@ typedef struct mb_character {
     unsigned char digit[128];
     unsigned char numeric[128];
     bool mirrored;
-    mb_codepoint uppercase;
-    mb_codepoint lowercase;
-    mb_codepoint titlecase;
-} mb_character;
+    mjb_codepoint uppercase;
+    mjb_codepoint lowercase;
+    mjb_codepoint titlecase;
+} mjb_character;
 
 /*
  Unicode plane
  [see: https://www.unicode.org/glossary/#plane]
 */
-typedef uint8_t mb_plane;
+typedef uint8_t mjb_plane;
 
-#define MB_PLANE_NUM 17 /* 17 planes */
-#define MB_PLANE_SIZE 65536 /* 2^16 code points per plane */
+#define MJB_PLANE_NUM 17 /* 17 planes */
+#define MJB_PLANE_SIZE 65536 /* 2^16 code points per plane */
 
 /*
  Unicode encoding
  [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
-typedef uint32_t mb_encoding;
+typedef uint32_t mjb_encoding;
 
-#define MB_ENCODING_UNKNOWN 0
-#define MB_ENCODING_ASCII 0x1
-#define MB_ENCODING_UTF_8 0x2
-#define MB_ENCODING_UTF_16 0x4
-#define MB_ENCODING_UTF_16_BE 0x8
-#define MB_ENCODING_UTF_16_LE 0x10
-#define MB_ENCODING_UTF_32 0x20
-#define MB_ENCODING_UTF_32_BE 0x40
-#define MB_ENCODING_UTF_32_LE 0x80
+#define MJB_ENCODING_UNKNOWN 0
+#define MJB_ENCODING_ASCII 0x1
+#define MJB_ENCODING_UTF_8 0x2
+#define MJB_ENCODING_UTF_16 0x4
+#define MJB_ENCODING_UTF_16_BE 0x8
+#define MJB_ENCODING_UTF_16_LE 0x10
+#define MJB_ENCODING_UTF_32 0x20
+#define MJB_ENCODING_UTF_32_BE 0x40
+#define MJB_ENCODING_UTF_32_LE 0x80
 
 /*
  Normalization form
  https://www.unicode.org/glossary/#normalization_form
 */
-typedef unsigned short mb_normalization;
+typedef unsigned short mjb_normalization;
 
-#define MB_NORMALIZATION_NFD 0
-#define MB_NORMALIZATION_NFC 1
-#define MB_NORMALIZATION_NFKD 2
-#define MB_NORMALIZATION_NFKC 3
+#define MJB_NORMALIZATION_NFD 0
+#define MJB_NORMALIZATION_NFC 1
+#define MJB_NORMALIZATION_NFKD 2
+#define MJB_NORMALIZATION_NFKC 3
 
 /* Initialize the library */
-bool mb_initialize(const char* filename);
+bool mjb_initialize(const char* filename);
 
 /* The library is ready */
-bool mb_ready();
+bool mjb_ready();
 
 /* Close the library */
-bool mb_close();
+bool mjb_close();
 
-/* Output the current library version (MB_VERSION) */
-char* mb_version();
+/* Output the current library version (MJB_VERSION) */
+char* mjb_version();
 
-/* Output the current library version number (MB_VERSION_NUMBER) */
-unsigned int mb_version_number();
+/* Output the current library version number (MJB_VERSION_NUMBER) */
+unsigned int mjb_version_number();
 
-/* Output the current supported unicode version (MB_UNICODE_VERSION) */
-char* mb_unicode_version();
+/* Output the current supported unicode version (MJB_UNICODE_VERSION) */
+char* mjb_unicode_version();
 
 /* Return true if the codepoint is valid */
-bool mb_codepoint_is_valid(mb_codepoint codepoint);
+bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 /* Return true if the plane is valid */
-bool mb_plane_is_valid(mb_plane plane);
+bool mjb_plane_is_valid(mjb_plane plane);
 
 /* Return the name of a plane, NULL if the place specified is not valid */
-const char* mb_plane_name(mb_plane plane, bool abbreviation);
+const char* mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 /* Return the string encoding (the most probable) */
-mb_encoding mb_string_encoding(const char* buffer, size_t size);
+mjb_encoding mjb_string_encoding(const char* buffer, size_t size);
 
 /* Return true if the string is encoded in UTF-8 */
-bool mb_string_is_utf8(const char* buffer, size_t size);
+bool mjb_string_is_utf8(const char* buffer, size_t size);
 
 /* Return true if the string is encoded in ASCII */
-bool mb_string_is_ascii(const char* buffer, size_t size);
+bool mjb_string_is_ascii(const char* buffer, size_t size);
 
 /* Return the codepoint character */
-bool mb_codepoint_character(mb_character* character, mb_codepoint codepoint);
+bool mjb_codepoint_character(mjb_character* character, mjb_codepoint codepoint);
 
 /* Return true if the codepoint has the category */
-bool mb_codepoint_is(mb_codepoint codepoint, mb_category category);
+bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
 
 /* Return true if the codepoint is graphic */
-bool mb_codepoint_is_graphic(mb_codepoint codepoint);
+bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 
 /* Return the codepoint lowercase codepoint */
-mb_codepoint mb_codepoint_to_lowercase(mb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 
 /* Return the codepoint uppercase codepoint */
-mb_codepoint mb_codepoint_to_uppercase(mb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 
 /* Return the codepoint titlecase codepoint */
-mb_codepoint mb_codepoint_to_titlecase(mb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 /* Normalize a string */
-void mb_normalize(const char* buffer, size_t size, mb_normalization form);
+void mjb_normalize(const char* buffer, size_t size, mjb_normalization form);
 
 #ifdef __cplusplus
 }
