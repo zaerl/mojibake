@@ -533,7 +533,7 @@ mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 /* Normalize a string */
-char *mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
 }

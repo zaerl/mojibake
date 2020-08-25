@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-void get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
+size_t get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
     char *token = strtok(buffer, " ");
     unsigned int index = 0;
 
@@ -14,51 +14,61 @@ void get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
 
         ++index;
     }
+
+    return index;
 }
 
-bool check_normalizations(mjb_codepoint *source, mjb_codepoint *nfc, mjb_codepoint *nfd, mjb_codepoint *nfkc, mjb_codepoint *nfkd) {
-    char *nfc_normalized = NULL;
+bool check_normalization(void *source, size_t source_size, mjb_codepoint *normalized, size_t normalized_size, mjb_normalization normalization) {
+    void *normalized_res = mjb_normalize(source, source_size, MJB_ENCODING_UTF_32, normalization);
+    bool ret = true;
 
-    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFC);
-    mbj_release(nfc_normalized);
+    for(unsigned int i = 0; i < source_size; ++i) {
+        if(((mjb_codepoint*)normalized_res)[i] != ((mjb_codepoint*)source)[i]) {
+            ret = false;
+            break;
+        }
+    }
 
-    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFD);
-    mbj_release(nfc_normalized);
+    if(normalized_res != NULL) {
+        mbj_release(normalized_res);
+    }
 
-    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFKC);
-    mbj_release(nfc_normalized);
-
-    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFKD);
-    mbj_release(nfc_normalized);
-
-    return true;
+    return ret;
 }
 
 MJB_EXPORT void mjb_codepoint_normalize_test() {
     mjb_initialize(MJB_DB_PATH);
 
     char line[512];
+    unsigned int index = 0;
+    char *token;
+
     mjb_codepoint source[16];
     mjb_codepoint nfc[16];
     mjb_codepoint nfd[16];
     mjb_codepoint nfkc[16];
     mjb_codepoint nfkd[16];
-    unsigned int index = 0;
-    char *token;
+
+    size_t source_count = 0;
+    size_t nfc_count = 0;
+    size_t nfd_count = 0;
+    size_t nfkc_count = 0;
+    size_t nfkd_count = 0;
+
     FILE *file = fopen("../utils/UCD/NormalizationTest.txt", "r");
 
     if(file == NULL) {
         mjb_assert("Valid normalization test file", false);
+        mjb_close();
 
         return;
     }
 
     while(fgets(line, 512, file)) {
-        if(line[0] == '#' || strnlen(line, 512) == 0) {
+        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0) {
             continue;
         }
 
-        /* printf("%s", line); */
         char *token = strtok(line, ";");
         char *comment = NULL;
         unsigned int field = 0;
@@ -66,23 +76,23 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
         while(token != NULL) {
             switch(field) {
                 case 0: /* Source */
-                    get_codepoints(token, source, 16);
+                    source_count += get_codepoints(token, source, 16);
                     break;
 
                 case 1: /* NFC */
-                    get_codepoints(token, nfc, 16);
+                    nfc_count += get_codepoints(token, nfc, 16);
                     break;
 
                 case 2: /* NFD */
-                    get_codepoints(token, nfd, 16);
+                    nfd_count += get_codepoints(token, nfd, 16);
                     break;
 
                 case 3: /* NFKC */
-                    get_codepoints(token, nfkc, 16);
+                    nfkc_count += get_codepoints(token, nfkc, 16);
                     break;
 
                 case 4: /* NFKD */
-                    get_codepoints(token, nfkd, 16);
+                    nfkd_count += get_codepoints(token, nfkd, 16);
                     break;
 
                 /* default: * comment
@@ -96,7 +106,21 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
 
         /* mjb_normalize(source, 16, MJB_NORMALIZATION_NFC) */
         snprintf(line, 512, "Normalization #%u", index);
-        mjb_assert(line, check_normalizations(source, nfc, nfd, nfkc, nfkd));
+        bool valid = check_normalization(source, source_count, nfc, nfc_count, MJB_NORMALIZATION_NFC);
+
+        if(valid) {
+            valid = check_normalization(source, source_count, nfd, nfd_count, MJB_NORMALIZATION_NFD);
+        }
+
+        if(valid) {
+            valid = check_normalization(source, source_count, nfkc, nfkc_count, MJB_NORMALIZATION_NFKC);
+        }
+
+        if(valid) {
+            valid = check_normalization(source, source_count, nfkd, nfkd_count, MJB_NORMALIZATION_NFKD);
+        }
+
+        mjb_assert(line, valid);
 
         field = 0;
         ++index;

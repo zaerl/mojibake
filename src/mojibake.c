@@ -80,12 +80,11 @@ static void mjb_db_error() {
     fprintf(stderr, "Error: %s\n", sqlite3_errmsg(mjb_internal.db));
 }
 
-static size_t mjb_next_codepoint(const char *buffer, size_t start, mjb_encoding encoding, mjb_codepoint *codepoint) {
+static size_t mjb_next_codepoint(void *buffer, size_t size, size_t index, mjb_encoding encoding, mjb_codepoint *codepoint) {
     /* if(encoding == MJB_ENCODING_UTF_32) { */
-    *codepoint = (mjb_codepoint)buffer[start];
+    *codepoint = ((mjb_codepoint*)buffer)[index];
 
-    return start + 4;
-    /* } */
+    return index + 1;
 }
 
 /* Initialize the library */
@@ -437,7 +436,11 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
 }
 
 /* Normalize a string */
-MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
+    if(size == 0) {
+        return NULL;
+    }
+
     if(encoding == MJB_ENCODING_UNKNOWN) {
         encoding = mjb_string_encoding(buffer, size);
     }
@@ -447,14 +450,25 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, mjb_encoding enc
     }
 
     mjb_codepoint codepoint;
-    size_t start = 0;
-    size_t next = mjb_next_codepoint(buffer, start, encoding, &codepoint);
-    char *ret = mjb_internal.memory_alloc(size);
+    size_t next = 0;
+    void *ret = mjb_internal.memory_alloc(size);
+    unsigned int realloc_step = 2;
+    unsigned int i = 0;
 
     /* Cycle the string */
-    /* while(next) {
-        next = mjb_next_codepoint(buffer, next, encoding, &codepoint);
-    } */
+    do {
+        next = mjb_next_codepoint(buffer, size, next, encoding, &codepoint);
+
+        if(next > size) {
+            /* ret = mjb_internal.memory_realloc(ret, size * realloc_step);
+            ++realloc_step; */
+            break;
+        }
+
+        ((mjb_codepoint*)ret)[i] = codepoint;
+
+        ++i;
+    } while(next);
 
     return ret;
 }
