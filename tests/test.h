@@ -23,26 +23,33 @@ void mjb_run_test(char *name, mjb_test test);
 unsigned int mjb_valid_count();
 unsigned int mjb_total_count();
 
-/* Tests */
-
-void mjb_version_test();
-void mjb_version_number_test();
-void mjb_unicode_version_test();
-
+/* Codepoint */
 void mjb_codepoint_character_test();
 void mjb_codepoint_block_test();
 void mjb_codepoint_is_test();
 void mjb_codepoint_is_graphic_test();
 void mjb_codepoint_is_valid_test();
 void mjb_codepoint_lc_uc_tc_test();
-void mjb_codepoint_normalize_test();
 
-void mjb_plane_is_valid_test();
-void mjb_plane_name_test();
+/* db */
+void mjb_ready_test();
 
+/* Encoding */
 void mjb_string_encoding_test();
 void mjb_string_is_ascii_test();
 void mjb_string_is_utf8_test();
+
+/* Normalization */
+void mjb_codepoint_normalize_test();
+
+/* Plane */
+void mjb_plane_is_valid_test();
+void mjb_plane_name_test();
+
+/* Version */
+void mjb_version_test();
+void mjb_version_number_test();
+void mjb_unicode_version_test();
 
 #ifdef __cplusplus
 }

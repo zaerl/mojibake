@@ -89,6 +89,5 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
     }
 
     fclose(file);
-
     mjb_close();
 }
