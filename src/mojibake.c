@@ -103,10 +103,6 @@ MJB_EXPORT bool mjb_initialize(const char *filename) {
 
     mjb_internal.ok = true;
 
-    mjb_internal.memory_alloc = &malloc;
-    mjb_internal.memory_realloc = &realloc;
-    mjb_internal.memory_free = &free;
-
     return true;
 }
 
