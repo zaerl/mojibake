@@ -106,6 +106,7 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
 
         /* mjb_normalize(source, 16, MJB_NORMALIZATION_NFC) */
         snprintf(line, 512, "Normalization #%u", index);
+
         bool valid = check_normalization(source, source_count, nfc, nfc_count, MJB_NORMALIZATION_NFC);
 
         if(valid) {
@@ -121,6 +122,18 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
         }
 
         mjb_assert(line, valid);
+
+        source_count = 0;
+        nfc_count = 0;
+        nfd_count = 0;
+        nfkc_count = 0;
+        nfkd_count = 0;
+
+        memset(&source, 0, 16 * sizeof(mjb_codepoint));
+        memset(&nfc, 0, 16 * sizeof(mjb_codepoint));
+        memset(&nfd, 0, 16 * sizeof(mjb_codepoint));
+        memset(&nfkc, 0, 16 * sizeof(mjb_codepoint));
+        memset(&nfkd, 0, 16 * sizeof(mjb_codepoint));
 
         field = 0;
         ++index;

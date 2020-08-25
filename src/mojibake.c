@@ -451,7 +451,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
 
     mjb_codepoint codepoint;
     size_t next = 0;
-    void *ret = mjb_internal.memory_alloc(size);
+    void *ret = mjb_internal.memory_alloc(size * sizeof(mjb_codepoint));
     unsigned int realloc_step = 2;
     unsigned int i = 0;
 
