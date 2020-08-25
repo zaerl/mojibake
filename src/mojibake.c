@@ -31,7 +31,15 @@ typedef struct mjb_connection {
     mjb_free memory_free;
 } mjb_connection;
 
-static mjb_connection mjb_internal = { NULL, NULL, false };
+static mjb_connection mjb_internal = {
+    NULL,
+    NULL,
+    false,
+    &malloc,
+    &realloc,
+    &free
+};
+
 static const mjb_character empty_character;
 
 static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
@@ -72,6 +80,14 @@ static void mjb_db_error() {
     fprintf(stderr, "Error: %s\n", sqlite3_errmsg(mjb_internal.db));
 }
 
+static size_t mjb_next_codepoint(const char *buffer, size_t start, mjb_encoding encoding, mjb_codepoint *codepoint) {
+    /* if(encoding == MJB_ENCODING_UTF_32) { */
+    *codepoint = (mjb_codepoint)buffer[start];
+
+    return start + 4;
+    /* } */
+}
+
 /* Initialize the library */
 MJB_EXPORT bool mjb_initialize(const char *filename) {
     if(mjb_ready()) {
@@ -92,6 +108,11 @@ MJB_EXPORT bool mjb_initialize(const char *filename) {
     mjb_internal.memory_free = &free;
 
     return true;
+}
+
+/* Release memory */
+void mbj_release(void *ptr) {
+    mjb_internal.memory_free(ptr);
 }
 
 /* The library is ready */
@@ -420,6 +441,24 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
 }
 
 /* Normalize a string */
-MJB_EXPORT void mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
+    if(encoding == MJB_ENCODING_UNKNOWN) {
+        encoding = mjb_string_encoding(buffer, size);
+    }
 
+    if(encoding == MJB_ENCODING_UNKNOWN) {
+        return NULL;
+    }
+
+    mjb_codepoint codepoint;
+    size_t start = 0;
+    size_t next = mjb_next_codepoint(buffer, start, encoding, &codepoint);
+    char *ret = mjb_internal.memory_alloc(size);
+
+    /* Cycle the string */
+    /* while(next) {
+        next = mjb_next_codepoint(buffer, next, encoding, &codepoint);
+    } */
+
+    return ret;
 }

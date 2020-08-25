@@ -17,6 +17,20 @@ void get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
 }
 
 bool check_normalizations(mjb_codepoint *source, mjb_codepoint *nfc, mjb_codepoint *nfd, mjb_codepoint *nfkc, mjb_codepoint *nfkd) {
+    char *nfc_normalized = NULL;
+
+    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFC);
+    mbj_release(nfc_normalized);
+
+    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFD);
+    mbj_release(nfc_normalized);
+
+    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFKC);
+    mbj_release(nfc_normalized);
+
+    nfc_normalized = mjb_normalize((const char *)source, 16, MJB_ENCODING_UTF_32, MJB_NORMALIZATION_NFKD);
+    mbj_release(nfc_normalized);
+
     return true;
 }
 

@@ -478,6 +478,9 @@ typedef struct mjb_character {
 /* Initialize the library */
 bool mjb_initialize(const char *filename);
 
+/* Release memory */
+void mbj_release(void *ptr);
+
 /* The library is ready */
 bool mjb_ready();
 
@@ -530,7 +533,7 @@ mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 /* Normalize a string */
-void mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+char *mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
 }

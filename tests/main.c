@@ -22,6 +22,44 @@ int main(int argc, const char *argv[]) {
     bool plane = true;
     bool version = true;
 
+    if(argc > 1 && argv[1][0] == '-') {
+        size_t length = strlen(argv[1]);
+        codepoint = false;
+        db = false;
+        encoding = false;
+        normalization = false;
+        plane = false;
+        version = false;
+
+        for(int i = 1; i < length; ++i) {
+            switch(argv[1][i]) {
+                case 'c':
+                    codepoint = true;
+                    break;
+
+                case 'd':
+                    db = true;
+                    break;
+
+                case 'e':
+                    encoding = true;
+                    break;
+
+                case 'n':
+                    normalization = true;
+                    break;
+
+                case 'p':
+                    plane = true;
+                    break;
+
+                case 'v':
+                    version = true;
+                    break;
+            }
+        }
+    }
+
     /* Codepoint */
     if(codepoint) {
         mjb_run_test("Codepoint character", mjb_codepoint_character_test);
