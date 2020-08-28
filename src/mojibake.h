@@ -445,7 +445,7 @@ typedef enum mjb_encoding {
 
 /*
  Normalization form
- https://www.unicode.org/glossary/#normalization_form
+ [see: https://www.unicode.org/glossary/#normalization_form]
 */
 typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFD = 0,
@@ -453,6 +453,30 @@ typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFKD = 2,
     MJB_NORMALIZATION_NFKC = 3
 } mjb_normalization;
+
+/*
+ Decomposition
+ [see: https://www.unicode.org/glossary/#compatibility_decomposition]
+*/
+typedef enum mjb_decomposition {
+    MJB_DECOMPOSITION_CANONICAL = 0,
+    MJB_DECOMPOSITION_CIRCLE = 1,
+    MJB_DECOMPOSITION_COMPAT = 2,
+    MJB_DECOMPOSITION_FINAL = 3,
+    MJB_DECOMPOSITION_FONT = 4,
+    MJB_DECOMPOSITION_FRACTION = 5,
+    MJB_DECOMPOSITION_INITIAL = 6,
+    MJB_DECOMPOSITION_ISOLATED = 7,
+    MJB_DECOMPOSITION_MEDIAL = 8,
+    MJB_DECOMPOSITION_NARROW = 9,
+    MJB_DECOMPOSITION_NOBREAK = 10,
+    MJB_DECOMPOSITION_SMALL = 11,
+    MJB_DECOMPOSITION_SQUARE = 12,
+    MJB_DECOMPOSITION_SUB = 13,
+    MJB_DECOMPOSITION_SUPER = 14,
+    MJB_DECOMPOSITION_VERTICAL = 15,
+    MJB_DECOMPOSITION_WIDE = 16
+} mjb_decomposition;
 
 /*
  A unicode character
@@ -465,6 +489,7 @@ typedef struct mjb_character {
     mjb_category category;
     unsigned short combining;
     unsigned short bidirectional;
+    unsigned short decomposition_type;
     unsigned short decomposition;
     unsigned char decimal[128];
     unsigned char digit[128];

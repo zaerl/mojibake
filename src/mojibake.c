@@ -25,6 +25,7 @@
 typedef struct mjb_connection {
     sqlite3 *db;
     sqlite3_stmt *char_stmt;
+    sqlite3_stmt *decomposition_stmt;
     bool ok;
     mjb_alloc memory_alloc;
     mjb_realloc memory_realloc;
@@ -32,6 +33,7 @@ typedef struct mjb_connection {
 } mjb_connection;
 
 static mjb_connection mjb_internal = {
+    NULL,
     NULL,
     NULL,
     false,
@@ -100,6 +102,10 @@ MJB_EXPORT bool mjb_initialize(const char *filename) {
         SQLITE_PREPARE_PERSISTENT, &mjb_internal.char_stmt, NULL);
     DB_CHECK_CLOSE(ret, false)
 
+    ret = sqlite3_prepare_v3(mjb_internal.db, "SELECT codepoint, decomposition_type, decomposition FROM characters WHERE codepoint = ?", -1,
+        SQLITE_PREPARE_PERSISTENT, &mjb_internal.decomposition_stmt, NULL);
+    DB_CHECK_CLOSE(ret, false)
+
     mjb_internal.ok = true;
 
     return true;
@@ -128,6 +134,11 @@ MJB_EXPORT bool mjb_close() {
     if(mjb_internal.char_stmt) {
         ret = sqlite3_finalize(mjb_internal.char_stmt);
         mjb_internal.char_stmt = NULL;
+    }
+
+    if(mjb_internal.decomposition_stmt) {
+        ret = sqlite3_finalize(mjb_internal.decomposition_stmt);
+        mjb_internal.decomposition_stmt = NULL;
     }
 
     if(mjb_internal.db) {
@@ -351,14 +362,15 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         DB_COLUMN_INT(mjb_internal.char_stmt, character->category, 3);
         DB_COLUMN_INT(mjb_internal.char_stmt, character->combining, 4);
         DB_COLUMN_INT(mjb_internal.char_stmt, character->bidirectional, 5);
-        DB_COLUMN_INT(mjb_internal.char_stmt, character->decomposition, 6);
-        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->decimal, 7)
-        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->digit, 8)
-        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->numeric, 9)
-        DB_COLUMN_INT(mjb_internal.char_stmt, character->mirrored, 10);
-        DB_COLUMN_INT(mjb_internal.char_stmt, character->uppercase, 11);
-        DB_COLUMN_INT(mjb_internal.char_stmt, character->lowercase, 12);
-        DB_COLUMN_INT(mjb_internal.char_stmt, character->titlecase, 13);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->decomposition_type, 6);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->decomposition, 7);
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->decimal, 8)
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->digit, 9)
+        DB_COLUMN_TEXT(mjb_internal.char_stmt, character->numeric, 10)
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->mirrored, 11);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->uppercase, 12);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->lowercase, 13);
+        DB_COLUMN_INT(mjb_internal.char_stmt, character->titlecase, 14);
     }
 
     ret = sqlite3_clear_bindings(mjb_internal.char_stmt);
@@ -465,7 +477,14 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
             break;
         }
 
-        ((mjb_codepoint*)ret)[i] = codepoint;
+        /* ASCII characters (U+0000..U+007F) are left unaffected by all of the Normalization Forms */
+        if(codepoint <= 0x7F) {
+            ((mjb_codepoint*)ret)[i] = codepoint;
+        } else if(codepoint < 0xFF && form == MJB_NORMALIZATION_NFC) { /* Latin-1 characters (U+0000..U+00FF) are unaffected by NFC */
+            ((mjb_codepoint*)ret)[i] = codepoint;
+        }
+
+        /* ((mjb_codepoint*)ret)[i] = codepoint; */
 
         ++i;
     } while(next);

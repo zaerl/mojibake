@@ -18,6 +18,26 @@ size_t get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
     return index;
 }
 
+/*
+ source, NFC, NFD, NFKC, NFKD
+ source, c1, c2, c3, c4
+
+ NFC
+ c2 ==  toNFC(c1) ==  toNFC(c2) ==  toNFC(c3)
+ c4 ==  toNFC(c4) ==  toNFC(c5)
+
+ NFD
+ c3 ==  toNFD(c1) ==  toNFD(c2) ==  toNFD(c3)
+ c5 ==  toNFD(c4) ==  toNFD(c5)
+
+ NFKC
+ c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) == toNFKC(c5)
+
+ NFKD
+ c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) == toNFKD(c5)
+
+ [see: NormalizationTest.txt]
+*/
 bool check_normalization(void *source, size_t source_size, mjb_codepoint *normalized, size_t normalized_size, mjb_normalization normalization) {
     void *normalized_res = mjb_normalize(source, source_size, MJB_ENCODING_UTF_32, normalization);
     bool ret = true;

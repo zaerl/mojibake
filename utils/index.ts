@@ -2,7 +2,7 @@ import { createReadStream, writeFileSync, unlinkSync, existsSync } from 'fs';
 import { createInterface } from 'readline';
 import { verbose, Statement } from 'sqlite3';
 
-interface Buffer {
+interface CountBuffer {
   name: string;
   count: number;
 }
@@ -105,31 +105,27 @@ enum BidirectionalCategories {
 
 type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
 
-enum CharacterDecompositionMapping {
-  '<font>',
-  '<noBreak>',
-  '<initial>',
-  '<medial>',
-  '<final>',
-  '<isolated>',
-  '<circle>',
-  '<super>',
-  '<sub>',
-  '<vertical>',
-  '<wide>',
-  '<narrow>',
-  '<small>',
-  '<square>',
-  '<fraction>',
-  '<compat>'
+const characterDecompositionMapping = {
+  'canonical': 0,
+  '<circle>': 7,
+  '<compat>': 16,
+  '<final>': 5,
+  '<font>': 1,
+  '<fraction>': 15,
+  '<initial>': 3,
+  '<isolated>': 6,
+  '<medial>': 4,
+  '<narrow>': 12,
+  '<noBreak>': 2,
+  '<small>': 13,
+  '<square>': 14,
+  '<sub>': 9,
+  '<super>': 8,
+  '<vertical>': 10,
+  '<wide>': 11
 };
 
-type CharacterDecompositionMappingStrings = (keyof typeof CharacterDecompositionMapping) | '';
-
-type CharacterDecomposition = [
-  CharacterDecompositionMappingStrings,
-  ...string[]
-];
+type CharacterDecompositionMappingStrings = keyof typeof characterDecompositionMapping;
 
 type Mirrored = 'Y' | 'N';
 
@@ -140,6 +136,7 @@ type UnicodeDataRow = [
   CategoriesStrings, // 2 category
   string, // 3 canonical combining classes
   BidirectionalCategoriesStrings, // 4 bidirectional category
+  // decomposition type
   string, // 5 character decomposition mapping
   string, // 6 decimal digit value
   string, // 7 digit value
@@ -164,7 +161,7 @@ function log(message?: any, ...optionalParams: any[]) {
   console.log(message, ...optionalParams);
 }
 
-function compareFn(a: Buffer, b: Buffer): number {
+function compareFn(a: CountBuffer, b: CountBuffer): number {
   const ret = b.count - a.count;
 
   if(ret === 0) {
@@ -288,8 +285,32 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
       }
     }
 
-    const decomposition = split[5].split(' ') as CharacterDecomposition;
+    const decomposition = split[5].split(' ');
+    let blob: Buffer;
+    let decompositionType = null;
+
     maxDecomposition = Math.max(maxDecomposition, decomposition.length);
+
+    if(decomposition.length > 1) {
+      const canonical = decomposition[0][0] !== '<';
+
+      blob = Buffer.alloc((canonical ? decomposition.length : decomposition.length - 1) * 4);
+
+      if(canonical) {
+        decompositionType = characterDecompositionMapping.canonical;
+      }
+
+      for(const decomposed of decomposition) {
+        if(decomposed[0] === '<') {
+          // blob.writeUInt8(characterDecompositionMapping[decomposed as CharacterDecompositionMappingStrings]);
+          decompositionType = characterDecompositionMapping[decomposed as CharacterDecompositionMappingStrings];
+        } else {
+          blob.writeUInt32LE(parseInt(decomposed, 16));
+        }
+      }
+    } else {
+      blob = Buffer.alloc(0);
+    }
 
     if(decomposition.length === 19) {
       log(codepoint, name, decomposition);
@@ -300,13 +321,14 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     }
 
     stmt.run(
-      codepoint, // 0
-      name, // 1
-      currentBlock, // Block
+      codepoint,
+      name,
+      currentBlock,
       1 << Category[split[2]],
       parseInt(split[3], 10),
       split[4] === '' ? null : BidirectionalCategories[split[4]],
-      decomposition[0] === '' ? null : CharacterDecompositionMapping[decomposition[0]],
+      decompositionType,
+      blob.byteLength ? blob : null,
 
       split[6] === '' ? null : split[6],
       split[7] === '' ? null : split[7],
@@ -341,8 +363,8 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
 
   log(`STEP TOTAL ${diffs}/${codepoint}\n`);
 
-  const ret: Buffer[] = [];
-  const ret2: Buffer[] = [];
+  const ret: CountBuffer[] = [];
+  const ret2: CountBuffer[] = [];
 
   for(const name in categoryBuffer) {
     ret2.push({ name, count: categoryBuffer[name] });
@@ -436,7 +458,8 @@ db.serialize(async () => {
   category INTEGER NOT NULL,
   combining INTEGER NOT NULL,
   bidirectional INTEGER,
-  decomposition INTEGER,
+  decomposition_type INTEGER,
+  decomposition BLOB,
   decimal TEXT,
   digit TEXT,
   numeric TEXT,
@@ -454,7 +477,7 @@ db.run(
 )`);
 
   const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
-  const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
   const blocks = await readBlocks(blockStmt);
   await readUnicodeData(dataStmt, blocks);
@@ -570,7 +593,7 @@ typedef enum mjb_encoding {
 
 /*
  Normalization form
- https://www.unicode.org/glossary/#normalization_form
+ [see: https://www.unicode.org/glossary/#normalization_form]
 */
 typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFD = 0,
@@ -578,6 +601,14 @@ typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFKD = 2,
     MJB_NORMALIZATION_NFKC = 3
 } mjb_normalization;
+
+/*
+ Decomposition
+ [see: https://www.unicode.org/glossary/#compatibility_decomposition]
+*/
+typedef enum mjb_decomposition {
+${Object.keys(characterDecompositionMapping).map((value: string, index: number) => `    MJB_DECOMPOSITION_${value.toUpperCase().replace(/[<>]/g, '')} = ${index}`).join(',\n')}
+} mjb_decomposition;
 
 /*
  A unicode character
@@ -590,6 +621,7 @@ typedef struct mjb_character {
     mjb_category category;
     unsigned short combining;
     unsigned short bidirectional;
+    unsigned short decomposition_type;
     unsigned short decomposition;
     unsigned char decimal[128];
     unsigned char digit[128];
