@@ -635,14 +635,14 @@ typedef struct mjb_character {
 /* Initialize the library */
 bool mjb_initialize(const char *filename);
 
-/* Release memory */
-void mbj_release(void *ptr);
-
 /* The library is ready */
 bool mjb_ready();
 
 /* Close the library */
 bool mjb_close();
+
+/* Release memory */
+void mbj_release(void *ptr);
 
 /* Output the current library version (MJB_VERSION) */
 char *mjb_version();
@@ -652,9 +652,6 @@ unsigned int mjb_version_number();
 
 /* Output the current supported unicode version (MJB_UNICODE_VERSION) */
 char *mjb_unicode_version();
-
-/* Return true if the codepoint is valid */
-bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 /* Return true if the plane is valid */
 bool mjb_plane_is_valid(mjb_plane plane);
@@ -670,6 +667,9 @@ bool mjb_string_is_utf8(const char *buffer, size_t size);
 
 /* Return true if the string is encoded in ASCII */
 bool mjb_string_is_ascii(const char *buffer, size_t size);
+
+/* Return true if the codepoint is valid */
+bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 /* Return the codepoint character */
 bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);

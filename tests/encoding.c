@@ -38,6 +38,30 @@ MJB_EXPORT void mjb_string_encoding_test() {
         MJB_ENCODING_UTF_16_LE));
 }
 
+MJB_EXPORT void mjb_string_is_utf8_test() {
+    bool is_utf8 = mjb_string_is_utf8("", 0);
+    mjb_assert("Void string", !is_utf8);
+
+    is_utf8 = mjb_string_is_utf8("", 0);
+    mjb_assert("Void length", !is_utf8);
+
+    is_utf8 = mjb_string_is_utf8(0, 0);
+    mjb_assert("Void string and length", !is_utf8);
+
+    const char *test = "The quick brown fox jumps over the lazy dog";
+    is_utf8 = mjb_string_is_utf8(test, 43);
+    mjb_assert("Valid string and length", is_utf8);
+
+    /* \xF0\x9F\x99\x82 = 🙂 */
+    test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
+    is_utf8 = mjb_string_is_utf8(test, 48);
+    mjb_assert("String with emoji", is_utf8);
+
+    test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
+    is_utf8 = mjb_string_is_utf8(test, 48);
+    mjb_assert("Not valid continuation byte", is_utf8);
+}
+
 MJB_EXPORT void mjb_string_is_ascii_test() {
     bool is_ascii = mjb_string_is_ascii("", 0);
     mjb_assert("Void string", !is_ascii);
@@ -72,28 +96,4 @@ MJB_EXPORT void mjb_string_is_ascii_test() {
     test = "\xF0";
     is_ascii = mjb_string_is_ascii(test, 2);
     mjb_assert("Lone first 4-bytes sequence", !is_ascii);
-}
-
-MJB_EXPORT void mjb_string_is_utf8_test() {
-    bool is_utf8 = mjb_string_is_utf8("", 0);
-    mjb_assert("Void string", !is_utf8);
-
-    is_utf8 = mjb_string_is_utf8("", 0);
-    mjb_assert("Void length", !is_utf8);
-
-    is_utf8 = mjb_string_is_utf8(0, 0);
-    mjb_assert("Void string and length", !is_utf8);
-
-    const char *test = "The quick brown fox jumps over the lazy dog";
-    is_utf8 = mjb_string_is_utf8(test, 43);
-    mjb_assert("Valid string and length", is_utf8);
-
-    /* \xF0\x9F\x99\x82 = 🙂 */
-    test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
-    is_utf8 = mjb_string_is_utf8(test, 48);
-    mjb_assert("String with emoji", is_utf8);
-
-    test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
-    is_utf8 = mjb_string_is_utf8(test, 48);
-    mjb_assert("Not valid continuation byte", is_utf8);
 }
