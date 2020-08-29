@@ -18,10 +18,14 @@ extern "C" {
 typedef void (*mjb_test)(void);
 
 void mjb_assert(char *message, bool test);
-void mjb_print_character(mjb_character *character, mjb_codepoint codepoint);
 void mjb_run_test(char *name, mjb_test test);
+void mjb_select_section(unsigned int section);
 unsigned int mjb_valid_count();
 unsigned int mjb_total_count();
+const char *mjb_section_name(unsigned int section);
+unsigned int mjb_section_valid_count(unsigned int section);
+unsigned int mjb_section_total_count(unsigned int section);
+void mjb_print_character(mjb_character *character, mjb_codepoint codepoint);
 
 /* Codepoint */
 void mjb_codepoint_character_test();

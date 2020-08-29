@@ -11,16 +11,61 @@
 
 static unsigned int tests_run;
 static unsigned int tests_valid;
+static unsigned int current_section;
+static struct section {
+    const char *name;
+    unsigned int tests_run;
+    unsigned int tests_valid;
+} sections[6] = {
+    { "Codepoint", 0, 0 },
+    { "Db", 0, 0 },
+    { "Encoding", 0, 0 },
+    { "Normalization", 0, 0 },
+    { "Plane", 0, 0 },
+    { "Version", 0, 0 }
+};
 
 MJB_EXPORT void mjb_assert(char *message, bool test) {
     ++tests_run;
+    ++sections[current_section].tests_run;
 
     if(test) {
         printf("Test: %s \x1B[32mOK\x1B[0m\n", message);
         ++tests_valid;
+        ++sections[current_section].tests_valid;
     } else {
         printf("\x1B[31mTest: %s FAIL\x1B[0m\n", message);
     }
+}
+
+MJB_EXPORT void mjb_run_test(char *name, mjb_test test) {
+    printf("\x1b[36m%s\x1B[0m\n", name);
+    test();
+    printf("\n");
+}
+
+MJB_EXPORT void mjb_select_section(unsigned int section) {
+    current_section = section;
+}
+
+MJB_EXPORT unsigned int mjb_valid_count() {
+    return tests_valid;
+}
+
+MJB_EXPORT unsigned int mjb_total_count() {
+    return tests_run;
+}
+
+MJB_EXPORT const char *mjb_section_name(unsigned int section) {
+    return sections[section].name;
+}
+
+MJB_EXPORT unsigned int mjb_section_valid_count(unsigned int section) {
+    return sections[section].tests_valid;
+}
+
+MJB_EXPORT unsigned int mjb_section_total_count(unsigned int section) {
+    return sections[section].tests_run;
 }
 
 MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint codepoint) {
@@ -60,18 +105,4 @@ MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint code
         character->uppercase,
         character->lowercase,
         character->titlecase);
-}
-
-MJB_EXPORT void mjb_run_test(char *name, mjb_test test) {
-    printf("\x1b[36m%s\x1B[0m\n", name);
-    test();
-    printf("\n");
-}
-
-MJB_EXPORT unsigned int mjb_valid_count() {
-    return tests_valid;
-}
-
-MJB_EXPORT unsigned int mjb_total_count() {
-    return tests_run;
 }
