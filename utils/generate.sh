@@ -2,7 +2,7 @@
 
 UNICODE_VERSION="13.0.0"
 SQLITE_YEAR="2020"
-SQLITE_VERSION="3320300"
+SQLITE_VERSION="3330000"
 
 if [ ! -d "./UCD" ] ; then
     curl -o UCD.zip "https://www.unicode.org/Public/zipped/$UNICODE_VERSION/UCD.zip"
@@ -21,9 +21,9 @@ if [ ! -d "./sqlite" ] ; then
     unzip sqlite.zip
     mv "sqlite-amalgamation-$SQLITE_VERSION" sqlite
     rm sqlite.zip
-    mkdir ../src/sqlite
     cp sqlite/sqlite3.h ../src/sqlite
     cp sqlite/sqlite3.c ../src/sqlite
+    clang -o ../cli/sqlite ./sqlite/*.c && chmod +x ../cli/sqlite
 fi
 
 npm run generate

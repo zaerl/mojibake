@@ -1,5 +1,9 @@
-build
+build/*
+#!build/.gitkeep
+cli/*
+src/sqlite/*
 utils/node_modules
 utils/UCD
 utils/unihan
 utils/sqlite
+!.gitkeep
