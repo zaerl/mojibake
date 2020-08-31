@@ -24,7 +24,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
 
     mjb_codepoint codepoint;
     size_t next = 0;
-    void *ret = mjb.memory_alloc(size * sizeof(mjb_codepoint));
+    void *ret = mjb_alloc(size * sizeof(mjb_codepoint));
     unsigned int realloc_step = 2;
     unsigned int i = 0;
 
@@ -33,7 +33,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
         next = mjb_next_codepoint(buffer, size, next, encoding, &codepoint);
 
         if(next > size) {
-            /* ret = mjb.memory_realloc(ret, size * realloc_step);
+            /* ret = mjb_realloc(ret, size * realloc_step);
             ++realloc_step; */
             break;
         }
@@ -43,7 +43,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
         if(codepoint <= 0x7F || (codepoint < 0xFF && form == MJB_NORMALIZATION_NFC)) {
             if(i == size) {
                 size = size * realloc_step;
-                ret = mjb.memory_realloc(ret, size * sizeof(mjb_codepoint));
+                ret = mjb_realloc(ret, size * sizeof(mjb_codepoint));
                 /* ++realloc_step; */
             }
 
@@ -59,7 +59,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
                 if(res == SQLITE_ROW) {
                     if(i == size) {
                         size = size * realloc_step;
-                        ret = mjb.memory_realloc(ret, size * sizeof(mjb_codepoint));
+                        ret = mjb_realloc(ret, size * sizeof(mjb_codepoint));
                         /* ++realloc_step; */
                     }
 

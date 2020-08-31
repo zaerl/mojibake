@@ -50,7 +50,7 @@ bool check_normalization(void *source, size_t source_size, mjb_codepoint *normal
     }
 
     if(normalized_res != NULL) {
-        mbj_release(normalized_res);
+        mjb_free(normalized_res);
     }
 
     return ret;

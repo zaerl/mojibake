@@ -16,9 +16,8 @@ MJB_EXPORT bool mjb_initialize(const char *filename) {
     }
 
     mjb.db = NULL;
-    mjb.memory_alloc = &malloc;
-    mjb.memory_realloc = &realloc;
-    mjb.memory_free = &free;
+
+    mjb_allocation(malloc, realloc, free);
 
     int ret = sqlite3_open_v2(filename, &mjb.db, SQLITE_OPEN_READONLY, NULL);
     DB_CHECK_CLOSE(ret, false)

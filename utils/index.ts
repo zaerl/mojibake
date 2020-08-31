@@ -548,9 +548,9 @@ extern "C" {
 #endif
 
 /* See c standard memory allocation functions */
-typedef void *(*mjb_alloc)(size_t size);
-typedef void *(*mjb_realloc)(void *ptr, size_t new_size);
-typedef void (*mjb_free)(void *ptr);
+typedef void *(*mjb_alloc_fn)(size_t size);
+typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
+typedef void (*mjb_free_fn)(void *ptr);
 
 /*
  A unicode codepoint
@@ -665,14 +665,23 @@ typedef struct mjb_character {
 /* Initialize the library */
 bool mjb_initialize(const char *filename);
 
+/* Set memory allocation functions */
+bool mjb_allocation(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+
 /* The library is ready */
 bool mjb_ready();
 
 /* Close the library */
 bool mjb_close();
 
-/* Release memory */
-void mbj_release(void *ptr);
+/* Allocate memory */
+void *mjb_alloc(size_t size);
+
+/* Reallocate memory */
+void *mjb_realloc(void *ptr, size_t new_size);
+
+/* Free memory */
+void mjb_free(void *ptr);
 
 /* Output the current library version (MJB_VERSION) */
 char *mjb_version();

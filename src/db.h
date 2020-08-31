@@ -11,9 +11,9 @@ typedef struct mjb_connection {
     sqlite3_stmt *char_stmt;
     sqlite3_stmt *decomposition_stmt;
     bool ok;
-    mjb_alloc memory_alloc;
-    mjb_realloc memory_realloc;
-    mjb_free memory_free;
+    mjb_alloc_fn memory_alloc;
+    mjb_realloc_fn memory_realloc;
+    mjb_free_fn memory_free;
 } mjb_connection;
 
 extern mjb_connection mjb;
