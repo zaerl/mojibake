@@ -467,7 +467,6 @@ const db = new sqlite.Database(dbName, (err: Error | null) => {
 });
 
 db.serialize(async () => {
-
   db.run('BEGIN TRANSACTION');
 
   db.run(
@@ -721,7 +720,7 @@ ${footer('mojibake')}
 
   writeFileSync('../src/mojibake.h', fheader);
 
-  db.run('END');
+  db.run('END TRANSACTION');
 
   db.close();
 });
