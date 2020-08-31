@@ -18,6 +18,7 @@ int main(int argc, const char *argv[]) {
     bool codepoint = true;
     bool db = true;
     bool encoding = true;
+    bool memory = true;
     bool normalization = true;
     bool plane = true;
     bool version = true;
@@ -27,6 +28,7 @@ int main(int argc, const char *argv[]) {
         codepoint = false;
         db = false;
         encoding = false;
+        memory = false;
         normalization = false;
         plane = false;
         version = false;
@@ -43,6 +45,10 @@ int main(int argc, const char *argv[]) {
 
                 case 'e':
                     encoding = true;
+                    break;
+
+                case 'm':
+                    memory = true;
                     break;
 
                 case 'n':
@@ -85,22 +91,28 @@ int main(int argc, const char *argv[]) {
         mjb_run_test("String is UTF-8", mjb_string_is_utf8_test);
     }
 
+    /* Memory */
+    if(memory) {
+        mjb_select_section(3);
+        mjb_run_test("Memory", mjb_memory_test);
+    }
+
     /* Normalization */
     if(normalization) {
-        mjb_select_section(3);
+        mjb_select_section(4);
         mjb_run_test("Normalize NFD/NFC/NFKD/NFKC", mjb_codepoint_normalize_test);
     }
 
     /* Plane */
     if(plane) {
-        mjb_select_section(4);
+        mjb_select_section(5);
         mjb_run_test("Codespace plane is valid", mjb_plane_is_valid_test);
         mjb_run_test("Codespace plane name", mjb_plane_name_test);
     }
 
     /* Version */
     if(version) {
-        mjb_select_section(5);
+        mjb_select_section(6);
         mjb_run_test("Get version", mjb_version_test);
         mjb_run_test("Get version number", mjb_version_number_test);
         mjb_run_test("Get unicode version", mjb_unicode_version_test);
@@ -113,7 +125,7 @@ int main(int argc, const char *argv[]) {
     unsigned int total;
     clock_t delta = 0;
 
-    for(; i < 6; ++i) {
+    for(; i < SECTIONS_COUNT; ++i) {
         delta = mjb_section_delta(i);
         valid = mjb_section_valid_count(i);
         total = mjb_section_total_count(i);

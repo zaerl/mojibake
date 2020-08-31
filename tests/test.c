@@ -18,10 +18,11 @@ static struct section {
     unsigned int tests_valid;
     clock_t begin;
     clock_t end;
-} sections[6] = {
+} sections[SECTIONS_COUNT] = {
     { "Codepoint", 0, 0, 0, 0 },
     { "Db", 0, 0, 0, 0 },
     { "Encoding", 0, 0, 0, 0 },
+    { "Memory", 0, 0, 0, 0 },
     { "Normalization", 0, 0, 0, 0 },
     { "Plane", 0, 0, 0, 0 },
     { "Version", 0, 0, 0, 0 }

@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #define MJB_DB_PATH "../src/mojibake.db"
+#define SECTIONS_COUNT 7
 
 typedef void (*mjb_test)(void);
 
@@ -45,6 +46,9 @@ void mjb_ready_test();
 void mjb_string_encoding_test();
 void mjb_string_is_ascii_test();
 void mjb_string_is_utf8_test();
+
+/* Memory */
+void mjb_memory_test();
 
 /* Normalization */
 void mjb_codepoint_normalize_test();
