@@ -1,6 +1,6 @@
-import { createReadStream, writeFileSync, unlinkSync, existsSync } from 'fs';
+import { createReadStream, existsSync, unlinkSync, writeFileSync } from 'fs';
 import { createInterface } from 'readline';
-import { verbose, Statement } from 'sqlite3';
+import { Statement, verbose as sqlite3 } from 'sqlite3';
 
 interface CountBuffer {
   name: string;
@@ -45,6 +45,8 @@ enum Category {
   Co,
   Cn
 }
+
+let verbose = false;
 
 const categories = [
   'Letter, Uppercase',
@@ -158,6 +160,12 @@ interface Block {
 };
 
 function log(message?: any, ...optionalParams: any[]) {
+  if(verbose) {
+    console.log(message, ...optionalParams);
+  }
+}
+
+function iLog(message?: any, ...optionalParams: any[]) {
   console.log(message, ...optionalParams);
 }
 
@@ -434,13 +442,18 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     log(`${num.name} (${num.value}): ${num.count}`);
   }
 
-  log('\nCOUNT\n');
-  log(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
-  log(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
+  iLog(`${verbose ? '\n' : ''}COUNT\n`);
+  iLog(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
+  iLog(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
 }
 
+// Init
 const dbName = '../src/mojibake.db';
-const sqlite = verbose();
+const sqlite = sqlite3();
+
+if(process.argv[2] === '-V') {
+  verbose = true;
+}
 
 // Remove old database
 if(existsSync(dbName)) {
@@ -448,7 +461,9 @@ if(existsSync(dbName)) {
 }
 
 const db = new sqlite.Database(dbName, (err: Error | null) => {
-  console.error(err?.message);
+  if(err) {
+    iLog(err.message);
+  }
 });
 
 db.serialize(async () => {

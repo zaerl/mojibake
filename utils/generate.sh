@@ -26,4 +26,4 @@ if [ ! -d "./sqlite-$SQLITE_VERSION" ] ; then
     clang -o ../cli/sqlite3 ./sqlite/*.c && chmod +x ../cli/sqlite3
 fi
 
-npm run generate
+npm run generate -- "$@"
