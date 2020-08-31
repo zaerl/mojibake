@@ -6,23 +6,26 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "test.h"
 
 static unsigned int tests_run;
 static unsigned int tests_valid;
-static unsigned int current_section;
+static int current_section = -1;
 static struct section {
     const char *name;
     unsigned int tests_run;
     unsigned int tests_valid;
+    clock_t begin;
+    clock_t end;
 } sections[6] = {
-    { "Codepoint", 0, 0 },
-    { "Db", 0, 0 },
-    { "Encoding", 0, 0 },
-    { "Normalization", 0, 0 },
-    { "Plane", 0, 0 },
-    { "Version", 0, 0 }
+    { "Codepoint", 0, 0, 0, 0 },
+    { "Db", 0, 0, 0, 0 },
+    { "Encoding", 0, 0, 0, 0 },
+    { "Normalization", 0, 0, 0, 0 },
+    { "Plane", 0, 0, 0, 0 },
+    { "Version", 0, 0, 0, 0 }
 };
 
 MJB_EXPORT void mjb_assert(char *message, bool test) {
@@ -44,8 +47,16 @@ MJB_EXPORT void mjb_run_test(char *name, mjb_test test) {
     printf("\n");
 }
 
-MJB_EXPORT void mjb_select_section(unsigned int section) {
+MJB_EXPORT void mjb_select_section(int section) {
+    if(current_section != -1) {
+        sections[current_section].end = clock();
+    }
+
     current_section = section;
+
+    if(section != -1) {
+        sections[section].begin = clock();
+    }
 }
 
 MJB_EXPORT unsigned int mjb_valid_count() {
@@ -66,6 +77,10 @@ MJB_EXPORT unsigned int mjb_section_valid_count(unsigned int section) {
 
 MJB_EXPORT unsigned int mjb_section_total_count(unsigned int section) {
     return sections[section].tests_run;
+}
+
+MJB_EXPORT clock_t mjb_section_delta(unsigned int section) {
+    return sections[section].end - sections[section].begin;
 }
 
 MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint codepoint) {

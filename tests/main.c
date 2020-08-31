@@ -106,18 +106,22 @@ int main(int argc, const char *argv[]) {
         mjb_run_test("Get unicode version", mjb_unicode_version_test);
     }
 
+    mjb_select_section(-1);
+
     unsigned int i = 0;
     unsigned int valid;
     unsigned int total;
+    clock_t delta = 0;
 
     for(; i < 6; ++i) {
+        delta = mjb_section_delta(i);
         valid = mjb_section_valid_count(i);
         total = mjb_section_total_count(i);
 
         /* Green if valid and red if not */
         const char *colorCode = valid == total ? "\x1B[32m" : "\x1B[31m";
 
-        printf("%s tests valid/run: %s%d/%d\n\x1B[0m", mjb_section_name(i), colorCode, valid, total);
+        printf("%s [%ju ms] tests valid/run: %s%d/%d\n\x1B[0m", mjb_section_name(i), delta, colorCode, valid, total);
     }
 
     valid = mjb_valid_count();

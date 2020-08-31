@@ -7,6 +7,8 @@
 #ifndef MJB_TEST_H
 #define MJB_TEST_H
 
+#include <time.h>
+
 #include "../src/mojibake.h"
 
 #ifdef __cplusplus
@@ -19,12 +21,13 @@ typedef void (*mjb_test)(void);
 
 void mjb_assert(char *message, bool test);
 void mjb_run_test(char *name, mjb_test test);
-void mjb_select_section(unsigned int section);
+void mjb_select_section(int section);
 unsigned int mjb_valid_count();
 unsigned int mjb_total_count();
 const char *mjb_section_name(unsigned int section);
 unsigned int mjb_section_valid_count(unsigned int section);
 unsigned int mjb_section_total_count(unsigned int section);
+clock_t mjb_section_delta(unsigned int section);
 void mjb_print_character(mjb_character *character, mjb_codepoint codepoint);
 
 /* Codepoint */
