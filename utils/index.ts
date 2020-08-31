@@ -255,6 +255,7 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
   let codepoint = 0;
   let currentBlock = 0;
   let maxDecomposition = 0;
+  let decompositions = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -289,12 +290,14 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     let blob: Buffer;
     let decompositionType = null;
 
-    maxDecomposition = Math.max(maxDecomposition, decomposition.length);
-
     if(decomposition.length > 1) {
       const canonical = decomposition[0][0] !== '<';
+      const decompositionSize = canonical ? decomposition.length : decomposition.length - 1;
+      decompositions += decompositionSize;
 
-      blob = Buffer.alloc((canonical ? decomposition.length : decomposition.length - 1) * 4);
+      maxDecomposition = Math.max(maxDecomposition, decompositionSize);
+
+      blob = Buffer.alloc(decompositionSize * 4);
 
       if(canonical) {
         decompositionType = characterDecompositionMapping.canonical;
@@ -358,6 +361,8 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
   };
 
   stmt.finalize();
+
+  log(`\nDECOMPOSITION COUNT ${decompositions}\n`);
 
   log(`MAX DECOMPOSITION ${maxDecomposition}\n`);
 
