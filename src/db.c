@@ -27,7 +27,7 @@ MJB_EXPORT bool mjb_initialize(const char *filename) {
         SQLITE_PREPARE_PERSISTENT, &mjb.char_stmt, NULL);
     DB_CHECK_CLOSE(ret, false)
 
-    ret = sqlite3_prepare_v3(mjb.db, "SELECT codepoint, decomposition_type, decomposition FROM characters WHERE codepoint = ?", -1,
+    ret = sqlite3_prepare_v3(mjb.db, "SELECT codepoint, decomposition FROM decompositions WHERE codepoint = ?", -1,
         SQLITE_PREPARE_PERSISTENT, &mjb.decomposition_stmt, NULL);
     DB_CHECK_CLOSE(ret, false)
 

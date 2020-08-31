@@ -39,15 +39,48 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
         }
 
         /* ASCII characters (U+0000..U+007F) are left unaffected by all of the Normalization Forms */
-        if(codepoint <= 0x7F) {
+        /* Latin-1 characters (U+0000..U+00FF) are unaffected by NFC */
+        if(codepoint <= 0x7F || (codepoint < 0xFF && form == MJB_NORMALIZATION_NFC)) {
+            if(i == size) {
+                size = size * realloc_step;
+                ret = mjb.memory_realloc(ret, size * sizeof(mjb_codepoint));
+                /* ++realloc_step; */
+            }
+
             ((mjb_codepoint*)ret)[i] = codepoint;
-        } else if(codepoint < 0xFF && form == MJB_NORMALIZATION_NFC) { /* Latin-1 characters (U+0000..U+00FF) are unaffected by NFC */
-            ((mjb_codepoint*)ret)[i] = codepoint;
+            ++i;
+        } else {
+            int res = sqlite3_bind_int(mjb.decomposition_stmt, 1, codepoint);
+            DB_CHECK(res, NULL)
+
+            do {
+                res = sqlite3_step(mjb.decomposition_stmt);
+
+                if(res == SQLITE_ROW) {
+                    if(i == size) {
+                        size = size * realloc_step;
+                        ret = mjb.memory_realloc(ret, size * sizeof(mjb_codepoint));
+                        /* ++realloc_step; */
+                    }
+
+                    DB_COLUMN_INT(mjb.decomposition_stmt, ((mjb_codepoint*)ret)[i], 0);
+
+                    ++i;
+                } else if(res == SQLITE_DONE) {
+                    break;
+                } else {
+                    DB_CHECK(res, NULL)
+                }
+            } while(1);
+
+            /*ret = sqlite3_clear_bindings(mjb.decomposition_stmt);
+            DB_CHECK(ret, false)*/
+
+            res = sqlite3_reset(mjb.decomposition_stmt);
+            DB_CHECK(res, NULL)
         }
 
         /* ((mjb_codepoint*)ret)[i] = codepoint; */
-
-        ++i;
     } while(next);
 
     return ret;

@@ -218,8 +218,6 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
     crlfDelay: Infinity
   });
 
-  let i = 0;
-
   for await (const line of rl) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
@@ -250,7 +248,7 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
   return blocks;
 }
 
-async function readUnicodeData(stmt: Statement, blocks: Block[]) {
+async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, blocks: Block[]) {
   log('READ UNICODE DATA');
 
   const nameBuffer: { [name: string]: number } = {};
@@ -317,6 +315,9 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
           decompositionType = characterDecompositionMapping[decomposed as CharacterDecompositionMappingStrings];
         } else {
           blob.writeUInt32LE(parseInt(decomposed, 16));
+          decompositionStmt.run(
+            codepoint,
+            parseInt(decomposed, 16));
         }
       }
     } else {
@@ -369,6 +370,7 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
   };
 
   stmt.finalize();
+  decompositionStmt.finalize();
 
   log(`\nDECOMPOSITION COUNT ${decompositions}\n`);
 
@@ -400,7 +402,7 @@ async function readUnicodeData(stmt: Statement, blocks: Block[]) {
     }
   }
 
-  log('\nWORDS\n');
+  log(`\nWORDS: ${Object.keys(nameBuffer).length}\n`);
 
   for(const name in nameBuffer) {
     ret.push({ name, count: nameBuffer[name] });
@@ -495,19 +497,28 @@ db.run(
   end INTEGER NOT NULL
 )`);
 
-  const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
-  const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+db.run(
+`CREATE TABLE decompositions(
+  codepoint INTEGER NOT NULL,
+  decomposition INTEGER NOT NULL
+)`);
 
-  const blocks = await readBlocks(blockStmt);
-  await readUnicodeData(dataStmt, blocks);
+db.run(`CREATE INDEX idx_codepoint ON decompositions (codepoint)`);
 
-  const categoryEnums: string[] = [];
+const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
+const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+const decompositionStmt = db.prepare('INSERT INTO decompositions VALUES (?, ?)');
 
-  for(let i = 0; i < categories.length; ++i) {
-    categoryEnums.push(`    MJB_CATEGORY_${Category[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Category[i]}) ${categories[i]} */`);
-  }
+const blocks = await readBlocks(blockStmt);
+await readUnicodeData(dataStmt, decompositionStmt, blocks);
 
-  const fheader =
+const categoryEnums: string[] = [];
+
+for(let i = 0; i < categories.length; ++i) {
+  categoryEnums.push(`    MJB_CATEGORY_${Category[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Category[i]}) ${categories[i]} */`);
+}
+
+const fheader =
 `${header('mojibake')}
 
 #include <stddef.h>
@@ -721,6 +732,7 @@ ${footer('mojibake')}
   writeFileSync('../src/mojibake.h', fheader);
 
   db.run('END TRANSACTION');
+  db.run('VACUUM');
 
   db.close();
 });
