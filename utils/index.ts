@@ -293,7 +293,6 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
     }
 
     const decomposition = split[5].split(' ');
-    let blob: Buffer;
     let decompositionType = null;
 
     if(decomposition.length > 1) {
@@ -303,25 +302,20 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
 
       maxDecomposition = Math.max(maxDecomposition, decompositionSize);
 
-      blob = Buffer.alloc(decompositionSize * 4);
-
       if(canonical) {
         decompositionType = characterDecompositionMapping.canonical;
       }
 
-      for(const decomposed of decomposition) {
-        if(decomposed[0] === '<') {
-          // blob.writeUInt8(characterDecompositionMapping[decomposed as CharacterDecompositionMappingStrings]);
-          decompositionType = characterDecompositionMapping[decomposed as CharacterDecompositionMappingStrings];
+      for(let i = 0; i < decomposition.length; ++i) {
+        if(decomposition[i][0] === '<') {
+          decompositionType = characterDecompositionMapping[decomposition[i] as CharacterDecompositionMappingStrings];
         } else {
-          blob.writeUInt32LE(parseInt(decomposed, 16));
           decompositionStmt.run(
             codepoint,
-            parseInt(decomposed, 16));
+            decompositionType,
+            parseInt(decomposition[i], 16));
         }
       }
-    } else {
-      blob = Buffer.alloc(0);
     }
 
     if(decomposition.length === 19) {
@@ -339,8 +333,6 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
       1 << Category[split[2]],
       parseInt(split[3], 10),
       split[4] === '' ? null : BidirectionalCategories[split[4]],
-      decompositionType,
-      blob.byteLength ? blob : null,
 
       split[6] === '' ? null : split[6],
       split[7] === '' ? null : split[7],
@@ -479,8 +471,6 @@ db.serialize(async () => {
   category INTEGER NOT NULL,
   combining INTEGER NOT NULL,
   bidirectional INTEGER,
-  decomposition_type INTEGER,
-  decomposition BLOB,
   decimal TEXT,
   digit TEXT,
   numeric TEXT,
@@ -500,14 +490,15 @@ db.run(
 db.run(
 `CREATE TABLE decompositions(
   codepoint INTEGER NOT NULL,
+  type INTEGER,
   decomposition INTEGER NOT NULL
 )`);
 
 db.run(`CREATE INDEX idx_codepoint ON decompositions (codepoint)`);
 
 const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
-const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-const decompositionStmt = db.prepare('INSERT INTO decompositions VALUES (?, ?)');
+const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+const decompositionStmt = db.prepare('INSERT INTO decompositions VALUES (?, ?, ?)');
 
 const blocks = await readBlocks(blockStmt);
 await readUnicodeData(dataStmt, decompositionStmt, blocks);
@@ -651,8 +642,6 @@ typedef struct mjb_character {
     mjb_category category;
     unsigned short combining;
     unsigned short bidirectional;
-    unsigned short decomposition_type;
-    unsigned short decomposition;
     unsigned char decimal[128];
     unsigned char digit[128];
     unsigned char numeric[128];

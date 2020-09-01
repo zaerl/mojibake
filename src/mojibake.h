@@ -489,8 +489,6 @@ typedef struct mjb_character {
     mjb_category category;
     unsigned short combining;
     unsigned short bidirectional;
-    unsigned short decomposition_type;
-    unsigned short decomposition;
     unsigned char decimal[128];
     unsigned char digit[128];
     unsigned char numeric[128];

@@ -15,6 +15,7 @@ static const char *db_name = "../src/mojibake.db";
 int main(int argc, const char *argv[]) {
     printf("\x1b[36mMojibake %s test\x1B[0m\n\n", mjb_version());
 
+    bool sections[7] = { true, true, true, true, true, true, true };
     bool codepoint = true;
     bool db = true;
     bool encoding = true;
@@ -25,49 +26,43 @@ int main(int argc, const char *argv[]) {
 
     if(argc > 1 && argv[1][0] == '-') {
         size_t length = strlen(argv[1]);
-        codepoint = false;
-        db = false;
-        encoding = false;
-        memory = false;
-        normalization = false;
-        plane = false;
-        version = false;
+        memset(sections, false, sizeof(sections));
 
         for(int i = 1; i < length; ++i) {
             switch(argv[1][i]) {
-                case 'c':
-                    codepoint = true;
+                case 'c': /* codepoint */
+                    sections[0] = true;
                     break;
 
-                case 'd':
-                    db = true;
+                case 'd': /* DB */
+                    sections[1] = true;
                     break;
 
-                case 'e':
-                    encoding = true;
+                case 'e': /* Encoding */
+                    sections[2] = true;
                     break;
 
-                case 'm':
-                    memory = true;
+                case 'm': /* Memory */
+                    sections[3] = true;
                     break;
 
-                case 'n':
-                    normalization = true;
+                case 'n': /* Normalization */
+                    sections[4] = true;
                     break;
 
-                case 'p':
-                    plane = true;
+                case 'p': /* Plane */
+                    sections[5] = true;
                     break;
 
-                case 'v':
-                    version = true;
+                case 'v': /* Version */
+                    sections[6] = true;
                     break;
             }
         }
     }
 
     /* Codepoint */
-    if(codepoint) {
+    if(sections[0]) {
         mjb_select_section(0);
         mjb_run_test("Codepoint character", mjb_codepoint_character_test);
         mjb_run_test("Codepoint block", mjb_codepoint_block_test);
@@ -77,14 +72,14 @@ int main(int argc, const char *argv[]) {
         mjb_run_test("Codepoint is LC/UC/TC", mjb_codepoint_lc_uc_tc_test);
     }
 
-    /* db */
-    if(db) {
+    /* DB */
+    if(sections[1]) {
         mjb_select_section(1);
         mjb_run_test("Ready", mjb_ready_test);
     }
 
     /* Encoding */
-    if(encoding) {
+    if(sections[2]) {
         mjb_select_section(2);
         mjb_run_test("String encoding", mjb_string_encoding_test);
         mjb_run_test("String is ASCII", mjb_string_is_ascii_test);
@@ -92,26 +87,26 @@ int main(int argc, const char *argv[]) {
     }
 
     /* Memory */
-    if(memory) {
+    if(sections[3]) {
         mjb_select_section(3);
         mjb_run_test("Memory", mjb_memory_test);
     }
 
     /* Normalization */
-    if(normalization) {
+    if(sections[4]) {
         mjb_select_section(4);
         mjb_run_test("Normalize NFD/NFC/NFKD/NFKC", mjb_codepoint_normalize_test);
     }
 
     /* Plane */
-    if(plane) {
+    if(sections[5]) {
         mjb_select_section(5);
         mjb_run_test("Codespace plane is valid", mjb_plane_is_valid_test);
         mjb_run_test("Codespace plane name", mjb_plane_name_test);
     }
 
     /* Version */
-    if(version) {
+    if(sections[6]) {
         mjb_select_section(6);
         mjb_run_test("Get version", mjb_version_test);
         mjb_run_test("Get version number", mjb_version_number_test);
@@ -126,6 +121,10 @@ int main(int argc, const char *argv[]) {
     clock_t delta = 0;
 
     for(; i < SECTIONS_COUNT; ++i) {
+        if(!sections[i]) {
+            continue;
+        }
+
         delta = mjb_section_delta(i);
         valid = mjb_section_valid_count(i);
         total = mjb_section_total_count(i);

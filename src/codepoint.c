@@ -38,15 +38,13 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         DB_COLUMN_INT(mjb.char_stmt, character->category, 3);
         DB_COLUMN_INT(mjb.char_stmt, character->combining, 4);
         DB_COLUMN_INT(mjb.char_stmt, character->bidirectional, 5);
-        DB_COLUMN_INT(mjb.char_stmt, character->decomposition_type, 6);
-        DB_COLUMN_INT(mjb.char_stmt, character->decomposition, 7);
-        DB_COLUMN_TEXT(mjb.char_stmt, character->decimal, 8)
-        DB_COLUMN_TEXT(mjb.char_stmt, character->digit, 9)
-        DB_COLUMN_TEXT(mjb.char_stmt, character->numeric, 10)
-        DB_COLUMN_INT(mjb.char_stmt, character->mirrored, 11);
-        DB_COLUMN_INT(mjb.char_stmt, character->uppercase, 12);
-        DB_COLUMN_INT(mjb.char_stmt, character->lowercase, 13);
-        DB_COLUMN_INT(mjb.char_stmt, character->titlecase, 14);
+        DB_COLUMN_TEXT(mjb.char_stmt, character->decimal, 6)
+        DB_COLUMN_TEXT(mjb.char_stmt, character->digit, 7)
+        DB_COLUMN_TEXT(mjb.char_stmt, character->numeric, 8)
+        DB_COLUMN_INT(mjb.char_stmt, character->mirrored, 9);
+        DB_COLUMN_INT(mjb.char_stmt, character->uppercase, 10);
+        DB_COLUMN_INT(mjb.char_stmt, character->lowercase, 11);
+        DB_COLUMN_INT(mjb.char_stmt, character->titlecase, 12);
     }
 
     ret = sqlite3_clear_bindings(mjb.char_stmt);

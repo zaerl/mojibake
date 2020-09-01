@@ -124,24 +124,15 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
             ++field;
         }
 
+        bool valid1 = check_normalization(source, source_count, nfc, nfc_count, MJB_NORMALIZATION_NFC);
+        bool valid2 = check_normalization(source, source_count, nfd, nfd_count, MJB_NORMALIZATION_NFD);
+        bool valid3 = check_normalization(source, source_count, nfkc, nfkc_count, MJB_NORMALIZATION_NFKC);
+        bool valid4 = check_normalization(source, source_count, nfkd, nfkd_count, MJB_NORMALIZATION_NFKD);
+
         /* mjb_normalize(source, 16, MJB_NORMALIZATION_NFC) */
-        snprintf(line, 512, "Normalization #%u", index);
-
-        bool valid = check_normalization(source, source_count, nfc, nfc_count, MJB_NORMALIZATION_NFC);
-
-        if(valid) {
-            valid = check_normalization(source, source_count, nfd, nfd_count, MJB_NORMALIZATION_NFD);
-        }
-
-        if(valid) {
-            valid = check_normalization(source, source_count, nfkc, nfkc_count, MJB_NORMALIZATION_NFKC);
-        }
-
-        if(valid) {
-            valid = check_normalization(source, source_count, nfkd, nfkd_count, MJB_NORMALIZATION_NFKD);
-        }
-
-        mjb_assert(line, valid);
+        snprintf(line, 512, "Normalization %#04x %c/%c/%c/%c", index, valid1 ? 'Y' : 'N', valid2 ? 'Y' : 'N',
+            valid3 ? 'Y' : 'N', valid4 ? 'Y' : 'N');
+        mjb_assert(line, valid1 && valid2 && valid3 && valid4);
 
         source_count = 0;
         nfc_count = 0;

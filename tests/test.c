@@ -20,7 +20,7 @@ static struct section {
     clock_t end;
 } sections[SECTIONS_COUNT] = {
     { "Codepoint", 0, 0, 0, 0 },
-    { "Db", 0, 0, 0, 0 },
+    { "DB", 0, 0, 0, 0 },
     { "Encoding", 0, 0, 0, 0 },
     { "Memory", 0, 0, 0, 0 },
     { "Normalization", 0, 0, 0, 0 },
@@ -95,7 +95,6 @@ MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint code
         "category: %u\n"
         "combining: %u\n"
         "bidirectional: %u\n"
-        "decomposition: %u\n"
         "decimal: '%s'\n"
         "digit: '%s'\n"
         "numeric: '%s'\n"
@@ -112,7 +111,6 @@ MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint code
         character->category,
         character->combining,
         character->bidirectional,
-        character->decomposition,
         character->decimal,
         character->digit,
         character->numeric,

@@ -2,6 +2,7 @@ build/*
 #!build/.gitkeep
 cli/*
 src/sqlite/*
+src/mojibake.db-journal
 utils/node_modules
 utils/UCD
 utils/unihan
