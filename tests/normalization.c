@@ -130,7 +130,7 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
         bool valid4 = check_normalization(source, source_count, nfkd, nfkd_count, MJB_NORMALIZATION_NFKD);
 
         /* mjb_normalize(source, 16, MJB_NORMALIZATION_NFC) */
-        snprintf(line, 512, "Normalization %#04x %c/%c/%c/%c", index, valid1 ? 'Y' : 'N', valid2 ? 'Y' : 'N',
+        snprintf(line, 512, "Normalization %u %c/%c/%c/%c", index, valid1 ? 'Y' : 'N', valid2 ? 'Y' : 'N',
             valid3 ? 'Y' : 'N', valid4 ? 'Y' : 'N');
         mjb_assert(line, valid1 && valid2 && valid3 && valid4);
 
