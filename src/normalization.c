@@ -9,13 +9,13 @@ static size_t mjb_next_codepoint(void *buffer, size_t size, size_t index, mjb_en
 }
 
 /* Normalize a string */
-MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
-    if(size == 0) {
+MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
+    if(source_size == 0) {
         return NULL;
     }
 
-    if(encoding == MJB_ENCODING_UNKNOWN) {
-        encoding = mjb_string_encoding(buffer, size);
+    if(form == MJB_ENCODING_UNKNOWN) {
+        encoding = mjb_string_encoding(source, source_size);
     }
 
     if(encoding == MJB_ENCODING_UNKNOWN) {
@@ -24,13 +24,17 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
 
     mjb_codepoint codepoint;
     size_t next = 0;
+    size_t size = source_size;
     void *ret = mjb_alloc(size * sizeof(mjb_codepoint));
     unsigned int realloc_step = 2;
     unsigned int i = 0;
 
+    *output_size = 0;
+
     /* Cycle the string */
     do {
-        next = mjb_next_codepoint(buffer, size, next, encoding, &codepoint);
+        next = mjb_next_codepoint(source, source_size, next, encoding, &codepoint);
+        ((mjb_codepoint*)ret)[i] = codepoint; /* We use the source codepoint */
 
         if(next > size) {
             /* ret = mjb_realloc(ret, size * realloc_step);
@@ -56,6 +60,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
             do {
                 res = sqlite3_step(mjb.decomposition_stmt);
 
+                /* Replace with the decomposed sequence */
                 if(res == SQLITE_ROW) {
                     if(i == size) {
                         size = size * realloc_step;
@@ -73,6 +78,10 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
                 }
             } while(1);
 
+            if(i == 0) {
+
+            }
+
             /*ret = sqlite3_clear_bindings(mjb.decomposition_stmt);
             DB_CHECK(ret, false)*/
 
@@ -81,7 +90,9 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding,
         }
 
         /* ((mjb_codepoint*)ret)[i] = codepoint; */
-    } while(next);
+    } while(next < source_size);
+
+    *output_size = i;
 
     return ret;
 }

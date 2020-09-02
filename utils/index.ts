@@ -617,10 +617,10 @@ typedef enum mjb_encoding {
  [see: https://www.unicode.org/glossary/#normalization_form]
 */
 typedef enum mjb_normalization {
-    MJB_NORMALIZATION_NFD = 0,
-    MJB_NORMALIZATION_NFC = 1,
-    MJB_NORMALIZATION_NFKD = 2,
-    MJB_NORMALIZATION_NFKC = 3
+    MJB_NORMALIZATION_NFD = 0, /* Canonical decomposition and ordering */
+    MJB_NORMALIZATION_NFC = 1, /* Composition after canonical decomposition and ordering */
+    MJB_NORMALIZATION_NFKD = 2, /* Compatible decomposition and ordering */
+    MJB_NORMALIZATION_NFKC = 3 /* Composition after compatible decomposition and ordering */
 } mjb_normalization;
 
 /*
@@ -718,7 +718,7 @@ mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 /* Normalize a string */
-void *mjb_normalize(void *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
 }

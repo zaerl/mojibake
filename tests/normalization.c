@@ -5,15 +5,21 @@
 #include "test.h"
 
 size_t get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
-    char *token = strtok(buffer, " ");
+    char *copy = (char*)malloc(512);
+    char *save_ptr;
+    strcpy(copy, buffer);
+
+    char *token = strtok_r(copy, " ", &save_ptr);
     unsigned int index = 0;
 
     while(token != NULL) {
         codepoints[index] = strtoul((const char*)token, NULL, 16);
-        token = strtok(NULL, " ");
+        token = strtok_r(NULL, " ", &save_ptr);
 
         ++index;
     }
+
+    free(copy);
 
     return index;
 }
@@ -38,13 +44,20 @@ size_t get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
 
  [see: NormalizationTest.txt]
 */
-bool check_normalization(void *source, size_t source_size, mjb_codepoint *normalized, size_t normalized_size, mjb_normalization normalization) {
-    void *normalized_res = mjb_normalize(source, source_size, MJB_ENCODING_UTF_32, normalization);
-    bool ret = true;
+unsigned int check_normalization(void *source, size_t source_size, mjb_codepoint *normalized, size_t normalized_size, mjb_normalization form) {
+    size_t normalized_size_res;
+    void *normalized_res = mjb_normalize(source, source_size, &normalized_size_res, MJB_ENCODING_UTF_32, form);
+    int ret = 0;
 
-    for(unsigned int i = 0; i < source_size; ++i) {
-        if(((mjb_codepoint*)normalized_res)[i] != ((mjb_codepoint*)source)[i]) {
-            ret = false;
+    if(normalized_size_res != normalized_size) {
+        mjb_free(normalized_res);
+
+        return 1;
+    }
+
+    for(unsigned int i = 0; i < normalized_size; ++i) {
+        if(((mjb_codepoint*)normalized)[i] != ((mjb_codepoint*)normalized_res)[i]) {
+            ret = 2;
             break;
         }
     }
@@ -69,11 +82,11 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
     mjb_codepoint nfkc[16];
     mjb_codepoint nfkd[16];
 
-    size_t source_count = 0;
-    size_t nfc_count = 0;
-    size_t nfd_count = 0;
-    size_t nfkc_count = 0;
-    size_t nfkd_count = 0;
+    size_t source_size = 0;
+    size_t nfc_size = 0;
+    size_t nfd_size = 0;
+    size_t nfkc_size = 0;
+    size_t nfkd_size = 0;
 
     FILE *file = fopen("../utils/UCD/NormalizationTest.txt", "r");
 
@@ -96,23 +109,23 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
         while(token != NULL) {
             switch(field) {
                 case 0: /* Source */
-                    source_count += get_codepoints(token, source, 16);
+                    source_size += get_codepoints(token, source, 16);
                     break;
 
                 case 1: /* NFC */
-                    nfc_count += get_codepoints(token, nfc, 16);
+                    nfc_size += get_codepoints(token, nfc, 16);
                     break;
 
                 case 2: /* NFD */
-                    nfd_count += get_codepoints(token, nfd, 16);
+                    nfd_size += get_codepoints(token, nfd, 16);
                     break;
 
                 case 3: /* NFKC */
-                    nfkc_count += get_codepoints(token, nfkc, 16);
+                    nfkc_size += get_codepoints(token, nfkc, 16);
                     break;
 
                 case 4: /* NFKD */
-                    nfkd_count += get_codepoints(token, nfkd, 16);
+                    nfkd_size += get_codepoints(token, nfkd, 16);
                     break;
 
                 /* default: * comment
@@ -124,21 +137,21 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
             ++field;
         }
 
-        bool valid1 = check_normalization(source, source_count, nfc, nfc_count, MJB_NORMALIZATION_NFC);
-        bool valid2 = check_normalization(source, source_count, nfd, nfd_count, MJB_NORMALIZATION_NFD);
-        bool valid3 = check_normalization(source, source_count, nfkc, nfkc_count, MJB_NORMALIZATION_NFKC);
-        bool valid4 = check_normalization(source, source_count, nfkd, nfkd_count, MJB_NORMALIZATION_NFKD);
+        char *valids[3] = { "OK", "SIZE", "CODE" };
+        unsigned valid1 = check_normalization(source, source_size, nfc, nfc_size, MJB_NORMALIZATION_NFC);
+        unsigned valid2 = check_normalization(source, source_size, nfd, nfd_size, MJB_NORMALIZATION_NFD);
+        unsigned valid3 = check_normalization(source, source_size, nfkc, nfkc_size, MJB_NORMALIZATION_NFKC);
+        unsigned valid4 = check_normalization(source, source_size, nfkd, nfkd_size, MJB_NORMALIZATION_NFKD);
 
         /* mjb_normalize(source, 16, MJB_NORMALIZATION_NFC) */
-        snprintf(line, 512, "Normalization %u %c/%c/%c/%c", index, valid1 ? 'Y' : 'N', valid2 ? 'Y' : 'N',
-            valid3 ? 'Y' : 'N', valid4 ? 'Y' : 'N');
-        mjb_assert(line, valid1 && valid2 && valid3 && valid4);
+        snprintf(line, 512, "Normalization %u %s/%s/%s/%s", index, valids[valid1], valids[valid2], valids[valid3], valids[valid4]);
+        mjb_assert(line, valid1 == 0 && valid2 == 0 && valid3 == 0 && valid4 == 0);
 
-        source_count = 0;
-        nfc_count = 0;
-        nfd_count = 0;
-        nfkc_count = 0;
-        nfkd_count = 0;
+        source_size = 0;
+        nfc_size = 0;
+        nfd_size = 0;
+        nfkc_size = 0;
+        nfkd_size = 0;
 
         memset(&source, 0, 16 * sizeof(mjb_codepoint));
         memset(&nfc, 0, 16 * sizeof(mjb_codepoint));
