@@ -1,5 +1,10 @@
-#include <stdlib.h>
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
 
+#include <stdlib.h>
 #include "test.h"
 
 static unsigned int test_counter = 0;

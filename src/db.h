@@ -1,5 +1,18 @@
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+#ifndef MJB_DB_H
+#define MJB_DB_H
+
 #include "mojibake.h"
 #include "sqlite/sqlite3.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define DB_CHECK(mjb, db_result, ret) if(db_result != SQLITE_OK) { mjb_db_error(mjb); return ret; }
 #define DB_CHECK_CLOSE(mjb, db_result, ret) if(db_result != SQLITE_OK) { mjb_db_error(mjb); mjb_close(mjb); return ret; }
@@ -17,3 +30,9 @@ struct mojibake {
 };
 
 MJB_EXPORT bool mjb_db_error(mojibake *mjb);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* MJB_DB_H */

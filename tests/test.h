@@ -8,7 +8,6 @@
 #define MJB_TEST_H
 
 #include <time.h>
-
 #include "../src/mojibake.h"
 
 #ifdef __cplusplus

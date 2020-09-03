@@ -1,3 +1,9 @@
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 #include "mojibake.h"
 
 /* Output the current library version (MJB_VERSION) */

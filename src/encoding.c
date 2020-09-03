@@ -1,5 +1,10 @@
-#include <string.h>
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
 
+#include <string.h>
 #include "mojibake.h"
 
 #define MJB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"

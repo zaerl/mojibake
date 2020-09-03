@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "test.h"
 
 static const char *db_name = "../src/mojibake.db";

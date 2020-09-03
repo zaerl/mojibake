@@ -1,7 +1,12 @@
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "db.h"
 
 MJB_EXPORT bool mjb_db_error(mojibake *mjb) {

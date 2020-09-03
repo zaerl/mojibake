@@ -1,3 +1,9 @@
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 #include "test.h"
 
 MJB_EXPORT void mjb_string_encoding_test() {

@@ -1,3 +1,9 @@
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 #include "mojibake.h"
 
 /* Return true if the plane is valid */

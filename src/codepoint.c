@@ -1,6 +1,10 @@
-#include <string.h>
+/**
+ * The mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
 
-#include "mojibake.h"
+#include <string.h>
 #include "db.h"
 
 static const mjb_character empty_character;
