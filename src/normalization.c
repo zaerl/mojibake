@@ -28,13 +28,14 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
     void *ret = mjb_alloc(size * sizeof(mjb_codepoint));
     unsigned int realloc_step = 2;
     unsigned int i = 0;
+    unsigned short combining = 0;
+    bool starter = false;
 
     *output_size = 0;
 
     /* Cycle the string */
     do {
         next = mjb_next_codepoint(source, source_size, next, encoding, &codepoint);
-        ((mjb_codepoint*)ret)[i] = codepoint; /* We use the source codepoint */
 
         if(next > size) {
             /* ret = mjb_realloc(ret, size * realloc_step);
@@ -70,6 +71,18 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
 
                     DB_COLUMN_INT(mjb.decomposition_stmt, ((mjb_codepoint*)ret)[i], 0);
 
+                    /* Check codepoint combining class on first run */
+                    if(i == 0) {
+                        DB_COLUMN_INT(mjb.decomposition_stmt, combining, 1);
+                    }
+
+                    /*
+                     No need to to call sqlite3_column_type to check if the value is NULL. No codepoints expand to NULL.
+                    */
+                    if(((mjb_codepoint*)ret)[i] == 0) {
+                        ((mjb_codepoint*)ret)[i] = codepoint;
+                    }
+
                     ++i;
                 } else if(res == SQLITE_DONE) {
                     break;
@@ -78,9 +91,8 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
                 }
             } while(1);
 
-            if(i == 0) {
-
-            }
+            /* The codepoint is a starter */
+            starter = combining == 0;
 
             /*ret = sqlite3_clear_bindings(mjb.decomposition_stmt);
             DB_CHECK(ret, false)*/
