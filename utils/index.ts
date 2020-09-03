@@ -1,163 +1,10 @@
 import { createReadStream, existsSync, unlinkSync, writeFileSync } from 'fs';
 import { createInterface } from 'readline';
 import { Statement, verbose as sqlite3 } from 'sqlite3';
-
-interface CountBuffer {
-  name: string;
-  count: number;
-}
-
-interface Numeric {
-  name: string;
-  value: number;
-  count: number;
-}
-
-enum Category {
-  Lu,
-  Ll,
-  Lt,
-  Lm,
-  Lo,
-  Mn,
-  Mc,
-  Me,
-  Nd,
-  Nl,
-  No,
-  Pc,
-  Pd,
-  Ps,
-  Pe,
-  Pi,
-  Pf,
-  Po,
-  Sm,
-  Sc,
-  Sk,
-  So,
-  Zs,
-  Zl,
-  Zp,
-  Cc,
-  Cf,
-  Cs,
-  Co,
-  Cn
-}
+import { BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings, CountBuffer, Numeric, UnicodeDataRow } from './types';
+import { header, footer } from './format';
 
 let verbose = false;
-
-const categories = [
-  'Letter, Uppercase',
-  'Letter, Lowercase',
-  'Letter, Titlecase',
-  'Letter, Modifier',
-  'Letter, Other',
-  'Mark, Non-Spacing',
-  'Mark, Spacing Combining',
-  'Mark, Enclosing',
-  'Number, Decimal Digit',
-  'Number, Letter',
-  'Number, Other',
-  'Punctuation, Connector',
-  'Punctuation, Dash',
-  'Punctuation, Open',
-  'Punctuation, Close',
-  'Punctuation, Initial quote',
-  'Punctuation, Final quote',
-  'Punctuation, Other',
-  'Symbol, Math',
-  'Symbol, Currency',
-  'Symbol, Modifier',
-  'Symbol, Other',
-  'Separator, Space',
-  'Separator, Line',
-  'Separator, Paragraph',
-  'Other, Control',
-  'Other, Format',
-  'Other, Surrogate',
-  'Other, Private Use',
-  'Other, Not Assigned',
-];
-
-type CategoriesStrings = keyof typeof Category;
-
-enum BidirectionalCategories {
-  L,
-  LRE,
-  LRO,
-  R,
-  AL,
-  RLE,
-  RLO,
-  PDF,
-  EN,
-  ES,
-  ET,
-  AN,
-  CS,
-  NSM,
-  BN,
-  B,
-  S,
-  WS,
-  ON
-};
-
-type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
-
-const characterDecompositionMapping = {
-  'canonical': 0,
-  '<circle>': 7,
-  '<compat>': 16,
-  '<final>': 5,
-  '<font>': 1,
-  '<fraction>': 15,
-  '<initial>': 3,
-  '<isolated>': 6,
-  '<medial>': 4,
-  '<narrow>': 12,
-  '<noBreak>': 2,
-  '<small>': 13,
-  '<square>': 14,
-  '<sub>': 9,
-  '<super>': 8,
-  '<vertical>': 10,
-  '<wide>': 11
-};
-
-type CharacterDecompositionMappingStrings = keyof typeof characterDecompositionMapping;
-
-type Mirrored = 'Y' | 'N';
-
-type UnicodeDataRow = [
-  string, // 0 codepoint
-  string, // 1 character name
-  // block
-  CategoriesStrings, // 2 category
-  string, // 3 canonical combining classes
-  BidirectionalCategoriesStrings, // 4 bidirectional category
-  // decomposition type
-  string, // 5 character decomposition mapping
-  string, // 6 decimal digit value
-  string, // 7 digit value
-  string, // 8 numeric value
-  Mirrored, // 9 mirrored
-  string, // 10 unicode 1.0 name
-  string, // 11 10646 comment field
-  string, // 12 uppercase mapping
-  string, // 13 lowercase mapping
-  string // 14 titlecase mapping
-];
-
-// All blocks
-interface Block {
-  name: string;
-  enumName: string;
-  start: number;
-  end: number;
-};
 
 function log(message?: any, ...optionalParams: any[]) {
   if(verbose) {
@@ -183,29 +30,6 @@ function compareFn(a: CountBuffer, b: CountBuffer): number {
   }
 
   return ret;
-}
-
-function header(name: string): string {
-  name = name.toUpperCase();
-
-  return `${license()}
-
-#ifndef MJB_${name}_H
-#define MJB_${name}_H`;
-}
-
-function footer(name: string): string {
-  name = name.toUpperCase();
-
-  return `#endif /* MJB_${name}_H */`;
-}
-
-function license(): string {
-  return `/**
- * The mojibake library
- *
- * This file is distributed under the MIT License. See LICENSE for details.
- */`;
 }
 
 async function readBlocks(stmt: Statement): Promise<Block[]> {
@@ -330,7 +154,7 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
       codepoint,
       name,
       currentBlock,
-      1 << Category[split[2]],
+      1 << Categories[split[2]],
       parseInt(split[3], 10),
       split[4] === '' ? null : BidirectionalCategories[split[4]],
 
@@ -506,7 +330,7 @@ await readUnicodeData(dataStmt, decompositionStmt, blocks);
 const categoryEnums: string[] = [];
 
 for(let i = 0; i < categories.length; ++i) {
-  categoryEnums.push(`    MJB_CATEGORY_${Category[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Category[i]}) ${categories[i]} */`);
+  categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Categories[i]}) ${categories[i]} */`);
 }
 
 const fheader =
