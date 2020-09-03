@@ -44,13 +44,13 @@ size_t get_codepoints(char *buffer, mjb_codepoint *codepoints, size_t size) {
 
  [see: NormalizationTest.txt]
 */
-unsigned int check_normalization(void *source, size_t source_size, mjb_codepoint *normalized, size_t normalized_size, mjb_normalization form) {
+unsigned int check_normalization(mojibake *mjb, void *source, size_t source_size, mjb_codepoint *normalized, size_t normalized_size, mjb_normalization form) {
     size_t normalized_size_res;
-    void *normalized_res = mjb_normalize(source, source_size, &normalized_size_res, MJB_ENCODING_UTF_32, form);
+    void *normalized_res = mjb_normalize(mjb, source, source_size, &normalized_size_res, MJB_ENCODING_UTF_32, form);
     int ret = 0;
 
     if(normalized_size_res != normalized_size) {
-        mjb_free(normalized_res);
+        mjb_free(mjb, normalized_res);
 
         return 1;
     }
@@ -63,14 +63,15 @@ unsigned int check_normalization(void *source, size_t source_size, mjb_codepoint
     }
 
     if(normalized_res != NULL) {
-        mjb_free(normalized_res);
+        mjb_free(mjb, normalized_res);
     }
 
     return ret;
 }
 
 MJB_EXPORT void mjb_codepoint_normalize_test() {
-    mjb_initialize(MJB_DB_PATH);
+    mojibake *mjb;
+    mjb_initialize(MJB_DB_PATH, &mjb);
 
     char line[512];
     unsigned int index = 0;
@@ -92,7 +93,7 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
 
     if(file == NULL) {
         mjb_assert("Valid normalization test file", false);
-        mjb_close();
+        mjb_close(mjb);
 
         return;
     }
@@ -138,10 +139,10 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
         }
 
         char *valids[3] = { "OK", "SIZE", "CODE" };
-        unsigned valid1 = check_normalization(source, source_size, nfc, nfc_size, MJB_NORMALIZATION_NFC);
-        unsigned valid2 = check_normalization(source, source_size, nfd, nfd_size, MJB_NORMALIZATION_NFD);
-        unsigned valid3 = check_normalization(source, source_size, nfkc, nfkc_size, MJB_NORMALIZATION_NFKC);
-        unsigned valid4 = check_normalization(source, source_size, nfkd, nfkd_size, MJB_NORMALIZATION_NFKD);
+        unsigned valid1 = check_normalization(mjb, source, source_size, nfc, nfc_size, MJB_NORMALIZATION_NFC);
+        unsigned valid2 = check_normalization(mjb, source, source_size, nfd, nfd_size, MJB_NORMALIZATION_NFD);
+        unsigned valid3 = check_normalization(mjb, source, source_size, nfkc, nfkc_size, MJB_NORMALIZATION_NFKC);
+        unsigned valid4 = check_normalization(mjb, source, source_size, nfkd, nfkd_size, MJB_NORMALIZATION_NFKD);
 
         /* mjb_normalize(source, 16, MJB_NORMALIZATION_NFC) */
         snprintf(line, 512, "Normalization %u %s/%s/%s/%s", index, valids[valid1], valids[valid2], valids[valid3], valids[valid4]);
@@ -164,5 +165,5 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
     }
 
     fclose(file);
-    mjb_close();
+    mjb_close(mjb);
 }

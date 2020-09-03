@@ -33,6 +33,14 @@ extern "C" {
 #define MJB_EXPORT __attribute__((visibility("default")))
 #endif
 
+/**
+ * Mojibake is represented by a pointer to an instance of the opaque structure
+ * named "mojibake". The [mjb_initialize()] and [mjb_initialize_v2()] functions
+ * are its constructor. Every function accept an instance to this allocated
+ * pointer. This is used to ensure reentrancy.
+*/
+typedef struct mojibake mojibake;
+
 /* See c standard memory allocation functions */
 typedef void *(*mjb_alloc_fn)(size_t size);
 typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
@@ -499,25 +507,25 @@ typedef struct mjb_character {
 } mjb_character;
 
 /* Initialize the library */
-bool mjb_initialize(const char *filename);
+bool mjb_initialize(const char *filename, mojibake **mjb);
 
-/* Set memory allocation functions */
-bool mjb_allocation(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+/* Initialize the library with custom values */
+bool mjb_initialize_v2(const char *filename, mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
 /* The library is ready */
-bool mjb_ready();
+bool mjb_ready(mojibake *mjb);
 
 /* Close the library */
-bool mjb_close();
+bool mjb_close(mojibake *mjb);
 
 /* Allocate memory */
-void *mjb_alloc(size_t size);
+void *mjb_alloc(mojibake *mjb, size_t size);
 
 /* Reallocate memory */
-void *mjb_realloc(void *ptr, size_t new_size);
+void *mjb_realloc(mojibake *mjb, void *ptr, size_t new_size);
 
 /* Free memory */
-void mjb_free(void *ptr);
+void mjb_free(mojibake *mjb, void *ptr);
 
 /* Output the current library version (MJB_VERSION) */
 char *mjb_version();
@@ -544,28 +552,28 @@ bool mjb_string_is_utf8(const char *buffer, size_t size);
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 /* Return true if the codepoint is valid */
-bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
+bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint);
 
 /* Return the codepoint character */
-bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
+bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint);
 
 /* Return true if the codepoint has the category */
-bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
+bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category);
 
 /* Return true if the codepoint is graphic */
-bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
+bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint);
 
 /* Return the codepoint lowercase codepoint */
-mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint);
 
 /* Return the codepoint uppercase codepoint */
-mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint);
 
 /* Return the codepoint titlecase codepoint */
-mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint);
 
 /* Normalize a string */
-void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+void *mjb_normalize(mojibake *mjb, void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
 }

@@ -9,7 +9,11 @@ static size_t mjb_next_codepoint(void *buffer, size_t size, size_t index, mjb_en
 }
 
 /* Normalize a string */
-MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT void *mjb_normalize(mojibake *mjb, void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
+    if(!mjb_ready(mjb)) {
+        return NULL;
+    }
+
     if(source_size == 0) {
         return NULL;
     }
@@ -25,7 +29,7 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
     mjb_codepoint codepoint;
     size_t next = 0;
     size_t size = source_size;
-    void *ret = mjb_alloc(size * sizeof(mjb_codepoint));
+    void *ret = mjb_alloc(mjb, size * sizeof(mjb_codepoint));
     unsigned int realloc_step = 2;
     unsigned int i = 0;
     unsigned short combining = 0;
@@ -48,32 +52,32 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
         if(codepoint <= 0x7F || (codepoint < 0xFF && form == MJB_NORMALIZATION_NFC)) {
             if(i == size) {
                 size = size * realloc_step;
-                ret = mjb_realloc(ret, size * sizeof(mjb_codepoint));
+                ret = mjb_realloc(mjb, ret, size * sizeof(mjb_codepoint));
                 /* ++realloc_step; */
             }
 
             ((mjb_codepoint*)ret)[i] = codepoint;
             ++i;
         } else {
-            int res = sqlite3_bind_int(mjb.decomposition_stmt, 1, codepoint);
-            DB_CHECK(res, NULL)
+            int res = sqlite3_bind_int(mjb->decomposition_stmt, 1, codepoint);
+            DB_CHECK(mjb, res, NULL)
 
             do {
-                res = sqlite3_step(mjb.decomposition_stmt);
+                res = sqlite3_step(mjb->decomposition_stmt);
 
                 /* Replace with the decomposed sequence */
                 if(res == SQLITE_ROW) {
                     if(i == size) {
                         size = size * realloc_step;
-                        ret = mjb_realloc(ret, size * sizeof(mjb_codepoint));
+                        ret = mjb_realloc(mjb, ret, size * sizeof(mjb_codepoint));
                         /* ++realloc_step; */
                     }
 
-                    DB_COLUMN_INT(mjb.decomposition_stmt, ((mjb_codepoint*)ret)[i], 0);
+                    DB_COLUMN_INT(mjb->decomposition_stmt, ((mjb_codepoint*)ret)[i], 0);
 
                     /* Check codepoint combining class on first run */
                     if(i == 0) {
-                        DB_COLUMN_INT(mjb.decomposition_stmt, combining, 1);
+                        DB_COLUMN_INT(mjb->decomposition_stmt, combining, 1);
                     }
 
                     /*
@@ -87,7 +91,7 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
                 } else if(res == SQLITE_DONE) {
                     break;
                 } else {
-                    DB_CHECK(res, NULL)
+                    DB_CHECK(mjb, res, NULL)
                 }
             } while(1);
 
@@ -97,8 +101,8 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
             /*ret = sqlite3_clear_bindings(mjb.decomposition_stmt);
             DB_CHECK(ret, false)*/
 
-            res = sqlite3_reset(mjb.decomposition_stmt);
-            DB_CHECK(res, NULL)
+            res = sqlite3_reset(mjb->decomposition_stmt);
+            DB_CHECK(mjb, res, NULL)
         }
 
         /* ((mjb_codepoint*)ret)[i] = codepoint; */
