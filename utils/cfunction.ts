@@ -10,8 +10,12 @@ export class CFunction {
     }
   }
 
-  format(): string {
+  formatC(): string {
     return `/* ${this.comment} */\n${this.ret}mjb_${this.name}(${this.args.join(', ')});`;
+  }
+
+  formatMD(): string {
+    return `${this.comment}\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.join(', ')});\n\`\`\``;
   }
 }
 

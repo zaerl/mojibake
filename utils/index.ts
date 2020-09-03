@@ -2,7 +2,11 @@ import { createReadStream, existsSync, unlinkSync } from 'fs';
 import { createInterface } from 'readline';
 import { Statement, verbose as sqlite3 } from 'sqlite3';
 import { generateHeader } from './header';
-import { BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings, CountBuffer, Numeric, UnicodeDataRow } from './types';
+import { generateReadme } from './readme';
+import {
+  BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
+  CountBuffer, Numeric, UnicodeDataRow
+} from './types';
 
 let verbose = false;
 
@@ -334,6 +338,7 @@ db.serialize(async () => {
   }
 
   generateHeader(blocks, categoryEnums);
+  generateReadme();
 
   db.run('END TRANSACTION');
   db.run('VACUUM');

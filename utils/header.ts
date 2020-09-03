@@ -154,7 +154,7 @@ typedef struct mjb_character {
     mjb_codepoint titlecase;
 } mjb_character;
 
-${cfns.map(value => value.format()).join('\n\n')}
+${cfns.map(value => value.formatC()).join('\n\n')}
 
 #ifdef __cplusplus
 }
