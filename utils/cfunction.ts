@@ -3,7 +3,7 @@ export class CFunction {
     private comment: string,
     private ret: string,
     private name: string,
-    private args: string[]
+    private args: string[] = []
   ) {
     if(!this.ret.endsWith('*')) {
       this.ret += ' ';
@@ -45,16 +45,13 @@ export const cfns: CFunction[] = [
     ['mojibake *mjb', 'void *ptr']),
 
   new CFunction('Output the current library version (MJB_VERSION)',
-    'char *', 'version',
-    []),
+    'char *', 'version'),
 
   new CFunction('Output the current library version number (MJB_VERSION_NUMBER)',
-    'unsigned int', 'version_number',
-    []),
+    'unsigned int', 'version_number'),
 
   new CFunction('Output the current supported unicode version (MJB_UNICODE_VERSION)',
-    'char *', 'unicode_version',
-    []),
+    'char *', 'unicode_version'),
 
   new CFunction('Return true if the plane is valid',
     'bool', 'plane_is_valid',
