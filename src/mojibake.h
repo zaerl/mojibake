@@ -33,12 +33,12 @@ extern "C" {
 #define MJB_EXPORT __attribute__((visibility("default")))
 #endif
 
-/**
+/*
  * Mojibake is represented by a pointer to an instance of the opaque structure
  * named "mojibake". The [mjb_initialize()] and [mjb_initialize_v2()] functions
  * are its constructor. Every function accept an instance to this allocated
  * pointer. This is used to ensure reentrancy.
-*/
+ */
 typedef struct mojibake mojibake;
 
 /* See c standard memory allocation functions */
@@ -47,8 +47,8 @@ typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
 typedef void (*mjb_free_fn)(void *ptr);
 
 /*
- A unicode codepoint
- [see: https://www.unicode.org/glossary/#code_point]
+ * A unicode codepoint
+ * [see: https://www.unicode.org/glossary/#code_point]
  */
 typedef uint32_t mjb_codepoint;
 
@@ -370,9 +370,9 @@ typedef enum mjb_block_name {
 #define MJB_BLOCK_NUM 308
 
 /*
- Unicode block
- [see: https://www.unicode.org/glossary/#block]
-*/
+ * Unicode block
+ * [see: https://www.unicode.org/glossary/#block]
+ */
 typedef struct mjb_block {
     char *name;
     uint32_t start;
@@ -380,8 +380,8 @@ typedef struct mjb_block {
 } mjb_block;
 
 /*
- Unicode codepoint general category
- [see: https://www.unicode.org/glossary/#general_category]
+ * Unicode codepoint general category
+ * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
     MJB_CATEGORY_LU = 0x1, /* 0 (Lu) Letter, Uppercase */
@@ -419,9 +419,9 @@ typedef enum mjb_category {
 #define MJB_CATEGORY_COUNT 30
 
 /*
- Unicode plane
- [see: https://www.unicode.org/glossary/#plane]
-*/
+ * Unicode plane
+ * [see: https://www.unicode.org/glossary/#plane]
+ */
 typedef enum mjb_plane {
     MJB_PLANE_BMP = 0,
     MJB_PLANE_SMP = 1,
@@ -436,8 +436,8 @@ typedef enum mjb_plane {
 #define MJB_PLANE_SIZE 65536 /* 2^16 code points per plane */
 
 /*
- Unicode encoding
- [see: https://www.unicode.org/glossary/#character_encoding_scheme]
+ * Unicode encoding
+ * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef enum mjb_encoding {
     MJB_ENCODING_UNKNOWN = 0,
@@ -452,9 +452,9 @@ typedef enum mjb_encoding {
 } mjb_encoding;
 
 /*
- Normalization form
- [see: https://www.unicode.org/glossary/#normalization_form]
-*/
+ * Normalization form
+ * [see: https://www.unicode.org/glossary/#normalization_form]
+ */
 typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFD = 0, /* Canonical decomposition and ordering */
     MJB_NORMALIZATION_NFC = 1, /* Composition after canonical decomposition and ordering */
@@ -463,9 +463,9 @@ typedef enum mjb_normalization {
 } mjb_normalization;
 
 /*
- Decomposition
- [see: https://www.unicode.org/glossary/#compatibility_decomposition]
-*/
+ * Decomposition
+ * [see: https://www.unicode.org/glossary/#compatibility_decomposition]
+ */
 typedef enum mjb_decomposition {
     MJB_DECOMPOSITION_CANONICAL = 0,
     MJB_DECOMPOSITION_CIRCLE = 1,
@@ -487,8 +487,8 @@ typedef enum mjb_decomposition {
 } mjb_decomposition;
 
 /*
- A unicode character
- [see: https://www.unicode.org/glossary/#character]
+ * A unicode character
+ * [see: https://www.unicode.org/glossary/#character]
  */
 typedef struct mjb_character {
     mjb_codepoint codepoint;

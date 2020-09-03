@@ -1,8 +1,8 @@
-import { createReadStream, existsSync, unlinkSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, unlinkSync } from 'fs';
 import { createInterface } from 'readline';
 import { Statement, verbose as sqlite3 } from 'sqlite3';
+import { generateHeader } from './header';
 import { BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings, CountBuffer, Numeric, UnicodeDataRow } from './types';
-import { header, footer } from './format';
 
 let verbose = false;
 
@@ -304,262 +304,36 @@ db.serialize(async () => {
   titlecase INTEGER
 ) WITHOUT ROWID`);
 
-db.run(
+  db.run(
 `CREATE TABLE blocks(
   name TEXT NOT NULL,
   start INTEGER NOT NULL,
   end INTEGER NOT NULL
 )`);
 
-db.run(
+  db.run(
 `CREATE TABLE decompositions(
   codepoint INTEGER NOT NULL,
   type INTEGER,
   decomposition INTEGER NOT NULL
 )`);
 
-db.run(`CREATE INDEX idx_codepoint ON decompositions (codepoint)`);
+  db.run(`CREATE INDEX idx_codepoint ON decompositions (codepoint)`);
 
-const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
-const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-const decompositionStmt = db.prepare('INSERT INTO decompositions VALUES (?, ?, ?)');
+  const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
+  const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  const decompositionStmt = db.prepare('INSERT INTO decompositions VALUES (?, ?, ?)');
 
-const blocks = await readBlocks(blockStmt);
-await readUnicodeData(dataStmt, decompositionStmt, blocks);
+  const blocks = await readBlocks(blockStmt);
+  await readUnicodeData(dataStmt, decompositionStmt, blocks);
 
-const categoryEnums: string[] = [];
+  const categoryEnums: string[] = [];
 
-for(let i = 0; i < categories.length; ++i) {
-  categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Categories[i]}) ${categories[i]} */`);
-}
+  for(let i = 0; i < categories.length; ++i) {
+    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16)}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Categories[i]}) ${categories[i]} */`);
+  }
 
-const fheader =
-`${header('mojibake')}
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define MJB_VERSION "1.0.0"
-#define MJB_VERSION_NUMBER 0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
-#define MJB_VERSION_MAJOR 1
-#define MJB_VERSION_MINOR 0
-#define MJB_VERSION_REVISION 0
-
-#define MJB_UNICODE_VERSION "13.0"
-#define MJB_UNICODE_VERSION_MAJOR 13
-#define MJB_UNICODE_VERSION_MINOR 0
-
-#ifndef MJB_EXTERN
-#define MJB_EXTERN extern
-#endif
-
-#ifndef MJB_EXPORT
-#define MJB_EXPORT __attribute__((visibility("default")))
-#endif
-
-/**
- * Mojibake is represented by a pointer to an instance of the opaque structure
- * named "mojibake". The [mjb_initialize()] and [mjb_initialize_v2()] functions
- * are its constructor. Every function accept an instance to this allocated
- * pointer. This is used to ensure reentrancy.
-*/
-typedef struct mojibake mojibake;
-
-/* See c standard memory allocation functions */
-typedef void *(*mjb_alloc_fn)(size_t size);
-typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
-typedef void (*mjb_free_fn)(void *ptr);
-
-/*
- A unicode codepoint
- [see: https://www.unicode.org/glossary/#code_point]
- */
-typedef uint32_t mjb_codepoint;
-
-#define MJB_CODEPOINT_MIN 0x0
-#define MJB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
-#define MJB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
-
-typedef enum mjb_block_name {
-${blocks.map((value: Block, index: number) => `    ${value.enumName} = ${index}`).join(',\n')}
-} mjb_block_name;
-
-#define MJB_BLOCK_NUM ${blocks.length}
-
-/*
- Unicode block
- [see: https://www.unicode.org/glossary/#block]
-*/
-typedef struct mjb_block {
-    char *name;
-    uint32_t start;
-    uint32_t end;
-} mjb_block;
-
-/*
- Unicode codepoint general category
- [see: https://www.unicode.org/glossary/#general_category]
- */
-typedef enum mjb_category {
-${categoryEnums.join('\n')}
-} mjb_category;
-
-#define MJB_CATEGORY_COUNT ${categoryEnums.length}
-
-/*
- Unicode plane
- [see: https://www.unicode.org/glossary/#plane]
-*/
-typedef enum mjb_plane {
-    MJB_PLANE_BMP = 0,
-    MJB_PLANE_SMP = 1,
-    MJB_PLANE_SIP = 2,
-    MJB_PLANE_TIP = 3,
-    MJB_PLANE_SSP = 14,
-    MJB_PLANE_PUA_A = 15,
-    MJB_PLANE_PUA_B = 16
-} mjb_plane;
-
-#define MJB_PLANE_NUM 17 /* 17 planes */
-#define MJB_PLANE_SIZE 65536 /* 2^16 code points per plane */
-
-/*
- Unicode encoding
- [see: https://www.unicode.org/glossary/#character_encoding_scheme]
- */
-typedef enum mjb_encoding {
-    MJB_ENCODING_UNKNOWN = 0,
-    MJB_ENCODING_ASCII = 0x1,
-    MJB_ENCODING_UTF_8 = 0x2,
-    MJB_ENCODING_UTF_16 = 0x4,
-    MJB_ENCODING_UTF_16_BE = 0x8,
-    MJB_ENCODING_UTF_16_LE = 0x10,
-    MJB_ENCODING_UTF_32 = 0x20,
-    MJB_ENCODING_UTF_32_BE = 0x40,
-    MJB_ENCODING_UTF_32_LE = 0x80
-} mjb_encoding;
-
-/*
- Normalization form
- [see: https://www.unicode.org/glossary/#normalization_form]
-*/
-typedef enum mjb_normalization {
-    MJB_NORMALIZATION_NFD = 0, /* Canonical decomposition and ordering */
-    MJB_NORMALIZATION_NFC = 1, /* Composition after canonical decomposition and ordering */
-    MJB_NORMALIZATION_NFKD = 2, /* Compatible decomposition and ordering */
-    MJB_NORMALIZATION_NFKC = 3 /* Composition after compatible decomposition and ordering */
-} mjb_normalization;
-
-/*
- Decomposition
- [see: https://www.unicode.org/glossary/#compatibility_decomposition]
-*/
-typedef enum mjb_decomposition {
-${Object.keys(characterDecompositionMapping).map((value: string, index: number) => `    MJB_DECOMPOSITION_${value.toUpperCase().replace(/[<>]/g, '')} = ${index}`).join(',\n')}
-} mjb_decomposition;
-
-/*
- A unicode character
- [see: https://www.unicode.org/glossary/#character]
- */
-typedef struct mjb_character {
-    mjb_codepoint codepoint;
-    unsigned char name[128];
-    unsigned short block;
-    mjb_category category;
-    unsigned short combining;
-    unsigned short bidirectional;
-    unsigned char decimal[128];
-    unsigned char digit[128];
-    unsigned char numeric[128];
-    bool mirrored;
-    mjb_codepoint uppercase;
-    mjb_codepoint lowercase;
-    mjb_codepoint titlecase;
-} mjb_character;
-
-/* Initialize the library */
-bool mjb_initialize(const char *filename, mojibake **mjb);
-
-/* Initialize the library with custom values */
-bool mjb_initialize_v2(const char *filename, mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
-
-/* The library is ready */
-bool mjb_ready(mojibake *mjb);
-
-/* Close the library */
-bool mjb_close(mojibake *mjb);
-
-/* Allocate memory */
-void *mjb_alloc(mojibake *mjb, size_t size);
-
-/* Reallocate memory */
-void *mjb_realloc(mojibake *mjb, void *ptr, size_t new_size);
-
-/* Free memory */
-void mjb_free(mojibake *mjb, void *ptr);
-
-/* Output the current library version (MJB_VERSION) */
-char *mjb_version();
-
-/* Output the current library version number (MJB_VERSION_NUMBER) */
-unsigned int mjb_version_number();
-
-/* Output the current supported unicode version (MJB_UNICODE_VERSION) */
-char *mjb_unicode_version();
-
-/* Return true if the plane is valid */
-bool mjb_plane_is_valid(mjb_plane plane);
-
-/* Return the name of a plane, NULL if the place specified is not valid */
-const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
-
-/* Return the string encoding (the most probable) */
-mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
-
-/* Return true if the string is encoded in UTF-8 */
-bool mjb_string_is_utf8(const char *buffer, size_t size);
-
-/* Return true if the string is encoded in ASCII */
-bool mjb_string_is_ascii(const char *buffer, size_t size);
-
-/* Return true if the codepoint is valid */
-bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint);
-
-/* Return the codepoint character */
-bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint);
-
-/* Return true if the codepoint has the category */
-bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category);
-
-/* Return true if the codepoint is graphic */
-bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint);
-
-/* Return the codepoint lowercase codepoint */
-mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint);
-
-/* Return the codepoint uppercase codepoint */
-mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint);
-
-/* Return the codepoint titlecase codepoint */
-mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint);
-
-/* Normalize a string */
-void *mjb_normalize(mojibake *mjb, void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
-
-#ifdef __cplusplus
-}
-#endif
-
-${footer('mojibake')}
-`;
-
-  writeFileSync('../src/mojibake.h', fheader);
+  generateHeader(blocks, categoryEnums);
 
   db.run('END TRANSACTION');
   db.run('VACUUM');
