@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "db.h"
 
@@ -33,6 +34,8 @@ MJB_EXPORT bool mjb_initialize_v2(const char *filename, mojibake **mjb, mjb_allo
     if(!*mjb) {
         return false;
     }
+
+    memset(*mjb, 0, sizeof(mojibake));
 
     if(alloc_fn && realloc_fn && free_fn) {
         (*mjb)->memory_alloc = alloc_fn;
