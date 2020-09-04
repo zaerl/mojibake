@@ -15,13 +15,13 @@
 extern "C" {
 #endif
 
-#define MJB_VERSION "1.0.0"
-#define MJB_VERSION_NUMBER 0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
-#define MJB_VERSION_MAJOR 1
-#define MJB_VERSION_MINOR 0
+#define MJB_VERSION          "1.0.0"
+#define MJB_VERSION_NUMBER   0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
+#define MJB_VERSION_MAJOR    1
+#define MJB_VERSION_MINOR    0
 #define MJB_VERSION_REVISION 0
 
-#define MJB_UNICODE_VERSION "13.0"
+#define MJB_UNICODE_VERSION       "13.0"
 #define MJB_UNICODE_VERSION_MAJOR 13
 #define MJB_UNICODE_VERSION_MINOR 0
 
@@ -52,8 +52,8 @@ typedef void (*mjb_free_fn)(void *ptr);
  */
 typedef uint32_t mjb_codepoint;
 
-#define MJB_CODEPOINT_MIN 0x0
-#define MJB_CODEPOINT_MAX 0x10FFFF /* Maximum valid unicode code point */
+#define MJB_CODEPOINT_MIN         0x0
+#define MJB_CODEPOINT_MAX         0x10FFFF /* Maximum valid unicode code point */
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
 typedef enum mjb_block_name {
@@ -384,34 +384,34 @@ typedef struct mjb_block {
  * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
-    MJB_CATEGORY_LU = 0x1, /* 0 (Lu) Letter, Uppercase */
-    MJB_CATEGORY_LL = 0x2, /* 1 (Ll) Letter, Lowercase */
-    MJB_CATEGORY_LT = 0x4, /* 2 (Lt) Letter, Titlecase */
-    MJB_CATEGORY_LM = 0x8, /* 3 (Lm) Letter, Modifier */
-    MJB_CATEGORY_LO = 0x10, /* 4 (Lo) Letter, Other */
-    MJB_CATEGORY_MN = 0x20, /* 5 (Mn) Mark, Non-Spacing */
-    MJB_CATEGORY_MC = 0x40, /* 6 (Mc) Mark, Spacing Combining */
-    MJB_CATEGORY_ME = 0x80, /* 7 (Me) Mark, Enclosing */
-    MJB_CATEGORY_ND = 0x100, /* 8 (Nd) Number, Decimal Digit */
-    MJB_CATEGORY_NL = 0x200, /* 9 (Nl) Number, Letter */
-    MJB_CATEGORY_NO = 0x400, /* 10 (No) Number, Other */
-    MJB_CATEGORY_PC = 0x800, /* 11 (Pc) Punctuation, Connector */
-    MJB_CATEGORY_PD = 0x1000, /* 12 (Pd) Punctuation, Dash */
-    MJB_CATEGORY_PS = 0x2000, /* 13 (Ps) Punctuation, Open */
-    MJB_CATEGORY_PE = 0x4000, /* 14 (Pe) Punctuation, Close */
-    MJB_CATEGORY_PI = 0x8000, /* 15 (Pi) Punctuation, Initial quote */
-    MJB_CATEGORY_PF = 0x10000, /* 16 (Pf) Punctuation, Final quote */
-    MJB_CATEGORY_PO = 0x20000, /* 17 (Po) Punctuation, Other */
-    MJB_CATEGORY_SM = 0x40000, /* 18 (Sm) Symbol, Math */
-    MJB_CATEGORY_SC = 0x80000, /* 19 (Sc) Symbol, Currency */
-    MJB_CATEGORY_SK = 0x100000, /* 20 (Sk) Symbol, Modifier */
-    MJB_CATEGORY_SO = 0x200000, /* 21 (So) Symbol, Other */
-    MJB_CATEGORY_ZS = 0x400000, /* 22 (Zs) Separator, Space */
-    MJB_CATEGORY_ZL = 0x800000, /* 23 (Zl) Separator, Line */
-    MJB_CATEGORY_ZP = 0x1000000, /* 24 (Zp) Separator, Paragraph */
-    MJB_CATEGORY_CC = 0x2000000, /* 25 (Cc) Other, Control */
-    MJB_CATEGORY_CF = 0x4000000, /* 26 (Cf) Other, Format */
-    MJB_CATEGORY_CS = 0x8000000, /* 27 (Cs) Other, Surrogate */
+    MJB_CATEGORY_LU = 0x00000001, /* 0 (Lu) Letter, Uppercase */
+    MJB_CATEGORY_LL = 0x00000002, /* 1 (Ll) Letter, Lowercase */
+    MJB_CATEGORY_LT = 0x00000004, /* 2 (Lt) Letter, Titlecase */
+    MJB_CATEGORY_LM = 0x00000008, /* 3 (Lm) Letter, Modifier */
+    MJB_CATEGORY_LO = 0x00000010, /* 4 (Lo) Letter, Other */
+    MJB_CATEGORY_MN = 0x00000020, /* 5 (Mn) Mark, Non-Spacing */
+    MJB_CATEGORY_MC = 0x00000040, /* 6 (Mc) Mark, Spacing Combining */
+    MJB_CATEGORY_ME = 0x00000080, /* 7 (Me) Mark, Enclosing */
+    MJB_CATEGORY_ND = 0x00000100, /* 8 (Nd) Number, Decimal Digit */
+    MJB_CATEGORY_NL = 0x00000200, /* 9 (Nl) Number, Letter */
+    MJB_CATEGORY_NO = 0x00000400, /* 10 (No) Number, Other */
+    MJB_CATEGORY_PC = 0x00000800, /* 11 (Pc) Punctuation, Connector */
+    MJB_CATEGORY_PD = 0x00001000, /* 12 (Pd) Punctuation, Dash */
+    MJB_CATEGORY_PS = 0x00002000, /* 13 (Ps) Punctuation, Open */
+    MJB_CATEGORY_PE = 0x00004000, /* 14 (Pe) Punctuation, Close */
+    MJB_CATEGORY_PI = 0x00008000, /* 15 (Pi) Punctuation, Initial quote */
+    MJB_CATEGORY_PF = 0x00010000, /* 16 (Pf) Punctuation, Final quote */
+    MJB_CATEGORY_PO = 0x00020000, /* 17 (Po) Punctuation, Other */
+    MJB_CATEGORY_SM = 0x00040000, /* 18 (Sm) Symbol, Math */
+    MJB_CATEGORY_SC = 0x00080000, /* 19 (Sc) Symbol, Currency */
+    MJB_CATEGORY_SK = 0x00100000, /* 20 (Sk) Symbol, Modifier */
+    MJB_CATEGORY_SO = 0x00200000, /* 21 (So) Symbol, Other */
+    MJB_CATEGORY_ZS = 0x00400000, /* 22 (Zs) Separator, Space */
+    MJB_CATEGORY_ZL = 0x00800000, /* 23 (Zl) Separator, Line */
+    MJB_CATEGORY_ZP = 0x01000000, /* 24 (Zp) Separator, Paragraph */
+    MJB_CATEGORY_CC = 0x02000000, /* 25 (Cc) Other, Control */
+    MJB_CATEGORY_CF = 0x04000000, /* 26 (Cf) Other, Format */
+    MJB_CATEGORY_CS = 0x08000000, /* 27 (Cs) Other, Surrogate */
     MJB_CATEGORY_CO = 0x10000000, /* 28 (Co) Other, Private Use */
     MJB_CATEGORY_CN = 0x20000000 /* 29 (Cn) Other, Not Assigned */
 } mjb_category;
@@ -423,11 +423,11 @@ typedef enum mjb_category {
  * [see: https://www.unicode.org/glossary/#plane]
  */
 typedef enum mjb_plane {
-    MJB_PLANE_BMP = 0,
-    MJB_PLANE_SMP = 1,
-    MJB_PLANE_SIP = 2,
-    MJB_PLANE_TIP = 3,
-    MJB_PLANE_SSP = 14,
+    MJB_PLANE_BMP =   0,
+    MJB_PLANE_SMP =   1,
+    MJB_PLANE_SIP =   2,
+    MJB_PLANE_TIP =   3,
+    MJB_PLANE_SSP =   14,
     MJB_PLANE_PUA_A = 15,
     MJB_PLANE_PUA_B = 16
 } mjb_plane;
@@ -440,13 +440,13 @@ typedef enum mjb_plane {
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef enum mjb_encoding {
-    MJB_ENCODING_UNKNOWN = 0,
-    MJB_ENCODING_ASCII = 0x1,
-    MJB_ENCODING_UTF_8 = 0x2,
-    MJB_ENCODING_UTF_16 = 0x4,
+    MJB_ENCODING_UNKNOWN =   0x0,
+    MJB_ENCODING_ASCII =     0x1,
+    MJB_ENCODING_UTF_8 =     0x2,
+    MJB_ENCODING_UTF_16 =    0x4,
     MJB_ENCODING_UTF_16_BE = 0x8,
     MJB_ENCODING_UTF_16_LE = 0x10,
-    MJB_ENCODING_UTF_32 = 0x20,
+    MJB_ENCODING_UTF_32 =    0x20,
     MJB_ENCODING_UTF_32_BE = 0x40,
     MJB_ENCODING_UTF_32_LE = 0x80
 } mjb_encoding;
@@ -456,10 +456,10 @@ typedef enum mjb_encoding {
  * [see: https://www.unicode.org/glossary/#normalization_form]
  */
 typedef enum mjb_normalization {
-    MJB_NORMALIZATION_NFD = 0, /* Canonical decomposition and ordering */
-    MJB_NORMALIZATION_NFC = 1, /* Composition after canonical decomposition and ordering */
+    MJB_NORMALIZATION_NFD =  0, /* Canonical decomposition and ordering */
+    MJB_NORMALIZATION_NFC =  1, /* Composition after canonical decomposition and ordering */
     MJB_NORMALIZATION_NFKD = 2, /* Compatible decomposition and ordering */
-    MJB_NORMALIZATION_NFKC = 3 /* Composition after compatible decomposition and ordering */
+    MJB_NORMALIZATION_NFKC = 3  /* Composition after compatible decomposition and ordering */
 } mjb_normalization;
 
 /*

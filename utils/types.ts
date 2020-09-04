@@ -103,22 +103,22 @@ export type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategori
 
 export const characterDecompositionMapping = {
   'canonical': 0,
-  '<circle>': 7,
-  '<compat>': 16,
-  '<final>': 5,
-  '<font>': 1,
-  '<fraction>': 15,
-  '<initial>': 3,
-  '<isolated>': 6,
-  '<medial>': 4,
-  '<narrow>': 12,
-  '<noBreak>': 2,
-  '<small>': 13,
-  '<square>': 14,
-  '<sub>': 9,
-  '<super>': 8,
-  '<vertical>': 10,
-  '<wide>': 11
+  '<circle>': 1,
+  '<compat>': 2,
+  '<final>': 3,
+  '<font>': 4,
+  '<fraction>': 5,
+  '<initial>': 6,
+  '<isolated>': 7,
+  '<medial>': 8,
+  '<narrow>': 9,
+  '<noBreak>': 10,
+  '<small>': 11,
+  '<square>': 12,
+  '<sub>': 13,
+  '<super>': 14,
+  '<vertical>': 15,
+  '<wide>': 16
 };
 
 export type CharacterDecompositionMappingStrings = keyof typeof characterDecompositionMapping;
