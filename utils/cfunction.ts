@@ -36,7 +36,7 @@ export const cfns: CFunction[] = [
     'bool', 'close',
     ['mojibake *mjb']),
 
-  new CFunction('Allocate memory',
+  new CFunction('Allocate and zero memory',
     'void *', 'alloc',
     ['mojibake *mjb', 'size_t size']),
 

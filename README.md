@@ -24,7 +24,7 @@ Close the library
 bool mjb_close(mojibake *mjb);
 ```
 
-Allocate memory
+Allocate and zero memory
 ```c
 void *mjb_alloc(mojibake *mjb, size_t size);
 ```

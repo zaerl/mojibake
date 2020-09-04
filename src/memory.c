@@ -5,14 +5,21 @@
  */
 
 #include "db.h"
+#include <string.h>
 
-/* Allocate memory */
+/* Allocate and zero memory*/
 MJB_EXPORT void *mjb_alloc(mojibake *mjb, size_t size) {
     if(!mjb_ready(mjb)) {
         return NULL;
     }
 
-    return mjb->memory_alloc(size);
+    void *allocated = mjb->memory_alloc(size);
+
+    if(allocated) {
+        memset(allocated, 0, size);
+    }
+
+    return allocated;
 }
 
 /* Reallocate memory */

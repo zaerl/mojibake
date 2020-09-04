@@ -518,7 +518,7 @@ bool mjb_ready(mojibake *mjb);
 /* Close the library */
 bool mjb_close(mojibake *mjb);
 
-/* Allocate memory */
+/* Allocate and zero memory */
 void *mjb_alloc(mojibake *mjb, size_t size);
 
 /* Reallocate memory */
