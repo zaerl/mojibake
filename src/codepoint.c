@@ -5,6 +5,7 @@
  */
 
 #include <string.h>
+#include "data.h"
 #include "db.h"
 
 static const mjb_character empty_character;
@@ -28,36 +29,9 @@ MJB_EXPORT bool mjb_codepoint_character(mojibake *mjb, mjb_character *character,
 
     /* Reset character */
     *character = empty_character;
+    *character = mjb_characters[codepoint];
 
-    int ret = sqlite3_bind_int(mjb->char_stmt, 1, codepoint);
-    DB_CHECK(mjb, ret, false)
-
-    ret = sqlite3_step(mjb->char_stmt);
-    bool found = ret == SQLITE_ROW;
-
-    if(found) {
-        DB_COLUMN_INT(mjb->char_stmt, character->codepoint, 0);
-        DB_COLUMN_TEXT(mjb->char_stmt, character->name, 1)
-        DB_COLUMN_INT(mjb->char_stmt, character->block, 2);
-        DB_COLUMN_INT(mjb->char_stmt, character->category, 3);
-        DB_COLUMN_INT(mjb->char_stmt, character->combining, 4);
-        DB_COLUMN_INT(mjb->char_stmt, character->bidirectional, 5);
-        DB_COLUMN_TEXT(mjb->char_stmt, character->decimal, 6)
-        DB_COLUMN_TEXT(mjb->char_stmt, character->digit, 7)
-        DB_COLUMN_TEXT(mjb->char_stmt, character->numeric, 8)
-        DB_COLUMN_INT(mjb->char_stmt, character->mirrored, 9);
-        DB_COLUMN_INT(mjb->char_stmt, character->uppercase, 10);
-        DB_COLUMN_INT(mjb->char_stmt, character->lowercase, 11);
-        DB_COLUMN_INT(mjb->char_stmt, character->titlecase, 12);
-    }
-
-    ret = sqlite3_clear_bindings(mjb->char_stmt);
-    DB_CHECK(mjb, ret, false)
-
-    ret = sqlite3_reset(mjb->char_stmt);
-    DB_CHECK(mjb, ret, false)
-
-    return found;
+    return true;
 }
 
 /* Return true if the codepoint has the category */

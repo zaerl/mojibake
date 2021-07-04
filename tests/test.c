@@ -21,6 +21,7 @@ static struct section {
     clock_t begin;
     clock_t end;
 } sections[SECTIONS_COUNT] = {
+    { "Array", 0, 0, 0, 0 },
     { "Codepoint", 0, 0, 0, 0 },
     { "DB", 0, 0, 0, 0 },
     { "Encoding", 0, 0, 0, 0 },
@@ -138,7 +139,7 @@ MJB_EXPORT void mjb_print_character(mjb_character *character, mjb_codepoint code
 int main(int argc, const char *argv[]) {
     printf("\x1b[36mMojibake %s test\x1B[0m\n\n", mjb_version());
 
-    bool sections[7] = { true, true, true, true, true, true, true };
+    bool sections[SECTIONS_COUNT] = { true, true, true, true, true, true, true, true };
     bool codepoint = true;
     bool db = true;
     bool encoding = true;
@@ -152,32 +153,36 @@ int main(int argc, const char *argv[]) {
 
         for(int i = 1; i < length; ++i) {
             switch(argv[1][i]) {
-                case 'c': /* codepoint */
+                case 'a': /* array */
                     sections[0] = false;
                     break;
 
-                case 'd': /* DB */
+                case 'c': /* codepoint */
                     sections[1] = false;
                     break;
 
-                case 'e': /* Encoding */
+                case 'd': /* DB */
                     sections[2] = false;
                     break;
 
-                case 'm': /* Memory */
+                case 'e': /* Encoding */
                     sections[3] = false;
                     break;
 
-                case 'n': /* Normalization */
+                case 'm': /* Memory */
                     sections[4] = false;
                     break;
 
-                case 'p': /* Plane */
+                case 'n': /* Normalization */
                     sections[5] = false;
                     break;
 
-                case 'v': /* Version */
+                case 'p': /* Plane */
                     sections[6] = false;
+                    break;
+
+                case 'v': /* Version */
+                    sections[7] = false;
                     break;
 
                 case 'W': /* Block on error and wait for input */
@@ -186,9 +191,15 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    /* Codepoint */
+    /* Array */
     if(sections[0]) {
         mjb_select_section(0);
+        mjb_run_test("Array", mjb_array_test);
+    }
+
+    /* Codepoint */
+    if(sections[1]) {
+        mjb_select_section(1);
         mjb_run_test("Codepoint character", mjb_codepoint_character_test);
         mjb_run_test("Codepoint block", mjb_codepoint_block_test);
         mjb_run_test("Codepoint is", mjb_codepoint_is_test);
@@ -198,41 +209,41 @@ int main(int argc, const char *argv[]) {
     }
 
     /* DB */
-    if(sections[1]) {
-        mjb_select_section(1);
+    if(sections[2]) {
+        mjb_select_section(2);
         mjb_run_test("Ready", mjb_ready_test);
     }
 
     /* Encoding */
-    if(sections[2]) {
-        mjb_select_section(2);
+    if(sections[3]) {
+        mjb_select_section(3);
         mjb_run_test("String encoding", mjb_string_encoding_test);
         mjb_run_test("String is ASCII", mjb_string_is_ascii_test);
         mjb_run_test("String is UTF-8", mjb_string_is_utf8_test);
     }
 
     /* Memory */
-    if(sections[3]) {
-        mjb_select_section(3);
+    if(sections[4]) {
+        mjb_select_section(4);
         mjb_run_test("Memory", mjb_memory_test);
     }
 
     /* Normalization */
-    if(sections[4]) {
-        mjb_select_section(4);
+    if(sections[5]) {
+        mjb_select_section(5);
         mjb_run_test("Normalize NFD/NFC/NFKD/NFKC", mjb_codepoint_normalize_test);
     }
 
     /* Plane */
-    if(sections[5]) {
-        mjb_select_section(5);
+    if(sections[6]) {
+        mjb_select_section(6);
         mjb_run_test("Codespace plane is valid", mjb_plane_is_valid_test);
         mjb_run_test("Codespace plane name", mjb_plane_name_test);
     }
 
     /* Version */
-    if(sections[6]) {
-        mjb_select_section(6);
+    if(sections[7]) {
+        mjb_select_section(7);
         mjb_run_test("Get version", mjb_version_test);
         mjb_run_test("Get version number", mjb_version_number_test);
         mjb_run_test("Get unicode version", mjb_unicode_version_test);

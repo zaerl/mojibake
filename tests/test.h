@@ -14,8 +14,7 @@
 extern "C" {
 #endif
 
-#define MJB_DB_PATH "../src/mojibake.db"
-#define SECTIONS_COUNT 7
+#define SECTIONS_COUNT 8
 
 typedef void (*mjb_test)(void);
 
@@ -29,6 +28,9 @@ unsigned int mjb_section_valid_count(unsigned int section);
 unsigned int mjb_section_total_count(unsigned int section);
 clock_t mjb_section_delta(unsigned int section);
 void mjb_print_character(mjb_character *character, mjb_codepoint codepoint);
+
+/* Array */
+void mjb_array_test();
 
 /* Codepoint */
 void mjb_codepoint_character_test();

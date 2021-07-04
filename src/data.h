@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#ifndef MJB_DB_H
-#define MJB_DB_H
+#ifndef MJB_DATA_H
+#define MJB_DATA_H
 
 #include "mojibake.h"
 
@@ -13,15 +13,10 @@
 extern "C" {
 #endif
 
-struct mojibake {
-    bool ok;
-    mjb_alloc_fn memory_alloc;
-    mjb_realloc_fn memory_realloc;
-    mjb_free_fn memory_free;
-};
+MJB_EXPORT const mjb_character mjb_characters[33797];
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MJB_DB_H */
+#endif /* MJB_DATA_H */

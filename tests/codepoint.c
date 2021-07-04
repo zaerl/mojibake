@@ -11,7 +11,7 @@
 
 MJB_EXPORT void mjb_codepoint_character_test() {
     mojibake *mjb;
-    mjb_initialize(MJB_DB_PATH, &mjb);
+    mjb_initialize(&mjb);
     mjb_character character;
 
     bool ret = mjb_codepoint_character(mjb, NULL, MJB_CODEPOINT_MAX);
@@ -37,13 +37,11 @@ MJB_EXPORT void mjb_codepoint_character_test() {
     /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
     ret = mjb_codepoint_character(mjb, &character, 0x0377 + 1);
     mjb_assert("Codepoint not mapped: ͷ + 1", !ret);
-
-    mjb_close(mjb);
 }
 
 MJB_EXPORT void mjb_codepoint_block_test() {
     mojibake *mjb;
-    mjb_initialize(MJB_DB_PATH, &mjb);
+    mjb_initialize(&mjb);
 
     mjb_character character;
 
@@ -68,13 +66,11 @@ MJB_EXPORT void mjb_codepoint_block_test() {
 
     ret = mjb_codepoint_character(mjb, &character, MJB_CODEPOINT_MAX - 1);
     mjb_assert("Supplementary Private Use Area-B block", !ret);
-
-    mjb_close(mjb);
 }
 
 MJB_EXPORT void mjb_codepoint_is_test() {
     mojibake *mjb;
-    mjb_initialize(MJB_DB_PATH, &mjb);
+    mjb_initialize(&mjb);
 
     bool ret = mjb_codepoint_is(mjb, 0, MJB_CATEGORY_CC);
     mjb_assert("NULL: category other, control", ret);
@@ -89,13 +85,11 @@ MJB_EXPORT void mjb_codepoint_is_test() {
     /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
     ret = mjb_codepoint_is(mjb, 0x0377 + 1, MJB_CATEGORY_LL);
     mjb_assert("Not mapped codepoint: category invalid", !ret);
-
-    mjb_close(mjb);
 }
 
 MJB_EXPORT void mjb_codepoint_is_graphic_test() {
     mojibake *mjb;
-    mjb_initialize(MJB_DB_PATH, &mjb);
+    mjb_initialize(&mjb);
 
     bool ret = mjb_codepoint_is_graphic(mjb, 0);
     mjb_assert("NULL: not graphic", !ret);
@@ -113,8 +107,6 @@ MJB_EXPORT void mjb_codepoint_is_graphic_test() {
     /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
     ret = mjb_codepoint_is_graphic(mjb, 0x0377 + 1);
     mjb_assert("Not mapped codepoint: not graphic", !ret);
-
-    mjb_close(mjb);
 }
 
 MJB_EXPORT void mjb_codepoint_is_valid_test() {
@@ -152,7 +144,7 @@ MJB_EXPORT void mjb_codepoint_is_valid_test() {
 
 MJB_EXPORT void mjb_codepoint_lc_uc_tc_test() {
     mojibake *mjb;
-    mjb_initialize(MJB_DB_PATH, &mjb);
+    mjb_initialize(&mjb);
 
     mjb_codepoint ret = mjb_codepoint_to_lowercase(mjb, '#');
     mjb_assert("Lowercase #: #", ret == '#');
@@ -180,6 +172,4 @@ MJB_EXPORT void mjb_codepoint_lc_uc_tc_test() {
 
     ret = mjb_codepoint_to_titlecase(mjb, 'C');
     mjb_assert("Titlecase: C > C", ret == 'C');
-
-    mjb_close(mjb);
 }

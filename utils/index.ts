@@ -1,10 +1,10 @@
-import { createReadStream, existsSync, unlinkSync } from 'fs';
+import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
-import { Statement, verbose as sqlite3 } from 'sqlite3';
+import { generateData } from './data';
 import { generateHeader } from './header';
 import { generateReadme } from './readme';
 import {
-  BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
+  BidirectionalCategories, Block, categories, Categories, Character, characterDecompositionMapping, CharacterDecompositionMappingStrings,
   CountBuffer, Numeric, UnicodeDataRow
 } from './types';
 
@@ -36,7 +36,7 @@ function compareFn(a: CountBuffer, b: CountBuffer): number {
   return ret;
 }
 
-async function readBlocks(stmt: Statement): Promise<Block[]> {
+function readBlocks(): Block[] {
   log('READ BLOCKS');
 
   const blocks: Block[] = [];
@@ -46,9 +46,9 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
     crlfDelay: Infinity
   });
 
-  for await (const line of rl) {
+  rl.on('line', (line: string) => {
     if(line.startsWith('#') || line === '') { // Comment
-      continue;
+      return;
     }
 
     const split = line.split('; ');
@@ -63,20 +63,12 @@ async function readBlocks(stmt: Statement): Promise<Block[]> {
       start,
       end
     });
-
-    stmt.run(
-      split[1],
-      start,
-      end
-    );
-  }
-
-  stmt.finalize();
+  });
 
   return blocks;
 }
 
-async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, blocks: Block[]) {
+async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   log('READ UNICODE DATA');
 
   const nameBuffer: { [name: string]: number } = {};
@@ -90,6 +82,10 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
   let currentBlock = 0;
   let maxDecomposition = 0;
   let decompositions = 0;
+  let totalSteps = 0;
+  let totalStepsOver8 = 0;
+  let totalStepsOver16 = 0;
+  let characters: Character[] = [];
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -105,7 +101,17 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
 
     if(diff > 1) {
       diffs += diff;
-      // log(`STEP (${split[0]} -- ${codepoint - previousCodepoint})`);
+      ++totalSteps;
+
+      if(diff > 8) {
+        ++totalStepsOver8;
+
+        if(diff > 16) {
+          ++totalStepsOver16;
+        }
+      }
+
+      log(`STEP (${split[0]} -- ${diff})`);
     }
 
     previousCodepoint = codepoint;
@@ -138,41 +144,41 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
         if(decomposition[i][0] === '<') {
           decompositionType = characterDecompositionMapping[decomposition[i] as CharacterDecompositionMappingStrings];
         } else {
-          decompositionStmt.run(
+          /* decompositionStmt.run(
             codepoint,
             decompositionType,
-            parseInt(decomposition[i], 16));
+            parseInt(decomposition[i], 16));*/
         }
       }
     }
 
-    if(decomposition.length === 19) {
+    /*if(decomposition.length === 19) {
       log(codepoint, name, decomposition);
-    }
+    }*/
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
     }
 
-    stmt.run(
+    characters.push(new Character(
       codepoint,
       name,
-      currentBlock,
+      currentBlock, // Additional
       1 << Categories[split[2]],
-      parseInt(split[3], 10),
-      split[4] === '' ? null : BidirectionalCategories[split[4]],
+      parseInt(split[3], 10), // CCC
+      split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
 
-      split[6] === '' ? null : split[6],
-      split[7] === '' ? null : split[7],
-      split[8] === '' ? null : split[8],
+      split[6] === '' ? null : split[6], // decimal
+      split[7] === '' ? null : split[7], // digit
+      split[8] === '' ? null : split[8], // numeric
 
-      split[9] === 'Y' ? 1 : 0,
+      split[9] === 'Y', // mirrored
       // unicode 1.0 name
       // 10646 comment field
-      split[12] === '' ? null : parseInt(split[12], 16),
-      split[13] === '' ? null : parseInt(split[13], 16),
-      split[14] === '' ? null : parseInt(split[14], 16)
-    );
+      split[12] === '' ? 0 : parseInt(split[12], 16), // uppercase
+      split[13] === '' ? 0 : parseInt(split[13], 16), // lowercase
+      split[14] === '' ? 0 : parseInt(split[14], 16) // titlecase
+    ));
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -187,16 +193,17 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
         ++categoryBuffer[split[2]];
       }
     }
-  };
+  }
 
-  stmt.finalize();
-  decompositionStmt.finalize();
+  log(`\nDECOMPOSITION COUNT: ${decompositions}\n`);
 
-  log(`\nDECOMPOSITION COUNT ${decompositions}\n`);
+  log(`MAX DECOMPOSITION: ${maxDecomposition}\n`);
 
-  log(`MAX DECOMPOSITION ${maxDecomposition}\n`);
+  log(`STEPS COUNT: ${totalSteps}\n`);
+  log(`STEPS COUNT OVER 8: ${totalStepsOver8}\n`);
+  log(`STEPS COUNT OVER 16: ${totalStepsOver16}\n`);
 
-  log(`STEP TOTAL ${diffs}/${codepoint}\n`);
+  log(`STEPS TOTAL: ${diffs}/${codepoint}\n`);
 
   const ret: CountBuffer[] = [];
   const ret2: CountBuffer[] = [];
@@ -267,81 +274,23 @@ async function readUnicodeData(stmt: Statement, decompositionStmt: Statement, bl
   iLog(`${verbose ? '\n' : ''}COUNT\n`);
   iLog(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
   iLog(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
+
+  return characters;
 }
 
 // Init
-const dbName = '../src/mojibake.db';
-const sqlite = sqlite3();
 
 if(process.argv[2] === '-V') {
   verbose = true;
 }
 
-// Remove old database
-if(existsSync(dbName)) {
-  unlinkSync(dbName);
+async function generate() {
+  const blocks = readBlocks();
+  const characters = await readUnicodeData(blocks);
+
+  generateHeader(blocks, categories);
+  generateData(characters);
+  generateReadme();
 }
 
-const db = new sqlite.Database(dbName, (err: Error | null) => {
-  if(err) {
-    iLog(err.message);
-  }
-});
-
-db.serialize(async () => {
-  db.run('BEGIN TRANSACTION');
-
-  db.run(
-`CREATE TABLE characters(
-  codepoint INTEGER NOT NULL PRIMARY KEY,
-  name TEXT NOT NULL,
-  block INTEGER NOT NULL,
-  category INTEGER NOT NULL,
-  combining INTEGER NOT NULL,
-  bidirectional INTEGER,
-  decimal TEXT,
-  digit TEXT,
-  numeric TEXT,
-  mirrored INTEGER,
-  uppercase INTEGER,
-  lowercase INTEGER,
-  titlecase INTEGER
-) WITHOUT ROWID`);
-
-  db.run(
-`CREATE TABLE blocks(
-  name TEXT NOT NULL,
-  start INTEGER NOT NULL,
-  end INTEGER NOT NULL
-)`);
-
-  db.run(
-`CREATE TABLE decompositions(
-  codepoint INTEGER NOT NULL,
-  type INTEGER,
-  decomposition INTEGER NOT NULL
-)`);
-
-  db.run(`CREATE INDEX idx_codepoint ON decompositions (codepoint)`);
-
-  const blockStmt = db.prepare('INSERT INTO blocks VALUES (?, ?, ?)');
-  const dataStmt = db.prepare('INSERT INTO characters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-  const decompositionStmt = db.prepare('INSERT INTO decompositions VALUES (?, ?, ?)');
-
-  const blocks = await readBlocks(blockStmt);
-  await readUnicodeData(dataStmt, decompositionStmt, blocks);
-
-  const categoryEnums: string[] = [];
-
-  for(let i = 0; i < categories.length; ++i) {
-    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16).padStart(8, '0')}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Categories[i]}) ${categories[i]} */`);
-  }
-
-  generateHeader(blocks, categoryEnums);
-  generateReadme();
-
-  db.run('END TRANSACTION');
-  db.run('VACUUM');
-
-  db.close();
-});
+generate();

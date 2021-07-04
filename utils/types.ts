@@ -43,49 +43,47 @@ export enum Categories {
 }
 
 export const categories = [
-  'Letter, Uppercase',
-  'Letter, Lowercase',
-  'Letter, Titlecase',
-  'Letter, Modifier',
-  'Letter, Other',
-  'Mark, Non-Spacing',
-  'Mark, Spacing Combining',
-  'Mark, Enclosing',
-  'Number, Decimal Digit',
-  'Number, Letter',
-  'Number, Other',
-  'Punctuation, Connector',
-  'Punctuation, Dash',
-  'Punctuation, Open',
-  'Punctuation, Close',
-  'Punctuation, Initial quote',
-  'Punctuation, Final quote',
-  'Punctuation, Other',
-  'Symbol, Math',
-  'Symbol, Currency',
-  'Symbol, Modifier',
-  'Symbol, Other',
-  'Separator, Space',
-  'Separator, Line',
-  'Separator, Paragraph',
-  'Other, Control',
-  'Other, Format',
-  'Other, Surrogate',
-  'Other, Private Use',
-  'Other, Not Assigned',
+  'Letter, uppercase',
+  'Letter, lowercase',
+  'Letter, titlecase',
+  'Letter, modifier',
+  'Letter, other',
+  'Mark, non-spacing',
+  'Mark, spacing combining',
+  'Mark, enclosing',
+  'Number, decimal digit',
+  'Number, letter',
+  'Number, other',
+  'Punctuation, connector',
+  'Punctuation, dash',
+  'Punctuation, open',
+  'Punctuation, close',
+  'Punctuation, initial quote',
+  'Punctuation, final quote',
+  'Punctuation, other',
+  'Symbol, math',
+  'Symbol, currency',
+  'Symbol, modifier',
+  'Symbol, other',
+  'Separator, space',
+  'Separator, line',
+  'Separator, paragraph',
+  'Other, control',
+  'Other, format',
+  'Other, surrogate',
+  'Other, private use',
+  'Other, not assigned',
 ];
 
 export type CategoriesStrings = keyof typeof Categories;
 
 export enum BidirectionalCategories {
+  NONE,
+  // Strong
   L,
-  LRE,
-  LRO,
   R,
   AL,
-  RLE,
-  RLO,
-  PDF,
+  // Weak
   EN,
   ES,
   ET,
@@ -93,10 +91,21 @@ export enum BidirectionalCategories {
   CS,
   NSM,
   BN,
+  // Neutral
   B,
   S,
   WS,
-  ON
+  ON,
+  // Explicit formatting
+  LRE,
+  LRO,
+  RLE,
+  RLO,
+  PDF,
+  LRI,
+  RLI,
+  FSI,
+  PDI
 };
 
 export type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
@@ -128,7 +137,6 @@ export type Mirrored = 'Y' | 'N';
 export type UnicodeDataRow = [
   string, // 0 codepoint
   string, // 1 character name
-  // block
   CategoriesStrings, // 2 category
   string, // 3 canonical combining classes
   BidirectionalCategoriesStrings, // 4 bidirectional category
@@ -144,6 +152,39 @@ export type UnicodeDataRow = [
   string, // 13 lowercase mapping
   string // 14 titlecase mapping
 ];
+
+export class Character {
+  constructor(
+    private codepoint: number,
+    private name: string,
+    private block: number,
+    private category: number,
+    private combining: number,
+    private bidi: BidirectionalCategories | null,
+    private decimal: string | null,
+    private digit: string | null,
+    private numeric: string | null,
+    private mirrored: boolean,
+    private lowercase: number,
+    private uppercase: number,
+    private titlecase: number
+  ) {}
+
+  formatC(): string {
+    return `{ ${this.fmt(this.codepoint)}, ${this.fmt(this.name)}, ${this.fmt(this.block)}, ${this.fmt(this.category)}, ` +
+      `${this.fmt(this.combining)}, ${this.fmt(this.bidi)}, ${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` +
+      `${this.fmt(this.numeric)}, ${this.mirrored}, `+
+      `${this.fmt(this.lowercase)}, ${this.fmt(this.uppercase)}, ${this.fmt(this.titlecase)} }`;
+  }
+
+  private fmt(value: string | number | null, defaultC = 'NULL'): string {
+    if(value === null) {
+      return defaultC;
+    } else {
+      return typeof value === 'number' ? `${value === 0 ? 0 : '0x' + value.toString(16).toUpperCase()}` : `"${value}"`;
+    }
+  }
+}
 
 // All blocks
 export interface Block {

@@ -47,7 +47,7 @@ typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
 typedef void (*mjb_free_fn)(void *ptr);
 
 /*
- * A unicode codepoint
+ * A unicode codepoint, a value in the range 0 to 0x10FFFF
  * [see: https://www.unicode.org/glossary/#code_point]
  */
 typedef uint32_t mjb_codepoint;
@@ -56,7 +56,23 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_MAX         0x10FFFF /* Maximum valid unicode code point */
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
 
-typedef enum mjb_block_name {
+/*
+ * Unicode encoding
+ * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
+ */
+typedef enum mjb_encoding {
+    MJB_ENCODING_UNKNOWN =   0x0,
+    MJB_ENCODING_ASCII =     0x1,
+    MJB_ENCODING_UTF_8 =     0x2,
+    MJB_ENCODING_UTF_16 =    0x4,
+    MJB_ENCODING_UTF_16_BE = 0x8,
+    MJB_ENCODING_UTF_16_LE = 0x10,
+    MJB_ENCODING_UTF_32 =    0x20,
+    MJB_ENCODING_UTF_32_BE = 0x40,
+    MJB_ENCODING_UTF_32_LE = 0x80
+} mjb_encoding;
+
+typedef enum mjb_block {
     MJB_BLOCK_BASIC_LATIN = 0,
     MJB_BLOCK_LATIN_1_SUPPLEMENT = 1,
     MJB_BLOCK_LATIN_EXTENDED_A = 2,
@@ -365,7 +381,7 @@ typedef enum mjb_block_name {
     MJB_BLOCK_VARIATION_SELECTORS_SUPPLEMENT = 305,
     MJB_BLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_A = 306,
     MJB_BLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_B = 307
-} mjb_block_name;
+} mjb_block;
 
 #define MJB_BLOCK_NUM 308
 
@@ -373,60 +389,128 @@ typedef enum mjb_block_name {
  * Unicode block
  * [see: https://www.unicode.org/glossary/#block]
  */
-typedef struct mjb_block {
+typedef struct mjb_codepoint_block {
     char *name;
     uint32_t start;
     uint32_t end;
-} mjb_block;
+} mjb_codepoint_block;
 
 /*
  * Unicode codepoint general category
  * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
-    MJB_CATEGORY_LU = 0x00000001, /* 0 (Lu) Letter, Uppercase */
-    MJB_CATEGORY_LL = 0x00000002, /* 1 (Ll) Letter, Lowercase */
-    MJB_CATEGORY_LT = 0x00000004, /* 2 (Lt) Letter, Titlecase */
-    MJB_CATEGORY_LM = 0x00000008, /* 3 (Lm) Letter, Modifier */
-    MJB_CATEGORY_LO = 0x00000010, /* 4 (Lo) Letter, Other */
-    MJB_CATEGORY_MN = 0x00000020, /* 5 (Mn) Mark, Non-Spacing */
-    MJB_CATEGORY_MC = 0x00000040, /* 6 (Mc) Mark, Spacing Combining */
-    MJB_CATEGORY_ME = 0x00000080, /* 7 (Me) Mark, Enclosing */
-    MJB_CATEGORY_ND = 0x00000100, /* 8 (Nd) Number, Decimal Digit */
-    MJB_CATEGORY_NL = 0x00000200, /* 9 (Nl) Number, Letter */
-    MJB_CATEGORY_NO = 0x00000400, /* 10 (No) Number, Other */
-    MJB_CATEGORY_PC = 0x00000800, /* 11 (Pc) Punctuation, Connector */
-    MJB_CATEGORY_PD = 0x00001000, /* 12 (Pd) Punctuation, Dash */
-    MJB_CATEGORY_PS = 0x00002000, /* 13 (Ps) Punctuation, Open */
-    MJB_CATEGORY_PE = 0x00004000, /* 14 (Pe) Punctuation, Close */
-    MJB_CATEGORY_PI = 0x00008000, /* 15 (Pi) Punctuation, Initial quote */
-    MJB_CATEGORY_PF = 0x00010000, /* 16 (Pf) Punctuation, Final quote */
-    MJB_CATEGORY_PO = 0x00020000, /* 17 (Po) Punctuation, Other */
-    MJB_CATEGORY_SM = 0x00040000, /* 18 (Sm) Symbol, Math */
-    MJB_CATEGORY_SC = 0x00080000, /* 19 (Sc) Symbol, Currency */
-    MJB_CATEGORY_SK = 0x00100000, /* 20 (Sk) Symbol, Modifier */
-    MJB_CATEGORY_SO = 0x00200000, /* 21 (So) Symbol, Other */
-    MJB_CATEGORY_ZS = 0x00400000, /* 22 (Zs) Separator, Space */
-    MJB_CATEGORY_ZL = 0x00800000, /* 23 (Zl) Separator, Line */
-    MJB_CATEGORY_ZP = 0x01000000, /* 24 (Zp) Separator, Paragraph */
-    MJB_CATEGORY_CC = 0x02000000, /* 25 (Cc) Other, Control */
-    MJB_CATEGORY_CF = 0x04000000, /* 26 (Cf) Other, Format */
-    MJB_CATEGORY_CS = 0x08000000, /* 27 (Cs) Other, Surrogate */
-    MJB_CATEGORY_CO = 0x10000000, /* 28 (Co) Other, Private Use */
-    MJB_CATEGORY_CN = 0x20000000 /* 29 (Cn) Other, Not Assigned */
+    MJB_CATEGORY_LU = 0x00000001, /* 0 (Lu) Letter, uppercase */
+    MJB_CATEGORY_LL = 0x00000002, /* 1 (Ll) Letter, lowercase */
+    MJB_CATEGORY_LT = 0x00000004, /* 2 (Lt) Letter, titlecase */
+    MJB_CATEGORY_LM = 0x00000008, /* 3 (Lm) Letter, modifier */
+    MJB_CATEGORY_LO = 0x00000010, /* 4 (Lo) Letter, other */
+    MJB_CATEGORY_MN = 0x00000020, /* 5 (Mn) Mark, non-spacing */
+    MJB_CATEGORY_MC = 0x00000040, /* 6 (Mc) Mark, spacing combining */
+    MJB_CATEGORY_ME = 0x00000080, /* 7 (Me) Mark, enclosing */
+    MJB_CATEGORY_ND = 0x00000100, /* 8 (Nd) Number, decimal digit */
+    MJB_CATEGORY_NL = 0x00000200, /* 9 (Nl) Number, letter */
+    MJB_CATEGORY_NO = 0x00000400, /* 10 (No) Number, other */
+    MJB_CATEGORY_PC = 0x00000800, /* 11 (Pc) Punctuation, connector */
+    MJB_CATEGORY_PD = 0x00001000, /* 12 (Pd) Punctuation, dash */
+    MJB_CATEGORY_PS = 0x00002000, /* 13 (Ps) Punctuation, open */
+    MJB_CATEGORY_PE = 0x00004000, /* 14 (Pe) Punctuation, close */
+    MJB_CATEGORY_PI = 0x00008000, /* 15 (Pi) Punctuation, initial quote */
+    MJB_CATEGORY_PF = 0x00010000, /* 16 (Pf) Punctuation, final quote */
+    MJB_CATEGORY_PO = 0x00020000, /* 17 (Po) Punctuation, other */
+    MJB_CATEGORY_SM = 0x00040000, /* 18 (Sm) Symbol, math */
+    MJB_CATEGORY_SC = 0x00080000, /* 19 (Sc) Symbol, currency */
+    MJB_CATEGORY_SK = 0x00100000, /* 20 (Sk) Symbol, modifier */
+    MJB_CATEGORY_SO = 0x00200000, /* 21 (So) Symbol, other */
+    MJB_CATEGORY_ZS = 0x00400000, /* 22 (Zs) Separator, space */
+    MJB_CATEGORY_ZL = 0x00800000, /* 23 (Zl) Separator, line */
+    MJB_CATEGORY_ZP = 0x01000000, /* 24 (Zp) Separator, paragraph */
+    MJB_CATEGORY_CC = 0x02000000, /* 25 (Cc) Other, control */
+    MJB_CATEGORY_CF = 0x04000000, /* 26 (Cf) Other, format */
+    MJB_CATEGORY_CS = 0x08000000, /* 27 (Cs) Other, surrogate */
+    MJB_CATEGORY_CO = 0x10000000, /* 28 (Co) Other, private use */
+    MJB_CATEGORY_CN = 0x20000000 /* 29 (Cn) Other, not assigned */
 } mjb_category;
 
 #define MJB_CATEGORY_COUNT 30
+
+/*
+ * Decomposition
+ * [see: https://www.unicode.org/glossary/#combining_class]
+ */
+typedef enum mjb_canonical_combining_class {
+    MJB_CCC_SPACING =                0, /* Spacing, split, enclosing, reordrant, and Tibetan subjoined */
+    MJB_CCC_OVERLAYS =               1, /* Overlays and interior */
+    MJB_CCC_NUKTAS =                 7, /* Nuktas */
+    MJB_CCC_HIRAGANA_KATAKANA =      8, /* Hiragana/Katakana voicing marks */
+    MJB_CCC_VIRAMAS =                9, /* Viramas */
+    MJB_CCC_FIXED_START =           10, /* Start of fixed position classes */
+    MJB_CCC_FIXED_END =            199, /* End of fixed position classes */
+    MJB_CCC_BELOW_LEFT_ATTACHED =  200, /* Below left attached */
+    MJB_CCC_BELOW_ATTACHED =       202, /* Below attached */
+    MJB_CCC_BELOW_RIGHT_ATTACHED = 204, /* Below right attached */
+    MJB_CCC_LEFT_ATTACHED =        208, /* Left attached (reordrant around single base character) */
+    MJB_CCC_RIGHT_ATTACHED =       210, /* Right attached */
+    MJB_CCC_ABOVE_LEFT_ATTACHED =  212, /* Above left attached */
+    MJB_CCC_ABOVE_ATTACHED =       214, /* Above attached */
+    MJB_CCC_ABOVE_RIGHT_ATTACHED = 216, /* Above right attached */
+    MJB_CCC_BELOW_LEFT =           218, /* Below left */
+    MJB_CCC_BELOW =                220, /* Below */
+    MJB_CCC_BELOW_RIGHT =          222, /* Below right */
+    MJB_CCC_LEFT =                 224, /* Left (reordrant around single base character) */
+    MJB_CCC_RIGHT =                226, /* Right */
+    MJB_CCC_ABOVE_LEFT =           228, /* Above left */
+    MJB_CCC_ABOVE =                230, /* Above */
+    MJB_CCC_ABOVE_RIGHT =          232, /* Above right */
+    MJB_CCC_DOUBLE_BELOW =         233, /* Double below */
+    MJB_CCC_DOUBLE_ABOVE =         234, /* Double above */
+    MJB_CCC_BELOW_IOTA =           240  /* Below (iota subscript) */
+} mjb_canonical_combining_class;
+
+#define MJB_CCC_COUNT 26
+
+/*
+ * Bidirectional categories
+ * [see: https://www.unicode.org/glossary/#combining_class]
+ */
+typedef enum mjb_bidi_categories {
+    NONE, /* Nothing specified */
+    L,	  /* Left-to-right */
+    R,	  /* Right-to-left */
+    AL,	  /* Right-to-left arabic */
+    EN,	  /* European number */
+    ES,	  /* European number separator */
+    ET,	  /* European number terminator */
+    AN,	  /* Arabic number */
+    CS,	  /* Common number separator */
+    NSM,  /* Nonspacing mark */
+    BN,	  /* Boundary neutral */
+    B,    /* Paragraph separator */
+    S,    /* Segment separator */
+    WS,   /* Whitespace */
+    ON,	  /* Other neutrals */
+    LRE,  /* Left-to-right embedding */
+    LRO,  /* Left-to-right override */
+    RLE,  /* Right-to-left embedding */
+    RLO,  /* Right-to-left override */
+    PDF,  /* Pop Directional format */
+    LRI,  /* Left-to-right isolate */
+    RLI,  /* Right-to-Left isolate */
+    FSI,  /* First strong isolate */
+    PDI	  /* Pop directional isolate */
+} mjb_bidi_categories;
+
+#define MJB_BIDI_COUNT 24
 
 /*
  * Unicode plane
  * [see: https://www.unicode.org/glossary/#plane]
  */
 typedef enum mjb_plane {
-    MJB_PLANE_BMP =   0,
-    MJB_PLANE_SMP =   1,
-    MJB_PLANE_SIP =   2,
-    MJB_PLANE_TIP =   3,
+    MJB_PLANE_BMP =    0,
+    MJB_PLANE_SMP =    1,
+    MJB_PLANE_SIP =    2,
+    MJB_PLANE_TIP =    3,
     MJB_PLANE_SSP =   14,
     MJB_PLANE_PUA_A = 15,
     MJB_PLANE_PUA_B = 16
@@ -434,22 +518,6 @@ typedef enum mjb_plane {
 
 #define MJB_PLANE_NUM 17 /* 17 planes */
 #define MJB_PLANE_SIZE 65536 /* 2^16 code points per plane */
-
-/*
- * Unicode encoding
- * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
- */
-typedef enum mjb_encoding {
-    MJB_ENCODING_UNKNOWN =   0x0,
-    MJB_ENCODING_ASCII =     0x1,
-    MJB_ENCODING_UTF_8 =     0x2,
-    MJB_ENCODING_UTF_16 =    0x4,
-    MJB_ENCODING_UTF_16_BE = 0x8,
-    MJB_ENCODING_UTF_16_LE = 0x10,
-    MJB_ENCODING_UTF_32 =    0x20,
-    MJB_ENCODING_UTF_32_BE = 0x40,
-    MJB_ENCODING_UTF_32_LE = 0x80
-} mjb_encoding;
 
 /*
  * Normalization form
@@ -492,14 +560,14 @@ typedef enum mjb_decomposition {
  */
 typedef struct mjb_character {
     mjb_codepoint codepoint;
-    unsigned char name[128];
-    unsigned short block;
+    char *name;
+    mjb_block block;
     mjb_category category;
-    unsigned short combining;
+    mjb_canonical_combining_class combining;
     unsigned short bidirectional;
-    unsigned char decimal[128];
-    unsigned char digit[128];
-    unsigned char numeric[128];
+    char *decimal;
+    char *digit;
+    char *numeric;
     bool mirrored;
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
@@ -507,16 +575,13 @@ typedef struct mjb_character {
 } mjb_character;
 
 /* Initialize the library */
-bool mjb_initialize(const char *filename, mojibake **mjb);
+bool mjb_initialize(mojibake **mjb);
 
 /* Initialize the library with custom values */
-bool mjb_initialize_v2(const char *filename, mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+bool mjb_initialize_v2(mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
 /* The library is ready */
 bool mjb_ready(mojibake *mjb);
-
-/* Close the library */
-bool mjb_close(mojibake *mjb);
 
 /* Allocate and zero memory */
 void *mjb_alloc(mojibake *mjb, size_t size);

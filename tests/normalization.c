@@ -77,7 +77,7 @@ unsigned int check_normalization(mojibake *mjb, void *source, size_t source_size
 
 MJB_EXPORT void mjb_codepoint_normalize_test() {
     mojibake *mjb;
-    mjb_initialize(MJB_DB_PATH, &mjb);
+    mjb_initialize(&mjb);
 
     char line[512];
     unsigned int index = 0;
@@ -99,7 +99,6 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
 
     if(file == NULL) {
         mjb_assert("Valid normalization test file", false);
-        mjb_close(mjb);
 
         return;
     }
@@ -171,5 +170,4 @@ MJB_EXPORT void mjb_codepoint_normalize_test() {
     }
 
     fclose(file);
-    mjb_close(mjb);
 }

@@ -22,18 +22,14 @@ export class CFunction {
 export const cfns: CFunction[] = [
   new CFunction('Initialize the library',
     'bool', 'initialize',
-    ['const char *filename', 'mojibake **mjb']),
+    ['mojibake **mjb']),
 
   new CFunction('Initialize the library with custom values',
     'bool', 'initialize_v2',
-    ['const char *filename', 'mojibake **mjb', 'mjb_alloc_fn alloc_fn', 'mjb_realloc_fn realloc_fn', 'mjb_free_fn free_fn']),
+    ['mojibake **mjb', 'mjb_alloc_fn alloc_fn', 'mjb_realloc_fn realloc_fn', 'mjb_free_fn free_fn']),
 
   new CFunction('The library is ready',
     'bool', 'ready',
-    ['mojibake *mjb']),
-
-  new CFunction('Close the library',
-    'bool', 'close',
     ['mojibake *mjb']),
 
   new CFunction('Allocate and zero memory',
