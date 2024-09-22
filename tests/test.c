@@ -191,12 +191,6 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    /* Array */
-    if(sections[0]) {
-        mjb_select_section(0);
-        mjb_run_test("Array", mjb_array_test);
-    }
-
     /* Codepoint */
     if(sections[1]) {
         mjb_select_section(1);

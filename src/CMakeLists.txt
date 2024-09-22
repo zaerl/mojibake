@@ -1,5 +1,4 @@
 set(SOURCES
-    array.c
     codepoint.c
     data.c
     db.c
