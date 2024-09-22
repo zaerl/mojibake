@@ -11,11 +11,11 @@ export class CFunction {
   }
 
   formatC(): string {
-    return `/* ${this.comment} */\n${this.ret}mjb_${this.name}(${this.args.join(', ')});`;
+    return `/* ${this.comment} */\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});`;
   }
 
   formatMD(): string {
-    return `${this.comment}\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.join(', ')});\n\`\`\``;
+    return `${this.comment}\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});\n\`\`\``;
   }
 }
 

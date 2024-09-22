@@ -8,7 +8,7 @@
 #include "../src/array.h"
 #include "test.h"
 
-MJB_EXPORT void mjb_array_test() {
+MJB_EXPORT void mjb_array_test(void) {
     mojibake *mjb = NULL;
     mjb_array array;
     bool res;
