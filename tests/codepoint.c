@@ -9,7 +9,7 @@
 
 #include "test.h"
 
-MJB_EXPORT void mjb_codepoint_character_test() {
+MJB_EXPORT void mjb_codepoint_character_test(void) {
     mojibake *mjb;
     mjb_initialize(&mjb);
     mjb_character character;
@@ -19,13 +19,11 @@ MJB_EXPORT void mjb_codepoint_character_test() {
 
     ret = mjb_codepoint_character(mjb, &character, MJB_CODEPOINT_MAX);
     mjb_assert("Not valid codepoint", !ret);
-
     ret = mjb_codepoint_character(mjb, &character, 0);
+    printf("NULL %p\n", character.name);
     mjb_assert("Codepoint: 0", strcmp((char*)character.name, "NULL") == 0);
-
     ret = mjb_codepoint_character(mjb, &character, '$');
     mjb_assert("Codepoint: $", strcmp((char*)character.name, "DOLLAR SIGN") == 0);
-
     /* 0xE0 = à */
     ret = mjb_codepoint_character(mjb, &character, 0xE0);
     mjb_assert("Codepoint: à", strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
@@ -39,7 +37,7 @@ MJB_EXPORT void mjb_codepoint_character_test() {
     mjb_assert("Codepoint not mapped: ͷ + 1", !ret);
 }
 
-MJB_EXPORT void mjb_codepoint_block_test() {
+MJB_EXPORT void mjb_codepoint_block_test(void) {
     mojibake *mjb;
     mjb_initialize(&mjb);
 
@@ -68,7 +66,7 @@ MJB_EXPORT void mjb_codepoint_block_test() {
     mjb_assert("Supplementary Private Use Area-B block", !ret);
 }
 
-MJB_EXPORT void mjb_codepoint_is_test() {
+MJB_EXPORT void mjb_codepoint_is_test(void) {
     mojibake *mjb;
     mjb_initialize(&mjb);
 
@@ -87,7 +85,7 @@ MJB_EXPORT void mjb_codepoint_is_test() {
     mjb_assert("Not mapped codepoint: category invalid", !ret);
 }
 
-MJB_EXPORT void mjb_codepoint_is_graphic_test() {
+MJB_EXPORT void mjb_codepoint_is_graphic_test(void) {
     mojibake *mjb;
     mjb_initialize(&mjb);
 
@@ -109,7 +107,7 @@ MJB_EXPORT void mjb_codepoint_is_graphic_test() {
     mjb_assert("Not mapped codepoint: not graphic", !ret);
 }
 
-MJB_EXPORT void mjb_codepoint_is_valid_test() {
+MJB_EXPORT void mjb_codepoint_is_valid_test(void) {
     bool validity = mjb_codepoint_is_valid(NULL, MJB_CODEPOINT_MIN + 1);
     mjb_assert("Valid codepoint", validity);
 
@@ -142,7 +140,7 @@ MJB_EXPORT void mjb_codepoint_is_valid_test() {
     }
 }
 
-MJB_EXPORT void mjb_codepoint_lc_uc_tc_test() {
+MJB_EXPORT void mjb_codepoint_lc_uc_tc_test(void) {
     mojibake *mjb;
     mjb_initialize(&mjb);
 

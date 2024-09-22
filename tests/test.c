@@ -75,11 +75,11 @@ MJB_EXPORT void mjb_select_section(int section) {
     }
 }
 
-MJB_EXPORT unsigned int mjb_valid_count() {
+MJB_EXPORT unsigned int mjb_valid_count(void) {
     return tests_valid;
 }
 
-MJB_EXPORT unsigned int mjb_total_count() {
+MJB_EXPORT unsigned int mjb_total_count(void) {
     return tests_run;
 }
 

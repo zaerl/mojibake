@@ -7,7 +7,7 @@
 #include <string.h>
 #include "test.h"
 
-MJB_EXPORT void mjb_plane_is_valid_test() {
+MJB_EXPORT void mjb_plane_is_valid_test(void) {
     bool validity = mjb_plane_is_valid(1);
     mjb_assert("Valid codespace plane", validity);
 
@@ -18,7 +18,7 @@ MJB_EXPORT void mjb_plane_is_valid_test() {
     mjb_assert("Not valid exceed codespace plane", !validity);
 }
 
-MJB_EXPORT void mjb_plane_name_test() {
+MJB_EXPORT void mjb_plane_name_test(void) {
     bool validity = strcmp(mjb_plane_name(0, true), "BMP") == 0;
     mjb_assert("Valid codespace plane name abbreviation", validity);
 

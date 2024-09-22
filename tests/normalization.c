@@ -75,7 +75,7 @@ unsigned int check_normalization(mojibake *mjb, void *source, size_t source_size
     return ret;
 }
 
-MJB_EXPORT void mjb_codepoint_normalize_test() {
+MJB_EXPORT void mjb_codepoint_normalize_test(void) {
     mojibake *mjb;
     mjb_initialize(&mjb);
 

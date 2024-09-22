@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-MJB_EXPORT void mjb_ready_test() {
+MJB_EXPORT void mjb_ready_test(void) {
     mojibake *mjb;
 
     mjb_assert("Not ready", !mjb_ready(NULL));

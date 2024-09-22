@@ -27,7 +27,7 @@ void test_free(void *ptr) {
     return free(ptr);
 }
 
-MJB_EXPORT void mjb_memory_test() {
+MJB_EXPORT void mjb_memory_test(void) {
     bool result = false;
     mojibake *mjb;
 

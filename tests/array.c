@@ -66,4 +66,5 @@ MJB_EXPORT void mjb_array_test() {
         printf("1: [%u -- %u]", grow_el, *grow_at);
         break;
     }
+    }*/
 }

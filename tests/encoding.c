@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-MJB_EXPORT void mjb_string_encoding_test() {
+MJB_EXPORT void mjb_string_encoding_test(void) {
     mjb_encoding encoding = mjb_string_encoding(0, 10);
     mjb_assert("Void string", encoding == MJB_ENCODING_UNKNOWN);
 
@@ -44,7 +44,7 @@ MJB_EXPORT void mjb_string_encoding_test() {
         MJB_ENCODING_UTF_16_LE));
 }
 
-MJB_EXPORT void mjb_string_is_utf8_test() {
+MJB_EXPORT void mjb_string_is_utf8_test(void) {
     bool is_utf8 = mjb_string_is_utf8("", 0);
     mjb_assert("Void string", !is_utf8);
 
@@ -68,7 +68,7 @@ MJB_EXPORT void mjb_string_is_utf8_test() {
     mjb_assert("Not valid continuation byte", is_utf8);
 }
 
-MJB_EXPORT void mjb_string_is_ascii_test() {
+MJB_EXPORT void mjb_string_is_ascii_test(void) {
     bool is_ascii = mjb_string_is_ascii("", 0);
     mjb_assert("Void string", !is_ascii);
 
