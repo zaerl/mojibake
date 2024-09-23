@@ -6,7 +6,7 @@
 
 #include "mojibake.h"
 
-MJB_EXPORT const mjb_character mjb_characters[33797] = {
+const mjb_character mjb_characters[33797] = {
     { 0, "NULL", 0, 0x2000000, 0, 0xA, NULL, NULL, NULL, false, 0, 0, 0 },
     { 0x1, "START OF HEADING", 0, 0x2000000, 0, 0xA, NULL, NULL, NULL, false, 0, 0, 0 },
     { 0x2, "START OF TEXT", 0, 0x2000000, 0, 0xA, NULL, NULL, NULL, false, 0, 0, 0 },
