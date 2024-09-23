@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-extern const mjb_character mjb_characters[33797];
+extern const mjb_character mjb_characters[40116];
 
 #ifdef __cplusplus
 }
