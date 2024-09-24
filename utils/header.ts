@@ -7,7 +7,7 @@ export function generateHeader(blocks: Block[], categories: string[]) {
   const categoryEnums: string[] = [];
 
   for(let i = 0; i < categories.length; ++i) {
-    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16).padStart(8, '0')}${ i === categories.length - 1 ? '' : ','} /* ${i} (${Categories[i]}) ${categories[i]} */`);
+    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16).padStart(8, '0')}${ i === categories.length - 1 ? ' ' : ','} // ${i} (${Categories[i]}) ${categories[i]}`);
   }
 
   let fileContent = readFileSync('../src/mojibake.h', 'utf-8');

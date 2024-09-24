@@ -41,7 +41,7 @@ extern "C" {
  */
 typedef struct mojibake mojibake;
 
-/* See c standard memory allocation functions */
+// See c standard memory allocation functions
 typedef void *(*mjb_alloc_fn)(size_t size);
 typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
 typedef void (*mjb_free_fn)(void *ptr);
@@ -53,8 +53,8 @@ typedef void (*mjb_free_fn)(void *ptr);
 typedef uint32_t mjb_codepoint;
 
 #define MJB_CODEPOINT_MIN         0x0
-#define MJB_CODEPOINT_MAX         0x10FFFF /* Maximum valid unicode code point */
-#define MJB_CODEPOINT_REPLACEMENT 0xFFFD /* The character used when there is invalid data */
+#define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid unicode code point
+#define MJB_CODEPOINT_REPLACEMENT 0xFFFD // The character used when there is invalid data
 
 /*
  * Unicode encoding
@@ -430,36 +430,36 @@ typedef struct mjb_codepoint_block {
  * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
-    MJB_CATEGORY_LU = 0x00000001, /* 0 (Lu) Letter, uppercase */
-    MJB_CATEGORY_LL = 0x00000002, /* 1 (Ll) Letter, lowercase */
-    MJB_CATEGORY_LT = 0x00000004, /* 2 (Lt) Letter, titlecase */
-    MJB_CATEGORY_LM = 0x00000008, /* 3 (Lm) Letter, modifier */
-    MJB_CATEGORY_LO = 0x00000010, /* 4 (Lo) Letter, other */
-    MJB_CATEGORY_MN = 0x00000020, /* 5 (Mn) Mark, non-spacing */
-    MJB_CATEGORY_MC = 0x00000040, /* 6 (Mc) Mark, spacing combining */
-    MJB_CATEGORY_ME = 0x00000080, /* 7 (Me) Mark, enclosing */
-    MJB_CATEGORY_ND = 0x00000100, /* 8 (Nd) Number, decimal digit */
-    MJB_CATEGORY_NL = 0x00000200, /* 9 (Nl) Number, letter */
-    MJB_CATEGORY_NO = 0x00000400, /* 10 (No) Number, other */
-    MJB_CATEGORY_PC = 0x00000800, /* 11 (Pc) Punctuation, connector */
-    MJB_CATEGORY_PD = 0x00001000, /* 12 (Pd) Punctuation, dash */
-    MJB_CATEGORY_PS = 0x00002000, /* 13 (Ps) Punctuation, open */
-    MJB_CATEGORY_PE = 0x00004000, /* 14 (Pe) Punctuation, close */
-    MJB_CATEGORY_PI = 0x00008000, /* 15 (Pi) Punctuation, initial quote */
-    MJB_CATEGORY_PF = 0x00010000, /* 16 (Pf) Punctuation, final quote */
-    MJB_CATEGORY_PO = 0x00020000, /* 17 (Po) Punctuation, other */
-    MJB_CATEGORY_SM = 0x00040000, /* 18 (Sm) Symbol, math */
-    MJB_CATEGORY_SC = 0x00080000, /* 19 (Sc) Symbol, currency */
-    MJB_CATEGORY_SK = 0x00100000, /* 20 (Sk) Symbol, modifier */
-    MJB_CATEGORY_SO = 0x00200000, /* 21 (So) Symbol, other */
-    MJB_CATEGORY_ZS = 0x00400000, /* 22 (Zs) Separator, space */
-    MJB_CATEGORY_ZL = 0x00800000, /* 23 (Zl) Separator, line */
-    MJB_CATEGORY_ZP = 0x01000000, /* 24 (Zp) Separator, paragraph */
-    MJB_CATEGORY_CC = 0x02000000, /* 25 (Cc) Other, control */
-    MJB_CATEGORY_CF = 0x04000000, /* 26 (Cf) Other, format */
-    MJB_CATEGORY_CS = 0x08000000, /* 27 (Cs) Other, surrogate */
-    MJB_CATEGORY_CO = 0x10000000, /* 28 (Co) Other, private use */
-    MJB_CATEGORY_CN = 0x20000000 /* 29 (Cn) Other, not assigned */
+    MJB_CATEGORY_LU = 0x00000001, // 0 (Lu) Letter, uppercase
+    MJB_CATEGORY_LL = 0x00000002, // 1 (Ll) Letter, lowercase
+    MJB_CATEGORY_LT = 0x00000004, // 2 (Lt) Letter, titlecase
+    MJB_CATEGORY_LM = 0x00000008, // 3 (Lm) Letter, modifier
+    MJB_CATEGORY_LO = 0x00000010, // 4 (Lo) Letter, other
+    MJB_CATEGORY_MN = 0x00000020, // 5 (Mn) Mark, non-spacing
+    MJB_CATEGORY_MC = 0x00000040, // 6 (Mc) Mark, spacing combining
+    MJB_CATEGORY_ME = 0x00000080, // 7 (Me) Mark, enclosing
+    MJB_CATEGORY_ND = 0x00000100, // 8 (Nd) Number, decimal digit
+    MJB_CATEGORY_NL = 0x00000200, // 9 (Nl) Number, letter
+    MJB_CATEGORY_NO = 0x00000400, // 10 (No) Number, other
+    MJB_CATEGORY_PC = 0x00000800, // 11 (Pc) Punctuation, connector
+    MJB_CATEGORY_PD = 0x00001000, // 12 (Pd) Punctuation, dash
+    MJB_CATEGORY_PS = 0x00002000, // 13 (Ps) Punctuation, open
+    MJB_CATEGORY_PE = 0x00004000, // 14 (Pe) Punctuation, close
+    MJB_CATEGORY_PI = 0x00008000, // 15 (Pi) Punctuation, initial quote
+    MJB_CATEGORY_PF = 0x00010000, // 16 (Pf) Punctuation, final quote
+    MJB_CATEGORY_PO = 0x00020000, // 17 (Po) Punctuation, other
+    MJB_CATEGORY_SM = 0x00040000, // 18 (Sm) Symbol, math
+    MJB_CATEGORY_SC = 0x00080000, // 19 (Sc) Symbol, currency
+    MJB_CATEGORY_SK = 0x00100000, // 20 (Sk) Symbol, modifier
+    MJB_CATEGORY_SO = 0x00200000, // 21 (So) Symbol, other
+    MJB_CATEGORY_ZS = 0x00400000, // 22 (Zs) Separator, space
+    MJB_CATEGORY_ZL = 0x00800000, // 23 (Zl) Separator, line
+    MJB_CATEGORY_ZP = 0x01000000, // 24 (Zp) Separator, paragraph
+    MJB_CATEGORY_CC = 0x02000000, // 25 (Cc) Other, control
+    MJB_CATEGORY_CF = 0x04000000, // 26 (Cf) Other, format
+    MJB_CATEGORY_CS = 0x08000000, // 27 (Cs) Other, surrogate
+    MJB_CATEGORY_CO = 0x10000000, // 28 (Co) Other, private use
+    MJB_CATEGORY_CN = 0x20000000  // 29 (Cn) Other, not assigned
 } mjb_category;
 
 #define MJB_CATEGORY_COUNT 30
@@ -469,32 +469,32 @@ typedef enum mjb_category {
  * [see: https://www.unicode.org/glossary/#combining_class]
  */
 typedef enum mjb_canonical_combining_class {
-    MJB_CCC_SPACING =                0, /* Spacing, split, enclosing, reordrant, and Tibetan subjoined */
-    MJB_CCC_OVERLAYS =               1, /* Overlays and interior */
-    MJB_CCC_NUKTAS =                 7, /* Nuktas */
-    MJB_CCC_HIRAGANA_KATAKANA =      8, /* Hiragana/Katakana voicing marks */
-    MJB_CCC_VIRAMAS =                9, /* Viramas */
-    MJB_CCC_FIXED_START =           10, /* Start of fixed position classes */
-    MJB_CCC_FIXED_END =            199, /* End of fixed position classes */
-    MJB_CCC_BELOW_LEFT_ATTACHED =  200, /* Below left attached */
-    MJB_CCC_BELOW_ATTACHED =       202, /* Below attached */
-    MJB_CCC_BELOW_RIGHT_ATTACHED = 204, /* Below right attached */
-    MJB_CCC_LEFT_ATTACHED =        208, /* Left attached (reordrant around single base character) */
-    MJB_CCC_RIGHT_ATTACHED =       210, /* Right attached */
-    MJB_CCC_ABOVE_LEFT_ATTACHED =  212, /* Above left attached */
-    MJB_CCC_ABOVE_ATTACHED =       214, /* Above attached */
-    MJB_CCC_ABOVE_RIGHT_ATTACHED = 216, /* Above right attached */
-    MJB_CCC_BELOW_LEFT =           218, /* Below left */
-    MJB_CCC_BELOW =                220, /* Below */
-    MJB_CCC_BELOW_RIGHT =          222, /* Below right */
-    MJB_CCC_LEFT =                 224, /* Left (reordrant around single base character) */
-    MJB_CCC_RIGHT =                226, /* Right */
-    MJB_CCC_ABOVE_LEFT =           228, /* Above left */
-    MJB_CCC_ABOVE =                230, /* Above */
-    MJB_CCC_ABOVE_RIGHT =          232, /* Above right */
-    MJB_CCC_DOUBLE_BELOW =         233, /* Double below */
-    MJB_CCC_DOUBLE_ABOVE =         234, /* Double above */
-    MJB_CCC_BELOW_IOTA =           240  /* Below (iota subscript) */
+    MJB_CCC_SPACING =              0, // Spacing, split, enclosing, reordrant, and Tibetan subjoined
+    MJB_CCC_OVERLAYS =             1, // Overlays and interior
+    MJB_CCC_NUKTAS =               7, // Nuktas
+    MJB_CCC_HIRAGANA_KATAKANA =    8, // Hiragana/Katakana voicing marks
+    MJB_CCC_VIRAMAS =              9, // Viramas
+    MJB_CCC_FIXED_START =          10, // Start of fixed position classes
+    MJB_CCC_FIXED_END =            199, // End of fixed position classes
+    MJB_CCC_BELOW_LEFT_ATTACHED =  200, // Below left attached
+    MJB_CCC_BELOW_ATTACHED =       202, // Below attached
+    MJB_CCC_BELOW_RIGHT_ATTACHED = 204, // Below right attached
+    MJB_CCC_LEFT_ATTACHED =        208, // Left attached (reordrant around single base character)
+    MJB_CCC_RIGHT_ATTACHED =       210, // Right attached
+    MJB_CCC_ABOVE_LEFT_ATTACHED =  212, // Above left attached
+    MJB_CCC_ABOVE_ATTACHED =       214, // Above attached
+    MJB_CCC_ABOVE_RIGHT_ATTACHED = 216, // Above right attached
+    MJB_CCC_BELOW_LEFT =           218, // Below left
+    MJB_CCC_BELOW =                220, // Below
+    MJB_CCC_BELOW_RIGHT =          222, // Below right
+    MJB_CCC_LEFT =                 224, // Left (reordrant around single base character)
+    MJB_CCC_RIGHT =                226, // Right
+    MJB_CCC_ABOVE_LEFT =           228, // Above left
+    MJB_CCC_ABOVE =                230, // Above
+    MJB_CCC_ABOVE_RIGHT =          232, // Above right
+    MJB_CCC_DOUBLE_BELOW =         233, // Double below
+    MJB_CCC_DOUBLE_ABOVE =         234, // Double above
+    MJB_CCC_BELOW_IOTA =           240  // Below (iota subscript)
 } mjb_canonical_combining_class;
 
 #define MJB_CCC_COUNT 26
@@ -504,30 +504,30 @@ typedef enum mjb_canonical_combining_class {
  * [see: https://www.unicode.org/glossary/#combining_class]
  */
 typedef enum mjb_bidi_categories {
-    NONE, /* Nothing specified */
-    L,	  /* Left-to-right */
-    R,	  /* Right-to-left */
-    AL,	  /* Right-to-left arabic */
-    EN,	  /* European number */
-    ES,	  /* European number separator */
-    ET,	  /* European number terminator */
-    AN,	  /* Arabic number */
-    CS,	  /* Common number separator */
-    NSM,  /* Nonspacing mark */
-    BN,	  /* Boundary neutral */
-    B,    /* Paragraph separator */
-    S,    /* Segment separator */
-    WS,   /* Whitespace */
-    ON,	  /* Other neutrals */
-    LRE,  /* Left-to-right embedding */
-    LRO,  /* Left-to-right override */
-    RLE,  /* Right-to-left embedding */
-    RLO,  /* Right-to-left override */
-    PDF,  /* Pop Directional format */
-    LRI,  /* Left-to-right isolate */
-    RLI,  /* Right-to-Left isolate */
-    FSI,  /* First strong isolate */
-    PDI	  /* Pop directional isolate */
+    NONE, // Nothing specified
+    L,	  // Left-to-right
+    R,	  // Right-to-left
+    AL,	  // Right-to-left arabic
+    EN,	  // European number
+    ES,	  // European number separator
+    ET,	  // European number terminator
+    AN,	  // Arabic number
+    CS,	  // Common number separator
+    NSM,  // Nonspacing mark
+    BN,	  // Boundary neutral
+    B,    // Paragraph separator
+    S,    // Segment separator
+    WS,   // Whitespace
+    ON,	  // Other neutrals
+    LRE,  // Left-to-right embedding
+    LRO,  // Left-to-right override
+    RLE,  // Right-to-left embedding
+    RLO,  // Right-to-left override
+    PDF,  // Pop Directional format
+    LRI,  // Left-to-right isolate
+    RLI,  // Right-to-Left isolate
+    FSI,  // First strong isolate
+    PDI	  // Pop directional isolate
 } mjb_bidi_categories;
 
 #define MJB_BIDI_COUNT 24
@@ -546,18 +546,18 @@ typedef enum mjb_plane {
     MJB_PLANE_PUA_B = 16
 } mjb_plane;
 
-#define MJB_PLANE_NUM 17 /* 17 planes */
-#define MJB_PLANE_SIZE 65536 /* 2^16 code points per plane */
+#define MJB_PLANE_NUM 17 // 17 planes
+#define MJB_PLANE_SIZE 65536 // 2^16 code points per plane
 
 /*
  * Normalization form
  * [see: https://www.unicode.org/glossary/#normalization_form]
  */
 typedef enum mjb_normalization {
-    MJB_NORMALIZATION_NFD =  0, /* Canonical decomposition and ordering */
-    MJB_NORMALIZATION_NFC =  1, /* Composition after canonical decomposition and ordering */
-    MJB_NORMALIZATION_NFKD = 2, /* Compatible decomposition and ordering */
-    MJB_NORMALIZATION_NFKC = 3  /* Composition after compatible decomposition and ordering */
+    MJB_NORMALIZATION_NFD =  0, // Canonical decomposition and ordering
+    MJB_NORMALIZATION_NFC =  1, // Composition after canonical decomposition and ordering
+    MJB_NORMALIZATION_NFKD = 2, // Compatible decomposition and ordering
+    MJB_NORMALIZATION_NFKC = 3  // Composition after compatible decomposition and ordering */
 } mjb_normalization;
 
 /*
@@ -604,70 +604,70 @@ typedef struct mjb_character {
     mjb_codepoint titlecase;
 } mjb_character;
 
-/* Initialize the library */
+// Initialize the library
 bool mjb_initialize(mojibake **mjb);
 
-/* Initialize the library with custom values */
+// Initialize the library with custom values
 bool mjb_initialize_v2(mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
-/* The library is ready */
+// The library is ready
 bool mjb_ready(mojibake *mjb);
 
-/* Allocate and zero memory */
+// Allocate and zero memory
 void *mjb_alloc(mojibake *mjb, size_t size);
 
-/* Reallocate memory */
+// Reallocate memory
 void *mjb_realloc(mojibake *mjb, void *ptr, size_t new_size);
 
-/* Free memory */
+// Free memory
 void mjb_free(mojibake *mjb, void *ptr);
 
-/* Output the current library version (MJB_VERSION) */
+// Output the current library version (MJB_VERSION)
 char *mjb_version(void);
 
-/* Output the current library version number (MJB_VERSION_NUMBER) */
+// Output the current library version number (MJB_VERSION_NUMBER)
 unsigned int mjb_version_number(void);
 
-/* Output the current supported unicode version (MJB_UNICODE_VERSION) */
+// Output the current supported unicode version (MJB_UNICODE_VERSION)
 char *mjb_unicode_version(void);
 
-/* Return true if the plane is valid */
+// Return true if the plane is valid
 bool mjb_plane_is_valid(mjb_plane plane);
 
-/* Return the name of a plane, NULL if the place specified is not valid */
+// Return the name of a plane, NULL if the place specified is not valid
 const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
-/* Return the string encoding (the most probable) */
+// Return the string encoding (the most probable)
 mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
-/* Return true if the string is encoded in UTF-8 */
+// Return true if the string is encoded in UTF-8
 bool mjb_string_is_utf8(const char *buffer, size_t size);
 
-/* Return true if the string is encoded in ASCII */
+// Return true if the string is encoded in ASCII
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 
-/* Return true if the codepoint is valid */
+// Return true if the codepoint is valid
 bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint);
 
-/* Return the codepoint character */
+// Return the codepoint character
 bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint);
 
-/* Return true if the codepoint has the category */
+// Return true if the codepoint has the category
 bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category);
 
-/* Return true if the codepoint is graphic */
+// Return true if the codepoint is graphic
 bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint);
 
-/* Return the codepoint lowercase codepoint */
+// Return the codepoint lowercase codepoint
 mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint);
 
-/* Return the codepoint uppercase codepoint */
+// Return the codepoint uppercase codepoint
 mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint);
 
-/* Return the codepoint titlecase codepoint */
+// Return the codepoint titlecase codepoint
 mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint);
 
-/* Normalize a string */
+// Normalize a string
 void *mjb_normalize(mojibake *mjb, void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
