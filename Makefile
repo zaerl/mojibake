@@ -11,6 +11,9 @@ build: configure
 
 rebuild: clean_build all
 
+generate:
+	cd ./utils && ./generate.sh
+
 test: BUILD_TYPE = Test
 test: configure build
 	build/tests/mojibake-test $(ARGS)
@@ -21,4 +24,4 @@ clean_build:
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all clean clean_build configure build test rebuild
+.PHONY: all clean clean_build configure build test rebuild generate
