@@ -119,7 +119,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     wordsCount += words.length;
 
     if(split[8] !== '') {
-      if(typeof(hasNumber[split[8]]) === 'undefined') {
+      if(typeof(hasNumber[split[8]]) === 'undefined') {
         hasNumber[split[8]] = 1;
       } else {
         ++hasNumber[split[8]];
@@ -181,13 +181,13 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     ));
 
     for(const word of words) {
-      if(typeof(nameBuffer[word]) === 'undefined') {
+      if(typeof(nameBuffer[word]) === 'undefined') {
         nameBuffer[word] = 1;
       } else {
         ++nameBuffer[word];
       }
 
-      if(typeof(categoryBuffer[split[2]]) === 'undefined') {
+      if(typeof(categoryBuffer[split[2]]) === 'undefined') {
         categoryBuffer[split[2]] = 1;
       } else {
         ++categoryBuffer[split[2]];
@@ -279,7 +279,6 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 }
 
 // Init
-
 if(process.argv[2] === '-V') {
   verbose = true;
 }

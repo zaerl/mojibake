@@ -5,7 +5,7 @@ export function generateReadme() {
   const readme =
 `# Mojibake
 
-Mojibake is a low-level Unicode library written in C99.
+Mojibake is a low-level Unicode library written in C99. THIS IS AN EXPERIMENTAL LIBRARY. DO NOT USE.
 
 ## API
 

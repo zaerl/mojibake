@@ -8,7 +8,7 @@ export function generateData(characters: Character[]) {
 
 #include "mojibake.h"
 
-MJB_EXPORT const mjb_character mjb_characters[${characters.length}] = {
+extern const mjb_character mjb_characters[${characters.length}] = {
 ${characters.map(value => '    ' + value.formatC()).join(',\n')}
 };
 `;
