@@ -469,12 +469,48 @@ typedef enum mjb_category {
  * [see: https://www.unicode.org/glossary/#combining_class]
  */
 typedef enum mjb_canonical_combining_class {
-    MJB_CCC_SPACING =              0, // Spacing, split, enclosing, reordrant, and Tibetan subjoined
+    MJB_CCC_NOT_REORDERED =        0, // Spacing, split, enclosing, reordrant, and Tibetan subjoined
     MJB_CCC_OVERLAYS =             1, // Overlays and interior
-    MJB_CCC_NUKTAS =               7, // Nuktas
-    MJB_CCC_HIRAGANA_KATAKANA =    8, // Hiragana/Katakana voicing marks
-    MJB_CCC_VIRAMAS =              9, // Viramas
+    MJB_CCC_VIETNAMES_ALT =        6, // Vietnamese alternate reading
+    MJB_CCC_NUKTA =                7, // Nukta
+    MJB_CCC_KANA_VOICING =         8, // Hiragana/Katakana voicing marks
+    MJB_CCC_VIRAMA =               9, // Viramas
     MJB_CCC_FIXED_START =          10, // Start of fixed position classes
+    MJB_CCC_11 =                   11, // No name
+    MJB_CCC_12 =                   12, // No name
+    MJB_CCC_13 =                   13, // No name
+    MJB_CCC_14 =                   14, // No name
+    MJB_CCC_15 =                   15, // No name
+    MJB_CCC_16 =                   16, // No name
+    MJB_CCC_17 =                   17, // No name
+    MJB_CCC_18 =                   18, // No name
+    MJB_CCC_19 =                   19, // No name
+    MJB_CCC_20 =                   20, // No name
+    MJB_CCC_21 =                   21, // No name
+    MJB_CCC_22 =                   22, // No name
+    MJB_CCC_23 =                   23, // No name
+    MJB_CCC_24 =                   24, // No name
+    MJB_CCC_25 =                   25, // No name
+    MJB_CCC_26 =                   26, // No name
+    MJB_CCC_27 =                   27, // No name
+    MJB_CCC_28 =                   28, // No name
+    MJB_CCC_29 =                   29, // No name
+    MJB_CCC_30 =                   30, // No name
+    MJB_CCC_31 =                   31, // No name
+    MJB_CCC_32 =                   32, // No name
+    MJB_CCC_33 =                   33, // No name
+    MJB_CCC_34 =                   34, // No name
+    MJB_CCC_35 =                   35, // No name
+    MJB_CCC_36 =                   36, // No name
+    MJB_CCC_84 =                   84, // No name
+    MJB_CCC_91 =                   91, // No name
+    MJB_CCC_103 =                  103, // No name
+    MJB_CCC_107 =                  107, // No name
+    MJB_CCC_118 =                  118, // No name
+    MJB_CCC_122 =                  122, // No name
+    MJB_CCC_129 =                  129, // No name
+    MJB_CCC_130 =                  130, // No name
+    MJB_CCC_132 =                  132, // No name
     MJB_CCC_FIXED_END =            199, // End of fixed position classes
     MJB_CCC_BELOW_LEFT_ATTACHED =  200, // Below left attached
     MJB_CCC_BELOW_ATTACHED =       202, // Below attached
@@ -497,7 +533,7 @@ typedef enum mjb_canonical_combining_class {
     MJB_CCC_BELOW_IOTA =           240  // Below (iota subscript)
 } mjb_canonical_combining_class;
 
-#define MJB_CCC_COUNT 26
+#define MJB_CCC_COUNT 62
 
 /*
  * Bidirectional categories
