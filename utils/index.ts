@@ -10,13 +10,13 @@ import {
 
 let verbose = false;
 
-function log(message?: any, ...optionalParams: any[]) {
+function log(message: string, ...optionalParams: any[]) {
   if(verbose) {
     console.log(message, ...optionalParams);
   }
 }
 
-function iLog(message?: any, ...optionalParams: any[]) {
+function iLog(message: string, ...optionalParams: any[]) {
   console.log(message, ...optionalParams);
 }
 
