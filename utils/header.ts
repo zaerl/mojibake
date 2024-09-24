@@ -1,13 +1,7 @@
-import { readFileSync, writeFileSync } from "fs";
-import { cfns } from "./cfunction";
-import { Block, Categories, characterDecompositionMapping } from "./types";
-
-function substituteText(fileContent: string, start: string, end: string, replacement: string) {
-  const startIndex = fileContent.indexOf(start) + start.length;
-  const endIndex = fileContent.indexOf(end, startIndex);
-
-  return fileContent.slice(0, startIndex) + replacement + fileContent.slice(endIndex);
-}
+import { readFileSync, writeFileSync } from 'fs';
+import { cfns } from './cfunction';
+import { substituteText } from './utils';
+import { Block, Categories, characterDecompositionMapping } from './types';
 
 export function generateHeader(blocks: Block[], categories: string[]) {
   const categoryEnums: string[] = [];

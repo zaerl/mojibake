@@ -1,16 +1,11 @@
-import { writeFileSync } from "fs";
-import { cfns } from "./cfunction";
+import { readFileSync, writeFileSync } from 'fs';
+import { cfns } from './cfunction';
+import { substituteText } from './utils';
 
 export function generateReadme() {
-  const readme =
-`# Mojibake
+  let fileContent = readFileSync('../README.md', 'utf-8');
 
-Mojibake is a low-level Unicode library written in C99. THIS IS AN EXPERIMENTAL LIBRARY. DO NOT USE.
+  fileContent = substituteText(fileContent, "## API\n\n", null, cfns.map(value => value.formatMD()).join('\n\n'));
 
-## API
-
-${cfns.map(value => value.formatMD()).join('\n\n')}
-`;
-
-  writeFileSync('../README.md', readme);
+  writeFileSync('../README.md', fileContent);
 }

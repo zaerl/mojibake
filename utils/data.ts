@@ -1,17 +1,12 @@
-import { writeFileSync } from "fs";
-import { license } from "./format";
+import { readFileSync, writeFileSync } from "fs";
 import { Character } from "./types";
+import { substituteText } from "./utils";
 
 export function generateData(characters: Character[]) {
-  const data =
-`${license()}
+  let fileContent = readFileSync('../src/data.c', 'utf-8');
 
-#include "mojibake.h"
+  fileContent = substituteText(fileContent, 'mjb_characters[', ']', '' + characters.length);
+  fileContent = substituteText(fileContent, "= {\n", "\n};", characters.map(value => '    ' + value.formatC()).join(',\n'));
 
-extern const mjb_character mjb_characters[${characters.length}] = {
-${characters.map(value => '    ' + value.formatC()).join(',\n')}
-};
-`;
-
-  writeFileSync('../src/data.c', data);
+  writeFileSync('../src/data.c', fileContent);
 }
