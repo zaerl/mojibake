@@ -135,7 +135,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     const decomposition = split[5].split(' ');
     let decompositionType = null;
 
-    if(decomposition.length > 1) {
+    if(decomposition.length > 1) {
       const canonical = decomposition[0][0] !== '<';
       const decompositionSize = canonical ? decomposition.length : decomposition.length - 1;
       decompositions += decompositionSize;
