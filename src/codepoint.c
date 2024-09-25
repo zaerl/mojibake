@@ -5,36 +5,36 @@
  */
 
 #include <string.h>
-#include "data.h"
+// #include "data.h"
 #include "db.h"
 
 static const mjb_character empty_character;
 
-/* Return true if the codepoint is valid */
+// Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint) {
     if(codepoint < MJB_CODEPOINT_MIN || codepoint > MJB_CODEPOINT_MAX ||
-        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || /* Noncharacter */
-        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { /* Noncharacter */
+        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || // Noncharacter
+        (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { // Noncharacter
         return false;
     }
 
     return true;
 }
 
-/* Return the codepoint character */
+// Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint) {
     if(character == NULL || !mjb_codepoint_is_valid(mjb, codepoint) || !mjb_ready(mjb)) {
         return false;
     }
 
-    /* Reset character */
+    // Reset character
     *character = empty_character;
-    *character = mjb_characters[codepoint];
+    // *character = mjb_characters[codepoint];
 
     return true;
 }
 
-/* Return true if the codepoint has the category */
+// Return true if the codepoint has the category
 MJB_EXPORT bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category) {
     mjb_character character;
 
@@ -45,7 +45,7 @@ MJB_EXPORT bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_cat
     return character.category == category;
 }
 
-/* Return true if the codepoint is graphic */
+// Return true if the codepoint is graphic
 MJB_EXPORT bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint) {
     mjb_character character;
 
@@ -53,7 +53,7 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint)
         return false;
     }
 
-    /* All C categories can be printed */
+    // All C categories can be printed
     switch(character.category) {
         case MJB_CATEGORY_CC:
         case MJB_CATEGORY_CF:
@@ -66,7 +66,7 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint)
     }
 }
 
-/* Return the codepoint lowercase codepoint */
+// Return the codepoint lowercase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint) {
     mjb_character character;
 
@@ -77,7 +77,7 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint
     return character.lowercase == 0 ? codepoint : character.lowercase;
 }
 
-/* Return the codepoint uppercase codepoint */
+// Return the codepoint uppercase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint) {
     mjb_character character;
 
@@ -88,7 +88,7 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint
     return character.uppercase == 0 ? codepoint : character.uppercase;
 }
 
-/* Return the codepoint titlecase codepoint */
+// Return the codepoint titlecase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint) {
     mjb_character character;
 
