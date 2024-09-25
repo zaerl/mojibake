@@ -20,12 +20,15 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter")
 # Debug flags
 set(CMAKE_C_FLAGS_DEBUG "-g -O0")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
-set(CMAKE_C_FLAGS_TEST "-g -O0 -DWRD_TEST")
+set(CMAKE_C_FLAGS_TEST "-g -O0 -DMJB_TEST")
 
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Test" CACHE STRING "Configurations" FORCE)
 
 # Mojibake library
 add_subdirectory(src)
+
+# SQLite library
+add_subdirectory(src/sqlite3)
 
 # Tests
 add_subdirectory(tests)
