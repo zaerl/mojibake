@@ -631,8 +631,8 @@ typedef struct mjb_character {
     mjb_canonical_combining_class combining;
     unsigned short bidirectional;
     mjb_decomposition decomposition;
-    char *decimal;
-    char *digit;
+    int decimal;
+    int digit;
     char *numeric;
     bool mirrored;
     mjb_codepoint uppercase;

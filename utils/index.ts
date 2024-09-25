@@ -175,8 +175,8 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       parseInt(split[3], 10) as BidirectionalCategories, // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
       decompositionType,
-      split[6] === '' ? null : split[6], // decimal
-      split[7] === '' ? null : split[7], // digit
+      split[6] === '' ? null : parseInt(split[6]), // decimal
+      split[7] === '' ? null : parseInt(split[7]), // digit
       split[8] === '' ? null : split[8], // numeric
       split[9] === 'Y', // mirrored
       // unicode 1.0 name
@@ -188,10 +188,22 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     );
     characters.push(char);
 
-    const info = insertDataSmt.run(char.codepoint, char.name, char.block, char.category,
-      char.combining, char.bidirectional, char.decomposition, char.decimal, char.digit,
-      char.numeric, char.mirrored ? 'Y' : 'N', char.lowercase, char.uppercase,
-      char.titlecase);
+    insertDataSmt.run(
+      char.codepoint,
+      char.name,
+      char.category,
+      char.combining,
+      char.bidirectional,
+      char.decomposition,
+      char.decimal,
+      char.digit,
+      char.numeric,
+      char.mirrored ? 1 : 0,
+      char.uppercase,
+      char.lowercase,
+      char.titlecase,
+      char.block
+    );
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -308,15 +320,15 @@ async function generate() {
       combining INTEGER,
       bidirectional INTEGER,
       decomposition INTEGER,
-      decimal TEXT,
-      digit TEXT,
+      decimal INTEGER,
+      digit INTEGER,
       numeric TEXT,
       mirrored INTEGER,
       -- unicode 1.0 name
       -- 10646 comment
-      uppercase TEXT,
-      lowercase TEXT,
-      titlecase TEXT,
+      uppercase INTEGER,
+      lowercase INTEGER,
+      titlecase INTEGER,
       block INTEGER NOT NULL -- Additional
   );
   `);
@@ -351,7 +363,7 @@ async function generate() {
   const characters = await readUnicodeData(blocks);
 
   generateHeader(blocks, categories);
-  generateData(characters);
+  // generateData(characters);
   generateReadme();
 
   // Persistent

@@ -167,8 +167,8 @@ export class Character {
     public combining: number,
     public bidirectional: BidirectionalCategories | null,
     public decomposition: number,
-    public decimal: string | null,
-    public digit: string | null,
+    public decimal: number | null,
+    public digit: number | null,
     public numeric: string | null,
     public mirrored: boolean,
     // unicode 1.0 name
