@@ -13,8 +13,8 @@ extern "C" {
 #endif
 
 // Start tests declarations.
+void *test_db(void *arg);
 void *test_encoding(void *arg);
-void *test_memory(void *arg);
 void *test_plane(void *arg);
 void *test_version(void *arg);
 

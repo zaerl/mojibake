@@ -5,8 +5,7 @@
  */
 
 #include <string.h>
-// #include "data.h"
-#include "db.h"
+#include "mojibake.h"
 
 static const mjb_character empty_character;
 
@@ -23,7 +22,9 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint) {
 
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint) {
-    if(character == NULL || !mjb_codepoint_is_valid(mjb, codepoint) || !mjb_ready(mjb)) {
+    mjb_initialize();
+
+    if(character == NULL || !mjb_codepoint_is_valid(mjb, codepoint)) {
         return false;
     }
 

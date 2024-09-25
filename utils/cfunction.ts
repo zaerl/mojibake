@@ -20,29 +20,27 @@ export class CFunction {
 }
 
 export const cfns: CFunction[] = [
-  new CFunction('Initialize the library',
-    'bool', 'initialize',
-    ['mojibake **mjb']),
+  new CFunction('Initialize the library. Not needed to be called',
+    'bool', 'initialize'),
 
-  new CFunction('Initialize the library with custom values',
+  new CFunction('Initialize the library with custom values. Not needed to be called',
     'bool', 'initialize_v2',
-    ['mojibake **mjb', 'mjb_alloc_fn alloc_fn', 'mjb_realloc_fn realloc_fn', 'mjb_free_fn free_fn']),
+    ['mjb_alloc_fn alloc_fn', 'mjb_realloc_fn realloc_fn', 'mjb_free_fn free_fn']),
 
-  new CFunction('The library is ready',
-    'bool', 'ready',
-    ['mojibake *mjb']),
+  new CFunction('Shutdown the library. Not needed to be called',
+    'void', 'shutdown'),
 
   new CFunction('Allocate and zero memory',
     'void *', 'alloc',
-    ['mojibake *mjb', 'size_t size']),
+    ['size_t size']),
 
   new CFunction('Reallocate memory',
     'void *', 'realloc',
-    ['mojibake *mjb', 'void *ptr', 'size_t new_size']),
+    ['void *ptr', 'size_t new_size']),
 
   new CFunction('Free memory',
     'void', 'free',
-    ['mojibake *mjb', 'void *ptr']),
+    ['void *ptr']),
 
   new CFunction('Output the current library version (MJB_VERSION)',
     'char *', 'version'),

@@ -27,17 +27,17 @@ void test_free(void *ptr) {
     free(ptr);
 }
 
-void *test_memory(void *arg) {
-    mojibake *mjb;
+void *test_db(void *arg) {
+    mjb_shutdown();
+    ATT_ASSERT(mjb_initialize_v2(NULL, NULL, NULL), false, "Void memory functions");
 
-    ATT_ASSERT(mjb_initialize_v2(&mjb, NULL, NULL, NULL), false, "Void memory functions");
+    mjb_shutdown();
+    mjb_initialize_v2(test_malloc, test_realloc, test_free);
+    mjb_alloc(1);
+    mjb_realloc(NULL, 1);
+    mjb_free(NULL);
 
-    mjb_initialize_v2(&mjb, test_malloc, test_realloc, test_free);
-    mjb_alloc(mjb, 1);
-    mjb_realloc(mjb, NULL, 1);
-    mjb_free(mjb, NULL);
-
-    ATT_ASSERT(test_counter, 4, "Custom memory functions");
+    ATT_ASSERT(test_counter, 3, "Custom memory functions");
 
     return NULL;
 }

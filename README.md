@@ -4,34 +4,34 @@ Mojibake is a low-level Unicode library written in C99. THIS IS AN EXPERIMENTAL 
 
 ## API
 
-Initialize the library
+Initialize the library. Not needed to be called
 ```c
-bool mjb_initialize(mojibake **mjb);
+bool mjb_initialize(void);
 ```
 
-Initialize the library with custom values
+Initialize the library with custom values. Not needed to be called
 ```c
-bool mjb_initialize_v2(mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 ```
 
-The library is ready
+Shutdown the library. Not needed to be called
 ```c
-bool mjb_ready(mojibake *mjb);
+void mjb_shutdown(void);
 ```
 
 Allocate and zero memory
 ```c
-void *mjb_alloc(mojibake *mjb, size_t size);
+void *mjb_alloc(size_t size);
 ```
 
 Reallocate memory
 ```c
-void *mjb_realloc(mojibake *mjb, void *ptr, size_t new_size);
+void *mjb_realloc(void *ptr, size_t new_size);
 ```
 
 Free memory
 ```c
-void mjb_free(mojibake *mjb, void *ptr);
+void mjb_free(void *ptr);
 ```
 
 Output the current library version (MJB_VERSION)

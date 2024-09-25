@@ -641,23 +641,23 @@ typedef struct mjb_character {
     mjb_block block; // Additional information
 } mjb_character;
 
-// Initialize the library
-bool mjb_initialize(mojibake **mjb);
+// Initialize the library. Not needed to be called
+bool mjb_initialize(void);
 
-// Initialize the library with custom values
-bool mjb_initialize_v2(mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+// Initialize the library with custom values. Not needed to be called
+bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
-// The library is ready
-bool mjb_ready(mojibake *mjb);
+// Shutdown the library. Not needed to be called
+void mjb_shutdown(void);
 
 // Allocate and zero memory
-void *mjb_alloc(mojibake *mjb, size_t size);
+void *mjb_alloc(size_t size);
 
 // Reallocate memory
-void *mjb_realloc(mojibake *mjb, void *ptr, size_t new_size);
+void *mjb_realloc(void *ptr, size_t new_size);
 
 // Free memory
-void mjb_free(mojibake *mjb, void *ptr);
+void mjb_free(void *ptr);
 
 // Output the current library version (MJB_VERSION)
 char *mjb_version(void);
