@@ -1,6 +1,7 @@
 set(TEST_SOURCES
     attractor/attractor.c
     encoding.c
+    plane.c
     test.c
 )
 

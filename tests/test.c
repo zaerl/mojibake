@@ -90,6 +90,7 @@ int main(int argc, char * const argv[]) {
 
     // Start tests declarations.
     RUN_TEST(encoding)
+    RUN_TEST(plane)
 
     unsigned int tests_valid = att_get_valid_tests();
     unsigned int tests_total = att_get_total_tests();

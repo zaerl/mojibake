@@ -31,7 +31,7 @@ void *test_encoding(void *arg) {
     const char *test7 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_is_utf8(test7, 43), true, "Valid string and length");
 
-    /* \xF0\x9F\x99\x82 = 🙂 */
+    // \xF0\x9F\x99\x82 = 🙂
     const char *test8 = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
     ATT_ASSERT(mjb_string_is_utf8(test8, 48), true, "String with emoji");
 
@@ -45,7 +45,7 @@ void *test_encoding(void *arg) {
     const char *test10 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_is_ascii(test10, 43), true, "Valid string and length");
 
-    /* \xF0\x9F\x99\x82 = 🙂 */
+    // \xF0\x9F\x99\x82 = 🙂
     const char *test11 = "\xF0\x9F\x99\x82";
     ATT_ASSERT(mjb_string_is_ascii(test11, 5), false, "String with emoji");
 
