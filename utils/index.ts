@@ -3,12 +3,14 @@ import { createInterface } from 'readline';
 import { generateData } from './data';
 import { generateHeader } from './header';
 import { generateReadme } from './readme';
+import Database, { Statement } from 'better-sqlite3';
 import {
   BidirectionalCategories, Block, categories, Categories, Character, characterDecompositionMapping, CharacterDecompositionMappingStrings,
   CountBuffer, Numeric, UnicodeDataRow
 } from './types';
 
 let verbose = false;
+let insertDataSmt: Statement;
 
 function log(message: string, ...optionalParams: any[]) {
   if(verbose) {
@@ -73,6 +75,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 
   const nameBuffer: { [name: string]: number } = {};
   const categoryBuffer: { [name: string]: number } = {};
+  let codepointsCount = 0;
   let charsCount = 0;
   let wordsCount = 0;
   let hasNumber: { [name: string]: number } = {};
@@ -91,6 +94,8 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     input: createReadStream('./UCD/UnicodeData.txt'),
     crlfDelay: Infinity
   });
+
+  iLog('PARSE UNICODE DATA');
 
   for await (const line of rl) {
     const split = line.split(';') as UnicodeDataRow;
@@ -115,6 +120,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     }
 
     previousCodepoint = codepoint;
+    ++codepointsCount;
     charsCount += name.length;
     wordsCount += words.length;
 
@@ -160,10 +166,11 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       ++currentBlock;
     }
 
-    characters.push(new Character(
+    const char = new Character(
       codepoint,
       name,
       currentBlock, // Additional
+
       1 << Categories[split[2]],
       parseInt(split[3], 10), // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
@@ -173,12 +180,20 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       split[8] === '' ? null : split[8], // numeric
 
       split[9] === 'Y', // mirrored
+
       // unicode 1.0 name
       // 10646 comment field
+
       split[12] === '' ? 0 : parseInt(split[12], 16), // uppercase
       split[13] === '' ? 0 : parseInt(split[13], 16), // lowercase
       split[14] === '' ? 0 : parseInt(split[14], 16) // titlecase
-    ));
+    );
+    characters.push(char);
+
+    const info = insertDataSmt.run(char.codepoint, char.name, char.block, char.category,
+      char.combining, char.bidirectional, char.decimal, char.digit,
+      char.numeric, char.mirrored ? 'Y' : 'N', char.lowercase, char.uppercase,
+      char.titlecase);
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -272,6 +287,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   }
 
   iLog(`${verbose ? '\n' : ''}COUNT\n`);
+  iLog(`${codepointsCount.toLocaleString()} codepoints (${(codepointsCount * 5).toLocaleString()} bytes)`);
   iLog(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
   iLog(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
 
@@ -284,12 +300,68 @@ if(process.argv[2] === '-V') {
 }
 
 async function generate() {
+  const db = new Database('../build/mojibake.db');
+
+  db.exec(`
+  CREATE TABLE IF NOT EXISTS unicode_data (
+      codepoint INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      block INTEGER NOT NULL, -- Additional
+      category INTEGER NOT NULL,
+      combining INTEGER,
+      bidirectional INTEGER,
+      decimal TEXT,
+      digit TEXT,
+      numeric TEXT,
+      mirrored INTEGER,
+      uppercase TEXT,
+      lowercase TEXT,
+      titlecase TEXT
+  );
+  `);
+
+  process.on('exit', () => db.close());
+  process.on('SIGHUP', () => process.exit(128 + 1));
+  process.on('SIGINT', () => process.exit(128 + 2));
+  process.on('SIGTERM', () => process.exit(128 + 15));
+
+  insertDataSmt = db.prepare(`
+  INSERT INTO unicode_data (
+      codepoint,
+      name,
+      block, -- Additional
+      category,
+      combining,
+      bidirectional,
+      decimal,
+      digit,
+      numeric,
+      mirrored,
+      uppercase,
+      lowercase,
+      titlecase
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  `);
+
   const blocks = readBlocks();
   const characters = await readUnicodeData(blocks);
 
   generateHeader(blocks, categories);
   generateData(characters);
   generateReadme();
+
+  // Persistent
+  db.pragma('journal_mode = OFF');
+  db.pragma('temp_store = MEMORY');
+  db.pragma('cache_size = -1000000');
+
+  // Not persistent
+  /*db.pragma('synchronous = OFF');
+  db.pragma('locking_mode = EXCLUSIVE');
+  db.pragma('mmap_size = 30000000000');*/
+
+  db.exec('ANALYZE;');
+  db.exec('VACUUM;');
 }
 
 generate();

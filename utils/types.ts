@@ -9,6 +9,7 @@ export interface Numeric {
   count: number;
 }
 
+// C: mjb_category
 export enum Categories {
   Lu,
   Ll,
@@ -42,6 +43,7 @@ export enum Categories {
   Cn
 }
 
+// C: mjb_category
 export const categories = [
   'Letter, uppercase',
   'Letter, lowercase',
@@ -77,6 +79,7 @@ export const categories = [
 
 export type CategoriesStrings = keyof typeof Categories;
 
+// C: mjb_bidi_categories
 export enum BidirectionalCategories {
   NONE,
   // Strong
@@ -110,6 +113,7 @@ export enum BidirectionalCategories {
 
 export type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
 
+// C: mjb_decomposition
 export const characterDecompositionMapping = {
   'canonical': 0,
   '<circle>': 1,
@@ -132,11 +136,14 @@ export const characterDecompositionMapping = {
 
 export type CharacterDecompositionMappingStrings = keyof typeof characterDecompositionMapping;
 
+// C: bool
 export type Mirrored = 'Y' | 'N';
 
+// UnicodeData.txt raw values
 export type UnicodeDataRow = [
   string, // 0 codepoint
   string, // 1 character name
+  // Block additional
   CategoriesStrings, // 2 category
   string, // 3 canonical combining classes
   BidirectionalCategoriesStrings, // 4 bidirectional category
@@ -146,8 +153,8 @@ export type UnicodeDataRow = [
   string, // 7 digit value
   string, // 8 numeric value
   Mirrored, // 9 mirrored
-  string, // 10 unicode 1.0 name
-  string, // 11 10646 comment field
+  string, // 10 unicode 1.0 name (ignored)
+  string, // 11 10646 comment field (ignored)
   string, // 12 uppercase mapping
   string, // 13 lowercase mapping
   string // 14 titlecase mapping
@@ -155,29 +162,29 @@ export type UnicodeDataRow = [
 
 export class Character {
   constructor(
-    private codepoint: number,
-    private name: string,
-    private block: number,
-    private category: number,
-    private combining: number,
-    private bidi: BidirectionalCategories | null,
-    private decimal: string | null,
-    private digit: string | null,
-    private numeric: string | null,
-    private mirrored: boolean,
-    private lowercase: number,
-    private uppercase: number,
-    private titlecase: number
+    public codepoint: number,
+    public name: string,
+    public block: number, // Additional
+    public category: number,
+    public combining: number,
+    public bidirectional: BidirectionalCategories | null,
+    public decimal: string | null,
+    public digit: string | null,
+    public numeric: string | null,
+    public mirrored: boolean,
+    public lowercase: number,
+    public uppercase: number,
+    public titlecase: number
   ) {}
 
   formatC(): string {
     return `{ ${this.fmt(this.codepoint)}, ${this.fmt(this.name)}, ${this.fmt(this.block)}, ${this.fmt(this.category)}, ` +
-      `${this.fmt(this.combining)}, ${this.fmt(this.bidi)}, ${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` +
+      `${this.fmt(this.combining)}, ${this.fmt(this.bidirectional)}, ${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` +
       `${this.fmt(this.numeric)}, ${this.mirrored}, `+
       `${this.fmt(this.lowercase)}, ${this.fmt(this.uppercase)}, ${this.fmt(this.titlecase)} }`;
   }
 
-  private fmt(value: string | number | null, defaultC = 'NULL'): string {
+  public fmt(value: string | number | null, defaultC = 'NULL'): string {
     if(value === null) {
       return defaultC;
     } else {

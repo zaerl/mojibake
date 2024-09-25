@@ -627,7 +627,7 @@ typedef enum mjb_decomposition {
 typedef struct mjb_character {
     mjb_codepoint codepoint;
     char *name;
-    mjb_block block;
+    mjb_block block; // Additional information
     mjb_category category;
     mjb_canonical_combining_class combining;
     unsigned short bidirectional;
