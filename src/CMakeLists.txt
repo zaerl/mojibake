@@ -1,6 +1,6 @@
 set(SOURCES
     codepoint.c
-    data.c
+    # data.c
     db.c
     encoding.c
     memory.c
