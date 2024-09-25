@@ -16,7 +16,7 @@ bool mjb_initialize(mojibake **mjb) {
 
 /* Initialize the library with custom values */
 MJB_EXPORT bool mjb_initialize_v2(mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn) {
-    if(mjb == NULL) {
+    if(mjb == NULL || alloc_fn == NULL || realloc_fn == NULL || free_fn == NULL) {
         return false;
     }
 

@@ -1,6 +1,7 @@
 set(TEST_SOURCES
     attractor/attractor.c
     encoding.c
+    memory.c
     plane.c
     test.c
     version.c

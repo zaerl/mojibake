@@ -90,6 +90,7 @@ int main(int argc, char * const argv[]) {
 
     // Start tests declarations.
     RUN_TEST(encoding)
+    RUN_TEST(memory)
     RUN_TEST(plane)
     RUN_TEST(version)
 
