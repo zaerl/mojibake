@@ -3,6 +3,7 @@ set(TEST_SOURCES
     encoding.c
     plane.c
     test.c
+    version.c
 )
 
 add_executable(mojibake-test ${TEST_SOURCES})
