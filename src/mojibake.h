@@ -627,10 +627,10 @@ typedef enum mjb_decomposition {
 typedef struct mjb_character {
     mjb_codepoint codepoint;
     char *name;
-    mjb_block block; // Additional information
     mjb_category category;
     mjb_canonical_combining_class combining;
     unsigned short bidirectional;
+    mjb_decomposition decomposition;
     char *decimal;
     char *digit;
     char *numeric;
@@ -638,6 +638,7 @@ typedef struct mjb_character {
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
     mjb_codepoint titlecase;
+    mjb_block block; // Additional information
 } mjb_character;
 
 // Initialize the library

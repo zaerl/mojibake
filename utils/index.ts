@@ -99,6 +99,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 
   for await (const line of rl) {
     const split = line.split(';') as UnicodeDataRow;
+    // 10 unicode 1.0 name if Cc
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     const words = name.split(' ');
     codepoint = parseInt(split[0], 16);
@@ -132,8 +133,9 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       }
     }
 
-    const decomposition = split[5].split(' ');
-    let decompositionType = null;
+    // Character decomposition mapping
+    const decomposition = split[5].length ? split[5].split(' ') : [];
+    let decompositionType: number = 0;
 
     if(decomposition.length > 1) {
       const canonical = decomposition[0][0] !== '<';
@@ -143,7 +145,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       maxDecomposition = Math.max(maxDecomposition, decompositionSize);
 
       if(canonical) {
-        decompositionType = characterDecompositionMapping.canonical;
+        decompositionType = characterDecompositionMapping['canonical'];
       }
 
       for(let i = 0; i < decomposition.length; ++i) {
@@ -158,9 +160,9 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       }
     }
 
-    /*if(decomposition.length === 19) {
-      log(codepoint, name, decomposition);
-    }*/
+    /* if(decomposition.length >= 16) {
+      log('' + codepoint, name, decomposition);
+    } */
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
@@ -169,29 +171,25 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     const char = new Character(
       codepoint,
       name,
-      currentBlock, // Additional
-
       1 << Categories[split[2]],
-      parseInt(split[3], 10), // CCC
+      parseInt(split[3], 10) as BidirectionalCategories, // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
-
+      decompositionType,
       split[6] === '' ? null : split[6], // decimal
       split[7] === '' ? null : split[7], // digit
       split[8] === '' ? null : split[8], // numeric
-
       split[9] === 'Y', // mirrored
-
       // unicode 1.0 name
       // 10646 comment field
-
       split[12] === '' ? 0 : parseInt(split[12], 16), // uppercase
       split[13] === '' ? 0 : parseInt(split[13], 16), // lowercase
-      split[14] === '' ? 0 : parseInt(split[14], 16) // titlecase
+      split[14] === '' ? 0 : parseInt(split[14], 16), // titlecase
+      currentBlock, // Additional
     );
     characters.push(char);
 
     const info = insertDataSmt.run(char.codepoint, char.name, char.block, char.category,
-      char.combining, char.bidirectional, char.decimal, char.digit,
+      char.combining, char.bidirectional, char.decomposition, char.decimal, char.digit,
       char.numeric, char.mirrored ? 'Y' : 'N', char.lowercase, char.uppercase,
       char.titlecase);
 
@@ -306,17 +304,20 @@ async function generate() {
   CREATE TABLE IF NOT EXISTS unicode_data (
       codepoint INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
-      block INTEGER NOT NULL, -- Additional
       category INTEGER NOT NULL,
       combining INTEGER,
       bidirectional INTEGER,
+      decomposition INTEGER,
       decimal TEXT,
       digit TEXT,
       numeric TEXT,
       mirrored INTEGER,
+      -- unicode 1.0 name
+      -- 10646 comment
       uppercase TEXT,
       lowercase TEXT,
-      titlecase TEXT
+      titlecase TEXT,
+      block INTEGER NOT NULL -- Additional
   );
   `);
 
@@ -329,18 +330,21 @@ async function generate() {
   INSERT INTO unicode_data (
       codepoint,
       name,
-      block, -- Additional
       category,
       combining,
       bidirectional,
+      decomposition,
       decimal,
       digit,
       numeric,
       mirrored,
+      -- unicode 1.0 name
+      -- 10646 comment
       uppercase,
       lowercase,
-      titlecase
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      titlecase,
+      block -- Additional
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
 
   const blocks = readBlocks();

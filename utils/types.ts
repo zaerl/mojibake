@@ -143,11 +143,9 @@ export type Mirrored = 'Y' | 'N';
 export type UnicodeDataRow = [
   string, // 0 codepoint
   string, // 1 character name
-  // Block additional
   CategoriesStrings, // 2 category
   string, // 3 canonical combining classes
   BidirectionalCategoriesStrings, // 4 bidirectional category
-  // decomposition type
   string, // 5 character decomposition mapping
   string, // 6 decimal digit value
   string, // 7 digit value
@@ -158,30 +156,34 @@ export type UnicodeDataRow = [
   string, // 12 uppercase mapping
   string, // 13 lowercase mapping
   string // 14 titlecase mapping
+  // Block additional
 ];
 
 export class Character {
   constructor(
     public codepoint: number,
     public name: string,
-    public block: number, // Additional
     public category: number,
     public combining: number,
     public bidirectional: BidirectionalCategories | null,
+    public decomposition: number,
     public decimal: string | null,
     public digit: string | null,
     public numeric: string | null,
     public mirrored: boolean,
-    public lowercase: number,
+    // unicode 1.0 name
+    // comment
     public uppercase: number,
-    public titlecase: number
+    public lowercase: number,
+    public titlecase: number,
+    public block: number, // Additional
   ) {}
 
   formatC(): string {
-    return `{ ${this.fmt(this.codepoint)}, ${this.fmt(this.name)}, ${this.fmt(this.block)}, ${this.fmt(this.category)}, ` +
-      `${this.fmt(this.combining)}, ${this.fmt(this.bidirectional)}, ${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` +
-      `${this.fmt(this.numeric)}, ${this.mirrored}, `+
-      `${this.fmt(this.lowercase)}, ${this.fmt(this.uppercase)}, ${this.fmt(this.titlecase)} }`;
+    return `{ ${this.fmt(this.codepoint)}, ${this.fmt(this.name)}, ${this.fmt(this.category)}, ` +
+      `${this.fmt(this.combining)}, ${this.fmt(this.bidirectional)}, ${this.fmt(this.decomposition)}, ` +
+      `${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` + `${this.fmt(this.numeric)}, ${this.mirrored}, ` +
+      `${this.fmt(this.uppercase)}, ${this.fmt(this.lowercase)}, ${this.fmt(this.titlecase)}, ${this.fmt(this.block)} }`;
   }
 
   public fmt(value: string | number | null, defaultC = 'NULL'): string {
