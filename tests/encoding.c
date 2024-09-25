@@ -1,105 +1,65 @@
-/**
- * The mojibake library
- *
- * This file is distributed under the MIT License. See LICENSE for details.
- */
-
+#include "../src/mojibake.h"
 #include "test.h"
 
-MJB_EXPORT void mjb_string_encoding_test(void) {
-    mjb_encoding encoding = mjb_string_encoding(0, 10);
-    mjb_assert("Void string", encoding == MJB_ENCODING_UNKNOWN);
-
-    encoding = mjb_string_encoding("", 0);
-    mjb_assert("Void length", encoding == MJB_ENCODING_UNKNOWN);
-
-    encoding = mjb_string_encoding(0, 0);
-    mjb_assert("Void string and length", encoding == MJB_ENCODING_UNKNOWN);
+void *test_encoding(void *arg) {
+    ATT_ASSERT(mjb_string_encoding(0, 10), MJB_ENCODING_UNKNOWN, "Void string")
+    ATT_ASSERT(mjb_string_encoding("", 0), MJB_ENCODING_UNKNOWN, "Void length");
+    ATT_ASSERT(mjb_string_encoding(0, 0), MJB_ENCODING_UNKNOWN, "Void string and length");
 
     const char *test1 = "The quick brown fox jumps over the lazy dog";
-    encoding = mjb_string_encoding(test1, 43);
-    mjb_assert("Plain ASCII (and UTF-8)", encoding == (MJB_ENCODING_ASCII |
-        MJB_ENCODING_UTF_8));
+    ATT_ASSERT(mjb_string_encoding(test1, 43), (MJB_ENCODING_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)");
 
-    test1 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
-    encoding = mjb_string_encoding(test1, 43 + 3);
-    mjb_assert("UTF-8 BOM", encoding == MJB_ENCODING_UTF_8);
+    const char *test2 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_encoding(test2, 43 + 3), MJB_ENCODING_UTF_8, "UTF-8 BOM");
 
-    test1 = "\xFE\xFFThe quick brown fox jumps over the lazy dog";
-    encoding = mjb_string_encoding(test1, 43 + 2);
-    mjb_assert("UTF-16-BE BOM", encoding == MJB_ENCODING_UTF_16_BE);
+    const char *test3 = "\xFE\xFFThe quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_encoding(test3, 43 + 2), MJB_ENCODING_UTF_16_BE, "UTF-16-BE BOM");
 
-    test1 = "\xFF\xFEThe quick brown fox jumps over the lazy dog";
-    encoding = mjb_string_encoding(test1, 43 + 2);
-    mjb_assert("UTF-16-LE BOM", encoding == MJB_ENCODING_UTF_16_LE);
+    const char *test4 = "\xFF\xFEThe quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_encoding(test4, 43 + 2), MJB_ENCODING_UTF_16_LE, "UTF-16-LE BOM");
 
-    test1 = "\x00\x00\xFE\xFFThe quick brown fox jumps over the lazy dog";
+    const char *test5 = "\x00\x00\xFE\xFFThe quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_encoding(test5, 43 + 4), MJB_ENCODING_UTF_32_BE, "UTF-32-BE BOM");
 
-    encoding = mjb_string_encoding(test1, 43 + 4);
-    mjb_assert("UTF-32-BE BOM", encoding == MJB_ENCODING_UTF_32_BE);
+    const char *test6 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_encoding(test6, 43 + 4), (MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16_LE), "UTF-32-LE BOM");
 
-    test1 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
-    encoding = mjb_string_encoding(test1, 43 + 4);
-    mjb_assert("UTF-32-LE BOM", encoding == (MJB_ENCODING_UTF_32_LE |
-        MJB_ENCODING_UTF_16_LE));
-}
+    ATT_ASSERT(mjb_string_is_utf8("", 0), false, "Void string");
+    ATT_ASSERT(mjb_string_is_utf8("", 0), false, "Void length");
+    ATT_ASSERT(mjb_string_is_utf8(0, 0), false, "Void string and length");
 
-MJB_EXPORT void mjb_string_is_utf8_test(void) {
-    bool is_utf8 = mjb_string_is_utf8("", 0);
-    mjb_assert("Void string", !is_utf8);
-
-    is_utf8 = mjb_string_is_utf8("", 0);
-    mjb_assert("Void length", !is_utf8);
-
-    is_utf8 = mjb_string_is_utf8(0, 0);
-    mjb_assert("Void string and length", !is_utf8);
-
-    const char *test = "The quick brown fox jumps over the lazy dog";
-    is_utf8 = mjb_string_is_utf8(test, 43);
-    mjb_assert("Valid string and length", is_utf8);
+    const char *test7 = "The quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_is_utf8(test7, 43), true, "Valid string and length");
 
     /* \xF0\x9F\x99\x82 = 🙂 */
-    test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
-    is_utf8 = mjb_string_is_utf8(test, 48);
-    mjb_assert("String with emoji", is_utf8);
+    const char *test8 = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
+    ATT_ASSERT(mjb_string_is_utf8(test8, 48), true, "String with emoji");
 
-    test = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
-    is_utf8 = mjb_string_is_utf8(test, 48);
-    mjb_assert("Not valid continuation byte", is_utf8);
-}
+    const char *test9 = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
+    ATT_ASSERT(mjb_string_is_utf8(test9, 48), true, "Not valid continuation byte");
 
-MJB_EXPORT void mjb_string_is_ascii_test(void) {
-    bool is_ascii = mjb_string_is_ascii("", 0);
-    mjb_assert("Void string", !is_ascii);
+    ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void string");
+    ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void length");
+    ATT_ASSERT(mjb_string_is_ascii(0, 0), false, "Void string and length");
 
-    is_ascii = mjb_string_is_ascii("", 0);
-    mjb_assert("Void length", !is_ascii);
-
-    is_ascii = mjb_string_is_ascii(0, 0);
-    mjb_assert("Void string and length", !is_ascii);
-
-    const char *test = "The quick brown fox jumps over the lazy dog";
-    is_ascii = mjb_string_is_ascii(test, 43);
-    mjb_assert("Valid string and length", is_ascii);
+    const char *test10 = "The quick brown fox jumps over the lazy dog";
+    ATT_ASSERT(mjb_string_is_ascii(test10, 43), true, "Valid string and length");
 
     /* \xF0\x9F\x99\x82 = 🙂 */
-    test = "\xF0\x9F\x99\x82";
-    is_ascii = mjb_string_is_ascii(test, 5);
-    mjb_assert("String with emoji", !is_ascii);
+    const char *test11 = "\xF0\x9F\x99\x82";
+    ATT_ASSERT(mjb_string_is_ascii(test11, 5), false, "String with emoji");
 
-    test = "\x80";
-    is_ascii = mjb_string_is_ascii(test, 2);
-    mjb_assert("Lone continuation byte", !is_ascii);
+    const char *test12 = "\x80";
+    ATT_ASSERT(mjb_string_is_ascii(test12, 2), false, "Lone continuation byte");
 
-    test = "\xC0";
-    is_ascii = mjb_string_is_ascii(test, 2);
-    mjb_assert("Lone first 2-bytes sequence", !is_ascii);
+    const char *test13 = "\xC0";
+    ATT_ASSERT(mjb_string_is_ascii(test13, 2), false, "Lone first 2-bytes sequence");
 
-    test = "\xE0";
-    is_ascii = mjb_string_is_ascii(test, 2);
-    mjb_assert("Lone first 3-bytes sequence", !is_ascii);
+    const char *test14 = "\xE0";
+    ATT_ASSERT(mjb_string_is_ascii(test14, 2), false, "Lone first 3-bytes sequence");
 
-    test = "\xF0";
-    is_ascii = mjb_string_is_ascii(test, 2);
-    mjb_assert("Lone first 4-bytes sequence", !is_ascii);
+    const char *test15 = "\xF0";
+    ATT_ASSERT(mjb_string_is_ascii(test15, 2), false, "Lone first 4-bytes sequence");
+
+    return NULL;
 }
