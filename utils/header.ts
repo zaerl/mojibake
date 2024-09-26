@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './cfunction';
-import { substituteText } from './utils';
 import { Block, Categories, characterDecompositionMapping } from './types';
+import { substituteText } from './utils';
 
 export function generateHeader(blocks: Block[], categories: string[]) {
   const categoryEnums: string[] = [];

@@ -29,7 +29,7 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
         return NULL;
     }
 
-    /*mjb_codepoint codepoint;
+    mjb_codepoint codepoint;
     size_t next = 0;
     size_t size = source_size;
     unsigned int i = 0;
@@ -37,13 +37,13 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
     bool starter = false;
     *output_size = 0;
 
-    /* Cycle the string *
+    // Cycle the string
     do {
         next = mjb_next_codepoint(source, source_size, next, encoding, &codepoint);
 
         if(next > size) {
             /* ret = mjb_realloc(ret, size * realloc_step);
-            ++realloc_step; *
+            ++realloc_step; */
             break;
         }
 
@@ -61,13 +61,13 @@ MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_
             starter = combining == 0;
 
             /*ret = sqlite3_clear_bindings(mjb.decomposition_stmt);
-            DB_CHECK(ret, false)*
+            DB_CHECK(ret, false)*/
         }
 
-        /* ((mjb_codepoint*)ret)[i] = codepoint; *
+        /* ((mjb_codepoint*)ret)[i] = codepoint; */
     } while(next < source_size);
 
-    *output_size = i;*/
+    *output_size = i;
 
     return NULL;
 }
