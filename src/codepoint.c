@@ -7,7 +7,7 @@
 #include <string.h>
 #include "mojibake.h"
 
-static const mjb_character empty_character;
+extern struct mojibake mjb_global;
 
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
@@ -20,6 +20,8 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     return true;
 }
 
+#include <stdio.h>
+
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint) {
     mjb_initialize();
@@ -28,9 +30,35 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         return false;
     }
 
-    // Reset character
-    *character = empty_character;
-    // *character = mjb_characters[codepoint];
+    sqlite3_reset(mjb_global.get_codepoint);
+    sqlite3_clear_bindings(mjb_global.get_codepoint);
+
+    int rc = sqlite3_bind_int(mjb_global.get_codepoint, 1, codepoint);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
+    rc = sqlite3_step(mjb_global.get_codepoint);
+
+    if(rc != SQLITE_ROW) {
+        return false;
+    }
+
+    character->codepoint = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 0);
+    character->name = (char*)sqlite3_column_text(mjb_global.get_codepoint, 1);
+    character->category = (mjb_category)sqlite3_column_int(mjb_global.get_codepoint, 2);
+    character->combining = (mjb_canonical_combining_class)sqlite3_column_int(mjb_global.get_codepoint, 3);
+    character->bidirectional = (unsigned short)sqlite3_column_int(mjb_global.get_codepoint, 4);
+    character->decomposition = (mjb_decomposition)sqlite3_column_int(mjb_global.get_codepoint, 5);
+    character->decimal = sqlite3_column_int(mjb_global.get_codepoint, 6);
+    character->digit = sqlite3_column_int(mjb_global.get_codepoint, 7);
+    character->numeric = (char*)sqlite3_column_text(mjb_global.get_codepoint, 8);
+    character->mirrored = sqlite3_column_int(mjb_global.get_codepoint, 9) == 1;
+    character->uppercase = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 10);
+    character->lowercase = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 11);
+    character->titlecase = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 12);
+    character->block = (mjb_block)sqlite3_column_int(mjb_global.get_codepoint, 13);
 
     return true;
 }
