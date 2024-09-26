@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+
 #include "test.h"
 
 static unsigned int test_counter = 0;

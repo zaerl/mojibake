@@ -95,7 +95,7 @@ MJB_EXPORT void mjb_shutdown(void) {
     mjb_global.db = NULL;
 }
 
-/* Allocate and zero memory*/
+// Allocate and zero memory
 MJB_EXPORT void *mjb_alloc(size_t size) {
     mjb_initialize();
     void *allocated = mjb_global.memory_alloc(size);
@@ -107,14 +107,14 @@ MJB_EXPORT void *mjb_alloc(size_t size) {
     return allocated;
 }
 
-/* Reallocate memory */
+// Reallocate memory
 MJB_EXPORT void *mjb_realloc(void *ptr, size_t new_size) {
     mjb_initialize();
 
     return mjb_global.memory_realloc(ptr, new_size);
 }
 
-/* Free memory */
+// Free memory
 MJB_EXPORT void mjb_free(void *ptr) {
     mjb_initialize();
     mjb_global.memory_free(ptr);

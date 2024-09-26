@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 #define MJB_VERSION          "1.0.0"
-#define MJB_VERSION_NUMBER   0x100 /* MAJOR << 8 && MINOR << 4 && REVISION */
+#define MJB_VERSION_NUMBER   0x100 // MAJOR << 8 && MINOR << 4 && REVISION
 #define MJB_VERSION_MAJOR    1
 #define MJB_VERSION_MINOR    0
 #define MJB_VERSION_REVISION 0
@@ -720,4 +720,4 @@ void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_e
 }
 #endif
 
-#endif /* MJB_MOJIBAKE_H */
+#endif // MJB_MOJIBAKE_H
