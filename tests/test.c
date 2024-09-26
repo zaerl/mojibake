@@ -89,8 +89,9 @@ int main(int argc, char * const argv[]) {
         }
 
     // Start tests declarations.
-    RUN_TEST(db)
+    RUN_TEST(codepoint)
     RUN_TEST(encoding)
+    RUN_TEST(mojibake)
     RUN_TEST(plane)
     RUN_TEST(version)
 
