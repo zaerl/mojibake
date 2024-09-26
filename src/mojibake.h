@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "sqlite3/sqlite3.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,18 +35,25 @@ extern "C" {
 #define MJB_EXPORT __attribute__((visibility("default")))
 #endif
 
+// See c standard memory allocation functions
+typedef void *(*mjb_alloc_fn)(size_t size);
+typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
+typedef void (*mjb_free_fn)(void *ptr);
+
 /*
  * Mojibake is represented by a pointer to an instance of the opaque structure
  * named "mojibake". The [mjb_initialize()] and [mjb_initialize_v2()] functions
  * are its constructor. Every function accept an instance to this allocated
  * pointer. This is used to ensure reentrancy.
  */
-typedef struct mojibake mojibake;
-
-// See c standard memory allocation functions
-typedef void *(*mjb_alloc_fn)(size_t size);
-typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
-typedef void (*mjb_free_fn)(void *ptr);
+typedef struct mojibake {
+    bool ok;
+    mjb_alloc_fn memory_alloc;
+    mjb_realloc_fn memory_realloc;
+    mjb_free_fn memory_free;
+    sqlite3 *db;
+    sqlite3_stmt *get_codepoint;
+} mojibake;
 
 /*
  * A unicode codepoint, a value in the range 0 to 0x10FFFF

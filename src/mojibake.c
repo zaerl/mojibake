@@ -7,16 +7,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "mojibake.h"
+#include "sqlite3/sqlite3.h"
 
-struct mojibake {
-    bool ok;
-    mjb_alloc_fn memory_alloc;
-    mjb_realloc_fn memory_realloc;
-    mjb_free_fn memory_free;
-};
-
-static mojibake mjb_global = { false, NULL, NULL, NULL };
+MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL };
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
@@ -37,10 +32,43 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
+    mjb_global.ok = false;
+
+    int rc = sqlite3_initialize();
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
+    char *filename = getenv("WRD_DB_PATH");
+    rc = sqlite3_open(filename, &mjb_global.db);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_extended_result_codes(mjb_global.db, 1);
+    const char *sql =
+        "PRAGMA synchronous = OFF;"
+        "PRAGMA locking_mode = EXCLUSIVE;"
+        "PRAGMA mmap_size = 268435456;";
+
+    rc = sqlite3_exec(mjb_global.db, sql, 0, 0, NULL);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
+    const char query[] = "SELECT * FROM unicode_data WHERE codepoint = ?";
+    rc = sqlite3_prepare_v2(mjb_global.db, query, sizeof(query), &mjb_global.get_codepoint, NULL);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
     mjb_global.memory_alloc = alloc_fn;
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;
-
     mjb_global.ok = true;
 
     return true;
@@ -55,6 +83,16 @@ MJB_EXPORT void mjb_shutdown(void) {
     mjb_global.memory_free = NULL;
     mjb_global.memory_realloc = NULL;
     mjb_global.memory_alloc = NULL;
+
+    if(mjb_global.get_codepoint) {
+        sqlite3_finalize(mjb_global.get_codepoint);
+    }
+
+    if(mjb_global.db) {
+        sqlite3_close(mjb_global.db);
+    }
+
+    mjb_global.db = NULL;
 }
 
 /* Allocate and zero memory*/
