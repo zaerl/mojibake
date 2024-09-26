@@ -684,28 +684,28 @@ bool mjb_string_is_utf8(const char *buffer, size_t size);
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 // Return true if the codepoint is valid
-bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint);
+bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 // Return the codepoint character
-bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint);
+bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 // Return true if the codepoint has the category
-bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category);
+bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
 
 // Return true if the codepoint is graphic
-bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint);
+bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 
 // Return the codepoint lowercase codepoint
-mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 
 // Return the codepoint uppercase codepoint
-mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 
 // Return the codepoint titlecase codepoint
-mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 // Normalize a string
-void *mjb_normalize(mojibake *mjb, void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
 }

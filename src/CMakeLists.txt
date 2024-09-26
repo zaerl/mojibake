@@ -1,7 +1,7 @@
 set(SOURCES
     codepoint.c
-    db.c
     encoding.c
+    mojibake.c
     normalization.c
     plane.c
     version.c

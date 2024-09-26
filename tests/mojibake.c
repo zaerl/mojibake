@@ -27,7 +27,7 @@ void test_free(void *ptr) {
     free(ptr);
 }
 
-void *test_db(void *arg) {
+void *test_mojibake(void *arg) {
     mjb_shutdown();
     ATT_ASSERT(mjb_initialize_v2(NULL, NULL, NULL), false, "Void memory functions");
 

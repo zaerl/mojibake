@@ -10,7 +10,7 @@
 static const mjb_character empty_character;
 
 // Return true if the codepoint is valid
-MJB_EXPORT bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     if(codepoint < MJB_CODEPOINT_MIN || codepoint > MJB_CODEPOINT_MAX ||
         (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || // Noncharacter
         (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { // Noncharacter
@@ -21,10 +21,10 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint) {
 }
 
 // Return the codepoint character
-MJB_EXPORT bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint) {
     mjb_initialize();
 
-    if(character == NULL || !mjb_codepoint_is_valid(mjb, codepoint)) {
+    if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 
@@ -36,10 +36,10 @@ MJB_EXPORT bool mjb_codepoint_character(mojibake *mjb, mjb_character *character,
 }
 
 // Return true if the codepoint has the category
-MJB_EXPORT bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category) {
+MJB_EXPORT bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(mjb, &character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return false;
     }
 
@@ -47,10 +47,10 @@ MJB_EXPORT bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_cat
 }
 
 // Return true if the codepoint is graphic
-MJB_EXPORT bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(mjb, &character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return false;
     }
 
@@ -68,10 +68,10 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint)
 }
 
 // Return the codepoint lowercase codepoint
-MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint) {
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(mjb, &character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return codepoint;
     }
 
@@ -79,10 +79,10 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint
 }
 
 // Return the codepoint uppercase codepoint
-MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint) {
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(mjb, &character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return codepoint;
     }
 
@@ -90,10 +90,10 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint
 }
 
 // Return the codepoint titlecase codepoint
-MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint) {
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(mjb, &character, codepoint)) {
+    if(!mjb_codepoint_character(&character, codepoint)) {
         return codepoint;
     }
 

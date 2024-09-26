@@ -73,33 +73,33 @@ export const cfns: CFunction[] = [
 
   new CFunction('Return true if the codepoint is valid',
     'bool', 'codepoint_is_valid',
-    ['mojibake *mjb', 'mjb_codepoint codepoint']),
+    ['mjb_codepoint codepoint']),
 
   new CFunction('Return the codepoint character',
     'bool', 'codepoint_character',
-    ['mojibake *mjb', 'mjb_character *character', 'mjb_codepoint codepoint']),
+    ['mjb_character *character', 'mjb_codepoint codepoint']),
 
   new CFunction('Return true if the codepoint has the category',
     'bool', 'codepoint_is',
-    ['mojibake *mjb', 'mjb_codepoint codepoint', 'mjb_category category']),
+    ['mjb_codepoint codepoint', 'mjb_category category']),
 
   new CFunction('Return true if the codepoint is graphic',
     'bool', 'codepoint_is_graphic',
-    ['mojibake *mjb', 'mjb_codepoint codepoint']),
+    ['mjb_codepoint codepoint']),
 
   new CFunction('Return the codepoint lowercase codepoint',
     'mjb_codepoint', 'codepoint_to_lowercase',
-    ['mojibake *mjb', 'mjb_codepoint codepoint']),
+    ['mjb_codepoint codepoint']),
 
   new CFunction('Return the codepoint uppercase codepoint',
     'mjb_codepoint', 'codepoint_to_uppercase',
-    ['mojibake *mjb', 'mjb_codepoint codepoint']),
+    ['mjb_codepoint codepoint']),
 
   new CFunction('Return the codepoint titlecase codepoint',
     'mjb_codepoint', 'codepoint_to_titlecase',
-    ['mojibake *mjb', 'mjb_codepoint codepoint']),
+    ['mjb_codepoint codepoint']),
 
   new CFunction('Normalize a string',
     'void *', 'normalize',
-    ['mojibake *mjb', 'void *source', 'size_t source_size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
+    ['void *source', 'size_t source_size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
 ];

@@ -1,7 +1,8 @@
 set(TEST_SOURCES
     attractor/attractor.c
+    codepoint.c
     encoding.c
-    db.c
+    mojibake.c
     plane.c
     test.c
     version.c
