@@ -3,6 +3,11 @@ export interface CountBuffer {
   count: number;
 }
 
+export interface PrefixCalc {
+  name: string;
+  count: number;
+}
+
 export interface Numeric {
   name: string;
   value: number;

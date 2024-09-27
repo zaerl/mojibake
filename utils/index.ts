@@ -6,8 +6,10 @@ import { generateHeader } from './generate-header';
 import { generateReadme } from './generate-readme';
 import {
   BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
-  CountBuffer, Numeric, UnicodeDataRow
+  CountBuffer, Numeric,
+  UnicodeDataRow
 } from './types';
+import { commonPrefix } from './utils';
 
 let compact = false;
 let verbose = false;
@@ -91,6 +93,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   let totalStepsOver8 = 0;
   let totalStepsOver16 = 0;
   let characters: Character[] = [];
+  let names: string[] = [];
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -189,7 +192,9 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       split[14] === '' ? 0 : parseInt(split[14], 16), // titlecase
       currentBlock, // Additional
     );
+
     characters.push(char);
+    names.push(name);
 
     // Calculate max decimal
     if(char.decimal !== null) {
@@ -200,8 +205,6 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     if(char.digit !== null) {
       maxDigit = Math.max(maxDigit, char.digit);
     }
-
-    dbRun(char);
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -216,6 +219,38 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
         ++categoryBuffer[split[2]];
       }
     }
+  }
+
+  iLog('INSERT UNICODE DATA');
+
+  names.sort();
+  const prefixesBuffer: { [name: string]: number } = {};
+
+  for(let i = 1; i < names.length; ++i) {
+    const common = commonPrefix(names[i - 1], names[i]);
+
+    if(common !== '') {
+      if(typeof(prefixesBuffer[common]) === 'undefined') {
+        prefixesBuffer[common] = 1;
+      } else {
+        ++prefixesBuffer[common];
+      }
+    }
+  }
+
+  const prefixes = Object.entries(prefixesBuffer);
+  let saving = 0;
+  prefixes.sort((a, b) => b[1] - a[1]);
+  for(const el of prefixes) {
+    if(el[1] > 1) {
+      saving += el[0].length * (el[1] - 1);
+    }
+  }
+  console.log('SAVING', saving);
+
+  // Insert characters
+  for(const char of characters) {
+    dbRun(char);
   }
 
   log(`\nDECOMPOSITION COUNT: ${decompositions}\n`);
@@ -295,9 +330,9 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     log(`${num.name} (${num.value}): ${num.count}`);
   }
 
-  iLog('\nMAX NUMBERS\n');
-  iLog(`MAX DECIMAL: ${maxDecimal}`);
-  iLog(`MAX DIGIT: ${maxDigit}`);
+  log('\nMAX NUMBERS\n');
+  log(`MAX DECIMAL: ${maxDecimal}`);
+  log(`MAX DIGIT: ${maxDigit}`);
 
   iLog(`${verbose ? "\n" : ''}COUNT\n`);
   iLog(`${codepointsCount.toLocaleString()} codepoints (${(codepointsCount * 5).toLocaleString()} bytes)`);
