@@ -79,6 +79,8 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   let charsCount = 0;
   let wordsCount = 0;
   let hasNumber: { [name: string]: number } = {};
+  let maxDecimal = 0;
+  let maxDigit = 0;
   let previousCodepoint = 0;
   let diffs = 0;
   let codepoint = 0;
@@ -125,6 +127,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     charsCount += name.length;
     wordsCount += words.length;
 
+    // Indexed by the `numeric` field (string)
     if(split[8] !== '') {
       if(typeof(hasNumber[split[8]]) === 'undefined') {
         hasNumber[split[8]] = 1;
@@ -172,7 +175,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       codepoint,
       name,
       1 << Categories[split[2]],
-      parseInt(split[3], 10) as BidirectionalCategories, // CCC
+      parseInt(split[3], 10), // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
       decompositionType,
       split[6] === '' ? null : parseInt(split[6]), // decimal
@@ -187,6 +190,16 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       currentBlock, // Additional
     );
     characters.push(char);
+
+    // Calculate max decimal
+    if(char.decimal !== null) {
+      maxDecimal = Math.max(maxDecimal, char.decimal);
+    }
+
+    // Calculate max digit
+    if(char.digit !== null) {
+      maxDigit = Math.max(maxDigit, char.digit);
+    }
 
     insertDataSmt.run(
       char.codepoint,
@@ -281,6 +294,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 
   const numbersBuffer: Numeric[] = [];
 
+  // `name` is the `numeric` field
   for(const name in hasNumber) {
     const values = name.split('/'); // Check if it's a fraction
     const value = values.length === 1 ? parseFloat(values[0]) :
@@ -296,7 +310,11 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     log(`${num.name} (${num.value}): ${num.count}`);
   }
 
-  iLog(`${verbose ? '\n' : ''}COUNT\n`);
+  iLog('\nMAX NUMBERS\n');
+  iLog(`MAX DECIMAL: ${maxDecimal}`);
+  iLog(`MAX DIGIT: ${maxDigit}`);
+
+  iLog(`${verbose ? "\n" : ''}COUNT\n`);
   iLog(`${codepointsCount.toLocaleString()} codepoints (${(codepointsCount * 5).toLocaleString()} bytes)`);
   iLog(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
   iLog(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);

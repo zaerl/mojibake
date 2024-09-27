@@ -43,6 +43,8 @@ export enum Categories {
   Cn
 }
 
+export type CategoriesStrings = keyof typeof Categories;
+
 // C: mjb_category
 export const categories = [
   'Letter, uppercase',
@@ -76,8 +78,6 @@ export const categories = [
   'Other, private use',
   'Other, not assigned',
 ];
-
-export type CategoriesStrings = keyof typeof Categories;
 
 // C: mjb_bidi_categories
 export enum BidirectionalCategories {
@@ -158,6 +158,28 @@ export type UnicodeDataRow = [
   string // 14 titlecase mapping
   // Block additional
 ];
+
+// Codepoint
+// 00000000 00010000 11111111 11111111 max codepoint (1114111)
+
+// Categories
+// 00000000 00000000 00000000 00011110 category (30)
+// 00000000 00000000 00000000 00111110 combining (62)
+// 00000000 00000000 00000000 00011000 bidirectional (24)
+// 00000000 00000000 00000000 00010000 decomposition (16)
+
+// Numbers
+// 00000000 00000000 00000000 00001001 decimal (9)
+// 00000000 00000000 00000000 00001001 digit (9)
+
+// 00000000 00000000 00000000 00000001 mirrored (1)
+
+// 00000000 00010000 11111111 11111111 uppercase mapping (1114111)
+// 00000000 00010000 11111111 11111111 lowercase mapping (1114111)
+// 00000000 00010000 11111111 11111111 titlecase mapping (1114111)
+
+// Block (additional)
+// 00000000 00000000 00000001 01010010 block (338)
 
 export class Character {
   constructor(
