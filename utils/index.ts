@@ -1,9 +1,8 @@
-import { createReadStream } from 'fs';
+import Database, { Statement } from 'better-sqlite3';
+import { createReadStream, statSync } from 'fs';
 import { createInterface } from 'readline';
-import { generateData } from './data';
 import { generateHeader } from './header';
 import { generateReadme } from './readme';
-import Database, { Statement } from 'better-sqlite3';
 import {
   BidirectionalCategories, Block, categories, Categories, Character, characterDecompositionMapping, CharacterDecompositionMappingStrings,
   CountBuffer, Numeric, UnicodeDataRow
@@ -396,6 +395,9 @@ async function generate() {
 
   db.exec('ANALYZE;');
   db.exec('VACUUM;');
+
+  const dbSize = statSync('../build/mojibake.db').size;
+  iLog(`Database size: ${dbSize.toLocaleString()} bytes`);
 }
 
 generate();
