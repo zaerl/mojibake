@@ -1,15 +1,16 @@
-import Database, { Statement } from 'better-sqlite3';
-import { createReadStream, statSync } from 'fs';
+import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
+import { Character } from './character';
+import { dbInit, dbRun, dbSize } from './db';
 import { generateHeader } from './header';
 import { generateReadme } from './readme';
 import {
-  BidirectionalCategories, Block, categories, Categories, Character, characterDecompositionMapping, CharacterDecompositionMappingStrings,
+  BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
   CountBuffer, Numeric, UnicodeDataRow
 } from './types';
 
+let compact = false;
 let verbose = false;
-let insertDataSmt: Statement;
 
 function log(message: string, ...optionalParams: any[]) {
   if(verbose) {
@@ -200,22 +201,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       maxDigit = Math.max(maxDigit, char.digit);
     }
 
-    insertDataSmt.run(
-      char.codepoint,
-      char.name,
-      char.category,
-      char.combining,
-      char.bidirectional,
-      char.decomposition,
-      char.decimal,
-      char.digit,
-      char.numeric,
-      char.mirrored ? 1 : 0,
-      char.uppercase,
-      char.lowercase,
-      char.titlecase,
-      char.block
-    );
+    dbRun(char);
 
     for(const word of words) {
       if(typeof(nameBuffer[word]) === 'undefined') {
@@ -322,59 +308,16 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 }
 
 // Init
-if(process.argv[2] === '-V') {
-  verbose = true;
+for(let i = 2; i < process.argv.length; ++i) {
+  if(process.argv[i] === '-V') {
+    verbose = true;
+  } else if(process.argv[i] === '-c') {
+    compact = true;
+  }
 }
 
 async function generate() {
-  const db = new Database('../build/mojibake.db');
-
-  db.exec(`
-  CREATE TABLE IF NOT EXISTS unicode_data (
-      codepoint INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
-      category INTEGER NOT NULL,
-      combining INTEGER,
-      bidirectional INTEGER,
-      decomposition INTEGER,
-      decimal INTEGER,
-      digit INTEGER,
-      numeric TEXT,
-      mirrored INTEGER,
-      -- unicode 1.0 name
-      -- 10646 comment
-      uppercase INTEGER,
-      lowercase INTEGER,
-      titlecase INTEGER,
-      block INTEGER NOT NULL -- Additional
-  );
-  `);
-
-  process.on('exit', () => db.close());
-  process.on('SIGHUP', () => process.exit(128 + 1));
-  process.on('SIGINT', () => process.exit(128 + 2));
-  process.on('SIGTERM', () => process.exit(128 + 15));
-
-  insertDataSmt = db.prepare(`
-  INSERT INTO unicode_data (
-      codepoint,
-      name,
-      category,
-      combining,
-      bidirectional,
-      decomposition,
-      decimal,
-      digit,
-      numeric,
-      mirrored,
-      -- unicode 1.0 name
-      -- 10646 comment
-      uppercase,
-      lowercase,
-      titlecase,
-      block -- Additional
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-  `);
+  dbInit('../build/mojibake.db', compact);
 
   const blocks = readBlocks();
   const characters = await readUnicodeData(blocks);
@@ -383,21 +326,8 @@ async function generate() {
   // generateData(characters);
   generateReadme();
 
-  // Persistent
-  db.pragma('journal_mode = OFF');
-  db.pragma('temp_store = MEMORY');
-  db.pragma('cache_size = -1000000');
-
-  // Not persistent
-  /*db.pragma('synchronous = OFF');
-  db.pragma('locking_mode = EXCLUSIVE');
-  db.pragma('mmap_size = 30000000000');*/
-
-  db.exec('ANALYZE;');
-  db.exec('VACUUM;');
-
-  const dbSize = statSync('../build/mojibake.db').size;
-  iLog(`Database size: ${dbSize.toLocaleString()} bytes`);
+  const size = dbSize();
+  iLog(`Database size: ${size.toLocaleString()} bytes`);
 }
 
 generate();

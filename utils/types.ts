@@ -159,64 +159,6 @@ export type UnicodeDataRow = [
   // Block additional
 ];
 
-// Codepoint
-// 00000000 00010000 11111111 11111111 max codepoint (1114111)
-
-// Categories
-// 00000000 00000000 00000000 00011110 category (30)
-// 00000000 00000000 00000000 00111110 combining (62)
-// 00000000 00000000 00000000 00011000 bidirectional (24)
-// 00000000 00000000 00000000 00010000 decomposition (16)
-
-// Numbers
-// 00000000 00000000 00000000 00001001 decimal (9)
-// 00000000 00000000 00000000 00001001 digit (9)
-
-// 00000000 00000000 00000000 00000001 mirrored (1)
-
-// 00000000 00010000 11111111 11111111 uppercase mapping (1114111)
-// 00000000 00010000 11111111 11111111 lowercase mapping (1114111)
-// 00000000 00010000 11111111 11111111 titlecase mapping (1114111)
-
-// Block (additional)
-// 00000000 00000000 00000001 01010010 block (338)
-
-export class Character {
-  constructor(
-    public codepoint: number,
-    public name: string,
-    public category: number,
-    public combining: number,
-    public bidirectional: BidirectionalCategories | null,
-    public decomposition: number,
-    public decimal: number | null,
-    public digit: number | null,
-    public numeric: string | null,
-    public mirrored: boolean,
-    // unicode 1.0 name
-    // comment
-    public uppercase: number,
-    public lowercase: number,
-    public titlecase: number,
-    public block: number, // Additional
-  ) {}
-
-  formatC(): string {
-    return `{ ${this.fmt(this.codepoint)}, ${this.fmt(this.name)}, ${this.fmt(this.category)}, ` +
-      `${this.fmt(this.combining)}, ${this.fmt(this.bidirectional)}, ${this.fmt(this.decomposition)}, ` +
-      `${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` + `${this.fmt(this.numeric)}, ${this.mirrored}, ` +
-      `${this.fmt(this.uppercase)}, ${this.fmt(this.lowercase)}, ${this.fmt(this.titlecase)}, ${this.fmt(this.block)} }`;
-  }
-
-  public fmt(value: string | number | null, defaultC = 'NULL'): string {
-    if(value === null) {
-      return defaultC;
-    } else {
-      return typeof value === 'number' ? `${value === 0 ? 0 : '0x' + value.toString(16).toUpperCase()}` : `"${value}"`;
-    }
-  }
-}
-
 // All blocks
 export interface Block {
   name: string;
