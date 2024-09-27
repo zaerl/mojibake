@@ -2,8 +2,8 @@ import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { Character } from './character';
 import { dbInit, dbRun, dbSize } from './db';
-import { generateHeader } from './header';
-import { generateReadme } from './readme';
+import { generateHeader } from './generate-header';
+import { generateReadme } from './generate-readme';
 import {
   BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
   CountBuffer, Numeric, UnicodeDataRow
