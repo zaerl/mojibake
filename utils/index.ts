@@ -4,6 +4,7 @@ import { Character } from './character';
 import { dbInit, dbRun, dbSize } from './db';
 import { generateHeader } from './generate-header';
 import { generateReadme } from './generate-readme';
+import { iLog, isVerbose, log, setVerbose } from './log';
 import {
   BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
   CountBuffer, Numeric,
@@ -12,17 +13,6 @@ import {
 import { commonPrefix } from './utils';
 
 let compact = false;
-let verbose = false;
-
-function log(message: string, ...optionalParams: any[]) {
-  if(verbose) {
-    console.log(message, ...optionalParams);
-  }
-}
-
-function iLog(message: string, ...optionalParams: any[]) {
-  console.log(message, ...optionalParams);
-}
 
 function compareFn(a: CountBuffer, b: CountBuffer): number {
   const ret = b.count - a.count;
@@ -334,7 +324,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   log(`MAX DECIMAL: ${maxDecimal}`);
   log(`MAX DIGIT: ${maxDigit}`);
 
-  iLog(`${verbose ? "\n" : ''}COUNT\n`);
+  iLog(`${isVerbose() ? "\n" : ''}COUNT\n`);
   iLog(`${codepointsCount.toLocaleString()} codepoints (${(codepointsCount * 5).toLocaleString()} bytes)`);
   iLog(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
   iLog(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
@@ -345,7 +335,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 // Init
 for(let i = 2; i < process.argv.length; ++i) {
   if(process.argv[i] === '-V') {
-    verbose = true;
+    setVerbose(true);
   } else if(process.argv[i] === '-c') {
     compact = true;
   }
