@@ -1,12 +1,14 @@
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
+import { readBlocks } from './blocks';
 import { Character } from './character';
 import { dbInit, dbRun, dbSize } from './db';
+import { characterDecomposition } from './decomposition';
 import { generateHeader } from './generate-header';
 import { generateReadme } from './generate-readme';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import {
-  BidirectionalCategories, Block, categories, Categories, characterDecompositionMapping, CharacterDecompositionMappingStrings,
+  BidirectionalCategories, Block, categories, Categories,
   CountBuffer, Numeric,
   UnicodeDataRow
 } from './types';
@@ -28,38 +30,6 @@ function compareFn(a: CountBuffer, b: CountBuffer): number {
   }
 
   return ret;
-}
-
-function readBlocks(): Block[] {
-  log('READ BLOCKS');
-
-  const blocks: Block[] = [];
-
-  const rl = createInterface({
-    input: createReadStream('./UCD/Blocks.txt'),
-    crlfDelay: Infinity
-  });
-
-  rl.on('line', (line: string) => {
-    if(line.startsWith('#') || line === '') { // Comment
-      return;
-    }
-
-    const split = line.split('; ');
-    const name = split[1];
-    const values = split[0].split('..');
-    const start = parseInt(values[0], 16);
-    const end = parseInt(values[1], 16);
-
-    blocks.push({
-      name,
-      enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
-      start,
-      end
-    });
-  });
-
-  return blocks;
 }
 
 async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
@@ -130,35 +100,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     }
 
     // Character decomposition mapping
-    const decomposition = split[5].length ? split[5].split(' ') : [];
-    let decompositionType: number = 0;
-
-    if(decomposition.length > 1) {
-      const canonical = decomposition[0][0] !== '<';
-      const decompositionSize = canonical ? decomposition.length : decomposition.length - 1;
-      decompositions += decompositionSize;
-
-      maxDecomposition = Math.max(maxDecomposition, decompositionSize);
-
-      if(canonical) {
-        decompositionType = characterDecompositionMapping['canonical'];
-      }
-
-      for(let i = 0; i < decomposition.length; ++i) {
-        if(decomposition[i][0] === '<') {
-          decompositionType = characterDecompositionMapping[decomposition[i] as CharacterDecompositionMappingStrings];
-        } else {
-          /* decompositionStmt.run(
-            codepoint,
-            decompositionType,
-            parseInt(decomposition[i], 16));*/
-        }
-      }
-    }
-
-    /* if(decomposition.length >= 16) {
-      log('' + codepoint, name, decomposition);
-    } */
+    let decompositionType = characterDecomposition(split[5]);
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
@@ -236,7 +178,6 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       saving += el[0].length * (el[1] - 1);
     }
   }
-  console.log('SAVING', saving);
 
   // Insert characters
   for(const char of characters) {
@@ -344,8 +285,8 @@ for(let i = 2; i < process.argv.length; ++i) {
 async function generate() {
   dbInit('../build/mojibake.db', compact);
 
-  const blocks = readBlocks();
-  const characters = await readUnicodeData(blocks);
+  const blocks = readBlocks('./UCD/Blocks.txt');
+  await readUnicodeData(blocks);
 
   generateHeader(blocks, categories);
   // generateData(characters);
