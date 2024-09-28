@@ -14,6 +14,11 @@ export interface Numeric {
   count: number;
 }
 
+export interface Decomposition {
+  type: number;
+  decomposition: number[];
+}
+
 // C: mjb_category
 export enum Categories {
   Lu,

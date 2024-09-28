@@ -100,7 +100,9 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     }
 
     // Character decomposition mapping
-    let decompositionType = characterDecomposition(split[5]);
+    let decomposition = characterDecomposition(split[5]);
+    decompositions += decomposition.decomposition.length;
+    maxDecomposition = Math.max(maxDecomposition, decomposition.decomposition.length);
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
@@ -112,7 +114,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       1 << Categories[split[2]],
       parseInt(split[3], 10), // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
-      decompositionType,
+      decomposition.type,
       split[6] === '' ? null : parseInt(split[6]), // decimal
       split[7] === '' ? null : parseInt(split[7]), // digit
       split[8] === '' ? null : split[8], // numeric
