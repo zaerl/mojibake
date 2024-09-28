@@ -14,9 +14,9 @@ export class Character {
       public mirrored: boolean,
       // unicode 1.0 name
       // comment
-      public uppercase: number,
-      public lowercase: number,
-      public titlecase: number,
+      public uppercase: number | null,
+      public lowercase: number | null,
+      public titlecase: number | null,
       public block: number, // Additional
     ) {}
 

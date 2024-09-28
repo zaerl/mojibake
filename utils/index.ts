@@ -121,9 +121,9 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       split[9] === 'Y', // mirrored
       // unicode 1.0 name
       // 10646 comment field
-      split[12] === '' ? 0 : parseInt(split[12], 16), // uppercase
-      split[13] === '' ? 0 : parseInt(split[13], 16), // lowercase
-      split[14] === '' ? 0 : parseInt(split[14], 16), // titlecase
+      split[12] === '' ? null : parseInt(split[12], 16), // uppercase
+      split[13] === '' ? null : parseInt(split[13], 16), // lowercase
+      split[14] === '' ? null : parseInt(split[14], 16), // titlecase
       currentBlock, // Additional
     );
 
