@@ -582,10 +582,10 @@ typedef enum mjb_bidi_categories {
  * [see: https://www.unicode.org/glossary/#plane]
  */
 typedef enum mjb_plane {
-    MJB_PLANE_BMP =   0,
-    MJB_PLANE_SMP =   1,
-    MJB_PLANE_SIP =   2,
-    MJB_PLANE_TIP =   3,
+    MJB_PLANE_BMP =    0,
+    MJB_PLANE_SMP =    1,
+    MJB_PLANE_SIP =    2,
+    MJB_PLANE_TIP =    3,
     MJB_PLANE_SSP =   14,
     MJB_PLANE_PUA_A = 15,
     MJB_PLANE_PUA_B = 16
@@ -599,10 +599,10 @@ typedef enum mjb_plane {
  * [see: https://www.unicode.org/glossary/#normalization_form]
  */
 typedef enum mjb_normalization {
-    MJB_NORMALIZATION_NFD =  0, // Canonical decomposition and ordering
-    MJB_NORMALIZATION_NFC =  1, // Composition after canonical decomposition and ordering
-    MJB_NORMALIZATION_NFKD = 2, // Compatible decomposition and ordering
-    MJB_NORMALIZATION_NFKC = 3  // Composition after compatible decomposition and ordering */
+    MJB_NORMALIZATION_NFD,  // Canonical decomposition and ordering
+    MJB_NORMALIZATION_NFC,  // Composition after canonical decomposition and ordering
+    MJB_NORMALIZATION_NFKD, // Compatible decomposition and ordering
+    MJB_NORMALIZATION_NFKC  // Composition after compatible decomposition and ordering */
 } mjb_normalization;
 
 /*
@@ -610,23 +610,23 @@ typedef enum mjb_normalization {
  * [see: https://www.unicode.org/glossary/#compatibility_decomposition]
  */
 typedef enum mjb_decomposition {
-    MJB_DECOMPOSITION_CANONICAL = 0,
-    MJB_DECOMPOSITION_CIRCLE = 1,
-    MJB_DECOMPOSITION_COMPAT = 2,
-    MJB_DECOMPOSITION_FINAL = 3,
-    MJB_DECOMPOSITION_FONT = 4,
-    MJB_DECOMPOSITION_FRACTION = 5,
-    MJB_DECOMPOSITION_INITIAL = 6,
-    MJB_DECOMPOSITION_ISOLATED = 7,
-    MJB_DECOMPOSITION_MEDIAL = 8,
-    MJB_DECOMPOSITION_NARROW = 9,
-    MJB_DECOMPOSITION_NOBREAK = 10,
-    MJB_DECOMPOSITION_SMALL = 11,
-    MJB_DECOMPOSITION_SQUARE = 12,
-    MJB_DECOMPOSITION_SUB = 13,
-    MJB_DECOMPOSITION_SUPER = 14,
-    MJB_DECOMPOSITION_VERTICAL = 15,
-    MJB_DECOMPOSITION_WIDE = 16
+    MJB_DECOMPOSITION_CANONICAL,
+    MJB_DECOMPOSITION_CIRCLE,
+    MJB_DECOMPOSITION_COMPAT,
+    MJB_DECOMPOSITION_FINAL,
+    MJB_DECOMPOSITION_FONT,
+    MJB_DECOMPOSITION_FRACTION,
+    MJB_DECOMPOSITION_INITIAL,
+    MJB_DECOMPOSITION_ISOLATED,
+    MJB_DECOMPOSITION_MEDIAL,
+    MJB_DECOMPOSITION_NARROW,
+    MJB_DECOMPOSITION_NOBREAK,
+    MJB_DECOMPOSITION_SMALL,
+    MJB_DECOMPOSITION_SQUARE,
+    MJB_DECOMPOSITION_SUB,
+    MJB_DECOMPOSITION_SUPER,
+    MJB_DECOMPOSITION_VERTICAL,
+    MJB_DECOMPOSITION_WIDE
 } mjb_decomposition;
 
 /*
