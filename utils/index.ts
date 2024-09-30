@@ -111,7 +111,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     const char = new Character(
       codepoint,
       name,
-      1 << Categories[split[2]],
+      Categories[split[2]],
       parseInt(split[3], 10), // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
       decomposition.type,
