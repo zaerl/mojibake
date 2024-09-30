@@ -82,7 +82,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
         }
       }
 
-      log(`STEP (${split[0]} -- ${diff})`);
+      // log(`STEP (${split[0]} -- ${diff})`);
     }
 
     previousCodepoint = codepoint;
@@ -277,7 +277,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 
 // Init
 for(let i = 2; i < process.argv.length; ++i) {
-  if(process.argv[i] === '-V') {
+  if(process.argv[i] === '-V' || process.argv[i] === '--verbose') {
     setVerbose(true);
   } else if(process.argv[i] === '-c') {
     compact = true;

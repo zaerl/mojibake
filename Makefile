@@ -12,7 +12,7 @@ build: configure
 rebuild: clean_build all
 
 generate:
-	cd ./utils && ./generate.sh
+	cd ./utils && ./generate.sh $(ARGS)
 
 test: BUILD_TYPE = Test
 test: configure build
