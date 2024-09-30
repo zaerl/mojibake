@@ -4,21 +4,21 @@ import { Block, Categories, characterDecompositionMapping } from './types';
 import { substituteText } from './utils';
 
 function getBlockEnumNames(blocks: Block[]) {
-  return blocks.map((value: Block, index: number) => `    ${value.enumName} = ${index}`).join(',\n');
+  return blocks.map((value: Block, index: number) => `    ${value.enumName}`).join(',\n');
 }
 
 function getCategoryEnumNames(categories: string[]) {
   const categoryEnums: string[] = [];
 
   for(let i = 0; i < categories.length; ++i) {
-    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()} = 0x${(1 << i).toString(16).padStart(8, '0')}${ i === categories.length - 1 ? ' ' : ','} // ${i} (${Categories[i]}) ${categories[i]}`);
+    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()}${ i === categories.length - 1 ? ' ' : ','} // ${i} (${Categories[i]}) ${categories[i]}`);
   }
 
   return categoryEnums.join('\n');
 }
 
 function getDecompositionEnumNames() {
-  return Object.keys(characterDecompositionMapping).map((value: string, index: number) => `    MJB_DECOMPOSITION_${value.toUpperCase().replace(/[<>]/g, '')} = ${index}`).join(',\n')
+  return Object.keys(characterDecompositionMapping).map((value: string, index: number) => `    MJB_DECOMPOSITION_${value.toUpperCase().replace(/[<>]/g, '')}`).join(',\n')
 }
 
 function getFunctions() {
