@@ -40,7 +40,7 @@ typedef void *(*mjb_alloc_fn)(size_t size);
 typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
 typedef void (*mjb_free_fn)(void *ptr);
 
-/*
+/**
  * Mojibake is represented by a pointer to an instance of the opaque structure
  * named "mojibake". The [mjb_initialize()] and [mjb_initialize_v2()] functions
  * are its constructor. Every function accept an instance to this allocated
@@ -55,7 +55,7 @@ typedef struct mojibake {
     sqlite3_stmt *get_codepoint;
 } mojibake;
 
-/*
+/**
  * A unicode codepoint, a value in the range 0 to 0x10FFFF
  * [see: https://www.unicode.org/glossary/#code_point]
  */
@@ -65,7 +65,7 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid unicode code point
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD // The character used when there is invalid data
 
-/*
+/**
  * Unicode encoding
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
@@ -81,6 +81,9 @@ typedef enum mjb_encoding {
     MJB_ENCODING_UTF_32_LE = 0x80
 } mjb_encoding;
 
+/**
+ * Unicode blocks
+ */
 typedef enum mjb_block {
     MJB_BLOCK_BASIC_LATIN = 0,
     MJB_BLOCK_LATIN_1_SUPPLEMENT = 1,
@@ -424,7 +427,7 @@ typedef enum mjb_block {
 
 #define MJB_BLOCK_NUM 338
 
-/*
+/**
  * Unicode block
  * [see: https://www.unicode.org/glossary/#block]
  */
@@ -434,7 +437,7 @@ typedef struct mjb_codepoint_block {
     uint32_t end;
 } mjb_codepoint_block;
 
-/*
+/**
  * Unicode codepoint general category
  * [see: https://www.unicode.org/glossary/#general_category]
  */
@@ -473,7 +476,7 @@ typedef enum mjb_category {
 
 #define MJB_CATEGORY_COUNT 30
 
-/*
+/**
  * Decomposition
  * [see: https://www.unicode.org/glossary/#combining_class]
  */
@@ -544,7 +547,7 @@ typedef enum mjb_canonical_combining_class {
 
 #define MJB_CCC_COUNT 62
 
-/*
+/**
  * Bidirectional categories
  * [see: https://www.unicode.org/glossary/#combining_class]
  */
@@ -577,7 +580,7 @@ typedef enum mjb_bidi_categories {
 
 #define MJB_BIDI_COUNT 24
 
-/*
+/**
  * Unicode plane
  * [see: https://www.unicode.org/glossary/#plane]
  */
@@ -594,7 +597,7 @@ typedef enum mjb_plane {
 #define MJB_PLANE_NUM 17 // 17 planes
 #define MJB_PLANE_SIZE 65536 // 2^16 code points per plane
 
-/*
+/**
  * Normalization form
  * [see: https://www.unicode.org/glossary/#normalization_form]
  */
@@ -605,7 +608,7 @@ typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFKC  // Composition after compatible decomposition and ordering */
 } mjb_normalization;
 
-/*
+/**
  * Decomposition
  * [see: https://www.unicode.org/glossary/#compatibility_decomposition]
  */
@@ -629,7 +632,7 @@ typedef enum mjb_decomposition {
     MJB_DECOMPOSITION_WIDE
 } mjb_decomposition;
 
-/*
+/**
  * A unicode character
  * [see: https://www.unicode.org/glossary/#character]
  */
