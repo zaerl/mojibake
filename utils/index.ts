@@ -123,8 +123,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       // 10646 comment field
       split[12] === '' ? null : parseInt(split[12], 16), // uppercase
       split[13] === '' ? null : parseInt(split[13], 16), // lowercase
-      split[14] === '' ? null : parseInt(split[14], 16), // titlecase
-      currentBlock, // Additional
+      split[14] === '' ? null : parseInt(split[14], 16) // titlecase
     );
 
     characters.push(char);

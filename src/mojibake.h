@@ -53,6 +53,7 @@ typedef struct mojibake {
     mjb_free_fn memory_free;
     sqlite3 *db;
     sqlite3_stmt *get_codepoint;
+    sqlite3_stmt *get_block;
 } mojibake;
 
 /**
@@ -650,7 +651,6 @@ typedef struct mjb_character {
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
     mjb_codepoint titlecase;
-    mjb_block block; // Additional information
 } mjb_character;
 
 // Initialize the library. Not needed to be called
@@ -703,6 +703,9 @@ bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 // Return true if the codepoint has the category
 bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
+
+// Return true if the codepoint has the block
+bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 
 // Return true if the codepoint is graphic
 bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);

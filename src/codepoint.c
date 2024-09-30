@@ -20,8 +20,6 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     return true;
 }
 
-#include <stdio.h>
-
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint) {
     mjb_initialize();
@@ -58,7 +56,6 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
     character->uppercase = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 10);
     character->lowercase = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 11);
     character->titlecase = (mjb_codepoint)sqlite3_column_int(mjb_global.get_codepoint, 12);
-    character->block = (mjb_block)sqlite3_column_int(mjb_global.get_codepoint, 13);
 
     return true;
 }
@@ -93,6 +90,29 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
         default:
             return true;
     }
+}
+
+MJB_EXPORT bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block) {
+    mjb_initialize();
+
+    if(block < 0 || block >= MJB_BLOCK_NUM || !mjb_codepoint_is_valid(codepoint)) {
+        return false;
+    }
+
+    sqlite3_reset(mjb_global.get_block);
+    sqlite3_clear_bindings(mjb_global.get_block);
+
+    int rc = sqlite3_bind_int(mjb_global.get_block, 1, codepoint);
+
+    rc = sqlite3_step(mjb_global.get_block);
+
+    if(rc != SQLITE_ROW) {
+        return false;
+    }
+
+    mjb_block get_block = (mjb_block)sqlite3_column_int(mjb_global.get_block, 0);
+
+    return get_block == block;
 }
 
 // Return the codepoint lowercase codepoint

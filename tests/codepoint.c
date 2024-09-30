@@ -32,20 +32,14 @@ void *test_codepoint(void *arg) {
     // 0x0377 = ͷ, 0x0377 + 1 is not mapped
     ATT_ASSERT(mjb_codepoint_character(&character, 0x0377 + 1), false, "Codepoint not mapped: ͷ + 1")
 
-    ATT_ASSERT(mjb_codepoint_character(&character, 0), true, "Basic Latin block")
-    ATT_ASSERT(character.block, MJB_BLOCK_BASIC_LATIN, "Basic Latin block")
-
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x80 - 1), true, "Basic Latin end block")
-    ATT_ASSERT(character.block, MJB_BLOCK_BASIC_LATIN, "Basic Latin end block")
-
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x80 + 1), true, "Latin-1 Supplement block")
-    ATT_ASSERT(character.block, MJB_BLOCK_LATIN_1_SUPPLEMENT, "Latin-1 Supplement block")
-
+    ATT_ASSERT(mjb_codepoint_block_is(MJB_CODEPOINT_MAX, MJB_BLOCK_BASIC_LATIN), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_codepoint_block_is(0, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x80 - 1, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x80 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), true, "Latin-1 Supplement block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x80 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), true, "Latin-1 Supplement block")
     // 0x0377 = ͷ, 0x0377 + 1 is not mapped
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x0377 + 1), false, "Greek and Coptic not mapped: ͷ + 1")
-
-    ATT_ASSERT(mjb_codepoint_character(&character, 0xE0000 + 1), true, "Tags block")
-    ATT_ASSERT(character.block, MJB_BLOCK_TAGS, "Tags block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x0377 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), false, "Greek and Coptic not mapped: ͷ + 1")
+    ATT_ASSERT(mjb_codepoint_block_is(0xE0000 + 1, MJB_BLOCK_TAGS), true, "Tags block")
 
     ATT_ASSERT(mjb_codepoint_character(&character, 0xF0000 + 3), false, "Supplementary Private Use Area-A block")
 

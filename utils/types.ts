@@ -166,7 +166,6 @@ export type UnicodeDataRow = [
   string, // 12 uppercase mapping
   string, // 13 lowercase mapping
   string // 14 titlecase mapping
-  // Block additional
 ];
 
 // All blocks

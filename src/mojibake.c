@@ -66,6 +66,13 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
+    const char query_2[] = "SELECT id FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
+    rc = sqlite3_prepare_v2(mjb_global.db, query_2, sizeof(query_2), &mjb_global.get_block, NULL);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
     mjb_global.memory_alloc = alloc_fn;
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;

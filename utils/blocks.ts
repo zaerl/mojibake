@@ -2,11 +2,13 @@ import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { log } from './log';
 import { Block } from './types';
+import { dbInsertBlock } from './db';
 
 export function readBlocks(path = './UCD/Blocks.txt'): Block[] {
   log('READ BLOCKS');
 
   const blocks: Block[] = [];
+  let id = 0;
 
   const rl = createInterface({
     input: createReadStream(path),
@@ -23,13 +25,17 @@ export function readBlocks(path = './UCD/Blocks.txt'): Block[] {
     const values = split[0].split('..');
     const start = parseInt(values[0], 16);
     const end = parseInt(values[1], 16);
-
-    blocks.push({
+    const block = {
       name,
       enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
       start,
       end
-    });
+    };
+
+    blocks.push(block);
+    dbInsertBlock(id, block);
+
+    ++id;
   });
 
   return blocks;
