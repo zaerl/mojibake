@@ -603,10 +603,10 @@ typedef enum mjb_plane {
  * [see: https://www.unicode.org/glossary/#normalization_form]
  */
 typedef enum mjb_normalization {
-    MJB_NORMALIZATION_NFD,  // Canonical decomposition and ordering
-    MJB_NORMALIZATION_NFC,  // Composition after canonical decomposition and ordering
-    MJB_NORMALIZATION_NFKD, // Compatible decomposition and ordering
-    MJB_NORMALIZATION_NFKC  // Composition after compatible decomposition and ordering */
+    MJB_NORMALIZATION_NFC,  // Canonical decomposition followed by canonical composition
+    MJB_NORMALIZATION_NFD,  // Canonical decomposition without recomposition
+    MJB_NORMALIZATION_NFKC, // Compatibility decomposition followed by canonical composition
+    MJB_NORMALIZATION_NFKD  // Compatibility decomposition without recomposition
 } mjb_normalization;
 
 /**
