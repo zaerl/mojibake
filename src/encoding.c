@@ -13,6 +13,9 @@
 #define MJB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
 #define MJB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
+/**
+ * Return the encoding from the BOM (if possible).
+ */
 static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
     if(length < 2) {
         // BOM are at least 2 characters
@@ -47,7 +50,9 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
     return bom_encoding;
 }
 
-// Return the string encoding (the most probable)
+/**
+ * Return the string encoding (the most probable).
+ */
 MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
     if(buffer == 0 || size == 0) {
         return MJB_ENCODING_UNKNOWN;
@@ -72,7 +77,9 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
     return bom_encoding;
 }
 
-// Return true if the string is encoded in UTF-8
+/**
+ * Return true if the string is encoded in UTF-8.
+ */
 MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
     const char *end = buffer + size;
     unsigned char byte;
@@ -154,7 +161,9 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
     return true;
 }
 
-// Return true if the string is encoded in ASCII
+/**
+ * Return true if the string is encoded in ASCII.
+ */
 MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
     const char *end = buffer + size;
 
@@ -163,7 +172,7 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
     }
 
     for(; buffer != end; ++buffer) {
-        // every character must have leading bit at zero
+        // Every character must have leading bit at zero.
         if(*buffer & 0x80) {
             return false;
         }
