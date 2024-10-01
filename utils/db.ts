@@ -6,6 +6,7 @@ import { Block } from './types';
 let db: Database.Database;
 let dbPath: string;
 let insertDataSmt: Statement;
+let insertDecompositionSmt: Statement;
 let insertBlockSmt: Statement;
 let isCompact: boolean;
 
@@ -68,6 +69,13 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
       );
     `);
     db.exec(`
+      CREATE TABLE IF NOT EXISTS decompositions (
+        main_id INTEGER,
+        value INTEGER,
+        FOREIGN KEY(main_id) REFERENCES unicode_data(codepoint)
+      );
+    `);
+    db.exec(`
       CREATE TABLE IF NOT EXISTS blocks (
         id INTEGER PRIMARY KEY,
         start INTEGER NOT NULL,
@@ -114,6 +122,12 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
         lowercase,
         titlecase
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `);
+    insertDecompositionSmt = db.prepare(`
+      INSERT INTO decompositions (
+        main_id,
+        value
+      ) VALUES (?, ?);
     `);
     insertBlockSmt = db.prepare(`
       INSERT INTO blocks (
@@ -180,6 +194,10 @@ export function dbRun(char: Character) {
       char.lowercase,
       char.titlecase
     );
+
+    for(const value of char.decompositions) {
+      insertDecompositionSmt.run(char.codepoint, value);
+    }
   }
 }
 

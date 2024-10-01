@@ -47,7 +47,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   let diffs = 0;
   let codepoint = 0;
   let currentBlock = 0;
-  let maxDecomposition = 0;
+  let maxDecompositions = [];
   let decompositions = 0;
   let totalSteps = 0;
   let totalStepsOver8 = 0;
@@ -102,7 +102,11 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     // Character decomposition mapping
     let decomposition = characterDecomposition(split[5]);
     decompositions += decomposition.decomposition.length;
-    maxDecomposition = Math.max(maxDecomposition, decomposition.decomposition.length);
+    if(typeof maxDecompositions[decomposition.decomposition.length] === 'undefined') {
+      maxDecompositions[decomposition.decomposition.length] = 1;
+    } else {
+      ++maxDecompositions[decomposition.decomposition.length];
+    }
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
@@ -115,6 +119,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       parseInt(split[3], 10), // CCC
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
       decomposition.type,
+      decomposition.decomposition,
       split[6] === '' ? null : parseInt(split[6]), // decimal
       split[7] === '' ? null : parseInt(split[7]), // digit
       split[8] === '' ? null : split[8], // numeric
@@ -185,16 +190,6 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     dbRun(char);
   }
 
-  log(`\nDECOMPOSITION COUNT: ${decompositions}\n`);
-
-  log(`MAX DECOMPOSITION: ${maxDecomposition}\n`);
-
-  log(`STEPS COUNT: ${totalSteps}\n`);
-  log(`STEPS COUNT OVER 8: ${totalStepsOver8}\n`);
-  log(`STEPS COUNT OVER 16: ${totalStepsOver16}\n`);
-
-  log(`STEPS TOTAL: ${diffs}/${codepoint}\n`);
-
   const ret: CountBuffer[] = [];
   const ret2: CountBuffer[] = [];
 
@@ -261,6 +256,22 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   for(const num of numbersBuffer) {
     log(`${num.name} (${num.value}): ${num.count}`);
   }
+
+  log(`\nDECOMPOSITION COUNT: ${decompositions}\n`);
+
+  log(`DECOMPOSITIONS\n`);
+
+  for(let i = 0; i < maxDecompositions.length; ++i) {
+    if(typeof maxDecompositions[i] !== 'undefined') {
+      log(`${i}: ${maxDecompositions[i]}`);
+    }
+  }
+
+  log(`STEPS COUNT: ${totalSteps}\n`);
+  log(`STEPS COUNT OVER 8: ${totalStepsOver8}\n`);
+  log(`STEPS COUNT OVER 16: ${totalStepsOver16}\n`);
+
+  log(`STEPS TOTAL: ${diffs}/${codepoint}\n`);
 
   log('\nMAX NUMBERS\n');
   log(`MAX DECIMAL: ${maxDecimal}`);

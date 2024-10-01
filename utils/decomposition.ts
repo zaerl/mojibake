@@ -1,5 +1,10 @@
 import { characterDecompositionMapping, CharacterDecompositionMappingStrings, Decomposition } from "./types";
 
+/**
+ * Example for LATIN CAPITAL LETTER D WITH DOT ABOVE
+ * From UnicodeData.txt#L6883
+ * 1E00 ...;0044 0307;...
+ */
 export function characterDecomposition(mapping: string): Decomposition {
   const map = mapping.length ? mapping.split(' ') : [];
   let type: number = 0;
@@ -22,16 +27,9 @@ export function characterDecomposition(mapping: string): Decomposition {
     if(map[i][0] === '<') {
       ret.type = characterDecompositionMapping[map[i] as CharacterDecompositionMappingStrings];
     } else {
-      /* decompositionStmt.run(
-        codepoint,
-        type,
-        parseInt(decomposition[i], 16));*/
+      ret.decomposition.push(parseInt(map[i], 16));
     }
   }
 
-  /* if(decomposition.length >= 16) {
-    log('' + codepoint, name, decomposition);
-  } */
-  // return { type, decompositions, maxDecomposition };
   return ret;
 }

@@ -8,6 +8,7 @@ export class Character {
       public combining: number,
       public bidirectional: BidirectionalCategories | null,
       public decomposition: number,
+      public decompositions: number[],
       public decimal: number | null,
       public digit: number | null,
       public numeric: string | null,
