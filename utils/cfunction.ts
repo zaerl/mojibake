@@ -71,6 +71,10 @@ export const cfns: CFunction[] = [
     'bool', 'string_is_ascii',
     ['const char *buffer', 'size_t size']),
 
+  new CFunction('Encode a codepoint to a string',
+    'bool', 'codepoint_encode',
+    ['mjb_codepoint codepoint', 'char *buffer', 'size_t size', 'mjb_encoding encoding']),
+
   new CFunction('Return true if the codepoint is valid',
     'bool', 'codepoint_is_valid',
     ['mjb_codepoint codepoint']),

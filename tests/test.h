@@ -22,6 +22,7 @@ extern "C" {
 void *test_codepoint(void *arg);
 void *test_encoding(void *arg);
 void *test_mojibake(void *arg);
+void *test_normalization(void *arg);
 void *test_plane(void *arg);
 void *test_version(void *arg);
 
@@ -29,4 +30,4 @@ void *test_version(void *arg);
 }
 #endif
 
-#endif /* MJB_TEST_H */
+#endif // MJB_TEST_H

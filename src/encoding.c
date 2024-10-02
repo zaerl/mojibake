@@ -180,3 +180,55 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
 
     return 1;
 }
+
+MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding) {
+    if(buffer == 0 || size < 2 || encoding != MJB_ENCODING_UTF_8 || !mjb_codepoint_is_valid(codepoint)) {
+        return false;
+    }
+
+    if(codepoint <= 0x7F) {
+        // 0b0xxxxxxx, 1 byte sequence (ASCII)
+        buffer[0] = (char)codepoint;
+        buffer[1] = '\0';
+
+        return true;
+    } else if(codepoint <= 0x7FF) {
+        if(size < 3) {
+            return false;
+        }
+
+        // 0b110xxxxx: 2 bytes sequence
+        buffer[0] = (char)(0xC0 | ((codepoint >> 6) & 0x1F));
+        buffer[1] = (char)(0x80 | (codepoint & 0x3F));
+        buffer[2] = '\0';
+
+        return true;
+    } else if(codepoint <= 0xFFFF) {
+        if(size < 4) {
+            return false;
+        }
+
+        // 0b1110xxxx: 3 bytes sequence
+        buffer[0] = (char)(0xE0 | ((codepoint >> 12) & 0x0F));
+        buffer[1] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+        buffer[2] = (char)(0x80 | (codepoint & 0x3F));
+        buffer[3] = '\0';
+
+        return true;
+    } else if(codepoint <= 0x10FFFF) {
+        if(size < 5) {
+            return false;
+        }
+
+        // 0b11110xxx: 4 bytes sequence
+        buffer[0] = (char)(0xF0 | ((codepoint >> 18) & 0x07));
+        buffer[1] = (char)(0x80 | ((codepoint >> 12) & 0x3F));
+        buffer[2] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+        buffer[3] = (char)(0x80 | (codepoint & 0x3F));
+        buffer[4] = '\0';
+
+        return true;
+    }
+
+    return false;
+}
