@@ -109,12 +109,12 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
             // 0b11110xxx: 4 bytes sequence
             code_length = 4;
         } else {
-            // invalid first byte of a multibyte character
+            // Invalid first byte of a multibyte character
             return false;
         }
 
         if(buffer + (code_length - 1) >= end) {
-            // truncated string or invalid byte sequence
+            // Truncated string or invalid byte sequence
             return false;
         }
 
@@ -128,20 +128,21 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
         if(code_length == 2) {
             // 2 bytes sequence: U+0080..U+07FF
             ch = ((buffer[0] & 0x1f) << 6) + (buffer[1] & 0x3f);
-            /* buffer[0] >= 0xC2, so ch >= 0x0080.
-             buffer[0] <= 0xDF, (buffer[1] & 0x3f) <= 0x3f, so ch <= 0x07ff */
+            // buffer[0] >= 0xC2, so ch >= 0x0080.
+            // buffer[0] <= 0xDF, (buffer[1] & 0x3f) <= 0x3f
+            // So then ch <= 0x07ff
         } else if(code_length == 3) {
             // 3 bytes sequence: U+0800..U+FFFF
             ch = ((buffer[0] & 0x0f) << 12) + ((buffer[1] & 0x3f) << 6) +
             (buffer[2] & 0x3f);
-            /* (0xff & 0x0f) << 12 | (0xff & 0x3f) << 6 | (0xff & 0x3f) = 0xffff,
-             so ch <= 0xffff */
+            // (0xff & 0x0f) << 12 | (0xff & 0x3f) << 6 | (0xff & 0x3f) = 0xffff,
+            // So then ch <= 0xffff
             if(ch < 0x0800) {
                 return false;
             }
 
-            /* surrogates (U+D800-U+DFFF) are invalid in UTF-8:
-             test if (0xD800 <= ch && ch <= 0xDFFF) */
+            // Surrogates (U+D800-U+DFFF) are invalid in UTF-8:
+            // Test if (0xD800 <= ch && ch <= 0xDFFF)
             if((ch >> 11) == 0x1b) {
                 return false;
             }
