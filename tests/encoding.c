@@ -67,5 +67,27 @@ void *test_encoding(void *arg) {
     const char *test15 = "\xF0";
     ATT_ASSERT(mjb_string_is_ascii(test15, 2), false, "Lone first 4-bytes sequence");
 
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), false, "Void buffer")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), false, "Wrong size")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), false, "Invalid encoding")
+
+    char buffer_utf8[5];
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), false, "Noncharacter")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), false, "Noncharacter")
+
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), true, "0x0000")
+    ATT_ASSERT(buffer_utf8[0], 0, "0x0000")
+
+    #define TEST_UTF8(CHAR, STR, COMMENT) \
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), true, COMMENT) \
+        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+
+    // UTF-8 tests
+    TEST_UTF8(0x007F, "\x7F", "ASCII limit");
+    TEST_UTF8(0x07FF, "\xDF\xBF", "2-bytes limit");
+    TEST_UTF8(0xFFFD, "\xEF\xBF\xBD", "3-bytes limit");
+    TEST_UTF8(0x10FFFE, "\xF4\x8F\xBF\xBE", "4-bytes limit");
+    TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", "SLIGHTLY SMILING FACE");
+
     return NULL;
 }

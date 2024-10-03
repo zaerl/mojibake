@@ -93,24 +93,5 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_to_titlecase('c'), 'C', "Titlecase: c > C")
     ATT_ASSERT(mjb_codepoint_to_titlecase('C'), 'C', "Titlecase: C > C")
 
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), false, "Void buffer")
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), false, "Wrong size")
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), false, "Invalid encoding")
-
-    char buffer_utf8[5];
-    ATT_ASSERT(mjb_codepoint_encode(0xFFFE, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), false, "Noncharacter")
-    ATT_ASSERT(mjb_codepoint_encode(0xFFFF, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), false, "Noncharacter")
-
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), true, "0x0000")
-    ATT_ASSERT(buffer_utf8[0], 0, "0x0000")
-
-    #define TEST_UTF8(CHAR, STR) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), true, STR) \
-        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, STR)
-
-    // UTF-8 tests
-    TEST_UTF8(0x0021, "!")
-    TEST_UTF8(0x0080, "€")
-
     return NULL;
 }

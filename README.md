@@ -74,6 +74,11 @@ Return true if the string is encoded in ASCII
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 ```
 
+Encode a codepoint to a string
+```c
+bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+```
+
 Return true if the codepoint is valid
 ```c
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
