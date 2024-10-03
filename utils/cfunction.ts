@@ -64,7 +64,7 @@ export const cfns: CFunction[] = [
     ['const char *buffer', 'size_t size']),
 
   new CFunction('Return true if the string is encoded in UTF-8',
-    'bool', 'string_is_utf8',
+    'bool', 'string_utf8',
     ['const char *buffer', 'size_t size']),
 
   new CFunction('Return true if the string is encoded in ASCII',
@@ -74,6 +74,10 @@ export const cfns: CFunction[] = [
   new CFunction('Encode a codepoint to a string',
     'bool', 'codepoint_encode',
     ['mjb_codepoint codepoint', 'char *buffer', 'size_t size', 'mjb_encoding encoding']),
+
+  new CFunction('Decode a codepoint from a string',
+    'bool', 'codepoint_decode',
+    ['char *buffer', 'size_t size', 'mjb_encoding encoding']),
 
   new CFunction('Return true if the codepoint is valid',
     'bool', 'codepoint_is_valid',

@@ -66,7 +66,7 @@ mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
 Return true if the string is encoded in UTF-8
 ```c
-bool mjb_string_is_utf8(const char *buffer, size_t size);
+bool mjb_string_utf8(const char *buffer, size_t size);
 ```
 
 Return true if the string is encoded in ASCII
@@ -77,6 +77,11 @@ bool mjb_string_is_ascii(const char *buffer, size_t size);
 Encode a codepoint to a string
 ```c
 bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+```
+
+Decode a codepoint from a string
+```c
+bool mjb_codepoint_decode(char *buffer, size_t size, mjb_encoding encoding);
 ```
 
 Return true if the codepoint is valid

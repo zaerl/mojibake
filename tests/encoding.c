@@ -30,20 +30,6 @@ void *test_encoding(void *arg) {
     const char *test6 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_encoding(test6, 43 + 4), MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE, "UTF-32-LE BOM");
 
-    ATT_ASSERT(mjb_string_is_utf8("", 0), false, "Void string");
-    ATT_ASSERT(mjb_string_is_utf8("", 0), false, "Void length");
-    ATT_ASSERT(mjb_string_is_utf8(0, 0), false, "Void string and length");
-
-    const char *test7 = "The quick brown fox jumps over the lazy dog";
-    ATT_ASSERT(mjb_string_is_utf8(test7, 43), true, "Valid string and length");
-
-    // \xF0\x9F\x99\x82 = 🙂
-    const char *test8 = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
-    ATT_ASSERT(mjb_string_is_utf8(test8, 48), true, "String with emoji");
-
-    const char *test9 = "The quick brown fox jumps over the lazy dog \xF0\x9F\x99\x82";
-    ATT_ASSERT(mjb_string_is_utf8(test9, 48), true, "Not valid continuation byte");
-
     ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void string");
     ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void length");
     ATT_ASSERT(mjb_string_is_ascii(0, 0), false, "Void string and length");
@@ -66,6 +52,56 @@ void *test_encoding(void *arg) {
 
     const char *test15 = "\xF0";
     ATT_ASSERT(mjb_string_is_ascii(test15, 2), false, "Lone first 4-bytes sequence");
+
+    const char *utf8_test = "";
+
+    ATT_ASSERT(mjb_string_utf8(NULL, 0), false, "Void string");
+    ATT_ASSERT(mjb_string_utf8("", 0), true, "Empty string");
+
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Empty string");
+
+    utf8_test = "Hello, world!";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Simple ASCII");
+
+    utf8_test = "Hell\xC3\xB6 w\xC3\xB6rld";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Hell[o] wörld");
+
+    utf8_test = "\xE3\x81\x93\xE3\x82\x93\xE3\x81\xAB\xE3\x81\xA1\xE3\x81\xAF\xE4\xB8\x96\xE7\x95\x8C"; //こんにちは世界
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Japanese");
+
+    utf8_test = "Hello \xF0\x9F\x8C\x8D";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Hello (world)");
+
+    utf8_test = "a\xC2\xA2\xE2\x82\xAC\xF0\x90\x8D\x88";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "1-byte, 2-byte, 3-byte, and 4-byte characters");
+
+    utf8_test = "\xF4\x8F\xBF\xBF";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "U+10FFFF, maximum code point");
+
+    utf8_test = "\xEF\xBB\xBF""Hello";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "BOM (Byte Order Mark) followed by \"Hello\"");
+
+    utf8_test = "Hello\xC2\xA0World\xE2\x80\x83Test\xE2\x80\x8B";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Various Unicode spaces and invisible characters");
+
+    utf8_test = "n\xCC\x83";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "N combined with tilde");
+
+    utf8_test = "A\xCE\x91\xE2\x98\x83\xF0\x9D\x84\x9E";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Characters from various Unicode planes");
+
+    utf8_test = "Hello\0World";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, 11), true, "String with NULL character");
+
+    utf8_test = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F"; //
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "All ASCII control characters");
+
+    utf8_test = "Hello\xE2\x80\x94World\xE2\x80\xA2Test\xE2\x99\xA5Unicode\xE2\x98\xAE";
+    ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Various Unicode punctuation and symbols");
+
+    ATT_ASSERT(mjb_codepoint_decode((char*)0, 0, MJB_ENCODING_UTF_8), false, "Void buffer")
+    ATT_ASSERT(mjb_codepoint_decode((char*)1, 0, MJB_ENCODING_UTF_8), false, "Wrong size")
+    ATT_ASSERT(mjb_codepoint_decode((char*)1, 4, MJB_ENCODING_UTF_32), false, "Invalid encoding")
 
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), false, "Void buffer")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), false, "Wrong size")
