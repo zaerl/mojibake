@@ -14,6 +14,9 @@ rebuild: clean_build all
 generate:
 	cd ./utils && ./generate.sh $(ARGS)
 
+generate_tests:
+	cd ./utils && npm run generate-utf8-tests
+
 test: BUILD_TYPE = Test
 test: configure build
 	WRD_DB_PATH=./build/mojibake.db build/tests/mojibake-test $(ARGS)
@@ -24,4 +27,4 @@ clean_build:
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all clean clean_build configure build test rebuild generate
+.PHONY: all clean clean_build configure build test rebuild generate generate_tests
