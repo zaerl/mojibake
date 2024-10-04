@@ -79,11 +79,6 @@ Encode a codepoint to a string
 bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 ```
 
-Decode a codepoint from a string
-```c
-bool mjb_codepoint_decode(char *buffer, size_t size, mjb_encoding encoding);
-```
-
 Return true if the codepoint is valid
 ```c
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);

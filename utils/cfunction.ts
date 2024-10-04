@@ -75,10 +75,6 @@ export const cfns: CFunction[] = [
     'bool', 'codepoint_encode',
     ['mjb_codepoint codepoint', 'char *buffer', 'size_t size', 'mjb_encoding encoding']),
 
-  new CFunction('Decode a codepoint from a string',
-    'bool', 'codepoint_decode',
-    ['char *buffer', 'size_t size', 'mjb_encoding encoding']),
-
   new CFunction('Return true if the codepoint is valid',
     'bool', 'codepoint_is_valid',
     ['mjb_codepoint codepoint']),

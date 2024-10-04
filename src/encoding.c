@@ -237,14 +237,3 @@ MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size
 
     return false;
 }
-
-MJB_EXPORT bool mjb_codepoint_decode(char *buffer, size_t size, mjb_encoding encoding) {
-    if(buffer == NULL || size < 1 || encoding != MJB_ENCODING_UTF_8) {
-        return false;
-    }
-
-    // c function that decodes a utf-8 string
-
-
-    return true;
-}

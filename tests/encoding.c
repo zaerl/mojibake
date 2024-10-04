@@ -99,10 +99,6 @@ void *test_encoding(void *arg) {
     utf8_test = "Hello\xE2\x80\x94World\xE2\x80\xA2Test\xE2\x99\xA5Unicode\xE2\x98\xAE";
     ATT_ASSERT(mjb_string_utf8(utf8_test, strlen(utf8_test)), true, "Various Unicode punctuation and symbols");
 
-    ATT_ASSERT(mjb_codepoint_decode((char*)0, 0, MJB_ENCODING_UTF_8), false, "Void buffer")
-    ATT_ASSERT(mjb_codepoint_decode((char*)1, 0, MJB_ENCODING_UTF_8), false, "Wrong size")
-    ATT_ASSERT(mjb_codepoint_decode((char*)1, 4, MJB_ENCODING_UTF_32), false, "Invalid encoding")
-
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), false, "Void buffer")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), false, "Wrong size")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), false, "Invalid encoding")
