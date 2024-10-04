@@ -11,7 +11,7 @@
 #include "mojibake.h"
 #include "sqlite3/sqlite3.h"
 
-MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL };
+MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL };
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
