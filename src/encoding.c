@@ -65,7 +65,7 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
     }
 
     // No BOM, let's try UTF-8
-    if(mjb_string_is_utf8(buffer, size)) {
+    if(mjb_string_utf8(buffer, size)) {
         bom_encoding |= MJB_ENCODING_UTF_8;
     }
 
@@ -80,14 +80,18 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 /**
  * Return true if the string is encoded in UTF-8.
  */
-MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
+MJB_EXPORT bool mjb_string_utf8(const char *buffer, size_t size) {
     const char *end = buffer + size;
     unsigned char byte;
     unsigned int code_length, i;
     uint32_t ch;
 
-    if(buffer == 0 || size == 0) {
+    if(buffer == 0) {
         return false;
+    }
+
+    if(size == 0) {
+        return true;
     }
 
     while(buffer != end) {
@@ -232,4 +236,15 @@ MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size
     }
 
     return false;
+}
+
+MJB_EXPORT bool mjb_codepoint_decode(char *buffer, size_t size, mjb_encoding encoding) {
+    if(buffer == NULL || size < 1 || encoding != MJB_ENCODING_UTF_8) {
+        return false;
+    }
+
+    // c function that decodes a utf-8 string
+
+
+    return true;
 }
