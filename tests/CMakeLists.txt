@@ -3,6 +3,7 @@ set(TEST_SOURCES
     codepoint.c
     encoding.c
     mojibake.c
+    normalization.c
     plane.c
     test.c
     version.c

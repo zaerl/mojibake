@@ -64,15 +64,19 @@ export const cfns: CFunction[] = [
     ['const char *buffer', 'size_t size']),
 
   new CFunction('Return true if the string is encoded in UTF-8',
-    'bool', 'string_utf8',
+    'bool', 'string_is_utf8',
     ['const char *buffer', 'size_t size']),
+
+  new CFunction('Return nexy codepoint in the string',
+    'mjb_codepoint', 'string_next_codepoint',
+    ['const char *buffer', 'size_t size', 'size_t *next']),
 
   new CFunction('Return true if the string is encoded in ASCII',
     'bool', 'string_is_ascii',
     ['const char *buffer', 'size_t size']),
 
   new CFunction('Encode a codepoint to a string',
-    'bool', 'codepoint_encode',
+    'unsigned int', 'codepoint_encode',
     ['mjb_codepoint codepoint', 'char *buffer', 'size_t size', 'mjb_encoding encoding']),
 
   new CFunction('Return true if the codepoint is valid',
@@ -109,5 +113,5 @@ export const cfns: CFunction[] = [
 
   new CFunction('Normalize a string',
     'void *', 'normalize',
-    ['void *source', 'size_t source_size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
+    ['void *buffer', 'size_t size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
 ];

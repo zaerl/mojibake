@@ -54,6 +54,7 @@ typedef struct mojibake {
     sqlite3 *db;
     sqlite3_stmt *get_codepoint;
     sqlite3_stmt *get_block;
+    sqlite3_stmt *decompose;
 } mojibake;
 
 /**
@@ -64,7 +65,8 @@ typedef uint32_t mjb_codepoint;
 
 #define MJB_CODEPOINT_MIN         0x0
 #define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid unicode code point
-#define MJB_CODEPOINT_REPLACEMENT 0xFFFD // The character used when there is invalid data
+#define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data
+#define MJB_CODEPOINT_NOT_VALID   0x110000 // Not a valid codepoint
 
 /**
  * Unicode encoding
@@ -690,13 +692,16 @@ const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
 // Return true if the string is encoded in UTF-8
-bool mjb_string_utf8(const char *buffer, size_t size);
+bool mjb_string_is_utf8(const char *buffer, size_t size);
+
+// Return nexy codepoint in the string
+mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
 
 // Return true if the string is encoded in ASCII
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 // Encode a codepoint to a string
-bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 
 // Return true if the codepoint is valid
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -723,7 +728,7 @@ mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 // Normalize a string
-void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+void *mjb_normalize(void *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 #ifdef __cplusplus
 }

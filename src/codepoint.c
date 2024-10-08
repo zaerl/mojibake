@@ -22,7 +22,9 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
 
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint) {
-    mjb_initialize();
+    if(!mjb_initialize()) {
+        return false;
+    }
 
     if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
@@ -93,7 +95,9 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
 }
 
 MJB_EXPORT bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block) {
-    mjb_initialize();
+    if(!mjb_initialize()) {
+        return false;
+    }
 
     if(block < 0 || block >= MJB_BLOCK_NUM || !mjb_codepoint_is_valid(codepoint)) {
         return false;

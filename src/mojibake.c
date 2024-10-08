@@ -11,7 +11,7 @@
 #include "mojibake.h"
 #include "sqlite3/sqlite3.h"
 
-MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL };
+MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
@@ -73,6 +73,13 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
+    const char query_3[] = "SELECT value FROM decompositions WHERE main_id = ?";
+    rc = sqlite3_prepare_v2(mjb_global.db, query_3, sizeof(query_3), &mjb_global.decompose, NULL);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
     mjb_global.memory_alloc = alloc_fn;
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;
@@ -95,6 +102,14 @@ MJB_EXPORT void mjb_shutdown(void) {
         sqlite3_finalize(mjb_global.get_codepoint);
     }
 
+    if(mjb_global.get_block) {
+        sqlite3_finalize(mjb_global.get_block);
+    }
+
+    if(mjb_global.decompose) {
+        sqlite3_finalize(mjb_global.decompose);
+    }
+
     if(mjb_global.db) {
         sqlite3_close(mjb_global.db);
     }
@@ -104,7 +119,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
 // Allocate and zero memory
 MJB_EXPORT void *mjb_alloc(size_t size) {
-    mjb_initialize();
+    if(!mjb_initialize()) {
+        return NULL;
+    }
+
     void *allocated = mjb_global.memory_alloc(size);
 
     if(allocated) {
@@ -116,13 +134,18 @@ MJB_EXPORT void *mjb_alloc(size_t size) {
 
 // Reallocate memory
 MJB_EXPORT void *mjb_realloc(void *ptr, size_t new_size) {
-    mjb_initialize();
+    if(!mjb_initialize()) {
+        return NULL;
+    }
 
     return mjb_global.memory_realloc(ptr, new_size);
 }
 
 // Free memory
 MJB_EXPORT void mjb_free(void *ptr) {
-    mjb_initialize();
+    if(!mjb_initialize()) {
+        return;
+    }
+
     mjb_global.memory_free(ptr);
 }

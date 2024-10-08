@@ -4,70 +4,91 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <string.h>
 #include "mojibake.h"
 
-static size_t mjb_next_codepoint(void *buffer, size_t size, size_t index, mjb_encoding encoding, mjb_codepoint *codepoint) {
-    /* if(encoding == MJB_ENCODING_UTF_32) { */
-    *codepoint = ((mjb_codepoint*)buffer)[index];
+extern struct mojibake mjb_global;
 
-    return index + 1;
-}
-
-/* Normalize a string */
-MJB_EXPORT void *mjb_normalize(void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
-    mjb_initialize();
-
-    if(source_size == 0) {
+/**
+ * Normalize a string
+ */
+MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
+    if(!mjb_initialize()) {
         return NULL;
     }
 
-    if(form == MJB_ENCODING_UNKNOWN) {
-        encoding = mjb_string_encoding(source, source_size);
-    }
-
-    if(encoding == MJB_ENCODING_UNKNOWN) {
-        return NULL;
-    }
-
-    mjb_codepoint codepoint;
     size_t next = 0;
-    size_t size = source_size;
-    unsigned int i = 0;
-    unsigned short combining = 0;
-    bool starter = false;
-    *output_size = 0;
+    const char *current = buffer;
+    size_t remaining = size;
+    int rc = 0;
 
-    // Cycle the string
-    do {
-        next = mjb_next_codepoint(source, source_size, next, encoding, &codepoint);
+    if(output_size == NULL) {
+        return NULL;
+    }
 
-        if(next > size) {
-            /* ret = mjb_realloc(ret, size * realloc_step);
-            ++realloc_step; */
-            break;
+    if(buffer == 0) {
+        return NULL;
+    }
+
+    if(size == 0) {
+        output_size = 0;
+
+        return NULL;
+    }
+
+    // The encoding is unknown
+    if(encoding != MJB_ENCODING_UTF_8) {
+        return NULL;
+    }
+
+    if(form != MJB_NORMALIZATION_NFD) {
+        return NULL;
+    }
+
+    sqlite3_reset(mjb_global.decompose);
+    sqlite3_clear_bindings(mjb_global.decompose);
+
+    void *ret = mjb_alloc(size);
+    size_t output_index = 0;
+    char buffer_utf8[5];
+    *output_size = size;
+
+    while(current < (char*)buffer + size) {
+        mjb_codepoint codepoint = mjb_string_next_codepoint(current, remaining, &next);
+
+        if(codepoint != MJB_CODEPOINT_NOT_VALID) {
+            rc = sqlite3_bind_int(mjb_global.decompose, 1, codepoint);
+
+            if(rc != SQLITE_OK) {
+                return NULL;
+            }
+
+            while((rc = sqlite3_step(mjb_global.decompose)) == SQLITE_ROW) {
+                mjb_codepoint decomposed = (mjb_codepoint)sqlite3_column_int(mjb_global.decompose, 0);
+
+                if(decomposed != MJB_CODEPOINT_NOT_VALID) {
+                    if(!mjb_codepoint_encode(decomposed, (char*)buffer_utf8, 5, encoding)) {
+                        return NULL;
+                    }
+
+                    size_t buffer_utf8_size = strnlen(buffer_utf8, 5);
+
+                    if(output_index + buffer_utf8_size > *output_size) {
+                        *output_size *= 2;
+                        ret = mjb_realloc(ret, *output_size);
+                    }
+
+                    memcpy((char*)ret + output_index, buffer_utf8, buffer_utf8_size);
+                    output_index += buffer_utf8_size;
+                }
+            }
         }
 
-        // ASCII characters (U+0000..U+007F) are left unaffected by all of the Normalization Forms
-        // Latin-1 characters (U+0000..U+00FF) are unaffected by NFC
-        if(codepoint <= 0x7F || (codepoint < 0xFF && form == MJB_NORMALIZATION_NFC)) {
-            // mjb_array_push(mjb, &array, (char*)&codepoint);
-            ++i;
-        } else {
-            do {
-                break;
-            } while(1);
+        current += next;
+        remaining -= next;
+    }
 
-            /* The codepoint is a starter *
-            starter = combining == 0;
+    // *output_size = current - (const char*)buffer;
 
-            /*ret = sqlite3_clear_bindings(mjb.decomposition_stmt);
-            DB_CHECK(ret, false)*/
-        }
-
-        /* ((mjb_codepoint*)ret)[i] = codepoint; */
-    } while(next < source_size);
-
-    *output_size = i;
-
-    return NULL;
+    return ret;
 }

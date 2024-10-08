@@ -65,7 +65,7 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
     }
 
     // No BOM, let's try UTF-8
-    if(mjb_string_utf8(buffer, size)) {
+    if(mjb_string_is_utf8(buffer, size)) {
         bom_encoding |= MJB_ENCODING_UTF_8;
     }
 
@@ -80,11 +80,10 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 /**
  * Return true if the string is encoded in UTF-8.
  */
-MJB_EXPORT bool mjb_string_utf8(const char *buffer, size_t size) {
-    const char *end = buffer + size;
-    unsigned char byte;
-    unsigned int code_length, i;
-    uint32_t ch;
+MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
+    size_t next = 0;
+    const char *current = buffer;
+    size_t remaining = size;
 
     if(buffer == 0) {
         return false;
@@ -94,73 +93,15 @@ MJB_EXPORT bool mjb_string_utf8(const char *buffer, size_t size) {
         return true;
     }
 
-    while(buffer != end) {
-        byte = *buffer;
+    while(current < buffer + size) {
+        mjb_codepoint codepoint = mjb_string_next_codepoint(current, remaining, &next);
 
-        if(byte <= 0x7F) {
-            // 0b0xxxxxxx, 1 byte sequence
-            buffer += 1;
-            continue;
-        }
-
-        if(0xC2 <= byte && byte <= 0xDF) {
-            // 0b110xxxxx: 2 bytes sequence
-            code_length = 2;
-        } else if(0xE0 <= byte && byte <= 0xEF) {
-            // 0b1110xxxx: 3 bytes sequence
-            code_length = 3;
-        } else if(0xF0 <= byte && byte <= 0xF4) {
-            // 0b11110xxx: 4 bytes sequence
-            code_length = 4;
-        } else {
-            // Invalid first byte of a multibyte character
+        if(codepoint == MJB_CODEPOINT_NOT_VALID) {
             return false;
         }
 
-        if(buffer + (code_length - 1) >= end) {
-            // Truncated string or invalid byte sequence
-            return false;
-        }
-
-        // Check continuation bytes: bit 7 should be set, bit 6 should be unset (b10xxxxxx).
-        for(i = 1; i < code_length; ++i) {
-            if((buffer[i] & 0xC0) != 0x80) {
-                return false;
-            }
-        }
-
-        if(code_length == 2) {
-            // 2 bytes sequence: U+0080..U+07FF
-            ch = ((buffer[0] & 0x1f) << 6) + (buffer[1] & 0x3f);
-            // buffer[0] >= 0xC2, so ch >= 0x0080.
-            // buffer[0] <= 0xDF, (buffer[1] & 0x3f) <= 0x3f
-            // So then ch <= 0x07ff
-        } else if(code_length == 3) {
-            // 3 bytes sequence: U+0800..U+FFFF
-            ch = ((buffer[0] & 0x0f) << 12) + ((buffer[1] & 0x3f) << 6) +
-            (buffer[2] & 0x3f);
-            // (0xff & 0x0f) << 12 | (0xff & 0x3f) << 6 | (0xff & 0x3f) = 0xffff,
-            // So then ch <= 0xffff
-            if(ch < 0x0800) {
-                return false;
-            }
-
-            // Surrogates (U+D800-U+DFFF) are invalid in UTF-8:
-            // Test if (0xD800 <= ch && ch <= 0xDFFF)
-            if((ch >> 11) == 0x1b) {
-                return false;
-            }
-        } else if(code_length == 4) {
-            // 4 bytes sequence: U+10000..U+10FFFF
-            ch = ((buffer[0] & 0x07) << 18) + ((buffer[1] & 0x3f) << 12) +
-            ((buffer[2] & 0x3f) << 6) + (buffer[3] & 0x3f);
-
-            if((ch < 0x10000) || (0x10FFFF < ch)) {
-                return false;
-            }
-        }
-
-        buffer += code_length;
+        current += next;
+        remaining -= next;
     }
 
     return true;
@@ -186,9 +127,94 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
     return 1;
 }
 
-MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding) {
+mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next) {
+    const char *end = buffer + size;
+    unsigned char byte;
+    unsigned int code_length;
+    mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
+
+    if(buffer == 0) {
+        return MJB_CODEPOINT_NOT_VALID;
+    }
+
+    if(size == 0) {
+        return MJB_CODEPOINT_NOT_VALID;
+    }
+
+    byte = *buffer;
+
+    if(byte <= 0x7F) {
+        // 0b0xxxxxxx, 1 byte sequence
+        *next = 1;
+
+        return byte;
+    }
+
+    if(0xC2 <= byte && byte <= 0xDF) {
+        // 0b110xxxxx: 2 bytes sequence
+        code_length = 2;
+    } else if(0xE0 <= byte && byte <= 0xEF) {
+        // 0b1110xxxx: 3 bytes sequence
+        code_length = 3;
+    } else if(0xF0 <= byte && byte <= 0xF4) {
+        // 0b11110xxx: 4 bytes sequence
+        code_length = 4;
+    } else {
+        // Invalid first byte of a multibyte character
+        return MJB_CODEPOINT_NOT_VALID;
+    }
+
+    if(buffer + (code_length - 1) >= end) {
+        // Truncated string or invalid byte sequence
+        return MJB_CODEPOINT_NOT_VALID;
+    }
+
+    // Check continuation bytes: bit 7 should be set, bit 6 should be unset (b10xxxxxx).
+    for(unsigned int i = 1; i < code_length; ++i) {
+        if((buffer[i] & 0xC0) != 0x80) {
+            return MJB_CODEPOINT_NOT_VALID;
+        }
+    }
+
+    if(code_length == 2) {
+        // 2 bytes sequence: U+0080..U+07FF
+        codepoint = ((buffer[0] & 0x1f) << 6) + (buffer[1] & 0x3f);
+        // buffer[0] >= 0xC2, so codepoint >= 0x0080.
+        // buffer[0] <= 0xDF, (buffer[1] & 0x3f) <= 0x3f
+        // So then codepoint <= 0x07ff
+    } else if(code_length == 3) {
+        // 3 bytes sequence: U+0800..U+FFFF
+        codepoint = ((buffer[0] & 0x0f) << 12) + ((buffer[1] & 0x3f) << 6) +
+        (buffer[2] & 0x3f);
+        // (0xff & 0x0f) << 12 | (0xff & 0x3f) << 6 | (0xff & 0x3f) = 0xffff,
+        // So then codepoint <= 0xffff
+        if(codepoint < 0x0800) {
+            return MJB_CODEPOINT_NOT_VALID;
+        }
+
+        // Surrogates (U+D800-U+DFFF) are invalid in UTF-8:
+        // Test if (0xD800 <= codepoint && codepoint <= 0xDFFF)
+        if((codepoint >> 11) == 0x1b) {
+            return MJB_CODEPOINT_NOT_VALID;
+        }
+    } else if(code_length == 4) {
+        // 4 bytes sequence: U+10000..U+10FFFF
+        codepoint = ((buffer[0] & 0x07) << 18) + ((buffer[1] & 0x3f) << 12) +
+        ((buffer[2] & 0x3f) << 6) + (buffer[3] & 0x3f);
+
+        if((codepoint < 0x10000) || (0x10FFFF < codepoint)) {
+            return MJB_CODEPOINT_NOT_VALID;
+        }
+    }
+
+    *next = code_length;
+
+    return codepoint;
+}
+
+MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding) {
     if(buffer == NULL || size < 2 || encoding != MJB_ENCODING_UTF_8) {
-        return false;
+        return 0;
     }
 
     if(codepoint <= 0x7F) {
@@ -196,10 +222,10 @@ MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size
         buffer[0] = (char)codepoint;
         buffer[1] = '\0';
 
-        return true;
+        return 1;
     } else if(codepoint <= 0x7FF) {
         if(size < 3) {
-            return false;
+            return 0;
         }
 
         // 0b11|0x|xx|xx: 2 bytes sequence
@@ -207,10 +233,10 @@ MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size
         buffer[1] = (char)(0x80 | (codepoint & 0x3F));
         buffer[2] = '\0';
 
-        return true;
+        return 2;
     } else if(codepoint <= 0xFFFF) {
         if(size < 4) {
-            return false;
+            return 0;
         }
 
         // 0b11|10|xx|xx: 3 bytes sequence
@@ -219,10 +245,10 @@ MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size
         buffer[2] = (char)(0x80 | (codepoint & 0x3F));
         buffer[3] = '\0';
 
-        return true;
+        return 3;
     } else if(codepoint <= 0x10FFFF) {
         if(size < 5) {
-            return false;
+            return 0;
         }
 
         // 0b11|11|0x|xx: 4 bytes sequence
@@ -232,8 +258,8 @@ MJB_EXPORT bool mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size
         buffer[3] = (char)(0x80 | (codepoint & 0x3F));
         buffer[4] = '\0';
 
-        return true;
+        return 4;
     }
 
-    return false;
+    return 0;
 }
