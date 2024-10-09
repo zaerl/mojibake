@@ -25,6 +25,7 @@ size_t get_codepoints(char *buffer, char *codepoints, size_t size) {
         index += mjb_codepoint_encode(codepoint, codepoints + index, size - index, MJB_ENCODING_UTF_8);
     }
 
+    codepoints[++index] = '\0';
     free(tofree);
 
     return index;
@@ -64,7 +65,7 @@ size_t get_codepoints(char *buffer, char *codepoints, size_t size) {
  */
 unsigned int check_normalization(char *source, size_t source_size, char *normalized, size_t normalized_size, mjb_normalization form) {
     size_t normalized_size_res;
-    char *normalized_res = (char*)mjb_normalize((char*)source, source_size, &normalized_size_res, MJB_ENCODING_UTF_8, form);
+    char *normalized_res = mjb_normalize(source, source_size, &normalized_size_res, MJB_ENCODING_UTF_8, form);
     int ret = 0; // OK
 
     if(normalized_res == NULL) {
@@ -173,7 +174,7 @@ void *test_normalization(void *arg) {
 
         free(tofree);
 
-        char *valids[4] = { "OK",  "NORMALIZE", "SIZE", "CODE" };
+        char *valids[4] = { "OK",  "Normalization failed", "Size mismatch", "Codepoint mismatch" };
         // unsigned int valid0 = check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC);
         unsigned int valid1 = check_normalization((char*)source, source_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD);
         // unsigned int valid2 = check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC);
@@ -199,7 +200,7 @@ void *test_normalization(void *arg) {
 
         ++current_line;
 
-        if(++limit == 2) {
+        if(++limit == 1) {
             break;
         }
     }

@@ -112,6 +112,6 @@ export const cfns: CFunction[] = [
     ['mjb_codepoint codepoint']),
 
   new CFunction('Normalize a string',
-    'void *', 'normalize',
-    ['void *buffer', 'size_t size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
+    'char *', 'normalize',
+    ['char *buffer', 'size_t size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
 ];

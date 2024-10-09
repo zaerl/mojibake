@@ -12,7 +12,7 @@ extern struct mojibake mjb_global;
 /**
  * Normalize a string
  */
-MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
     if(!mjb_initialize()) {
         return NULL;
     }
@@ -48,7 +48,7 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, size_t *output_size, m
     sqlite3_reset(mjb_global.decompose);
     sqlite3_clear_bindings(mjb_global.decompose);
 
-    void *ret = mjb_alloc(size);
+    char *ret = mjb_alloc(size);
     size_t output_index = 0;
     char buffer_utf8[5];
     *output_size = size;
@@ -82,12 +82,25 @@ MJB_EXPORT void *mjb_normalize(void *buffer, size_t size, size_t *output_size, m
                     output_index += buffer_utf8_size;
                 }
             }
+
+            sqlite3_reset(mjb_global.decompose);
         }
 
         current += next;
         remaining -= next;
     }
 
+    // Guarantee null-terminated string
+    output_index += 1;
+
+    if(output_index >= *output_size) {
+        ret = mjb_realloc(ret, *output_size + 1);
+        ret[output_index] = '\0';
+    }
+
+    ret[output_index] = '\0';
+
+    *output_size = output_index;
     // *output_size = current - (const char*)buffer;
 
     return ret;
