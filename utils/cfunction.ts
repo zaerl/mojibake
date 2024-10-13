@@ -114,4 +114,8 @@ export const cfns: CFunction[] = [
   new CFunction('Normalize a string',
     'char *', 'normalize',
     ['char *buffer', 'size_t size', 'size_t *output_size', 'mjb_encoding encoding', 'mjb_normalization form']),
+
+    new CFunction('Sort',
+      'void', 'sort',
+      ['mjb_character arr[]', 'size_t size']),
 ];

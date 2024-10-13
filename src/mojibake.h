@@ -730,6 +730,9 @@ mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 // Normalize a string
 char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
+// Sort
+void mjb_sort(mjb_character array[], size_t size);
+
 #ifdef __cplusplus
 }
 #endif

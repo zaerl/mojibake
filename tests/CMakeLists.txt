@@ -5,6 +5,7 @@ set(TEST_SOURCES
     mojibake.c
     normalization.c
     plane.c
+    sort.c
     test.c
     version.c
 )

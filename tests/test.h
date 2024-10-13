@@ -24,6 +24,7 @@ void *test_encoding(void *arg);
 void *test_mojibake(void *arg);
 void *test_normalization(void *arg);
 void *test_plane(void *arg);
+void *test_sort(void *arg);
 void *test_version(void *arg);
 
 #ifdef __cplusplus
