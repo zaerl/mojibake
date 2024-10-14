@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 #include "sqlite3/sqlite3.h"
+#include "utf8.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -616,6 +617,7 @@ typedef enum mjb_normalization {
  * [see: https://www.unicode.org/glossary/#compatibility_decomposition]
  */
 typedef enum mjb_decomposition {
+    MJB_DECOMPOSITION_NONE,
     MJB_DECOMPOSITION_CANONICAL,
     MJB_DECOMPOSITION_CIRCLE,
     MJB_DECOMPOSITION_COMPAT,
@@ -731,7 +733,7 @@ mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 // Sort
-void mjb_sort(mjb_character array[], size_t size);
+void mjb_sort(mjb_character arr[], size_t size);
 
 #ifdef __cplusplus
 }

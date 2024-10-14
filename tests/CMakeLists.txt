@@ -6,6 +6,7 @@ set(TEST_SOURCES
     normalization.c
     plane.c
     sort.c
+    utf8.c
     test.c
     version.c
 )
