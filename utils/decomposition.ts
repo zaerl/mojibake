@@ -7,12 +7,12 @@ import { characterDecompositionMapping, CharacterDecompositionMappingStrings, De
  */
 export function characterDecomposition(mapping: string): Decomposition {
   const map = mapping.length ? mapping.split(' ') : [];
-  let type: number = 0;
+  let type = characterDecompositionMapping['none'];
   let decomposition:number[] = [];
   let size = 0;
   let ret = { type, decomposition };
 
-  if(map.length <= 1) {
+  if(map.length < 1) {
     return ret;
   }
 

@@ -125,23 +125,24 @@ export type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategori
 
 // C: mjb_decomposition
 export const characterDecompositionMapping = {
-  'canonical': 0,
-  '<circle>': 1,
-  '<compat>': 2,
-  '<final>': 3,
-  '<font>': 4,
-  '<fraction>': 5,
-  '<initial>': 6,
-  '<isolated>': 7,
-  '<medial>': 8,
-  '<narrow>': 9,
-  '<noBreak>': 10,
-  '<small>': 11,
-  '<square>': 12,
-  '<sub>': 13,
-  '<super>': 14,
-  '<vertical>': 15,
-  '<wide>': 16
+  'none': 0,
+  'canonical': 1,
+  '<circle>': 2,
+  '<compat>': 3,
+  '<final>': 4,
+  '<font>': 5,
+  '<fraction>': 6,
+  '<initial>': 7,
+  '<isolated>': 8,
+  '<medial>': 9,
+  '<narrow>': 10,
+  '<noBreak>': 11,
+  '<small>': 12,
+  '<square>': 13,
+  '<sub>': 14,
+  '<super>': 15,
+  '<vertical>': 16,
+  '<wide>': 17
 };
 
 export type CharacterDecompositionMappingStrings = keyof typeof characterDecompositionMapping;
