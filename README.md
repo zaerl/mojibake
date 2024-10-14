@@ -131,5 +131,5 @@ char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding
 
 Sort
 ```c
-void mjb_mjb_sort(int arr[], size_t size);
+void mjb_sort(mjb_character arr[], size_t size);
 ```
