@@ -96,7 +96,7 @@ bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 Return true if the codepoint has the category
 ```c
-bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
+bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
 ```
 
 Return true if the codepoint has the block

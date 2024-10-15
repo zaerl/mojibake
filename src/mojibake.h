@@ -183,7 +183,7 @@ bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 // Return true if the codepoint has the category
-bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category);
+bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
 
 // Return true if the codepoint has the block
 bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);

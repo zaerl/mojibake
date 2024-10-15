@@ -63,7 +63,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
 }
 
 // Return true if the codepoint has the category
-MJB_EXPORT bool mjb_codepoint_is(mjb_codepoint codepoint, mjb_category category) {
+MJB_EXPORT bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category) {
     mjb_character character;
 
     if(!mjb_codepoint_character(&character, codepoint)) {
@@ -89,9 +89,9 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
         case MJB_CATEGORY_CO:
         case MJB_CATEGORY_CN:
             return false;
-        default:
-            return true;
     }
+
+    return true;
 }
 
 MJB_EXPORT bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block) {

@@ -88,7 +88,7 @@ export const cfns: CFunction[] = [
     ['mjb_character *character', 'mjb_codepoint codepoint']),
 
   new CFunction('Return true if the codepoint has the category',
-    'bool', 'codepoint_is',
+    'bool', 'codepoint_category_is',
     ['mjb_codepoint codepoint', 'mjb_category category']),
 
   new CFunction('Return true if the codepoint has the block',
