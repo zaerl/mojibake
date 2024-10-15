@@ -54,6 +54,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   let totalStepsOver16 = 0;
   let characters: Character[] = [];
   let names: string[] = [];
+  let combinings = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -133,6 +134,12 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 
     characters.push(char);
     names.push(name);
+
+    if(char.category === Categories.Mn || char.category === Categories.Me || char.category === Categories.Mc) {
+      if(char.combining !== 0) {
+        ++combinings;
+      }
+    }
 
     // Calculate max decimal
     if(char.decimal !== null) {
@@ -266,6 +273,8 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       log(`${i}: ${maxDecompositions[i]}`);
     }
   }
+
+  log(`\nCOMBINING CHARACTERS: ${combinings}\n`);
 
   log(`STEPS COUNT: ${totalSteps}\n`);
   log(`STEPS COUNT OVER 8: ${totalStepsOver8}\n`);
