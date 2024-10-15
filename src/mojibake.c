@@ -11,7 +11,7 @@
 #include "mojibake.h"
 #include "sqlite3/sqlite3.h"
 
-MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
@@ -60,21 +60,29 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     }
 
     const char query[] = "SELECT * FROM unicode_data WHERE codepoint = ?";
-    rc = sqlite3_prepare_v2(mjb_global.db, query, sizeof(query), &mjb_global.get_codepoint, NULL);
+    rc = sqlite3_prepare_v2(mjb_global.db, query, sizeof(query), &mjb_global.stmt_get_codepoint, NULL);
 
     if(rc != SQLITE_OK) {
         return false;
     }
 
     const char query_2[] = "SELECT id FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_2, sizeof(query_2), &mjb_global.get_block, NULL);
+    rc = sqlite3_prepare_v2(mjb_global.db, query_2, sizeof(query_2), &mjb_global.stmt_get_block, NULL);
 
     if(rc != SQLITE_OK) {
         return false;
     }
 
     const char query_3[] = "SELECT value FROM decompositions WHERE main_id = ?";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_3, sizeof(query_3), &mjb_global.decompose, NULL);
+    rc = sqlite3_prepare_v2(mjb_global.db, query_3, sizeof(query_3), &mjb_global.stmt_decompose, NULL);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
+    // MJB_CATEGORY_MN and MJB_CATEGORY_MC
+    const char query_4[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
+    rc = sqlite3_prepare_v2(mjb_global.db, query_4, sizeof(query_4), &mjb_global.stmt_is_combining, NULL);
 
     if(rc != SQLITE_OK) {
         return false;
@@ -98,16 +106,20 @@ MJB_EXPORT void mjb_shutdown(void) {
     mjb_global.memory_realloc = NULL;
     mjb_global.memory_alloc = NULL;
 
-    if(mjb_global.get_codepoint) {
-        sqlite3_finalize(mjb_global.get_codepoint);
+    if(mjb_global.stmt_get_codepoint) {
+        sqlite3_finalize(mjb_global.stmt_get_codepoint);
     }
 
-    if(mjb_global.get_block) {
-        sqlite3_finalize(mjb_global.get_block);
+    if(mjb_global.stmt_get_block) {
+        sqlite3_finalize(mjb_global.stmt_get_block);
     }
 
-    if(mjb_global.decompose) {
-        sqlite3_finalize(mjb_global.decompose);
+    if(mjb_global.stmt_decompose) {
+        sqlite3_finalize(mjb_global.stmt_decompose);
+    }
+
+    if(mjb_global.stmt_is_combining) {
+        sqlite3_finalize(mjb_global.stmt_is_combining);
     }
 
     if(mjb_global.db) {

@@ -127,6 +127,7 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
     return 1;
 }
 
+// Deprecated. Use mjb_utf8_decode_step instead.
 mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next) {
     const char *end = buffer + size;
     unsigned char byte;

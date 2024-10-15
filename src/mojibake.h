@@ -53,9 +53,10 @@ typedef struct mojibake {
     mjb_realloc_fn memory_realloc;
     mjb_free_fn memory_free;
     sqlite3 *db;
-    sqlite3_stmt *get_codepoint;
-    sqlite3_stmt *get_block;
-    sqlite3_stmt *decompose;
+    sqlite3_stmt *stmt_get_codepoint;
+    sqlite3_stmt *stmt_get_block;
+    sqlite3_stmt *stmt_decompose;
+    sqlite3_stmt *stmt_is_combining;
 } mojibake;
 
 /**
