@@ -113,6 +113,7 @@ void *test_encoding(void *arg) {
     // UTF-8 tests
     TEST_UTF8(0x007F, "\x7F", 1, "ASCII limit");
     TEST_UTF8(0x07FF, "\xDF\xBF", 2, "2-bytes limit");
+    TEST_UTF8(0x1E0A, "\xE1\xB8\x8A", 3, "LATIN CAPITAL LETTER D WITH DOT ABOVE");
     TEST_UTF8(0xFFFD, "\xEF\xBF\xBD", 3, "3-bytes limit");
     TEST_UTF8(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
     TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
