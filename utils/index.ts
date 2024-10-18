@@ -1,5 +1,6 @@
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
+import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { Character } from './character';
 import { dbInit, dbRun, dbSize } from './db';
@@ -9,52 +10,19 @@ import { generateReadme } from './generate-readme';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import {
   BidirectionalCategories, Block, categories, Categories,
-  CountBuffer, Numeric,
   UnicodeDataRow
 } from './types';
-import { commonPrefix } from './utils';
 
 let compact = false;
 
-function compareFn(a: CountBuffer, b: CountBuffer): number {
-  const ret = b.count - a.count;
-
-  if(ret === 0) {
-    if(a.name < b.name) {
-      return -1;
-    } else if(a.name > b.name) {
-      return 1;
-    }
-
-    return 0;
-  }
-
-  return ret;
-}
-
 async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   log('READ UNICODE DATA');
+  const analysis = new Analysis();
 
-  const nameBuffer: { [name: string]: number } = {};
-  const categoryBuffer: { [name: string]: number } = {};
-  let codepointsCount = 0;
-  let charsCount = 0;
-  let wordsCount = 0;
-  let hasNumber: { [name: string]: number } = {};
-  let maxDecimal = 0;
-  let maxDigit = 0;
   let previousCodepoint = 0;
-  let diffs = 0;
   let codepoint = 0;
   let currentBlock = 0;
-  let maxDecompositions = [];
-  let decompositions = 0;
-  let totalSteps = 0;
-  let totalStepsOver8 = 0;
-  let totalStepsOver16 = 0;
   let characters: Character[] = [];
-  let names: string[] = [];
-  let combinings = 0;
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -71,43 +39,12 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     codepoint = parseInt(split[0], 16);
     const diff = codepoint - previousCodepoint;
 
-    if(diff > 1) {
-      diffs += diff;
-      ++totalSteps;
-
-      if(diff > 8) {
-        ++totalStepsOver8;
-
-        if(diff > 16) {
-          ++totalStepsOver16;
-        }
-      }
-
-      // log(`STEP (${split[0]} -- ${diff})`);
-    }
-
     previousCodepoint = codepoint;
-    ++codepointsCount;
-    charsCount += name.length;
-    wordsCount += words.length;
-
-    // Indexed by the `numeric` field (string)
-    if(split[8] !== '') {
-      if(typeof(hasNumber[split[8]]) === 'undefined') {
-        hasNumber[split[8]] = 1;
-      } else {
-        ++hasNumber[split[8]];
-      }
-    }
+    analysis.line(diff, name, split[2], split[8], words);
 
     // Character decomposition mapping
     let decomposition = characterDecomposition(split[5]);
-    decompositions += decomposition.decomposition.length;
-    if(typeof maxDecompositions[decomposition.decomposition.length] === 'undefined') {
-      maxDecompositions[decomposition.decomposition.length] = 1;
-    } else {
-      ++maxDecompositions[decomposition.decomposition.length];
-    }
+    analysis.decomposition(decomposition);
 
     if(codepoint > blocks[currentBlock].end) {
       ++currentBlock;
@@ -133,163 +70,19 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     );
 
     characters.push(char);
-    names.push(name);
-
-    if(char.category === Categories.Mn || char.category === Categories.Me || char.category === Categories.Mc) {
-      if(char.combining !== 0) {
-        ++combinings;
-      }
-    }
-
-    // Calculate max decimal
-    if(char.decimal !== null) {
-      maxDecimal = Math.max(maxDecimal, char.decimal);
-    }
-
-    // Calculate max digit
-    if(char.digit !== null) {
-      maxDigit = Math.max(maxDigit, char.digit);
-    }
-
-    for(const word of words) {
-      if(typeof(nameBuffer[word]) === 'undefined') {
-        nameBuffer[word] = 1;
-      } else {
-        ++nameBuffer[word];
-      }
-
-      if(typeof(categoryBuffer[split[2]]) === 'undefined') {
-        categoryBuffer[split[2]] = 1;
-      } else {
-        ++categoryBuffer[split[2]];
-      }
-    }
+    analysis.addCharacter(char);
   }
 
   iLog('INSERT UNICODE DATA');
 
-  names.sort();
-  const prefixesBuffer: { [name: string]: number } = {};
-
-  for(let i = 1; i < names.length; ++i) {
-    const common = commonPrefix(names[i - 1], names[i]);
-
-    if(common !== '') {
-      if(typeof(prefixesBuffer[common]) === 'undefined') {
-        prefixesBuffer[common] = 1;
-      } else {
-        ++prefixesBuffer[common];
-      }
-    }
-  }
-
-  const prefixes = Object.entries(prefixesBuffer);
-  let saving = 0;
-  prefixes.sort((a, b) => b[1] - a[1]);
-  for(const el of prefixes) {
-    if(el[1] > 1) {
-      saving += el[0].length * (el[1] - 1);
-    }
-  }
+  analysis.beforeDB();
 
   // Insert characters
   for(const char of characters) {
     dbRun(char);
   }
 
-  const ret: CountBuffer[] = [];
-  const ret2: CountBuffer[] = [];
-
-  for(const name in categoryBuffer) {
-    ret2.push({ name, count: categoryBuffer[name] });
-  }
-
-  log('CATEGORIES\n');
-
-  ret2.sort(compareFn);
-  let buffer: string[] = [];
-  let prevCount = ret2[0].count;
-
-  for(const entry of ret2) {
-    buffer.push(entry.name);
-
-    if(entry.count !== prevCount) {
-      log(`${entry.count} :: ${buffer.join(', ')}`);
-
-      prevCount = entry.count;
-      buffer = [];
-    }
-  }
-
-  log(`\nWORDS: ${Object.keys(nameBuffer).length}\n`);
-
-  for(const name in nameBuffer) {
-    ret.push({ name, count: nameBuffer[name] });
-  }
-
-  ret.sort(compareFn);
-  buffer = [];
-  prevCount = ret[0].count;
-
-  for(const entry of ret) {
-    buffer.push(entry.name);
-
-    if(entry.count !== prevCount) {
-      const line = buffer.length > 10 ? buffer.slice(0, 10).join(', ') + '...' : buffer.join(', ');
-
-      log(`${entry.count} :: ${line}`);
-
-      prevCount = entry.count;
-      buffer = [];
-    }
-  }
-
-  log('\nNUMBERS\n');
-
-  const numbersBuffer: Numeric[] = [];
-
-  // `name` is the `numeric` field
-  for(const name in hasNumber) {
-    const values = name.split('/'); // Check if it's a fraction
-    const value = values.length === 1 ? parseFloat(values[0]) :
-      Math.floor((parseFloat(values[0]) / parseFloat(values[1])) * 100) / 100;
-    const count = hasNumber[name];
-
-    numbersBuffer.push({ name, value, count });
-  }
-
-  numbersBuffer.sort((a: Numeric, b: Numeric) => b.count - a.count);
-
-  for(const num of numbersBuffer) {
-    log(`${num.name} (${num.value}): ${num.count}`);
-  }
-
-  log(`\nDECOMPOSITION COUNT: ${decompositions}\n`);
-
-  log(`DECOMPOSITIONS\n`);
-
-  for(let i = 0; i < maxDecompositions.length; ++i) {
-    if(typeof maxDecompositions[i] !== 'undefined') {
-      log(`${i}: ${maxDecompositions[i]}`);
-    }
-  }
-
-  log(`\nCOMBINING CHARACTERS: ${combinings}\n`);
-
-  log(`STEPS COUNT: ${totalSteps}\n`);
-  log(`STEPS COUNT OVER 8: ${totalStepsOver8}\n`);
-  log(`STEPS COUNT OVER 16: ${totalStepsOver16}\n`);
-
-  log(`STEPS TOTAL: ${diffs}/${codepoint}\n`);
-
-  log('\nMAX NUMBERS\n');
-  log(`MAX DECIMAL: ${maxDecimal}`);
-  log(`MAX DIGIT: ${maxDigit}`);
-
-  iLog(`${isVerbose() ? "\n" : ''}COUNT\n`);
-  iLog(`${codepointsCount.toLocaleString()} codepoints (${(codepointsCount * 5).toLocaleString()} bytes)`);
-  iLog(`${wordsCount.toLocaleString()} words (${(wordsCount * 5).toLocaleString()} bytes)`);
-  iLog(`${charsCount.toLocaleString()} characters (${(charsCount).toLocaleString()} bytes)`);
+  analysis.outputGeneratedData(codepoint, isVerbose());
 
   return characters;
 }
