@@ -1,7 +1,7 @@
 import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
-import { Block } from './types';
+import { Block, CalculatedDecomposition } from './types';
 
 let db: Database.Database;
 let dbPath: string;
@@ -195,9 +195,15 @@ export function dbRun(char: Character) {
       char.titlecase
     );
 
-    for(const value of char.decompositions) {
+    /*for(const value of char.decompositions) {
       insertDecompositionSmt.run(char.codepoint, value);
-    }
+    }*/
+  }
+}
+
+export function dbRunDecompositions(decompositions: CalculatedDecomposition[]) {
+  for(const value of decompositions) {
+    insertDecompositionSmt.run(value.codepoint, value.value);
   }
 }
 

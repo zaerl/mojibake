@@ -87,6 +87,10 @@ export const cfns: CFunction[] = [
     'bool', 'codepoint_character',
     ['mjb_character *character', 'mjb_codepoint codepoint']),
 
+  new CFunction('Return hangul syllable name',
+    'bool', 'hangul_syllable_name',
+    ['mjb_codepoint codepoint', 'char *buffer', 'size_t size']),
+
   new CFunction('Return true if the codepoint has the category',
     'bool', 'codepoint_category_is',
     ['mjb_codepoint codepoint', 'mjb_category category']),
@@ -98,6 +102,14 @@ export const cfns: CFunction[] = [
   new CFunction('Return true if the codepoint is graphic',
     'bool', 'codepoint_is_graphic',
     ['mjb_codepoint codepoint']),
+
+  new CFunction('Return true if the codepoint is combining',
+    'bool', 'codepoint_is_combining',
+    ['mjb_codepoint codepoint']),
+
+  new CFunction('Return true if the category is combining',
+    'bool', 'category_is_combining',
+    ['mjb_category category']),
 
   new CFunction('Return the codepoint lowercase codepoint',
     'mjb_codepoint', 'codepoint_to_lowercase',

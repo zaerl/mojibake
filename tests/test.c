@@ -91,10 +91,12 @@ int main(int argc, char * const argv[]) {
     // Start tests declarations.
     RUN_TEST(codepoint)
     RUN_TEST(encoding)
+    RUN_TEST(hangul)
     RUN_TEST(mojibake)
     RUN_TEST(normalization)
     RUN_TEST(plane)
     RUN_TEST(sort)
+    RUN_TEST(utf8)
     RUN_TEST(version)
 
     unsigned int tests_valid = att_get_valid_tests();

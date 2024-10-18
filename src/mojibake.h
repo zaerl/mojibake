@@ -114,7 +114,7 @@ typedef struct mjb_codepoint_block {
  */
 typedef struct mjb_character {
     mjb_codepoint codepoint;
-    char *name;
+    char name[128];
     mjb_category category;
     mjb_canonical_combining_class combining;
     unsigned short bidirectional;
@@ -182,6 +182,9 @@ bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 // Return the codepoint character
 bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
+// Return hangul syllable name
+bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+
 // Return true if the codepoint has the category
 bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
 
@@ -190,6 +193,12 @@ bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 
 // Return true if the codepoint is graphic
 bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
+
+// Return true if the codepoint is combining
+bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+
+// Return true if the category is combining
+bool mjb_category_is_combining(mjb_category category);
 
 // Return the codepoint lowercase codepoint
 mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);

@@ -94,6 +94,11 @@ Return the codepoint character
 bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 ```
 
+Return hangul syllable name
+```c
+bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+```
+
 Return true if the codepoint has the category
 ```c
 bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
@@ -107,6 +112,16 @@ bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 Return true if the codepoint is graphic
 ```c
 bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is combining
+```c
+bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+```
+
+Return true if the category is combining
+```c
+bool mjb_category_is_combining(mjb_category category);
 ```
 
 Return the codepoint lowercase codepoint

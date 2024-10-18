@@ -3,8 +3,8 @@ import { createInterface } from 'readline';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { Character } from './character';
-import { dbInit, dbRun, dbSize } from './db';
-import { characterDecomposition } from './decomposition';
+import { dbInit, dbRun, dbRunDecompositions, dbSize } from './db';
+import { characterDecomposition, generateDecomposition } from './decomposition';
 import { generateHeader } from './generate-header';
 import { generateReadme } from './generate-readme';
 import { iLog, isVerbose, log, setVerbose } from './log';
@@ -37,6 +37,12 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     const words = name.split(' ');
     codepoint = parseInt(split[0], 16);
+
+    // Hangul syllables
+    if(codepoint === 0xAC00 || codepoint === 0xD7A3) {
+      continue;
+    }
+
     const diff = codepoint - previousCodepoint;
 
     previousCodepoint = codepoint;
@@ -81,6 +87,8 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   for(const char of characters) {
     dbRun(char);
   }
+
+  dbRunDecompositions(generateDecomposition(characters));
 
   analysis.outputGeneratedData(codepoint, isVerbose());
 

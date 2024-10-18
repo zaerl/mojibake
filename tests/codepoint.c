@@ -32,6 +32,14 @@ void *test_codepoint(void *arg) {
     // 0x0377 = ͷ, 0x0377 + 1 is not mapped
     ATT_ASSERT(mjb_codepoint_character(&character, 0x0377 + 1), false, "Codepoint not mapped: ͷ + 1")
 
+    // 0xAC00 = First hangul syllable
+    ATT_ASSERT(mjb_codepoint_character(&character, 0xAC00), true, "First hangul syllable")
+    ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE GA"), 0, "First hangul syllable")
+
+    // 0xD7A3 = Last hangul syllable
+    ATT_ASSERT(mjb_codepoint_character(&character, 0xD7A3), true, "Last hangul syllable")
+    ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
+
     ATT_ASSERT(mjb_codepoint_block_is(MJB_CODEPOINT_MAX, MJB_BLOCK_BASIC_LATIN), false, "Not valid codepoint")
     ATT_ASSERT(mjb_codepoint_block_is(0, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
     ATT_ASSERT(mjb_codepoint_block_is(0x80 - 1, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
@@ -45,15 +53,15 @@ void *test_codepoint(void *arg) {
 
     ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_MAX - 1), false, "Supplementary Private Use Area-B block")
 
-    ATT_ASSERT(mjb_codepoint_is(0, MJB_CATEGORY_CC), true, "NULL: category other, control")
+    ATT_ASSERT(mjb_codepoint_category_is(0, MJB_CATEGORY_CC), true, "NULL: category other, control")
 
     // 0x1F642 = 🙂
-    ATT_ASSERT(mjb_codepoint_is(0x1F642, MJB_CATEGORY_SO), true, "🙂: category Symbol, Other")
+    ATT_ASSERT(mjb_codepoint_category_is(0x1F642, MJB_CATEGORY_SO), true, "🙂: category Symbol, Other")
 
-    ATT_ASSERT(mjb_codepoint_is(0x1FFFE, MJB_CATEGORY_LU), false, "Not valid codepoint: category invalid")
+    ATT_ASSERT(mjb_codepoint_category_is(0x1FFFE, MJB_CATEGORY_LU), false, "Not valid codepoint: category invalid")
 
     // 0x0377 = ͷ, 0x0377 + 1 is not mapped
-    ATT_ASSERT(mjb_codepoint_is(0x0377 + 1, MJB_CATEGORY_LL), false, "Not mapped codepoint: category invalid")
+    ATT_ASSERT(mjb_codepoint_category_is(0x0377 + 1, MJB_CATEGORY_LL), false, "Not mapped codepoint: category invalid")
 
     ATT_ASSERT(mjb_codepoint_is_graphic(0), false, "NULL: not graphic")
 
@@ -92,6 +100,12 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_to_uppercase('B'), 'B', "Uppercase: B > B")
     ATT_ASSERT(mjb_codepoint_to_titlecase('c'), 'C', "Titlecase: c > C")
     ATT_ASSERT(mjb_codepoint_to_titlecase('C'), 'C', "Titlecase: C > C")
+
+    ATT_ASSERT(mjb_codepoint_is_combining(0), false, "NULL")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x30), false, "DIGIT ZERO")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x0300), true, "COMBINING GRAVE ACCENT")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x1F1E6), false, "REGIONAL INDICATOR SYMBOL LETTER A")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x488), true, "COMBINING CYRILLIC HUNDRED THOUSANDS SIGN")
 
     return NULL;
 }

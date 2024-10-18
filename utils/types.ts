@@ -14,6 +14,11 @@ export interface Numeric {
   count: number;
 }
 
+export interface CalculatedDecomposition {
+  codepoint: number;
+  value: number;
+}
+
 export interface Decomposition {
   type: number;
   decomposition: number[];

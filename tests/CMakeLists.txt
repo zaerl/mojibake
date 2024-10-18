@@ -2,6 +2,7 @@ set(TEST_SOURCES
     attractor/attractor.c
     codepoint.c
     encoding.c
+    hangul.c
     mojibake.c
     normalization.c
     plane.c
