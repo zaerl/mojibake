@@ -33,11 +33,11 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(&character, 0x0377 + 1), false, "Codepoint not mapped: ͷ + 1")
 
     // 0xAC00 = First hangul syllable
-    ATT_ASSERT(mjb_codepoint_character(&character, 0xAC00), true, "First hangul syllable")
+    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_HANGUL_START), true, "First hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE GA"), 0, "First hangul syllable")
 
     // 0xD7A3 = Last hangul syllable
-    ATT_ASSERT(mjb_codepoint_character(&character, 0xD7A3), true, "Last hangul syllable")
+    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_HANGUL_END), true, "Last hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
 
     ATT_ASSERT(mjb_codepoint_block_is(MJB_CODEPOINT_MAX, MJB_BLOCK_BASIC_LATIN), false, "Not valid codepoint")

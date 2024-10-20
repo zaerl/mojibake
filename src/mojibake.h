@@ -71,6 +71,13 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data
 #define MJB_CODEPOINT_NOT_VALID   0x110000 // Not a valid codepoint
 
+// Corean Hangul Syllables
+#define MJB_CODEPOINT_HANGUL_START 0xAC00
+#define MJB_CODEPOINT_HANGUL_END   0xD7A3
+#define MJB_CODEPOINT_CHOSEONG_BASE 0x1100
+#define MJB_CODEPOINT_JUNGSEONG_BASE 0x1161
+#define MJB_CODEPOINT_JONGSEONG_BASE 0x11A7
+
 /**
  * Unicode encoding
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
@@ -184,6 +191,12 @@ bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 // Return hangul syllable name
 bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+
+// Hangul syllable decomposition
+bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+
+// Return if the codepoint is an hangul syllable
+bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 // Return true if the codepoint has the category
 bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);

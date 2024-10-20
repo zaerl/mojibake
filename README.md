@@ -99,6 +99,16 @@ Return hangul syllable name
 bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
 ```
 
+Hangul syllable decomposition
+```c
+bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+```
+
+Return if the codepoint is an hangul syllable
+```c
+bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+```
+
 Return true if the codepoint has the category
 ```c
 bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);

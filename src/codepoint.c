@@ -38,14 +38,12 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
 
 // Hangul syllable name
 MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size) {
-    if (codepoint < 0xAC00 || codepoint > 0xD7A3) {
-        buffer[0] = '\0';
-
+    if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
         return false;
     }
 
     // Calculate the index in the Hangul syllable block
-    unsigned int syllable_index = codepoint - 0xAC00;
+    unsigned int syllable_index = codepoint - MJB_CODEPOINT_HANGUL_START;
     unsigned int choseong_index = syllable_index / 588;
     unsigned int jungseong_index = (syllable_index % 588) / 28;
     unsigned int jongseong_index = syllable_index % 28;
@@ -55,6 +53,35 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
         mjb_jungseong_names[jungseong_index], mjb_jongseong_names[jongseong_index]);
 
     return false;
+}
+
+// Hangul syllable decomposition
+bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints) {
+    if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
+        return false;
+    }
+
+    // Calculate the index in the Hangul syllable block
+    unsigned int syllable_index = codepoint - MJB_CODEPOINT_HANGUL_START;
+    unsigned int choseong_index = syllable_index / 588;
+    unsigned int jungseong_index = (syllable_index % 588) / 28;
+    unsigned int jongseong_index = syllable_index % 28;
+
+    // Print NFD Decomposition
+    // Cho-seong component
+    codepoints[0] = MJB_CODEPOINT_CHOSEONG_BASE + choseong_index;
+
+    // Jung-seong component
+    codepoints[1] = MJB_CODEPOINT_JUNGSEONG_BASE + jungseong_index;
+
+    // Jong-seong component (if present)
+    if(jongseong_index != 0) {
+        codepoints[2] = MJB_CODEPOINT_JONGSEONG_BASE + jongseong_index;
+    } else {
+        codepoints[2] = 0;
+    }
+
+    return true;
 }
 
 // Return the codepoint character
@@ -67,7 +94,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         return false;
     }
 
-    if(codepoint >= 0xAC00 && codepoint <= 0xD7A3) {
+    if(mjb_codepoint_is_hangul_syllable(codepoint)) {
         // Hangul syllable
         character->codepoint = codepoint;
         mjb_hangul_syllable_name(codepoint, character->name, 128);
@@ -169,6 +196,11 @@ MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
     }
 
     return mjb_category_is_combining(character.category);
+}
+
+// Return the codepoint titlecase codepoint
+MJB_EXPORT bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint) {
+    return codepoint >= MJB_CODEPOINT_HANGUL_START && codepoint <= MJB_CODEPOINT_HANGUL_END;
 }
 
 // Return true if the category is combining
