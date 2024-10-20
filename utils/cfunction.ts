@@ -91,6 +91,14 @@ export const cfns: CFunction[] = [
     'bool', 'hangul_syllable_name',
     ['mjb_codepoint codepoint', 'char *buffer', 'size_t size']),
 
+  new CFunction('Hangul syllable decomposition',
+    'bool', 'hangul_syllable_decomposition',
+    ['mjb_codepoint codepoint', 'mjb_codepoint *codepoints']),
+
+  new CFunction('Return if the codepoint is an hangul syllable',
+    'bool', 'codepoint_is_hangul_syllable',
+    ['mjb_codepoint codepoint']),
+
   new CFunction('Return true if the codepoint has the category',
     'bool', 'codepoint_category_is',
     ['mjb_codepoint codepoint', 'mjb_category category']),
