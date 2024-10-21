@@ -12,6 +12,7 @@ import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
 } from './types';
+import { readCompositionExclusions } from './compositition-exclusion';
 
 let compact = false;
 
@@ -107,7 +108,8 @@ for(let i = 2; i < process.argv.length; ++i) {
 async function generate() {
   dbInit('../build/mojibake.db', compact);
 
-  const blocks = readBlocks('./UCD/Blocks.txt');
+  const blocks = readBlocks();
+  readCompositionExclusions();
   await readUnicodeData(blocks);
 
   generateHeader(blocks, categories);
