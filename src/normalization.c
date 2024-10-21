@@ -45,6 +45,19 @@ void mjb_string_to_hex(const char *input) {
     DEBUG_PUTS("");
 }
 
+static inline char *flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index, char *ret, size_t *output_index, size_t *output_size) {
+    mjb_sort(characters_buffer, buffer_index);
+    char buffer_utf8[5];
+
+    // Write combining characters.
+    for(size_t i = 0; i < buffer_index; ++i) {
+        size_t utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        ret = mjb_output_string(ret, buffer_utf8, utf8_size, output_index, output_size);
+    }
+
+    return ret;
+}
+
 /**
  * Normalize a string
  *
@@ -147,16 +160,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         // We have a character that is not combining. If we have combining characters in the buffer, we need to sort them.
         if(is_starter && buffer_index) {
             DEBUG_PUTS("Write combining characters");
-            // Sort combining characters
-            mjb_sort(characters_buffer, buffer_index);
-
-            // Write combining characters.
-            for(size_t i = 0; i < buffer_index; ++i) {
-                size_t utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, encoding);
-                ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
-                DEBUG_PUTS("Output string #1");
-            }
-
+            ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
             buffer_index = 0;
         }
 
@@ -228,18 +232,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
     // We have combining characters in the buffer, we must output them.
     if(buffer_index) {
         DEBUG_PRINTF("Write last %u characters\n", buffer_index);
-        // Sort combining characters
-        mjb_sort(characters_buffer, buffer_index);
-
-        // Write combining characters.
-        for(size_t i = 0; i < buffer_index; ++i) {
-            DEBUG_PRINTF("Codepoint: %X [%zu]\n", characters_buffer[i].codepoint, i);
-            size_t utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, encoding);
-            DEBUG_PRINTF("Encoded. UTF-8 size: %zu, size: %zu, index: %zu, output size: %zu\n", utf8_size, size, output_index, *output_size);
-            ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
-            DEBUG_PUTS("Output string #3");
-        }
-
+        ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
         buffer_index = 0;
     }
 
