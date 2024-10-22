@@ -141,7 +141,7 @@ void run_normalization_tests(int limit) {
 
     // Parse the file
     while(fgets(line, 1024, file)) {
-        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0/* || current_line != 13614*/) {
+        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0) {
             ++current_line;
 
             continue;
