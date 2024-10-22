@@ -48,6 +48,23 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         character->titlecase = 0;
 
         return true;
+    } else if(mjb_codepoint_is_cjk_ideograph(codepoint)) {
+        // CJK Ideograph
+        character->codepoint = codepoint;
+        snprintf(character->name, 128, "CJK UNIFIED IDEOGRAPH-%X", codepoint);
+        character->category = MJB_CATEGORY_LO;
+        character->combining = MJB_CCC_NOT_REORDERED;
+        character->bidirectional = MJB_BIDI_L;
+        character->decomposition = MJB_DECOMPOSITION_NONE;
+        character->decimal = 0;
+        character->digit = 0;
+        character->numeric = NULL;
+        character->mirrored = false;
+        character->uppercase = 0;
+        character->lowercase = 0;
+        character->titlecase = 0;
+
+        return true;
     }
 
     sqlite3_reset(mjb_global.stmt_get_codepoint);

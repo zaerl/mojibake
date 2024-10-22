@@ -109,6 +109,11 @@ Return if the codepoint is an hangul syllable
 bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 ```
 
+Return if the codepoint is CJK ideograph
+```c
+bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+```
+
 Return true if the codepoint has the category
 ```c
 bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);

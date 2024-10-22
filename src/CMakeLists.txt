@@ -1,5 +1,6 @@
 set(SOURCES
     codepoint.c
+    cjk.c
     encoding.c
     hangul.c
     mojibake.c

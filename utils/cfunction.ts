@@ -99,6 +99,10 @@ export const cfns: CFunction[] = [
     'bool', 'codepoint_is_hangul_syllable',
     ['mjb_codepoint codepoint']),
 
+  new CFunction('Return if the codepoint is CJK ideograph',
+    'bool', 'codepoint_is_cjk_ideograph',
+    ['mjb_codepoint codepoint']),
+
   new CFunction('Return true if the codepoint has the category',
     'bool', 'codepoint_category_is',
     ['mjb_codepoint codepoint', 'mjb_category category']),

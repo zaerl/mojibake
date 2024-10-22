@@ -78,6 +78,10 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_JUNGSEONG_BASE 0x1161
 #define MJB_CODEPOINT_JONGSEONG_BASE 0x11A7
 
+// CJK Ideographs
+#define MJB_CODEPOINT_CJK_IDEOGRAPH_START 0x4E00
+#define MJB_CODEPOINT_CJK_IDEOGRAPH_END   0x9FFF
+
 /**
  * Unicode encoding
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
@@ -197,6 +201,9 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
 
 // Return if the codepoint is an hangul syllable
 bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+
+// Return if the codepoint is CJK ideograph
+bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 // Return true if the codepoint has the category
 bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);

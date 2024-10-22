@@ -22,7 +22,7 @@ static const char* mjb_jongseong_names[] = {
     "BS", "S", "SS", "NG", "J", "CH", "K", "T", "P", "H"
 };
 
-// Hangul syllable name
+// Return hangul syllable name
 MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size) {
     if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
         return false;
@@ -70,7 +70,7 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
     return true;
 }
 
-// Return the codepoint titlecase codepoint
+// Return if the codepoint is an hangul syllable
 MJB_EXPORT bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint) {
     return codepoint >= MJB_CODEPOINT_HANGUL_START && codepoint <= MJB_CODEPOINT_HANGUL_END;
 }
