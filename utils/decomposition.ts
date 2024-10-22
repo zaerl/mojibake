@@ -57,10 +57,6 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
   }
 
   const addDecomposition = (currentCodepoint: number, char: Character) => {
-    if(char.codepoint === 0xF900) {
-      console.log(char);
-    }
-
     if(!char.decompositions.length) {
       return;
     }
@@ -74,16 +70,10 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
     }
 
     for(const dec of char.decompositions) {
-      if(char.codepoint === 0xF900) {
-        console.log(dec);
-      }
-
       // It is not a normal character (CJK, Hangul, etc).
       if(typeof characterMap['' + dec] === 'undefined') {
-        if(char.codepoint === 0xF900) {
-          console.log("not found", { codepoint: currentCodepoint, value: dec });
-        }
         normalized.push({ codepoint: currentCodepoint, value: dec });
+
         continue;
       }
 
