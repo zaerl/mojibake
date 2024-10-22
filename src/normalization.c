@@ -210,14 +210,12 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
     }
 
     // Guarantee null-terminated string
-    output_index += 1;
-
     if(output_index >= *output_size) {
         ret = mjb_realloc(ret, *output_size + 1);
     }
 
     ret[output_index] = '\0';
-    *output_size = output_index - 1;
+    *output_size = output_index;
 
     return ret;
 }

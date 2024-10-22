@@ -30,38 +30,6 @@ size_t get_utf8_string(char *buffer, char *codepoints, size_t size, char *type) 
     return index;
 }
 
-/**
- *
- * source, NFC, NFD, NFKC, NFKD
- * source, c1, c2, c3, c4
- *
- * NFC
- * c2 == toNFC(c1) == toNFC(c2) == toNFC(c3)
- * c4 == toNFC(c4) == toNFC(c5)
- *
- * NFD
- * c3 == toNFD(c1) == toNFD(c2) == toNFD(c3)
- * c5 == toNFD(c4) == toNFD(c5)
- *
- * NFKC
- * c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) == toNFKC(c5)
- *
- * NFKD
- * c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) == toNFKD(c5)
- *
- * [see: NormalizationTest.txt]
- * Example for LATIN CAPITAL LETTER D WITH DOT ABOVE
- * From UnicodeData.txt#L6883
- * 1E00 ...;0044 0307;...
- *
- * From utils/UCD/NormalizationTest.txt#L46
- * 1E0A;1E0A;0044 0307;1E0A;0044 0307; # (Ḋ; Ḋ; D◌̇; Ḋ; D◌̇; ) LATIN CAPITAL LETTER D WITH DOT ABOVE
- * c1 Source 1E0A (Ḋ)
- * c2 NFC    1E0A (Ḋ)
- * c3 NFD    0044 0307 (D◌̇)
- * c4 NFKC   1E0A (Ḋ)
- * c5 NFKD   0044 0307 (D◌̇)
- */
 int check_normalization(char *source, size_t source_size, char *normalized, size_t normalized_size, mjb_normalization form, unsigned int current_line) {
     size_t normalized_size_res;
     char test_name[128];
@@ -80,27 +48,12 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
         return 0;
     }
 
-    char *normalized_hex = (char*)mjb_alloc(normalized_size * 3);
-
-    for(size_t i = 0; i < normalized_size - 1; ++i) {
-        snprintf(normalized_hex + i * 3, 4, "%02X%c", (unsigned char)normalized[i], i == normalized_size - 2 ? '\0' : ' ');
-    }
-
-    char *normalized_res_hex = (char*)mjb_alloc(normalized_size_res * 3);
-
-    for(size_t i = 0; i < normalized_size_res; ++i) {
-        snprintf(normalized_res_hex + i * 3, 4, "%02X%c", (unsigned char)normalized_res[i], i == normalized_size_res - 1 ? '\0' : ' ');
-    }
-
     snprintf(test_name, 128, "#%u %s", current_line, names[form]);
-    int ret = ATT_ASSERT(normalized_res_hex, normalized_hex, test_name)
+    int ret = ATT_ASSERT(normalized_res, normalized, test_name)
 
     if(normalized_res != NULL) {
         mjb_free(normalized_res);
     }
-
-    mjb_free(normalized_res_hex);
-    mjb_free(normalized_hex);
 
     return ret;
 }
@@ -189,8 +142,20 @@ void run_normalization_tests(int limit) {
 
         free(tofree);
 
+        /**
+         * source; NFC; NFD; NFKC; NFKD
+         * c1; c2; c3; c4; c5
+         *
+         * c3 ==  toNFD(c1) ==  toNFD(c2) ==  toNFD(c3)
+         * c5 ==  toNFD(c4) ==  toNFD(c5)
+         */
+        check_normalization((char*)source, source_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line);
+        check_normalization((char*)nfc, nfc_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line);
+        check_normalization((char*)nfd, nfd_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line);
+        check_normalization((char*)nfkc, nfkc_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line);
+        check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line);
+
         // check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
-        int ret = check_normalization((char*)source, source_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line);
         // unsigned int valid2 = check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC);
         // unsigned int valid3 = check_normalization((char*)source, source_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD);
 
@@ -201,10 +166,6 @@ void run_normalization_tests(int limit) {
         memset((void*)nfkd, 0, 256);
 
         ++current_line;
-
-        if(!ret) {
-            // break;
-        }
 
         if(limit == -1) {
             continue;

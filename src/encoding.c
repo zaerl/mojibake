@@ -111,11 +111,11 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
  * Return true if the string is encoded in ASCII.
  */
 MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
-    const char *end = buffer + size;
-
     if(buffer == 0 || size == 0) {
         return false;
     }
+
+    const char *end = buffer + size;
 
     for(; buffer != end; ++buffer) {
         // Every character must have leading bit at zero.
