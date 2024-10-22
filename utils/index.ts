@@ -44,6 +44,11 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
       continue;
     }
 
+    // CJK Ideographs
+    if(codepoint === 0x4E00 || codepoint === 0x9FFF) {
+      continue;
+    }
+
     const diff = codepoint - previousCodepoint;
 
     previousCodepoint = codepoint;
