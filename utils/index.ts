@@ -32,6 +32,10 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
 
   iLog('PARSE UNICODE DATA');
 
+  const skipCodeints = [
+    0xAC00,
+    0xD7A3, 0x4E00, 0x9FFF ];
+
   for await (const line of rl) {
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
@@ -39,13 +43,8 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
     const words = name.split(' ');
     codepoint = parseInt(split[0], 16);
 
-    // Hangul syllables
-    if(codepoint === 0xAC00 || codepoint === 0xD7A3) {
-      continue;
-    }
-
-    // CJK Ideographs
-    if(codepoint === 0x4E00 || codepoint === 0x9FFF) {
+    // Special start end.
+    if(name.startsWith('<') && name !== '<control>') {
       continue;
     }
 
