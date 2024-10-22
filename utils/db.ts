@@ -70,19 +70,19 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
     `);
     db.exec(`
       CREATE TABLE IF NOT EXISTS decompositions (
-        main_id INTEGER,
-        value INTEGER,
-        FOREIGN KEY(main_id) REFERENCES unicode_data(codepoint)
+        main_id INTEGER NOT NULL,
+        value INTEGER NOT NULL
       );
+      CREATE INDEX idx_decompositions_main_id ON decompositions(main_id)
     `);
     db.exec(`
       CREATE TABLE IF NOT EXISTS blocks (
         id INTEGER PRIMARY KEY,
         start INTEGER NOT NULL,
         end INTEGER NOT NULL,
-        name TEXT
+        name TEXT NOT NULL
       );
-      CREATE INDEX idx_start_end ON blocks (start, end);
+      CREATE INDEX idx_blocks_start_end ON blocks(start, end);
     `);
   }
 
