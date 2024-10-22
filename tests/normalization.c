@@ -10,24 +10,6 @@
 
 #include "test.h"
 
-#if 0
-#define DEBUG_PRINTF(fmt, ...) printf(fmt, __VA_ARGS__)
-#define DEBUG_SNPRINTF(buffer, size, fmt, ...) snprintf(buffer, size, fmt, __VA_ARGS__)
-#define DEBUG_PUTS(str) puts(str)
-#else
-#define DEBUG_PRINTF(fmt, ...)
-#define DEBUG_SNPRINTF(buffer, size, fmt, ...)
-#define DEBUG_PUTS(str)
-#endif
-
-void mjb_test_string_to_hex(const char *input) {
-    for(unsigned i = 0; i < strlen(input); ++i) {
-        DEBUG_PRINTF("%02X ", (unsigned char)input[i]);
-    }
-
-    DEBUG_PUTS("");
-}
-
 /**
  * Get codepoints from a string
  * Example: "0044 0307", gives 2 codepoints
@@ -37,21 +19,12 @@ size_t get_utf8_string(char *buffer, char *codepoints, size_t size, char *type) 
     tofree = string = strdup(buffer);
     unsigned int index = 0;
 
-    DEBUG_PRINTF("get_utf8_string %s (%s)\n", type, buffer);
-
     while((token = strsep(&string, " ")) != NULL) {
         mjb_codepoint codepoint = strtoul((const char*)token, NULL, 16);
-        // DEBUG_PRINTF("(%s) %02X ", token, codepoint);
-        // ++index;
         index += mjb_codepoint_encode(codepoint, codepoints + index, size - index, MJB_ENCODING_UTF_8);
     }
 
     codepoints[++index] = '\0';
-
-    DEBUG_PUTS("\nTo hex");
-    mjb_test_string_to_hex(codepoints);
-    DEBUG_PUTS("End to hex");
-
     free(tofree);
 
     return index;
@@ -107,17 +80,6 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
         return 0;
     }
 
-    /*if(normalized_size_res != normalized_size) {
-        DEBUG_SNPRINTF(test_name, 128, "#%u size %s", current_line, names[form]);
-        ATT_ASSERT(normalized_size_res, normalized_size, test_name)
-
-        if(normalized_res != NULL) {
-            mjb_free(normalized_res);
-        }
-
-        return;
-    }*/
-
     char *normalized_hex = (char*)mjb_alloc(normalized_size * 3);
 
     for(size_t i = 0; i < normalized_size - 1; ++i) {
@@ -149,7 +111,7 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
 void run_normalization_tests(int limit) {
     char line[1024];
     unsigned int current_line = 1;
-    unsigned int count = 0;
+    int count = 0;
     // unsigned int index = 0;
 
     // 256 characters is enough for any test.
@@ -179,8 +141,7 @@ void run_normalization_tests(int limit) {
 
     // Parse the file
     while(fgets(line, 1024, file)) {
-        // DEBUG_PUTS("Normalization test");
-        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0) {
+        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0/* || current_line != 13614*/) {
             ++current_line;
 
             continue;
@@ -249,8 +210,6 @@ void run_normalization_tests(int limit) {
             continue;
         }
 
-        DEBUG_PUTS("--------------------");
-
         if(++count == limit) {
             break;
         }
@@ -260,12 +219,6 @@ void run_normalization_tests(int limit) {
 }
 
 void *test_normalization(void *arg) {
-    // 0041 LATIN CAPITAL LETTER A
-    // 0300 COMBINING GRAVE ACCENT
-    // 41 CC 80
-    // ATT_ASSERT(mjb_normalize("\xC3\x80", 1, &normalized_size_res, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFD), "A\xCC\x80", "LATIN CAPITAL LETTER A WITH GRAVE");
-    // ATT_ASSERT(normalized_size_res, 3, "Normalized size A/B/C")
-
     run_normalization_tests(-1);
 
     return NULL;

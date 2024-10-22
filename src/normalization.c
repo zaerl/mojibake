@@ -48,10 +48,13 @@ void mjb_string_to_hex(const char *input) {
 static inline char *flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index, char *ret, size_t *output_index, size_t *output_size) {
     mjb_sort(characters_buffer, buffer_index);
     char buffer_utf8[5];
+    size_t utf8_size = 0;
+    puts("FLUSH BUFFER");
 
     // Write combining characters.
     for(size_t i = 0; i < buffer_index; ++i) {
-        size_t utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        printf("FLUSH CODEPOINT %02X\n", characters_buffer[i].codepoint);
         ret = mjb_output_string(ret, buffer_utf8, utf8_size, output_index, output_size);
     }
 
@@ -120,10 +123,11 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
     // UTF-8 buffer.
     const char *index = buffer;
     char buffer_utf8[5];
+    size_t utf8_size = 0;
 
     // Loop through the string.
     for(; *index; ++index) {
-        DEBUG_PUTS("Loop");
+        puts("Loop");
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
@@ -133,6 +137,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
             continue;
         }
 
+        // Not found a UTF-8 character, continue.
         if(state != MJB_UTF8_ACCEPT) {
             continue;
         }
@@ -145,29 +150,13 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
             continue;
         }
 
-        bool is_starter = current_character.combining == MJB_CCC_NOT_REORDERED;
-
-        DEBUG_PRINTF("Char: %X %s, combining: %u, starter %u\n", current_character.codepoint, current_character.name, current_character.combining, is_starter);
-
-        // The character is combining. Add to the buffer and continue.
-        if(mjb_category_is_combining(current_character.category)) {
-            characters_buffer[buffer_index++] = current_character;
-            DEBUG_PUTS("Combining");
-
-            continue;
-        }
-
-        // We have a character that is not combining. If we have combining characters in the buffer, we need to sort them.
-        if(is_starter && buffer_index) {
-            DEBUG_PUTS("Write combining characters");
-            ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
-            buffer_index = 0;
-        }
+        printf("Char: %X %s, combining: %u, starter %u\n", current_character.codepoint,
+            current_character.name, current_character.combining, current_character.combining == MJB_CCC_NOT_REORDERED);
 
         int found = 0;
 
+        // Hangul syllables have a special decomposition.
         if(mjb_codepoint_is_hangul_syllable(current_codepoint)) {
-            // Hangul syllable
             mjb_codepoint codepoints[3];
             mjb_hangul_syllable_decomposition(current_codepoint, codepoints);
 
@@ -181,16 +170,26 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                     continue;
                 }
 
-                characters_buffer[buffer_index++] = current_character;
-                DEBUG_PRINTF("Add hangul %X to buffer\n", codepoints[i]);
+                if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
+                    puts("hangul flush");
+                    ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                    buffer_index = 0;
+                }
+
+                printf("Add hangul %X to buffer\n", codepoints[i]);
+                // characters_buffer[buffer_index++] = current_character;
                 ++found;
+
+                utf8_size = mjb_codepoint_encode(codepoints[i], (char*)buffer_utf8, 5, encoding);
+                printf("HANGUL CODEPOINT %02X\n", codepoints[i]);
+                ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
             }
         } else if(current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
             current_character.decomposition == MJB_DECOMPOSITION_NONE) {
             // There are no combining characters. Add the character to the output.
             int rc = sqlite3_bind_int(mjb_global.stmt_decompose, 1, current_codepoint);
 
-            DEBUG_PRINTF("Decomposing: %X\n", current_codepoint);
+            printf("Decomposing: %X\n", current_codepoint);
 
             if(rc != SQLITE_OK) {
                 DEBUG_PUTS("Error sqlite3_bind_int");
@@ -210,21 +209,62 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                     continue;
                 }
 
-                characters_buffer[buffer_index++] = current_character;
-                DEBUG_PRINTF("Add %X to buffer.\n", decomposed);
+                printf("SQLITE3 FOUND CODEPOINT %02X\n", decomposed);
+
                 ++found;
+
+                if(current_character.combining == MJB_CCC_NOT_REORDERED) {
+                    if(buffer_index) {
+                        puts("sqlite3 flush");
+                        ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                        buffer_index = 0;
+                    }
+
+                    utf8_size = mjb_codepoint_encode(decomposed, (char*)buffer_utf8, 5, encoding);
+                    printf("SQLITE3 CODEPOINT %02X\n", decomposed);
+                    ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
+                } else {
+                    printf("Add %X to buffer.\n", decomposed);
+                    characters_buffer[buffer_index++] = current_character;
+                }
             }
 
             sqlite3_reset(mjb_global.stmt_decompose);
-        }
+        }/* else {
+            printf("Add %X to buffer.\n", current_character.codepoint);
+            characters_buffer[buffer_index++] = current_character;
+        }*/
 
-        // Simply add the character if it is not decomposable.
-        if(!found) {
+        // Simply add the character if not decomposed.
+        /*if(!found) {
+            if(buffer_index) {
+                printf("Write last %u characters\n", buffer_index);
+                ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                buffer_index = 0;
+            }
+
             DEBUG_PUTS("Found zero");
             size_t utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, encoding);
+            printf("NOT FOUND CODEPOINT %02X\n", current_codepoint);
             ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
             DEBUG_PUTS("Output string #2");
-        }
+        }*/
+       if(!found) {
+            if(current_character.combining == MJB_CCC_NOT_REORDERED) {
+                if(buffer_index) {
+                    puts("last flush");
+                    ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                    buffer_index = 0;
+                }
+
+                utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, encoding);
+                printf("SQLITE3 CODEPOINT %02X\n", current_codepoint);
+                ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
+            } else {
+                printf("Add %X to buffer.\n", current_codepoint);
+                characters_buffer[buffer_index++] = current_character;
+            }
+       }
     }
 
     DEBUG_PUTS("End of loop");
