@@ -70,10 +70,10 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
     `);
     db.exec(`
       CREATE TABLE IF NOT EXISTS decompositions (
-        main_id INTEGER NOT NULL,
+        id INTEGER NOT NULL,
         value INTEGER NOT NULL
       );
-      CREATE INDEX idx_decompositions_main_id ON decompositions(main_id)
+      CREATE INDEX idx_decompositions_id ON decompositions(id)
     `);
     db.exec(`
       CREATE TABLE IF NOT EXISTS blocks (
@@ -125,7 +125,7 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
     `);
     insertDecompositionSmt = db.prepare(`
       INSERT INTO decompositions (
-        main_id,
+        id,
         value
       ) VALUES (?, ?);
     `);

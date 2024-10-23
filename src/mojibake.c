@@ -73,7 +73,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
-    const char query_3[] = "SELECT value FROM decompositions WHERE main_id = ?";
+    const char query_3[] = "SELECT value FROM decompositions WHERE id = ?";
     rc = sqlite3_prepare_v2(mjb_global.db, query_3, sizeof(query_3), &mjb_global.stmt_decompose, NULL);
 
     if(rc != SQLITE_OK) {
