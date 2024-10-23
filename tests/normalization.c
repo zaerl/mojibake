@@ -145,9 +145,18 @@ void run_normalization_tests(int limit) {
         /**
          * source; NFC; NFD; NFKC; NFKD
          * c1; c2; c3; c4; c5
-         *
-         * c3 ==  toNFD(c1) ==  toNFD(c2) ==  toNFD(c3)
-         * c5 ==  toNFD(c4) ==  toNFD(c5)
+         */
+
+        /**
+         * NFC
+         * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
+         * nfkc == toNFC(nfkc) == toNFC(nfkd)
+         */
+
+        /**
+         * NFD
+         * nfd == toNFD(source) == toNFD(nfc) == toNFD(nfd)
+         * nfkd == toNFD(nfkc) == toNFD(nfkd)
          */
         check_normalization((char*)source, source_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line);
         check_normalization((char*)nfc, nfc_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line);
@@ -155,9 +164,20 @@ void run_normalization_tests(int limit) {
         check_normalization((char*)nfkc, nfkc_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line);
         check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line);
 
-        // check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
-        // unsigned int valid2 = check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC);
-        // unsigned int valid3 = check_normalization((char*)source, source_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD);
+        /**
+         * NFKC
+         * nfkc == toNFKC(source) == toNFKC(nfc) == toNFKC(nfd) == toNFKC(nfkc) == toNFKC(nfkd)
+         */
+        /*check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        check_normalization((char*)nfc, nfc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        check_normalization((char*)nfd, nfd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);*/
+
+        /**
+         * NFKD
+         * nfkd == toNFKCD(source) == toNFKCD(nfc) == toNFKCD(nfd) == toNFKCD(nfkc) == toNFKCD(nfkd)
+         */
 
         memset((void*)source, 0, 256);
         memset((void*)nfc, 0, 256);

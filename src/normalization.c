@@ -77,10 +77,6 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         return NULL;
     }
 
-    /*if(form != MJB_NORMALIZATION_NFD) {
-        return NULL;
-    }*/
-
     sqlite3_reset(mjb_global.stmt_decompose);
     sqlite3_clear_bindings(mjb_global.stmt_decompose);
 
@@ -124,6 +120,22 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         }
 
         int found = 0;
+        bool valid_decomposition = false;
+
+        switch(form) {
+            case MJB_NORMALIZATION_NFD:
+                valid_decomposition = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
+                current_character.decomposition == MJB_DECOMPOSITION_NONE;
+
+                break;
+            case MJB_NORMALIZATION_NFKC:
+                valid_decomposition = current_character.decomposition == MJB_DECOMPOSITION_COMPAT ||
+                current_character.decomposition == MJB_DECOMPOSITION_NONE;
+
+                break;
+            default:
+                return NULL;
+        }
 
         // Hangul syllables have a special decomposition.
         if(mjb_codepoint_is_hangul_syllable(current_codepoint)) {
@@ -150,8 +162,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                 utf8_size = mjb_codepoint_encode(codepoints[i], (char*)buffer_utf8, 5, encoding);
                 ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
             }
-        } else if(current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
-            current_character.decomposition == MJB_DECOMPOSITION_NONE) {
+        } else if(valid_decomposition) {
             // There are no combining characters. Add the character to the output.
             int rc = sqlite3_bind_int(mjb_global.stmt_decompose, 1, current_codepoint);
 
