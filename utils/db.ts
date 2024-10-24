@@ -7,6 +7,7 @@ let db: Database.Database;
 let dbPath: string;
 let insertDataSmt: Statement;
 let insertDecompositionSmt: Statement;
+let insertCompatDecompositionSmt: Statement;
 let insertBlockSmt: Statement;
 let isCompact: boolean;
 
@@ -76,6 +77,13 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
       CREATE INDEX idx_decompositions_id ON decompositions(id)
     `);
     db.exec(`
+      CREATE TABLE IF NOT EXISTS compat_decompositions (
+        id INTEGER NOT NULL,
+        value INTEGER NOT NULL
+      );
+      CREATE INDEX idx_compat_decompositions_id ON compat_decompositions(id)
+    `);
+    db.exec(`
       CREATE TABLE IF NOT EXISTS blocks (
         id INTEGER PRIMARY KEY,
         start INTEGER NOT NULL,
@@ -125,6 +133,12 @@ export function dbInit(path = '../build/mojibake.db', compact = false) {
     `);
     insertDecompositionSmt = db.prepare(`
       INSERT INTO decompositions (
+        id,
+        value
+      ) VALUES (?, ?);
+    `);
+    insertCompatDecompositionSmt = db.prepare(`
+      INSERT INTO compat_decompositions (
         id,
         value
       ) VALUES (?, ?);
@@ -201,9 +215,13 @@ export function dbRun(char: Character) {
   }
 }
 
-export function dbRunDecompositions(decompositions: CalculatedDecomposition[]) {
+export function dbRunDecompositions(decompositions: CalculatedDecomposition[], compat = false) {
   for(const value of decompositions) {
-    insertDecompositionSmt.run(value.codepoint, value.value);
+    if(compat) {
+      insertCompatDecompositionSmt.run(value.codepoint, value.value);
+    } else {
+      insertDecompositionSmt.run(value.codepoint, value.value);
+    }
   }
 }
 

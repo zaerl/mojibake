@@ -11,7 +11,7 @@
 #include "mojibake.h"
 #include "sqlite3/sqlite3.h"
 
-MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
@@ -80,8 +80,15 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
+    const char query_4[] = "SELECT value FROM compat_decompositions WHERE id = ?";
+    rc = sqlite3_prepare_v2(mjb_global.db, query_4, sizeof(query_4), &mjb_global.stmt_compat_decompose, NULL);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
     // MJB_CATEGORY_MN and MJB_CATEGORY_MC
-    const char query_4[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
+    const char query_5[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
     rc = sqlite3_prepare_v2(mjb_global.db, query_4, sizeof(query_4), &mjb_global.stmt_is_combining, NULL);
 
     if(rc != SQLITE_OK) {

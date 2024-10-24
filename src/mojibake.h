@@ -57,6 +57,7 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_get_codepoint;
     sqlite3_stmt *stmt_get_block;
     sqlite3_stmt *stmt_decompose;
+    sqlite3_stmt *stmt_compat_decompose;
     sqlite3_stmt *stmt_is_combining;
 } mojibake;
 

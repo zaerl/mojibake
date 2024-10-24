@@ -1,8 +1,8 @@
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
+import { dbInsertBlock } from './db';
 import { log } from './log';
 import { Block } from './types';
-import { dbInsertBlock } from './db';
 
 export function readBlocks(path = './UCD/Blocks.txt'): Block[] {
   log('READ BLOCKS');

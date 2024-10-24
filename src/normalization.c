@@ -77,8 +77,10 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         return NULL;
     }
 
-    sqlite3_reset(mjb_global.stmt_decompose);
-    sqlite3_clear_bindings(mjb_global.stmt_decompose);
+    sqlite3_stmt *stmt = form == MJB_NORMALIZATION_NFD ? mjb_global.stmt_decompose : mjb_global.stmt_compat_decompose;
+
+    sqlite3_reset(stmt);
+    sqlite3_clear_bindings(stmt);
 
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
@@ -128,9 +130,8 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                 current_character.decomposition == MJB_DECOMPOSITION_NONE;
 
                 break;
-            case MJB_NORMALIZATION_NFKC:
-                valid_decomposition = current_character.decomposition == MJB_DECOMPOSITION_COMPAT ||
-                current_character.decomposition == MJB_DECOMPOSITION_NONE;
+            case MJB_NORMALIZATION_NFKD:
+                valid_decomposition = true;
 
                 break;
             default:
@@ -164,14 +165,14 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
             }
         } else if(valid_decomposition) {
             // There are no combining characters. Add the character to the output.
-            int rc = sqlite3_bind_int(mjb_global.stmt_decompose, 1, current_codepoint);
+            int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
 
             if(rc != SQLITE_OK) {
                 return NULL;
             }
 
-            while((rc = sqlite3_step(mjb_global.stmt_decompose)) == SQLITE_ROW) {
-                mjb_codepoint decomposed = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_decompose, 0);
+            while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                mjb_codepoint decomposed = (mjb_codepoint)sqlite3_column_int(stmt, 0);
 
                 if(decomposed == MJB_CODEPOINT_NOT_VALID) {
                     continue;
@@ -196,7 +197,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                 }
             }
 
-            sqlite3_reset(mjb_global.stmt_decompose);
+            sqlite3_reset(stmt);
         }
 
         if(!found) {

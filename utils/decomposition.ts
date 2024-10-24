@@ -42,8 +42,7 @@ export function characterDecomposition(mapping: string): Decomposition {
  * 2: 3
  * 2: 5
  */
-export function generateDecomposition(characters: Character[]): CalculatedDecomposition[] {
-  const decompositionsMap: { [key: string]: number[] } = {};
+export function generateDecomposition(characters: Character[], compat = false): CalculatedDecomposition[] {
   const characterMap: { [key: string]: Character } = {};
   const normalized: CalculatedDecomposition[] = [];
 
@@ -51,12 +50,12 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
     characterMap['' + char.codepoint] = char;
   }
 
-  const addDecomposition = (currentCodepoint: number, char: Character, decomposition: CharacterDecomposition) => {
+  const addDecomposition = (currentCodepoint: number, char: Character, compat: boolean) => {
     if(!char.decompositions.length) {
       return;
     }
 
-    if(char.decomposition !== decomposition) {
+    if(!compat && char.decomposition !== CharacterDecomposition.Canonical) {
       if(char.codepoint !== currentCodepoint) {
         normalized.push({ codepoint: currentCodepoint, value: char.codepoint });
       }
@@ -74,7 +73,7 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
 
       if(characterMap['' + dec].decompositions.length) {
         // Loop.
-        addDecomposition(currentCodepoint, characterMap['' + dec], decomposition);
+        addDecomposition(currentCodepoint, characterMap['' + dec], compat);
       } else {
         normalized.push({ codepoint: currentCodepoint, value: dec });
       }
@@ -82,7 +81,7 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
   }
 
   for(const char of characters) {
-    addDecomposition(char.codepoint, char, CharacterDecomposition.Canonical);
+    addDecomposition(char.codepoint, char, compat);
   }
 
   return normalized;

@@ -3,6 +3,7 @@ import { createInterface } from 'readline';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { Character } from './character';
+import { readCompositionExclusions } from './compositition-exclusion';
 import { dbInit, dbRun, dbRunDecompositions, dbSize } from './db';
 import { characterDecomposition, generateDecomposition } from './decomposition';
 import { generateHeader } from './generate-header';
@@ -12,7 +13,6 @@ import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
 } from './types';
-import { readCompositionExclusions } from './compositition-exclusion';
 
 let compact = false;
 
@@ -94,6 +94,7 @@ async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
   }
 
   dbRunDecompositions(generateDecomposition(characters));
+  dbRunDecompositions(generateDecomposition(characters, true), true);
 
   analysis.outputGeneratedData(codepoint, isVerbose());
 
