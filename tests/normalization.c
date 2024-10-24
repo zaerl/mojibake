@@ -114,23 +114,23 @@ void run_normalization_tests(int limit) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_utf8_string(token, (char*)source, 128, "Source");
+                    source_size = get_utf8_string(token, (char*)source, 256, "Source");
                     break;
 
                 case 1: // NFC
-                    nfc_size = get_utf8_string(token, (char*)nfc, 128, "NFC");
+                    nfc_size = get_utf8_string(token, (char*)nfc, 256, "NFC");
                     break;
 
                 case 2: // NFD
-                    nfd_size = get_utf8_string(token, (char*)nfd, 128, "NFD");
+                    nfd_size = get_utf8_string(token, (char*)nfd, 256, "NFD");
                     break;
 
                 case 3: // NFKC
-                    nfkc_size = get_utf8_string(token, (char*)nfkc, 128, "NFKC");
+                    nfkc_size = get_utf8_string(token, (char*)nfkc, 256, "NFKC");
                     break;
 
                 case 4: // NFKD
-                    nfkd_size = get_utf8_string(token, (char*)nfkd, 128, "NFKD");
+                    nfkd_size = get_utf8_string(token, (char*)nfkd, 256, "NFKD");
                     break;
             }
 
