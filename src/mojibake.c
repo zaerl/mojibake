@@ -59,41 +59,29 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
+    #define MJB_PREPARE_STMT(STMT, QUERY) \
+        rc = sqlite3_prepare_v2(mjb_global.db, QUERY, sizeof(QUERY), &STMT, NULL); \
+        if(rc != SQLITE_OK) { \
+            return false; \
+        }
+
     const char query[] = "SELECT * FROM unicode_data WHERE codepoint = ?";
-    rc = sqlite3_prepare_v2(mjb_global.db, query, sizeof(query), &mjb_global.stmt_get_codepoint, NULL);
+    MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
 
-    if(rc != SQLITE_OK) {
-        return false;
-    }
+    const char query_blocks[] = "SELECT id FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
+    MJB_PREPARE_STMT(mjb_global.stmt_get_block, query_blocks)
 
-    const char query_2[] = "SELECT id FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_2, sizeof(query_2), &mjb_global.stmt_get_block, NULL);
+    const char query_decompose[] = "SELECT value FROM decompositions WHERE id = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_decompose, query_decompose)
 
-    if(rc != SQLITE_OK) {
-        return false;
-    }
-
-    const char query_3[] = "SELECT value FROM decompositions WHERE id = ?";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_3, sizeof(query_3), &mjb_global.stmt_decompose, NULL);
-
-    if(rc != SQLITE_OK) {
-        return false;
-    }
-
-    const char query_4[] = "SELECT value FROM compat_decompositions WHERE id = ?";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_4, sizeof(query_4), &mjb_global.stmt_compat_decompose, NULL);
-
-    if(rc != SQLITE_OK) {
-        return false;
-    }
+    const char query_compat_decompose[] = "SELECT value FROM compat_decompositions WHERE id = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_compat_decompose, query_compat_decompose)
 
     // MJB_CATEGORY_MN and MJB_CATEGORY_MC
-    const char query_5[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_5, sizeof(query_5), &mjb_global.stmt_is_combining, NULL);
+    const char query_combining[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
+    MJB_PREPARE_STMT(mjb_global.stmt_is_combining, query_combining)
 
-    if(rc != SQLITE_OK) {
-        return false;
-    }
+    #undef MJB_PREPARE_STMT
 
     mjb_global.memory_alloc = alloc_fn;
     mjb_global.memory_realloc = realloc_fn;
