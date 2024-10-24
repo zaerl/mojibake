@@ -89,7 +89,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
 
     // MJB_CATEGORY_MN and MJB_CATEGORY_MC
     const char query_5[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
-    rc = sqlite3_prepare_v2(mjb_global.db, query_4, sizeof(query_4), &mjb_global.stmt_is_combining, NULL);
+    rc = sqlite3_prepare_v2(mjb_global.db, query_5, sizeof(query_5), &mjb_global.stmt_is_combining, NULL);
 
     if(rc != SQLITE_OK) {
         return false;
@@ -123,6 +123,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_decompose) {
         sqlite3_finalize(mjb_global.stmt_decompose);
+    }
+
+    if(mjb_global.stmt_compat_decompose) {
+        sqlite3_finalize(mjb_global.stmt_compat_decompose);
     }
 
     if(mjb_global.stmt_is_combining) {
