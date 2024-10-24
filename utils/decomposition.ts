@@ -56,8 +56,7 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
       return;
     }
 
-    if(!(char.decomposition == CharacterDecomposition.None ||
-      char.decomposition == CharacterDecomposition.Canonical)) {
+    if(char.decomposition !== CharacterDecomposition.Canonical) {
       if(char.codepoint !== currentCodepoint) {
         normalized.push({ codepoint: currentCodepoint, value: char.codepoint });
       }
