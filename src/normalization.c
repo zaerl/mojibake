@@ -5,6 +5,7 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 #include "mojibake.h"
 
 extern struct mojibake mjb_global;
@@ -25,7 +26,7 @@ char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *
     return ret;
 }
 
-static inline char *flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index, char *ret, size_t *output_index, size_t *output_size) {
+static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index, char *ret, size_t *output_index, size_t *output_size) {
     mjb_sort(characters_buffer, buffer_index);
     char buffer_utf8[5];
     size_t utf8_size = 0;
@@ -41,26 +42,6 @@ static inline char *flush_buffer(mjb_character *characters_buffer, unsigned int 
 
 /**
  * Normalize a string
- *
- * First example:
- *   1E0A ccc 0 LATIN CAPITAL LETTER D WITH DOT ABOVE
- *
- * NFD:
- * 0044 LATIN CAPITAL LETTER D ccc 0
- * 0307 COMBINING DOT ABOVE ccc 230
- *
- * Second example:
- *   1E0A ccc 0 LATIN CAPITAL LETTER D WITH DOT ABOVE
- *   0323 COMBINING DOT BELOW ccc 220
- *
- * NFD:
- * Should be: 0044 0307 0323
- *
- * But is: 0044 0323 0307. Ordered by ccc
- *
- * 0044 LATIN CAPITAL LETTER D ccc 0
- * 0323 COMBINING DOT BELOW ccc 220
- * 0307 COMBINING DOT ABOVE ccc 230
  */
 MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
     if(!mjb_initialize()) {
@@ -132,11 +113,13 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 
         switch(form) {
             case MJB_NORMALIZATION_NFD:
+            case MJB_NORMALIZATION_NFC:
                 valid_decomposition = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
                 current_character.decomposition == MJB_DECOMPOSITION_NONE;
 
                 break;
             case MJB_NORMALIZATION_NFKD:
+            case MJB_NORMALIZATION_NFKC:
                 valid_decomposition = true;
 
                 break;
@@ -159,7 +142,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                 }
 
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
-                    ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
                     buffer_index = 0;
                 }
 
@@ -192,7 +175,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 
                 if(current_character.combining == MJB_CCC_NOT_REORDERED) {
                     if(buffer_index) {
-                        ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                        ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
                         buffer_index = 0;
                     }
 
@@ -209,7 +192,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         if(!found) {
             if(current_character.combining == MJB_CCC_NOT_REORDERED) {
                 if(buffer_index) {
-                    ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
                     buffer_index = 0;
                 }
 
@@ -223,7 +206,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 
     // We have combining characters in the buffer, we must output them.
     if(buffer_index) {
-        ret = flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+        ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
         buffer_index = 0;
     }
 
