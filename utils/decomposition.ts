@@ -1,5 +1,5 @@
 import { Character } from "./character";
-import { CalculatedDecomposition, characterDecompositionMapping, CharacterDecompositionMappingStrings, Decomposition } from "./types";
+import { CalculatedDecomposition, CharacterDecomposition, characterDecompositionMapping, CharacterDecompositionMappingStrings, Decomposition } from "./types";
 
 /**
  * Example for LATIN CAPITAL LETTER D WITH DOT ABOVE
@@ -8,28 +8,23 @@ import { CalculatedDecomposition, characterDecompositionMapping, CharacterDecomp
  */
 export function characterDecomposition(mapping: string): Decomposition {
   const map = mapping.length ? mapping.split(' ') : [];
-  let type = characterDecompositionMapping['none'];
   let decomposition:number[] = [];
-  let size = 0;
-  let ret = { type, decomposition };
+  let ret: Decomposition = { type: CharacterDecomposition.None, decomposition };
+  let start = 0;
 
   if(map.length < 1) {
     return ret;
   }
 
-  const canonical = map[0][0] !== '<';
-  size = canonical ? map.length : map.length - 1;
-
-  if(canonical) {
-    ret.type = characterDecompositionMapping['canonical'];
+  if(map[0][0] === '<') {
+    ret.type = characterDecompositionMapping[map[0] as CharacterDecompositionMappingStrings];
+    ++start;
+  } else {
+    ret.type = CharacterDecomposition.Canonical;
   }
 
-  for(let i = 0; i < map.length; ++i) {
-    if(map[i][0] === '<') {
-      ret.type = characterDecompositionMapping[map[i] as CharacterDecompositionMappingStrings];
-    } else {
-      ret.decomposition.push(parseInt(map[i], 16));
-    }
+  for(let i = start; i < map.length; ++i) {
+    ret.decomposition.push(parseInt(map[i], 16));
   }
 
   return ret;
@@ -61,7 +56,8 @@ export function generateDecomposition(characters: Character[]): CalculatedDecomp
       return;
     }
 
-    if(!(char.decomposition == 0 || char.decomposition == 1)) {
+    if(!(char.decomposition == CharacterDecomposition.None ||
+      char.decomposition == CharacterDecomposition.Canonical)) {
       if(char.codepoint !== currentCodepoint) {
         normalized.push({ codepoint: currentCodepoint, value: char.codepoint });
       }

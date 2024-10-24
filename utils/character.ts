@@ -1,4 +1,4 @@
-import { BidirectionalCategories } from './types';
+import { BidirectionalCategories, CharacterDecomposition } from './types';
 
 export class Character {
     constructor(
@@ -7,7 +7,7 @@ export class Character {
       public category: number,
       public combining: number,
       public bidirectional: BidirectionalCategories | null,
-      public decomposition: number,
+      public decomposition: CharacterDecomposition,
       public decompositions: number[],
       public decimal: number | null,
       public digit: number | null,

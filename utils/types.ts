@@ -20,7 +20,7 @@ export interface CalculatedDecomposition {
 }
 
 export interface Decomposition {
-  type: number;
+  type: CharacterDecomposition;
   decomposition: number[];
 }
 
@@ -128,9 +128,30 @@ export enum BidirectionalCategories {
 
 export type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
 
+export enum CharacterDecomposition {
+  None,
+  Canonical,
+  Cicle,
+  Compat,
+  Final,
+  Font,
+  Fraction,
+  Initial,
+  Isolated,
+  Medial,
+  Narrow,
+  NoBreak,
+  Small,
+  Square,
+  Sub,
+  Super,
+  Vertical,
+  Wide,
+};
+
 // C: mjb_decomposition
 export const characterDecompositionMapping = {
-  'none': 0,
+  'none': CharacterDecomposition.None,
   'canonical': 1,
   '<circle>': 2,
   '<compat>': 3,
