@@ -27,7 +27,10 @@ char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *
 }
 
 static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index, char *ret, size_t *output_index, size_t *output_size) {
-    mjb_sort(characters_buffer, buffer_index);
+    if(buffer_index) {
+        mjb_sort(characters_buffer, buffer_index);
+    }
+
     char buffer_utf8[5];
     size_t utf8_size = 0;
 
@@ -141,6 +144,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
                     continue;
                 }
 
+                // Starter: Any code point (assigned or not) with combining class of zero (ccc = 0)
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
                     buffer_index = 0;
