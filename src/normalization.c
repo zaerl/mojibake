@@ -101,7 +101,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
             continue;
         }
 
-        // Not found a UTF-8 character, continue.
+        // Still not found a UTF-8 character, continue.
         if(state != MJB_UTF8_ACCEPT) {
             continue;
         }
