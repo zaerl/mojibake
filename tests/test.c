@@ -38,7 +38,7 @@ void show_help(const char *executable, struct option options[], const char *desc
 int main(int argc, char * const argv[]) {
     struct timespec start, end;
     double elapsed = 0;
-    unsigned int verbosity = 2;
+    unsigned int verbosity = 0;
     int option = 0;
     int option_index = 0;
     char *filter = NULL;
@@ -53,13 +53,12 @@ int main(int argc, char * const argv[]) {
     const char *descriptions[] = {
         "Filter tests by name in the form name1,name2,...",
         "Show this help message",
-        "Verbose output",
+        "Verbose output. -vv for more verbosity",
         "Print version"
     };
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     att_set_verbose(verbosity);
-    att_set_verbose(1);
 
     while((option = getopt_long(argc, argv, "f:hvV", long_options, &option_index)) != -1) {
         switch(option) {
@@ -70,7 +69,7 @@ int main(int argc, char * const argv[]) {
                 show_help(argv[0], long_options, descriptions, NULL);
                 return 0;
             case 'v':
-                att_set_verbose(2);
+                ++verbosity;
                 break;
             case 'V':
                 return show_version();
@@ -82,10 +81,14 @@ int main(int argc, char * const argv[]) {
         }
     }
 
+    att_set_verbose(verbosity);
+    unsigned int step = 0;
+
     #define RUN_TEST(NAME) \
         if(!filter || strstr(filter, #NAME)) { \
-            printf("\nTest: \x1b[1;32m%s\x1b[0m\n", #NAME); \
+            printf("%sTest: \x1b[1;32m%s\x1b[0m\n", verbosity && step ? "\n" : "", #NAME); \
             test_##NAME(NULL); \
+            ++step; \
         }
 
     // Start tests declarations.
@@ -106,7 +109,7 @@ int main(int argc, char * const argv[]) {
     // Green if valid and red if not
     const char *color_code = valid ? "\x1B[32m" : "\x1B[31m";
 
-    printf("\n%sTests valid/run: %s%d/%d\n\x1B[0m", verbosity == 1 ? "\n" : "", color_code, tests_valid, tests_total);
+    printf("%sTests valid/run: %s%d/%d\n\x1B[0m", verbosity >= 1 ? "\n" : "", color_code, tests_valid, tests_total);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
