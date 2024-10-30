@@ -19,12 +19,12 @@ generate_tests:
 
 test: BUILD_TYPE = Test
 test: configure build
-	WRD_DB_PATH=./build/mojibake.db build/tests/mojibake-test $(ARGS)
+	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)
 
 clean_build:
 	@cmake --build $(BUILD_DIR) --target clean
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) && rm -f mojibake.db
 
 .PHONY: all clean clean_build configure build test rebuild generate generate_tests

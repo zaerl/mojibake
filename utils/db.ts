@@ -32,7 +32,7 @@ let isCompact: boolean;
 
 // 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
 // block             mir      dig dec  deco     bidi     comb     cat
-export function dbInit(path = '../build/mojibake.db', compact = false) {
+export function dbInit(path = '../mojibake.db', compact = false) {
   dbPath = path;
   db = new Database(dbPath);
   isCompact = compact;

@@ -15,5 +15,5 @@ if [ ! -d "./unihan" ] ; then
 fi
 
 mkdir -p ../build
-rm ../build/mojibake.db
+rm ../mojibake.db
 npm run generate -- "$@"

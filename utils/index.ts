@@ -16,7 +16,7 @@ import {
 
 let compact = false;
 
-async function readUnicodeData(blocks: Block[]): Promise<Character[]> {
+async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<Character[]> {
   log('READ UNICODE DATA');
   const analysis = new Analysis();
 
@@ -111,11 +111,10 @@ for(let i = 2; i < process.argv.length; ++i) {
 }
 
 async function generate() {
-  dbInit('../build/mojibake.db', compact);
+  dbInit('../mojibake.db', compact);
 
   const blocks = readBlocks();
-  readCompositionExclusions();
-  await readUnicodeData(blocks);
+  await readUnicodeData(blocks, readCompositionExclusions());
 
   generateHeader(blocks, categories);
   // generateData(characters);
