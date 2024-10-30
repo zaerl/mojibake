@@ -360,24 +360,17 @@ typedef enum mjb_block {
  * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
-    // Letters (base)
     MJB_CATEGORY_LU, // 0 (Lu) Letter, uppercase
     MJB_CATEGORY_LL, // 1 (Ll) Letter, lowercase
     MJB_CATEGORY_LT, // 2 (Lt) Letter, titlecase
     MJB_CATEGORY_LM, // 3 (Lm) Letter, modifier
     MJB_CATEGORY_LO, // 4 (Lo) Letter, other
-
-    // Combining marks
     MJB_CATEGORY_MN, // 5 (Mn) Mark, non-spacing
     MJB_CATEGORY_MC, // 6 (Mc) Mark, spacing combining
     MJB_CATEGORY_ME, // 7 (Me) Mark, enclosing
-
-    // Numbers (base)
     MJB_CATEGORY_ND, // 8 (Nd) Number, decimal digit
     MJB_CATEGORY_NL, // 9 (Nl) Number, letter
     MJB_CATEGORY_NO, // 10 (No) Number, other
-
-    // Punctuation (base)
     MJB_CATEGORY_PC, // 11 (Pc) Punctuation, connector
     MJB_CATEGORY_PD, // 12 (Pd) Punctuation, dash
     MJB_CATEGORY_PS, // 13 (Ps) Punctuation, open
@@ -385,19 +378,13 @@ typedef enum mjb_category {
     MJB_CATEGORY_PI, // 15 (Pi) Punctuation, initial quote
     MJB_CATEGORY_PF, // 16 (Pf) Punctuation, final quote
     MJB_CATEGORY_PO, // 17 (Po) Punctuation, other
-
-    // Symbols (base)
     MJB_CATEGORY_SM, // 18 (Sm) Symbol, math
     MJB_CATEGORY_SC, // 19 (Sc) Symbol, currency
     MJB_CATEGORY_SK, // 20 (Sk) Symbol, modifier
     MJB_CATEGORY_SO, // 21 (So) Symbol, other
-
-    // Space separators (base)
     MJB_CATEGORY_ZS, // 22 (Zs) Separator, space
     MJB_CATEGORY_ZL, // 23 (Zl) Separator, line
     MJB_CATEGORY_ZP, // 24 (Zp) Separator, paragraph
-
-    // Other
     MJB_CATEGORY_CC, // 25 (Cc) Other, control
     MJB_CATEGORY_CF, // 26 (Cf) Other, format
     MJB_CATEGORY_CS, // 27 (Cs) Other, surrogate
