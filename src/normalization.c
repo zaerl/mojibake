@@ -34,6 +34,7 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
 
     char buffer_utf8[5];
     size_t utf8_size = 0;
+    sqlite3_stmt *stmt = NULL;
 
     if(form == MJB_NORMALIZATION_NFC) {
         stmt = mjb_global.stmt_compose;
@@ -46,6 +47,7 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
         sqlite3_clear_bindings(stmt);
 
         for(size_t i = 1; i < buffer_index; ++i) {
+            int rc = sqlite3_bind_int(stmt, 1, characters_buffer[0].codepoint);
             rc = sqlite3_bind_int(stmt, 2, characters_buffer[i].codepoint);
 
             if(rc != SQLITE_OK) {
@@ -59,6 +61,7 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
                     continue;
                 }
 
+                characters_buffer[0].codepoint = composed;
                 characters_buffer[i].codepoint = MJB_CODEPOINT_NOT_VALID;
             }
 
