@@ -26,7 +26,8 @@ char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *
     return ret;
 }
 
-static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index, char *ret, size_t *output_index, size_t *output_size) {
+static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index,
+    char *ret, size_t *output_index, size_t *output_size, mjb_normalization form) {
     if(buffer_index) {
         mjb_sort(characters_buffer, buffer_index);
     }
@@ -34,11 +35,48 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
     char buffer_utf8[5];
     size_t utf8_size = 0;
 
+    if(form == MJB_NORMALIZATION_NFC) {
+        stmt = mjb_global.stmt_compose;
+    } else if(form == MJB_NORMALIZATION_NFKC) {
+        stmt = mjb_global.stmt_compat_compose;
+    }
+
+    if(stmt && buffer_index > 1) {
+        sqlite3_reset(stmt);
+        sqlite3_clear_bindings(stmt);
+
+        for(size_t i = 1; i < buffer_index; ++i) {
+            rc = sqlite3_bind_int(stmt, 2, characters_buffer[i].codepoint);
+
+            if(rc != SQLITE_OK) {
+                return ret;
+            }
+
+            while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                mjb_codepoint composed = (mjb_codepoint)sqlite3_column_int(stmt, 0);
+
+                if(composed == MJB_CODEPOINT_NOT_VALID) {
+                    continue;
+                }
+
+                characters_buffer[i].codepoint = MJB_CODEPOINT_NOT_VALID;
+            }
+
+            sqlite3_reset(stmt);
+        }
+    }
+
     // Write combining characters.
     for(size_t i = 0; i < buffer_index; ++i) {
+        if(characters_buffer[i].codepoint == MJB_CODEPOINT_NOT_VALID) {
+            continue;
+        }
+
         utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
         ret = mjb_output_string(ret, buffer_utf8, utf8_size, output_index, output_size);
     }
+
+    // puts("");
 
     return ret;
 }
@@ -86,10 +124,8 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
     *output_size = size;
     size_t output_index = 0;
 
-    // UTF-8 buffer.
+    // String buffer.
     const char *index = buffer;
-    char buffer_utf8[5];
-    size_t utf8_size = 0;
 
     // Loop through the string.
     for(; *index; ++index) {
@@ -97,7 +133,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            // Do nothing. The string is not well-formed
+            // Do nothing. The string is not well-formed.
             continue;
         }
 
@@ -146,15 +182,12 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 
                 // Starter: Any code point (assigned or not) with combining class of zero (ccc = 0)
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
-                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
                     buffer_index = 0;
                 }
 
-                // characters_buffer[buffer_index++] = current_character;
+                characters_buffer[buffer_index++] = current_character;
                 ++found;
-
-                utf8_size = mjb_codepoint_encode(codepoints[i], (char*)buffer_utf8, 5, encoding);
-                ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
             }
         } else if(valid_decomposition) {
             // There are no combining characters. Add the character to the output.
@@ -177,40 +210,30 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 
                 ++found;
 
-                if(current_character.combining == MJB_CCC_NOT_REORDERED) {
-                    if(buffer_index) {
-                        ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
-                        buffer_index = 0;
-                    }
-
-                    utf8_size = mjb_codepoint_encode(decomposed, (char*)buffer_utf8, 5, encoding);
-                    ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
-                } else {
-                    characters_buffer[buffer_index++] = current_character;
+                if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
+                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
+                    buffer_index = 0;
                 }
+
+                characters_buffer[buffer_index++] = current_character;
             }
 
             sqlite3_reset(stmt);
         }
 
         if(!found) {
-            if(current_character.combining == MJB_CCC_NOT_REORDERED) {
-                if(buffer_index) {
-                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
-                    buffer_index = 0;
-                }
-
-                utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, encoding);
-                ret = mjb_output_string(ret, buffer_utf8, utf8_size, &output_index, output_size);
-            } else {
-                characters_buffer[buffer_index++] = current_character;
+            if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
+                ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
+                buffer_index = 0;
             }
+
+            characters_buffer[buffer_index++] = current_character;
        }
     }
 
     // We have combining characters in the buffer, we must output them.
     if(buffer_index) {
-        ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size);
+        ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
         buffer_index = 0;
     }
 

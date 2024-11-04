@@ -11,7 +11,7 @@
 #include "mojibake.h"
 #include "sqlite3/sqlite3.h"
 
-MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+MJB_EXPORT mojibake mjb_global = { false, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
@@ -80,6 +80,12 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     // MJB_CATEGORY_MN and MJB_CATEGORY_MC
     const char query_combining[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
     MJB_PREPARE_STMT(mjb_global.stmt_is_combining, query_combining)
+
+    const char query_compose[] = "SELECT id FROM decompositions WHERE value IN (?, ?) GROUP BY id HAVING COUNT(DISTINCT VALUE) = 2";
+    MJB_PREPARE_STMT(mjb_global.stmt_compose, query_compose)
+
+    const char query_compat_compose[] = "SELECT id FROM compat_decompositions WHERE value IN (?, ?) GROUP BY id HAVING COUNT(DISTINCT VALUE) = 2";
+    MJB_PREPARE_STMT(mjb_global.stmt_compat_compose, query_compat_compose)
 
     #undef MJB_PREPARE_STMT
 

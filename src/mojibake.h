@@ -7,6 +7,14 @@
 #ifndef MJB_MOJIBAKE_H
 #define MJB_MOJIBAKE_H
 
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
+#error "C11 or a later version is required"
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+#error "Windows is not supported"
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -56,9 +64,11 @@ typedef struct mojibake {
     sqlite3 *db;
     sqlite3_stmt *stmt_get_codepoint;
     sqlite3_stmt *stmt_get_block;
+    sqlite3_stmt *stmt_is_combining;
     sqlite3_stmt *stmt_decompose;
     sqlite3_stmt *stmt_compat_decompose;
-    sqlite3_stmt *stmt_is_combining;
+    sqlite3_stmt *stmt_compose;
+    sqlite3_stmt *stmt_compat_compose;
 } mojibake;
 
 /**
