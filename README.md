@@ -1,6 +1,6 @@
 # Mojibake
 
-> ** Note **
+> **Note:**
 > This project is an **experimental library**. It is not designed for production
 > use, and there may be bugs, limitations, or incomplete features. Use at your
 > own discretion, and feel free to collaborate
