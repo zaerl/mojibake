@@ -4,7 +4,7 @@ import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
-import { dbInit, dbRun, dbRunDecompositions, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunDecompositions, dbSize } from './db';
 import { characterDecomposition, generateDecomposition } from './decomposition';
 import { generateHeader } from './generate-header';
 import { generateReadme } from './generate-readme';
@@ -89,12 +89,12 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   analysis.beforeDB();
 
   // Insert characters
-  for(const char of characters) {
-    dbRun(char);
-  }
+  dbRun(characters);
 
   dbRunDecompositions(generateDecomposition(characters));
   dbRunDecompositions(generateDecomposition(characters, true), true);
+
+  dbRunAfter();
 
   analysis.outputGeneratedData(codepoint, isVerbose());
 

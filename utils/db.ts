@@ -69,30 +69,33 @@ export function dbInit(path = '../mojibake.db', compact = false) {
         titlecase INTEGER
       );
     `);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS decompositions (
-        id INTEGER NOT NULL,
-        value INTEGER NOT NULL
-      );
-      CREATE INDEX idx_decompositions_id ON decompositions(id)
-    `);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS compat_decompositions (
-        id INTEGER NOT NULL,
-        value INTEGER NOT NULL
-      );
-      CREATE INDEX idx_compat_decompositions_id ON compat_decompositions(id)
-    `);
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS blocks (
-        id INTEGER PRIMARY KEY,
-        start INTEGER NOT NULL,
-        end INTEGER NOT NULL,
-        name TEXT NOT NULL
-      );
-      CREATE INDEX idx_blocks_start_end ON blocks(start, end);
-    `);
   }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS decompositions (
+      id INTEGER NOT NULL,
+      value INTEGER NOT NULL
+    );
+    CREATE INDEX idx_decompositions_id ON decompositions(id)
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS compat_decompositions (
+      id INTEGER NOT NULL,
+      value INTEGER NOT NULL
+    );
+    CREATE INDEX idx_compat_decompositions_id ON compat_decompositions(id)
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS blocks (
+      id INTEGER PRIMARY KEY,
+      start INTEGER NOT NULL,
+      end INTEGER NOT NULL,
+      name TEXT NOT NULL
+    );
+    CREATE INDEX idx_blocks_start_end ON blocks(start, end);
+  `);
 
   process.on('exit', () => db.close());
   process.on('SIGHUP', () => process.exit(128 + 1));
@@ -131,87 +134,83 @@ export function dbInit(path = '../mojibake.db', compact = false) {
         titlecase
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
-    insertDecompositionSmt = db.prepare(`
-      INSERT INTO decompositions (
-        id,
-        value
-      ) VALUES (?, ?);
-    `);
-    insertCompatDecompositionSmt = db.prepare(`
-      INSERT INTO compat_decompositions (
-        id,
-        value
-      ) VALUES (?, ?);
-    `);
-    insertBlockSmt = db.prepare(`
-      INSERT INTO blocks (
-        id,
-        start,
-        end,
-        name
-      ) VALUES (?, ?, ?, ?);
-    `);
   }
 
-  // Persistent
-  db.pragma('journal_mode = OFF');
+  insertDecompositionSmt = db.prepare(`
+    INSERT INTO decompositions (
+      id,
+      value
+    ) VALUES (?, ?);
+  `);
+
+  insertCompatDecompositionSmt = db.prepare(`
+    INSERT INTO compat_decompositions (
+      id,
+      value
+    ) VALUES (?, ?);
+  `);
+
+  insertBlockSmt = db.prepare(`
+    INSERT INTO blocks (
+      id,
+      start,
+      end,
+      name
+    ) VALUES (?, ?, ?, ?);
+  `);
+
+  db.pragma('synchronous = OFF');
+  db.pragma('journal_mode = MEMORY');
   db.pragma('temp_store = MEMORY');
-  db.pragma('cache_size = -1000000');
-
-  // Not persistent
-  /*db.pragma('synchronous = OFF');
-  db.pragma('locking_mode = EXCLUSIVE');
-  db.pragma('mmap_size = 30000000000');*/
-
-  db.exec('ANALYZE;');
-  db.exec('VACUUM;');
 }
 
 export function dbSize() {
   return statSync(dbPath).size;
 }
 
-export function dbRun(char: Character) {
-  if(isCompact) {
-    // 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-    //                    mir     dig dec  deco     bidi     comb     cat
-    const flags = BigInt(char.category) |
-      (BigInt(char.combining) << BigInt(8)) |
-      (BigInt(char.bidirectional ?? 0) << BigInt(16)) |
-      (BigInt(char.decomposition) << BigInt(24)) |
-      ((BigInt(char.decimal ?? BigInt(0))) << BigInt(32)) |
-      ((BigInt(char.digit ?? BigInt(0))) << BigInt(36)) |
-      (char.mirrored ? (BigInt(1) << BigInt(47)) : BigInt(0));
+export function dbRun(characters: Character[]) {
+  for(const char of characters) {
+    if(isCompact) {
+      // 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+      //                    mir     dig dec  deco     bidi     comb     cat
+      const flags = BigInt(char.category) |
+        (BigInt(char.combining) << BigInt(8)) |
+        (BigInt(char.bidirectional ?? 0) << BigInt(16)) |
+        (BigInt(char.decomposition) << BigInt(24)) |
+        ((BigInt(char.decimal ?? BigInt(0))) << BigInt(32)) |
+        ((BigInt(char.digit ?? BigInt(0))) << BigInt(36)) |
+        (char.mirrored ? (BigInt(1) << BigInt(47)) : BigInt(0));
 
-    insertDataSmt.run(
-      char.codepoint,
-      char.name,
-      flags,
-      char.numeric,
-      char.uppercase,
-      char.lowercase,
-      char.titlecase
+      insertDataSmt.run(
+        char.codepoint,
+        char.name,
+        flags,
+        char.numeric,
+        char.uppercase,
+        char.lowercase,
+        char.titlecase
+        );
+    } else {
+      insertDataSmt.run(
+        char.codepoint,
+        char.name,
+        char.category,
+        char.combining,
+        char.bidirectional,
+        char.decomposition,
+        char.decimal,
+        char.digit,
+        char.numeric,
+        char.mirrored ? 1 : 0,
+        char.uppercase,
+        char.lowercase,
+        char.titlecase
       );
-  } else {
-    insertDataSmt.run(
-      char.codepoint,
-      char.name,
-      char.category,
-      char.combining,
-      char.bidirectional,
-      char.decomposition,
-      char.decimal,
-      char.digit,
-      char.numeric,
-      char.mirrored ? 1 : 0,
-      char.uppercase,
-      char.lowercase,
-      char.titlecase
-    );
 
-    /*for(const value of char.decompositions) {
-      insertDecompositionSmt.run(char.codepoint, value);
-    }*/
+      /*for(const value of char.decompositions) {
+        insertDecompositionSmt.run(char.codepoint, value);
+      }*/
+    }
   }
 }
 
@@ -227,4 +226,11 @@ export function dbRunDecompositions(decompositions: CalculatedDecomposition[], c
 
 export function dbInsertBlock(index: number, block: Block) {
   insertBlockSmt.run(index, block.start, block.end, block.name);
+}
+
+export function dbRunAfter() {
+  db.pragma('optimize');
+  db.pragma('journal_mode = OFF');
+  db.exec('ANALYZE;');
+  db.exec('VACUUM;');
 }

@@ -61,8 +61,11 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     }
 
     sqlite3_extended_result_codes(mjb_global.db, 1);
+    // TODO: Check what PRAGMA are valid
     const char *sql =
         "PRAGMA synchronous = OFF;"
+        "PRAGMA temp_store = MEMORY;"
+        "PRAGMA query_only = TRUE;"
         "PRAGMA locking_mode = EXCLUSIVE;"
         "PRAGMA mmap_size = 268435456;";
 
