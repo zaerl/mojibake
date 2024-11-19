@@ -65,6 +65,8 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char *sql =
         "PRAGMA synchronous = OFF;"
         "PRAGMA temp_store = MEMORY;"
+        "PRAGMA journal_mode = OFF;"
+        "PRAGMA cache_size = -1000000;"
         "PRAGMA query_only = TRUE;"
         "PRAGMA locking_mode = EXCLUSIVE;"
         "PRAGMA mmap_size = 268435456;";

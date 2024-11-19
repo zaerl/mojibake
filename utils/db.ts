@@ -230,7 +230,6 @@ export function dbInsertBlock(index: number, block: Block) {
 
 export function dbRunAfter() {
   db.pragma('optimize');
-  db.pragma('journal_mode = OFF');
   db.exec('ANALYZE;');
   db.exec('VACUUM;');
 }
