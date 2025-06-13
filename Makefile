@@ -11,6 +11,9 @@ build: configure
 
 rebuild: clean_build all
 
+coverage:
+	python3 utils/coverage.py > TESTS.md
+
 generate:
 	cd ./utils && ./generate.sh $(ARGS)
 
@@ -27,4 +30,4 @@ clean_build:
 clean:
 	rm -rf $(BUILD_DIR) && rm -f mojibake.db
 
-.PHONY: all clean clean_build configure build test rebuild generate generate_tests
+.PHONY: all clean clean_build configure build test rebuild generate generate_tests coverage
