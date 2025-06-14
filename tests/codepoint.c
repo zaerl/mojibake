@@ -9,167 +9,104 @@
 
 #include "test.h"
 
-MJB_EXPORT void mjb_codepoint_character_test() {
-    mojibake *mjb;
-    mjb_initialize(&mjb);
+void *test_codepoint(void *arg) {
     mjb_character character;
 
-    bool ret = mjb_codepoint_character(mjb, NULL, MJB_CODEPOINT_MAX);
-    mjb_assert("Void character", !ret);
+    ATT_ASSERT(mjb_codepoint_character(NULL, MJB_CODEPOINT_MAX), false, "Void character")
+    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_MAX), false, "Not valid codepoint")
 
-    ret = mjb_codepoint_character(mjb, &character, MJB_CODEPOINT_MAX);
-    mjb_assert("Not valid codepoint", !ret);
+    ATT_ASSERT(mjb_codepoint_character(&character, 0), true, "Codepoint: 0")
+    ATT_ASSERT(strcmp((char*)character.name, "NULL"), 0, "Codepoint: 0")
 
-    ret = mjb_codepoint_character(mjb, &character, 0);
-    mjb_assert("Codepoint: 0", strcmp((char*)character.name, "NULL") == 0);
+    ATT_ASSERT(mjb_codepoint_character(&character, '$'), true, "Codepoint: 0")
+    ATT_ASSERT(strcmp((char*)character.name, "DOLLAR SIGN"), 0, "Codepoint: $")
 
-    ret = mjb_codepoint_character(mjb, &character, '$');
-    mjb_assert("Codepoint: $", strcmp((char*)character.name, "DOLLAR SIGN") == 0);
+    // 0xE0 = à
+    ATT_ASSERT(mjb_codepoint_character(&character, 0xE0), true, "Codepoint: à")
+    ATT_ASSERT(strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE"), 0, "Codepoint: à")
 
-    /* 0xE0 = à */
-    ret = mjb_codepoint_character(mjb, &character, 0xE0);
-    mjb_assert("Codepoint: à", strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE") == 0);
+    // 0x1F642 = 🙂
+    ATT_ASSERT(mjb_codepoint_character(&character, 0x1F642), true, "Codepoint: 🙂")
+    ATT_ASSERT(strcmp((char*)character.name, "SLIGHTLY SMILING FACE"), 0, "Codepoint: 🙂")
 
-    /* 0x1F642 = 🙂 */
-    ret = mjb_codepoint_character(mjb, &character, 0x1F642);
-    mjb_assert("Codepoint: 🙂", strcmp((char*)character.name, "SLIGHTLY SMILING FACE") == 0);
+    // 0x0377 = ͷ, 0x0377 + 1 is not mapped
+    ATT_ASSERT(mjb_codepoint_character(&character, 0x0377 + 1), false, "Codepoint not mapped: ͷ + 1")
 
-    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
-    ret = mjb_codepoint_character(mjb, &character, 0x0377 + 1);
-    mjb_assert("Codepoint not mapped: ͷ + 1", !ret);
-}
+    // 0xAC00 = First hangul syllable
+    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_HANGUL_START), true, "First hangul syllable")
+    ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE GA"), 0, "First hangul syllable")
 
-MJB_EXPORT void mjb_codepoint_block_test() {
-    mojibake *mjb;
-    mjb_initialize(&mjb);
+    // 0xD7A3 = Last hangul syllable
+    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_HANGUL_END), true, "Last hangul syllable")
+    ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
 
-    mjb_character character;
+    ATT_ASSERT(mjb_codepoint_block_is(MJB_CODEPOINT_MAX, MJB_BLOCK_BASIC_LATIN), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_codepoint_block_is(0, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x80 - 1, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x80 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), true, "Latin-1 Supplement block")
+    ATT_ASSERT(mjb_codepoint_block_is(0x80 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), true, "Latin-1 Supplement block")
+    // 0x0377 = ͷ, 0x0377 + 1 is not mapped
+    ATT_ASSERT(mjb_codepoint_block_is(0x0377 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), false, "Greek and Coptic not mapped: ͷ + 1")
+    ATT_ASSERT(mjb_codepoint_block_is(0xE0000 + 1, MJB_BLOCK_TAGS), true, "Tags block")
 
-    bool ret = mjb_codepoint_character(mjb, &character, 0);
-    mjb_assert("Basic Latin block", character.block == MJB_BLOCK_BASIC_LATIN);
+    ATT_ASSERT(mjb_codepoint_character(&character, 0xF0000 + 3), false, "Supplementary Private Use Area-A block")
 
-    ret = mjb_codepoint_character(mjb, &character, 0x80 - 1);
-    mjb_assert("Basic Latin end block", character.block == MJB_BLOCK_BASIC_LATIN);
+    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_MAX - 1), false, "Supplementary Private Use Area-B block")
 
-    ret = mjb_codepoint_character(mjb, &character, 0x80 + 1);
-    mjb_assert("Latin-1 Supplement block", character.block == MJB_BLOCK_LATIN_1_SUPPLEMENT);
+    ATT_ASSERT(mjb_codepoint_category_is(0, MJB_CATEGORY_CC), true, "NULL: category other, control")
 
-    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
-    ret = mjb_codepoint_character(mjb, &character, 0x0377 + 1);
-    mjb_assert("Greek and Coptic not mapped: ͷ + 1", !ret);
+    // 0x1F642 = 🙂
+    ATT_ASSERT(mjb_codepoint_category_is(0x1F642, MJB_CATEGORY_SO), true, "🙂: category Symbol, Other")
 
-    ret = mjb_codepoint_character(mjb, &character, 0xE0000 + 1);
-    mjb_assert("Tags block", character.block == MJB_BLOCK_TAGS);
+    ATT_ASSERT(mjb_codepoint_category_is(0x1FFFE, MJB_CATEGORY_LU), false, "Not valid codepoint: category invalid")
 
-    ret = mjb_codepoint_character(mjb, &character, 0xF0000 + 3);
-    mjb_assert("Supplementary Private Use Area-A block", !ret);
+    // 0x0377 = ͷ, 0x0377 + 1 is not mapped
+    ATT_ASSERT(mjb_codepoint_category_is(0x0377 + 1, MJB_CATEGORY_LL), false, "Not mapped codepoint: category invalid")
 
-    ret = mjb_codepoint_character(mjb, &character, MJB_CODEPOINT_MAX - 1);
-    mjb_assert("Supplementary Private Use Area-B block", !ret);
-}
+    ATT_ASSERT(mjb_codepoint_is_graphic(0), false, "NULL: not graphic")
 
-MJB_EXPORT void mjb_codepoint_is_test() {
-    mojibake *mjb;
-    mjb_initialize(&mjb);
+    ATT_ASSERT(mjb_codepoint_is_graphic('#'), true, "#: graphic")
 
-    bool ret = mjb_codepoint_is(mjb, 0, MJB_CATEGORY_CC);
-    mjb_assert("NULL: category other, control", ret);
+    // 0x1F642 = 🙂
+    ATT_ASSERT(mjb_codepoint_is_graphic(0x1F642), true, "🙂: graphic")
 
-    /* 0x1F642 = 🙂 */
-    ret = mjb_codepoint_is(mjb, 0x1F642, MJB_CATEGORY_SO);
-    mjb_assert("🙂: category Symbol, Other", ret);
+    ATT_ASSERT(mjb_codepoint_is_graphic(0x1FFFE), false, "Not valid codepoint: not graphic")
 
-    ret = mjb_codepoint_is(mjb, 0x1FFFE, MJB_CATEGORY_LU);
-    mjb_assert("Not valid codepoint: category invalid", !ret);
+    // 0x0377 = ͷ, 0x0377 + 1 is not mapped
+    ATT_ASSERT(mjb_codepoint_is_graphic(0x0377 + 1), false, "Not mapped codepoint: not graphic")
 
-    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
-    ret = mjb_codepoint_is(mjb, 0x0377 + 1, MJB_CATEGORY_LL);
-    mjb_assert("Not mapped codepoint: category invalid", !ret);
-}
-
-MJB_EXPORT void mjb_codepoint_is_graphic_test() {
-    mojibake *mjb;
-    mjb_initialize(&mjb);
-
-    bool ret = mjb_codepoint_is_graphic(mjb, 0);
-    mjb_assert("NULL: not graphic", !ret);
-
-    ret = mjb_codepoint_is_graphic(mjb, '#');
-    mjb_assert("#: graphic", ret);
-
-    /* 0x1F642 = 🙂 */
-    ret = mjb_codepoint_is_graphic(mjb, 0x1F642);
-    mjb_assert("🙂: graphic", ret);
-
-    ret = mjb_codepoint_is_graphic(mjb, 0x1FFFE);
-    mjb_assert("Not valid codepoint: not graphic", !ret);
-
-    /* 0x0377 = ͷ, 0x0377 + 1 is not mapped */
-    ret = mjb_codepoint_is_graphic(mjb, 0x0377 + 1);
-    mjb_assert("Not mapped codepoint: not graphic", !ret);
-}
-
-MJB_EXPORT void mjb_codepoint_is_valid_test() {
-    bool validity = mjb_codepoint_is_valid(NULL, MJB_CODEPOINT_MIN + 1);
-    mjb_assert("Valid codepoint", validity);
-
-    validity = mjb_codepoint_is_valid(NULL, MJB_CODEPOINT_MIN - 1);
-    mjb_assert("Not valid negative codepoint", !validity);
-
-    validity = mjb_codepoint_is_valid(NULL, MJB_CODEPOINT_MAX + 1);
-    mjb_assert("Not valid exceed codepoint", !validity);
-
-    validity = mjb_codepoint_is_valid(NULL, 0x1FFFE);
-    mjb_assert("Not valid codepoint ending in 0xFFFE", !validity);
-
-    validity = mjb_codepoint_is_valid(NULL, 0x1FFFF);
-    mjb_assert("Not valid codepoint ending in 0xFFFF", !validity);
-
-    validity = mjb_codepoint_is_valid(NULL, 0xFFFE);
-    mjb_assert("Not valid codepoint 0xFFFE", !validity);
-
-    validity = mjb_codepoint_is_valid(NULL, 0xFFFF);
-    mjb_assert("Not valid codepoint 0xFFFF", !validity);
+    ATT_ASSERT(mjb_codepoint_is_valid(MJB_CODEPOINT_MIN + 1), true, "Valid codepoint")
+    ATT_ASSERT(mjb_codepoint_is_valid(MJB_CODEPOINT_MIN - 1), false, "Not valid negative codepoint")
+    ATT_ASSERT(mjb_codepoint_is_valid(MJB_CODEPOINT_MAX + 1), false, "Not valid exceed codepoint")
+    ATT_ASSERT(mjb_codepoint_is_valid(0x1FFFE), false, "Not valid codepoint ending in 0xFFFE")
+    ATT_ASSERT(mjb_codepoint_is_valid(0x1FFFF), false, "Not valid codepoint ending in 0xFFFF")
+    ATT_ASSERT(mjb_codepoint_is_valid(0xFFFE), false, "Not valid codepoint 0xFFFE")
+    ATT_ASSERT(mjb_codepoint_is_valid(0xFFFF), false, "Not valid codepoint 0xFFFF")
 
     char buffer[32];
 
-    /* 32 noncharacters: U+FDD0–U+FDEF */
+    // 32 noncharacters: U+FDD0–U+FDEF
     for(mjb_codepoint i = 0xFDD0; i <= 0xFDEF; ++i) {
-        validity = mjb_codepoint_is_valid(NULL, i);
-
         snprintf(buffer, 32, "Not valid codepoint %#X", i);
-        mjb_assert(buffer, !validity);
+        // CURRENT_COUNT 32
+        ATT_ASSERT(mjb_codepoint_is_valid(i), false, buffer)
     }
-}
 
-MJB_EXPORT void mjb_codepoint_lc_uc_tc_test() {
-    mojibake *mjb;
-    mjb_initialize(&mjb);
+    ATT_ASSERT(mjb_codepoint_to_lowercase('#'), '#', "Lowercase #: #")
+    ATT_ASSERT(mjb_codepoint_to_uppercase('#'), '#', "Uppercase #: #")
+    ATT_ASSERT(mjb_codepoint_to_titlecase('#'), '#', "Titlecase #: #")
+    ATT_ASSERT(mjb_codepoint_to_lowercase('A'), 'a', "Lowercase: A > a")
+    ATT_ASSERT(mjb_codepoint_to_lowercase('a'), 'a', "Lowercase: a > a")
+    ATT_ASSERT(mjb_codepoint_to_uppercase('b'), 'B', "Uppercase: b > B")
+    ATT_ASSERT(mjb_codepoint_to_uppercase('B'), 'B', "Uppercase: B > B")
+    ATT_ASSERT(mjb_codepoint_to_titlecase('c'), 'C', "Titlecase: c > C")
+    ATT_ASSERT(mjb_codepoint_to_titlecase('C'), 'C', "Titlecase: C > C")
 
-    mjb_codepoint ret = mjb_codepoint_to_lowercase(mjb, '#');
-    mjb_assert("Lowercase #: #", ret == '#');
+    ATT_ASSERT(mjb_codepoint_is_combining(0), false, "NULL")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x30), false, "DIGIT ZERO")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x0300), true, "COMBINING GRAVE ACCENT")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x1F1E6), false, "REGIONAL INDICATOR SYMBOL LETTER A")
+    ATT_ASSERT(mjb_codepoint_is_combining(0x488), true, "COMBINING CYRILLIC HUNDRED THOUSANDS SIGN")
 
-    ret = mjb_codepoint_to_uppercase(mjb, '#');
-    mjb_assert("Uppercase #: #", ret == '#');
-
-    ret = mjb_codepoint_to_titlecase(mjb, '#');
-    mjb_assert("Titlecase #: #", ret == '#');
-
-    ret = mjb_codepoint_to_lowercase(mjb, 'A');
-    mjb_assert("Lowercase: A > a", ret == 'a');
-
-    ret = mjb_codepoint_to_lowercase(mjb, 'a');
-    mjb_assert("Lowercase: a > a", ret == 'a');
-
-    ret = mjb_codepoint_to_uppercase(mjb, 'b');
-    mjb_assert("Uppercase: b > B", ret == 'B');
-
-    ret = mjb_codepoint_to_uppercase(mjb, 'B');
-    mjb_assert("Uppercase: B > B", ret == 'B');
-
-    ret = mjb_codepoint_to_titlecase(mjb, 'c');
-    mjb_assert("Titlecase: c > C", ret == 'C');
-
-    ret = mjb_codepoint_to_titlecase(mjb, 'C');
-    mjb_assert("Titlecase: C > C", ret == 'C');
+    return NULL;
 }

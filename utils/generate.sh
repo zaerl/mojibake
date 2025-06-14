@@ -1,6 +1,6 @@
 #!/bin/sh
 
-UNICODE_VERSION="13.0.0"
+UNICODE_VERSION="16.0.0"
 
 if [ ! -d "./UCD" ] ; then
     curl -o UCD.zip "https://www.unicode.org/Public/zipped/$UNICODE_VERSION/UCD.zip"
@@ -14,4 +14,6 @@ if [ ! -d "./unihan" ] ; then
     rm unihan.zip
 fi
 
+mkdir -p ../build
+rm ../mojibake.db
 npm run generate -- "$@"

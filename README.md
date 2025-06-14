@@ -1,52 +1,57 @@
 # Mojibake
 
-Mojibake is a low-level Unicode library written in C99. THIS IS AN EXPERIMENTAL LIBRARY. DO NOT USE.
+> **Note:**
+> This project is an **experimental library**. It is not designed for production
+> use, and there may be bugs, limitations, or incomplete features. Use at your
+> own discretion, and feel free to collaborate
+
+Mojibake is a low-level Unicode library written in C99.
 
 ## API
 
-Initialize the library
+Initialize the library. Not needed to be called
 ```c
-bool mjb_initialize(mojibake **mjb);
+bool mjb_initialize(void);
 ```
 
-Initialize the library with custom values
+Initialize the library with custom values. Not needed to be called
 ```c
-bool mjb_initialize_v2(mojibake **mjb, mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 ```
 
-The library is ready
+Shutdown the library. Not needed to be called
 ```c
-bool mjb_ready(mojibake *mjb);
+void mjb_shutdown(void);
 ```
 
 Allocate and zero memory
 ```c
-void *mjb_alloc(mojibake *mjb, size_t size);
+void *mjb_alloc(size_t size);
 ```
 
 Reallocate memory
 ```c
-void *mjb_realloc(mojibake *mjb, void *ptr, size_t new_size);
+void *mjb_realloc(void *ptr, size_t new_size);
 ```
 
 Free memory
 ```c
-void mjb_free(mojibake *mjb, void *ptr);
+void mjb_free(void *ptr);
 ```
 
 Output the current library version (MJB_VERSION)
 ```c
-char *mjb_version();
+const char *mjb_version(void);
 ```
 
 Output the current library version number (MJB_VERSION_NUMBER)
 ```c
-unsigned int mjb_version_number();
+unsigned int mjb_version_number(void);
 ```
 
 Output the current supported unicode version (MJB_UNICODE_VERSION)
 ```c
-char *mjb_unicode_version();
+const char *mjb_unicode_version(void);
 ```
 
 Return true if the plane is valid
@@ -69,47 +74,97 @@ Return true if the string is encoded in UTF-8
 bool mjb_string_is_utf8(const char *buffer, size_t size);
 ```
 
+Return nexy codepoint in the string
+```c
+mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
+```
+
 Return true if the string is encoded in ASCII
 ```c
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 ```
 
+Encode a codepoint to a string
+```c
+unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+```
+
 Return true if the codepoint is valid
 ```c
-bool mjb_codepoint_is_valid(mojibake *mjb, mjb_codepoint codepoint);
+bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 ```
 
 Return the codepoint character
 ```c
-bool mjb_codepoint_character(mojibake *mjb, mjb_character *character, mjb_codepoint codepoint);
+bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
+```
+
+Return hangul syllable name
+```c
+bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+```
+
+Hangul syllable decomposition
+```c
+bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+```
+
+Return if the codepoint is an hangul syllable
+```c
+bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is CJK ideograph
+```c
+bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 ```
 
 Return true if the codepoint has the category
 ```c
-bool mjb_codepoint_is(mojibake *mjb, mjb_codepoint codepoint, mjb_category category);
+bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
+```
+
+Return true if the codepoint has the block
+```c
+bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 ```
 
 Return true if the codepoint is graphic
 ```c
-bool mjb_codepoint_is_graphic(mojibake *mjb, mjb_codepoint codepoint);
+bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is combining
+```c
+bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+```
+
+Return true if the category is combining
+```c
+bool mjb_category_is_combining(mjb_category category);
 ```
 
 Return the codepoint lowercase codepoint
 ```c
-mjb_codepoint mjb_codepoint_to_lowercase(mojibake *mjb, mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 ```
 
 Return the codepoint uppercase codepoint
 ```c
-mjb_codepoint mjb_codepoint_to_uppercase(mojibake *mjb, mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 ```
 
 Return the codepoint titlecase codepoint
 ```c
-mjb_codepoint mjb_codepoint_to_titlecase(mojibake *mjb, mjb_codepoint codepoint);
+mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 ```
 
 Normalize a string
 ```c
-void *mjb_normalize(mojibake *mjb, void *source, size_t source_size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+```
+
+Sort
+```c
+void mjb_sort(mjb_character arr[], size_t size);
 ```

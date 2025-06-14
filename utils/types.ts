@@ -3,12 +3,28 @@ export interface CountBuffer {
   count: number;
 }
 
+export interface PrefixCalc {
+  name: string;
+  count: number;
+}
+
 export interface Numeric {
   name: string;
   value: number;
   count: number;
 }
 
+export interface CalculatedDecomposition {
+  codepoint: number;
+  value: number;
+}
+
+export interface Decomposition {
+  type: CharacterDecomposition;
+  decomposition: number[];
+}
+
+// C: mjb_category
 export enum Categories {
   Lu,
   Ll,
@@ -42,6 +58,9 @@ export enum Categories {
   Cn
 }
 
+export type CategoriesStrings = keyof typeof Categories;
+
+// C: mjb_category
 export const categories = [
   'Letter, uppercase',
   'Letter, lowercase',
@@ -75,8 +94,7 @@ export const categories = [
   'Other, not assigned',
 ];
 
-export type CategoriesStrings = keyof typeof Categories;
-
+// C: mjb_bidi_categories
 export enum BidirectionalCategories {
   NONE,
   // Strong
@@ -110,81 +128,72 @@ export enum BidirectionalCategories {
 
 export type BidirectionalCategoriesStrings = (keyof typeof BidirectionalCategories) | '';
 
+export enum CharacterDecomposition {
+  None,
+  Canonical,
+  Cicle,
+  Compat,
+  Final,
+  Font,
+  Fraction,
+  Initial,
+  Isolated,
+  Medial,
+  Narrow,
+  NoBreak,
+  Small,
+  Square,
+  Sub,
+  Super,
+  Vertical,
+  Wide,
+};
+
+// C: mjb_decomposition
 export const characterDecompositionMapping = {
-  'canonical': 0,
-  '<circle>': 1,
-  '<compat>': 2,
-  '<final>': 3,
-  '<font>': 4,
-  '<fraction>': 5,
-  '<initial>': 6,
-  '<isolated>': 7,
-  '<medial>': 8,
-  '<narrow>': 9,
-  '<noBreak>': 10,
-  '<small>': 11,
-  '<square>': 12,
-  '<sub>': 13,
-  '<super>': 14,
-  '<vertical>': 15,
-  '<wide>': 16
+  'none': CharacterDecomposition.None,
+  'canonical': 1,
+  '<circle>': 2,
+  '<compat>': 3,
+  '<final>': 4,
+  '<font>': 5,
+  '<fraction>': 6,
+  '<initial>': 7,
+  '<isolated>': 8,
+  '<medial>': 9,
+  '<narrow>': 10,
+  '<noBreak>': 11,
+  '<small>': 12,
+  '<square>': 13,
+  '<sub>': 14,
+  '<super>': 15,
+  '<vertical>': 16,
+  '<wide>': 17
 };
 
 export type CharacterDecompositionMappingStrings = keyof typeof characterDecompositionMapping;
 
+// C: bool
 export type Mirrored = 'Y' | 'N';
 
+// UnicodeData.txt raw values
 export type UnicodeDataRow = [
   string, // 0 codepoint
   string, // 1 character name
   CategoriesStrings, // 2 category
   string, // 3 canonical combining classes
   BidirectionalCategoriesStrings, // 4 bidirectional category
-  // decomposition type
   string, // 5 character decomposition mapping
   string, // 6 decimal digit value
   string, // 7 digit value
   string, // 8 numeric value
   Mirrored, // 9 mirrored
-  string, // 10 unicode 1.0 name
-  string, // 11 10646 comment field
+  string, // 10 unicode 1.0 name (ignored)
+  string, // 11 10646 comment field (ignored)
   string, // 12 uppercase mapping
   string, // 13 lowercase mapping
   string // 14 titlecase mapping
 ];
-
-export class Character {
-  constructor(
-    private codepoint: number,
-    private name: string,
-    private block: number,
-    private category: number,
-    private combining: number,
-    private bidi: BidirectionalCategories | null,
-    private decimal: string | null,
-    private digit: string | null,
-    private numeric: string | null,
-    private mirrored: boolean,
-    private lowercase: number,
-    private uppercase: number,
-    private titlecase: number
-  ) {}
-
-  formatC(): string {
-    return `{ ${this.fmt(this.codepoint)}, ${this.fmt(this.name)}, ${this.fmt(this.block)}, ${this.fmt(this.category)}, ` +
-      `${this.fmt(this.combining)}, ${this.fmt(this.bidi)}, ${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` +
-      `${this.fmt(this.numeric)}, ${this.mirrored}, `+
-      `${this.fmt(this.lowercase)}, ${this.fmt(this.uppercase)}, ${this.fmt(this.titlecase)} }`;
-  }
-
-  private fmt(value: string | number | null, defaultC = 'NULL'): string {
-    if(value === null) {
-      return defaultC;
-    } else {
-      return typeof value === 'number' ? `${value === 0 ? 0 : '0x' + value.toString(16).toUpperCase()}` : `"${value}"`;
-    }
-  }
-}
 
 // All blocks
 export interface Block {

@@ -1,0 +1,32 @@
+# Test coverage
+
+| Test                               | Coverage   |
+| ---------------------------------- | ---------- |
+| `mjb_normalize`                    | 199650     |
+| `mjb_codepoint_is_valid`           | 39         |
+| `mjb_codepoint_character`          | 17         |
+| `mjb_codepoint_encode`             | 15         |
+| `mjb_string_encoding`              | 10         |
+| `mjb_string_is_ascii`              | 9          |
+| `mjb_hangul_syllable_name`         | 8          |
+| `mjb_codepoint_block_is`           | 7          |
+| `mjb_plane_name`                   | 6          |
+| `mjb_codepoint_is_combining`       | 5          |
+| `mjb_codepoint_is_graphic`         | 5          |
+| `mjb_codepoint_category_is`        | 4          |
+| `mjb_codepoint_to_lowercase`       | 3          |
+| `mjb_codepoint_to_titlecase`       | 3          |
+| `mjb_codepoint_to_uppercase`       | 3          |
+| `mjb_plane_is_valid`               | 3          |
+| `mjb_alloc`                        | 1          |
+| `mjb_codepoint_is_cjk_ideograph`   | 1          |
+| `mjb_unicode_version`              | 1          |
+| `mjb_version`                      | 1          |
+| `mjb_version_number`               | 1          |
+| `mjb_codepoint_is_hangul_syllable` | 0          |
+| `mjb_free`                         | 0          |
+| `mjb_initialize`                   | 0          |
+| `mjb_realloc`                      | 0          |
+| `mjb_shutdown`                     | 0          |
+| `mjb_sort`                         | 0          |
+| **Total**                          | **199792** |

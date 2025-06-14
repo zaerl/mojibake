@@ -7,64 +7,31 @@
 #ifndef MJB_TEST_H
 #define MJB_TEST_H
 
-#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "../src/mojibake.h"
+#include "./attractor/attractor.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SECTIONS_COUNT 8
-
-typedef void (*mjb_test)(void);
-
-void mjb_assert(char *message, bool test);
-void mjb_run_test(char *name, mjb_test test);
-void mjb_select_section(int section);
-unsigned int mjb_valid_count();
-unsigned int mjb_total_count();
-const char *mjb_section_name(unsigned int section);
-unsigned int mjb_section_valid_count(unsigned int section);
-unsigned int mjb_section_total_count(unsigned int section);
-clock_t mjb_section_delta(unsigned int section);
-void mjb_print_character(mjb_character *character, mjb_codepoint codepoint);
-
-/* Array */
-void mjb_array_test();
-
-/* Codepoint */
-void mjb_codepoint_character_test();
-void mjb_codepoint_block_test();
-void mjb_codepoint_is_test();
-void mjb_codepoint_is_graphic_test();
-void mjb_codepoint_is_valid_test();
-void mjb_codepoint_lc_uc_tc_test();
-
-/* db */
-void mjb_ready_test();
-
-/* Encoding */
-void mjb_string_encoding_test();
-void mjb_string_is_ascii_test();
-void mjb_string_is_utf8_test();
-
-/* Memory */
-void mjb_memory_test();
-
-/* Normalization */
-void mjb_codepoint_normalize_test();
-
-/* Plane */
-void mjb_plane_is_valid_test();
-void mjb_plane_name_test();
-
-/* Version */
-void mjb_version_test();
-void mjb_version_number_test();
-void mjb_unicode_version_test();
+// Start tests declarations.
+void *test_codepoint(void *arg);
+void *test_cjk(void *arg);
+void *test_encoding(void *arg);
+void *test_hangul(void *arg);
+void *test_mojibake(void *arg);
+void *test_normalization(void *arg);
+void *test_plane(void *arg);
+void *test_sort(void *arg);
+void *test_utf8(void *arg);
+void *test_version(void *arg);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MJB_TEST_H */
+#endif // MJB_TEST_H

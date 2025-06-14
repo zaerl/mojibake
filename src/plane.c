@@ -6,12 +6,12 @@
 
 #include "mojibake.h"
 
-/* Return true if the plane is valid */
+// Return true if the plane is valid
 MJB_EXPORT bool mjb_plane_is_valid(mjb_plane plane) {
     return plane >= 0 && plane < MJB_PLANE_NUM;
 }
 
-/* Return the name of a plane, NULL if the place specified is not valid */
+// Return the name of a plane, NULL if the place specified is not valid
 MJB_EXPORT const char *mjb_plane_name(mjb_plane plane, bool abbreviation) {
     if(!mjb_plane_is_valid(plane)) {
         return NULL;
