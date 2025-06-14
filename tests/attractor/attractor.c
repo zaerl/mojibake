@@ -1,8 +1,8 @@
 
 /**
- * 2024-02-16
+ * 2025-06-14
  *
- * The attractor unit test library
+ * The Attractor Unit Test library
  */
 
 #include "attractor.h"
@@ -28,6 +28,7 @@ static unsigned int att_verbose = ATT_VERBOSE;
 static unsigned int att_show_error = ATT_SHOW_ERROR;
 static unsigned int att_columns = 80;
 static int att_show_colors = 0;
+static att_generic_callback att_callback = NULL;
 
 unsigned int att_get_valid_tests(void) {
     return att_valid_tests;
@@ -43,6 +44,10 @@ void att_set_verbose(unsigned int verbose) {
 
 void att_set_show_error(unsigned int show_error) {
     att_show_error = show_error;
+}
+
+void att_set_generic_callback(att_generic_callback callback) {
+    att_callback = callback;
 }
 
 int att_assert(const char *type, int test, const char *description);
@@ -72,6 +77,16 @@ ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *de
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
+    }
+
+    return test;
+}
+
+ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, const char *description) {
+    int test = att_assert("const char*", result == expected, description);
+
+    if(!test) {
+        ATT_ERROR_MESSAGE(result, "%p", expected);
     }
 
     return test;
@@ -207,11 +222,11 @@ ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *desc
     return test;
 }
 
-ATT_API unsigned int att_assert_unknown(int result, int expected, const char *description) {
-    int test = att_assert("default", result == expected, description);
+ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description) {
+    int test = att_assert(att_callback ? "callback" : "default", att_callback ? att_callback(result, expected, description) : (result == expected), description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%d", expected);
+        ATT_ERROR_MESSAGE(result, "%p", expected);
     }
 
     return test;
@@ -231,7 +246,9 @@ int att_assert(const char *format, int test, const char *description) {
                 att_columns = w.ws_col;
             }
 
-            att_show_colors = 1;
+            const char *term = getenv("TERM");
+            const char *no_color = getenv("NO_COLOR");
+            att_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
         }
     }
 
@@ -263,7 +280,7 @@ int att_assert(const char *format, int test, const char *description) {
             spaces[i] = ' ';
         }
 
-        printf(att_show_colors ? "[%s] \x1b[34m%s\x1b[0m: %s%s\n" : "[%s] %s: %s%s\n",
+        printf(att_show_colors ? "[\x1b[36m%s\x1b[0m] %s: %s%s\n" : "[%s] %s: %s%s\n",
             format, description, spaces, test ? ok : fail);
     }
 

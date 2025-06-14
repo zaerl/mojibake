@@ -1,7 +1,7 @@
 /**
- * 2024-02-16
+ * 2025-06-14
  *
- * The attractor unit test library
+ * The Attractor Unit Test library
  *
  * Usage:
  *
@@ -40,6 +40,7 @@ extern "C" {
     char: att_assert_c, \
     unsigned char: att_assert_u_c, \
     char*: att_assert_p_c, \
+    const char*: att_assert_cp_c, \
     short: att_assert_hd, \
     unsigned short: att_assert_u_hu, \
     int: att_assert_d, \
@@ -59,6 +60,7 @@ extern "C" {
 ATT_API unsigned int att_assert_c(char result, char expected, const char *description);
 ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected, const char *description);
 ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *description);
+ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, const char *description);
 ATT_API unsigned int att_assert_hd(short result, short expected, const char *description);
 ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expected, const char *description);
 ATT_API unsigned int att_assert_d(int result, int expected, const char *description);
@@ -72,13 +74,17 @@ ATT_API unsigned int att_assert_lf(double result, double expected, const char *d
 ATT_API unsigned int att_assert_Lf(long double result, long double expected, const char *description);
 ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *description);
 ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *description);
-ATT_API unsigned int att_assert_unknown(int result, int expected, const char *description);
+ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description);
 
 unsigned int att_get_valid_tests(void);
 unsigned int att_get_total_tests(void);
 
 void att_set_verbose(unsigned int verbose);
 void att_set_show_error(unsigned int show_error);
+
+typedef int (*att_generic_callback)(void*, void*, const char*);
+
+void att_set_generic_callback(att_generic_callback callback);
 
 #ifdef __cplusplus
 }
