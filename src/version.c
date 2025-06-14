@@ -7,7 +7,7 @@
 #include "mojibake.h"
 
 // Output the current library version (MJB_VERSION)
-MJB_EXPORT char *mjb_version(void) {
+MJB_EXPORT const char *mjb_version(void) {
     return MJB_VERSION;
 }
 
@@ -17,6 +17,6 @@ MJB_EXPORT unsigned int mjb_version_number(void) {
 }
 
 // Output the current supported unicode version (MJB_UNICODE_VERSION)
-MJB_EXPORT char *mjb_unicode_version(void) {
+MJB_EXPORT const char *mjb_unicode_version(void) {
     return MJB_UNICODE_VERSION;
 }

@@ -187,13 +187,13 @@ void *mjb_realloc(void *ptr, size_t new_size);
 void mjb_free(void *ptr);
 
 // Output the current library version (MJB_VERSION)
-char *mjb_version(void);
+const char *mjb_version(void);
 
 // Output the current library version number (MJB_VERSION_NUMBER)
 unsigned int mjb_version_number(void);
 
 // Output the current supported unicode version (MJB_UNICODE_VERSION)
-char *mjb_unicode_version(void);
+const char *mjb_unicode_version(void);
 
 // Return true if the plane is valid
 bool mjb_plane_is_valid(mjb_plane plane);

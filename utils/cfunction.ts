@@ -43,13 +43,13 @@ export const cfns: CFunction[] = [
     ['void *ptr']),
 
   new CFunction('Output the current library version (MJB_VERSION)',
-    'char *', 'version'),
+    'const char *', 'version'),
 
   new CFunction('Output the current library version number (MJB_VERSION_NUMBER)',
     'unsigned int', 'version_number'),
 
   new CFunction('Output the current supported unicode version (MJB_UNICODE_VERSION)',
-    'char *', 'unicode_version'),
+    'const char *', 'unicode_version'),
 
   new CFunction('Return true if the plane is valid',
     'bool', 'plane_is_valid',
