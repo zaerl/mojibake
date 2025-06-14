@@ -38,6 +38,7 @@ void *test_mojibake(void *arg) {
     mjb_realloc(NULL, 1);
     mjb_free(NULL);
 
+    // CURRENT_ASSERT mjb_alloc
     ATT_ASSERT(test_counter, 3, "Custom memory functions");
 
     return NULL;
