@@ -100,7 +100,7 @@ def print_coverage():
 
     for key, value in coverage.items():
         total += value["u"]
-        max_name_length = max(max_name_length, len(key))
+        max_name_length = max(max_name_length, len(key) + 2)
     sorted_cov = sorted(
         coverage.items(),
         key=lambda item: (-item[1]["u"], item[0])
@@ -113,8 +113,8 @@ def print_coverage():
     print(f"| {bar} | ---------- |")
 
     for key, value in sorted_cov:
-        post = " " * (max_name_length - len(key))
-        print(f"| {key}{post} | {value["u"]}", end="")
+        post = " " * (max_name_length - len(key) - 2)
+        print(f"| `{key}`{post} | {value["u"]}", end="")
         post = " " * (10 - len(str(value["u"])))
         print(f"{post} |")
 
