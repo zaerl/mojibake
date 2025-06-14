@@ -35,5 +35,7 @@ void *test_hangul(void *arg) {
     mjb_hangul_syllable_name(MJB_CODEPOINT_HANGUL_END, character.name, 128);
     ATT_ASSERT(character.name, "HANGUL SYLLABLE HIH", "Last syllable")
 
+    ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CODEPOINT_HANGUL_START), true, "Hangul start")
+
     return NULL;
 }

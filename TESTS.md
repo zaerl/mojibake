@@ -20,13 +20,13 @@
 | `mjb_plane_is_valid`               | 3          |
 | `mjb_alloc`                        | 1          |
 | `mjb_codepoint_is_cjk_ideograph`   | 1          |
+| `mjb_codepoint_is_hangul_syllable` | 1          |
 | `mjb_unicode_version`              | 1          |
 | `mjb_version`                      | 1          |
 | `mjb_version_number`               | 1          |
-| `mjb_codepoint_is_hangul_syllable` | 0          |
 | `mjb_free`                         | 0          |
 | `mjb_initialize`                   | 0          |
 | `mjb_realloc`                      | 0          |
 | `mjb_shutdown`                     | 0          |
 | `mjb_sort`                         | 0          |
-| **Total**                          | **199792** |
+| **Total**                          | **199793** |
