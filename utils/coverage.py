@@ -109,13 +109,13 @@ def print_coverage():
     bar = "-" * max_name_length
 
     print("# Test coverage\n")
-    print(f"| Test {post} | Coverage |")
-    print(f"| {bar} | -------- |")
+    print(f"| Test {post} | Coverage   |")
+    print(f"| {bar} | ---------- |")
 
     for key, value in sorted_cov:
         post = " " * (max_name_length - len(key))
         print(f"| {key}{post} | {value["u"]}", end="")
-        post = " " * (8 - len(str(value["u"])))
+        post = " " * (10 - len(str(value["u"])))
         print(f"{post} |")
 
     post = " " * (max_name_length - 10)
