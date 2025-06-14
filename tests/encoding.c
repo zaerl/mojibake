@@ -106,6 +106,7 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), true, "0x0000")
     ATT_ASSERT(buffer_utf8[0], 0, "0x0000")
 
+    // CURRENT_COUNT 6
     #define TEST_UTF8(CHAR, STR, RES, COMMENT) \
         ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), RES, COMMENT) \
         ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)

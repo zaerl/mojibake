@@ -4,7 +4,7 @@
 | -------------------------------- | -------- |
 | mjb_codepoint_is_valid           | 39       |
 | mjb_codepoint_character          | 17       |
-| mjb_codepoint_encode             | 10       |
+| mjb_codepoint_encode             | 15       |
 | mjb_string_encoding              | 10       |
 | mjb_string_is_ascii              | 9        |
 | mjb_hangul_syllable_name         | 8        |
