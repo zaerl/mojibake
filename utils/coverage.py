@@ -29,11 +29,16 @@ def comparator(a: str, b: str) -> int:
 def scan_file(filepath: str):
     try:
         with open(filepath, 'r') as f:
-            prog = re.compile(r'MJB_EXPORT.+[ \*]([a-z_]+)\([^)]*\)\s*{$')
+            prog = re.compile(r'MJB_EXPORT.+[ \*]([a-z_]+)\(([^)]*)\)\s*{$')
             for line in f:
                 result = prog.match(line.strip())
                 if result:
-                    coverage[result.group(1)] = {"u": 0, "c": 0}
+                    params = result.group(2)
+                    count = 0
+                    if params != "void":
+                        count = len([c for c in params if c == ',']) + 1
+
+                    coverage[result.group(1)] = {"u": 0, "p": count}
     except IOError as e:
         print(f"Error reading file {filepath}: {e}", file=sys.stderr)
 
