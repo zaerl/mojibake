@@ -18,7 +18,7 @@ generate:
 	cd ./utils && ./generate.sh $(ARGS)
 
 generate_tests:
-	cd ./utils && npm run generate-utf8-tests
+	cd ./utils && npm run generate-tests
 
 test: BUILD_TYPE = Test
 test: configure build

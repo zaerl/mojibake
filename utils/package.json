@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "generate": "npx ts-node index.ts",
-    "generate-utf8-tests": "npx ts-node generate-utf8-tests.ts",
+    "generate-tests": "npx ts-node generate-tests.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
