@@ -93,6 +93,7 @@ int main(int argc, char * const argv[]) {
 
     // Start tests declarations.
     RUN_TEST(codepoint)
+    RUN_TEST(cjk)
     RUN_TEST(encoding)
     RUN_TEST(hangul)
     RUN_TEST(mojibake)

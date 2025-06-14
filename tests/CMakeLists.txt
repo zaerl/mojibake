@@ -1,5 +1,6 @@
 set(TEST_SOURCES
     attractor/attractor.c
+    cjk.c
     codepoint.c
     encoding.c
     hangul.c
