@@ -10,6 +10,7 @@
 void *test_hangul(void *arg) {
     mjb_character character;
 
+    // CURRENT_ASSERT mjb_hangul_syllable_name
     mjb_hangul_syllable_name(MJB_CODEPOINT_HANGUL_START, character.name, 128);
     ATT_ASSERT(character.name, "HANGUL SYLLABLE GA", "First syllable")
 

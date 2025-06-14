@@ -54,18 +54,24 @@ def find_exports(directory: str):
 def scan_test_file(filepath: str):
     try:
         with open(filepath, 'r') as f:
+            current_result = ""
             for line in f:
                 line = line.strip()
-                previous_result = ""
-                result = re.match(r"^ATT_ASSERT\(([a-z_]+)\(.+$", line)
+                result = re.match(r"// CURRENT_ASSERT (.+)$", line)
+
+                if result:
+                    current_result = result.group(1)
+                    continue
+
+                result = re.match(r"ATT_ASSERT\(([a-z_.]+)[\(\,].+$", line)
                 if result:
                     key = result.group(1).strip()
                     if key in coverage:
                         coverage[key]["u"] += 1
-                        previous_result = key
-                    elif previous_result:
-                        if previous_result in coverage:
-                            coverage[previous_result]["u"] += 1
+                        current_result = key
+                    elif current_result:
+                        if current_result in coverage:
+                            coverage[current_result]["u"] += 1
     except IOError as e:
         print(f"Error reading test file {filepath}: {e}", file=sys.stderr)
 

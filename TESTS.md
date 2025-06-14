@@ -2,19 +2,21 @@
 
 | Test                             | Coverage |
 | -------------------------------- | -------- |
-| mjb_codepoint_character          | 11       |
+| mjb_codepoint_character          | 17       |
+| mjb_codepoint_encode             | 10       |
 | mjb_string_encoding              | 10       |
 | mjb_string_is_ascii              | 9        |
-| mjb_codepoint_encode             | 8        |
 | mjb_codepoint_is_valid           | 8        |
+| mjb_hangul_syllable_name         | 8        |
 | mjb_codepoint_block_is           | 7        |
+| mjb_plane_is_valid               | 7        |
 | mjb_codepoint_is_combining       | 5        |
 | mjb_codepoint_is_graphic         | 5        |
 | mjb_codepoint_category_is        | 4        |
 | mjb_codepoint_to_lowercase       | 3        |
 | mjb_codepoint_to_titlecase       | 3        |
 | mjb_codepoint_to_uppercase       | 3        |
-| mjb_plane_is_valid               | 3        |
+| mjb_normalize                    | 1        |
 | mjb_unicode_version              | 1        |
 | mjb_version                      | 1        |
 | mjb_version_number               | 1        |
@@ -22,9 +24,7 @@
 | mjb_codepoint_is_cjk_ideograph   | 0        |
 | mjb_codepoint_is_hangul_syllable | 0        |
 | mjb_free                         | 0        |
-| mjb_hangul_syllable_name         | 0        |
 | mjb_initialize                   | 0        |
-| mjb_normalize                    | 0        |
 | mjb_plane_name                   | 0        |
 | mjb_realloc                      | 0        |
 | mjb_shutdown                     | 0        |

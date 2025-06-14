@@ -35,6 +35,7 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
     char test_name[128];
     char *names[4] = { "NFC",  "NFD", "NFKC", "NFKD" };
 
+    // CURRENT_ASSERT mjb_normalize
     char *normalized_res = mjb_normalize(source, source_size, &normalized_size_res, MJB_ENCODING_UTF_8, form);
 
     if(normalized_res == NULL) {
