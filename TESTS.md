@@ -2,6 +2,7 @@
 
 | Test                             | Coverage |
 | -------------------------------- | -------- |
+| mjb_normalize                    | 199650   |
 | mjb_codepoint_is_valid           | 39       |
 | mjb_codepoint_character          | 17       |
 | mjb_codepoint_encode             | 15       |
@@ -16,7 +17,6 @@
 | mjb_codepoint_to_lowercase       | 3        |
 | mjb_codepoint_to_titlecase       | 3        |
 | mjb_codepoint_to_uppercase       | 3        |
-| mjb_normalize                    | 1        |
 | mjb_unicode_version              | 1        |
 | mjb_version                      | 1        |
 | mjb_version_number               | 1        |
@@ -29,4 +29,4 @@
 | mjb_realloc                      | 0        |
 | mjb_shutdown                     | 0        |
 | mjb_sort                         | 0        |
-| **Total**                        | **27**   |
+| **Total**                        | **199788** |

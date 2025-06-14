@@ -99,7 +99,7 @@ def print_coverage():
     max_name_length = 0
 
     for key, value in coverage.items():
-        total += 1
+        total += value["u"]
         max_name_length = max(max_name_length, len(key))
     sorted_cov = sorted(
         coverage.items(),
