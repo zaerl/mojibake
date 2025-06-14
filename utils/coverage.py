@@ -55,6 +55,8 @@ def scan_test_file(filepath: str):
     try:
         with open(filepath, 'r') as f:
             current_result = ""
+            current_count = 1
+            prog = re.compile(r"ATT_ASSERT\(([a-z_.]+)[\(\,].+$")
             for line in f:
                 line = line.strip()
                 result = re.match(r"// CURRENT_ASSERT (.+)$", line)
@@ -63,15 +65,23 @@ def scan_test_file(filepath: str):
                     current_result = result.group(1)
                     continue
 
-                result = re.match(r"ATT_ASSERT\(([a-z_.]+)[\(\,].+$", line)
+                result = re.match(r"// CURRENT_COUNT (\d+)$", line)
+
+                if result:
+                    current_count = int(result.group(1))
+                    continue
+
+                result = prog.match(line)
                 if result:
                     key = result.group(1).strip()
                     if key in coverage:
-                        coverage[key]["u"] += 1
+                        coverage[key]["u"] += current_count
                         current_result = key
+                        current_count = 1
                     elif current_result:
                         if current_result in coverage:
-                            coverage[current_result]["u"] += 1
+                            coverage[current_result]["u"] += current_count
+                            current_count = 1
     except IOError as e:
         print(f"Error reading test file {filepath}: {e}", file=sys.stderr)
 

@@ -88,6 +88,7 @@ void *test_codepoint(void *arg) {
     // 32 noncharacters: U+FDD0–U+FDEF
     for(mjb_codepoint i = 0xFDD0; i <= 0xFDEF; ++i) {
         snprintf(buffer, 32, "Not valid codepoint %#X", i);
+        // CURRENT_COUNT 32
         ATT_ASSERT(mjb_codepoint_is_valid(i), false, buffer)
     }
 
