@@ -15,7 +15,9 @@
 | mjb_codepoint_to_titlecase       | 3        |
 | mjb_codepoint_to_uppercase       | 3        |
 | mjb_plane_is_valid               | 3        |
-| mjb_version_number               | 2        |
+| mjb_unicode_version              | 1        |
+| mjb_version                      | 1        |
+| mjb_version_number               | 1        |
 | mjb_alloc                        | 0        |
 | mjb_codepoint_is_cjk_ideograph   | 0        |
 | mjb_codepoint_is_hangul_syllable | 0        |
@@ -27,6 +29,4 @@
 | mjb_realloc                      | 0        |
 | mjb_shutdown                     | 0        |
 | mjb_sort                         | 0        |
-| mjb_unicode_version              | 0        |
-| mjb_version                      | 0        |
 | **Total**                        | **27**   |
