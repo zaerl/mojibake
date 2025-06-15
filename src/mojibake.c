@@ -32,7 +32,11 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
-    return mjb_initialize_v2(malloc, realloc, free);
+    if(mjb_initialize_v2(malloc, realloc, free)) {
+        return true;
+    }
+
+    return false;
 }
 
 // Initialize the library with custom values

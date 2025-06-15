@@ -27,7 +27,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         return false;
     }
 
-    if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
+    if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 

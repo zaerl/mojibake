@@ -92,7 +92,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
         return NULL;
     }
 
-    if(output_size == NULL || buffer == 0 || encoding != MJB_ENCODING_UTF_8) {
+    if(encoding != MJB_ENCODING_UTF_8) {
         return NULL;
     }
 

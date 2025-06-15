@@ -4,6 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#pragma once
+
 #ifndef MJB_MOJIBAKE_H
 #define MJB_MOJIBAKE_H
 
@@ -27,6 +29,10 @@
 extern "C" {
 #endif
 
+// Static assertions for important constants
+_Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
+_Static_assert(sizeof(char) == 1, "char must be 1 byte");
+
 #define MJB_VERSION          "1.0.0"
 #define MJB_VERSION_NUMBER   0x100 // MAJOR << 8 && MINOR << 4 && REVISION
 #define MJB_VERSION_MAJOR    1
@@ -43,6 +49,24 @@ extern "C" {
 
 #ifndef MJB_EXPORT
 #define MJB_EXPORT __attribute__((visibility("default")))
+#endif
+
+// Modern compiler attributes with fallbacks
+#if defined(__GNUC__) || defined(__clang__)
+    #define MJB_NODISCARD __attribute__((warn_unused_result))
+    #define MJB_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+    #define MJB_PURE __attribute__((pure))
+    #define MJB_CONST __attribute__((const))
+#elif defined(__cplusplus) && __cplusplus >= 201703L
+    #define MJB_NODISCARD [[nodiscard]]
+    #define MJB_NONNULL(...)
+    #define MJB_PURE
+    #define MJB_CONST
+#else
+    #define MJB_NODISCARD
+    #define MJB_NONNULL(...)
+    #define MJB_PURE
+    #define MJB_CONST
 #endif
 
 // See c standard memory allocation functions
@@ -169,100 +193,100 @@ typedef struct mjb_character {
 } mjb_character;
 
 // Initialize the library. Not needed to be called
-bool mjb_initialize(void);
+MJB_NODISCARD bool mjb_initialize(void);
 
 // Initialize the library with custom values. Not needed to be called
-bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+MJB_NODISCARD bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
 // Shutdown the library. Not needed to be called
 void mjb_shutdown(void);
 
 // Allocate and zero memory
-void *mjb_alloc(size_t size);
+MJB_NODISCARD void *mjb_alloc(size_t size);
 
 // Reallocate memory
-void *mjb_realloc(void *ptr, size_t new_size);
+MJB_NODISCARD MJB_NONNULL(1) void *mjb_realloc(void *ptr, size_t new_size);
 
 // Free memory
-void mjb_free(void *ptr);
+MJB_NONNULL(1) void mjb_free(void *ptr);
 
 // Output the current library version (MJB_VERSION)
-const char *mjb_version(void);
+MJB_CONST const char *mjb_version(void);
 
 // Output the current library version number (MJB_VERSION_NUMBER)
-unsigned int mjb_version_number(void);
+MJB_CONST unsigned int mjb_version_number(void);
 
 // Output the current supported unicode version (MJB_UNICODE_VERSION)
-const char *mjb_unicode_version(void);
+MJB_CONST const char *mjb_unicode_version(void);
 
 // Return true if the plane is valid
-bool mjb_plane_is_valid(mjb_plane plane);
+MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
 
 // Return the name of a plane, NULL if the place specified is not valid
-const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
+MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 // Return the string encoding (the most probable)
-mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
+MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
 // Return true if the string is encoded in UTF-8
-bool mjb_string_is_utf8(const char *buffer, size_t size);
+MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t size);
 
 // Return nexy codepoint in the string
-mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
+MJB_PURE mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
 
 // Return true if the string is encoded in ASCII
-bool mjb_string_is_ascii(const char *buffer, size_t size);
+MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 // Encode a codepoint to a string
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 
 // Return true if the codepoint is valid
-bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
+MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 // Return the codepoint character
-bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
+MJB_NONNULL(1) bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
 
 // Return hangul syllable name
-bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
 
 // Hangul syllable decomposition
-bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Return if the codepoint is an hangul syllable
-bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK ideograph
-bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 // Return true if the codepoint has the category
-bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
+MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
 
 // Return true if the codepoint has the block
-bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
+MJB_CONST bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 
 // Return true if the codepoint is graphic
-bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
+MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 
 // Return true if the codepoint is combining
-bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
 // Return true if the category is combining
-bool mjb_category_is_combining(mjb_category category);
+MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
 // Return the codepoint lowercase codepoint
-mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
+MJB_CONST mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 
 // Return the codepoint uppercase codepoint
-mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
+MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 
 // Return the codepoint titlecase codepoint
-mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
+MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 // Normalize a string
-char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+MJB_NONNULL(1, 3) char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 // Sort
-void mjb_sort(mjb_character arr[], size_t size);
+MJB_NONNULL(1) void mjb_sort(mjb_character arr[], size_t size);
 
 #ifdef __cplusplus
 }

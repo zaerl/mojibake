@@ -12,7 +12,6 @@
 void *test_codepoint(void *arg) {
     mjb_character character;
 
-    ATT_ASSERT(mjb_codepoint_character(NULL, MJB_CODEPOINT_MAX), false, "Void character")
     ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_MAX), false, "Not valid codepoint")
 
     ATT_ASSERT(mjb_codepoint_character(&character, 0), true, "Codepoint: 0")
