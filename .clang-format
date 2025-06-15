@@ -8,4 +8,7 @@ AlignAfterOpenBracket: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: ENAS_DontAlign
+ColumnLimit: 100
 IndentWidth: 4
+Language: C
+UseTab: Never
