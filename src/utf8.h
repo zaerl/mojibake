@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
+
 #define	MJB_UTF8_ACCEPT	0
 #define	MJB_UTF8_REJECT	0xF
 
