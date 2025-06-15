@@ -15,7 +15,7 @@ export class CFunction {
   }
 
   formatMD(): string {
-    return `${this.comment}\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});\n\`\`\``;
+    return `${this.comment}\n\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});\n\`\`\``;
   }
 }
 
