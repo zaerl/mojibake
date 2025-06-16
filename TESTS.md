@@ -4,7 +4,7 @@
 | ---------------------------------- | ---------- |
 | `mjb_normalize`                    | 199650     |
 | `mjb_codepoint_is_valid`           | 39         |
-| `mjb_codepoint_character`          | 17         |
+| `mjb_codepoint_character`          | 16         |
 | `mjb_codepoint_encode`             | 15         |
 | `mjb_string_encoding`              | 10         |
 | `mjb_string_is_ascii`              | 9          |
@@ -29,4 +29,4 @@
 | `mjb_realloc`                      | 0          |
 | `mjb_shutdown`                     | 0          |
 | `mjb_sort`                         | 0          |
-| **Total**                          | **199793** |
+| **Total**                          | **199792** |
