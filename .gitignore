@@ -3,8 +3,8 @@ mojibake.db
 cli/*
 src/sqlite/*
 src/mojibake.db-journal
-utils/node_modules
-utils/UCD
-utils/unihan
-utils/sqlite-*
+utils/generate/node_modules
+utils/generate/UCD/*
+utils/generate/unihan/*
+utils/generate/sqlite-*
 !.gitkeep

@@ -209,11 +209,11 @@ export class Analysis {
 
     log(`STEPS TOTAL: ${this.diffs}/${codepoint}\n`);
 
-    log('\nMAX NUMBERS\n');
+    log(`${verbose ? '' : '\n'}MAX NUMBERS\n`);
     log(`MAX DECIMAL: ${this.maxDecimal}`);
     log(`MAX DIGIT: ${this.maxDigit}`);
 
-    iLog(`${verbose ? "\n" : ''}COUNT\n`);
+    iLog(`${verbose ? "\n" : ''}COUNTS\n`);
     iLog(`${this.codepointsCount.toLocaleString()} codepoints (${(this.codepointsCount * 5).toLocaleString()} bytes)`);
     iLog(`${this.wordsCount.toLocaleString()} words (${(this.wordsCount * 5).toLocaleString()} bytes)`);
     iLog(`${this.charsCount.toLocaleString()} characters (${(this.charsCount).toLocaleString()} bytes)`);

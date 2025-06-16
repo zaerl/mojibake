@@ -8,6 +8,7 @@ import { dbInit, dbRun, dbRunAfter, dbRunDecompositions, dbSize } from './db';
 import { characterDecomposition, generateDecomposition } from './decomposition';
 import { generateHeader } from './generate-header';
 import { generateReadme } from './generate-readme';
+import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import {
   BidirectionalCategories, Block, categories, Categories,
@@ -103,7 +104,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
 
 // Init
 for(let i = 2; i < process.argv.length; ++i) {
-  if(process.argv[i] === '-V' || process.argv[i] === '--verbose') {
+  if(process.argv[i] === '-v' || process.argv[i] === '--verbose') {
     setVerbose(true);
   } else if(process.argv[i] === '-c') {
     compact = true;
@@ -111,7 +112,7 @@ for(let i = 2; i < process.argv.length; ++i) {
 }
 
 async function generate() {
-  dbInit('../mojibake.db', compact);
+  dbInit('../../mojibake.db', compact);
 
   const blocks = readBlocks();
   await readUnicodeData(blocks, readCompositionExclusions());
@@ -121,7 +122,9 @@ async function generate() {
   generateReadme();
 
   const size = dbSize();
-  iLog(`Database size: ${size.toLocaleString()} bytes`);
+  iLog(`Database size: ${size.toLocaleString()} bytes\n`);
+
+  generateNormalizationCount();
 }
 
 generate();

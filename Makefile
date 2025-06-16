@@ -15,10 +15,7 @@ coverage:
 	python3 utils/coverage.py > TESTS.md
 
 generate:
-	cd ./utils && ./generate.sh $(ARGS)
-
-generate_tests:
-	cd ./utils && npm run generate-tests
+	cd ./utils/generate && ./generate.sh $(ARGS)
 
 test: BUILD_TYPE = Test
 test: configure build

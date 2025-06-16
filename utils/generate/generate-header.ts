@@ -26,7 +26,7 @@ function getFunctions() {
 }
 
 export function generateHeader(blocks: Block[], categories: string[]) {
-  let fileContent = readFileSync('../src/unicode.h', 'utf-8');
+  let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
 
   fileContent = substituteText(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
   fileContent = substituteText(fileContent, '#define MJB_BLOCK_NUM ', "\n", '' + blocks.length);
@@ -34,10 +34,10 @@ export function generateHeader(blocks: Block[], categories: string[]) {
   fileContent = substituteText(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
   fileContent = substituteText(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
 
-  writeFileSync('../src/unicode.h', fileContent);
+  writeFileSync('../../src/unicode.h', fileContent);
 
-  fileContent = readFileSync('../src/mojibake.h', 'utf-8');
+  fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
   fileContent = substituteText(fileContent, "} mjb_character;\n\n", "\n#ifdef __cplusplus", getFunctions());
 
-  writeFileSync('../src/mojibake.h', fileContent);
+  writeFileSync('../../src/mojibake.h', fileContent);
 }

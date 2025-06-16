@@ -61,7 +61,7 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
 }
 
 /**
- * Run utils/UCD/NormalizationTest.txt tests
+ * Run utils/generate/UCD/NormalizationTest.txt tests
  */
 void run_normalization_tests(int limit) {
     char line[1024];
@@ -82,7 +82,7 @@ void run_normalization_tests(int limit) {
     size_t nfkc_size = 0;
     size_t nfkd_size = 0;
 
-    FILE *file = fopen("./utils/UCD/NormalizationTest.txt", "r");
+    FILE *file = fopen("./utils/generate/UCD/NormalizationTest.txt", "r");
 
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid normalization test file")
