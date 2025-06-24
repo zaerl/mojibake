@@ -192,6 +192,84 @@ typedef struct mjb_character {
     mjb_codepoint titlecase;
 } mjb_character;
 
+// Return the string encoding (the most probable)
+MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
+
+// Return true if the string is encoded in UTF-8
+MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t size);
+
+// Return true if the string is encoded in ASCII
+MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
+
+// Return next codepoint in the string
+MJB_PURE mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
+
+// Encode a codepoint to a string
+unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+
+// Return true if the codepoint is valid
+MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
+
+// Return the codepoint character
+MJB_NONNULL(1) bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
+
+// Return true if the codepoint has the category
+MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
+
+// Return true if the codepoint is graphic
+MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
+
+// Return true if the codepoint is combining
+MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+
+// Return true if the category is combining
+MJB_CONST bool mjb_category_is_combining(mjb_category category);
+
+// Return true if the codepoint has the block
+MJB_CONST bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
+
+// Return the codepoint lowercase codepoint
+MJB_CONST mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
+
+// Return the codepoint uppercase codepoint
+MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
+
+// Return the codepoint titlecase codepoint
+MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
+
+// Normalize a string
+MJB_NONNULL(1, 3) char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+
+// Return true if the plane is valid
+MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
+
+// Return the name of a plane, NULL if the place specified is not valid
+MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
+
+// Return hangul syllable name
+MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+
+// Hangul syllable decomposition
+MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+
+// Return if the codepoint is an hangul syllable
+MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+
+// Return if the codepoint is CJK ideograph
+MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+
+// Sort
+MJB_NONNULL(1) void mjb_sort(mjb_character arr[], size_t size);
+
+// Output the current library version (MJB_VERSION)
+MJB_CONST const char *mjb_version(void);
+
+// Output the current library version number (MJB_VERSION_NUMBER)
+MJB_CONST unsigned int mjb_version_number(void);
+
+// Output the current supported unicode version (MJB_UNICODE_VERSION)
+MJB_CONST const char *mjb_unicode_version(void);
+
 // Initialize the library. Not needed to be called
 MJB_NODISCARD bool mjb_initialize(void);
 
@@ -209,84 +287,6 @@ MJB_NODISCARD MJB_NONNULL(1) void *mjb_realloc(void *ptr, size_t new_size);
 
 // Free memory
 MJB_NONNULL(1) void mjb_free(void *ptr);
-
-// Output the current library version (MJB_VERSION)
-MJB_CONST const char *mjb_version(void);
-
-// Output the current library version number (MJB_VERSION_NUMBER)
-MJB_CONST unsigned int mjb_version_number(void);
-
-// Output the current supported unicode version (MJB_UNICODE_VERSION)
-MJB_CONST const char *mjb_unicode_version(void);
-
-// Return true if the plane is valid
-MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
-
-// Return the name of a plane, NULL if the place specified is not valid
-MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
-
-// Return the string encoding (the most probable)
-MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
-
-// Return true if the string is encoded in UTF-8
-MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t size);
-
-// Return nexy codepoint in the string
-MJB_PURE mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
-
-// Return true if the string is encoded in ASCII
-MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
-
-// Encode a codepoint to a string
-unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
-
-// Return true if the codepoint is valid
-MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
-
-// Return the codepoint character
-MJB_NONNULL(1) bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
-
-// Return hangul syllable name
-MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
-
-// Hangul syllable decomposition
-MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
-
-// Return if the codepoint is an hangul syllable
-MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
-
-// Return if the codepoint is CJK ideograph
-MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
-
-// Return true if the codepoint has the category
-MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
-
-// Return true if the codepoint has the block
-MJB_CONST bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
-
-// Return true if the codepoint is graphic
-MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
-
-// Return true if the codepoint is combining
-MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
-
-// Return true if the category is combining
-MJB_CONST bool mjb_category_is_combining(mjb_category category);
-
-// Return the codepoint lowercase codepoint
-MJB_CONST mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
-
-// Return the codepoint uppercase codepoint
-MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
-
-// Return the codepoint titlecase codepoint
-MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
-
-// Normalize a string
-MJB_NONNULL(1, 3) char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
-
-// Sort
-MJB_NONNULL(1) void mjb_sort(mjb_character arr[], size_t size);
 
 #ifdef __cplusplus
 }

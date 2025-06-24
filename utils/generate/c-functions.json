@@ -1,0 +1,226 @@
+[
+  {
+    "comment": "Return the string encoding (the most probable)",
+    "ret": "mjb_encoding",
+    "name": "string_encoding",
+    "attributes": ["MJB_PURE"],
+    "args": ["const char *buffer", "size_t size"]
+  },
+  {
+    "comment": "Return true if the string is encoded in UTF-8",
+    "ret": "bool",
+    "name": "string_is_utf8",
+    "attributes": ["MJB_PURE"],
+    "args": ["const char *buffer", "size_t size"]
+  },
+  {
+    "comment": "Return true if the string is encoded in ASCII",
+    "ret": "bool",
+    "name": "string_is_ascii",
+    "attributes": ["MJB_PURE"],
+    "args": ["const char *buffer", "size_t size"]
+  },
+  {
+    "comment": "Return next codepoint in the string",
+    "ret": "mjb_codepoint",
+    "name": "string_next_codepoint",
+    "attributes": ["MJB_PURE"],
+    "args": ["const char *buffer", "size_t size", "size_t *next"]
+  },
+  {
+    "comment": "Encode a codepoint to a string",
+    "ret": "unsigned int",
+    "name": "codepoint_encode",
+    "attributes": [],
+    "args": ["mjb_codepoint codepoint", "char *buffer", "size_t size", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Return true if the codepoint is valid",
+    "ret": "bool",
+    "name": "codepoint_is_valid",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return the codepoint character",
+    "ret": "bool",
+    "name": "codepoint_character",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["mjb_character *character", "mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return true if the codepoint has the category",
+    "ret": "bool",
+    "name": "codepoint_category_is",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint", "mjb_category category"]
+  },
+  {
+    "comment": "Return true if the codepoint is graphic",
+    "ret": "bool",
+    "name": "codepoint_is_graphic",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return true if the codepoint is combining",
+    "ret": "bool",
+    "name": "codepoint_is_combining",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return true if the category is combining",
+    "ret": "bool",
+    "name": "category_is_combining",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_category category"]
+  },
+  {
+    "comment": "Return true if the codepoint has the block",
+    "ret": "bool",
+    "name": "codepoint_block_is",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint", "mjb_block block"]
+  },
+  {
+    "comment": "Return the codepoint lowercase codepoint",
+    "ret": "mjb_codepoint",
+    "name": "codepoint_to_lowercase",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return the codepoint uppercase codepoint",
+    "ret": "mjb_codepoint",
+    "name": "codepoint_to_uppercase",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return the codepoint titlecase codepoint",
+    "ret": "mjb_codepoint",
+    "name": "codepoint_to_titlecase",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Normalize a string",
+    "ret": "char *",
+    "name": "normalize",
+    "attributes": ["MJB_NONNULL(1, 3)"],
+    "args": ["char *buffer", "size_t size", "size_t *output_size", "mjb_encoding encoding", "mjb_normalization form"]
+  },
+  {
+    "comment": "Return true if the plane is valid",
+    "ret": "bool",
+    "name": "plane_is_valid",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_plane plane"]
+  },
+  {
+    "comment": "Return the name of a plane, NULL if the place specified is not valid",
+    "ret": "const char *",
+    "name": "plane_name",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_plane plane", "bool abbreviation"]
+  },
+  {
+    "comment": "Return hangul syllable name",
+    "ret": "bool",
+    "name": "hangul_syllable_name",
+    "attributes": ["MJB_NONNULL(2)"],
+    "args": ["mjb_codepoint codepoint", "char *buffer", "size_t size"]
+  },
+  {
+    "comment": "Hangul syllable decomposition",
+    "ret": "bool",
+    "name": "hangul_syllable_decomposition",
+    "attributes": ["MJB_NONNULL(2)"],
+    "args": ["mjb_codepoint codepoint", "mjb_codepoint *codepoints"]
+  },
+  {
+    "comment": "Return if the codepoint is an hangul syllable",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_syllable",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return if the codepoint is CJK ideograph",
+    "ret": "bool",
+    "name": "codepoint_is_cjk_ideograph",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Sort",
+    "ret": "void",
+    "name": "sort",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["mjb_character arr[]", "size_t size"]
+  },
+  {
+    "comment": "Output the current library version (MJB_VERSION)",
+    "ret": "const char *",
+    "name": "version",
+    "attributes": ["MJB_CONST"],
+    "args": []
+  },
+  {
+    "comment": "Output the current library version number (MJB_VERSION_NUMBER)",
+    "ret": "unsigned int",
+    "name": "version_number",
+    "attributes": ["MJB_CONST"],
+    "args": []
+  },
+  {
+    "comment": "Output the current supported unicode version (MJB_UNICODE_VERSION)",
+    "ret": "const char *",
+    "name": "unicode_version",
+    "attributes": ["MJB_CONST"],
+    "args": []
+  },
+  {
+    "comment": "Initialize the library. Not needed to be called",
+    "ret": "bool",
+    "name": "initialize",
+    "attributes": ["MJB_NODISCARD"],
+    "args": []
+  },
+  {
+    "comment": "Initialize the library with custom values. Not needed to be called",
+    "ret": "bool",
+    "name": "initialize_v2",
+    "attributes": ["MJB_NODISCARD"],
+    "args": ["mjb_alloc_fn alloc_fn", "mjb_realloc_fn realloc_fn", "mjb_free_fn free_fn"]
+  },
+  {
+    "comment": "Shutdown the library. Not needed to be called",
+    "ret": "void",
+    "name": "shutdown",
+    "attributes": [],
+    "args": []
+  },
+  {
+    "comment": "Allocate and zero memory",
+    "ret": "void *",
+    "name": "alloc",
+    "attributes": ["MJB_NODISCARD"],
+    "args": ["size_t size"]
+  },
+  {
+    "comment": "Reallocate memory",
+    "ret": "void *",
+    "name": "realloc",
+    "attributes": ["MJB_NODISCARD", "MJB_NONNULL(1)"],
+    "args": ["void *ptr", "size_t new_size"]
+  },
+  {
+    "comment": "Free memory",
+    "ret": "void",
+    "name": "free",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["void *ptr"]
+  }
+]

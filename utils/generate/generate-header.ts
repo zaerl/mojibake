@@ -22,7 +22,7 @@ function getDecompositionEnumNames() {
 }
 
 function getFunctions() {
-  return cfns.map(value => value.formatC()).join("\n\n") + "\n";
+  return cfns().map(value => value.formatC()).join("\n\n") + "\n";
 }
 
 export function generateHeader(blocks: Block[], categories: string[]) {

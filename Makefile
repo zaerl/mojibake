@@ -2,7 +2,7 @@ BUILD_DIR ?= build
 BUILD_TYPE ?= Release
 
 # Source files that trigger regeneration.
-GENERATE_SOURCES = utils/generate/generate.sh utils/generate/package.json utils/generate/*.ts
+GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
 
 all: configure build mojibake.db
 
