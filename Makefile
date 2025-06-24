@@ -1,7 +1,10 @@
 BUILD_DIR ?= build
 BUILD_TYPE ?= Release
 
-all: configure build
+# Source files that trigger regeneration.
+GENERATE_SOURCES = utils/generate/generate.sh utils/generate/package.json utils/generate/*.ts
+
+all: configure build mojibake.db
 
 configure:
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
@@ -14,11 +17,11 @@ rebuild: clean_build all
 coverage:
 	python3 utils/coverage.py > TESTS.md
 
-generate:
+mojibake.db: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)
 
 test: BUILD_TYPE = Test
-test: configure build
+test: configure build mojibake.db
 	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)
 
 clean_build:
