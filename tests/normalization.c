@@ -14,7 +14,7 @@
  * Get codepoints from a string
  * Example: "0044 0307", gives 2 codepoints
  */
-size_t get_utf8_string(char *buffer, char *codepoints, size_t size, char *type) {
+size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
     char *token, *string, *tofree;
     tofree = string = strdup(buffer);
     unsigned int index = 0;
@@ -116,23 +116,23 @@ void run_normalization_tests(int limit) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_utf8_string(token, (char*)source, 256, "Source");
+                    source_size = get_utf8_string(token, (char*)source, 256);
                     break;
 
                 case 1: // NFC
-                    nfc_size = get_utf8_string(token, (char*)nfc, 256, "NFC");
+                    nfc_size = get_utf8_string(token, (char*)nfc, 256);
                     break;
 
                 case 2: // NFD
-                    nfd_size = get_utf8_string(token, (char*)nfd, 256, "NFD");
+                    nfd_size = get_utf8_string(token, (char*)nfd, 256);
                     break;
 
                 case 3: // NFKC
-                    nfkc_size = get_utf8_string(token, (char*)nfkc, 256, "NFKC");
+                    nfkc_size = get_utf8_string(token, (char*)nfkc, 256);
                     break;
 
                 case 4: // NFKD
-                    nfkd_size = get_utf8_string(token, (char*)nfkd, 256, "NFKD");
+                    nfkd_size = get_utf8_string(token, (char*)nfkd, 256);
                     break;
             }
 
