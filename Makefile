@@ -15,7 +15,7 @@ build: configure
 rebuild: clean_build all
 
 coverage:
-	python3 utils/coverage.py > TESTS.md
+	cd ./utils/generate && npm run coverage
 
 mojibake.db: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)

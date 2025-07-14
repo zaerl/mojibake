@@ -41,7 +41,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
-    const words = name.split(' ');
     codepoint = parseInt(split[0], 16);
 
     // Special start end.
@@ -52,7 +51,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
     const diff = codepoint - previousCodepoint;
 
     previousCodepoint = codepoint;
-    analysis.line(diff, name, split[2], split[8], words);
+    analysis.line(diff, name, split[2], split[8]);
 
     // Character decomposition mapping
     let decomposition = characterDecomposition(split[5]);

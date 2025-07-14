@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "generate": "npx ts-node index.ts"
+    "generate": "npx ts-node index.ts",
+    "coverage": "npx ts-node coverage.ts"
   },
   "author": "",
   "license": "ISC",

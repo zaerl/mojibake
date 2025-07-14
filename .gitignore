@@ -7,4 +7,6 @@ utils/generate/node_modules
 utils/generate/UCD/*
 utils/generate/unihan/*
 utils/generate/sqlite-*
+utils/sqlite3/sqlite-src-*
+utils/sqlite3/sqlite3.zip
 !.gitkeep

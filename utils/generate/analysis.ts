@@ -5,8 +5,8 @@ import { commonPrefix } from "./utils";
 
 export class Analysis {
   categoryBuffer: { [name: string]: number } = {};
-  charsCount = 0;
-  codepointsCount = 0;
+  nameBuffer: { [name: string]: number } = {};
+
   combinings = 0;
   decompositions = 0;
   diffs = 0;
@@ -14,13 +14,16 @@ export class Analysis {
   maxDecimal = 0;
   maxDecompositions: number[] = [];
   maxDigit = 0;
-  nameBuffer: { [name: string]: number } = {};
   names: string[] = [];
   prefixes: [string, number][] = [];
   saving = 0;
   totalSteps = 0;
   totalStepsOver16 = 0;
   totalStepsOver8 = 0;
+
+  charsCount = 0;
+  codepointsCount = 0;
+  spacesCount = 0;
   wordsCount = 0;
 
   addCharacter(char: Character): void {
@@ -43,7 +46,10 @@ export class Analysis {
     this.names.push(char.name);
   }
 
-  line(diff: number, name: string, category: string, numeric: string, words: string[]): void {
+  line(diff: number, name: string, category: string, numeric: string): void {
+    const words = name.split(' ');
+    const spaces = words.length - 1;
+
     if(diff > 1) {
       this.diffs += diff;
       ++this.totalSteps;
@@ -63,6 +69,7 @@ export class Analysis {
 
     this.charsCount += name.length;
     this.wordsCount += words.length;
+    this.spacesCount += spaces;
 
     // Indexed by the `numeric` field (string)
     if(numeric !== '') {
@@ -141,14 +148,21 @@ export class Analysis {
       buffer.push(entry.name);
 
       if(entry.count !== prevCount) {
-        log(`${entry.count} :: ${buffer.join(', ')}`);
+        log(`${entry.count}: ${buffer.join(', ')}`);
 
         prevCount = entry.count;
         buffer = [];
       }
     }
 
-    log(`\nWORDS: ${Object.keys(this.nameBuffer).length}\n`);
+    iLog(`\nWORDS: ${Object.keys(this.nameBuffer).length}`);
+    iLog(`SPACES: ${this.spacesCount}\n`);
+
+    // Calculate compressed count words by characters
+    // Biggest word is is the space character
+    let compressedCount = this.spacesCount;
+    // First codepoint is START OF HEADING, not 0 (NULL)
+    let compressedCodepoint = 1;
 
     for(const name in this.nameBuffer) {
       ret.push({ name, count: this.nameBuffer[name] });
@@ -160,16 +174,22 @@ export class Analysis {
 
     for(const entry of ret) {
       buffer.push(entry.name);
+      ++compressedCodepoint;
+
+      // Get UTF-8 byte length using TextEncoder
+      const utf8Length = new TextEncoder().encode(String.fromCodePoint(compressedCodepoint)).length;
+      compressedCount += utf8Length * entry.count;
 
       if(entry.count !== prevCount) {
         const line = buffer.length > 10 ? buffer.slice(0, 10).join(', ') + '...' : buffer.join(', ');
-
-        log(`${entry.count} :: ${line}`);
+        log(`${entry.count}: ${line}`);
 
         prevCount = entry.count;
         buffer = [];
       }
     }
+
+    iLog(`COMPRESSED BYTES: ${compressedCount}\n`);
 
     log('\nNUMBERS\n');
 
