@@ -25,7 +25,7 @@ void show_help(const char *executable, struct option options[], const char *desc
         executable);
     fprintf(stream, "Options:\n");
 
-    for(unsigned long i = 0; i < 3; ++i) {
+    for(unsigned long i = 0; i < 4; ++i) {
         fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
             options[i].val,
             options[i].has_arg == no_argument ? "" : " ARG",
