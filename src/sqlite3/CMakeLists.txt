@@ -2,8 +2,6 @@ set(SQLITE3_SOURCES
     sqlite3.c
 )
 
-
-
 add_library(mojibake_sqlite STATIC ${SQLITE3_SOURCES})
 target_compile_options(mojibake_sqlite
     PRIVATE
