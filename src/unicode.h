@@ -473,20 +473,20 @@ typedef enum mjb_canonical_combining_class {
  */
 typedef enum mjb_bidi_categories {
     MJB_BIDI_NONE, // Nothing specified
-    MJB_BIDI_L,	  // Left-to-right
-    MJB_BIDI_R,	  // Right-to-left
-    MJB_BIDI_AL,	  // Right-to-left arabic
-    MJB_BIDI_EN,	  // European number
-    MJB_BIDI_ES,	  // European number separator
-    MJB_BIDI_ET,	  // European number terminator
-    MJB_BIDI_AN,	  // Arabic number
-    MJB_BIDI_CS,	  // Common number separator
+    MJB_BIDI_L,    // Left-to-right
+    MJB_BIDI_R,    // Right-to-left
+    MJB_BIDI_AL,   // Right-to-left arabic
+    MJB_BIDI_EN,   // European number
+    MJB_BIDI_ES,   // European number separator
+    MJB_BIDI_ET,   // European number terminator
+    MJB_BIDI_AN,   // Arabic number
+    MJB_BIDI_CS,   // Common number separator
     MJB_BIDI_NSM,  // Nonspacing mark
-    MJB_BIDI_BN,	  // Boundary neutral
+    MJB_BIDI_BN,   // Boundary neutral
     MJB_BIDI_B,    // Paragraph separator
     MJB_BIDI_S,    // Segment separator
     MJB_BIDI_WS,   // Whitespace
-    MJB_BIDI_ON,	  // Other neutrals
+    MJB_BIDI_ON,   // Other neutrals
     MJB_BIDI_LRE,  // Left-to-right embedding
     MJB_BIDI_LRO,  // Left-to-right override
     MJB_BIDI_RLE,  // Right-to-left embedding
@@ -495,7 +495,7 @@ typedef enum mjb_bidi_categories {
     MJB_BIDI_LRI,  // Left-to-right isolate
     MJB_BIDI_RLI,  // Right-to-Left isolate
     MJB_BIDI_FSI,  // First strong isolate
-    MJB_BIDI_PDI	  // Pop directional isolate
+    MJB_BIDI_PDI   // Pop directional isolate
 } mjb_bidi_categories;
 
 #define MJB_BIDI_COUNT 24
