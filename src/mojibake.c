@@ -58,10 +58,20 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     }
 
     char *filename = getenv("WRD_DB_PATH");
+
+    if(filename == NULL) {
+        filename = "./mojibake.db";
+    }
+
     rc = sqlite3_open(filename, &mjb_global.db);
 
     if(rc != SQLITE_OK) {
-        return false;
+        // Try again with the default path.
+        rc = sqlite3_open("./mojibake.db", &mjb_global.db);
+
+        if(rc != SQLITE_OK) {
+            return false;
+        }
     }
 
     sqlite3_extended_result_codes(mjb_global.db, 1);
