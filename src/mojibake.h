@@ -167,7 +167,7 @@ typedef enum mjb_normalization {
  * [see: https://www.unicode.org/glossary/#block]
  */
 typedef struct mjb_codepoint_block {
-    char *name;
+    char name[128];
     uint32_t start;
     uint32_t end;
 } mjb_codepoint_block;
@@ -227,6 +227,9 @@ MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
 // Return true if the codepoint has the block
 MJB_CONST bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
+
+// Return the character block
+MJB_CONST bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block *block);
 
 // Return the codepoint lowercase codepoint
 MJB_CONST mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);

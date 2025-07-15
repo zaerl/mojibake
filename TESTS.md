@@ -24,6 +24,7 @@
 | `mjb_unicode_version`              | 1          |
 | `mjb_version`                      | 1          |
 | `mjb_version_number`               | 1          |
+| `mjb_character_block`              | 0          |
 | `mjb_free`                         | 0          |
 | `mjb_initialize`                   | 0          |
 | `mjb_realloc`                      | 0          |

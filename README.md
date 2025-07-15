@@ -81,6 +81,12 @@ Return true if the codepoint has the block
 bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 ```
 
+Return the character block
+
+```c
+bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block *block);
+```
+
 Return the codepoint lowercase codepoint
 
 ```c

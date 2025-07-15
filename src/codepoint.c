@@ -182,6 +182,40 @@ MJB_EXPORT bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block)
     return stmt_get_block == block;
 }
 
+// Return the character block
+MJB_EXPORT bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block *block) {
+    if(!mjb_initialize()) {
+        return false;
+    }
+
+    if(!mjb_codepoint_is_valid(codepoint)) {
+        return false;
+    }
+
+    sqlite3_reset(mjb_global.stmt_get_block);
+    sqlite3_clear_bindings(mjb_global.stmt_get_block);
+
+    int rc = sqlite3_bind_int(mjb_global.stmt_get_block, 1, codepoint);
+
+    rc = sqlite3_step(mjb_global.stmt_get_block);
+
+    if(rc != SQLITE_ROW) {
+        return false;
+    }
+
+    block->start = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_block, 1);
+    block->end = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_block, 2);
+    char *name = (char*)sqlite3_column_text(mjb_global.stmt_get_block, 3);
+
+    if(name != NULL) {
+        strncpy(block->name, name, 128);
+    } else {
+        block->name[0] = '\0';
+    }
+
+    return true;
+}
+
 // Return the codepoint lowercase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
     mjb_character character;

@@ -84,6 +84,13 @@
     "args": ["mjb_codepoint codepoint", "mjb_block block"]
   },
   {
+    "comment": "Return the character block",
+    "ret": "bool",
+    "name": "character_block",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint", "mjb_codepoint_block *block"]
+  },
+  {
     "comment": "Return the codepoint lowercase codepoint",
     "ret": "mjb_codepoint",
     "name": "codepoint_to_lowercase",

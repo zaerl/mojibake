@@ -100,7 +100,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query[] = "SELECT * FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
 
-    const char query_blocks[] = "SELECT id FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
+    const char query_blocks[] = "SELECT id, start, end, name FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
     MJB_PREPARE_STMT(mjb_global.stmt_get_block, query_blocks)
 
     const char query_decompose[] = "SELECT value FROM decompositions WHERE id = ?";
