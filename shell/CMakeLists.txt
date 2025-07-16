@@ -1,5 +1,6 @@
 set(SOURCES
     main.c
+    maps.c
 )
 
 add_executable(mojibake ${SOURCES})

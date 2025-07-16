@@ -397,7 +397,7 @@ typedef enum mjb_category {
 #define MJB_CATEGORY_COUNT 30
 
 /**
- * Decomposition
+ * Unicode canonical combining class
  * [see: https://www.unicode.org/glossary/#combining_class]
  */
 typedef enum mjb_canonical_combining_class {
@@ -407,7 +407,7 @@ typedef enum mjb_canonical_combining_class {
     MJB_CCC_NUKTA =                7, // Nukta
     MJB_CCC_KANA_VOICING =         8, // Hiragana/Katakana voicing marks
     MJB_CCC_VIRAMA =               9, // Viramas
-    MJB_CCC_FIXED_START =          10, // Start of fixed position classes
+    MJB_CCC_10 =                   10, // Start of fixed position classes
     MJB_CCC_11 =                   11, // No name
     MJB_CCC_12 =                   12, // No name
     MJB_CCC_13 =                   13, // No name
@@ -443,7 +443,7 @@ typedef enum mjb_canonical_combining_class {
     MJB_CCC_129 =                  129, // No name
     MJB_CCC_130 =                  130, // No name
     MJB_CCC_132 =                  132, // No name
-    MJB_CCC_FIXED_END =            199, // End of fixed position classes
+    // MJB_CCC_FIXED_END =            199, // End of fixed position classes
     MJB_CCC_BELOW_LEFT_ATTACHED =  200, // Below left attached
     MJB_CCC_BELOW_ATTACHED =       202, // Below attached
     MJB_CCC_BELOW_RIGHT_ATTACHED = 204, // Below right attached
@@ -505,13 +505,14 @@ typedef enum mjb_bidi_categories {
  * [see: https://www.unicode.org/glossary/#plane]
  */
 typedef enum mjb_plane {
-    MJB_PLANE_BMP =    0,
-    MJB_PLANE_SMP =    1,
-    MJB_PLANE_SIP =    2,
-    MJB_PLANE_TIP =    3,
-    MJB_PLANE_SSP =   14,
-    MJB_PLANE_PUA_A = 15,
-    MJB_PLANE_PUA_B = 16
+    MJB_PLANE_NOT_VALID = -1,
+    MJB_PLANE_BMP =        0,
+    MJB_PLANE_SMP =        1,
+    MJB_PLANE_SIP =        2,
+    MJB_PLANE_TIP =        3,
+    MJB_PLANE_SSP =        4,
+    MJB_PLANE_PUA_A =      5,
+    MJB_PLANE_PUA_B =     16
 } mjb_plane;
 
 #define MJB_PLANE_NUM 17 // 17 planes

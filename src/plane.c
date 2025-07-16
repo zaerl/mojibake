@@ -6,6 +6,14 @@
 
 #include "mojibake.h"
 
+MJB_EXPORT mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint) {
+    if(!mjb_codepoint_is_valid(codepoint)) {
+        return MJB_PLANE_NOT_VALID;
+    }
+
+    return codepoint >> 16;
+}
+
 // Return true if the plane is valid
 MJB_EXPORT bool mjb_plane_is_valid(mjb_plane plane) {
     return plane >= 0 && plane < MJB_PLANE_NUM;
@@ -38,6 +46,9 @@ MJB_EXPORT const char *mjb_plane_name(mjb_plane plane, bool abbreviation) {
 
         case MJB_PLANE_PUA_B:
             return abbreviation ? "PUA-B" : "Supplementary Private Use Area-B";
+
+        default:
+            return "Not valid";
     }
 
     return "Unassigned";

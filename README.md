@@ -111,6 +111,12 @@ Get the next character from the string
 bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 ```
 
+Return the plane of the codepoint
+
+```c
+mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
+```
+
 Return true if the plane is valid
 
 ```c

@@ -119,6 +119,13 @@
     "args": ["char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"]
   },
   {
+    "comment": "Return the plane of the codepoint",
+    "ret": "mjb_plane",
+    "name": "codepoint_plane",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
     "comment": "Return true if the plane is valid",
     "ret": "bool",
     "name": "plane_is_valid",

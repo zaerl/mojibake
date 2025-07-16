@@ -11,6 +11,7 @@
 #include <sys/ioctl.h>
 
 #include "../src/mojibake.h"
+#include "maps.h"
 
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
@@ -118,10 +119,27 @@ int character_command(int argc, char * const argv[]) {
     mjb_next_character(nfkd, nfkd_length, MJB_ENCODING_UTF_8, next_character);
     puts("");
 
-    printf(cmd_show_colors ? "Category: \x1B[32m%d\x1B[0m\n" : "Category: %d\n", character.category);
-    printf(cmd_show_colors ? "Combining: \x1B[32m%d\x1B[0m\n" : "Combining: %d\n", character.combining);
-    printf(cmd_show_colors ? "Bidirectional: \x1B[32m%d\x1B[0m\n" : "Bidirectional: %d\n", character.bidirectional);
-    printf(cmd_show_colors ? "Decomposition: \x1B[32m%d\x1B[0m\n" : "Decomposition: %d\n", character.decomposition);
+    printf(cmd_show_colors ? "Category: [\x1B[32m%d\x1B[0m] " : "Category: %d ", character.category);
+    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", category_name(character.category));
+
+    printf(cmd_show_colors ? "Combining: [\x1B[32m%d\x1B[0m] " : "Combining: [%d] ", character.combining);
+    char *cc_name = ccc_name(character.combining);
+    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", cc_name);
+    free(cc_name);
+
+    printf(cmd_show_colors ? "Bidirectional: [\x1B[32m%d\x1B[0m] " : "Bidirectional: [%d] ", character.bidirectional);
+    const char *bi_name = bidi_name(character.bidirectional);
+    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", bi_name);
+
+    mjb_plane plane = mjb_codepoint_plane(character.codepoint);
+    printf(cmd_show_colors ? "Plane: [\x1B[32m%d\x1B[0m] " : "Plane: [%d] ", plane);
+    const char *plane_name = mjb_plane_name(plane, false);
+    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", plane_name);
+
+    printf(cmd_show_colors ? "Decomposition: [\x1B[32m%d\x1B[0m] " : "Decomposition: [%d] ", character.decomposition);
+    const char *d_name = decomposition_name(character.decomposition);
+    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", d_name);
+
     printf(cmd_show_colors ? "Decimal: \x1B[32m%d\x1B[0m\n" : "Decimal: %d\n", character.decimal);
     printf(cmd_show_colors ? "Digit: \x1B[32m%d\x1B[0m\n" : "Digit: %d\n", character.digit);
     printf(cmd_show_colors ? "Numeric: \x1B[32m%s\x1B[0m\n" : "Numeric: %s\n", character.numeric[0] != '\0' ? character.numeric : "N/A");
@@ -144,8 +162,8 @@ int character_command(int argc, char * const argv[]) {
     bool valid_block = mjb_character_block(character.codepoint, &block);
 
     if(valid_block) {
-        printf(cmd_show_colors ? "Block: \x1B[32m%d\x1B[0m\n" : "Block: %d\n", block.id);
-        printf(cmd_show_colors ? "Block name: \x1B[32m%s\x1B[0m\n" : "Block name: %s\n", block.name);
+        printf(cmd_show_colors ? "Block: [\x1B[32m%d\x1B[0m] " : "Block: [%d] ", block.id);
+        printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", block.name);
         printf(cmd_show_colors ? "Block start: \x1B[32m%X\x1B[0m\n" : "Block start: %X\n", (unsigned int)block.start);
         printf(cmd_show_colors ? "Block end: \x1B[32m%X\x1B[0m\n" : "Block end: %X\n", (unsigned int)block.end);
     }
