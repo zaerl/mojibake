@@ -102,6 +102,12 @@ int character_command(int argc, char * const argv[]) {
 
     printf(cmd_show_colors ? "Character: \"\x1B[32m%s\x1B[0m\"\n" : "Character: \"%s\"\n", buffer_utf8);
 
+    printf(cmd_show_colors ? "Hex UTF-8: \x1B[32m" : "Hex UTF-8: ");
+    for(size_t i = 0; i < utf8_length; ++i) {
+        printf("%02X ", (unsigned char)buffer_utf8[i]);
+    }
+    puts(cmd_show_colors ? "\x1B[0m" : "");
+
     printf(cmd_show_colors ? "NFD: \"\x1B[32m%s\x1B[0m\"\n" : "NFD: \"%s\"\n", nfd);
     printf("NFD normalization:");
     mjb_next_character(nfd, nfd_length, MJB_ENCODING_UTF_8, next_character);
