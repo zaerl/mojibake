@@ -105,6 +105,12 @@ Normalize a string
 char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 ```
 
+Get the next character from the string
+
+```c
+bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+```
+
 Return true if the plane is valid
 
 ```c

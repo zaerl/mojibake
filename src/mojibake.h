@@ -196,6 +196,8 @@ typedef struct mjb_character {
     char block_name[128];
 } mjb_character;
 
+typedef bool (*mjb_next_character_fn)(mjb_character *character);
+
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
@@ -243,6 +245,9 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 // Normalize a string
 MJB_NONNULL(1, 3) char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
+
+// Get the next character from the string
+MJB_NONNULL(1, 4) bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Return true if the plane is valid
 MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);

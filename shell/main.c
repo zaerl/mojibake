@@ -15,6 +15,12 @@
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
 
+bool next_character(mjb_character *character) {
+    printf(cmd_show_colors ? " \x1B[32mU+%04X\x1B[0m" : " U+%04X", (unsigned int)character->codepoint);
+
+    return true;
+}
+
 bool parse_codepoint(const char *input, mjb_codepoint *value) {
     char *endptr;
 
@@ -95,8 +101,16 @@ int character_command(int argc, char * const argv[]) {
     printf(cmd_show_colors ? "Name: \x1B[32m%s\x1B[0m\n" : "Name: %s\n", character.name);
 
     printf(cmd_show_colors ? "Character: \"\x1B[32m%s\x1B[0m\"\n" : "Character: \"%s\"\n", buffer_utf8);
+
     printf(cmd_show_colors ? "NFD: \"\x1B[32m%s\x1B[0m\"\n" : "NFD: \"%s\"\n", nfd);
+    printf("NFD normalization:");
+    mjb_next_character(nfd, nfd_length, MJB_ENCODING_UTF_8, next_character);
+    puts("");
+
     printf(cmd_show_colors ? "NFKD: \"\x1B[32m%s\x1B[0m\"\n" : "NFKD: \"%s\"\n", nfkd);
+    printf("NFKD normalization:");
+    mjb_next_character(nfkd, nfkd_length, MJB_ENCODING_UTF_8, next_character);
+    puts("");
 
     printf(cmd_show_colors ? "Category: \x1B[32m%d\x1B[0m\n" : "Category: %d\n", character.category);
     printf(cmd_show_colors ? "Combining: \x1B[32m%d\x1B[0m\n" : "Combining: %d\n", character.combining);

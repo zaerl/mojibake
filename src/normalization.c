@@ -250,3 +250,55 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 
     return ret;
 }
+
+/**
+ * Return the next character from the string.
+ */
+MJB_EXPORT bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn) {
+    if(!mjb_initialize()) {
+        return false;
+    }
+
+    if(encoding != MJB_ENCODING_UTF_8) {
+        return false;
+    }
+
+    if(size == 0) {
+        return false;
+    }
+
+    uint8_t state = MJB_UTF8_ACCEPT;
+    mjb_codepoint codepoint;
+    mjb_character character = {0};
+
+    // String buffer.
+    const char *index = buffer;
+
+    // Loop through the string.
+    for(; *index; ++index) {
+        // Find next codepoint.
+        state = mjb_utf8_decode_step(state, *index, &codepoint);
+
+        if(state == MJB_UTF8_REJECT) {
+            // Do nothing. The string is not well-formed.
+            return false;
+        }
+
+        // Still not found a UTF-8 character, continue.
+        if(state != MJB_UTF8_ACCEPT) {
+            continue;
+        }
+
+        // Get current character.
+        if(!mjb_codepoint_character(&character, codepoint)) {
+            continue;
+        }
+
+        // Call the callback function.
+        if(!fn(&character)) {
+            return false;
+        }
+    }
+
+    return true;
+}

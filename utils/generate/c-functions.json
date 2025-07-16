@@ -112,6 +112,13 @@
     "args": ["char *buffer", "size_t size", "size_t *output_size", "mjb_encoding encoding", "mjb_normalization form"]
   },
   {
+    "comment": "Get the next character from the string",
+    "ret": "bool",
+    "name": "next_character",
+    "attributes": ["MJB_NONNULL(1, 4)"],
+    "args": ["char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"]
+  },
+  {
     "comment": "Return true if the plane is valid",
     "ret": "bool",
     "name": "plane_is_valid",
