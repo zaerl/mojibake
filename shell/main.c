@@ -15,6 +15,22 @@
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
 
+bool parse_codepoint(const char *input, mjb_codepoint *value) {
+    char *endptr;
+
+    if(strncmp(input, "U+", 2) == 0 || strncmp(input, "u+", 2) == 0) {
+        // Parse as hex after "U+" prefix
+        *value = strtol(input + 2, &endptr, 16);
+
+        return *endptr == '\0';
+    } else {
+        // Try parsing as hex
+        *value = strtol(input, &endptr, 16);
+    }
+
+    return *endptr == '\0';
+}
+
 int show_version(void) {
     printf(cmd_show_colors ? "Mojibake \x1B[32mv%s\x1B[0m\n" : "Mojibake v%s\n", MJB_VERSION);
 
@@ -41,24 +57,14 @@ void show_help(const char *executable, struct option options[], const char *desc
     }
 }
 
-int valid_codepoint_command(int argc, char * const argv[]) {
-    char *endptr;
-    long value = strtol(argv[0], &endptr, 16);
+int character_command(int argc, char * const argv[]) {
+    mjb_codepoint value = 0;
 
-    if(*endptr != '\0' || !mjb_codepoint_is_valid(value)) {
+    if(!parse_codepoint(argv[0], &value)) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
         return 1;
     }
-
-    printf(cmd_verbose ? "Valid\n" : "Y\n");
-
-    return 0;
-}
-
-int character_command(int argc, char * const argv[]) {
-    char *endptr;
-    long value = strtol(argv[0], &endptr, 16);
 
     mjb_character character = {0};
 
@@ -67,12 +73,6 @@ int character_command(int argc, char * const argv[]) {
 
         return 1;
     }*/
-    if(*endptr != '\0' || !mjb_codepoint_is_valid(value)) {
-        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
-        return 1;
-    }
-
     if(!mjb_codepoint_character(&character, value)) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
@@ -82,7 +82,7 @@ int character_command(int argc, char * const argv[]) {
     char buffer_utf8[5];
     mjb_codepoint_encode(character.codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
-    printf(cmd_show_colors ? "Codepoint: \x1B[32m%04X\x1B[0m\n" : "Codepoint: %04X\n", (unsigned int)character.codepoint);
+    printf(cmd_show_colors ? "Codepoint: \x1B[32mU+%04X\x1B[0m\n" : "Codepoint: U+%04X\n", (unsigned int)character.codepoint);
     printf(cmd_show_colors ? "Name: \x1B[32m%s\x1B[0m\n" : "Name: %s\n", character.name);
     printf(cmd_show_colors ? "UTF-8: \"\x1B[32m%s\x1B[0m\"\n" : "UTF-8: \"%s\"\n", buffer_utf8);
     printf(cmd_show_colors ? "Category: \x1B[32m%d\x1B[0m\n" : "Category: %d\n", character.category);
@@ -184,9 +184,7 @@ int main(int argc, char * const argv[]) {
     int next_argc = argc - optind - 1;
     char *const *next_argv = argv + optind + 1;
 
-    if(strcmp(argv[optind], "valid-codepoint") == 0) {
-        return valid_codepoint_command(next_argc, next_argv);
-    } else if(strcmp(argv[optind], "character") == 0) {
+    if(strcmp(argv[optind], "character") == 0) {
         return character_command(next_argc, next_argv);
     } else {
         fprintf(stderr, "Unknown command: %s\n", argv[optind]);
