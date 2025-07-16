@@ -75,12 +75,6 @@ Return true if the category is combining
 bool mjb_category_is_combining(mjb_category category);
 ```
 
-Return true if the codepoint has the block
-
-```c
-bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
-```
-
 Return the character block
 
 ```c

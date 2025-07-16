@@ -77,13 +77,6 @@
     "args": ["mjb_category category"]
   },
   {
-    "comment": "Return true if the codepoint has the block",
-    "ret": "bool",
-    "name": "codepoint_block_is",
-    "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint", "mjb_block block"]
-  },
-  {
     "comment": "Return the character block",
     "ret": "bool",
     "name": "character_block",
