@@ -107,7 +107,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
     if(form == MJB_NORMALIZATION_NFD) {
         stmt = mjb_global.stmt_decompose;
     } else {
-        stmt= mjb_global.stmt_compat_decompose;
+        stmt = mjb_global.stmt_compat_decompose;
     }
 
     sqlite3_reset(stmt);
