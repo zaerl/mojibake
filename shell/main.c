@@ -81,10 +81,23 @@ int character_command(int argc, char * const argv[]) {
 
     char buffer_utf8[5];
     mjb_codepoint_encode(character.codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+    size_t utf8_length = strnlen(buffer_utf8, 5);
+
+    // NFD
+    size_t nfd_length = 0;
+    char *nfd = mjb_normalize(buffer_utf8, utf8_length, &nfd_length, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFD);
+
+    // NFKD
+    size_t nfkd_length = 0;
+    char *nfkd = mjb_normalize(buffer_utf8, utf8_length, &nfkd_length, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFKD);
 
     printf(cmd_show_colors ? "Codepoint: \x1B[32mU+%04X\x1B[0m\n" : "Codepoint: U+%04X\n", (unsigned int)character.codepoint);
     printf(cmd_show_colors ? "Name: \x1B[32m%s\x1B[0m\n" : "Name: %s\n", character.name);
-    printf(cmd_show_colors ? "UTF-8: \"\x1B[32m%s\x1B[0m\"\n" : "UTF-8: \"%s\"\n", buffer_utf8);
+
+    printf(cmd_show_colors ? "Character: \"\x1B[32m%s\x1B[0m\"\n" : "Character: \"%s\"\n", buffer_utf8);
+    printf(cmd_show_colors ? "NFD: \"\x1B[32m%s\x1B[0m\"\n" : "NFD: \"%s\"\n", nfd);
+    printf(cmd_show_colors ? "NFKD: \"\x1B[32m%s\x1B[0m\"\n" : "NFKD: \"%s\"\n", nfkd);
+
     printf(cmd_show_colors ? "Category: \x1B[32m%d\x1B[0m\n" : "Category: %d\n", character.category);
     printf(cmd_show_colors ? "Combining: \x1B[32m%d\x1B[0m\n" : "Combining: %d\n", character.combining);
     printf(cmd_show_colors ? "Bidirectional: \x1B[32m%d\x1B[0m\n" : "Bidirectional: %d\n", character.bidirectional);
@@ -116,6 +129,9 @@ int character_command(int argc, char * const argv[]) {
         printf(cmd_show_colors ? "Block start: \x1B[32m%X\x1B[0m\n" : "Block start: %X\n", (unsigned int)block.start);
         printf(cmd_show_colors ? "Block end: \x1B[32m%X\x1B[0m\n" : "Block end: %X\n", (unsigned int)block.end);
     }
+
+    mjb_free(nfd);
+    mjb_free(nfkd);
 
     return 0;
 }
