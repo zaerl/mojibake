@@ -25,8 +25,10 @@
 | `mjb_version`                      | 1          |
 | `mjb_version_number`               | 1          |
 | `mjb_codepoint_block_is`           | 0          |
+| `mjb_codepoint_plane`              | 0          |
 | `mjb_free`                         | 0          |
 | `mjb_initialize`                   | 0          |
+| `mjb_next_character`               | 0          |
 | `mjb_realloc`                      | 0          |
 | `mjb_shutdown`                     | 0          |
 | `mjb_sort`                         | 0          |
