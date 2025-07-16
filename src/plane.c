@@ -21,6 +21,10 @@ MJB_EXPORT bool mjb_plane_is_valid(mjb_plane plane) {
 
 // Return the name of a plane, NULL if the place specified is not valid
 MJB_EXPORT const char *mjb_plane_name(mjb_plane plane, bool abbreviation) {
+    if(plane == MJB_PLANE_NOT_VALID) {
+        return NULL;
+    }
+
     if(!mjb_plane_is_valid(plane)) {
         return NULL;
     }
@@ -47,7 +51,7 @@ MJB_EXPORT const char *mjb_plane_name(mjb_plane plane, bool abbreviation) {
         case MJB_PLANE_PUA_B:
             return abbreviation ? "PUA-B" : "Supplementary Private Use Area-B";
 
-        default:
+        case MJB_PLANE_NOT_VALID:
             return "Not valid";
     }
 
