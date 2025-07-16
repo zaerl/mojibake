@@ -39,14 +39,22 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_HANGUL_END), true, "Last hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
 
-    ATT_ASSERT(mjb_codepoint_block_is(MJB_CODEPOINT_MAX, MJB_BLOCK_BASIC_LATIN), false, "Not valid codepoint")
-    ATT_ASSERT(mjb_codepoint_block_is(0, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
-    ATT_ASSERT(mjb_codepoint_block_is(0x80 - 1, MJB_BLOCK_BASIC_LATIN), true, "Basic Latin block")
-    ATT_ASSERT(mjb_codepoint_block_is(0x80 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), true, "Latin-1 Supplement block")
-    ATT_ASSERT(mjb_codepoint_block_is(0x80 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), true, "Latin-1 Supplement block")
-    // 0x0377 = ͷ, 0x0377 + 1 is not mapped
-    ATT_ASSERT(mjb_codepoint_block_is(0x0377 + 1, MJB_BLOCK_LATIN_1_SUPPLEMENT), false, "Greek and Coptic not mapped: ͷ + 1")
-    ATT_ASSERT(mjb_codepoint_block_is(0xE0000 + 1, MJB_BLOCK_TAGS), true, "Tags block")
+    mjb_codepoint_block block = {0};
+
+    ATT_ASSERT(mjb_character_block(MJB_CODEPOINT_MAX, &block), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_character_block(0xE0080, &block), false, "Not mapped codepoint")
+
+    ATT_ASSERT(mjb_character_block(0, &block), true, "Valid basic Latin block")
+    ATT_ASSERT(block.id, MJB_BLOCK_BASIC_LATIN, "Basic Latin block")
+
+    ATT_ASSERT(mjb_character_block(0x80 - 1, &block), true, "Valid basic final Latin block")
+    ATT_ASSERT(block.id, MJB_BLOCK_BASIC_LATIN, "Basic Latin block")
+
+    ATT_ASSERT(mjb_character_block(0x80 + 1, &block), true, "Valid latin-1 Supplement block")
+    ATT_ASSERT(block.id, MJB_BLOCK_LATIN_1_SUPPLEMENT, "Latin-1 Supplement block")
+
+    ATT_ASSERT(mjb_character_block(0xE0000 + 1, &block), true, "Valid tags block")
+    ATT_ASSERT(block.id, MJB_BLOCK_TAGS, "Tags block")
 
     ATT_ASSERT(mjb_codepoint_character(&character, 0xF0000 + 3), false, "Supplementary Private Use Area-A block")
 

@@ -167,6 +167,7 @@ typedef enum mjb_normalization {
  * [see: https://www.unicode.org/glossary/#block]
  */
 typedef struct mjb_codepoint_block {
+    mjb_block id;
     char name[128];
     uint32_t start;
     uint32_t end;
@@ -185,11 +186,14 @@ typedef struct mjb_character {
     mjb_decomposition decomposition;
     int decimal;
     int digit;
-    char *numeric;
+    char numeric[16];
     bool mirrored;
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
     mjb_codepoint titlecase;
+    // Additional fields
+    mjb_block block;
+    char block_name[128];
 } mjb_character;
 
 // Return the string encoding (the most probable)
@@ -224,9 +228,6 @@ MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
 // Return true if the category is combining
 MJB_CONST bool mjb_category_is_combining(mjb_category category);
-
-// Return true if the codepoint has the block
-MJB_CONST bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block);
 
 // Return the character block
 MJB_CONST bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block *block);

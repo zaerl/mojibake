@@ -41,7 +41,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         character->decomposition = MJB_DECOMPOSITION_NONE;
         character->decimal = 0;
         character->digit = 0;
-        character->numeric = NULL;
+        character->numeric[0] = '\0';
         character->mirrored = false;
         character->uppercase = 0;
         character->lowercase = 0;
@@ -58,7 +58,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
         character->decomposition = MJB_DECOMPOSITION_NONE;
         character->decimal = 0;
         character->digit = 0;
-        character->numeric = NULL;
+        character->numeric[0] = '\0';
         character->mirrored = false;
         character->uppercase = 0;
         character->lowercase = 0;
@@ -98,7 +98,15 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
     character->decomposition = (mjb_decomposition)sqlite3_column_int(mjb_global.stmt_get_codepoint, 5);
     character->decimal = sqlite3_column_int(mjb_global.stmt_get_codepoint, 6);
     character->digit = sqlite3_column_int(mjb_global.stmt_get_codepoint, 7);
-    character->numeric = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 8);
+
+    char *numeric = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 8);
+
+    if(numeric != NULL) {
+        strncpy(character->numeric, numeric, 16);
+    } else {
+        character->numeric[0] = '\0';
+    }
+
     character->mirrored = sqlite3_column_int(mjb_global.stmt_get_codepoint, 9) == 1;
     character->uppercase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 10);
     character->lowercase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 11);
@@ -203,15 +211,21 @@ MJB_EXPORT bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block
         return false;
     }
 
-    block->start = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_block, 1);
-    block->end = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_block, 2);
+    int raw_id = sqlite3_column_int(mjb_global.stmt_get_block, 0);
+    int raw_start = sqlite3_column_int(mjb_global.stmt_get_block, 1);
+    int raw_end = sqlite3_column_int(mjb_global.stmt_get_block, 2);
     char *name = (char*)sqlite3_column_text(mjb_global.stmt_get_block, 3);
+
+    block->id = (mjb_block)raw_id;
 
     if(name != NULL) {
         strncpy(block->name, name, 128);
     } else {
         block->name[0] = '\0';
     }
+
+    block->start = (mjb_codepoint)raw_start;
+    block->end = (mjb_codepoint)raw_end;
 
     return true;
 }

@@ -48,6 +48,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         lowercase INTEGER,
         titlecase INTEGER
       );
+      CREATE INDEX idx_unicode_data_codepoint ON unicode_data(codepoint);
     `);
   } else {
     db.exec(`
@@ -68,6 +69,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         lowercase INTEGER,
         titlecase INTEGER
       );
+      CREATE INDEX idx_unicode_data_codepoint ON unicode_data(codepoint);
     `);
   }
 

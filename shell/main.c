@@ -60,7 +60,7 @@ int character_command(int argc, char * const argv[]) {
     char *endptr;
     long value = strtol(argv[0], &endptr, 16);
 
-    mjb_character character;
+    mjb_character character = {0};
 
     /*if(*endptr != '\0' || !mjb_codepoint_character(&character, value)) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
@@ -87,7 +87,7 @@ int character_command(int argc, char * const argv[]) {
     printf(cmd_show_colors ? "Decomposition: \x1B[32m%d\x1B[0m\n" : "Decomposition: %d\n", character.decomposition);
     printf(cmd_show_colors ? "Decimal: \x1B[32m%d\x1B[0m\n" : "Decimal: %d\n", character.decimal);
     printf(cmd_show_colors ? "Digit: \x1B[32m%d\x1B[0m\n" : "Digit: %d\n", character.digit);
-    printf(cmd_show_colors ? "Numeric: \x1B[32m%s\x1B[0m\n" : "Numeric: %s\n", character.numeric ? character.numeric : "N/A");
+    printf(cmd_show_colors ? "Numeric: \x1B[32m%s\x1B[0m\n" : "Numeric: %s\n", character.numeric[0] != '\0' ? character.numeric : "N/A");
     printf(cmd_show_colors ? "Mirrored: \x1B[32m%s\x1B[0m\n" : "Mirrored: %s\n", character.mirrored ? "Y" : "N");
 
     if(character.uppercase != 0) {
@@ -102,12 +102,15 @@ int character_command(int argc, char * const argv[]) {
         printf(cmd_show_colors ? "Titlecase: \x1B[32m%04X\x1B[0m\n" : "Titlecase: %04X\n", (unsigned int)character.titlecase);
     }
 
-    mjb_codepoint_block block;
+    mjb_codepoint_block block = {0};
 
     bool valid_block = mjb_character_block(character.codepoint, &block);
 
     if(valid_block) {
-        printf(cmd_show_colors ? "Block: \x1B[32m%s\x1B[0m\n" : "Block: %s\n", block.name);
+        printf(cmd_show_colors ? "Block: \x1B[32m%d\x1B[0m\n" : "Block: %d\n", block.id);
+        printf(cmd_show_colors ? "Block name: \x1B[32m%s\x1B[0m\n" : "Block name: %s\n", block.name);
+        printf(cmd_show_colors ? "Block start: \x1B[32m%X\x1B[0m\n" : "Block start: %X\n", (unsigned int)block.start);
+        printf(cmd_show_colors ? "Block end: \x1B[32m%X\x1B[0m\n" : "Block end: %X\n", (unsigned int)block.end);
     }
 
     return 0;

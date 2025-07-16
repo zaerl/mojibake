@@ -6,10 +6,10 @@
 | `mjb_codepoint_is_valid`           | 39         |
 | `mjb_codepoint_character`          | 16         |
 | `mjb_codepoint_encode`             | 15         |
+| `mjb_character_block`              | 10         |
 | `mjb_string_encoding`              | 10         |
 | `mjb_string_is_ascii`              | 9          |
 | `mjb_hangul_syllable_name`         | 8          |
-| `mjb_codepoint_block_is`           | 7          |
 | `mjb_plane_name`                   | 6          |
 | `mjb_codepoint_is_combining`       | 5          |
 | `mjb_codepoint_is_graphic`         | 5          |
@@ -24,10 +24,10 @@
 | `mjb_unicode_version`              | 1          |
 | `mjb_version`                      | 1          |
 | `mjb_version_number`               | 1          |
-| `mjb_character_block`              | 0          |
+| `mjb_codepoint_block_is`           | 0          |
 | `mjb_free`                         | 0          |
 | `mjb_initialize`                   | 0          |
 | `mjb_realloc`                      | 0          |
 | `mjb_shutdown`                     | 0          |
 | `mjb_sort`                         | 0          |
-| **Total**                          | **199793** |
+| **Total**                          | **199796** |
