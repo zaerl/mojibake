@@ -79,8 +79,12 @@ int character_command(int argc, char * const argv[]) {
         return 1;
     }
 
+    char buffer_utf8[5];
+    mjb_codepoint_encode(character.codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+
     printf(cmd_show_colors ? "Codepoint: \x1B[32m%04X\x1B[0m\n" : "Codepoint: %04X\n", (unsigned int)character.codepoint);
     printf(cmd_show_colors ? "Name: \x1B[32m%s\x1B[0m\n" : "Name: %s\n", character.name);
+    printf(cmd_show_colors ? "UTF-8: \"\x1B[32m%s\x1B[0m\"\n" : "UTF-8: \"%s\"\n", buffer_utf8);
     printf(cmd_show_colors ? "Category: \x1B[32m%d\x1B[0m\n" : "Category: %d\n", character.category);
     printf(cmd_show_colors ? "Combining: \x1B[32m%d\x1B[0m\n" : "Combining: %d\n", character.combining);
     printf(cmd_show_colors ? "Bidirectional: \x1B[32m%d\x1B[0m\n" : "Bidirectional: %d\n", character.bidirectional);
