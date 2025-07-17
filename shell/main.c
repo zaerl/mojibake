@@ -14,8 +14,14 @@
 #include "../src/mojibake.h"
 #include "maps.h"
 
+typedef enum {
+    INTERPRET_MODE_CODEPOINT,
+    INTERPRET_MODE_CHARACTER
+} interpret_mode;
+
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
+static interpret_mode cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
 
 // Color formatting helper functions
 static const char* color_green_start(void) {
@@ -39,6 +45,19 @@ static void print_value(const char* label, const char* format, ...) {
 
 bool next_character(mjb_character *character) {
     printf("%sU+%04X%s ", color_green_start(), (unsigned int)character->codepoint, color_reset());
+
+    return true;
+}
+
+bool next_string_character(mjb_character *character) {
+    char buffer_utf8[5];
+    size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+
+    if(!size) {
+        return false;
+    }
+
+    printf("%s", buffer_utf8);
 
     return true;
 }
@@ -72,32 +91,6 @@ bool parse_character(const char *input, mjb_character *character) {
     }
 
     return mjb_codepoint_character(character, value);
-}
-
-int show_version(void) {
-    printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
-
-    return 0;
-}
-
-void show_help(const char *executable, struct option options[], const char *descriptions[], const char *error) {
-    FILE *stream = error ? stderr : stdout;
-
-    fprintf(stream, "%s%smojibake - Mojibake test client [v%s]\n\nUsage: %s [OPTIONS]\n",
-        error ? error : "",
-        error ? "\n\n" : "",
-        MJB_VERSION,
-        executable);
-    fprintf(stream, "Options:\n");
-
-    for(unsigned long i = 0; i < 2; ++i) {
-        fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
-            options[i].val,
-            options[i].has_arg == no_argument ? "" : " ARG",
-            options[i].name,
-            options[i].has_arg == no_argument ? "" : "=ARG",
-            descriptions[i]);
-    }
 }
 
 int character_command(int argc, char * const argv[]) {
@@ -199,8 +192,31 @@ int character_command(int argc, char * const argv[]) {
     return 0;
 }
 
+int normalize_string_command(int argc, char * const argv[], mjb_normalization form) {
+    size_t size = 0;
+    char *normalized = mjb_normalize(argv[0], strlen(argv[0]), &size, MJB_ENCODING_UTF_8, form);
+
+    if(normalized == NULL) {
+        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
+
+        return 1;
+    }
+
+    printf("%s", color_green_start());
+    mjb_next_character(normalized, size, MJB_ENCODING_UTF_8, next_string_character);
+    printf("%s", color_reset());
+    puts("");
+
+    mjb_free(normalized);
+
+    return 0;
+}
+
 int normalize_command(int argc, char * const argv[], mjb_normalization form) {
-    // mjb_character character = {0};
+    if(cmd_interpret_mode == INTERPRET_MODE_CHARACTER) {
+        return normalize_string_command(argc, argv, form);
+    }
+
     unsigned int index = 0;
     // 5 bytes per codepoint is more than enough.
     char codepoints[argc * 5];
@@ -237,6 +253,44 @@ int normalize_command(int argc, char * const argv[], mjb_normalization form) {
     return 0;
 }
 
+ int show_version(void) {
+     printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
+
+     return 0;
+ }
+
+void show_help(const char *executable, struct option options[], const char *descriptions[], const char *error) {
+    FILE *stream = error ? stderr : stdout;
+
+    fprintf(stream, "%s%smojibake - Mojibake test client [v%s]\n\nUsage: %s [OPTIONS]\n",
+        error ? error : "",
+        error ? "\n\n" : "",
+        MJB_VERSION,
+        executable);
+    fprintf(stream, "Options:\n");
+
+    for(unsigned long i = 0; i < 4; ++i) {
+        fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
+            options[i].val,
+            options[i].has_arg == no_argument ? "" : " ARG",
+            options[i].name,
+            options[i].has_arg == no_argument ? "" : "=ARG",
+            descriptions[i]);
+    }
+}
+
+bool get_interpret_mode(const char *input) {
+    if(strcmp(input, "codepoint") == 0) {
+        cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
+    } else if(strcmp(input, "character") == 0) {
+        cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 int main(int argc, char * const argv[]) {
     int option = 0;
     int option_index = 0;
@@ -244,10 +298,15 @@ int main(int argc, char * const argv[]) {
 
     struct option long_options[] = {
         { "help", no_argument, NULL, 'h' },
+        { "interpret", required_argument, NULL, 'i' },
+        { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
         { NULL, 0, NULL, 0 }
     };
     const char *descriptions[] = {
+        "Print help",
+        "Interpret mode: codepoint, character. Default: codepoint",
+        "Verbose output",
         "Print version"
     };
 
@@ -265,11 +324,20 @@ int main(int argc, char * const argv[]) {
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
     }
 
-    while((option = getopt_long(argc, argv, "hvV", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "hi:vV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'h':
                 show_help(argv[0], long_options, descriptions, NULL);
                 return 0;
+            case 'i':
+                if(!get_interpret_mode(optarg)) {
+                    fprintf(stderr, "Invalid interpret mode: %s\n", optarg);
+                    show_help(argv[0], long_options, descriptions, NULL);
+
+                    return 1;
+                }
+
+                break;
             case 'v':
                 cmd_verbose = true;
                 break;
