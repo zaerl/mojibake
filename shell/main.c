@@ -16,12 +16,14 @@
 
 typedef enum {
     INTERPRET_MODE_CODEPOINT,
+    INTERPRET_MODE_DECIMAL,
     INTERPRET_MODE_CHARACTER
 } interpret_mode;
 
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
 static interpret_mode cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
+mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
 
 // Color formatting helper functions
 static const char* color_green_start(void) {
@@ -62,16 +64,38 @@ bool next_string_character(mjb_character *character) {
     return true;
 }
 
+bool next_current_character(mjb_character *character) {
+    printf("next_current_character %d", character->codepoint);
+    current_codepoint = character->codepoint;
+
+    return false;
+}
+
 bool parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     char *endptr;
     mjb_codepoint value = 0;
 
-    if(strncmp(input, "U+", 2) == 0 || strncmp(input, "u+", 2) == 0) {
-        // Parse as hex after "U+" prefix
-        value = strtoul(input + 2, &endptr, 16);
+    if(cmd_interpret_mode == INTERPRET_MODE_CODEPOINT) {
+        if(strncmp(input, "U+", 2) == 0 || strncmp(input, "u+", 2) == 0) {
+            // Parse as hex after "U+" prefix
+            value = strtoul(input + 2, &endptr, 16);
+        } else {
+            // Try parsing as hex
+            value = strtoul(input, &endptr, 16);
+        }
+    } else if(cmd_interpret_mode == INTERPRET_MODE_DECIMAL) {
+        value = strtoul(input, &endptr, 10);
     } else {
-        // Try parsing as hex
-        value = strtoul(input, &endptr, 16);
+        mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8, next_current_character);
+
+        if(current_codepoint == MJB_CODEPOINT_NOT_VALID) {
+            return false;
+        }
+
+        *codepoint = current_codepoint;
+        current_codepoint = MJB_CODEPOINT_NOT_VALID;
+
+        return true;
     }
 
     if(*endptr != '\0') {
@@ -280,9 +304,11 @@ void show_help(const char *executable, struct option options[], const char *desc
 }
 
 bool get_interpret_mode(const char *input) {
-    if(strcmp(input, "codepoint") == 0) {
+    if(strcmp(input, "code") == 0) {
         cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
-    } else if(strcmp(input, "character") == 0) {
+    } else if(strcmp(input, "dec") == 0) {
+        cmd_interpret_mode = INTERPRET_MODE_DECIMAL;
+    } else if(strcmp(input, "char") == 0) {
         cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
     } else {
         return false;
@@ -305,7 +331,7 @@ int main(int argc, char * const argv[]) {
     };
     const char *descriptions[] = {
         "Print help",
-        "Interpret mode: codepoint, character. Default: codepoint",
+        "Interpret mode: code (codepoint), dec (decimal), char (character). Default: code",
         "Verbose output",
         "Print version"
     };

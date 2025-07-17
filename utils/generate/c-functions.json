@@ -116,7 +116,7 @@
     "ret": "bool",
     "name": "next_character",
     "attributes": ["MJB_NONNULL(1, 4)"],
-    "args": ["char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"]
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"]
   },
   {
     "comment": "Return the plane of the codepoint",

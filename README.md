@@ -108,7 +108,7 @@ char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding
 Get the next character from the string
 
 ```c
-bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 ```
 
 Return the plane of the codepoint

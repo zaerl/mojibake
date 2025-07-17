@@ -254,7 +254,7 @@ MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, m
 /**
  * Return the next character from the string.
  */
-MJB_EXPORT bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn) {
+MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn) {
     if(!mjb_initialize()) {
         return false;
     }

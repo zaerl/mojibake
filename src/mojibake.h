@@ -250,7 +250,7 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 MJB_NONNULL(1, 3) char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
 
 // Get the next character from the string
-MJB_NONNULL(1, 4) bool mjb_next_character(char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
