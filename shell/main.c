@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <ctype.h>
 
 #include "../src/mojibake.h"
 #include "maps.h"
@@ -20,10 +21,16 @@ typedef enum {
     INTERPRET_MODE_CHARACTER
 } interpret_mode;
 
+typedef enum {
+    OUTPUT_MODE_PLAIN,
+    OUTPUT_MODE_JSON
+} output_mode;
+
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
 static interpret_mode cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
-mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
+static output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
+static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
 
 // Color formatting helper functions
 static const char* color_green_start(void) {
@@ -34,15 +41,50 @@ static const char* color_reset(void) {
     return cmd_show_colors ? "\x1B[0m" : "";
 }
 
-static void print_value(const char* label, const char* format, ...) {
+void print_value(const char* label, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
-    printf("%s%s", label, color_green_start());
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        char json_label[256];
+
+        json_label[0] = tolower(label[0]);
+        strcpy(json_label + 1, label + 1);
+
+        printf("  \"%s\": \"%s", json_label, color_green_start());
+    } else {
+        printf("%s: %s", label, color_green_start());
+    }
+
     vprintf(format, args);
-    printf("%s\n", color_reset());
+    printf("%s%s", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"" : "");
+
+    if(cmd_output_mode == OUTPUT_MODE_JSON && strcmp(label, "Titlecase") != 0) {
+        puts(",");
+    } else {
+        puts("");
+    }
 
     va_end(args);
+}
+
+void print_null_value(const char* label) {
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        char json_label[256];
+
+        json_label[0] = tolower(label[0]);
+        strcpy(json_label + 1, label + 1);
+
+        printf("  \"%s\": %snull%s", json_label, color_green_start(), color_reset());
+    } else {
+        printf("%s: %sN/A%s", label, color_green_start(), color_reset());
+    }
+
+    if(cmd_output_mode == OUTPUT_MODE_JSON && strcmp(label, "Titlecase") != 0) {
+        puts(",");
+    } else {
+        puts("");
+    }
 }
 
 bool next_character(mjb_character *character) {
@@ -138,76 +180,112 @@ int character_command(int argc, char * const argv[]) {
     size_t nfkd_length = 0;
     char *nfkd = mjb_normalize(buffer_utf8, utf8_length, &nfkd_length, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFKD);
 
-    print_value("Codepoint: ", "U+%04X", (unsigned int)character.codepoint);
-    print_value("Name: ", "%s", character.name);
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        puts("{");
+    }
 
-    print_value("Character: ", "%s", buffer_utf8);
+    print_value("Codepoint", "U+%04X", (unsigned int)character.codepoint);
+    print_value("Name", "%s", character.name);
 
-    printf("Hex UTF-8: %s", color_green_start());
+    print_value("Character", "%s", buffer_utf8);
+
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        printf("  \"hex_utf-8\": \"%s", color_green_start());
+    } else {
+        printf("Hex UTF-8: %s", color_green_start());
+    }
+
     for(size_t i = 0; i < utf8_length; ++i) {
         printf("%02X ", (unsigned char)buffer_utf8[i]);
     }
-    printf("%s\n", color_reset());
 
-    print_value("NFD: ", "%s", nfd);
-    printf("NFD normalization: ");
+    printf("%s%s\n", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"," : "");
+    print_value(cmd_output_mode == OUTPUT_MODE_JSON ? "nfd" : "NFD", "%s", nfd);
+
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        printf("  \"nfd_normalization\": \"%s", color_green_start());
+    } else {
+        printf("NFD normalization: %s", color_green_start());
+    }
+
     mjb_next_character(nfd, nfd_length, MJB_ENCODING_UTF_8, next_character);
-    puts("");
+    printf("%s%s\n", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"," : "");
 
-    print_value("NFKD: ", "%s", nfkd);
-    printf("NFKD normalization: ");
+    print_value(cmd_output_mode == OUTPUT_MODE_JSON ? "nfkd" : "NFKD", "%s", nfkd);
+
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        printf("  \"nfkd_normalization\": \"%s", color_green_start());
+    } else {
+        printf("NFKD normalization: %s", color_green_start());
+    }
+
     mjb_next_character(nfkd, nfkd_length, MJB_ENCODING_UTF_8, next_character);
-    puts("");
+    printf("%s%s\n", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"," : "");
 
-    print_value("Category: ", "[%d] %s", character.category, category_name(character.category));
+    print_value("Category", "[%d] %s", character.category, category_name(character.category));
 
     char *cc_name = ccc_name(character.combining);
-    print_value("Combining: ", "[%d] %s", character.combining, cc_name);
+    print_value("Combining", "[%d] %s", character.combining, cc_name);
     free(cc_name);
 
     const char *bi_name = bidi_name(character.bidirectional);
-    print_value("Bidirectional: ", "[%d] %s", character.bidirectional, bi_name);
+    print_value("Bidirectional", "[%d] %s", character.bidirectional, bi_name);
 
     mjb_plane plane = mjb_codepoint_plane(character.codepoint);
     const char *plane_name = mjb_plane_name(plane, false);
-    print_value("Plane: ", "[%d] %s", plane, plane_name);
-
-    const char *d_name = decomposition_name(character.decomposition);
-    print_value("Decomposition: ", "[%d] %s", character.decomposition, d_name);
-
-    if(character.decimal == MJB_NUMBER_NOT_VALID) {
-        print_value("Decimal: ", "N/A");
-    } else {
-        print_value("Decimal: ", "%d", character.decimal);
-    }
-
-    if(character.digit == MJB_NUMBER_NOT_VALID) {
-        print_value("Digit: ", "N/A");
-    } else {
-        print_value("Digit: ", "%d", character.digit);
-    }
-
-    print_value("Numeric: ", "%s", character.numeric[0] != '\0' ? character.numeric : "N/A");
-    print_value("Mirrored: ", "%s", character.mirrored ? "Y" : "N");
-
-    if(character.uppercase != 0) {
-        print_value("Uppercase: ", "%04X", (unsigned int)character.uppercase);
-    }
-
-    if(character.lowercase != 0) {
-        print_value("Lowercase: ", "%04X", (unsigned int)character.lowercase);
-    }
-
-    if(character.titlecase != 0) {
-        print_value("Titlecase: ", "%04X", (unsigned int)character.titlecase);
-    }
+    print_value("Plane", "[%d] %s", plane, plane_name);
 
     mjb_codepoint_block block = {0};
 
     bool valid_block = mjb_character_block(character.codepoint, &block);
 
     if(valid_block) {
-        print_value("Block: ", "[%d %X-%X] %s", block.id, block.start, block.end, block.name);
+        print_value("Block", "[%d %X-%X] %s", block.id, block.start, block.end, block.name);
+    }
+
+    const char *d_name = decomposition_name(character.decomposition);
+    print_value("Decomposition", "[%d] %s", character.decomposition, d_name);
+
+    if(character.decimal == MJB_NUMBER_NOT_VALID) {
+        print_null_value("Decimal");
+    } else {
+        print_value("Decimal", "%d", character.decimal);
+    }
+
+    if(character.digit == MJB_NUMBER_NOT_VALID) {
+        print_null_value("Digit");
+    } else {
+        print_value("Digit", "%d", character.digit);
+    }
+
+    if(character.numeric[0] != '\0') {
+        print_value("Numeric", "%s", character.numeric);
+    } else {
+        print_null_value("Numeric");
+    }
+
+    print_value("Mirrored", "%s", character.mirrored ? "Y" : "N");
+
+    if(character.uppercase != 0) {
+        print_value("Uppercase", "%04X", character.uppercase);
+    } else {
+        print_null_value("Uppercase");
+    }
+
+    if(character.lowercase != 0) {
+        print_value("Lowercase", "%04X", (unsigned int)character.lowercase);
+    } else {
+        print_null_value("Lowercase");
+    }
+
+    if(character.titlecase != 0) {
+        print_value("Titlecase", "%04X", (unsigned int)character.titlecase);
+    } else {
+        print_null_value("Titlecase");
+    }
+
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        puts("}");
     }
 
     mjb_free(nfd);
@@ -293,7 +371,7 @@ void show_help(const char *executable, struct option options[], const char *desc
         executable);
     fprintf(stream, "Options:\n");
 
-    for(unsigned long i = 0; i < 4; ++i) {
+    for(unsigned long i = 0; i < 5; ++i) {
         fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
             options[i].val,
             options[i].has_arg == no_argument ? "" : " ARG",
@@ -325,6 +403,7 @@ int main(int argc, char * const argv[]) {
     struct option long_options[] = {
         { "help", no_argument, NULL, 'h' },
         { "interpret", required_argument, NULL, 'i' },
+        { "output", required_argument, NULL, 'o' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
         { NULL, 0, NULL, 0 }
@@ -332,6 +411,7 @@ int main(int argc, char * const argv[]) {
     const char *descriptions[] = {
         "Print help",
         "Interpret mode: code (codepoint), dec (decimal), char (character). Default: code",
+        "Output mode: plain (default), json",
         "Verbose output",
         "Print version"
     };
@@ -350,7 +430,7 @@ int main(int argc, char * const argv[]) {
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
     }
 
-    while((option = getopt_long(argc, argv, "hi:vV", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "hi:o:vV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'h':
                 show_help(argv[0], long_options, descriptions, NULL);
@@ -363,6 +443,18 @@ int main(int argc, char * const argv[]) {
                     return 1;
                 }
 
+                break;
+            case 'o':
+                if(strcmp(optarg, "plain") == 0) {
+                    cmd_output_mode = OUTPUT_MODE_PLAIN;
+                } else if(strcmp(optarg, "json") == 0) {
+                    cmd_output_mode = OUTPUT_MODE_JSON;
+                } else {
+                    fprintf(stderr, "Invalid output mode: %s\n", optarg);
+                    show_help(argv[0], long_options, descriptions, NULL);
+
+                    return 1;
+                }
                 break;
             case 'v':
                 cmd_verbose = true;
