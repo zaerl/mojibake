@@ -87,7 +87,7 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
 /**
  * Normalize a string
  */
-MJB_EXPORT char *mjb_normalize(char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
     if(!mjb_initialize()) {
         return NULL;
     }

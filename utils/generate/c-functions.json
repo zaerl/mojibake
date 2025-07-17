@@ -109,7 +109,7 @@
     "ret": "char *",
     "name": "normalize",
     "attributes": ["MJB_NONNULL(1, 3)"],
-    "args": ["char *buffer", "size_t size", "size_t *output_size", "mjb_encoding encoding", "mjb_normalization form"]
+    "args": ["const char *buffer", "size_t size", "size_t *output_size", "mjb_encoding encoding", "mjb_normalization form"]
   },
   {
     "comment": "Get the next character from the string",
