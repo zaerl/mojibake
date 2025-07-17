@@ -5,6 +5,7 @@
  */
 
 #include <getopt.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,8 +17,28 @@
 static int cmd_show_colors = 0;
 static bool cmd_verbose = false;
 
+// Color formatting helper functions
+static const char* color_green_start(void) {
+    return cmd_show_colors ? "\x1B[32m" : "";
+}
+
+static const char* color_reset(void) {
+    return cmd_show_colors ? "\x1B[0m" : "";
+}
+
+static void print_value(const char* label, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    printf("%s%s", label, color_green_start());
+    vprintf(format, args);
+    printf("%s\n", color_reset());
+
+    va_end(args);
+}
+
 bool next_character(mjb_character *character) {
-    printf(cmd_show_colors ? " \x1B[32mU+%04X\x1B[0m" : " U+%04X", (unsigned int)character->codepoint);
+    printf(" %sU+%04X%s", color_green_start(), (unsigned int)character->codepoint, color_reset());
 
     return true;
 }
@@ -39,7 +60,7 @@ bool parse_codepoint(const char *input, mjb_codepoint *value) {
 }
 
 int show_version(void) {
-    printf(cmd_show_colors ? "Mojibake \x1B[32mv%s\x1B[0m\n" : "Mojibake v%s\n", MJB_VERSION);
+    printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
 
     return 0;
 }
@@ -75,11 +96,6 @@ int character_command(int argc, char * const argv[]) {
 
     mjb_character character = {0};
 
-    /*if(*endptr != '\0' || !mjb_codepoint_character(&character, value)) {
-        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
-        return 1;
-    }*/
     if(!mjb_codepoint_character(&character, value)) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
@@ -98,73 +114,68 @@ int character_command(int argc, char * const argv[]) {
     size_t nfkd_length = 0;
     char *nfkd = mjb_normalize(buffer_utf8, utf8_length, &nfkd_length, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFKD);
 
-    printf(cmd_show_colors ? "Codepoint: \x1B[32mU+%04X\x1B[0m\n" : "Codepoint: U+%04X\n", (unsigned int)character.codepoint);
-    printf(cmd_show_colors ? "Name: \x1B[32m%s\x1B[0m\n" : "Name: %s\n", character.name);
+    print_value("Codepoint: ", "U+%04X", (unsigned int)character.codepoint);
+    print_value("Name: ", "%s", character.name);
 
-    printf(cmd_show_colors ? "Character: \"\x1B[32m%s\x1B[0m\"\n" : "Character: \"%s\"\n", buffer_utf8);
+    print_value("Character: ", "%s", buffer_utf8);
 
-    printf(cmd_show_colors ? "Hex UTF-8: \x1B[32m" : "Hex UTF-8: ");
+    printf("Hex UTF-8: %s", color_green_start());
     for(size_t i = 0; i < utf8_length; ++i) {
         printf("%02X ", (unsigned char)buffer_utf8[i]);
     }
-    puts(cmd_show_colors ? "\x1B[0m" : "");
+    printf("%s\n", color_reset());
 
-    printf(cmd_show_colors ? "NFD: \"\x1B[32m%s\x1B[0m\"\n" : "NFD: \"%s\"\n", nfd);
+    print_value("NFD: ", "%s", nfd);
     printf("NFD normalization:");
     mjb_next_character(nfd, nfd_length, MJB_ENCODING_UTF_8, next_character);
     puts("");
 
-    printf(cmd_show_colors ? "NFKD: \"\x1B[32m%s\x1B[0m\"\n" : "NFKD: \"%s\"\n", nfkd);
+    print_value("NFKD: ", "%s", nfkd);
     printf("NFKD normalization:");
     mjb_next_character(nfkd, nfkd_length, MJB_ENCODING_UTF_8, next_character);
     puts("");
 
-    printf(cmd_show_colors ? "Category: [\x1B[32m%d\x1B[0m] " : "Category: %d ", character.category);
-    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", category_name(character.category));
+    print_value("Category: ", "[%d] %s", character.category, category_name(character.category));
 
-    printf(cmd_show_colors ? "Combining: [\x1B[32m%d\x1B[0m] " : "Combining: [%d] ", character.combining);
     char *cc_name = ccc_name(character.combining);
-    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", cc_name);
+    print_value("Combining: ", "[%d] %s", character.combining, cc_name);
     free(cc_name);
 
-    printf(cmd_show_colors ? "Bidirectional: [\x1B[32m%d\x1B[0m] " : "Bidirectional: [%d] ", character.bidirectional);
     const char *bi_name = bidi_name(character.bidirectional);
-    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", bi_name);
+    print_value("Bidirectional: ", "[%d] %s", character.bidirectional, bi_name);
 
     mjb_plane plane = mjb_codepoint_plane(character.codepoint);
-    printf(cmd_show_colors ? "Plane: [\x1B[32m%d\x1B[0m] " : "Plane: [%d] ", plane);
     const char *plane_name = mjb_plane_name(plane, false);
-    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", plane_name);
+    print_value("Plane: ", "[%d] %s", plane, plane_name);
 
-    printf(cmd_show_colors ? "Decomposition: [\x1B[32m%d\x1B[0m] " : "Decomposition: [%d] ", character.decomposition);
     const char *d_name = decomposition_name(character.decomposition);
-    printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", d_name);
+    print_value("Decomposition: ", "[%d] %s", character.decomposition, d_name);
 
     if(character.decimal == MJB_NUMBER_NOT_VALID) {
-        printf(cmd_show_colors ? "Decimal: \x1B[32mN/A\x1B[0m\n" : "Decimal: N/A\n");
+        print_value("Decimal: ", "N/A");
     } else {
-        printf(cmd_show_colors ? "Decimal: \x1B[32m%d\x1B[0m\n" : "Decimal: %d\n", character.decimal);
+        print_value("Decimal: ", "%d", character.decimal);
     }
 
     if(character.digit == MJB_NUMBER_NOT_VALID) {
-        printf(cmd_show_colors ? "Digit: \x1B[32mN/A\x1B[0m\n" : "Digit: N/A\n");
+        print_value("Digit: ", "N/A");
     } else {
-        printf(cmd_show_colors ? "Digit: \x1B[32m%d\x1B[0m\n" : "Digit: %d\n", character.digit);
+        print_value("Digit: ", "%d", character.digit);
     }
 
-    printf(cmd_show_colors ? "Numeric: \x1B[32m%s\x1B[0m\n" : "Numeric: %s\n", character.numeric[0] != '\0' ? character.numeric : "N/A");
-    printf(cmd_show_colors ? "Mirrored: \x1B[32m%s\x1B[0m\n" : "Mirrored: %s\n", character.mirrored ? "Y" : "N");
+    print_value("Numeric: ", "%s", character.numeric[0] != '\0' ? character.numeric : "N/A");
+    print_value("Mirrored: ", "%s", character.mirrored ? "Y" : "N");
 
     if(character.uppercase != 0) {
-        printf(cmd_show_colors ? "Uppercase: \x1B[32m%04X\x1B[0m\n" : "Uppercase: %04X\n", (unsigned int)character.uppercase);
+        print_value("Uppercase: ", "%04X", (unsigned int)character.uppercase);
     }
 
     if(character.lowercase != 0) {
-        printf(cmd_show_colors ? "Lowercase: \x1B[32m%04X\x1B[0m\n" : "Lowercase: %04X\n", (unsigned int)character.lowercase);
+        print_value("Lowercase: ", "%04X", (unsigned int)character.lowercase);
     }
 
     if(character.titlecase != 0) {
-        printf(cmd_show_colors ? "Titlecase: \x1B[32m%04X\x1B[0m\n" : "Titlecase: %04X\n", (unsigned int)character.titlecase);
+        print_value("Titlecase: ", "%04X", (unsigned int)character.titlecase);
     }
 
     mjb_codepoint_block block = {0};
@@ -172,10 +183,7 @@ int character_command(int argc, char * const argv[]) {
     bool valid_block = mjb_character_block(character.codepoint, &block);
 
     if(valid_block) {
-        printf(cmd_show_colors ? "Block: [\x1B[32m%d\x1B[0m] " : "Block: [%d] ", block.id);
-        printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", block.name);
-        printf(cmd_show_colors ? "Block start: \x1B[32m%X\x1B[0m\n" : "Block start: %X\n", (unsigned int)block.start);
-        printf(cmd_show_colors ? "Block end: \x1B[32m%X\x1B[0m\n" : "Block end: %X\n", (unsigned int)block.end);
+        print_value("Block: ", "[%d %X-%X] %s", block.id, block.start, block.end, block.name);
     }
 
     mjb_free(nfd);
