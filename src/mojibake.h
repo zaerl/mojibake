@@ -199,7 +199,13 @@ typedef struct mjb_character {
     char block_name[128];
 } mjb_character;
 
-typedef bool (*mjb_next_character_fn)(mjb_character *character);
+typedef enum mjb_next_character_type {
+    MJB_NEXT_CHAR_NONE = 0x0,
+    MJB_NEXT_CHAR_FIRST = 0x1,
+    MJB_NEXT_CHAR_LAST = 0x2
+} mjb_next_character_type;
+
+typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
 
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);

@@ -270,6 +270,8 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint codepoint;
     mjb_character character = {0};
+    bool has_previous_character = false;
+    bool first_character = true;
 
     // String buffer.
     const char *index = buffer;
@@ -289,13 +291,27 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
             continue;
         }
 
+        if(has_previous_character) {
+            // Call the callback function.
+            if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST : MJB_NEXT_CHAR_NONE)) {
+                return false;
+            }
+
+            has_previous_character = false;
+            first_character = false;
+        }
+
         // Get current character.
         if(!mjb_codepoint_character(&character, codepoint)) {
             continue;
         }
 
+        has_previous_character = true;
+    }
+
+    if(has_previous_character) {
         // Call the callback function.
-        if(!fn(&character)) {
+        if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST : MJB_NEXT_CHAR_LAST)) {
             return false;
         }
     }

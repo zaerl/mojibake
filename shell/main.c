@@ -41,6 +41,40 @@ static const char* color_reset(void) {
     return cmd_show_colors ? "\x1B[0m" : "";
 }
 
+bool print_escaped_character(char buffer_utf8[5]) {
+    switch(buffer_utf8[0]) {
+        case '"':
+            printf("\\\"");
+            return true;
+        case '\\':
+            printf("\\\\");
+            return true;
+        case '\b':
+            printf("\\b");
+            return true;
+        case '\f':
+            printf("\\f");
+            return true;
+        case '\n':
+            printf("\\n");
+            return true;
+        case '\r':
+            printf("\\r");
+            return true;
+        case '\t':
+            printf("\\t");
+            return true;
+    }
+
+    if(buffer_utf8[0] >= 0x00 && buffer_utf8[0] <= 0x1F) {
+        printf("\\u%04X", buffer_utf8[0]);
+
+        return true;
+    }
+
+    return false;
+}
+
 void print_value(const char* label, const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -87,13 +121,29 @@ void print_null_value(const char* label) {
     }
 }
 
-bool next_character(mjb_character *character) {
-    printf("%sU+%04X%s ", color_green_start(), (unsigned int)character->codepoint, color_reset());
+void print_id_name_value(const char* label, unsigned int id, const char* name) {
+    if(cmd_output_mode != OUTPUT_MODE_JSON) {
+        return;
+    }
+
+    printf("  \"%s\": {\n    \"code\": %s%u%s,\n    \"value\": \"%s%s%s\"\n  }\n", label,
+        color_green_start(), id, color_reset(), color_green_start(), name, color_reset());
+}
+
+bool next_character(mjb_character *character, mjb_next_character_type type) {
+    printf("%sU+%04X%s%s", color_green_start(), (unsigned int)character->codepoint, color_reset(),
+        (type & MJB_NEXT_CHAR_LAST) ? "" : " ");
 
     return true;
 }
 
-bool next_string_character(mjb_character *character) {
+bool next_array_character(mjb_character *character, mjb_next_character_type type) {
+    printf("%u%s", character->codepoint, (type & MJB_NEXT_CHAR_LAST) ? "" : ", ");
+
+    return true;
+}
+
+bool next_string_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
     size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
@@ -106,8 +156,22 @@ bool next_string_character(mjb_character *character) {
     return true;
 }
 
-bool next_current_character(mjb_character *character) {
-    printf("next_current_character %d", character->codepoint);
+bool next_escaped_character(mjb_character *character, mjb_next_character_type type) {
+    char buffer_utf8[5];
+    size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+
+    if(!size) {
+        return false;
+    }
+
+    if(!print_escaped_character(buffer_utf8)) {
+        printf("%s", buffer_utf8);
+    }
+
+    return true;
+}
+
+bool next_current_character(mjb_character *character, mjb_next_character_type type) {
     current_codepoint = character->codepoint;
 
     return false;
@@ -159,6 +223,36 @@ bool parse_character(const char *input, mjb_character *character) {
     return mjb_codepoint_character(character, value);
 }
 
+void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name, char *label) {
+    bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
+    size_t out_length = 0;
+
+    char *out = mjb_normalize(buffer_utf8, utf8_length, &out_length, MJB_ENCODING_UTF_8, form);
+
+    if(out) {
+        if(is_json) {
+            printf("  \"%s\": \"%s", name, color_green_start());
+            mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, next_escaped_character);
+            printf("%s\"\n", color_reset());
+        } else {
+            print_value(is_json ? name : label, "%s", out);
+        }
+    } else {
+        print_null_value(is_json ? name : label);
+    }
+
+    if(is_json) {
+        printf("  \"%s_normalization\": [%s", name, color_green_start());
+    } else {
+        printf("%s normalization: %s", label, color_green_start());
+    }
+
+    mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, is_json ? next_array_character : next_character);
+    printf("%s%s\n", color_reset(), is_json ? "]," : "");
+
+    free(out);
+}
+
 int character_command(int argc, char * const argv[]) {
     mjb_character character = {0};
 
@@ -172,79 +266,98 @@ int character_command(int argc, char * const argv[]) {
     mjb_codepoint_encode(character.codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
     size_t utf8_length = strnlen(buffer_utf8, 5);
 
-    // NFD
-    size_t nfd_length = 0;
-    char *nfd = mjb_normalize(buffer_utf8, utf8_length, &nfd_length, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFD);
+    bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
-    // NFKD
-    size_t nfkd_length = 0;
-    char *nfkd = mjb_normalize(buffer_utf8, utf8_length, &nfkd_length, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFKD);
-
-    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+    if(is_json) {
         puts("{");
     }
 
     print_value("Codepoint", "U+%04X", (unsigned int)character.codepoint);
     print_value("Name", "%s", character.name);
 
-    print_value("Character", "%s", buffer_utf8);
+    if(is_json) {
+        printf("  \"character\": \"%s", color_green_start());
 
-    if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        printf("  \"hex_utf-8\": \"%s", color_green_start());
+        if(!print_escaped_character(buffer_utf8)) {
+            printf("%s", buffer_utf8);
+        }
+
+        printf("%s\"\n", color_reset());
+    } else {
+        print_value("Character", "%s", buffer_utf8);
+    }
+
+    // Hex UTF-8
+    if(is_json) {
+        printf("  \"hex_utf-8\": [%s", color_green_start());
     } else {
         printf("Hex UTF-8: %s", color_green_start());
     }
 
     for(size_t i = 0; i < utf8_length; ++i) {
-        printf("%02X ", (unsigned char)buffer_utf8[i]);
+        if(is_json) {
+            printf("%u%s", (unsigned char)buffer_utf8[i], i == utf8_length - 1 ? "" : ", ");
+        } else {
+            printf("%02X%s", (unsigned char)buffer_utf8[i], i == utf8_length - 1 ? "" : " ");
+        }
     }
 
-    printf("%s%s\n", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"," : "");
-    print_value(cmd_output_mode == OUTPUT_MODE_JSON ? "nfd" : "NFD", "%s", nfd);
+    printf("%s%s\n", color_reset(), is_json ? "]," : "");
 
-    if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        printf("  \"nfd_normalization\": \"%s", color_green_start());
+    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFD, "nfd", "NFD");
+    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD");
+
+    if(is_json) {
+        print_id_name_value("category", character.category, category_name(character.category));
     } else {
-        printf("NFD normalization: %s", color_green_start());
+        print_value("Category", "[%d] %s", character.category, category_name(character.category));
     }
-
-    mjb_next_character(nfd, nfd_length, MJB_ENCODING_UTF_8, next_character);
-    printf("%s%s\n", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"," : "");
-
-    print_value(cmd_output_mode == OUTPUT_MODE_JSON ? "nfkd" : "NFKD", "%s", nfkd);
-
-    if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        printf("  \"nfkd_normalization\": \"%s", color_green_start());
-    } else {
-        printf("NFKD normalization: %s", color_green_start());
-    }
-
-    mjb_next_character(nfkd, nfkd_length, MJB_ENCODING_UTF_8, next_character);
-    printf("%s%s\n", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"," : "");
-
-    print_value("Category", "[%d] %s", character.category, category_name(character.category));
 
     char *cc_name = ccc_name(character.combining);
-    print_value("Combining", "[%d] %s", character.combining, cc_name);
+    if(is_json) {
+        print_id_name_value("combining", character.combining, cc_name);
+    } else {
+        print_value("Combining", "[%d] %s", character.combining, cc_name);
+    }
+
     free(cc_name);
 
     const char *bi_name = bidi_name(character.bidirectional);
-    print_value("Bidirectional", "[%d] %s", character.bidirectional, bi_name);
+
+    if(is_json) {
+        print_id_name_value("bidirectional", character.bidirectional, bi_name);
+    } else {
+        print_value("Bidirectional", "[%d] %s", character.bidirectional, bi_name);
+    }
 
     mjb_plane plane = mjb_codepoint_plane(character.codepoint);
     const char *plane_name = mjb_plane_name(plane, false);
-    print_value("Plane", "[%d] %s", plane, plane_name);
+
+    if(is_json) {
+        print_id_name_value("plane", plane, plane_name);
+    } else {
+        print_value("Plane", "[%d] %s", plane, plane_name);
+    }
 
     mjb_codepoint_block block = {0};
 
     bool valid_block = mjb_character_block(character.codepoint, &block);
 
     if(valid_block) {
-        print_value("Block", "[%d %X-%X] %s", block.id, block.start, block.end, block.name);
+        if(is_json) {
+            print_id_name_value("block", block.id, block.name);
+        } else {
+            print_value("Block", "[%d] %s", block.id, block.name);
+        }
     }
 
     const char *d_name = decomposition_name(character.decomposition);
-    print_value("Decomposition", "[%d] %s", character.decomposition, d_name);
+
+    if(is_json) {
+        print_id_name_value("decomposition", character.decomposition, d_name);
+    } else {
+        print_value("Decomposition", "[%d] %s", character.decomposition, d_name);
+    }
 
     if(character.decimal == MJB_NUMBER_NOT_VALID) {
         print_null_value("Decimal");
@@ -264,7 +377,11 @@ int character_command(int argc, char * const argv[]) {
         print_null_value("Numeric");
     }
 
-    print_value("Mirrored", "%s", character.mirrored ? "Y" : "N");
+    if(is_json  ) {
+        printf("  \"mirrored\": %s%s%s,\n", color_green_start(), character.mirrored ? "true" : "false", color_reset());
+    } else {
+        print_value("Mirrored", "%s", character.mirrored ? "Y" : "N");
+    }
 
     if(character.uppercase != 0) {
         print_value("Uppercase", "%04X", character.uppercase);
@@ -284,12 +401,9 @@ int character_command(int argc, char * const argv[]) {
         print_null_value("Titlecase");
     }
 
-    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+    if(is_json) {
         puts("}");
     }
-
-    mjb_free(nfd);
-    mjb_free(nfkd);
 
     return 0;
 }
