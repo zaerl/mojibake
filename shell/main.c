@@ -38,25 +38,40 @@ static void print_value(const char* label, const char* format, ...) {
 }
 
 bool next_character(mjb_character *character) {
-    printf(" %sU+%04X%s", color_green_start(), (unsigned int)character->codepoint, color_reset());
+    printf("%sU+%04X%s ", color_green_start(), (unsigned int)character->codepoint, color_reset());
 
     return true;
 }
 
-bool parse_codepoint(const char *input, mjb_codepoint *value) {
+bool parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     char *endptr;
+    mjb_codepoint value = 0;
 
     if(strncmp(input, "U+", 2) == 0 || strncmp(input, "u+", 2) == 0) {
         // Parse as hex after "U+" prefix
-        *value = strtol(input + 2, &endptr, 16);
-
-        return *endptr == '\0';
+        value = strtoul(input + 2, &endptr, 16);
     } else {
         // Try parsing as hex
-        *value = strtol(input, &endptr, 16);
+        value = strtoul(input, &endptr, 16);
     }
 
-    return *endptr == '\0';
+    if(*endptr != '\0') {
+        return false;
+    }
+
+    *codepoint = value;
+
+    return true;
+}
+
+bool parse_character(const char *input, mjb_character *character) {
+    mjb_codepoint value = 0;
+
+    if(!parse_codepoint(input, &value)) {
+        return false;
+    }
+
+    return mjb_codepoint_character(character, value);
 }
 
 int show_version(void) {
@@ -86,17 +101,9 @@ void show_help(const char *executable, struct option options[], const char *desc
 }
 
 int character_command(int argc, char * const argv[]) {
-    mjb_codepoint value = 0;
-
-    if(!parse_codepoint(argv[0], &value)) {
-        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
-        return 1;
-    }
-
     mjb_character character = {0};
 
-    if(!mjb_codepoint_character(&character, value)) {
+    if(!parse_character(argv[0], &character)) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
         return 1;
@@ -126,12 +133,12 @@ int character_command(int argc, char * const argv[]) {
     printf("%s\n", color_reset());
 
     print_value("NFD: ", "%s", nfd);
-    printf("NFD normalization:");
+    printf("NFD normalization: ");
     mjb_next_character(nfd, nfd_length, MJB_ENCODING_UTF_8, next_character);
     puts("");
 
     print_value("NFKD: ", "%s", nfkd);
-    printf("NFKD normalization:");
+    printf("NFKD normalization: ");
     mjb_next_character(nfkd, nfkd_length, MJB_ENCODING_UTF_8, next_character);
     puts("");
 
@@ -188,6 +195,44 @@ int character_command(int argc, char * const argv[]) {
 
     mjb_free(nfd);
     mjb_free(nfkd);
+
+    return 0;
+}
+
+int normalize_command(int argc, char * const argv[], mjb_normalization form) {
+    // mjb_character character = {0};
+    unsigned int index = 0;
+    // 5 bytes per codepoint is more than enough.
+    char codepoints[argc * 5];
+
+    for(int i = 0; i < argc; ++i) {
+        mjb_codepoint codepoint = 0;
+
+        if(!parse_codepoint(argv[i], &codepoint)) {
+            fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
+
+            return 1;
+        }
+
+        index += mjb_codepoint_encode(codepoint, codepoints + index, (argc * 5) - index, MJB_ENCODING_UTF_8);
+    }
+
+    codepoints[++index] = '\0';
+
+    size_t normalized_size;
+    char *normalized = mjb_normalize(codepoints, index, &normalized_size, MJB_ENCODING_UTF_8, form);
+
+    if(normalized == NULL) {
+        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
+        mjb_free(normalized);
+
+        return 1;
+    }
+
+    mjb_next_character(normalized, normalized_size, MJB_ENCODING_UTF_8, next_character);
+    puts("");
+
+    mjb_free(normalized);
 
     return 0;
 }
@@ -258,6 +303,10 @@ int main(int argc, char * const argv[]) {
 
     if(strcmp(argv[optind], "character") == 0) {
         return character_command(next_argc, next_argv);
+    } else if(strcmp(argv[optind], "nfd") == 0) {
+        return normalize_command(next_argc, next_argv, MJB_NORMALIZATION_NFD);
+    } else if(strcmp(argv[optind], "nfkd") == 0) {
+        return normalize_command(next_argc, next_argv, MJB_NORMALIZATION_NFKD);
     } else {
         fprintf(stderr, "Unknown command: %s\n", argv[optind]);
         show_help(argv[0], long_options, descriptions, NULL);
