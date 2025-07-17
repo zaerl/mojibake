@@ -96,8 +96,18 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
     character->combining = (mjb_canonical_combining_class)sqlite3_column_int(mjb_global.stmt_get_codepoint, 3);
     character->bidirectional = (unsigned short)sqlite3_column_int(mjb_global.stmt_get_codepoint, 4);
     character->decomposition = (mjb_decomposition)sqlite3_column_int(mjb_global.stmt_get_codepoint, 5);
-    character->decimal = sqlite3_column_int(mjb_global.stmt_get_codepoint, 6);
-    character->digit = sqlite3_column_int(mjb_global.stmt_get_codepoint, 7);
+
+    if(sqlite3_column_type(mjb_global.stmt_get_codepoint, 6) == SQLITE_NULL) {
+        character->decimal = MJB_NUMBER_NOT_VALID;
+    } else {
+        character->decimal = sqlite3_column_int(mjb_global.stmt_get_codepoint, 6);
+    }
+
+    if(sqlite3_column_type(mjb_global.stmt_get_codepoint, 7) == SQLITE_NULL) {
+        character->digit = MJB_NUMBER_NOT_VALID;
+    } else {
+        character->digit = sqlite3_column_int(mjb_global.stmt_get_codepoint, 7);
+    }
 
     char *numeric = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 8);
 

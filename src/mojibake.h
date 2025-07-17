@@ -135,6 +135,9 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_TANGUT_IDEOGRAPH_START 0x17000
 #define MJB_CODEPOINT_TANGUT_IDEOGRAPH_END 0x187F7
 
+// Numeric values, to be used when the decimal and digit mjb_character fields are not valid
+#define MJB_NUMBER_NOT_VALID -1
+
 /**
  * Unicode encoding
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]

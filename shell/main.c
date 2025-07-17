@@ -140,8 +140,18 @@ int character_command(int argc, char * const argv[]) {
     const char *d_name = decomposition_name(character.decomposition);
     printf(cmd_show_colors ? "\x1B[32m%s\x1B[0m\n" : "%s\n", d_name);
 
-    printf(cmd_show_colors ? "Decimal: \x1B[32m%d\x1B[0m\n" : "Decimal: %d\n", character.decimal);
-    printf(cmd_show_colors ? "Digit: \x1B[32m%d\x1B[0m\n" : "Digit: %d\n", character.digit);
+    if(character.decimal == MJB_NUMBER_NOT_VALID) {
+        printf(cmd_show_colors ? "Decimal: \x1B[32mN/A\x1B[0m\n" : "Decimal: N/A\n");
+    } else {
+        printf(cmd_show_colors ? "Decimal: \x1B[32m%d\x1B[0m\n" : "Decimal: %d\n", character.decimal);
+    }
+
+    if(character.digit == MJB_NUMBER_NOT_VALID) {
+        printf(cmd_show_colors ? "Digit: \x1B[32mN/A\x1B[0m\n" : "Digit: N/A\n");
+    } else {
+        printf(cmd_show_colors ? "Digit: \x1B[32m%d\x1B[0m\n" : "Digit: %d\n", character.digit);
+    }
+
     printf(cmd_show_colors ? "Numeric: \x1B[32m%s\x1B[0m\n" : "Numeric: %s\n", character.numeric[0] != '\0' ? character.numeric : "N/A");
     printf(cmd_show_colors ? "Mirrored: \x1B[32m%s\x1B[0m\n" : "Mirrored: %s\n", character.mirrored ? "Y" : "N");
 
