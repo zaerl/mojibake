@@ -194,9 +194,6 @@ typedef struct mjb_character {
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
     mjb_codepoint titlecase;
-    // Additional fields
-    mjb_block block;
-    char block_name[128];
 } mjb_character;
 
 typedef enum mjb_next_character_type {
