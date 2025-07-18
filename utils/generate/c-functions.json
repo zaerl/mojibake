@@ -207,7 +207,7 @@
     "ret": "bool",
     "name": "initialize_v2",
     "attributes": ["MJB_NODISCARD"],
-    "args": ["mjb_alloc_fn alloc_fn", "mjb_realloc_fn realloc_fn", "mjb_free_fn free_fn"]
+    "args": ["mjb_alloc_fn alloc_fn", "mjb_realloc_fn realloc_fn", "mjb_free_fn free_fn", "sqlite3_mem_methods *db_mem_methods"]
   },
   {
     "comment": "Shutdown the library. Not needed to be called",

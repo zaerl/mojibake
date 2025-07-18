@@ -32,15 +32,20 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
-    if(mjb_initialize_v2(malloc, realloc, free)) {
+    if(mjb_initialize_v2(malloc, realloc, free, NULL)) {
         return true;
     }
 
     return false;
 }
 
+int mjb_sqlite3_roundup(int size) {
+    return (size + 1) & ~1;
+}
+
 // Initialize the library with custom values
-MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn) {
+MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn,
+    sqlite3_mem_methods *db_mem_methods) {
     if(mjb_global.ok) {
         return true;
     }
@@ -50,6 +55,10 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     }
 
     mjb_global.ok = false;
+
+    if(db_mem_methods) {
+        sqlite3_config(SQLITE_CONFIG_MALLOC, db_mem_methods);
+    }
 
     int rc = sqlite3_initialize();
 
