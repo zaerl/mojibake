@@ -158,13 +158,13 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             case MJB_NORMALIZATION_NFC:
                 valid_decomposition = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
                 current_character.decomposition == MJB_DECOMPOSITION_NONE;
-
                 break;
+
             case MJB_NORMALIZATION_NFKD:
             case MJB_NORMALIZATION_NFKC:
                 valid_decomposition = true;
-
                 break;
+
             default:
                 return NULL;
         }
