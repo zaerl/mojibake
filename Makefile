@@ -17,7 +17,7 @@ rebuild: clean_build all
 coverage:
 	cd ./utils/generate && npm run coverage
 
-mojibake.db: $(GENERATE_SOURCES)
+generate: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)
 
 test: BUILD_TYPE = Test
