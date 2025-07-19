@@ -79,8 +79,6 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
         ret = mjb_output_string(ret, buffer_utf8, utf8_size, output_index, output_size);
     }
 
-    // puts("");
-
     return ret;
 }
 
@@ -97,7 +95,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     }
 
     if(size == 0) {
-        output_size = 0;
+        *output_size = 0;
 
         return NULL;
     }
