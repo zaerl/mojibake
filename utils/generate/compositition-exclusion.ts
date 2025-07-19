@@ -18,9 +18,11 @@ export function readCompositionExclusions(path = './UCD/CompositionExclusions.tx
     }
 
     const split = line.split('#');
-    const name = parseInt(split[0].trim());
+    const codepoint = parseInt(split[0].trim(), 16); // Parse as hex
 
-    exclusions.push(name);
+    if(!isNaN(codepoint)) {
+      exclusions.push(codepoint);
+    }
   });
 
   return exclusions;
