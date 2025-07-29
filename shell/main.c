@@ -83,7 +83,8 @@ void print_value(const char* label, const char* format, ...) {
         char json_label[256];
 
         json_label[0] = tolower(label[0]);
-        strcpy(json_label + 1, label + 1);
+        strncpy(json_label + 1, label + 1, 255);
+        json_label[255] = '\0';
 
         printf("  \"%s\": \"%s", json_label, color_green_start());
     } else {
@@ -107,7 +108,8 @@ void print_null_value(const char* label) {
         char json_label[256];
 
         json_label[0] = tolower(label[0]);
-        strcpy(json_label + 1, label + 1);
+        strncpy(json_label + 1, label + 1, 255);
+        json_label[255] = '\0';
 
         printf("  \"%s\": %snull%s", json_label, color_green_start(), color_reset());
     } else {
@@ -456,7 +458,6 @@ int normalize_command(int argc, char * const argv[], mjb_normalization form) {
 
     if(normalized == NULL) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-        mjb_free(normalized);
 
         return 1;
     }
