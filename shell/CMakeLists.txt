@@ -1,6 +1,10 @@
 set(SOURCES
+    characters.c
+    commands/character.c
+    commands/normalize.c
     main.c
     maps.c
+    shell.c
 )
 
 add_executable(mojibake ${SOURCES})
