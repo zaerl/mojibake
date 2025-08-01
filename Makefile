@@ -4,7 +4,7 @@ BUILD_TYPE ?= Release
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
 
-all: configure build mojibake.db
+all: configure build
 
 configure:
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
