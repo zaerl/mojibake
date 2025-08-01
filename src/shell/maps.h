@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "../src/mojibake.h"
+#include "../mojibake.h"
 
 const char *category_name(mjb_category category);
 char *ccc_name(mjb_canonical_combining_class ccc);

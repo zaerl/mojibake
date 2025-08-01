@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "../src/mojibake.h"
+#include "../mojibake.h"
 
 bool next_character(mjb_character *character, mjb_next_character_type type);
 bool next_array_character(mjb_character *character, mjb_next_character_type type);

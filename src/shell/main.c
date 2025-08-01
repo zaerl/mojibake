@@ -9,7 +9,7 @@
 #include <string.h>
 #include <getopt.h>
 
-#include "../src/mojibake.h"
+#include "../mojibake.h"
 #include "characters.h"
 #include "commands/commands.h"
 #include "maps.h"
@@ -89,7 +89,7 @@ int main(int argc, char * const argv[]) {
     };
 
     command commands[] = {
-        { "character", "Print the character for the given codepoint", character_command, 0 },
+        { "char", "Print the character for the given codepoint", character_command, 0 },
         { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
         { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD }
     };

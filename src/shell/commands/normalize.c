@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../src/mojibake.h"
+#include "../../mojibake.h"
 #include "../shell.h"
 #include "../characters.h"
 #include "commands.h"

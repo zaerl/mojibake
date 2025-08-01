@@ -36,4 +36,4 @@ add_subdirectory(src/sqlite3)
 add_subdirectory(tests)
 
 # Shell
-add_subdirectory(shell)
+add_subdirectory(src/shell)

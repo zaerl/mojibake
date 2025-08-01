@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 
-#include "../src/mojibake.h"
+#include "../mojibake.h"
 
  typedef enum {
     INTERPRET_MODE_CODEPOINT,
@@ -38,5 +38,5 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
 
 bool parse_codepoint(const char *input, mjb_codepoint *codepoint);
 
-const char* json_indent(void);
+const char* json_i(void);
 const char* json_nl(void);

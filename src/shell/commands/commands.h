@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "../../src/mojibake.h"
+#include "../../mojibake.h"
 
 typedef int (*command_function)(int argc, char * const argv[], unsigned int flags);
 

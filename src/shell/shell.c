@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../src/mojibake.h"
+#include "../mojibake.h"
 #include "characters.h"
 #include "shell.h"
 
@@ -107,7 +107,8 @@ void print_value(const char* label, unsigned int nl, const char* format, ...) {
         strncpy(json_label + 1, label + 1, 255);
         json_label[255] = '\0';
 
-        printf("%s\"%s\":%s\"%s", json_indent(), json_label, cmd_json_indent == 0 ? "" : " ", color_green_start());
+        printf("%s%s\"%s\":%s\"%s", json_i(), json_i(), json_label,
+            cmd_json_indent == 0 ? "" : " ", color_green_start());
     } else {
         printf("%s: %s", label, color_green_start());
     }
@@ -127,7 +128,7 @@ void print_null_value(const char* label, unsigned int nl) {
         strncpy(json_label + 1, label + 1, 255);
         json_label[255] = '\0';
 
-        printf("%s\"%s\":%s%snull%s", json_indent(), json_label, cmd_json_indent == 0 ? "" : " ",
+        printf("%s%s\"%s\":%s%snull%s", json_i(), json_i(), json_label, cmd_json_indent == 0 ? "" : " ",
             color_green_start(), color_reset());
     } else {
         printf("%s: %sN/A%s", label, color_green_start(), color_reset());
@@ -144,15 +145,15 @@ void print_id_name_value(const char* label, unsigned int id, const char* name, u
     const char* val_indent = cmd_json_indent == 0 ? "" : " ";
 
     // {"label": {"code": id, "value": "name"}}
-    printf("%s\"%s\":%s{%s", json_indent(), label, val_indent, json_nl());
+    printf("%s%s\"%s\":%s{%s", json_i(), json_i(), label, val_indent, json_nl());
 
-    printf("%s%s\"code\":%s%s%u%s,%s",
-        json_indent(), json_indent(), val_indent,
+    printf("%s%s%s\"code\":%s%s%u%s,%s",
+        json_i(), json_i(), json_i(), val_indent,
         color_green_start(), id, color_reset(), json_nl());
 
-    printf("%s%s\"value\":%s\"%s%s%s\"%s%s}",
-        json_indent(), json_indent(), val_indent,
-        color_green_start(), name, color_reset(), json_nl(), json_indent());
+    printf("%s%s%s\"value\":%s\"%s%s%s\"%s%s%s}",
+        json_i(), json_i(), json_i(), val_indent,
+        color_green_start(), name, color_reset(), json_nl(), json_i(), json_i());
 
     print_nl(nl);
 }
@@ -166,7 +167,7 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
 
     if(out) {
         if(is_json) {
-            printf("%s\"%s\":%s\"%s", json_indent(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
+            printf("%s%s\"%s\":%s\"%s", json_i(), json_i(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
             mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, next_escaped_character);
             printf("%s\",%s", color_reset(), json_nl());
         } else {
@@ -177,7 +178,7 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
     }
 
     if(is_json) {
-        printf("%s\"%s_normalization\":%s[%s", json_indent(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
+        printf("%s%s\"%s_normalization\":%s[%s", json_i(), json_i(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
     } else {
         printf("%s normalization: %s", label, color_green_start());
     }
@@ -229,7 +230,7 @@ bool parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     return true;
 }
 
-const char* json_indent(void) {
+const char* json_i(void) {
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         return "";
     }
