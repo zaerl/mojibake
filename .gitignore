@@ -10,3 +10,5 @@ utils/generate/sqlite-*
 utils/sqlite3/sqlite-src-*
 utils/sqlite3/sqlite3.zip
 !.gitkeep
+.claude/
+CLAUDE.md
