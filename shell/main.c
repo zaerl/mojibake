@@ -15,29 +15,39 @@
 #include "maps.h"
 #include "shell.h"
 
+typedef struct {
+    const char *name;
+    const char *description;
+} command;
+
 int show_version(void) {
      printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
 
      return 0;
  }
 
-void show_help(const char *executable, struct option options[], const char *descriptions[], const char *error) {
+void show_help(struct option options[], const char *descriptions[], command commands[], const char *error) {
     FILE *stream = error ? stderr : stdout;
 
-    fprintf(stream, "%s%smojibake - Mojibake client [v%s]\n\nUsage: %s [OPTIONS] <command> [<args>]\n",
+    fprintf(stream, "%s%sUsage: mojibake [options...] <command> [<args>]\n\nMojibake client [v%s]\n\n",
         error ? error : "",
         error ? "\n\n" : "",
-        MJB_VERSION,
-        executable);
+        MJB_VERSION);
     fprintf(stream, "Options:\n");
 
     for(unsigned long i = 0; i < 5; ++i) {
         fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
             options[i].val,
-            options[i].has_arg == no_argument ? "" : " ARG",
+            options[i].has_arg == no_argument ? "" : " <arg>",
             options[i].name,
-            options[i].has_arg == no_argument ? "" : "=ARG",
+            options[i].has_arg == no_argument ? "" : "=<arg>",
             descriptions[i]);
+    }
+
+    fprintf(stream, "\nCommands:\n");
+
+    for(unsigned long i = 0; i < 3; ++i) {
+        fprintf(stream, "  %s\n\t%s\n", commands[i].name, commands[i].description);
     }
 }
 
@@ -76,12 +86,24 @@ int main(int argc, char * const argv[]) {
         { "version", no_argument, NULL, 'V' },
         { NULL, 0, NULL, 0 }
     };
+
     const char *descriptions[] = {
         "Print help",
-        "Interpret mode: code (codepoint), dec (decimal), char (character). Default: code",
-        "Output mode: plain (default), json",
+        "Interpret mode: code (codepoint), dec (decimal), char (character). Default: code\n"
+        "\t\tcode: interpret the input as a codepoint (U+<hex>, <hex>)\n"
+        "\t\tdec: interpret the input as a decimal number (<dec>)\n"
+        "\t\tchar: interpret the input as a character (e.g. 'a')",
+        "Output mode: plain, json. Default: plain\n"
+        "\t\tplain: print the result in plain text\n"
+        "\t\tjson: print the result in JSON format",
         "Verbose output",
         "Print version"
+    };
+
+    command commands[] = {
+        { "character", "Print the character for the given codepoint" },
+        { "nfd", "Normalize the input to NFD" },
+        { "nfkd", "Normalize the input to NFKD" }
     };
 
     if(isatty(STDOUT_FILENO)) {
@@ -101,12 +123,12 @@ int main(int argc, char * const argv[]) {
     while((option = getopt_long(argc, argv, "hi:o:vV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'h':
-                show_help(argv[0], long_options, descriptions, NULL);
+                show_help(long_options, descriptions, commands, NULL);
                 return 0;
             case 'i':
                 if(!get_interpret_mode(optarg)) {
                     fprintf(stderr, "Invalid interpret mode: %s\n", optarg);
-                    show_help(argv[0], long_options, descriptions, NULL);
+                    show_help(long_options, descriptions, commands, NULL);
 
                     return 1;
                 }
@@ -119,7 +141,7 @@ int main(int argc, char * const argv[]) {
                     cmd_output_mode = OUTPUT_MODE_JSON;
                 } else {
                     fprintf(stderr, "Invalid output mode: %s\n", optarg);
-                    show_help(argv[0], long_options, descriptions, NULL);
+                    show_help(long_options, descriptions, commands, NULL);
 
                     return 1;
                 }
@@ -140,14 +162,14 @@ int main(int argc, char * const argv[]) {
     // After global options, the next argument is the subcommand
     if(optind >= argc) {
         fprintf(stderr, "No command specified.\n");
-        show_help(argv[0], long_options, descriptions, NULL);
+        show_help(long_options, descriptions, commands, NULL);
 
         return 1;
     }
 
     if(argc - optind == 1) {
         fprintf(stderr, "No command value specified.\n");
-        show_help(argv[0], long_options, descriptions, NULL);
+        show_help(long_options, descriptions, commands, NULL);
 
         return 1;
     }
@@ -163,7 +185,7 @@ int main(int argc, char * const argv[]) {
         return normalize_command(next_argc, next_argv, MJB_NORMALIZATION_NFKD);
     } else {
         fprintf(stderr, "Unknown command: %s\n", argv[optind]);
-        show_help(argv[0], long_options, descriptions, NULL);
+        show_help(long_options, descriptions, commands, NULL);
 
         return 1;
     }
