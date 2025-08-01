@@ -15,11 +15,6 @@
 #include "maps.h"
 #include "shell.h"
 
-typedef struct {
-    const char *name;
-    const char *description;
-} command;
-
 int show_version(void) {
      printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
 
@@ -54,8 +49,6 @@ void show_help(struct option options[], const char *descriptions[], command comm
 bool get_interpret_mode(const char *input) {
     if(strcmp(input, "code") == 0) {
         cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
-    } else if(strcmp(input, "dec") == 0) {
-        cmd_interpret_mode = INTERPRET_MODE_DECIMAL;
     } else if(strcmp(input, "char") == 0) {
         cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
     } else {
@@ -68,13 +61,6 @@ bool get_interpret_mode(const char *input) {
 int main(int argc, char * const argv[]) {
     int option = 0;
     int option_index = 0;
-
-    // Global variables
-    cmd_show_colors = 0;
-    cmd_verbose = false;
-    cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
-    cmd_output_mode = OUTPUT_MODE_PLAIN;
-    current_codepoint = MJB_CODEPOINT_NOT_VALID;
 
     // unsigned int columns = 80;
 
@@ -101,9 +87,9 @@ int main(int argc, char * const argv[]) {
     };
 
     command commands[] = {
-        { "character", "Print the character for the given codepoint" },
-        { "nfd", "Normalize the input to NFD" },
-        { "nfkd", "Normalize the input to NFKD" }
+        { "character", "Print the character for the given codepoint", character_command, 0 },
+        { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
+        { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD }
     };
 
     if(isatty(STDOUT_FILENO)) {
@@ -177,18 +163,14 @@ int main(int argc, char * const argv[]) {
     int next_argc = argc - optind - 1;
     char *const *next_argv = argv + optind + 1;
 
-    if(strcmp(argv[optind], "character") == 0) {
-        return character_command(next_argc, next_argv);
-    } else if(strcmp(argv[optind], "nfd") == 0) {
-        return normalize_command(next_argc, next_argv, MJB_NORMALIZATION_NFD);
-    } else if(strcmp(argv[optind], "nfkd") == 0) {
-        return normalize_command(next_argc, next_argv, MJB_NORMALIZATION_NFKD);
-    } else {
-        fprintf(stderr, "Unknown command: %s\n", argv[optind]);
-        show_help(long_options, descriptions, commands, NULL);
-
-        return 1;
+    for(int i = 0; i < 3; ++i) {
+        if(strcmp(argv[optind], commands[i].name) == 0) {
+            return commands[i].function(next_argc, next_argv, commands[i].flags);
+        }
     }
+
+    fprintf(stderr, "Unknown command: %s\n", argv[optind]);
+    show_help(long_options, descriptions, commands, NULL);
 
     return 0;
 }

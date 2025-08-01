@@ -9,8 +9,6 @@
 #include "characters.h"
 #include "shell.h"
 
-mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
-
 bool next_character(mjb_character *character, mjb_next_character_type type) {
     printf("%sU+%04X%s%s", color_green_start(), (unsigned int)character->codepoint, color_reset(),
         (type & MJB_NEXT_CHAR_LAST) ? "" : " ");
@@ -50,10 +48,4 @@ bool next_escaped_character(mjb_character *character, mjb_next_character_type ty
     }
 
     return true;
-}
-
-bool next_current_character(mjb_character *character, mjb_next_character_type type) {
-    current_codepoint = character->codepoint;
-
-    return false;
 }

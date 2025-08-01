@@ -19,6 +19,14 @@ bool cmd_verbose = false;
 interpret_mode cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
 output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
 
+static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
+
+bool next_current_character(mjb_character *character, mjb_next_character_type type) {
+    current_codepoint = character->codepoint;
+
+    return false;
+}
+
 bool print_escaped_character(char buffer_utf8[5]) {
     switch(buffer_utf8[0]) {
         case '"':
@@ -161,8 +169,6 @@ bool parse_codepoint(const char *input, mjb_codepoint *codepoint) {
             // Try parsing as hex
             value = strtoul(input, &endptr, 16);
         }
-    } else if(cmd_interpret_mode == INTERPRET_MODE_DECIMAL) {
-        value = strtoul(input, &endptr, 10);
     } else {
         mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8, next_current_character);
 

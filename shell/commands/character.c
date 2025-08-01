@@ -22,7 +22,7 @@ static bool parse_character(const char *input, mjb_character *character) {
     return mjb_codepoint_character(character, value);
 }
 
-int character_command(int argc, char * const argv[]) {
+int character_command(int argc, char * const argv[], unsigned int flags) {
     mjb_character character = {0};
 
     if(!parse_character(argv[0], &character)) {

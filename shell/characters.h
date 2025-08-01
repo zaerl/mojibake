@@ -6,8 +6,6 @@
 
 #include "../src/mojibake.h"
 
-extern mjb_codepoint current_codepoint;
-
 bool next_character(mjb_character *character, mjb_next_character_type type);
 bool next_array_character(mjb_character *character, mjb_next_character_type type);
 bool next_string_character(mjb_character *character, mjb_next_character_type type);

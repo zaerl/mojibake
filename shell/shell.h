@@ -10,7 +10,6 @@
 
  typedef enum {
     INTERPRET_MODE_CODEPOINT,
-    INTERPRET_MODE_DECIMAL,
     INTERPRET_MODE_CHARACTER
 } interpret_mode;
 

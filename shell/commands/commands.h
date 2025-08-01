@@ -6,6 +6,15 @@
 
 #include "../../src/mojibake.h"
 
-int character_command(int argc, char * const argv[]);
-int normalize_command(int argc, char * const argv[], mjb_normalization form);
-int normalize_string_command(int argc, char * const argv[], mjb_normalization form);
+typedef int (*command_function)(int argc, char * const argv[], unsigned int flags);
+
+typedef struct {
+    const char *name;
+    const char *description;
+    command_function function;
+    unsigned int flags;
+} command;
+
+int character_command(int argc, char * const argv[], unsigned int flags);
+int normalize_command(int argc, char * const argv[], unsigned int flags);
+int normalize_string_command(int argc, char * const argv[], unsigned int flags);
