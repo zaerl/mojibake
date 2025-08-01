@@ -31,18 +31,18 @@ export function characterDecomposition(mapping: string): Decomposition {
 }
 
 /**
- * 1: 2
- * 1: 4
- * 2: 3
- * 2: 5
+ * Codepoint: Decomposition
+ * 1: 2, 4
+ * 2: 3, 5
  *
  * 1: 3
  * 1: 5
  * 1: 4
+ * ----
  * 2: 3
  * 2: 5
  */
-export function generateDecomposition(characters: Character[], compat = false): CalculatedDecomposition[] {
+export function generateDecomposition(characters: Character[], compatibility = false): CalculatedDecomposition[] {
   const characterMap: { [key: string]: Character } = {};
   const normalized: CalculatedDecomposition[] = [];
 
@@ -50,12 +50,12 @@ export function generateDecomposition(characters: Character[], compat = false): 
     characterMap['' + char.codepoint] = char;
   }
 
-  const addDecomposition = (currentCodepoint: number, char: Character, compat: boolean) => {
+  const addDecomposition = (currentCodepoint: number, char: Character, compatibility: boolean) => {
     if(!char.decompositions.length) {
       return;
     }
 
-    if(!compat && char.decomposition !== CharacterDecomposition.Canonical) {
+    if(!compatibility && char.decomposition !== CharacterDecomposition.Canonical) {
       if(char.codepoint !== currentCodepoint) {
         normalized.push({ codepoint: currentCodepoint, value: char.codepoint });
       }
@@ -73,7 +73,7 @@ export function generateDecomposition(characters: Character[], compat = false): 
 
       if(characterMap['' + dec].decompositions.length) {
         // Loop.
-        addDecomposition(currentCodepoint, characterMap['' + dec], compat);
+        addDecomposition(currentCodepoint, characterMap['' + dec], compatibility);
       } else {
         normalized.push({ codepoint: currentCodepoint, value: dec });
       }
@@ -81,7 +81,8 @@ export function generateDecomposition(characters: Character[], compat = false): 
   }
 
   for(const char of characters) {
-    addDecomposition(char.codepoint, char, compat);
+    // Add the decomposition of the character.
+    addDecomposition(char.codepoint, char, compatibility);
   }
 
   return normalized;

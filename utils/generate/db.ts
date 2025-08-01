@@ -208,10 +208,6 @@ export function dbRun(characters: Character[]) {
         char.lowercase,
         char.titlecase
       );
-
-      /*for(const value of char.decompositions) {
-        insertDecompositionSmt.run(char.codepoint, value);
-      }*/
     }
   }
 }

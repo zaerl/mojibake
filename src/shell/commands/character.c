@@ -29,7 +29,7 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
             printf("%s{%s", json_i(), json_nl());
         }
     } else {
-        if(type != MJB_NEXT_CHAR_FIRST) {
+        if(!(type & MJB_NEXT_CHAR_FIRST)) {
             puts("");
         }
     }
