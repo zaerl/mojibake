@@ -18,8 +18,34 @@ int cmd_show_colors = 0;
 bool cmd_verbose = false;
 interpret_mode cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
 output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
+unsigned int cmd_json_indent = 2;
 
 static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
+
+// JSON indent levels. Having such an array speeds up the code.
+static const char* indents[11] = {
+    "",
+    " ",
+    "  ",
+    "    ",
+    "      ",
+    "        ",
+    "          ",
+    "            ",
+    "              ",
+    "                ",
+    "                  ",
+};
+
+void print_nl(unsigned int nl) {
+    if(nl > 0) {
+        if(cmd_output_mode == OUTPUT_MODE_JSON) {
+            printf("%s%s", nl > 1 ? "" : ",", json_nl());
+        } else {
+            puts("");
+        }
+    }
+}
 
 bool next_current_character(mjb_character *character, mjb_next_character_type type) {
     current_codepoint = character->codepoint;
@@ -70,7 +96,7 @@ const char* color_reset(void) {
     return cmd_show_colors ? "\x1B[0m" : "";
 }
 
-void print_value(const char* label, const char* format, ...) {
+void print_value(const char* label, unsigned int nl, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -81,7 +107,7 @@ void print_value(const char* label, const char* format, ...) {
         strncpy(json_label + 1, label + 1, 255);
         json_label[255] = '\0';
 
-        printf("  \"%s\": \"%s", json_label, color_green_start());
+        printf("%s\"%s\":%s\"%s", json_indent(), json_label, cmd_json_indent == 0 ? "" : " ", color_green_start());
     } else {
         printf("%s: %s", label, color_green_start());
     }
@@ -89,16 +115,11 @@ void print_value(const char* label, const char* format, ...) {
     vprintf(format, args);
     printf("%s%s", color_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"" : "");
 
-    if(cmd_output_mode == OUTPUT_MODE_JSON && strcmp(label, "Titlecase") != 0) {
-        puts(",");
-    } else {
-        puts("");
-    }
-
+    print_nl(nl);
     va_end(args);
 }
 
-void print_null_value(const char* label) {
+void print_null_value(const char* label, unsigned int nl) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         char json_label[256];
 
@@ -106,28 +127,38 @@ void print_null_value(const char* label) {
         strncpy(json_label + 1, label + 1, 255);
         json_label[255] = '\0';
 
-        printf("  \"%s\": %snull%s", json_label, color_green_start(), color_reset());
+        printf("%s\"%s\":%s%snull%s", json_indent(), json_label, cmd_json_indent == 0 ? "" : " ",
+            color_green_start(), color_reset());
     } else {
         printf("%s: %sN/A%s", label, color_green_start(), color_reset());
     }
 
-    if(cmd_output_mode == OUTPUT_MODE_JSON && strcmp(label, "Titlecase") != 0) {
-        puts(",");
-    } else {
-        puts("");
-    }
+    print_nl(nl);
 }
 
-void print_id_name_value(const char* label, unsigned int id, const char* name) {
+void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl) {
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         return;
     }
 
-    printf("  \"%s\": {\n    \"code\": %s%u%s,\n    \"value\": \"%s%s%s\"\n  }\n", label,
-        color_green_start(), id, color_reset(), color_green_start(), name, color_reset());
+    const char* val_indent = cmd_json_indent == 0 ? "" : " ";
+
+    // {"label": {"code": id, "value": "name"}}
+    printf("%s\"%s\":%s{%s", json_indent(), label, val_indent, json_nl());
+
+    printf("%s%s\"code\":%s%s%u%s,%s",
+        json_indent(), json_indent(), val_indent,
+        color_green_start(), id, color_reset(), json_nl());
+
+    printf("%s%s\"value\":%s\"%s%s%s\"%s%s}",
+        json_indent(), json_indent(), val_indent,
+        color_green_start(), name, color_reset(), json_nl(), json_indent());
+
+    print_nl(nl);
 }
 
-void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name, char *label) {
+void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name,
+    char *label, unsigned int nl) {
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
     size_t out_length = 0;
 
@@ -135,24 +166,31 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
 
     if(out) {
         if(is_json) {
-            printf("  \"%s\": \"%s", name, color_green_start());
+            printf("%s\"%s\":%s\"%s", json_indent(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
             mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, next_escaped_character);
-            printf("%s\"\n", color_reset());
+            printf("%s\",%s", color_reset(), json_nl());
         } else {
-            print_value(is_json ? name : label, "%s", out);
+            print_value(is_json ? name : label, true, "%s", out);
         }
     } else {
-        print_null_value(is_json ? name : label);
+        print_null_value(is_json ? name : label, 1);
     }
 
     if(is_json) {
-        printf("  \"%s_normalization\": [%s", name, color_green_start());
+        printf("%s\"%s_normalization\":%s[%s", json_indent(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
     } else {
         printf("%s normalization: %s", label, color_green_start());
     }
 
     mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, is_json ? next_array_character : next_character);
-    printf("%s%s\n", color_reset(), is_json ? "]," : "");
+
+    if(is_json) {
+        printf("%s]", color_reset());
+    } else {
+        printf("%s", color_reset());
+    }
+
+    print_nl(nl);
 
     free(out);
 }
@@ -189,4 +227,20 @@ bool parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     *codepoint = value;
 
     return true;
+}
+
+const char* json_indent(void) {
+    if(cmd_output_mode != OUTPUT_MODE_JSON) {
+        return "";
+    }
+
+    return indents[cmd_json_indent];
+}
+
+const char* json_nl(void) {
+    if(cmd_output_mode != OUTPUT_MODE_JSON) {
+        return "";
+    }
+
+    return cmd_json_indent == 0 ? "" : "\n";
 }

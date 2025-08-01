@@ -66,6 +66,7 @@ int main(int argc, char * const argv[]) {
 
     struct option long_options[] = {
         { "help", no_argument, NULL, 'h' },
+        { "json-indent", required_argument, NULL, 'j' },
         { "interpret", required_argument, NULL, 'i' },
         { "output", required_argument, NULL, 'o' },
         { "verbose", no_argument, NULL, 'v' },
@@ -75,6 +76,7 @@ int main(int argc, char * const argv[]) {
 
     const char *descriptions[] = {
         "Print help",
+        "JSON indent level (0-10). Default: 0\n",
         "Interpret mode: code (codepoint), dec (decimal), char (character). Default: code\n"
         "\t\tcode: interpret the input as a codepoint (U+<hex>, <hex>)\n"
         "\t\tdec: interpret the input as a decimal number (<dec>)\n"
@@ -106,7 +108,7 @@ int main(int argc, char * const argv[]) {
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
     }
 
-    while((option = getopt_long(argc, argv, "hi:o:vV", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "hj:i:o:vV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'h':
                 show_help(long_options, descriptions, commands, NULL);
@@ -120,6 +122,18 @@ int main(int argc, char * const argv[]) {
                 }
 
                 break;
+            case 'j': {
+                char *endptr = NULL;
+                cmd_json_indent = strtoul(optarg, &endptr, 10);
+
+                if(endptr == optarg || *endptr != '\0' || cmd_json_indent < 0 || cmd_json_indent > 10) {
+                    fprintf(stderr, "JSON indent level must be a number between 0 and 10.\n");
+                    show_help(long_options, descriptions, commands, NULL);
+
+                    return 1;
+                }
+                break;
+            }
             case 'o':
                 if(strcmp(optarg, "plain") == 0) {
                     cmd_output_mode = OUTPUT_MODE_PLAIN;

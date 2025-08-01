@@ -22,6 +22,7 @@ extern int cmd_show_colors;
 extern bool cmd_verbose;
 extern interpret_mode cmd_interpret_mode;
 extern output_mode cmd_output_mode;
+extern unsigned int cmd_json_indent;
 
 bool print_escaped_character(char buffer_utf8[5]);
 
@@ -29,9 +30,13 @@ bool print_escaped_character(char buffer_utf8[5]);
 const char* color_green_start(void);
 const char* color_reset(void);
 
-void print_value(const char* label, const char* format, ...);
-void print_null_value(const char* label);
-void print_id_name_value(const char* label, unsigned int id, const char* name);
-void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name, char *label);
+void print_value(const char* label, unsigned int nl, const char* format, ...);
+void print_null_value(const char* label, unsigned int nl);
+void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl);
+void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name,
+    char *label, unsigned int nl);
 
 bool parse_codepoint(const char *input, mjb_codepoint *codepoint);
+
+const char* json_indent(void);
+const char* json_nl(void);
