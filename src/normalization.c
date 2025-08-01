@@ -39,7 +39,7 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
     if(form == MJB_NORMALIZATION_NFC) {
         stmt = mjb_global.stmt_compose;
     } else if(form == MJB_NORMALIZATION_NFKC) {
-        stmt = mjb_global.stmt_compat_compose;
+        stmt = mjb_global.stmt_compatibility_compose;
     }
 
     if(stmt && buffer_index > 1) {
@@ -104,8 +104,11 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
     if(form == MJB_NORMALIZATION_NFD) {
         stmt = mjb_global.stmt_decompose;
+    } else if(form == MJB_NORMALIZATION_NFKD) {
+        stmt = mjb_global.stmt_compatibility_decompose;
     } else {
-        stmt = mjb_global.stmt_compat_decompose;
+        // TODO: NFC and NFKC are not supported yet.
+        return NULL;
     }
 
     sqlite3_reset(stmt);

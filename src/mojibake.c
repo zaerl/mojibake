@@ -21,9 +21,9 @@ MJB_EXPORT mojibake mjb_global = {
     .stmt_get_block = NULL,
     .stmt_is_combining = NULL,
     .stmt_decompose = NULL,
-    .stmt_compat_decompose = NULL,
+    .stmt_compatibility_decompose = NULL,
     .stmt_compose = NULL,
-    .stmt_compat_compose = NULL
+    .stmt_compatibility_compose = NULL
 };
 
 // Initialize the library
@@ -112,21 +112,21 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query_blocks[] = "SELECT * FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
     MJB_PREPARE_STMT(mjb_global.stmt_get_block, query_blocks)
 
-    const char query_decompose[] = "SELECT value FROM decompositions WHERE id = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_decompose, query_decompose)
-
-    const char query_compat_decompose[] = "SELECT value FROM compat_decompositions WHERE id = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_compat_decompose, query_compat_decompose)
-
     // MJB_CATEGORY_MN and MJB_CATEGORY_MC
     const char query_combining[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
     MJB_PREPARE_STMT(mjb_global.stmt_is_combining, query_combining)
 
+    const char query_decompose[] = "SELECT value FROM decompositions WHERE id = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_decompose, query_decompose)
+
+    const char query_compatibility_decompose[] = "SELECT value FROM compatibility_decompositions WHERE id = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_compatibility_decompose, query_compatibility_decompose)
+
     const char query_compose[] = "SELECT id FROM decompositions WHERE value IN (?, ?) GROUP BY id HAVING COUNT(DISTINCT VALUE) = 2";
     MJB_PREPARE_STMT(mjb_global.stmt_compose, query_compose)
 
-    const char query_compat_compose[] = "SELECT id FROM compat_decompositions WHERE value IN (?, ?) GROUP BY id HAVING COUNT(DISTINCT VALUE) = 2";
-    MJB_PREPARE_STMT(mjb_global.stmt_compat_compose, query_compat_compose)
+    const char query_compatibility_compose[] = "SELECT id FROM compatibility_decompositions WHERE value IN (?, ?) GROUP BY id HAVING COUNT(DISTINCT VALUE) = 2";
+    MJB_PREPARE_STMT(mjb_global.stmt_compatibility_compose, query_compatibility_compose)
 
     #undef MJB_PREPARE_STMT
 
@@ -160,8 +160,8 @@ MJB_EXPORT void mjb_shutdown(void) {
         sqlite3_finalize(mjb_global.stmt_decompose);
     }
 
-    if(mjb_global.stmt_compat_decompose) {
-        sqlite3_finalize(mjb_global.stmt_compat_decompose);
+    if(mjb_global.stmt_compatibility_decompose) {
+        sqlite3_finalize(mjb_global.stmt_compatibility_decompose);
     }
 
     if(mjb_global.stmt_is_combining) {

@@ -82,11 +82,11 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
   `);
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS compat_decompositions (
+    CREATE TABLE IF NOT EXISTS compatibility_decompositions (
       id INTEGER NOT NULL,
       value INTEGER NOT NULL
     );
-    CREATE INDEX idx_compat_decompositions_id ON compat_decompositions(id)
+    CREATE INDEX idx_compatibility_decompositions_id ON compatibility_decompositions(id)
   `);
 
   db.exec(`
@@ -146,7 +146,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
   `);
 
   insertCompatDecompositionSmt = db.prepare(`
-    INSERT INTO compat_decompositions (
+    INSERT INTO compatibility_decompositions (
       id,
       value
     ) VALUES (?, ?);
