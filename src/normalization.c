@@ -102,13 +102,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
     sqlite3_stmt *stmt;
 
-    if(form == MJB_NORMALIZATION_NFD) {
+    if(form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFD) {
         stmt = mjb_global.stmt_decompose;
-    } else if(form == MJB_NORMALIZATION_NFKD) {
-        stmt = mjb_global.stmt_compatibility_decompose;
     } else {
-        // TODO: NFC and NFKC are not supported yet.
-        return NULL;
+        stmt = mjb_global.stmt_compatibility_decompose;
     }
 
     sqlite3_reset(stmt);
