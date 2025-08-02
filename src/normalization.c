@@ -28,6 +28,7 @@ char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *
 
 static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index,
     char *ret, size_t *output_index, size_t *output_size, mjb_normalization form) {
+    // Sort combining characters by Canonical Combining Class (required for all forms)
     if(buffer_index) {
         mjb_sort(characters_buffer, buffer_index);
     }
@@ -103,8 +104,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     sqlite3_stmt *stmt;
 
     if(form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFD) {
+        // SELECT value FROM decompositions WHERE id = ?
         stmt = mjb_global.stmt_decompose;
     } else {
+        // SELECT value FROM compatibility_decompositions WHERE id = ?
         stmt = mjb_global.stmt_compatibility_decompose;
     }
 
@@ -148,22 +151,52 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             continue;
         }
 
-        int found = 0;
-        bool valid_decomposition = false;
+        int characters_decomposed = 0;  // Count of characters produced by decomposition
+        bool should_decompose = false;
 
+        /*
+         * Determine whether this character should be decomposed based on the normalization form.
+         * The should_decompose flag controls whether we attempt to decompose the character
+         * or just pass it through unchanged.
+         */
         switch(form) {
-            case MJB_NORMALIZATION_NFD:
-            case MJB_NORMALIZATION_NFC:
-                valid_decomposition = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
+            case MJB_NORMALIZATION_NFD:  // Canonical decomposition without recomposition
+            case MJB_NORMALIZATION_NFC:  // Canonical decomposition followed by canonical composition
+                /*
+                 * For canonical normalization forms, only decompose characters that have:
+                 * - MJB_DECOMPOSITION_CANONICAL: Characters with canonical decompositions
+                 *   Examples: 'é' (U+00E9) → 'e' + combining acute accent
+                 *             'ñ' (U+00F1) → 'n' + combining tilde
+                 * - MJB_DECOMPOSITION_NONE: Characters with no decomposition (these will be processed
+                 *   but not actually decomposed, they just pass through)
+                 *
+                 * We do NOT decompose compatibility characters like:
+                 * - '①' (U+2460) → '1' + enclosing circle (MJB_DECOMPOSITION_CIRCLE)
+                 * - 'ﬁ' (U+FB01) → 'f' + 'i' (MJB_DECOMPOSITION_FONT)
+                 * - '²' (U+00B2) → '2' + superscript (MJB_DECOMPOSITION_SUPER)
+                 */
+                should_decompose = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
                 current_character.decomposition == MJB_DECOMPOSITION_NONE;
                 break;
 
-            case MJB_NORMALIZATION_NFKD:
-            case MJB_NORMALIZATION_NFKC:
-                valid_decomposition = true;
+            case MJB_NORMALIZATION_NFKD: // Compatibility decomposition without recomposition
+            case MJB_NORMALIZATION_NFKC: // Compatibility decomposition followed by canonical composition
+                /*
+                 * For compatibility normalization forms, decompose ALL characters that have
+                 * any type of decomposition.
+                 *
+                 * Examples of characters that will be decomposed:
+                 * - 'é' (U+00E9) → 'e' + combining acute accent (canonical)
+                 * - '①' (U+2460) → '1' + enclosing circle (compatibility)
+                 */
+                should_decompose = true;
                 break;
 
             default:
+                /*
+                 * Invalid normalization form specified.
+                 * Valid forms are: NFC, NFD, NFKC, NFKD
+                 */
                 return NULL;
         }
 
@@ -188,10 +221,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                 }
 
                 characters_buffer[buffer_index++] = current_character;
-                ++found;
+                ++characters_decomposed;
             }
-        } else if(valid_decomposition) {
-            // There are no combining characters. Add the character to the output.
+        } else if(should_decompose) {
+            // Decompose the character using database lookup
             int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
 
             if(rc != SQLITE_OK) {
@@ -209,8 +242,19 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
-                ++found;
+                ++characters_decomposed;
 
+                /*
+                 * When we encounter a "starter" character (CCC = 0), we must flush any pending
+                 * combining characters in the buffer to ensure proper ordering.
+                 *
+                 * Examples:
+                 * - 'é' (U+00E9) → 'e' (CCC=0, starter) + '́' (acute, CCC=230)
+                 * - 'ñ' (U+00F1) → 'n' (CCC=0, starter) + '̃' (tilde, CCC=230)
+                 *
+                 * When processing "éñ", we encounter 'n' (starter) while '́' is still
+                 * in the buffer, so we flush 'e' + '́' before processing 'n' + '̃'.
+                 */
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
                     buffer_index = 0;
@@ -222,7 +266,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             sqlite3_reset(stmt);
         }
 
-        if(!found) {
+        if(!characters_decomposed) {
             if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                 ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
                 buffer_index = 0;

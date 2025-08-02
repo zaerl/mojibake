@@ -41,7 +41,7 @@ void show_help(struct option options[], const char *descriptions[], command comm
 
     fprintf(stream, "\nCommands:\n");
 
-    for(unsigned long i = 0; i < 3; ++i) {
+    for(unsigned long i = 0; i < 5; ++i) {
         fprintf(stream, "  %s\n\t%s\n", commands[i].name, commands[i].description);
     }
 }
@@ -89,9 +89,8 @@ int main(int argc, char * const argv[]) {
         { "char", "Print the character for the given codepoint", character_command, 0 },
         { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
         { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD },
-        // TODO: Add NFC and NFKC commands
-        // { "nfc", "Normalize the input to NFC", normalize_command, MJB_NORMALIZATION_NFC },
-        // { "nfkc", "Normalize the input to NFKC", normalize_command, MJB_NORMALIZATION_NFKC }
+        { "nfc", "Normalize the input to NFC", normalize_command, MJB_NORMALIZATION_NFC },
+        { "nfkc", "Normalize the input to NFKC", normalize_command, MJB_NORMALIZATION_NFKC }
     };
 
     if(isatty(STDOUT_FILENO)) {
@@ -171,7 +170,7 @@ int main(int argc, char * const argv[]) {
     int next_argc = argc - optind - 1;
     char *const *next_argv = argv + optind + 1;
 
-    for(int i = 0; i < 3; ++i) {
+    for(int i = 0; i < 5; ++i) {
         if(strcmp(argv[optind], commands[i].name) == 0) {
             return commands[i].function(next_argc, next_argv, commands[i].flags);
         }
