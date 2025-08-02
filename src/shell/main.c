@@ -67,7 +67,7 @@ int main(int argc, char * const argv[]) {
     struct option long_options[] = {
         { "help", no_argument, NULL, 'h' },
         { "json-indent", required_argument, NULL, 'j' },
-        { "interpret", required_argument, NULL, 'i' },
+        { "codepoint", required_argument, NULL, 'c' },
         { "output", required_argument, NULL, 'o' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
@@ -77,10 +77,7 @@ int main(int argc, char * const argv[]) {
     const char *descriptions[] = {
         "Print help",
         "JSON indent level (0-10). Default: 0\n",
-        "Interpret mode: code (codepoint), dec (decimal), char (character). Default: code\n"
-        "\t\tcode: interpret the input as a codepoint (U+<hex>, <hex>)\n"
-        "\t\tdec: interpret the input as a decimal number (<dec>)\n"
-        "\t\tchar: interpret the input as a character (e.g. 'a')",
+        "Interpret input as a list of codepoints\n",
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",
@@ -91,7 +88,10 @@ int main(int argc, char * const argv[]) {
     command commands[] = {
         { "char", "Print the character for the given codepoint", character_command, 0 },
         { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
-        { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD }
+        { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD },
+        // TODO: Add NFC and NFKC commands
+        // { "nfc", "Normalize the input to NFC", normalize_command, MJB_NORMALIZATION_NFC },
+        // { "nfkc", "Normalize the input to NFKC", normalize_command, MJB_NORMALIZATION_NFKC }
     };
 
     if(isatty(STDOUT_FILENO)) {
@@ -108,19 +108,13 @@ int main(int argc, char * const argv[]) {
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
     }
 
-    while((option = getopt_long(argc, argv, "hj:i:o:vV", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "hj:co:vV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'h':
                 show_help(long_options, descriptions, commands, NULL);
                 return 0;
-            case 'i':
-                if(!get_interpret_mode(optarg)) {
-                    fprintf(stderr, "Invalid interpret mode: %s\n", optarg);
-                    show_help(long_options, descriptions, commands, NULL);
-
-                    return 1;
-                }
-
+            case 'c':
+                cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
                 break;
             case 'j': {
                 char *endptr = NULL;

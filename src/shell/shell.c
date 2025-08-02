@@ -16,7 +16,7 @@
 // Global command-line option variables
 int cmd_show_colors = 0;
 bool cmd_verbose = false;
-interpret_mode cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
+interpret_mode cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
 output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
 unsigned int cmd_json_indent = 2;
 
