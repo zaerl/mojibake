@@ -14,6 +14,12 @@ export interface Numeric {
   count: number;
 }
 
+export interface Composition {
+  starter_codepoint: number;
+  combining_codepoint: number;
+  composite_codepoint: number;
+}
+
 export interface CalculatedDecomposition {
   codepoint: number;
   value: number;

@@ -1,14 +1,16 @@
 import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
-import { Block, CalculatedDecomposition } from './types';
+import { Block, CalculatedDecomposition, Composition } from './types';
 
 let db: Database.Database;
 let dbPath: string;
 let insertDataSmt: Statement;
 let insertDecompositionSmt: Statement;
 let insertCompatDecompositionSmt: Statement;
+let insertCompositionSmt: Statement;
 let insertBlockSmt: Statement;
+// let insertNumericSmt: Statement;
 let isCompact: boolean;
 
 // Codepoint
@@ -99,6 +101,25 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     CREATE INDEX idx_blocks_start_end ON blocks(start, end);
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS compositions (
+      starter_codepoint INTEGER NOT NULL,
+      combining_codepoint INTEGER NOT NULL,
+      composite_codepoint INTEGER NOT NULL,
+      PRIMARY KEY (starter_codepoint, combining_codepoint)
+    );
+  `);
+
+  /*db.exec(`
+    CREATE TABLE IF NOT EXISTS numerics (
+      codepoint INTEGER PRIMARY KEY,
+      decimal INTEGER,
+      digit INTEGER,
+      numeric TEXT
+    );
+    CREATE INDEX idx_numerics_codepoint ON numerics(codepoint);
+  `);*/
+
   process.on('exit', () => db.close());
   process.on('SIGHUP', () => process.exit(128 + 1));
   process.on('SIGINT', () => process.exit(128 + 2));
@@ -152,6 +173,14 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     ) VALUES (?, ?);
   `);
 
+  insertCompositionSmt = db.prepare(`
+    INSERT INTO compositions (
+      starter_codepoint,
+      combining_codepoint,
+      composite_codepoint
+    ) VALUES (?, ?, ?);
+  `);
+
   insertBlockSmt = db.prepare(`
     INSERT INTO blocks (
       id,
@@ -160,6 +189,15 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       name
     ) VALUES (?, ?, ?, ?);
   `);
+
+  /*insertNumericSmt = db.prepare(`
+    INSERT INTO numerics (
+      codepoint,
+      decimal,
+      digit,
+      numeric
+    ) VALUES (?, ?, ?, ?);
+  `);*/
 
   db.pragma('synchronous = OFF');
   db.pragma('journal_mode = MEMORY');
@@ -208,6 +246,15 @@ export function dbRun(characters: Character[]) {
         char.lowercase,
         char.titlecase
       );
+
+      /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {
+        insertNumericSmt.run(
+          char.codepoint,
+          char.decimal,
+          char.digit,
+          char.numeric
+        );
+      }*/
     }
   }
 }
@@ -219,6 +266,12 @@ export function dbRunDecompositions(decompositions: CalculatedDecomposition[], c
     } else {
       insertDecompositionSmt.run(value.codepoint, value.value);
     }
+  }
+}
+
+export function dbRunComposition(compositions: Composition[]) {
+  for(const comp of compositions) {
+    insertCompositionSmt.run(comp.starter_codepoint, comp.combining_codepoint, comp.composite_codepoint);
   }
 }
 

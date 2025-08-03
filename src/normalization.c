@@ -35,15 +35,10 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
 
     char buffer_utf8[5];
     size_t utf8_size = 0;
-    sqlite3_stmt *stmt = NULL;
+    bool do_recomposition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
 
-    if(form == MJB_NORMALIZATION_NFC) {
-        stmt = mjb_global.stmt_compose;
-    } else if(form == MJB_NORMALIZATION_NFKC) {
-        stmt = mjb_global.stmt_compatibility_compose;
-    }
-
-    if(stmt && buffer_index > 1) {
+    if(do_recomposition && buffer_index > 1) {
+        sqlite3_stmt *stmt = mjb_global.stmt_compose;
         sqlite3_reset(stmt);
         sqlite3_clear_bindings(stmt);
 

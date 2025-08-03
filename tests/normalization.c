@@ -11,7 +11,7 @@
 #include "test.h"
 
 bool next_character(mjb_character *character, mjb_next_character_type type) {
-    printf("\x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);
+    printf(" \x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);
 
     return true;
 }
@@ -60,7 +60,7 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
 
     if(is_exit_on_error()) {
         if(strcmp(normalized_res, normalized) != 0) {
-            printf("\n%s: source: ", test_name);
+            printf("\n%s: source:", test_name);
             mjb_next_character(source, source_size, MJB_ENCODING_UTF_8, next_character);
             printf("\nExpected: ");
             mjb_next_character(normalized, normalized_size, MJB_ENCODING_UTF_8, next_character);
@@ -189,7 +189,7 @@ void run_normalization_tests(int limit) {
          * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
          * nfkc == toNFC(nfkc) == toNFC(nfkd)
          */
-        // check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
+        check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfc, nfc_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfd, nfd_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);

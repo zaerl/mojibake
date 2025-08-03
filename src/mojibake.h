@@ -92,7 +92,6 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_decompose;
     sqlite3_stmt *stmt_compatibility_decompose;
     sqlite3_stmt *stmt_compose;
-    sqlite3_stmt *stmt_compatibility_compose;
 } mojibake;
 
 /**

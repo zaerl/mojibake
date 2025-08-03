@@ -1,5 +1,5 @@
 import { Character } from "./character";
-import { CalculatedDecomposition, CharacterDecomposition, characterDecompositionMapping, CharacterDecompositionMappingStrings, Decomposition } from "./types";
+import { CalculatedDecomposition, CharacterDecomposition, characterDecompositionMapping, CharacterDecompositionMappingStrings, Composition, Decomposition } from "./types";
 
 /**
  * Example for LATIN CAPITAL LETTER D WITH DOT ABOVE
@@ -86,4 +86,24 @@ export function generateDecomposition(characters: Character[], compatibility = f
   }
 
   return normalized;
+}
+
+export function generateComposition(characters: Character[], exclusions: number[]): Composition[] {
+  const compositions: Composition[] = [];
+
+  for(const char of characters) {
+    if(
+      char.decomposition === CharacterDecomposition.Canonical &&
+      char.decompositions.length === 2 &&
+      !exclusions.includes(char.codepoint)
+    ) {
+      compositions.push({
+        starter_codepoint: char.decompositions[0],
+        combining_codepoint: char.decompositions[1],
+        composite_codepoint: char.codepoint
+      });
+    }
+  }
+
+  return compositions;
 }
