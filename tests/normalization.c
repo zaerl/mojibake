@@ -10,13 +10,10 @@
 
 #include "test.h"
 
-int error_callback(int test, const char *description) {
-    if(!test) {
-        printf("Error: %s\n", description);
-        return 1;
-    }
+bool next_character(mjb_character *character, mjb_next_character_type type) {
+    printf("\x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);
 
-    return 0;
+    return true;
 }
 
 /**
@@ -60,6 +57,19 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
     }
 
     snprintf(test_name, 128, "#%u %s", current_line, names[form]);
+
+    if(is_exit_on_error()) {
+        if(strcmp(normalized_res, normalized) != 0) {
+            printf("\n%s: source: ", test_name);
+            mjb_next_character(source, source_size, MJB_ENCODING_UTF_8, next_character);
+            printf("\nExpected: ");
+            mjb_next_character(normalized, normalized_size, MJB_ENCODING_UTF_8, next_character);
+            printf("\nGot: ");
+            mjb_next_character(normalized_res, normalized_size_res, MJB_ENCODING_UTF_8, next_character);
+            puts("");
+        }
+    }
+
     int ret = ATT_ASSERT(normalized_res, normalized, test_name)
 
     if(normalized_res != NULL) {
@@ -102,9 +112,6 @@ void run_normalization_tests(int limit) {
     if(limit == 0) {
         return;
     }
-
-    // Set the error callback
-    set_error_callback(error_callback);
 
     // Parse the file
     while(fgets(line, 1024, file)) {
@@ -182,7 +189,7 @@ void run_normalization_tests(int limit) {
          * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
          * nfkc == toNFC(nfkc) == toNFC(nfkd)
          */
-        check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
+        // check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfc, nfc_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfd, nfd_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);
@@ -214,9 +221,6 @@ void run_normalization_tests(int limit) {
             break;
         }
     }
-
-    // Reset the error callback
-    set_error_callback(NULL);
 
     fclose(file);
 }

@@ -67,7 +67,7 @@ int main(int argc, char * const argv[]) {
     struct option long_options[] = {
         { "help", no_argument, NULL, 'h' },
         { "json-indent", required_argument, NULL, 'j' },
-        { "codepoint", required_argument, NULL, 'c' },
+        { "codepoint", no_argument, NULL, 'c' },
         { "output", required_argument, NULL, 'o' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },

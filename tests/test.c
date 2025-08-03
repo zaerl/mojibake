@@ -10,11 +10,16 @@
 #include "test.h"
 
 static att_test_callback error_callback = NULL;
+static bool exit_on_error = false;
 
 int show_version(void) {
     printf("Mojibake v%s\n", MJB_VERSION);
 
     return 0;
+}
+
+bool is_exit_on_error(void) {
+    return exit_on_error;
 }
 
 void set_error_callback(att_test_callback callback) {
@@ -58,7 +63,6 @@ int main(int argc, char * const argv[]) {
     struct timespec start, end;
     double elapsed = 0;
     unsigned int verbosity = 0;
-    unsigned int exit_on_error = 0;
     int option = 0;
     int option_index = 0;
     char *filter = NULL;
@@ -82,17 +86,13 @@ int main(int argc, char * const argv[]) {
     clock_gettime(CLOCK_MONOTONIC, &start);
     att_set_verbose(verbosity);
 
-    if(exit_on_error) {
-        att_set_test_callback(attractor_test_callback);
-    }
-
     while((option = getopt_long(argc, argv, "f:ehvV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'f':
                 filter = strdup(optarg);
                 break;
             case 'e':
-                exit_on_error = 1;
+                exit_on_error = true;
                 break;
             case 'h':
                 show_help(argv[0], long_options, descriptions, NULL);

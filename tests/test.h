@@ -33,6 +33,7 @@ void *test_utf8(void *arg);
 void *test_version(void *arg);
 
 void set_error_callback(att_test_callback callback);
+bool is_exit_on_error(void);
 
 #ifdef __cplusplus
 }
