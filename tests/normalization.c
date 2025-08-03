@@ -10,6 +10,15 @@
 
 #include "test.h"
 
+int error_callback(int test, const char *description) {
+    if(!test) {
+        printf("Error: %s\n", description);
+        return 1;
+    }
+
+    return 0;
+}
+
 /**
  * Get codepoints from a string
  * Example: "0044 0307", gives 2 codepoints
@@ -94,6 +103,9 @@ void run_normalization_tests(int limit) {
         return;
     }
 
+    // Set the error callback
+    set_error_callback(error_callback);
+
     // Parse the file
     while(fgets(line, 1024, file)) {
         if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0) {
@@ -145,17 +157,6 @@ void run_normalization_tests(int limit) {
         free(tofree);
 
         /**
-         * TODO: add NFC normalization
-         * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
-         * nfkc == toNFC(nfkc) == toNFC(nfkd)
-         */
-        // check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
-        // check_normalization((char*)nfc, nfc_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
-        // check_normalization((char*)nfd, nfd_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
-        // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);
-        // check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);
-
-        /**
          * NFD
          * nfd == toNFD(source) == toNFD(nfc) == toNFD(nfd)
          * nfkd == toNFD(nfkc) == toNFD(nfkd)
@@ -167,16 +168,6 @@ void run_normalization_tests(int limit) {
         check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line);
 
         /**
-         * TODO: add NFKC normalization
-         * nfkc == toNFKC(source) == toNFKC(nfc) == toNFKC(nfd) == toNFKC(nfkc) == toNFKC(nfkd)
-         */
-        // check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
-        // check_normalization((char*)nfc, nfc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
-        // check_normalization((char*)nfd, nfd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
-        // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
-        // check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
-
-        /**
          * NFKD
          * nfkd == toNFKD(source) == toNFKD(nfc) == toNFKD(nfd) == toNFKD(nfkc) == toNFKD(nfkd)
          */
@@ -185,6 +176,27 @@ void run_normalization_tests(int limit) {
         check_normalization((char*)nfd, nfd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line);
         check_normalization((char*)nfkc, nfkc_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line);
         check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line);
+
+        /**
+         * TODO: add NFC normalization
+         * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
+         * nfkc == toNFC(nfkc) == toNFC(nfkd)
+         */
+        check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
+        // check_normalization((char*)nfc, nfc_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
+        // check_normalization((char*)nfd, nfd_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
+        // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);
+        // check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);
+
+        /**
+         * TODO: add NFKC normalization
+         * nfkc == toNFKC(source) == toNFKC(nfc) == toNFKC(nfd) == toNFKC(nfkc) == toNFKC(nfkd)
+         */
+        // check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        // check_normalization((char*)nfc, nfc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        // check_normalization((char*)nfd, nfd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
+        // check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line);
 
         memset((void*)source, 0, 256);
         memset((void*)nfc, 0, 256);
@@ -202,6 +214,9 @@ void run_normalization_tests(int limit) {
             break;
         }
     }
+
+    // Reset the error callback
+    set_error_callback(NULL);
 
     fclose(file);
 }
