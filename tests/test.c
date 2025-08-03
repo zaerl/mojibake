@@ -9,8 +9,27 @@
 
 #include "test.h"
 
+static att_test_callback error_callback = NULL;
+
 int show_version(void) {
     printf("Mojibake v%s\n", MJB_VERSION);
+
+    return 0;
+}
+
+void set_error_callback(att_test_callback callback) {
+    error_callback = callback;
+}
+
+int attractor_test_callback(int test, const char *description) {
+    if(!test) {
+        if(error_callback) {
+            error_callback(test, description);
+        }
+
+        exit(1);
+        return 1;
+    }
 
     return 0;
 }
@@ -25,7 +44,7 @@ void show_help(const char *executable, struct option options[], const char *desc
         executable);
     fprintf(stream, "Options:\n");
 
-    for(unsigned long i = 0; i < 4; ++i) {
+    for(unsigned long i = 0; i < 5; ++i) {
         fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
             options[i].val,
             options[i].has_arg == no_argument ? "" : " ARG",
@@ -39,6 +58,7 @@ int main(int argc, char * const argv[]) {
     struct timespec start, end;
     double elapsed = 0;
     unsigned int verbosity = 0;
+    unsigned int exit_on_error = 0;
     int option = 0;
     int option_index = 0;
     char *filter = NULL;
@@ -48,22 +68,31 @@ int main(int argc, char * const argv[]) {
         { "help", no_argument, NULL, 'h' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
+        { "exit-on-error", no_argument, NULL, 'e' },
         { NULL, 0, NULL, 0 }
     };
     const char *descriptions[] = {
         "Filter tests by name in the form name1,name2,...",
         "Show this help message",
         "Verbose output. -vv for more verbosity",
-        "Print version"
+        "Print version",
+        "Exit immediately on first test failure"
     };
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     att_set_verbose(verbosity);
 
-    while((option = getopt_long(argc, argv, "f:hvV", long_options, &option_index)) != -1) {
+    if(exit_on_error) {
+        att_set_test_callback(attractor_test_callback);
+    }
+
+    while((option = getopt_long(argc, argv, "f:ehvV", long_options, &option_index)) != -1) {
         switch(option) {
             case 'f':
                 filter = strdup(optarg);
+                break;
+            case 'e':
+                exit_on_error = 1;
                 break;
             case 'h':
                 show_help(argv[0], long_options, descriptions, NULL);
@@ -82,6 +111,11 @@ int main(int argc, char * const argv[]) {
     }
 
     att_set_verbose(verbosity);
+
+    if(exit_on_error) {
+        att_set_test_callback(attractor_test_callback);
+    }
+
     unsigned int step = 0;
 
     #define RUN_TEST(NAME) \
