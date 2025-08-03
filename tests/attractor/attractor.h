@@ -84,7 +84,13 @@ void att_set_show_error(unsigned int show_error);
 
 typedef int (*att_generic_callback)(void*, void*, const char*);
 
+// A callback to be used when the default comparison fails.
 void att_set_generic_callback(att_generic_callback callback);
+
+typedef int (*att_test_callback)(int, const char*);
+
+// A callback to be used when an test occurs.
+void att_set_test_callback(att_test_callback callback);
 
 #ifdef __cplusplus
 }
