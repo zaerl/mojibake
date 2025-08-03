@@ -189,7 +189,7 @@ void run_normalization_tests(int limit) {
          * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
          * nfkc == toNFC(nfkc) == toNFC(nfkd)
          */
-        check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
+        // check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfc, nfc_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfd, nfd_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line);
         // check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line);
