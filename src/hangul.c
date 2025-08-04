@@ -30,10 +30,10 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
         return false;
     }
 
-    unsigned int s_index = codepoint - MJB_CODEPOINT_HANGUL_S_BASE;
-    unsigned int l_index = s_index / MJB_CODEPOINT_HANGUL_N_COUNT;
-    unsigned int v_index = (s_index % MJB_CODEPOINT_HANGUL_N_COUNT) / MJB_CODEPOINT_HANGUL_T_COUNT;
-    unsigned int t_index = s_index % MJB_CODEPOINT_HANGUL_T_COUNT;
+    unsigned int s_index = codepoint - MJB_CP_HANGUL_S_BASE;
+    unsigned int l_index = s_index / MJB_CP_HANGUL_N_COUNT;
+    unsigned int v_index = (s_index % MJB_CP_HANGUL_N_COUNT) / MJB_CP_HANGUL_T_COUNT;
+    unsigned int t_index = s_index % MJB_CP_HANGUL_T_COUNT;
 
     // Print the full name of the syllable
     snprintf(buffer, size, "HANGUL SYLLABLE %s%s%s", mjb_choseong_names[l_index],
@@ -48,22 +48,16 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
         return false;
     }
 
-    // Calculate the index in the Hangul syllable block
-    unsigned int syllable_index = codepoint - MJB_CODEPOINT_HANGUL_S_BASE;
-    unsigned int choseong_index = syllable_index / 588;
-    unsigned int jungseong_index = (syllable_index % 588) / 28;
-    unsigned int jongseong_index = syllable_index % 28;
+    unsigned int s_index = codepoint - MJB_CP_HANGUL_S_BASE;
+    unsigned int l = MJB_CP_HANGUL_L_BASE + s_index / MJB_CP_HANGUL_N_COUNT;
+    unsigned int v = MJB_CP_HANGUL_V_BASE + (s_index % MJB_CP_HANGUL_N_COUNT) / MJB_CP_HANGUL_T_COUNT;
+    unsigned int t = MJB_CP_HANGUL_T_BASE + s_index % MJB_CP_HANGUL_T_COUNT;
 
-    // Print NFD Decomposition
-    // Cho-seong component
-    codepoints[0] = MJB_CODEPOINT_HANGUL_L_BASE + choseong_index;
+    codepoints[0] = l;
+    codepoints[1] = v;
 
-    // Jung-seong component
-    codepoints[1] = MJB_CODEPOINT_HANGUL_V_BASE + jungseong_index;
-
-    // Jong-seong component (if present)
-    if(jongseong_index != 0) {
-        codepoints[2] = MJB_CODEPOINT_HANGUL_T_BASE + jongseong_index;
+    if(t != MJB_CP_HANGUL_T_BASE) {
+        codepoints[2] = t;
     } else {
         codepoints[2] = 0;
     }
@@ -73,9 +67,9 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
 
 // Return if the codepoint is an hangul syllable
 MJB_EXPORT bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint) {
-    unsigned int syllable_index = codepoint - MJB_CODEPOINT_HANGUL_S_BASE;
+    unsigned int syllable_index = codepoint - MJB_CP_HANGUL_S_BASE;
 
-    if(syllable_index < 0 || syllable_index >= MJB_CODEPOINT_HANGUL_S_COUNT) {
+    if(syllable_index < 0 || syllable_index >= MJB_CP_HANGUL_S_COUNT) {
         return false;
     }
 
