@@ -185,33 +185,11 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
         switch(form) {
             case MJB_NORMALIZATION_NFD:  // Canonical decomposition without recomposition
             case MJB_NORMALIZATION_NFC:  // Canonical decomposition followed by canonical composition
-                /*
-                 * For canonical normalization forms, only decompose characters that have:
-                 * - MJB_DECOMPOSITION_CANONICAL: Characters with canonical decompositions
-                 *   Examples: 'é' (U+00E9) → 'e' + combining acute accent
-                 *             'ñ' (U+00F1) → 'n' + combining tilde
-                 * - MJB_DECOMPOSITION_NONE: Characters with no decomposition (these will be processed
-                 *   but not actually decomposed, they just pass through)
-                 *
-                 * We do NOT decompose compatibility characters like:
-                 * - '①' (U+2460) → '1' + enclosing circle (MJB_DECOMPOSITION_CIRCLE)
-                 * - 'ﬁ' (U+FB01) → 'f' + 'i' (MJB_DECOMPOSITION_FONT)
-                 * - '²' (U+00B2) → '2' + superscript (MJB_DECOMPOSITION_SUPER)
-                 */
-                should_decompose = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL ||
-                current_character.decomposition == MJB_DECOMPOSITION_NONE;
+                should_decompose = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL;
                 break;
 
             case MJB_NORMALIZATION_NFKD: // Compatibility decomposition without recomposition
             case MJB_NORMALIZATION_NFKC: // Compatibility decomposition followed by canonical composition
-                /*
-                 * For compatibility normalization forms, decompose ALL characters that have
-                 * any type of decomposition.
-                 *
-                 * Examples of characters that will be decomposed:
-                 * - 'é' (U+00E9) → 'e' + combining acute accent (canonical)
-                 * - '①' (U+2460) → '1' + enclosing circle (compatibility)
-                 */
                 should_decompose = true;
                 break;
 
