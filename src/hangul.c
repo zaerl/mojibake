@@ -122,7 +122,6 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_character *characters, siz
     return len;
 }
 
-// Helper functions to detect Hangul Jamo characters
 MJB_EXPORT bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint) {
     int l_index = codepoint - MJB_CP_HANGUL_L_BASE;
     return l_index >= 0 && l_index < MJB_CP_HANGUL_L_COUNT;
