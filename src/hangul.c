@@ -30,17 +30,16 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
         return false;
     }
 
-    // Calculate the index in the Hangul syllable block
-    unsigned int syllable_index = codepoint - MJB_CODEPOINT_HANGUL_S_BASE;
-    unsigned int choseong_index = syllable_index / 588;
-    unsigned int jungseong_index = (syllable_index % 588) / 28;
-    unsigned int jongseong_index = syllable_index % 28;
+    unsigned int s_index = codepoint - MJB_CODEPOINT_HANGUL_S_BASE;
+    unsigned int l_index = s_index / MJB_CODEPOINT_HANGUL_N_COUNT;
+    unsigned int v_index = (s_index % MJB_CODEPOINT_HANGUL_N_COUNT) / MJB_CODEPOINT_HANGUL_T_COUNT;
+    unsigned int t_index = s_index % MJB_CODEPOINT_HANGUL_T_COUNT;
 
     // Print the full name of the syllable
-    snprintf(buffer, size, "HANGUL SYLLABLE %s%s%s", mjb_choseong_names[choseong_index],
-        mjb_jungseong_names[jungseong_index], mjb_jongseong_names[jongseong_index]);
+    snprintf(buffer, size, "HANGUL SYLLABLE %s%s%s", mjb_choseong_names[l_index],
+        mjb_jungseong_names[v_index], mjb_jongseong_names[t_index]);
 
-    return false;
+    return true;
 }
 
 // Hangul syllable decomposition

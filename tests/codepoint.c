@@ -36,7 +36,8 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE GA"), 0, "First hangul syllable")
 
     // U+D7A3 = Last hangul syllable
-    // ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_HANGUL_END), true, "Last hangul syllable")
+    mjb_codepoint last_syllable = MJB_CODEPOINT_HANGUL_S_BASE + MJB_CODEPOINT_HANGUL_S_COUNT - 1;
+    ATT_ASSERT(mjb_codepoint_character(&character, last_syllable), true, "Last hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
 
     mjb_codepoint_block block = {0};
