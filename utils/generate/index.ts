@@ -112,7 +112,7 @@ for(let i = 2; i < process.argv.length; ++i) {
 async function generate() {
   dbInit('../../mojibake.db', compact);
 
-  const blocks = readBlocks();
+  const blocks = await readBlocks();
   await readUnicodeData(blocks, readCompositionExclusions());
 
   generateHeader(blocks, categories);

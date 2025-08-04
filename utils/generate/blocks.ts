@@ -4,7 +4,7 @@ import { dbInsertBlock } from './db';
 import { log } from './log';
 import { Block } from './types';
 
-export function readBlocks(path = './UCD/Blocks.txt'): Block[] {
+export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   log('READ BLOCKS');
 
   const blocks: Block[] = [];
@@ -15,28 +15,32 @@ export function readBlocks(path = './UCD/Blocks.txt'): Block[] {
     crlfDelay: Infinity
   });
 
-  rl.on('line', (line: string) => {
-    if(line.startsWith('#') || line === '') { // Comment
-      return;
-    }
+  return new Promise((resolve) => {
+    rl.on('line', (line: string) => {
+      if(line.startsWith('#') || line === '') { // Comment
+        return;
+      }
 
-    const split = line.split('; ');
-    const name = split[1];
-    const values = split[0].split('..');
-    const start = parseInt(values[0], 16);
-    const end = parseInt(values[1], 16);
-    const block = {
-      name,
-      enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
-      start,
-      end
-    };
+      const split = line.split('; ');
+      const name = split[1];
+      const values = split[0].split('..');
+      const start = parseInt(values[0], 16);
+      const end = parseInt(values[1], 16);
+      const block = {
+        name,
+        enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
+        start,
+        end
+      };
 
-    blocks.push(block);
-    dbInsertBlock(id, block);
+      blocks.push(block);
+      dbInsertBlock(id, block);
 
-    ++id;
+      ++id;
+    });
+
+    rl.on('close', () => {
+      resolve(blocks);
+    });
   });
-
-  return blocks;
 }
