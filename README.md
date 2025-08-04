@@ -141,6 +141,12 @@ Hangul syllable decomposition
 bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 ```
 
+Hangul syllable composition
+
+```c
+mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len);
+```
+
 Return if the codepoint is an hangul syllable
 
 ```c

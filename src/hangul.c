@@ -65,6 +65,64 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
     return true;
 }
 
+mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len) {
+    if(source_len == 0) {
+        *result_len = 0;
+
+        return NULL;
+    }
+
+    // Allocate buffer for result (worst case: same size as input)
+    mjb_codepoint *result = mjb_alloc(source_len * sizeof(mjb_codepoint));
+    size_t len = 0;
+
+    // Copy first character
+    mjb_codepoint last = source[0];
+    result[len++] = last;
+
+    for(size_t i = 1; i < source_len; ++i) {
+        mjb_codepoint ch = source[i];
+
+        // 1. check to see if two current characters are L and V
+        int l_index = last - MJB_CP_HANGUL_L_BASE;
+
+        if(l_index >= 0 && l_index < MJB_CP_HANGUL_L_COUNT) {
+            int v_index = ch - MJB_CP_HANGUL_V_BASE;
+
+            if(v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT) {
+                // make syllable of form LV
+                last = MJB_CP_HANGUL_S_BASE + (l_index * MJB_CP_HANGUL_V_COUNT + v_index) * MJB_CP_HANGUL_T_COUNT;
+                result[len - 1] = last; // reset last
+
+                continue; // discard ch
+            }
+        }
+
+        // 2. check to see if two current characters are LV and T
+        int s_index = last - MJB_CP_HANGUL_S_BASE;
+
+        if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT && (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
+            int t_index = ch - MJB_CP_HANGUL_T_BASE;
+
+            if(t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT) {
+                // make syllable of form LVT
+                last += t_index;
+                result[len - 1] = last; // reset last
+
+                continue; // discard ch
+            }
+        }
+
+        // if neither case was true, just add the character
+        last = ch;
+        result[len++] = ch;
+    }
+
+    *result_len = len;
+
+    return result;
+}
+
 // Return if the codepoint is an hangul syllable
 MJB_EXPORT bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint) {
     unsigned int syllable_index = codepoint - MJB_CP_HANGUL_S_BASE;

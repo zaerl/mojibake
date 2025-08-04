@@ -154,6 +154,13 @@
     "args": ["mjb_codepoint codepoint", "mjb_codepoint *codepoints"]
   },
   {
+    "comment": "Hangul syllable composition",
+    "ret": "mjb_codepoint *",
+    "name": "hangul_syllable_composition",
+    "attributes": ["MJB_NONNULL(3)"],
+    "args": ["const mjb_codepoint *source", "size_t source_len", "size_t *result_len"]
+  },
+  {
     "comment": "Return if the codepoint is an hangul syllable",
     "ret": "bool",
     "name": "codepoint_is_hangul_syllable",

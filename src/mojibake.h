@@ -274,6 +274,9 @@ MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buff
 // Hangul syllable decomposition
 MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
+// Hangul syllable composition
+MJB_NONNULL(3) mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len);
+
 // Return if the codepoint is an hangul syllable
 MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
