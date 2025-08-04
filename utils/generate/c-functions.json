@@ -155,10 +155,38 @@
   },
   {
     "comment": "Hangul syllable composition",
-    "ret": "mjb_codepoint *",
+    "ret": "size_t",
     "name": "hangul_syllable_composition",
-    "attributes": ["MJB_NONNULL(3)"],
-    "args": ["const mjb_codepoint *source", "size_t source_len", "size_t *result_len"]
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["mjb_character *characters", "size_t characters_len"]
+  },
+  {
+    "comment": "Return if the codepoint is an hangul L",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_l",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return if the codepoint is an hangul V",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_v",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return if the codepoint is an hangul T",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_t",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
+  },
+  {
+    "comment": "Return if the codepoint is an hangul jamo",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_jamo",
+    "attributes": ["MJB_CONST"],
+    "args": ["mjb_codepoint codepoint"]
   },
   {
     "comment": "Return if the codepoint is an hangul syllable",

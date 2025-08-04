@@ -144,7 +144,31 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
 Hangul syllable composition
 
 ```c
-mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len);
+size_t mjb_hangul_syllable_composition(mjb_character *characters, size_t characters_len);
+```
+
+Return if the codepoint is an hangul L
+
+```c
+bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul V
+
+```c
+bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul T
+
+```c
+bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul jamo
+
+```c
+bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
 ```
 
 Return if the codepoint is an hangul syllable

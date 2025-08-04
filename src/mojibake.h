@@ -277,14 +277,20 @@ MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, m
 // Hangul syllable composition
 MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_character *characters, size_t characters_len);
 
+// Return if the codepoint is an hangul L
+MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul V
+MJB_CONST bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul T
+MJB_CONST bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul jamo
+MJB_CONST bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
+
 // Return if the codepoint is an hangul syllable
 MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
-
-// Helper functions for Hangul Jamo detection
-MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
-MJB_CONST bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
-MJB_CONST bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
-MJB_CONST bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK ideograph
 MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
