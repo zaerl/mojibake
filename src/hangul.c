@@ -43,7 +43,7 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
 }
 
 // Hangul syllable decomposition
-bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints) {
+MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints) {
     if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
         return false;
     }
@@ -65,7 +65,7 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
     return true;
 }
 
-mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len) {
+MJB_EXPORT mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len) {
     if(source_len == 0) {
         *result_len = 0;
 
