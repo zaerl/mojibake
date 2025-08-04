@@ -4,6 +4,7 @@ set(TEST_SOURCES
     codepoint.c
     encoding.c
     hangul.c
+    hangul-composition.c
     mojibake.c
     normalization.c
     plane.c

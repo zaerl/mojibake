@@ -130,6 +130,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(cjk)
     RUN_TEST(encoding)
     RUN_TEST(hangul)
+    RUN_TEST(hangul_composition)
     RUN_TEST(mojibake)
     RUN_TEST(normalization)
     RUN_TEST(plane)
