@@ -65,23 +65,19 @@ MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_c
     return true;
 }
 
-MJB_EXPORT mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *source, size_t source_len, size_t *result_len) {
-    if(source_len == 0) {
-        *result_len = 0;
-
-        return NULL;
+MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_character *characters, size_t characters_len) {
+    if(characters_len == 0) {
+        return 0;
     }
 
-    // Allocate buffer for result (worst case: same size as input)
-    mjb_codepoint *result = mjb_alloc(source_len * sizeof(mjb_codepoint));
     size_t len = 0;
 
     // Copy first character
-    mjb_codepoint last = source[0];
-    result[len++] = last;
+    mjb_codepoint last = characters[0].codepoint;
+    characters[len++].codepoint = last;
 
-    for(size_t i = 1; i < source_len; ++i) {
-        mjb_codepoint ch = source[i];
+    for(size_t i = 1; i < characters_len; ++i) {
+        mjb_codepoint ch = characters[i].codepoint;
 
         // 1. check to see if two current characters are L and V
         int l_index = last - MJB_CP_HANGUL_L_BASE;
@@ -92,7 +88,7 @@ MJB_EXPORT mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *s
             if(v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT) {
                 // make syllable of form LV
                 last = MJB_CP_HANGUL_S_BASE + (l_index * MJB_CP_HANGUL_V_COUNT + v_index) * MJB_CP_HANGUL_T_COUNT;
-                result[len - 1] = last; // reset last
+                characters[len - 1].codepoint = last; // reset last
 
                 continue; // discard ch
             }
@@ -107,7 +103,7 @@ MJB_EXPORT mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *s
             if(t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT) {
                 // make syllable of form LVT
                 last += t_index;
-                result[len - 1] = last; // reset last
+                characters[len - 1].codepoint = last; // reset last
 
                 continue; // discard ch
             }
@@ -115,12 +111,37 @@ MJB_EXPORT mjb_codepoint *mjb_hangul_syllable_composition(const mjb_codepoint *s
 
         // if neither case was true, just add the character
         last = ch;
-        result[len++] = ch;
+        characters[len++].codepoint = ch;
     }
 
-    *result_len = len;
+    // Mark remaining characters as invalid
+    for(size_t i = len; i < characters_len; ++i) {
+        characters[i].codepoint = MJB_CODEPOINT_NOT_VALID;
+    }
 
-    return result;
+    return len;
+}
+
+// Helper functions to detect Hangul Jamo characters
+MJB_EXPORT bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint) {
+    int l_index = codepoint - MJB_CP_HANGUL_L_BASE;
+    return l_index >= 0 && l_index < MJB_CP_HANGUL_L_COUNT;
+}
+
+MJB_EXPORT bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint) {
+    int v_index = codepoint - MJB_CP_HANGUL_V_BASE;
+    return v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT;
+}
+
+MJB_EXPORT bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint) {
+    int t_index = codepoint - MJB_CP_HANGUL_T_BASE;
+    return t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT;
+}
+
+MJB_EXPORT bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint) {
+    return mjb_codepoint_is_hangul_l(codepoint) ||
+           mjb_codepoint_is_hangul_v(codepoint) ||
+           mjb_codepoint_is_hangul_t(codepoint);
 }
 
 // Return if the codepoint is an hangul syllable

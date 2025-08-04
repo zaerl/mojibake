@@ -63,6 +63,34 @@ static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned 
 
             sqlite3_reset(stmt);
         }
+
+        // Apply Hangul composition after general Unicode composition
+        // First check if there are any Hangul Jamo characters or Hangul syllables in the buffer
+        bool has_hangul_jamo = false;
+        bool has_hangul_syllable = false;
+
+        for(size_t i = 0; i < buffer_index; ++i) {
+            if(characters_buffer[i].codepoint != MJB_CODEPOINT_NOT_VALID) {
+                if(mjb_codepoint_is_hangul_jamo(characters_buffer[i].codepoint)) {
+                    has_hangul_jamo = true;
+                }
+
+                if(mjb_codepoint_is_hangul_syllable(characters_buffer[i].codepoint)) {
+                    has_hangul_syllable = true;
+                }
+            }
+        }
+
+        bool has_hangul_content = has_hangul_jamo || has_hangul_syllable;
+
+        if(has_hangul_content) {
+            // Apply Hangul composition to the entire buffer
+            // This handles all cases: L+V+T sequences, L+V sequences, and S+T sequences
+            size_t result_len = mjb_hangul_syllable_composition(characters_buffer, buffer_index);
+
+            // Update buffer_index to reflect the new length
+            buffer_index = result_len;
+        }
     }
 
     // Write combining characters.
@@ -196,7 +224,9 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
         }
 
         // Hangul syllables have a special decomposition.
-        if(mjb_codepoint_is_hangul_syllable(current_codepoint)) {
+        // Only decompose in NFD/NFKD forms, not in NFC/NFKC forms
+        if(mjb_codepoint_is_hangul_syllable(current_codepoint) &&
+           (form == MJB_NORMALIZATION_NFD || form == MJB_NORMALIZATION_NFKD)) {
             mjb_codepoint codepoints[3];
             mjb_hangul_syllable_decomposition(current_codepoint, codepoints);
 
@@ -262,6 +292,26 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
         }
 
         if(!characters_decomposed) {
+            // Special handling for Hangul composition
+            if(form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC) {
+                // Check if we have a Hangul syllable followed by a trailing consonant
+                if(buffer_index > 0 &&
+                   mjb_codepoint_is_hangul_syllable(characters_buffer[buffer_index - 1].codepoint) &&
+                   mjb_codepoint_is_hangul_t(current_codepoint)) {
+                    // Check if the syllable can accept a trailing consonant
+                    mjb_codepoint syllable = characters_buffer[buffer_index - 1].codepoint;
+                    int s_index = syllable - MJB_CP_HANGUL_S_BASE;
+                    if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT && (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
+                        // The syllable has no trailing consonant, so we can add one
+                        mjb_codepoint trailing = current_codepoint;
+                        mjb_codepoint composed = syllable + (trailing - MJB_CP_HANGUL_T_BASE);
+                        characters_buffer[buffer_index - 1].codepoint = composed;
+                        // Don't add the trailing consonant since it's been composed
+                        continue;
+                    }
+                }
+            }
+
             if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                 ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
                 buffer_index = 0;
