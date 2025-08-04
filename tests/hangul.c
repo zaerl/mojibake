@@ -11,7 +11,7 @@ void *test_hangul(void *arg) {
     mjb_character character;
 
     // CURRENT_ASSERT mjb_hangul_syllable_name
-    mjb_hangul_syllable_name(MJB_CODEPOINT_HANGUL_START, character.name, 128);
+    mjb_hangul_syllable_name(MJB_CODEPOINT_HANGUL_S_BASE, character.name, 128);
     ATT_ASSERT(character.name, "HANGUL SYLLABLE GA", "First syllable")
 
     mjb_hangul_syllable_name(0xAC01, character.name, 128);
@@ -32,10 +32,10 @@ void *test_hangul(void *arg) {
     mjb_hangul_syllable_name(0xD3C9, character.name, 128);
     ATT_ASSERT(character.name, "HANGUL SYLLABLE PYEONG", "PYEONG")
 
-    mjb_hangul_syllable_name(MJB_CODEPOINT_HANGUL_END, character.name, 128);
+    mjb_hangul_syllable_name(MJB_CODEPOINT_HANGUL_S_BASE + MJB_CODEPOINT_HANGUL_S_COUNT - 1, character.name, 128);
     ATT_ASSERT(character.name, "HANGUL SYLLABLE HIH", "Last syllable")
 
-    ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CODEPOINT_HANGUL_START), true, "Hangul start")
+    ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CODEPOINT_HANGUL_S_BASE), true, "Hangul start")
 
     return NULL;
 }

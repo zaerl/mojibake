@@ -105,12 +105,17 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data
 #define MJB_CODEPOINT_NOT_VALID   0x110000 // Not a valid codepoint
 
-// Corean Hangul Syllables
-#define MJB_CODEPOINT_HANGUL_START 0xAC00
-#define MJB_CODEPOINT_HANGUL_END   0xD7A3
-#define MJB_CODEPOINT_CHOSEONG_BASE 0x1100
-#define MJB_CODEPOINT_JUNGSEONG_BASE 0x1161
-#define MJB_CODEPOINT_JONGSEONG_BASE 0x11A7
+// Hangul Syllables constants
+// See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G61399
+#define MJB_CODEPOINT_HANGUL_S_BASE 0xAC00
+#define MJB_CODEPOINT_HANGUL_L_BASE 0x1100
+#define MJB_CODEPOINT_HANGUL_V_BASE 0x1161
+#define MJB_CODEPOINT_HANGUL_T_BASE 0x11A7
+#define MJB_CODEPOINT_HANGUL_L_COUNT 19,
+#define MJB_CODEPOINT_HANGUL_V_COUNT 21,
+#define MJB_CODEPOINT_HANGUL_T_COUNT 28,
+#define MJB_CODEPOINT_HANGUL_N_COUNT 588 // V_COUNT * T_COUNT
+#define MJB_CODEPOINT_HANGUL_S_COUNT 11172 // L_COUNT * N_COUNT
 
 // CJK Ideographs
 #define MJB_CODEPOINT_CJK_IDEOGRAPH_START 0x4E00
