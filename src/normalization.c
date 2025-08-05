@@ -10,6 +10,61 @@
 
 extern struct mojibake mjb_global;
 
+static void mjb_sort(mjb_buffer_character array[], size_t size) {
+    for(size_t step = 1; step < size; ++step) {
+        mjb_buffer_character key = array[step];
+        int j = step - 1;
+
+        // Move elements of array[0..step-1], that are greater than key,
+        // to one position ahead of their current position
+        while(j >= 0 && array[j].combining > key.combining) {
+            array[j + 1] = array[j];
+            j = j - 1;
+        }
+
+        array[j + 1] = key;
+    }
+}
+
+/**
+ * A smaller version of mjb_normalize() that only returns the character information.
+ * This is used to avoid the overhead of the full normalization process.
+ */
+bool mjb_get_buffer_character(mjb_buffer_character *character, mjb_codepoint codepoint) {
+    if(!mjb_codepoint_is_valid(codepoint)) {
+        return false;
+    }
+
+    if(mjb_codepoint_is_hangul_syllable(codepoint) || mjb_codepoint_is_cjk_ideograph(codepoint)) {
+        character->codepoint = codepoint;
+        character->combining = MJB_CCC_NOT_REORDERED;
+        character->decomposition = MJB_DECOMPOSITION_NONE;
+
+        return true;
+    }
+
+    sqlite3_reset(mjb_global.stmt_buffer_character);
+    sqlite3_clear_bindings(mjb_global.stmt_buffer_character);
+
+    int rc = sqlite3_bind_int(mjb_global.stmt_buffer_character, 1, codepoint);
+
+    if(rc != SQLITE_OK) {
+        return false;
+    }
+
+    rc = sqlite3_step(mjb_global.stmt_buffer_character);
+
+    if(rc != SQLITE_ROW) {
+        return false;
+    }
+
+    character->codepoint = codepoint;
+    character->combining = (uint8_t)sqlite3_column_int(mjb_global.stmt_buffer_character, 1);
+    character->decomposition = (uint8_t)sqlite3_column_int(mjb_global.stmt_buffer_character, 2);
+
+    return true;
+}
+
 char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *output_index, size_t *output_size) {
     if(!utf8_size) {
         return NULL;
@@ -26,7 +81,7 @@ char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *
     return ret;
 }
 
-static inline char *mjb_flush_buffer(mjb_character *characters_buffer, unsigned int buffer_index,
+static char *mjb_flush_buffer(mjb_buffer_character *characters_buffer, unsigned int buffer_index,
     char *ret, size_t *output_index, size_t *output_size, mjb_normalization form) {
     // Sort combining characters by Canonical Combining Class (required for all forms)
     if(buffer_index) {
@@ -139,11 +194,11 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
-    mjb_character current_character;
+    mjb_buffer_character current_character;
 
     // Combining characters buffer.
     // TODO: set a limit and check it.
-    mjb_character characters_buffer[32];
+    mjb_buffer_character characters_buffer[32];
     unsigned int buffer_index = 0;
 
     // Return string.
@@ -170,7 +225,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
         }
 
         // Get current character.
-        if(!mjb_codepoint_character(&current_character, current_codepoint)) {
+        if(!mjb_get_buffer_character(&current_character, current_codepoint)) {
             continue;
         }
 
@@ -213,7 +268,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
-                if(!mjb_codepoint_character(&current_character, codepoints[i])) {
+                if(!mjb_get_buffer_character(&current_character, codepoints[i])) {
                     continue;
                 }
 
@@ -241,7 +296,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
-                if(!mjb_codepoint_character(&current_character, decomposed)) {
+                if(!mjb_get_buffer_character(&current_character, decomposed)) {
                     continue;
                 }
 

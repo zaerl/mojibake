@@ -92,6 +92,7 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_decompose;
     sqlite3_stmt *stmt_compatibility_decompose;
     sqlite3_stmt *stmt_compose;
+    sqlite3_stmt *stmt_buffer_character;
 } mojibake;
 
 /**
@@ -200,6 +201,14 @@ typedef struct mjb_character {
     mjb_codepoint titlecase;
 } mjb_character;
 
+// INTERNAL: A smaller version of mjb_character that only contains the information needed for the
+// normalization process.
+typedef struct {
+    mjb_codepoint codepoint;
+    uint8_t combining;
+    uint8_t decomposition;
+} mjb_buffer_character;
+
 typedef enum mjb_next_character_type {
     MJB_NEXT_CHAR_NONE = 0x0,
     MJB_NEXT_CHAR_FIRST = 0x1,
@@ -275,7 +284,7 @@ MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buff
 MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Hangul syllable composition
-MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_character *characters, size_t characters_len);
+MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 
 // Return if the codepoint is an hangul L
 MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
@@ -294,9 +303,6 @@ MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK ideograph
 MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
-
-// Sort
-MJB_NONNULL(1) void mjb_sort(mjb_character arr[], size_t size);
 
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);

@@ -158,7 +158,7 @@
     "ret": "size_t",
     "name": "hangul_syllable_composition",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["mjb_character *characters", "size_t characters_len"]
+    "args": ["mjb_buffer_character *characters", "size_t characters_len"]
   },
   {
     "comment": "Return if the codepoint is an hangul L",
@@ -201,13 +201,6 @@
     "name": "codepoint_is_cjk_ideograph",
     "attributes": ["MJB_CONST"],
     "args": ["mjb_codepoint codepoint"]
-  },
-  {
-    "comment": "Sort",
-    "ret": "void",
-    "name": "sort",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["mjb_character arr[]", "size_t size"]
   },
   {
     "comment": "Output the current library version (MJB_VERSION)",
