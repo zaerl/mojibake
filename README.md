@@ -144,7 +144,7 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
 Hangul syllable composition
 
 ```c
-size_t mjb_hangul_syllable_composition(mjb_character *characters, size_t characters_len);
+size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 ```
 
 Return if the codepoint is an hangul L
@@ -181,12 +181,6 @@ Return if the codepoint is CJK ideograph
 
 ```c
 bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
-```
-
-Sort
-
-```c
-void mjb_sort(mjb_character arr[], size_t size);
 ```
 
 Output the current library version (MJB_VERSION)

@@ -33,5 +33,4 @@
 | `mjb_next_character`                | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| `mjb_sort`                          | 0          |
 | **Total**                           | **199814** |

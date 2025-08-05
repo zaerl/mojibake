@@ -134,7 +134,6 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(mojibake)
     RUN_TEST(normalization)
     RUN_TEST(plane)
-    RUN_TEST(sort)
     // RUN_TEST(utf8)
     RUN_TEST(version)
 
