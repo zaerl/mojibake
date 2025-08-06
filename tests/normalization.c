@@ -186,7 +186,7 @@ void run_normalization_tests(int limit) {
         check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line, 5);
 
         /**
-         * TODO: add NFC normalization
+         * NFC
          * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
          * nfkc == toNFC(nfkc) == toNFC(nfkd)
          */
@@ -197,7 +197,7 @@ void run_normalization_tests(int limit) {
         check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line, 5);
 
         /**
-         * TODO: add NFKC normalization
+         * NFKC
          * nfkc == toNFKC(source) == toNFKC(nfc) == toNFKC(nfd) == toNFKC(nfkc) == toNFKC(nfkd)
          */
         check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line, 1);
