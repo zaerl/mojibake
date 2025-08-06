@@ -133,7 +133,7 @@ static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *cha
         // Check if we need to reallocate the output buffer
         if(*output_index >= *output_size) {
             *output_size *= 2;
-            output = mjb_realloc(output, *output_size);
+            output = mjb_realloc(output, *output_size * sizeof(mjb_buffer_character));
         }
 
         output[*output_index].codepoint = characters_buffer[i].codepoint;
@@ -261,8 +261,6 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         }
     }
 
-    mjb_free(*output);
-
     if(composed_output_index >= *output_size) {
         composed_output = mjb_realloc(composed_output, composed_output_index + 1);
     }
@@ -344,7 +342,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
 
     if(is_composition) {
-        composition_buffer = mjb_alloc(size);
+        composition_buffer = mjb_alloc(size * sizeof(mjb_buffer_character));
     } else {
         output = mjb_alloc(size);
     }
@@ -479,8 +477,8 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     } else {
                         output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
                             &output_index, output_size, form);
-                        buffer_index = 0;
                     }
+                    buffer_index = 0;
                 }
 
                 characters_buffer[buffer_index++] = current_character;
@@ -518,8 +516,8 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                 } else {
                     output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
                         output_size, form);
-                    buffer_index = 0;
                 }
+                buffer_index = 0;
             }
 
             characters_buffer[buffer_index++] = current_character;
@@ -534,8 +532,8 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
         } else {
             output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
                 output_size, form);
-            buffer_index = 0;
         }
+        buffer_index = 0;
     }
 
     if(is_composition) {
