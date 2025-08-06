@@ -35,6 +35,7 @@ void print_null_value(const char* label, unsigned int nl);
 void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl);
 void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name,
     char *label, unsigned int nl);
+void print_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint);
 
 bool parse_codepoint(const char *input, mjb_codepoint *codepoint);
 

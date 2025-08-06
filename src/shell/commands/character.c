@@ -73,7 +73,9 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     }
 
     print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFD, "nfd", "NFD", true);
+    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFC, "nfc", "NFC", true);
     print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD", true);
+    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkc", "NFKC", true);
 
     if(is_json) {
         print_id_name_value("category", character->category, category_name(character->category), true);
@@ -153,19 +155,19 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     }
 
     if(character->uppercase != 0) {
-        print_value("Uppercase", 1, "%04X", character->uppercase);
+        print_codepoint("Uppercase", 1, character->uppercase);
     } else {
         print_null_value("Uppercase", 1);
     }
 
     if(character->lowercase != 0) {
-        print_value("Lowercase", 1, "%04X", (unsigned int)character->lowercase);
+        print_codepoint("Lowercase", 1, (unsigned int)character->lowercase);
     } else {
         print_null_value("Lowercase", 1);
     }
 
     if(character->titlecase != 0) {
-        print_value("Titlecase", 2, "%04X", (unsigned int)character->titlecase);
+        print_codepoint("Titlecase", 2, character->titlecase);
     } else {
         print_null_value("Titlecase", 2);
     }

@@ -196,6 +196,23 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
     free(out);
 }
 
+void print_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint) {
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        char json_label[256];
+
+        json_label[0] = tolower(label[0]);
+        strncpy(json_label + 1, label + 1, 255);
+        json_label[255] = '\0';
+
+        printf("%s%s\"%s\":%s%s%u%s", json_i(), json_i(), json_label,
+            cmd_json_indent == 0 ? "" : " ", color_green_start(), (unsigned int)codepoint, color_reset());
+    } else {
+        printf("%s: %sU+%04X%s", label, color_green_start(), (unsigned int)codepoint, color_reset());
+    }
+
+    print_nl(nl);
+}
+
 bool parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     char *endptr;
     mjb_codepoint value = 0;
