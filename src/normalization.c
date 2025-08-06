@@ -150,19 +150,18 @@ static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *cha
  * Canonical Composition Algorithm
  */
 static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_count,
-    mjb_buffer_character *composition_buffer, size_t composition_buffer_size) {
-
+    mjb_buffer_character *composition_buffer) {
     // Nothing to recompose. Output an empty string.
-    if(composition_buffer_size == 0) {
+    if(codepoints_count == 0) {
         *output = mjb_alloc(1);
         *output_size = 0;
-        *output[0] = '\0';
+        (*output)[0] = '\0';
 
         return true;
     }
 
     // Apply Canonical Composition Algorithm
-    *output_size = composition_buffer_size * 2; // A good starting size.
+    *output_size = codepoints_count * 2; // A good starting size.
     char *composed_output = mjb_alloc(*output_size);
 
     size_t composed_output_index = 0;
@@ -172,8 +171,8 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     size_t utf8_size = 0;
     size_t i = 0;
 
-    while(i < composition_buffer_size) {
-        if(composition_buffer[i].combining == MJB_CCC_NOT_REORDERED) {
+    while(i < codepoints_count) {
+        if(composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             // Non-starter: output and continue
             // composed_output_index += mjb_codepoint_encode(composition_buffer[i].codepoint, composed_output_index, 5, MJB_ENCODING_UTF_8);
             // composed_output_index = mjb_output_string(composed_output, composition_buffer[i].codepoint, 5, MJB_ENCODING_UTF_8);
@@ -193,7 +192,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         ++i; // Move to first character after starter
 
         // Process combining characters following this starter
-        while(i < composition_buffer_size && composition_buffer[i].combining == MJB_CCC_NOT_REORDERED) {
+        while(i < codepoints_count && composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             mjb_codepoint combining_char = composition_buffer[i].codepoint;
             uint8_t current_combining_class = composition_buffer[i].combining;
 
@@ -323,7 +322,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
     mjb_normalization_character current_character;
-    size_t codepoints_count = 0;
+    // size_t codepoints_count = 0;
 
     // Combining characters buffer.
     // TODO: set a limit and check it.
@@ -336,7 +335,6 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
     // A composition buffer is used for NFC/NFKC forms. A string is returned later.
     mjb_buffer_character *composition_buffer = NULL;
-    size_t composition_buffer_size = 0;
 
     // This is the index of the next character to be written to the output string or the composition
     // buffer.
@@ -346,15 +344,12 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
 
     if(is_composition) {
-        // SELECT value FROM compatibility_decompositions WHERE id = ?
-        stmt = mjb_global.stmt_compatibility_decompose;
-        // Allocate a composition buffer.
         composition_buffer = mjb_alloc(size);
-        composition_buffer_size = size;
     } else {
         output = mjb_alloc(size);
-        *output_size = size;
     }
+
+    *output_size = size;
 
     if(is_compatibility) {
         // SELECT value FROM compatibility_decompositions WHERE id = ?
@@ -390,7 +385,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             continue;
         }
 
-        ++codepoints_count;
+        // ++codepoints_count;
 
         int characters_decomposed = 0;  // Count of characters produced by decomposition
         bool should_decompose = false;
@@ -422,13 +417,13 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
-                ++codepoints_count;
+                // ++codepoints_count;
 
                 // Starter: Any code point (assigned or not) with combining class of zero (ccc = 0)
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     if(is_composition) {
                         composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                            composition_buffer, &output_index, &composition_buffer_size, form);
+                            composition_buffer, &output_index, output_size, form);
                     } else {
                         output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
                             &output_index, output_size, form);
@@ -463,7 +458,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
-                ++codepoints_count;
+                // ++codepoints_count;
                 ++characters_decomposed;
 
                 /*
@@ -480,7 +475,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     if(is_composition) {
                         composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                           composition_buffer, &output_index, &composition_buffer_size, form);
+                           composition_buffer, &output_index, output_size, form);
                     } else {
                         output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
                             &output_index, output_size, form);
@@ -519,7 +514,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                 if(is_composition) {
                     composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                       composition_buffer, &output_index, &composition_buffer_size, form);
+                       composition_buffer, &output_index, output_size, form);
                 } else {
                     output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
                         output_size, form);
@@ -535,7 +530,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     if(buffer_index) {
         if(is_composition) {
             composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                composition_buffer, &output_index, &composition_buffer_size, form);
+                composition_buffer, &output_index, output_size, form);
         } else {
             output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
                 output_size, form);
@@ -545,7 +540,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
     if(is_composition) {
         // Recompose the string.
-        mjb_recompose(&output, output_size, codepoints_count, composition_buffer, composition_buffer_size);
+        mjb_recompose(&output, output_size, output_index, composition_buffer);
         mjb_free(composition_buffer);
     } else {
         // Guarantee null-terminated string
