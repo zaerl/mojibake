@@ -39,6 +39,12 @@ Encode a codepoint to a string
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 ```
 
+Return the length of a UTF-8 sequence
+
+```c
+size_t mjb_string_utf8_length(const char *buffer, size_t max_length);
+```
+
 Return true if the codepoint is valid
 
 ```c
@@ -144,7 +150,7 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
 Hangul syllable composition
 
 ```c
-size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
+size_t mjb_hangul_syllable_composition(mjb_normalization_character *characters, size_t characters_len);
 ```
 
 Return if the codepoint is an hangul L
