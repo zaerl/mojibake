@@ -2,6 +2,7 @@ import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
+import { generateCasefold } from './casefold';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
 import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbSize } from './db';
@@ -12,7 +13,6 @@ import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import {
   BidirectionalCategories, Block, categories, Categories,
-  Composition,
   UnicodeDataRow
 } from './types';
 
@@ -26,7 +26,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   let codepoint = 0;
   let currentBlock = 0;
   let characters: Character[] = [];
-  let compositions: Composition[] = [];
 
   const rl = createInterface({
     input: createReadStream('./UCD/UnicodeData.txt'),
@@ -92,6 +91,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   dbRunDecompositions(generateDecomposition(characters));
   dbRunDecompositions(generateDecomposition(characters, true), true);
   dbRunComposition(generateComposition(characters, exclusions));
+
+  await generateCasefold();
 
   dbRunAfter();
 
