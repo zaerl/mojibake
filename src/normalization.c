@@ -10,10 +10,6 @@
 
 extern struct mojibake mjb_global;
 
-typedef struct {
-    uint32_t codepoint;
-    uint16_t combining;
-} mjb_buffer_character;
 
 // Normalization sort.
 static void mjb_normalization_sort(mjb_normalization_character array[], size_t size) {
@@ -160,6 +156,20 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         return true;
     }
 
+    // Apply Hangul composition first
+    bool has_hangul = false;
+    for(size_t i = 0; i < codepoints_count; ++i) {
+        if(mjb_codepoint_is_hangul_jamo(composition_buffer[i].codepoint) ||
+           mjb_codepoint_is_hangul_syllable(composition_buffer[i].codepoint)) {
+            has_hangul = true;
+            break;
+        }
+    }
+
+    if(has_hangul) {
+        codepoints_count = mjb_hangul_syllable_composition(composition_buffer, codepoints_count);
+    }
+
     // Apply Canonical Composition Algorithm
     *output_size = codepoints_count * 2; // A good starting size.
     char *composed_output = mjb_alloc(*output_size);
@@ -278,34 +288,6 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     *output_size = composed_output_index;
     composed_output[composed_output_index] = '\0';
 
-    /*
-    // Apply Hangul composition after general Unicode composition
-    // First check if there are any Hangul Jamo characters or Hangul syllables in the buffer
-    bool has_hangul_jamo = false;
-    bool has_hangul_syllable = false;
-
-    for(size_t i = 0; i < buffer_index; ++i) {
-        if(characters_buffer[i].codepoint != MJB_CODEPOINT_NOT_VALID) {
-            if(mjb_codepoint_is_hangul_jamo(characters_buffer[i].codepoint)) {
-                has_hangul_jamo = true;
-            }
-
-            if(mjb_codepoint_is_hangul_syllable(characters_buffer[i].codepoint)) {
-                has_hangul_syllable = true;
-            }
-        }
-    }
-
-    bool has_hangul_content = has_hangul_jamo || has_hangul_syllable;
-
-    if(has_hangul_content) {
-        // Apply Hangul composition to the entire buffer
-        // This handles all cases: L+V+T sequences, L+V sequences, and S+T sequences
-        size_t result_len = mjb_hangul_syllable_composition(characters_buffer, buffer_index);
-
-        // Update buffer_index to reflect the new length
-        buffer_index = result_len;
-    }*/
 
     return true;
 }

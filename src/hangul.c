@@ -65,7 +65,7 @@ MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_c
     return true;
 }
 
-MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_normalization_character *characters, size_t characters_len) {
+MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len) {
     if(characters_len == 0) {
         return 0;
     }

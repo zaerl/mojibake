@@ -211,6 +211,12 @@ typedef struct {
     uint8_t decomposition;
 } mjb_normalization_character;
 
+// Buffer character used in composition phase
+typedef struct {
+    uint32_t codepoint;
+    uint16_t combining;
+} mjb_buffer_character;
+
 typedef enum mjb_next_character_type {
     MJB_NEXT_CHAR_NONE = 0x0,
     MJB_NEXT_CHAR_FIRST = 0x1,
@@ -289,7 +295,7 @@ MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buff
 MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Hangul syllable composition
-MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_normalization_character *characters, size_t characters_len);
+MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 
 // Return if the codepoint is an hangul L
 MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
