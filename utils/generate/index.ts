@@ -6,8 +6,8 @@ import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
 import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
+import { generateAPI } from './generate-api';
 import { generateHeader } from './generate-header';
-import { generateReadme } from './generate-readme';
 import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import {
@@ -117,7 +117,7 @@ async function generate() {
 
   generateHeader(blocks, categories);
   // generateData(characters);
-  generateReadme();
+  generateAPI();
 
   const size = dbSize();
   iLog(`Database size: ${size.toLocaleString()} bytes\n`);

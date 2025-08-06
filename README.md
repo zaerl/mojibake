@@ -5,240 +5,141 @@
 > use, and there may be bugs, limitations, or incomplete features. Use at your
 > own discretion, and feel free to collaborate
 
-Mojibake is a low-level Unicode library written in C99.
+Mojibake is a low-level Unicode library written in C99. It aims to be fast and small. It consists in
+a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file. A `shell.c` file is also provided that
+let you build a `mojibake` CLI.
 
-## API
+## String normalization
 
-Return the string encoding (the most probable)
-
-```c
-mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
-```
-
-Return true if the string is encoded in UTF-8
+Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
 
 ```c
-bool mjb_string_is_utf8(const char *buffer, size_t size);
+#include "mojibake.h"
+
+// The string to normalize
+const char *hello = "Hello, World!"
+// The length of the normalized string
+size_t normalized_size = 0;
+
+char *normalized = mjb_normalize(hello, 13, &normalized_size, MJB_NORMALIZATION_NFC);
+printf("Normalized: %s\nSize: %zu\n", normalized, normalized_size);
+
+// Remember to free() the string
+mjb_free(normalized);
+
 ```
 
-Return true if the string is encoded in ASCII
+## Codepoints informations
+
+You can retrieved informations about codepoints. Example for `U+0F00`
 
 ```c
-bool mjb_string_is_ascii(const char *buffer, size_t size);
+#include "mojibake.h"
+
+mjb_character character;
+
+mjb_codepoint_character(0x0F00, &character);
 ```
 
-Return next codepoint in the string
+### CLI
 
-```c
-mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
+A `shell.c` file is provided that let you have a CLI to test the library. Example usage:
+
+```sh
+mojibake char $'\U0F00'
 ```
 
-Encode a codepoint to a string
+Plain text output:
 
-```c
-unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+```
+Codepoint: U+022A
+Name: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
+Character: Ȫ
+Hex UTF-8: C8 AA
+NFD: Ȫ
+NFD normalization: U+004F U+0308 U+0304
+NFC: Ȫ
+NFC normalization: U+022A
+NFKD: Ȫ
+NFKD normalization: U+004F U+0308 U+0304
+NFKC: Ȫ
+NFKC normalization: U+004F U+0308 U+0304
+Category: [0] Letter, uppercase
+Combining: [0] Not reordered
+Bidirectional: [1] Left-to-right
+Plane: [0] Basic Multilingual Plane
+Block: [3] Latin Extended-B
+Decomposition: [1] Canonical
+Decimal: N/A
+Digit: N/A
+Numeric: N/A
+Mirrored: N
+Uppercase: N/A
+Lowercase: U+022B
+Titlecase: N/A
 ```
 
-Return the length of a UTF-8 sequence
+JSON format:
 
-```c
-size_t mjb_string_utf8_length(const char *buffer, size_t max_length);
+```sh
+mojibake -o json char $'\U0F00'
 ```
 
-Return true if the codepoint is valid
+JSON is by default indented with two characters. But you can change it, if you need to parse
+multiple codepoints. E.g. `./mojibake.sh -j 0 -o json char $'\U61\U62'`
 
-```c
-bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
+```json
+[
+  {
+    "codepoint": "U+022A",
+    "name": "LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON",
+    "character": "Ȫ",
+    "hex_utf-8": [200, 170],
+    "nfd": "Ȫ",
+    "nfd_normalization": [79, 776, 772],
+    "nfc": "Ȫ",
+    "nfc_normalization": [554],
+    "nfkd": "Ȫ",
+    "nfkd_normalization": [79, 776, 772],
+    "nfkc": "Ȫ",
+    "nfkc_normalization": [79, 776, 772],
+    "category": {
+      "code": 0,
+      "value": "Letter, uppercase"
+    },
+    "combining": {
+      "code": 0,
+      "value": "Not reordered"
+    },
+    "bidirectional": {
+      "code": 1,
+      "value": "Left-to-right"
+    },
+    "plane": {
+      "code": 0,
+      "value": "Basic Multilingual Plane"
+    },
+    "block": {
+      "code": 3,
+      "value": "Latin Extended-B"
+    },
+    "decomposition": {
+      "code": 1,
+      "value": "Canonical"
+    },
+    "decimal": null,
+    "digit": null,
+    "numeric": null,
+    "mirrored": false,
+    "uppercase": null,
+    "lowercase": 555,
+    "titlecase": null
+  }
+]
 ```
 
-Return the codepoint character
+### Coverage
 
-```c
-bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
-```
-
-Return true if the codepoint has the category
-
-```c
-bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
-```
-
-Return true if the codepoint is graphic
-
-```c
-bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
-```
-
-Return true if the codepoint is combining
-
-```c
-bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
-```
-
-Return true if the category is combining
-
-```c
-bool mjb_category_is_combining(mjb_category category);
-```
-
-Return the character block
-
-```c
-bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block *block);
-```
-
-Return the codepoint lowercase codepoint
-
-```c
-mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
-```
-
-Return the codepoint uppercase codepoint
-
-```c
-mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
-```
-
-Return the codepoint titlecase codepoint
-
-```c
-mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
-```
-
-Normalize a string
-
-```c
-char *mjb_normalize(const char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form);
-```
-
-Get the next character from the string
-
-```c
-bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
-```
-
-Return the plane of the codepoint
-
-```c
-mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
-```
-
-Return true if the plane is valid
-
-```c
-bool mjb_plane_is_valid(mjb_plane plane);
-```
-
-Return the name of a plane, NULL if the place specified is not valid
-
-```c
-const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
-```
-
-Return hangul syllable name
-
-```c
-bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
-```
-
-Hangul syllable decomposition
-
-```c
-bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
-```
-
-Hangul syllable composition
-
-```c
-size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
-```
-
-Return if the codepoint is an hangul L
-
-```c
-bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul V
-
-```c
-bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul T
-
-```c
-bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul jamo
-
-```c
-bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul syllable
-
-```c
-bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is CJK ideograph
-
-```c
-bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
-```
-
-Output the current library version (MJB_VERSION)
-
-```c
-const char *mjb_version(void);
-```
-
-Output the current library version number (MJB_VERSION_NUMBER)
-
-```c
-unsigned int mjb_version_number(void);
-```
-
-Output the current supported unicode version (MJB_UNICODE_VERSION)
-
-```c
-const char *mjb_unicode_version(void);
-```
-
-Initialize the library. Not needed to be called
-
-```c
-bool mjb_initialize(void);
-```
-
-Initialize the library with custom values. Not needed to be called
-
-```c
-bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, sqlite3_mem_methods *db_mem_methods);
-```
-
-Shutdown the library. Not needed to be called
-
-```c
-void mjb_shutdown(void);
-```
-
-Allocate and zero memory
-
-```c
-void *mjb_alloc(size_t size);
-```
-
-Reallocate memory
-
-```c
-void *mjb_realloc(void *ptr, size_t new_size);
-```
-
-Free memory
-
-```c
-void mjb_free(void *ptr);
-```
+Mojibake run all the normalization tests found in the standard
+[NormalizationTest.txt](https://www.unicode.org/Public/16.0.0/ucd/NormalizationTest.txt) suite of
+tests.
