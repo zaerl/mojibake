@@ -1,5 +1,4 @@
 build/*
-mojibake.db
 cli/*
 src/sqlite/*
 src/mojibake.db-journal
