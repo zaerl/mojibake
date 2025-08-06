@@ -9,6 +9,7 @@ set(TEST_SOURCES
     next.c
     normalization.c
     plane.c
+    string.c
     utf8.c
     test.c
     version.c

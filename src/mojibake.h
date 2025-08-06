@@ -241,7 +241,7 @@ MJB_PURE mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 
 // Return the length of a UTF-8 sequence
-MJB_PURE size_t mjb_string_utf8_length(const char *buffer, size_t max_length);
+MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Return true if the codepoint is valid
 MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);

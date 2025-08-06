@@ -7,6 +7,7 @@ set(SOURCES
     mojibake.c
     normalization.c
     plane.c
+    string.c
     version.c
 )
 

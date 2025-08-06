@@ -135,6 +135,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(next)
     RUN_TEST(normalization)
     RUN_TEST(plane)
+    RUN_TEST(string)
     // RUN_TEST(utf8)
     RUN_TEST(version)
 

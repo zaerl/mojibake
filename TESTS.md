@@ -6,7 +6,7 @@
 | `mjb_codepoint_is_valid`            | 39         |
 | `mjb_codepoint_character`           | 20         |
 | `mjb_string_is_utf8`                | 16         |
-| `mjb_string_utf8_length`            | 16         |
+| `mjb_strnlen`                       | 16         |
 | `mjb_codepoint_encode`              | 15         |
 | `mjb_character_block`               | 10         |
 | `mjb_hangul_syllable_composition`   | 10         |

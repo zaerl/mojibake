@@ -33,7 +33,7 @@ unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t 
 Return the length of a UTF-8 sequence
 
 ```c
-size_t mjb_string_utf8_length(const char *buffer, size_t max_length);
+size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 ```
 
 Return true if the codepoint is valid

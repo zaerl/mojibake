@@ -37,9 +37,9 @@
   {
     "comment": "Return the length of a UTF-8 sequence",
     "ret": "size_t",
-    "name": "string_utf8_length",
+    "name": "strnlen",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t max_length"]
+    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
   },
   {
     "comment": "Return true if the codepoint is valid",

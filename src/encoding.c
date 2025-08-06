@@ -264,29 +264,3 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
     return 0;
 }
-
-/**
- * Return UTF-8 length of a string.
- */
-MJB_EXPORT size_t mjb_string_utf8_length(const char *buffer, size_t max_length) {
-    if(buffer == 0 || max_length == 0) {
-        return 0;
-    }
-
-    uint8_t state = MJB_UTF8_ACCEPT;
-    mjb_codepoint codepoint;
-    size_t count = 0;
-    const char *current = buffer;
-
-    while(*current && (size_t)(current - buffer) < max_length) {
-        state = mjb_utf8_decode_step(state, *current, &codepoint);
-
-        if(state == MJB_UTF8_ACCEPT) {
-            ++count;
-        }
-
-        ++current;
-    }
-
-    return count;
-}
