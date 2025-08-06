@@ -3,6 +3,7 @@ set(SOURCES
     cjk.c
     encoding.c
     hangul.c
+    next.c
     mojibake.c
     normalization.c
     plane.c
