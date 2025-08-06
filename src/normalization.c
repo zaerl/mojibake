@@ -10,9 +10,15 @@
 
 extern struct mojibake mjb_global;
 
-static void mjb_sort(mjb_buffer_character array[], size_t size) {
+typedef struct {
+    uint32_t codepoint;
+    uint16_t combining;
+} mjb_buffer_character;
+
+// Normalization sort.
+static void mjb_normalization_sort(mjb_normalization_character array[], size_t size) {
     for(size_t step = 1; step < size; ++step) {
-        mjb_buffer_character key = array[step];
+        mjb_normalization_character key = array[step];
         int j = step - 1;
 
         // Move elements of array[0..step-1], that are greater than key,
@@ -30,7 +36,7 @@ static void mjb_sort(mjb_buffer_character array[], size_t size) {
  * A smaller version of mjb_normalize() that only returns the character information.
  * This is used to avoid the overhead of the full normalization process.
  */
-bool mjb_get_buffer_character(mjb_buffer_character *character, mjb_codepoint codepoint) {
+static bool mjb_get_buffer_character(mjb_normalization_character *character, mjb_codepoint codepoint) {
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
@@ -65,7 +71,7 @@ bool mjb_get_buffer_character(mjb_buffer_character *character, mjb_codepoint cod
     return true;
 }
 
-char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *output_index, size_t *output_size) {
+static char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *output_index, size_t *output_size) {
     if(!utf8_size) {
         return NULL;
     }
@@ -76,77 +82,24 @@ char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *
     }
 
     memcpy((char*)ret + *output_index, buffer_utf8, utf8_size);
-    *output_index += utf8_size;;
+    *output_index += utf8_size;
 
     return ret;
 }
 
-static char *mjb_flush_buffer(mjb_buffer_character *characters_buffer, unsigned int buffer_index,
-    char *ret, size_t *output_index, size_t *output_size, mjb_normalization form) {
+// Flush the decomposition buffer to a UTF-8 string.
+static char *mjb_flush_d_buffer(mjb_normalization_character *characters_buffer, size_t buffer_index,
+    char *output, size_t *output_index, size_t *output_size, mjb_normalization form) {
+
     // Sort combining characters by Canonical Combining Class (required for all forms)
     if(buffer_index) {
-        mjb_sort(characters_buffer, buffer_index);
+        mjb_normalization_sort(characters_buffer, buffer_index);
+    } else {
+        return output;
     }
 
     char buffer_utf8[5];
     size_t utf8_size = 0;
-    bool do_recomposition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
-
-    if(do_recomposition && buffer_index > 1) {
-        sqlite3_stmt *stmt = mjb_global.stmt_compose;
-        sqlite3_reset(stmt);
-        sqlite3_clear_bindings(stmt);
-
-        for(size_t i = 1; i < buffer_index; ++i) {
-            int rc = sqlite3_bind_int(stmt, 1, characters_buffer[0].codepoint);
-            rc = sqlite3_bind_int(stmt, 2, characters_buffer[i].codepoint);
-
-            if(rc != SQLITE_OK) {
-                return ret;
-            }
-
-            while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-                mjb_codepoint composed = (mjb_codepoint)sqlite3_column_int(stmt, 0);
-
-                if(composed == MJB_CODEPOINT_NOT_VALID) {
-                    continue;
-                }
-
-                characters_buffer[0].codepoint = composed;
-                characters_buffer[i].codepoint = MJB_CODEPOINT_NOT_VALID;
-            }
-
-            sqlite3_reset(stmt);
-        }
-
-        // Apply Hangul composition after general Unicode composition
-        // First check if there are any Hangul Jamo characters or Hangul syllables in the buffer
-        bool has_hangul_jamo = false;
-        bool has_hangul_syllable = false;
-
-        for(size_t i = 0; i < buffer_index; ++i) {
-            if(characters_buffer[i].codepoint != MJB_CODEPOINT_NOT_VALID) {
-                if(mjb_codepoint_is_hangul_jamo(characters_buffer[i].codepoint)) {
-                    has_hangul_jamo = true;
-                }
-
-                if(mjb_codepoint_is_hangul_syllable(characters_buffer[i].codepoint)) {
-                    has_hangul_syllable = true;
-                }
-            }
-        }
-
-        bool has_hangul_content = has_hangul_jamo || has_hangul_syllable;
-
-        if(has_hangul_content) {
-            // Apply Hangul composition to the entire buffer
-            // This handles all cases: L+V+T sequences, L+V sequences, and S+T sequences
-            size_t result_len = mjb_hangul_syllable_composition(characters_buffer, buffer_index);
-
-            // Update buffer_index to reflect the new length
-            buffer_index = result_len;
-        }
-    }
 
     // Write combining characters.
     for(size_t i = 0; i < buffer_index; ++i) {
@@ -155,58 +108,266 @@ static char *mjb_flush_buffer(mjb_buffer_character *characters_buffer, unsigned 
         }
 
         utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-        ret = mjb_output_string(ret, buffer_utf8, utf8_size, output_index, output_size);
+        output = mjb_output_string(output, buffer_utf8, utf8_size, output_index, output_size);
     }
 
-    return ret;
+    return output;
+}
+
+// Flush the composition buffer to a bit array.
+static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *characters_buffer, size_t buffer_index,
+    mjb_buffer_character *output, size_t *output_index, size_t *output_size, mjb_normalization form) {
+
+    // Sort combining characters by Canonical Combining Class (required for all forms)
+    if(buffer_index) {
+        mjb_normalization_sort(characters_buffer, buffer_index);
+    } else {
+        return output;
+    }
+
+    for(size_t i = 0; i < buffer_index; ++i) {
+        if(characters_buffer[i].codepoint == MJB_CODEPOINT_NOT_VALID) {
+            continue;
+        }
+
+        // Check if we need to reallocate the output buffer
+        if(*output_index >= *output_size) {
+            *output_size *= 2;
+            output = mjb_realloc(output, *output_size);
+        }
+
+        output[*output_index].codepoint = characters_buffer[i].codepoint;
+        output[*output_index].combining = characters_buffer[i].combining;
+
+        ++(*output_index);
+    }
+
+    return output;
+}
+
+/**
+ * Recompose the string.
+ * Canonical Composition Algorithm
+ */
+static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_count,
+    mjb_buffer_character *composition_buffer, size_t composition_buffer_size) {
+
+    // Nothing to recompose. Output an empty string.
+    if(composition_buffer_size == 0) {
+        *output = mjb_alloc(1);
+        *output_size = 0;
+        *output[0] = '\0';
+
+        return true;
+    }
+
+    // Apply Canonical Composition Algorithm
+    *output_size = composition_buffer_size * 2; // A good starting size.
+    char *composed_output = mjb_alloc(*output_size);
+
+    size_t composed_output_index = 0;
+    sqlite3_stmt *stmt = mjb_global.stmt_compose;
+
+    char buffer_utf8[5];
+    size_t utf8_size = 0;
+    size_t i = 0;
+
+    while(i < composition_buffer_size) {
+        if(composition_buffer[i].combining == MJB_CCC_NOT_REORDERED) {
+            // Non-starter: output and continue
+            // composed_output_index += mjb_codepoint_encode(composition_buffer[i].codepoint, composed_output_index, 5, MJB_ENCODING_UTF_8);
+            // composed_output_index = mjb_output_string(composed_output, composition_buffer[i].codepoint, 5, MJB_ENCODING_UTF_8);
+            utf8_size = mjb_codepoint_encode(composition_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+            composed_output = mjb_output_string(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
+
+            ++i;
+
+            continue;
+        }
+
+        // Found a starter
+        mjb_codepoint starter = composition_buffer[i].codepoint;
+        size_t starter_pos = i;
+        uint8_t last_combining_class = 0;
+
+        ++i; // Move to first character after starter
+
+        // Process combining characters following this starter
+        while(i < composition_buffer_size && composition_buffer[i].combining == MJB_CCC_NOT_REORDERED) {
+            mjb_codepoint combining_char = composition_buffer[i].codepoint;
+            uint8_t current_combining_class = composition_buffer[i].combining;
+
+            // Check if composition is blocked
+            bool blocked = (last_combining_class != 0 &&
+            last_combining_class >= current_combining_class);
+
+            if(!blocked) {
+                // Try to compose starter with this combining character
+                sqlite3_reset(stmt);
+                sqlite3_clear_bindings(stmt);
+
+                int rc = sqlite3_bind_int(stmt, 1, starter);
+                if(rc != SQLITE_OK) {
+                    mjb_free(composed_output);
+
+                    return false;
+                }
+
+                rc = sqlite3_bind_int(stmt, 2, combining_char);
+                if(rc != SQLITE_OK) {
+                    mjb_free(composed_output);
+
+                    return false;
+                }
+
+                mjb_codepoint composed = MJB_CODEPOINT_NOT_VALID;
+
+                while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                    composed = (mjb_codepoint)sqlite3_column_int(stmt, 0);
+                }
+
+                if(composed != MJB_CODEPOINT_NOT_VALID) {
+                    // Composition successful
+                    starter = composed;
+                    composition_buffer[i].codepoint = MJB_CODEPOINT_NOT_VALID; // Mark as consumed
+                    // Don't update last_combining_class since the character was consumed
+                } else {
+                    // No composition found
+                    if(current_combining_class != 0) {
+                        last_combining_class = current_combining_class;
+                    }
+                }
+            } else {
+                // Composition blocked
+                if(current_combining_class != 0) {
+                    last_combining_class = current_combining_class;
+                }
+            }
+
+            ++i;
+        }
+
+        // Output the starter (possibly composed)
+        // composed_output_index += mjb_codepoint_encode(starter, composed_output_index, 5, MJB_ENCODING_UTF_8);
+        utf8_size = mjb_codepoint_encode(starter, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        composed_output = mjb_output_string(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
+
+        // Output any non-consumed combining characters in order
+        for(size_t j = starter_pos + 1; j < i; ++j) {
+            if(composition_buffer[j].codepoint != MJB_CODEPOINT_NOT_VALID) {
+                // composed_output_index += mjb_codepoint_encode(composition_buffer[j].codepoint, composed_output_index, 5, MJB_ENCODING_UTF_8);
+                utf8_size = mjb_codepoint_encode(composition_buffer[j].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+                composed_output = mjb_output_string(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
+            }
+        }
+    }
+
+    mjb_free(*output);
+
+    if(composed_output_index >= *output_size) {
+        composed_output = mjb_realloc(composed_output, composed_output_index + 1);
+    }
+
+    *output = composed_output;
+    *output_size = composed_output_index;
+    composed_output[composed_output_index] = '\0';
+
+    /*
+    // Apply Hangul composition after general Unicode composition
+    // First check if there are any Hangul Jamo characters or Hangul syllables in the buffer
+    bool has_hangul_jamo = false;
+    bool has_hangul_syllable = false;
+
+    for(size_t i = 0; i < buffer_index; ++i) {
+        if(characters_buffer[i].codepoint != MJB_CODEPOINT_NOT_VALID) {
+            if(mjb_codepoint_is_hangul_jamo(characters_buffer[i].codepoint)) {
+                has_hangul_jamo = true;
+            }
+
+            if(mjb_codepoint_is_hangul_syllable(characters_buffer[i].codepoint)) {
+                has_hangul_syllable = true;
+            }
+        }
+    }
+
+    bool has_hangul_content = has_hangul_jamo || has_hangul_syllable;
+
+    if(has_hangul_content) {
+        // Apply Hangul composition to the entire buffer
+        // This handles all cases: L+V+T sequences, L+V sequences, and S+T sequences
+        size_t result_len = mjb_hangul_syllable_composition(characters_buffer, buffer_index);
+
+        // Update buffer_index to reflect the new length
+        buffer_index = result_len;
+    }*/
+
+    return true;
 }
 
 /**
  * Normalize a string
  */
-MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
-    if(!mjb_initialize()) {
+MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_size,
+    mjb_encoding encoding, mjb_normalization form) {
+    if(!mjb_initialize() || encoding != MJB_ENCODING_UTF_8 || size == 0) {
         return NULL;
     }
 
-    if(encoding != MJB_ENCODING_UTF_8) {
-        return NULL;
-    }
-
-    if(size == 0) {
-        *output_size = 0;
-
+    if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
+       form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
         return NULL;
     }
 
     sqlite3_stmt *stmt;
 
-    if(form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFD) {
-        // SELECT value FROM decompositions WHERE id = ?
-        stmt = mjb_global.stmt_decompose;
-    } else {
+    uint8_t state = MJB_UTF8_ACCEPT;
+    mjb_codepoint current_codepoint;
+    mjb_normalization_character current_character;
+    size_t codepoints_count = 0;
+
+    // Combining characters buffer.
+    // TODO: set a limit and check it.
+    mjb_normalization_character characters_buffer[32];
+    size_t buffer_index = 0;
+
+    // We directly return the string for NFD/NFKD forms.
+    char *output = NULL;
+    // output_size is set to the size of the input string.
+
+    // A composition buffer is used for NFC/NFKC forms. A string is returned later.
+    mjb_buffer_character *composition_buffer = NULL;
+    size_t composition_buffer_size = 0;
+
+    // This is the index of the next character to be written to the output string or the composition
+    // buffer.
+    size_t output_index = 0;
+
+    bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
+    bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
+
+    if(is_composition) {
         // SELECT value FROM compatibility_decompositions WHERE id = ?
         stmt = mjb_global.stmt_compatibility_decompose;
+        // Allocate a composition buffer.
+        composition_buffer = mjb_alloc(size);
+        composition_buffer_size = size;
+    } else {
+        output = mjb_alloc(size);
+        *output_size = size;
+    }
+
+    if(is_compatibility) {
+        // SELECT value FROM compatibility_decompositions WHERE id = ?
+        stmt = mjb_global.stmt_compatibility_decompose;
+    } else {
+        // SELECT value FROM decompositions WHERE id = ?
+        stmt = mjb_global.stmt_decompose;
     }
 
     sqlite3_reset(stmt);
     sqlite3_clear_bindings(stmt);
 
-    uint8_t state = MJB_UTF8_ACCEPT;
-    mjb_codepoint current_codepoint;
-    mjb_buffer_character current_character;
-
-    // Combining characters buffer.
-    // TODO: set a limit and check it.
-    mjb_buffer_character characters_buffer[32];
-    unsigned int buffer_index = 0;
-
-    // Return string.
-    char *ret = mjb_alloc(size);
-    *output_size = size;
-    size_t output_index = 0;
-
-    // String buffer.
+    // String buffer, used for UTF-8 decoding.
     const char *index = buffer;
 
     // Loop through the string.
@@ -229,6 +390,8 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             continue;
         }
 
+        ++codepoints_count;
+
         int characters_decomposed = 0;  // Count of characters produced by decomposition
         bool should_decompose = false;
 
@@ -237,23 +400,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
          * The should_decompose flag controls whether we attempt to decompose the character
          * or just pass it through unchanged.
          */
-        switch(form) {
-            case MJB_NORMALIZATION_NFD:  // Canonical decomposition without recomposition
-            case MJB_NORMALIZATION_NFC:  // Canonical decomposition followed by canonical composition
-                should_decompose = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL;
-                break;
-
-            case MJB_NORMALIZATION_NFKD: // Compatibility decomposition without recomposition
-            case MJB_NORMALIZATION_NFKC: // Compatibility decomposition followed by canonical composition
-                should_decompose = true;
-                break;
-
-            default:
-                /*
-                 * Invalid normalization form specified.
-                 * Valid forms are: NFC, NFD, NFKC, NFKD
-                 */
-                return NULL;
+        if(is_compatibility) {
+            should_decompose = true;
+        } else {
+            should_decompose = current_character.decomposition == MJB_DECOMPOSITION_CANONICAL;
         }
 
         // Hangul syllables have a special decomposition.
@@ -272,9 +422,18 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
+                ++codepoints_count;
+
                 // Starter: Any code point (assigned or not) with combining class of zero (ccc = 0)
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
-                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
+                    if(is_composition) {
+                        composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                            composition_buffer, &output_index, &composition_buffer_size, form);
+                    } else {
+                        output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
+                            &output_index, output_size, form);
+                    }
+
                     buffer_index = 0;
                 }
 
@@ -286,6 +445,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
 
             if(rc != SQLITE_OK) {
+                if(composition_buffer) {
+                    mjb_free(composition_buffer);
+                }
+
                 return NULL;
             }
 
@@ -300,6 +463,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     continue;
                 }
 
+                ++codepoints_count;
                 ++characters_decomposed;
 
                 /*
@@ -314,8 +478,14 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                  * in the buffer, so we flush 'e' + '́' before processing 'n' + '̃'.
                  */
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
-                    ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
-                    buffer_index = 0;
+                    if(is_composition) {
+                        composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                           composition_buffer, &output_index, &composition_buffer_size, form);
+                    } else {
+                        output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
+                            &output_index, output_size, form);
+                        buffer_index = 0;
+                    }
                 }
 
                 characters_buffer[buffer_index++] = current_character;
@@ -326,7 +496,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
         if(!characters_decomposed) {
             // Special handling for Hangul composition
-            if(form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC) {
+            if(is_composition) {
                 // Check if we have a Hangul syllable followed by a trailing consonant
                 if(buffer_index > 0 &&
                    mjb_codepoint_is_hangul_syllable(characters_buffer[buffer_index - 1].codepoint) &&
@@ -334,6 +504,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     // Check if the syllable can accept a trailing consonant
                     mjb_codepoint syllable = characters_buffer[buffer_index - 1].codepoint;
                     int s_index = syllable - MJB_CP_HANGUL_S_BASE;
+
                     if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT && (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
                         // The syllable has no trailing consonant, so we can add one
                         mjb_codepoint trailing = current_codepoint;
@@ -346,8 +517,14 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             }
 
             if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
-                ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
-                buffer_index = 0;
+                if(is_composition) {
+                    composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                       composition_buffer, &output_index, &composition_buffer_size, form);
+                } else {
+                    output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
+                        output_size, form);
+                    buffer_index = 0;
+                }
             }
 
             characters_buffer[buffer_index++] = current_character;
@@ -356,19 +533,31 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
 
     // We have combining characters in the buffer, we must output them.
     if(buffer_index) {
-        ret = mjb_flush_buffer(characters_buffer, buffer_index, ret, &output_index, output_size, form);
-        buffer_index = 0;
+        if(is_composition) {
+            composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                composition_buffer, &output_index, &composition_buffer_size, form);
+        } else {
+            output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
+                output_size, form);
+            buffer_index = 0;
+        }
     }
 
-    // Guarantee null-terminated string
-    if(output_index >= *output_size) {
-        ret = mjb_realloc(ret, *output_size + 1);
+    if(is_composition) {
+        // Recompose the string.
+        mjb_recompose(&output, output_size, codepoints_count, composition_buffer, composition_buffer_size);
+        mjb_free(composition_buffer);
+    } else {
+        // Guarantee null-terminated string
+        if(output_index >= *output_size) {
+            output = mjb_realloc(output, *output_size + 1);
+        }
+
+        output[output_index] = '\0';
+        *output_size = output_index;
     }
 
-    ret[output_index] = '\0';
-    *output_size = output_index;
-
-    return ret;
+    return output;
 }
 
 /**

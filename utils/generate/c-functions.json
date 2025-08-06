@@ -165,7 +165,7 @@
     "ret": "size_t",
     "name": "hangul_syllable_composition",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["mjb_buffer_character *characters", "size_t characters_len"]
+    "args": ["mjb_normalization_character *characters", "size_t characters_len"]
   },
   {
     "comment": "Return if the codepoint is an hangul L",

@@ -203,13 +203,13 @@ typedef struct mjb_character {
     mjb_codepoint titlecase;
 } mjb_character;
 
-// INTERNAL: A smaller version of mjb_character that only contains the information needed for the
+// A smaller version of mjb_character that only contains the information needed for the
 // normalization process.
 typedef struct {
     mjb_codepoint codepoint;
     uint8_t combining;
     uint8_t decomposition;
-} mjb_buffer_character;
+} mjb_normalization_character;
 
 typedef enum mjb_next_character_type {
     MJB_NEXT_CHAR_NONE = 0x0,
@@ -233,6 +233,9 @@ MJB_PURE mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size
 
 // Encode a codepoint to a string
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+
+// Return the length of a UTF-8 sequence
+MJB_PURE size_t mjb_string_utf8_length(const char *buffer, size_t max_length);
 
 // Return true if the codepoint is valid
 MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -286,7 +289,7 @@ MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buff
 MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Hangul syllable composition
-MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
+MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_normalization_character *characters, size_t characters_len);
 
 // Return if the codepoint is an hangul L
 MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
