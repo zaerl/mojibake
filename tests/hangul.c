@@ -37,5 +37,22 @@ void *test_hangul(void *arg) {
 
     ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CP_HANGUL_S_BASE), true, "Hangul start")
 
+    ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x1100), true, "Hangul Jamo - Choseong Kiyeok")
+    ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x11A7), true, "Hangul Jamo - Jongseong Nieun")
+    ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x1161), true, "Hangul Jamo - Jungseong A")
+    ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x0000), false, "Not a Hangul Jamo")
+
+    ATT_ASSERT(mjb_codepoint_is_hangul_l(0x1100), true, "Hangul L - Choseong Kiyeok")
+    ATT_ASSERT(mjb_codepoint_is_hangul_l(0x1112), true, "Hangul L - Choseong Hieuh")
+    ATT_ASSERT(mjb_codepoint_is_hangul_l(0x1161), false, "Not a Hangul L")
+
+    ATT_ASSERT(mjb_codepoint_is_hangul_v(0x1161), true, "Hangul V - Jungseong A")
+    ATT_ASSERT(mjb_codepoint_is_hangul_v(0x1175), true, "Hangul V - Jungseong I")
+    ATT_ASSERT(mjb_codepoint_is_hangul_v(0x1100), false, "Not a Hangul V")
+
+    ATT_ASSERT(mjb_codepoint_is_hangul_t(0x11A8), true, "Hangul T - Jongseong Kiyeok")
+    ATT_ASSERT(mjb_codepoint_is_hangul_t(0x11C2), true, "Hangul T - Jongseong Hieuh")
+    ATT_ASSERT(mjb_codepoint_is_hangul_t(0x1100), false, "Not a Hangul T")
+
     return NULL;
 }

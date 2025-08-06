@@ -27,6 +27,7 @@ void *test_encoding(void *arg);
 void *test_hangul(void *arg);
 void *test_hangul_composition(void *arg);
 void *test_mojibake(void *arg);
+void *test_next(void *arg);
 void *test_normalization(void *arg);
 void *test_plane(void *arg);
 void *test_utf8(void *arg);

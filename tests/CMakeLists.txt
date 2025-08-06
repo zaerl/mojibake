@@ -6,6 +6,7 @@ set(TEST_SOURCES
     hangul.c
     hangul-composition.c
     mojibake.c
+    next.c
     normalization.c
     plane.c
     utf8.c
