@@ -154,3 +154,29 @@ multiple codepoints. E.g. `./mojibake.sh -j 0 -o json char $'\U61\U62'`
 Mojibake run all the normalization tests found in the standard
 [NormalizationTest.txt](https://www.unicode.org/Public/16.0.0/ucd/NormalizationTest.txt) suite of
 tests.
+
+## TODO
+
+- [x] UnicodeData.txt table
+- [x] Blocks.txt table
+- [x] Composition table
+- [x] Decomposition table
+- [x] Compatibility decomposition table
+- [x] Codepoint to character transformation
+- [x] UTF-8 strings
+- [ ] UTF-16 strings
+- [ ] Add `mjb_casefold` [CaseFolding.txt](https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt)
+- [ ] Remove `mjb_string_next_codepoint`
+- [ ] Check maximum size of combining characters
+- [ ] Optimize memory allocation in `mjb_normalize`
+- [ ] Optimize memory allocation in `mjb_recompose`
+- [ ] Remove `sqlite3.h` import on `mojibake.h`
+- [ ] Add Github actions for testing
+- [ ] Add support for Windows
+
+## Thanks
+
+Mojibake is built using the work of extraordinary individuals and teams.
+
+1. The `utf8.h` file is Copyright (c) 2014 Taylor R Campbell
+2. SQLite is in the [public domain](https://sqlite.org/copyright.html).
