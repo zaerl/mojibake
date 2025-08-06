@@ -174,8 +174,6 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     while(i < codepoints_count) {
         if(composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             // Non-starter: output and continue
-            // composed_output_index += mjb_codepoint_encode(composition_buffer[i].codepoint, composed_output_index, 5, MJB_ENCODING_UTF_8);
-            // composed_output_index = mjb_output_string(composed_output, composition_buffer[i].codepoint, 5, MJB_ENCODING_UTF_8);
             utf8_size = mjb_codepoint_encode(composition_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
             composed_output = mjb_output_string(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
 
@@ -197,6 +195,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
             if(composition_buffer[i].combining == MJB_CCC_NOT_REORDERED && last_combining_class != 0) {
                 break;
             }
+
             mjb_codepoint combining_char = composition_buffer[i].codepoint;
             uint8_t current_combining_class = composition_buffer[i].combining;
 
@@ -239,7 +238,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
                     if(current_combining_class != 0) {
                         last_combining_class = current_combining_class;
                     } else {
-                        // If this was a starter (CCC=0) and no composition happened, 
+                        // If this was a starter (CCC=0) and no composition happened,
                         // we should stop here and process it in the next iteration
                         break;
                     }
@@ -249,7 +248,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
                 if(current_combining_class != 0) {
                     last_combining_class = current_combining_class;
                 } else {
-                    // If this was a starter (CCC=0) and no composition happened, 
+                    // If this was a starter (CCC=0) and no composition happened,
                     // we should stop here and process it in the next iteration
                     break;
                 }
@@ -259,14 +258,12 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         }
 
         // Output the starter (possibly composed)
-        // composed_output_index += mjb_codepoint_encode(starter, composed_output_index, 5, MJB_ENCODING_UTF_8);
         utf8_size = mjb_codepoint_encode(starter, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
         composed_output = mjb_output_string(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
 
         // Output any non-consumed combining characters in order
         for(size_t j = starter_pos + 1; j < i; ++j) {
             if(composition_buffer[j].codepoint != MJB_CODEPOINT_NOT_VALID) {
-                // composed_output_index += mjb_codepoint_encode(composition_buffer[j].codepoint, composed_output_index, 5, MJB_ENCODING_UTF_8);
                 utf8_size = mjb_codepoint_encode(composition_buffer[j].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
                 composed_output = mjb_output_string(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
             }
