@@ -39,6 +39,15 @@ You can retrieved informations about codepoints. Example for `U+022A LATIN CAPIT
 mjb_character character;
 
 mjb_codepoint_character(0x022A, &character);
+
+printf("Name: %s", character.codepoint, character.name);
+// See the `mojibake` struct for other fields
+```
+
+Output:
+
+```
+Name: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 ```
 
 ### CLI
@@ -85,8 +94,7 @@ JSON format:
 mojibake -o json char $'\U022A'
 ```
 
-JSON is by default indented with two characters. But you can change it, if you need to parse
-multiple codepoints. E.g. `./mojibake.sh -j 0 -o json char $'\U61\U62'`
+Output:
 
 ```json
 [
@@ -137,6 +145,9 @@ multiple codepoints. E.g. `./mojibake.sh -j 0 -o json char $'\U61\U62'`
   }
 ]
 ```
+
+JSON is by default indented with two characters. But you can change it, if you need to parse
+multiple codepoints. E.g. `./mojibake.sh -j 0 -o json char $'\U61\U62'`
 
 ### Coverage
 

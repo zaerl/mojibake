@@ -1,6 +1,14 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "fs";
 import { join } from "path";
 
+const exclude = [
+  'mjb_alloc',
+  'mjb_free',
+  'mjb_initialize',
+  'mjb_realloc',
+  'mjb_shutdown',
+];
+
 // Types
 type FuncCoverage = {
   u: number;  // usage count
@@ -29,7 +37,9 @@ function scanFile(filepath: string): void {
           count = (params.match(/,/g) || []).length + 1;
         }
 
-        coverage[result[1]] = { u: 0, p: count };
+        if(!exclude.includes(result[1])) {
+          coverage[result[1]] = { u: 0, p: count };
+        }
       }
     }
   } catch (error) {
