@@ -128,5 +128,24 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(character.digit == 1, true, "Codepoint: 1")
     ATT_ASSERT(character.numeric, "1", "Codepoint: 1")
 
+    ATT_ASSERT(mjb_string_utf8_length("Hello", 5), 5, "UTF-8 length: Hello")
+    ATT_ASSERT(mjb_string_utf8_length("Hello", 4), 4, "UTF-8 length: Hello")
+    ATT_ASSERT(mjb_string_utf8_length("Hello", 3), 3, "UTF-8 length: Hello")
+    ATT_ASSERT(mjb_string_utf8_length("Hello", 2), 2, "UTF-8 length: Hello")
+    ATT_ASSERT(mjb_string_utf8_length("Hello", 1), 1, "UTF-8 length: Hello")
+    ATT_ASSERT(mjb_string_utf8_length("Hello", 0), 0, "UTF-8 length: Hello")
+    ATT_ASSERT(mjb_string_utf8_length(NULL, 0), 0, "UTF-8 length: NULL")
+
+    ATT_ASSERT(mjb_string_utf8_length("Héllö", 7), 5, "UTF-8 length: Héllö")
+    ATT_ASSERT(mjb_string_utf8_length("Héllö", 4), 3, "UTF-8 length: Héllö")
+    ATT_ASSERT(mjb_string_utf8_length("Héllö", 2), 1, "UTF-8 length: Héllö")
+    ATT_ASSERT(mjb_string_utf8_length("Héllö", 0), 0, "UTF-8 length: Héllö")
+    ATT_ASSERT(mjb_string_utf8_length("Hèllõ ツ", 11), 7, "UTF-8 length: Hèllõ ツ")
+    ATT_ASSERT(mjb_string_utf8_length("Hèllõ ツ", 5), 4, "UTF-8 length: Hèllõ ツ")
+    ATT_ASSERT(mjb_string_utf8_length("こんにちは", 15), 5, "UTF-8 length: こんにちは")
+    ATT_ASSERT(mjb_string_utf8_length("Γειά σου", 15), 8, "UTF-8 length: Γειά σου")
+
+    ATT_ASSERT(mjb_string_utf8_length("Héllö", 1), 1, "UTF-8 length: Héllö (1 max value)")
+
     return NULL;
 }
