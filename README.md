@@ -150,7 +150,7 @@ bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *c
 Hangul syllable composition
 
 ```c
-size_t mjb_hangul_syllable_composition(mjb_normalization_character *characters, size_t characters_len);
+size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 ```
 
 Return if the codepoint is an hangul L

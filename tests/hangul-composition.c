@@ -9,12 +9,12 @@
 
  void *test_hangul_composition(void *arg) {
      // CURRENT_ASSERT mjb_hangul_syllable_composition
-     mjb_normalization_character empty_array[1] = {{0}}; // Empty array for testing
+     mjb_buffer_character empty_array[1] = {{0}}; // Empty array for testing
      size_t result_len = mjb_hangul_syllable_composition(empty_array, 0);
      ATT_ASSERT(result_len, 0, "Empty input should have length 0");
 
      // Test single character (not Hangul syllable)
-     mjb_normalization_character not_hangul[2];
+     mjb_buffer_character not_hangul[2];
      not_hangul[0].codepoint = 0x41; // LATIN CAPITAL LETTER A
      not_hangul[1].codepoint = 0x42; // LATIN CAPITAL LETTER B
      result_len = mjb_hangul_syllable_composition(not_hangul, 2);
@@ -23,14 +23,14 @@
      ATT_ASSERT(not_hangul[1].codepoint, 0x42, "Single not hangul character should return the same codepoint");
 
      // Test single character (no composition)
-     mjb_normalization_character single_hangul_char[1];
+     mjb_buffer_character single_hangul_char[1];
      single_hangul_char[0].codepoint = 0x1100; // HANGUL CHOSEONG KIYEOK
      result_len = mjb_hangul_syllable_composition(single_hangul_char, 1);
      ATT_ASSERT(result_len, 1, "Single character should have length 1");
      ATT_ASSERT(single_hangul_char[0].codepoint, 0x1100, "Single character should remain unchanged");
 
      // Test LV composition (L + V)
-     mjb_normalization_character lv_input[2];
+     mjb_buffer_character lv_input[2];
      lv_input[0].codepoint = 0x1100; // KIYEOK
      lv_input[1].codepoint = 0x1161; // A
      result_len = mjb_hangul_syllable_composition(lv_input, 2);
@@ -39,7 +39,7 @@
      ATT_ASSERT(lv_input[1].codepoint, MJB_CODEPOINT_NOT_VALID, "Second character should be marked as invalid");
 
      // Test LVT composition (L + V + T)
-     mjb_normalization_character lvt_input[3];
+     mjb_buffer_character lvt_input[3];
      lvt_input[0].codepoint = 0x1100; // KIYEOK
      lvt_input[1].codepoint = 0x1161; // A
      lvt_input[2].codepoint = 0x11A8; // KIYEOK
@@ -50,7 +50,7 @@
      ATT_ASSERT(lvt_input[2].codepoint, MJB_CODEPOINT_NOT_VALID, "Third character should be marked as invalid");
 
      // Test multiple syllables
-     mjb_normalization_character multi_input[5];
+     mjb_buffer_character multi_input[5];
      multi_input[0].codepoint = 0x1100; // KIYEOK
      multi_input[1].codepoint = 0x1161; // A
      multi_input[2].codepoint = 0x11A8; // KIYEOK
@@ -65,7 +65,7 @@
      ATT_ASSERT(multi_input[4].codepoint, MJB_CODEPOINT_NOT_VALID, "Fifth character should be marked as invalid");
 
      // Test non-composable sequences
-     mjb_normalization_character non_composable[3];
+     mjb_buffer_character non_composable[3];
      non_composable[0].codepoint = 0x1100; // KIYEOK
      non_composable[1].codepoint = 0x1101; // SSANGKIYEOK
      non_composable[2].codepoint = 0x1102; // NIEUN (all L)
@@ -76,7 +76,7 @@
      ATT_ASSERT(non_composable[2].codepoint, 0x1102, "Third character should remain unchanged");
 
      // Test complex sequence
-     mjb_normalization_character complex_input[9];
+     mjb_buffer_character complex_input[9];
      complex_input[0].codepoint = 0x1100; // KIYEOK
      complex_input[1].codepoint = 0x1161; // A
      complex_input[2].codepoint = 0x11A8; // KIYEOK
@@ -99,7 +99,7 @@
      ATT_ASSERT(complex_input[8].codepoint, MJB_CODEPOINT_NOT_VALID, "Ninth character should be marked as invalid");
 
      // Test with invalid trailing consonant
-     mjb_normalization_character invalid_t[3];
+     mjb_buffer_character invalid_t[3];
      invalid_t[0].codepoint = 0x1100; // KIYEOK
      invalid_t[1].codepoint = 0x1161; // A
      invalid_t[2].codepoint = 0x11C3; // invalid T (out of range)
@@ -110,7 +110,7 @@
      ATT_ASSERT(invalid_t[2].codepoint, MJB_CODEPOINT_NOT_VALID, "Third character should be marked as invalid");
 
      // Test boundary conditions
-     mjb_normalization_character boundary_input[5];
+     mjb_buffer_character boundary_input[5];
      boundary_input[0].codepoint = 0x1112; // Last valid L
      boundary_input[1].codepoint = 0x1175; // Last valid V
      boundary_input[2].codepoint = 0x11C2; // Last valid T
