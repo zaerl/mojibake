@@ -31,14 +31,14 @@ mjb_free(normalized);
 
 ## Codepoints informations
 
-You can retrieved informations about codepoints. Example for `U+0F00`
+You can retrieved informations about codepoints. Example for `U+022A LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON`
 
 ```c
 #include "mojibake.h"
 
 mjb_character character;
 
-mjb_codepoint_character(0x0F00, &character);
+mjb_codepoint_character(0x022A, &character);
 ```
 
 ### CLI
@@ -46,7 +46,7 @@ mjb_codepoint_character(0x0F00, &character);
 A `shell.c` file is provided that let you have a CLI to test the library. Example usage:
 
 ```sh
-mojibake char $'\U0F00'
+mojibake char $'\U022A'
 ```
 
 Plain text output:
@@ -82,7 +82,7 @@ Titlecase: N/A
 JSON format:
 
 ```sh
-mojibake -o json char $'\U0F00'
+mojibake -o json char $'\U022A'
 ```
 
 JSON is by default indented with two characters. But you can change it, if you need to parse
