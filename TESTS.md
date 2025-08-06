@@ -27,8 +27,8 @@
 | `mjb_next_character`                | 2          |
 | `mjb_codepoint_is_cjk_ideograph`    | 1          |
 | `mjb_codepoint_is_hangul_syllable`  | 1          |
+| `mjb_hangul_syllable_decomposition` | 1          |
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
-| `mjb_hangul_syllable_decomposition` | 0          |
-| **Total**                           | **399478** |
+| **Total**                           | **399479** |
