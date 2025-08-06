@@ -57,7 +57,7 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         }
 
         // Get current character.
-        if(!mjb_codepoint_character(&character, codepoint)) {
+        if(!mjb_codepoint_character(codepoint, &character)) {
             continue;
         }
 

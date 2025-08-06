@@ -247,7 +247,7 @@ MJB_PURE size_t mjb_string_utf8_length(const char *buffer, size_t max_length);
 MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 // Return the codepoint character
-MJB_NONNULL(1) bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
+MJB_NONNULL(2) bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 
 // Return true if the codepoint has the category
 MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);

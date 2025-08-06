@@ -26,7 +26,6 @@
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
-| `mjb_codepoint_block_is`            | 0          |
 | `mjb_codepoint_is_hangul_jamo`      | 0          |
 | `mjb_codepoint_is_hangul_l`         | 0          |
 | `mjb_codepoint_is_hangul_t`         | 0          |

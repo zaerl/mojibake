@@ -54,7 +54,7 @@ bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 Return the codepoint character
 
 ```c
-bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint);
+bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 ```
 
 Return true if the codepoint has the category

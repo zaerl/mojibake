@@ -22,7 +22,7 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
 }
 
 // Return the codepoint character
-MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
     if(!mjb_initialize()) {
         return false;
     }
@@ -129,7 +129,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_character *character, mjb_codepoint 
 MJB_EXPORT bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(codepoint, &character)) {
         return false;
     }
 
@@ -140,7 +140,7 @@ MJB_EXPORT bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category 
 MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(codepoint, &character)) {
         return false;
     }
 
@@ -163,7 +163,7 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
 MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(codepoint, &character)) {
         return false;
     }
 
@@ -173,31 +173,6 @@ MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
 // Return true if the category is combining
 bool mjb_category_is_combining(mjb_category category) {
     return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_MC || category == MJB_CATEGORY_ME;
-}
-
-MJB_EXPORT bool mjb_codepoint_block_is(mjb_codepoint codepoint, mjb_block block) {
-    if(!mjb_initialize()) {
-        return false;
-    }
-
-    if(block < 0 || block >= MJB_BLOCK_NUM || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
-    }
-
-    sqlite3_reset(mjb_global.stmt_get_block);
-    sqlite3_clear_bindings(mjb_global.stmt_get_block);
-
-    int rc = sqlite3_bind_int(mjb_global.stmt_get_block, 1, codepoint);
-
-    rc = sqlite3_step(mjb_global.stmt_get_block);
-
-    if(rc != SQLITE_ROW) {
-        return false;
-    }
-
-    mjb_block stmt_get_block = (mjb_block)sqlite3_column_int(mjb_global.stmt_get_block, 0);
-
-    return stmt_get_block == block;
 }
 
 // Return the character block
@@ -244,7 +219,7 @@ MJB_EXPORT bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(codepoint, &character)) {
         return codepoint;
     }
 
@@ -255,7 +230,7 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(codepoint, &character)) {
         return codepoint;
     }
 
@@ -266,7 +241,7 @@ MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(&character, codepoint)) {
+    if(!mjb_codepoint_character(codepoint, &character)) {
         return codepoint;
     }
 

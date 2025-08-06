@@ -30,7 +30,7 @@ void *test_utf8(void *arg) {
 
         if(state == MJB_UTF8_ACCEPT) {
             mjb_character character;
-            bool valid = mjb_codepoint_character(&character, codepoint);
+            bool valid = mjb_codepoint_character(codepoint, &character);
             printf("U+%04X %s [%lu]\n", codepoint, valid ? character.name : "Unknown", index - hello_world + 1);
         } else if(state == MJB_UTF8_REJECT) {
             // printf("The string is not well-formed\n");

@@ -12,32 +12,32 @@
 void *test_codepoint(void *arg) {
     mjb_character character;
 
-    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_MAX), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX, &character), false, "Not valid codepoint")
 
-    ATT_ASSERT(mjb_codepoint_character(&character, 0), true, "Codepoint: 0")
+    ATT_ASSERT(mjb_codepoint_character(0, &character), true, "Codepoint: 0")
     ATT_ASSERT(strcmp((char*)character.name, "NULL"), 0, "Codepoint: 0")
 
-    ATT_ASSERT(mjb_codepoint_character(&character, '$'), true, "Codepoint: 0")
+    ATT_ASSERT(mjb_codepoint_character('$', &character), true, "Codepoint: 0")
     ATT_ASSERT(strcmp((char*)character.name, "DOLLAR SIGN"), 0, "Codepoint: $")
 
     // U+E0 = à
-    ATT_ASSERT(mjb_codepoint_character(&character, 0xE0), true, "Codepoint: à")
+    ATT_ASSERT(mjb_codepoint_character(0xE0, &character), true, "Codepoint: à")
     ATT_ASSERT(strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE"), 0, "Codepoint: à")
 
     // U+1F642 = 🙂
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x1F642), true, "Codepoint: 🙂")
+    ATT_ASSERT(mjb_codepoint_character(0x1F642, &character), true, "Codepoint: 🙂")
     ATT_ASSERT(strcmp((char*)character.name, "SLIGHTLY SMILING FACE"), 0, "Codepoint: 🙂")
 
     // U+0377 = ͷ, U+0377 + 1 is not mapped
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x0377 + 1), false, "Codepoint not mapped: ͷ + 1")
+    ATT_ASSERT(mjb_codepoint_character(0x0377 + 1, &character), false, "Codepoint not mapped: ͷ + 1")
 
     // U+AC00 = First hangul syllable
-    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CP_HANGUL_S_BASE), true, "First hangul syllable")
+    ATT_ASSERT(mjb_codepoint_character(MJB_CP_HANGUL_S_BASE, &character), true, "First hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE GA"), 0, "First hangul syllable")
 
     // U+D7A3 = Last hangul syllable
     mjb_codepoint last_syllable = MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1;
-    ATT_ASSERT(mjb_codepoint_character(&character, last_syllable), true, "Last hangul syllable")
+    ATT_ASSERT(mjb_codepoint_character(last_syllable, &character), true, "Last hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
 
     mjb_codepoint_block block = {0};
@@ -57,9 +57,9 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_character_block(0xE0000 + 1, &block), true, "Valid tags block")
     ATT_ASSERT(block.id, MJB_BLOCK_TAGS, "Tags block")
 
-    ATT_ASSERT(mjb_codepoint_character(&character, 0xF0000 + 3), false, "Supplementary Private Use Area-A block")
+    ATT_ASSERT(mjb_codepoint_character(0xF0000 + 3, &character), false, "Supplementary Private Use Area-A block")
 
-    ATT_ASSERT(mjb_codepoint_character(&character, MJB_CODEPOINT_MAX - 1), false, "Supplementary Private Use Area-B block")
+    ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX - 1, &character), false, "Supplementary Private Use Area-B block")
 
     ATT_ASSERT(mjb_codepoint_category_is(0, MJB_CATEGORY_CC), true, "NULL: category other, control")
 
@@ -117,13 +117,13 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_combining(0x488), true, "COMBINING CYRILLIC HUNDRED THOUSANDS SIGN")
 
     // U+00BD = ½
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x00BD), true, "Codepoint: ½")
+    ATT_ASSERT(mjb_codepoint_character(0x00BD, &character), true, "Codepoint: ½")
     ATT_ASSERT(character.decimal == MJB_NUMBER_NOT_VALID, true, "Codepoint: ½")
     ATT_ASSERT(character.digit == MJB_NUMBER_NOT_VALID, true, "Codepoint: ½")
     ATT_ASSERT(character.numeric, "1/2", "Codepoint: ½")
 
     // U+0030 = 1
-    ATT_ASSERT(mjb_codepoint_character(&character, 0x0031), true, "Codepoint: 1")
+    ATT_ASSERT(mjb_codepoint_character(0x0031, &character), true, "Codepoint: 1")
     ATT_ASSERT(character.decimal == 1, true, "Codepoint: 1")
     ATT_ASSERT(character.digit == 1, true, "Codepoint: 1")
     ATT_ASSERT(character.numeric, "1", "Codepoint: 1")

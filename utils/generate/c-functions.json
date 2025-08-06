@@ -52,8 +52,8 @@
     "comment": "Return the codepoint character",
     "ret": "bool",
     "name": "codepoint_character",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["mjb_character *character", "mjb_codepoint codepoint"]
+    "attributes": ["MJB_NONNULL(2)"],
+    "args": ["mjb_codepoint codepoint", "mjb_character *character"]
   },
   {
     "comment": "Return true if the codepoint has the category",
