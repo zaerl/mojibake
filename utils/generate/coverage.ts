@@ -1,13 +1,5 @@
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "fs";
-import { join } from "path";
-
-const exclude = [
-  'mjb_alloc',
-  'mjb_free',
-  'mjb_initialize',
-  'mjb_realloc',
-  'mjb_shutdown',
-];
+import fs, { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "fs";
+import path, { join } from "path";
 
 // Types
 type FuncCoverage = {
@@ -19,51 +11,14 @@ type Coverage = { [key: string]: FuncCoverage };
 
 const coverage: Coverage = {};
 
-function scanFile(filepath: string): void {
-  try {
-    const content = readFileSync(filepath, 'utf8');
-    const lines = content.split('\n');
+function findExports(): void {
+  const jsonPath = path.join(__dirname, 'c-functions.json');
+  const jsonData = fs.readFileSync(jsonPath, 'utf8');
+  const data: any[] = JSON.parse(jsonData);
 
-    const prog = /MJB_EXPORT.+[ \*]([a-z_]+)\(([^)]*)\)\s*\{/;
-
-    for(const line of lines) {
-      const result = line.trim().match(prog);
-
-      if(result) {
-        const params = result[2];
-        let count = 0;
-
-        if(params !== 'void') {
-          count = (params.match(/,/g) || []).length + 1;
-        }
-
-        if(!exclude.includes(result[1])) {
-          coverage[result[1]] = { u: 0, p: count };
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`Error reading file ${filepath}:`, error);
+  for(const item of data) {
+    coverage[`mjb_${item.name}`] = { u: 0, p: item.args.length };
   }
-}
-
-function walkDir(dir: string): void {
-  const items = readdirSync(dir);
-
-  for(const item of items) {
-    const fullPath = join(dir, item);
-    const stat = statSync(fullPath);
-
-    if(stat.isDirectory()) {
-      walkDir(fullPath);
-    } else if(item.endsWith('.c') || item.endsWith('.h')) {
-      scanFile(fullPath);
-    }
-  }
-}
-
-function findExports(directory: string): void {
-  walkDir(directory);
 }
 
 function scanTestFile(filepath: string): void {
@@ -72,7 +27,7 @@ function scanTestFile(filepath: string): void {
 
   let currentResult = '';
   let currentCount = 1;
-  const prog = /ATT_ASSERT\(([a-z_.]+)[\(\,].+$/;
+  const prog = /ATT_ASSERT\(([a-z0-9_.]+)[\(\,].+$/;
 
   for(const line of lines) {
     const trimmedLine = line.trim();
@@ -88,6 +43,7 @@ function scanTestFile(filepath: string): void {
 
     if(result) {
       currentCount = parseInt(result[1], 10);
+
       continue;
     }
 
@@ -169,20 +125,14 @@ function printCoverage(): void {
 }
 
 function main(): void {
-  const sourceDir = process.argv.length < 3 ? '../../src' : process.argv[2];
   const testDir = process.argv.length < 4 ? '../../tests' : process.argv[3];
-
-  if(!existsSync(sourceDir) || !statSync(sourceDir).isDirectory()) {
-    console.error(`Error: ${sourceDir} is not a valid directory`);
-    process.exit(1);
-  }
 
   if(!existsSync(testDir) || !statSync(testDir).isDirectory()) {
     console.error(`Error: ${testDir} is not a valid directory`);
     process.exit(1);
   }
 
-  findExports(sourceDir);
+  findExports();
   findTests(testDir);
   printCoverage();
 }
