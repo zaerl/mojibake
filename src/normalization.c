@@ -191,8 +191,12 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
         ++i; // Move to first character after starter
 
-        // Process combining characters following this starter
-        while(i < codepoints_count && composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
+        // Process characters following this starter (try composition with next character first, then combining chars)
+        while(i < codepoints_count) {
+            // If we encounter another starter after processing combining chars, stop
+            if(composition_buffer[i].combining == MJB_CCC_NOT_REORDERED && last_combining_class != 0) {
+                break;
+            }
             mjb_codepoint combining_char = composition_buffer[i].codepoint;
             uint8_t current_combining_class = composition_buffer[i].combining;
 
@@ -234,12 +238,20 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
                     // No composition found
                     if(current_combining_class != 0) {
                         last_combining_class = current_combining_class;
+                    } else {
+                        // If this was a starter (CCC=0) and no composition happened, 
+                        // we should stop here and process it in the next iteration
+                        break;
                     }
                 }
             } else {
                 // Composition blocked
                 if(current_combining_class != 0) {
                     last_combining_class = current_combining_class;
+                } else {
+                    // If this was a starter (CCC=0) and no composition happened, 
+                    // we should stop here and process it in the next iteration
+                    break;
                 }
             }
 
