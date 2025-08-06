@@ -2,7 +2,7 @@
 
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
-| `mjb_normalize`                     | 199651     |
+| `mjb_normalize`                     | 399301     |
 | `mjb_codepoint_is_valid`            | 39         |
 | `mjb_codepoint_character`           | 20         |
 | `mjb_codepoint_encode`              | 15         |
@@ -27,10 +27,14 @@
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
 | `mjb_codepoint_block_is`            | 0          |
+| `mjb_codepoint_is_hangul_jamo`      | 0          |
+| `mjb_codepoint_is_hangul_l`         | 0          |
+| `mjb_codepoint_is_hangul_t`         | 0          |
+| `mjb_codepoint_is_hangul_v`         | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_hangul_syllable_decomposition` | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_next_character`                | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **199814** |
+| **Total**                           | **399464** |

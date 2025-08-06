@@ -43,8 +43,7 @@ int mjb_sqlite3_roundup(int size) {
 }
 
 // Initialize the library with custom values
-MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn,
-    sqlite3_mem_methods *db_mem_methods) {
+MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, sqlite3_mem_methods *db_mem_methods) {
     if(mjb_global.ok) {
         return true;
     }

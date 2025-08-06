@@ -18,7 +18,7 @@ export function generateNormalizationCount() {
   iLog(`${count.toLocaleString()} tests\n`);
 
   fileContent = readFileSync('../../tests/normalization.c', 'utf-8');
-  fileContent = substituteText(fileContent, "// CURRENT_ASSERT mjb_normalize\n", "char *normalized_res", `    // CURRENT_COUNT ${count * 10}\n    `);
+  fileContent = substituteText(fileContent, "// CURRENT_ASSERT mjb_normalize\n", "char *normalized_res", `    // CURRENT_COUNT ${count * 20}\n    `);
 
   writeFileSync('../../tests/normalization.c', fileContent);
 }

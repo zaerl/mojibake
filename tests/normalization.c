@@ -43,7 +43,7 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
     char *names[4] = { "NFC",  "NFD", "NFKC", "NFKD" };
 
     // CURRENT_ASSERT mjb_normalize
-    // CURRENT_COUNT 199650
+    // CURRENT_COUNT 399300
     char *normalized_res = mjb_normalize(source, source_size, &normalized_size_res, MJB_ENCODING_UTF_8, form);
 
     if(normalized_res == NULL) {
