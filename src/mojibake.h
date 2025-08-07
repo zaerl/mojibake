@@ -173,9 +173,9 @@ typedef enum mjb_normalization {
 } mjb_normalization;
 
 typedef enum mjb_quick_check_result {
-    MJB_QUICK_CHECK_NO,
-    MJB_QUICK_CHECK_YES,
-    MJB_QUICK_CHECK_MAYBE
+    MJB_QC_YES,
+    MJB_QC_NO,
+    MJB_QC_MAYBE
 } mjb_quick_check_result;
 
 typedef struct mjb_normalization_result {

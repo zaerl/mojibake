@@ -9,26 +9,30 @@
 
  extern struct mojibake mjb_global;
 
+ static bool mjb_codepoint_is_allowed(mjb_codepoint codepoint) {
+    return codepoint >= 0x0 && codepoint <= 0x10FFFF;
+ }
+
  /**
   * Normalize a string
   * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
   */
  MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
     if(encoding != MJB_ENCODING_UTF_8) {
-        return MJB_QUICK_CHECK_NO;
+        return MJB_QC_NO;
     }
 
     if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
         form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
-        return MJB_QUICK_CHECK_NO;
+        return MJB_QC_NO;
     }
 
     if(size == 0) {
-        return MJB_QUICK_CHECK_YES;
+        return MJB_QC_YES;
     }
 
     const char *index = buffer;
-    mjb_quick_check_result result = MJB_QUICK_CHECK_NO;
+    mjb_quick_check_result result = MJB_QC_NO;
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
     bool is_ascii = false;
@@ -41,7 +45,7 @@
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            return MJB_QUICK_CHECK_NO;
+            return MJB_QC_NO;
         }
 
         if(state != MJB_UTF8_ACCEPT) {
@@ -67,15 +71,15 @@
     }
 
     if(is_ascii || is_latin_1) {
-        return MJB_QUICK_CHECK_YES;
+        return MJB_QC_YES;
     }
 
     index = buffer;
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_normalization_character current_character;
-    result = MJB_QUICK_CHECK_NO;
+    result = MJB_QC_NO;
 
-    /*result = MJB_QUICK_CHECK_YES;
+    /*result = MJB_QC_YES;
 
     /*for(; *index; ++index) {
         // Find next codepoint.
@@ -96,7 +100,7 @@
         }
 
         if(last_canonical_class > current_character.combining && current_character.combining != MJB_CCC_NOT_REORDERED) {
-            return MJB_QUICK_CHECK_NO;
+            return MJB_QC_NO;
         }
 
         if(current_character.decomposition != MJB_DECOMPOSITION_NONE) {

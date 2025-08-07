@@ -300,7 +300,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
     mjb_quick_check_result is_normalized = mjb_string_is_normalized(buffer, size, encoding, form);
 
-    if(is_normalized == MJB_QUICK_CHECK_YES) {
+    if(is_normalized == MJB_QC_YES) {
         // No need to normalize.
         result->output = (char*)buffer;
         result->output_size = size;
