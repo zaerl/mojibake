@@ -172,6 +172,12 @@ typedef enum mjb_normalization {
     MJB_NORMALIZATION_NFKD  // Compatibility decomposition without recomposition
 } mjb_normalization;
 
+typedef enum mjb_quick_check_result {
+    MJB_QUICK_CHECK_NO,
+    MJB_QUICK_CHECK_YES,
+    MJB_QUICK_CHECK_MAYBE
+} mjb_quick_check_result;
+
 typedef struct mjb_normalization_result {
     char *output;
     size_t output_size;
@@ -283,7 +289,7 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 MJB_NONNULL(1, 5) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
 
 // Check if a string is normalized
-MJB_NONNULL(1) bool mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
 // Get the next character from the string
 MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);

@@ -8,23 +8,24 @@
 
  /**
   * Normalize a string
+  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
   */
- MJB_EXPORT bool mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
+ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
     if(encoding != MJB_ENCODING_UTF_8) {
-        return false;
+        return MJB_QUICK_CHECK_NO;
     }
 
     if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
         form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
-        return false;
+        return MJB_QUICK_CHECK_NO;
     }
 
     if(size == 0) {
-        return true;
+        return MJB_QUICK_CHECK_YES;
     }
 
     const char *index = buffer;
-    bool well_formed = true;
+    mjb_quick_check_result result = MJB_QUICK_CHECK_YES;
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
 
@@ -35,7 +36,7 @@
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            well_formed = false;
+            result = MJB_QUICK_CHECK_NO;
             break;
         }
 
@@ -55,9 +56,9 @@
         }
 
         // The string is not well-formed.
-        well_formed = false;
+        result = MJB_QUICK_CHECK_NO;
         break;
     }
 
-    return well_formed;
+    return result;
  }

@@ -335,9 +335,9 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
-    bool well_formed = mjb_string_is_normalized(buffer, size, encoding, form);
+    mjb_quick_check_result is_normalized = mjb_string_is_normalized(buffer, size, encoding, form);
 
-    if(well_formed) {
+    if(is_normalized == MJB_QUICK_CHECK_YES) {
         // No need to normalize.
         result->output = (char*)buffer;
         result->output_size = size;

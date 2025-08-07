@@ -105,7 +105,7 @@ bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_n
 Check if a string is normalized
 
 ```c
-bool mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 ```
 
 Get the next character from the string
