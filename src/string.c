@@ -7,7 +7,7 @@
 #include "mojibake.h"
 
 /**
- * Return UTF-8 length of a string.
+ * Return size of a string.
  */
 MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding) {
     if(buffer == 0 || max_length == 0 || encoding != MJB_ENCODING_UTF_8) {
@@ -30,4 +30,13 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
     }
 
     return count;
+}
+
+MJB_EXPORT size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encoding encoding) {
+    if(s1 == 0 || s2 == 0 || encoding != MJB_ENCODING_UTF_8) {
+        // We return 0 to indicate an error. But the behavior is undefined.
+        return 0;
+    }
+
+    return 0;
 }
