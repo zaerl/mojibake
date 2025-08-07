@@ -4,7 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+ #include "buffer.h"
  #include "mojibake.h"
+
+ extern struct mojibake mjb_global;
 
  /**
   * Normalize a string
@@ -25,19 +28,20 @@
     }
 
     const char *index = buffer;
-    mjb_quick_check_result result = MJB_QUICK_CHECK_YES;
+    mjb_quick_check_result result = MJB_QUICK_CHECK_NO;
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
+    bool is_ascii = false;
+    bool is_latin_1 = false;
 
-    // Scan a string to check if it is already well-formed.
+    // Scan a ASCII or latin-1 string to check if it is already well-formed.
     // See: https://unicode.org/reports/tr15/#Description_Norm
     for(; *index; ++index) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            result = MJB_QUICK_CHECK_NO;
-            break;
+            return MJB_QUICK_CHECK_NO;
         }
 
         if(state != MJB_UTF8_ACCEPT) {
@@ -47,18 +51,60 @@
         // Text exclusively containing ASCII characters (U+0000..U+007F) is left unaffected by all
         // of the Normalization Forms.
         if(current_codepoint < 0x80) {
+            is_ascii = true;
             continue;
         }
 
         // Text exclusively containing Latin-1 characters (U+0000..U+00FF) is left unaffected by NFC.
         if(current_codepoint < 0x100 && form == MJB_NORMALIZATION_NFC) {
+            is_latin_1 = true;
             continue;
         }
 
-        // The string is not well-formed.
-        result = MJB_QUICK_CHECK_NO;
+        is_ascii = false;
+        is_latin_1 = false;
         break;
     }
+
+    if(is_ascii || is_latin_1) {
+        return MJB_QUICK_CHECK_YES;
+    }
+
+    index = buffer;
+    mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
+    mjb_normalization_character current_character;
+    result = MJB_QUICK_CHECK_NO;
+
+    /*result = MJB_QUICK_CHECK_YES;
+
+    /*for(; *index; ++index) {
+        // Find next codepoint.
+        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
+
+        if(state != MJB_UTF8_ACCEPT) {
+            continue;
+        }
+
+        // The codepoint is in the supplementary character range.
+        if(current_codepoint >= 0x10000 && current_codepoint <= MJB_CODEPOINT_MAX) {
+            ++index;
+        }
+
+        // Get current character.
+        if(!mjb_get_buffer_character(&current_character, current_codepoint)) {
+            continue;
+        }
+
+        if(last_canonical_class > current_character.combining && current_character.combining != MJB_CCC_NOT_REORDERED) {
+            return MJB_QUICK_CHECK_NO;
+        }
+
+        if(current_character.decomposition != MJB_DECOMPOSITION_NONE) {
+            continue;
+        }
+
+        last_canonical_class = current_character.combining;
+    }*/
 
     return result;
  }

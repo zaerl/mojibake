@@ -1,4 +1,5 @@
 set(SOURCES
+    buffer.c
     codepoint.c
     cjk.c
     encoding.c

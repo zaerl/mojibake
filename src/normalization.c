@@ -6,6 +6,8 @@
 
 #include <string.h>
 #include <stdio.h>
+
+#include "buffer.h"
 #include "mojibake.h"
 
 extern struct mojibake mjb_global;
@@ -25,45 +27,6 @@ static void mjb_normalization_sort(mjb_normalization_character array[], size_t s
 
         array[j + 1] = key;
     }
-}
-
-/**
- * A smaller version of mjb_normalize() that only returns the character information.
- * This is used to avoid the overhead of the full normalization process.
- */
-static bool mjb_get_buffer_character(mjb_normalization_character *character, mjb_codepoint codepoint) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
-        return false;
-    }
-
-    if(mjb_codepoint_is_hangul_syllable(codepoint) || mjb_codepoint_is_cjk_ideograph(codepoint)) {
-        character->codepoint = codepoint;
-        character->combining = MJB_CCC_NOT_REORDERED;
-        character->decomposition = MJB_DECOMPOSITION_NONE;
-
-        return true;
-    }
-
-    sqlite3_reset(mjb_global.stmt_buffer_character);
-    sqlite3_clear_bindings(mjb_global.stmt_buffer_character);
-
-    int rc = sqlite3_bind_int(mjb_global.stmt_buffer_character, 1, codepoint);
-
-    if(rc != SQLITE_OK) {
-        return false;
-    }
-
-    rc = sqlite3_step(mjb_global.stmt_buffer_character);
-
-    if(rc != SQLITE_ROW) {
-        return false;
-    }
-
-    character->codepoint = codepoint;
-    character->combining = (uint8_t)sqlite3_column_int(mjb_global.stmt_buffer_character, 1);
-    character->decomposition = (uint8_t)sqlite3_column_int(mjb_global.stmt_buffer_character, 2);
-
-    return true;
 }
 
 static char *mjb_output_string(char *ret, char *buffer_utf8, size_t utf8_size, size_t *output_index, size_t *output_size) {
