@@ -2,7 +2,7 @@
 
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
-| `mjb_normalize`                     | 399301     |
+| `mjb_normalize`                     | 399303     |
 | `mjb_codepoint_is_valid`            | 39         |
 | `mjb_codepoint_character`           | 20         |
 | `mjb_string_is_utf8`                | 16         |
@@ -41,4 +41,4 @@
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
 | `mjb_string_next_codepoint`         | 0          |
-| **Total**                           | **399514** |
+| **Total**                           | **399516** |

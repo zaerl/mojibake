@@ -113,10 +113,10 @@
   },
   {
     "comment": "Normalize a string",
-    "ret": "char *",
+    "ret": "bool",
     "name": "normalize",
-    "attributes": ["MJB_NONNULL(1, 3)"],
-    "args": ["const char *buffer", "size_t size", "size_t *output_size", "mjb_encoding encoding", "mjb_normalization form"]
+    "attributes": ["MJB_NONNULL(1, 5)"],
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form", "mjb_normalization_result *result"]
   },
   {
     "comment": "Get the next character from the string",

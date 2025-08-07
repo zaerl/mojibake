@@ -13,21 +13,24 @@
 #include "commands.h"
 
 int normalize_string_command(int argc, char * const argv[], unsigned int flags) {
-    size_t size = 0;
-    char *normalized = mjb_normalize(argv[0], strlen(argv[0]), &size, MJB_ENCODING_UTF_8, (mjb_normalization)flags);
+    mjb_normalization_result result;
 
-    if(normalized == NULL) {
+    bool ret = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8, (mjb_normalization)flags, &result);
+
+    if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
         return 1;
     }
 
     printf("%s", color_green_start());
-    mjb_next_character(normalized, size, MJB_ENCODING_UTF_8, next_string_character);
+    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, next_string_character);
     printf("%s", color_reset());
     puts("");
 
-    mjb_free(normalized);
+    if(result.output != NULL && result.output != argv[0]) {
+        mjb_free(result.output);
+    }
 
     return 0;
 }
@@ -55,19 +58,21 @@ int normalize_command(int argc, char * const argv[], unsigned int flags) {
 
     codepoints[++index] = '\0';
 
-    size_t normalized_size;
-    char *normalized = mjb_normalize(codepoints, index, &normalized_size, MJB_ENCODING_UTF_8, (mjb_normalization)flags);
+    mjb_normalization_result result;
+    bool ret = mjb_normalize(codepoints, index, MJB_ENCODING_UTF_8, (mjb_normalization)flags, &result);
 
-    if(normalized == NULL) {
+    if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
         return 1;
     }
 
-    mjb_next_character(normalized, normalized_size, MJB_ENCODING_UTF_8, next_character);
+    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, next_character);
     puts("");
 
-    mjb_free(normalized);
+    if(result.output != NULL && result.output != codepoints) {
+        mjb_free(result.output);
+    }
 
     return 0;
 }

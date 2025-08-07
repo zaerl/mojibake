@@ -161,17 +161,17 @@ void print_id_name_value(const char* label, unsigned int id, const char* name, u
 void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name,
     char *label, unsigned int nl) {
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
-    size_t out_length = 0;
 
-    char *out = mjb_normalize(buffer_utf8, utf8_length, &out_length, MJB_ENCODING_UTF_8, form);
+    mjb_normalization_result result;
+    bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENCODING_UTF_8, form, &result);
 
-    if(out) {
+    if(ret) {
         if(is_json) {
             printf("%s%s\"%s\":%s\"%s", json_i(), json_i(), name, cmd_json_indent == 0 ? "" : " ", color_green_start());
-            mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, next_escaped_character);
+            mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, next_escaped_character);
             printf("%s\",%s", color_reset(), json_nl());
         } else {
-            print_value(is_json ? name : label, true, "%s", out);
+            print_value(is_json ? name : label, true, "%s", result.output);
         }
     } else {
         print_null_value(is_json ? name : label, 1);
@@ -183,7 +183,7 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
         printf("%s normalization: %s", label, color_green_start());
     }
 
-    mjb_next_character(out, out_length, MJB_ENCODING_UTF_8, is_json ? next_array_character : next_character);
+    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, is_json ? next_array_character : next_character);
 
     if(is_json) {
         printf("%s]", color_reset());
@@ -193,7 +193,9 @@ void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalizatio
 
     print_nl(nl);
 
-    free(out);
+    if(result.output != NULL && result.output != buffer_utf8) {
+        mjb_free(result.output);
+    }
 }
 
 void print_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint) {

@@ -287,21 +287,28 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     *output_size = composed_output_index;
     composed_output[composed_output_index] = '\0';
 
-
     return true;
 }
 
 /**
  * Normalize a string
  */
-MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_size, mjb_encoding encoding, mjb_normalization form) {
-    if(!mjb_initialize() || encoding != MJB_ENCODING_UTF_8 || size == 0) {
-        return NULL;
+MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result) {
+    if(!mjb_initialize() || encoding != MJB_ENCODING_UTF_8) {
+        return false;
     }
 
     if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
        form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
-        return NULL;
+        return false;
+    }
+
+    if(size == 0) {
+        result->output = (char*)buffer;
+        result->output_size = 0;
+        result->normalized = false;
+
+        return true;
     }
 
     sqlite3_stmt *stmt;
@@ -317,8 +324,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     size_t buffer_index = 0;
 
     // We directly return the string for NFD/NFKD forms.
-    char *output = NULL;
-    // output_size is set to the size of the input string.
+    result->output = NULL;
 
     // A composition buffer is used for NFC/NFKC forms. A string is returned later.
     mjb_buffer_character *composition_buffer = NULL;
@@ -330,13 +336,56 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
 
+    // String buffer, used for UTF-8 decoding.
+    const char *index = buffer;
+    bool well_formed = true;
+
+    // Prescan of the string to check if it is already well-formed.
+    // See: https://unicode.org/reports/tr15/#Description_Norm
+    for(; *index; ++index) {
+        // Find next codepoint.
+        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
+
+        if(state == MJB_UTF8_REJECT) {
+            well_formed = false;
+            break;
+        }
+
+        if(state != MJB_UTF8_ACCEPT) {
+            continue;
+        }
+
+        // Text exclusively containing ASCII characters (U+0000..U+007F) is left unaffected by all
+        // of the Normalization Forms.
+        if(current_codepoint < 0x80) {
+            continue;
+        }
+
+        // Text exclusively containing Latin-1 characters (U+0000..U+00FF) is left unaffected by NFC.
+        if(current_codepoint < 0x100 && form == MJB_NORMALIZATION_NFC) {
+            continue;
+        }
+
+        // The string is not well-formed.
+        well_formed = false;
+    }
+
+    if(well_formed) {
+        // No need to normalize.
+        result->output = (char*)buffer;
+        result->output_size = size;
+        result->normalized = false;
+
+        return true;
+    }
+
     if(is_composition) {
         composition_buffer = mjb_alloc(size * sizeof(mjb_buffer_character));
     } else {
-        output = mjb_alloc(size);
+        result->output = mjb_alloc(size);
     }
 
-    *output_size = size;
+    result->output_size = size;
 
     if(is_compatibility) {
         // SELECT value FROM compatibility_decompositions WHERE id = ?
@@ -350,7 +399,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     sqlite3_clear_bindings(stmt);
 
     // String buffer, used for UTF-8 decoding.
-    const char *index = buffer;
+    index = buffer;
 
     // Loop through the string.
     for(; *index; ++index) {
@@ -410,10 +459,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     if(is_composition) {
                         composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                            composition_buffer, &output_index, output_size, form);
+                            composition_buffer, &output_index, &result->output_size, form);
                     } else {
-                        output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
-                            &output_index, output_size, form);
+                        result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                            result->output, &output_index, &result->output_size, form);
                     }
 
                     buffer_index = 0;
@@ -431,7 +480,15 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                     mjb_free(composition_buffer);
                 }
 
-                return NULL;
+                if(result->output != NULL) {
+                    mjb_free(result->output);
+                }
+
+                result->output = NULL;
+                result->output_size = 0;
+                result->normalized = false;
+
+                return false;
             }
 
             while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -452,20 +509,15 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                  * When we encounter a "starter" character (CCC = 0), we must flush any pending
                  * combining characters in the buffer to ensure proper ordering.
                  *
-                 * Examples:
-                 * - 'é' (U+00E9) → 'e' (CCC=0, starter) + '́' (acute, CCC=230)
-                 * - 'ñ' (U+00F1) → 'n' (CCC=0, starter) + '̃' (tilde, CCC=230)
-                 *
-                 * When processing "éñ", we encounter 'n' (starter) while '́' is still
-                 * in the buffer, so we flush 'e' + '́' before processing 'n' + '̃'.
+                 * See https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G49579
                  */
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     if(is_composition) {
                         composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                           composition_buffer, &output_index, output_size, form);
+                           composition_buffer, &output_index, &result->output_size, form);
                     } else {
-                        output = mjb_flush_d_buffer(characters_buffer, buffer_index, output,
-                            &output_index, output_size, form);
+                        result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                            result->output, &output_index, &result->output_size, form);
                     }
                     buffer_index = 0;
                 }
@@ -492,6 +544,7 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
                         mjb_codepoint trailing = current_codepoint;
                         mjb_codepoint composed = syllable + (trailing - MJB_CP_HANGUL_T_BASE);
                         characters_buffer[buffer_index - 1].codepoint = composed;
+
                         // Don't add the trailing consonant since it's been composed
                         continue;
                     }
@@ -501,10 +554,10 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
             if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                 if(is_composition) {
                     composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                       composition_buffer, &output_index, output_size, form);
+                       composition_buffer, &output_index, &result->output_size, form);
                 } else {
-                    output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
-                        output_size, form);
+                    result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                        result->output, &output_index, &result->output_size, form);
                 }
                 buffer_index = 0;
             }
@@ -517,27 +570,29 @@ MJB_EXPORT char *mjb_normalize(const char *buffer, size_t size, size_t *output_s
     if(buffer_index) {
         if(is_composition) {
             composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                composition_buffer, &output_index, output_size, form);
+                composition_buffer, &output_index, &result->output_size, form);
         } else {
-            output = mjb_flush_d_buffer(characters_buffer, buffer_index, output, &output_index,
-                output_size, form);
+            result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                result->output, &output_index, &result->output_size, form);
         }
         buffer_index = 0;
     }
 
     if(is_composition) {
         // Recompose the string.
-        mjb_recompose(&output, output_size, output_index, composition_buffer);
+        mjb_recompose(&result->output, &result->output_size, output_index, composition_buffer);
         mjb_free(composition_buffer);
     } else {
         // Guarantee null-terminated string
-        if(output_index >= *output_size) {
-            output = mjb_realloc(output, *output_size + 1);
+        if(output_index >= result->output_size) {
+            result->output = mjb_realloc(result->output, result->output_size + 1);
         }
 
-        output[output_index] = '\0';
-        *output_size = output_index;
+        result->output[output_index] = '\0';
+        result->output_size = output_index;
     }
 
-    return output;
+    result->normalized = true;
+
+    return true;
 }
