@@ -6,6 +6,7 @@ set(SOURCES
     next.c
     mojibake.c
     normalization.c
+    quick-check.c
     plane.c
     string.c
     version.c

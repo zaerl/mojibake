@@ -12,6 +12,7 @@
 | `mjb_hangul_syllable_composition`   | 10         |
 | `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |
+| `mjb_string_is_normalized`          | 9          |
 | `mjb_hangul_syllable_name`          | 8          |
 | `mjb_plane_name`                    | 8          |
 | `mjb_codepoint_is_combining`        | 5          |
@@ -41,4 +42,4 @@
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
 | `mjb_string_next_codepoint`         | 0          |
-| **Total**                           | **399516** |
+| **Total**                           | **399525** |

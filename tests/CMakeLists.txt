@@ -8,6 +8,7 @@ set(TEST_SOURCES
     mojibake.c
     next.c
     normalization.c
+    quick-check.c
     plane.c
     string.c
     utf8.c

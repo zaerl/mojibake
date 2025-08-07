@@ -119,6 +119,13 @@
     "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form", "mjb_normalization_result *result"]
   },
   {
+    "comment": "Check if a string is normalized",
+    "ret": "bool",
+    "name": "string_is_normalized",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form"]
+  },
+  {
     "comment": "Get the next character from the string",
     "ret": "bool",
     "name": "next_character",

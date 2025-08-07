@@ -335,40 +335,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
-
-    // String buffer, used for UTF-8 decoding.
-    const char *index = buffer;
-    bool well_formed = true;
-
-    // Prescan of the string to check if it is already well-formed.
-    // See: https://unicode.org/reports/tr15/#Description_Norm
-    for(; *index; ++index) {
-        // Find next codepoint.
-        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
-
-        if(state == MJB_UTF8_REJECT) {
-            well_formed = false;
-            break;
-        }
-
-        if(state != MJB_UTF8_ACCEPT) {
-            continue;
-        }
-
-        // Text exclusively containing ASCII characters (U+0000..U+007F) is left unaffected by all
-        // of the Normalization Forms.
-        if(current_codepoint < 0x80) {
-            continue;
-        }
-
-        // Text exclusively containing Latin-1 characters (U+0000..U+00FF) is left unaffected by NFC.
-        if(current_codepoint < 0x100 && form == MJB_NORMALIZATION_NFC) {
-            continue;
-        }
-
-        // The string is not well-formed.
-        well_formed = false;
-    }
+    bool well_formed = mjb_string_is_normalized(buffer, size, encoding, form);
 
     if(well_formed) {
         // No need to normalize.
@@ -399,7 +366,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     sqlite3_clear_bindings(stmt);
 
     // String buffer, used for UTF-8 decoding.
-    index = buffer;
+    const char *index = buffer;
 
     // Loop through the string.
     for(; *index; ++index) {

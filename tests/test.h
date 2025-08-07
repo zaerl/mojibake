@@ -30,6 +30,7 @@ void *test_mojibake(void *arg);
 void *test_next(void *arg);
 void *test_normalization(void *arg);
 void *test_plane(void *arg);
+void *test_quick_check(void *arg);
 void *test_string(void *arg);
 void *test_utf8(void *arg);
 void *test_version(void *arg);
