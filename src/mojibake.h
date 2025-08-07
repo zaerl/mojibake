@@ -173,9 +173,18 @@ typedef enum mjb_normalization {
 } mjb_normalization;
 
 typedef enum mjb_quick_check_result {
-    MJB_QC_YES,
-    MJB_QC_NO,
-    MJB_QC_MAYBE
+    MJB_QC_YES        = 0x0,
+    MJB_QC_NO         = 0x1,
+    MJB_QC_MAYBE      = 0x2,
+    // See: DerivedNormalizationProps.txt
+    MJB_QC_NFD_NO     = 0x4,
+    MJB_QC_NFD_MAYBE  = 0x8,
+    MJB_QC_NFC_NO     = 0x10,
+    MJB_QC_NFC_MAYBE  = 0x20,
+    MJB_QC_NFKC_NO    = 0x40,
+    MJB_QC_NFKC_MAYBE = 0x80,
+    MJB_QC_NFKD_NO    = 0x100,
+    MJB_QC_NFKD_MAYBE = 0x200
 } mjb_quick_check_result;
 
 typedef struct mjb_normalization_result {

@@ -11,6 +11,7 @@ import { generateAPI } from './generate-api';
 import { generateHeader } from './generate-header';
 import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
+import { readNormalizationProps } from './quick-check';
 import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
@@ -74,7 +75,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
       // 10646 comment field
       split[12] === '' ? null : parseInt(split[12], 16), // uppercase
       split[13] === '' ? null : parseInt(split[13], 16), // lowercase
-      split[14] === '' ? null : parseInt(split[14], 16) // titlecase
+      split[14] === '' ? null : parseInt(split[14], 16), // titlecase
+      null // quick check
     );
 
     characters.push(char);
@@ -84,6 +86,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   iLog('INSERT UNICODE DATA');
 
   analysis.beforeDB();
+  await readNormalizationProps(characters);
 
   // Insert characters
   dbRun(characters);

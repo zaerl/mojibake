@@ -1,3 +1,4 @@
+import { QuickCheckResult } from './quick-check';
 import { BidirectionalCategories, CharacterDecomposition } from './types';
 
 export class Character {
@@ -17,7 +18,8 @@ export class Character {
     // comment
     public uppercase: number | null,
     public lowercase: number | null,
-    public titlecase: number | null
+    public titlecase: number | null,
+    public quickCheck: QuickCheckResult | null
   ) {}
 
   formatC(): string {
