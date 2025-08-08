@@ -138,14 +138,33 @@ void *test_encoding(void *arg) {
 
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), 0, "Void buffer")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), 0, "Wrong size")
+
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_16_LE), 0, "Void buffer UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_16_LE), 0, "Wrong size UTF-16LE")
+
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_16_BE), 0, "Void buffer UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_16_BE), 0, "Wrong size UTF-16BE")
+
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), 0, "Invalid encoding")
 
     char buffer_utf8[5];
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter max")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter min")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), true, "0x0000")
-    ATT_ASSERT(buffer_utf8[0], 0, "0x0000")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter max UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter min UTF-16LE")
+
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter max UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter min UTF-16BE")
+
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 1, "0x0000 UTF-8")
+    ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-8")
+
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), 2, "0x0000 UTF-16LE")
+    ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-16LE")
+
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 2, "0x0000 UTF-16BE")
+    ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-16BE")
 
     // CURRENT_COUNT 6
     #define TEST_UTF8(CHAR, STR, RES, COMMENT) \
@@ -159,6 +178,34 @@ void *test_encoding(void *arg) {
     TEST_UTF8(0xFFFD, "\xEF\xBF\xBD", 3, "3-bytes limit");
     TEST_UTF8(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
     TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
+
+    // UTF-16LE tests
+    #define TEST_UTF16LE(CHAR, STR, RES, COMMENT) \
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), RES, COMMENT) \
+        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+
+    TEST_UTF16LE(0x007F, "\x7F\x00", 2, "ASCII limit UTF-16LE");
+    TEST_UTF16LE(0x07FF, "\xFF\x07", 2, "2-bytes limit UTF-16LE");
+    TEST_UTF16LE(0x1E0A, "\x0A\x1E", 2, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-16LE");
+    TEST_UTF16LE(0xFFFD, "\xFD\xFF", 2, "3-bytes limit UTF-16LE");
+    TEST_UTF16LE(0x10FFFE, "\xFF\xDB\xFE\xDF", 4, "4-bytes limit UTF-16LE");
+    TEST_UTF16LE(0x1F642, "\x3D\xD8\x42\xDE", 4, "SLIGHTLY SMILING FACE UTF-16LE");
+
+    // UTF-16BE tests
+    #define TEST_UTF16BE(CHAR, STR, RES, COMMENT) \
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), RES, COMMENT) \
+        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+
+    TEST_UTF16BE(0x007F, "\x00\x7F", 2, "ASCII limit UTF-16BE");
+    TEST_UTF16BE(0x07FF, "\x07\xFF", 2, "2-bytes limit UTF-16BE");
+    TEST_UTF16BE(0x1E0A, "\x1E\x0A", 2, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-16BE");
+    TEST_UTF16BE(0xFFFD, "\xFF\xFD", 2, "3-bytes limit UTF-16BE");
+    TEST_UTF16BE(0x10FFFE, "\xDB\xFF\xDF\xFE", 4, "4-bytes limit UTF-16BE");
+    TEST_UTF16BE(0x1F642, "\xD8\x3D\xDE\x42", 4, "SLIGHTLY SMILING FACE UTF-16BE");
+
+    #undef TEST_UTF8
+    #undef TEST_UTF16LE
+    #undef TEST_UTF16BE
 
     return NULL;
 }
