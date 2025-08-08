@@ -18,12 +18,6 @@ Return true if the string is encoded in ASCII
 bool mjb_string_is_ascii(const char *buffer, size_t size);
 ```
 
-Return next codepoint in the string
-
-```c
-mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
-```
-
 Encode a codepoint to a string
 
 ```c

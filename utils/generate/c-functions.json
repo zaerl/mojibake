@@ -21,13 +21,6 @@
     "args": ["const char *buffer", "size_t size"]
   },
   {
-    "comment": "Return next codepoint in the string",
-    "ret": "mjb_codepoint",
-    "name": "string_next_codepoint",
-    "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t size", "size_t *next"]
-  },
-  {
     "comment": "Encode a codepoint to a string",
     "ret": "unsigned int",
     "name": "codepoint_encode",

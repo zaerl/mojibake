@@ -241,9 +241,6 @@ MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t size);
 // Return true if the string is encoded in ASCII
 MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
 
-// Return next codepoint in the string
-MJB_PURE mjb_codepoint mjb_string_next_codepoint(const char *buffer, size_t size, size_t *next);
-
 // Encode a codepoint to a string
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 

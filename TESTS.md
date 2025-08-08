@@ -41,5 +41,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| `mjb_string_next_codepoint`         | 0          |
 | **Total**                           | **399525** |
