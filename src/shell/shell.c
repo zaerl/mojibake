@@ -120,7 +120,7 @@ void print_value(const char* label, unsigned int nl, const char* format, ...) {
     va_end(args);
 }
 
-void print_null_value(const char* label, unsigned int nl) {
+void print_generic_value(const char* label, unsigned int nl, const char* value) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         char json_label[256];
 
@@ -128,13 +128,29 @@ void print_null_value(const char* label, unsigned int nl) {
         strncpy(json_label + 1, label + 1, 255);
         json_label[255] = '\0';
 
-        printf("%s%s\"%s\":%s%snull%s", json_i(), json_i(), json_label, cmd_json_indent == 0 ? "" : " ",
-            color_green_start(), color_reset());
+        printf("%s%s\"%s\":%s%s%s%s", json_i(), json_i(), json_label, cmd_json_indent == 0 ? "" : " ",
+            color_green_start(), value, color_reset());
     } else {
-        printf("%s: %sN/A%s", label, color_green_start(), color_reset());
+        printf("%s: %s%s%s", label, color_green_start(), value, color_reset());
     }
 
     print_nl(nl);
+}
+
+void print_null_value(const char* label, unsigned int nl) {
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        print_generic_value(label, nl, "null");
+    } else {
+        print_value(label, nl, "N/A");
+    }
+}
+
+void print_bool_value(const char* label, unsigned int nl, bool value) {
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        print_generic_value(label, nl, value ? "true" : "false");
+    } else {
+        print_generic_value(label, nl, value ? "Y" : "N");
+    }
 }
 
 void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl) {

@@ -147,12 +147,7 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         print_null_value("Numeric", 1);
     }
 
-    if(is_json) {
-        printf("%s%s\"mirrored\":%s%s%s%s,%s", json_i(), json_i(), cmd_json_indent == 0 ? "" : " ",
-            color_green_start(), character->mirrored ? "true" : "false", color_reset(), json_nl());
-    } else {
-        print_value("Mirrored", 1, "%s", character->mirrored ? "Y" : "N");
-    }
+    print_bool_value("Mirrored", 1, character->mirrored);
 
     if(character->uppercase != 0) {
         print_codepoint("Uppercase", 1, character->uppercase);
