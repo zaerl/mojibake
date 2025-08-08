@@ -178,13 +178,13 @@ typedef enum mjb_quick_check_result {
     MJB_QC_MAYBE      = 0x2,
     // See: DerivedNormalizationProps.txt
     MJB_QC_NFD_NO     = 0x4,
-    MJB_QC_NFD_MAYBE  = 0x8,
+    MJB_QC_NFD_MAYBE  = 0x8, // Impossible to happen
     MJB_QC_NFC_NO     = 0x10,
     MJB_QC_NFC_MAYBE  = 0x20,
     MJB_QC_NFKC_NO    = 0x40,
     MJB_QC_NFKC_MAYBE = 0x80,
     MJB_QC_NFKD_NO    = 0x100,
-    MJB_QC_NFKD_MAYBE = 0x200
+    MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
 
 typedef struct mjb_normalization_result {
@@ -230,6 +230,7 @@ typedef struct {
     mjb_codepoint codepoint;
     uint8_t combining;
     uint8_t decomposition;
+    uint16_t quick_check;
 } mjb_normalization_character;
 
 // Buffer character used in composition phase

@@ -123,7 +123,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query_compose[] = "SELECT composite_codepoint FROM compositions WHERE starter_codepoint = ? AND combining_codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_compose, query_compose)
 
-    const char query_buffer_character[] = "SELECT codepoint, combining, decomposition FROM unicode_data WHERE codepoint = ?";
+    const char query_buffer_character[] = "SELECT codepoint, combining, decomposition, quick_check FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_buffer_character, query_buffer_character)
 
     #undef MJB_PREPARE_STMT
