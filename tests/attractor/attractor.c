@@ -1,6 +1,5 @@
-
 /**
- * 2025-06-14
+ * 2025-08-08
  *
  * The Attractor Unit Test library
  */
@@ -10,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT, EXPECTED) \
@@ -26,7 +24,6 @@ static unsigned int att_valid_tests = 0;
 static unsigned int att_total_tests = 0;
 static unsigned int att_verbose = ATT_VERBOSE;
 static unsigned int att_show_error = ATT_SHOW_ERROR;
-static unsigned int att_columns = 80;
 static int att_show_colors = 0;
 static att_generic_callback att_callback = NULL;
 static att_test_callback att_t_callback = NULL;
@@ -315,14 +312,6 @@ int att_assert(const char *format, int test, const char *description) {
     // Initialize the library
     if(att_total_tests == 1) {
         if(isatty(STDOUT_FILENO)) {
-            struct winsize w;
-
-            ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-            if(w.ws_col > 0) {
-                att_columns = w.ws_col;
-            }
-
             const char *term = getenv("TERM");
             const char *no_color = getenv("NO_COLOR");
             att_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
@@ -343,22 +332,10 @@ int att_assert(const char *format, int test, const char *description) {
         }
     } else {
         const char *ok = att_show_colors ? "\x1B[32mOK\x1B[0m" : "OK";
-        const char *fail = att_show_colors ? "\x1B[31mFAIL\x1B[0m" : "FAIL";
-        int length = att_columns - (strlen(format) + strlen(description) + (test ? 2 : 4) + 5);
+        const char *fail = att_show_colors ? "\x1B[31mNO\x1B[0m" : "NO";
 
-        if(length <= 0) {
-            length = 2;
-        }
-
-        char spaces[length + 1];
-        spaces[length] = '\0';
-
-        for(int i = 0; i < length; i++) {
-            spaces[i] = ' ';
-        }
-
-        printf(att_show_colors ? "[\x1b[36m%s\x1b[0m] %s: %s%s\n" : "[%s] %s: %s%s\n",
-            format, description, spaces, test ? ok : fail);
+        printf(att_show_colors ? "%s [\x1b[36m%s\x1b[0m] %s\n" : "%s [%s] %s\n",
+            test ? ok : fail, format, description);
     }
 
     return test;
