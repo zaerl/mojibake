@@ -166,7 +166,7 @@ tests.
 - [x] UTF-8 strings
 - [ ] UTF-16 strings
 - [ ] Add `mjb_casefold` [CaseFolding.txt](https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt)
-- [ ] Remove `mjb_string_next_codepoint`
+- [x] Remove `mjb_string_next_codepoint`
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`

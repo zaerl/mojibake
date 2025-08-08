@@ -8,9 +8,9 @@
 #include "test.h"
 
 void *test_encoding(void *arg) {
-    ATT_ASSERT(mjb_string_encoding(0, 10), MJB_ENCODING_UNKNOWN, "Void string")
-    ATT_ASSERT(mjb_string_encoding("", 0), MJB_ENCODING_UNKNOWN, "Void length");
-    ATT_ASSERT(mjb_string_encoding(0, 0), MJB_ENCODING_UNKNOWN, "Void string and length");
+    ATT_ASSERT(mjb_string_encoding(0, 10), MJB_ENCODING_UNKNOWN, "Void unknown string")
+    ATT_ASSERT(mjb_string_encoding("", 0), MJB_ENCODING_UNKNOWN, "Void unknown length");
+    ATT_ASSERT(mjb_string_encoding(0, 0), MJB_ENCODING_UNKNOWN, "Void unknown string and length");
     const char *test1 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_encoding(test1, 43), (MJB_ENCODING_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)");
     const char *test2 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
@@ -27,9 +27,9 @@ void *test_encoding(void *arg) {
     const char *test6 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_encoding(test6, 43 + 4), MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE, "UTF-32-LE BOM");
 
-    ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void string");
-    ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void length");
-    ATT_ASSERT(mjb_string_is_ascii(0, 0), false, "Void string and length");
+    ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void ASCII string");
+    ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void ASCII length");
+    ATT_ASSERT(mjb_string_is_ascii(0, 0), false, "Void ASCII string and length");
 
     const char *test10 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_is_ascii(test10, 43), true, "Valid string and length");
@@ -52,9 +52,9 @@ void *test_encoding(void *arg) {
 
     const char *utf8_test = "";
 
-    ATT_ASSERT(mjb_string_is_utf8(NULL, 0), false, "Void string");
-    ATT_ASSERT(mjb_string_is_utf8("", 0), true, "Empty string");
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "Empty string");
+    ATT_ASSERT(mjb_string_is_utf8(NULL, 0), false, "Void UTF-8 string");
+    ATT_ASSERT(mjb_string_is_utf8("", 0), false, "Empty UTF-8 \"\" string");
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), false, "Empty UTF-8 string");
 
     utf8_test = "Hello, world!";
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "Simple ASCII");
