@@ -12,6 +12,12 @@ Return true if the string is encoded in UTF-8
 bool mjb_string_is_utf8(const char *buffer, size_t size);
 ```
 
+Return true if the string is encoded in UTF-16BE or UTF-16LE
+
+```c
+bool mjb_string_is_utf16(const char *buffer, size_t size);
+```
+
 Return true if the string is encoded in ASCII
 
 ```c

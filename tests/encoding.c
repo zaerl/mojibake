@@ -94,6 +94,48 @@ void *test_encoding(void *arg) {
     utf8_test = "Hello\xE2\x80\x94World\xE2\x80\xA2Test\xE2\x99\xA5Unicode\xE2\x98\xAE";
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "Various Unicode punctuation and symbols");
 
+    // UTF-16 tests
+    ATT_ASSERT(mjb_string_is_utf16(NULL, 0), false, "Void UTF-16 string");
+    ATT_ASSERT(mjb_string_is_utf16("", 0), false, "Empty UTF-16 string");
+    ATT_ASSERT(mjb_string_is_utf16("A", 1), false, "Odd-length UTF-16 string");
+    ATT_ASSERT(mjb_string_is_utf16("", 1), false, "Odd-length empty UTF-16 string");
+
+    // UTF-16BE tests (Big Endian)
+    const char *utf16be_hello = "\x00H\x00e\x00l\x00l\x00o";  // "Hello" in UTF-16BE
+    ATT_ASSERT(mjb_string_is_utf16(utf16be_hello, 10), true, "UTF-16BE Hello");
+
+    const char *utf16be_with_bmp = "\x00A\x03\x91\x00Z";  // "AΑZ" (A, Greek Alpha, Z) in UTF-16BE
+    ATT_ASSERT(mjb_string_is_utf16(utf16be_with_bmp, 6), true, "UTF-16BE with BMP characters");
+
+    // UTF-16LE tests (Little Endian)
+    const char *utf16le_hello = "H\x00e\x00l\x00l\x00o\x00";  // "Hello" in UTF-16LE
+    ATT_ASSERT(mjb_string_is_utf16(utf16le_hello, 10), true, "UTF-16LE Hello");
+
+    const char *utf16le_with_bmp = "A\x00\x91\x03Z\x00";  // "AΑZ" (A, Greek Alpha, Z) in UTF-16LE
+    ATT_ASSERT(mjb_string_is_utf16(utf16le_with_bmp, 6), true, "UTF-16LE with BMP characters");
+
+    // UTF-16BE with surrogate pairs (emoji: 🙂 U+1F642)
+    const char *utf16be_emoji = "\xD8\x3D\xDE\x42";  // 🙂 in UTF-16BE surrogate pair
+    ATT_ASSERT(mjb_string_is_utf16(utf16be_emoji, 4), true, "UTF-16BE with surrogate pair");
+
+    // UTF-16LE with surrogate pairs (emoji: 🙂 U+1F642)
+    const char *utf16le_emoji = "\x3D\xD8\x42\xDE";  // 🙂 in UTF-16LE surrogate pair
+    ATT_ASSERT(mjb_string_is_utf16(utf16le_emoji, 4), true, "UTF-16LE with surrogate pair");
+
+    // UTF-16 with BOM markers
+    const char *utf16be_bom = "\xFE\xFF\x00H\x00i";  // BOM + "Hi" in UTF-16BE
+    ATT_ASSERT(mjb_string_is_utf16(utf16be_bom, 6), true, "UTF-16BE with BOM");
+
+    const char *utf16le_bom = "\xFF\xFEH\x00i\x00";  // BOM + "Hi" in UTF-16LE
+    ATT_ASSERT(mjb_string_is_utf16(utf16le_bom, 6), true, "UTF-16LE with BOM");
+
+    // Edge cases - maximum valid codepoints
+    const char *utf16be_max = "\xDB\xFF\xDF\xFF";  // U+10FFFF in UTF-16BE
+    ATT_ASSERT(mjb_string_is_utf16(utf16be_max, 4), true, "UTF-16BE maximum codepoint");
+
+    const char *utf16le_max = "\xFF\xDB\xFF\xDF";  // U+10FFFF in UTF-16LE
+    ATT_ASSERT(mjb_string_is_utf16(utf16le_max, 4), true, "UTF-16LE maximum codepoint");
+
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), 0, "Void buffer")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), 0, "Wrong size")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), 0, "Invalid encoding")

@@ -238,6 +238,9 @@ MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 // Return true if the string is encoded in UTF-8
 MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t size);
 
+// Return true if the string is encoded in UTF-16BE or UTF-16LE
+MJB_PURE bool mjb_string_is_utf16(const char *buffer, size_t size);
+
 // Return true if the string is encoded in ASCII
 MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
 

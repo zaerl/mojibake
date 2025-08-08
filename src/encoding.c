@@ -8,6 +8,7 @@
 
 #include "mojibake.h"
 #include "utf8.h"
+#include "utf16.h"
 
 #define MJB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
 #define MJB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
@@ -123,6 +124,52 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
     }
 
     return 1;
+}
+
+/**
+ * Return true if the string is encoded in UTF-16BE or UTF-16LE.
+ */
+MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
+    if(buffer == 0 || size < 2 || (size % 2) != 0) {
+        return false;
+    }
+
+    const uint8_t *bytes = (const uint8_t *)buffer;
+    
+    // Try UTF-16BE first
+    uint8_t state_be = MJB_UTF16_ACCEPT;
+    mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
+    bool be_valid = true;
+    
+    for(size_t i = 0; i < size; i += 2) {
+        uint16_t unit = (bytes[i] << 8) | bytes[i + 1];  // Big-endian
+        state_be = mjb_utf16_decode_step(state_be, unit, &codepoint);
+        
+        if(state_be > MJB_UTF16_REJECT) {
+            be_valid = false;  // Error in UTF-16BE
+            break;
+        }
+    }
+    
+    if(be_valid && state_be == MJB_UTF16_ACCEPT) {
+        return true;  // Valid UTF-16BE
+    }
+    
+    // Try UTF-16LE
+    uint8_t state_le = MJB_UTF16_ACCEPT;
+    bool le_valid = true;
+    
+    for(size_t i = 0; i < size; i += 2) {
+        uint16_t unit = bytes[i] | (bytes[i + 1] << 8);  // Little-endian
+        state_le = mjb_utf16_decode_step(state_le, unit, &codepoint);
+        
+        if(state_le > MJB_UTF16_REJECT) {
+            le_valid = false;  // Error in UTF-16LE
+            break;
+        }
+    }
+    
+    return le_valid && state_le == MJB_UTF16_ACCEPT;  // Valid UTF-16LE
 }
 
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding) {

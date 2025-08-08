@@ -14,6 +14,13 @@
     "args": ["const char *buffer", "size_t size"]
   },
   {
+    "comment": "Return true if the string is encoded in UTF-16BE or UTF-16LE",
+    "ret": "bool",
+    "name": "string_is_utf16",
+    "attributes": ["MJB_PURE"],
+    "args": ["const char *buffer", "size_t size"]
+  },
+  {
     "comment": "Return true if the string is encoded in ASCII",
     "ret": "bool",
     "name": "string_is_ascii",
