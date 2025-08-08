@@ -9,9 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "mojibake.h"
 #include "mojibake_internal.h"
-#include "sqlite3/sqlite3.h"
 
 MJB_EXPORT mojibake mjb_global = {
     .ok = false,

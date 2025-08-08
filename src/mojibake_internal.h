@@ -13,6 +13,8 @@
 #include <stddef.h>
 #include "sqlite3/sqlite3.h"
 
+#include "mojibake.h"
+
 /**
  * Internal mojibake structure
  * This contains the internal state of the library
