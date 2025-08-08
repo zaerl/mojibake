@@ -157,6 +157,13 @@ tests.
 
 ## TODO
 
+- [ ] UTF-16 strings
+- [ ] Add `mjb_casefold` [CaseFolding.txt](https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt)
+- [ ] Check maximum size of combining characters
+- [ ] Optimize memory allocation in `mjb_normalize`
+- [ ] Optimize memory allocation in `mjb_recompose`
+- [ ] Add Github actions for testing
+- [ ] Add support for Windows
 - [x] UnicodeData.txt table
 - [x] Blocks.txt table
 - [x] Composition table
@@ -164,15 +171,8 @@ tests.
 - [x] Compatibility decomposition table
 - [x] Codepoint to character transformation
 - [x] UTF-8 strings
-- [ ] UTF-16 strings
-- [ ] Add `mjb_casefold` [CaseFolding.txt](https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt)
 - [x] Remove `mjb_string_next_codepoint`
-- [ ] Check maximum size of combining characters
-- [ ] Optimize memory allocation in `mjb_normalize`
-- [ ] Optimize memory allocation in `mjb_recompose`
 - [x] Remove `sqlite3.h` import on `mojibake.h`
-- [ ] Add Github actions for testing
-- [ ] Add support for Windows
 
 ## Thanks
 
