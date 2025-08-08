@@ -23,7 +23,6 @@
 
 #include "sqlite3/sqlite3.h"
 #include "unicode.h"
-#include "utf8.h"
 
 #ifdef __cplusplus
 extern "C" {

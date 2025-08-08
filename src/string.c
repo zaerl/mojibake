@@ -5,6 +5,7 @@
  */
 
 #include "mojibake.h"
+#include "utf8.h"
 
 /**
  * Return size of a string.

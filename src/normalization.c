@@ -7,8 +7,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "buffer.h"
 #include "mojibake.h"
+#include "buffer.h"
+#include "utf8.h"
 
 extern struct mojibake mjb_global;
 

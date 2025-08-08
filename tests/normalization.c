@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "test.h"
+#include "../src/utf8.h"
 
 static bool next_character(mjb_character *character, mjb_next_character_type type) {
     printf(" \x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);

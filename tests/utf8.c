@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "../src/mojibake.h"
 #include "test.h"
+#include "../src/utf8.h"
 
 void *test_utf8(void *arg) {
     /*#define TEST_UTF8(CHAR, STR, RES, COMMENT) \

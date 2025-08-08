@@ -4,7 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "../src/mojibake.h"
 #include "test.h"
 
 void *test_hangul(void *arg) {

@@ -5,6 +5,7 @@
  */
 
 #include "mojibake.h"
+#include "utf8.h"
 
 /**
  * Return the next character from the string.

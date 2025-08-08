@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #define	MJB_UTF8_ACCEPT	0
 #define	MJB_UTF8_REJECT	0xF
 

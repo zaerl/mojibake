@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+
 #include "mojibake.h"
 
 // See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G61399

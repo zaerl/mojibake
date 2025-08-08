@@ -5,7 +5,9 @@
  */
 
 #include <string.h>
+
 #include "mojibake.h"
+#include "utf8.h"
 
 #define MJB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
 #define MJB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
