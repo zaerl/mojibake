@@ -65,9 +65,9 @@ int main(int argc, char * const argv[]) {
     // unsigned int columns = 80;
 
     struct option long_options[] = {
+        { "codepoint", no_argument, NULL, 'c' },
         { "help", no_argument, NULL, 'h' },
         { "json-indent", required_argument, NULL, 'j' },
-        { "codepoint", no_argument, NULL, 'c' },
         { "output", required_argument, NULL, 'o' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
@@ -75,9 +75,9 @@ int main(int argc, char * const argv[]) {
     };
 
     const char *descriptions[] = {
+        "Interpret input as a list of codepoints",
         "Print help",
-        "JSON indent level (0-10). Default: 0\n",
-        "Interpret input as a list of codepoints\n",
+        "JSON indent level (0-10). Default: 0",
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",
