@@ -30,4 +30,12 @@ clean_build:
 clean:
 	rm -rf $(BUILD_DIR) && rm -f mojibake.db
 
-.PHONY: all clean clean_build configure build test rebuild generate generate_tests coverage
+help:
+	@echo "Available targets:"
+	@echo "  all        - Build the project (default)"
+	@echo "  test       - Build and run tests"
+	@echo "  clean      - Remove build artifacts"
+	@echo "  generate   - Regenerate source files"
+	@echo "  coverage   - Run coverage analysis"
+
+.PHONY: all clean clean_build configure build test rebuild generate generate_tests coverage help
