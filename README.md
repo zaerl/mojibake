@@ -170,7 +170,7 @@ tests.
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
-- [ ] Remove `sqlite3.h` import on `mojibake.h`
+- [x] Remove `sqlite3.h` import on `mojibake.h`
 - [ ] Add Github actions for testing
 - [ ] Add support for Windows
 

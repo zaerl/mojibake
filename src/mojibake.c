@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "mojibake.h"
+#include "mojibake_internal.h"
 #include "sqlite3/sqlite3.h"
 
 MJB_EXPORT mojibake mjb_global = {
@@ -32,7 +33,7 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
-    if(mjb_initialize_v2(malloc, realloc, free, NULL)) {
+    if(mjb_initialize_v2(malloc, realloc, free)) {
         return true;
     }
 
@@ -44,7 +45,7 @@ int mjb_sqlite3_roundup(int size) {
 }
 
 // Initialize the library with custom values
-MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, sqlite3_mem_methods *db_mem_methods) {
+MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn) {
     if(mjb_global.ok) {
         return true;
     }
@@ -54,10 +55,6 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     }
 
     mjb_global.ok = false;
-
-    if(db_mem_methods) {
-        sqlite3_config(SQLITE_CONFIG_MALLOC, db_mem_methods);
-    }
 
     int rc = sqlite3_initialize();
 

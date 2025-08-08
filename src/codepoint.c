@@ -8,9 +8,10 @@
 #include <string.h>
 
 #include "mojibake.h"
+#include "mojibake_internal.h"
 #include "utf8.h"
 
-extern struct mojibake mjb_global;
+extern mojibake mjb_global;
 
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {

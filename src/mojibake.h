@@ -17,11 +17,10 @@
 #error "Windows is not supported"
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
-#include "sqlite3/sqlite3.h"
 #include "unicode.h"
 
 #ifdef __cplusplus
@@ -79,20 +78,7 @@ typedef void (*mjb_free_fn)(void *ptr);
  * are its constructor. Every function accept an instance to this allocated
  * pointer. This is used to ensure reentrancy.
  */
-typedef struct mojibake {
-    bool ok;
-    mjb_alloc_fn memory_alloc;
-    mjb_realloc_fn memory_realloc;
-    mjb_free_fn memory_free;
-    sqlite3 *db;
-    sqlite3_stmt *stmt_get_codepoint;
-    sqlite3_stmt *stmt_get_block;
-    sqlite3_stmt *stmt_is_combining;
-    sqlite3_stmt *stmt_decompose;
-    sqlite3_stmt *stmt_compatibility_decompose;
-    sqlite3_stmt *stmt_compose;
-    sqlite3_stmt *stmt_buffer_character;
-} mojibake;
+typedef struct mojibake mojibake;
 
 /**
  * A unicode codepoint, a value in the range 0 to 0x10FFFF
@@ -352,7 +338,7 @@ MJB_CONST const char *mjb_unicode_version(void);
 MJB_NODISCARD bool mjb_initialize(void);
 
 // Initialize the library with custom values. Not needed to be called
-MJB_NODISCARD bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, sqlite3_mem_methods *db_mem_methods);
+MJB_NODISCARD bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
 // Shutdown the library. Not needed to be called
 void mjb_shutdown(void);

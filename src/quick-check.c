@@ -5,16 +5,18 @@
  */
 
 #include "mojibake.h"
+#include "mojibake_internal.h"
 #include "buffer.h"
 #include "utf8.h"
 
-extern struct mojibake mjb_global;
+extern mojibake mjb_global;
 
 /**
  * Normalize a string
  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
  */
-MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size,
+    mjb_encoding encoding, mjb_normalization form) {
     if(encoding != MJB_ENCODING_UTF_8) {
         return MJB_QC_NO;
     }

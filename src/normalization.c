@@ -8,10 +8,11 @@
 #include <stdio.h>
 
 #include "mojibake.h"
+#include "mojibake_internal.h"
 #include "buffer.h"
 #include "utf8.h"
 
-extern struct mojibake mjb_global;
+extern mojibake mjb_global;
 
 // Normalization sort.
 static void mjb_normalization_sort(mjb_normalization_character array[], size_t size) {

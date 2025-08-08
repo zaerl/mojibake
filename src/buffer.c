@@ -5,8 +5,9 @@
  */
 
 #include "buffer.h"
+#include "mojibake_internal.h"
 
-extern struct mojibake mjb_global;
+extern mojibake mjb_global;
 
  /**
  * A smaller version of mjb_normalize() that only returns the character information.
