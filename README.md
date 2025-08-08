@@ -164,6 +164,9 @@ tests.
 - [ ] Optimize memory allocation in `mjb_recompose`
 - [ ] Add Github actions for testing
 - [ ] Add support for Windows
+- [ ] Add UTF16 support to `mjb_next_character`
+- [ ] Add UTF16 support to `mjb_normalize`
+- [ ] Add UTF16 support to `mjb_string_is_normalized`
 - [x] UnicodeData.txt table
 - [x] Blocks.txt table
 - [x] Composition table
