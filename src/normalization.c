@@ -373,7 +373,10 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         if(mjb_codepoint_is_hangul_syllable(current_codepoint) &&
            (form == MJB_NORMALIZATION_NFD || form == MJB_NORMALIZATION_NFKD)) {
             mjb_codepoint codepoints[3];
-            mjb_hangul_syllable_decomposition(current_codepoint, codepoints);
+
+            if(!mjb_hangul_syllable_decomposition(current_codepoint, codepoints)) {
+                continue;
+            }
 
             for(size_t i = 0; i < 3; ++i) {
                 if(codepoints[i] == 0) {

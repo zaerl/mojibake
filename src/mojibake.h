@@ -302,7 +302,7 @@ MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
 
 // Hangul syllable decomposition
-MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+MJB_NODISCARD MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Hangul syllable composition
 MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);

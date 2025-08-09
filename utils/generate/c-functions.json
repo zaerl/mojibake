@@ -164,7 +164,7 @@
     "comment": "Hangul syllable decomposition",
     "ret": "bool",
     "name": "hangul_syllable_decomposition",
-    "attributes": ["MJB_NONNULL(2)"],
+    "attributes": ["MJB_NODISCARD", "MJB_NONNULL(2)"],
     "args": ["mjb_codepoint codepoint", "mjb_codepoint *codepoints"]
   },
   {
