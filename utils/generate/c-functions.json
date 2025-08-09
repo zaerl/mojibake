@@ -49,32 +49,11 @@
     "args": ["const char *s1", "const char *s2", "size_t max_length", "mjb_encoding encoding"]
   },
   {
-    "comment": "Return uppercase string",
-    "ret": "const char *",
-    "name": "toupper",
+    "comment": "Return change string case",
+    "ret": "char *",
+    "name": "case",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
-  },
-  {
-    "comment": "Return lowercase string",
-    "ret": "const char *",
-    "name": "tolower",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
-  },
-  {
-    "comment": "Return title case string",
-    "ret": "const char *",
-    "name": "totitle",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
-  },
-  {
-    "comment": "Return casefolded string",
-    "ret": "const char *",
-    "name": "casefold",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
+    "args": ["const char *buffer", "size_t length", "mjb_case_type type", "mjb_encoding encoding"]
   },
   {
     "comment": "Return true if the codepoint is valid",

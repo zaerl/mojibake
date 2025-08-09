@@ -32,6 +32,10 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_compatibility_decompose;
     sqlite3_stmt *stmt_compose;
     sqlite3_stmt *stmt_buffer_character;
+    sqlite3_stmt *stmt_case;
 } mojibake;
+
+// Internal functions
+MJB_NONNULL(1, 2, 4, 5) char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index, size_t *output_size);
 
 #endif // MJB_MOJIBAKE_INTERNAL_H

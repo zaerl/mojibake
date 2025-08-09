@@ -42,28 +42,10 @@ Compare two strings
 size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encoding encoding);
 ```
 
-Return uppercase string
+Return change string case
 
 ```c
-const char *mjb_toupper(const char *buffer, size_t max_length, mjb_encoding encoding);
-```
-
-Return lowercase string
-
-```c
-const char *mjb_tolower(const char *buffer, size_t max_length, mjb_encoding encoding);
-```
-
-Return title case string
-
-```c
-const char *mjb_totitle(const char *buffer, size_t max_length, mjb_encoding encoding);
-```
-
-Return casefolded string
-
-```c
-const char *mjb_casefold(const char *buffer, size_t max_length, mjb_encoding encoding);
+char *mjb_case(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding);
 ```
 
 Return true if the codepoint is valid

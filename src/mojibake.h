@@ -172,6 +172,13 @@ typedef enum mjb_quick_check_result {
     MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
 
+typedef enum mjb_case_type {
+    MJB_CASE_UPPER,
+    MJB_CASE_LOWER,
+    MJB_CASE_TITLE,
+    MJB_CASE_CASEFOLD
+} mjb_case_type;
+
 typedef struct mjb_normalization_result {
     char *output;
     size_t output_size;
@@ -253,17 +260,8 @@ MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding 
 // Compare two strings
 MJB_PURE size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encoding encoding);
 
-// Return uppercase string
-MJB_NONNULL(1) const char *mjb_toupper(const char *buffer, size_t max_length, mjb_encoding encoding);
-
-// Return lowercase string
-MJB_NONNULL(1) const char *mjb_tolower(const char *buffer, size_t max_length, mjb_encoding encoding);
-
-// Return title case string
-MJB_NONNULL(1) const char *mjb_totitle(const char *buffer, size_t max_length, mjb_encoding encoding);
-
-// Return casefolded string
-MJB_NONNULL(1) const char *mjb_casefold(const char *buffer, size_t max_length, mjb_encoding encoding);
+// Return change string case
+MJB_NONNULL(1) char *mjb_case(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding);
 
 // Return true if the codepoint is valid
 MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);

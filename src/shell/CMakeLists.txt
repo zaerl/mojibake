@@ -2,6 +2,7 @@ set(SOURCES
     characters.c
     commands/character.c
     commands/normalize.c
+    commands/string.c
     main.c
     maps.c
     shell.c
