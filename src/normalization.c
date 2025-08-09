@@ -331,9 +331,10 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     // String buffer, used for UTF-8 decoding.
     const char *index = buffer;
+    const char *end = buffer + size;
 
     // Loop through the string.
-    for(; *index; ++index) {
+    for(; index < end && *index; ++index) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 

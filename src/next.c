@@ -31,9 +31,10 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
 
     // String buffer.
     const char *index = buffer;
+    const char *end = buffer + size;
 
     // Loop through the string.
-    for(; *index; ++index) {
+    for(; index < end && *index; ++index) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &codepoint);
 

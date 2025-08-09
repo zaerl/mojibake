@@ -29,7 +29,6 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
         return MJB_QC_YES;
     }
 
-    const char *index = buffer;
     mjb_quick_check_result result = MJB_QC_NO;
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
@@ -37,10 +36,10 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     mjb_normalization_character current_character;
     result = MJB_QC_YES;
 
-    // TODO: Remove this?
-    index = buffer;
+    const char *index = buffer;
+    const char *end = buffer + size;
 
-    for(; *index; ++index) {
+    for(; index < end && *index; ++index) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 

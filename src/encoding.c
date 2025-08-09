@@ -88,12 +88,14 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
         return false;
     }
 
-    const char *index = buffer;
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
 
+    const char *index = buffer;
+    const char *end = buffer + size;
+
     // Loop through the string.
-    for(; *index; ++index) {
+    for(; index < end && *index; ++index) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &codepoint);
 
