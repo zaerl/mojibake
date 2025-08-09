@@ -35,10 +35,45 @@
     "args": ["mjb_codepoint codepoint", "char *buffer", "size_t size", "mjb_encoding encoding"]
   },
   {
-    "comment": "Return the length of a UTF-8 sequence",
+    "comment": "Return the length of a string",
     "ret": "size_t",
     "name": "strnlen",
     "attributes": ["MJB_PURE"],
+    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Compare two strings",
+    "ret": "size_t",
+    "name": "strncmp",
+    "attributes": ["MJB_PURE"],
+    "args": ["const char *s1", "const char *s2", "size_t max_length", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Return uppercase string",
+    "ret": "const char *",
+    "name": "toupper",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Return lowercase string",
+    "ret": "const char *",
+    "name": "tolower",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Return title case string",
+    "ret": "const char *",
+    "name": "totitle",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Return casefolded string",
+    "ret": "const char *",
+    "name": "casefold",
+    "attributes": ["MJB_NONNULL(1)"],
     "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"]
   },
   {

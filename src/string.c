@@ -60,3 +60,27 @@ MJB_EXPORT size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length,
 
     return 0;
 }
+
+MJB_EXPORT const char *mjb_toupper(const char *buffer, size_t max_length, mjb_encoding encoding) {
+    if(max_length == 0) {
+        return buffer;
+    }
+
+    return buffer;
+}
+
+MJB_EXPORT const char *mjb_tolower(const char *buffer, size_t max_length, mjb_encoding encoding) {
+    if(max_length == 0) {
+        return buffer;
+    }
+
+    return buffer;
+}
+
+MJB_EXPORT const char *mjb_totitle(const char *buffer, size_t max_length, mjb_encoding encoding) {
+    if(max_length == 0) {
+        return buffer;
+    }
+
+    return buffer;
+}
