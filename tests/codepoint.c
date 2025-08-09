@@ -57,6 +57,12 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_character_block(0xE0000 + 1, &block), true, "Valid tags block")
     ATT_ASSERT(block.id, MJB_BLOCK_TAGS, "Tags block")
 
+    ATT_ASSERT(mjb_character_block(0xC0C0, &block), true, "Hangul Syllables block")
+    ATT_ASSERT(block.id, MJB_BLOCK_HANGUL_SYLLABLES, "Hangul block")
+
+    ATT_ASSERT(mjb_character_block(0x10C0, &block), true, "Georgian block")
+    ATT_ASSERT(block.id, MJB_BLOCK_GEORGIAN, "Georgian block")
+
     ATT_ASSERT(mjb_codepoint_character(0xF0000 + 3, &character), false, "Supplementary Private Use Area-A block")
 
     ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX - 1, &character), false, "Supplementary Private Use Area-B block")

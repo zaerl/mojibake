@@ -77,6 +77,9 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD", true);
     print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkc", "NFKC", true);
 
+    // Need to flush stdout here to ensure the normalization is printed before the next character
+    fflush(stdout);
+
     if(is_json) {
         print_id_name_value("category", character->category, category_name(character->category), true);
     } else {
@@ -110,8 +113,10 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     }
 
     mjb_codepoint_block block = {0};
-
     bool valid_block = mjb_character_block(character->codepoint, &block);
+
+    // Need to flush stdout here to ensure the block is printed before the next character
+    fflush(stdout);
 
     if(valid_block) {
         if(is_json) {
