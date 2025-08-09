@@ -36,6 +36,8 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_normalization_character current_character;
     result = MJB_QC_YES;
+
+    // TODO: Remove this?
     index = buffer;
 
     for(; *index; ++index) {

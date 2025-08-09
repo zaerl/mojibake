@@ -179,7 +179,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
             if(!blocked) {
                 // Try to compose starter with this combining character
                 sqlite3_reset(stmt);
-                sqlite3_clear_bindings(stmt);
+                // sqlite3_clear_bindings(stmt);
 
                 int rc = sqlite3_bind_int(stmt, 1, starter);
                 if(rc != SQLITE_OK) {

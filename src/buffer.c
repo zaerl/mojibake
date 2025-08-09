@@ -28,7 +28,7 @@ MJB_EXPORT bool mjb_get_buffer_character(mjb_normalization_character *character,
     }
 
     sqlite3_reset(mjb_global.stmt_buffer_character);
-    sqlite3_clear_bindings(mjb_global.stmt_buffer_character);
+    // sqlite3_clear_bindings(mjb_global.stmt_buffer_character);
 
     int rc = sqlite3_bind_int(mjb_global.stmt_buffer_character, 1, codepoint);
 

@@ -70,7 +70,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     }
 
     sqlite3_reset(mjb_global.stmt_get_codepoint);
-    sqlite3_clear_bindings(mjb_global.stmt_get_codepoint);
+    // sqlite3_clear_bindings(mjb_global.stmt_get_codepoint);
 
     int rc = sqlite3_bind_int(mjb_global.stmt_get_codepoint, 1, codepoint);
 
@@ -188,7 +188,7 @@ MJB_EXPORT bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block
     }
 
     sqlite3_reset(mjb_global.stmt_get_block);
-    sqlite3_clear_bindings(mjb_global.stmt_get_block);
+    //sqlite3_clear_bindings(mjb_global.stmt_get_block);
 
     int rc = sqlite3_bind_int(mjb_global.stmt_get_block, 1, codepoint);
 
