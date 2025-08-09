@@ -95,7 +95,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     }
 
     #define MJB_PREPARE_STMT(STMT, QUERY) \
-        rc = sqlite3_prepare_v2(mjb_global.db, QUERY, sizeof(QUERY), &STMT, NULL); \
+        rc = sqlite3_prepare_v2(mjb_global.db, QUERY, -1, &STMT, NULL); \
         if(rc != SQLITE_OK) { \
             return false; \
         }
