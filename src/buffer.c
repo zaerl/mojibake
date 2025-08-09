@@ -5,7 +5,7 @@
  */
 
 #include "buffer.h"
-#include "mojibake_internal.h"
+#include "mojibake-internal.h"
 
 extern mojibake mjb_global;
 

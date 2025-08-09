@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "mojibake_internal.h"
+#include "mojibake-internal.h"
 #include "buffer.h"
 #include "utf8.h"
 

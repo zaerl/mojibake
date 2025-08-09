@@ -9,7 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "mojibake_internal.h"
+#include "mojibake-internal.h"
 
 MJB_EXPORT mojibake mjb_global = {
     .ok = false,

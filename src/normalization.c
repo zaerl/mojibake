@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "mojibake_internal.h"
+#include "mojibake-internal.h"
 #include "buffer.h"
 #include "utf8.h"
 

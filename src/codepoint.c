@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "mojibake_internal.h"
+#include "mojibake-internal.h"
 #include "utf8.h"
 
 extern mojibake mjb_global;
