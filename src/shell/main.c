@@ -16,9 +16,9 @@
 #include "shell.h"
 
 int show_version(void) {
-     printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
+    printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
 
-     return 0;
+    return 0;
  }
 
 void show_help(struct option options[], const char *descriptions[], command commands[], const char *error) {
