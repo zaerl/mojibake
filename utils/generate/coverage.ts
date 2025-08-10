@@ -1,5 +1,5 @@
-import fs, { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "fs";
-import path, { join } from "path";
+import fs, { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
+import path, { join } from 'path';
 
 // Types
 type FuncCoverage = {

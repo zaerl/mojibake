@@ -1,5 +1,4 @@
-import { createReadStream } from 'fs';
-import { createInterface } from 'readline';
+import { open } from 'fs/promises';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { generateCasefold } from './casefold';
@@ -28,14 +27,11 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   let currentBlock = 0;
   let characters: Character[] = [];
 
-  const rl = createInterface({
-    input: createReadStream('./UCD/UnicodeData.txt'),
-    crlfDelay: Infinity
-  });
+  const file = await open('./UCD/UnicodeData.txt');
 
   iLog('PARSE UNICODE DATA');
 
-  for await (const line of rl) {
+  for await (const line of file.readLines()) {
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
     const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
@@ -117,7 +113,7 @@ async function generate() {
   dbInit('../../mojibake.db', compact);
 
   const blocks = await readBlocks();
-  await readUnicodeData(blocks, readCompositionExclusions());
+  await readUnicodeData(blocks, await readCompositionExclusions());
 
   generateHeader(blocks, categories);
   // generateData(characters);

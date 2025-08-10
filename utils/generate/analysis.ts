@@ -1,7 +1,7 @@
-import { Character } from "./character";
-import { iLog, log } from "./log";
-import { Categories, CountBuffer, Decomposition, Numeric } from "./types";
-import { commonPrefix } from "./utils";
+import { Character } from './character';
+import { iLog, log } from './log';
+import { Categories, CountBuffer, Decomposition, Numeric } from './types';
+import { commonPrefix } from './utils';
 
 export class Analysis {
   categoryBuffer: { [name: string]: number } = {};

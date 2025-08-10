@@ -1,11 +1,7 @@
-import { createReadStream } from 'fs';
-import { createInterface } from 'readline';
+import { open } from 'fs/promises';
 
 export async function generateCasefold() {
-  const rl = createInterface({
-    input: createReadStream('./UCD/CaseFolding.txt'),
-    crlfDelay: Infinity
-  });
+  const file = await open('./UCD/CaseFolding.txt');
 
   let maxFolded = 0;
   let counts = {
@@ -15,7 +11,7 @@ export async function generateCasefold() {
     'T': 0,
   }
 
-  for await (const line of rl) {
+  for await (const line of file.readLines()) {
     if(line.startsWith('#') || line.trim() === '') {
       continue;
     }

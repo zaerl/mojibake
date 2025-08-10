@@ -1,5 +1,6 @@
-import { Character } from "./character";
-import { CalculatedDecomposition, CharacterDecomposition, characterDecompositionMapping, CharacterDecompositionMappingStrings, Composition, Decomposition } from "./types";
+import { Character } from './character';
+import { CalculatedDecomposition, CharacterDecomposition, characterDecompositionMapping,
+  CharacterDecompositionMappingStrings, Composition, Decomposition } from './types';
 
 /**
  * Example for LATIN CAPITAL LETTER D WITH DOT ABOVE
