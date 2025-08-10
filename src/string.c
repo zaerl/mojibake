@@ -13,6 +13,94 @@
 
 extern mojibake mjb_global;
 
+/**
+ * See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G34078
+ */
+static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encoding) {
+    uint8_t state = MJB_UTF8_ACCEPT;
+    mjb_codepoint current_codepoint;
+    sqlite3_stmt *stmt = mjb_global.stmt_case;
+    char *output = mjb_alloc(length);
+
+    // char *output = mjb_alloc(length);
+    size_t output_index = 0;
+    size_t output_size = length;
+    bool in_word = false;
+
+    const char *index = buffer;
+    const char *end = buffer + length;
+
+    for(; index < end && *index; ++index) {
+        // Find next codepoint.
+        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
+
+        if(state == MJB_UTF8_REJECT) {
+            // Do nothing. The string is not well-formed.
+            return NULL;
+        }
+
+        if(state != MJB_UTF8_ACCEPT) {
+            continue;
+        }
+
+        sqlite3_reset(stmt);
+        // sqlite3_clear_bindings(stmt);
+        if(sqlite3_bind_int(stmt, 1, current_codepoint) != SQLITE_OK) {
+            return false;
+        }
+
+        if(sqlite3_step(stmt) != SQLITE_ROW) {
+            return false;
+        }
+
+        mjb_category category = (mjb_category)sqlite3_column_int(stmt, 0);
+        char buffer_utf8[5];
+        size_t utf8_size;
+
+        // Word boundary.
+        if(
+            // Is cased.
+            category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL || category == MJB_CATEGORY_LT ||
+            // Is modifier.
+            category == MJB_CATEGORY_LM ||
+            // Is number.
+            category == MJB_CATEGORY_LO || category == MJB_CATEGORY_NL) {
+
+            if(!in_word) {
+                // Try titlecase first.
+                if(sqlite3_column_type(stmt, 3) == SQLITE_NULL) {
+                    // If titlecase is not available, try uppercase.
+                    if(sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
+                        current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 1);
+                    }
+                } else {
+                    current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 3);
+                }
+
+                in_word = true;
+            } else {
+                // Try lowercase.
+                if(sqlite3_column_type(stmt, 2) != SQLITE_NULL) {
+                    current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 2);
+                }
+            }
+        } else {
+            in_word = false;
+        }
+
+        utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+    }
+
+    if(output_index >= output_size) {
+        output = mjb_realloc(output, output_size + 1);
+    }
+
+    output[output_index] = '\0';
+
+    return output;
+}
+
 MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index, size_t *output_size) {
     if(!input_size) {
         return NULL;
@@ -95,6 +183,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         return false;
     }
 
+    if(type == MJB_CASE_TITLE) {
+        return mjb_titlecase(buffer, length, encoding);
+    }
+
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
@@ -106,12 +198,13 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
 
     unsigned int case_index = 0;
 
+    // First column is the category.
     if(type == MJB_CASE_UPPER) {
-        case_index = 0;
-    } else if(type == MJB_CASE_LOWER) {
         case_index = 1;
-    } else if(type == MJB_CASE_TITLE) {
+    } else if(type == MJB_CASE_LOWER) {
         case_index = 2;
+    } else if(type == MJB_CASE_TITLE) {
+        case_index = 3;
     } else if(type == MJB_CASE_CASEFOLD) {
         // Not implemented.
     }

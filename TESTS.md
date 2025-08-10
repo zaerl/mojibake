@@ -3,7 +3,8 @@
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 399303     |
-| `mjb_strnlen`                       | 54         |
+| `mjb_strnlen`                       | 48         |
+| `mjb_case`                          | 39         |
 | `mjb_codepoint_is_valid`            | 39         |
 | `mjb_codepoint_encode`              | 29         |
 | `mjb_codepoint_character`           | 20         |
@@ -37,11 +38,10 @@
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
-| `mjb_case`                          | 0          |
 | `mjb_category_is_combining`         | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **399595** |
+| **Total**                           | **399628** |

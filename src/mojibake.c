@@ -122,7 +122,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query_buffer_character[] = "SELECT codepoint, combining, decomposition, quick_check FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_buffer_character, query_buffer_character)
 
-    const char query_case[] = "SELECT uppercase, lowercase, titlecase FROM unicode_data WHERE codepoint = ?";
+    const char query_case[] = "SELECT category, uppercase, lowercase, titlecase FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_case, query_case)
 
     #undef MJB_PREPARE_STMT
