@@ -4,13 +4,14 @@ import { readBlocks } from './blocks';
 import { generateCasefold } from './casefold';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
-import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateHeader } from './generate-header';
 import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { readNormalizationProps } from './quick-check';
+import { readSpecialCasingProps } from './special-casing';
 import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
@@ -83,6 +84,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
 
   analysis.beforeDB();
   await readNormalizationProps(characters);
+  const newCases = await readSpecialCasingProps(characters);
 
   // Insert characters
   dbRun(characters);
@@ -90,6 +92,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   dbRunDecompositions(generateDecomposition(characters));
   dbRunDecompositions(generateDecomposition(characters, true), true);
   dbRunComposition(generateComposition(characters, exclusions));
+
+  dbRunSpecialCasing(newCases);
 
   await generateCasefold();
 

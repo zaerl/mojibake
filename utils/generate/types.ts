@@ -208,3 +208,10 @@ export interface Block {
   start: number;
   end: number;
 };
+
+export enum CaseType {
+  UpperCase,
+  LowerCase,
+  TitleCase,
+  CaseFold
+};

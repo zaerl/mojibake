@@ -1,7 +1,8 @@
 import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
-import { Block, CalculatedDecomposition, Composition } from './types';
+import { NewCases } from './special-casing';
+import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
 let db: Database.Database;
 let dbPath: string;
@@ -10,6 +11,7 @@ let insertDecompositionSmt: Statement;
 let insertCompatDecompositionSmt: Statement;
 let insertCompositionSmt: Statement;
 let insertBlockSmt: Statement;
+let insertSpecialCasingSmt: Statement;
 // let insertNumericSmt: Statement;
 let isCompact: boolean;
 
@@ -109,6 +111,19 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       composite_codepoint INTEGER NOT NULL,
       PRIMARY KEY (starter_codepoint, combining_codepoint)
     );
+    CREATE INDEX idx_compositions_starter_combining ON compositions(starter_codepoint, combining_codepoint);
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS special_casing (
+      codepoint INTEGER NOT NULL,
+      case_type INTEGER NOT NULL,
+      new_case_1 INTEGER NOT NULL,
+      new_case_2 INTEGER,
+      new_case_3 INTEGER,
+      PRIMARY KEY (codepoint, case_type)
+    );
+    CREATE INDEX idx_special_casing_codepoint ON special_casing(codepoint, case_type);
   `);
 
   /*db.exec(`
@@ -190,6 +205,16 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       end,
       name
     ) VALUES (?, ?, ?, ?);
+  `);
+
+  insertSpecialCasingSmt = db.prepare(`
+    INSERT INTO special_casing (
+      codepoint,
+      case_type,
+      new_case_1,
+      new_case_2,
+      new_case_3)
+      VALUES (?, ?, ?, ?, ?);
   `);
 
   /*insertNumericSmt = db.prepare(`
@@ -275,6 +300,40 @@ export function dbRunDecompositions(decompositions: CalculatedDecomposition[], c
 export function dbRunComposition(compositions: Composition[]) {
   for(const comp of compositions) {
     insertCompositionSmt.run(comp.starter_codepoint, comp.combining_codepoint, comp.composite_codepoint);
+  }
+}
+
+export function dbRunSpecialCasing(newCases: NewCases) {
+  for(let i = 0; i < newCases.length; ++i) {
+    if(newCases[i].hasLowercase > 1) {
+      insertSpecialCasingSmt.run(
+        newCases[i].codepoint,
+        CaseType.LowerCase,
+        newCases[i].lowercase[0],
+        newCases[i].lowercase[1],
+        newCases[i].lowercase[2],
+      );
+    }
+
+    if(newCases[i].hasTitlecase > 1) {
+      insertSpecialCasingSmt.run(
+        newCases[i].codepoint,
+        CaseType.TitleCase,
+        newCases[i].titlecase[0],
+        newCases[i].titlecase[1],
+        newCases[i].titlecase[2],
+      );
+    }
+
+    if(newCases[i].hasUppercase > 1) {
+      insertSpecialCasingSmt.run(
+        newCases[i].codepoint,
+        CaseType.UpperCase,
+        newCases[i].uppercase[0],
+        newCases[i].uppercase[1],
+        newCases[i].uppercase[2],
+      );
+    }
   }
 }
 

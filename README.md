@@ -158,7 +158,7 @@ tests.
 ## TODO
 
 - [ ] UTF-16 strings
-- [ ] Add `mjb_casefold` [CaseFolding.txt](https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt)
+- [ ] Add `mjb_casefold`
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
@@ -167,10 +167,11 @@ tests.
 - [ ] Add UTF16 support for `mjb_next_character`
 - [ ] Add UTF16 support for `mjb_normalize`
 - [ ] Add UTF16 support for `mjb_string_is_normalized`
-- [ ] Add support for `WordBreakProperty.txt`
-- [ ] Add support for `SpecialCasing.txt`
-- [x] UnicodeData.txt table
-- [x] Blocks.txt table
+- [ ] `CaseFolding.txt` table
+- [ ] `WordBreakProperty.txt` table
+- [ ] `SpecialCasing.txt` table
+- [x] `UnicodeData.txt` table
+- [x] `Blocks.txt` table
 - [x] Composition table
 - [x] Decomposition table
 - [x] Compatibility decomposition table

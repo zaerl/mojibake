@@ -250,6 +250,13 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         size_t utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
         output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+        /*
+            Potential query:
+            SELECT new_case_1, new_case_2, new_case_3 FROM special_casing WHERE id = ? AND case_type = ?
+            UNION ALL
+            SELECT uppercase, lowercase, titlecase FROM characters WHERE id = ?
+            AND NOT EXISTS (SELECT 1 FROM special_casing WHERE id = ? AND case_type = ?);
+        */
     }
 
     if(output_index >= output_size) {
