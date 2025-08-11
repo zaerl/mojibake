@@ -93,9 +93,9 @@ void *test_case(void *arg) {
     ATT_ASSERT(result, "İstanbul", "UTF-8 titlecase: İstanbul")
     mjb_free(result);
 
-    // TODO: add support for SpecialCasing.txt
-    // Modern German orthography sometimes prefers the uppercase form ẞ (U+1E9E) in all-caps or titlecase contexts.
-    // Unicode’s default case folding still maps ß to SS in titlecase unless locale-specific tailoring is applied.
+    // Modern German orthography sometimes prefers the uppercase form ẞ (U+1E9E) in all-caps or
+    // titlecase contexts. Unicode's default case folding still maps ß to SS in titlecase unless
+    // locale-specific tailoring is applied.
     result = mjb_case("ßeta", 5, MJB_CASE_UPPER, encoding);
     ATT_ASSERT(result, "SSETA", "UTF-8 titlecase: ßeta")
     mjb_free(result);

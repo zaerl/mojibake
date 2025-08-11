@@ -4,16 +4,17 @@ set(TEST_SOURCES
     cjk.c
     codepoint.c
     encoding.c
-    hangul.c
     hangul-composition.c
+    hangul.c
     mojibake.c
     next.c
     normalization.c
-    quick-check.c
     plane.c
+    quick-check.c
+    special-case.c
     string.c
-    utf8.c
     test.c
+    utf8.c
     version.c
 )
 

@@ -22,16 +22,17 @@ extern "C" {
 
 // Start tests declarations.
 void *test_case(void *arg);
-void *test_codepoint(void *arg);
 void *test_cjk(void *arg);
+void *test_codepoint(void *arg);
 void *test_encoding(void *arg);
-void *test_hangul(void *arg);
 void *test_hangul_composition(void *arg);
+void *test_hangul(void *arg);
 void *test_mojibake(void *arg);
 void *test_next(void *arg);
 void *test_normalization(void *arg);
 void *test_plane(void *arg);
 void *test_quick_check(void *arg);
+void *test_special_case(void *arg);
 void *test_string(void *arg);
 void *test_utf8(void *arg);
 void *test_version(void *arg);
