@@ -1,0 +1,286 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+#include "mojibake-internal.h"
+#include "utf8.h"
+#include "utf16.h"
+
+extern mojibake mjb_global;
+
+static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
+    // This values are manually picked from the SpecialCasing.txt file during the generation.
+
+    switch(codepoint) {
+        case 73:
+        case 74:
+        case 105:
+        case 204:
+        case 205:
+        case 223:
+        case 296:
+        case 302:
+        case 304:
+        case 329:
+        case 496:
+        case 775:
+        case 912:
+        case 931:
+        case 944:
+        case 1415:
+            return true;
+    }
+
+    return
+        (codepoint >= 7830 && codepoint <= 7834) ||
+        (codepoint >= 8016 && codepoint <= 8188) ||
+        (codepoint >= 64256 && codepoint <= 64279);
+}
+
+static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index, size_t *output_size, mjb_case_type type) {
+    sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
+    char buffer_utf8[5];
+
+    // Potential query:
+    // SELECT new_case_1, new_case_2, new_case_3 FROM special_casing WHERE id = ? AND case_type = ?
+    // UNION ALL
+    // SELECT uppercase, lowercase, titlecase FROM characters WHERE id = ?
+    // AND NOT EXISTS (SELECT 1 FROM special_casing WHERE id = ? AND case_type = ?);
+
+    sqlite3_reset(stmt_special_casing);
+    // sqlite3_clear_bindings(stmt_special_casing);
+
+    if(sqlite3_bind_int(stmt_special_casing, 1, codepoint) != SQLITE_OK) {
+        return false;
+    }
+
+    if(sqlite3_bind_int(stmt_special_casing, 2, type) != SQLITE_OK) {
+        return false;
+    }
+
+    unsigned int found = 0;
+
+    while(sqlite3_step(stmt_special_casing) == SQLITE_ROW) {
+        for(int i = 0; i < 3; ++i) {
+            if(sqlite3_column_type(stmt_special_casing, i) != SQLITE_NULL) {
+                mjb_codepoint new_codepoint = (mjb_codepoint)sqlite3_column_int(stmt_special_casing, i);
+                size_t utf8_size = mjb_codepoint_encode(new_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+                output = mjb_string_output(output, buffer_utf8, utf8_size, output_index, output_size);
+            } else {
+                break;
+            }
+        }
+
+        ++found;
+    }
+
+    return found;
+}
+
+/**
+ * See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G34078
+ */
+static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encoding) {
+    uint8_t state = MJB_UTF8_ACCEPT;
+    mjb_codepoint current_codepoint;
+    sqlite3_stmt *stmt = mjb_global.stmt_case;
+    char *output = mjb_alloc(length);
+
+    // char *output = mjb_alloc(length);
+    size_t output_index = 0;
+    size_t output_size = length;
+    bool in_word = false;
+
+    const char *index = buffer;
+    const char *end = buffer + length;
+
+    for(; index < end && *index; ++index) {
+        // Find next codepoint.
+        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
+
+        if(state == MJB_UTF8_REJECT) {
+            // Do nothing. The string is not well-formed.
+            return NULL;
+        }
+
+        if(state != MJB_UTF8_ACCEPT) {
+            continue;
+        }
+
+        sqlite3_reset(stmt);
+        // sqlite3_clear_bindings(stmt);
+
+        if(sqlite3_bind_int(stmt, 1, current_codepoint) != SQLITE_OK) {
+            return false;
+        }
+
+        if(sqlite3_step(stmt) != SQLITE_ROW) {
+            return false;
+        }
+
+        mjb_category category = (mjb_category)sqlite3_column_int(stmt, 0);
+        char buffer_utf8[5];
+        size_t utf8_size;
+        mjb_case_type case_type = MJB_CASE_NONE;
+
+        // Word boundary.
+        if(
+            // Is cased.
+            category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL || category == MJB_CATEGORY_LT ||
+            // Is modifier.
+            category == MJB_CATEGORY_LM ||
+            // Is number.
+            category == MJB_CATEGORY_LO || category == MJB_CATEGORY_NL) {
+
+            if(!in_word) {
+                // Try titlecase first.
+                if(sqlite3_column_type(stmt, 3) == SQLITE_NULL) {
+                    // If titlecase is not available, try uppercase.
+                    if(sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
+                        current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 1);
+                        case_type = MJB_CASE_UPPER;
+                    }
+                } else {
+                    current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 3);
+                    case_type = MJB_CASE_TITLE;
+                }
+
+                in_word = true;
+            } else {
+                // Try lowercase.
+                if(sqlite3_column_type(stmt, 2) != SQLITE_NULL) {
+                    current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 2);
+                    case_type = MJB_CASE_LOWER;
+                }
+            }
+        } else {
+            in_word = false;
+        }
+
+        if(mjb_maybe_has_special_casing(current_codepoint)) {
+            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output, &output_index, &output_size, case_type);
+
+            if(found) {
+                continue;
+            }
+        }
+
+        utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+    }
+
+    if(output_index >= output_size) {
+        output = mjb_realloc(output, output_size + 1);
+    }
+
+    output[output_index] = '\0';
+
+    return output;
+}
+
+MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding) {
+    if(length == 0) {
+        return (char*)buffer;
+    }
+
+    if(!mjb_initialize()) {
+        return false;
+    }
+
+    if(encoding != MJB_ENCODING_UTF_8) {
+        return false;
+    }
+
+    if(type == MJB_CASE_TITLE) {
+        return mjb_titlecase(buffer, length, encoding);
+    }
+
+    uint8_t state = MJB_UTF8_ACCEPT;
+    mjb_codepoint current_codepoint;
+    sqlite3_stmt *stmt = mjb_global.stmt_case;
+    // sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
+    char *output = mjb_alloc(length);
+
+    // char *output = mjb_alloc(length);
+    size_t output_index = 0;
+    size_t output_size = length;
+
+    // unsigned int case_index = 0;
+
+    // First column is the category.
+    /*if(type == MJB_CASE_UPPER) {
+        case_index = 1;
+    } else if(type == MJB_CASE_LOWER) {
+        case_index = 2;
+    } else if(type == MJB_CASE_TITLE) {
+        case_index = 3;
+    } else if(type == MJB_CASE_CASEFOLD) {
+        // Not implemented.
+    }*/
+
+    char buffer_utf8[5];
+    const char *index = buffer;
+    const char *end = buffer + length;
+
+    for(; index < end && *index; ++index) {
+        // Find next codepoint.
+        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
+
+        if(state == MJB_UTF8_REJECT) {
+            // Do nothing. The string is not well-formed.
+            return NULL;
+        }
+
+        if(state != MJB_UTF8_ACCEPT) {
+            continue;
+        }
+
+        if(type == MJB_CASE_CASEFOLD) {
+            size_t utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+            output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+            continue;
+        }
+
+        if(mjb_maybe_has_special_casing(current_codepoint)) {
+            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output, &output_index, &output_size, type);
+
+            if(found) {
+                continue;
+            }
+        }
+
+        sqlite3_reset(stmt);
+        // sqlite3_clear_bindings(stmt);
+
+        int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
+
+        if(rc != SQLITE_OK) {
+            return false;
+        }
+
+        rc = sqlite3_step(stmt);
+
+        if(rc != SQLITE_ROW) {
+            return false;
+        }
+
+        if(sqlite3_column_type(stmt, type) == SQLITE_NULL) {
+            // Skip.
+        } else {
+            current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, type);
+        }
+
+        size_t utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+        output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+    }
+
+    if(output_index >= output_size) {
+        output = mjb_realloc(output, output_size + 1);
+    }
+
+    output[output_index] = '\0';
+
+    return output;
+}

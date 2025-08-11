@@ -126,6 +126,7 @@ int main(int argc, char * const argv[]) {
         }
 
     // Start tests declarations.
+    RUN_TEST(case)
     RUN_TEST(codepoint)
     RUN_TEST(cjk)
     RUN_TEST(encoding)
