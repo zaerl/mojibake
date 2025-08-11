@@ -1,4 +1,4 @@
-import { open } from 'fs/promises';
+import { cp, open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
 
@@ -65,6 +65,7 @@ export async function readSpecialCasingProps(characters: Character[], path = './
 
       for(const cp of lowercase) {
         newCases[codepoint].lowercase[index] = cp;
+
         ++index;
       }
 
@@ -112,6 +113,19 @@ export async function readSpecialCasingProps(characters: Character[], path = './
       characterMap['' + char.codepoint].uppercase = char.uppercase[0];
     }
   }
+
+  const showList = (cases: NewCase[], type: 'lowercase' | 'titlecase' | 'uppercase') => {
+    // console.log(type);
+    for(const char of cases) {
+      if(char[type].length > 1) {
+        // console.log(char.codepoint);
+      }
+    }
+  }
+
+  showList(newCases, 'lowercase');
+  showList(newCases, 'titlecase');
+  showList(newCases, 'uppercase');
 
   log(`${count} characters have special casing`);
   log(`${hasMultiple} characters have multiple special casing`);

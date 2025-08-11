@@ -173,6 +173,7 @@ typedef enum mjb_quick_check_result {
 } mjb_quick_check_result;
 
 typedef enum mjb_case_type {
+    MJB_CASE_NONE,
     MJB_CASE_UPPER,
     MJB_CASE_LOWER,
     MJB_CASE_TITLE,

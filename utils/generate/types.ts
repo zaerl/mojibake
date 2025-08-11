@@ -210,6 +210,7 @@ export interface Block {
 };
 
 export enum CaseType {
+  None,
   UpperCase,
   LowerCase,
   TitleCase,

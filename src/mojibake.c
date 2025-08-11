@@ -22,7 +22,10 @@ MJB_EXPORT mojibake mjb_global = {
     .stmt_is_combining = NULL,
     .stmt_decompose = NULL,
     .stmt_compatibility_decompose = NULL,
-    .stmt_compose = NULL
+    .stmt_compose = NULL,
+    .stmt_buffer_character = NULL,
+    .stmt_case = NULL,
+    .stmt_special_casing = NULL,
 };
 
 // Initialize the library
@@ -124,6 +127,9 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
 
     const char query_case[] = "SELECT category, uppercase, lowercase, titlecase FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_case, query_case)
+
+    const char query_special_casing[] = "SELECT new_case_1, new_case_2, new_case_3 FROM special_casing WHERE codepoint = ? AND case_type = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_special_casing, query_special_casing)
 
     #undef MJB_PREPARE_STMT
 

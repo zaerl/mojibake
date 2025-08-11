@@ -33,6 +33,7 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_compose;
     sqlite3_stmt *stmt_buffer_character;
     sqlite3_stmt *stmt_case;
+    sqlite3_stmt *stmt_special_casing;
 } mojibake;
 
 // Internal functions
