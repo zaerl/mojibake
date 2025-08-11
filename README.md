@@ -170,6 +170,9 @@ tests.
 - [ ] `CaseFolding.txt` table
 - [ ] `WordBreakProperty.txt` table
 - [ ] `SpecialCasing.txt` table
+- [ ] `auxiliary/GraphemeBreakProperty.txt` table
+- [ ] `auxiliary/SentenceBreakProperty.txt` table
+- [ ] `auxiliary/WordBreakProperty.txt` table
 - [x] `UnicodeData.txt` table
 - [x] `Blocks.txt` table
 - [x] Composition table

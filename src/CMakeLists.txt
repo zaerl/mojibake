@@ -9,6 +9,7 @@ set(SOURCES
     normalization.c
     quick-check.c
     plane.c
+    segmentation.c
     string.c
     version.c
 )
