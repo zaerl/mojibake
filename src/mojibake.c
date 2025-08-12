@@ -46,7 +46,8 @@ int mjb_sqlite3_roundup(int size) {
 }
 
 // Initialize the library with custom values
-MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn) {
+MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
+    mjb_free_fn free_fn) {
     if(mjb_global.ok) {
         return true;
     }
@@ -110,25 +111,31 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     MJB_PREPARE_STMT(mjb_global.stmt_get_block, query_blocks)
 
     // MJB_CATEGORY_MN and MJB_CATEGORY_MC
-    const char query_combining[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND category IN (5, 6);";
+    const char query_combining[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND "
+        "category IN (5, 6);";
     MJB_PREPARE_STMT(mjb_global.stmt_is_combining, query_combining)
 
     const char query_decompose[] = "SELECT value FROM decompositions WHERE id = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_decompose, query_decompose)
 
-    const char query_compatibility_decompose[] = "SELECT value FROM compatibility_decompositions WHERE id = ?";
+    const char query_compatibility_decompose[] = "SELECT value FROM compatibility_decompositions "
+        "WHERE id = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_compatibility_decompose, query_compatibility_decompose)
 
-    const char query_compose[] = "SELECT composite_codepoint FROM compositions WHERE starter_codepoint = ? AND combining_codepoint = ?";
+    const char query_compose[] = "SELECT composite_codepoint FROM compositions WHERE "
+        "starter_codepoint = ? AND combining_codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_compose, query_compose)
 
-    const char query_buffer_character[] = "SELECT codepoint, combining, decomposition, quick_check FROM unicode_data WHERE codepoint = ?";
+    const char query_buffer_character[] = "SELECT codepoint, combining, decomposition, "
+        "quick_check FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_buffer_character, query_buffer_character)
 
-    const char query_case[] = "SELECT category, uppercase, lowercase, titlecase FROM unicode_data WHERE codepoint = ?";
+    const char query_case[] = "SELECT category, uppercase, lowercase, titlecase FROM unicode_data "
+        "WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_case, query_case)
 
-    const char query_special_casing[] = "SELECT new_case_1, new_case_2, new_case_3 FROM special_casing WHERE codepoint = ? AND case_type = ?";
+    const char query_special_casing[] = "SELECT new_case_1, new_case_2, new_case_3 FROM "
+        "special_casing WHERE codepoint = ? AND case_type = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_special_casing, query_special_casing)
 
     #undef MJB_PREPARE_STMT

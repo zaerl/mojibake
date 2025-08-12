@@ -10,7 +10,8 @@
 /**
  * Return the next character from the string.
  */
-MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn) {
+MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_next_character_fn fn) {
     if(!mjb_initialize()) {
         return false;
     }
@@ -68,7 +69,8 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
 
     if(has_previous_character) {
         // Call the callback function.
-        if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST : MJB_NEXT_CHAR_LAST)) {
+        if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST :
+            MJB_NEXT_CHAR_LAST)) {
             return false;
         }
     }

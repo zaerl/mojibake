@@ -174,7 +174,8 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     return le_valid && state_le == MJB_UTF16_ACCEPT;  // Valid UTF-16LE
 }
 
-MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding) {
+MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size,
+    mjb_encoding encoding) {
     if(buffer == NULL || size < 2) {
         return 0;
     }

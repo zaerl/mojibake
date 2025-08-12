@@ -53,7 +53,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
             continue;
         }
 
-        // Text exclusively containing Latin-1 characters (U+0000..U+00FF) is left unaffected by NFC.
+        // Text with only Latin-1 characters (U+0000..U+00FF) is left unaffected by NFC.
         if(current_codepoint < 0x100 && form == MJB_NORMALIZATION_NFC) {
             continue;
         }
@@ -63,7 +63,8 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
             continue;
         }
 
-        if(last_canonical_class > current_character.combining && current_character.combining != MJB_CCC_NOT_REORDERED) {
+        if(last_canonical_class > current_character.combining && current_character.combining !=
+            MJB_CCC_NOT_REORDERED) {
             return MJB_QC_NO;
         }
 

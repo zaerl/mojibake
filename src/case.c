@@ -156,14 +156,16 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
         }
 
         if(mjb_maybe_has_special_casing(current_codepoint)) {
-            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output, &output_index, &output_size, case_type);
+            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output,
+                &output_index, &output_size, case_type);
 
             if(found) {
                 continue;
             }
         }
 
-        output = mjb_string_output_codepoint(current_codepoint, output, &output_index, &output_size);
+        output = mjb_string_output_codepoint(current_codepoint, output, &output_index,
+            &output_size);
     }
 
     if(output_index >= output_size) {
@@ -175,7 +177,8 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
     return output;
 }
 
-MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding) {
+MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
+    mjb_encoding encoding) {
     if(length == 0) {
         return (char*)buffer;
     }
@@ -232,13 +235,15 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         }
 
         if(type == MJB_CASE_CASEFOLD) {
-            output = mjb_string_output_codepoint(current_codepoint, output, &output_index, &output_size);
+            output = mjb_string_output_codepoint(current_codepoint, output, &output_index,
+                &output_size);
 
             continue;
         }
 
         if(mjb_maybe_has_special_casing(current_codepoint)) {
-            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output, &output_index, &output_size, type);
+            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output,
+                &output_index, &output_size, type);
 
             if(found) {
                 continue;
@@ -266,7 +271,8 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
             current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, type);
         }
 
-        output = mjb_string_output_codepoint(current_codepoint, output, &output_index, &output_size);
+        output = mjb_string_output_codepoint(current_codepoint, output, &output_index,
+            &output_size);
     }
 
     if(output_index >= output_size) {

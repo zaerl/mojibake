@@ -47,15 +47,17 @@ static char *mjb_flush_d_buffer(mjb_normalization_character *characters_buffer, 
             continue;
         }
 
-        output = mjb_string_output_codepoint(characters_buffer[i].codepoint, output, output_index, output_size);
+        output = mjb_string_output_codepoint(characters_buffer[i].codepoint, output, output_index,
+            output_size);
     }
 
     return output;
 }
 
 // Flush the composition buffer to a bit array.
-static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *characters_buffer, size_t buffer_index,
-    mjb_buffer_character *output, size_t *output_index, size_t *output_size, mjb_normalization form) {
+static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *characters_buffer,
+    size_t buffer_index, mjb_buffer_character *output, size_t *output_index, size_t *output_size,
+    mjb_normalization form) {
 
     // Sort combining characters by Canonical Combining Class (required for all forms)
     if(buffer_index) {
@@ -103,7 +105,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     bool has_hangul = false;
     for(size_t i = 0; i < codepoints_count; ++i) {
         if(mjb_codepoint_is_hangul_jamo(composition_buffer[i].codepoint) ||
-           mjb_codepoint_is_hangul_syllable(composition_buffer[i].codepoint)) {
+            mjb_codepoint_is_hangul_syllable(composition_buffer[i].codepoint)) {
             has_hangul = true;
             break;
         }
@@ -124,7 +126,8 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     while(i < codepoints_count) {
         if(composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             // Non-starter: output and continue
-            composed_output = mjb_string_output_codepoint(composition_buffer[i].codepoint, composed_output, &composed_output_index, output_size);
+            composed_output = mjb_string_output_codepoint(composition_buffer[i].codepoint,
+                composed_output, &composed_output_index, output_size);
 
             ++i;
 
@@ -138,10 +141,12 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
         ++i; // Move to first character after starter
 
-        // Process characters following this starter (try composition with next character first, then combining chars)
+        // Process characters following this starter (try composition with next character first,
+        // then combining chars)
         while(i < codepoints_count) {
             // If we encounter another starter after processing combining chars, stop
-            if(composition_buffer[i].combining == MJB_CCC_NOT_REORDERED && last_combining_class != 0) {
+            if(composition_buffer[i].combining == MJB_CCC_NOT_REORDERED &&
+                last_combining_class != 0) {
                 break;
             }
 
@@ -207,12 +212,14 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         }
 
         // Output the starter (possibly composed)
-        composed_output = mjb_string_output_codepoint(starter, composed_output, &composed_output_index, output_size);
+        composed_output = mjb_string_output_codepoint(starter, composed_output,
+            &composed_output_index, output_size);
 
         // Output any non-consumed combining characters in order
         for(size_t j = starter_pos + 1; j < i; ++j) {
             if(composition_buffer[j].codepoint != MJB_CODEPOINT_NOT_VALID) {
-                composed_output = mjb_string_output_codepoint(composition_buffer[j].codepoint, composed_output, &composed_output_index, output_size);
+                composed_output = mjb_string_output_codepoint(composition_buffer[j].codepoint,
+                    composed_output, &composed_output_index, output_size);
             }
         }
     }
@@ -231,7 +238,8 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 /**
  * Normalize a string
  */
-MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result) {
+MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_normalization form, mjb_normalization_result *result) {
     if(!mjb_initialize() || encoding != MJB_ENCODING_UTF_8) {
         return false;
     }
@@ -442,13 +450,16 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
             if(is_composition) {
                 // Check if we have a Hangul syllable followed by a trailing consonant
                 if(buffer_index > 0 &&
-                   mjb_codepoint_is_hangul_syllable(characters_buffer[buffer_index - 1].codepoint) &&
-                   mjb_codepoint_is_hangul_t(current_codepoint)) {
+                    mjb_codepoint_is_hangul_syllable(
+                        characters_buffer[buffer_index - 1].codepoint) &&
+                        mjb_codepoint_is_hangul_t(current_codepoint)) {
+
                     // Check if the syllable can accept a trailing consonant
                     mjb_codepoint syllable = characters_buffer[buffer_index - 1].codepoint;
                     int s_index = syllable - MJB_CP_HANGUL_S_BASE;
 
-                    if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT && (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
+                    if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT &&
+                        (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
                         // The syllable has no trailing consonant, so we can add one
                         mjb_codepoint trailing = current_codepoint;
                         mjb_codepoint composed = syllable + (trailing - MJB_CP_HANGUL_T_BASE);
@@ -484,6 +495,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
             result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
                 result->output, &output_index, &result->output_size, form);
         }
+
         buffer_index = 0;
     }
 

@@ -13,7 +13,8 @@
 extern mojibake mjb_global;
 
 // Internal function.
-MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index, size_t *output_size) {
+MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
+    size_t *output_size) {
     if(!input_size) {
         return NULL;
     }
@@ -30,7 +31,8 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
 }
 
 // Internal function.
-MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index, size_t *output_size) {
+MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output,
+    size_t *output_index, size_t *output_size) {
     // Shortcut for mjb_codepoint_encode + mjb_string_output
     char buffer_utf8[5];
     size_t utf8_size = mjb_codepoint_encode(codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
@@ -82,7 +84,8 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
     return count;
 }
 
-MJB_EXPORT size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encoding encoding) {
+MJB_EXPORT size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length,
+    mjb_encoding encoding) {
     if(s1 == 0 || s2 == 0 || encoding != MJB_ENCODING_UTF_8) {
         // We return 0 to indicate an error. But the behavior is undefined.
         return 0;

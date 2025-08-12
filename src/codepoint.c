@@ -95,9 +95,12 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     }
 
     character->category = (mjb_category)sqlite3_column_int(mjb_global.stmt_get_codepoint, 2);
-    character->combining = (mjb_canonical_combining_class)sqlite3_column_int(mjb_global.stmt_get_codepoint, 3);
-    character->bidirectional = (unsigned short)sqlite3_column_int(mjb_global.stmt_get_codepoint, 4);
-    character->decomposition = (mjb_decomposition)sqlite3_column_int(mjb_global.stmt_get_codepoint, 5);
+    character->combining = (mjb_canonical_combining_class)sqlite3_column_int(
+        mjb_global.stmt_get_codepoint, 3);
+    character->bidirectional = (unsigned short)sqlite3_column_int(mjb_global.stmt_get_codepoint,
+        4);
+    character->decomposition = (mjb_decomposition)sqlite3_column_int(mjb_global.stmt_get_codepoint,
+        5);
 
     if(sqlite3_column_type(mjb_global.stmt_get_codepoint, 6) == SQLITE_NULL) {
         character->decimal = MJB_NUMBER_NOT_VALID;
@@ -173,8 +176,9 @@ MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
 }
 
 // Return true if the category is combining
-bool mjb_category_is_combining(mjb_category category) {
-    return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_MC || category == MJB_CATEGORY_ME;
+MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
+    return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_MC ||
+    category == MJB_CATEGORY_ME;
 }
 
 // Return the character block

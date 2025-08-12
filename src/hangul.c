@@ -12,17 +12,18 @@
 
 // Arrays holding the names of the individual components
 static const char* mjb_choseong_names[] = {
-    "G", "GG", "N", "D", "DD", "R", "M", "B", "BB", "S", "SS", "NG", "J", "JJ", "C", "K", "T", "P", "H"
+    "G", "GG", "N", "D", "DD", "R", "M", "B", "BB", "S", "SS", "NG", "J", "JJ", "C", "K", "T", "P",
+    "H"
 };
 
 static const char* mjb_jungseong_names[] = {
-    "A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O", "WA", "WAE", "OE", "YO", "U", "WEO", "WE", "WI",
-    "YU", "EU", "YI", "I"
+    "A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O", "WA", "WAE", "OE", "YO", "U", "WEO", "WE",
+    "WI", "YU", "EU", "YI", "I"
 };
 
 static const char* mjb_jongseong_names[] = {
-    "", "G", "GG", "GS", "N", "NJ", "NH", "D", "R", "RG", "RM", "RB", "RS", "RT", "RP", "RH", "M", "B",
-    "BS", "S", "SS", "NG", "J", "CH", "K", "T", "P", "H"
+    "", "G", "GG", "GS", "N", "NJ", "NH", "D", "R", "RG", "RM", "RB", "RS", "RT", "RP", "RH", "M",
+    "B", "BS", "S", "SS", "NG", "J", "CH", "K", "T", "P", "H"
 };
 
 // Return hangul syllable name
@@ -44,14 +45,16 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
 }
 
 // Hangul syllable decomposition
-MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints) {
+MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
+    mjb_codepoint *codepoints) {
     if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
         return false;
     }
 
     unsigned int s_index = codepoint - MJB_CP_HANGUL_S_BASE;
     unsigned int l = MJB_CP_HANGUL_L_BASE + s_index / MJB_CP_HANGUL_N_COUNT;
-    unsigned int v = MJB_CP_HANGUL_V_BASE + (s_index % MJB_CP_HANGUL_N_COUNT) / MJB_CP_HANGUL_T_COUNT;
+    unsigned int v = MJB_CP_HANGUL_V_BASE + (s_index % MJB_CP_HANGUL_N_COUNT) /
+        MJB_CP_HANGUL_T_COUNT;
     unsigned int t = MJB_CP_HANGUL_T_BASE + s_index % MJB_CP_HANGUL_T_COUNT;
 
     codepoints[0] = l;
@@ -66,7 +69,8 @@ MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_c
     return true;
 }
 
-MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len) {
+MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters,
+    size_t characters_len) {
     if(characters_len == 0) {
         return 0;
     }
@@ -88,7 +92,8 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
 
             if(v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT) {
                 // make syllable of form LV
-                last = MJB_CP_HANGUL_S_BASE + (l_index * MJB_CP_HANGUL_V_COUNT + v_index) * MJB_CP_HANGUL_T_COUNT;
+                last = MJB_CP_HANGUL_S_BASE + (l_index * MJB_CP_HANGUL_V_COUNT + v_index) *
+                    MJB_CP_HANGUL_T_COUNT;
                 characters[len - 1].codepoint = last; // reset last
 
                 continue; // discard ch
@@ -98,7 +103,8 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
         // 2. check to see if two current characters are LV and T
         int s_index = last - MJB_CP_HANGUL_S_BASE;
 
-        if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT && (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
+        if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT &&
+            (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
             int t_index = ch - MJB_CP_HANGUL_T_BASE;
 
             if(t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT) {
