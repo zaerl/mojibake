@@ -119,7 +119,7 @@ int main(int argc, char * const argv[]) {
     unsigned int step = 0;
 
     #define RUN_TEST(NAME) \
-        if(!filter || strstr(filter, #NAME)) { \
+        if(!filter || strstr(#NAME, filter)) { \
             printf("%sTest: \x1b[1;32m%s\x1b[0m\n", verbosity && step ? "\n" : "", #NAME); \
             test_##NAME(NULL); \
             ++step; \
