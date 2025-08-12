@@ -155,34 +155,6 @@ Mojibake run all the normalization tests found in the standard
 [NormalizationTest.txt](https://www.unicode.org/Public/16.0.0/ucd/NormalizationTest.txt) suite of
 tests.
 
-## TODO
-
-- [ ] UTF-16 strings
-- [ ] Add `mjb_casefold`
-- [ ] Check maximum size of combining characters
-- [ ] Optimize memory allocation in `mjb_normalize`
-- [ ] Optimize memory allocation in `mjb_recompose`
-- [ ] Add Github actions for testing
-- [ ] Add support for Windows
-- [ ] Add UTF16 support for `mjb_next_character`
-- [ ] Add UTF16 support for `mjb_normalize`
-- [ ] Add UTF16 support for `mjb_string_is_normalized`
-- [ ] `CaseFolding.txt` table
-- [ ] `WordBreakProperty.txt` table
-- [ ] `SpecialCasing.txt` table
-- [ ] `auxiliary/GraphemeBreakProperty.txt` table
-- [ ] `auxiliary/SentenceBreakProperty.txt` table
-- [ ] `auxiliary/WordBreakProperty.txt` table
-- [x] `UnicodeData.txt` table
-- [x] `Blocks.txt` table
-- [x] Composition table
-- [x] Decomposition table
-- [x] Compatibility decomposition table
-- [x] Codepoint to character transformation
-- [x] UTF-8 strings
-- [x] Remove `mjb_string_next_codepoint`
-- [x] Remove `sqlite3.h` import on `mojibake.h`
-
 ## Thanks
 
 Mojibake is built using the work of extraordinary individuals and teams.
