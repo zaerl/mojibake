@@ -8,6 +8,7 @@ utils/generate/unihan/*
 utils/generate/sqlite-*
 utils/sqlite3/sqlite-src-*
 utils/sqlite3/sqlite3.zip
+utils/generate/locales/*
 !.gitkeep
 .claude/
 CLAUDE.md

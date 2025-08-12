@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "generate": "npx ts-node index.ts",
+    "generate-locales": "npx ts-node generate-locales.ts",
     "coverage": "npx ts-node coverage.ts"
   },
   "author": "",

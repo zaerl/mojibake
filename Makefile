@@ -20,6 +20,9 @@ coverage:
 generate: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)
 
+generate-locales:
+	cd ./utils/generate && npm run generate-locales
+
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
 	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)

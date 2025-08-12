@@ -17,6 +17,7 @@ MJB_EXPORT mojibake mjb_global = {
     .memory_realloc = NULL,
     .memory_free = NULL,
     .db = NULL,
+    .locale = MJB_LOCALE_EN,
     .stmt_get_codepoint = NULL,
     .stmt_get_block = NULL,
     .stmt_is_combining = NULL,

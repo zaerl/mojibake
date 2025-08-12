@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "locales.h"
 #include "sqlite3/sqlite3.h"
 
 #include "mojibake.h"
@@ -25,6 +26,7 @@ typedef struct mojibake {
     mjb_realloc_fn memory_realloc;
     mjb_free_fn memory_free;
     sqlite3 *db;
+    mjb_locale locale;
     sqlite3_stmt *stmt_get_codepoint;
     sqlite3_stmt *stmt_get_block;
     sqlite3_stmt *stmt_is_combining;
