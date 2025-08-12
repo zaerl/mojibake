@@ -21,7 +21,7 @@ static bool next_character(mjb_character *character, mjb_next_character_type typ
  * Get codepoints from a string
  * Example: "0044 0307", gives 2 codepoints
  */
-size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
+static size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
     char *token, *string, *tofree;
     tofree = string = strdup(buffer);
     unsigned int index = 0;
@@ -37,7 +37,7 @@ size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
     return index;
 }
 
-bool has_only_latin1(char *source, size_t source_size) {
+static bool has_only_latin1(char *source, size_t source_size) {
     const char *index = source;
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint = 0;
@@ -62,7 +62,7 @@ bool has_only_latin1(char *source, size_t source_size) {
     return true;
 }
 
-int check_normalization(char *source, size_t source_size, char *normalized, size_t normalized_size,
+static int check_normalization(char *source, size_t source_size, char *normalized, size_t normalized_size,
     mjb_normalization form, unsigned int current_line, const char *step) {
     mjb_normalization_result result;
     char test_name[128];
@@ -125,7 +125,7 @@ int check_normalization(char *source, size_t source_size, char *normalized, size
 /**
  * Run utils/generate/UCD/NormalizationTest.txt tests
  */
-void run_normalization_tests(int limit) {
+static void run_normalization_tests(int limit) {
     char line[1024];
     unsigned int current_line = 1;
     int count = 0;
@@ -158,7 +158,7 @@ void run_normalization_tests(int limit) {
 
     // Parse the file
     while(fgets(line, 1024, file)) {
-        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) == 0) {
+        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) <= 1) {
             ++current_line;
 
             continue;
