@@ -30,7 +30,7 @@ void show_help(struct option options[], const char *descriptions[], command comm
         MJB_VERSION);
     fprintf(stream, "Options:\n");
 
-    for(unsigned long i = 0; i < 8; ++i) {
+    for(unsigned long i = 0; options[i].val != 0; ++i) {
         fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
             options[i].val,
             options[i].has_arg == no_argument ? "" : " <arg>",
@@ -41,7 +41,7 @@ void show_help(struct option options[], const char *descriptions[], command comm
 
     fprintf(stream, "\nCommands:\n");
 
-    for(unsigned long i = 0; i < 6; ++i) {
+    for(unsigned long i = 0; commands[i].name != NULL; ++i) {
         fprintf(stream, "  %s\n\t%s\n", commands[i].name, commands[i].description);
     }
 }
@@ -93,7 +93,8 @@ int main(int argc, char * const argv[]) {
         { "nfkc", "Normalize the input to NFKC", normalize_command, MJB_NORMALIZATION_NFKC },
         { "upper", "Convert the input to uppercase", case_command, MJB_CASE_UPPER },
         { "lower", "Convert the input to lowercase", case_command, MJB_CASE_LOWER },
-        { "title", "Convert the input to titlecase", case_command, MJB_CASE_TITLE }
+        { "title", "Convert the input to titlecase", case_command, MJB_CASE_TITLE },
+        { NULL, NULL, NULL, 0 }
     };
 
     if(isatty(STDOUT_FILENO)) {
@@ -173,7 +174,7 @@ int main(int argc, char * const argv[]) {
     int next_argc = argc - optind - 1;
     char *const *next_argv = argv + optind + 1;
 
-    for(int i = 0; i < 8; ++i) {
+    for(int i = 0; commands[i].name != NULL; ++i) {
         if(strcmp(argv[optind], commands[i].name) == 0) {
             return commands[i].function(next_argc, next_argv, commands[i].flags);
         }
