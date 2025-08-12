@@ -34,31 +34,32 @@
 
 #include <stdint.h>
 
-#define	MJB_UTF8_ACCEPT	0
-#define	MJB_UTF8_REJECT	0xF
+#define MJB_UTF8_ACCEPT 0
+#define MJB_UTF8_REJECT 0xF
 
 static const uint32_t utf8_classtab[0x10] = {
-	0X88888888UL, 0X88888888UL, 0X99999999UL, 0X99999999UL,
-	0XAAAAAAAAUL, 0XAAAAAAAAUL, 0XAAAAAAAAUL, 0XAAAAAAAAUL,
-	0X222222FFUL, 0X22222222UL, 0X22222222UL, 0X22222222UL,
-	0X3333333BUL, 0X33433333UL, 0XFFF5666CUL, 0XFFFFFFFFUL,
+    0X88888888UL, 0X88888888UL, 0X99999999UL, 0X99999999UL,
+    0XAAAAAAAAUL, 0XAAAAAAAAUL, 0XAAAAAAAAUL, 0XAAAAAAAAUL,
+    0X222222FFUL, 0X22222222UL, 0X22222222UL, 0X22222222UL,
+    0X3333333BUL, 0X33433333UL, 0XFFF5666CUL, 0XFFFFFFFFUL,
 };
 
 static const uint32_t utf8_statetab[0x10] = {
-	0XFFFFFFF0UL, 0XFFFFFFFFUL, 0XFFFFFFF1UL, 0XFFFFFFF3UL,
-	0XFFFFFFF4UL, 0XFFFFFFF7UL, 0XFFFFFFF6UL, 0XFFFFFFFFUL,
-	0X33F11F0FUL, 0XF3311F0FUL, 0XF33F110FUL, 0XFFFFFFF2UL,
-	0XFFFFFFF5UL, 0XFFFFFFFFUL, 0XFFFFFFFFUL, 0XFFFFFFFFUL,
+    0XFFFFFFF0UL, 0XFFFFFFFFUL, 0XFFFFFFF1UL, 0XFFFFFFF3UL,
+    0XFFFFFFF4UL, 0XFFFFFFF7UL, 0XFFFFFFF6UL, 0XFFFFFFFFUL,
+    0X33F11F0FUL, 0XF3311F0FUL, 0XF33F110FUL, 0XFFFFFFF2UL,
+    0XFFFFFFF5UL, 0XFFFFFFFFUL, 0XFFFFFFFFUL, 0XFFFFFFFFUL,
 };
 
 static inline uint8_t __used mjb_utf8_decode_step(uint8_t state, uint8_t octet, uint32_t *cpp) {
-	const uint8_t reject = (state >> 3), nonascii = (octet >> 7);
-	const uint8_t class = (!nonascii? 0 :
-	    (0xF & (utf8_classtab[(octet >> 3) & 0xF] >> (4 * (octet & 7)))));
+    const uint8_t reject = (state >> 3);
+    const uint8_t nonascii = (octet >> 7);
+    const uint8_t class = (!nonascii? 0 :
+        (0xF & (utf8_classtab[(octet >> 3) & 0xF] >> (4 * (octet & 7)))));
 
-	*cpp = (state == MJB_UTF8_ACCEPT
-	    ? (octet & (0xFFU >> class))
-	    : ((octet & 0x3FU) | (*cpp << 6)));
+    *cpp = (state == MJB_UTF8_ACCEPT
+        ? (octet & (0xFFU >> class))
+        : ((octet & 0x3FU) | (*cpp << 6)));
 
-	return (reject? 0xF : (0xF & (utf8_statetab[class] >> (4 * (state & 7)))));
+    return (reject? MJB_UTF8_REJECT : (0xF & (utf8_statetab[class] >> (4 * (state & 7)))));
 }
