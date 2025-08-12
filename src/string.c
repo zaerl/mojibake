@@ -12,6 +12,7 @@
 
 extern mojibake mjb_global;
 
+// Internal function.
 MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index, size_t *output_size) {
     if(!input_size) {
         return NULL;
@@ -28,6 +29,7 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
     return ret;
 }
 
+// Internal function.
 MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index, size_t *output_size) {
     // Shortcut for mjb_codepoint_encode + mjb_string_output
     char buffer_utf8[5];
