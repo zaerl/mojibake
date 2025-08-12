@@ -12,6 +12,7 @@
 - [ ] Add UTF16 support for `mjb_next_character`
 - [ ] Add UTF16 support for `mjb_normalize`
 - [ ] Add UTF16 support for `mjb_string_is_normalized`
+- [ ] Add support for conditional mappings
 - [ ] `CaseFolding.txt` table
 - [ ] `WordBreakProperty.txt` table
 - [ ] `SpecialCasing.txt` table

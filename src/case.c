@@ -157,7 +157,7 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
 
         if(mjb_maybe_has_special_casing(current_codepoint)) {
             unsigned int found = mjb_special_casing_codepoint(current_codepoint, output,
-                &output_index, &output_size, case_type);
+                &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE : case_type);
 
             if(found) {
                 continue;
@@ -198,25 +198,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
-    // sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
     char *output = mjb_alloc(length);
 
-    // char *output = mjb_alloc(length);
     size_t output_index = 0;
     size_t output_size = length;
-
-    // unsigned int case_index = 0;
-
-    // First column is the category.
-    /*if(type == MJB_CASE_UPPER) {
-        case_index = 1;
-    } else if(type == MJB_CASE_LOWER) {
-        case_index = 2;
-    } else if(type == MJB_CASE_TITLE) {
-        case_index = 3;
-    } else if(type == MJB_CASE_CASEFOLD) {
-        // Not implemented.
-    }*/
 
     const char *index = buffer;
     const char *end = buffer + length;

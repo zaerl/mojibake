@@ -34,6 +34,11 @@ export async function readSpecialCasingProps(characters: Character[], path = './
       continue;
     }
 
+    // TODO: add support for conditional mappings.
+    if(line === '# Conditional Mappings') {
+      break;
+    }
+
     const filter = (field: string) => {
       let ret = field.trim().split(' ').filter(cp => cp !== '');
 
