@@ -41,17 +41,13 @@ static char *mjb_flush_d_buffer(mjb_normalization_character *characters_buffer, 
         return output;
     }
 
-    char buffer_utf8[5];
-    size_t utf8_size = 0;
-
     // Write combining characters.
     for(size_t i = 0; i < buffer_index; ++i) {
         if(characters_buffer[i].codepoint == MJB_CODEPOINT_NOT_VALID) {
             continue;
         }
 
-        utf8_size = mjb_codepoint_encode(characters_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-        output = mjb_string_output(output, buffer_utf8, utf8_size, output_index, output_size);
+        output = mjb_string_output_codepoint(characters_buffer[i].codepoint, output, output_index, output_size);
     }
 
     return output;
@@ -123,16 +119,12 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
     size_t composed_output_index = 0;
     sqlite3_stmt *stmt = mjb_global.stmt_compose;
-
-    char buffer_utf8[5];
-    size_t utf8_size = 0;
     size_t i = 0;
 
     while(i < codepoints_count) {
         if(composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             // Non-starter: output and continue
-            utf8_size = mjb_codepoint_encode(composition_buffer[i].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-            composed_output = mjb_string_output(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
+            composed_output = mjb_string_output_codepoint(composition_buffer[i].codepoint, composed_output, &composed_output_index, output_size);
 
             ++i;
 
@@ -215,14 +207,12 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         }
 
         // Output the starter (possibly composed)
-        utf8_size = mjb_codepoint_encode(starter, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-        composed_output = mjb_string_output(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
+        composed_output = mjb_string_output_codepoint(starter, composed_output, &composed_output_index, output_size);
 
         // Output any non-consumed combining characters in order
         for(size_t j = starter_pos + 1; j < i; ++j) {
             if(composition_buffer[j].codepoint != MJB_CODEPOINT_NOT_VALID) {
-                utf8_size = mjb_codepoint_encode(composition_buffer[j].codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-                composed_output = mjb_string_output(composed_output, buffer_utf8, utf8_size, &composed_output_index, output_size);
+                composed_output = mjb_string_output_codepoint(composition_buffer[j].codepoint, composed_output, &composed_output_index, output_size);
             }
         }
     }

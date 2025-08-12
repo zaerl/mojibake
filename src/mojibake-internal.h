@@ -38,5 +38,6 @@ typedef struct mojibake {
 
 // Internal functions
 MJB_NONNULL(1, 2, 4, 5) char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index, size_t *output_size);
+MJB_NONNULL(2, 3) char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t *output_index, size_t *output_size);
 
 #endif // MJB_MOJIBAKE_INTERNAL_H

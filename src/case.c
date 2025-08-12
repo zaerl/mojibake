@@ -41,7 +41,6 @@ static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
 
 static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index, size_t *output_size, mjb_case_type type) {
     sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
-    char buffer_utf8[5];
 
     // Potential query:
     // SELECT new_case_1, new_case_2, new_case_3 FROM special_casing WHERE id = ? AND case_type = ?
@@ -66,8 +65,7 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
         for(int i = 0; i < 3; ++i) {
             if(sqlite3_column_type(stmt_special_casing, i) != SQLITE_NULL) {
                 mjb_codepoint new_codepoint = (mjb_codepoint)sqlite3_column_int(stmt_special_casing, i);
-                size_t utf8_size = mjb_codepoint_encode(new_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-                output = mjb_string_output(output, buffer_utf8, utf8_size, output_index, output_size);
+                output = mjb_string_output_codepoint(new_codepoint, output, output_index, output_size);
             } else {
                 break;
             }
@@ -121,8 +119,6 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
         }
 
         mjb_category category = (mjb_category)sqlite3_column_int(stmt, 0);
-        char buffer_utf8[5];
-        size_t utf8_size;
         mjb_case_type case_type = MJB_CASE_NONE;
 
         // Word boundary.
@@ -167,8 +163,7 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
             }
         }
 
-        utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-        output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+        output = mjb_string_output_codepoint(current_codepoint, output, &output_index, &output_size);
     }
 
     if(output_index >= output_size) {
@@ -220,7 +215,6 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         // Not implemented.
     }*/
 
-    char buffer_utf8[5];
     const char *index = buffer;
     const char *end = buffer + length;
 
@@ -238,8 +232,8 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         }
 
         if(type == MJB_CASE_CASEFOLD) {
-            size_t utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-            output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+            output = mjb_string_output_codepoint(current_codepoint, output, &output_index, &output_size);
+
             continue;
         }
 
@@ -272,8 +266,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
             current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, type);
         }
 
-        size_t utf8_size = mjb_codepoint_encode(current_codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
-        output = mjb_string_output(output, buffer_utf8, utf8_size, &output_index, &output_size);
+        output = mjb_string_output_codepoint(current_codepoint, output, &output_index, &output_size);
     }
 
     if(output_index >= output_size) {
