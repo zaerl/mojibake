@@ -4,7 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-
 /**
  * Grapheme_Cluster_Break Property Values
  * See: https://www.unicode.org/reports/tr29/#Grapheme_Cluster_Break_Property_Values
