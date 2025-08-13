@@ -55,6 +55,7 @@ void *test_hangul(void *arg) {
 
     mjb_codepoint codepoints[3];
     ATT_ASSERT(mjb_hangul_syllable_decomposition(0xAC01, codepoints), true, "Hangul syllable decomposition")
+    // CURRENT_ASSERT mjb_hangul_syllable_decomposition
     ATT_ASSERT(codepoints[0], 0x1100, "Hangul L - Choseong Kiyeok")
     ATT_ASSERT(codepoints[1], 0x1161, "Hangul V - Jungseong A")
     ATT_ASSERT(codepoints[2], 0x11A8, "Hangul T - Jongseong Kiyeok")

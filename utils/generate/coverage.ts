@@ -28,6 +28,7 @@ function scanTestFile(filepath: string): void {
   let currentResult = '';
   let currentCount = 1;
   const prog = /ATT_ASSERT\(([a-z0-9_.]+)[\(\,].+$/;
+  const attAssertRegex = /ATT_ASSERT\(/;
 
   for(const line of lines) {
     const trimmedLine = line.trim();
@@ -47,16 +48,25 @@ function scanTestFile(filepath: string): void {
       continue;
     }
 
-    result = trimmedLine.match(prog);
+    // Check if this line contains an ATT_ASSERT call
+    if(attAssertRegex.test(trimmedLine)) {
+      result = trimmedLine.match(prog);
 
-    if(result) {
-      const key = result[1].trim();
+      if(result) {
+        const key = result[1].trim();
 
-      if(key in coverage) {
-        coverage[key].u += currentCount;
-        currentResult = key;
-        currentCount = 1;
+        if(key in coverage) {
+          coverage[key].u += currentCount;
+          currentResult = key;
+          currentCount = 1;
+        } else if(currentResult) {
+          if(currentResult in coverage) {
+            coverage[currentResult].u += currentCount;
+            currentCount = 1;
+          }
+        }
       } else if(currentResult) {
+        // ATT_ASSERT found but doesn't match function name pattern. Use currentResult if available.
         if(currentResult in coverage) {
           coverage[currentResult].u += currentCount;
           currentCount = 1;

@@ -2,16 +2,16 @@
 
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
-| `mjb_normalize`                     | 399303     |
-| `mjb_case`                          | 389        |
+| `mjb_normalize`                     | 399304     |
+| `mjb_case`                          | 390        |
 | `mjb_strnlen`                       | 48         |
+| `mjb_hangul_syllable_composition`   | 43         |
 | `mjb_codepoint_is_valid`            | 39         |
-| `mjb_codepoint_encode`              | 29         |
-| `mjb_codepoint_character`           | 20         |
+| `mjb_codepoint_encode`              | 32         |
+| `mjb_codepoint_character`           | 24         |
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_character_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
-| `mjb_hangul_syllable_composition`   | 10         |
 | `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |
 | `mjb_string_is_normalized`          | 9          |
@@ -21,6 +21,7 @@
 | `mjb_codepoint_is_graphic`          | 5          |
 | `mjb_codepoint_category_is`         | 4          |
 | `mjb_codepoint_is_hangul_jamo`      | 4          |
+| `mjb_hangul_syllable_decomposition` | 4          |
 | `mjb_codepoint_is_hangul_l`         | 3          |
 | `mjb_codepoint_is_hangul_t`         | 3          |
 | `mjb_codepoint_is_hangul_v`         | 3          |
@@ -34,7 +35,6 @@
 | `mjb_alloc`                         | 1          |
 | `mjb_codepoint_is_cjk_ideograph`    | 1          |
 | `mjb_codepoint_is_hangul_syllable`  | 1          |
-| `mjb_hangul_syllable_decomposition` | 1          |
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
@@ -44,4 +44,4 @@
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **399978** |
+| **Total**                           | **400023** |
