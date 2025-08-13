@@ -4,10 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
+#include <unistd.h>
 
 #include "../mojibake.h"
 #include "characters.h"
@@ -123,7 +124,7 @@ int main(int argc, char * const argv[]) {
                 char *endptr = NULL;
                 cmd_json_indent = strtoul(optarg, &endptr, 10);
 
-                if(endptr == optarg || *endptr != '\0' || cmd_json_indent < 0 || cmd_json_indent > 10) {
+                if(endptr == optarg || *endptr != '\0' || cmd_json_indent > 10) {
                     fprintf(stderr, "JSON indent level must be a number between 0 and 10.\n");
                     show_help(long_options, descriptions, commands, NULL);
 

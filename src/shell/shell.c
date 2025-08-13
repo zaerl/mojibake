@@ -79,7 +79,7 @@ bool print_escaped_character(char buffer_utf8[5]) {
             return true;
     }
 
-    if(buffer_utf8[0] >= 0x00 && buffer_utf8[0] <= 0x1F) {
+    if(buffer_utf8[0] <= 0x1F) {
         printf("\\u%04X", buffer_utf8[0]);
 
         return true;
