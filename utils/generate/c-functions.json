@@ -147,6 +147,13 @@
     "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"]
   },
   {
+    "comment": "Unicode break algorithm",
+    "ret": "bool",
+    "name": "break",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding"]
+  },
+  {
     "comment": "Return the plane of the codepoint",
     "ret": "mjb_plane",
     "name": "codepoint_plane",
