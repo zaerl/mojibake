@@ -9,12 +9,16 @@
 void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_string_encoding(0, 10), MJB_ENCODING_UNKNOWN, "Void unknown string")
     ATT_ASSERT(mjb_string_encoding("", 0), MJB_ENCODING_UNKNOWN, "Void unknown length");
+
     ATT_ASSERT(mjb_string_encoding(0, 0), MJB_ENCODING_UNKNOWN, "Void unknown string and length");
     const char *test1 = "The quick brown fox jumps over the lazy dog";
+
     ATT_ASSERT(mjb_string_encoding(test1, 43), (MJB_ENCODING_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)");
     const char *test2 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
+
     ATT_ASSERT(mjb_string_encoding(test2, 43 + 3), MJB_ENCODING_UTF_8, "UTF-8 BOM");
     const char *test3 = "\xFE\xFFThe quick brown fox jumps over the lazy dog";
+
     ATT_ASSERT(mjb_string_encoding(test3, 43 + 2), MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_BE, "UTF-16-BE BOM");
 
     const char *test4 = "\xFF\xFEThe quick brown fox jumps over the lazy dog";
@@ -166,7 +170,7 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 2, "0x0000 UTF-16BE")
     ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-16BE")
 
-    // CURRENT_COUNT 6
+    // CURRENT_COUNT 12
     #define TEST_UTF8(CHAR, STR, RES, COMMENT) \
         ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), RES, COMMENT) \
         ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
@@ -179,7 +183,7 @@ void *test_encoding(void *arg) {
     TEST_UTF8(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
     TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
 
-    // UTF-16LE tests
+    // CURRENT_COUNT 12
     #define TEST_UTF16LE(CHAR, STR, RES, COMMENT) \
         ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), RES, COMMENT) \
         ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
@@ -191,7 +195,7 @@ void *test_encoding(void *arg) {
     TEST_UTF16LE(0x10FFFE, "\xFF\xDB\xFE\xDF", 4, "4-bytes limit UTF-16LE");
     TEST_UTF16LE(0x1F642, "\x3D\xD8\x42\xDE", 4, "SLIGHTLY SMILING FACE UTF-16LE");
 
-    // UTF-16BE tests
+    // CURRENT_COUNT 12
     #define TEST_UTF16BE(CHAR, STR, RES, COMMENT) \
         ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), RES, COMMENT) \
         ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)

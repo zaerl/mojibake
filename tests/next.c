@@ -16,8 +16,6 @@ static bool next_character(mjb_character *character, mjb_next_character_type typ
 
  void *test_next(void *arg) {
     ATT_ASSERT(mjb_next_character("Hèllò", 7, MJB_ENCODING_UTF_8, next_character), true, "Next character")
-
-    // CURRENT_ASSERT mjb_next_character
     ATT_ASSERT(mjb_test_count, 5, "mjb_next_character")
 
     return NULL;

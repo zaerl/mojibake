@@ -45,11 +45,14 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen(utf16le_hello_accents, 8, encoding), 4, "UTF-16LE length: Héllö")
     ATT_ASSERT(mjb_strnlen(utf16le_hello_accents, 4, encoding), 2, "UTF-16LE length: Héllö")
     ATT_ASSERT(mjb_strnlen(utf16le_hello_accents, 0, encoding), 0, "UTF-16LE length: Héllö")
+
     const char utf16le_hello_katakana[] = "H\0\xE8\0l\0l\0\xF5\0 \0\x30\x30";
     ATT_ASSERT(mjb_strnlen(utf16le_hello_katakana, 14, encoding), 7, "UTF-16LE length: Hèllõ ツ")
     ATT_ASSERT(mjb_strnlen(utf16le_hello_katakana, 10, encoding), 5, "UTF-16LE length: Hèllõ ツ")
+
     const char utf16le_konnichiwa[] = "\x93\x30\x93\x30\x6B\x30\x61\x30\x6F\x30";
     ATT_ASSERT(mjb_strnlen(utf16le_konnichiwa, 10, encoding), 5, "UTF-16LE length: こんにちは")
+
     const char utf16le_geia_sou[] = "\x93\x03\x65\x03\x69\x03\x3F\x03 \0\xC3\x03\x6F\x03\x75\x03";
     ATT_ASSERT(mjb_strnlen(utf16le_geia_sou, 16, encoding), 8, "UTF-16LE length: Γειά σου")
     ATT_ASSERT(mjb_strnlen(utf16le_hello_accents, 2, encoding), 1, "UTF-16LE length: Héllö (1 max value)")
@@ -69,11 +72,14 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 8, encoding), 4, "UTF-16BE length: Héllö")
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 4, encoding), 2, "UTF-16BE length: Héllö")
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 0, encoding), 0, "UTF-16BE length: Héllö")
+
     const char utf16be_hello_katakana[] = "\0H\0\xE8\0l\0l\0\xF5\0 \x30\x30";
     ATT_ASSERT(mjb_strnlen(utf16be_hello_katakana, 14, encoding), 7, "UTF-16BE length: Hèllõ ツ")
     ATT_ASSERT(mjb_strnlen(utf16be_hello_katakana, 10, encoding), 5, "UTF-16BE length: Hèllõ ツ")
+
     const char utf16be_konnichiwa[] = "\x30\x93\x30\x93\x30\x6B\x30\x61\x30\x6F";
     ATT_ASSERT(mjb_strnlen(utf16be_konnichiwa, 10, encoding), 5, "UTF-16BE length: こんにちは")
+
     const char utf16be_geia_sou[] = "\x03\x93\x03\x65\x03\x69\x03\x3F\0 \x03\xC3\x03\x6F\x03\x75";
     ATT_ASSERT(mjb_strnlen(utf16be_geia_sou, 16, encoding), 8, "UTF-16BE length: Γειά σου")
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 2, encoding), 1, "UTF-16BE length: Héllö (1 max value)")
@@ -146,15 +152,6 @@ void *test_string(void *arg) {
     ATT_ASSERT(result, "Ⅲ Times", "UTF-8 titlecase: ⅲ times")
     mjb_free(result);
 
-    // TODO: add support for WordBreakProperty.txt
-    // See: https://www.unicode.org/reports/tr29/#Word_Boundaries
-    // 2019..2019    MidLetter # Po  RIGHT SINGLE QUOTATION MARK
-    // WB6: ALetter × MidLetter ALetter
-    // WB7: ALetter MidLetter × ALetter
-    // result = mjb_case("o’connor", 9, MJB_CASE_TITLE, MJB_ENCODING_UTF_8);
-    // ATT_ASSERT(result, "O’Connor", "UTF-8 titlecase: o’connor")
-    // mjb_free(result);
-
     result = mjb_case("İstanbul", 9, MJB_CASE_TITLE, MJB_ENCODING_UTF_8);
     ATT_ASSERT(result, "İstanbul", "UTF-8 titlecase: İstanbul")
     mjb_free(result);
@@ -177,6 +174,15 @@ void *test_string(void *arg) {
     result = mjb_case("123abc", 8, MJB_CASE_TITLE, MJB_ENCODING_UTF_8);
     ATT_ASSERT(result, "123Abc", "UTF-8 titlecase: 123abc")
     mjb_free(result);
+
+    // TODO: add support for WordBreakProperty.txt
+    // See: https://www.unicode.org/reports/tr29/#Word_Boundaries
+    // 2019..2019    MidLetter # Po  RIGHT SINGLE QUOTATION MARK
+    // WB6: ALetter × MidLetter ALetter
+    // WB7: ALetter MidLetter × ALetter
+    // result = mjb_case("o’connor", 9, MJB_CASE_TITLE, MJB_ENCODING_UTF_8);
+    // ATT_ASSERT_NO(result, "O’Connor", "UTF-8 titlecase: o’connor")
+    // mjb_free(result);
 
     return NULL;
  }

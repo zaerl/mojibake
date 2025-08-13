@@ -3,11 +3,11 @@
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 399304     |
-| `mjb_case`                          | 390        |
+| `mjb_case`                          | 389        |
+| `mjb_codepoint_encode`              | 60         |
 | `mjb_strnlen`                       | 48         |
 | `mjb_hangul_syllable_composition`   | 43         |
 | `mjb_codepoint_is_valid`            | 39         |
-| `mjb_codepoint_encode`              | 32         |
 | `mjb_codepoint_character`           | 24         |
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_character_block`               | 14         |
@@ -44,4 +44,4 @@
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **400023** |
+| **Total**                           | **400050** |
