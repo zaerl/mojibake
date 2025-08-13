@@ -134,5 +134,18 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(character.digit == 1, true, "Codepoint: 1")
     ATT_ASSERT(character.numeric, "1", "Codepoint: 1")
 
+    // EGYPTIAN HIEROGLYPH
+    ATT_ASSERT(mjb_codepoint_character(0x13000, &character), true, "HIEROGLYPH 1")
+    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH A001"), 0, "HIEROGLYPH 1")
+
+    ATT_ASSERT(mjb_codepoint_character(0x13455, &character), true, "HIEROGLYPH 2")
+    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED"), 0, "HIEROGLYPH 2")
+
+    ATT_ASSERT(mjb_codepoint_character(0x13460, &character), true, "EGYPTIAN HIEROGLYPH 3")
+    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-13460"), 0, "HIEROGLYPH 3")
+
+    ATT_ASSERT(mjb_codepoint_character(0x143FA, &character), true, "EGYPTIAN HIEROGLYPH 4")
+    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-143FA"), 0, "HIEROGLYPH 4")
+
     return NULL;
 }
