@@ -89,7 +89,19 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     char *name = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 1);
 
     if(name != NULL) {
-        strncpy(character->name, name, 128);
+        // Egyptian Hieroglyphs
+        // Egyptian Hieroglyph Format Controls
+        // Egyptian Hieroglyphs Extended A
+        if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
+            // Egyptian Hieroglyphs Extended-A
+            if(codepoint >= 0x13460) {
+                snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH-%X", codepoint);
+            } else {
+                snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
+            }
+        } else {
+            strncpy(character->name, name, 128);
+        }
     } else {
         character->name[0] = '\0';
     }

@@ -159,7 +159,7 @@ export class Analysis {
     iLog(`SPACES: ${this.spacesCount}\n`);
 
     // Calculate compressed count words by characters
-    // Biggest word is is the space character
+    // Biggest word is the space character
     let compressedCount = this.spacesCount;
     // First codepoint is START OF HEADING, not 0 (NULL)
     let compressedCodepoint = 1;
