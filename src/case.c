@@ -39,7 +39,8 @@ static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
         (codepoint >= 64256 && codepoint <= 64279);
 }
 
-static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index, size_t *output_size, mjb_case_type type) {
+static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
+    size_t *output_index, size_t *output_size, mjb_case_type type) {
     sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
 
     // Potential query:
@@ -64,8 +65,8 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
     while(sqlite3_step(stmt_special_casing) == SQLITE_ROW) {
         for(int i = 0; i < 3; ++i) {
             if(sqlite3_column_type(stmt_special_casing, i) != SQLITE_NULL) {
-                mjb_codepoint new_codepoint = (mjb_codepoint)sqlite3_column_int(stmt_special_casing, i);
-                output = mjb_string_output_codepoint(new_codepoint, output, output_index, output_size);
+                mjb_codepoint new_cp = (mjb_codepoint)sqlite3_column_int(stmt_special_casing,i);
+                output = mjb_string_output_codepoint(new_cp, output, output_index, output_size);
             } else {
                 break;
             }
@@ -124,7 +125,8 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
         // Word boundary.
         if(
             // Is cased.
-            category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL || category == MJB_CATEGORY_LT ||
+            category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL ||
+            category == MJB_CATEGORY_LT ||
             // Is modifier.
             category == MJB_CATEGORY_LM ||
             // Is number.
@@ -157,7 +159,8 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
 
         if(mjb_maybe_has_special_casing(current_codepoint)) {
             unsigned int found = mjb_special_casing_codepoint(current_codepoint, output,
-                &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE : case_type);
+                &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE :
+                case_type);
 
             if(found) {
                 continue;
