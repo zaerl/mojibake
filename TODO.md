@@ -8,7 +8,6 @@
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
 - [ ] Add Github actions for testing
-- [ ] Add support for Windows
 - [ ] Add UTF16 support for `mjb_next_character`
 - [ ] Add UTF16 support for `mjb_normalize`
 - [ ] Add UTF16 support for `mjb_string_is_normalized`
@@ -19,6 +18,8 @@
 - [ ] `auxiliary/GraphemeBreakProperty.txt` table
 - [ ] `auxiliary/SentenceBreakProperty.txt` table
 - [ ] `auxiliary/WordBreakProperty.txt` table
+- [ ] Add support for Windows
+- [x] Add support for Alpine Linux
 - [x] `UnicodeData.txt` table
 - [x] `Blocks.txt` table
 - [x] Composition table

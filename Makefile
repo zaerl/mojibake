@@ -27,6 +27,10 @@ test: BUILD_TYPE = Test
 test: configure build mojibake.db
 	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)
 
+test-docker:
+	docker build -t mojibake .
+	docker run mojibake
+
 clean_build:
 	@cmake --build $(BUILD_DIR) --target clean
 
@@ -35,10 +39,11 @@ clean:
 
 help:
 	@echo "Available targets:"
-	@echo "  all        - Build the project (default)"
-	@echo "  test       - Build and run tests"
-	@echo "  clean      - Remove build artifacts"
-	@echo "  generate   - Regenerate source files"
-	@echo "  coverage   - Run coverage analysis"
+	@echo "  all         - Build the project (default)"
+	@echo "  test        - Build and run tests"
+	@echo "  test-docker - Build and run tests in Docker container"
+	@echo "  clean       - Remove build artifacts"
+	@echo "  generate    - Regenerate source files"
+	@echo "  coverage    - Run coverage analysis"
 
-.PHONY: all clean clean_build configure build test rebuild generate generate_tests coverage help
+.PHONY: all clean clean_build configure build test rebuild generate generate_tests coverage help test-docker
