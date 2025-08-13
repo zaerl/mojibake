@@ -16,6 +16,8 @@
 
 #include "mojibake.h"
 
+#define MJB_USED __attribute__((used))
+
 /**
  * Internal mojibake structure
  * This contains the internal state of the library

@@ -34,6 +34,8 @@
 
 #include <stdint.h>
 
+#include "mojibake-internal.h"
+
 #define MJB_UTF8_ACCEPT 0
 #define MJB_UTF8_REJECT 0xF
 
@@ -51,7 +53,7 @@ static const uint32_t utf8_statetab[0x10] = {
     0XFFFFFFF5UL, 0XFFFFFFFFUL, 0XFFFFFFFFUL, 0XFFFFFFFFUL,
 };
 
-static inline uint8_t __used mjb_utf8_decode_step(uint8_t state, uint8_t octet, uint32_t *cpp) {
+static inline uint8_t MJB_USED mjb_utf8_decode_step(uint8_t state, uint8_t octet, uint32_t *cpp) {
     const uint8_t reject = (state >> 3);
     const uint8_t nonascii = (octet >> 7);
     const uint8_t class = (!nonascii? 0 :

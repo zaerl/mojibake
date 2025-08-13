@@ -8,10 +8,12 @@
 
 #include <stdint.h>
 
+#include "mojibake-internal.h"
+
 #define	MJB_UTF16_ACCEPT 0
 #define	MJB_UTF16_REJECT 1
 
-static inline uint8_t __used mjb_utf16_decode_step(uint8_t state, uint16_t unit, uint32_t *cpp) {
+static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint16_t unit, uint32_t *cpp) {
     if(state == MJB_UTF16_ACCEPT) {
         // Starting fresh or continuing after a complete codepoint
         if(unit < 0xD800 || unit > 0xDFFF) {
