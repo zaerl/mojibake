@@ -91,7 +91,6 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     if(name != NULL) {
         // Egyptian Hieroglyphs
         // Egyptian Hieroglyph Format Controls
-        // Egyptian Hieroglyphs Extended A
         if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
             // Egyptian Hieroglyphs Extended-A
             if(codepoint >= 0x13460) {
@@ -99,6 +98,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
             } else {
                 snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
             }
+            // TODO: Add more characters to auto-generated names
         } else {
             strncpy(character->name, name, 128);
         }

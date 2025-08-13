@@ -72,7 +72,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         uppercase INTEGER,
         lowercase INTEGER,
         titlecase INTEGER,
-        quick_check INTEGER
+        quick_check INTEGER,
+        line_breaking_class INTEGER
       );
       CREATE INDEX idx_unicode_data_codepoint ON unicode_data(codepoint);
     `);
@@ -171,8 +172,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         uppercase,
         lowercase,
         titlecase,
-        quick_check
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        quick_check,
+        line_breaking_class
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
 
@@ -272,7 +274,8 @@ export function dbRun(characters: Character[]) {
         char.uppercase,
         char.lowercase,
         char.titlecase,
-        char.quickCheck
+        char.quickCheck,
+        char.lineBreakingClass
       );
 
       /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {

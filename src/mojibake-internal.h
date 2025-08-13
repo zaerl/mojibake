@@ -11,7 +11,11 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+
+#include "break.h"
+#include "buffer.h"
 #include "locales.h"
+#include "segmentation.h"
 #include "sqlite3/sqlite3.h"
 
 #include "mojibake.h"
@@ -38,6 +42,7 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_buffer_character;
     sqlite3_stmt *stmt_case;
     sqlite3_stmt *stmt_special_casing;
+    sqlite3_stmt *stmt_line_breaking_class;
 } mojibake;
 
 // Internal functions
@@ -45,5 +50,7 @@ MJB_NONNULL(1, 2, 4, 5) char *mjb_string_output(char *ret, char *input, size_t i
     size_t *output_index, size_t *output_size);
 MJB_NONNULL(2, 3) char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t
     *output_index, size_t *output_size);
+MJB_NONNULL(2) bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
+    mjb_line_breaking_class *line_breaking_class);
 
 #endif // MJB_MOJIBAKE_INTERNAL_H

@@ -7,6 +7,7 @@ import { readCompositionExclusions } from './compositition-exclusion';
 import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
+import { generateBreaks } from './generate-break';
 import { generateHeader } from './generate-header';
 import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
@@ -35,12 +36,21 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   for await (const line of file.readLines()) {
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
-    const name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
+    let name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
     codepoint = parseInt(split[0], 16);
 
     // Special start end.
     if(name.startsWith('<') && name !== '<control>') {
       continue;
+    }
+
+    // Strip away egyptian names
+    if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
+      if(codepoint >= 0x13460) {
+        name = '';
+      } else {
+        name = name.replace('EGYPTIAN HIEROGLYPH ', '');
+      }
     }
 
     const diff = codepoint - previousCodepoint;
@@ -73,7 +83,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
       split[12] === '' ? null : parseInt(split[12], 16), // uppercase
       split[13] === '' ? null : parseInt(split[13], 16), // lowercase
       split[14] === '' ? null : parseInt(split[14], 16), // titlecase
-      null // quick check
+      null, // quick check
+      null // line breaking class
     );
 
     characters.push(char);
@@ -85,6 +96,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   analysis.beforeDB();
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
+  await generateBreaks(characters);
 
   // Insert characters
   dbRun(characters);
