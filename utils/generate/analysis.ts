@@ -26,7 +26,7 @@ export class Analysis {
   spacesCount = 0;
   wordsCount = 0;
 
-  addCharacter(char: Character): void {
+  addCharacter(char: Character, originalName: string | null): void {
     if(char.category === Categories.Mn || char.category === Categories.Me || char.category === Categories.Mc) {
         if(char.combining !== 0) {
           ++this.combinings;
@@ -43,10 +43,16 @@ export class Analysis {
       this.maxDigit = Math.max(this.maxDigit, char.digit);
     }
 
-    this.names.push(char.name);
+    if(originalName !== null) {
+      this.names.push(originalName);
+    }
   }
 
-  line(diff: number, name: string, category: string, numeric: string): void {
+  line(diff: number, name: string | null, category: string, numeric: string): void {
+    if(name === null) {
+      return;
+    }
+
     const words = name.split(' ');
     const spaces = words.length - 1;
 

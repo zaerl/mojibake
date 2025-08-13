@@ -36,7 +36,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   for await (const line of file.readLines()) {
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
-    let name = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
+    let name: string | null = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
+    const originalName = name;
     codepoint = parseInt(split[0], 16);
 
     // Special start end.
@@ -47,10 +48,16 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
     // Strip away egyptian names
     if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
       if(codepoint >= 0x13460) {
-        name = '';
+        name = null;
       } else {
         name = name.replace('EGYPTIAN HIEROGLYPH ', '');
       }
+    } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
+      // CJK Compatibility Ideographs
+      name = null;
+    } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
+      // Anatolian Hieroglyphs
+      name = name.replace('ANATOLIAN HIEROGLYPH A', '');
     }
 
     const diff = codepoint - previousCodepoint;
@@ -88,7 +95,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
     );
 
     characters.push(char);
-    analysis.addCharacter(char);
+    analysis.addCharacter(char, originalName);
   }
 
   iLog('INSERT UNICODE DATA');

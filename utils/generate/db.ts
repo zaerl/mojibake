@@ -45,12 +45,14 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     db.exec(`
       CREATE TABLE IF NOT EXISTS unicode_data (
         codepoint INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT,
         flags INTEGER NOT NULL, -- category, combining, bidirectional, decomposition, decimal, digit, mirrored, block
         numeric TEXT,
         uppercase INTEGER,
         lowercase INTEGER,
-        titlecase INTEGER
+        titlecase INTEGER,
+        quick_check INTEGER,
+        line_breaking_class INTEGER
       );
       CREATE INDEX idx_unicode_data_codepoint ON unicode_data(codepoint);
     `);
@@ -58,7 +60,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     db.exec(`
       CREATE TABLE IF NOT EXISTS unicode_data (
         codepoint INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT,
         category INTEGER NOT NULL,
         combining INTEGER,
         bidirectional INTEGER,
@@ -151,8 +153,10 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         numeric,
         uppercase,
         lowercase,
-        titlecase
-      ) VALUES (?, ?, ?, ?, ?, ?, ?);
+        titlecase,
+        quick_check,
+        line_breaking_class
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -257,7 +261,9 @@ export function dbRun(characters: Character[]) {
         char.numeric,
         char.uppercase,
         char.lowercase,
-        char.titlecase
+        char.titlecase,
+        char.quickCheck,
+        char.lineBreakingClass
         );
     } else {
       insertDataSmt.run(
@@ -347,5 +353,7 @@ export function dbInsertBlock(index: number, block: Block) {
 export function dbRunAfter() {
   db.pragma('optimize');
   db.exec('ANALYZE;');
+  db.exec('DROP TABLE IF EXISTS sqlite_stat1;');
+  db.exec('DROP TABLE IF EXISTS sqlite_stat4;');
   db.exec('VACUUM;');
 }

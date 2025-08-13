@@ -88,22 +88,27 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
 
     char *name = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 1);
 
-    if(name != NULL) {
-        // Egyptian Hieroglyphs
-        // Egyptian Hieroglyph Format Controls
-        if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
-            // Egyptian Hieroglyphs Extended-A
-            if(codepoint >= 0x13460) {
-                snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH-%X", codepoint);
-            } else {
-                snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
-            }
-            // TODO: Add more characters to auto-generated names
+    // Egyptian Hieroglyphs
+    // Egyptian Hieroglyph Format Controls
+    if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
+        // Egyptian Hieroglyphs Extended-A
+        if(codepoint >= 0x13460) {
+            snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH-%X", codepoint);
         } else {
-            strncpy(character->name, name, 128);
+            snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
         }
+    } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
+        // CJK Compatibility Ideographs
+        snprintf(character->name, 128, "CJK COMPATIBILITY IDEOGRAPH-%X", codepoint);
+    } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
+        // Anatolian Hieroglyphs
+        snprintf(character->name, 128, "ANATOLIAN HIEROGLYPH A%s", name);
     } else {
-        character->name[0] = '\0';
+        if(name != NULL) {
+            strncpy(character->name, name, 128);
+        } else {
+            character->name[0] = '\0';
+        }
     }
 
     character->category = (mjb_category)sqlite3_column_int(mjb_global.stmt_get_codepoint, 2);

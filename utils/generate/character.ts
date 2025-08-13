@@ -4,7 +4,7 @@ import { BidirectionalCategories, CharacterDecomposition } from './types';
 export class Character {
   constructor(
     public codepoint: number,
-    public name: string,
+    public name: string | null,
     public category: number,
     public combining: number,
     public bidirectional: BidirectionalCategories | null,

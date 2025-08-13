@@ -136,7 +136,7 @@ void *test_codepoint(void *arg) {
 
     // EGYPTIAN HIEROGLYPH
     ATT_ASSERT(mjb_codepoint_character(0x13000, &character), true, "HIEROGLYPH 1")
-    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH A001"), 0, "HIEROGLYPH 1")
+    ATT_ASSERT(character.name, "EGYPTIAN HIEROGLYPH A001", "HIEROGLYPH 1")
 
     ATT_ASSERT(mjb_codepoint_character(0x13455, &character), true, "HIEROGLYPH 2")
     ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED"), 0, "HIEROGLYPH 2")
@@ -146,6 +146,21 @@ void *test_codepoint(void *arg) {
 
     ATT_ASSERT(mjb_codepoint_character(0x143FA, &character), true, "EGYPTIAN HIEROGLYPH 4")
     ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-143FA"), 0, "HIEROGLYPH 4")
+
+    ATT_ASSERT(mjb_codepoint_character(0x13460, &character), true, "EGYPTIAN HIEROGLYPH 3")
+    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-13460"), 0, "HIEROGLYPH 3")
+
+    ATT_ASSERT(mjb_codepoint_character(0xF900, &character), true, "CJK CI 1")
+    ATT_ASSERT(strcmp((char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-F900"), 0, "CJK CI 1")
+
+    ATT_ASSERT(mjb_codepoint_character(0xFAD9, &character), true, "CJK CI 2")
+    ATT_ASSERT(strcmp((char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-FAD9"), 0, "CJK CI 2")
+
+    ATT_ASSERT(mjb_codepoint_character(0x14400, &character), true, "ANATOLIAN HIEROGLYPH 1")
+    ATT_ASSERT(character.name, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
+
+    ATT_ASSERT(mjb_codepoint_character(0x14646, &character), true, "ANATOLIAN HIEROGLYPH 2")
+    ATT_ASSERT(character.name, "ANATOLIAN HIEROGLYPH A530", "ANATOLIAN HIEROGLYPH 2")
 
     return NULL;
 }
