@@ -4,6 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#pragma once
+
+#ifndef MJB_SEGMENTATION_H
+#define MJB_SEGMENTATION_H
+
 /**
  * Grapheme_Cluster_Break Property Values
  * See: https://www.unicode.org/reports/tr29/#Grapheme_Cluster_Break_Property_Values
@@ -24,3 +29,5 @@ typedef enum mjb_grapheme_break_property {
     MJB_GBP_LVT,
     MJB_GBP_ANY
 } mjb_grapheme_break_property;
+
+#endif // MJB_SEGMENTATION_H

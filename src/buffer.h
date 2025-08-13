@@ -4,6 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#pragma once
+
+#ifndef MJB_BUFFER_H
+#define MJB_BUFFER_H
+
 #include "mojibake.h"
 
 /**
@@ -12,3 +17,5 @@
  */
 MJB_EXPORT bool mjb_get_buffer_character(mjb_normalization_character *character,
     mjb_codepoint codepoint);
+
+#endif // MJB_BUFFER_H
