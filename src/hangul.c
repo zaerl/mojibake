@@ -154,7 +154,7 @@ MJB_EXPORT bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint) {
 MJB_EXPORT bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint) {
     unsigned int syllable_index = codepoint - MJB_CP_HANGUL_S_BASE;
 
-    if(syllable_index < 0 || syllable_index >= MJB_CP_HANGUL_S_COUNT) {
+    if(syllable_index >= MJB_CP_HANGUL_S_COUNT) {
         return false;
     }
 

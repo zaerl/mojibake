@@ -142,7 +142,7 @@ static const char *decomposition_names[] = {
 };
 
 const char *decomposition_name(mjb_decomposition decomposition) {
-    if(decomposition < 0 || decomposition > MJB_DECOMPOSITION_WIDE) {
+    if(decomposition > MJB_DECOMPOSITION_WIDE) {
         return "Unknown";
     }
 
@@ -150,7 +150,7 @@ const char *decomposition_name(mjb_decomposition decomposition) {
 }
 
 const char *category_name(mjb_category category) {
-    if(category < 0 || category >= MJB_CATEGORY_COUNT) {
+    if(category >= MJB_CATEGORY_COUNT) {
         return "Unknown";
     }
 
@@ -158,7 +158,7 @@ const char *category_name(mjb_category category) {
 }
 
 char *ccc_name(mjb_canonical_combining_class ccc) {
-    if(ccc < 0 || ccc > MJB_CCC_BELOW_IOTA) {
+    if(ccc > MJB_CCC_BELOW_IOTA) {
         return strdup("Unknown");
     }
 
@@ -191,7 +191,7 @@ char *ccc_name(mjb_canonical_combining_class ccc) {
 }
 
 const char *bidi_name(mjb_bidi_categories bidi) {
-    if(bidi < 0 || bidi >= MJB_BIDI_COUNT) {
+    if(bidi >= MJB_BIDI_COUNT) {
         return "Unknown";
     }
 

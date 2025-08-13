@@ -15,7 +15,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Compiler flags
-set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter")
+set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter -Wtype-limits")
 
 # Debug flags
 set(CMAKE_C_FLAGS_DEBUG "-g -O0")
