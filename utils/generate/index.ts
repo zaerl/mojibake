@@ -7,7 +7,7 @@ import { readCompositionExclusions } from './compositition-exclusion';
 import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
-import { generateBreaks } from './generate-break';
+import { generateBreaks, generateLineBreaksTest } from './generate-break';
 import { generateHeader } from './generate-header';
 import { generateNormalizationCount } from './generate-tests';
 import { iLog, isVerbose, log, setVerbose } from './log';
@@ -104,6 +104,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   await generateBreaks(characters);
+  await generateLineBreaksTest();
 
   // Insert characters
   dbRun(characters);

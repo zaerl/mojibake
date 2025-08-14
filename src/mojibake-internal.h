@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "break.h"
+#include "breaking.h"
 #include "buffer.h"
 #include "locales.h"
 #include "segmentation.h"

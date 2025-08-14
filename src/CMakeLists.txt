@@ -1,5 +1,5 @@
 set(SOURCES
-    break.c
+    breaking.c
     buffer.c
     case.c
     codepoint.c

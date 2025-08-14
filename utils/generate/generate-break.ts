@@ -1,6 +1,7 @@
 import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
+import { writeFileSync } from 'fs';
 
 enum LineBreakingClass {
   // Non-tailorable Line Breaking Classes
@@ -111,4 +112,29 @@ export async function generateBreaks(characters: Character[], path = './UCD/Line
       }
     }
   }
+}
+
+export async function generateLineBreaksTest(path = './UCD/auxiliary/LineBreakTest.txt') {
+  log('GENERATE LINE BREAKS TEST');
+  const file = await open(path);
+  let max = 0;
+  let output: string[] = [];
+
+  for await (const line of file.readLines()) {
+    if(line.length === 0 || line.startsWith('#')) {
+      continue;
+    }
+
+    const split = line.split('#');
+    if(split.length < 2) continue;
+
+    const rule = split[0].trim();
+    const withSlash = rule.replace(/÷/g, '/');
+    const final = withSlash.replace(/×/g, 'x');
+
+    max = Math.max(max, final.length);
+    output.push(final);
+  }
+
+  writeFileSync('./UCD/auxiliary/LineBreakTestModified.txt', output.join('\n'));
 }

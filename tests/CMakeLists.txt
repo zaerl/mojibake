@@ -1,6 +1,6 @@
 set(TEST_SOURCES
     attractor/attractor.c
-    break.c
+    breaking.c
     case.c
     cjk.c
     codepoint.c

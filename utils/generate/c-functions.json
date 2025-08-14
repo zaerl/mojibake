@@ -148,7 +148,7 @@
   },
   {
     "comment": "Unicode line break algorithm",
-    "ret": "bool",
+    "ret": "char *",
     "name": "line_break",
     "attributes": ["MJB_NONNULL(1)"],
     "args": ["const char *buffer", "size_t size", "mjb_encoding encoding"]

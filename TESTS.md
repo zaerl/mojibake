@@ -3,12 +3,13 @@
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 399304     |
+| `mjb_line_breaking`                 | 16672      |
 | `mjb_case`                          | 389        |
 | `mjb_codepoint_encode`              | 60         |
 | `mjb_strnlen`                       | 48         |
 | `mjb_hangul_syllable_composition`   | 43         |
+| `mjb_codepoint_character`           | 42         |
 | `mjb_codepoint_is_valid`            | 39         |
-| `mjb_codepoint_character`           | 24         |
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_character_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
@@ -42,6 +43,7 @@
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
+| `mjb_segmentation`                  | 0          |
 | `mjb_shutdown`                      | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **400050** |
+| **Total**                           | **416740** |

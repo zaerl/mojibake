@@ -304,7 +304,7 @@ MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffe
 MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Unicode line break algorithm
-MJB_NONNULL(1) bool mjb_line_break(const char *buffer, size_t size, mjb_encoding encoding);
+MJB_NONNULL(1) char *mjb_line_break(const char *buffer, size_t size, mjb_encoding encoding);
 
 // Word and grapheme cluster breaking
 MJB_NONNULL(1) bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding);
