@@ -16,5 +16,8 @@ void *test_break(void *arg) {
     ATT_ASSERT(mjb_codepoint_line_breaking_class(0x0, &lbc), true, "NULL")
     ATT_ASSERT(lbc, MJB_LBC_CM, "CM")
 
+    ATT_ASSERT(mjb_line_break("Hello, world!", 13, MJB_ENCODING_UTF_8), true, "Line break")
+    ATT_ASSERT(mjb_segmentation("Hello, world!", 13, MJB_ENCODING_UTF_8), true, "Segmentation")
+
     return NULL;
 }

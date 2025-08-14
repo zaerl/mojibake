@@ -126,10 +126,16 @@ Get the next character from the string
 bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 ```
 
-Unicode break algorithm
+Unicode line break algorithm
 
 ```c
-bool mjb_break(const char *buffer, size_t size, mjb_encoding encoding);
+bool mjb_line_break(const char *buffer, size_t size, mjb_encoding encoding);
+```
+
+Word and grapheme cluster breaking
+
+```c
+bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding);
 ```
 
 Return the plane of the codepoint

@@ -303,8 +303,11 @@ MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffe
 // Get the next character from the string
 MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
-// Unicode break algorithm
-MJB_NONNULL(1) bool mjb_break(const char *buffer, size_t size, mjb_encoding encoding);
+// Unicode line break algorithm
+MJB_NONNULL(1) bool mjb_line_break(const char *buffer, size_t size, mjb_encoding encoding);
+
+// Word and grapheme cluster breaking
+MJB_NONNULL(1) bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);

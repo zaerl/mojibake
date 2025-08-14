@@ -36,6 +36,12 @@ MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
 // see: https://www.unicode.org/reports/tr14
 // Word and Grapheme Cluster Breaking
 // see: https://unicode.org/reports/tr29/
-MJB_EXPORT bool mjb_break(const char *buffer, size_t length, mjb_encoding encoding) {
+MJB_EXPORT bool mjb_line_break(const char *buffer, size_t length, mjb_encoding encoding) {
+    return true;
+}
+
+// Word and Grapheme Cluster Breaking
+// see: https://unicode.org/reports/tr29/
+MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t length, mjb_encoding encoding) {
     return true;
 }

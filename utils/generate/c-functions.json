@@ -147,9 +147,16 @@
     "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"]
   },
   {
-    "comment": "Unicode break algorithm",
+    "comment": "Unicode line break algorithm",
     "ret": "bool",
-    "name": "break",
+    "name": "line_break",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding"]
+  },
+  {
+    "comment": "Word and grapheme cluster breaking",
+    "ret": "bool",
+    "name": "segmentation",
     "attributes": ["MJB_NONNULL(1)"],
     "args": ["const char *buffer", "size_t size", "mjb_encoding encoding"]
   },
