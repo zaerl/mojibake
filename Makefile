@@ -27,7 +27,7 @@ test: BUILD_TYPE = Test
 test: configure build mojibake.db
 	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)
 
-test-docker:
+test-linux:
 	docker build -t mojibake .
 	docker run mojibake
 
