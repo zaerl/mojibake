@@ -5,8 +5,10 @@
  */
 
 #include "../mojibake.h"
+#include "../breaking.h"
 
 const char *category_name(mjb_category category);
 char *ccc_name(mjb_canonical_combining_class ccc);
 const char *bidi_name(mjb_bidi_categories bidi);
 const char *decomposition_name(mjb_decomposition decomposition);
+const char *line_breaking_class_name(mjb_line_breaking_class line_breaking_class);

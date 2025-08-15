@@ -8,9 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../breaking.h"
 #include "../../mojibake.h"
-#include "../maps.h"
 #include "../shell.h"
+#include "../maps.h"
 
 bool output_next_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
@@ -120,7 +121,7 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
 
     if(valid_block) {
         if(is_json) {
-            print_id_name_value("block", block.id, block.name, true);
+            print_id_name_value("block", block.id, block.name, 1);
         } else {
             print_value("Block", 1, "[%d] %s", block.id, block.name);
         }
@@ -170,6 +171,21 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         print_codepoint("Titlecase", 2, character->titlecase);
     } else {
         print_null_value("Titlecase", 2);
+    }
+
+    mjb_line_breaking_class line_breaking_class;
+    bool lbc_valid = mjb_codepoint_line_breaking_class(character->codepoint, &line_breaking_class);
+
+    if(lbc_valid) {
+        if(is_json) {
+            print_id_name_value("line_breaking_class", line_breaking_class,
+                line_breaking_class_name(line_breaking_class), 1);
+        } else {
+            print_value("Line Breaking Class", 1, "[%d] %s", line_breaking_class,
+                line_breaking_class_name(line_breaking_class));
+        }
+    } else {
+        print_null_value("Line Breaking Class", 1);
     }
 
     if(is_json) {
