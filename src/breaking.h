@@ -9,6 +9,8 @@
 #ifndef MJB_BREAK_H
 #define MJB_BREAK_H
 
+#include "mojibake.h"
+
 /**
  * Unicode encoding
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
@@ -72,5 +74,10 @@ typedef enum mjb_line_breaking_class {
     MJB_LBC_VI, // Virama
     MJB_LBC_XX  // Unknown
 } mjb_line_breaking_class;
+
+#define MJB_LBC_COUNT 48
+
+MJB_NONNULL(2) bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
+    mjb_line_breaking_class *line_breaking_class);
 
 #endif // MJB_BREAK_H
