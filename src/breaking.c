@@ -15,7 +15,7 @@ extern mojibake mjb_global;
 enum mjb_line_break_type {
     MJB_LBT_MANDATORY = '!', // !
     MJB_LBT_NO_BREAK = 'x', // ×
-    MJB_LBT_ALLOWED = '/' // ÷
+    MJB_LBT_ALLOWED = '+' // ÷
 };
 
 // Return the codepoint character

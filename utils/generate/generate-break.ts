@@ -129,7 +129,7 @@ export async function generateLineBreaksTest(path = './UCD/auxiliary/LineBreakTe
     if(split.length < 2) continue;
 
     const rule = split[0].trim();
-    const withSlash = rule.replace(/÷/g, '/');
+    const withSlash = rule.replace(/÷/g, '+');
     const final = withSlash.replace(/×/g, 'x');
 
     max = Math.max(max, final.length);
