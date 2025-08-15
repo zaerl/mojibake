@@ -151,7 +151,7 @@
     "ret": "char *",
     "name": "line_break",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding"]
+    "args": ["const char *buffer", "size_t size", "bool is_eot", "mjb_encoding encoding"]
   },
   {
     "comment": "Word and grapheme cluster breaking",

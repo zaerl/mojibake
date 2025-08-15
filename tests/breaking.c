@@ -14,7 +14,7 @@
  * Get codepoints from a string
  * Example: "0044 0307", gives 2 codepoints
  */
-/*static size_t get_utf8_string(char *buffer, char *codepoints, size_t size, char *breakings) {
+static size_t get_utf8_string(char *buffer, char *codepoints, size_t size, char *breakings) {
     char *token, *string, *tofree;
     tofree = string = strdup(buffer);
     unsigned int index = 0;
@@ -38,7 +38,7 @@
     free(tofree);
 
     return index;
-}*/
+}
 
 void *test_breaking(void *arg) {
     mjb_line_breaking_class lbc;
@@ -49,7 +49,7 @@ void *test_breaking(void *arg) {
     ATT_ASSERT(mjb_codepoint_line_breaking_class(0x0, &lbc), true, "NULL")
     ATT_ASSERT(lbc, MJB_LBC_CM, "CM")
 
-    /*char line[2048] = { 0 };
+    char line[2048] = { 0 };
     char source[2048 * 2] = { 0 };
     char breakings[256] = { 0 };
 
@@ -85,7 +85,7 @@ void *test_breaking(void *arg) {
 
         // CURRENT_ASSERT mjb_line_breaking
         // CURRENT_COUNT 16672
-        char *calculated_breakings = mjb_line_break(source, source_size, MJB_ENCODING_UTF_8);
+        char *calculated_breakings = mjb_line_break(source, source_size, false, MJB_ENCODING_UTF_8);
         ATT_ASSERT(calculated_breakings, breakings, test_name)
 
         ++current_line;
@@ -94,7 +94,7 @@ void *test_breaking(void *arg) {
         if(calculated_breakings != NULL) {
             free(calculated_breakings);
         }
-    }*/
+    }
 
     return NULL;
 }
