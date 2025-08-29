@@ -87,6 +87,7 @@ int main(int argc, char * const argv[]) {
     };
 
     command commands[] = {
+        { "break", "Break the input into line breaks", break_command, 0 },
         { "char", "Print the character for the given codepoint", character_command, 0 },
         { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
         { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD },

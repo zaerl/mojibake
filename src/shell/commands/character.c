@@ -174,7 +174,9 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     }
 
     mjb_line_breaking_class line_breaking_class;
-    bool lbc_valid = mjb_codepoint_line_breaking_class(character->codepoint, &line_breaking_class);
+    mjb_category category;
+    bool lbc_valid = mjb_codepoint_line_breaking_class(character->codepoint, &line_breaking_class,
+        &category);
 
     if(lbc_valid) {
         if(is_json) {

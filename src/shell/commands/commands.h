@@ -15,6 +15,7 @@ typedef struct {
     unsigned int flags;
 } command;
 
+int break_command(int argc, char * const argv[], unsigned int flags);
 int character_command(int argc, char * const argv[], unsigned int flags);
 int normalize_command(int argc, char * const argv[], unsigned int flags);
 int normalize_string_command(int argc, char * const argv[], unsigned int flags);

@@ -1,5 +1,6 @@
 set(SOURCES
     characters.c
+    commands/break.c
     commands/character.c
     commands/normalize.c
     commands/string.c
