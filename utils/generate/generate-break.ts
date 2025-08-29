@@ -133,7 +133,8 @@ export async function generateLineBreaksTest(path = './UCD/auxiliary/LineBreakTe
     const final = withSlash.replace(/×/g, 'x');
 
     max = Math.max(max, final.length);
-    output.push(final);
+    // Remove first ×
+    output.push(final.slice(1).trim());
   }
 
   writeFileSync('./UCD/auxiliary/LineBreakTestModified.txt', output.join('\n'));
