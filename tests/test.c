@@ -71,15 +71,6 @@ int main(int argc, char * const argv[]) {
     bool show_colors = isatty(STDOUT_FILENO) && getenv("NO_COLOR") == NULL && getenv("TERM") != NULL
         && strcmp(getenv("TERM"), "dumb") != 0;
 
-    /*extern char **environ;
-    char **env = environ;
-    while (*env) {
-        printf("%s\n", *env);
-        env++;
-    }
-
-    printf("CWD: %s\n", getcwd(NULL, 0));*/
-
     struct option long_options[] = {
         { "filter", required_argument, NULL, 'f' },
         { "help", no_argument, NULL, 'h' },
