@@ -139,8 +139,8 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         "special_casing WHERE codepoint = ? AND case_type = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_special_casing, query_special_casing)
 
-    const char query_line_breaking_class[] = "SELECT line_breaking_class FROM unicode_data WHERE "
-        "codepoint = ?";
+    const char query_line_breaking_class[] = "SELECT line_breaking_class, category FROM "
+        "unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_line_breaking_class, query_line_breaking_class)
 
     #undef MJB_PREPARE_STMT

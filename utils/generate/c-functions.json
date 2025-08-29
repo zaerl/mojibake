@@ -148,10 +148,10 @@
   },
   {
     "comment": "Unicode line break algorithm",
-    "ret": "char *",
-    "name": "line_break",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t size", "bool is_eot", "mjb_encoding encoding"]
+    "ret": "mjb_line_break *",
+    "name": "break_line",
+    "attributes": ["MJB_NONNULL(1, 4)"],
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "size_t *output_size"]
   },
   {
     "comment": "Word and grapheme cluster breaking",

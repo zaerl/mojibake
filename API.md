@@ -129,7 +129,7 @@ bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, 
 Unicode line break algorithm
 
 ```c
-char *mjb_line_break(const char *buffer, size_t size, bool is_eot, mjb_encoding encoding);
+mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, size_t *output_size);
 ```
 
 Word and grapheme cluster breaking

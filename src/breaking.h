@@ -78,6 +78,6 @@ typedef enum mjb_line_breaking_class {
 #define MJB_LBC_COUNT 48
 
 MJB_NONNULL(2) bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
-    mjb_line_breaking_class *line_breaking_class);
+    mjb_line_breaking_class *line_breaking_class, mjb_category *category);
 
 #endif // MJB_BREAK_H
