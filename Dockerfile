@@ -1,5 +1,5 @@
 # Use Alpine Linux for a minimal base image
-FROM alpine:3.19
+FROM alpine
 
 # Set environment variables
 ENV BUILD_DIR=/app/build
