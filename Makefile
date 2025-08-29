@@ -25,7 +25,7 @@ generate-locales:
 
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
-	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)
+	build/tests/mojibake-test $(ARGS)
 
 ctest: BUILD_TYPE = Test
 ctest: configure build mojibake.db
