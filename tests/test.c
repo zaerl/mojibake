@@ -6,6 +6,7 @@
 
 #include <getopt.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "test.h"
 
