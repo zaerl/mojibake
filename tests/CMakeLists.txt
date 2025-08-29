@@ -23,7 +23,7 @@ add_executable(mojibake-test ${TEST_SOURCES})
 target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 
 # Add test to CTest
-add_test(NAME "Breaking" COMMAND mojibake-test -vv -f breaking)
+add_test(NAME "Breaking" COMMAND mojibake-test -f breaking)
 add_test(NAME "Case" COMMAND mojibake-test -f case)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
