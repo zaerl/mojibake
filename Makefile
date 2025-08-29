@@ -27,7 +27,11 @@ test: BUILD_TYPE = Test
 test: configure build mojibake.db
 	WRD_DB_PATH=./mojibake.db build/tests/mojibake-test $(ARGS)
 
-test-linux:
+ctest: BUILD_TYPE = Test
+ctest: configure build mojibake.db
+	cd $(BUILD_DIR) && ctest $(ARGS)
+
+test-docker:
 	docker build -t mojibake .
 	docker run mojibake
 
@@ -41,9 +45,10 @@ help:
 	@echo "Available targets:"
 	@echo "  all         - Build the project (default)"
 	@echo "  test        - Build and run tests"
+	@echo "  ctest       - Build and run tests using CTest"
 	@echo "  test-docker - Build and run tests in Docker container"
 	@echo "  clean       - Remove build artifacts"
 	@echo "  generate    - Regenerate source files"
 	@echo "  coverage    - Run coverage analysis"
 
-.PHONY: all clean clean_build configure build test rebuild generate generate_tests coverage help test-docker
+.PHONY: all clean clean_build configure build test ctest rebuild generate generate_tests coverage help test-docker
