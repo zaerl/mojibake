@@ -23,10 +23,19 @@ add_executable(mojibake-test ${TEST_SOURCES})
 target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 
 # Add test to CTest
-add_test(NAME "Mojibake Tests" COMMAND mojibake-test)
-
-# Set environment variable for database path and working directory
-set_tests_properties("Mojibake Tests" PROPERTIES
-    ENVIRONMENT "WRD_DB_PATH=${CMAKE_SOURCE_DIR}/mojibake.db"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-)
+add_test(NAME "Breaking" COMMAND mojibake-test -f breaking)
+add_test(NAME "Case" COMMAND mojibake-test -f case)
+add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
+add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
+add_test(NAME "Encoding" COMMAND mojibake-test -f encoding)
+add_test(NAME "Hangul Composition" COMMAND mojibake-test -f hangul-composition)
+add_test(NAME "Hangul" COMMAND mojibake-test -f hangul)
+add_test(NAME "Mojibake" COMMAND mojibake-test -f mojibake)
+add_test(NAME "Next" COMMAND mojibake-test -f next)
+add_test(NAME "Normalization" COMMAND mojibake-test -f normalization)
+add_test(NAME "Plane" COMMAND mojibake-test -f plane)
+add_test(NAME "Quick Check" COMMAND mojibake-test -f quick-check)
+add_test(NAME "Special Case" COMMAND mojibake-test -f special-case)
+add_test(NAME "String" COMMAND mojibake-test -f string)
+add_test(NAME "UTF-8" COMMAND mojibake-test -f utf8)
+add_test(NAME "Version" COMMAND mojibake-test -f version)

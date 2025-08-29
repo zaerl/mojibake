@@ -66,6 +66,7 @@ int main(int argc, char * const argv[]) {
     int option = 0;
     int option_index = 0;
     char *filter = NULL;
+    bool is_ctest = getenv("CTEST_INTERACTIVE_DEBUG_MODE") != NULL;
 
     struct option long_options[] = {
         { "filter", required_argument, NULL, 'f' },
@@ -114,6 +115,11 @@ int main(int argc, char * const argv[]) {
 
     if(exit_on_error) {
         att_set_test_callback(attractor_test_callback);
+    }
+
+    if(is_ctest) {
+        // ctest CWD is /build/tests, so we need to set the db path to ./build/tests/mojibake.db
+        chdir("../../");
     }
 
     unsigned int step = 0;
