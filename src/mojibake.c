@@ -35,7 +35,7 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
-    if(mjb_initialize_v2(malloc, realloc, free)) {
+    if(mjb_initialize_v2(malloc, realloc, free, NULL)) {
         return true;
     }
 
@@ -48,7 +48,7 @@ int mjb_sqlite3_roundup(int size) {
 
 // Initialize the library with custom values
 MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
-    mjb_free_fn free_fn) {
+    mjb_free_fn free_fn, const char *db_path) {
     if(mjb_global.ok) {
         return true;
     }
@@ -65,10 +65,14 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 
-    char *filename = getenv("WRD_DB_PATH");
+    const char *filename = db_path;
 
     if(filename == NULL) {
-        filename = "./mojibake.db";
+        filename = getenv("WRD_DB_PATH");
+
+        if(filename == NULL) {
+            filename = "./mojibake.db";
+        }
     }
 
     rc = sqlite3_open(filename, &mjb_global.db);
