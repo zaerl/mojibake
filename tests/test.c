@@ -67,6 +67,8 @@ int main(int argc, char * const argv[]) {
     int option_index = 0;
     char *filter = NULL;
     bool is_ctest = getenv("CTEST_INTERACTIVE_DEBUG_MODE") != NULL;
+    bool show_colors = isatty(STDOUT_FILENO) && getenv("NO_COLOR") == NULL && getenv("TERM") != NULL
+        && strcmp(getenv("TERM"), "dumb") != 0;
 
     struct option long_options[] = {
         { "filter", required_argument, NULL, 'f' },
@@ -84,7 +86,10 @@ int main(int argc, char * const argv[]) {
         "Exit immediately on first test failure"
     };
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    if(!is_ctest) {
+        clock_gettime(CLOCK_MONOTONIC, &start);
+    }
+
     att_set_verbose(verbosity);
 
     while((option = getopt_long(argc, argv, "f:ehvV", long_options, &option_index)) != -1) {
@@ -126,7 +131,10 @@ int main(int argc, char * const argv[]) {
 
     #define RUN_TEST(NAME) \
         if(!filter || strstr(#NAME, filter)) { \
-            printf("%sTest: \x1b[1;32m%s\x1b[0m\n", verbosity && step ? "\n" : "", #NAME); \
+            if(!is_ctest) { \
+                printf("%sTest: %s%s%s\n", verbosity && step ? "\n" : "", \
+                    show_colors ? "\x1b[1;32m" : "", #NAME, show_colors ? "\x1b[0m" : ""); \
+            } \
             test_##NAME(NULL); \
             ++step; \
         }
@@ -151,17 +159,20 @@ int main(int argc, char * const argv[]) {
 
     unsigned int tests_valid = att_get_valid_tests();
     unsigned int tests_total = att_get_total_tests();
-    int valid = tests_valid == tests_total;
+    bool valid = tests_valid == tests_total;
 
     // Green if valid and red if not
-    const char *color_code = valid ? "\x1B[32m" : "\x1B[31m";
+    const char *color_code = show_colors ? (valid ? "\x1B[32m" : "\x1B[31m") : "";
 
-    printf("%sTests valid/run: %s%d/%d\n\x1B[0m", verbosity >= 1 ? "\n" : "", color_code, tests_valid, tests_total);
+    printf("%sTests valid/run: %s%d/%d%s\n", verbosity >= 1 ? "\n" : "", color_code,
+        tests_valid, tests_total, show_colors ? "\x1B[0m" : "");
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    if(!is_ctest) {
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 
-    printf("Execution time: %.4f seconds\n", elapsed);
+        printf("Execution time: %.4f seconds\n", elapsed);
+    }
 
     if(filter) {
         free(filter);
