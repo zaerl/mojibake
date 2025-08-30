@@ -28,10 +28,12 @@ static void flush_line(unsigned int column) {
 }
 
 static mjb_codepoint control_picture_codepoint(mjb_codepoint codepoint) {
-    if(codepoint <= 0x20) {
+    if(codepoint < 0x20) {
         // Add 0x2400 to the codepoint to make it a printable character by using the
         // "Control Pictures" block.
         codepoint += 0x2400;
+    } else if(codepoint == 0x20) {
+        codepoint = 0x2423;
     } else if(codepoint == 0x7F) {
         // The delete character.
         codepoint = 0x2421;
