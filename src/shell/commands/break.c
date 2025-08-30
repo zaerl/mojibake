@@ -78,27 +78,27 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     puts("");
 
     size_t breaks_index = 0;
+    bool check_break = true;
     current = argv[0];
     state = MJB_UTF8_ACCEPT;
 
     if(output_size > 0) {
-        printf("%s", color_green_start());
-
         for(size_t i = 0; i < input_real_size; ++i) {
-            if(i == line_breaks[breaks_index].index) {
-                printf("%c", line_breaks[breaks_index].mandatory ? '!' : '+');
+            if(check_break && i == line_breaks[breaks_index].index) {
+                printf("%s%s%s", color_green_start(), line_breaks[breaks_index].mandatory ? "!" :
+                    "÷", color_reset());
 
                 if(breaks_index == output_size - 1) {
-                    break;
+                    check_break = false;
+                    continue;
                 }
 
                 ++breaks_index;
             } else {
-                printf(" ");
+                printf("×");
             }
         }
 
-        printf("%s", color_reset());
         puts("");
         fflush(stdout);
     }
@@ -114,7 +114,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
     unsigned int column = 0;
     unsigned int current_i = 0;
-    bool check_break = output_size > 0;
+    check_break = output_size > 0;
     breaks_index = 0;
     current = argv[0];
     state = MJB_UTF8_ACCEPT;
