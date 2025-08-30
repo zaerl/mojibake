@@ -140,7 +140,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
                 printf("│\n");
                 printf("│");
                 column = 1;
-            } else if(column == cmd_width - 1) {
+            } else if(column == cmd_width) {
                 printf("│\n");
                 printf("│");
                 column = 1;
