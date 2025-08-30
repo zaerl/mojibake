@@ -63,44 +63,40 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
     puts("");
 
-    if(output_size == 0) {
-        return 0;
-    }
-
     size_t breaks_index = 0;
-    printf("%s", color_green_start());
     current = argv[0];
     state = MJB_UTF8_ACCEPT;
 
-    for(size_t i = 0; i < input_real_size; ++i) {
-        if(i == line_breaks[breaks_index].index) {
-            printf("%c", '^');
+    if(output_size > 0) {
+        printf("%s", color_green_start());
 
-            if(breaks_index == output_size - 1) {
-                break;
-            }
+        for(size_t i = 0; i < input_real_size; ++i) {
+            if(i == line_breaks[breaks_index].index) {
+                printf("%c", '^');
 
-            ++breaks_index;
-        } else {
-            if(counts[i] == 2) {
-                printf("  ");
+                if(breaks_index == output_size - 1) {
+                    break;
+                }
+
+                ++breaks_index;
             } else {
-                printf(" ");
+                if(counts[i] == 2) {
+                    printf("  ");
+                } else {
+                    printf(" ");
+                }
             }
         }
+
+        printf("%s", color_reset());
+        puts("");
+        fflush(stdout);
     }
-
-
-    printf("%s", color_reset());
-    puts("");
-    fflush(stdout);
-
-    unsigned int columns = 80;
 
     // Draw top border
     printf("┌");
 
-    for(unsigned int i = 0; i < columns; i++) {
+    for(unsigned int i = 0; i < cmd_width; i++) {
         printf("─");
     }
 
@@ -108,7 +104,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
     unsigned int column = 0;
     unsigned int current_i = 0;
-    bool check_break = true;
+    bool check_break = output_size > 0;
     breaks_index = 0;
     current = argv[0];
     state = MJB_UTF8_ACCEPT;
@@ -137,14 +133,14 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
             }
 
             if(can_break) {
-                for(unsigned int i = column; i < columns; ++i) {
+                for(unsigned int i = column; i < cmd_width; ++i) {
                     printf(" ");
                 }
 
                 printf("│\n");
                 printf("│");
                 column = 1;
-            } else if(column == columns - 1) {
+            } else if(column == cmd_width - 1) {
                 printf("│\n");
                 printf("│");
                 column = 1;
@@ -173,7 +169,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     }
 
     if(column != 0) {
-        for(unsigned int i = column; i < columns; ++i) {
+        for(unsigned int i = column; i < cmd_width; ++i) {
             printf(" ");
         }
 
@@ -183,7 +179,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     // Draw bottom border
     printf("└");
 
-    for(unsigned int i = 0; i < columns; i++) {
+    for(unsigned int i = 0; i < cmd_width; i++) {
         printf("─");
     }
 

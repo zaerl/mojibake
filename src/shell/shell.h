@@ -23,6 +23,7 @@ extern bool cmd_verbose;
 extern interpret_mode cmd_interpret_mode;
 extern output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
+extern unsigned int cmd_width;
 
 bool print_escaped_character(char buffer_utf8[5]);
 

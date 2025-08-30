@@ -72,6 +72,7 @@ int main(int argc, char * const argv[]) {
         { "output", required_argument, NULL, 'o' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
+        { "width", no_argument, NULL, 'w' },
         { NULL, 0, NULL, 0 }
     };
 
@@ -83,7 +84,8 @@ int main(int argc, char * const argv[]) {
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",
         "Verbose output",
-        "Print version"
+        "Print version",
+        "Width of output"
     };
 
     command commands[] = {
@@ -113,7 +115,9 @@ int main(int argc, char * const argv[]) {
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
     }
 
-    while((option = getopt_long(argc, argv, "hj:co:vV", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "hj:co:vVw:", long_options, &option_index)) != -1) {
+        char *endptr = NULL;
+
         switch(option) {
             case 'h':
                 show_help(long_options, descriptions, commands, NULL);
@@ -122,7 +126,7 @@ int main(int argc, char * const argv[]) {
                 cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
                 break;
             case 'j': {
-                char *endptr = NULL;
+                endptr = NULL;
                 cmd_json_indent = strtoul(optarg, &endptr, 10);
 
                 if(endptr == optarg || *endptr != '\0' || cmd_json_indent > 10) {
@@ -131,6 +135,7 @@ int main(int argc, char * const argv[]) {
 
                     return 1;
                 }
+
                 break;
             }
             case 'o':
@@ -150,6 +155,18 @@ int main(int argc, char * const argv[]) {
                 break;
             case 'V':
                 return show_version();
+            case 'w':
+                endptr = NULL;
+                cmd_width = strtoul(optarg, &endptr, 10);
+
+                if(endptr == optarg || *endptr != '\0' || cmd_width == 0 || cmd_width > 100) {
+                    fprintf(stderr, "Output width must be a number between 1 and 100.\n");
+                    show_help(long_options, descriptions, commands, NULL);
+
+                    return 1;
+                }
+
+                break;
             case '?':
                 // getopt_long already printed an error message
                 break;
