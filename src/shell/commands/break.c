@@ -27,6 +27,19 @@ static void flush_line(unsigned int column) {
     }
 }
 
+static mjb_codepoint control_picture_codepoint(mjb_codepoint codepoint) {
+    if(codepoint <= 0x20) {
+        // Add 0x2400 to the codepoint to make it a printable character by using the
+        // "Control Pictures" block.
+        codepoint += 0x2400;
+    } else if(codepoint == 0x7F) {
+        // The delete character.
+        codepoint = 0x2421;
+    }
+
+    return codepoint;
+}
+
 int break_command(int argc, char * const argv[], unsigned int flags) {
     size_t input_size = strlen(argv[0]);
     size_t input_real_size = mjb_strnlen(argv[0], input_size, MJB_ENCODING_UTF_8);
@@ -42,34 +55,21 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     mjb_codepoint codepoint;
 
     const char *current = argv[0];
-    size_t current_count = 0;
-    char *counts = malloc(input_size);
 
     while(*current && (size_t)(current - argv[0]) < input_size) {
         state = mjb_utf8_decode_step(state, *current, &codepoint);
 
         if(state == MJB_UTF8_ACCEPT) {
-            char double_space = 0;
+            mjb_codepoint picture_codepoint = control_picture_codepoint(codepoint);
+            bool is_control_picture = picture_codepoint != codepoint;
+            char buffer_utf8[5];
+            mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
-            if(codepoint == 0x0A) {
-                double_space = 'n';
-            } else if(codepoint == 0x0D) {
-                double_space = 'r';
-            } else if(codepoint == 0x09) {
-                double_space = 't';
-            }
-
-            if(double_space) {
-                counts[current_count] = 2;
-                printf("%s\\%c%s", color_green_start(), double_space, color_reset());
+            if(is_control_picture) {
+                printf("%s%s%s", color_green_start(), buffer_utf8, color_reset());
             } else {
-                char buffer_utf8[5];
-                mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
                 printf("%s", buffer_utf8);
-                counts[current_count] = 1;
             }
-
-            ++current_count;
         }
 
         ++current;
@@ -86,7 +86,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
         for(size_t i = 0; i < input_real_size; ++i) {
             if(i == line_breaks[breaks_index].index) {
-                printf("%c", '^');
+                printf("%c", line_breaks[breaks_index].mandatory ? '!' : '+');
 
                 if(breaks_index == output_size - 1) {
                     break;
@@ -94,11 +94,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
                 ++breaks_index;
             } else {
-                if(counts[i] == 2) {
-                    printf("  ");
-                } else {
-                    printf(" ");
-                }
+                printf(" ");
             }
         }
 
@@ -129,11 +125,11 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
         if(state == MJB_UTF8_ACCEPT) {
             bool can_break = false;
-            // bool is_mandatory = false;
+            bool is_mandatory = false;
 
             if(check_break && line_breaks[breaks_index].index == current_i) {
                 can_break = true;
-                // is_mandatory = line_breaks[breaks_index].mandatory;
+                is_mandatory = line_breaks[breaks_index].mandatory;
 
                 if(breaks_index == output_size - 1) {
                     check_break = false;
@@ -147,43 +143,31 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
                 column = 1;
             }
 
-            if(can_break) {
+            if(can_break && is_mandatory) {
                 flush_line(column);
                 printf("│");
                 column = 1;
             }
 
-            if(/*codepoint != 0x0A*/true) {
-                unsigned int char_width = 1;
-                bool is_overflow = column + char_width > cmd_width + 1;
-                bool is_control_picture = false;
+            unsigned int char_width = 1;
+            bool is_overflow = column + char_width > cmd_width + 1;
+            mjb_codepoint picture_codepoint = control_picture_codepoint(codepoint);
+            bool is_control_picture = picture_codepoint != codepoint;
 
-                if(codepoint <= 0x20) {
-                    // Add 0x2400 to the codepoint to make it a printable character by using the
-                    // "Control Pictures" block.
-                    codepoint += 0x2400;
-                    is_control_picture = true;
-                } else if(codepoint == 0x7F) {
-                    codepoint = 0x2421;
-                    is_control_picture = true;
-                }
+            char buffer_utf8[5];
+            mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
-                char buffer_utf8[5];
-                mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
-
-                if(is_overflow) {
-                    printf("%s%s%s", color_red_start(), buffer_utf8, color_reset());
+            if(is_overflow) {
+                printf("%s%s%s", color_red_start(), buffer_utf8, color_reset());
+            } else {
+                if(is_control_picture) {
+                    printf("%s%s%s", color_green_start(), buffer_utf8, color_reset());
                 } else {
-                    if(is_control_picture) {
-                        printf("%s%s%s", color_green_start(), buffer_utf8, color_reset());
-                    } else {
-                        printf("%s", buffer_utf8);
-                    }
+                    printf("%s", buffer_utf8);
                 }
-
-                column += char_width;
             }
 
+            column += char_width;
             ++current_i;
         }
 
@@ -204,7 +188,6 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     printf("┘\n");
 
     free(line_breaks);
-    free(counts);
 
     return 0;
 }
