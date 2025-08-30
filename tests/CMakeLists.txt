@@ -12,6 +12,7 @@ set(TEST_SOURCES
     normalization.c
     plane.c
     quick-check.c
+    segmentation.c
     special-case.c
     string.c
     test.c
@@ -35,6 +36,7 @@ add_test(NAME "Next" COMMAND mojibake-test -f next)
 add_test(NAME "Normalization" COMMAND mojibake-test -f normalization)
 add_test(NAME "Plane" COMMAND mojibake-test -f plane)
 add_test(NAME "Quick Check" COMMAND mojibake-test -f quick_check)
+add_test(NAME "Segmentation" COMMAND mojibake-test -f segmentation)
 add_test(NAME "Special Case" COMMAND mojibake-test -f special_case)
 add_test(NAME "String" COMMAND mojibake-test -f string)
 add_test(NAME "UTF-8" COMMAND mojibake-test -f utf8)

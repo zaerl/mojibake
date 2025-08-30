@@ -488,9 +488,3 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
 
     return line_breaks;
 }
-
-// Word and Grapheme Cluster Breaking
-// see: https://unicode.org/reports/tr29/
-MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t length, mjb_encoding encoding) {
-    return true;
-}

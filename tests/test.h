@@ -33,6 +33,7 @@ void *test_next(void *arg);
 void *test_normalization(void *arg);
 void *test_plane(void *arg);
 void *test_quick_check(void *arg);
+void *test_segmentation(void *arg);
 void *test_special_case(void *arg);
 void *test_string(void *arg);
 void *test_utf8(void *arg);

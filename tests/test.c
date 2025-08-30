@@ -154,6 +154,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(normalization)
     RUN_TEST(plane)
     RUN_TEST(quick_check)
+    RUN_TEST(segmentation)
     RUN_TEST(special_case)
     RUN_TEST(string)
     // RUN_TEST(utf8)
