@@ -55,8 +55,6 @@ MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
 
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
-// Word and Grapheme Cluster Breaking
-// see: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb_encoding encoding, size_t *output_size) {
     size_t real_length = mjb_strnlen(buffer, length, encoding);
 
