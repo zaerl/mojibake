@@ -95,6 +95,92 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     puts("");
     fflush(stdout);
 
+    unsigned int columns = 80;
+
+    // Draw top border
+    printf("┌");
+
+    for(unsigned int i = 0; i < columns; i++) {
+        printf("─");
+    }
+
+    printf("┐\n");
+
+    unsigned int column = 0;
+    unsigned int current_i = 0;
+    bool check_break = true;
+    breaks_index = 0;
+    current = argv[0];
+    state = MJB_UTF8_ACCEPT;
+    codepoint = 0x0;
+
+    while(*current && (size_t)(current - argv[0]) < input_size) {
+        state = mjb_utf8_decode_step(state, *current, &codepoint);
+
+        if(state == MJB_UTF8_ACCEPT) {
+            bool can_break = false;
+            bool is_mandatory = false;
+
+            if(check_break && line_breaks[breaks_index].index == current_i) {
+                can_break = true;
+                is_mandatory = line_breaks[breaks_index].mandatory;
+
+                if(breaks_index == output_size - 1) {
+                    check_break = false;
+                } else {
+                    ++breaks_index;
+                }
+            }
+
+            if(column == 0) {
+                printf("│");
+            }
+
+            if(can_break) {
+                for(unsigned int i = column; i < columns; ++i) {
+                    printf(" ");
+                }
+
+                printf("│\n");
+                printf("│");
+                column = 1;
+            } else if(column == columns - 1) {
+                printf("│\n");
+                printf("│");
+                column = 1;
+            } else if(codepoint != 0x0A) {
+                ++column;
+            }
+
+            if(codepoint != 0x0A) {
+                char buffer_utf8[5];
+                mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+                printf("%s", buffer_utf8);
+            }
+
+            ++current_i;
+        }
+
+        ++current;
+    }
+
+    if(column != 0) {
+        for(unsigned int i = column; i < columns; ++i) {
+            printf(" ");
+        }
+
+        printf("│\n");
+    }
+
+    // Draw bottom border
+    printf("└");
+
+    for(unsigned int i = 0; i < columns; i++) {
+        printf("─");
+    }
+
+    printf("┘\n");
+
     free(line_breaks);
     free(counts);
 
