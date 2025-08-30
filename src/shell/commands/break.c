@@ -13,6 +13,20 @@
 #include "../shell.h"
 #include "commands.h"
 
+static void flush_line(unsigned int column) {
+    // Fill remaining space to reach cmd_width total content
+    while(column <= cmd_width) {
+        printf(" ");
+        ++column;
+    }
+
+    if(column > cmd_width + 1) {
+        puts("");
+    } else {
+        printf("│\n");
+    }
+}
+
 int break_command(int argc, char * const argv[], unsigned int flags) {
     size_t input_size = strlen(argv[0]);
     size_t input_real_size = mjb_strnlen(argv[0], input_size, MJB_ENCODING_UTF_8);
@@ -115,11 +129,11 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
         if(state == MJB_UTF8_ACCEPT) {
             bool can_break = false;
-            bool is_mandatory = false;
+            // bool is_mandatory = false;
 
             if(check_break && line_breaks[breaks_index].index == current_i) {
                 can_break = true;
-                is_mandatory = line_breaks[breaks_index].mandatory;
+                // is_mandatory = line_breaks[breaks_index].mandatory;
 
                 if(breaks_index == output_size - 1) {
                     check_break = false;
@@ -130,36 +144,33 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
 
             if(column == 0) {
                 printf("│");
+                column = 1;
             }
 
             if(can_break) {
-                for(unsigned int i = column; i < cmd_width; ++i) {
-                    printf(" ");
-                }
-
-                printf("│\n");
+                flush_line(column);
                 printf("│");
                 column = 1;
-            } else if(column == cmd_width) {
-                printf("│\n");
-                printf("│");
-                column = 1;
-            } else if(codepoint != 0x0A) {
-                if(codepoint == 0x09) {
-                    column += 4;
-                } else {
-                    ++column;
-                }
             }
 
             if(codepoint != 0x0A) {
+                unsigned int char_width = (codepoint == 0x09) ? 4 : 1;
+                bool is_overflow = column + char_width > cmd_width + 1;
+
                 if(codepoint == 0x09) {
                     printf("    ");
                 } else {
                     char buffer_utf8[5];
                     mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
-                    printf("%s", buffer_utf8);
+
+                    if(is_overflow) {
+                        printf("%s%s%s", color_red_start(), buffer_utf8, color_reset());
+                    } else {
+                        printf("%s", buffer_utf8);
+                    }
                 }
+
+                column += char_width;
             }
 
             ++current_i;
@@ -169,11 +180,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     }
 
     if(column != 0) {
-        for(unsigned int i = column; i < cmd_width; ++i) {
-            printf(" ");
-        }
-
-        printf("│\n");
+        flush_line(column);
     }
 
     // Draw bottom border

@@ -29,6 +29,7 @@ bool print_escaped_character(char buffer_utf8[5]);
 
 // Color formatting helper functions
 const char* color_green_start(void);
+const char* color_red_start(void);
 const char* color_reset(void);
 
 void print_value(const char* label, unsigned int nl, const char* format, ...);

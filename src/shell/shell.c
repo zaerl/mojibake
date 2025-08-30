@@ -94,6 +94,10 @@ const char* color_green_start(void) {
     return cmd_show_colors ? "\x1B[32m" : "";
 }
 
+const char* color_red_start(void) {
+    return cmd_show_colors ? "\x1B[31m" : "";
+}
+
 const char* color_reset(void) {
     return cmd_show_colors ? "\x1B[0m" : "";
 }
