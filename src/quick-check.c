@@ -11,7 +11,7 @@
 extern mojibake mjb_global;
 
 /**
- * Normalize a string
+ * Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
  */
 MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size,

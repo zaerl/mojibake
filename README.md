@@ -1,13 +1,14 @@
 # Mojibake
 
 > **Note:**
-> This project is an **experimental library**. It is not designed for production
-> use, and there may be bugs, limitations, or incomplete features. Use at your
-> own discretion, and feel free to collaborate
+> This project is an **experimental library**. It is not designed for production use, and there may
+> be bugs, limitations, or incomplete features. The API can change from one commit to another.
+
+> The current version is 0.0.0. Use at your own discretion, and feel free to collaborate.
 
 Mojibake is a low-level Unicode library written in C99. It aims to be fast and small. It consists in
-a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file. A `shell.c` file is also provided that
-let you build a `mojibake` CLI.
+a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file. A `shell.c` file is also provided
+that let you build a `mojibake` CLI.
 
 ## String normalization
 

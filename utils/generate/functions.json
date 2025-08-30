@@ -126,21 +126,22 @@
     "args": ["mjb_codepoint codepoint"]
   },
   {
-    "comment": "Normalize a string",
+    "comment": "Normalize a string to NFC/NFKC/NFD/NFKD form",
     "ret": "bool",
     "name": "normalize",
     "attributes": ["MJB_NONNULL(1, 5)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form", "mjb_normalization_result *result"]
+    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form",
+      "mjb_normalization_result *result"]
   },
   {
-    "comment": "Check if a string is normalized",
+    "comment": "Check if a string is normalized to NFC/NFKC/NFD/NFKD form",
     "ret": "mjb_quick_check_result",
     "name": "string_is_normalized",
     "attributes": ["MJB_NONNULL(1)"],
     "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form"]
   },
   {
-    "comment": "Get the next character from the string",
+    "comment": "Return the next character from a string",
     "ret": "bool",
     "name": "next_character",
     "attributes": ["MJB_NONNULL(1, 4)"],

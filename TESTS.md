@@ -38,10 +38,10 @@
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
+| `mjb_break_line`                    | 0          |
 | `mjb_category_is_combining`         | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
-| `mjb_line_break`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_segmentation`                  | 0          |
 | `mjb_shutdown`                      | 0          |

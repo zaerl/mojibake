@@ -108,19 +108,19 @@ Return the codepoint titlecase codepoint
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 ```
 
-Normalize a string
+Normalize a string to NFC/NFKC/NFD/NFKD form
 
 ```c
 bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
 ```
 
-Check if a string is normalized
+Check if a string is normalized to NFC/NFKC/NFD/NFKD form
 
 ```c
 mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 ```
 
-Get the next character from the string
+Return the next character from a string
 
 ```c
 bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
