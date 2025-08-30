@@ -153,18 +153,29 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
                 column = 1;
             }
 
-            if(codepoint != 0x0A) {
-                unsigned int char_width = (codepoint == 0x09) ? 4 : 1;
+            if(/*codepoint != 0x0A*/true) {
+                unsigned int char_width = 1;
                 bool is_overflow = column + char_width > cmd_width + 1;
+                bool is_control_picture = false;
 
-                if(codepoint == 0x09) {
-                    printf("    ");
+                if(codepoint <= 0x20) {
+                    // Add 0x2400 to the codepoint to make it a printable character by using the
+                    // "Control Pictures" block.
+                    codepoint += 0x2400;
+                    is_control_picture = true;
+                } else if(codepoint == 0x7F) {
+                    codepoint = 0x2421;
+                    is_control_picture = true;
+                }
+
+                char buffer_utf8[5];
+                mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+
+                if(is_overflow) {
+                    printf("%s%s%s", color_red_start(), buffer_utf8, color_reset());
                 } else {
-                    char buffer_utf8[5];
-                    mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
-
-                    if(is_overflow) {
-                        printf("%s%s%s", color_red_start(), buffer_utf8, color_reset());
+                    if(is_control_picture) {
+                        printf("%s%s%s", color_green_start(), buffer_utf8, color_reset());
                     } else {
                         printf("%s", buffer_utf8);
                     }
