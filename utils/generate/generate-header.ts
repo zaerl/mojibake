@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { cfns } from './c-function';
+import { cfns } from './function';
 import { Block, Categories, characterDecompositionMapping } from './types';
 import { substituteText } from './utils';
 

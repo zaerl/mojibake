@@ -25,7 +25,7 @@ export class CFunction {
 }
 
 export function cfns(): CFunction[] {
-  const jsonPath = path.join(__dirname, 'c-functions.json');
+  const jsonPath = path.join(__dirname, 'functions.json');
   const jsonData = fs.readFileSync(jsonPath, 'utf8');
   const data: any[] = JSON.parse(jsonData);
 

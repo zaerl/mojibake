@@ -12,7 +12,7 @@ type Coverage = { [key: string]: FuncCoverage };
 const coverage: Coverage = {};
 
 function findExports(): void {
-  const jsonPath = path.join(__dirname, 'c-functions.json');
+  const jsonPath = path.join(__dirname, 'functions.json');
   const jsonData = fs.readFileSync(jsonPath, 'utf8');
   const data: any[] = JSON.parse(jsonData);
 

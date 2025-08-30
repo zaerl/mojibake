@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs';
-import { cfns } from './c-function';
+import { cfns } from './function';
 
 export function generateAPI() {
   let fileContent = "## API\n\n";
