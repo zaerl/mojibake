@@ -149,13 +149,21 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
                 printf("│");
                 column = 1;
             } else if(codepoint != 0x0A) {
-                ++column;
+                if(codepoint == 0x09) {
+                    column += 4;
+                } else {
+                    ++column;
+                }
             }
 
             if(codepoint != 0x0A) {
-                char buffer_utf8[5];
-                mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
-                printf("%s", buffer_utf8);
+                if(codepoint == 0x09) {
+                    printf("    ");
+                } else {
+                    char buffer_utf8[5];
+                    mjb_codepoint_encode(codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+                    printf("%s", buffer_utf8);
+                }
             }
 
             ++current_i;
