@@ -7,7 +7,7 @@
 #include "test.h"
 
 void *test_cjk(void *arg) {
-    ATT_ASSERT(mjb_codepoint_is_cjk_ideograph(MJB_CODEPOINT_CJK_IDEOGRAPH_START), true, "CJK start");
+    ATT_ASSERT(mjb_codepoint_is_cjk_ideograph(MJB_CJK_IDEOGRAPH_START), true, "CJK start");
 
     return NULL;
 }

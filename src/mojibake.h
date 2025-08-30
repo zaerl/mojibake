@@ -31,7 +31,7 @@ extern "C" {
 _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
 _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 
-#define MJB_VERSION          "1.0.0"
+#define MJB_VERSION          "0.0.0"
 #define MJB_VERSION_NUMBER   0x100 // MAJOR << 8 && MINOR << 4 && REVISION
 #define MJB_VERSION_MAJOR    1
 #define MJB_VERSION_MINOR    0
@@ -95,10 +95,10 @@ typedef uint32_t mjb_codepoint;
 
 // Hangul Syllables constants
 // See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G61399
-#define MJB_CP_HANGUL_S_BASE 0xAC00
-#define MJB_CP_HANGUL_L_BASE 0x1100
-#define MJB_CP_HANGUL_V_BASE 0x1161
-#define MJB_CP_HANGUL_T_BASE 0x11A7
+#define MJB_CP_HANGUL_S_BASE  0xAC00
+#define MJB_CP_HANGUL_L_BASE  0x1100
+#define MJB_CP_HANGUL_V_BASE  0x1161
+#define MJB_CP_HANGUL_T_BASE  0x11A7
 #define MJB_CP_HANGUL_L_COUNT 19
 #define MJB_CP_HANGUL_V_COUNT 21
 #define MJB_CP_HANGUL_T_COUNT 28
@@ -106,26 +106,26 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CP_HANGUL_S_COUNT 11172 // L_COUNT * N_COUNT
 
 // CJK Ideographs
-#define MJB_CODEPOINT_CJK_IDEOGRAPH_START 0x4E00
-#define MJB_CODEPOINT_CJK_IDEOGRAPH_END   0x9FFF
-#define MJB_CODEPOINT_CJK_EXTENSION_A_START 0x3400
-#define MJB_CODEPOINT_CJK_EXTENSION_A_END 0x4DBF
-#define MJB_CODEPOINT_CJK_EXTENSION_B_START 0x20000
-#define MJB_CODEPOINT_CJK_EXTENSION_B_END 0x2A6DF
-#define MJB_CODEPOINT_CJK_EXTENSION_C_START 0x2A700
-#define MJB_CODEPOINT_CJK_EXTENSION_C_END 0x2B739
-#define MJB_CODEPOINT_CJK_EXTENSION_D_START 0x2B740
-#define MJB_CODEPOINT_CJK_EXTENSION_D_END 0x2B81D
-#define MJB_CODEPOINT_CJK_EXTENSION_E_START 0x2B820
-#define MJB_CODEPOINT_CJK_EXTENSION_E_END 0x2CEA1
-#define MJB_CODEPOINT_CJK_EXTENSION_F_START 0x2CEB0
-#define MJB_CODEPOINT_CJK_EXTENSION_F_END 0x2EBE0
-#define MJB_CODEPOINT_CJK_EXTENSION_I_START 0x2EBF0
-#define MJB_CODEPOINT_CJK_EXTENSION_I_END 0x2EE5D
+#define MJB_CJK_IDEOGRAPH_START   0x4E00
+#define MJB_CJK_IDEOGRAPH_END     0x9FFF
+#define MJB_CJK_EXTENSION_A_START 0x3400
+#define MJB_CJK_EXTENSION_A_END   0x4DBF
+#define MJB_CJK_EXTENSION_B_START 0x20000
+#define MJB_CJK_EXTENSION_B_END   0x2A6DF
+#define MJB_CJK_EXTENSION_C_START 0x2A700
+#define MJB_CJK_EXTENSION_C_END   0x2B739
+#define MJB_CJK_EXTENSION_D_START 0x2B740
+#define MJB_CJK_EXTENSION_D_END   0x2B81D
+#define MJB_CJK_EXTENSION_E_START 0x2B820
+#define MJB_CJK_EXTENSION_E_END   0x2CEA1
+#define MJB_CJK_EXTENSION_F_START 0x2CEB0
+#define MJB_CJK_EXTENSION_F_END   0x2EBE0
+#define MJB_CJK_EXTENSION_I_START 0x2EBF0
+#define MJB_CJK_EXTENSION_I_END   0x2EE5D
 
 // Tangut Ideographs
-#define MJB_CODEPOINT_TANGUT_IDEOGRAPH_START 0x17000
-#define MJB_CODEPOINT_TANGUT_IDEOGRAPH_END 0x187F7
+#define MJB_TANGUT_IDEOGRAPH_START 0x17000
+#define MJB_TANGUT_IDEOGRAPH_END   0x187F7
 
 // Numeric values, to be used when the decimal and digit mjb_character fields are not valid
 #define MJB_NUMBER_NOT_VALID -1
@@ -239,9 +239,9 @@ typedef struct {
 
 // UTF-8 next character type
 typedef enum mjb_next_character_type {
-    MJB_NEXT_CHAR_NONE = 0x0,
+    MJB_NEXT_CHAR_NONE  = 0x0,
     MJB_NEXT_CHAR_FIRST = 0x1,
-    MJB_NEXT_CHAR_LAST = 0x2
+    MJB_NEXT_CHAR_LAST  = 0x2
 } mjb_next_character_type;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
