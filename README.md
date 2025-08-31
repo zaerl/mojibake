@@ -3,12 +3,45 @@
 > **Note:**
 > This project is an **experimental library**. It is not designed for production use, and there may
 > be bugs, limitations, or incomplete features. The API can change from one commit to another.
+>
+> Use at your own discretion, and feel free to collaborate.
 
-> The current version is 0.0.0. Use at your own discretion, and feel free to collaborate.
+**Mojibake** is a low-level Unicode 16 library written in C99.
 
-Mojibake is a low-level Unicode library written in C99. It aims to be fast and small. It consists in
-a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file. A `shell.c` file is also provided
-that let you build a `mojibake` CLI.
+**Mojibake** (Japanese: 文字化け 'character transformation') is the garbled text that is the result
+of text being decoded using an unintended character encoding. I created this library because I don't
+like any of the existing one. It aims to be, in order of importance:
+
+1. Small
+2. Easy to use
+3. Fast
+4. Pass all Unicode Standard tests
+5. Self-contained
+
+It consists in a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file (a SQLite database
+file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want.
+
+It has a `0.0.0` version because the various parts I consider critical have not 100% coverage. These
+are the major parts:
+
+**Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
+
+**Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
+properties found in the Unicode Character Database.
+
+**Normalization**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
+titlecase. Etc.
+
+**Parsing**: `mjb_next_character`, and other, let you parse a UTF-8, UTF-16(BE, LE), UTF-32(BE, LE)
+string.
+
+**Segmentation and line breaking**: `mjb_break_line`, and other, let you break a string by line, and
+segment it.
+
+**Base string functions**: `mjb_strncmp`, and other, aim to have a full coverage of standard C
+library `string.h` header.
+
+Following an incomplete documentation of current API.
 
 ## String normalization
 
