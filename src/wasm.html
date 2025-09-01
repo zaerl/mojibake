@@ -11,54 +11,75 @@
         let mojibakeModule;
         let offset = 0;
 
-        function u8(ptr) {
-            const ret = mojibakeModule.HEAPU8[ptr + offset];
-            offset += 1;
-            return ret;
-        }
+        class CStruct {
+            #ptr;
 
-        function u16(ptr) {
-            // Ensure 2-byte alignment
-            offset = Math.ceil(offset / 2) * 2;
-            const ret = new DataView(mojibakeModule.HEAPU8.buffer, ptr + offset).getUint16(0, true);
-            offset += 2;
-            return ret;
-        }
-
-        function u32(ptr) {
-            // Ensure 4-byte alignment
-            offset = Math.ceil(offset / 4) * 4;
-            const ret = new DataView(mojibakeModule.HEAPU8.buffer, ptr + offset).getUint32(0, true);
-            offset += 4;
-            return ret;
-        }
-
-        function i32(ptr) {
-            // Ensure 4-byte alignment
-            offset = Math.ceil(offset / 4) * 4;
-            const ret = new DataView(mojibakeModule.HEAPU8.buffer, ptr + offset).getInt32(0, true);
-            offset += 4;
-            return ret;
-        }
-
-        function str(ptr, max) {
-            const nameBytes = new Uint8Array(mojibakeModule.HEAPU8.buffer, ptr + offset, max);
-            let end = nameBytes.indexOf(0);
-
-            if(end === -1) {
-                end = max;
+            constructor(ptr) {
+                this.#ptr = ptr;
             }
 
-            offset += max;
+            u8() {
+                const ret = mojibakeModule.HEAPU8[this.#ptr + offset];
+                offset += 1;
+                return ret;
+            }
 
-            return new TextDecoder().decode(nameBytes.subarray(0, end));
+            u16() {
+                // Ensure 2-byte alignment
+                offset = Math.ceil(offset / 2) * 2;
+                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + offset).getUint16(0, true);
+                offset += 2;
+                return ret;
+            }
+
+            u32() {
+                // Ensure 4-byte alignment
+                offset = Math.ceil(offset / 4) * 4;
+                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + offset).getUint32(0, true);
+                offset += 4;
+                return ret;
+            }
+
+            i32() {
+                // Ensure 4-byte alignment
+                offset = Math.ceil(offset / 4) * 4;
+                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + offset).getInt32(0, true);
+                offset += 4;
+                return ret;
+            }
+
+            str(max) {
+                const nameBytes = new Uint8Array(mojibakeModule.HEAPU8.buffer, this.#ptr + offset, max);
+                let end = nameBytes.indexOf(0);
+
+                if(end === -1) {
+                    end = max;
+                }
+
+                offset += max;
+
+                return new TextDecoder().decode(nameBytes.subarray(0, end));
+            }
+
+            toObject(signature) {
+                const object = {};
+
+                for(const name in signature) {
+                    if(signature[name].startsWith('str')) {
+                        object[name] = this.str(Number(signature[name].split('str')[1]));
+                    } else {
+                        object[name] = this[signature[name]]();
+                    }
+                }
+
+                return object;
+            }
         }
 
         // Load the WASM module
         import('./mojibake.js').then(async (Module) => {
             mojibakeModule = await Module.default();
-            console.log('Mojibake WASM module loaded successfully');
-            console.log('Version:', mojibakeModule.ccall('mjb_version', 'string'));
+            console.log('Mojibake WASM module loaded. Version:', mojibakeModule.ccall('mjb_version', 'string'));
 
             const dbResponse = await fetch('mojibake.db');
             const dbArrayBuffer = await dbResponse.arrayBuffer();
@@ -69,10 +90,12 @@
             let initialized = mojibakeModule.ccall('mjb_initialize_v2', 'boolean',
                 ['number', 'number', 'number', 'number', 'number'], [0, 0, 0, dbPtr, dbBytes.length]);
 
-            console.log('Initialized:', initialized);
-
             // Test mjb_codepoint_character function
             testCodepointCharacter(0x1F64);
+
+            function codepointToString(codepoint) {
+                return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
+            }
 
             function testCodepointCharacter(codepoint) {
                 offset = 0;
@@ -90,42 +113,45 @@
                     ['number', 'number'], [codepoint, ptr]);
 
                 if(result) {
-                    const codepoint = u32(ptr);
-                    const name = str(ptr, 128);
-                    const category = u32(ptr);
-                    const combining = u32(ptr);
-                    const bidirectional = u16(ptr);
-                    const decomposition = u32(ptr);
-                    let decimal = i32(ptr);
-                    let digit = i32(ptr);
-                    const numeric = str(ptr, 16);
-                    const mirrored = u8(ptr);
-                    const uppercase = u32(ptr);
-                    const lowercase = u32(ptr);
-                    const titlecase = u32(ptr);
+                    const struct = new CStruct(ptr);
+                    const char = struct.toObject({
+                        codepoint: 'u32',
+                        name: 'str128',
+                        category: 'u32',
+                        combining: 'u32',
+                        bidirectional: 'u16',
+                        decomposition: 'u32',
+                        decimal: 'i32',
+                        digit: 'i32',
+                        numeric: 'str16',
+                        mirrored: 'u8',
+                        uppercase: 'u32',
+                        lowercase: 'u32',
+                        titlecase: 'u32',
+                    });
 
-                    if(decimal === -1) {
-                        decimal = null;
+                    if(char.decimal === -1) {
+                        char.decimal = null;
                     }
 
-                    if(digit === -1) {
-                        digit = null;
+                    if(char.digit === -1) {
+                        char.digit = null;
                     }
 
-                    console.log(`Character U+${codepoint.toString(16).toUpperCase().padStart(4, '0')}:`);
-                    console.log(`Name: ${name}`);
-                    console.log(`Category: ${category}`);
-                    console.log(`Combining Class: ${combining}`);
-                    console.log(`Bidirectional: ${bidirectional}`);
-                    console.log(`Decimal: ${decimal}`);
-                    console.log(`Digit: ${digit}`);
-                    console.log(`Numeric: ${numeric}`);
-                    console.log(`Mirrored: ${mirrored}`);
-                    console.log(`Uppercase: U+${uppercase.toString(16).toUpperCase().padStart(4, '0')}`);
-                    console.log(`Lowercase: U+${lowercase.toString(16).toUpperCase().padStart(4, '0')}`);
-                    console.log(`Titlecase: U+${titlecase.toString(16).toUpperCase().padStart(4, '0')}`);
+                    console.log(`Character ${codepointToString(char.codepoint)}:`);
+                    console.log(`Name: ${char.name}`);
+                    console.log(`Category: ${char.category}`);
+                    console.log(`Combining Class: ${char.combining}`);
+                    console.log(`Bidirectional: ${char.bidirectional}`);
+                    console.log(`Decimal: ${char.decimal}`);
+                    console.log(`Digit: ${char.digit}`);
+                    console.log(`Numeric: ${char.numeric}`);
+                    console.log(`Mirrored: ${char.mirrored}`);
+                    console.log(`Uppercase: ${codepointToString(char.uppercase)}`);
+                    console.log(`Lowercase: ${codepointToString(char.lowercase)}`);
+                    console.log(`Titlecase: ${codepointToString(char.titlecase)}`);
                 } else {
-                    console.log(`Failed to get character data for U+${codepoint.toString(16).toUpperCase().padStart(4, '0')}`);
+                    console.log(`Failed to get character data for ${codepointToString(codepoint)}`);
                 }
 
                 // Free allocated memory
