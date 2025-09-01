@@ -1,6 +1,12 @@
-set(SQLITE3_SOURCES
-    sqlite3.c
-)
+if(BUILD_WASM)
+    set(SQLITE3_SOURCES
+        sqlite3-wasm.c
+    )
+else()
+    set(SQLITE3_SOURCES
+        sqlite3.c
+    )
+endif()
 
 add_library(mojibake_sqlite STATIC ${SQLITE3_SOURCES})
 target_compile_options(mojibake_sqlite
@@ -58,7 +64,8 @@ target_compile_options(mojibake_sqlite
 )
 
 # WASM-specific configuration for SQLite
-if(BUILD_WASM)
+# Not needed?
+#[[if(BUILD_WASM)
     target_compile_options(mojibake_sqlite PRIVATE
         -DSQLITE_OS_OTHER=1
         -DSQLITE_SYSTEM_MALLOC=1
@@ -67,4 +74,4 @@ if(BUILD_WASM)
         SQLITE_OS_OTHER=1
         SQLITE_SYSTEM_MALLOC=1
     )
-endif()
+endif()]]
