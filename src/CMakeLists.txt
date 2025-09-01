@@ -23,6 +23,41 @@ add_library(mojibake_lib STATIC ${SOURCES})
 
 # WASM-specific configuration
 if(BUILD_WASM)
+    # This is auto-generated, do not edit this array.
+    set(EXPORTED_FUNCTIONS
+        "\"_mjb_string_encoding\""
+        "\"_mjb_string_is_utf8\""
+        "\"_mjb_string_is_utf16\""
+        "\"_mjb_string_is_ascii\""
+        "\"_mjb_codepoint_encode\""
+        "\"_mjb_strnlen\""
+        "\"_mjb_strncmp\""
+        #[["\"_mjb_case\""
+        "\"_mjb_codepoint_is_valid\""
+        "\"_mjb_codepoint_character\""
+        "\"_mjb_codepoint_category_is\""
+        "\"_mjb_codepoint_is_graphic\""
+        "\"_mjb_codepoint_is_combining\""
+        "\"_mjb_category_is_combining\""
+        "\"_mjb_character_block\""
+        "\"_mjb_codepoint_to_lowercase\""
+        "\"_mjb_codepoint_to_uppercase\""
+        "\"_mjb_codepoint_to_titlecase\""
+        "\"_mjb_normalize\""
+        "\"_mjb_string_is_normalized\""
+        "\"_mjb_next_character\""
+        "\"_mjb_break_line\""
+        "\"_mjb_segmentation\""
+        "\"_mjb_codepoint_plane\""
+        "\"_mjb_plane_is_valid\""
+        "\"_mjb_plane_name\""
+        "\"_mjb_codepoint_is_hangul_syllable\""
+        "\"_mjb_codepoint_is_cjk_ideograph\""]]
+        "\"_mjb_version\""
+    )
+
+    string(JOIN "," EXPORTED_FUNCTIONS_STRING ${EXPORTED_FUNCTIONS})
+
     # Create WASM module executable
     add_executable(mojibake mojibake.c)
     target_link_libraries(mojibake mojibake_lib mojibake_sqlite)
@@ -32,7 +67,7 @@ if(BUILD_WASM)
         "SHELL:-s WASM=1"
         "SHELL:-s EXPORT_ES6=1"
         "SHELL:-s MODULARIZE=1"
-        "SHELL:-s EXPORTED_FUNCTIONS=[\"_malloc\",\"_free\",\"_mjb_version\"]"
+        "SHELL:-s EXPORTED_FUNCTIONS=[${EXPORTED_FUNCTIONS_STRING}]"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\"]"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
     )

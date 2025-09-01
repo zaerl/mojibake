@@ -7,11 +7,16 @@ export class CFunction {
     private ret: string,
     private name: string,
     private attributes: string[] = [],
-    private args: string[] = []
+    private args: string[] = [],
+    private wasm: boolean = false
   ) {
     if(!this.ret.endsWith('*')) {
       this.ret += ' ';
     }
+  }
+
+  isWASM() {
+    return this.wasm;
   }
 
   formatC(): string {
@@ -21,6 +26,10 @@ export class CFunction {
 
   formatMD(): string {
     return `${this.comment}\n\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});\n\`\`\``;
+  }
+
+  formatWASM(): string {
+    return `\\"_mjb_${this.name}\\"`;
   }
 }
 
@@ -34,6 +43,7 @@ export function cfns(): CFunction[] {
     item.ret,
     item.name,
     item.attributes,
-    item.args
+    item.args,
+    item.wasm
   ));
 }

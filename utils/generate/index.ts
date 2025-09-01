@@ -10,6 +10,7 @@ import { generateAPI } from './generate-api';
 import { generateBreaks, generateLineBreaksTest } from './generate-break';
 import { generateHeader } from './generate-header';
 import { generateNormalizationCount } from './generate-tests';
+import { generateWASM } from './generate-wasm';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { readNormalizationProps } from './quick-check';
 import { readSpecialCasingProps } from './special-casing';
@@ -140,6 +141,7 @@ async function generate() {
   await readUnicodeData(blocks, await readCompositionExclusions());
 
   generateHeader(blocks, categories);
+  generateWASM();
   // generateData(characters);
   generateAPI();
 

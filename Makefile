@@ -1,6 +1,6 @@
 BUILD_DIR ?= build
-BUILD_TYPE ?= Release
 WASM_BUILD_DIR ?= build-wasm
+BUILD_TYPE ?= Release
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
@@ -10,12 +10,12 @@ all: configure build
 configure:
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
-build: configure
-	@cmake --build $(BUILD_DIR)
-
 # WASM targets
 configure-wasm:
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
+
+build: configure
+	@cmake --build $(BUILD_DIR)
 
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
@@ -44,28 +44,28 @@ test-docker:
 	docker build -t mojibake .
 	docker run mojibake
 
-clean_build:
+clean-build:
 	@cmake --build $(BUILD_DIR) --target clean
 
-clean:
+clean-native:
 	rm -rf $(BUILD_DIR) && rm -f mojibake.db
 
 clean-wasm:
 	rm -rf $(WASM_BUILD_DIR)
 
-clean-all: clean clean-wasm
+clean: clean-native clean-wasm
 
 help:
 	@echo "Available targets:"
-	@echo "  all         - Build the project (default)"
-	@echo "  wasm        - Build the project for WebAssembly"
-	@echo "  test        - Build and run tests"
-	@echo "  ctest       - Build and run tests using CTest"
-	@echo "  test-docker - Build and run tests in Docker container"
-	@echo "  clean       - Remove build artifacts"
-	@echo "  clean-wasm  - Remove WASM build artifacts"
-	@echo "  clean-all   - Remove all build artifacts"
-	@echo "  generate    - Regenerate source files"
-	@echo "  coverage    - Run coverage analysis"
+	@echo "  all          - Build the project (default)"
+	@echo "  wasm         - Build the project for WebAssembly"
+	@echo "  test         - Build and run tests"
+	@echo "  ctest        - Build and run tests using CTest"
+	@echo "  test-docker  - Build and run tests in Docker container"
+	@echo "  clean        - Remove build artifacts"
+	@echo "  clean-wasm   - Remove WASM build artifacts"
+	@echo "  clean-native - Remove all build artifacts"
+	@echo "  generate     - Regenerate source files"
+	@echo "  coverage     - Run coverage analysis"
 
-.PHONY: all clean clean-wasm clean-all clean_build configure configure-wasm build build-wasm wasm test ctest rebuild generate generate_tests coverage help test-docker
+.PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm build build-wasm wasm test ctest test-docker generate coverage help
