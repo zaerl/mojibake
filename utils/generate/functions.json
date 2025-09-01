@@ -317,8 +317,9 @@
     "ret": "bool",
     "name": "initialize_v2",
     "attributes": ["MJB_NODISCARD"],
-    "args": ["mjb_alloc_fn alloc_fn", "mjb_realloc_fn realloc_fn", "mjb_free_fn free_fn", "const char *db_path"],
-    "wasm": false
+    "args": ["mjb_alloc_fn alloc_fn", "mjb_realloc_fn realloc_fn", "mjb_free_fn free_fn",
+      "const char *db", "size_t db_size"],
+    "wasm": true
   },
   {
     "comment": "Shutdown the library. Not needed to be called",

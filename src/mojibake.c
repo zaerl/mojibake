@@ -35,7 +35,7 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
-    if(mjb_initialize_v2(malloc, realloc, free, NULL)) {
+    if(mjb_initialize_v2(malloc, realloc, free, NULL, 0)) {
         return true;
     }
 
@@ -44,13 +44,23 @@ MJB_EXPORT bool mjb_initialize(void) {
 
 // Initialize the library with custom values
 MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
-    mjb_free_fn free_fn, const char *db_path) {
+    mjb_free_fn free_fn, const char *db, size_t db_size) {
     if(mjb_global.ok) {
         return true;
     }
 
-    if(alloc_fn == NULL || realloc_fn == NULL || free_fn == NULL) {
-        return false;
+    MJB_LOG("DB initialization");
+
+    if(alloc_fn == NULL) {
+        alloc_fn = malloc;
+    }
+
+    if(realloc_fn == NULL) {
+        realloc_fn = realloc;
+    }
+
+    if(free_fn == NULL) {
+        free_fn = free;
     }
 
     mjb_global.ok = false;
@@ -58,10 +68,36 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     int rc = sqlite3_initialize();
 
     if(rc != SQLITE_OK) {
+        MJB_LOG_VA("Can't initialize database: %s", sqlite3_errmsg(mjb_global.db));
+
         return false;
     }
 
-    const char *filename = db_path;
+#ifdef __EMSCRIPTEN__
+    if(db != NULL && db_size > 0) {
+        rc = sqlite3_open(":memory:", &mjb_global.db);
+
+        if(rc != SQLITE_OK) {
+            MJB_LOG_VA("Can't create in-memory database: %s", sqlite3_errmsg(mjb_global.db));
+
+            return false;
+        }
+
+        rc = sqlite3_deserialize(mjb_global.db, "main", (unsigned char*)db, db_size, db_size,
+            SQLITE_DESERIALIZE_READONLY);
+
+        if(rc != SQLITE_OK) {
+            MJB_LOG_VA("Can't deserialize database: %s", sqlite3_errmsg(mjb_global.db));
+
+            return false;
+        }
+    } else {
+        MJB_LOG("No database provided for WASM build");
+
+        return false;
+    }
+#else
+    const char *filename = db;
 
     if(filename == NULL) {
         filename = getenv("WRD_DB_PATH");
@@ -78,11 +114,15 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         rc = sqlite3_open("./mojibake.db", &mjb_global.db);
 
         if(rc != SQLITE_OK) {
+            MJB_LOG_VA("Can't open database: %s", sqlite3_errmsg(mjb_global.db));
+
             return false;
         }
     }
+#endif
 
     sqlite3_extended_result_codes(mjb_global.db, 1);
+
     // TODO: Check what PRAGMA are valid
     const char *sql =
         "PRAGMA synchronous = OFF;"
@@ -102,6 +142,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     #define MJB_PREPARE_STMT(STMT, QUERY) \
         rc = sqlite3_prepare_v2(mjb_global.db, QUERY, -1, &STMT, NULL); \
         if(rc != SQLITE_OK) { \
+            MJB_LOG_VA("Can't prepare statement: %s", sqlite3_errmsg(mjb_global.db)); \
             return false; \
         }
 
@@ -149,6 +190,8 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;
     mjb_global.ok = true;
+
+    MJB_LOG("DB initialized successfully");
 
     return true;
 }

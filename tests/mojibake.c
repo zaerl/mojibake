@@ -30,10 +30,10 @@ void test_free(void *ptr) {
 
 void *test_mojibake(void *arg) {
     mjb_shutdown();
-    ATT_ASSERT(mjb_initialize_v2(NULL, NULL, NULL, NULL), false, "Void memory functions");
+    ATT_ASSERT(mjb_initialize_v2(NULL, NULL, NULL, NULL, 0), true, "Void memory functions");
 
     mjb_shutdown();
-    ATT_ASSERT(mjb_initialize_v2(test_malloc, test_realloc, test_free, NULL), true, "Valid initialize");
+    ATT_ASSERT(mjb_initialize_v2(test_malloc, test_realloc, test_free, NULL, 0), true, "Valid initialize");
     void *buffer = mjb_alloc(1);
     buffer = mjb_realloc(buffer, 2);
     mjb_free(buffer);

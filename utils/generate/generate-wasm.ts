@@ -12,7 +12,7 @@ export function generateWASM() {
 
   fileContent = substituteText(fileContent,
     "set(EXPORTED_FUNCTIONS\n",
-    "\n    )",
+    "\n        # Core memory functions",
     getFunctions());
 
   writeFileSync('../../src/CmakeLists.txt', fileContent);

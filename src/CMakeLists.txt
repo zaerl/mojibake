@@ -54,6 +54,11 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_is_hangul_syllable\""
         "\"_mjb_codepoint_is_cjk_ideograph\""
         "\"_mjb_version\""
+        "\"_mjb_initialize_v2\""
+        # Core memory functions
+        "\"_malloc\""
+        "\"_realloc\""
+        "\"_free\""
     )
 
     string(JOIN "," EXPORTED_FUNCTIONS_STRING ${EXPORTED_FUNCTIONS})
@@ -68,7 +73,7 @@ if(BUILD_WASM)
         "SHELL:-s EXPORT_ES6=1"
         "SHELL:-s MODULARIZE=1"
         "SHELL:-s EXPORTED_FUNCTIONS=[${EXPORTED_FUNCTIONS_STRING}]"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\"]"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"HEAPU8\",\"HEAPU16\",\"HEAPU32\",\"HEAP32\"]"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
     )
 
@@ -77,10 +82,17 @@ if(BUILD_WASM)
         SUFFIX ".js"
     )
 
-    # Generate example HTML file for WASM
+    # Generate HTML file for WASM
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/wasm.html
         ${CMAKE_CURRENT_BINARY_DIR}/wasm.html
+        COPYONLY
+    )
+
+    # Generate database file for WASM
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/mojibake.db
+        ${CMAKE_CURRENT_BINARY_DIR}/mojibake.db
         COPYONLY
     )
 endif()

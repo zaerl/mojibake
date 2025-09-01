@@ -369,7 +369,7 @@ MJB_CONST const char *mjb_unicode_version(void);
 MJB_NODISCARD bool mjb_initialize(void);
 
 // Initialize the library with custom values. Not needed to be called
-MJB_NODISCARD bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, const char *db_path);
+MJB_NODISCARD bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, const char *db, size_t db_size);
 
 // Shutdown the library. Not needed to be called
 void mjb_shutdown(void);
