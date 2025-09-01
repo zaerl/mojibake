@@ -10,6 +10,9 @@ project(
 # Enable CTest
 enable_testing()
 
+# WASM build option
+option(BUILD_WASM "Build for WebAssembly" OFF)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -35,8 +38,8 @@ add_subdirectory(src)
 # SQLite library
 add_subdirectory(src/sqlite3)
 
-# Tests
-add_subdirectory(tests)
-
-# Shell
-add_subdirectory(src/shell)
+# Tests and shell (only for native builds)
+if(NOT BUILD_WASM)
+    add_subdirectory(tests)
+    add_subdirectory(src/shell)
+endif()

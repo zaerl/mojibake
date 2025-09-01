@@ -1,5 +1,6 @@
 BUILD_DIR ?= build
 BUILD_TYPE ?= Release
+WASM_BUILD_DIR ?= build-wasm
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
@@ -12,7 +13,15 @@ configure:
 build: configure
 	@cmake --build $(BUILD_DIR)
 
-rebuild: clean_build all
+# WASM targets
+configure-wasm:
+	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
+
+build-wasm: configure-wasm
+	@cd $(WASM_BUILD_DIR) && emmake make
+
+wasm: build-wasm
+	@echo "WASM build completed in $(WASM_BUILD_DIR)"
 
 coverage:
 	cd ./utils/generate && npm run coverage
@@ -41,14 +50,22 @@ clean_build:
 clean:
 	rm -rf $(BUILD_DIR) && rm -f mojibake.db
 
+clean-wasm:
+	rm -rf $(WASM_BUILD_DIR)
+
+clean-all: clean clean-wasm
+
 help:
 	@echo "Available targets:"
 	@echo "  all         - Build the project (default)"
+	@echo "  wasm        - Build the project for WebAssembly"
 	@echo "  test        - Build and run tests"
 	@echo "  ctest       - Build and run tests using CTest"
 	@echo "  test-docker - Build and run tests in Docker container"
 	@echo "  clean       - Remove build artifacts"
+	@echo "  clean-wasm  - Remove WASM build artifacts"
+	@echo "  clean-all   - Remove all build artifacts"
 	@echo "  generate    - Regenerate source files"
 	@echo "  coverage    - Run coverage analysis"
 
-.PHONY: all clean clean_build configure build test ctest rebuild generate generate_tests coverage help test-docker
+.PHONY: all clean clean-wasm clean-all clean_build configure configure-wasm build build-wasm wasm test ctest rebuild generate generate_tests coverage help test-docker

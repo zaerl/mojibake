@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mojibake WASM</title>
+</head>
+<body>
+    <script type="module">
+        let mojibakeModule;
+
+        // Load the WASM module
+        import('./mojibake.js').then(async (Module) => {
+            mojibakeModule = await Module.default();
+            console.log('Mojibake WASM module loaded successfully');
+            console.log('Version:', mojibakeModule.ccall('mjb_version', 'string'));
+        }).catch(err => {
+            console.error('Failed to load WASM module:', err);
+        });
+    </script>
+</body>
+</html>

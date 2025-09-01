@@ -56,3 +56,15 @@ target_compile_options(mojibake_sqlite
     -DSQLITE_OMIT_TRIGGER
     -DSQLITE_OMIT_UTF16
 )
+
+# WASM-specific configuration for SQLite
+if(BUILD_WASM)
+    target_compile_options(mojibake_sqlite PRIVATE
+        -DSQLITE_OS_OTHER=1
+        -DSQLITE_SYSTEM_MALLOC=1
+    )
+    target_compile_definitions(mojibake_sqlite PRIVATE
+        SQLITE_OS_OTHER=1
+        SQLITE_SYSTEM_MALLOC=1
+    )
+endif()

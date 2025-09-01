@@ -189,6 +189,17 @@ Mojibake run all the normalization tests found in the standard
 [NormalizationTest.txt](https://www.unicode.org/Public/16.0.0/ucd/NormalizationTest.txt) suite of
 tests.
 
+## WebAssembly
+
+An experimental WASM build can be used.
+
+```
+make wasm
+cd build-wasm/src
+python3 -m http.server # or similar
+# Open http://[::1]:8000/wasm.html. It will show the Mojibake version on console
+```
+
 ## Thanks
 
 Mojibake is built using the work of extraordinary individuals and teams.
