@@ -53,11 +53,11 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
     // sqlite3_clear_bindings(stmt_special_casing);
 
     if(sqlite3_bind_int(stmt_special_casing, 1, codepoint) != SQLITE_OK) {
-        return false;
+        return 0;
     }
 
     if(sqlite3_bind_int(stmt_special_casing, 2, type) != SQLITE_OK) {
-        return false;
+        return 0;
     }
 
     unsigned int found = 0;
@@ -112,11 +112,11 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
         // sqlite3_clear_bindings(stmt);
 
         if(sqlite3_bind_int(stmt, 1, current_codepoint) != SQLITE_OK) {
-            return false;
+            return NULL;
         }
 
         if(sqlite3_step(stmt) != SQLITE_ROW) {
-            return false;
+            return NULL;
         }
 
         mjb_category category = (mjb_category)sqlite3_column_int(stmt, 0);
@@ -187,11 +187,11 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
     }
 
     if(!mjb_initialize()) {
-        return false;
+        return NULL;
     }
 
     if(encoding != MJB_ENCODING_UTF_8) {
-        return false;
+        return NULL;
     }
 
     if(type == MJB_CASE_TITLE) {
@@ -244,13 +244,13 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
 
         if(rc != SQLITE_OK) {
-            return false;
+            return NULL;
         }
 
         rc = sqlite3_step(stmt);
 
         if(rc != SQLITE_ROW) {
-            return false;
+            return NULL;
         }
 
         if(sqlite3_column_type(stmt, type) == SQLITE_NULL) {
