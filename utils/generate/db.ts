@@ -54,7 +54,6 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         quick_check INTEGER,
         line_breaking_class INTEGER
       );
-      CREATE INDEX idx_unicode_data_codepoint ON unicode_data(codepoint);
     `);
   } else {
     db.exec(`
@@ -77,7 +76,6 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         quick_check INTEGER,
         line_breaking_class INTEGER
       );
-      CREATE INDEX idx_unicode_data_codepoint ON unicode_data(codepoint);
     `);
   }
 
