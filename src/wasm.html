@@ -9,54 +9,55 @@
 <body>
     <script type="module">
         let mojibakeModule;
-        let offset = 0;
 
         class CStruct {
             #ptr;
+            #offset = 0;
 
             constructor(ptr) {
                 this.#ptr = ptr;
+                this.#offset = 0;
             }
 
             u8() {
-                const ret = mojibakeModule.HEAPU8[this.#ptr + offset];
-                offset += 1;
+                const ret = mojibakeModule.HEAPU8[this.#ptr + this.#offset];
+                this.#offset += 1;
                 return ret;
             }
 
             u16() {
                 // Ensure 2-byte alignment
-                offset = Math.ceil(offset / 2) * 2;
-                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + offset).getUint16(0, true);
-                offset += 2;
+                this.#offset = Math.ceil(this.#offset / 2) * 2;
+                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset).getUint16(0, true);
+                this.#offset += 2;
                 return ret;
             }
 
             u32() {
                 // Ensure 4-byte alignment
-                offset = Math.ceil(offset / 4) * 4;
-                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + offset).getUint32(0, true);
-                offset += 4;
+                this.#offset = Math.ceil(this.#offset / 4) * 4;
+                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset).getUint32(0, true);
+                this.#offset += 4;
                 return ret;
             }
 
             i32() {
                 // Ensure 4-byte alignment
-                offset = Math.ceil(offset / 4) * 4;
-                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + offset).getInt32(0, true);
-                offset += 4;
+                this.#offset = Math.ceil(this.#offset / 4) * 4;
+                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset).getInt32(0, true);
+                this.#offset += 4;
                 return ret;
             }
 
             str(max) {
-                const nameBytes = new Uint8Array(mojibakeModule.HEAPU8.buffer, this.#ptr + offset, max);
+                const nameBytes = new Uint8Array(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset, max);
                 let end = nameBytes.indexOf(0);
 
                 if(end === -1) {
                     end = max;
                 }
 
-                offset += max;
+                this.#offset += max;
 
                 return new TextDecoder().decode(nameBytes.subarray(0, end));
             }
@@ -98,7 +99,6 @@
             }
 
             function testCodepointCharacter(codepoint) {
-                offset = 0;
                 // Allocate memory for mjb_character structure
                 const structSize = 512;
                 const ptr = mojibakeModule._malloc(structSize);
