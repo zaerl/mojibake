@@ -9,6 +9,8 @@ import { characterDecomposition, generateComposition, generateDecomposition } fr
 import { generateAPI } from './generate-api';
 import { generateBreaks, generateLineBreaksTest } from './generate-break';
 import { generateHeader } from './generate-header';
+import { generateLocales } from './generate-locales';
+import { generateSite } from './generate-site';
 import { generateNormalizationCount } from './generate-tests';
 import { generateWASM } from './generate-wasm';
 import { iLog, isVerbose, log, setVerbose } from './log';
@@ -125,16 +127,30 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   return characters;
 }
 
+let generateTarget: string | null = null;
+
 // Init
 for(let i = 2; i < process.argv.length; ++i) {
   if(process.argv[i] === '-v' || process.argv[i] === '--verbose') {
     setVerbose(true);
   } else if(process.argv[i] === '-c') {
     compact = true;
+  } else if(process.argv[i] === 'site') {
+    generateTarget = 'site';
+  } else if(process.argv[i] === 'locales') {
+    generateTarget = 'locales';
   }
 }
 
 async function generate() {
+  if(generateTarget === 'locales') {
+    await generateLocales();
+    return;
+  } else if(generateTarget === 'site') {
+    await generateSite();
+    return;
+  }
+
   dbInit('../../mojibake.db', compact);
 
   const blocks = await readBlocks();

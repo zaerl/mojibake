@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFileSync } from 'fs';
 import path from 'path';
 
 export class CFunction {
@@ -35,7 +35,7 @@ export class CFunction {
 
 export function cfns(): CFunction[] {
   const jsonPath = path.join(__dirname, 'functions.json');
-  const jsonData = fs.readFileSync(jsonPath, 'utf8');
+  const jsonData = readFileSync(jsonPath, 'utf8');
   const data: any[] = JSON.parse(jsonData);
 
   return data.map(item => new CFunction(

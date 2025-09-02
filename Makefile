@@ -21,7 +21,7 @@ build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
 wasm: build-wasm
-	@echo "WASM build completed in $(WASM_BUILD_DIR)"
+	cd ./utils/generate && npm run generate -- site
 
 coverage:
 	cd ./utils/generate && npm run coverage
@@ -30,7 +30,7 @@ generate: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)
 
 generate-locales:
-	cd ./utils/generate && npm run generate-locales
+	cd ./utils/generate && ./generate-locales.sh
 
 test: BUILD_TYPE = Test
 test: configure build mojibake.db

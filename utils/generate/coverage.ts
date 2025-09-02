@@ -1,4 +1,4 @@
-import fs, { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import path, { join } from 'path';
 
 // Types
@@ -13,7 +13,7 @@ const coverage: Coverage = {};
 
 function findExports(): void {
   const jsonPath = path.join(__dirname, 'functions.json');
-  const jsonData = fs.readFileSync(jsonPath, 'utf8');
+  const jsonData = readFileSync(jsonPath, 'utf8');
   const data: any[] = JSON.parse(jsonData);
 
   for(const item of data) {

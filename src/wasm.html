@@ -9,6 +9,12 @@
 <body>
     <script type="module">
         let mojibakeModule;
+        // This is used for auto-generated site, do not edit this object.
+        const functions = [];
+        for(const func of functions) {
+            const ret = func.ret.endsWith('*') ? func.ret : func.ret + ' ';
+            console.log(`${ret}${func.name}(${func.args.length ? func.args.join(', ') : 'void'});`);
+        }
 
         class CStruct {
             #ptr;
