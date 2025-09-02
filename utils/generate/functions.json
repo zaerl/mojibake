@@ -294,7 +294,7 @@
     "name": "version_number",
     "attributes": ["MJB_CONST"],
     "args": [],
-    "wasm": false
+    "wasm": true
   },
   {
     "comment": "Output the current supported unicode version (MJB_UNICODE_VERSION)",
@@ -302,7 +302,7 @@
     "name": "unicode_version",
     "attributes": ["MJB_CONST"],
     "args": [],
-    "wasm": false
+    "wasm": true
   },
   {
     "comment": "Initialize the library. Not needed to be called",

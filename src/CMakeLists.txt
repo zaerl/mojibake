@@ -54,6 +54,8 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_is_hangul_syllable\""
         "\"_mjb_codepoint_is_cjk_ideograph\""
         "\"_mjb_version\""
+        "\"_mjb_version_number\""
+        "\"_mjb_unicode_version\""
         "\"_mjb_initialize_v2\""
         # Core memory functions
         "\"_malloc\""
@@ -86,6 +88,13 @@ if(BUILD_WASM)
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/site/index.html
         ${CMAKE_CURRENT_BINARY_DIR}/index.html
+        COPYONLY
+    )
+
+    # Generate CSS file for WASM
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/site/chota.css
+        ${CMAKE_CURRENT_BINARY_DIR}/chota.css
         COPYONLY
     )
 

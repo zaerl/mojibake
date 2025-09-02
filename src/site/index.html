@@ -1,25 +1,47 @@
+<!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mojibake WASM</title>
-    <style>body { background-color: rgb(13, 17, 23); color: white; }</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Mojibake</title>
+    <link rel="stylesheet" type="text/css" href="chota.css">
+    <style>
+        body.dark {
+            --bg-color: #000;
+            --bg-secondary-color: #262626;
+            --font-color: #f5f5f5;
+            --color-grey: #bbb;
+            --color-darkGrey: #888;
+            --color-primary: #17c16f;
+            --color-error: #ea4f4f;
+        }
+
+        body > .container {
+            max-width: 720px;
+        }
+
+        section {
+            margin: 2rem auto;
+        }
+
+        code {
+            color: var(--font-color);
+            display: inline-block;
+            padding: 1rem;
+            cursor: pointer;
+        }
+
+        .function-results {
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <script type="module">
-        let mojibakeModule;
-        // This is used for auto-generated site, do not edit this object.
-        const functions = [];
-
-        for(const func of functions) {
-            console.log(`${func.ret}${func.name}(${func.args});`);
-            const div = document.getElementById('functions');
-
-            const funcDiv = document.createElement('div');
-            funcDiv.textContent = `${func.ret}${func.name}(${func.args});`;
-            div.appendChild(funcDiv);
-        }
+        window.mojibake = null;
 
         class CStruct {
             #ptr;
@@ -31,7 +53,7 @@
             }
 
             u8() {
-                const ret = mojibakeModule.HEAPU8[this.#ptr + this.#offset];
+                const ret = window.window.mojibake.HEAPU8[this.#ptr + this.#offset];
                 this.#offset += 1;
                 return ret;
             }
@@ -39,7 +61,7 @@
             u16() {
                 // Ensure 2-byte alignment
                 this.#offset = Math.ceil(this.#offset / 2) * 2;
-                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset).getUint16(0, true);
+                const ret = new DataView(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset).getUint16(0, true);
                 this.#offset += 2;
                 return ret;
             }
@@ -47,7 +69,7 @@
             u32() {
                 // Ensure 4-byte alignment
                 this.#offset = Math.ceil(this.#offset / 4) * 4;
-                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset).getUint32(0, true);
+                const ret = new DataView(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset).getUint32(0, true);
                 this.#offset += 4;
                 return ret;
             }
@@ -55,13 +77,13 @@
             i32() {
                 // Ensure 4-byte alignment
                 this.#offset = Math.ceil(this.#offset / 4) * 4;
-                const ret = new DataView(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset).getInt32(0, true);
+                const ret = new DataView(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset).getInt32(0, true);
                 this.#offset += 4;
                 return ret;
             }
 
             str(max) {
-                const nameBytes = new Uint8Array(mojibakeModule.HEAPU8.buffer, this.#ptr + this.#offset, max);
+                const nameBytes = new Uint8Array(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset, max);
                 let end = nameBytes.indexOf(0);
 
                 if(end === -1) {
@@ -90,16 +112,16 @@
 
         // Load the WASM module
         import('./mojibake.js').then(async (Module) => {
-            mojibakeModule = await Module.default();
-            console.log('Mojibake WASM module loaded. Version:', mojibakeModule.ccall('mjb_version', 'string'));
+            window.mojibake = await Module.default();
+            console.log('Mojibake WASM module loaded. Version:', window.mojibake.ccall('mjb_version', 'string'));
 
             const dbResponse = await fetch('mojibake.db');
             const dbArrayBuffer = await dbResponse.arrayBuffer();
             const dbBytes = new Uint8Array(dbArrayBuffer);
-            const dbPtr = mojibakeModule._malloc(dbBytes.length);
-            mojibakeModule.HEAPU8.set(dbBytes, dbPtr);
+            const dbPtr = window.mojibake._malloc(dbBytes.length);
+            window.mojibake.HEAPU8.set(dbBytes, dbPtr);
 
-            let initialized = mojibakeModule.ccall('mjb_initialize_v2', 'boolean',
+            let initialized = window.mojibake.ccall('mjb_initialize_v2', 'boolean',
                 ['number', 'number', 'number', 'number', 'number'], [0, 0, 0, dbPtr, dbBytes.length]);
 
             // Test mjb_codepoint_character function
@@ -112,15 +134,15 @@
             function testCodepointCharacter(codepoint) {
                 // Allocate memory for mjb_character structure
                 const structSize = 512;
-                const ptr = mojibakeModule._malloc(structSize);
+                const ptr = window.mojibake._malloc(structSize);
 
                 // Initialize memory to zero
                 for(let i = 0; i < structSize; i++) {
-                    mojibakeModule.HEAPU8[ptr + i] = 0;
+                    window.mojibake.HEAPU8[ptr + i] = 0;
                 }
 
                 // Call mjb_codepoint_character
-                const result = mojibakeModule.ccall('mjb_codepoint_character', 'boolean',
+                const result = window.mojibake.ccall('mjb_codepoint_character', 'boolean',
                     ['number', 'number'], [codepoint, ptr]);
 
                 if(result) {
@@ -166,12 +188,63 @@
                 }
 
                 // Free allocated memory
-                mojibakeModule._free(ptr);
+                window.mojibake._free(ptr);
             }
         }).catch(err => {
             console.error('Failed to load WASM module:', err);
         });
     </script>
-    <div id="functions"></div>
+    <div id="main" class="container">
+        <section id="header">
+            <nav class="nav">
+                <div class="nav-left">
+                  <a href="https://github.com/zaerl/mojibake">Github</a>
+                </div>
+                <div class="nav-center">
+                  <a id="title" class="brand" title="文字化け">Mojibake</a>
+                </div>
+                <div class="nav-right">
+                    <a href="javascript:void(0)" id="theme-switch" onclick="switchMode(this)">☀️</a>
+                </div>
+            </nav>
+        </section>
+        <section>
+            <strong>Mojibake</strong> is a low-level Unicode 16 library written in C99. This is an
+            online demo of the library, compiled to WebAssembly.</section>
+        <section id="functions"></section>
+    </div>
+    <script>
+        if(
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+            document.body.classList.add("dark");
+            document.querySelector('#theme-switch').innerHTML = "🌙"
+        }
+
+        function switchMode(el) {
+            const bodyClass = document.body.classList;
+            bodyClass.contains("dark")
+                ? ((el.innerHTML = "☀️"), bodyClass.remove("dark"))
+                : ((el.innerHTML = "🌙"), bodyClass.add("dark"));
+        }
+
+        // This is used for auto-generated site, do not edit this object.
+        const functions = {};
+
+        function showFunctionCall(func) {
+            console.log(functions[func]);
+            const funcDiv = document.getElementById(func);
+
+            if(functions[func].args.length === 1 && functions[func].args[0] === 'void') {
+                const result = window.mojibake.ccall(func, functions[func].ret === 'const char *' ? 'string' : 'number', []);
+                funcDiv.innerHTML = result;
+                funcDiv.style.display = 'block';
+            } else {
+                funcDiv.innerHTML = 'Not supported';
+                funcDiv.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>

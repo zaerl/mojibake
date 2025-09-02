@@ -5,11 +5,7 @@ import { substituteText } from './utils';
 function getFunctions() {
   const functs = cfns();
 
-  return functs.map(value => value.formatJSON()).join(',');
-}
-
-function formatFunction(funct: any[]) {
-  // return `<div><div>${funct.comment}</div><div>${funct.ret} ${funct.name}(${funct.args.length ? funct.args.join(', ') : 'void'})</div></div>`;
+  return functs.filter(fn => fn.isWASM() && !fn.isInternal());
 }
 
 export async function generateSite() {
@@ -17,9 +13,14 @@ export async function generateSite() {
   const functs = getFunctions();
 
   fileContent = substituteText(fileContent,
-    "const functions = [",
-    "];",
-    functs);
+    "const functions = {",
+    "};",
+    functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
+
+  fileContent = substituteText(fileContent,
+    "<section id=\"functions\">",
+    "</section>",
+    functs.map(fn => fn.formatHTML()).join('\n'));
 
   writeFileSync('../../build-wasm/src/index.html', fileContent);
 }

@@ -19,26 +19,44 @@ export class CFunction {
     return this.wasm;
   }
 
+  getArgs(): string[] {
+    return this.args.length ? this.args : ['void'];
+  }
+
+  getName() {
+    return 'mjb_' + this.name;
+  }
+
+  isInternal() {
+    return this.name.startsWith('initialize');
+  }
+
   formatC(): string {
     const attributes = this.attributes.length ? `${this.attributes.join(' ')} ` : '';
-    return `// ${this.comment}\n${attributes}${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});`;
+    return `// ${this.comment}\n${attributes}${this.ret}${this.getName()}(${this.getArgs().join(', ')});`;
   }
 
   formatMD(): string {
-    return `${this.comment}\n\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});\n\`\`\``;
+    return `${this.comment}\n\n\`\`\`c\n${this.ret}${this.getName()}(${this.getArgs().join(', ')});\n\`\`\``;
+  }
+
+  formatHTML(): string {
+    return `<section><div><code id="${this.name}" onclick="showFunctionCall('${this.getName()}')">` +
+      `${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</code></div>` +
+      `<div id="${this.getName()}" class="function-results"></div></section>`;
   }
 
   formatJSON(): string {
     return JSON.stringify({
       comment: this.comment,
       ret: this.ret,
-      name: this.name,
-      args: this.args.length ? this.args.join(', ') : 'void'
+      name: this.getName(),
+      args: this.getArgs()
     });
   }
 
   formatWASM(): string {
-    return `\\"_mjb_${this.name}\\"`;
+    return `\\"_${this.getName()}\\"`;
   }
 }
 
