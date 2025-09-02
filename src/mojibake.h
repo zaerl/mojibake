@@ -31,7 +31,7 @@ extern "C" {
 _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
 _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 
-#define MJB_VERSION_NUMBER   0x100 // MAJOR << 8 && MINOR << 4 && REVISION
+#define MJB_VERSION_NUMBER   0x0 // MAJOR << 8 && MINOR << 4 && REVISION
 #define MJB_VERSION_MAJOR    0
 #define MJB_VERSION_MINOR    0
 #define MJB_VERSION_REVISION 0
