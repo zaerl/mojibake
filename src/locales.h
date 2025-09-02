@@ -201,4 +201,6 @@ typedef enum mjb_locale {
     MJB_LOCALE_ZU  // Zulu
 } mjb_locale;
 
+#define MJB_LOCALE_NUM 183
+
 #endif // MJB_LOCALES_H

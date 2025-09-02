@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { open } from 'fs/promises';
 import { substituteText } from './utils';
 
-async function generateLocales() {
+export async function generateLocales() {
   const file = await open('./locales/ISO-639-2.txt');
   const locales = [];
   const names = [];
@@ -29,5 +29,3 @@ async function generateLocales() {
 
   writeFileSync('../../src/locales.h', fileContent);
 }
-
-generateLocales();
