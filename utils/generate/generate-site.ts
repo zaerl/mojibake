@@ -1,22 +1,25 @@
 import { readFileSync, writeFileSync } from 'fs';
-import path from 'path';
+import { cfns } from './function';
 import { substituteText } from './utils';
 
 function getFunctions() {
-  const jsonPath = path.join(__dirname, 'functions.json');
-  const jsonData = readFileSync(jsonPath, 'utf8');
-  const data: any[] = JSON.parse(jsonData);
+  const functs = cfns();
 
-  return JSON.stringify(data).slice(1, -1);
+  return functs.map(value => value.formatJSON()).join(',');
+}
+
+function formatFunction(funct: any[]) {
+  // return `<div><div>${funct.comment}</div><div>${funct.ret} ${funct.name}(${funct.args.length ? funct.args.join(', ') : 'void'})</div></div>`;
 }
 
 export async function generateSite() {
   let fileContent = readFileSync('../../build-wasm/src/index.html', 'utf-8');
+  const functs = getFunctions();
 
   fileContent = substituteText(fileContent,
     "const functions = [",
     "];",
-    getFunctions());
+    functs);
 
   writeFileSync('../../build-wasm/src/index.html', fileContent);
 }

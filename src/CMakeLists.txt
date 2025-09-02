@@ -84,7 +84,7 @@ if(BUILD_WASM)
 
     # Generate HTML file for WASM
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/wasm.html
+        ${CMAKE_CURRENT_SOURCE_DIR}/site/index.html
         ${CMAKE_CURRENT_BINARY_DIR}/index.html
         COPYONLY
     )

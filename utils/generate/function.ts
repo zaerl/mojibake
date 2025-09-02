@@ -28,6 +28,15 @@ export class CFunction {
     return `${this.comment}\n\n\`\`\`c\n${this.ret}mjb_${this.name}(${this.args.length ? this.args.join(', ') : 'void'});\n\`\`\``;
   }
 
+  formatJSON(): string {
+    return JSON.stringify({
+      comment: this.comment,
+      ret: this.ret,
+      name: this.name,
+      args: this.args.length ? this.args.join(', ') : 'void'
+    });
+  }
+
   formatWASM(): string {
     return `\\"_mjb_${this.name}\\"`;
   }

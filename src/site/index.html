@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mojibake WASM</title>
-    <style>body { background-color: rgb(13, 17, 23); }</style>
+    <style>body { background-color: rgb(13, 17, 23); color: white; }</style>
 </head>
 <body>
     <script type="module">
         let mojibakeModule;
         // This is used for auto-generated site, do not edit this object.
         const functions = [];
+
         for(const func of functions) {
-            const ret = func.ret.endsWith('*') ? func.ret : func.ret + ' ';
-            console.log(`${ret}${func.name}(${func.args.length ? func.args.join(', ') : 'void'});`);
+            console.log(`${func.ret}${func.name}(${func.args});`);
+            const div = document.getElementById('functions');
+
+            const funcDiv = document.createElement('div');
+            funcDiv.textContent = `${func.ret}${func.name}(${func.args});`;
+            div.appendChild(funcDiv);
         }
 
         class CStruct {
@@ -167,5 +172,6 @@
             console.error('Failed to load WASM module:', err);
         });
     </script>
+    <div id="functions"></div>
 </body>
 </html>
