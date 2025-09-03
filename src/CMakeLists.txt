@@ -93,8 +93,8 @@ if(BUILD_WASM)
 
     # Generate CSS file for WASM
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/site/chota.css
-        ${CMAKE_CURRENT_BINARY_DIR}/chota.css
+        ${CMAKE_CURRENT_SOURCE_DIR}/site/style.css
+        ${CMAKE_CURRENT_BINARY_DIR}/style.css
         COPYONLY
     )
 

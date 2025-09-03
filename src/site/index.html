@@ -1,50 +1,30 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <title>Mojibake</title>
-        <link rel="stylesheet" type="text/css" href="chota.css">
+        <!--<link rel="stylesheet" type="text/css" href="chota.css">-->
+        <link rel="stylesheet" type="text/css" href="style.css">
         <style>
-            body.dark {
-                --bg-color: #000;
-                --bg-secondary-color: #262626;
-                --font-color: #f5f5f5;
-                --color-grey: #bbb;
-                --color-darkGrey: #888;
-                --color-primary: #17c16f;
-                --color-error: #ea4f4f;
-            }
-
-            body > .container {
-                max-width: 720px;
-            }
-
-            section {
-                margin: 2rem auto;
-            }
-
-            code {
-                color: var(--font-color);
-                display: inline-block;
-                padding: 1rem;
+            .code {
                 cursor: pointer;
+                line-height: 1.5;
+                border: 1px solid var(--border);
+                padding: 1rem;
+            }
+
+            .function-call:hover {
+                border-color: var(--border-hover);
             }
 
             .function-card {
-                margin-top: 1rem;
-                border-radius: 4px;
                 display: none;
-                padding: 1rem;
             }
 
             #functions .selected .function-card {
                 display: block;
-            }
-
-            .function-form label {
-                text-transform: capitalize;
             }
 
             .function-results {
@@ -54,6 +34,18 @@
 
             .loading {
                 display: none;
+            }
+
+            #loading {
+                text-align: center;
+            }
+
+            .function-form label {
+                text-transform: capitalize;
+            }
+
+            .function-form div, .function-form-button {
+                margin-top: 1rem;
             }
         </style>
 </head>
@@ -82,36 +74,16 @@
         });
     </script>
     <div id="main" class="container">
-        <section id="header">
-            <nav class="nav">
-                <div class="nav-left">
-                  <a href="https://github.com/zaerl/mojibake">Github</a>
-                </div>
-                <div class="nav-center">
-                  <a id="title" class="brand" title="文字化け">Mojibake</a>
-                </div>
-                <div class="nav-right">
-                    <a href="javascript:void(0)" id="theme-switch" onclick="switchMode(this)">☀️</a>
-                </div>
-            </nav>
-        </section>
         <section>
-            <strong>Mojibake</strong> is a low-level Unicode 16 library written in C99. This is an
-            online demo of the library, compiled to WebAssembly.</section>
-        <section id="loading" class="is-horizontal-align">
+            <strong title="文字化け">Mojibake</strong> is a low-level Unicode 16 library written in C99. This is an
+            online demo of the library, compiled to WebAssembly.
+        </section>
+        <section id="loading">
             <progress></progress>
         </section>
         <section id="functions" class="loading"></section>
     </div>
     <script>
-        if(
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-            document.body.classList.add("dark");
-            document.querySelector('#theme-switch').innerHTML = "🌙"
-        }
-
         function codepointToString(codepoint) {
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
@@ -181,13 +153,6 @@
 
                 return object;
             }
-        }
-
-        function switchMode(el) {
-            const bodyClass = document.body.classList;
-            bodyClass.contains("dark")
-                ? ((el.innerHTML = "☀️"), bodyClass.remove("dark"))
-                : ((el.innerHTML = "🌙"), bodyClass.add("dark"));
         }
 
         // This is used for auto-generated site, do not edit this object.

@@ -62,10 +62,18 @@ export class CFunction {
   }
 
   formatHTML(): string {
-    return `<section id="${this.getName()}"><div><code id="${this.getName()}-function" class="is-full-width" onclick="toggleFunctionCall('${this.getName()}')">` +
-      `${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</code></div><div class="function-card bd-light">` +
-      this.#formInputHTML() +
-      `<div><a class="button primary" onclick="callFunction('${this.getName()}')">Call function</a></div><div id="${this.getName()}-results" class="function-results"></div></div></section>`;
+    return `<section id="${this.getName()}">
+      <div class="code function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
+        ${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});
+      </div>
+      <div class="function-card">
+        <div>${this.#formInputHTML()}</div>
+        <div class="function-form-button">
+          <button onclick="callFunction('${this.getName()}')">Call function</button>
+        </div>
+        <div id="${this.getName()}-results" class="function-results code"></div>
+      </div>
+    </section>`;
   }
 
   #getDescription(description: string, disabled = false): string {
@@ -74,20 +82,22 @@ export class CFunction {
 
   #getInput(arg: number, type = 'text'): string {
     const disabled = this.argsReturn[arg];
-    let ret = `<p><label for="${this.getName()}-${this.args[arg]}" class="${disabled ? 'text-light' : ''}">${this.args[arg]}</label>`;
-    ret += `<input type="${type}" name="${this.getName()}-${this.args[arg]}" placeholder="${this.#getDescription(this.argsDescription[arg], this.argsReturn[arg])}" ${disabled ? 'disabled' : ''}>`;
+    const name = `${this.getName()}-${this.args[arg]}`;
+    const description = this.#getDescription(this.argsDescription[arg], this.argsReturn[arg]);
 
-    return ret + '</p>';
-  }
+    let ret = `<div><label for="${name}" class="${disabled ? 'text-light' : ''}">${this.args[arg]}</label>`;
+    ret += `<input id="${name}" type="${type}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
 
-  #getNumberInput(arg: number): string {
-    return this.#getInput(arg, 'number');
+    return ret + '</div>';
   }
 
   #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
     const disabled = this.argsReturn[arg];
-    let ret = `<p><label for="${this.getName()}-${this.args[arg]}" class="${disabled ? 'text-light ' : ''}">${this.args[arg]}</label>`;
-    ret += `<select name="${this.getName()}-${this.args[arg]}" placeholder="${this.#getDescription(this.argsDescription[arg], disabled)}" ${disabled ? 'disabled' : ''}>`;
+    const name = `${this.getName()}-${this.args[arg]}`;
+    const description = this.#getDescription(this.argsDescription[arg], this.argsReturn[arg]);
+
+    let ret = `<div><label for="${name}" class="${disabled ? 'text-light ' : ''}">${this.args[arg]}</label>`;
+    ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
     for(const option of options) {
@@ -97,7 +107,7 @@ export class CFunction {
 
     ret += '</select>';
 
-    return ret + '</select></p>';
+    return ret + '</select></div>';
   }
 
   #formInputHTML(): string {

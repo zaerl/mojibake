@@ -206,3 +206,5 @@ Mojibake is built using the work of extraordinary individuals and teams.
 
 1. The `utf8.h` file is Copyright (c) 2014 Taylor R Campbell
 2. SQLite is in the [public domain](https://sqlite.org/copyright.html).
+3. modern-normalize is under the MIT License. Copyright (c) Sindre Sorhus, Jonathan Neal, Nicolas
+   Gallagher
