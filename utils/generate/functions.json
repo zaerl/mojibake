@@ -1,5 +1,49 @@
 [
   {
+    "comment": "Return the codepoint character",
+    "ret": "bool",
+    "name": "codepoint_character",
+    "attributes": ["MJB_NONNULL(2)"],
+    "args": ["codepoint", "character"],
+    "args_types": ["mjb_codepoint", "mjb_character *"],
+    "args_description": ["The codepoint to check", "The character to store the result"],
+    "args_return": [false, true],
+    "wasm": true
+  },
+  {
+    "comment": "Normalize a string to NFC/NFKC/NFD/NFKD form",
+    "ret": "bool",
+    "name": "normalize",
+    "attributes": ["MJB_NONNULL(1, 5)"],
+    "args": ["buffer", "size", "encoding", "form", "result"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization", "mjb_normalization_result *"],
+    "args_description": [
+      "The string to normalize",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The normalization form to use",
+      "The result to store the result"
+    ],
+    "args_return": [false, false, false, false, true],
+    "wasm": true
+  },
+  {
+    "comment": "Check if a string is normalized to NFC/NFKC/NFD/NFKD form",
+    "ret": "mjb_quick_check_result",
+    "name": "string_is_normalized",
+    "attributes": ["MJB_NONNULL(1)"],
+    "args": ["buffer", "size", "encoding", "form"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization"],
+    "args_description": [
+      "The string to check",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The normalization form to check"
+    ],
+    "args_return": [false, false, false, false],
+    "wasm": true
+  },
+  {
     "comment": "Return the string encoding (the most probable)",
     "ret": "mjb_encoding",
     "name": "string_encoding",
@@ -91,7 +135,7 @@
     "wasm": true
   },
   {
-    "comment": "Return change string case",
+    "comment": "Change string case",
     "ret": "char *",
     "name": "case",
     "attributes": ["MJB_NONNULL(1)"],
@@ -115,17 +159,6 @@
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint to check"],
     "args_return": [false],
-    "wasm": true
-  },
-  {
-    "comment": "Return the codepoint character",
-    "ret": "bool",
-    "name": "codepoint_character",
-    "attributes": ["MJB_NONNULL(2)"],
-    "args": ["codepoint", "character"],
-    "args_types": ["mjb_codepoint", "mjb_character *"],
-    "args_description": ["The codepoint to check", "The character to store the result"],
-    "args_return": [false, true],
     "wasm": true
   },
   {
@@ -214,39 +247,6 @@
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
     "args_return": [false],
-    "wasm": true
-  },
-  {
-    "comment": "Normalize a string to NFC/NFKC/NFD/NFKD form",
-    "ret": "bool",
-    "name": "normalize",
-    "attributes": ["MJB_NONNULL(1, 5)"],
-    "args": ["buffer", "size", "encoding", "form", "result"],
-    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization", "mjb_normalization_result *"],
-    "args_description": [
-      "The string to normalize",
-      "The size of the string, in bytes",
-      "The encoding of the string",
-      "The normalization form to use",
-      "The result to store the result"
-    ],
-    "args_return": [false, false, false, false, true],
-    "wasm": true
-  },
-  {
-    "comment": "Check if a string is normalized to NFC/NFKC/NFD/NFKD form",
-    "ret": "mjb_quick_check_result",
-    "name": "string_is_normalized",
-    "attributes": ["MJB_NONNULL(1)"],
-    "args": ["buffer", "size", "encoding", "form"],
-    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization"],
-    "args_description": [
-      "The string to check",
-      "The size of the string, in bytes",
-      "The encoding of the string",
-      "The normalization form to check"
-    ],
-    "args_return": [false, false, false, false],
     "wasm": true
   },
   {
