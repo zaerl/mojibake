@@ -145,7 +145,7 @@
                 ['number', 'number', 'number', 'number', 'number'], [0, 0, 0, dbPtr, dbBytes.length]);
 
             // Test mjb_codepoint_character function
-            testCodepointCharacter(0x1F64);
+            // testCodepointCharacter(0x1F64);
 
             function codepointToString(codepoint) {
                 return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
@@ -260,7 +260,11 @@
             const selected = funcDiv.classList.toggle('selected');
 
             if(!selected) {
-                form.reset();
+                const form = document.getElementById(func + '-form');
+
+                if(form) {
+                    form.reset();
+                }
             }
         }
 
@@ -268,14 +272,55 @@
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-form');
             const funcResults = document.getElementById(func + '-results');
-            console.log(functions[func]);
 
             if(functions[func].args.length === 1 && functions[func].args[0] === 'void') {
                 const result = window.mojibake.ccall(func, functions[func].ret === 'const char *' ? 'string' : 'number', []);
                 funcResults.innerHTML = result;
-            } else {
-                funcResults.innerHTML = 'Not supported';
+
+                return;
             }
+
+            function typeMap(type) {
+                if(type === 'const char *') {
+                    return 'string';
+                }
+
+                return 'number';
+            }
+
+            let i = 0;
+            const args = [];
+            const argTypes = [];
+            const ret = typeMap(functions[func].ret);
+
+            for(const arg of functions[func].args) {
+                argTypes.push(typeMap(functions[func].argsTypes[i]));
+
+                if(!functions[func].argsReturn[i]) {
+                    let value = form.elements[`${func}-${arg}`].value;
+
+                    if(typeMap(arg) === 'number') {
+                        value = parseInt(value, 10);
+                    }
+
+                    args.push(value);
+                }
+
+                ++i;
+            }
+
+            const result = window.mojibake.ccall(func, ret, argTypes, args);
+
+            if(functions[func].ret === 'bool') {
+                result ? funcResults.innerHTML = 'true' : funcResults.innerHTML = 'false';
+            } else {
+                funcResults.innerHTML = result;
+            }
+
+            // funcResults.innerHTML = result;
+
+            // const result = window.mojibake.ccall(func, ret, []);
+            // funcResults.innerHTML = result;
         }
     </script>
 </body>

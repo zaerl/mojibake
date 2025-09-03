@@ -49,9 +49,11 @@ export class CFunction {
   formatJSON(): string {
     return JSON.stringify({
       comment: this.comment,
-      ret: this.ret,
+      ret: this.ret.trimEnd(),
       name: this.getName(),
-      args: this.getArgs()
+      args: this.args,
+      argsTypes: this.argsTypes,
+      argsReturn: this.argsReturn,
     });
   }
 
@@ -73,7 +75,7 @@ export class CFunction {
   #getInput(arg: number, type = 'text'): string {
     const disabled = this.argsReturn[arg];
     let ret = `<p><label for="${this.getName()}-${this.args[arg]}" class="${disabled ? 'text-light' : ''}">${this.args[arg]}</label>`;
-    ret += `<input type="text" id="${this.getName()}-${this.args[arg]}" placeholder="${this.#getDescription(this.argsDescription[arg], this.argsReturn[arg])}" ${disabled ? 'disabled' : ''}>`;
+    ret += `<input type="${type}" name="${this.getName()}-${this.args[arg]}" placeholder="${this.#getDescription(this.argsDescription[arg], this.argsReturn[arg])}" ${disabled ? 'disabled' : ''}>`;
 
     return ret + '</p>';
   }
@@ -85,7 +87,7 @@ export class CFunction {
   #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
     const disabled = this.argsReturn[arg];
     let ret = `<p><label for="${this.getName()}-${this.args[arg]}" class="${disabled ? 'text-light ' : ''}">${this.args[arg]}</label>`;
-    ret += `<select id="${this.getName()}-${this.args[arg]}" placeholder="${this.#getDescription(this.argsDescription[arg], disabled)}" ${disabled ? 'disabled' : ''}>`;
+    ret += `<select name="${this.getName()}-${this.args[arg]}" placeholder="${this.#getDescription(this.argsDescription[arg], disabled)}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
     for(const option of options) {
@@ -99,7 +101,6 @@ export class CFunction {
   }
 
   #formInputHTML(): string {
-    console.log(this.args);
     if(!this.args.length) {
       return '';
     }
@@ -167,6 +168,30 @@ export class CFunction {
         ];
 
         ret += this.#getSelectInput(i, options);
+      } else if(arg.startsWith('mjb_plane')) {
+        // See mjb_plane on unicode.h
+        const options = [
+          'MJB_PLANE_BMP',
+          'MJB_PLANE_SMP',
+          'MJB_PLANE_SIP',
+          'MJB_PLANE_TIP',
+          'MJB_PLANE_SSP',
+          'MJB_PLANE_PUA_A',
+          'MJB_PLANE_PUA_B',
+        ];
+
+        // See mjb_plane on unicode.h
+        const values = [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          16,
+        ];
+
+        ret += this.#getSelectInput(i, options, values);
       }
 
       ++i;
