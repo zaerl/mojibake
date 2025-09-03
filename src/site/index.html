@@ -9,10 +9,13 @@
         <link rel="stylesheet" type="text/css" href="style.css">
         <style>
             .code {
-                cursor: pointer;
                 line-height: 1.5;
                 border: 1px solid var(--border);
                 padding: 1rem;
+            }
+
+            .function-call {
+                cursor: pointer;
             }
 
             .function-call:hover {
@@ -84,7 +87,11 @@
         <section id="functions" class="loading"></section>
     </div>
     <script>
-        function codepointToString(codepoint) {
+        function codepointToString(codepoint, all = true) {
+            if(!all && codepoint === 0) {
+                return 'N/A';
+            }
+
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
@@ -158,6 +165,40 @@
         // This is used for auto-generated site, do not edit this object.
         const functions = {};
 
+        // C: mjb_category
+        const categories = [
+            'Letter, uppercase',
+            'Letter, lowercase',
+            'Letter, titlecase',
+            'Letter, modifier',
+            'Letter, other',
+            'Mark, non-spacing',
+            'Mark, spacing combining',
+            'Mark, enclosing',
+            'Number, decimal digit',
+            'Number, letter',
+            'Number, other',
+            'Punctuation, connector',
+            'Punctuation, dash',
+            'Punctuation, open',
+            'Punctuation, close',
+            'Punctuation, initial quote',
+            'Punctuation, final quote',
+            'Punctuation, other',
+            'Symbol, math',
+            'Symbol, currency',
+            'Symbol, modifier',
+            'Symbol, other',
+            'Separator, space',
+            'Separator, line',
+            'Separator, paragraph',
+            'Other, control',
+            'Other, format',
+            'Other, surrogate',
+            'Other, private use',
+            'Other, not assigned',
+        ];
+
         function ccallCodepointCharacter(codepoint) {
             // Allocate memory for mjb_character structure
             const structSize = 512;
@@ -199,17 +240,17 @@
                 }
 
                 let ret = `Character <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
-                ret += `Name: <strong>${char.name}</strong><br>`;
-                ret += `Category: <strong>${char.category}</strong><br>`;
+                ret += `Name: <span class="text-primary">${char.name}</span><br>`;
+                ret += `Category: <strong>${categories[char.category]}</strong><br>`;
                 ret += `Combining Class: <strong>${char.combining}</strong><br>`;
                 ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
                 ret += `Decimal: <strong>${char.decimal}</strong><br>`;
                 ret += `Digit: <strong>${char.digit}</strong><br>`;
                 ret += `Numeric: <strong>${char.numeric}</strong><br>`;
                 ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
-                ret += `Uppercase: <strong>${codepointToString(char.uppercase)}</strong><br>`;
-                ret += `Lowercase: <strong>${codepointToString(char.lowercase)}</strong><br>`;
-                ret += `Titlecase: <strong>${codepointToString(char.titlecase)}</strong>`;
+                ret += `Uppercase: <strong>${codepointToString(char.uppercase, false)}</strong><br>`;
+                ret += `Lowercase: <strong>${codepointToString(char.lowercase, false)}</strong><br>`;
+                ret += `Titlecase: <strong>${codepointToString(char.titlecase, false)}</strong>`;
 
                 return ret;
             } else {
@@ -278,12 +319,9 @@
                 } else if (value.startsWith('0X')) {
                     // 0xFFFF format
                     return parseInt(value.substring(2), 16);
-                } else if (/^[0-9A-F]+$/.test(value)) {
+                } else {
                     // Plain hex format
                     return parseInt(value, 16);
-                } else {
-                    // Decimal format
-                    return parseInt(value, 10);
                 }
             }
 

@@ -76,14 +76,20 @@ export class CFunction {
     </section>`;
   }
 
-  #getDescription(description: string, disabled = false): string {
-    return disabled ? `${description} (automatically generated)` : description;
+  #getDescription(arg: number): string {
+    let ret = this.argsReturn[arg] ? `${this.argsDescription[arg]} (automatically generated)` : this.argsDescription[arg];
+
+    if(this.argsTypes[arg] === 'mjb_codepoint') {
+      ret += ' (U+XXXXX, 0xXXXXX or XXXXX hexadecimal format)';
+    }
+
+    return ret;
   }
 
   #getInput(arg: number, type = 'text'): string {
     const disabled = this.argsReturn[arg];
     const name = `${this.getName()}-${this.args[arg]}`;
-    const description = this.#getDescription(this.argsDescription[arg], this.argsReturn[arg]);
+    const description = this.#getDescription(arg);
 
     let ret = `<div><label for="${name}" class="${disabled ? 'text-light' : ''}">${this.args[arg]}</label>`;
     ret += `<input id="${name}" type="${type}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
@@ -94,7 +100,7 @@ export class CFunction {
   #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
     const disabled = this.argsReturn[arg];
     const name = `${this.getName()}-${this.args[arg]}`;
-    const description = this.#getDescription(this.argsDescription[arg], this.argsReturn[arg]);
+    const description = this.#getDescription(arg);
 
     let ret = `<div><label for="${name}" class="${disabled ? 'text-light ' : ''}">${this.args[arg]}</label>`;
     ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
