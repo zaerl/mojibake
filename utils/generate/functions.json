@@ -4,7 +4,10 @@
     "ret": "mjb_encoding",
     "name": "string_encoding",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t size"],
+    "args": ["buffer", "size"],
+    "args_types": ["const char *", "size_t"],
+    "args_description": ["The string to check", "The size of the string, in bytes"],
+    "args_return": [false, false],
     "wasm": true
   },
   {
@@ -12,7 +15,10 @@
     "ret": "bool",
     "name": "string_is_utf8",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t size"],
+    "args": ["buffer", "size"],
+    "args_types": ["const char *", "size_t"],
+    "args_description": ["The string to check", "The size of the string, in bytes"],
+    "args_return": [false, false],
     "wasm": true
   },
   {
@@ -20,7 +26,10 @@
     "ret": "bool",
     "name": "string_is_utf16",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t size"],
+    "args": ["buffer", "size"],
+    "args_types": ["const char *", "size_t"],
+    "args_description": ["The string to check", "The size of the string, in bytes"],
+    "args_return": [false, false],
     "wasm": true
   },
   {
@@ -28,7 +37,10 @@
     "ret": "bool",
     "name": "string_is_ascii",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t size"],
+    "args": ["buffer", "size"],
+    "args_types": ["const char *", "size_t"],
+    "args_description": ["The string to check", "The size of the string, in bytes"],
+    "args_return": [false, false],
     "wasm": true
   },
   {
@@ -36,7 +48,15 @@
     "ret": "unsigned int",
     "name": "codepoint_encode",
     "attributes": [],
-    "args": ["mjb_codepoint codepoint", "char *buffer", "size_t size", "mjb_encoding encoding"],
+    "args": ["codepoint", "buffer", "size", "encoding"],
+    "args_types": ["mjb_codepoint", "char *", "size_t", "mjb_encoding"],
+    "args_description": [
+      "The codepoint to encode",
+      "The buffer to encode the codepoint to",
+      "The size of the buffer, in bytes",
+      "The encoding to use"
+    ],
+    "args_return": [false, true, false, false],
     "wasm": true
   },
   {
@@ -44,7 +64,14 @@
     "ret": "size_t",
     "name": "strnlen",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *buffer", "size_t max_length", "mjb_encoding encoding"],
+    "args": ["buffer", "max_length", "encoding"],
+    "args_types": ["const char *", "size_t", "mjb_encoding"],
+    "args_description": [
+      "The string to check",
+      "The maximum length of the string, in bytes",
+      "The encoding of the string"
+    ],
+    "args_return": [false, false, false],
     "wasm": true
   },
   {
@@ -52,7 +79,15 @@
     "ret": "size_t",
     "name": "strncmp",
     "attributes": ["MJB_PURE"],
-    "args": ["const char *s1", "const char *s2", "size_t max_length", "mjb_encoding encoding"],
+    "args": ["s1", "s2", "max_length", "encoding"],
+    "args_types": ["const char *", "const char *", "size_t", "mjb_encoding"],
+    "args_description": [
+      "The first string to compare",
+      "The second string to compare",
+      "The maximum length of the strings, in bytes",
+      "The encoding of the strings"
+    ],
+    "args_return": [false, false, false, false],
     "wasm": true
   },
   {
@@ -60,7 +95,15 @@
     "ret": "char *",
     "name": "case",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t length", "mjb_case_type type", "mjb_encoding encoding"],
+    "args": ["buffer", "length", "type", "encoding"],
+    "args_types": ["const char *", "size_t", "mjb_case_type", "mjb_encoding"],
+    "args_description": [
+      "The string to change case",
+      "The length of the string, in bytes",
+      "The type of case change",
+      "The encoding of the string"
+    ],
+    "args_return": [false, false, false, false],
     "wasm": true
   },
   {
@@ -68,7 +111,10 @@
     "ret": "bool",
     "name": "codepoint_is_valid",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint to check"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -76,7 +122,10 @@
     "ret": "bool",
     "name": "codepoint_character",
     "attributes": ["MJB_NONNULL(2)"],
-    "args": ["mjb_codepoint codepoint", "mjb_character *character"],
+    "args": ["codepoint", "character"],
+    "args_types": ["mjb_codepoint", "mjb_character *"],
+    "args_description": ["The codepoint to check", "The character to store the result"],
+    "args_return": [false, true],
     "wasm": true
   },
   {
@@ -84,7 +133,10 @@
     "ret": "bool",
     "name": "codepoint_category_is",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint", "mjb_category category"],
+    "args": ["codepoint", "category"],
+    "args_types": ["mjb_codepoint", "mjb_category"],
+    "args_description": ["The codepoint to check", "The category to check"],
+    "args_return": [false, false],
     "wasm": true
   },
   {
@@ -92,7 +144,10 @@
     "ret": "bool",
     "name": "codepoint_is_graphic",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint to check"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -100,7 +155,10 @@
     "ret": "bool",
     "name": "codepoint_is_combining",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint to check"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -108,7 +166,10 @@
     "ret": "bool",
     "name": "category_is_combining",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_category category"],
+    "args": ["category"],
+    "args_types": ["mjb_category"],
+    "args_description": ["The category to check"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -116,7 +177,10 @@
     "ret": "bool",
     "name": "character_block",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint", "mjb_codepoint_block *block"],
+    "args": ["codepoint", "block"],
+    "args_types": ["mjb_codepoint", "mjb_codepoint_block *"],
+    "args_description": ["The codepoint to check", "The block to store the result"],
+    "args_return": [false, true],
     "wasm": true
   },
   {
@@ -124,7 +188,10 @@
     "ret": "mjb_codepoint",
     "name": "codepoint_to_lowercase",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -132,7 +199,10 @@
     "ret": "mjb_codepoint",
     "name": "codepoint_to_uppercase",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+      "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -140,7 +210,10 @@
     "ret": "mjb_codepoint",
     "name": "codepoint_to_titlecase",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -148,8 +221,16 @@
     "ret": "bool",
     "name": "normalize",
     "attributes": ["MJB_NONNULL(1, 5)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form",
-      "mjb_normalization_result *result"],
+    "args": ["buffer", "size", "encoding", "form", "result"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization", "mjb_normalization_result *"],
+    "args_description": [
+      "The string to normalize",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The normalization form to use",
+      "The result to store the result"
+    ],
+    "args_return": [false, false, false, false, true],
     "wasm": true
   },
   {
@@ -157,7 +238,15 @@
     "ret": "mjb_quick_check_result",
     "name": "string_is_normalized",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_normalization form"],
+    "args": ["buffer", "size", "encoding", "form"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization"],
+    "args_description": [
+      "The string to check",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The normalization form to check"
+    ],
+    "args_return": [false, false, false, false],
     "wasm": true
   },
   {
@@ -165,7 +254,15 @@
     "ret": "bool",
     "name": "next_character",
     "attributes": ["MJB_NONNULL(1, 4)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "mjb_next_character_fn fn"],
+    "args": ["buffer", "size", "encoding", "fn"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_next_character_fn"],
+    "args_description": [
+      "The string to check",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The function to call for each character"
+    ],
+    "args_return": [false, false, false, true],
     "wasm": true
   },
   {
@@ -173,7 +270,14 @@
     "ret": "mjb_line_break *",
     "name": "break_line",
     "attributes": ["MJB_NONNULL(1, 4)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding", "size_t *output_size"],
+    "args": ["buffer", "size", "encoding", "output_size"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "size_t *"],
+    "args_description": [
+      "The string to check",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The size of the output"
+    ],
     "wasm": true
   },
   {
@@ -181,7 +285,14 @@
     "ret": "bool",
     "name": "segmentation",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["const char *buffer", "size_t size", "mjb_encoding encoding"],
+    "args": ["buffer", "size", "encoding"],
+    "args_types": ["const char *", "size_t", "mjb_encoding"],
+    "args_description": [
+      "The string to check",
+      "The size of the string, in bytes",
+      "The encoding of the string"
+    ],
+    "args_return": [false, false, false],
     "wasm": true
   },
   {
@@ -189,7 +300,10 @@
     "ret": "mjb_plane",
     "name": "codepoint_plane",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -197,7 +311,10 @@
     "ret": "bool",
     "name": "plane_is_valid",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_plane plane"],
+    "args": ["plane"],
+    "args_types": ["mjb_plane"],
+    "args_description": ["The plane to check"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -205,7 +322,10 @@
     "ret": "const char *",
     "name": "plane_name",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_plane plane", "bool abbreviation"],
+    "args": ["plane", "abbreviation"],
+    "args_types": ["mjb_plane", "bool"],
+    "args_description": ["The plane to check", "Whether to use an abbreviation"],
+    "args_return": [false, false],
     "wasm": true
   },
   {
@@ -213,7 +333,14 @@
     "ret": "bool",
     "name": "hangul_syllable_name",
     "attributes": ["MJB_NONNULL(2)"],
-    "args": ["mjb_codepoint codepoint", "char *buffer", "size_t size"],
+    "args": ["codepoint", "buffer", "size"],
+    "args_types": ["mjb_codepoint", "char *", "size_t"],
+    "args_description": [
+      "The codepoint",
+      "The buffer to store the result",
+      "The size of the buffer"
+    ],
+    "args_return": [false, true, false],
     "wasm": false
   },
   {
@@ -221,7 +348,13 @@
     "ret": "bool",
     "name": "hangul_syllable_decomposition",
     "attributes": ["MJB_NODISCARD", "MJB_NONNULL(2)"],
-    "args": ["mjb_codepoint codepoint", "mjb_codepoint *codepoints"],
+    "args": ["codepoint", "codepoints"],
+    "args_types": ["mjb_codepoint", "mjb_codepoint *"],
+    "args_description": [
+      "The codepoint",
+      "The codepoints to store the result"
+    ],
+    "args_return": [false, true],
     "wasm": false
   },
   {
@@ -229,7 +362,13 @@
     "ret": "size_t",
     "name": "hangul_syllable_composition",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["mjb_buffer_character *characters", "size_t characters_len"],
+    "args": ["characters", "characters_len"],
+    "args_types": ["mjb_buffer_character *", "size_t"],
+    "args_description": [
+      "The characters to compose",
+      "The length of the characters"
+    ],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -237,7 +376,10 @@
     "ret": "bool",
     "name": "codepoint_is_hangul_l",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -245,7 +387,10 @@
     "ret": "bool",
     "name": "codepoint_is_hangul_v",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -253,7 +398,10 @@
     "ret": "bool",
     "name": "codepoint_is_hangul_t",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -261,7 +409,10 @@
     "ret": "bool",
     "name": "codepoint_is_hangul_jamo",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -269,7 +420,10 @@
     "ret": "bool",
     "name": "codepoint_is_hangul_syllable",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -277,7 +431,10 @@
     "ret": "bool",
     "name": "codepoint_is_cjk_ideograph",
     "attributes": ["MJB_CONST"],
-    "args": ["mjb_codepoint codepoint"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -286,6 +443,9 @@
     "name": "version",
     "attributes": ["MJB_CONST"],
     "args": [],
+    "args_types": [],
+    "args_description": [],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -294,6 +454,9 @@
     "name": "version_number",
     "attributes": ["MJB_CONST"],
     "args": [],
+    "args_types": [],
+    "args_description": [],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -302,6 +465,9 @@
     "name": "unicode_version",
     "attributes": ["MJB_CONST"],
     "args": [],
+    "args_types": [],
+    "args_description": [],
+    "args_return": [false],
     "wasm": true
   },
   {
@@ -310,6 +476,8 @@
     "name": "initialize",
     "attributes": ["MJB_NODISCARD"],
     "args": [],
+    "args_types": [],
+    "args_description": [],
     "wasm": false
   },
   {
@@ -317,8 +485,16 @@
     "ret": "bool",
     "name": "initialize_v2",
     "attributes": ["MJB_NODISCARD"],
-    "args": ["mjb_alloc_fn alloc_fn", "mjb_realloc_fn realloc_fn", "mjb_free_fn free_fn",
-      "const char *db", "size_t db_size"],
+    "args": ["alloc_fn", "realloc_fn", "free_fn", "db", "db_size"],
+    "args_types": ["mjb_alloc_fn", "mjb_realloc_fn", "mjb_free_fn", "const char *", "size_t"],
+    "args_description": [
+      "The function to allocate memory",
+      "The function to reallocate memory",
+      "The function to free memory",
+      "The database content of path to use",
+      "The size of the database content"
+    ],
+    "args_return": [false, false, false, false],
     "wasm": true
   },
   {
@@ -327,6 +503,9 @@
     "name": "shutdown",
     "attributes": [],
     "args": [],
+    "args_types": [],
+    "args_description": [],
+    "args_return": [],
     "wasm": false
   },
   {
@@ -334,7 +513,10 @@
     "ret": "void *",
     "name": "alloc",
     "attributes": ["MJB_NODISCARD"],
-    "args": ["size_t size"],
+    "args": ["size"],
+    "args_types": ["size_t"],
+    "args_description": ["The size of the memory to allocate"],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -342,7 +524,10 @@
     "ret": "void *",
     "name": "realloc",
     "attributes": ["MJB_NODISCARD", "MJB_NONNULL(1)"],
-    "args": ["void *ptr", "size_t new_size"],
+    "args": ["ptr", "new_size"],
+    "args_types": ["void *", "size_t"],
+    "args_description": ["The pointer to reallocate", "The new size of the memory"],
+    "args_return": [false],
     "wasm": false
   },
   {
@@ -350,7 +535,10 @@
     "ret": "void",
     "name": "free",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["void *ptr"],
+    "args": ["ptr"],
+    "args_types": ["void *"],
+    "args_description": ["The pointer to free"],
+    "args_return": [false],
     "wasm": false
   }
 ]

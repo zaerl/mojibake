@@ -1,45 +1,63 @@
-<!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light dark">
-    <title>Mojibake</title>
-    <link rel="stylesheet" type="text/css" href="chota.css">
-    <style>
-        body.dark {
-            --bg-color: #000;
-            --bg-secondary-color: #262626;
-            --font-color: #f5f5f5;
-            --color-grey: #bbb;
-            --color-darkGrey: #888;
-            --color-primary: #17c16f;
-            --color-error: #ea4f4f;
-        }
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light dark">
+        <title>Mojibake</title>
+        <link rel="stylesheet" type="text/css" href="chota.css">
+        <style>
+            body.dark {
+                --bg-color: #000;
+                --bg-secondary-color: #262626;
+                --font-color: #f5f5f5;
+                --color-grey: #bbb;
+                --color-darkGrey: #888;
+                --color-primary: #17c16f;
+                --color-error: #ea4f4f;
+            }
 
-        body > .container {
-            max-width: 720px;
-        }
+            body > .container {
+                max-width: 720px;
+            }
 
-        section {
-            margin: 2rem auto;
-        }
+            section {
+                margin: 2rem auto;
+            }
 
-        code {
-            color: var(--font-color);
-            display: inline-block;
-            padding: 1rem;
-            cursor: pointer;
-        }
+            code {
+                color: var(--font-color);
+                display: inline-block;
+                padding: 1rem;
+                cursor: pointer;
+            }
 
-        .function-results {
-            margin-top: 1rem;
-            display: none;
-        }
-    </style>
+            .function-card {
+                margin-top: 1rem;
+                border-radius: 4px;
+                display: none;
+                padding: 1rem;
+            }
+
+            #functions .selected .function-card {
+                display: block;
+            }
+
+            .function-form label {
+                text-transform: capitalize;
+            }
+
+            .function-results {
+                margin-top: 1rem;
+            }
+
+            .loading {
+                display: none;
+            }
+        </style>
 </head>
 <body>
+    <!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
     <script type="module">
         window.mojibake = null;
 
@@ -114,6 +132,8 @@
         import('./mojibake.js').then(async (Module) => {
             window.mojibake = await Module.default();
             console.log('Mojibake WASM module loaded. Version:', window.mojibake.ccall('mjb_version', 'string'));
+            document.getElementById('loading').remove();
+            document.getElementById('functions').classList.remove('loading');
 
             const dbResponse = await fetch('mojibake.db');
             const dbArrayBuffer = await dbResponse.arrayBuffer();
@@ -211,7 +231,10 @@
         <section>
             <strong>Mojibake</strong> is a low-level Unicode 16 library written in C99. This is an
             online demo of the library, compiled to WebAssembly.</section>
-        <section id="functions"></section>
+        <section id="loading" class="is-horizontal-align">
+            <progress></progress>
+        </section>
+        <section id="functions" class="loading"></section>
     </div>
     <script>
         if(
@@ -232,17 +255,26 @@
         // This is used for auto-generated site, do not edit this object.
         const functions = {};
 
-        function showFunctionCall(func) {
-            console.log(functions[func]);
+        function toggleFunctionCall(func) {
             const funcDiv = document.getElementById(func);
+            const selected = funcDiv.classList.toggle('selected');
+
+            if(!selected) {
+                form.reset();
+            }
+        }
+
+        function callFunction(func) {
+            const funcDiv = document.getElementById(func);
+            const form = document.getElementById(func + '-form');
+            const funcResults = document.getElementById(func + '-results');
+            console.log(functions[func]);
 
             if(functions[func].args.length === 1 && functions[func].args[0] === 'void') {
                 const result = window.mojibake.ccall(func, functions[func].ret === 'const char *' ? 'string' : 'number', []);
-                funcDiv.innerHTML = result;
-                funcDiv.style.display = 'block';
+                funcResults.innerHTML = result;
             } else {
-                funcDiv.innerHTML = 'Not supported';
-                funcDiv.style.display = 'block';
+                funcResults.innerHTML = 'Not supported';
             }
         }
     </script>

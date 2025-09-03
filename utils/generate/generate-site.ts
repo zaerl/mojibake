@@ -18,7 +18,7 @@ export async function generateSite() {
     functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
 
   fileContent = substituteText(fileContent,
-    "<section id=\"functions\">",
+    "<section id=\"functions\" class=\"loading\">",
     "</section>",
     functs.map(fn => fn.formatHTML()).join('\n'));
 
