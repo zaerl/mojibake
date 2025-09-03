@@ -116,9 +116,9 @@ export class CFunction {
       } else if(arg.startsWith('mjb_character *')) {
         ret += this.#getInput(i);
       } else if(arg.startsWith('size_t')) {
-        ret += this.#getNumberInput(i);
+        ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_codepoint')) {
-        ret += this.#getNumberInput(i);
+        ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_category')) {
         ret += this.#getSelectInput(i, categories, null);
       } else if(arg.startsWith('mjb_encoding')) {

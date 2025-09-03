@@ -49,6 +49,7 @@
 
             .function-results {
                 margin-top: 1rem;
+                display: none;
             }
 
             .loading {
@@ -60,6 +61,60 @@
     <!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
     <script type="module">
         window.mojibake = null;
+
+        // Load the WASM module
+        import('./mojibake.js').then(async (Module) => {
+            window.mojibake = await Module.default();
+            console.log('Mojibake WASM module loaded. Version:', window.mojibake.ccall('mjb_version', 'string'));
+            document.getElementById('loading').remove();
+            document.getElementById('functions').classList.remove('loading');
+
+            const dbResponse = await fetch('mojibake.db');
+            const dbArrayBuffer = await dbResponse.arrayBuffer();
+            const dbBytes = new Uint8Array(dbArrayBuffer);
+            const dbPtr = window.mojibake._malloc(dbBytes.length);
+            window.mojibake.HEAPU8.set(dbBytes, dbPtr);
+
+            let initialized = window.mojibake.ccall('mjb_initialize_v2', 'boolean',
+                ['number', 'number', 'number', 'number', 'number'], [0, 0, 0, dbPtr, dbBytes.length]);
+        }).catch(err => {
+            console.error('Failed to load WASM module:', err);
+        });
+    </script>
+    <div id="main" class="container">
+        <section id="header">
+            <nav class="nav">
+                <div class="nav-left">
+                  <a href="https://github.com/zaerl/mojibake">Github</a>
+                </div>
+                <div class="nav-center">
+                  <a id="title" class="brand" title="文字化け">Mojibake</a>
+                </div>
+                <div class="nav-right">
+                    <a href="javascript:void(0)" id="theme-switch" onclick="switchMode(this)">☀️</a>
+                </div>
+            </nav>
+        </section>
+        <section>
+            <strong>Mojibake</strong> is a low-level Unicode 16 library written in C99. This is an
+            online demo of the library, compiled to WebAssembly.</section>
+        <section id="loading" class="is-horizontal-align">
+            <progress></progress>
+        </section>
+        <section id="functions" class="loading"></section>
+    </div>
+    <script>
+        if(
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+            document.body.classList.add("dark");
+            document.querySelector('#theme-switch').innerHTML = "🌙"
+        }
+
+        function codepointToString(codepoint) {
+            return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
+        }
 
         class CStruct {
             #ptr;
@@ -128,123 +183,6 @@
             }
         }
 
-        // Load the WASM module
-        import('./mojibake.js').then(async (Module) => {
-            window.mojibake = await Module.default();
-            console.log('Mojibake WASM module loaded. Version:', window.mojibake.ccall('mjb_version', 'string'));
-            document.getElementById('loading').remove();
-            document.getElementById('functions').classList.remove('loading');
-
-            const dbResponse = await fetch('mojibake.db');
-            const dbArrayBuffer = await dbResponse.arrayBuffer();
-            const dbBytes = new Uint8Array(dbArrayBuffer);
-            const dbPtr = window.mojibake._malloc(dbBytes.length);
-            window.mojibake.HEAPU8.set(dbBytes, dbPtr);
-
-            let initialized = window.mojibake.ccall('mjb_initialize_v2', 'boolean',
-                ['number', 'number', 'number', 'number', 'number'], [0, 0, 0, dbPtr, dbBytes.length]);
-
-            // Test mjb_codepoint_character function
-            // testCodepointCharacter(0x1F64);
-
-            function codepointToString(codepoint) {
-                return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
-            }
-
-            function testCodepointCharacter(codepoint) {
-                // Allocate memory for mjb_character structure
-                const structSize = 512;
-                const ptr = window.mojibake._malloc(structSize);
-
-                // Initialize memory to zero
-                for(let i = 0; i < structSize; i++) {
-                    window.mojibake.HEAPU8[ptr + i] = 0;
-                }
-
-                // Call mjb_codepoint_character
-                const result = window.mojibake.ccall('mjb_codepoint_character', 'boolean',
-                    ['number', 'number'], [codepoint, ptr]);
-
-                if(result) {
-                    const struct = new CStruct(ptr);
-                    const char = struct.toObject({
-                        codepoint: 'u32',
-                        name: 'str128',
-                        category: 'u32',
-                        combining: 'u32',
-                        bidirectional: 'u16',
-                        decomposition: 'u32',
-                        decimal: 'i32',
-                        digit: 'i32',
-                        numeric: 'str16',
-                        mirrored: 'u8',
-                        uppercase: 'u32',
-                        lowercase: 'u32',
-                        titlecase: 'u32',
-                    });
-
-                    if(char.decimal === -1) {
-                        char.decimal = null;
-                    }
-
-                    if(char.digit === -1) {
-                        char.digit = null;
-                    }
-
-                    console.log(`Character ${codepointToString(char.codepoint)}:`);
-                    console.log(`Name: ${char.name}`);
-                    console.log(`Category: ${char.category}`);
-                    console.log(`Combining Class: ${char.combining}`);
-                    console.log(`Bidirectional: ${char.bidirectional}`);
-                    console.log(`Decimal: ${char.decimal}`);
-                    console.log(`Digit: ${char.digit}`);
-                    console.log(`Numeric: ${char.numeric}`);
-                    console.log(`Mirrored: ${char.mirrored}`);
-                    console.log(`Uppercase: ${codepointToString(char.uppercase)}`);
-                    console.log(`Lowercase: ${codepointToString(char.lowercase)}`);
-                    console.log(`Titlecase: ${codepointToString(char.titlecase)}`);
-                } else {
-                    console.log(`Failed to get character data for ${codepointToString(codepoint)}`);
-                }
-
-                // Free allocated memory
-                window.mojibake._free(ptr);
-            }
-        }).catch(err => {
-            console.error('Failed to load WASM module:', err);
-        });
-    </script>
-    <div id="main" class="container">
-        <section id="header">
-            <nav class="nav">
-                <div class="nav-left">
-                  <a href="https://github.com/zaerl/mojibake">Github</a>
-                </div>
-                <div class="nav-center">
-                  <a id="title" class="brand" title="文字化け">Mojibake</a>
-                </div>
-                <div class="nav-right">
-                    <a href="javascript:void(0)" id="theme-switch" onclick="switchMode(this)">☀️</a>
-                </div>
-            </nav>
-        </section>
-        <section>
-            <strong>Mojibake</strong> is a low-level Unicode 16 library written in C99. This is an
-            online demo of the library, compiled to WebAssembly.</section>
-        <section id="loading" class="is-horizontal-align">
-            <progress></progress>
-        </section>
-        <section id="functions" class="loading"></section>
-    </div>
-    <script>
-        if(
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-            document.body.classList.add("dark");
-            document.querySelector('#theme-switch').innerHTML = "🌙"
-        }
-
         function switchMode(el) {
             const bodyClass = document.body.classList;
             bodyClass.contains("dark")
@@ -254,6 +192,70 @@
 
         // This is used for auto-generated site, do not edit this object.
         const functions = {};
+
+        function ccallCodepointCharacter(codepoint) {
+            // Allocate memory for mjb_character structure
+            const structSize = 512;
+            const ptr = window.mojibake._malloc(structSize);
+
+            // Initialize memory to zero
+            for(let i = 0; i < structSize; i++) {
+                window.mojibake.HEAPU8[ptr + i] = 0;
+            }
+
+            // Call mjb_codepoint_character
+            const result = window.mojibake.ccall('mjb_codepoint_character', 'boolean',
+                ['number', 'number'], [codepoint, ptr]);
+
+            if(result) {
+                const struct = new CStruct(ptr);
+                const char = struct.toObject({
+                    codepoint: 'u32',
+                    name: 'str128',
+                    category: 'u32',
+                    combining: 'u32',
+                    bidirectional: 'u16',
+                    decomposition: 'u32',
+                    decimal: 'i32',
+                    digit: 'i32',
+                    numeric: 'str16',
+                    mirrored: 'u8',
+                    uppercase: 'u32',
+                    lowercase: 'u32',
+                    titlecase: 'u32',
+                });
+
+                if(char.decimal === -1) {
+                    char.decimal = null;
+                }
+
+                if(char.digit === -1) {
+                    char.digit = null;
+                }
+
+                let ret = `Character <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
+                ret += `Name: <strong>${char.name}</strong><br>`;
+                ret += `Category: <strong>${char.category}</strong><br>`;
+                ret += `Combining Class: <strong>${char.combining}</strong><br>`;
+                ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
+                ret += `Decimal: <strong>${char.decimal}</strong><br>`;
+                ret += `Digit: <strong>${char.digit}</strong><br>`;
+                ret += `Numeric: <strong>${char.numeric}</strong><br>`;
+                ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
+                ret += `Uppercase: <strong>${codepointToString(char.uppercase)}</strong><br>`;
+                ret += `Lowercase: <strong>${codepointToString(char.lowercase)}</strong><br>`;
+                ret += `Titlecase: <strong>${codepointToString(char.titlecase)}</strong>`;
+
+                return ret;
+            } else {
+                console.log(`Failed to get character data for ${codepointToString(codepoint)}`);
+            }
+
+            // Free allocated memory
+            window.mojibake._free(ptr);
+
+            return false;
+        }
 
         function toggleFunctionCall(func) {
             const funcDiv = document.getElementById(func);
@@ -265,6 +267,17 @@
                 if(form) {
                     form.reset();
                 }
+            }
+        }
+
+        function ccCall(func, ret, argTypes, args) {
+            console.log(func, ret);
+            console.log(argTypes, args);
+
+            if(func === 'mjb_codepoint_character') {
+                return ccallCodepointCharacter(args[0]);
+            } else {
+                return window.mojibake.ccall(func, ret, argTypes, args);
             }
         }
 
@@ -283,9 +296,30 @@
             function typeMap(type) {
                 if(type === 'const char *') {
                     return 'string';
+                } else if(type === 'bool') {
+                    return 'boolean';
                 }
 
                 return 'number';
+            }
+
+            function readCodepoint(value) {
+                // Handle different codepoint formats: decimal, hex, 0x hex, U+FFFF
+                value = value.trim().toUpperCase();
+
+                if (value.startsWith('U+')) {
+                    // U+FFFF format
+                    return parseInt(value.substring(2), 16);
+                } else if (value.startsWith('0X')) {
+                    // 0xFFFF format
+                    return parseInt(value.substring(2), 16);
+                } else if (/^[0-9A-F]+$/.test(value)) {
+                    // Plain hex format
+                    return parseInt(value, 16);
+                } else {
+                    // Decimal format
+                    return parseInt(value, 10);
+                }
             }
 
             let i = 0;
@@ -294,12 +328,15 @@
             const ret = typeMap(functions[func].ret);
 
             for(const arg of functions[func].args) {
-                argTypes.push(typeMap(functions[func].argsTypes[i]));
+                const mappedType = typeMap(functions[func].argsTypes[i]);
+                argTypes.push(mappedType);
 
                 if(!functions[func].argsReturn[i]) {
                     let value = form.elements[`${func}-${arg}`].value;
 
-                    if(typeMap(arg) === 'number') {
+                    if(functions[func].argsTypes[i] === 'mjb_codepoint') {
+                        value = readCodepoint(value);
+                    } else if(mappedType === 'number') {
                         value = parseInt(value, 10);
                     }
 
@@ -309,18 +346,14 @@
                 ++i;
             }
 
-            const result = window.mojibake.ccall(func, ret, argTypes, args);
+            let result = ccCall(func, ret, argTypes, args);
 
-            if(functions[func].ret === 'bool') {
-                result ? funcResults.innerHTML = 'true' : funcResults.innerHTML = 'false';
-            } else {
-                funcResults.innerHTML = result;
+            if(functions[func].ret === 'mjb_codepoint') {
+                result = codepointToString(result);
             }
 
-            // funcResults.innerHTML = result;
-
-            // const result = window.mojibake.ccall(func, ret, []);
-            // funcResults.innerHTML = result;
+            funcResults.style.display = 'block';
+            funcResults.innerHTML = result;
         }
     </script>
 </body>
