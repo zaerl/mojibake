@@ -55,14 +55,13 @@ Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
 
 // The string to normalize
 const char *hello = "Hello, World!"
-// The length of the normalized string
-size_t normalized_size = 0;
+mjb_normalization_result result;
 
-char *normalized = mjb_normalize(hello, 13, &normalized_size, MJB_NORMALIZATION_NFC);
-printf("Normalized: %s\nSize: %zu\n", normalized, normalized_size);
+char *normalized = mjb_normalize(hello, 13, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC, &result);
+printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
 
 // Remember to free() the string
-mjb_free(normalized);
+mjb_free(result.output);
 
 ```
 
