@@ -208,7 +208,7 @@
             const ptr = window.mojibake._malloc(structSize);
 
             // Initialize memory to zero
-            for(let i = 0; i < structSize; i++) {
+            for(let i = 0; i < structSize; ++i) {
                 window.mojibake.HEAPU8[ptr + i] = 0;
             }
 
@@ -242,10 +242,10 @@
                     char.digit = null;
                 }
 
-                let ret = `Character <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
+                let ret = `Codepoint <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
                 ret += `Name: <span class="text-primary">${char.name}</span><br>`;
                 ret += `Category: <strong>${categories[char.category]}</strong><br>`;
-                ret += `Combining Class: <strong>${char.combining}</strong><br>`;
+                ret += `Combining: <strong>${char.combining}</strong><br>`;
                 ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
                 ret += `Decimal: <strong>${char.decimal}</strong><br>`;
                 ret += `Digit: <strong>${char.digit}</strong><br>`;
@@ -258,6 +258,44 @@
                 return ret;
             } else {
                 console.log(`Failed to get character data for ${codepointToString(codepoint)}`);
+            }
+
+            // Free allocated memory
+            window.mojibake._free(ptr);
+
+            return false;
+        }
+
+        function ccallNormalize(buffer, size, encoding, form) {
+            // See mjb_normalization_result on mojibake.h
+            const structSize = 24;
+            const ptr = window.mojibake._malloc(structSize);
+
+            // Initialize memory to zero
+            for(let i = 0; i < structSize; ++i) {
+                window.mojibake.HEAPU8[ptr + i] = 0;
+            }
+
+            // Call mjb_codepoint_character
+            const result = window.mojibake.ccall('mjb_normalize', 'boolean',
+                ['string', 'number', 'number', 'number', 'number'],
+                [buffer, size, encoding, form, ptr]);
+
+            if(result) {
+                const struct = new CStruct(ptr);
+                const result = struct.toObject({
+                    output: 'u32',
+                    output_size: 'u32',
+                    normalized: 'u8'
+                });
+
+                let ret = `Output: <strong>${window.mojibake.UTF8ToString(result.output)}</strong><br>`;
+                ret += `Output size: <strong>${result.output_size}</strong><br>`;
+                ret += `Normalized: <strong>${result.normalized ? 'true' : 'false'}</strong><br>`;
+
+                return ret;
+            } else {
+                console.log("Failed to get normalization data");
             }
 
             // Free allocated memory
@@ -285,6 +323,8 @@
 
             if(func === 'mjb_codepoint_character') {
                 return ccallCodepointCharacter(args[0]);
+            } else if(func === 'mjb_normalize') {
+                return ccallNormalize(args[0], args[1], args[2], args[3]);
             } else {
                 return window.mojibake.ccall(func, ret, argTypes, args);
             }

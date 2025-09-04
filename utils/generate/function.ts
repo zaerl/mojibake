@@ -174,6 +174,8 @@ export class CFunction {
         ];
 
         ret += this.#getSelectInput(i, options, values);
+      } else if(arg.startsWith('mjb_normalization_result')) {
+        ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_normalization')) {
         // See mjb_normalization on mojibake.h
         const options = [
