@@ -290,14 +290,32 @@ MJB_NONNULL(1) char *mjb_case(const char *buffer, size_t length, mjb_case_type t
 // Return true if the codepoint is valid
 MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
-// Return true if the codepoint has the category
-MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
-
 // Return true if the codepoint is graphic
 MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 
 // Return true if the codepoint is combining
 MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the category
+MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
+
+// Return if the codepoint is an hangul L
+MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul V
+MJB_CONST bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul T
+MJB_CONST bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul jamo
+MJB_CONST bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
+
+// Return if the codepoint is an hangul syllable
+MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+
+// Return if the codepoint is CJK ideograph
+MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 // Return true if the category is combining
 MJB_CONST bool mjb_category_is_combining(mjb_category category);
@@ -337,24 +355,6 @@ MJB_NODISCARD MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoin
 
 // Hangul syllable composition
 MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
-
-// Return if the codepoint is an hangul L
-MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
-
-// Return if the codepoint is an hangul V
-MJB_CONST bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
-
-// Return if the codepoint is an hangul T
-MJB_CONST bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
-
-// Return if the codepoint is an hangul jamo
-MJB_CONST bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
-
-// Return if the codepoint is an hangul syllable
-MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
-
-// Return if the codepoint is CJK ideograph
-MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);

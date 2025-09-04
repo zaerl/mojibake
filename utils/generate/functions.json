@@ -178,17 +178,6 @@
     "wasm": true
   },
   {
-    "comment": "Return true if the codepoint has the category",
-    "ret": "bool",
-    "name": "codepoint_category_is",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint", "category"],
-    "args_types": ["mjb_codepoint", "mjb_category"],
-    "args_description": ["The codepoint to check", "The category to check"],
-    "wasm_generated": [false, false],
-    "wasm": true
-  },
-  {
     "comment": "Return true if the codepoint is graphic",
     "ret": "bool",
     "name": "codepoint_is_graphic",
@@ -208,6 +197,83 @@
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint to check"],
     "wasm_generated": [false],
+    "wasm": true
+  },
+  {
+    "comment": "Return if the codepoint is an hangul L",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_l",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "wasm_generated": [false],
+    "wasm": false
+  },
+  {
+    "comment": "Return if the codepoint is an hangul V",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_v",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "wasm_generated": [false],
+    "wasm": false
+  },
+  {
+    "comment": "Return if the codepoint is an hangul T",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_t",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "wasm_generated": [false],
+    "wasm": false
+  },
+  {
+    "comment": "Return if the codepoint is an hangul jamo",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_jamo",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "wasm_generated": [false],
+    "wasm": false
+  },
+  {
+    "comment": "Return if the codepoint is an hangul syllable",
+    "ret": "bool",
+    "name": "codepoint_is_hangul_syllable",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "wasm_generated": [false],
+    "wasm": true
+  },
+  {
+    "comment": "Return if the codepoint is CJK ideograph",
+    "ret": "bool",
+    "name": "codepoint_is_cjk_ideograph",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint"],
+    "args_types": ["mjb_codepoint"],
+    "args_description": ["The codepoint"],
+    "wasm_generated": [false],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the codepoint has the category",
+    "ret": "bool",
+    "name": "codepoint_category_is",
+    "attributes": ["MJB_CONST"],
+    "args": ["codepoint", "category"],
+    "args_types": ["mjb_codepoint", "mjb_category"],
+    "args_description": ["The codepoint to check", "The category to check"],
+    "wasm_generated": [false, false],
     "wasm": true
   },
   {
@@ -370,72 +436,6 @@
       "The length of the characters"
     ],
     "wasm": false
-  },
-  {
-    "comment": "Return if the codepoint is an hangul L",
-    "ret": "bool",
-    "name": "codepoint_is_hangul_l",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint"],
-    "args_types": ["mjb_codepoint"],
-    "args_description": ["The codepoint"],
-    "wasm_generated": [false],
-    "wasm": false
-  },
-  {
-    "comment": "Return if the codepoint is an hangul V",
-    "ret": "bool",
-    "name": "codepoint_is_hangul_v",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint"],
-    "args_types": ["mjb_codepoint"],
-    "args_description": ["The codepoint"],
-    "wasm_generated": [false],
-    "wasm": false
-  },
-  {
-    "comment": "Return if the codepoint is an hangul T",
-    "ret": "bool",
-    "name": "codepoint_is_hangul_t",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint"],
-    "args_types": ["mjb_codepoint"],
-    "args_description": ["The codepoint"],
-    "wasm_generated": [false],
-    "wasm": false
-  },
-  {
-    "comment": "Return if the codepoint is an hangul jamo",
-    "ret": "bool",
-    "name": "codepoint_is_hangul_jamo",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint"],
-    "args_types": ["mjb_codepoint"],
-    "args_description": ["The codepoint"],
-    "wasm_generated": [false],
-    "wasm": false
-  },
-  {
-    "comment": "Return if the codepoint is an hangul syllable",
-    "ret": "bool",
-    "name": "codepoint_is_hangul_syllable",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint"],
-    "args_types": ["mjb_codepoint"],
-    "args_description": ["The codepoint"],
-    "wasm_generated": [false],
-    "wasm": true
-  },
-  {
-    "comment": "Return if the codepoint is CJK ideograph",
-    "ret": "bool",
-    "name": "codepoint_is_cjk_ideograph",
-    "attributes": ["MJB_CONST"],
-    "args": ["codepoint"],
-    "args_types": ["mjb_codepoint"],
-    "args_description": ["The codepoint"],
-    "wasm_generated": [false],
-    "wasm": true
   },
   {
     "comment": "Output the current library version (MJB_VERSION)",

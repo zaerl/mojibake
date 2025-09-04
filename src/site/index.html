@@ -282,9 +282,9 @@
                 ret += `Category: <strong>${categories[char.category]}</strong><br>`;
                 ret += `Combining: <strong>${char.combining}</strong><br>`;
                 ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
-                ret += `Decimal: <strong>${char.decimal}</strong><br>`;
-                ret += `Digit: <strong>${char.digit}</strong><br>`;
-                ret += `Numeric: <strong>${char.numeric}</strong><br>`;
+                ret += `Decimal: <strong>${char.decimal === null ? 'N/A' : char.decimal}</strong><br>`;
+                ret += `Digit: <strong>${char.digit === null ? 'N/A' : char.digit}</strong><br>`;
+                ret += `Numeric: <strong>${char.numeric === '' ? 'N/A' : char.numeric}</strong><br>`;
                 ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
                 ret += `Uppercase: <strong>${codepointToString(char.uppercase, false)}</strong><br>`;
                 ret += `Lowercase: <strong>${codepointToString(char.lowercase, false)}</strong><br>`;

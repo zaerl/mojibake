@@ -78,12 +78,6 @@ Return true if the codepoint is valid
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 ```
 
-Return true if the codepoint has the category
-
-```c
-bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
-```
-
 Return true if the codepoint is graphic
 
 ```c
@@ -94,6 +88,48 @@ Return true if the codepoint is combining
 
 ```c
 bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the category
+
+```c
+bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
+```
+
+Return if the codepoint is an hangul L
+
+```c
+bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul V
+
+```c
+bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul T
+
+```c
+bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul jamo
+
+```c
+bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is an hangul syllable
+
+```c
+bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is CJK ideograph
+
+```c
+bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 ```
 
 Return true if the category is combining
@@ -172,42 +208,6 @@ Hangul syllable composition
 
 ```c
 size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
-```
-
-Return if the codepoint is an hangul L
-
-```c
-bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul V
-
-```c
-bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul T
-
-```c
-bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul jamo
-
-```c
-bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is an hangul syllable
-
-```c
-bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
-```
-
-Return if the codepoint is CJK ideograph
-
-```c
-bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 ```
 
 Output the current library version (MJB_VERSION)
