@@ -243,6 +243,10 @@ button:disabled, .btn:disabled {
     color: var(--primary);
 }
 
+.text-secondary {
+    color: var(--text-secondary);
+}
+
 /* Tables */
 table {
     width: 100%;

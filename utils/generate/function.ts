@@ -11,7 +11,7 @@ export class CFunction {
     private args: string[] = [],
     private argsTypes: string[] = [],
     private argsDescription: string[] = [],
-    private argsReturn: boolean[] = [],
+    private wasmGenerated: boolean[] = [],
     private wasm: boolean = false
   ) {
     if(!this.ret.endsWith('*')) {
@@ -53,7 +53,7 @@ export class CFunction {
       name: this.getName(),
       args: this.args,
       argsTypes: this.argsTypes,
-      argsReturn: this.argsReturn,
+      wasmGenerated: this.wasmGenerated,
     });
   }
 
@@ -77,7 +77,7 @@ export class CFunction {
   }
 
   #getDescription(arg: number): string {
-    let ret = this.argsReturn[arg] ? `${this.argsDescription[arg]} (automatically generated)` : this.argsDescription[arg];
+    let ret = this.wasmGenerated[arg] ? `${this.argsDescription[arg]} (automatically generated)` : this.argsDescription[arg];
 
     if(this.argsTypes[arg] === 'mjb_codepoint') {
       ret += ' (U+XXXXX, 0xXXXXX or XXXXX hexadecimal format)';
@@ -87,22 +87,22 @@ export class CFunction {
   }
 
   #getInput(arg: number, type = 'text'): string {
-    const disabled = this.argsReturn[arg];
+    const disabled = this.wasmGenerated[arg];
     const name = `${this.getName()}-${this.args[arg]}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}" class="${disabled ? 'text-light' : ''}">${this.args[arg]}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.args[arg]}</label>`;
     ret += `<input id="${name}" type="${type}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
 
     return ret + '</div>';
   }
 
   #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
-    const disabled = this.argsReturn[arg];
+    const disabled = this.wasmGenerated[arg];
     const name = `${this.getName()}-${this.args[arg]}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}" class="${disabled ? 'text-light ' : ''}">${this.args[arg]}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}">${this.args[arg]}</label>`;
     ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
@@ -234,7 +234,7 @@ export function cfns(): CFunction[] {
     item.args,
     item.args_types,
     item.args_description,
-    item.args_return,
+    item.wasm_generated,
     item.wasm
   ));
 }

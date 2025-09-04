@@ -409,7 +409,7 @@
                 const mappedType = typeMap(functions[func].argsTypes[i]);
                 argTypes.push(mappedType);
 
-                if(!functions[func].argsReturn[i]) {
+                if(!functions[func].wasmGenerated[i]) {
                     let value = form.elements[`${func}-${arg}`].value;
 
                     if(functions[func].argsTypes[i] === 'mjb_codepoint') {

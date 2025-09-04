@@ -7,7 +7,7 @@
     "args": ["codepoint", "character"],
     "args_types": ["mjb_codepoint", "mjb_character *"],
     "args_description": ["The codepoint to check", "The character to store the result"],
-    "args_return": [false, true],
+    "wasm_generated": [false, true],
     "wasm": true
   },
   {
@@ -24,7 +24,7 @@
       "The normalization form to use",
       "The result to store the result"
     ],
-    "args_return": [false, false, false, false, true],
+    "wasm_generated": [false, true, false, false, true],
     "wasm": true
   },
   {
@@ -40,7 +40,7 @@
       "The encoding of the string",
       "The function to call for each character"
     ],
-    "args_return": [false, false, false, true],
+    "wasm_generated": [false, true, false, true],
     "wasm": true
   },
   {
@@ -56,7 +56,7 @@
       "The encoding of the string",
       "The normalization form to check"
     ],
-    "args_return": [false, false, false, false],
+    "wasm_generated": [false, true, false, false],
     "wasm": true
   },
   {
@@ -67,7 +67,7 @@
     "args": ["buffer", "size"],
     "args_types": ["const char *", "size_t"],
     "args_description": ["The string to check", "The size of the string, in bytes"],
-    "args_return": [false, false],
+    "wasm_generated": [false, true],
     "wasm": true
   },
   {
@@ -78,7 +78,7 @@
     "args": ["buffer", "size"],
     "args_types": ["const char *", "size_t"],
     "args_description": ["The string to check", "The size of the string, in bytes"],
-    "args_return": [false, false],
+    "wasm_generated": [false, true],
     "wasm": true
   },
   {
@@ -89,7 +89,7 @@
     "args": ["buffer", "size"],
     "args_types": ["const char *", "size_t"],
     "args_description": ["The string to check", "The size of the string, in bytes"],
-    "args_return": [false, false],
+    "wasm_generated": [false, true],
     "wasm": true
   },
   {
@@ -100,7 +100,7 @@
     "args": ["buffer", "size"],
     "args_types": ["const char *", "size_t"],
     "args_description": ["The string to check", "The size of the string, in bytes"],
-    "args_return": [false, false],
+    "wasm_generated": [false, true],
     "wasm": true
   },
   {
@@ -116,7 +116,7 @@
       "The size of the buffer, in bytes",
       "The encoding to use"
     ],
-    "args_return": [false, true, false, false],
+    "wasm_generated": [false, true, true, false],
     "wasm": true
   },
   {
@@ -131,7 +131,7 @@
       "The maximum length of the string, in bytes",
       "The encoding of the string"
     ],
-    "args_return": [false, false, false],
+    "wasm_generated": [false, true, false],
     "wasm": true
   },
   {
@@ -147,7 +147,7 @@
       "The maximum length of the strings, in bytes",
       "The encoding of the strings"
     ],
-    "args_return": [false, false, false, false],
+    "wasm_generated": [false, false, true, false],
     "wasm": true
   },
   {
@@ -163,7 +163,7 @@
       "The type of case change",
       "The encoding of the string"
     ],
-    "args_return": [false, false, false, false],
+    "wasm_generated": [false, true, false, false],
     "wasm": true
   },
   {
@@ -174,7 +174,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint to check"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -185,7 +185,7 @@
     "args": ["codepoint", "category"],
     "args_types": ["mjb_codepoint", "mjb_category"],
     "args_description": ["The codepoint to check", "The category to check"],
-    "args_return": [false, false],
+    "wasm_generated": [false, false],
     "wasm": true
   },
   {
@@ -196,7 +196,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint to check"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -207,7 +207,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint to check"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -218,7 +218,7 @@
     "args": ["category"],
     "args_types": ["mjb_category"],
     "args_description": ["The category to check"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -229,7 +229,7 @@
     "args": ["codepoint", "block"],
     "args_types": ["mjb_codepoint", "mjb_codepoint_block *"],
     "args_description": ["The codepoint to check", "The block to store the result"],
-    "args_return": [false, true],
+    "wasm_generated": [false, true],
     "wasm": true
   },
   {
@@ -240,7 +240,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -251,7 +251,7 @@
       "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -262,7 +262,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -278,6 +278,7 @@
       "The encoding of the string",
       "The size of the output"
     ],
+    "wasm_generated": [false, true, false, true],
     "wasm": true
   },
   {
@@ -292,7 +293,7 @@
       "The size of the string, in bytes",
       "The encoding of the string"
     ],
-    "args_return": [false, false, false],
+    "wasm_generated": [false, true, false],
     "wasm": true
   },
   {
@@ -303,7 +304,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -314,7 +315,7 @@
     "args": ["plane"],
     "args_types": ["mjb_plane"],
     "args_description": ["The plane to check"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -325,7 +326,7 @@
     "args": ["plane", "abbreviation"],
     "args_types": ["mjb_plane", "bool"],
     "args_description": ["The plane to check", "Whether to use an abbreviation"],
-    "args_return": [false, false],
+    "wasm_generated": [false, false],
     "wasm": true
   },
   {
@@ -340,7 +341,7 @@
       "The buffer to store the result",
       "The size of the buffer"
     ],
-    "args_return": [false, true, false],
+    "wasm_generated": [false, true, true],
     "wasm": false
   },
   {
@@ -354,7 +355,7 @@
       "The codepoint",
       "The codepoints to store the result"
     ],
-    "args_return": [false, true],
+    "wasm_generated": [false, true],
     "wasm": false
   },
   {
@@ -368,7 +369,6 @@
       "The characters to compose",
       "The length of the characters"
     ],
-    "args_return": [false],
     "wasm": false
   },
   {
@@ -379,7 +379,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   },
   {
@@ -390,7 +390,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   },
   {
@@ -401,7 +401,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   },
   {
@@ -412,7 +412,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   },
   {
@@ -423,7 +423,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -434,7 +434,7 @@
     "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -445,7 +445,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -456,7 +456,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": true
   },
   {
@@ -467,7 +467,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
-    "args_return": [false],
+    "wasm_generated": [],
     "wasm": true
   },
   {
@@ -478,6 +478,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
+    "wasm_generated": [],
     "wasm": false
   },
   {
@@ -494,7 +495,7 @@
       "The database content of path to use",
       "The size of the database content"
     ],
-    "args_return": [false, false, false, false],
+    "wasm_generated": [false, false, false, false],
     "wasm": true
   },
   {
@@ -505,7 +506,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
-    "args_return": [],
+    "wasm_generated": [],
     "wasm": false
   },
   {
@@ -516,7 +517,7 @@
     "args": ["size"],
     "args_types": ["size_t"],
     "args_description": ["The size of the memory to allocate"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   },
   {
@@ -527,7 +528,7 @@
     "args": ["ptr", "new_size"],
     "args_types": ["void *", "size_t"],
     "args_description": ["The pointer to reallocate", "The new size of the memory"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   },
   {
@@ -538,7 +539,7 @@
     "args": ["ptr"],
     "args_types": ["void *"],
     "args_description": ["The pointer to free"],
-    "args_return": [false],
+    "wasm_generated": [false],
     "wasm": false
   }
 ]
