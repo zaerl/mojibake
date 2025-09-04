@@ -97,12 +97,23 @@ export class CFunction {
     return ret + '</div>';
   }
 
+  #getCheckbox(arg: number): string {
+    const disabled = this.wasmGenerated[arg];
+    const name = `${this.getName()}-${this.args[arg]}`;
+    const description = this.#getDescription(arg);
+
+    let ret = `<div><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
+      `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.args[arg]}</label>`;
+
+    return ret + '</div>';
+  }
+
   #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
     const disabled = this.wasmGenerated[arg];
     const name = `${this.getName()}-${this.args[arg]}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}">${this.args[arg]}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.args[arg]}</label>`;
     ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
@@ -135,6 +146,8 @@ export class CFunction {
         ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_codepoint')) {
         ret += this.#getInput(i);
+      } else if(arg.startsWith('bool')) {
+        ret += this.#getCheckbox(i);
       } else if(arg.startsWith('mjb_category')) {
         ret += this.#getSelectInput(i, categories, null);
       } else if(arg.startsWith('mjb_encoding')) {

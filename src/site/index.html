@@ -416,6 +416,8 @@
                         value = readCodepoint(value);
                     } else if(mappedType === 'number') {
                         value = parseInt(value, 10);
+                    } else if(mappedType === 'boolean') {
+                        value = form.elements[`${func}-${arg}`].checked;
                     }
 
                     args.push(value);
