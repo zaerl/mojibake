@@ -1,5 +1,23 @@
 ## API
 
+Return the codepoint character
+
+```c
+bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
+```
+
+Normalize a string to NFC/NFKC/NFD/NFKD form
+
+```c
+bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
+```
+
+Check if a string is normalized to NFC/NFKC/NFD/NFKD form
+
+```c
+mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+```
+
 Return the string encoding (the most probable)
 
 ```c
@@ -42,7 +60,7 @@ Compare two strings
 size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encoding encoding);
 ```
 
-Return change string case
+Change string case
 
 ```c
 char *mjb_case(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding);
@@ -52,12 +70,6 @@ Return true if the codepoint is valid
 
 ```c
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
-```
-
-Return the codepoint character
-
-```c
-bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 ```
 
 Return true if the codepoint has the category
@@ -106,18 +118,6 @@ Return the codepoint titlecase codepoint
 
 ```c
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
-```
-
-Normalize a string to NFC/NFKC/NFD/NFKD form
-
-```c
-bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
-```
-
-Check if a string is normalized to NFC/NFKC/NFD/NFKD form
-
-```c
-mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 ```
 
 Return the next character from a string

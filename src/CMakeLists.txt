@@ -25,6 +25,9 @@ add_library(mojibake_lib STATIC ${SOURCES})
 if(BUILD_WASM)
     # This is auto-generated, do not edit this array.
     set(EXPORTED_FUNCTIONS
+        "\"_mjb_codepoint_character\""
+        "\"_mjb_normalize\""
+        "\"_mjb_string_is_normalized\""
         "\"_mjb_string_encoding\""
         "\"_mjb_string_is_utf8\""
         "\"_mjb_string_is_utf16\""
@@ -34,7 +37,6 @@ if(BUILD_WASM)
         "\"_mjb_strncmp\""
         "\"_mjb_case\""
         "\"_mjb_codepoint_is_valid\""
-        "\"_mjb_codepoint_character\""
         "\"_mjb_codepoint_category_is\""
         "\"_mjb_codepoint_is_graphic\""
         "\"_mjb_codepoint_is_combining\""
@@ -43,8 +45,6 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_to_lowercase\""
         "\"_mjb_codepoint_to_uppercase\""
         "\"_mjb_codepoint_to_titlecase\""
-        "\"_mjb_normalize\""
-        "\"_mjb_string_is_normalized\""
         "\"_mjb_next_character\""
         "\"_mjb_break_line\""
         "\"_mjb_segmentation\""
