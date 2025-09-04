@@ -50,10 +50,20 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         }
 
         if(has_previous_character) {
+#ifdef __EMSCRIPTEN__
+            bool result = EM_ASM_INT({
+                return _mjbNextCharacterCallback($0, $1);
+            }, &character, first_character ? MJB_NEXT_CHAR_FIRST : MJB_NEXT_CHAR_NONE);
+
+            if(!result) {
+                return false;
+            }
+#else
             // Call the callback function.
             if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST : MJB_NEXT_CHAR_NONE)) {
                 return false;
             }
+#endif
 
             has_previous_character = false;
             first_character = false;
@@ -68,11 +78,21 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     }
 
     if(has_previous_character) {
+#ifdef __EMSCRIPTEN__
+        bool result = EM_ASM_INT({
+            return _mjbNextCharacterCallback($0, $1);
+        }, &character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST : MJB_NEXT_CHAR_LAST);
+
+        if(!result) {
+            return false;
+        }
+#else
         // Call the callback function.
         if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST :
             MJB_NEXT_CHAR_LAST)) {
             return false;
         }
+#endif
     }
 
     return true;

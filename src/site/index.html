@@ -98,6 +98,64 @@
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
+        // Used for mjb_next_character callback.
+        function _mjbNextCharacterCallback(character, type) {
+            const char = pointerToCharacter(character);
+
+            const funcResults = document.getElementById('mjb_next_character-results');
+            funcResults.style.display = 'block';
+            let position = 'First';
+
+            // See mjb_next_character_type on mojibake.h
+            if(type & 0x1) {
+                if(type & 0x2) {
+                    position = '<strong>First and last</strong>: ';
+                } else {
+                    position = '<strong>First</strong>: ';
+                }
+
+                funcResults.innerHTML = '';
+            } else if (type & 0x2) {
+                position = '<br><strong>Last</strong>: ';
+            } else {
+                position = '<br>';
+            }
+
+            funcResults.innerHTML += `${position} ${codepointToString(char.codepoint)} <span class="text-primary">${char.name}</span>`;
+
+            return true;
+        }
+
+        function pointerToCharacter(ptr) {
+            const struct = new CStruct(ptr);
+
+            const char = struct.toObject({
+                codepoint: 'u32',
+                name: 'str128',
+                category: 'u32',
+                combining: 'u32',
+                bidirectional: 'u16',
+                decomposition: 'u32',
+                decimal: 'i32',
+                digit: 'i32',
+                numeric: 'str16',
+                mirrored: 'u8',
+                uppercase: 'u32',
+                lowercase: 'u32',
+                titlecase: 'u32',
+            });
+
+            if(char.decimal === -1) {
+                char.decimal = null;
+            }
+
+            if(char.digit === -1) {
+                char.digit = null;
+            }
+
+            return char;
+        }
+
         class CStruct {
             #ptr;
             #offset = 0;
@@ -217,30 +275,7 @@
                 ['number', 'number'], [codepoint, ptr]);
 
             if(result) {
-                const struct = new CStruct(ptr);
-                const char = struct.toObject({
-                    codepoint: 'u32',
-                    name: 'str128',
-                    category: 'u32',
-                    combining: 'u32',
-                    bidirectional: 'u16',
-                    decomposition: 'u32',
-                    decimal: 'i32',
-                    digit: 'i32',
-                    numeric: 'str16',
-                    mirrored: 'u8',
-                    uppercase: 'u32',
-                    lowercase: 'u32',
-                    titlecase: 'u32',
-                });
-
-                if(char.decimal === -1) {
-                    char.decimal = null;
-                }
-
-                if(char.digit === -1) {
-                    char.digit = null;
-                }
+                const char = pointerToCharacter(ptr);
 
                 let ret = `Codepoint <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
                 ret += `Name: <span class="text-primary">${char.name}</span><br>`;
@@ -295,7 +330,7 @@
 
                 return ret;
             } else {
-                console.log("Failed to get normalization data");
+                console.log('Failed to get normalization data');
             }
 
             // Free allocated memory
@@ -318,9 +353,6 @@
         }
 
         function ccCall(func, ret, argTypes, args) {
-            console.log(func, ret);
-            console.log(argTypes, args);
-
             if(func === 'mjb_codepoint_character') {
                 return ccallCodepointCharacter(args[0]);
             } else if(func === 'mjb_normalize') {
@@ -399,6 +431,11 @@
             }
 
             funcResults.style.display = 'block';
+
+            if(func === 'mjb_next_character') {
+                return;
+            }
+
             funcResults.innerHTML = result;
         }
     </script>
