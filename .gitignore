@@ -13,3 +13,4 @@ utils/generate/locales/*
 !.gitkeep
 .claude/
 CLAUDE.md
+deploy*

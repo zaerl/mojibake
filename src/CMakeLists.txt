@@ -84,19 +84,9 @@ if(BUILD_WASM)
         SUFFIX ".js"
     )
 
-    # Generate HTML file for WASM
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/site/index.html
-        ${CMAKE_CURRENT_BINARY_DIR}/index.html
-        COPYONLY
-    )
-
-    # Generate CSS file for WASM
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/site/style.css
-        ${CMAKE_CURRENT_BINARY_DIR}/style.css
-        COPYONLY
-    )
+    # Copy entire site directory for WASM assets
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/site/
+         DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
     # Generate database file for WASM
     configure_file(
