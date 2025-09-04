@@ -28,6 +28,22 @@
     "wasm": true
   },
   {
+    "comment": "Return the next character from a string",
+    "ret": "bool",
+    "name": "next_character",
+    "attributes": ["MJB_NONNULL(1, 4)"],
+    "args": ["buffer", "size", "encoding", "fn"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_next_character_fn"],
+    "args_description": [
+      "The string to check",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The function to call for each character"
+    ],
+    "args_return": [false, false, false, true],
+    "wasm": true
+  },
+  {
     "comment": "Check if a string is normalized to NFC/NFKC/NFD/NFKD form",
     "ret": "mjb_quick_check_result",
     "name": "string_is_normalized",
@@ -247,22 +263,6 @@
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
     "args_return": [false],
-    "wasm": true
-  },
-  {
-    "comment": "Return the next character from a string",
-    "ret": "bool",
-    "name": "next_character",
-    "attributes": ["MJB_NONNULL(1, 4)"],
-    "args": ["buffer", "size", "encoding", "fn"],
-    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_next_character_fn"],
-    "args_description": [
-      "The string to check",
-      "The size of the string, in bytes",
-      "The encoding of the string",
-      "The function to call for each character"
-    ],
-    "args_return": [false, false, false, true],
     "wasm": true
   },
   {

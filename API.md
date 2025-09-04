@@ -12,6 +12,12 @@ Normalize a string to NFC/NFKC/NFD/NFKD form
 bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
 ```
 
+Return the next character from a string
+
+```c
+bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+```
+
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form
 
 ```c
@@ -118,12 +124,6 @@ Return the codepoint titlecase codepoint
 
 ```c
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
-```
-
-Return the next character from a string
-
-```c
-bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 ```
 
 Unicode line break algorithm
