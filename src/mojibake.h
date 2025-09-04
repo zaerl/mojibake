@@ -257,6 +257,9 @@ MJB_NONNULL(2) bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_charact
 // Normalize a string to NFC/NFKC/NFD/NFKD form
 MJB_NONNULL(1, 5) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
 
+// Return the next character from a string
+MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
 MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
@@ -310,9 +313,6 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 
 // Return the codepoint titlecase codepoint
 MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
-
-// Return the next character from a string
-MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Unicode line break algorithm
 MJB_NONNULL(1, 4) mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, size_t *output_size);
