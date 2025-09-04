@@ -23,10 +23,20 @@ add_library(mojibake_lib STATIC ${SOURCES})
 
 # WASM-specific configuration
 if(BUILD_WASM)
+    # EM_ASM_* macros
+    target_compile_options(
+        mojibake_lib
+        PRIVATE
+        -Wno-variadic-macros
+        -Wno-variadic-macro-arguments-omitted
+        -Wno-dollar-in-identifier-extension
+    )
+
     # This is auto-generated, do not edit this array.
     set(EXPORTED_FUNCTIONS
         "\"_mjb_codepoint_character\""
         "\"_mjb_normalize\""
+        "\"_mjb_next_character\""
         "\"_mjb_string_is_normalized\""
         "\"_mjb_string_encoding\""
         "\"_mjb_string_is_utf8\""
@@ -45,7 +55,6 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_to_lowercase\""
         "\"_mjb_codepoint_to_uppercase\""
         "\"_mjb_codepoint_to_titlecase\""
-        "\"_mjb_next_character\""
         "\"_mjb_break_line\""
         "\"_mjb_segmentation\""
         "\"_mjb_codepoint_plane\""
