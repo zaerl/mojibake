@@ -68,9 +68,6 @@ export class CFunction {
       </div>
       <div class="function-card">
         <div>${this.#formInputHTML()}</div>
-        <div class="function-form-button">
-          <button onclick="callFunction('${this.getName()}')">Call function</button>
-        </div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </section>`;
@@ -128,11 +125,7 @@ export class CFunction {
   }
 
   #formInputHTML(): string {
-    if(!this.args.length) {
-      return '';
-    }
-
-    let ret = `<form id="${this.getName()}-form" class="function-form">`;
+    let ret = `<form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
     let i = 0;
 
     for(const arg of this.argsTypes) {
@@ -228,7 +221,9 @@ export class CFunction {
       ++i;
     }
 
-    ret += '</form>';
+    ret += `<div class="function-form-button">
+      <button type="submit" onclick="callFunction('${this.getName()}')">Call function</button>
+    </div></form>`;
 
     return ret;
   }
