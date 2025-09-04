@@ -21,6 +21,9 @@ like any of the existing one. It aims to be, in order of importance:
 It consists in a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file (a SQLite database
 file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want.
 
+An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
+use to preview the API.
+
 It has a `0.0.0` version because the various parts I consider critical have not 100% coverage. These
 are the major parts:
 
