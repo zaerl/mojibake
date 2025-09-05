@@ -20,6 +20,7 @@
 - [ ] `auxiliary/WordBreakProperty.txt` table
 - [ ] Add support for Windows
 - [ ] Check `without rowid` tables
+- [x] Add WASM version
 - [x] Add support for Alpine Linux
 - [x] `UnicodeData.txt` table
 - [x] `Blocks.txt` table
