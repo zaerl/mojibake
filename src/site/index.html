@@ -301,6 +301,39 @@
             return false;
         }
 
+        function stringToCodepointList(string) {
+            const codepoints = [];
+
+            for (let i = 0; i < string.length; i++) {
+                const codepoint = string.codePointAt(i);
+
+                if(codepoint) {
+                    codepoints.push(codepointToString(codepoint));
+
+                    // Skip the second surrogate pair code unit
+                    if (codepoint > 0xFFFF) {
+                        i++;
+                    }
+                }
+            }
+
+            return codepoints;
+        }
+
+        function utf8StringToHex(ptr, length) {
+            const heap = window.mojibake.HEAPU8;
+            const hex = [];
+            let i = 0;
+
+            while(heap[ptr] !== 0 || (i < length)) {
+                hex.push(heap[ptr].toString(16).toUpperCase().padStart(2, '0'));
+                ++ptr;
+                ++i;
+            }
+
+            return hex;
+        }
+
         function ccallNormalize(buffer, size, encoding, form) {
             // See mjb_normalization_result on mojibake.h
             const structSize = 24;
@@ -324,9 +357,12 @@
                     normalized: 'u8'
                 });
 
-                let ret = `Output: <strong>${window.mojibake.UTF8ToString(result.output)}</strong><br>`;
+                const output = window.mojibake.UTF8ToString(result.output);
+                let ret = `Output: <strong>${output}</strong><br>`;
+                ret += `Hex UTF-8: <strong>${utf8StringToHex(result.output, result.output_size).join(' ')}</strong><br>`;
+                ret += `Output: <strong>${stringToCodepointList(output).join(' ')}</strong><br>`;
                 ret += `Output size: <strong>${result.output_size}</strong><br>`;
-                ret += `Normalized: <strong>${result.normalized ? 'true' : 'false'}</strong><br>`;
+                ret += `Has been normalized: <strong>${result.normalized ? 'true' : 'false'}</strong><br>`;
 
                 return ret;
             } else {
