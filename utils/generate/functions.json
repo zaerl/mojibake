@@ -22,7 +22,7 @@
       "The size of the string, in bytes",
       "The encoding of the string",
       "The normalization form to use",
-      "The result to store the result"
+      "The pointer to store the result"
     ],
     "wasm_generated": [false, true, false, false, true],
     "wasm": true
