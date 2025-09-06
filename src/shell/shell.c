@@ -180,8 +180,8 @@ void print_id_name_value(const char* label, unsigned int id, const char* name, u
     print_nl(nl);
 }
 
-void print_normalization(char *buffer_utf8, size_t utf8_length, mjb_normalization form, char *name,
-    char *label, unsigned int nl) {
+void print_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normalization form,
+    const char *name, const char *label, unsigned int nl) {
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
     mjb_normalization_result result;

@@ -6,7 +6,7 @@
 >
 > Use at your own discretion, and feel free to collaborate.
 
-**Mojibake** is a low-level Unicode 16 library written in C11.
+**Mojibake** is a low-level Unicode 16 library written in C11. It can be compiled as C++17 as well.
 
 **Mojibake** (Japanese: 文字化け 'character transformation') is the garbled text that is the result
 of text being decoded using an unintended character encoding. I created this library because I don't

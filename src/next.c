@@ -26,7 +26,7 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
 
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint codepoint;
-    mjb_character character = {0};
+    mjb_character character;
     bool has_previous_character = false;
     bool first_character = true;
 
@@ -88,7 +88,8 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         }
 #else
         // Call the callback function.
-        if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST :
+        if(!fn(&character, first_character ?
+            (mjb_next_character_type)(MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST) :
             MJB_NEXT_CHAR_LAST)) {
             return false;
         }

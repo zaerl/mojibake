@@ -11,28 +11,28 @@ void *test_hangul(void *arg) {
 
     // CURRENT_ASSERT mjb_hangul_syllable_name
     mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE GA", "First syllable")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE GA", "First syllable")
 
     mjb_hangul_syllable_name(0xAC01, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE GAG", "GAG")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE GAG", "GAG")
 
     mjb_hangul_syllable_name(0xB155, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE NYEONG", "NYEONG")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE NYEONG", "NYEONG")
 
     mjb_hangul_syllable_name(0xC1A4, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE SOK", "SOK")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE SOK", "SOK")
 
     mjb_hangul_syllable_name(0xCE59, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE CIG", "CIG")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE CIG", "CIG")
 
     mjb_hangul_syllable_name(0xCE58, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE CI", "CI")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE CI", "CI")
 
     mjb_hangul_syllable_name(0xD3C9, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE PYEONG", "PYEONG")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE PYEONG", "PYEONG")
 
     mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1, character.name, 128);
-    ATT_ASSERT(character.name, "HANGUL SYLLABLE HIH", "Last syllable")
+    ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE HIH", "Last syllable")
 
     ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CP_HANGUL_S_BASE), true, "Hangul start")
 
@@ -56,9 +56,9 @@ void *test_hangul(void *arg) {
     mjb_codepoint codepoints[3];
     ATT_ASSERT(mjb_hangul_syllable_decomposition(0xAC01, codepoints), true, "Hangul syllable decomposition")
     // CURRENT_ASSERT mjb_hangul_syllable_decomposition
-    ATT_ASSERT(codepoints[0], 0x1100, "Hangul L - Choseong Kiyeok")
-    ATT_ASSERT(codepoints[1], 0x1161, "Hangul V - Jungseong A")
-    ATT_ASSERT(codepoints[2], 0x11A8, "Hangul T - Jongseong Kiyeok")
+    ATT_ASSERT(codepoints[0], (mjb_codepoint)0x1100, "Hangul L - Choseong Kiyeok")
+    ATT_ASSERT(codepoints[1], (mjb_codepoint)0x1161, "Hangul V - Jungseong A")
+    ATT_ASSERT(codepoints[2], (mjb_codepoint)0x11A8, "Hangul T - Jongseong Kiyeok")
 
     return NULL;
 }

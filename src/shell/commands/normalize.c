@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../../mojibake.h"
@@ -42,13 +43,15 @@ int normalize_command(int argc, char * const argv[], unsigned int flags) {
 
     unsigned int index = 0;
     // 5 bytes per codepoint is more than enough.
-    char codepoints[argc * 5];
+    char* codepoints = (char*)malloc(argc * 5);
 
     for(int i = 0; i < argc; ++i) {
         mjb_codepoint codepoint = 0;
 
         if(!parse_codepoint(argv[i], &codepoint)) {
             fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
+
+            free(codepoints);
 
             return 1;
         }
@@ -64,6 +67,8 @@ int normalize_command(int argc, char * const argv[], unsigned int flags) {
     if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
+        free(codepoints);
+
         return 1;
     }
 
@@ -73,6 +78,8 @@ int normalize_command(int argc, char * const argv[], unsigned int flags) {
     if(result.output != NULL && result.output != codepoints) {
         mjb_free(result.output);
     }
+
+    free(codepoints);
 
     return 0;
 }

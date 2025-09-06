@@ -8,7 +8,7 @@
 
 void *test_hangul_composition(void *arg) {
     // CURRENT_ASSERT mjb_hangul_syllable_composition
-    mjb_buffer_character empty_array[1] = {{0}}; // Empty array for testing
+    mjb_buffer_character empty_array[1]; // Empty array for testing
     size_t result_len = mjb_hangul_syllable_composition(empty_array, 0);
     ATT_ASSERT(result_len, 0, "Empty input should have length 0");
 

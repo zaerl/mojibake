@@ -48,7 +48,7 @@ void *test_breaking(void *arg) {
 
     // CURRENT_ASSERT mjb_codepoint_line_breaking_class
     ATT_ASSERT(mjb_codepoint_line_breaking_class(0x0, &lbc, &category), true, "NULL")
-    ATT_ASSERT(lbc, MJB_LBC_CM, "CM")
+    ATT_ASSERT((unsigned int)lbc, (unsigned int)MJB_LBC_CM, "CM")
 
     size_t output_size = 0;
     mjb_line_break *line_breaks = mjb_break_line("Hello world!", 12, MJB_ENCODING_UTF_8, &output_size);
