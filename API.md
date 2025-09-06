@@ -90,12 +90,6 @@ Return true if the codepoint is combining
 bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 ```
 
-Return true if the codepoint has the category
-
-```c
-bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
-```
-
 Return if the codepoint is an hangul L
 
 ```c
@@ -130,6 +124,12 @@ Return if the codepoint is CJK ideograph
 
 ```c
 bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the category
+
+```c
+bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
 ```
 
 Return true if the category is combining

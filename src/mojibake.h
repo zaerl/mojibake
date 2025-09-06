@@ -296,9 +296,6 @@ MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 // Return true if the codepoint is combining
 MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
-// Return true if the codepoint has the category
-MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
-
 // Return if the codepoint is an hangul L
 MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
 
@@ -316,6 +313,9 @@ MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK ideograph
 MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the category
+MJB_CONST bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
 
 // Return true if the category is combining
 MJB_CONST bool mjb_category_is_combining(mjb_category category);
