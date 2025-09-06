@@ -56,12 +56,12 @@ static const uint32_t utf8_statetab[0x10] = {
 static inline uint8_t MJB_USED mjb_utf8_decode_step(uint8_t state, uint8_t octet, uint32_t *cpp) {
     const uint8_t reject = (state >> 3);
     const uint8_t nonascii = (octet >> 7);
-    const uint8_t class = (!nonascii? 0 :
+    const uint8_t c_class = (!nonascii? 0 :
         (0xF & (utf8_classtab[(octet >> 3) & 0xF] >> (4 * (octet & 7)))));
 
     *cpp = (state == MJB_UTF8_ACCEPT
-        ? (octet & (0xFFU >> class))
+        ? (octet & (0xFFU >> c_class))
         : ((octet & 0x3FU) | (*cpp << 6)));
 
-    return (reject? MJB_UTF8_REJECT : (0xF & (utf8_statetab[class] >> (4 * (state & 7)))));
+    return (reject? MJB_UTF8_REJECT : (0xF & (utf8_statetab[c_class] >> (4 * (state & 7)))));
 }

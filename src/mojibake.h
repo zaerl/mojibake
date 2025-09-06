@@ -9,8 +9,14 @@
 #ifndef MJB_MOJIBAKE_H
 #define MJB_MOJIBAKE_H
 
+#if defined(__cplusplus)
+#if __cplusplus < 201703L
+#error "C++17 or a later version is required"
+#endif
+#else
 #if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
 #error "C11 or a later version is required"
+#endif
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -28,8 +34,13 @@ extern "C" {
 #endif
 
 // Static assertions for important constants
+#if defined(__cplusplus)
+static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
+static_assert(sizeof(char) == 1, "char must be 1 byte");
+#else
 _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
 _Static_assert(sizeof(char) == 1, "char must be 1 byte");
+#endif
 
 #define MJB_VERSION_NUMBER   0x0 // MAJOR << 8 && MINOR << 4 && REVISION
 #define MJB_VERSION_MAJOR    0

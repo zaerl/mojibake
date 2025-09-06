@@ -21,7 +21,7 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
 
     if(*output_index + input_size > *output_size) {
         *output_size *= 2;
-        ret = mjb_realloc(ret, *output_size);
+        ret = (char*)mjb_realloc(ret, *output_size);
     }
 
     memcpy((char*)ret + *output_index, input, input_size);

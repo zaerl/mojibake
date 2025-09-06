@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.14...3.30)
 
+# Option to build with C++
+option(BUILD_CPP "Build with C++ instead of C" OFF)
+
 project(
     Mojibake
     VERSION 1.0.0
     DESCRIPTION "Mojibake"
-    LANGUAGES C
+    LANGUAGES C CXX
 )
 
 # Enable CTest
@@ -17,18 +20,28 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+# Common compiler flags
+set(COMMON_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter -Wtype-limits")
+set(COMMON_FLAGS_DEBUG "-g -O0")
+set(COMMON_FLAGS_RELEASE "-O3")
+set(COMMON_FLAGS_TEST "-g -O0 -DMJB_TEST")
 
-# Compiler flags
-set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter -Wtype-limits")
-
-# Debug flags
-set(CMAKE_C_FLAGS_DEBUG "-g -O0")
-# set(CMAKE_C_FLAGS_DEBUG "-g -O0 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
-set(CMAKE_C_FLAGS_TEST "-g -O0 -DMJB_TEST")
-# set(CMAKE_C_FLAGS_TEST "-g -O0 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -DMJB_TEST")
+# Language standards
+if(BUILD_CPP)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_FLAGS ${COMMON_FLAGS})
+    set(CMAKE_CXX_FLAGS_DEBUG ${COMMON_FLAGS_DEBUG})
+    set(CMAKE_CXX_FLAGS_RELEASE ${COMMON_FLAGS_RELEASE})
+    set(CMAKE_CXX_FLAGS_TEST ${COMMON_FLAGS_TEST})
+else()
+    set(CMAKE_C_STANDARD 17)
+    set(CMAKE_C_STANDARD_REQUIRED ON)
+    set(CMAKE_C_FLAGS ${COMMON_FLAGS})
+    set(CMAKE_C_FLAGS_DEBUG ${COMMON_FLAGS_DEBUG})
+    set(CMAKE_C_FLAGS_RELEASE ${COMMON_FLAGS_RELEASE})
+    set(CMAKE_C_FLAGS_TEST ${COMMON_FLAGS_TEST})
+endif()
 
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Test" CACHE STRING "Configurations" FORCE)
 

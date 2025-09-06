@@ -18,6 +18,12 @@ set(SOURCES
 
 add_library(mojibake_lib STATIC ${SOURCES})
 
+# Force C++ compilation if BUILD_CPP is enabled
+if(BUILD_CPP)
+    set_target_properties(mojibake_lib PROPERTIES LINKER_LANGUAGE CXX)
+    set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
+endif()
+
 # Link SQLite library
 # target_link_libraries(mojibake_lib PRIVATE mojibake_sqlite)
 

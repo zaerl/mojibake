@@ -229,7 +229,7 @@ char *ccc_name(mjb_canonical_combining_class ccc) {
     if(ccc <= MJB_CCC_36 || ccc == MJB_CCC_84 || ccc == MJB_CCC_91 || ccc == MJB_CCC_103 ||
         ccc == MJB_CCC_107 || ccc == MJB_CCC_118 || ccc == MJB_CCC_122 || ccc == MJB_CCC_129 ||
         ccc == MJB_CCC_130 || ccc == MJB_CCC_132) {
-        char *str = malloc(8);
+        char *str = (char*)malloc(8);
 
         if(str) {
             snprintf(str, 8, "CCC%d", ccc);

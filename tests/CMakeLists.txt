@@ -23,6 +23,12 @@ set(TEST_SOURCES
 add_executable(mojibake-test ${TEST_SOURCES})
 target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 
+# Force C++ compilation if BUILD_CPP is enabled
+if(BUILD_CPP)
+    set_target_properties(mojibake-test PROPERTIES LINKER_LANGUAGE CXX)
+    set_source_files_properties(${TEST_SOURCES} PROPERTIES LANGUAGE CXX)
+endif()
+
 # Add test to CTest
 add_test(NAME "Breaking" COMMAND mojibake-test -f breaking)
 add_test(NAME "Case" COMMAND mojibake-test -f case)

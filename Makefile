@@ -7,39 +7,62 @@ GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/genera
 
 all: configure build
 
+# C targets
 configure:
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
+# C targets
+build: configure
+	@cmake --build $(BUILD_DIR)
+
+# C++ targets
+configure-cpp:
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
+
+# C++ targets
+build-cpp: configure-cpp
+	@cmake --build $(BUILD_DIR)
 
 # WASM targets
 configure-wasm:
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
 
-build: configure
-	@cmake --build $(BUILD_DIR)
-
+# WASM targets
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
+# WASM targets
 wasm: build-wasm
 	cd ./utils/generate && npm run generate -- site
 
+# Generate TESTS.md file
 coverage:
 	cd ./utils/generate && npm run coverage
 
+# Generate source files and database
 generate: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)
 
+# Generate locale files
 generate-locales:
 	cd ./utils/generate && ./generate-locales.sh
 
+# Run tests
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
 	build/tests/mojibake-test $(ARGS)
 
+# Run tests with C++ compiler
+test-cpp: BUILD_TYPE = Test
+test-cpp: configure-cpp build-cpp mojibake.db
+	build/tests/mojibake-test $(ARGS)
+
+# Run tests using CTest
 ctest: BUILD_TYPE = Test
 ctest: configure build mojibake.db
 	cd $(BUILD_DIR) && ctest $(ARGS)
 
+# Run tests in Docker container
 test-docker:
 	docker build -t mojibake .
 	docker run mojibake
@@ -58,6 +81,8 @@ clean: clean-native clean-wasm
 help:
 	@echo "Available targets:"
 	@echo "  all          - Build the project (default)"
+	@echo "  build-cpp    - Build the project with C++ compiler"
+	@echo "  test-cpp     - Build and run tests with C++ compiler"
 	@echo "  wasm         - Build the project for WebAssembly"
 	@echo "  test         - Build and run tests"
 	@echo "  ctest        - Build and run tests using CTest"
@@ -68,4 +93,4 @@ help:
 	@echo "  generate     - Regenerate source files"
 	@echo "  coverage     - Run coverage analysis"
 
-.PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm build build-wasm wasm test ctest test-docker generate coverage help
+.PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm configure-cpp build build-wasm build-cpp wasm test test-cpp ctest test-docker generate coverage help

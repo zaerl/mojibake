@@ -11,7 +11,7 @@ MJB_EXPORT mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint) {
         return MJB_PLANE_NOT_VALID;
     }
 
-    return codepoint >> 16;
+    return (mjb_plane)(codepoint >> 16);
 }
 
 // Return true if the plane is valid

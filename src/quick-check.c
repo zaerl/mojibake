@@ -115,7 +115,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
                 break;
         }
 
-        last_canonical_class = current_character.combining;
+        last_canonical_class = (mjb_canonical_combining_class)current_character.combining;
     }
 
     return result;

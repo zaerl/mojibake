@@ -74,7 +74,7 @@ static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *cha
         // Check if we need to reallocate the output buffer
         if(*output_index >= *output_size) {
             *output_size *= 2;
-            output = mjb_realloc(output, *output_size * sizeof(mjb_buffer_character));
+            output = (mjb_buffer_character*)mjb_realloc(output, *output_size * sizeof(mjb_buffer_character));
         }
 
         output[*output_index].codepoint = characters_buffer[i].codepoint;
@@ -94,7 +94,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     mjb_buffer_character *composition_buffer) {
     // Nothing to recompose. Output an empty string.
     if(codepoints_count == 0) {
-        *output = mjb_alloc(1);
+        *output = (char*)mjb_alloc(1);
         *output_size = 0;
         (*output)[0] = '\0';
 
@@ -117,7 +117,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
     // Apply Canonical Composition Algorithm
     *output_size = codepoints_count * 2; // A good starting size.
-    char *composed_output = mjb_alloc(*output_size);
+    char *composed_output = (char*)mjb_alloc(*output_size);
 
     size_t composed_output_index = 0;
     sqlite3_stmt *stmt = mjb_global.stmt_compose;
@@ -225,7 +225,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     }
 
     if(composed_output_index >= *output_size) {
-        composed_output = mjb_realloc(composed_output, composed_output_index + 1);
+        composed_output = (char*)mjb_realloc(composed_output, composed_output_index + 1);
     }
 
     *output = composed_output;
@@ -293,9 +293,9 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     }
 
     if(is_composition) {
-        composition_buffer = mjb_alloc(size * sizeof(mjb_buffer_character));
+        composition_buffer = (mjb_buffer_character*)mjb_alloc(size * sizeof(mjb_buffer_character));
     } else {
-        result->output = mjb_alloc(size);
+        result->output = (char*)mjb_alloc(size);
     }
 
     result->output_size = size;
@@ -506,7 +506,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     } else {
         // Guarantee null-terminated string
         if(output_index >= result->output_size) {
-            result->output = mjb_realloc(result->output, result->output_size + 1);
+            result->output = (char*)mjb_realloc(result->output, result->output_size + 1);
         }
 
         result->output[output_index] = '\0';

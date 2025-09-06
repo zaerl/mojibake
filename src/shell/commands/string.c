@@ -15,7 +15,7 @@ static char *get_case_string(const char *buffer, size_t length, mjb_case_type ty
 }
 
 int case_command(int argc, char * const argv[], unsigned int flags) {
-    char *output = get_case_string(argv[0], strlen(argv[0]), flags, MJB_ENCODING_UTF_8);
+    char *output = get_case_string(argv[0], strlen(argv[0]), (mjb_case_type)flags, MJB_ENCODING_UTF_8);
 
     if(output == NULL) {
         return 1;

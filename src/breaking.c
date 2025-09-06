@@ -62,8 +62,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
         return NULL;
     }
 
-    mjb_lbc_result *results = malloc(real_length * sizeof(mjb_lbc_result));
-    char *breaks = malloc(real_length + 1);  // real_length + 1 break positions + null terminator
+    mjb_lbc_result *results = (mjb_lbc_result*)malloc(real_length * sizeof(mjb_lbc_result));
+    char *breaks = (char*)malloc(real_length + 1);  // real_length + 1 break positions + null terminator
 
     // Initialize all breaks to allowed (LB31 default) except first position
     for(size_t j = 0; j <= real_length; ++j) {
@@ -468,7 +468,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
         }
     }
 
-    mjb_line_break *line_breaks = malloc(num_breaks * sizeof(mjb_line_break));
+    mjb_line_break *line_breaks = (mjb_line_break*)malloc(num_breaks * sizeof(mjb_line_break));
     size_t j = 0;
 
     for(size_t i = 0; i < real_length; ++i) {

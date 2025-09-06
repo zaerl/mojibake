@@ -85,7 +85,7 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
-    char *output = mjb_alloc(length);
+    char *output = (char*)mjb_alloc(length);
 
     // char *output = mjb_alloc(length);
     size_t output_index = 0;
@@ -172,7 +172,7 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
     }
 
     if(output_index >= output_size) {
-        output = mjb_realloc(output, output_size + 1);
+        output = (char*)mjb_realloc(output, output_size + 1);
     }
 
     output[output_index] = '\0';
@@ -201,7 +201,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
     uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint current_codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
-    char *output = mjb_alloc(length);
+    char *output = (char*)mjb_alloc(length);
 
     size_t output_index = 0;
     size_t output_size = length;
@@ -264,7 +264,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
     }
 
     if(output_index >= output_size) {
-        output = mjb_realloc(output, output_size + 1);
+        output = (char*)mjb_realloc(output, output_size + 1);
     }
 
     output[output_index] = '\0';

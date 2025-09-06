@@ -35,18 +35,18 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
 
     if(length >= 4) {
         if(memcmp(buffer, MJB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
-            bom_encoding = MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_BE;
+            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_BE);
         } else if(memcmp(buffer, MJB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
             // A UTF-32-LE document is also valid UTF-16-LE
-            bom_encoding = MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16_LE;
+            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16_LE);
         }
     }
 
     if(length >= 2) {
         if(memcmp(buffer, MJB_ENCODING_UTF_16_BE_BOM, 2) == 0) {
-            bom_encoding = MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_BE;
+            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_BE);
         } else if(memcmp(buffer, MJB_ENCODING_UTF_16_LE_BOM, 2) == 0) {
-            bom_encoding |= MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE;
+            bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE);
         }
     }
 
@@ -69,12 +69,12 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 
     // No BOM, let's try UTF-8
     if(mjb_string_is_utf8(buffer, size)) {
-        bom_encoding |= MJB_ENCODING_UTF_8;
+        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENCODING_UTF_8);
     }
 
     // No BOM, let's try ASCII
     if(mjb_string_is_ascii(buffer, size)) {
-        bom_encoding |= MJB_ENCODING_ASCII;
+        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENCODING_ASCII);
     }
 
     return bom_encoding;
