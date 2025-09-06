@@ -1,6 +1,6 @@
 # Mojibake
 
-> **Note:**
+> [!IMPORTANT]
 > This project is an **experimental library**. It is not designed for production use, and there may
 > be bugs, limitations, or incomplete features. The API can change from one commit to another.
 >
