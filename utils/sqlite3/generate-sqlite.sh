@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SQLITE_VERSION="3500200"
+SQLITE_VERSION="3500400"
 SQLITE_YEAR="2025"
 
 if [ ! -d "./sqlite-src-$SQLITE_VERSION" ] ; then
