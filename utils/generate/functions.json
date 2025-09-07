@@ -266,14 +266,14 @@
     "wasm": true
   },
   {
-    "comment": "Return true if the codepoint has the category",
+    "comment": "Return true if the category is graphic",
     "ret": "bool",
-    "name": "codepoint_category_is",
+    "name": "category_is_graphic",
     "attributes": ["MJB_CONST"],
-    "args": ["codepoint", "category"],
-    "args_types": ["mjb_codepoint", "mjb_category"],
-    "args_description": ["The codepoint to check", "The category to check"],
-    "wasm_generated": [false, false],
+    "args": ["category"],
+    "args_types": ["mjb_category"],
+    "args_description": ["The category to check"],
+    "wasm_generated": [false],
     "wasm": true
   },
   {

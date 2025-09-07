@@ -126,10 +126,10 @@ Return if the codepoint is CJK ideograph
 bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 ```
 
-Return true if the codepoint has the category
+Return true if the category is graphic
 
 ```c
-bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category);
+bool mjb_category_is_graphic(mjb_category category);
 ```
 
 Return true if the category is combining

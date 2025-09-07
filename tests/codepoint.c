@@ -40,7 +40,7 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(last_syllable, &character), true, "Last hangul syllable")
     ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
 
-    mjb_codepoint_block block = {};
+    mjb_codepoint_block block;
 
     ATT_ASSERT(mjb_character_block(MJB_CODEPOINT_MAX, &block), false, "Not valid codepoint")
     ATT_ASSERT(mjb_character_block(0xE0080, &block), false, "Not mapped codepoint")
@@ -66,16 +66,6 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0xF0000 + 3, &character), false, "Supplementary Private Use Area-A block")
 
     ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX - 1, &character), false, "Supplementary Private Use Area-B block")
-
-    ATT_ASSERT(mjb_codepoint_category_is(0, MJB_CATEGORY_CC), true, "NULL: category other, control")
-
-    // U+1F642 = 🙂
-    ATT_ASSERT(mjb_codepoint_category_is(0x1F642, MJB_CATEGORY_SO), true, "🙂: category Symbol, Other")
-
-    ATT_ASSERT(mjb_codepoint_category_is(0x1FFFE, MJB_CATEGORY_LU), false, "Not valid codepoint: category invalid")
-
-    // U+0377 = ͷ, 0x0377 + 1 is not mapped
-    ATT_ASSERT(mjb_codepoint_category_is(0x0377 + 1, MJB_CATEGORY_LL), false, "Not mapped codepoint: category invalid")
 
     ATT_ASSERT(mjb_codepoint_is_graphic(0), false, "NULL: not graphic")
 

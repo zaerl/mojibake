@@ -147,17 +147,6 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     return true;
 }
 
-// Return true if the codepoint has the category
-MJB_EXPORT bool mjb_codepoint_category_is(mjb_codepoint codepoint, mjb_category category) {
-    mjb_character character;
-
-    if(!mjb_codepoint_character(codepoint, &character)) {
-        return false;
-    }
-
-    return character.category == category;
-}
-
 // Return true if the codepoint is graphic
 MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
     mjb_character character;
@@ -166,8 +155,12 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
         return false;
     }
 
+    return mjb_category_is_graphic(character.category);
+}
+
+MJB_EXPORT bool mjb_category_is_graphic(mjb_category category) {
     // All C categories can be printed
-    switch(character.category) {
+    switch(category) {
         case MJB_CATEGORY_CC:
         case MJB_CATEGORY_CF:
         case MJB_CATEGORY_CS:
