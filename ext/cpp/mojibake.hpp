@@ -42,6 +42,7 @@ public:
     Character(Character&&) noexcept = default;
     Character& operator=(Character&&) noexcept = default;
     ~Character() = default;
+
     explicit Character(mjb_codepoint codepoint) : data{}, valid(false) {
         valid = mjb_codepoint_character(codepoint, &data);
 
@@ -51,6 +52,15 @@ public:
     }
 
     explicit Character(char32_t codepoint) : Character(static_cast<mjb_codepoint>(codepoint)) {}
+
+    bool operator==(const Character& other) const noexcept {
+        if (!valid || !other.valid) return false;
+        return data.codepoint == other.data.codepoint;
+    }
+
+    bool operator!=(const Character& other) const noexcept {
+        return !(*this == other);
+    }
 
     [[nodiscard]] bool is_valid() const noexcept {
         return valid;
