@@ -176,6 +176,56 @@ public:
     }
 };
 
+enum class NormalizationForm {
+    NFC = MJB_NORMALIZATION_NFC,
+    NFD = MJB_NORMALIZATION_NFD,
+    NFKC = MJB_NORMALIZATION_NFKC,
+    NFKD = MJB_NORMALIZATION_NFKD
+};
+
+inline std::string normalize(std::string_view input, NormalizationForm form) {
+    if(input.empty()) {
+        return std::string{};
+    }
+
+    mjb_normalization_result result{};
+    bool success = mjb_normalize(input.data(), input.size(), MJB_ENCODING_UTF_8,
+        static_cast<mjb_normalization>(form), &result);
+
+    if(!success) {
+        throw LibraryError("Normalization failed");
+    }
+
+    if(!result.output) {
+        throw LibraryError("Normalization returned null output");
+    }
+
+    std::string normalized_string(result.output, result.output_size);
+
+    if(result.normalized) {
+        // A new string is returned, it must be freed.
+        mjb_free(result.output);
+    }
+
+    return normalized_string;
+}
+
+inline std::string nfc(std::string_view input) {
+    return normalize(input, NormalizationForm::NFC);
+}
+
+inline std::string nfd(std::string_view input) {
+    return normalize(input, NormalizationForm::NFD);
+}
+
+inline std::string nfkc(std::string_view input) {
+    return normalize(input, NormalizationForm::NFKC);
+}
+
+inline std::string nfkd(std::string_view input) {
+    return normalize(input, NormalizationForm::NFKD);
+}
+
 } // namespace mjb
 
 #endif // MJB_CPP_MOJIBAKE_HPP

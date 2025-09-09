@@ -41,6 +41,7 @@ void *test_version(void *arg);
 
 #ifdef __cplusplus
 void *test_cpp_mojibake(void *arg);
+void *test_cpp_normalization(void *arg);
 #endif
 
 void set_error_callback(att_test_callback callback);
