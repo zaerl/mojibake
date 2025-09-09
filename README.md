@@ -19,7 +19,8 @@ like any of the existing one. It aims to be, in order of importance:
 5. Self-contained
 
 It consists in a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file (a SQLite database
-file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want.
+file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want. Also a
+C++ wrapper can be found on `ext/cpp/mojibake.cpp` if you prefer it.
 
 An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
 use to preview the API.
@@ -32,7 +33,7 @@ are the major parts:
 **Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
 properties found in the Unicode Character Database.
 
-**Normalization**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
+**Case**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
 titlecase. Etc.
 
 **Parsing**: `mjb_next_character`, and other, let you parse a UTF-8, UTF-16(BE, LE), UTF-32(BE, LE)
@@ -207,6 +208,4 @@ python3 -m http.server # or similar
 Mojibake is built using the work of extraordinary individuals and teams.
 
 1. The `utf8.h` file is Copyright (c) 2014 Taylor R Campbell
-2. SQLite is in the [public domain](https://sqlite.org/copyright.html).
-3. modern-normalize is under the MIT License. Copyright (c) Sindre Sorhus, Jonathan Neal, Nicolas
-   Gallagher
+2. SQLite is in the [public domain](https://sqlite.org/copyright.html)
