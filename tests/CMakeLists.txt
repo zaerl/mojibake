@@ -20,6 +20,11 @@ set(TEST_SOURCES
     version.c
 )
 
+if(BUILD_CPP)
+    # Add C++ test sources
+    list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)
+endif()
+
 add_executable(mojibake-test ${TEST_SOURCES})
 target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 
@@ -27,6 +32,9 @@ target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 if(BUILD_CPP)
     set_target_properties(mojibake-test PROPERTIES LINKER_LANGUAGE CXX)
     set_source_files_properties(${TEST_SOURCES} PROPERTIES LANGUAGE CXX)
+
+    # Add C++ test sources
+    list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)
 endif()
 
 # Add test to CTest

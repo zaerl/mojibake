@@ -160,6 +160,10 @@ int main(int argc, char * const argv[]) {
     // RUN_TEST(utf8)
     RUN_TEST(version)
 
+#ifdef __cplusplus
+    RUN_TEST(cpp_mojibake)
+#endif
+
     unsigned int tests_valid = att_get_valid_tests();
     unsigned int tests_total = att_get_total_tests();
     bool valid = tests_valid == tests_total;
