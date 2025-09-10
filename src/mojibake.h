@@ -53,8 +53,8 @@ _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #define MJB_VERSION "0.0.0"
 #endif
 
-#define MJB_UNICODE_VERSION       "16.0"
-#define MJB_UNICODE_VERSION_MAJOR 16
+#define MJB_UNICODE_VERSION       "17.0"
+#define MJB_UNICODE_VERSION_MAJOR 17
 #define MJB_UNICODE_VERSION_MINOR 0
 
 #ifndef MJB_EXTERN

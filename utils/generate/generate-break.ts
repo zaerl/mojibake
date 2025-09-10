@@ -3,6 +3,7 @@ import { Character } from './character';
 import { log } from './log';
 import { writeFileSync } from 'fs';
 
+// https://www.unicode.org/reports/tr14/#Table1
 enum LineBreakingClass {
   // Non-tailorable Line Breaking Classes
   BK, // Mandatory Break
@@ -13,7 +14,7 @@ enum LineBreakingClass {
   SG, // Surrogate
   WJ, // Word Joiner
   ZW, // Zero Width Space
-  GL, // Non-breaking
+  GL, // Non-breaking ("glue")
   SP, // Space
   ZWJ, // Zero Width Joiner
 
@@ -22,6 +23,7 @@ enum LineBreakingClass {
   BA, // Break After
   BB, // Break Before
   HY, // Hyphen
+  HH, // Unambiguous Hyphen
   CB, // Contingent Break Opportunity
 
   // Characters Prohibiting Certain Breaks

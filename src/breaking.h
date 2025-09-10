@@ -25,7 +25,7 @@ typedef enum mjb_line_breaking_class {
     MJB_LBC_SG, // Surrogate
     MJB_LBC_WJ, // Word Joiner
     MJB_LBC_ZW, // Zero Width Space
-    MJB_LBC_GL, // Non-breaking
+    MJB_LBC_GL, // Non-breaking ("glue")
     MJB_LBC_SP, // Space
     MJB_LBC_ZWJ, // Zero Width Joiner
 
@@ -34,6 +34,7 @@ typedef enum mjb_line_breaking_class {
     MJB_LBC_BA, // Break After
     MJB_LBC_BB, // Break Before
     MJB_LBC_HY, // Hyphen
+    MJB_LBC_HH, // Unambiguous Hyphen
     MJB_LBC_CB, // Contingent Break Opportunity
 
     // Characters Prohibiting Certain Breaks

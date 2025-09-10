@@ -68,7 +68,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     char test_name[128];
 
     // CURRENT_ASSERT mjb_normalize
-    // CURRENT_COUNT 399300
+    // CURRENT_COUNT 400680
     bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, &result);
 
     if(!ret) {
