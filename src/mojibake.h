@@ -262,6 +262,8 @@ typedef enum mjb_next_character_type {
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
 
+// This functions list is automatically generated. Do not edit.
+
 // Return the codepoint character
 MJB_NONNULL(2) bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 

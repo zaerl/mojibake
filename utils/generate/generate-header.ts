@@ -37,7 +37,7 @@ export function generateHeader(blocks: Block[], categories: string[]) {
   writeFileSync('../../src/unicode.h', fileContent);
 
   fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
-  fileContent = substituteText(fileContent, ", mjb_next_character_type type);\n\n", "\n#ifdef __cplusplus", getFunctions());
+  fileContent = substituteText(fileContent, "// This functions list is automatically generated. Do not edit.\n\n", "\n#ifdef __cplusplus", getFunctions());
 
   writeFileSync('../../src/mojibake.h', fileContent);
 }
