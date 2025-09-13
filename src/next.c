@@ -40,8 +40,7 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         state = mjb_utf8_decode_step(state, *index, &codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            // Do nothing. The string is not well-formed.
-            return false;
+            continue;
         }
 
         // Still not found a UTF-8 character, continue.

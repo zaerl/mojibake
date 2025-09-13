@@ -100,8 +100,7 @@ static char *mjb_titlecase(const char *buffer, size_t length, mjb_encoding encod
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            // Do nothing. The string is not well-formed.
-            return NULL;
+            continue;
         }
 
         if(state != MJB_UTF8_ACCEPT) {
@@ -214,8 +213,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            // Do nothing. The string is not well-formed.
-            return NULL;
+            continue;
         }
 
         if(state != MJB_UTF8_ACCEPT) {

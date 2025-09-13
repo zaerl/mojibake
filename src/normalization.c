@@ -321,7 +321,6 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
         if(state == MJB_UTF8_REJECT) {
-            // Do nothing. The string is not well-formed.
             continue;
         }
 
