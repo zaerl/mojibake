@@ -48,7 +48,7 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
         return 0;
     }
 
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     size_t count = 0;
 
@@ -58,14 +58,14 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
         while(*current && (size_t)(current - buffer) < max_length) {
             state = mjb_utf8_decode_step(state, *current, &codepoint);
 
-            if(state == MJB_UTF8_ACCEPT) {
+            if(state == MJB_UTF_ACCEPT) {
                 ++count;
             }
 
             ++current;
         }
     } else if(encoding == MJB_ENCODING_UTF_16_LE || encoding == MJB_ENCODING_UTF_16_BE) {
-        state = MJB_UTF16_ACCEPT;
+        state = MJB_UTF_ACCEPT;
         const uint8_t *bytes = (const uint8_t *)buffer;
 
         for(size_t i = 0; i < max_length; i += 2) {
@@ -75,7 +75,7 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
 
             state = mjb_utf16_decode_step(state, unit, &codepoint);
 
-            if(state == MJB_UTF16_ACCEPT) {
+            if(state == MJB_UTF_ACCEPT) {
                 ++count;
             }
         }

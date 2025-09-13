@@ -31,6 +31,9 @@
 
 #define MJB_USED __attribute__((used))
 
+#define	MJB_UTF_ACCEPT 0
+#define	MJB_UTF_REJECT 0xF
+
 /**
  * Internal mojibake structure
  * This contains the internal state of the library

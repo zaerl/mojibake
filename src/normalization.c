@@ -259,7 +259,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     sqlite3_stmt *stmt;
 
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint current_codepoint;
     mjb_normalization_character current_character;
     // size_t codepoints_count = 0;
@@ -320,12 +320,12 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
-        if(state == MJB_UTF8_REJECT) {
+        if(state == MJB_UTF_REJECT) {
             continue;
         }
 
         // Still not found a UTF-8 character, continue.
-        if(state != MJB_UTF8_ACCEPT) {
+        if(state != MJB_UTF_ACCEPT) {
             continue;
         }
 

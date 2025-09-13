@@ -24,7 +24,7 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         return false;
     }
 
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     mjb_character character;
     bool has_previous_character = false;
@@ -39,12 +39,12 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &codepoint);
 
-        if(state == MJB_UTF8_REJECT) {
+        if(state == MJB_UTF_REJECT) {
             continue;
         }
 
         // Still not found a UTF-8 character, continue.
-        if(state != MJB_UTF8_ACCEPT) {
+        if(state != MJB_UTF_ACCEPT) {
             continue;
         }
 

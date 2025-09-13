@@ -88,7 +88,7 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
         return false;
     }
 
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
 
     const char *index = buffer;
@@ -99,13 +99,13 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &codepoint);
 
-        if(state == MJB_UTF8_REJECT) {
+        if(state == MJB_UTF_REJECT) {
             // The string is not well-formed.
             return false;
         }
     }
 
-    return state == MJB_UTF8_ACCEPT;
+    return state == MJB_UTF_ACCEPT;
 }
 
 /**
@@ -139,7 +139,7 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     const uint8_t *bytes = (const uint8_t *)buffer;
 
     // Try UTF-16BE first
-    uint8_t state_be = MJB_UTF16_ACCEPT;
+    uint8_t state_be = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
     bool be_valid = true;
 
@@ -147,31 +147,31 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
         uint16_t unit = (bytes[i] << 8) | bytes[i + 1];  // Big-endian
         state_be = mjb_utf16_decode_step(state_be, unit, &codepoint);
 
-        if(state_be > MJB_UTF16_REJECT) {
+        if(state_be > MJB_UTF_REJECT) {
             be_valid = false;  // Error in UTF-16BE
             break;
         }
     }
 
-    if(be_valid && state_be == MJB_UTF16_ACCEPT) {
+    if(be_valid && state_be == MJB_UTF_ACCEPT) {
         return true;  // Valid UTF-16BE
     }
 
     // Try UTF-16LE
-    uint8_t state_le = MJB_UTF16_ACCEPT;
+    uint8_t state_le = MJB_UTF_ACCEPT;
     bool le_valid = true;
 
     for(size_t i = 0; i < size; i += 2) {
         uint16_t unit = bytes[i] | (bytes[i + 1] << 8);  // Little-endian
         state_le = mjb_utf16_decode_step(state_le, unit, &codepoint);
 
-        if(state_le > MJB_UTF16_REJECT) {
+        if(state_le > MJB_UTF_REJECT) {
             le_valid = false;  // Error in UTF-16LE
             break;
         }
     }
 
-    return le_valid && state_le == MJB_UTF16_ACCEPT;  // Valid UTF-16LE
+    return le_valid && state_le == MJB_UTF_ACCEPT;  // Valid UTF-16LE
 }
 
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size,

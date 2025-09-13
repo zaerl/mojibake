@@ -39,18 +39,18 @@ static size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
 
 static bool has_only_latin1(char *source, size_t source_size) {
     const char *index = source;
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint current_codepoint = 0;
 
     for(; *index; ++index) {
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
-        if(state == MJB_UTF8_REJECT) {
+        if(state == MJB_UTF_REJECT) {
             return false;
         }
 
-        if(state != MJB_UTF8_ACCEPT) {
+        if(state != MJB_UTF_ACCEPT) {
             continue;
         }
 

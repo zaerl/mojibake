@@ -30,7 +30,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     }
 
     mjb_quick_check_result result = MJB_QC_NO;
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint current_codepoint;
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_normalization_character current_character;
@@ -43,7 +43,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, *index, &current_codepoint);
 
-        if(state != MJB_UTF8_ACCEPT) {
+        if(state != MJB_UTF_ACCEPT) {
             continue;
         }
 

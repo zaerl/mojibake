@@ -53,7 +53,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
         return 1;
     }
 
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
 
     const char *current = argv[0];
@@ -61,7 +61,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     while(*current && (size_t)(current - argv[0]) < input_size) {
         state = mjb_utf8_decode_step(state, *current, &codepoint);
 
-        if(state == MJB_UTF8_ACCEPT) {
+        if(state == MJB_UTF_ACCEPT) {
             mjb_codepoint picture_codepoint = control_picture_codepoint(codepoint);
             bool is_control_picture = picture_codepoint != codepoint;
             char buffer_utf8[5];
@@ -82,7 +82,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     size_t breaks_index = 0;
     bool check_break = true;
     current = argv[0];
-    state = MJB_UTF8_ACCEPT;
+    state = MJB_UTF_ACCEPT;
 
     if(output_size > 0) {
         for(size_t i = 0; i < input_real_size; ++i) {
@@ -119,13 +119,13 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     check_break = output_size > 0;
     breaks_index = 0;
     current = argv[0];
-    state = MJB_UTF8_ACCEPT;
+    state = MJB_UTF_ACCEPT;
     codepoint = 0x0;
 
     while(*current && (size_t)(current - argv[0]) < input_size) {
         state = mjb_utf8_decode_step(state, *current, &codepoint);
 
-        if(state == MJB_UTF8_ACCEPT) {
+        if(state == MJB_UTF_ACCEPT) {
             bool can_break = false;
             bool is_mandatory = false;
 

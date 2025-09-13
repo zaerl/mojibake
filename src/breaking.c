@@ -73,7 +73,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
     breaks[0] = MJB_LBT_NO_BREAK;  // LB2: Never break at start of text
     breaks[real_length] = MJB_LBT_MANDATORY;
 
-    uint8_t state = MJB_UTF8_ACCEPT;
+    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     const char *current = buffer;
     size_t i = 0;
@@ -82,11 +82,11 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
     while(*current && (size_t)(current - buffer) < length) {
         state = mjb_utf8_decode_step(state, *current, &codepoint);
 
-        if(state == MJB_UTF8_REJECT) {
+        if(state == MJB_UTF_REJECT) {
             continue;
         }
 
-        if(state == MJB_UTF8_ACCEPT) {
+        if(state == MJB_UTF_ACCEPT) {
             // LB1 Assign a line breaking class to each code point of the input.
             mjb_line_breaking_class line_breaking_class;
             mjb_category category;
