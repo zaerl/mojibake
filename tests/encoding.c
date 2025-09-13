@@ -151,29 +151,29 @@ void *test_encoding(void *arg) {
 
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), 0, "Invalid encoding")
 
-    char buffer_utf8[5];
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter max")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter min")
+    char buffer[5];
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter max")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter min")
 
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter max UTF-16LE")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter min UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter max UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter min UTF-16LE")
 
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter max UTF-16BE")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter min UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter max UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter min UTF-16BE")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), 1, "0x0000 UTF-8")
-    ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-8")
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_8), 1, "0x0000 UTF-8")
+    ATT_ASSERT(buffer[0], 0, "0x0000 UTF-8")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), 2, "0x0000 UTF-16LE")
-    ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 2, "0x0000 UTF-16LE")
+    ATT_ASSERT(buffer[0], 0, "0x0000 UTF-16LE")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), 2, "0x0000 UTF-16BE")
-    ATT_ASSERT(buffer_utf8[0], 0, "0x0000 UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 2, "0x0000 UTF-16BE")
+    ATT_ASSERT(buffer[0], 0, "0x0000 UTF-16BE")
 
     // CURRENT_COUNT 12
     #define TEST_UTF8(CHAR, STR, RES, COMMENT) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), RES, COMMENT) \
-        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, MJB_ENCODING_UTF_8), RES, COMMENT) \
+        ATT_ASSERT((const char*)buffer, STR, COMMENT)
 
     // UTF-8 tests
     TEST_UTF8(0x007F, "\x7F", 1, "ASCII limit");
@@ -185,8 +185,8 @@ void *test_encoding(void *arg) {
 
     // CURRENT_COUNT 12
     #define TEST_UTF16LE(CHAR, STR, RES, COMMENT) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_LE), RES, COMMENT) \
-        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), RES, COMMENT) \
+        ATT_ASSERT((const char*)buffer, STR, COMMENT)
 
     TEST_UTF16LE(0x007F, "\x7F\x00", 2, "ASCII limit UTF-16LE");
     TEST_UTF16LE(0x07FF, "\xFF\x07", 2, "2-bytes limit UTF-16LE");
@@ -197,8 +197,8 @@ void *test_encoding(void *arg) {
 
     // CURRENT_COUNT 12
     #define TEST_UTF16BE(CHAR, STR, RES, COMMENT) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_16_BE), RES, COMMENT) \
-        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), RES, COMMENT) \
+        ATT_ASSERT((const char*)buffer, STR, COMMENT)
 
     TEST_UTF16BE(0x007F, "\x00\x7F", 2, "ASCII limit UTF-16BE");
     TEST_UTF16BE(0x07FF, "\x07\xFF", 2, "2-bytes limit UTF-16BE");
