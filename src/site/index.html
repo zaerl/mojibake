@@ -394,6 +394,7 @@
             } else if(func === 'mjb_normalize') {
                 return ccallNormalize(args[0], args[1], args[2], args[3]);
             } else {
+                console.log(func, ret, argTypes, args);
                 return window.mojibake.ccall(func, ret, argTypes, args);
             }
         }
@@ -449,7 +450,8 @@
                 argTypes.push(mappedType);
 
                 if(functions[func].wasmGenerated[i]) {
-                    if(functions[func].argsTypes[i] === 'size_t' && arg === 'size' && hasBuffer !== null) {
+                    if(functions[func].argsTypes[i] === 'size_t' && (arg === 'size' || arg === 'max_length')
+                        && hasBuffer !== null) {
                         // Calculate the size of the buffer in bytes (UTF-8)
                         const encoder = new TextEncoder().encode(hasBuffer);
                         value = encoder.length;
