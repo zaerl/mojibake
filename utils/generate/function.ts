@@ -33,6 +33,10 @@ export class CFunction {
     return 'mjb_' + this.name;
   }
 
+  getLabelName(label: string) {
+    return label.replace('_', ' ');
+  }
+
   isInternal() {
     return this.name.startsWith('initialize');
   }
@@ -88,7 +92,7 @@ export class CFunction {
     const name = `${this.getName()}-${this.args[arg]}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.args[arg]}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(this.args[arg])}</label>`;
     ret += `<input id="${name}" type="${type}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
 
     return ret + '</div>';
@@ -100,7 +104,7 @@ export class CFunction {
     const description = this.#getDescription(arg);
 
     let ret = `<div><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
-      `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.args[arg]}</label>`;
+      `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(this.args[arg])}</label>`;
 
     return ret + '</div>';
   }
@@ -110,7 +114,7 @@ export class CFunction {
     const name = `${this.getName()}-${this.args[arg]}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.args[arg]}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(this.args[arg])}</label>`;
     ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
