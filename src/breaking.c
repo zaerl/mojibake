@@ -75,12 +75,12 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
-    const char *current = buffer;
     size_t i = 0;
+    size_t j = 0;
 
     // https://www.unicode.org/reports/tr14/#LB1
-    while(*current && (size_t)(current - buffer) < length) {
-        state = mjb_utf8_decode_step(state, *current, &codepoint);
+    for(i = 0; i < length && buffer[i]; ++i) {
+        state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
 
         if(state == MJB_UTF_REJECT) {
             continue;
@@ -96,16 +96,14 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
                 line_breaking_class = MJB_LBC_XX;
             }
 
-            results[i].line_breaking_class = line_breaking_class;
-            results[i].category = category;
-            ++i;
+            results[j].line_breaking_class = line_breaking_class;
+            results[j].category = category;
+            ++j;
 
             // Resolve AI, CB, CJ, SA, SG, and XX into other line breaking classes depending on criteria
             // outside the scope of this algorithm.
             // TODO: not implemented
         }
-
-        ++current;
     }
 
     // LB2: Never break at start of text (implicitly handled by the algorithm)
@@ -469,7 +467,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
     }
 
     mjb_line_break *line_breaks = (mjb_line_break*)malloc(num_breaks * sizeof(mjb_line_break));
-    size_t j = 0;
+    j = 0;
 
     for(size_t i = 0; i < real_length; ++i) {
         if(breaks[i] == MJB_LBT_ALLOWED || breaks[i] == MJB_LBT_MANDATORY) {

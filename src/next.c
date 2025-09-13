@@ -30,14 +30,10 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     bool has_previous_character = false;
     bool first_character = true;
 
-    // String buffer.
-    const char *index = buffer;
-    const char *end = buffer + size;
-
     // Loop through the string.
-    for(; index < end && *index; ++index) {
+    for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, *index, &codepoint);
+        state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
 
         if(state == MJB_UTF_REJECT) {
             continue;

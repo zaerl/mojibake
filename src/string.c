@@ -53,16 +53,12 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
     size_t count = 0;
 
     if(encoding == MJB_ENCODING_UTF_8) {
-        const char *current = buffer;
-
-        while(*current && (size_t)(current - buffer) < max_length) {
-            state = mjb_utf8_decode_step(state, *current, &codepoint);
+        for(size_t i = 0; i < max_length && buffer[i]; ++i) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
 
             if(state == MJB_UTF_ACCEPT) {
                 ++count;
             }
-
-            ++current;
         }
     } else if(encoding == MJB_ENCODING_UTF_16_LE || encoding == MJB_ENCODING_UTF_16_BE) {
         state = MJB_UTF_ACCEPT;

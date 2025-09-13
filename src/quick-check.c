@@ -36,12 +36,9 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     mjb_normalization_character current_character;
     result = MJB_QC_YES;
 
-    const char *index = buffer;
-    const char *end = buffer + size;
-
-    for(; index < end && *index; ++index) {
+    for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, *index, &current_codepoint);
+        state = mjb_utf8_decode_step(state, buffer[i], &current_codepoint);
 
         if(state != MJB_UTF_ACCEPT) {
             continue;

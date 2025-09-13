@@ -91,13 +91,10 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
 
-    const char *index = buffer;
-    const char *end = buffer + size;
-
     // Loop through the string.
-    for(; index < end && *index; ++index) {
+    for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, *index, &codepoint);
+        state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
 
         if(state == MJB_UTF_REJECT) {
             // The string is not well-formed.
@@ -116,11 +113,9 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
         return false;
     }
 
-    const char *end = buffer + size;
-
-    for(; buffer != end; ++buffer) {
+    for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Every character must have leading bit at zero.
-        if(*buffer & 0x80) {
+        if(buffer[i] & 0x80) {
             return false;
         }
     }
