@@ -62,14 +62,10 @@ MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encodin
         }
     } else if(encoding == MJB_ENCODING_UTF_16_LE || encoding == MJB_ENCODING_UTF_16_BE) {
         state = MJB_UTF_ACCEPT;
-        const uint8_t *bytes = (const uint8_t *)buffer;
 
         for(size_t i = 0; i < max_length; i += 2) {
-            uint16_t unit = encoding == MJB_ENCODING_UTF_16_BE ?
-                (bytes[i] << 8) | bytes[i + 1] :
-                bytes[i] | (bytes[i + 1] << 8);
-
-            state = mjb_utf16_decode_step(state, unit, &codepoint);
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
 
             if(state == MJB_UTF_ACCEPT) {
                 ++count;

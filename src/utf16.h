@@ -10,7 +10,10 @@
 
 #include "mojibake-internal.h"
 
-static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint16_t unit, uint32_t *cpp) {
+static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint8_t unit_1, uint8_t unit_2,
+    uint32_t *cpp, bool is_big_endian) {
+    uint16_t unit = is_big_endian ? (unit_1 << 8) | unit_2 : unit_1 | (unit_2 << 8);
+
     if(state == MJB_UTF_ACCEPT) {
         if(unit < 0xD800 || unit > 0xDFFF) {
             // BMP
