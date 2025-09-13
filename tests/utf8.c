@@ -6,11 +6,14 @@
 
 #include "test.h"
 #include "../src/utf8.h"
+#include <stdio.h>
 
 void *test_utf8(void *arg) {
-    /*#define TEST_UTF8(CHAR, STR, RES, COMMENT) \
+    char buffer_utf8[5];
+
+    #define TEST_UTF8(CHAR, STR, RES, COMMENT) \
         ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8), RES, COMMENT) \
-        ATT_ASSERT(strcmp(buffer_utf8, STR), 0, COMMENT)
+        ATT_ASSERT((const char*)buffer_utf8, STR, COMMENT)
 
     // UTF-8 tests
     TEST_UTF8(0x007F, "\x7F", 1, "ASCII limit");
@@ -18,8 +21,9 @@ void *test_utf8(void *arg) {
     TEST_UTF8(0x1E0A, "\xE1\xB8\x8A", 3, "LATIN CAPITAL LETTER D WITH DOT ABOVE");
     TEST_UTF8(0xFFFD, "\xEF\xBF\xBD", 3, "3-bytes limit");
     TEST_UTF8(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
-    TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");*/
-    uint8_t state = MJB_UTF8_ACCEPT;
+    TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
+
+    /*uint8_t state = MJB_UTF8_ACCEPT;
     mjb_codepoint codepoint;
     const char *hello_world = "Hello, World \xF0\x9F\x99\x82!";
     const char *index = hello_world;
@@ -41,7 +45,7 @@ void *test_utf8(void *arg) {
 
     if(state != MJB_UTF8_ACCEPT) {
         printf("The string is not well-formed\n");
-    }
+    }*/
 
     return NULL;
 }
