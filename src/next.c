@@ -6,6 +6,7 @@
 
 #include "mojibake.h"
 #include "utf8.h"
+#include "utf16.h"
 
 /**
  * Return the next character from the string.
@@ -13,10 +14,6 @@
 MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_character_fn fn) {
     if(!mjb_initialize()) {
-        return false;
-    }
-
-    if(encoding != MJB_ENCODING_UTF_8) {
         return false;
     }
 
@@ -33,7 +30,13 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     // Loop through the string.
     for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        if(encoding == MJB_ENCODING_UTF_8) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        } else {
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
+            ++i;
+        }
 
         if(state == MJB_UTF_REJECT) {
             continue;

@@ -10,6 +10,7 @@
 #include "mojibake-internal.h"
 #include "buffer.h"
 #include "utf8.h"
+#include "utf16.h"
 
 extern mojibake mjb_global;
 
@@ -260,7 +261,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     sqlite3_stmt *stmt;
 
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint current_codepoint;
+    mjb_codepoint codepoint;
     mjb_normalization_character current_character;
     // size_t codepoints_count = 0;
 
@@ -314,7 +315,13 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     // Loop through the string.
     for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, buffer[i], &current_codepoint);
+        if(encoding == MJB_ENCODING_UTF_8) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        } else {
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
+            ++i;
+        }
 
         if(state == MJB_UTF_REJECT) {
             continue;
@@ -326,7 +333,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         }
 
         // Get current character.
-        if(!mjb_get_buffer_character(&current_character, current_codepoint)) {
+        if(!mjb_get_buffer_character(&current_character, codepoint)) {
             continue;
         }
 
@@ -348,11 +355,11 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
         // Hangul syllables have a special decomposition.
         // Only decompose in NFD/NFKD forms, not in NFC/NFKC forms
-        if(mjb_codepoint_is_hangul_syllable(current_codepoint) &&
+        if(mjb_codepoint_is_hangul_syllable(codepoint) &&
            (form == MJB_NORMALIZATION_NFD || form == MJB_NORMALIZATION_NFKD)) {
             mjb_codepoint codepoints[3];
 
-            if(!mjb_hangul_syllable_decomposition(current_codepoint, codepoints)) {
+            if(!mjb_hangul_syllable_decomposition(codepoint, codepoints)) {
                 continue;
             }
 
@@ -385,7 +392,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
             }
         } else if(should_decompose) {
             // Decompose the character using database lookup
-            int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
+            int rc = sqlite3_bind_int(stmt, 1, codepoint);
 
             if(rc != SQLITE_OK) {
                 if(composition_buffer) {
@@ -447,7 +454,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                 if(buffer_index > 0 &&
                     mjb_codepoint_is_hangul_syllable(
                         characters_buffer[buffer_index - 1].codepoint) &&
-                        mjb_codepoint_is_hangul_t(current_codepoint)) {
+                        mjb_codepoint_is_hangul_t(codepoint)) {
 
                     // Check if the syllable can accept a trailing consonant
                     mjb_codepoint syllable = characters_buffer[buffer_index - 1].codepoint;
@@ -456,7 +463,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT &&
                         (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
                         // The syllable has no trailing consonant, so we can add one
-                        mjb_codepoint trailing = current_codepoint;
+                        mjb_codepoint trailing = codepoint;
                         mjb_codepoint composed = syllable + (trailing - MJB_CP_HANGUL_T_BASE);
                         characters_buffer[buffer_index - 1].codepoint = composed;
 

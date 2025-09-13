@@ -83,7 +83,7 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
  */
 static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encoding) {
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint current_codepoint;
+    mjb_codepoint codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
     char *output = (char*)mjb_alloc(size);
 
@@ -94,7 +94,13 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
 
     for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, buffer[i], &current_codepoint);
+        if(encoding == MJB_ENCODING_UTF_8) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        } else {
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
+            ++i;
+        }
 
         if(state == MJB_UTF_REJECT) {
             continue;
@@ -107,7 +113,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         sqlite3_reset(stmt);
         // sqlite3_clear_bindings(stmt);
 
-        if(sqlite3_bind_int(stmt, 1, current_codepoint) != SQLITE_OK) {
+        if(sqlite3_bind_int(stmt, 1, codepoint) != SQLITE_OK) {
             return NULL;
         }
 
@@ -133,11 +139,11 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
                 if(sqlite3_column_type(stmt, 3) == SQLITE_NULL) {
                     // If titlecase is not available, try uppercase.
                     if(sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
-                        current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 1);
+                        codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 1);
                         case_type = MJB_CASE_UPPER;
                     }
                 } else {
-                    current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 3);
+                    codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 3);
                     case_type = MJB_CASE_TITLE;
                 }
 
@@ -145,7 +151,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             } else {
                 // Try lowercase.
                 if(sqlite3_column_type(stmt, 2) != SQLITE_NULL) {
-                    current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 2);
+                    codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 2);
                     case_type = MJB_CASE_LOWER;
                 }
             }
@@ -153,8 +159,8 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             in_word = false;
         }
 
-        if(mjb_maybe_has_special_casing(current_codepoint)) {
-            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output,
+        if(mjb_maybe_has_special_casing(codepoint)) {
+            unsigned int found = mjb_special_casing_codepoint(codepoint, output,
                 &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE :
                 case_type);
 
@@ -163,7 +169,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             }
         }
 
-        output = mjb_string_output_codepoint(current_codepoint, output, &output_index,
+        output = mjb_string_output_codepoint(codepoint, output, &output_index,
             &output_size);
     }
 
@@ -186,16 +192,12 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         return NULL;
     }
 
-    if(encoding != MJB_ENCODING_UTF_8) {
-        return NULL;
-    }
-
     if(type == MJB_CASE_TITLE) {
         return mjb_titlecase(buffer, length, encoding);
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint current_codepoint;
+    mjb_codepoint codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
     char *output = (char*)mjb_alloc(length);
 
@@ -204,7 +206,13 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
 
     for(size_t i = 0; i < length && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, buffer[i], &current_codepoint);
+        if(encoding == MJB_ENCODING_UTF_8) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        } else {
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
+            ++i;
+        }
 
         if(state == MJB_UTF_REJECT) {
             continue;
@@ -215,14 +223,14 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         }
 
         if(type == MJB_CASE_CASEFOLD) {
-            output = mjb_string_output_codepoint(current_codepoint, output, &output_index,
+            output = mjb_string_output_codepoint(codepoint, output, &output_index,
                 &output_size);
 
             continue;
         }
 
-        if(mjb_maybe_has_special_casing(current_codepoint)) {
-            unsigned int found = mjb_special_casing_codepoint(current_codepoint, output,
+        if(mjb_maybe_has_special_casing(codepoint)) {
+            unsigned int found = mjb_special_casing_codepoint(codepoint, output,
                 &output_index, &output_size, type);
 
             if(found) {
@@ -233,7 +241,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         sqlite3_reset(stmt);
         // sqlite3_clear_bindings(stmt);
 
-        int rc = sqlite3_bind_int(stmt, 1, current_codepoint);
+        int rc = sqlite3_bind_int(stmt, 1, codepoint);
 
         if(rc != SQLITE_OK) {
             return NULL;
@@ -248,10 +256,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         if(sqlite3_column_type(stmt, type) == SQLITE_NULL) {
             // Skip.
         } else {
-            current_codepoint = (mjb_codepoint)sqlite3_column_int(stmt, type);
+            codepoint = (mjb_codepoint)sqlite3_column_int(stmt, type);
         }
 
-        output = mjb_string_output_codepoint(current_codepoint, output, &output_index,
+        output = mjb_string_output_codepoint(codepoint, output, &output_index,
             &output_size);
     }
 

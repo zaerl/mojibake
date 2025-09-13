@@ -10,6 +10,7 @@
 #include "mojibake-internal.h"
 #include "breaking.h"
 #include "utf8.h"
+#include "utf16.h"
 
 extern mojibake mjb_global;
 
@@ -55,7 +56,8 @@ MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
 
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
-MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb_encoding encoding, size_t *output_size) {
+MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb_encoding encoding,
+    size_t *output_size) {
     size_t real_length = mjb_strnlen(buffer, length, encoding);
 
     if(real_length == 0) {
@@ -80,7 +82,14 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
 
     // https://www.unicode.org/reports/tr14/#LB1
     for(i = 0; i < length && buffer[i]; ++i) {
-        state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        // Find next codepoint.
+        if(encoding == MJB_ENCODING_UTF_8) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        } else {
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
+            ++i;
+        }
 
         if(state == MJB_UTF_REJECT) {
             continue;

@@ -7,6 +7,7 @@
 #include "mojibake-internal.h"
 #include "buffer.h"
 #include "utf8.h"
+#include "utf16.h"
 
 extern mojibake mjb_global;
 
@@ -31,14 +32,20 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
 
     mjb_quick_check_result result = MJB_QC_NO;
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint current_codepoint;
+    mjb_codepoint codepoint;
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_normalization_character current_character;
     result = MJB_QC_YES;
 
     for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, buffer[i], &current_codepoint);
+        if(encoding == MJB_ENCODING_UTF_8) {
+            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
+        } else {
+            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
+                encoding == MJB_ENCODING_UTF_16_BE);
+            ++i;
+        }
 
         if(state != MJB_UTF_ACCEPT) {
             continue;
@@ -46,17 +53,17 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
 
         // Text exclusively containing ASCII characters (U+0000..U+007F) is left unaffected by all
         // of the Normalization Forms.
-        if(current_codepoint < 0x80) {
+        if(codepoint < 0x80) {
             continue;
         }
 
         // Text with only Latin-1 characters (U+0000..U+00FF) is left unaffected by NFC.
-        if(current_codepoint < 0x100 && form == MJB_NORMALIZATION_NFC) {
+        if(codepoint < 0x100 && form == MJB_NORMALIZATION_NFC) {
             continue;
         }
 
         // Get current character.
-        if(!mjb_get_buffer_character(&current_character, current_codepoint)) {
+        if(!mjb_get_buffer_character(&current_character, codepoint)) {
             continue;
         }
 
@@ -69,7 +76,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
             return MJB_QC_NO;
         }
 
-        bool is_hangul_syllable = mjb_codepoint_is_hangul_syllable(current_codepoint);
+        bool is_hangul_syllable = mjb_codepoint_is_hangul_syllable(codepoint);
 
         switch(form) {
             case MJB_NORMALIZATION_NFC:
