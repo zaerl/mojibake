@@ -2,9 +2,9 @@
 
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
-| `mjb_normalize`                     | 399304     |
+| `mjb_normalize`                     | 400684     |
 | `mjb_case`                          | 389        |
-| `mjb_codepoint_encode`              | 60         |
+| `mjb_codepoint_encode`              | 58         |
 | `mjb_strnlen`                       | 48         |
 | `mjb_hangul_syllable_composition`   | 43         |
 | `mjb_codepoint_character`           | 42         |
@@ -46,4 +46,4 @@
 | `mjb_shutdown`                      | 0          |
 | `mjb_string_is_normalized`          | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **400053** |
+| **Total**                           | **401431** |

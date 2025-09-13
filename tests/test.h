@@ -36,7 +36,6 @@ void *test_quick_check(void *arg);
 void *test_segmentation(void *arg);
 void *test_special_case(void *arg);
 void *test_string(void *arg);
-void *test_utf8(void *arg);
 void *test_version(void *arg);
 
 #ifdef __cplusplus

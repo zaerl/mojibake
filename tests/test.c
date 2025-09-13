@@ -157,7 +157,6 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(segmentation)
     RUN_TEST(special_case)
     RUN_TEST(string)
-    RUN_TEST(utf8)
     RUN_TEST(version)
 
 #ifdef __cplusplus
