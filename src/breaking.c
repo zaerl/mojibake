@@ -67,6 +67,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
     mjb_lbc_result *results = (mjb_lbc_result*)malloc(real_length * sizeof(mjb_lbc_result));
     char *breaks = (char*)malloc(real_length + 1);  // real_length + 1 break positions + null terminator
 
+    // 6.1 Non-tailorable Line Breaking Rules
+
     // Initialize all breaks to allowed (LB31 default) except first position
     for(size_t j = 0; j <= real_length; ++j) {
         breaks[j] = MJB_LBT_NOT_SET;
@@ -138,7 +140,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
-        // LB5
+        // LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.
         // CR !
         // LF !
         // NL !
