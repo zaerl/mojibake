@@ -155,7 +155,7 @@
     "ret": "char *",
     "name": "case",
     "attributes": ["MJB_NONNULL(1)"],
-    "args": ["buffer", "length", "type", "encoding"],
+    "args": ["buffer", "size", "type", "encoding"],
     "args_types": ["const char *", "size_t", "mjb_case_type", "mjb_encoding"],
     "args_description": [
       "The string to change case",

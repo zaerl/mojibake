@@ -189,9 +189,9 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
     return output;
 }
 
-MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
+MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
     mjb_encoding encoding) {
-    if(length == 0) {
+    if(size == 0) {
         return (char*)buffer;
     }
 
@@ -200,18 +200,18 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
     }
 
     if(type == MJB_CASE_TITLE) {
-        return mjb_titlecase(buffer, length, encoding);
+        return mjb_titlecase(buffer, size, encoding);
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     sqlite3_stmt *stmt = mjb_global.stmt_case;
-    char *output = (char*)mjb_alloc(length);
+    char *output = (char*)mjb_alloc(size);
 
     size_t output_index = 0;
-    size_t output_size = length;
+    size_t output_size = size;
 
-    for(size_t i = 0; i < length && buffer[i]; ++i) {
+    for(size_t i = 0; i < size && buffer[i]; ++i) {
         // Find next codepoint.
         if(encoding == MJB_ENCODING_UTF_8) {
             state = mjb_utf8_decode_step(state, buffer[i], &codepoint);

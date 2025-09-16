@@ -69,7 +69,7 @@ size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encodi
 Change string case
 
 ```c
-char *mjb_case(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding);
+char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
 ```
 
 Return true if the codepoint is valid
