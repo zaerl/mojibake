@@ -414,6 +414,8 @@
             function typeMap(type) {
                 if(type === 'const char *') {
                     return 'string';
+                } else if(type === 'char *') {
+                    return 'string';
                 } else if(type === 'bool') {
                     return 'boolean';
                 }
