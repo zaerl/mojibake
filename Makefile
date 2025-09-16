@@ -71,7 +71,7 @@ clean-build:
 	@cmake --build $(BUILD_DIR) --target clean
 
 clean-native:
-	rm -rf $(BUILD_DIR) && rm -f mojibake.db
+	rm -rf $(BUILD_DIR)
 
 clean-wasm:
 	rm -rf $(WASM_BUILD_DIR)
