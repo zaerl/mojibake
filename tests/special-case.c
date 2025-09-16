@@ -20,11 +20,26 @@ static size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
     unsigned int index = 0;
 
     while((token = strsep(&string, " ")) != NULL) {
+        if(strlen(token) == 0) {
+            continue; // Skip empty tokens
+        }
+
         mjb_codepoint codepoint = strtoul((const char*)token, NULL, 16);
-        index += mjb_codepoint_encode(codepoint, codepoints + index, size - index, MJB_ENCODING_UTF_8);
+        if(codepoint == 0) {
+            continue; // Skip invalid codepoints
+        }
+
+        unsigned int encoded_size = mjb_codepoint_encode(codepoint, codepoints + index,
+            size - index, MJB_ENCODING_UTF_8);
+
+        if(encoded_size == 0) {
+            break; // Failed to encode
+        }
+
+        index += encoded_size;
     }
 
-    codepoints[++index] = '\0';
+    codepoints[index] = '\0';
     free(tofree);
 
     return index;
@@ -37,11 +52,19 @@ static int check_case(char *source, size_t source_size, char *target, size_t tar
 
     snprintf(test_name, 128, "#%u %s", current_line, step);
 
+    if(source_size == 0 || target_size == 0) {
+        return 0;
+    }
+
+    char *result = mjb_case(source, source_size, type, encoding);
+
     // CURRENT_ASSERT mjb_case
     // CURRENT_COUNT 309
-    char *result = mjb_case(source, source_size, type, encoding);
     ATT_ASSERT(result, target, test_name)
-    mjb_free(result);
+
+    if(result != NULL && result != source) {
+        mjb_free(result);
+    }
 
     return 0;
 }

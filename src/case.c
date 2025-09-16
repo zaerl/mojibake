@@ -39,7 +39,7 @@ static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
         (codepoint >= 64256 && codepoint <= 64279);
 }
 
-static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
+static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
     size_t *output_index, size_t *output_size, mjb_case_type type) {
     sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
 
@@ -53,11 +53,11 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
     // sqlite3_clear_bindings(stmt_special_casing);
 
     if(sqlite3_bind_int(stmt_special_casing, 1, codepoint) != SQLITE_OK) {
-        return 0;
+        return NULL;
     }
 
     if(sqlite3_bind_int(stmt_special_casing, 2, type) != SQLITE_OK) {
-        return 0;
+        return NULL;
     }
 
     unsigned int found = 0;
@@ -66,7 +66,13 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
         for(int i = 0; i < 3; ++i) {
             if(sqlite3_column_type(stmt_special_casing, i) != SQLITE_NULL) {
                 mjb_codepoint new_cp = (mjb_codepoint)sqlite3_column_int(stmt_special_casing,i);
-                output = mjb_string_output_codepoint(new_cp, output, output_index, output_size);
+
+                char *new_output = mjb_string_output_codepoint(new_cp, output, output_index,
+                    output_size);
+
+                if(new_output != NULL) {
+                    output = new_output;
+                }
             } else {
                 break;
             }
@@ -75,7 +81,7 @@ static unsigned int mjb_special_casing_codepoint(mjb_codepoint codepoint, char *
         ++found;
     }
 
-    return found;
+    return found > 0 ? output : NULL;
 }
 
 /**
@@ -160,11 +166,12 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         }
 
         if(mjb_maybe_has_special_casing(codepoint)) {
-            unsigned int found = mjb_special_casing_codepoint(codepoint, output,
+            char *new_output = mjb_special_casing_codepoint(codepoint, output,
                 &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE :
                 case_type);
 
-            if(found) {
+            if(new_output != NULL) {
+                output = new_output;
                 continue;
             }
         }
@@ -230,10 +237,11 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t length, mjb_case_type type,
         }
 
         if(mjb_maybe_has_special_casing(codepoint)) {
-            unsigned int found = mjb_special_casing_codepoint(codepoint, output,
+            char *new_output = mjb_special_casing_codepoint(codepoint, output,
                 &output_index, &output_size, type);
 
-            if(found) {
+            if(new_output != NULL) {
+                output = new_output;
                 continue;
             }
         }
