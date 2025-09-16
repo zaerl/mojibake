@@ -16,6 +16,9 @@ enable_testing()
 # WASM build option
 option(BUILD_WASM "Build for WebAssembly" OFF)
 
+# AddressSanitizer option
+option(USE_ASAN "Enable AddressSanitizer" OFF)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -25,6 +28,14 @@ set(COMMON_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter -Wtype-limits")
 set(COMMON_FLAGS_DEBUG "-g -O0")
 set(COMMON_FLAGS_RELEASE "-O3")
 set(COMMON_FLAGS_TEST "-g -O0 -DMJB_TEST")
+
+# AddressSanitizer flags
+if(USE_ASAN)
+    set(ASAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+    set(COMMON_FLAGS "${COMMON_FLAGS} ${ASAN_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+endif()
 
 # Language standards
 if(BUILD_CPP)

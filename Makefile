@@ -23,6 +23,13 @@ configure-cpp:
 build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
+# AddressSanitizer targets
+configure-asan:
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
+
+build-asan: configure-asan
+	@cmake --build $(BUILD_DIR)
+
 # WASM targets
 configure-wasm:
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
@@ -57,6 +64,11 @@ test-cpp: BUILD_TYPE = Test
 test-cpp: configure-cpp build-cpp mojibake.db
 	build/tests/mojibake-test $(ARGS)
 
+# Run tests with AddressSanitizer
+test-asan: BUILD_TYPE = Test
+test-asan: configure-asan build-asan mojibake.db
+	build/tests/mojibake-test $(ARGS)
+
 # Run tests using CTest
 ctest: BUILD_TYPE = Test
 ctest: configure build mojibake.db
@@ -82,7 +94,9 @@ help:
 	@echo "Available targets:"
 	@echo "  all          - Build the project (default)"
 	@echo "  build-cpp    - Build the project with C++ compiler"
+	@echo "  build-asan   - Build the project with AddressSanitizer"
 	@echo "  test-cpp     - Build and run tests with C++ compiler"
+	@echo "  test-asan    - Build and run tests with AddressSanitizer"
 	@echo "  wasm         - Build the project for WebAssembly"
 	@echo "  test         - Build and run tests"
 	@echo "  ctest        - Build and run tests using CTest"
@@ -93,4 +107,6 @@ help:
 	@echo "  generate     - Regenerate source files"
 	@echo "  coverage     - Run coverage analysis"
 
-.PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm configure-cpp build build-wasm build-cpp wasm test test-cpp ctest test-docker generate coverage help
+.PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm configure-cpp \
+		configure-asan build build-wasm build-cpp build-asan wasm test test-cpp test-asan ctest \
+		test-docker generate coverage help
