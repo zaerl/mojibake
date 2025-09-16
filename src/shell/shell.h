@@ -5,6 +5,9 @@
  */
 
 #include <stdbool.h>
+#include <termios.h>
+#include <unistd.h>
+
 
 #include "../mojibake.h"
 
@@ -31,6 +34,11 @@ bool print_escaped_character(char buffer_utf8[5]);
 const char* color_green_start(void);
 const char* color_red_start(void);
 const char* color_reset(void);
+
+// Terminal helper functions
+void clear_screen(void);
+void set_raw_mode(struct termios *orig_termios);
+void restore_mode(struct termios *orig_termios);
 
 void print_value(const char* label, unsigned int nl, const char* format, ...);
 void print_null_value(const char* label, unsigned int nl);

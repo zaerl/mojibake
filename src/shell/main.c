@@ -184,10 +184,13 @@ int main(int argc, char * const argv[]) {
     }
 
     if(argc - optind == 1) {
-        fprintf(stderr, "No command value specified.\n");
-        show_help(long_options, descriptions, commands, NULL);
+        // Break command has a realtime mode
+        if(strcmp(argv[optind], "break") != 0) {
+            fprintf(stderr, "No command value specified.\n");
+            show_help(long_options, descriptions, commands, NULL);
 
-        return 1;
+            return 1;
+        }
     }
 
     int next_argc = argc - optind - 1;

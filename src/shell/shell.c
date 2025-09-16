@@ -55,6 +55,23 @@ bool next_current_character(mjb_character *character, mjb_next_character_type ty
     return false;
 }
 
+void clear_screen(void) {
+    printf("\033[2J\033[H");
+    fflush(stdout);
+}
+
+void set_raw_mode(struct termios *orig_termios) {
+    struct termios raw = *orig_termios;
+    raw.c_lflag &= ~(ECHO | ICANON);
+    raw.c_cc[VMIN] = 0;
+    raw.c_cc[VTIME] = 1;
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void restore_mode(struct termios *orig_termios) {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios);
+}
+
 bool print_escaped_character(char buffer_utf8[5]) {
     switch(buffer_utf8[0]) {
         case '"':

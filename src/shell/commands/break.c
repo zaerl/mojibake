@@ -42,24 +42,24 @@ static mjb_codepoint control_picture_codepoint(mjb_codepoint codepoint) {
     return codepoint;
 }
 
-int break_command(int argc, char * const argv[], unsigned int flags) {
-    size_t input_size = strlen(argv[0]);
-    size_t input_real_size = mjb_strnlen(argv[0], input_size, MJB_ENCODING_UTF_8);
+static void print_break_analysis(const char* input) {
+    size_t input_size = strlen(input);
+    size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
     size_t output_size = 0;
-    mjb_line_break *line_breaks = mjb_break_line(argv[0], mjb_strnlen(argv[0], input_size,
-        MJB_ENCODING_UTF_8), MJB_ENCODING_UTF_8, &output_size);
+    mjb_line_break *line_breaks = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8,
+        &output_size);
 
     if(line_breaks == NULL) {
-        return 1;
+        puts("Could not analyze string");
+        fflush(stdout);
+        return;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
 
-    const char *current = argv[0];
-
-    while(*current && (size_t)(current - argv[0]) < input_size) {
-        state = mjb_utf8_decode_step(state, *current, &codepoint);
+    for(size_t i = 0; i < input_size; ++i) {
+        state = mjb_utf8_decode_step(state, input[i], &codepoint);
 
         if(state == MJB_UTF_ACCEPT) {
             mjb_codepoint picture_codepoint = control_picture_codepoint(codepoint);
@@ -73,15 +73,12 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
                 printf("%s", buffer_utf8);
             }
         }
-
-        ++current;
     }
 
     puts("");
 
     size_t breaks_index = 0;
     bool check_break = true;
-    current = argv[0];
     state = MJB_UTF_ACCEPT;
 
     if(output_size > 0) {
@@ -105,7 +102,6 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
         fflush(stdout);
     }
 
-    // Draw top border
     printf("┌");
 
     for(unsigned int i = 0; i < cmd_width; i++) {
@@ -118,12 +114,11 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     unsigned int current_i = 0;
     check_break = output_size > 0;
     breaks_index = 0;
-    current = argv[0];
     state = MJB_UTF_ACCEPT;
     codepoint = 0x0;
 
-    while(*current && (size_t)(current - argv[0]) < input_size) {
-        state = mjb_utf8_decode_step(state, *current, &codepoint);
+    for(size_t i = 0; i < input_size; ++i) {
+        state = mjb_utf8_decode_step(state, input[i], &codepoint);
 
         if(state == MJB_UTF_ACCEPT) {
             bool can_break = false;
@@ -172,15 +167,12 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
             column += char_width;
             ++current_i;
         }
-
-        ++current;
     }
 
     if(column != 0) {
         flush_line(column);
     }
 
-    // Draw bottom border
     printf("└");
 
     for(unsigned int i = 0; i < cmd_width; i++) {
@@ -190,6 +182,79 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
     printf("┘\n");
 
     free(line_breaks);
+}
+
+static void display_break_output(const char* input) {
+    clear_screen();
+    printf("Break the input into line breaks\n");
+    printf("Ctrl+C to exit\n");
+
+    if(input == NULL || strlen(input) == 0) {
+        fflush(stdout);
+
+        return;
+    }
+
+    puts(input);
+    print_break_analysis(input);
+    fflush(stdout);
+}
+
+int break_command(int argc, char * const argv[], unsigned int flags) {
+    if(argc != 0) {
+        print_break_analysis(argv[0]);
+
+        return 0;
+    }
+
+    struct termios orig_termios;
+    tcgetattr(STDIN_FILENO, &orig_termios);
+
+    char input_buffer[1024] = {0};
+    size_t buffer_pos = 0;
+    char c;
+
+    display_break_output("");
+    set_raw_mode(&orig_termios);
+
+    while(1) {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100000;
+
+        int ready = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+
+        if(ready > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
+            ssize_t bytes_read = read(STDIN_FILENO, &c, 1);
+
+            if(bytes_read > 0) {
+                if(c == 3) { // END OF TEXT (Ctrl+C)
+                    break;
+                } else if(c == 127 || c == 8) { // DELETE or BACKSPACE
+                    if(buffer_pos > 0) {
+                        --buffer_pos;
+                        input_buffer[buffer_pos] = '\0';
+                        display_break_output(input_buffer);
+                    }
+                } else {
+                    if(buffer_pos < sizeof(input_buffer) - 1) {
+                        input_buffer[buffer_pos] = c;
+                        ++buffer_pos;
+                        input_buffer[buffer_pos] = '\0';
+
+                        display_break_output(input_buffer);
+                    }
+                }
+            }
+        }
+    }
+
+    restore_mode(&orig_termios);
+    clear_screen();
 
     return 0;
 }
