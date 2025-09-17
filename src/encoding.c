@@ -7,9 +7,7 @@
 #include <string.h>
 
 #include "mojibake.h"
-#include "utf8.h"
-#include "utf16.h"
-#include "utf32.h"
+#include "utf.h"
 
 #define MJB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
 #define MJB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
@@ -309,36 +307,8 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
     size_t output_index = 0;
 
     for(size_t i = 0; i < size; ++i) {
-        if(encoding == MJB_ENCODING_UTF_8) {
-            if(!buffer[i]) {
-                break;
-            }
-
-            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
-        } else if(encoding == MJB_ENCODING_UTF_16_BE || encoding == MJB_ENCODING_UTF_16_LE) {
-            if (i + 1 >= size) {
-                state = MJB_UTF_REJECT;
-            } else {
-                if(!buffer[i] && !buffer[i + 1]) {
-                    break;
-                }
-
-                state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
-                    encoding == MJB_ENCODING_UTF_16_BE);
-                ++i;
-            }
-        } else if(encoding == MJB_ENCODING_UTF_32_BE || encoding == MJB_ENCODING_UTF_32_LE) {
-            if (i + 3 >= size) {
-                state = MJB_UTF_REJECT;
-            } else {
-                if(!buffer[i] && !buffer[i + 1] && !buffer[i + 2] && !buffer[i + 3]) {
-                    break;
-                }
-
-                state = mjb_utf32_decode_step(state, buffer[i], buffer[i + 1], buffer[i + 2],
-                    buffer[i + 3], &codepoint, encoding == MJB_ENCODING_UTF_32_BE);
-                i += 3;
-            }
+        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+            break;
         }
 
         bool replaced = false;

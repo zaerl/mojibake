@@ -9,8 +9,7 @@
 
 #include "mojibake-internal.h"
 #include "breaking.h"
-#include "utf8.h"
-#include "utf16.h"
+#include "utf.h"
 
 extern mojibake mjb_global;
 
@@ -83,14 +82,10 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
     size_t j = 0;
 
     // https://www.unicode.org/reports/tr14/#LB1
-    for(i = 0; i < length && buffer[i]; ++i) {
+    for(i = 0; i < length; ++i) {
         // Find next codepoint.
-        if(encoding == MJB_ENCODING_UTF_8) {
-            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
-        } else {
-            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
-                encoding == MJB_ENCODING_UTF_16_BE);
-            ++i;
+        if(!mjb_decode_step(buffer, length, &state, &i, encoding, &codepoint)) {
+            break;
         }
 
         if(state == MJB_UTF_REJECT) {

@@ -9,8 +9,7 @@
 
 #include "mojibake-internal.h"
 #include "buffer.h"
-#include "utf8.h"
-#include "utf16.h"
+#include "utf.h"
 
 extern mojibake mjb_global;
 
@@ -313,14 +312,10 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     sqlite3_clear_bindings(stmt);
 
     // Loop through the string.
-    for(size_t i = 0; i < size && buffer[i]; ++i) {
+    for(size_t i = 0; i < size; ++i) {
         // Find next codepoint.
-        if(encoding == MJB_ENCODING_UTF_8) {
-            state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
-        } else {
-            state = mjb_utf16_decode_step(state, buffer[i], buffer[i + 1], &codepoint,
-                encoding == MJB_ENCODING_UTF_16_BE);
-            ++i;
+        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+            break;
         }
 
         if(state == MJB_UTF_REJECT) {
