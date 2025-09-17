@@ -27,7 +27,7 @@ static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint8_t unit
             return MJB_UTF_REJECT;
         } else {
             // Low surrogate without high surrogate
-            *cpp = 0xFFFD;
+            *cpp = MJB_CODEPOINT_REPLACEMENT;
 
             return 2;
         }
@@ -39,14 +39,14 @@ static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint8_t unit
 
             return MJB_UTF_ACCEPT;
         } else {
-            *cpp = 0xFFFD;
+            *cpp = MJB_CODEPOINT_REPLACEMENT;
 
             return 2;
         }
     }
 
     // Invalid state
-    *cpp = 0xFFFD;
+    *cpp = MJB_CODEPOINT_REPLACEMENT;
 
     return 2;
 }

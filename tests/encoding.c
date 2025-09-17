@@ -161,6 +161,18 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter max UTF-16BE")
     ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter min UTF-16BE")
 
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_32_LE), 0, "Void buffer UTF-32LE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32_LE), 0, "Wrong size UTF-32LE")
+
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_32_BE), 0, "Void buffer UTF-32BE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32_BE), 0, "Wrong size UTF-32BE")
+
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_32_LE), 0, "Noncharacter max UTF-32LE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_32_LE), 0, "Noncharacter min UTF-32LE")
+
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 0, "Noncharacter max UTF-32BE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 0, "Noncharacter min UTF-32BE")
+
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_8), 1, "0x0000 UTF-8")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-8")
 
@@ -170,46 +182,72 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 2, "0x0000 UTF-16BE")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-16BE")
 
-    // CURRENT_COUNT 12
-    #define TEST_UTF8(CHAR, STR, RES, COMMENT) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, MJB_ENCODING_UTF_8), RES, COMMENT) \
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_32_LE), 4, "0x0000 UTF-32LE")
+    ATT_ASSERT(buffer[0], 0, "0x0000 UTF-32LE")
+
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 4, "0x0000 UTF-32BE")
+    ATT_ASSERT(buffer[0], 0, "0x0000 UTF-32BE")
+
+    mjb_encoding encoding;
+
+    #define TEST_UTF(CHAR, STR, RES, COMMENT) \
+        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, encoding), RES, COMMENT) \
         ATT_ASSERT((const char*)buffer, STR, COMMENT)
+
+    // CURRENT_COUNT 60
+    encoding = MJB_ENCODING_UTF_8;
 
     // UTF-8 tests
-    TEST_UTF8(0x007F, "\x7F", 1, "ASCII limit");
-    TEST_UTF8(0x07FF, "\xDF\xBF", 2, "2-bytes limit");
-    TEST_UTF8(0x1E0A, "\xE1\xB8\x8A", 3, "LATIN CAPITAL LETTER D WITH DOT ABOVE");
-    TEST_UTF8(0xFFFD, "\xEF\xBF\xBD", 3, "3-bytes limit");
-    TEST_UTF8(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
-    TEST_UTF8(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
+    TEST_UTF(0x007F, "\x7F", 1, "ASCII limit");
+    TEST_UTF(0x07FF, "\xDF\xBF", 2, "2-bytes limit");
+    TEST_UTF(0x1E0A, "\xE1\xB8\x8A", 3, "LATIN CAPITAL LETTER D WITH DOT ABOVE");
+    TEST_UTF(0xFFFD, "\xEF\xBF\xBD", 3, "3-bytes limit");
+    TEST_UTF(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
+    TEST_UTF(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
 
-    // CURRENT_COUNT 12
-    #define TEST_UTF16LE(CHAR, STR, RES, COMMENT) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), RES, COMMENT) \
-        ATT_ASSERT((const char*)buffer, STR, COMMENT)
+    encoding = MJB_ENCODING_UTF_16_LE;
 
-    TEST_UTF16LE(0x007F, "\x7F\x00", 2, "ASCII limit UTF-16LE");
-    TEST_UTF16LE(0x07FF, "\xFF\x07", 2, "2-bytes limit UTF-16LE");
-    TEST_UTF16LE(0x1E0A, "\x0A\x1E", 2, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-16LE");
-    TEST_UTF16LE(0xFFFD, "\xFD\xFF", 2, "3-bytes limit UTF-16LE");
-    TEST_UTF16LE(0x10FFFE, "\xFF\xDB\xFE\xDF", 4, "4-bytes limit UTF-16LE");
-    TEST_UTF16LE(0x1F642, "\x3D\xD8\x42\xDE", 4, "SLIGHTLY SMILING FACE UTF-16LE");
+    TEST_UTF(0x007F, "\x7F\x00", 2, "ASCII limit UTF-16LE");
+    TEST_UTF(0x07FF, "\xFF\x07", 2, "2-bytes limit UTF-16LE");
+    TEST_UTF(0x1E0A, "\x0A\x1E", 2, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-16LE");
+    TEST_UTF(0xFFFD, "\xFD\xFF", 2, "3-bytes limit UTF-16LE");
+    TEST_UTF(0x10FFFE, "\xFF\xDB\xFE\xDF", 4, "4-bytes limit UTF-16LE");
+    TEST_UTF(0x1F642, "\x3D\xD8\x42\xDE", 4, "SLIGHTLY SMILING FACE UTF-16LE");
 
-    // CURRENT_COUNT 12
-    #define TEST_UTF16BE(CHAR, STR, RES, COMMENT) \
-        ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), RES, COMMENT) \
-        ATT_ASSERT((const char*)buffer, STR, COMMENT)
+    encoding = MJB_ENCODING_UTF_16_BE;
 
-    TEST_UTF16BE(0x007F, "\x00\x7F", 2, "ASCII limit UTF-16BE");
-    TEST_UTF16BE(0x07FF, "\x07\xFF", 2, "2-bytes limit UTF-16BE");
-    TEST_UTF16BE(0x1E0A, "\x1E\x0A", 2, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-16BE");
-    TEST_UTF16BE(0xFFFD, "\xFF\xFD", 2, "3-bytes limit UTF-16BE");
-    TEST_UTF16BE(0x10FFFE, "\xDB\xFF\xDF\xFE", 4, "4-bytes limit UTF-16BE");
-    TEST_UTF16BE(0x1F642, "\xD8\x3D\xDE\x42", 4, "SLIGHTLY SMILING FACE UTF-16BE");
+    TEST_UTF(0x007F, "\x00\x7F", 2, "ASCII limit UTF-16BE");
+    TEST_UTF(0x07FF, "\x07\xFF", 2, "2-bytes limit UTF-16BE");
+    TEST_UTF(0x1E0A, "\x1E\x0A", 2, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-16BE");
+    TEST_UTF(0xFFFD, "\xFF\xFD", 2, "3-bytes limit UTF-16BE");
+    TEST_UTF(0x10FFFE, "\xDB\xFF\xDF\xFE", 4, "4-bytes limit UTF-16BE");
+    TEST_UTF(0x1F642, "\xD8\x3D\xDE\x42", 4, "SLIGHTLY SMILING FACE UTF-16BE");
 
-    #undef TEST_UTF8
-    #undef TEST_UTF16LE
-    #undef TEST_UTF16BE
+    encoding = MJB_ENCODING_UTF_32_LE;
+
+    TEST_UTF(0x007F, "\x7F\x00\x00\x00", 4, "ASCII limit UTF-32LE");
+    TEST_UTF(0x07FF, "\xFF\x07\x00\x00", 4, "2-bytes limit UTF-32LE");
+    TEST_UTF(0x1E0A, "\x0A\x1E\x00\x00", 4, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-32LE");
+    TEST_UTF(0xFFFD, "\xFD\xFF\x00\x00", 4, "3-bytes limit UTF-32LE");
+    TEST_UTF(0x10FFFE, "\xFE\xFF\x10\x00", 4, "4-bytes limit UTF-32LE");
+    TEST_UTF(0x1F642, "\x42\xF6\x01\x00", 4, "SLIGHTLY SMILING FACE UTF-32LE");
+
+    encoding = MJB_ENCODING_UTF_32_BE;
+
+    TEST_UTF(0x007F, "\x00\x00\x00\x7F", 4, "ASCII limit UTF-32BE");
+    TEST_UTF(0x07FF, "\x00\x00\x07\xFF", 4, "2-bytes limit UTF-32BE");
+    TEST_UTF(0x1E0A, "\x00\x00\x1E\x0A", 4, "LATIN CAPITAL LETTER D WITH DOT ABOVE UTF-32BE");
+    TEST_UTF(0xFFFD, "\x00\x00\xFF\xFD", 4, "3-bytes limit UTF-32BE");
+    TEST_UTF(0x10FFFE, "\x00\x10\xFF\xFE", 4, "4-bytes limit UTF-32BE");
+    TEST_UTF(0x1F642, "\x00\x01\xF6\x42", 4, "SLIGHTLY SMILING FACE UTF-32BE");
+
+    #undef TEST_UTF
+
+    mjb_result convert_result;
+    bool ret = mjb_string_convert_encoding("Hello", 5, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
+        &convert_result);
+    ATT_ASSERT(ret, true, "UTF-8 to UTF-8: Hello")
+    ATT_ASSERT(convert_result.transformed, false, "UTF-8 to UTF-8: Hello")
 
     return NULL;
 }

@@ -4,7 +4,7 @@
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 400684     |
 | `mjb_case`                          | 389        |
-| `mjb_codepoint_encode`              | 58         |
+| `mjb_codepoint_encode`              | 94         |
 | `mjb_strnlen`                       | 48         |
 | `mjb_hangul_syllable_composition`   | 43         |
 | `mjb_codepoint_character`           | 42         |
@@ -44,6 +44,7 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
+| `mjb_string_convert_encoding`       | 0          |
 | `mjb_string_is_normalized`          | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **401431** |
+| **Total**                           | **401467** |
