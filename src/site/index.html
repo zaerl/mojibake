@@ -98,6 +98,30 @@
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
+        function encodingToString(encoding) {
+            const encodings = {
+                0x0: 'Unknown',
+                0x1: 'ASCII',
+                0x2: 'UTF-8',
+                0x4: 'UTF-16',
+                0x8: 'UTF-16BE',
+                0x10: 'UTF-16LE',
+                0x20: 'UTF-32',
+                0x40: 'UTF-32BE',
+                0x80: 'UTF-32LE',
+            };
+
+            let ret = [];
+
+            for(const key in encodings) {
+                if(encoding & key) {
+                    ret.push(encodings[key] + ' (0x' + key.toString(16).toUpperCase() + ')');
+                }
+            }
+
+            return ret.join(', ');
+        }
+
         // Used for mjb_next_character callback.
         function _mjbNextCharacterCallback(character, type) {
             const char = pointerToCharacter(character);
@@ -483,6 +507,8 @@
 
             if(functions[func].ret === 'mjb_codepoint') {
                 result = codepointToString(result);
+            } else if(functions[func].ret === 'mjb_encoding') {
+                result = encodingToString(result);
             }
 
             funcResults.style.display = 'block';
