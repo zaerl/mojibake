@@ -332,13 +332,16 @@
                 window.mojibake.HEAPU8[buffer + i] = 0;
             }
 
-            const result = window.mojibake.ccall('mjb_codepoint_encode', 'number', ['number', 'number', 'number'], [codepoint, buffer, 5, encoding]);
+            const result = window.mojibake.ccall('mjb_codepoint_encode', 'number',
+                ['number', 'number', 'number', 'number'], [codepoint, buffer, 5, encoding]);
 
             if(result) {
-                return window.mojibake.UTF8ToString(buffer);
-            } else {
-                console.log('Failed to encode codepoint');
+                return decodeString(buffer, result, encoding);
             }
+
+            window.mojibake._free(buffer);
+
+            return false;
         }
 
         function stringToCodepointList(string) {
@@ -372,6 +375,22 @@
             }
 
             return hex;
+        }
+
+        function decodeString(buffer, size, encoding) {
+            let ret = '';
+
+            if(encoding == 0x2) { // UTF-8
+                return window.mojibake.UTF8ToString(buffer, size);
+            } else {
+                let ret_hex = [];
+
+                for(let i = 0; i < size; ++i) {
+                    ret_hex.push(window.mojibake.HEAPU8[buffer + i].toString(16).toUpperCase().padStart(2, '0'));
+                }
+
+                return ret_hex.join(' ');
+            }
         }
 
         function ccallNormalize(buffer, size, encoding, form) {
