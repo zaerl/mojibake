@@ -135,6 +135,8 @@ export class CFunction {
     for(const arg of this.argsTypes) {
       if(arg.startsWith('const char *')) {
         ret += this.#getInput(i);
+      } else if(arg.startsWith('char *')) {
+        ret += this.#getInput(i);
       } else if(arg.startsWith('size_t *')) {
         ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_character *')) {

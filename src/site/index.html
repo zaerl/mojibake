@@ -325,6 +325,22 @@
             return false;
         }
 
+        function ccallCodepointEncode(codepoint, encoding) {
+            const buffer = window.mojibake._malloc(5);
+
+            for(let i = 0; i < 5; ++i) {
+                window.mojibake.HEAPU8[buffer + i] = 0;
+            }
+
+            const result = window.mojibake.ccall('mjb_codepoint_encode', 'number', ['number', 'number', 'number'], [codepoint, buffer, 5, encoding]);
+
+            if(result) {
+                return window.mojibake.UTF8ToString(buffer);
+            } else {
+                console.log('Failed to encode codepoint');
+            }
+        }
+
         function stringToCodepointList(string) {
             const codepoints = [];
 
@@ -417,7 +433,10 @@
                 return ccallCodepointCharacter(args[0]);
             } else if(func === 'mjb_normalize') {
                 return ccallNormalize(args[0], args[1], args[2], args[3]);
+            } else if(func === 'mjb_codepoint_encode') {
+                return ccallCodepointEncode(args[0], args[3]);
             } else {
+                console.log(functions[func]);
                 console.log(func, ret, argTypes, args);
                 return window.mojibake.ccall(func, ret, argTypes, args);
             }
