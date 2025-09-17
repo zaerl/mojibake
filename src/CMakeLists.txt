@@ -81,6 +81,22 @@ if(BUILD_WASM)
 
     string(JOIN "," EXPORTED_FUNCTIONS_STRING ${EXPORTED_FUNCTIONS})
 
+    set(EXPORTED_RUNTIME_METHODS
+        "\"ccall\""
+        "\"cwrap\""
+        "\"UTF8ToString\""
+        "\"UTF16ToString\""
+        "\"UTF32ToString\""
+        "\"stringToUTF16\""
+        "\"stringToUTF32\""
+        "\"HEAPU8\""
+        "\"HEAPU16\""
+        "\"HEAPU32\""
+        "\"HEAP32\""
+    )
+
+    string(JOIN "," EXPORTED_RUNTIME_METHODS_STRING ${EXPORTED_RUNTIME_METHODS})
+
     # Create WASM module executable
     add_executable(mojibake mojibake.c)
     target_link_libraries(mojibake mojibake_lib mojibake_sqlite)
@@ -91,7 +107,7 @@ if(BUILD_WASM)
         "SHELL:-s EXPORT_ES6=1"
         "SHELL:-s MODULARIZE=1"
         "SHELL:-s EXPORTED_FUNCTIONS=[${EXPORTED_FUNCTIONS_STRING}]"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"HEAPU8\",\"HEAPU16\",\"HEAPU32\",\"HEAP32\"]"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=[${EXPORTED_RUNTIME_METHODS_STRING}]"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
     )
 

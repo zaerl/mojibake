@@ -8,9 +8,6 @@
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
 - [ ] Add Github actions for testing
-- [ ] Add UTF16 support for `mjb_next_character`
-- [ ] Add UTF16 support for `mjb_normalize`
-- [ ] Add UTF16 support for `mjb_string_is_normalized`
 - [ ] Add support for conditional mappings
 - [ ] `CaseFolding.txt` table
 - [ ] `WordBreakProperty.txt` table
@@ -20,6 +17,10 @@
 - [ ] `auxiliary/WordBreakProperty.txt` table
 - [ ] Add support for Windows
 - [ ] Check `without rowid` tables
+- [ ] Add UTF16 and UTF32 support for WASM build
+- [x] Add UTF16 support for `mjb_next_character`
+- [x] Add UTF16 support for `mjb_normalize`
+- [x] Add UTF16 support for `mjb_string_is_normalized`
 - [x] Add WASM version
 - [x] Add support for Alpine Linux
 - [x] `UnicodeData.txt` table
