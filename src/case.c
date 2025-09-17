@@ -68,7 +68,7 @@ static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
                 mjb_codepoint new_cp = (mjb_codepoint)sqlite3_column_int(stmt_special_casing,i);
 
                 char *new_output = mjb_string_output_codepoint(new_cp, output, output_index,
-                    output_size);
+                    output_size, MJB_ENCODING_UTF_8);
 
                 if(new_output != NULL) {
                     output = new_output;
@@ -177,7 +177,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         }
 
         output = mjb_string_output_codepoint(codepoint, output, &output_index,
-            &output_size);
+            &output_size, encoding);
     }
 
     if(output_index >= output_size) {
@@ -231,7 +231,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
         if(type == MJB_CASE_CASEFOLD) {
             output = mjb_string_output_codepoint(codepoint, output, &output_index,
-                &output_size);
+                &output_size, encoding);
 
             continue;
         }
@@ -268,7 +268,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         }
 
         output = mjb_string_output_codepoint(codepoint, output, &output_index,
-            &output_size);
+            &output_size, encoding);
     }
 
     if(output_index >= output_size) {

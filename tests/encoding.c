@@ -243,11 +243,62 @@ void *test_encoding(void *arg) {
 
     #undef TEST_UTF
 
-    mjb_result convert_result;
-    bool ret = mjb_string_convert_encoding("Hello", 5, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
-        &convert_result);
-    ATT_ASSERT(ret, true, "UTF-8 to UTF-8: Hello")
-    ATT_ASSERT(convert_result.transformed, false, "UTF-8 to UTF-8: Hello")
+    const char *hello_strings[] = {
+        "Hello", // UTF-8
+        "\x48\x00\x65\x00\x6C\x00\x6C\x00\x6F\x00", // UTF-16LE
+        "\x00\x48\x00\x65\x00\x6C\x00\x6C\x00\x6F", // UTF-16BE
+        "\x48\x00\x00\x00\x65\x00\x00\x00\x6C\x00\x00\x00\x6C\x00\x00\x00\x6F\x00\x00\x00", // UTF-32LE
+        "\x00\x00\x00\x48\x00\x00\x00\x65\x00\x00\x00\x6C\x00\x00\x00\x6C\x00\x00\x00\x6F"  // UTF-32BE
+    };
+    size_t hello_strings_sizes[] = {
+        5,
+        10,
+        10,
+        20,
+        20
+    };
+    mjb_encoding encodings[] = {
+        MJB_ENCODING_UTF_8,
+        MJB_ENCODING_UTF_16_LE,
+        MJB_ENCODING_UTF_16_BE,
+        MJB_ENCODING_UTF_32_LE,
+        MJB_ENCODING_UTF_32_BE
+    };
+    const char *output_encodings[] = {
+        "UTF-8",
+        "UTF-16LE",
+        "UTF-16BE",
+        "UTF-32LE",
+        "UTF-32BE"
+    };
+    char test_description[64];
+
+    // CURRENT_ASSERT mjb_string_convert_encoding
+    // CURRENT_COUNT 75
+    for(size_t from = 0; from < 5; ++from) {
+        for(size_t to = 0; to < 5; ++to) {
+            mjb_result convert_result;
+            bool ret = mjb_string_convert_encoding(hello_strings[from], hello_strings_sizes[from],
+                encodings[from], encodings[to], &convert_result);
+
+            snprintf(test_description, 64, "%s to %s", output_encodings[from], output_encodings[to]);
+            ATT_ASSERT(ret, true, test_description)
+
+            if(from == to) {
+                snprintf(test_description, 64, "%s to %s is not transformed", output_encodings[from], output_encodings[to]);
+                ATT_ASSERT(convert_result.transformed, false, test_description)
+                ATT_ASSERT((void*)convert_result.output, (void*)hello_strings[from], test_description)
+            } else {
+                snprintf(test_description, 64, "%s to %s is transformed", output_encodings[from], output_encodings[to]);
+                ATT_ASSERT(convert_result.transformed, true, test_description)
+                ATT_ASSERT(memcmp(convert_result.output, hello_strings[to], convert_result.output_size), 0, test_description)
+            }
+
+            if(convert_result.transformed) {
+                mjb_free(convert_result.output);
+            }
+        }
+    }
 
     return NULL;
 }

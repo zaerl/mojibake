@@ -49,7 +49,7 @@ static char *mjb_flush_d_buffer(mjb_normalization_character *characters_buffer, 
         }
 
         output = mjb_string_output_codepoint(characters_buffer[i].codepoint, output, output_index,
-            output_size);
+            output_size, MJB_ENCODING_UTF_8);
     }
 
     return output;
@@ -128,7 +128,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         if(composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             // Non-starter: output and continue
             composed_output = mjb_string_output_codepoint(composition_buffer[i].codepoint,
-                composed_output, &composed_output_index, output_size);
+                composed_output, &composed_output_index, output_size, MJB_ENCODING_UTF_8);
 
             ++i;
 
@@ -214,13 +214,13 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
         // Output the starter (possibly composed)
         composed_output = mjb_string_output_codepoint(starter, composed_output,
-            &composed_output_index, output_size);
+            &composed_output_index, output_size, MJB_ENCODING_UTF_8);
 
         // Output any non-consumed combining characters in order
         for(size_t j = starter_pos + 1; j < i; ++j) {
             if(composition_buffer[j].codepoint != MJB_CODEPOINT_NOT_VALID) {
                 composed_output = mjb_string_output_codepoint(composition_buffer[j].codepoint,
-                    composed_output, &composed_output_index, output_size);
+                    composed_output, &composed_output_index, output_size, MJB_ENCODING_UTF_8);
             }
         }
     }

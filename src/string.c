@@ -32,12 +32,12 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
 
 // Internal function.
 MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output,
-    size_t *output_index, size_t *output_size) {
+    size_t *output_index, size_t *output_size, mjb_encoding encoding) {
     // Shortcut for mjb_codepoint_encode + mjb_string_output
-    char buffer_utf8[5];
-    size_t utf8_size = mjb_codepoint_encode(codepoint, (char*)buffer_utf8, 5, MJB_ENCODING_UTF_8);
+    char buffer[5];
+    size_t utf_size = mjb_codepoint_encode(codepoint, (char*)buffer, 5, encoding);
 
-    return mjb_string_output(output, buffer_utf8, utf8_size, output_index, output_size);
+    return mjb_string_output(output, buffer, utf_size, output_index, output_size);
 }
 
 /**

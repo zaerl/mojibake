@@ -4,11 +4,12 @@
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 400684     |
 | `mjb_case`                          | 389        |
-| `mjb_codepoint_encode`              | 94         |
+| `mjb_string_convert_encoding`       | 79         |
 | `mjb_strnlen`                       | 48         |
 | `mjb_hangul_syllable_composition`   | 43         |
 | `mjb_codepoint_character`           | 42         |
 | `mjb_codepoint_is_valid`            | 39         |
+| `mjb_codepoint_encode`              | 33         |
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_character_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
@@ -44,7 +45,6 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| `mjb_string_convert_encoding`       | 0          |
 | `mjb_string_is_normalized`          | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **401467** |
+| **Total**                           | **401485** |
