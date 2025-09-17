@@ -27,7 +27,7 @@ function scanTestFile(filepath: string): void {
 
   let currentResult = '';
   let currentCount = 1;
-  const prog = /ATT_ASSERT\(([a-z0-9_.]+)[\(\,].+$/;
+  const prog = /ATT_ASSERT\(.*(mjb_[a-z0-9_.]+).+$/;
   const attAssertRegex = /ATT_ASSERT\(/;
 
   for(const line of lines) {

@@ -13,10 +13,11 @@
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_character_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
-| `mjb_plane_name`                    | 11         |
+| `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |
+| `mjb_string_is_normalized`          | 9          |
 | `mjb_hangul_syllable_name`          | 8          |
-| `mjb_string_encoding`               | 6          |
+| `mjb_plane_name`                    | 8          |
 | `mjb_codepoint_is_combining`        | 5          |
 | `mjb_codepoint_is_graphic`          | 5          |
 | `mjb_codepoint_is_hangul_jamo`      | 4          |
@@ -24,6 +25,7 @@
 | `mjb_codepoint_is_hangul_l`         | 3          |
 | `mjb_codepoint_is_hangul_t`         | 3          |
 | `mjb_codepoint_is_hangul_v`         | 3          |
+| `mjb_codepoint_plane`               | 3          |
 | `mjb_codepoint_to_lowercase`        | 3          |
 | `mjb_codepoint_to_titlecase`        | 3          |
 | `mjb_codepoint_to_uppercase`        | 3          |
@@ -40,11 +42,9 @@
 | `mjb_break_line`                    | 0          |
 | `mjb_category_is_combining`         | 0          |
 | `mjb_category_is_graphic`           | 0          |
-| `mjb_codepoint_plane`               | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| `mjb_string_is_normalized`          | 0          |
 | `mjb_strncmp`                       | 0          |
-| **Total**                           | **401485** |
+| **Total**                           | **401497** |
