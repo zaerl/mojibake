@@ -175,6 +175,12 @@ void *test_string(void *arg) {
     ATT_ASSERT(result, (char*)"123Abc", "UTF-8 titlecase: 123abc")
     mjb_free(result);
 
+    mjb_result convert_result;
+    bool ret = mjb_string_convert_encoding("Hello", 5, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
+        &convert_result);
+    ATT_ASSERT(ret, true, "UTF-8 to UTF-8: Hello")
+    ATT_ASSERT(convert_result.transformed, false, "UTF-8 to UTF-8: Hello")
+
     // TODO: add support for WordBreakProperty.txt
     // See: https://www.unicode.org/reports/tr29/#Word_Boundaries
     // 2019..2019    MidLetter # Po  RIGHT SINGLE QUOTATION MARK

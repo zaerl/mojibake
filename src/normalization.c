@@ -240,7 +240,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
  * Normalize a string
  */
 MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
-    mjb_normalization form, mjb_normalization_result *result) {
+    mjb_normalization form, mjb_result *result) {
     if(!mjb_initialize() || encoding != MJB_ENCODING_UTF_8) {
         return false;
     }
@@ -253,7 +253,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     if(size == 0) {
         result->output = (char*)buffer;
         result->output_size = 0;
-        result->normalized = false;
+        result->transformed = false;
 
         return true;
     }
@@ -288,7 +288,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         // No need to normalize.
         result->output = (char*)buffer;
         result->output_size = size;
-        result->normalized = false;
+        result->transformed = false;
 
         return true;
     }
@@ -405,7 +405,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
                 result->output = NULL;
                 result->output_size = 0;
-                result->normalized = false;
+                result->transformed = false;
 
                 return false;
             }
@@ -515,7 +515,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         result->output_size = output_index;
     }
 
-    result->normalized = true;
+    result->transformed = true;
 
     return true;
 }

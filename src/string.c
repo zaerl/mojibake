@@ -40,6 +40,19 @@ MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *outp
     return mjb_string_output(output, buffer_utf8, utf8_size, output_index, output_size);
 }
 
+MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_encoding output_encoding, mjb_result *result) {
+    if(size == 0 || encoding == output_encoding) {
+        result->output = (char*)buffer;
+        result->output_size = 0;
+        result->transformed = false;
+
+        return true;
+    }
+
+    return true;
+}
+
 /**
  * Return size of a string.
  */

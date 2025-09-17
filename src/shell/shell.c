@@ -201,7 +201,7 @@ void print_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     const char *name, const char *label, unsigned int nl) {
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
-    mjb_normalization_result result;
+    mjb_result result;
     bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENCODING_UTF_8, form, &result);
 
     if(ret) {

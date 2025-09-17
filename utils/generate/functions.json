@@ -16,7 +16,7 @@
     "name": "normalize",
     "attributes": ["MJB_NONNULL(1, 5)"],
     "args": ["buffer", "size", "encoding", "form", "result"],
-    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization", "mjb_normalization_result *"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_normalization", "mjb_result *"],
     "args_description": [
       "The string to normalize",
       "The size of the string, in bytes",
@@ -117,6 +117,23 @@
       "The encoding to use"
     ],
     "wasm_generated": [false, true, true, false],
+    "wasm": true
+  },
+  {
+    "comment": "Convert from an encoding to another",
+    "ret": "bool",
+    "name": "string_convert_encoding",
+    "attributes": ["MJB_NONNULL(1, 5)"],
+    "args": ["buffer", "size", "encoding", "output_encoding", "result"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_encoding", "mjb_result *"],
+    "args_description": [
+      "The string to convert",
+      "The size of the string, in bytes",
+      "The input encoding of the string",
+      "The output encoding of the string",
+      "The pointer to store the result"
+    ],
+    "wasm_generated": [false, true, false, false, true],
     "wasm": true
   },
   {

@@ -196,11 +196,11 @@ typedef enum mjb_case_type {
     MJB_CASE_CASEFOLD
 } mjb_case_type;
 
-typedef struct mjb_normalization_result {
+typedef struct mjb_result {
     char *output;
     size_t output_size;
-    bool normalized;
-} mjb_normalization_result;
+    bool transformed;
+} mjb_result;
 
 /**
  * Unicode block
@@ -268,7 +268,7 @@ typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_charact
 MJB_NONNULL(2) bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form
-MJB_NONNULL(1, 5) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
+MJB_NONNULL(1, 5) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_result *result);
 
 // Return the next character from a string
 MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
@@ -290,6 +290,9 @@ MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 // Encode a codepoint to a string
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+
+// Convert from an encoding to another
+MJB_NONNULL(1, 5) bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the length of a string
 MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);

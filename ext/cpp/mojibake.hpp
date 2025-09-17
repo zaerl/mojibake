@@ -188,7 +188,7 @@ inline std::string normalize(std::string_view input, NormalizationForm form) {
         return std::string{};
     }
 
-    mjb_normalization_result result{};
+    mjb_result result{};
     bool success = mjb_normalize(input.data(), input.size(), MJB_ENCODING_UTF_8,
         static_cast<mjb_normalization>(form), &result);
 
@@ -202,7 +202,7 @@ inline std::string normalize(std::string_view input, NormalizationForm form) {
 
     std::string normalized_string(result.output, result.output_size);
 
-    if(result.normalized) {
+    if(result.transformed) {
         // A new string is returned, it must be freed.
         mjb_free(result.output);
     }

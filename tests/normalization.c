@@ -63,7 +63,7 @@ static bool has_only_latin1(char *source, size_t source_size) {
 
 static int check_normalization(char *source, size_t source_size, char *normalized, size_t normalized_size,
     mjb_normalization form, unsigned int current_line, const char *step) {
-    mjb_normalization_result result;
+    mjb_result result;
     char test_name[128];
 
     // CURRENT_ASSERT mjb_normalize
@@ -110,12 +110,12 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     // An ASCII string should not be normalized.
     if(is_ascii) {
         snprintf(test_name, 128, "#%u %s is ASCII and not normalized", current_line, step);
-        test_ret = ATT_ASSERT(result.normalized, false, test_name)
+        test_ret = ATT_ASSERT(result.transformed, false, test_name)
     }
 
     if(form == MJB_NORMALIZATION_NFC && has_only_latin1(source, source_size)) {
         snprintf(test_name, 128, "#%u %s \"%s\" is Latin-1 and not normalized", current_line, step, source);
-        test_ret = ATT_ASSERT(result.normalized, false, test_name)
+        test_ret = ATT_ASSERT(result.transformed, false, test_name)
     }
 
     return test_ret;

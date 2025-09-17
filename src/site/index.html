@@ -335,7 +335,7 @@
         }
 
         function ccallNormalize(buffer, size, encoding, form) {
-            // See mjb_normalization_result on mojibake.h
+            // See mjb_result on mojibake.h
             const structSize = 24;
             const ptr = window.mojibake._malloc(structSize);
 
@@ -362,7 +362,7 @@
                 ret += `Hex UTF-8: <strong>${utf8StringToHex(result.output, result.output_size).join(' ')}</strong><br>`;
                 ret += `Output: <strong>${stringToCodepointList(output).join(' ')}</strong><br>`;
                 ret += `Output size: <strong>${result.output_size}</strong><br>`;
-                ret += `Has been normalized: <strong>${result.normalized ? 'true' : 'false'}</strong><br>`;
+                ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
 
                 return ret;
             } else {

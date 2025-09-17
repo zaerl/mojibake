@@ -9,7 +9,7 @@ bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 Normalize a string to NFC/NFKC/NFD/NFKD form
 
 ```c
-bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_normalization_result *result);
+bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_result *result);
 ```
 
 Return the next character from a string
@@ -52,6 +52,12 @@ Encode a codepoint to a string
 
 ```c
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+```
+
+Convert from an encoding to another
+
+```c
+bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Return the length of a string
