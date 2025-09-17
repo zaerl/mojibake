@@ -25,6 +25,9 @@ C++ wrapper can be found on `ext/cpp/mojibake.cpp` if you prefer it.
 An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
 use to preview the API.
 
+This library works in little-endian systems to avoid adding too much overhead. This means that it
+works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.)
+
 It has a `0.0.0` version because the various parts I consider critical have not 100% coverage. These
 are the major parts:
 
