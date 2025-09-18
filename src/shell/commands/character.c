@@ -69,7 +69,59 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
 
     if(is_json) {
         printf(",%s", json_nl());
-    } else {
+    }
+
+    mjb_encoding other_encodings[] = {
+        MJB_ENCODING_UTF_16_BE,
+        MJB_ENCODING_UTF_16_LE,
+        MJB_ENCODING_UTF_32_BE,
+        MJB_ENCODING_UTF_32_LE
+    };
+
+    const char *other_encodings_names[] = {
+        "16BE",
+        "16LE",
+        "32BE",
+        "32LE"
+    };
+
+    const char *other_encodings_labels[] = {
+        "16be",
+        "16le",
+        "32be",
+        "32le"
+    };
+
+    for(size_t i = 0; i < 4; ++i) {
+        char buffer[5];
+        unsigned int length = mjb_codepoint_encode(character->codepoint, buffer, 5, other_encodings[i]);
+
+        if(is_json) {
+            printf(
+                "%s%s\"hex_utf-%s\":%s[%s",
+                json_i(), json_i(),
+                other_encodings_labels[i],
+                cmd_json_indent == 0 ? "" : " ", color_green_start());
+        } else {
+            printf("\nHex UTF-%s: %s", other_encodings_names[i], color_green_start());
+        }
+
+        for(size_t i = 0; i < length; ++i) {
+            if(is_json) {
+                printf("%u%s", (unsigned char)buffer[i], i == length - 1 ? "" : ", ");
+            } else {
+                printf("%02X%s", (unsigned char)buffer[i], i == length - 1 ? "" : " ");
+            }
+        }
+
+        printf("%s%s", color_reset(), is_json ? "]" : "");
+
+        if(is_json) {
+            printf(",%s", json_nl());
+        }
+    }
+
+    if(!is_json) {
         puts("");
     }
 
@@ -168,9 +220,9 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     }
 
     if(character->titlecase != 0) {
-        print_codepoint("Titlecase", 2, character->titlecase);
+        print_codepoint("Titlecase", 1, character->titlecase);
     } else {
-        print_null_value("Titlecase", 2);
+        print_null_value("Titlecase", 1);
     }
 
     mjb_line_breaking_class line_breaking_class;
@@ -181,13 +233,13 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     if(lbc_valid) {
         if(is_json) {
             print_id_name_value("line_breaking_class", line_breaking_class,
-                line_breaking_class_name(line_breaking_class), 1);
+                line_breaking_class_name(line_breaking_class), 0);
         } else {
-            print_value("Line Breaking Class", 1, "[%d] %s", line_breaking_class,
+            print_value("Line Breaking Class", 0, "[%d] %s", line_breaking_class,
                 line_breaking_class_name(line_breaking_class));
         }
     } else {
-        print_null_value("Line Breaking Class", 1);
+        print_null_value("Line Breaking Class", 0);
     }
 
     if(is_json) {
