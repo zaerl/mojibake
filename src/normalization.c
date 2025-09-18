@@ -240,7 +240,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
  */
 MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_normalization form, mjb_result *result) {
-    if(!mjb_initialize() || encoding != MJB_ENCODING_UTF_8) {
+    if(!mjb_initialize()) {
         return false;
     }
 
