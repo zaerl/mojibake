@@ -30,6 +30,7 @@
 | `mjb_codepoint_to_titlecase`        | 3          |
 | `mjb_codepoint_to_uppercase`        | 3          |
 | `mjb_plane_is_valid`                | 3          |
+| `mjb_string_compare`                | 3          |
 | `mjb_initialize_v2`                 | 2          |
 | `mjb_next_character`                | 2          |
 | `mjb_alloc`                         | 1          |
@@ -46,5 +47,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| `mjb_strncmp`                       | 0          |
-| **Total**                           | **401497** |
+| **Total**                           | **401500** |

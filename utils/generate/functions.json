@@ -153,18 +153,20 @@
   },
   {
     "comment": "Compare two strings",
-    "ret": "size_t",
-    "name": "strncmp",
-    "attributes": ["MJB_PURE"],
-    "args": ["s1", "s2", "max_length", "encoding"],
-    "args_types": ["const char *", "const char *", "size_t", "mjb_encoding"],
+    "ret": "int",
+    "name": "string_compare",
+    "attributes": ["MJB_PURE", "MJB_NONNULL(1, 4)"],
+    "args": ["s1", "s1_length", "s1_encoding", "s2", "s2_length", "s2_encoding"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "const char *", "size_t", "mjb_encoding"],
     "args_description": [
       "The first string to compare",
+      "The length of the first string, in bytes",
+      "The encoding of the first string",
       "The second string to compare",
-      "The maximum length of the strings, in bytes",
-      "The encoding of the strings"
+      "The length of the second string, in bytes",
+      "The encoding of the second string"
     ],
-    "wasm_generated": [false, false, true, false],
+    "wasm_generated": [false, true, false, false, true, false],
     "wasm": true
   },
   {

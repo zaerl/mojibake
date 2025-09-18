@@ -298,7 +298,7 @@ MJB_NONNULL(1, 5) bool mjb_string_convert_encoding(const char *buffer, size_t si
 MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Compare two strings
-MJB_PURE size_t mjb_strncmp(const char *s1, const char *s2, size_t max_length, mjb_encoding encoding);
+MJB_PURE MJB_NONNULL(1, 4) int mjb_string_compare(const char *s1, size_t s1_length, mjb_encoding s1_encoding, const char *s2, size_t s2_length, mjb_encoding s2_encoding);
 
 // Change string case
 MJB_NONNULL(1) char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);

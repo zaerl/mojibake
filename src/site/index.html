@@ -514,8 +514,11 @@
                 argTypes.push(mappedType);
 
                 if(functions[func].wasmGenerated[i]) {
-                    if(functions[func].argsTypes[i] === 'size_t' && (arg === 'size' || arg === 'max_length')
-                        && hasBuffer !== null) {
+                    if(functions[func].argsTypes[i] === 'size_t' && (
+                        arg === 'size' ||
+                        arg === 'max_length' ||
+                        arg === 's1_length' ||
+                        arg === 's2_length') && hasBuffer !== null) {
                         // Calculate the size of the buffer in bytes (UTF-8)
                         const encoder = new TextEncoder().encode(hasBuffer);
                         value = encoder.length;
@@ -531,7 +534,8 @@
                         value = form.elements[`${func}-${arg}`].checked;
                     }
 
-                    if(hasBuffer === null && functions[func].argsTypes[i] === 'const char *' && arg === 'buffer') {
+                    if(hasBuffer === null && functions[func].argsTypes[i] === 'const char *' &&
+                        (arg === 'buffer' || arg === 's1' || arg === 's2')) {
                         hasBuffer = value;
                     }
                 }
