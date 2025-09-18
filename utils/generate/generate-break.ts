@@ -116,9 +116,9 @@ export async function generateBreaks(characters: Character[], path = './UCD/Line
   }
 }
 
-export async function generateLineBreaksTest(path = './UCD/auxiliary/LineBreakTest.txt') {
-  log('GENERATE LINE BREAKS TEST');
-  const file = await open(path);
+export async function generateBreaksTest(path: string) {
+  log(`GENERATE BREAKS TEST ${path}`);
+  const file = await open(`./UCD/auxiliary/${path}Test.txt`);
   let max = 0;
   let output: string[] = [];
 
@@ -139,5 +139,5 @@ export async function generateLineBreaksTest(path = './UCD/auxiliary/LineBreakTe
     output.push(final.slice(1).trim());
   }
 
-  writeFileSync('./UCD/auxiliary/LineBreakTestModified.txt', output.join('\n'));
+  writeFileSync(`./UCD/auxiliary/${path}TestModified.txt`, output.join('\n'));
 }
