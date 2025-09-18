@@ -40,12 +40,10 @@ static const char* indents[11] = {
 };
 
 void print_nl(unsigned int nl) {
-    if(nl > 0) {
-        if(cmd_output_mode == OUTPUT_MODE_JSON) {
-            printf("%s%s", nl > 1 ? "" : ",", json_nl());
-        } else {
-            puts("");
-        }
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        printf("%s%s", nl >= 1 ? "," : "", json_nl());
+    } else {
+        puts("");
     }
 }
 
