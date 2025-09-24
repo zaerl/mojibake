@@ -17,26 +17,6 @@ static bool next_character(mjb_character *character, mjb_next_character_type typ
     return true;
 }
 
-/**
- * Get codepoints from a string
- * Example: "0044 0307", gives 2 codepoints
- */
-static size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
-    char *token, *string, *tofree;
-    tofree = string = strdup(buffer);
-    unsigned int index = 0;
-
-    while((token = strsep(&string, " ")) != NULL) {
-        mjb_codepoint codepoint = strtoul((const char*)token, NULL, 16);
-        index += mjb_codepoint_encode(codepoint, codepoints + index, size - index, MJB_ENCODING_UTF_8);
-    }
-
-    codepoints[++index] = '\0';
-    free(tofree);
-
-    return index;
-}
-
 static bool has_only_latin1(char *source, size_t source_size) {
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint current_codepoint = 0;
@@ -177,23 +157,23 @@ static void run_normalization_tests(int limit) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_utf8_string(token, (char*)source, 256);
+                    source_size = get_string_from_codepoints(token, (char*)source, 256);
                     break;
 
                 case 1: // NFC
-                    nfc_size = get_utf8_string(token, (char*)nfc, 256);
+                    nfc_size = get_string_from_codepoints(token, (char*)nfc, 256);
                     break;
 
                 case 2: // NFD
-                    nfd_size = get_utf8_string(token, (char*)nfd, 256);
+                    nfd_size = get_string_from_codepoints(token, (char*)nfd, 256);
                     break;
 
                 case 3: // NFKC
-                    nfkc_size = get_utf8_string(token, (char*)nfkc, 256);
+                    nfkc_size = get_string_from_codepoints(token, (char*)nfkc, 256);
                     break;
 
                 case 4: // NFKD
-                    nfkd_size = get_utf8_string(token, (char*)nfkd, 256);
+                    nfkd_size = get_string_from_codepoints(token, (char*)nfkd, 256);
                     break;
             }
 

@@ -14,7 +14,7 @@
  * Get codepoints from a string
  * Example: "0044 0307", gives 2 codepoints
  */
-/*static size_t get_utf8_string(char *buffer, char *codepoints, size_t size, char *breakings) {
+/*static size_t get_string_from_codepoints(char *buffer, char *codepoints, size_t size, char *breakings) {
     char *token, *string, *tofree;
     tofree = string = strdup(buffer);
     unsigned int index = 0;
@@ -93,7 +93,7 @@ void *test_breaking(void *arg) {
             string[line_len - 1] = '\0';
         }
 
-        size_t source_size = get_utf8_string(line, (char*)source, 2048 * 2, breakings);
+        size_t source_size = get_string_from_codepoints(line, (char*)source, 2048 * 2, breakings);
         char test_name[128];
         snprintf(test_name, 128, "#%u breaking [%s]", current_line, breakings);
 

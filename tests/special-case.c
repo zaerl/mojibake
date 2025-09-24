@@ -10,41 +10,6 @@
 #include "test.h"
 #include "../src/utf8.h"
 
-/**
- * Get codepoints from a string
- * Example: "0044 0307", gives 2 codepoints
- */
-static size_t get_utf8_string(char *buffer, char *codepoints, size_t size) {
-    char *token, *string, *tofree;
-    tofree = string = strdup(buffer != NULL ? (buffer[0] == ' ' ? buffer + 1 : buffer) : "");
-    unsigned int index = 0;
-
-    while((token = strsep(&string, " ")) != NULL) {
-        if(strlen(token) == 0) {
-            continue; // Skip empty tokens
-        }
-
-        mjb_codepoint codepoint = strtoul((const char*)token, NULL, 16);
-        if(codepoint == 0) {
-            continue; // Skip invalid codepoints
-        }
-
-        unsigned int encoded_size = mjb_codepoint_encode(codepoint, codepoints + index,
-            size - index, MJB_ENCODING_UTF_8);
-
-        if(encoded_size == 0) {
-            break; // Failed to encode
-        }
-
-        index += encoded_size;
-    }
-
-    codepoints[index] = '\0';
-    free(tofree);
-
-    return index;
-}
-
 static int check_case(char *source, size_t source_size, char *target, size_t target_size,
     mjb_case_type type, unsigned int current_line, const char *step) {
     mjb_encoding encoding = MJB_ENCODING_UTF_8;
@@ -111,19 +76,19 @@ void *test_special_case(void *arg) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_utf8_string(token, (char*)source, 256);
+                    source_size = get_string_from_codepoints(token, (char*)source, 256);
                     break;
 
                 case 1: // Lower
-                    lower_size = get_utf8_string(token, (char*)lower, 256);
+                    lower_size = get_string_from_codepoints(token, (char*)lower, 256);
                     break;
 
                 case 2: // Title
-                    title_size = get_utf8_string(token, (char*)title, 256);
+                    title_size = get_string_from_codepoints(token, (char*)title, 256);
                     break;
 
                 case 3: // Upper
-                    upper_size = get_utf8_string(token, (char*)upper, 256);
+                    upper_size = get_string_from_codepoints(token, (char*)upper, 256);
                     break;
             }
 
