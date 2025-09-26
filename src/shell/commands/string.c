@@ -10,8 +10,8 @@
 #include "../../mojibake.h"
 #include "commands.h"
 
-static char *get_case_string(const char *buffer, size_t length, mjb_case_type type, mjb_encoding encoding) {
-    return mjb_case(buffer, length, type, encoding);
+static char *get_case_string(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding) {
+    return mjb_case(buffer, size, type, encoding);
 }
 
 int case_command(int argc, char * const argv[], unsigned int flags) {

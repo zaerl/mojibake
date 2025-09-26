@@ -18,13 +18,13 @@
 /**
  * Return the encoding from the BOM (if possible).
  */
-static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
-    if(length < 2) {
+static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
+    if(size < 2) {
         // BOM are at least 2 characters
         return MJB_ENCODING_UNKNOWN;
     }
 
-    if(length >= 3) {
+    if(size >= 3) {
         if(memcmp(buffer, MJB_ENCODING_UTF_8_BOM, 3) == 0) {
             return MJB_ENCODING_UTF_8;
         }
@@ -32,7 +32,7 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
 
     mjb_encoding bom_encoding = MJB_ENCODING_UNKNOWN;
 
-    if(length >= 4) {
+    if(size >= 4) {
         if(memcmp(buffer, MJB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
             bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_BE);
         } else if(memcmp(buffer, MJB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
@@ -41,7 +41,7 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t length) {
         }
     }
 
-    if(length >= 2) {
+    if(size >= 2) {
         if(memcmp(buffer, MJB_ENCODING_UTF_16_BE_BOM, 2) == 0) {
             bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_BE);
         } else if(memcmp(buffer, MJB_ENCODING_UTF_16_LE_BOM, 2) == 0) {

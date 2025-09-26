@@ -55,9 +55,9 @@ MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
 
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
-MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb_encoding encoding,
+MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding,
     size_t *output_size) {
-    size_t real_length = mjb_strnlen(buffer, length, encoding);
+    size_t real_length = mjb_strnlen(buffer, size, encoding);
 
     if(real_length == 0) {
         return NULL;
@@ -82,9 +82,9 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t length, mjb
     size_t j = 0;
 
     // https://www.unicode.org/reports/tr14/#LB1
-    for(i = 0; i < length; ++i) {
+    for(i = 0; i < size; ++i) {
         // Find next codepoint.
-        if(!mjb_decode_step(buffer, length, &state, &i, encoding, &codepoint)) {
+        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
             break;
         }
 
