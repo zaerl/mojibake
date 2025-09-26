@@ -30,4 +30,30 @@ typedef enum mjb_grapheme_break_property {
     MJB_GBP_ANY
 } mjb_grapheme_break_property;
 
+typedef enum mjb_word_break_property {
+    MJB_WBP_CR,
+    MJB_WBP_LF,
+    MJB_WBP_NEWLINE,
+    MJB_WBP_EXTEND,
+    MJB_WBP_ZWJ,
+    MJB_WBP_REGIONAL_INDICATOR,
+    MJB_WBP_FORMAT,
+    MJB_WBP_KATAKANA,
+    MJB_WBP_HEBREW_LETTER,
+    MJB_WBP_A_LETTER,
+    MJB_WBP_SINGLE_QUOTE,
+    MJB_WBP_DOUBLE_QUOTE,
+    MJB_WBP_MID_NUM_LET,
+    MJB_WBP_MID_LETTER,
+    MJB_WBP_MID_NUM,
+    MJB_WBP_NUMERIC,
+    MJB_WBP_EXTEND_NUM_LET,
+    MJB_WBP_E_BASE,
+    MJB_WBP_E_MODIFIER,
+    MJB_WBP_GLUE_AFTER_ZWJ,
+    MJB_WBP_E_BASE_GAZ,
+    MJB_WBP_W_SEG_SPACE,
+    MJB_WBP_ANY
+} mjb_word_break_property;
+
 #endif // MJB_SEGMENTATION_H
