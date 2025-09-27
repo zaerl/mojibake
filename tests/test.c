@@ -17,7 +17,7 @@ static bool exit_on_error = false;
  * Get an UTF-8 string from a string of hex-encoded codepoints
  * Example: "0061 0062 0063", gives "abc"
  */
-size_t get_string_from_codepoints(char *buffer, char *codepoints, size_t size) {
+size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints) {
     char *token, *string, *tofree;
     tofree = string = strdup(buffer != NULL ? (buffer[0] == ' ' ? buffer + 1 : buffer) : "");
     unsigned int index = 0;

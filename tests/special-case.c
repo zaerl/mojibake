@@ -76,19 +76,19 @@ void *test_special_case(void *arg) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_string_from_codepoints(token, (char*)source, 256);
+                    source_size = get_string_from_codepoints(token, 256, (char*)source);
                     break;
 
                 case 1: // Lower
-                    lower_size = get_string_from_codepoints(token, (char*)lower, 256);
+                    lower_size = get_string_from_codepoints(token, 256, (char*)lower);
                     break;
 
                 case 2: // Title
-                    title_size = get_string_from_codepoints(token, (char*)title, 256);
+                    title_size = get_string_from_codepoints(token, 256, (char*)title);
                     break;
 
                 case 3: // Upper
-                    upper_size = get_string_from_codepoints(token, (char*)upper, 256);
+                    upper_size = get_string_from_codepoints(token, 256, (char*)upper);
                     break;
             }
 

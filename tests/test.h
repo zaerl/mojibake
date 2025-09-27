@@ -47,7 +47,7 @@ void set_error_callback(att_test_callback callback);
 bool is_exit_on_error(void);
 
 // Utils
-size_t get_string_from_codepoints(char *buffer, char *codepoints, size_t size);
+size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints);
 
 #ifdef __cplusplus
 }

@@ -157,23 +157,23 @@ static void run_normalization_tests(int limit) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_string_from_codepoints(token, (char*)source, 256);
+                    source_size = get_string_from_codepoints(token, 256, (char*)source);
                     break;
 
                 case 1: // NFC
-                    nfc_size = get_string_from_codepoints(token, (char*)nfc, 256);
+                    nfc_size = get_string_from_codepoints(token, 256, (char*)nfc);
                     break;
 
                 case 2: // NFD
-                    nfd_size = get_string_from_codepoints(token, (char*)nfd, 256);
+                    nfd_size = get_string_from_codepoints(token, 256, (char*)nfd);
                     break;
 
                 case 3: // NFKC
-                    nfkc_size = get_string_from_codepoints(token, (char*)nfkc, 256);
+                    nfkc_size = get_string_from_codepoints(token, 256, (char*)nfkc);
                     break;
 
                 case 4: // NFKD
-                    nfkd_size = get_string_from_codepoints(token, (char*)nfkd, 256);
+                    nfkd_size = get_string_from_codepoints(token, 256, (char*)nfkd);
                     break;
             }
 
