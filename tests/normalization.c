@@ -104,10 +104,9 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 /**
  * Run utils/generate/UCD/NormalizationTest.txt tests
  */
-static void run_normalization_tests(int limit) {
+void *test_normalization(void *arg) {
     char line[1024];
     unsigned int current_line = 1;
-    int count = 0;
     // unsigned int index = 0;
 
     // 256 characters is enough for any test.
@@ -128,11 +127,7 @@ static void run_normalization_tests(int limit) {
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid normalization test file")
 
-        return;
-    }
-
-    if(limit == 0) {
-        return;
+        return NULL;
     }
 
     // Parse the file
@@ -234,21 +229,7 @@ static void run_normalization_tests(int limit) {
         memset((void*)nfkd, 0, 256);
 
         ++current_line;
-
-        if(limit == -1) {
-            continue;
-        }
-
-        if(++count == limit) {
-            break;
-        }
     }
 
     fclose(file);
-}
-
-void *test_normalization(void *arg) {
-    run_normalization_tests(-1);
-
-    return NULL;
 }
