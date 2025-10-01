@@ -132,7 +132,7 @@ void *test_normalization(void *arg) {
 
     // Parse the file
     while(fgets(line, 1024, file)) {
-        if(line[0] == '#' || line[0] == '@' || strnlen(line, 512) <= 1) {
+        if(line[0] == '#' || line[0] == '@' || strnlen(line, 1024) <= 1) {
             ++current_line;
 
             continue;
@@ -232,4 +232,6 @@ void *test_normalization(void *arg) {
     }
 
     fclose(file);
+
+    return NULL;
 }
