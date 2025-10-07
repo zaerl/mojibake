@@ -8,6 +8,7 @@ import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRun
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateBreaks, generateBreaksTest } from './generate-break';
+import { generateEastAsianWidth } from './generate-east-asian-width';
 import { generateHeader } from './generate-header';
 import { generateLocales } from './generate-locales';
 import { generateSite } from './generate-site';
@@ -94,7 +95,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
       split[13] === '' ? null : parseInt(split[13], 16), // lowercase
       split[14] === '' ? null : parseInt(split[14], 16), // titlecase
       null, // quick check
-      null // line breaking class
+      null, // line breaking class
+      null // east asian width
     );
 
     characters.push(char);
@@ -107,6 +109,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   await generateBreaks(characters);
+  await generateEastAsianWidth(characters);
   await generateBreaksTest('LineBreak');
   await generateBreaksTest('GraphemeBreak');
   await generateBreaksTest('WordBreak');

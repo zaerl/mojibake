@@ -1,69 +1,8 @@
+import { writeFileSync } from 'fs';
 import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
-import { writeFileSync } from 'fs';
-
-// https://www.unicode.org/reports/tr14/#Table1
-enum LineBreakingClass {
-  // Non-tailorable Line Breaking Classes
-  BK, // Mandatory Break
-  CR, // Carriage Return
-  LF, // Line Feed
-  CM, // Combining Mark
-  NL, // Next Line
-  SG, // Surrogate
-  WJ, // Word Joiner
-  ZW, // Zero Width Space
-  GL, // Non-breaking ("glue")
-  SP, // Space
-  ZWJ, // Zero Width Joiner
-
-  // Break Opportunities
-  B2, // Break Opportunity Before and After
-  BA, // Break After
-  BB, // Break Before
-  HY, // Hyphen
-  HH, // Unambiguous Hyphen
-  CB, // Contingent Break Opportunity
-
-  // Characters Prohibiting Certain Breaks
-  CL, // Close Punctuation
-  CP, // Close Parenthesis
-  EX, // Exclamation / Interrogation
-  IN, // Inseparable
-  NS, // Nonstarter
-  OP, // Open Punctuation
-  QU, // Quotation
-
-  // Numeric Context
-  IS, // Infix Numeric Separator
-  NU, // Numeric
-  PO, // Postfix Numeric
-  PR, // Prefix Numeric
-  SY, // Symbols Allowing Break After
-
-  // Other Characters
-  AI, // Ambiguous (Alphabetic or Ideographic)
-  AK, // Aksara
-  AL, // Alphabetic
-  AP, // Aksara Pre-Base
-  AS, // Aksara Start
-  CJ, // Conditional Japanese Starter
-  EB, // Emoji Base
-  EM, // Emoji Modifier
-  H2, // Hangul LV Syllable
-  H3, // Hangul LVT Syllable
-  HL, // Hebrew Letter
-  ID, // Ideographic
-  JL, // Hangul L Jamo
-  JV, // Hangul V Jamo
-  JT, // Hangul T Jamo
-  RI, // Regional Indicator
-  SA, // Complex Context Dependent (South East Asian)
-  VF, // Virama Final
-  VI, // Virama
-  XX, // Unknown
-};
+import { LineBreakingClass, LineBreakingClassStrings } from './types';
 
 export async function generateBreaks(characters: Character[], path = './UCD/LineBreak.txt') {
   log('GENERATE BREAKS');
@@ -109,7 +48,7 @@ export async function generateBreaks(characters: Character[], path = './UCD/Line
         const index = '' + cp;
 
         if(characterMap[index]) {
-          characterMap[index].lineBreakingClass = LineBreakingClass[breakClass as keyof typeof LineBreakingClass];
+          characterMap[index].lineBreakingClass = LineBreakingClass[breakClass as LineBreakingClassStrings];
         }
       }
     }

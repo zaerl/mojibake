@@ -96,7 +96,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         } else {
             snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
         }
-    } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
+    } else if(codepoint >= MJB_CJK_COMPATIBILITY_IDEOGRAPH_START &&
+        codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_END) {
         // CJK Compatibility Ideographs
         snprintf(character->name, 128, "CJK COMPATIBILITY IDEOGRAPH-%X", codepoint);
     } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {

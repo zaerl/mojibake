@@ -242,6 +242,21 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         print_null_value("Line Breaking Class", 0);
     }
 
+    mjb_east_asian_width east_asian_width;
+    bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width);
+
+    if(eaw_valid) {
+        if(is_json) {
+            print_id_name_value("east_asian_width", east_asian_width,
+                east_asian_width_name(east_asian_width), 0);
+        } else {
+            print_value("East Asian Width", 0, "[%d] %s", east_asian_width,
+                east_asian_width_name(east_asian_width));
+        }
+    } else {
+        print_null_value("East Asian Width", 0);
+    }
+
     if(is_json) {
         printf("%s}%s%s", json_i(), !(type & MJB_NEXT_CHAR_LAST) ? "," : "", json_nl());
 

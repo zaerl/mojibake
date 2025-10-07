@@ -27,6 +27,8 @@ MJB_EXPORT mojibake mjb_global = {
     .stmt_buffer_character = NULL,
     .stmt_case = NULL,
     .stmt_special_casing = NULL,
+    .stmt_line_breaking_class = NULL,
+    .stmt_east_asian_width = NULL,
 };
 
 // Initialize the library
@@ -183,6 +185,10 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query_line_breaking_class[] = "SELECT line_breaking_class, category FROM "
         "unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_line_breaking_class, query_line_breaking_class)
+
+    const char query_east_asian_width[] = "SELECT east_asian_width FROM unicode_data WHERE "
+        "codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_east_asian_width, query_east_asian_width)
 
     #undef MJB_PREPARE_STMT
 

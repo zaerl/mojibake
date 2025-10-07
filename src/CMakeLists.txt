@@ -5,6 +5,7 @@ set(SOURCES
     codepoint.c
     cjk.c
     encoding.c
+    east-asian-width.c
     hangul.c
     next.c
     mojibake.c

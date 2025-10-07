@@ -201,6 +201,15 @@ static const char *line_breaking_class_names[] = {
    "XX"  // Unknown
 };
 
+static const char *east_asian_width_names[] = {
+    "Ambiguous", // MJB_EAW_AMBIGUOUS
+    "Full-width", // MJB_EAW_FULL_WIDTH
+    "Half-width", // MJB_EAW_HALF_WIDTH
+    "Neutral", // MJB_EAW_NEUTRAL
+    "Narrow", // MJB_EAW_NARROW
+    "Wide" // MJB_EAW_WIDE
+};
+
 const char *decomposition_name(mjb_decomposition decomposition) {
     if(decomposition > MJB_DECOMPOSITION_WIDE) {
         return "Unknown";
@@ -264,4 +273,12 @@ const char *line_breaking_class_name(mjb_line_breaking_class line_breaking_class
     }
 
     return line_breaking_class_names[line_breaking_class];
+}
+
+const char *east_asian_width_name(mjb_east_asian_width east_asian_width) {
+    if(east_asian_width >= MJB_EAW_COUNT) {
+        return "Unknown";
+    }
+
+    return east_asian_width_names[east_asian_width];
 }

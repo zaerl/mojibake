@@ -14,8 +14,8 @@ extern mojibake mjb_global;
 MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding) {
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
-    bool has_previous_character = false;
-    bool first_character = true;
+    // bool has_previous_character = false;
+    // bool first_character = true;
 
     for(size_t i = 0; i < size; ++i) {
         if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {

@@ -52,7 +52,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         lowercase INTEGER,
         titlecase INTEGER,
         quick_check INTEGER,
-        line_breaking_class INTEGER
+        line_breaking_class INTEGER,
+        east_asian_width INTEGER
       );
     `);
   } else {
@@ -74,7 +75,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         lowercase INTEGER,
         titlecase INTEGER,
         quick_check INTEGER,
-        line_breaking_class INTEGER
+        line_breaking_class INTEGER,
+        east_asian_width INTEGER
       );
     `);
   }
@@ -153,8 +155,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         lowercase,
         titlecase,
         quick_check,
-        line_breaking_class
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        line_breaking_class,
+        east_asian_width
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -175,8 +178,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         lowercase,
         titlecase,
         quick_check,
-        line_breaking_class
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        line_breaking_class,
+        east_asian_width
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
 
@@ -261,7 +265,8 @@ export function dbRun(characters: Character[]) {
         char.lowercase,
         char.titlecase,
         char.quickCheck,
-        char.lineBreakingClass
+        char.lineBreakingClass,
+        char.eastAsianWidth
         );
     } else {
       insertDataSmt.run(
@@ -279,7 +284,8 @@ export function dbRun(characters: Character[]) {
         char.lowercase,
         char.titlecase,
         char.quickCheck,
-        char.lineBreakingClass
+        char.lineBreakingClass,
+        char.eastAsianWidth
       );
 
       /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {

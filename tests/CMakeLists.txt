@@ -5,6 +5,7 @@ set(TEST_SOURCES
     cjk.c
     codepoint.c
     encoding.c
+    east-asian-width.c
     hangul-composition.c
     hangul.c
     mojibake.c

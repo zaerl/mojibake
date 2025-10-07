@@ -182,6 +182,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(cjk)
     RUN_TEST(codepoint)
     RUN_TEST(encoding)
+    RUN_TEST(east_asian_width)
     RUN_TEST(hangul_composition)
     RUN_TEST(hangul)
     RUN_TEST(mojibake)
