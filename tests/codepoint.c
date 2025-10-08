@@ -15,30 +15,30 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX, &character), false, "Not valid codepoint")
 
     ATT_ASSERT(mjb_codepoint_character(0, &character), true, "Codepoint: 0")
-    ATT_ASSERT(strcmp((char*)character.name, "NULL"), 0, "Codepoint: 0")
+    ATT_ASSERT((const char*)character.name, "NULL", "Codepoint: 0")
 
     ATT_ASSERT(mjb_codepoint_character('$', &character), true, "Codepoint: 0")
-    ATT_ASSERT(strcmp((char*)character.name, "DOLLAR SIGN"), 0, "Codepoint: $")
+    ATT_ASSERT((const char*)character.name, "DOLLAR SIGN", "Codepoint: $")
 
     // U+E0 = à
     ATT_ASSERT(mjb_codepoint_character(0xE0, &character), true, "Codepoint: à")
-    ATT_ASSERT(strcmp((char*)character.name, "LATIN SMALL LETTER A WITH GRAVE"), 0, "Codepoint: à")
+    ATT_ASSERT((const char*)character.name, "LATIN SMALL LETTER A WITH GRAVE", "Codepoint: à")
 
     // U+1F642 = 🙂
     ATT_ASSERT(mjb_codepoint_character(0x1F642, &character), true, "Codepoint: 🙂")
-    ATT_ASSERT(strcmp((char*)character.name, "SLIGHTLY SMILING FACE"), 0, "Codepoint: 🙂")
+    ATT_ASSERT((const char*)character.name, "SLIGHTLY SMILING FACE", "Codepoint: 🙂")
 
     // U+0377 = ͷ, U+0377 + 1 is not mapped
     ATT_ASSERT(mjb_codepoint_character(0x0377 + 1, &character), false, "Codepoint not mapped: ͷ + 1")
 
     // U+AC00 = First hangul syllable
     ATT_ASSERT(mjb_codepoint_character(MJB_CP_HANGUL_S_BASE, &character), true, "First hangul syllable")
-    ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE GA"), 0, "First hangul syllable")
+    ATT_ASSERT((const char*)character.name, "HANGUL SYLLABLE GA", "First hangul syllable")
 
     // U+D7A3 = Last hangul syllable
     mjb_codepoint last_syllable = MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1;
     ATT_ASSERT(mjb_codepoint_character(last_syllable, &character), true, "Last hangul syllable")
-    ATT_ASSERT(strcmp((char*)character.name, "HANGUL SYLLABLE HIH"), 0, "Last hangul syllable")
+    ATT_ASSERT((const char*)character.name, "HANGUL SYLLABLE HIH", "Last hangul syllable")
 
     mjb_codepoint_block block;
 
@@ -126,40 +126,40 @@ void *test_codepoint(void *arg) {
 
     // EGYPTIAN HIEROGLYPH
     ATT_ASSERT(mjb_codepoint_character(0x13000, &character), true, "HIEROGLYPH 1")
-    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH A001"), (int)0, "HIEROGLYPH 1")
+    ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH A001", "HIEROGLYPH 1")
 
     ATT_ASSERT(mjb_codepoint_character(0x13455, &character), true, "HIEROGLYPH 2")
-    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED"), 0, "HIEROGLYPH 2")
+    ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED", "HIEROGLYPH 2")
 
     ATT_ASSERT(mjb_codepoint_character(0x13460, &character), true, "EGYPTIAN HIEROGLYPH 3")
-    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-13460"), 0, "HIEROGLYPH 3")
+    ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-13460", "HIEROGLYPH 3")
 
     ATT_ASSERT(mjb_codepoint_character(0x143FA, &character), true, "EGYPTIAN HIEROGLYPH 4")
-    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-143FA"), 0, "HIEROGLYPH 4")
+    ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-143FA", "HIEROGLYPH 4")
 
     ATT_ASSERT(mjb_codepoint_character(0x13460, &character), true, "EGYPTIAN HIEROGLYPH 3")
-    ATT_ASSERT(strcmp((char*)character.name, "EGYPTIAN HIEROGLYPH-13460"), 0, "HIEROGLYPH 3")
+    ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-13460", "HIEROGLYPH 3")
 
     ATT_ASSERT(mjb_codepoint_character(0xF900, &character), true, "CJK CI 1")
-    ATT_ASSERT(strcmp((char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-F900"), 0, "CJK CI 1")
+    ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-F900", "CJK CI 1")
 
     ATT_ASSERT(mjb_codepoint_character(0xFAD9, &character), true, "CJK CI 2")
-    ATT_ASSERT(strcmp((char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-FAD9"), 0, "CJK CI 2")
+    ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-FAD9", "CJK CI 2")
 
     ATT_ASSERT(mjb_codepoint_character(0x14400, &character), true, "ANATOLIAN HIEROGLYPH 1")
-    ATT_ASSERT(strcmp((char*)character.name, "ANATOLIAN HIEROGLYPH A001"), (int)0, "ANATOLIAN HIEROGLYPH 1")
+    ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
 
     ATT_ASSERT(mjb_codepoint_character(0x14646, &character), true, "ANATOLIAN HIEROGLYPH 2")
-    ATT_ASSERT((char*)character.name, (char*)"ANATOLIAN HIEROGLYPH A530", "ANATOLIAN HIEROGLYPH 2")
+    ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A530", "ANATOLIAN HIEROGLYPH 2")
 
     ATT_ASSERT(mjb_codepoint_character(0x12000, &character), true, "CUNEIFORM SIGN 1")
-    ATT_ASSERT(strcmp((char*)character.name, "CUNEIFORM SIGN A"), (int)0, "CUNEIFORM SIGN 1")
+    ATT_ASSERT((const char*)character.name, "CUNEIFORM SIGN A", "CUNEIFORM SIGN 1")
 
     ATT_ASSERT(mjb_codepoint_character(0x12400, &character), true, "CUNEIFORM NUMERIC 1")
-    ATT_ASSERT(strcmp((char*)character.name, "CUNEIFORM NUMERIC SIGN TWO ASH"), 0, "CUNEIFORM NUMERIC 1")
+    ATT_ASSERT((const char*)character.name, "CUNEIFORM NUMERIC SIGN TWO ASH", "CUNEIFORM NUMERIC 1")
 
     ATT_ASSERT(mjb_codepoint_character(0x12541, &character), true, "CUNEIFORM SIGN 2")
-    ATT_ASSERT(strcmp((char*)character.name, "CUNEIFORM SIGN ZA7"), (int)0, "CUNEIFORM SIGN 2")
+    ATT_ASSERT((const char*)character.name, "CUNEIFORM SIGN ZA7", "CUNEIFORM SIGN 2")
 
     return NULL;
 }
