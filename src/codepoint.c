@@ -103,6 +103,10 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
         // Anatolian Hieroglyphs
         snprintf(character->name, 128, "ANATOLIAN HIEROGLYPH A%s", name);
+    } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
+        (codepoint >= 0x12480 && codepoint <= 0x12543)) {
+        // Cuneiform signs
+        snprintf(character->name, 128, "CUNEIFORM SIGN %s", name);
     } else {
         if(name != NULL) {
             strncpy(character->name, name, 128);

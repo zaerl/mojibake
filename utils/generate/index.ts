@@ -63,6 +63,10 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
     } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
       // Anatolian Hieroglyphs
       name = name.replace('ANATOLIAN HIEROGLYPH A', '');
+    } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
+      (codepoint >= 0x12480 && codepoint <= 0x12543)) {
+      // Cuneiform signs
+      name = name.replace('CUNEIFORM SIGN ', '');
     }
 
     const diff = codepoint - previousCodepoint;

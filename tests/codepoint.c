@@ -152,5 +152,14 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0x14646, &character), true, "ANATOLIAN HIEROGLYPH 2")
     ATT_ASSERT((char*)character.name, (char*)"ANATOLIAN HIEROGLYPH A530", "ANATOLIAN HIEROGLYPH 2")
 
+    ATT_ASSERT(mjb_codepoint_character(0x12000, &character), true, "CUNEIFORM SIGN 1")
+    ATT_ASSERT(strcmp((char*)character.name, "CUNEIFORM SIGN A"), (int)0, "CUNEIFORM SIGN 1")
+
+    ATT_ASSERT(mjb_codepoint_character(0x12400, &character), true, "CUNEIFORM NUMERIC 1")
+    ATT_ASSERT(strcmp((char*)character.name, "CUNEIFORM NUMERIC SIGN TWO ASH"), 0, "CUNEIFORM NUMERIC 1")
+
+    ATT_ASSERT(mjb_codepoint_character(0x12541, &character), true, "CUNEIFORM SIGN 2")
+    ATT_ASSERT(strcmp((char*)character.name, "CUNEIFORM SIGN ZA7"), (int)0, "CUNEIFORM SIGN 2")
+
     return NULL;
 }
