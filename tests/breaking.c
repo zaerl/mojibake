@@ -50,65 +50,104 @@ void *test_breaking(void *arg) {
     ATT_ASSERT(mjb_codepoint_line_breaking_class(0x0, &lbc, &category), true, "NULL")
     ATT_ASSERT((unsigned int)lbc, (unsigned int)MJB_LBC_CM, "CM")
 
-    size_t output_size = 0;
-    mjb_line_break *line_breaks = mjb_break_line("Hello world!", 12, MJB_ENCODING_UTF_8, &output_size);
-
-    if(line_breaks != NULL) {
-        /*for(size_t i = 0; i < output_size; ++i) {
-            printf("%zu > %c\n", line_breaks[i].index, line_breaks[i].mandatory ? '!' : '+');
-        }*/
-    }
-
-    free(line_breaks);
-
-    /*ATT_ASSERT(mjb_line_break("Hello world!", 12, MJB_ENCODING_UTF_8), "xxxxxx+xxxxx!", "HW")*/
-
-    /*char line[2048] = { 0 };
-    char source[2048 * 2] = { 0 };
-    char breakings[256] = { 0 };
-
+    char line[16384]; // 16384, see line #19335
+    char generated_input[1024]; // String to be used by mjb_break_line
+    char expected_string[1024]; // String that the test should generate
+    char generated_string[1024]; // String that the test generated
+    char test_name[256];
     unsigned int current_line = 1;
-    FILE *file = fopen("./utils/generate/UCD/auxiliary/LineBreakTestModified.txt", "r");
+
+    FILE *file = fopen("./utils/generate/UCD/auxiliary/LineBreakTest.txt", "r");
 
     if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "Valid special casing test file")
+        ATT_ASSERT("Not opened", "Opened file", "Valid breaking test file")
 
         return NULL;
     }
 
-    while(fgets(line, 2048, file)) {
-        size_t length = strnlen(line, 2048);
+    puts("Start breaking test");
 
-        if(length <= 1) {
+    while(fgets(line, 16384, file)) {
+        if(line[0] == '#' || strnlen(line, 16384) <= 1) {
             ++current_line;
 
             continue;
         }
 
-        char *string = strdup(line);
+        char *token, *string, *tofree;
+        tofree = string = strdup(line);
+        unsigned int field = 0;
+        unsigned int generated_index = 0;
+        unsigned int allowed_count = 0;
 
-        // Remove trailing newline from the entire line before tokenizing
-        size_t line_len = strlen(string);
-        if(line_len > 0 && string[line_len - 1] == '\n') {
-            string[line_len - 1] = '\0';
+        while((token = strsep(&string, "\xC3")) != NULL) {
+            if(token == NULL || token[0] == '\0') {
+                continue;
+            }
+
+            char current_break = ' ';
+
+            if((unsigned char)token[0] == 0xB7) { // ÷
+                if((unsigned char)token[1] == 0x09) { // Tab # comment until next line
+                    break;
+                }
+
+                current_break = '+';
+                ++allowed_count;
+            } else {
+                current_break = 'x';
+            }
+
+            mjb_codepoint codepoint = strtoul((const char*)(token + 2), NULL, 16);
+            expected_string[field] = current_break;
+
+            unsigned int encoded_size = mjb_codepoint_encode(codepoint, generated_input +
+                generated_index, 1024 - generated_index, MJB_ENCODING_UTF_8);
+
+            generated_index += encoded_size;
+            ++field;
         }
 
-        size_t source_size = get_string_from_codepoints(line, (char*)source, 2048 * 2, breakings);
-        char test_name[128];
-        snprintf(test_name, 128, "#%u breaking [%s]", current_line, breakings);
+        expected_string[field] = '+';
+        expected_string[field + 1] = '\0';
+        generated_input[generated_index] = '\0';
+        ++allowed_count;
 
-        // CURRENT_ASSERT mjb_line_breaking
-        // CURRENT_COUNT 16672
-        char *calculated_breakings = mjb_line_break(source, source_size, MJB_ENCODING_UTF_8);
-        ATT_ASSERT(calculated_breakings, breakings, test_name)
+        size_t output_size = 0;
+        mjb_line_break *breakings = mjb_break_line(generated_input, generated_index,
+            MJB_ENCODING_UTF_8, &output_size);
 
+        snprintf(test_name, 256, "#%u generate %zu/%u breakings", current_line, output_size,
+            allowed_count);
+        ATT_ASSERT(output_size, allowed_count, test_name)
+
+        size_t breaks_index = 0;
+        memset(generated_string, '\0', 1024);
+
+        if(output_size > 0) {
+            // First element is always x
+            generated_string[0] = 'x';
+
+            for(size_t i = 0; i < field; ++i) {
+                if(i == breakings[breaks_index].index) {
+                    generated_string[i + 1] = '+';
+                    ++breaks_index;
+                } else {
+                    generated_string[i + 1] = 'x';
+                }
+            }
+
+            free(breakings);
+        }
+
+        snprintf(test_name, 256, "#%u generate breakings", current_line);
+        ATT_ASSERT(generated_string, expected_string, test_name)
+
+        free(tofree);
         ++current_line;
-        free(string);
+    }
 
-        if(calculated_breakings != NULL) {
-            free(calculated_breakings);
-        }
-    }*/
+    fclose(file);
 
     return NULL;
 }
