@@ -14,6 +14,16 @@ if [ ! -d "./unihan" ] ; then
     rm unihan.zip
 fi
 
+if [ ! -d "./emoji" ] ; then
+    mkdir -p "./emoji"
+    files=("ReadMe.txt" "emoji-sequences.txt" "emoji-test.txt" "emoji-zwj-sequences.txt")
+
+    for file in "${files[@]}"; do
+        curl -o "./emoji/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/$file"
+    done
+fi
+
+
 mkdir -p ../../build
 rm -f ../../mojibake.db
 npm run generate -- "$@"
