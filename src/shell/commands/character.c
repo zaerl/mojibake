@@ -257,6 +257,25 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         print_null_value("East Asian Width", 0);
     }
 
+    mjb_emoji_properties emoji_properties;
+    bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji_properties);
+
+    if(emoji_valid) {
+        print_bool_value("Emoji", 0, emoji_properties.emoji);
+        print_bool_value(is_json ? "emoji_presentation" : "Emoji Presentation", 0, emoji_properties.presentation);
+        print_bool_value(is_json ? "emoji_modifier" : "Emoji Modifier", 0, emoji_properties.modifier);
+        print_bool_value(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 0, emoji_properties.modifier_base);
+        print_bool_value(is_json ? "emoji_component" : "Emoji Component", 0, emoji_properties.component);
+        print_bool_value(is_json ? "extended_pictographic" : "Extended Pictographic", 0, emoji_properties.extended_pictographic);
+    } else {
+        print_null_value("Emoji", 0);
+        print_null_value(is_json ? "emoji_presentation" : "Emoji Presentation", 0);
+        print_null_value(is_json ? "emoji_modifier" : "Emoji Modifier", 0);
+        print_null_value(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 0);
+        print_null_value(is_json ? "emoji_component" : "Emoji Component", 0);
+        print_null_value(is_json ? "extended_pictographic" : "Extended Pictographic", 0);
+    }
+
     if(is_json) {
         printf("%s}%s%s", json_i(), !(type & MJB_NEXT_CHAR_LAST) ? "," : "", json_nl());
 

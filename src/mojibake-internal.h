@@ -54,8 +54,9 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_buffer_character;
     sqlite3_stmt *stmt_case;
     sqlite3_stmt *stmt_special_casing;
-    sqlite3_stmt *stmt_line_breaking_class;
+    sqlite3_stmt *stmt_line_breaking;
     sqlite3_stmt *stmt_east_asian_width;
+    sqlite3_stmt *stmt_get_emoji;
 } mojibake;
 
 // Internal functions

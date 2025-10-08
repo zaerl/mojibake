@@ -415,6 +415,17 @@
     "wasm": true
   },
   {
+    "comment": "Return the emoji properties",
+    "ret": "bool",
+    "name": "codepoint_emoji",
+    "attributes": ["MJB_NONNULL(2)"],
+    "args": ["codepoint", "emoji"],
+    "args_types": ["mjb_codepoint", "mjb_emoji_properties *"],
+    "args_description": ["The codepoint to check", "The emoji properties to store the result"],
+    "wasm_generated": [false, true],
+    "wasm": true
+  },
+  {
     "comment": "Return hangul syllable name",
     "ret": "bool",
     "name": "hangul_syllable_name",

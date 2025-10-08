@@ -25,6 +25,7 @@ void *test_breaking(void *arg);
 void *test_case(void *arg);
 void *test_cjk(void *arg);
 void *test_codepoint(void *arg);
+void *test_emoji(void *arg);
 void *test_encoding(void *arg);
 void *test_east_asian_width(void *arg);
 void *test_hangul_composition(void *arg);

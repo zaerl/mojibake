@@ -236,6 +236,20 @@ typedef struct mjb_character {
     mjb_codepoint titlecase;
 } mjb_character;
 
+/**
+ * Emoji data
+ * [see: https://www.unicode.org/reports/tr51]
+ */
+typedef struct mjb_emoji_properties {
+    mjb_codepoint codepoint;
+    bool emoji;
+    bool presentation;
+    bool modifier;
+    bool modifier_base;
+    bool component;
+    bool extended_pictographic;
+} mjb_emoji_properties;
+
 // A smaller version of mjb_character that only contains the information needed for the
 // normalization process.
 typedef struct {
@@ -365,6 +379,9 @@ MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
 
 // Return the name of a plane, NULL if the place specified is not valid
 MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
+
+// Return the emoji properties
+MJB_NONNULL(2) bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
 
 // Return hangul syllable name
 MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);

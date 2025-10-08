@@ -8,7 +8,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-
 #include "../mojibake.h"
 
  typedef enum {

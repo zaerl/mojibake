@@ -4,6 +4,7 @@ set(TEST_SOURCES
     case.c
     cjk.c
     codepoint.c
+    emoji.c
     encoding.c
     east-asian-width.c
     hangul-composition.c

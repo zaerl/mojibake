@@ -21,7 +21,8 @@ export class Character {
     public titlecase: number | null,
     public quickCheck: QuickCheckResult | null,
     public lineBreakingClass: number | null,
-    public eastAsianWidth: number | null
+    public eastAsianWidth: number | null,
+    public extendedPictographic: boolean
   ) {}
 
   formatC(): string {
@@ -29,7 +30,8 @@ export class Character {
       `${this.fmt(this.combining)}, ${this.fmt(this.bidirectional)}, ${this.fmt(this.decomposition)}, ` +
       `${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` + `${this.fmt(this.numeric)}, ${this.mirrored}, ` +
       `${this.fmt(this.uppercase)}, ${this.fmt(this.lowercase)}, ${this.fmt(this.titlecase)}, ` +
-      `${this.fmt(this.quickCheck)}, ${this.fmt(this.lineBreakingClass)}, ${this.fmt(this.eastAsianWidth)} }`;
+      `${this.fmt(this.quickCheck)}, ${this.fmt(this.lineBreakingClass)}, ${this.fmt(this.eastAsianWidth)}, ` +
+      `${this.extendedPictographic} }`;
   }
 
   public fmt(value: string | number | null, defaultC = 'NULL'): string {

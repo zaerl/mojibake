@@ -39,18 +39,18 @@ MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
         return false;
     }
 
-    sqlite3_reset(mjb_global.stmt_line_breaking_class);
-    sqlite3_bind_int(mjb_global.stmt_line_breaking_class, 1, codepoint);
+    sqlite3_reset(mjb_global.stmt_line_breaking);
+    sqlite3_bind_int(mjb_global.stmt_line_breaking, 1, codepoint);
 
-    if(sqlite3_step(mjb_global.stmt_line_breaking_class) != SQLITE_ROW) {
+    if(sqlite3_step(mjb_global.stmt_line_breaking) != SQLITE_ROW) {
         return false;
     }
 
     *line_breaking_class = (mjb_line_breaking_class)sqlite3_column_int(
-        mjb_global.stmt_line_breaking_class, 0);
+        mjb_global.stmt_line_breaking, 0);
 
     if(category) {
-        *category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking_class, 1);
+        *category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 1);
     }
 
     return true;

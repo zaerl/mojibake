@@ -27,7 +27,7 @@ MJB_EXPORT mojibake mjb_global = {
     .stmt_buffer_character = NULL,
     .stmt_case = NULL,
     .stmt_special_casing = NULL,
-    .stmt_line_breaking_class = NULL,
+    .stmt_line_breaking = NULL,
     .stmt_east_asian_width = NULL,
 };
 
@@ -148,7 +148,9 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
             return false; \
         }
 
-    const char query[] = "SELECT * FROM unicode_data WHERE codepoint = ?";
+    const char query[] = "SELECT codepoint, name, category, combining, bidirectional, "
+        "decomposition, decimal, digit, numeric, mirrored, uppercase, lowercase, titlecase "
+        "FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
 
     const char query_blocks[] = "SELECT * FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
@@ -182,13 +184,16 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         "special_casing WHERE codepoint = ? AND case_type = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_special_casing, query_special_casing)
 
-    const char query_line_breaking_class[] = "SELECT line_breaking_class, category FROM "
-        "unicode_data WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_line_breaking_class, query_line_breaking_class)
+    const char query_line_breaking[] = "SELECT line_breaking_class, category, extended_pictographic "
+        "FROM unicode_data WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_line_breaking, query_line_breaking)
 
     const char query_east_asian_width[] = "SELECT east_asian_width FROM unicode_data WHERE "
         "codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_east_asian_width, query_east_asian_width)
+
+    const char query_emoji[] = "SELECT * FROM emoji_properties WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_get_emoji, query_emoji)
 
     #undef MJB_PREPARE_STMT
 
@@ -220,6 +225,10 @@ MJB_EXPORT void mjb_shutdown(void) {
         sqlite3_finalize(mjb_global.stmt_get_block);
     }
 
+    if(mjb_global.stmt_is_combining) {
+        sqlite3_finalize(mjb_global.stmt_is_combining);
+    }
+
     if(mjb_global.stmt_decompose) {
         sqlite3_finalize(mjb_global.stmt_decompose);
     }
@@ -228,8 +237,32 @@ MJB_EXPORT void mjb_shutdown(void) {
         sqlite3_finalize(mjb_global.stmt_compatibility_decompose);
     }
 
-    if(mjb_global.stmt_is_combining) {
-        sqlite3_finalize(mjb_global.stmt_is_combining);
+    if(mjb_global.stmt_compose) {
+        sqlite3_finalize(mjb_global.stmt_compose);
+    }
+
+    if(mjb_global.stmt_buffer_character) {
+        sqlite3_finalize(mjb_global.stmt_buffer_character);
+    }
+
+    if(mjb_global.stmt_case) {
+        sqlite3_finalize(mjb_global.stmt_case);
+    }
+
+    if(mjb_global.stmt_special_casing) {
+        sqlite3_finalize(mjb_global.stmt_special_casing);
+    }
+
+    if(mjb_global.stmt_line_breaking) {
+        sqlite3_finalize(mjb_global.stmt_line_breaking);
+    }
+
+    if(mjb_global.stmt_east_asian_width) {
+        sqlite3_finalize(mjb_global.stmt_east_asian_width);
+    }
+
+    if(mjb_global.stmt_get_emoji) {
+        sqlite3_finalize(mjb_global.stmt_get_emoji);
     }
 
     if(mjb_global.db) {

@@ -198,6 +198,12 @@ Return the name of a plane, NULL if the place specified is not valid
 const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 ```
 
+Return the emoji properties
+
+```c
+bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+```
+
 Return hangul syllable name
 
 ```c

@@ -6,6 +6,7 @@ set(SOURCES
     cjk.c
     encoding.c
     east-asian-width.c
+    emoji.c
     hangul.c
     next.c
     mojibake.c
@@ -70,6 +71,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_plane\""
         "\"_mjb_plane_is_valid\""
         "\"_mjb_plane_name\""
+        "\"_mjb_codepoint_emoji\""
         "\"_mjb_version\""
         "\"_mjb_version_number\""
         "\"_mjb_unicode_version\""

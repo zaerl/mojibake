@@ -1,6 +1,7 @@
 import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
+import { Emoji } from './emoji';
 import { NewCases } from './special-casing';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
@@ -12,6 +13,7 @@ let insertCompatDecompositionSmt: Statement;
 let insertCompositionSmt: Statement;
 let insertBlockSmt: Statement;
 let insertSpecialCasingSmt: Statement;
+let insertEmojiPropertiesSmt: Statement;
 // let insertNumericSmt: Statement;
 let isCompact: boolean;
 
@@ -53,7 +55,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase INTEGER,
         quick_check INTEGER,
         line_breaking_class INTEGER,
-        east_asian_width INTEGER
+        east_asian_width INTEGER,
+        extended_pictographic INTEGER -- emoji properties
       );
     `);
   } else {
@@ -76,7 +79,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase INTEGER,
         quick_check INTEGER,
         line_breaking_class INTEGER,
-        east_asian_width INTEGER
+        east_asian_width INTEGER,
+        extended_pictographic INTEGER -- emoji properties
       );
     `);
   }
@@ -128,6 +132,17 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     );
     CREATE INDEX idx_special_casing_codepoint ON special_casing(codepoint, case_type);
   `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS emoji_properties (
+      codepoint INTEGER PRIMARY KEY,
+      emoji INTEGER,
+      emoji_presentation INTEGER,
+      emoji_modifier INTEGER,
+      emoji_modifier_base INTEGER,
+      emoji_component INTEGER,
+      extended_pictographic INTEGER
+    );
+  `);
 
   /*db.exec(`
     CREATE TABLE IF NOT EXISTS numerics (
@@ -156,7 +171,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase,
         quick_check,
         line_breaking_class,
-        east_asian_width
+        east_asian_width,
+        extended_pictographic
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
@@ -179,8 +195,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase,
         quick_check,
         line_breaking_class,
-        east_asian_width
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        east_asian_width,
+        extended_pictographic
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
 
@@ -225,6 +242,18 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       VALUES (?, ?, ?, ?, ?);
   `);
 
+  insertEmojiPropertiesSmt = db.prepare(`
+    INSERT INTO emoji_properties (
+      codepoint,
+      emoji,
+      emoji_presentation,
+      emoji_modifier,
+      emoji_modifier_base,
+      emoji_component,
+      extended_pictographic
+    ) VALUES (?, ?, ?, ?, ?, ?, ?);
+  `);
+
   /*insertNumericSmt = db.prepare(`
     INSERT INTO numerics (
       codepoint,
@@ -266,7 +295,8 @@ export function dbRun(characters: Character[]) {
         char.titlecase,
         char.quickCheck,
         char.lineBreakingClass,
-        char.eastAsianWidth
+        char.eastAsianWidth,
+        char.extendedPictographic
         );
     } else {
       insertDataSmt.run(
@@ -285,7 +315,8 @@ export function dbRun(characters: Character[]) {
         char.titlecase,
         char.quickCheck,
         char.lineBreakingClass,
-        char.eastAsianWidth
+        char.eastAsianWidth,
+        char.extendedPictographic ? 1 : 0
       );
 
       /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {
@@ -352,6 +383,20 @@ export function dbRunSpecialCasing(newCases: NewCases) {
 
 export function dbInsertBlock(index: number, block: Block) {
   insertBlockSmt.run(index, block.start, block.end, block.name);
+}
+
+export function dbRunEmojiProperties(emojiProperties: Emoji[]) {
+  for(const emoji of emojiProperties) {
+    insertEmojiPropertiesSmt.run(
+      emoji.codepoint,
+      emoji.emoji ? 1 : 0,
+      emoji.emoji_presentation ? 1 : 0,
+      emoji.emoji_modifier ? 1 : 0,
+      emoji.emoji_modifier_base ? 1 : 0,
+      emoji.emoji_component ? 1 : 0,
+      emoji.extended_pictographic ? 1 : 0
+    );
+  }
 }
 
 export function dbRunAfter() {

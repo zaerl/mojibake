@@ -291,3 +291,14 @@ export enum EastAsianWidth {
 };
 
 export type EastAsianWidthStrings = keyof typeof EastAsianWidth;
+
+export enum EmojiProperties {
+  Emoji,
+  Emoji_Presentation,
+  Emoji_Modifier,
+  Emoji_Modifier_Base,
+  Emoji_Component,
+  Extended_Pictographic
+};
+
+export type EmojiPropertiesStrings = keyof typeof EmojiProperties;

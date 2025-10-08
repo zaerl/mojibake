@@ -4,11 +4,12 @@ import { readBlocks } from './blocks';
 import { generateCasefold } from './casefold';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
-import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunSpecialCasing, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateBreaks, generateBreaksTest } from './generate-break';
 import { generateEastAsianWidth } from './generate-east-asian-width';
+import { generateEmojiProperties } from './generate-emoji';
 import { generateHeader } from './generate-header';
 import { generateLocales } from './generate-locales';
 import { generateSite } from './generate-site';
@@ -96,7 +97,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
       split[14] === '' ? null : parseInt(split[14], 16), // titlecase
       null, // quick check
       null, // line breaking class
-      null // east asian width
+      null, // east asian width,
+      false // extended pictographic
     );
 
     characters.push(char);
@@ -108,6 +110,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   analysis.beforeDB();
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
+  const emojis = await generateEmojiProperties(characters);
   await generateBreaks(characters);
   await generateEastAsianWidth(characters);
   await generateBreaksTest('LineBreak');
@@ -121,7 +124,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
   dbRunDecompositions(generateDecomposition(characters));
   dbRunDecompositions(generateDecomposition(characters, true), true);
   dbRunComposition(generateComposition(characters, exclusions));
-
+  dbRunEmojiProperties(emojis);
   dbRunSpecialCasing(newCases);
 
   await generateCasefold();

@@ -181,6 +181,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(case)
     RUN_TEST(cjk)
     RUN_TEST(codepoint)
+    RUN_TEST(emoji)
     RUN_TEST(encoding)
     RUN_TEST(east_asian_width)
     RUN_TEST(hangul_composition)
