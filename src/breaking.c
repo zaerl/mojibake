@@ -260,7 +260,9 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
-        // LB15a: Do not break after unresolved initial punctuation
+        // LB15a: Do not break after an unresolved initial punctuation that lies at the start of the
+        // line, after a space, after opening punctuation, or after an unresolved quotation mark,
+        // even after spaces.
         // (sot | BK | CR | LF | NL | OP | QU | GL | SP | ZW) [\p{Pi}&QU] SP* ×
         if(results[i].category == MJB_CATEGORY_PI && cc == MJB_LBC_QU) {
             if(i == 0 || prev == MJB_LBC_BK || prev == MJB_LBC_CR || prev == MJB_LBC_LF ||
@@ -274,7 +276,9 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
-        // LB15b: Do not break before unresolved final punctuation
+        // LB15b: Do not break before an unresolved final punctuation that lies at the end of the
+        // line, before a space, before a prohibited break, or before an unresolved quotation mark,
+        // even after spaces.
         // × [\p{Pf}&QU] ( SP | GL | WJ | CL | QU | CP | EX | IS | SY | BK | CR | LF | NL | ZW | eot)
         if(results[i].category == MJB_CATEGORY_PF && cc == MJB_LBC_QU) {
             if(i + 1 >= real_length) {
@@ -292,7 +296,16 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
-        // LB16: Do not break between closing punctuation and a nonstarter, even with intervening spaces
+        // TODO
+        // LB15c: Break before a decimal mark that follows a space, for instance, in ‘subtract .5’.
+        // SP ÷ IS NU
+
+        // TODO
+        // LB15d: Otherwise, do not break before ‘;’, ‘,’, or ‘.’, even after spaces.
+        // x IS
+
+        // LB16: Do not break between closing punctuation and a nonstarter (lb=NS), even with
+        // intervening spaces.
         // (CL | CP) SP* × NS
         if(cc == MJB_LBC_CL || cc == MJB_LBC_CP) {
             size_t next = skip_spaces(results, i + 1, real_length);
@@ -320,7 +333,10 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
-        // LB19: Do not break before or after quotation marks
+        // Special case rules:
+
+        // LB19: Do not break before non-initial unresolved quotation marks, such as ‘ ” ’ or ‘ " ’,
+        // nor after non-final unresolved quotation marks, such as ‘ “ ’ or ‘ " ’.
         // × QU, QU ×
         if(cc == MJB_LBC_QU) {
             if(results[i].category != MJB_CATEGORY_PI) {
@@ -332,6 +348,14 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
+        // TODO
+        // LB19a: Unless surrounded by East Asian characters, do not break either side of any
+        // unresolved quotation marks.
+        // [^$EastAsian] × QU
+        // × QU ( [^$EastAsian] | eot )
+        // QU × [^$EastAsian]
+        // ( sot | [^$EastAsian] ) QU ×
+
         // LB20: Break before and after unresolved CB
         // ÷ CB, CB ÷
         if(cc == MJB_LBC_CB) {
@@ -341,10 +365,14 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
+        // TODO
+        // LB20a: Do not break after a word-initial hyphen.
+        // ( sot | BK | CR | LF | NL | SP | ZW | CB | GL ) ( HY | HH ) × ( AL | HL )
+
         // LB21: Do not break before hyphen-minus, other hyphens, fixed-width spaces, small kana,
-        //and other non-starters
-        // × BA, × HY, × NS
-        if(cc == MJB_LBC_BA || cc == MJB_LBC_HY || cc == MJB_LBC_NS) {
+        // and other non-starters, or after acute accents.
+        // × BA, × HH, × HY, × NS, BB ×
+        if(cc == MJB_LBC_BA || cc == MJB_LBC_HH || cc == MJB_LBC_HY || cc == MJB_LBC_NS) {
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
@@ -355,9 +383,9 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
         }
 
-        // LB21a: Do not break after Hebrew + Hyphen
-        // HL (HY | BA) × [^HL]
-        if(prev == MJB_LBC_HL && (cc == MJB_LBC_HY || cc == MJB_LBC_BA)) {
+        // LB21a: Do not break after the hyphen in Hebrew + Hyphen + non-Hebrew.
+        // HL (HY | HH) × [^HL]
+        if(prev == MJB_LBC_HL && (cc == MJB_LBC_HY || cc == MJB_LBC_HH)) {
             if(i + 1 < real_length && results[i + 1].line_breaking_class != MJB_LBC_HL) {
                 breaks[i + 1] = MJB_LBT_NO_BREAK;
             }
@@ -375,6 +403,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
+        // Numbers:
+
         // LB23: Do not break between digits and letters
         // (AL | HL) × NU
         if((prev == MJB_LBC_AL || prev == MJB_LBC_HL) && cc == MJB_LBC_NU) {
@@ -386,7 +416,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
-        // LB23a: Do not break between numeric prefixes and ideographs
+        // LB23a: Do not break between numeric prefixes and ideographs, or between ideographs and
+        // numeric postfixes.
         // PR × (ID | EB | EM)
         if(prev == MJB_LBC_PR && (cc == MJB_LBC_ID || cc == MJB_LBC_EB || cc == MJB_LBC_EM)) {
             breaks[i] = MJB_LBT_NO_BREAK;
@@ -397,7 +428,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
-        // LB24: Do not break between numeric prefix/postfix and letters
+        // LB24: Do not break between numeric prefix/postfix and letters, or between letters and
+        // prefix/postfix.
         // (PR | PO) × (AL | HL)
         if((prev == MJB_LBC_PR || prev == MJB_LBC_PO) && (cc == MJB_LBC_AL || cc == MJB_LBC_HL)) {
             breaks[i] = MJB_LBT_NO_BREAK;
@@ -408,7 +440,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
-        // LB25: Do not break complex number expressions
+        // LB25: Do not break numbers
         // (PR | PO) × ( OP | HY )? NU
         if((prev == MJB_LBC_PR || prev == MJB_LBC_PO) && cc == MJB_LBC_NU) {
             breaks[i] = MJB_LBT_NO_BREAK;
@@ -462,7 +494,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             breaks[i] = MJB_LBT_NO_BREAK;
         }
 
-        // LB28: Do not break between alphabetics
+        // LB28: Do not break between alphabetics (“at”).
         // (AL | HL) × (AL | HL)
         if((prev == MJB_LBC_AL || prev == MJB_LBC_HL) && (cc == MJB_LBC_AL || cc == MJB_LBC_HL)) {
             breaks[i] = MJB_LBT_NO_BREAK;
@@ -518,9 +550,12 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
 
         // LB30b: Do not break between an emoji base and an emoji modifier
         // EB × EM
+        // [\p{Extended_Pictographic}&\p{Cn}] × EM
         if(prev == MJB_LBC_EB && cc == MJB_LBC_EM) {
             breaks[i] = MJB_LBT_NO_BREAK;
         }
+
+        // TODO: missing LB30b second rule
     }
 
     // Phase 5: Apply default rule (LB31) - Break everywhere else

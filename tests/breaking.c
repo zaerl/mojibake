@@ -116,7 +116,7 @@ void *test_breaking(void *arg) {
         mjb_line_break *breakings = mjb_break_line(generated_input, generated_index,
             MJB_ENCODING_UTF_8, &output_size);
 
-        snprintf(test_name, 256, "#%u generate %zu/%u breakings", current_line, output_size,
+        snprintf(test_name, 256, "#%u %zu/%u breakings", current_line, output_size,
             allowed_count);
         ATT_ASSERT(output_size, allowed_count, test_name)
 
@@ -139,7 +139,7 @@ void *test_breaking(void *arg) {
             free(breakings);
         }
 
-        snprintf(test_name, 256, "#%u generate breakings", current_line);
+        snprintf(test_name, 256, "#%u generated breakings", current_line);
         // CURRENT_ASSERT mjb_break_line
         ATT_ASSERT(generated_string, expected_string, test_name)
 
