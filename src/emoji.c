@@ -31,7 +31,7 @@ MJB_EXPORT bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_propertie
         return false;
     }
 
-    emoji->codepoint = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 0);
+    emoji->codepoint = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_emoji, 0);
     emoji->emoji = (bool)sqlite3_column_int(mjb_global.stmt_get_emoji, 1);
     emoji->presentation = (bool)sqlite3_column_int(mjb_global.stmt_get_emoji, 2);
     emoji->modifier = (bool)sqlite3_column_int(mjb_global.stmt_get_emoji, 3);
