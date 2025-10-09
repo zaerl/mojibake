@@ -76,9 +76,15 @@ typedef enum mjb_line_breaking_class {
     MJB_LBC_XX  // Unknown
 } mjb_line_breaking_class;
 
+typedef struct {
+    mjb_line_breaking_class line_breaking_class;
+    mjb_category category;
+    bool extended_pictographic;
+} mjb_line_breaking;
+
 #define MJB_LBC_COUNT 48
 
-MJB_NONNULL(2) bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
-    mjb_line_breaking_class *line_breaking_class, mjb_category *category);
+MJB_NONNULL(2) bool mjb_codepoint_line_breaking(mjb_codepoint codepoint,
+    mjb_line_breaking *line_breaking);
 
 #endif // MJB_BREAK_H

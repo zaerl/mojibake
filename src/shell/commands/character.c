@@ -225,18 +225,16 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         print_null_value("Titlecase", 1);
     }
 
-    mjb_line_breaking_class line_breaking_class;
-    mjb_category category;
-    bool lbc_valid = mjb_codepoint_line_breaking_class(character->codepoint, &line_breaking_class,
-        &category);
+    mjb_line_breaking line_breaking;
+    bool lbc_valid = mjb_codepoint_line_breaking(character->codepoint, &line_breaking);
 
     if(lbc_valid) {
         if(is_json) {
-            print_id_name_value("line_breaking_class", line_breaking_class,
-                line_breaking_class_name(line_breaking_class), 0);
+            print_id_name_value("line_breaking_class", line_breaking.line_breaking_class,
+                line_breaking_class_name(line_breaking.line_breaking_class), 0);
         } else {
-            print_value("Line Breaking Class", 0, "[%d] %s", line_breaking_class,
-                line_breaking_class_name(line_breaking_class));
+            print_value("Line Breaking Class", 0, "[%d] %s", line_breaking.line_breaking_class,
+                line_breaking_class_name(line_breaking.line_breaking_class));
         }
     } else {
         print_null_value("Line Breaking Class", 0);

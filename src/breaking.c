@@ -29,8 +29,8 @@ enum mjb_line_break_type {
 };
 
 // Return the codepoint character
-MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
-    mjb_line_breaking_class *line_breaking_class, mjb_category* category) {
+MJB_EXPORT bool mjb_codepoint_line_breaking(mjb_codepoint codepoint,
+    mjb_line_breaking *line_breaking) {
     if(!mjb_initialize()) {
         return false;
     }
@@ -46,12 +46,11 @@ MJB_EXPORT bool mjb_codepoint_line_breaking_class(mjb_codepoint codepoint,
         return false;
     }
 
-    *line_breaking_class = (mjb_line_breaking_class)sqlite3_column_int(
+    line_breaking->line_breaking_class = (mjb_line_breaking_class)sqlite3_column_int(
         mjb_global.stmt_line_breaking, 0);
 
-    if(category) {
-        *category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 1);
-    }
+    line_breaking->category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 1);
+    line_breaking->extended_pictographic = (bool)sqlite3_column_int(mjb_global.stmt_line_breaking, 2);
 
     return true;
 }
@@ -101,22 +100,21 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         }
 
         if(state == MJB_UTF_ACCEPT) {
-            mjb_line_breaking_class line_breaking_class;
-            mjb_category category;
+            mjb_line_breaking line_breaking;
             mjb_east_asian_width eaw;
 
-            if(!mjb_codepoint_line_breaking_class(codepoint, &line_breaking_class, &category)) {
-                line_breaking_class = MJB_LBC_XX;
-                category = MJB_CATEGORY_CN;
+            if(!mjb_codepoint_line_breaking(codepoint, &line_breaking)) {
+                line_breaking.line_breaking_class = MJB_LBC_XX;
+                line_breaking.category = MJB_CATEGORY_CN;
             }
 
             if(!mjb_codepoint_east_asian_width(codepoint, &eaw)) {
                 eaw = MJB_EAW_NEUTRAL;
             }
 
-            results[j].line_breaking_class = line_breaking_class;
-            results[j].original_class = line_breaking_class;
-            results[j].category = category;
+            results[j].line_breaking_class = line_breaking.line_breaking_class;
+            results[j].original_class = line_breaking.line_breaking_class;
+            results[j].category = line_breaking.category;
             results[j].east_asian_width = eaw;
             ++j;
         }

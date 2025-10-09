@@ -41,14 +41,13 @@
 }*/
 
 void *test_breaking(void *arg) {
-    mjb_line_breaking_class lbc;
-    mjb_category category;
+    mjb_line_breaking lb;
 
-    ATT_ASSERT(mjb_codepoint_line_breaking_class(MJB_CODEPOINT_MAX + 1, &lbc, &category), false, "Invalid")
+    ATT_ASSERT(mjb_codepoint_line_breaking(MJB_CODEPOINT_MAX + 1, &lb), false, "Invalid")
 
-    // CURRENT_ASSERT mjb_codepoint_line_breaking_class
-    ATT_ASSERT(mjb_codepoint_line_breaking_class(0x0, &lbc, &category), true, "NULL")
-    ATT_ASSERT((unsigned int)lbc, (unsigned int)MJB_LBC_CM, "CM")
+    // CURRENT_ASSERT mjb_codepoint_line_breaking
+    ATT_ASSERT(mjb_codepoint_line_breaking(0x0, &lb), true, "NULL")
+    ATT_ASSERT((unsigned int)lb.line_breaking_class, (unsigned int)MJB_LBC_CM, "CM")
 
     char line[16384]; // 16384, see line #19335
     char generated_input[1024]; // String to be used by mjb_break_line
@@ -141,6 +140,7 @@ void *test_breaking(void *arg) {
         }
 
         snprintf(test_name, 256, "#%u generate breakings", current_line);
+        // CURRENT_ASSERT mjb_break_line
         ATT_ASSERT(generated_string, expected_string, test_name)
 
         free(tofree);
