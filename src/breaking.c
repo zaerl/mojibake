@@ -19,6 +19,7 @@ typedef struct {
     mjb_line_breaking_class original_class; // Before CM resolution
     mjb_category category;
     mjb_east_asian_width east_asian_width;
+    bool extended_pictographic;
 } mjb_lbc_result;
 
 enum mjb_line_break_type {
@@ -106,6 +107,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             if(!mjb_codepoint_line_breaking(codepoint, &line_breaking)) {
                 line_breaking.line_breaking_class = MJB_LBC_XX;
                 line_breaking.category = MJB_CATEGORY_CN;
+                line_breaking.extended_pictographic = false;
             }
 
             if(!mjb_codepoint_east_asian_width(codepoint, &eaw)) {
@@ -116,6 +118,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             results[j].original_class = line_breaking.line_breaking_class;
             results[j].category = line_breaking.category;
             results[j].east_asian_width = eaw;
+            results[j].extended_pictographic = line_breaking.extended_pictographic;
             ++j;
         }
     }
