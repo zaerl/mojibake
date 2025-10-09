@@ -141,6 +141,8 @@ export class CFunction {
         ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_character *')) {
         ret += this.#getInput(i);
+      } else if(arg.startsWith('mjb_emoji_properties *')) {
+        ret += this.#getInput(i);
       } else if(arg.startsWith('size_t')) {
         ret += this.#getInput(i);
       } else if(arg.startsWith('mjb_codepoint')) {

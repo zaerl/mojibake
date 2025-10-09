@@ -344,6 +344,47 @@
             return false;
         }
 
+        function ccallEmoji(codepoint) {
+            const structSize = 10;
+            const ptr = window.mojibake._malloc(structSize);
+
+            for(let i = 0; i < structSize; ++i) {
+                window.mojibake.HEAPU8[ptr + i] = 0;
+            }
+
+            const result = window.mojibake.ccall('mjb_codepoint_emoji', 'boolean',
+                ['number', 'number'], [codepoint, ptr]);
+            let ret = '';
+
+            if(result) {
+                const struct = new CStruct(ptr);
+                const result = struct.toObject({
+                    codepoint: 'u32',
+                    emoji: 'u8',
+                    presentation: 'u8',
+                    modifier: 'u8',
+                    modifier_base: 'u8',
+                    component: 'u8',
+                    extended_pictographic: 'u8'
+                });
+                console.log('result', result);
+
+                ret = `Codepoint <strong>${codepointToString(result.codepoint)}</strong>:<br>`;
+                ret += `Emoji: <strong>${result.emoji ? 'true' : 'false'}</strong><br>`;
+                ret += `Presentation: <strong>${result.presentation ? 'true' : 'false'}</strong><br>`;
+                ret += `Modifier: <strong>${result.modifier ? 'true' : 'false'}</strong><br>`;
+                ret += `Modifier Base: <strong>${result.modifier_base ? 'true' : 'false'}</strong><br>`;
+                ret += `Component: <strong>${result.component ? 'true' : 'false'}</strong><br>`;
+                ret += `Extended Pictographic: <strong>${result.extended_pictographic ? 'true' : 'false'}</strong><br>`;
+            } else {
+                ret = false;
+            }
+
+            window.mojibake._free(ptr);
+
+            return ret;
+        }
+
         function stringToCodepointList(string) {
             const codepoints = [];
 
@@ -454,6 +495,8 @@
                 return ccallNormalize(args[0], args[1], args[2], args[3]);
             } else if(func === 'mjb_codepoint_encode') {
                 return ccallCodepointEncode(args[0], args[3]);
+            } else if(func === 'mjb_codepoint_emoji') {
+                return ccallEmoji(args[0]);
             } else {
                 console.log(functions[func]);
                 console.log(func, ret, argTypes, args);
