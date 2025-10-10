@@ -70,8 +70,10 @@ void restore_mode(struct termios *orig_termios) {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios);
 }
 
-bool print_escaped_character(char buffer_utf8[5]) {
-    switch(buffer_utf8[0]) {
+bool print_escaped_character(const char *buffer_utf8) {
+    unsigned char c = (unsigned char)buffer_utf8[0];
+
+    switch(c) {
         case '"':
             printf("\\\"");
             return true;
@@ -95,8 +97,8 @@ bool print_escaped_character(char buffer_utf8[5]) {
             return true;
     }
 
-    if(buffer_utf8[0] <= 0x1F) {
-        printf("\\u%04X", buffer_utf8[0]);
+    if(c <= 0x1F) {
+        printf("\\u%04X", c);
 
         return true;
     }
