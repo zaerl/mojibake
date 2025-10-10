@@ -152,7 +152,7 @@ int main(int argc, char * const argv[]) {
                 }
                 break;
             case 'v':
-                cmd_verbose = true;
+                ++cmd_verbose;
                 break;
             case 'V':
                 return show_version();

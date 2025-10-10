@@ -71,53 +71,55 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         printf(",%s", json_nl());
     }
 
-    mjb_encoding other_encodings[] = {
-        MJB_ENCODING_UTF_16_BE,
-        MJB_ENCODING_UTF_16_LE,
-        MJB_ENCODING_UTF_32_BE,
-        MJB_ENCODING_UTF_32_LE
-    };
+    if(cmd_verbose > 0) {
+        mjb_encoding other_encodings[] = {
+            MJB_ENCODING_UTF_16_BE,
+            MJB_ENCODING_UTF_16_LE,
+            MJB_ENCODING_UTF_32_BE,
+            MJB_ENCODING_UTF_32_LE
+        };
 
-    const char *other_encodings_names[] = {
-        "16BE",
-        "16LE",
-        "32BE",
-        "32LE"
-    };
+        const char *other_encodings_names[] = {
+            "16BE",
+            "16LE",
+            "32BE",
+            "32LE"
+        };
 
-    const char *other_encodings_labels[] = {
-        "16be",
-        "16le",
-        "32be",
-        "32le"
-    };
+        const char *other_encodings_labels[] = {
+            "16be",
+            "16le",
+            "32be",
+            "32le"
+        };
 
-    for(size_t i = 0; i < 4; ++i) {
-        char buffer[5];
-        unsigned int length = mjb_codepoint_encode(character->codepoint, buffer, 5, other_encodings[i]);
+        for(size_t i = 0; i < 4; ++i) {
+            char buffer[5];
+            unsigned int length = mjb_codepoint_encode(character->codepoint, buffer, 5, other_encodings[i]);
 
-        if(is_json) {
-            printf(
-                "%s%s\"hex_utf-%s\":%s[%s",
-                json_i(), json_i(),
-                other_encodings_labels[i],
-                cmd_json_indent == 0 ? "" : " ", color_green_start());
-        } else {
-            printf("\nHex UTF-%s: %s", other_encodings_names[i], color_green_start());
-        }
-
-        for(size_t i = 0; i < length; ++i) {
             if(is_json) {
-                printf("%u%s", (unsigned char)buffer[i], i == length - 1 ? "" : ", ");
+                printf(
+                    "%s%s\"hex_utf-%s\":%s[%s",
+                    json_i(), json_i(),
+                    other_encodings_labels[i],
+                    cmd_json_indent == 0 ? "" : " ", color_green_start());
             } else {
-                printf("%02X%s", (unsigned char)buffer[i], i == length - 1 ? "" : " ");
+                printf("\nHex UTF-%s: %s", other_encodings_names[i], color_green_start());
             }
-        }
 
-        printf("%s%s", color_reset(), is_json ? "]" : "");
+            for(size_t i = 0; i < length; ++i) {
+                if(is_json) {
+                    printf("%u%s", (unsigned char)buffer[i], i == length - 1 ? "" : ", ");
+                } else {
+                    printf("%02X%s", (unsigned char)buffer[i], i == length - 1 ? "" : " ");
+                }
+            }
 
-        if(is_json) {
-            printf(",%s", json_nl());
+            printf("%s%s", color_reset(), is_json ? "]" : "");
+
+            if(is_json) {
+                printf(",%s", json_nl());
+            }
         }
     }
 
@@ -125,157 +127,168 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         puts("");
     }
 
-    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFD, "nfd", "NFD", true);
-    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFC, "nfc", "NFC", true);
-    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD", true);
-    print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkc", "NFKC", true);
+    if(cmd_verbose > 0) {
+        print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFD, "nfd", "NFD", 1);
+        print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFC, "nfc", "NFC", 1);
+        print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD", 1);
+        print_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkc", "NFKC", 1);
 
-    // Need to flush stdout here to ensure the normalization is printed before the next character
-    fflush(stdout);
-
-    if(is_json) {
-        print_id_name_value("category", character->category, category_name(character->category), true);
-    } else {
-        print_value("Category", 1, "[%d] %s", character->category, category_name(character->category));
+        // Need to flush stdout here to ensure the normalization is printed before the next character
+        fflush(stdout);
     }
 
-    char *cc_name = ccc_name(character->combining);
     if(is_json) {
-        print_id_name_value("combining", character->combining, cc_name, true);
+        print_id_name_value("category", character->category, category_name(character->category),
+            cmd_verbose == 0 ? 0 : 1);
     } else {
-        print_value("Combining", 1, "[%d] %s", character->combining, cc_name);
+        print_value("Category", cmd_verbose == 0 ? 0 : 1, "[%d] %s", character->category,
+            category_name(character->category));
     }
 
-    free(cc_name);
+    if(cmd_verbose > 0) {
+        char *cc_name = ccc_name(character->combining);
 
-    const char *bi_name = bidi_name((mjb_bidi_categories)character->bidirectional);
-
-    if(is_json) {
-        print_id_name_value("bidirectional", character->bidirectional, bi_name, true);
-    } else {
-        print_value("Bidirectional", 1, "[%d] %s", character->bidirectional, bi_name);
-    }
-
-    mjb_plane plane = mjb_codepoint_plane(character->codepoint);
-    const char *plane_name = mjb_plane_name(plane, false);
-
-    if(is_json) {
-        print_id_name_value("plane", plane, plane_name, true);
-    } else {
-        print_value("Plane", 1, "[%d] %s", plane, plane_name);
-    }
-
-    mjb_codepoint_block block;
-    bool valid_block = mjb_character_block(character->codepoint, &block);
-
-    // Need to flush stdout here to ensure the block is printed before the next character
-    fflush(stdout);
-
-    if(valid_block) {
         if(is_json) {
-            print_id_name_value("block", block.id, block.name, 1);
+            print_id_name_value("combining", character->combining, cc_name, 1);
         } else {
-            print_value("Block", 1, "[%d] %s", block.id, block.name);
+            print_value("Combining", 1, "[%d] %s", character->combining, cc_name);
+        }
+
+        free(cc_name);
+
+        const char *bi_name = bidi_name((mjb_bidi_categories)character->bidirectional);
+
+        if(is_json) {
+            print_id_name_value("bidirectional", character->bidirectional, bi_name, 1);
+        } else {
+            print_value("Bidirectional", 1, "[%d] %s", character->bidirectional, bi_name);
+        }
+
+        mjb_plane plane = mjb_codepoint_plane(character->codepoint);
+        const char *plane_name = mjb_plane_name(plane, false);
+
+        if(is_json) {
+            print_id_name_value("plane", plane, plane_name, 1);
+        } else {
+            print_value("Plane", 1, "[%d] %s", plane, plane_name);
+        }
+
+        mjb_codepoint_block block;
+        bool valid_block = mjb_character_block(character->codepoint, &block);
+
+        // Need to flush stdout here to ensure the block is printed before the next character
+        fflush(stdout);
+
+        if(valid_block) {
+            if(is_json) {
+                print_id_name_value("block", block.id, block.name, 1);
+            } else {
+                print_value("Block", 1, "[%d] %s", block.id, block.name);
+            }
+        }
+
+        const char *d_name = decomposition_name(character->decomposition);
+
+        if(is_json) {
+            print_id_name_value("decomposition", character->decomposition, d_name, 1);
+        } else {
+            print_value("Decomposition", 1, "[%d] %s", character->decomposition, d_name);
         }
     }
 
-    const char *d_name = decomposition_name(character->decomposition);
-
-    if(is_json) {
-        print_id_name_value("decomposition", character->decomposition, d_name, true);
-    } else {
-        print_value("Decomposition", 1, "[%d] %s", character->decomposition, d_name);
-    }
-
-    if(character->decimal == MJB_NUMBER_NOT_VALID) {
-        print_null_value("Decimal", 1);
-    } else {
-        print_value("Decimal", 1, "%d", character->decimal);
-    }
-
-    if(character->digit == MJB_NUMBER_NOT_VALID) {
-        print_null_value("Digit", 1);
-    } else {
-        print_value("Digit", 1, "%d", character->digit);
-    }
-
-    if(character->numeric[0] != '\0') {
-        print_value("Numeric", 1, "%s", character->numeric);
-    } else {
-        print_null_value("Numeric", 1);
-    }
-
-    print_bool_value("Mirrored", 1, character->mirrored);
-
-    if(character->uppercase != 0) {
-        print_codepoint("Uppercase", 1, character->uppercase);
-    } else {
-        print_null_value("Uppercase", 1);
-    }
-
-    if(character->lowercase != 0) {
-        print_codepoint("Lowercase", 1, (unsigned int)character->lowercase);
-    } else {
-        print_null_value("Lowercase", 1);
-    }
-
-    if(character->titlecase != 0) {
-        print_codepoint("Titlecase", 1, character->titlecase);
-    } else {
-        print_null_value("Titlecase", 1);
-    }
-
-    mjb_line_breaking line_breaking;
-    bool lbc_valid = mjb_codepoint_line_breaking(character->codepoint, &line_breaking);
-
-    if(lbc_valid) {
-        if(is_json) {
-            print_id_name_value("line_breaking_class", line_breaking.line_breaking_class,
-                line_breaking_class_name(line_breaking.line_breaking_class), 0);
+    if(cmd_verbose > 0) {
+        if(character->decimal == MJB_NUMBER_NOT_VALID) {
+            print_null_value("Decimal", 1);
         } else {
-            print_value("Line Breaking Class", 0, "[%d] %s", line_breaking.line_breaking_class,
-                line_breaking_class_name(line_breaking.line_breaking_class));
+            print_value("Decimal", 1, "%d", character->decimal);
         }
-    } else {
-        print_null_value("Line Breaking Class", 0);
-    }
 
-    mjb_east_asian_width east_asian_width;
-    bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width);
-
-    if(eaw_valid) {
-        if(is_json) {
-            print_id_name_value("east_asian_width", east_asian_width,
-                east_asian_width_name(east_asian_width), 0);
+        if(character->digit == MJB_NUMBER_NOT_VALID) {
+            print_null_value("Digit", 1);
         } else {
-            print_value("East Asian Width", 0, "[%d] %s", east_asian_width,
-                east_asian_width_name(east_asian_width));
+            print_value("Digit", 1, "%d", character->digit);
         }
-    } else {
-        print_null_value("East Asian Width", 0);
+
+        if(character->numeric[0] != '\0') {
+            print_value("Numeric", 1, "%s", character->numeric);
+        } else {
+            print_null_value("Numeric", 1);
+        }
+
+        print_bool_value("Mirrored", 1, character->mirrored);
+
+        if(character->uppercase != 0) {
+            print_codepoint("Uppercase", 1, character->uppercase);
+        } else {
+            print_null_value("Uppercase", 1);
+        }
+
+        if(character->lowercase != 0) {
+            print_codepoint("Lowercase", 1, (unsigned int)character->lowercase);
+        } else {
+            print_null_value("Lowercase", 1);
+        }
+
+        if(character->titlecase != 0) {
+            print_codepoint("Titlecase", cmd_verbose == 1 ? 0 : 1, character->titlecase);
+        } else {
+            print_null_value("Titlecase", cmd_verbose == 1 ? 0 : 1);
+        }
     }
 
-    mjb_emoji_properties emoji_properties;
-    bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji_properties);
+    if(cmd_verbose > 1) {
+        mjb_line_breaking line_breaking;
+        bool lbc_valid = mjb_codepoint_line_breaking(character->codepoint, &line_breaking);
 
-    if(emoji_valid) {
-        print_bool_value("Emoji", 0, emoji_properties.emoji);
-        print_bool_value(is_json ? "emoji_presentation" : "Emoji Presentation", 0, emoji_properties.presentation);
-        print_bool_value(is_json ? "emoji_modifier" : "Emoji Modifier", 0, emoji_properties.modifier);
-        print_bool_value(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 0, emoji_properties.modifier_base);
-        print_bool_value(is_json ? "emoji_component" : "Emoji Component", 0, emoji_properties.component);
-        print_bool_value(is_json ? "extended_pictographic" : "Extended Pictographic", 0, emoji_properties.extended_pictographic);
-    } else {
-        print_null_value("Emoji", 0);
-        print_null_value(is_json ? "emoji_presentation" : "Emoji Presentation", 0);
-        print_null_value(is_json ? "emoji_modifier" : "Emoji Modifier", 0);
-        print_null_value(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 0);
-        print_null_value(is_json ? "emoji_component" : "Emoji Component", 0);
-        print_null_value(is_json ? "extended_pictographic" : "Extended Pictographic", 0);
+        if(lbc_valid) {
+            if(is_json) {
+                print_id_name_value("line_breaking_class", line_breaking.line_breaking_class,
+                    line_breaking_class_name(line_breaking.line_breaking_class), 1);
+            } else {
+                print_value("Line Breaking Class", 1, "[%d] %s", line_breaking.line_breaking_class,
+                    line_breaking_class_name(line_breaking.line_breaking_class));
+            }
+        } else {
+            print_null_value("Line Breaking Class", 1);
+        }
+
+        mjb_east_asian_width east_asian_width;
+        bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width);
+
+        if(eaw_valid) {
+            if(is_json) {
+                print_id_name_value("east_asian_width", east_asian_width,
+                    east_asian_width_name(east_asian_width), 1);
+            } else {
+                print_value("East Asian Width", 1, "[%d] %s", east_asian_width,
+                    east_asian_width_name(east_asian_width));
+            }
+        } else {
+            print_null_value("East Asian Width", 1);
+        }
+
+        mjb_emoji_properties emoji_properties;
+        bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji_properties);
+
+        if(emoji_valid) {
+            print_bool_value("Emoji", 1, emoji_properties.emoji);
+            print_bool_value(is_json ? "emoji_presentation" : "Emoji Presentation", 1, emoji_properties.presentation);
+            print_bool_value(is_json ? "emoji_modifier" : "Emoji Modifier", 1, emoji_properties.modifier);
+            print_bool_value(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 1, emoji_properties.modifier_base);
+            print_bool_value(is_json ? "emoji_component" : "Emoji Component", 1, emoji_properties.component);
+            print_bool_value(is_json ? "extended_pictographic" : "Extended Pictographic", 0, emoji_properties.extended_pictographic);
+        } else {
+            print_null_value("Emoji", 1);
+            print_null_value(is_json ? "emoji_presentation" : "Emoji Presentation", 1);
+            print_null_value(is_json ? "emoji_modifier" : "Emoji Modifier", 1);
+            print_null_value(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 1);
+            print_null_value(is_json ? "emoji_component" : "Emoji Component", 1);
+            print_null_value(is_json ? "extended_pictographic" : "Extended Pictographic", 0);
+        }
     }
 
     if(is_json) {
-        printf("%s}%s%s", json_i(), !(type & MJB_NEXT_CHAR_LAST) ? "," : "", json_nl());
+        printf("%s}%s%s", json_i(), (type & MJB_NEXT_CHAR_LAST) ? "" : ",", json_nl());
 
         if(type & MJB_NEXT_CHAR_LAST) {
             printf("]%s", json_nl());

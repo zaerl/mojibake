@@ -21,7 +21,7 @@ typedef enum {
 } output_mode;
 
 extern int cmd_show_colors;
-extern bool cmd_verbose;
+extern unsigned int cmd_verbose;
 extern interpret_mode cmd_interpret_mode;
 extern output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
