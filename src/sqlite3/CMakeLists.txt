@@ -14,6 +14,7 @@ if(MSVC)
     target_compile_options(mojibake_sqlite PRIVATE
         /wd4013 # Suppress 'function undefined; assuming extern returning int'
         /wd4101 # Suppress 'unreferenced local variable'
+        /wd4200 # Suppress 'nonstandard extension used: zero-sized array in struct/union'
     )
 else()
     target_compile_options(mojibake_sqlite
