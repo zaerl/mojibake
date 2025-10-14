@@ -11,7 +11,7 @@ SQLITE_PRIVATE const void *sqlite3RenameTokenMap( Parse *pParse, const void *pPt
     const Token *pToken) {
     // Fake function for MSVC compatibility
 
-    return;
+    return NULL;
 }
 
 /*
