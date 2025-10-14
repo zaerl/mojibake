@@ -10,6 +10,11 @@ set(SOURCES
     shell.c
 )
 
+# Add getopt compatibility for Windows
+if(WIN32)
+    list(APPEND SOURCES ./getopt/getopt.c)
+endif()
+
 add_executable(mojibake ${SOURCES})
 target_link_libraries(mojibake PRIVATE mojibake_lib mojibake_sqlite)
 

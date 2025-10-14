@@ -4,14 +4,47 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <getopt.h>
 #include <time.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #include <io.h>
+    #include <direct.h>
+    #include <windows.h>
+    #include "../src/shell/getopt/getopt.h"
+    #define isatty _isatty
+    #define STDOUT_FILENO _fileno(stdout)
+    #define chdir _chdir
+#else
+    #include <getopt.h>
+    #include <unistd.h>
+#endif
 
 #include "test.h"
 
 static att_test_callback error_callback = NULL;
 static bool exit_on_error = false;
+
+#ifdef _WIN32
+// Windows-compatible strsep implementation
+static char *strsep(char **stringp, const char *delim) {
+    char *start = *stringp;
+    char *p;
+
+    if(start == NULL) {
+        return NULL;
+    }
+
+    p = strpbrk(start, delim);
+    if(p) {
+        *p = '\0';
+        *stringp = p + 1;
+    } else {
+        *stringp = NULL;
+    }
+
+    return start;
+}
+#endif
 
 /**
  * Get an UTF-8 string from a string of hex-encoded codepoints
@@ -96,7 +129,12 @@ void show_help(const char *executable, struct option options[], const char *desc
 }
 
 int main(int argc, char * const argv[]) {
+#ifdef _WIN32
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+#else
     struct timespec start, end;
+#endif
     double elapsed = 0;
     unsigned int verbosity = 0;
     int option = 0;
@@ -124,7 +162,11 @@ int main(int argc, char * const argv[]) {
     };
 
     if(!is_ctest) {
+#ifdef _WIN32
+        QueryPerformanceCounter(&start);
+#else
         clock_gettime(CLOCK_MONOTONIC, &start);
+#endif
     }
 
     att_set_verbose(verbosity);
@@ -212,9 +254,13 @@ int main(int argc, char * const argv[]) {
         tests_valid, tests_total, show_colors ? "\x1B[0m" : "");
 
     if(!is_ctest) {
+#ifdef _WIN32
+        QueryPerformanceCounter(&end);
+        elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+#else
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-
+#endif
         printf("Execution time: %.4f seconds\n", elapsed);
     }
 

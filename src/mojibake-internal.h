@@ -10,12 +10,12 @@
 #define MJB_MOJIBAKE_INTERNAL_H
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#define MJB_LOG(msg) emscripten_log(EM_LOG_CONSOLE, msg)
-#define MJB_LOG_VA(msg, ...) emscripten_log(EM_LOG_CONSOLE, msg, __VA_ARGS__)
+    #include <emscripten.h>
+    #define MJB_LOG(msg) emscripten_log(EM_LOG_CONSOLE, msg)
+    #define MJB_LOG_VA(msg, ...) emscripten_log(EM_LOG_CONSOLE, msg, __VA_ARGS__)
 #else
-#define MJB_LOG(msg) ((void)0)
-#define MJB_LOG_VA(msg, ...) ((void)0)
+    #define MJB_LOG(msg) ((void)0)
+    #define MJB_LOG_VA(msg, ...) ((void)0)
 #endif
 
 #include <stdbool.h>
@@ -29,7 +29,11 @@
 
 #include "mojibake.h"
 
-#define MJB_USED __attribute__((used))
+#if defined(_MSC_VER)
+    #define MJB_USED
+#else
+    #define MJB_USED __attribute__((used))
+#endif
 
 #define	MJB_UTF_ACCEPT 0
 #define	MJB_UTF_REJECT 0xF

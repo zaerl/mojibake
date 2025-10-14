@@ -4,11 +4,19 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #include <io.h>
+    #include "getopt/getopt.h"
+    #define isatty _isatty
+    #define STDOUT_FILENO _fileno(stdout)
+#else
+    #include <getopt.h>
+    #include <unistd.h>
+#endif
 
 #include "../mojibake.h"
 #include "characters.h"

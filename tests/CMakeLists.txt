@@ -27,6 +27,11 @@ if(BUILD_CPP)
     list(APPEND TEST_SOURCES ext/cpp/normalization.cpp)
 endif()
 
+# Add getopt compatibility for Windows
+if(WIN32)
+    list(APPEND TEST_SOURCES ../src/shell/getopt/getopt.c)
+endif()
+
 add_executable(mojibake-test ${TEST_SOURCES})
 target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 

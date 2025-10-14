@@ -10,17 +10,13 @@
 #define MJB_MOJIBAKE_H
 
 #if defined(__cplusplus)
-#if __cplusplus < 201703L
-#error "C++17 or a later version is required"
-#endif
+    #if __cplusplus < 201703L
+        #error "C++17 or a later version is required"
+    #endif
 #else
-#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
-#error "C11 or a later version is required"
-#endif
-#endif
-
-#if defined(_WIN32) || defined(_WIN64)
-#error "Windows is not supported"
+    #if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
+        #error "C11 or a later version is required"
+    #endif
 #endif
 
 #include <stdbool.h>
@@ -35,11 +31,11 @@ extern "C" {
 
 // Static assertions for important constants
 #if defined(__cplusplus)
-static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
-static_assert(sizeof(char) == 1, "char must be 1 byte");
+    static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
+    static_assert(sizeof(char) == 1, "char must be 1 byte");
 #else
-_Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
-_Static_assert(sizeof(char) == 1, "char must be 1 byte");
+    _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
+    _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #endif
 
 #define MJB_VERSION_NUMBER   0x0 // MAJOR << 8 && MINOR << 4 && REVISION
@@ -48,9 +44,9 @@ _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #define MJB_VERSION_REVISION 0
 
 #ifdef __EMSCRIPTEN__
-#define MJB_VERSION "0.0.0-WASM"
+    #define MJB_VERSION "0.0.0-WASM"
 #else
-#define MJB_VERSION "0.0.0"
+    #define MJB_VERSION "0.0.0"
 #endif
 
 #define MJB_UNICODE_VERSION       "17.0"
@@ -58,11 +54,17 @@ _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #define MJB_UNICODE_VERSION_MINOR 0
 
 #ifndef MJB_EXTERN
-#define MJB_EXTERN extern
+    #define MJB_EXTERN extern
 #endif
 
 #ifndef MJB_EXPORT
-#define MJB_EXPORT __attribute__((visibility("default")))
+    #if defined(_WIN32) || defined(_WIN64)
+        #define MJB_EXPORT
+    #elif defined(__GNUC__) || defined(__clang__)
+        #define MJB_EXPORT __attribute__((visibility("default")))
+    #else
+        #define MJB_EXPORT
+    #endif
 #endif
 
 // Modern compiler attributes with fallbacks

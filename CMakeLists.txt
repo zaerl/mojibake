@@ -24,13 +24,22 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Common compiler flags
-set(COMMON_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter -Wtype-limits")
-set(COMMON_FLAGS_DEBUG "-g -O0")
-set(COMMON_FLAGS_RELEASE "-O3")
-set(COMMON_FLAGS_TEST "-g -O0 -DMJB_TEST")
+if(MSVC)
+    # MSVC-specific flags
+    set(COMMON_FLAGS "/W4 /wd4100")
+    set(COMMON_FLAGS_DEBUG "/Zi /Od")
+    set(COMMON_FLAGS_RELEASE "/O2")
+    set(COMMON_FLAGS_TEST "/Zi /Od /DMJB_TEST")
+else()
+    # GCC/Clang flags
+    set(COMMON_FLAGS "-Wall -Wextra -pedantic -Wno-unused-parameter -Wtype-limits")
+    set(COMMON_FLAGS_DEBUG "-g -O0")
+    set(COMMON_FLAGS_RELEASE "-O3")
+    set(COMMON_FLAGS_TEST "-g -O0 -DMJB_TEST")
+endif()
 
-# AddressSanitizer flags
-if(USE_ASAN)
+# AddressSanitizer flags (GCC/Clang only)
+if(USE_ASAN AND NOT MSVC)
     set(ASAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
     set(COMMON_FLAGS "${COMMON_FLAGS} ${ASAN_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")

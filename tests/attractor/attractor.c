@@ -9,7 +9,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #include <io.h>
+    #define isatty _isatty
+    #define STDOUT_FILENO _fileno(stdout)
+#else
+    #include <unistd.h>
+#endif
 
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT, EXPECTED) \
 if(att_verbose >= 1 && att_show_error) { \
