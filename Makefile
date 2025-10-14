@@ -2,21 +2,6 @@ BUILD_DIR ?= build
 WASM_BUILD_DIR ?= build-wasm
 BUILD_TYPE ?= Release
 
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    DETECTED_OS := Windows
-    RM := rmdir /s /q
-    SHELL_EXT := .bat
-    PATH_SEP := \\
-    EXE_EXT := .exe
-else
-    DETECTED_OS := $(shell uname -s)
-    RM := rm -rf
-    SHELL_EXT := .sh
-    PATH_SEP := /
-    EXE_EXT :=
-endif
-
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
 
@@ -63,26 +48,26 @@ coverage:
 
 # Generate source files and database
 generate: $(GENERATE_SOURCES)
-	cd ./utils/generate && ./generate$(SHELL_EXT) $(ARGS)
+	cd ./utils/generate && ./generate.sh $(ARGS)
 
 # Generate locale files
 generate-locales:
-	cd ./utils/generate && ./generate-locales$(SHELL_EXT)
+	cd ./utils/generate && ./generate-locales.sh
 
 # Run tests
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
-	$(BUILD_DIR)$(PATH_SEP)tests$(PATH_SEP)mojibake-test$(EXE_EXT) $(ARGS)
+	build/tests/mojibake-test $(ARGS)
 
 # Run tests with C++ compiler
 test-cpp: BUILD_TYPE = Test
 test-cpp: configure-cpp build-cpp mojibake.db
-	$(BUILD_DIR)$(PATH_SEP)tests$(PATH_SEP)mojibake-test$(EXE_EXT) $(ARGS)
+	build/tests/mojibake-test $(ARGS)
 
 # Run tests with AddressSanitizer
 test-asan: BUILD_TYPE = Test
 test-asan: configure-asan build-asan mojibake.db
-	$(BUILD_DIR)$(PATH_SEP)tests$(PATH_SEP)mojibake-test$(EXE_EXT) $(ARGS)
+	build/tests/mojibake-test $(ARGS)
 
 # Run tests using CTest
 ctest: BUILD_TYPE = Test
@@ -98,10 +83,10 @@ clean-build:
 	@cmake --build $(BUILD_DIR) --target clean
 
 clean-native:
-	-$(RM) $(BUILD_DIR)
+	rm -rf $(BUILD_DIR)
 
 clean-wasm:
-	-$(RM) $(WASM_BUILD_DIR)
+	rm -rf $(WASM_BUILD_DIR)
 
 clean: clean-native clean-wasm
 
