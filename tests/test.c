@@ -26,7 +26,7 @@ static bool exit_on_error = false;
 
 #ifdef _WIN32
 // Windows-compatible strsep implementation
-static char *strsep(char **stringp, const char *delim) {
+char *strsep(char **stringp, const char *delim) {
     char *start = *stringp;
     char *p;
 

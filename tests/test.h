@@ -53,7 +53,7 @@ size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints);
 
 #ifdef _WIN32
 // Windows-compatible strsep declaration
-static char *strsep(char **stringp, const char *delim);
+char *strsep(char **stringp, const char *delim);
 #endif
 
 #ifdef __cplusplus
