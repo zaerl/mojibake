@@ -151,7 +151,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
             }
 
             mjb_codepoint combining_char = composition_buffer[i].codepoint;
-            uint8_t current_combining_class = composition_buffer[i].combining;
+            uint16_t current_combining_class = composition_buffer[i].combining;
 
             // Check if composition is blocked
             bool blocked = (last_combining_class != 0 &&
