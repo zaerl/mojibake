@@ -6,6 +6,14 @@
 
 /* Windows fixes */
 #if defined(_MSC_VER)
+
+SQLITE_PRIVATE const void *sqlite3RenameTokenMap( Parse *pParse, const void *pPtr,
+    const Token *pToken) {
+    // Fake function for MSVC compatibility
+
+    return;
+}
+
 /*
 ** Remove all nodes that are part of expression pExpr from the rename list.
 */
