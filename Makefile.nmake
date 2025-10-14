@@ -15,19 +15,19 @@ all: configure build
 
 # C targets
 configure:
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
 # C targets
 build: configure
-	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE)
+	@cmake --build $(BUILD_DIR)
 
 # C++ targets
 configure-cpp:
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
 
 # C++ targets
 build-cpp: configure-cpp
-	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE)
+	@cmake --build $(BUILD_DIR)
 
 # WASM targets
 configure-wasm:
@@ -55,20 +55,20 @@ generate-locales:
 
 # Run tests
 test: mojibake.db
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Test
-	@cmake --build $(BUILD_DIR) --config Test
-	@build\tests\mojibake-test.exe $(ARGS)
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test
+	@cmake --build $(BUILD_DIR)
+	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with C++ compiler
 test-cpp: mojibake.db
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
-	@cmake --build $(BUILD_DIR) --config Test
-	@build\tests\mojibake-test.exe $(ARGS)
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
+	@cmake --build $(BUILD_DIR)
+	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests using CTest
 ctest: mojibake.db
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Test
-	@cmake --build $(BUILD_DIR) --config Test
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test
+	@cmake --build $(BUILD_DIR)
 	@cd $(BUILD_DIR) && ctest $(ARGS)
 
 # Clean targets
