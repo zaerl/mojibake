@@ -21,4 +21,8 @@ SQLITE_PRIVATE void sqlite3RenameExprlistUnmap(Parse *pParse, ExprList *pEList) 
     return;
 }
 
+SQLITE_PRIVATE void sqlite3RenameTokenRemap(Parse*, const void *pTo, const void *pFrom) {
+    // Fake function for MSVC compatibility
+}
+
 #endif
