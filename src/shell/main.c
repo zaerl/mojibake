@@ -142,16 +142,18 @@ int main(int argc, char * const argv[]) {
         if(h_out != INVALID_HANDLE_VALUE && GetConsoleMode(h_out, &mode_out)) {
             mode_out |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
-            SetConsoleMode(h_out, mode_out);
+            if(!SetConsoleMode(h_out, mode_out)) {
+                // If we can't enable ANSI codes, disable colors
+                cmd_show_colors = 0;
+            }
         } else {
-            // If we can't enable ANSI codes, disable colors
+            // If we can't get console mode, disable colors
             cmd_show_colors = 0;
         }
 
         // Enable ANSI escape codes for stderr
-        if(h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
+        if(cmd_show_colors && h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
             mode_err |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-
             SetConsoleMode(h_err, mode_err);
         }
     }
