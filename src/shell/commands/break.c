@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef _WIN32
+    #include <sys/select.h>
+#endif
+
 #include "../../mojibake.h"
 #include "../../utf8.h"
 #include "../shell.h"
