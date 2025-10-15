@@ -34,6 +34,14 @@ endif()
 
 add_executable(mojibake-test ${TEST_SOURCES})
 
+target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
+
+# Force C++ compilation if BUILD_CPP is enabled
+if(BUILD_CPP)
+    set_target_properties(mojibake-test PROPERTIES LINKER_LANGUAGE CXX)
+    set_source_files_properties(${TEST_SOURCES} PROPERTIES LANGUAGE CXX)
+endif()
+
 if(WIN32)
     # Suppress warnings for Windows
     target_compile_options(mojibake-test
@@ -43,17 +51,6 @@ if(WIN32)
         /wd4702 # Suppress 'unreachable code'
         /wd4701 # Suppress 'potentially uninitialized local variable'
     )
-endif()
-
-target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
-
-# Force C++ compilation if BUILD_CPP is enabled
-if(BUILD_CPP)
-    set_target_properties(mojibake-test PROPERTIES LINKER_LANGUAGE CXX)
-    set_source_files_properties(${TEST_SOURCES} PROPERTIES LANGUAGE CXX)
-
-    # Add C++ test sources
-    list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)
 endif()
 
 # Add test to CTest
