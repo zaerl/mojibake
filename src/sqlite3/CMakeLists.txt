@@ -15,6 +15,7 @@ if(MSVC)
         /wd4013 # Suppress 'function undefined; assuming extern returning int'
         /wd4101 # Suppress 'unreferenced local variable'
         /wd4200 # Suppress 'nonstandard extension used: zero-sized array in struct/union'
+        /wd4996 # Suppress 'the POSIX name for this item is deprecated'
     )
 else()
     target_compile_options(mojibake_sqlite
