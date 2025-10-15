@@ -30,6 +30,16 @@ endif()
 # Add getopt compatibility for Windows
 if(WIN32)
     list(APPEND TEST_SOURCES ../src/shell/getopt/getopt.c)
+
+    if(MSVC)
+        target_compile_options(mojibake-test
+            PRIVATE
+            /wd4996 # Suppress 'the POSIX name for this item is deprecated'
+            /wd4245 # Suppress 'signed/unsigned mismatch'
+            /wd4702 # Suppress 'unreachable code'
+            /wd4701 # Suppress 'potentially uninitialized local variable'
+        )
+    endif()
 endif()
 
 add_executable(mojibake-test ${TEST_SOURCES})
