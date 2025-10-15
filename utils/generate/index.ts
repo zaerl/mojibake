@@ -22,6 +22,7 @@ import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
 } from './types';
+import { generateAmalgamation } from './generate-amalgamation';
 
 let compact = false;
 
@@ -152,6 +153,8 @@ for(let i = 2; i < process.argv.length; ++i) {
     generateTarget = 'site';
   } else if(process.argv[i] === 'locales') {
     generateTarget = 'locales';
+  } else if(process.argv[i] === 'amalgamation') {
+    generateTarget = 'amalgamation';
   }
 }
 
@@ -161,6 +164,9 @@ async function generate() {
     return;
   } else if(generateTarget === 'site') {
     await generateSite();
+    return;
+  } else if(generateTarget === 'amalgamation') {
+    await generateAmalgamation();
     return;
   }
 

@@ -53,6 +53,10 @@ generate:
 generate-locales:
 	@cd utils\generate && generate-locales.bat
 
+# WASM targets
+generate-amalgamation:
+	@cd utils\generate && npm run generate -- amalgamation
+
 # Run tests
 test: mojibake.db
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test

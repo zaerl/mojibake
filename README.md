@@ -28,6 +28,12 @@ use to preview the API.
 This library works in little-endian systems to avoid adding too much overhead. This means that it
 works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.)
 
+It has been tested on:
+
+1. MacOS
+2. Alpine Linux
+3. Windows 11
+
 It has a `0.0.0` version because the various parts I consider critical have not 100% coverage. These
 are the major parts:
 
@@ -77,17 +83,16 @@ You can retrieved informations about codepoints. Example for `U+022A LATIN CAPIT
 #include "mojibake.h"
 
 mjb_character character;
-
 mjb_codepoint_character(0x022A, &character);
 
-printf("Name: %s", character.codepoint, character.name);
+printf("U+%04X: %s\n", character.codepoint, character.name);
 // See the `mojibake` struct for other fields
 ```
 
 Output:
 
 ```
-Name: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
+U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 ```
 
 ### CLI
@@ -95,7 +100,9 @@ Name: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 A `shell.c` file is provided that let you have a CLI to test the library. Example usage:
 
 ```sh
-mojibake char $'\U022A'
+mojibake -vv char $'\U022A'
+# Similar to
+# mojibake -vv codepoint 022A
 ```
 
 Plain text output:
@@ -105,6 +112,10 @@ Codepoint: U+022A
 Name: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 Character: Ȫ
 Hex UTF-8: C8 AA
+Hex UTF-16BE: 02 2A
+Hex UTF-16LE: 2A 02
+Hex UTF-32BE: 00 00 02 2A
+Hex UTF-32LE: 2A 02 00 00
 NFD: Ȫ
 NFD normalization: U+004F U+0308 U+0304
 NFC: Ȫ
@@ -126,12 +137,22 @@ Mirrored: N
 Uppercase: N/A
 Lowercase: U+022B
 Titlecase: N/A
+Line Breaking Class: [31] AP
+East Asian Width: [3] Neutral
+Emoji: N/A
+Emoji Presentation: N/A
+Emoji Modifier: N/A
+Emoji Modifier Base: N/A
+Emoji Component: N/A
+Extended Pictographic: N/A
 ```
 
 JSON format:
 
 ```sh
-mojibake -o json char $'\U022A'
+mojibake -vv -o json char $'\U022A'
+# Similar to
+# mojibake -vv -o json codepoint 022A
 ```
 
 Output:
@@ -143,6 +164,10 @@ Output:
     "name": "LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON",
     "character": "Ȫ",
     "hex_utf-8": [200, 170],
+    "hex_utf-16be": [2, 42],
+    "hex_utf-16le": [42, 2],
+    "hex_utf-32be": [0, 0, 2, 42],
+    "hex_utf-32le": [42, 2, 0, 0],
     "nfd": "Ȫ",
     "nfd_normalization": [79, 776, 772],
     "nfc": "Ȫ",
@@ -181,13 +206,27 @@ Output:
     "mirrored": false,
     "uppercase": null,
     "lowercase": 555,
-    "titlecase": null
+    "titlecase": null,
+    "line_breaking_class": {
+      "code": 31,
+      "value": "AP"
+    },
+    "east_asian_width": {
+      "code": 3,
+      "value": "Neutral"
+    },
+    "emoji": null,
+    "emoji_presentation": null,
+    "emoji_modifier": null,
+    "emoji_modifier_base": null,
+    "emoji_component": null,
+    "extended_pictographic": null
   }
 ]
 ```
 
 JSON is by default indented with two characters. But you can change it, if you need to parse
-multiple codepoints. E.g. `./mojibake.sh -j 0 -o json char $'\U61\U62'`
+multiple codepoints. E.g. `mojibake -j 0 -o json char $'\U61\U62'`
 
 ### Coverage
 

@@ -54,6 +54,10 @@ generate: $(GENERATE_SOURCES)
 generate-locales:
 	cd ./utils/generate && ./generate-locales.sh
 
+# Generate amalgamation
+generate-amalgamation:
+	cd ./utils/generate && npm run generate -- amalgamation
+
 # Run tests
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
