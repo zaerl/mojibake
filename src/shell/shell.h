@@ -5,8 +5,26 @@
  */
 
 #include <stdbool.h>
-#include <termios.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #include <conio.h>
+    #include <io.h>
+    #define STDIN_FILENO _fileno(stdin)
+
+    // Windows terminal state structure
+    typedef struct {
+        HANDLE h_stdin;
+        DWORD orig_mode;
+    } terminal_state;
+#else
+    #include <termios.h>
+    #include <unistd.h>
+
+    // Unix terminal state structure
+    typedef struct termios terminal_state;
+#endif
 
 #include "../mojibake.h"
 
@@ -36,8 +54,8 @@ const char* color_reset(void);
 
 // Terminal helper functions
 void clear_screen(void);
-void set_raw_mode(struct termios *orig_termios);
-void restore_mode(struct termios *orig_termios);
+void set_raw_mode(terminal_state *term_state);
+void restore_mode(terminal_state *term_state);
 
 void print_value(const char* label, unsigned int nl, const char* format, ...);
 void print_null_value(const char* label, unsigned int nl);

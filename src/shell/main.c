@@ -124,6 +124,32 @@ int main(int argc, char * const argv[]) {
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
     }
 
+#ifdef _WIN32
+    if(cmd_show_colors) {
+        // On Windows, we need to enable ANSI escape codes for stdout and stderr
+        HANDLE h_out = GetStdHandle(STD_OUTPUT_HANDLE);
+        HANDLE h_err = GetStdHandle(STD_ERROR_HANDLE);
+        DWORD mode_out, mode_err;
+
+        // Enable ANSI escape codes for stdout
+        if(h_out != INVALID_HANDLE_VALUE && GetConsoleMode(h_out, &mode_out)) {
+            mode_out |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+            SetConsoleMode(h_out, mode_out);
+        } else {
+            // If we can't enable ANSI codes, disable colors
+            cmd_show_colors = 0;
+        }
+
+        // Enable ANSI escape codes for stderr
+        if(h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
+            mode_err |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+            SetConsoleMode(h_err, mode_err);
+        }
+    }
+#endif
+
     while((option = getopt_long(argc, argv, "hj:co:vVw:", long_options, &option_index)) != -1) {
         char *endptr = NULL;
 
