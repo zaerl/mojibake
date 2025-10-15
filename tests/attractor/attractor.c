@@ -11,6 +11,8 @@
 #include <string.h>
 
 #ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
     #include <io.h>
     #define isatty _isatty
     #define STDOUT_FILENO _fileno(stdout)
@@ -319,10 +321,41 @@ int att_assert(const char *format, int test, const char *description) {
     // Initialize the library
     if(att_total_tests == 1) {
         if(isatty(STDOUT_FILENO)) {
-            const char *term = getenv("TERM");
             const char *no_color = getenv("NO_COLOR");
+
+#ifdef _WIN32
+            // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+            att_show_colors = no_color == NULL;
+#else
+            // On Unix, check TERM environment variable
+            const char *term = getenv("TERM");
             att_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
+#endif
         }
+
+#ifdef _WIN32
+        if(att_show_colors) {
+            // On Windows, we need to enable ANSI escape codes for stdout and stderr
+            HANDLE h_out = GetStdHandle(STD_OUTPUT_HANDLE);
+            HANDLE h_err = GetStdHandle(STD_ERROR_HANDLE);
+            DWORD mode_out, mode_err;
+
+            // Enable ANSI escape codes for stdout
+            if(h_out != INVALID_HANDLE_VALUE && GetConsoleMode(h_out, &mode_out)) {
+                mode_out |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                SetConsoleMode(h_out, mode_out);
+            } else {
+                // If we can't enable ANSI codes, disable colors
+                att_show_colors = 0;
+            }
+
+            // Enable ANSI escape codes for stderr
+            if(h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
+                mode_err |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                SetConsoleMode(h_err, mode_err);
+            }
+        }
+#endif
     }
 
     if(test) {

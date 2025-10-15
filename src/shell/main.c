@@ -119,9 +119,16 @@ int main(int argc, char * const argv[]) {
             columns = w.ws_col;
         }*/
 
-        const char *term = getenv("TERM");
         const char *no_color = getenv("NO_COLOR");
+
+#ifdef _WIN32
+        // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+        cmd_show_colors = no_color == NULL;
+#else
+        // On Unix, check TERM environment variable
+        const char *term = getenv("TERM");
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
+#endif
     }
 
 #ifdef _WIN32
