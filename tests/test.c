@@ -142,8 +142,20 @@ int main(int argc, char * const argv[]) {
     char *filter = NULL;
     bool is_ctest = getenv("CTEST_INTERACTIVE_DEBUG_MODE") != NULL ||
         getenv("DASHBOARD_TEST_FROM_CTEST") != NULL;
-    bool show_colors = isatty(STDOUT_FILENO) && getenv("NO_COLOR") == NULL && getenv("TERM") != NULL
-        && strcmp(getenv("TERM"), "dumb") != 0;
+    bool show_colors = false;
+
+    if(isatty(STDOUT_FILENO)) {
+        const char *no_color = getenv("NO_COLOR");
+
+#ifdef _WIN32
+        // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+        show_colors = no_color == NULL;
+#else
+        // On Unix, check TERM environment variable
+        const char *term = getenv("TERM");
+        show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
+#endif
+    }
 
     struct option long_options[] = {
         { "filter", required_argument, NULL, 'f' },
