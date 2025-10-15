@@ -23,3 +23,11 @@ if(BUILD_CPP)
     set_target_properties(mojibake PROPERTIES LINKER_LANGUAGE CXX)
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()
+
+if(WIN32)
+    # Suppress warnings for Windows
+    target_compile_options(mojibake-test
+        PRIVATE
+        /wd4996 # Suppress 'the POSIX name for this item is deprecated'
+    )
+endif()
