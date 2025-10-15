@@ -9,7 +9,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #include <io.h>
+    #define isatty _isatty
+    #define STDOUT_FILENO _fileno(stdout)
+#else
+    #include <unistd.h>
+#endif
 
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT, EXPECTED) \
 if(att_verbose >= 1 && att_show_error) { \
@@ -69,7 +78,7 @@ ATT_API unsigned int att_assert_c(char result, char expected, const char *descri
 }
 
 ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected, const char *description) {
-    int test = att_assert("char", result == expected, description);
+    int test = att_assert("unsigned char", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%c", expected);
@@ -125,7 +134,7 @@ ATT_API unsigned int att_assert_hd(short result, short expected, const char *des
 }
 
 ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expected, const char *description) {
-    int test = att_assert("short", result == expected, description);
+    int test = att_assert("unsigned short", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%hu", expected);
@@ -153,7 +162,7 @@ ATT_API unsigned int att_assert_d(int result, int expected, const char *descript
 }
 
 ATT_API unsigned int att_assert_u_u(unsigned int result, unsigned int expected, const char *description) {
-    int test = att_assert("int", result == expected, description);
+    int test = att_assert("unsigned int", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%u", expected);
@@ -181,7 +190,7 @@ ATT_API unsigned int att_assert_ld(long result, long expected, const char *descr
 }
 
 ATT_API unsigned int att_assert_u_lu(unsigned long result, unsigned long expected, const char *description) {
-    int test = att_assert("long", result == expected, description);
+    int test = att_assert("unsigned long", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%lu", expected);
@@ -209,7 +218,7 @@ ATT_API unsigned int att_assert_lld(long long result, long long expected, const 
 }
 
 ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long long expected, const char *description) {
-    int test = att_assert("long long", result == expected, description);
+    int test = att_assert("unsigned long long", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%llu", expected);
@@ -312,10 +321,45 @@ int att_assert(const char *format, int test, const char *description) {
     // Initialize the library
     if(att_total_tests == 1) {
         if(isatty(STDOUT_FILENO)) {
-            const char *term = getenv("TERM");
             const char *no_color = getenv("NO_COLOR");
+
+#ifdef _WIN32
+            // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+            att_show_colors = no_color == NULL;
+#else
+            // On Unix, check TERM environment variable
+            const char *term = getenv("TERM");
             att_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
+#endif
         }
+
+#ifdef _WIN32
+        if(att_show_colors) {
+            // On Windows, we need to enable ANSI escape codes for stdout and stderr
+            HANDLE h_out = GetStdHandle(STD_OUTPUT_HANDLE);
+            HANDLE h_err = GetStdHandle(STD_ERROR_HANDLE);
+            DWORD mode_out, mode_err;
+
+            // Enable ANSI escape codes for stdout
+            if(h_out != INVALID_HANDLE_VALUE && GetConsoleMode(h_out, &mode_out)) {
+                mode_out |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+                if(!SetConsoleMode(h_out, mode_out)) {
+                    // If we can't enable ANSI codes, disable colors
+                    att_show_colors = 0;
+                }
+            } else {
+                // If we can't get console mode, disable colors
+                att_show_colors = 0;
+            }
+
+            // Enable ANSI escape codes for stderr
+            if(att_show_colors && h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
+                mode_err |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                SetConsoleMode(h_err, mode_err);
+            }
+        }
+#endif
     }
 
     if(test) {

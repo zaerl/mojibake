@@ -6,8 +6,8 @@
 
 #pragma once
 
-#ifndef MJB_BREAK_H
-#define MJB_BREAK_H
+#ifndef MJB_BREAKING_H
+#define MJB_BREAKING_H
 
 #include "mojibake.h"
 
@@ -87,4 +87,4 @@ typedef struct {
 MJB_NONNULL(2) bool mjb_codepoint_line_breaking(mjb_codepoint codepoint,
     mjb_line_breaking *line_breaking);
 
-#endif // MJB_BREAK_H
+#endif // MJB_BREAKING_H

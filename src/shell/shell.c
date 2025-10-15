@@ -58,17 +58,33 @@ void clear_screen(void) {
     fflush(stdout);
 }
 
-void set_raw_mode(struct termios *orig_termios) {
-    struct termios raw = *orig_termios;
+#ifdef _WIN32
+void set_raw_mode(terminal_state *term_state) {
+    term_state->h_stdin = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(term_state->h_stdin, &term_state->orig_mode);
+
+    // Disable echo and line input
+    DWORD mode = term_state->orig_mode;
+    mode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+    SetConsoleMode(term_state->h_stdin, mode);
+}
+
+void restore_mode(terminal_state *term_state) {
+    SetConsoleMode(term_state->h_stdin, term_state->orig_mode);
+}
+#else
+void set_raw_mode(terminal_state *term_state) {
+    terminal_state raw = *term_state;
     raw.c_lflag &= ~(ECHO | ICANON);
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-void restore_mode(struct termios *orig_termios) {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios);
+void restore_mode(terminal_state *term_state) {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, term_state);
 }
+#endif
 
 bool print_escaped_character(const char *buffer_utf8) {
     unsigned char c = (unsigned char)buffer_utf8[0];

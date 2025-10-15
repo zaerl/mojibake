@@ -4,11 +4,19 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #include <io.h>
+    #include "getopt/getopt.h"
+    #define isatty _isatty
+    #define STDOUT_FILENO _fileno(stdout)
+#else
+    #include <getopt.h>
+    #include <unistd.h>
+#endif
 
 #include "../mojibake.h"
 #include "characters.h"
@@ -111,10 +119,45 @@ int main(int argc, char * const argv[]) {
             columns = w.ws_col;
         }*/
 
-        const char *term = getenv("TERM");
         const char *no_color = getenv("NO_COLOR");
+
+#ifdef _WIN32
+        // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+        cmd_show_colors = no_color == NULL;
+#else
+        // On Unix, check TERM environment variable
+        const char *term = getenv("TERM");
         cmd_show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
+#endif
     }
+
+#ifdef _WIN32
+    if(cmd_show_colors) {
+        // On Windows, we need to enable ANSI escape codes for stdout and stderr
+        HANDLE h_out = GetStdHandle(STD_OUTPUT_HANDLE);
+        HANDLE h_err = GetStdHandle(STD_ERROR_HANDLE);
+        DWORD mode_out, mode_err;
+
+        // Enable ANSI escape codes for stdout
+        if(h_out != INVALID_HANDLE_VALUE && GetConsoleMode(h_out, &mode_out)) {
+            mode_out |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+            if(!SetConsoleMode(h_out, mode_out)) {
+                // If we can't enable ANSI codes, disable colors
+                cmd_show_colors = 0;
+            }
+        } else {
+            // If we can't get console mode, disable colors
+            cmd_show_colors = 0;
+        }
+
+        // Enable ANSI escape codes for stderr
+        if(cmd_show_colors && h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
+            mode_err |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            SetConsoleMode(h_err, mode_err);
+        }
+    }
+#endif
 
     while((option = getopt_long(argc, argv, "hj:co:vVw:", long_options, &option_index)) != -1) {
         char *endptr = NULL;

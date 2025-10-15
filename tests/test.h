@@ -51,6 +51,11 @@ bool is_exit_on_error(void);
 // Utils
 size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints);
 
+#ifdef _WIN32
+// Windows-compatible strsep declaration
+char *strsep(char **stringp, const char *delim);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

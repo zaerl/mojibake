@@ -187,7 +187,7 @@ static void print_break_analysis(const char* input) {
 static void display_break_output(const char* input) {
     clear_screen();
     printf("Break the input into line breaks\n");
-    printf("Ctrl+C to exit\n");
+    printf("Ctrl+C or ESC to exit\n");
 
     if(input == NULL || strlen(input) == 0) {
         fflush(stdout);
@@ -207,17 +207,53 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
         return 0;
     }
 
-    struct termios orig_termios;
-    tcgetattr(STDIN_FILENO, &orig_termios);
+    terminal_state term_state;
+
+#ifdef _WIN32
+    // Windows-specific initialization
+    term_state.h_stdin = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(term_state.h_stdin, &term_state.orig_mode);
+#else
+    // Unix-specific initialization
+    tcgetattr(STDIN_FILENO, &term_state);
+#endif
 
     char input_buffer[1024] = {0};
     size_t buffer_pos = 0;
     char c;
 
     display_break_output("");
-    set_raw_mode(&orig_termios);
+    set_raw_mode(&term_state);
 
     while(1) {
+#ifdef _WIN32
+        // Windows input handling
+        if(_kbhit()) {
+            c = (char)_getch();
+
+            if(c == 3 || c == 27) { // Ctrl+C or ESC
+                break;
+            } else if(c == 127 || c == 8) { // DELETE or BACKSPACE
+                if(buffer_pos > 0) {
+                    --buffer_pos;
+                    input_buffer[buffer_pos] = '\0';
+                    display_break_output(input_buffer);
+                }
+            } else {
+                if(buffer_pos < sizeof(input_buffer) - 1) {
+                    input_buffer[buffer_pos] = c;
+                    ++buffer_pos;
+                    input_buffer[buffer_pos] = '\0';
+
+                    display_break_output(input_buffer);
+                }
+            }
+        }
+
+        // Sleep to avoid busy-waiting
+        Sleep(10);
+#else
+        // Unix input handling with select()
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(STDIN_FILENO, &readfds);
@@ -232,7 +268,7 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
             ssize_t bytes_read = read(STDIN_FILENO, &c, 1);
 
             if(bytes_read > 0) {
-                if(c == 3) { // END OF TEXT (Ctrl+C)
+                if(c == 3 || c == 27) { // Ctrl+C or ESC
                     break;
                 } else if(c == 127 || c == 8) { // DELETE or BACKSPACE
                     if(buffer_pos > 0) {
@@ -251,9 +287,10 @@ int break_command(int argc, char * const argv[], unsigned int flags) {
                 }
             }
         }
+#endif
     }
 
-    restore_mode(&orig_termios);
+    restore_mode(&term_state);
     clear_screen();
 
     return 0;

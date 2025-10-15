@@ -4,14 +4,47 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <getopt.h>
 #include <time.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+    #include <io.h>
+    #include <direct.h>
+    #include <windows.h>
+    #include "../src/shell/getopt/getopt.h"
+    #define isatty _isatty
+    #define STDOUT_FILENO _fileno(stdout)
+    #define chdir _chdir
+#else
+    #include <getopt.h>
+    #include <unistd.h>
+#endif
 
 #include "test.h"
 
 static att_test_callback error_callback = NULL;
 static bool exit_on_error = false;
+
+#ifdef _WIN32
+// Windows-compatible strsep implementation
+char *strsep(char **stringp, const char *delim) {
+    char *start = *stringp;
+    char *p;
+
+    if(start == NULL) {
+        return NULL;
+    }
+
+    p = strpbrk(start, delim);
+    if(p) {
+        *p = '\0';
+        *stringp = p + 1;
+    } else {
+        *stringp = NULL;
+    }
+
+    return start;
+}
+#endif
 
 /**
  * Get an UTF-8 string from a string of hex-encoded codepoints
@@ -96,7 +129,12 @@ void show_help(const char *executable, struct option options[], const char *desc
 }
 
 int main(int argc, char * const argv[]) {
+#ifdef _WIN32
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+#else
     struct timespec start, end;
+#endif
     double elapsed = 0;
     unsigned int verbosity = 0;
     int option = 0;
@@ -104,8 +142,20 @@ int main(int argc, char * const argv[]) {
     char *filter = NULL;
     bool is_ctest = getenv("CTEST_INTERACTIVE_DEBUG_MODE") != NULL ||
         getenv("DASHBOARD_TEST_FROM_CTEST") != NULL;
-    bool show_colors = isatty(STDOUT_FILENO) && getenv("NO_COLOR") == NULL && getenv("TERM") != NULL
-        && strcmp(getenv("TERM"), "dumb") != 0;
+    bool show_colors = false;
+
+    if(isatty(STDOUT_FILENO)) {
+        const char *no_color = getenv("NO_COLOR");
+
+#ifdef _WIN32
+        // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+        show_colors = no_color == NULL;
+#else
+        // On Unix, check TERM environment variable
+        const char *term = getenv("TERM");
+        show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
+#endif
+    }
 
     struct option long_options[] = {
         { "filter", required_argument, NULL, 'f' },
@@ -124,7 +174,11 @@ int main(int argc, char * const argv[]) {
     };
 
     if(!is_ctest) {
+#ifdef _WIN32
+        QueryPerformanceCounter(&start);
+#else
         clock_gettime(CLOCK_MONOTONIC, &start);
+#endif
     }
 
     att_set_verbose(verbosity);
@@ -212,9 +266,13 @@ int main(int argc, char * const argv[]) {
         tests_valid, tests_total, show_colors ? "\x1B[0m" : "");
 
     if(!is_ctest) {
+#ifdef _WIN32
+        QueryPerformanceCounter(&end);
+        elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+#else
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-
+#endif
         printf("Execution time: %.4f seconds\n", elapsed);
     }
 

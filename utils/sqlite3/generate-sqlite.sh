@@ -82,6 +82,9 @@ OPTS="-DSQLITE_OMIT_ALTERTABLE \
 # SQLITE_ZERO_MALLOC
 make sqlite3.c OPTS="$OPTS"
 
+# Append windows-fixes.c to the generated sqlite3.c
+cat ../windows-fixes.c >> sqlite3.c
+
 mv sqlite3.c ../../../src/sqlite3/sqlite3.c
 mv sqlite3.h ../../../src/sqlite3/sqlite3.h
 cp ext/wasm/api/sqlite3-wasm.c ../../../src/sqlite3/sqlite3-wasm.c

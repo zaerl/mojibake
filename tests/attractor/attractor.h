@@ -22,6 +22,11 @@
 #include <type_traits>
 #include <string>
 
+// In C++, _Bool doesn't exist, so map it to bool
+#ifndef _Bool
+#define _Bool bool
+#endif
+
 extern "C" {
 #endif
 
@@ -106,47 +111,60 @@ void att_set_test_callback(att_test_callback callback);
 #endif
 
 #ifdef __cplusplus
+// Helper to check if common_type exists
+template<typename T1, typename T2, typename = void>
+struct has_common_type : std::false_type {};
+
+template<typename T1, typename T2>
+struct has_common_type<T1, T2, std::void_t<typename std::common_type<T1, T2>::type>> : std::true_type {};
+
 // C++ template function for att_assert to handle type deduction properly
 template<typename T1, typename T2>
 inline unsigned int att_assert_cpp(T1 result, T2 expected, const char *description) {
-    // Convert both to a common type for comparison
-    using common_type = std::common_type_t<T1, T2>;
-    common_type converted_result = static_cast<common_type>(result);
-    common_type converted_expected = static_cast<common_type>(expected);
+    // Check if we can find a common type
+    if constexpr (has_common_type<T1, T2>::value) {
+        // Convert both to a common type for comparison
+        using common_type = std::common_type_t<T1, T2>;
+        common_type converted_result = static_cast<common_type>(result);
+        common_type converted_expected = static_cast<common_type>(expected);
 
-    // Handle different common types
-    if constexpr (std::is_same_v<common_type, char>) {
-        return att_assert_c(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, unsigned char>) {
-        return att_assert_u_c(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, short>) {
-        return att_assert_hd(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, unsigned short>) {
-        return att_assert_u_hu(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, int>) {
-        return att_assert_d(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, unsigned int>) {
-        return att_assert_u_u(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, long>) {
-        return att_assert_ld(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, unsigned long>) {
-        return att_assert_u_lu(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, long long>) {
-        return att_assert_lld(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, unsigned long long>) {
-        return att_assert_u_llu(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, float>) {
-        return att_assert_f(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, double>) {
-        return att_assert_lf(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, long double>) {
-        return att_assert_Lf(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, bool>) {
-        return att_assert_b(converted_result, converted_expected, description);
-    } else if constexpr (std::is_same_v<common_type, std::string>) {
-        return att_assert_cp_c(result.c_str(), expected.c_str(), description);
+        // Handle different common types
+        if constexpr (std::is_same_v<common_type, char>) {
+            return att_assert_c(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, unsigned char>) {
+            return att_assert_u_c(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, short>) {
+            return att_assert_hd(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, unsigned short>) {
+            return att_assert_u_hu(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, int>) {
+            return att_assert_d(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, unsigned int>) {
+            return att_assert_u_u(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, long>) {
+            return att_assert_ld(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, unsigned long>) {
+            return att_assert_u_lu(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, long long>) {
+            return att_assert_lld(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, unsigned long long>) {
+            return att_assert_u_llu(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, float>) {
+            return att_assert_f(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, double>) {
+            return att_assert_lf(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, long double>) {
+            return att_assert_Lf(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, bool>) {
+            return att_assert_b(converted_result, converted_expected, description);
+        } else if constexpr (std::is_same_v<common_type, std::string>) {
+            return att_assert_cp_c(result.c_str(), expected.c_str(), description);
+        } else {
+            return att_assert_unknown((void*)&converted_result, (void*)&converted_expected, description);
+        }
     } else {
-        return att_assert_unknown((void*)&converted_result, (void*)&converted_expected, description);
+        // No common type, fall back to unknown
+        return att_assert_unknown((void*)&result, (void*)&expected, description);
     }
 }
 
