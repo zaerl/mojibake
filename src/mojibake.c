@@ -10,25 +10,7 @@
 
 #include "mojibake-internal.h"
 
-MJB_EXPORT mojibake mjb_global = {
-    .ok = false,
-    .memory_alloc = NULL,
-    .memory_realloc = NULL,
-    .memory_free = NULL,
-    .db = NULL,
-    .locale = MJB_LOCALE_EN,
-    .stmt_get_codepoint = NULL,
-    .stmt_get_block = NULL,
-    .stmt_is_combining = NULL,
-    .stmt_decompose = NULL,
-    .stmt_compatibility_decompose = NULL,
-    .stmt_compose = NULL,
-    .stmt_buffer_character = NULL,
-    .stmt_case = NULL,
-    .stmt_special_casing = NULL,
-    .stmt_line_breaking = NULL,
-    .stmt_east_asian_width = NULL,
-};
+MJB_EXPORT mojibake mjb_global;
 
 // Initialize the library
 MJB_EXPORT bool mjb_initialize(void) {
@@ -200,6 +182,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;
     mjb_global.ok = true;
+    mjb_global.locale = MJB_LOCALE_EN;
 
     MJB_LOG("DB initialized successfully");
 
