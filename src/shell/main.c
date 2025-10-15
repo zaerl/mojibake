@@ -71,6 +71,11 @@ int main(int argc, char * const argv[]) {
     int option = 0;
     int option_index = 0;
 
+#ifdef _WIN32
+    UINT original_cp = GetConsoleOutputCP();
+    SetConsoleOutputCP(CP_UTF8);
+#endif
+
     // unsigned int columns = 80;
 
     struct option long_options[] = {
@@ -248,6 +253,10 @@ int main(int argc, char * const argv[]) {
 
     fprintf(stderr, "Unknown command: %s\n", argv[optind]);
     show_help(long_options, descriptions, commands, NULL);
+
+#ifdef _WIN32
+    SetConsoleOutputCP(originalCP);
+#endif
 
     return 0;
 }
