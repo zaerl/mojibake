@@ -20,7 +20,7 @@ export async function generateSite() {
   fileContent = substituteText(fileContent,
     "<section id=\"functions\" class=\"loading\">",
     "</section>",
-    functs.map(fn => fn.formatHTML()).join('\n'));
+    functs.map(fn => '    ' + fn.formatHTML()).join('\n'));
 
   writeFileSync('../../build-wasm/src/index.html', fileContent);
 }

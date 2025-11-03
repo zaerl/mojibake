@@ -71,7 +71,7 @@ export class CFunction {
         ${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});
       </div>
       <div class="function-card">
-        <div>${this.#formInputHTML()}</div>
+        <div>${this.#formInputHTML()}        </div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </section>`;
@@ -123,16 +123,15 @@ export class CFunction {
       ++i;
     }
 
-    ret += '</select>';
-
     return ret + '</select></div>';
   }
 
   #formInputHTML(): string {
-    let ret = `<form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
+    let ret = `\n          <form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
     let i = 0;
 
     for(const arg of this.argsTypes) {
+      ret += `\n            `;
       if(arg.startsWith('const char *')) {
         ret += this.#getInput(i);
       } else if(arg.startsWith('char *')) {
@@ -229,9 +228,9 @@ export class CFunction {
       ++i;
     }
 
-    ret += `<div class="function-form-button">
-      <button type="submit" onclick="callFunction('${this.getName()}')">Call function</button>
-    </div></form>`;
+    ret += `\n            <div class="function-form-button">
+              <button type="submit" onclick="callFunction('${this.getName()}')">Call function</button>
+            </div>\n          </form>\n`;
 
     return ret;
   }
