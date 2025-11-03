@@ -63,7 +63,7 @@
         // Load the WASM module
         import('./mojibake.js').then(async (Module) => {
             window.mojibake = await Module.default();
-            console.log('Mojibake WASM module loaded. Version:', window.mojibake.ccall('mjb_version', 'string'));
+            console.log('Mojibake WASM module loaded. Version:', window.mojibake.UTF8ToString(window.mojibake._mjb_version()));
             document.getElementById('loading').remove();
             document.getElementById('functions').classList.remove('loading');
 
@@ -73,8 +73,7 @@
             const dbPtr = window.mojibake._malloc(dbBytes.length);
             window.mojibake.HEAPU8.set(dbBytes, dbPtr);
 
-            let initialized = window.mojibake.ccall('mjb_initialize_v2', 'boolean',
-                ['number', 'number', 'number', 'number', 'number'], [0, 0, 0, dbPtr, dbBytes.length]);
+            console.log(window.mojibake._mjb_initialize_v2(0, 0, 0, dbPtr, dbBytes.length) ? 'Initialized' : 'Not initialized');
         }).catch(err => {
             console.error('Failed to load WASM module:', err);
         });
@@ -295,8 +294,7 @@
             }
 
             // Call mjb_codepoint_character
-            const result = window.mojibake.ccall('mjb_codepoint_character', 'boolean',
-                ['number', 'number'], [codepoint, ptr]);
+            const result = window.mojibake._mjb_codepoint_character(codepoint, ptr);
 
             if(result) {
                 const char = pointerToCharacter(ptr);
@@ -332,8 +330,7 @@
                 window.mojibake.HEAPU8[buffer + i] = 0;
             }
 
-            const result = window.mojibake.ccall('mjb_codepoint_encode', 'number',
-                ['number', 'number', 'number', 'number'], [codepoint, buffer, 5, encoding]);
+            const result = window.mojibake._mjb_codepoint_encode(codepoint, buffer, 5, encoding);
 
             if(result) {
                 return decodeString(buffer, result, encoding);
@@ -352,8 +349,7 @@
                 window.mojibake.HEAPU8[ptr + i] = 0;
             }
 
-            const result = window.mojibake.ccall('mjb_codepoint_emoji', 'boolean',
-                ['number', 'number'], [codepoint, ptr]);
+            const result = window.mojibake._mjb_codepoint_emoji(codepoint, ptr);
             let ret = '';
 
             if(result) {
@@ -367,7 +363,6 @@
                     component: 'u8',
                     extended_pictographic: 'u8'
                 });
-                console.log('result', result);
 
                 ret = `Codepoint <strong>${codepointToString(result.codepoint)}</strong>:<br>`;
                 ret += `Emoji: <strong>${result.emoji ? 'true' : 'false'}</strong><br>`;
@@ -445,9 +440,7 @@
             }
 
             // Call mjb_codepoint_character
-            const result = window.mojibake.ccall('mjb_normalize', 'boolean',
-                ['string', 'number', 'number', 'number', 'number'],
-                [buffer, size, encoding, form, ptr]);
+            const result = window.mojibake._mjb_normalize(buffer, size, encoding, form, ptr);
 
             if(result) {
                 const struct = new CStruct(ptr);
@@ -500,6 +493,7 @@
             } else {
                 console.log(functions[func]);
                 console.log(func, ret, argTypes, args);
+
                 return window.mojibake.ccall(func, ret, argTypes, args);
             }
         }
