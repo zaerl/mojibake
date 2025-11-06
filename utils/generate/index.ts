@@ -26,7 +26,7 @@ import { generateAmalgamation } from './generate-amalgamation';
 
 let compact = false;
 
-async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<Character[]> {
+async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true): Promise<Character[]> {
   log('READ UNICODE DATA');
   const analysis = new Analysis();
 
@@ -51,23 +51,25 @@ async function readUnicodeData(blocks: Block[], exclusions: number[]): Promise<C
       continue;
     }
 
-    // Strip away egyptian names
-    if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
-      if(codepoint >= 0x13460) {
+    if(stripSigns) {
+      // Strip away egyptian names
+      if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
+        if(codepoint >= 0x13460) {
+          name = null;
+        } else {
+          name = name.replace('EGYPTIAN HIEROGLYPH ', '');
+        }
+      } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
+        // CJK Compatibility Ideographs
         name = null;
-      } else {
-        name = name.replace('EGYPTIAN HIEROGLYPH ', '');
+      } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
+        // Anatolian Hieroglyphs
+        name = name.replace('ANATOLIAN HIEROGLYPH A', '');
+      } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
+        (codepoint >= 0x12480 && codepoint <= 0x12543)) {
+        // Cuneiform signs
+        name = name.replace('CUNEIFORM SIGN ', '');
       }
-    } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
-      // CJK Compatibility Ideographs
-      name = null;
-    } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
-      // Anatolian Hieroglyphs
-      name = name.replace('ANATOLIAN HIEROGLYPH A', '');
-    } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
-      (codepoint >= 0x12480 && codepoint <= 0x12543)) {
-      // Cuneiform signs
-      name = name.replace('CUNEIFORM SIGN ', '');
     }
 
     const diff = codepoint - previousCodepoint;
