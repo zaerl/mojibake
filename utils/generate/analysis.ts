@@ -22,6 +22,7 @@ export class Analysis {
   totalStepsOver8 = 0;
 
   charsCount = 0;
+  charsBaseSixCount = 0;
   codepointsCount = 0;
   spacesCount = 0;
   wordsCount = 0;
@@ -76,6 +77,7 @@ export class Analysis {
     this.charsCount += name.length;
     this.wordsCount += words.length;
     this.spacesCount += spaces;
+    this.charsBaseSixCount += this.countCharsBaseSix(name);
 
     // Indexed by the `numeric` field (string)
     if(numeric !== '') {
@@ -243,6 +245,7 @@ export class Analysis {
     iLog(`${this.codepointsCount.toLocaleString()} codepoints (${(this.codepointsCount * 5).toLocaleString()} bytes)`);
     iLog(`${this.wordsCount.toLocaleString()} words (${(this.wordsCount * 5).toLocaleString()} bytes)`);
     iLog(`${this.charsCount.toLocaleString()} characters (${(this.charsCount).toLocaleString()} bytes)`);
+    iLog(`${this.charsCount.toLocaleString()} characters (packed: ${(this.charsBaseSixCount).toLocaleString()} bytes)`);
   }
 
   compareFn(a: CountBuffer, b: CountBuffer): number {
@@ -259,5 +262,12 @@ export class Analysis {
     }
 
     return ret;
+  }
+
+  private countCharsBaseSix(chars: string): number {
+    const totalBits = chars.length * 6;
+    const totalBytes = Math.ceil(totalBits / 8);
+
+    return totalBytes;
   }
 }
