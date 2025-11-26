@@ -58,6 +58,9 @@ generate-locales:
 generate-amalgamation:
 	cd ./utils/generate && npm run generate -- amalgamation
 
+generate-sqlite:
+	cd ./utils/sqlite3 && ./generate-sqlite.sh
+
 # Run tests
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
