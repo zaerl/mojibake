@@ -2,6 +2,7 @@ build
 build-wasm
 cli/*
 src/sqlite/*
+src/gui/*
 src/mojibake.db-journal
 utils/generate/node_modules
 utils/generate/UCD/*
