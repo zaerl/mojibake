@@ -30,7 +30,7 @@ works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.
 
 It has been tested on:
 
-1. MacOS
+1. macOS
 2. Alpine Linux
 3. Windows 11
 
