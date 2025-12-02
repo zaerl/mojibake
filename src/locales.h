@@ -70,7 +70,7 @@ typedef enum mjb_locale {
     MJB_LOCALE_GA, // Irish
     MJB_LOCALE_GL, // Galician
     MJB_LOCALE_GV, // Manx
-    MJB_LOCALE_EL, // Greek, Modern (1453-)
+    MJB_LOCALE_EL, // Modern Greek (1453-)
     MJB_LOCALE_GN, // Guarani
     MJB_LOCALE_GU, // Gujarati
     MJB_LOCALE_HT, // Haitian; Haitian Creole
@@ -127,12 +127,12 @@ typedef enum mjb_locale {
     MJB_LOCALE_MN, // Mongolian
     MJB_LOCALE_NA, // Nauru
     MJB_LOCALE_NV, // Navajo; Navaho
-    MJB_LOCALE_NR, // Ndebele, South; South Ndebele
-    MJB_LOCALE_ND, // Ndebele, North; North Ndebele
+    MJB_LOCALE_NR, // South Ndebele
+    MJB_LOCALE_ND, // North Ndebele
     MJB_LOCALE_NG, // Ndonga
     MJB_LOCALE_NE, // Nepali
-    MJB_LOCALE_NN, // Norwegian Nynorsk; Nynorsk, Norwegian
-    MJB_LOCALE_NB, // Bokmål, Norwegian; Norwegian Bokmål
+    MJB_LOCALE_NN, // Norwegian Nynorsk
+    MJB_LOCALE_NB, // Norwegian Bokmål
     MJB_LOCALE_NO, // Norwegian
     MJB_LOCALE_NY, // Chichewa; Chewa; Nyanja
     MJB_LOCALE_OC, // Occitan (post 1500)
