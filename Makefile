@@ -40,11 +40,11 @@ build-wasm: configure-wasm
 
 # WASM targets
 wasm: build-wasm
-	cd ./utils/generate && npm run generate -- site
+	cd ./utils/generate && bun run generate -- site
 
 # Generate TESTS.md file
 coverage:
-	cd ./utils/generate && npm run coverage
+	cd ./utils/generate && bun run coverage
 
 # Generate source files and database
 generate: $(GENERATE_SOURCES)
@@ -56,7 +56,7 @@ generate-locales:
 
 # Generate amalgamation
 generate-amalgamation:
-	cd ./utils/generate && npm run generate -- amalgamation
+	cd ./utils/generate && bun run generate -- amalgamation
 
 generate-sqlite:
 	cd ./utils/sqlite3 && ./generate-sqlite.sh

@@ -1,4 +1,9 @@
-import { open } from 'fs/promises';
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { Character } from './character';
 import { log } from './log';
 
@@ -47,7 +52,9 @@ export async function readNormalizationProps(characters: Character[], path = './
 
   let id = 0;
 
-  const file = await open(path);
+  const file = Bun.file(path);
+  const content = await file.text();
+  const lines = content.split('\n');
 
   const quickCheck: QuickCheck = {
     NFD_QC: { N: 0, M: 0 },
@@ -56,7 +63,7 @@ export async function readNormalizationProps(characters: Character[], path = './
     NFKD_QC: { N: 0, M: 0 }
   };
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.startsWith('#') || line === '') { // Comment
       continue
     }

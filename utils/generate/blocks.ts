@@ -1,7 +1,12 @@
-import { log } from 'console';
-import { open } from 'fs/promises';
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { dbInsertBlock } from './db';
 import { Block } from './types';
+import { log } from './log';
 
 export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   log('READ BLOCKS');
@@ -9,9 +14,11 @@ export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   const blocks: Block[] = [];
   let id = 0;
 
-  const file = await open(path);
+  const file = Bun.file(path);
+  const content = await file.text();
+  const lines = content.split('\n');
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
     }

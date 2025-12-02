@@ -1,19 +1,26 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { writeFileSync } from 'fs';
-import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
 import { LineBreakingClass, LineBreakingClassStrings } from './types';
 
 export async function generateBreaks(characters: Character[], path = './UCD/LineBreak.txt') {
   log('GENERATE BREAKS');
-  const file = await open(path);
+  const file = Bun.file(path);
+  const content = await file.text();
+  const lines = content.split('\n');
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {
     characterMap['' + char.codepoint] = char;
   }
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.length === 0 || line.startsWith('#') || line.startsWith('F0000') ||
       line.startsWith('100000')) {
       continue;
@@ -57,11 +64,13 @@ export async function generateBreaks(characters: Character[], path = './UCD/Line
 
 export async function generateBreaksTest(path: string) {
   log(`GENERATE BREAKS TEST ${path}`);
-  const file = await open(`./UCD/auxiliary/${path}Test.txt`);
+  const file = Bun.file(`./UCD/auxiliary/${path}Test.txt`);
+  const content = await file.text();
+  const lines = content.split('\n');
   let max = 0;
   let output: string[] = [];
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.length === 0 || line.startsWith('#')) {
       continue;
     }

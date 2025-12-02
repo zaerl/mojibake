@@ -1,4 +1,9 @@
-import { open } from 'fs/promises';
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { log } from './log';
 
 export async function readCompositionExclusions(path = './UCD/CompositionExclusions.txt'): Promise<number[]> {
@@ -6,9 +11,11 @@ export async function readCompositionExclusions(path = './UCD/CompositionExclusi
 
   const exclusions: number[] = [];
 
-  const file = await open(path);
+  const file = Bun.file(path);
+  const content = await file.text();
+  const lines = content.split('\n');
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
     }

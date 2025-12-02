@@ -1,4 +1,9 @@
-import { cp, open } from 'fs/promises';
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { Character } from './character';
 import { log } from './log';
 
@@ -22,14 +27,16 @@ export async function readSpecialCasingProps(characters: Character[], path = './
     characterMap['' + char.codepoint] = char;
   }
 
-  const file = await open(path);
+  const file = Bun.file(path);
+  const content = await file.text();
+  const lines = content.split('\n');
   let newCases: NewCases = [];
   let count = 0;
   let hasMultiple = 0;
   let maxNewCases = 0;
   let maxNewCasesCount = 0;
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
     }

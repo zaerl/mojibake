@@ -1,7 +1,16 @@
-import { open } from 'fs/promises';
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+import { log } from './log';
 
 export async function generateCasefold() {
-  const file = await open('./UCD/CaseFolding.txt');
+  log('GENERATE CASEFOLD');
+  const file = Bun.file('./UCD/CaseFolding.txt');
+  const content = await file.text();
+  const lines = content.split('\n');
 
   let maxFolded = 0;
   let counts = {
@@ -11,7 +20,7 @@ export async function generateCasefold() {
     'T': 0,
   }
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.startsWith('#') || line.trim() === '') {
       continue;
     }

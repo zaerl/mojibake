@@ -1,4 +1,9 @@
-import { open } from 'fs/promises';
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { Emoji } from './emoji';
 import { log } from './log';
 import { EmojiProperties, EmojiPropertiesStrings } from './types';
@@ -6,7 +11,9 @@ import { Character } from './character';
 
 export async function generateEmojiProperties(characters: Character[], path = './UCD/emoji/emoji-data.txt') {
   log('GENERATE EMOJI PROPERTIES');
-  const file = await open(path);
+  const file = Bun.file(path);
+  const content = await file.text();
+  const lines = content.split('\n');
   const emojiMap: { [key: string]: Emoji } = {};
   const characterMap: { [key: string]: Character } = {};
 
@@ -14,7 +21,7 @@ export async function generateEmojiProperties(characters: Character[], path = '.
     characterMap['' + char.codepoint] = char;
   }
 
-  for await (const line of file.readLines()) {
+  for (const line of lines) {
     if(line.length === 0 || line.startsWith('#')) {
       continue;
     }
