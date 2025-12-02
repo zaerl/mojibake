@@ -1,3 +1,9 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { Character } from './character';
 import { iLog, log } from './log';
 import { Categories, CountBuffer, Decomposition, Numeric } from './types';

@@ -1,6 +1,9 @@
 # Use Alpine Linux for a minimal base image
 FROM alpine
 
+# The Mojibake library
+# This file is distributed under the MIT License. See LICENSE for details.
+
 # Set environment variables
 ENV BUILD_DIR=/app/build
 ENV BUILD_TYPE=Release

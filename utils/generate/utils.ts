@@ -1,3 +1,9 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 export function substituteText(fileContent: string, start: string, end: string | null, replacement: string) {
   const startIndex = fileContent.indexOf(start) + start.length;
   const endIndex = end === null ? null : fileContent.indexOf(end, startIndex);
