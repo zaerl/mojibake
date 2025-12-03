@@ -9,8 +9,12 @@ import { readBlocks } from './blocks';
 import { generateCasefold } from './casefold';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
-import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunSpecialCasing, dbSize } from './db';
+import {
+  dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties,
+  dbRunSpecialCasing, dbSize
+} from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
+import { generateAmalgamation } from './generate-amalgamation';
 import { generateAPI } from './generate-api';
 import { generateBreaks, generateBreaksTest } from './generate-break';
 import { generateEastAsianWidth } from './generate-east-asian-width';
@@ -27,7 +31,7 @@ import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
 } from './types';
-import { generateAmalgamation } from './generate-amalgamation';
+import { updateVersion } from './update-version';
 
 let compact = false;
 
@@ -165,6 +169,8 @@ for(let i = 2; i < process.argv.length; ++i) {
     generateTarget = 'locales';
   } else if(process.argv[i] === 'amalgamation') {
     generateTarget = 'amalgamation';
+  } else if(process.argv[i] === 'update-version') {
+    generateTarget = 'update-version';
   }
 }
 
@@ -177,6 +183,9 @@ async function generate() {
     return;
   } else if(generateTarget === 'amalgamation') {
     await generateAmalgamation();
+    return;
+  } else if(generateTarget === 'update-version') {
+    await updateVersion();
     return;
   }
 

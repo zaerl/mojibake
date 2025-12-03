@@ -64,6 +64,9 @@ generate-sqlite:
 generate-site: src/site/index.html
 	cd ./utils/generate && bun run generate -- site
 
+update-version:
+	cd ./utils/generate && bun run generate -- update-version
+
 watch-site:
 	cd ./utils/generate && bunx --bun chokidar-cli "../../src/site/**/*" -c "bun run generate -- site && echo '[Regenerated]'" --initial
 
@@ -127,8 +130,9 @@ help:
 	@echo "  clean-native - Remove all build artifacts"
 	@echo "  clean-amalgamation - Remove amalgamation build artifacts"
 	@echo "  generate     - Regenerate source files"
+	@echo "  update-version - Update version in source files"
 	@echo "  coverage     - Run coverage analysis"
 
 .PHONY: all clean clean-native clean-wasm clean-build clean-amalgamation configure configure-wasm \
 		configure-cpp configure-asan build build-wasm build-cpp build-asan wasm test test-cpp \
-		test-asan ctest test-docker generate coverage serve help generate-site
+		test-asan ctest test-docker generate coverage serve help generate-site update-version

@@ -4,6 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { readFileSync } from "fs";
+
 export function substituteBlock(fileContent: string, start: string, end: string | null, replacement: string) {
   const startIndex = fileContent.indexOf(start) + start.length;
   const endIndex = end === null ? null : fileContent.indexOf(end, startIndex);
@@ -52,4 +54,18 @@ export function commonPrefix(str1: string, str2: string): string {
   }
 
   return prefix;
+}
+
+export function getVersion() {
+  const version = readFileSync('../../VERSION', 'utf-8').trim().split('.');
+  const major = parseInt(version[0]);
+  const minor = parseInt(version[1]);
+  const revision = parseInt(version[2]);
+
+  return {
+    major,
+    minor,
+    revision,
+    version: `${major}.${minor}.${revision}`,
+  }
 }
