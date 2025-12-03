@@ -5,7 +5,6 @@
  */
 
 #include "mojibake-internal.h"
-#include "buffer.h"
 #include "utf.h"
 
 extern mojibake mjb_global;
@@ -29,7 +28,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
-    mjb_normalization_character current_character;
+    mjb_n_character current_character;
     result = MJB_QC_YES;
 
     for(size_t i = 0; i < size; ++i) {
@@ -54,7 +53,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
         }
 
         // Get current character.
-        if(!mjb_get_buffer_character(codepoint, &current_character)) {
+        if(!mjb_n_codepoint_character(codepoint, &current_character)) {
             continue;
         }
 

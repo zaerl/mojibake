@@ -8,15 +8,14 @@
 #include <stdio.h>
 
 #include "mojibake-internal.h"
-#include "buffer.h"
 #include "utf.h"
 
 extern mojibake mjb_global;
 
 // Normalization sort.
-static void mjb_normalization_sort(mjb_normalization_character array[], size_t size) {
+static void mjb_normalization_sort(mjb_n_character array[], size_t size) {
     for(size_t step = 1; step < size; ++step) {
-        mjb_normalization_character key = array[step];
+        mjb_n_character key = array[step];
         int j = step - 1;
 
         // Move elements of array[0..step-1], that are greater than key,
@@ -31,7 +30,7 @@ static void mjb_normalization_sort(mjb_normalization_character array[], size_t s
 }
 
 // Flush the decomposition buffer to a UTF-8 string.
-static char *mjb_flush_d_buffer(mjb_normalization_character *characters_buffer, size_t buffer_index,
+static char *mjb_flush_d_buffer(mjb_n_character *characters_buffer, size_t buffer_index,
     char *output, size_t *output_index, size_t *output_size, mjb_normalization form) {
 
     // Sort combining characters by Canonical Combining Class (required for all forms)
@@ -55,7 +54,7 @@ static char *mjb_flush_d_buffer(mjb_normalization_character *characters_buffer, 
 }
 
 // Flush the composition buffer to a bit array.
-static mjb_buffer_character *mjb_flush_c_buffer(mjb_normalization_character *characters_buffer,
+static mjb_buffer_character *mjb_flush_c_buffer(mjb_n_character *characters_buffer,
     size_t buffer_index, mjb_buffer_character *output, size_t *output_index, size_t *output_size,
     mjb_normalization form) {
 
@@ -261,12 +260,12 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
-    mjb_normalization_character current_character;
+    mjb_n_character current_character;
     // size_t codepoints_count = 0;
 
     // Combining characters buffer.
     // TODO: set a limit and check it.
-    mjb_normalization_character characters_buffer[32];
+    mjb_n_character characters_buffer[32];
     size_t buffer_index = 0;
 
     // We directly return the string for NFD/NFKD forms.
@@ -328,7 +327,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         }
 
         // Get current character.
-        if(!mjb_get_buffer_character(codepoint, &current_character)) {
+        if(!mjb_n_codepoint_character(codepoint, &current_character)) {
             continue;
         }
 
@@ -363,7 +362,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     continue;
                 }
 
-                if(!mjb_get_buffer_character(codepoints[i], &current_character)) {
+                if(!mjb_n_codepoint_character(codepoints[i], &current_character)) {
                     continue;
                 }
 
@@ -412,7 +411,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     continue;
                 }
 
-                if(!mjb_get_buffer_character(decomposed, &current_character)) {
+                if(!mjb_n_codepoint_character(decomposed, &current_character)) {
                     continue;
                 }
 
