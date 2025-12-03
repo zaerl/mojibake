@@ -116,6 +116,13 @@
     ATT_ASSERT(result.output_size, 16, "No collapse needed output size");
     FREE_RESULT
 
+    const char *controls = "\x1\x2\t\n\v\f\r\x1f";
+    ATT_ASSERT(mjb_string_filter(controls, strlen(controls), enc, enc, MJB_FILTER_CONTROLS, &result), true, "Filter controls");
+    ATT_ASSERT(result.output, (char*)"\t\n\v\f\r", "Filter controls output");
+    ATT_ASSERT(result.output_size, 5, "Filter controls output size");
+    ATT_ASSERT(result.transformed, true, "Filter controls transformed");
+    FREE_RESULT
+
     #undef FREE_RESULT
 
     return NULL;

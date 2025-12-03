@@ -85,6 +85,18 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
                 codepoint == 0x0C || // Form feed
                 codepoint == 0x0D);  // Carriage return
 
+            if(filters & MJB_FILTER_CONTROLS) {
+                if(character.category == MJB_CATEGORY_CC &&
+                    codepoint != 0x09 && // Tab
+                    codepoint != 0x0A && // Line feed
+                    codepoint != 0x0B && // Vertical tab
+                    codepoint != 0x0C && // Form feed
+                    codepoint != 0x0D) { // Carriage return
+                    any_transformation = true;
+                    continue;
+                }
+            }
+
             if(filters & MJB_FILTER_SPACES) {
                 if(is_whitespace) {
                     // Transform all space characters to ASCII space.
