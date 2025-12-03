@@ -125,6 +125,14 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
                 }
             }
 
+            if((filters & MJB_FILTER_NUMERIC) && character.decimal != MJB_NUMBER_NOT_VALID) {
+                codepoint = 0x30 + character.decimal; // U+0030 DIGIT ZERO
+
+                if(original_codepoint != codepoint) {
+                    any_transformation = true;
+                }
+            }
+
             char *new_output = mjb_string_output_codepoint(codepoint, output, &output_index,
                 &output_size, output_encoding);
 

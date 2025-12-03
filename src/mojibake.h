@@ -198,7 +198,8 @@ typedef enum mjb_filter {
     MJB_FILTER_NORMALIZE = 0x1,
     MJB_FILTER_SPACES = 0x2,
     MJB_FILTER_COLLAPSE_SPACES = 0x4,
-    MJB_FILTER_CONTROLS = 0x8
+    MJB_FILTER_CONTROLS = 0x8,
+    MJB_FILTER_NUMERIC = 0x10
 } mjb_filter;
 
 typedef enum mjb_case_type {

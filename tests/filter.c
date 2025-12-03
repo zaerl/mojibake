@@ -123,6 +123,20 @@
     ATT_ASSERT(result.transformed, true, "Filter controls transformed");
     FREE_RESULT
 
+    const char *numeric = "1234567890";
+    ATT_ASSERT(mjb_string_filter(numeric, strlen(numeric), enc, enc, MJB_FILTER_NUMERIC, &result), true, "Filter numeric");
+    ATT_ASSERT(result.output, (char*)"1234567890", "Filter numeric output");
+    ATT_ASSERT(result.output_size, 10, "Filter numeric output size");
+    ATT_ASSERT(result.transformed, false, "Filter numeric transformed");
+    FREE_RESULT
+
+    const char *arabic_indic_digit = "\xD9\xA1\xD9\xA2"; // U+0661 ARABIC-INDIC DIGIT ONE, U+0662 ARABIC-INDIC DIGIT TWO
+    ATT_ASSERT(mjb_string_filter(arabic_indic_digit, strlen(arabic_indic_digit), enc, enc, MJB_FILTER_NUMERIC, &result), true, "Filter arabic indic digit");
+    ATT_ASSERT(result.output, (char*)"12", "Filter arabic indic digit output");
+    ATT_ASSERT(result.output_size, 2, "Filter arabic indic digit output size");
+    ATT_ASSERT(result.transformed, true, "Filter arabic indic digit transformed");
+    FREE_RESULT
+
     #undef FREE_RESULT
 
     return NULL;
