@@ -15,7 +15,7 @@
  * A smaller version of mjb_normalize() that only returns the character information.
  * This is used to avoid the overhead of the full normalization process.
  */
-MJB_EXPORT bool mjb_get_buffer_character(mjb_normalization_character *character,
-    mjb_codepoint codepoint);
+MJB_EXPORT bool mjb_get_buffer_character(mjb_codepoint codepoint,
+    mjb_normalization_character *character);
 
 #endif // MJB_BUFFER_H

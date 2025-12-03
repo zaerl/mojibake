@@ -54,7 +54,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
         }
 
         // Get current character.
-        if(!mjb_get_buffer_character(&current_character, codepoint)) {
+        if(!mjb_get_buffer_character(codepoint, &current_character)) {
             continue;
         }
 

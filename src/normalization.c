@@ -328,7 +328,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         }
 
         // Get current character.
-        if(!mjb_get_buffer_character(&current_character, codepoint)) {
+        if(!mjb_get_buffer_character(codepoint, &current_character)) {
             continue;
         }
 
@@ -363,7 +363,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     continue;
                 }
 
-                if(!mjb_get_buffer_character(&current_character, codepoints[i])) {
+                if(!mjb_get_buffer_character(codepoints[i], &current_character)) {
                     continue;
                 }
 
@@ -412,7 +412,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     continue;
                 }
 
-                if(!mjb_get_buffer_character(&current_character, decomposed)) {
+                if(!mjb_get_buffer_character(decomposed, &current_character)) {
                     continue;
                 }
 
