@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './function';
 import { Block, Categories, characterDecompositionMapping } from './types';
-import { substituteText } from './utils';
+import { substituteBlock } from './utils';
 
 function getBlockEnumNames(blocks: Block[]) {
   return blocks.map((value: Block, index: number) => `    ${value.enumName}`).join(',\n');
@@ -34,16 +34,16 @@ function getFunctions() {
 export function generateHeader(blocks: Block[], categories: string[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
 
-  fileContent = substituteText(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
-  fileContent = substituteText(fileContent, '#define MJB_BLOCK_NUM ', "\n", '' + blocks.length);
-  fileContent = substituteText(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
-  fileContent = substituteText(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
-  fileContent = substituteText(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
+  fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
+  fileContent = substituteBlock(fileContent, '#define MJB_BLOCK_NUM ', "\n", '' + blocks.length);
+  fileContent = substituteBlock(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
+  fileContent = substituteBlock(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
+  fileContent = substituteBlock(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
 
   writeFileSync('../../src/unicode.h', fileContent);
 
   fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
-  fileContent = substituteText(fileContent, "// This functions list is automatically generated. Do not edit.\n\n", "\n#ifdef __cplusplus", getFunctions());
+  fileContent = substituteBlock(fileContent, "// This functions list is automatically generated. Do not edit.\n\n", "\n#ifdef __cplusplus", getFunctions());
 
   writeFileSync('../../src/mojibake.h', fileContent);
 }

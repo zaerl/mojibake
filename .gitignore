@@ -1,4 +1,5 @@
 build
+build-amalgamation
 build-wasm
 cli/*
 src/sqlite/*

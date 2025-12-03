@@ -6,7 +6,7 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './function';
-import { substituteText } from './utils';
+import { substituteBlock } from './utils';
 
 function getFunctions() {
   return cfns().filter(value => value.isWASM()).map(
@@ -16,7 +16,7 @@ function getFunctions() {
 export function generateWASM() {
   let fileContent = readFileSync('../../src/CMakeLists.txt', 'utf-8');
 
-  fileContent = substituteText(fileContent,
+  fileContent = substituteBlock(fileContent,
     "set(EXPORTED_FUNCTIONS\n",
     "\n        # Core memory functions",
     getFunctions());

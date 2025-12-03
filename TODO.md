@@ -18,6 +18,8 @@
 - [ ] Check `without rowid` tables
 - [ ] Check Windows UTF-8 console mode
 - [ ] Add UTF16 and UTF32 support for WASM build
+- [x] Add amalgamation script
+- [x] Add Codeberg upstream
 - [x] Add UTF16 support for `mjb_next_character`
 - [x] Add UTF16 support for `mjb_normalize`
 - [x] Add UTF16 support for `mjb_string_is_normalized`

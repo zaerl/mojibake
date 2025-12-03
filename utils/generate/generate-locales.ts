@@ -5,7 +5,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { substituteText } from './utils';
+import { substituteBlock } from './utils';
 
 export async function generateLocales() {
   const file = Bun.file('./locales/ISO-639-2.txt');
@@ -31,8 +31,8 @@ export async function generateLocales() {
 
   let fileContent = readFileSync('../../src/locales.h', 'utf-8');
 
-  fileContent = substituteText(fileContent, "typedef enum mjb_locale {\n", "\n} mjb_locale;", localeEnums.join('\n'));
-  fileContent = substituteText(fileContent, '#define MJB_LOCALE_NUM ', "\n", '' + locales.length);
+  fileContent = substituteBlock(fileContent, "typedef enum mjb_locale {\n", "\n} mjb_locale;", localeEnums.join('\n'));
+  fileContent = substituteBlock(fileContent, '#define MJB_LOCALE_NUM ', "\n", '' + locales.length);
 
   writeFileSync('../../src/locales.h', fileContent);
 }

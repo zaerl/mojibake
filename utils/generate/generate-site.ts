@@ -6,7 +6,7 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './function';
-import { substituteText } from './utils';
+import { substituteBlock, substituteText } from './utils';
 
 function getFunctions() {
   const functs = cfns();
@@ -14,19 +14,30 @@ function getFunctions() {
   return functs.filter(fn => fn.isWASM() && !fn.isInternal());
 }
 
+function getVersion() {
+  return readFileSync('../../VERSION', 'utf-8').trim();
+}
+
 export async function generateSite() {
   let fileContent = readFileSync('../../src/site/index.html', 'utf-8');
   const functs = getFunctions();
 
-  fileContent = substituteText(fileContent,
+  fileContent = substituteBlock(fileContent,
     "const functions = {",
     "};",
     functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
 
-  fileContent = substituteText(fileContent,
+  fileContent = substituteBlock(fileContent,
     "<section id=\"functions\" class=\"loading\">",
     "</section>",
     functs.map(fn => '    ' + fn.formatHTML()).join('\n'));
+
+  const version = getVersion();
+  const fileName = `mojibake-amalgamation-${version.replace(/\./g, '')}.zip`;
+
+  fileContent = substituteText(fileContent, '[AM_HREF]', fileName);
+  fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
+  fileContent = substituteText(fileContent, '[VERSION]', version);
 
   writeFileSync('../../build-wasm/src/index.html', fileContent);
 }

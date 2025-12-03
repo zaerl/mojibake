@@ -1,5 +1,6 @@
 BUILD_DIR ?= build
 WASM_BUILD_DIR ?= build-wasm
+AMALGAMATION_BUILD_DIR ?= build-amalgamation
 BUILD_TYPE ?= Release
 
 # Source files that trigger regeneration.
@@ -55,7 +56,7 @@ generate-locales:
 
 # Generate amalgamation
 generate-amalgamation:
-	cd ./utils/generate && bun run generate -- amalgamation
+	cd ./utils/generate && ./generate-amalgamation.sh
 
 generate-sqlite:
 	cd ./utils/sqlite3 && ./generate-sqlite.sh
@@ -104,7 +105,10 @@ clean-native:
 clean-wasm:
 	rm -rf $(WASM_BUILD_DIR)
 
-clean: clean-native clean-wasm
+clean-amalgamation:
+	rm -rf $(AMALGAMATION_BUILD_DIR)
+
+clean: clean-native clean-wasm clean-amalgamation
 
 help:
 	@echo "Available targets:"
@@ -121,9 +125,10 @@ help:
 	@echo "  clean        - Remove build artifacts"
 	@echo "  clean-wasm   - Remove WASM build artifacts"
 	@echo "  clean-native - Remove all build artifacts"
+	@echo "  clean-amalgamation - Remove amalgamation build artifacts"
 	@echo "  generate     - Regenerate source files"
 	@echo "  coverage     - Run coverage analysis"
 
-.PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm configure-cpp \
-		configure-asan build build-wasm build-cpp build-asan wasm test test-cpp test-asan ctest \
-		test-docker generate coverage serve help generate-site
+.PHONY: all clean clean-native clean-wasm clean-build clean-amalgamation configure configure-wasm \
+		configure-cpp configure-asan build build-wasm build-cpp build-asan wasm test test-cpp \
+		test-asan ctest test-docker generate coverage serve help generate-site

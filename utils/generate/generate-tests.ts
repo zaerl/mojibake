@@ -6,7 +6,7 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { iLog } from './log';
-import { substituteText } from './utils';
+import { substituteBlock } from './utils';
 
 export function generateNormalizationCount() {
   iLog('PARSE NORMALIZATION TESTS');
@@ -24,7 +24,7 @@ export function generateNormalizationCount() {
   iLog(`${count.toLocaleString()} tests\n`);
 
   fileContent = readFileSync('../../tests/normalization.c', 'utf-8');
-  fileContent = substituteText(fileContent, "// CURRENT_ASSERT mjb_normalize\n",
+  fileContent = substituteBlock(fileContent, "// CURRENT_ASSERT mjb_normalize\n",
     "bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, &result);",
     `    // CURRENT_COUNT ${count * 20}\n    `);
 
