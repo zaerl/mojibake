@@ -46,12 +46,14 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
+    mjb_codepoint original_codepoint = 0;
     mjb_character character;
 
     char *output = (char*)mjb_alloc(size);
     size_t output_size = size;
     size_t output_index = 0;
-    result->transformed = true;
+    bool last_was_whitespace = false;
+    bool any_transformation = false;
 
     for(size_t i = 0; i < size; ++i) {
         if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
@@ -71,9 +73,42 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
                 continue;
             }
 
+            original_codepoint = codepoint;
+
+            // Check if current codepoint is whitespace.
+            bool is_whitespace = (character.category == MJB_CATEGORY_ZS ||
+                character.category == MJB_CATEGORY_ZL ||
+                character.category == MJB_CATEGORY_ZP ||
+                codepoint == 0x09 || // Tab
+                codepoint == 0x0A || // Line feed
+                codepoint == 0x0B || // Vertical tab
+                codepoint == 0x0C || // Form feed
+                codepoint == 0x0D);  // Carriage return
+
             if(filters & MJB_FILTER_SPACES) {
-                if(character.category == MJB_CATEGORY_ZS) {
+                if(is_whitespace) {
                     // Transform all space characters to ASCII space.
+                    codepoint = 0x20;
+
+                    if(original_codepoint != codepoint) {
+                        any_transformation = true;
+                    }
+                }
+            }
+
+            if(filters & MJB_FILTER_COLLAPSE_SPACES) {
+                if(is_whitespace) {
+                    // Skip consecutive whitespace.
+                    if(last_was_whitespace) {
+                        any_transformation = true;
+                        continue;
+                    }
+
+                    // Convert all whitespace to ASCII space.
+                    if(codepoint != 0x20) {
+                        any_transformation = true;
+                    }
+
                     codepoint = 0x20;
                 }
             }
@@ -87,7 +122,18 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
                 // TODO: check if this is the correct behavior
                 return false;
             }
+
+            last_was_whitespace = is_whitespace;
         }
+    }
+
+    // If no transformation occurred and not normalized, return original buffer.
+    if(!any_transformation && !is_normalized) {
+        mjb_free(output);
+        result->output = (char*)buffer;
+        result->output_size = size;
+        result->transformed = false;
+        return true;
     }
 
     if(is_normalized) {
@@ -96,6 +142,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
 
     result->output = output;
     result->output_size = output_index;
+    result->transformed = true;
 
     return true;
 }

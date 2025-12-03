@@ -8,10 +8,10 @@
 | `mjb_codepoint_character`           | 48         |
 | `mjb_strnlen`                       | 48         |
 | `mjb_hangul_syllable_composition`   | 43         |
+| `mjb_string_filter`                 | 40         |
 | `mjb_codepoint_is_valid`            | 39         |
 | `mjb_codepoint_encode`              | 33         |
 | `mjb_codepoint_emoji`               | 18         |
-| `mjb_string_filter`                 | 16         |
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_character_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
@@ -49,4 +49,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **401542** |
+| **Total**                           | **401566** |

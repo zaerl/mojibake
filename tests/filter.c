@@ -57,6 +57,65 @@
     ATT_ASSERT(result.output_size, 17, "Filter spaces and normalize output size");
     FREE_RESULT
 
+    // Test whitespace collapsing with consecutive spaces
+    const char *multiple_spaces = "hello    world";
+    ATT_ASSERT(mjb_string_filter(multiple_spaces, strlen(multiple_spaces), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse multiple spaces");
+    ATT_ASSERT(result.output, (char*)"hello world", "Collapse multiple spaces output");
+    ATT_ASSERT(result.output_size, 11, "Collapse multiple spaces output size");
+    FREE_RESULT
+
+    // Test whitespace collapsing with tabs and newlines
+    const char *mixed_whitespace = "hello\t\t\n\nworld";
+    ATT_ASSERT(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse mixed whitespace");
+    ATT_ASSERT(result.output, (char*)"hello world", "Collapse mixed whitespace output");
+    ATT_ASSERT(result.output_size, 11, "Collapse mixed whitespace output size");
+    FREE_RESULT
+
+    // Test whitespace collapsing with leading whitespace
+    const char *leading_whitespace = "   hello world";
+    ATT_ASSERT(mjb_string_filter(leading_whitespace, strlen(leading_whitespace), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse leading whitespace");
+    ATT_ASSERT(result.output, (char*)" hello world", "Collapse leading whitespace output");
+    ATT_ASSERT(result.output_size, 12, "Collapse leading whitespace output size");
+    FREE_RESULT
+
+    // Test whitespace collapsing with trailing whitespace
+    const char *trailing_whitespace = "hello world   ";
+    ATT_ASSERT(mjb_string_filter(trailing_whitespace, strlen(trailing_whitespace), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse trailing whitespace");
+    ATT_ASSERT(result.output, (char*)"hello world ", "Collapse trailing whitespace output");
+    ATT_ASSERT(result.output_size, 12, "Collapse trailing whitespace output size");
+    FREE_RESULT
+
+    // Test whitespace collapsing combined with MJB_FILTER_SPACES
+    const char *unicode_multiple_spaces =
+        "hello"
+        "\xE2\x80\x80\xE2\x80\x81"  // U+2000 EN QUAD, U+2001 EM QUAD
+        "world";
+    ATT_ASSERT(mjb_string_filter(unicode_multiple_spaces, strlen(unicode_multiple_spaces), enc, enc, MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse Unicode spaces");
+    ATT_ASSERT(result.output, (char*)"hello world", "Collapse Unicode spaces output");
+    ATT_ASSERT(result.output_size, 11, "Collapse Unicode spaces output size");
+    FREE_RESULT
+
+    // Test whitespace collapsing with complex mixed whitespace
+    const char *complex_whitespace = "one  \t\n  two\r\n\r\nthree    four";
+    ATT_ASSERT(mjb_string_filter(complex_whitespace, strlen(complex_whitespace), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse complex whitespace");
+    ATT_ASSERT(result.output, (char*)"one two three four", "Collapse complex whitespace output");
+    ATT_ASSERT(result.output_size, 18, "Collapse complex whitespace output size");
+    FREE_RESULT
+
+    // Test whitespace collapsing with only whitespace
+    const char *only_whitespace = "  \t\n  ";
+    ATT_ASSERT(mjb_string_filter(only_whitespace, strlen(only_whitespace), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse only whitespace");
+    ATT_ASSERT(result.output, (char*)" ", "Collapse only whitespace output");
+    ATT_ASSERT(result.output_size, 1, "Collapse only whitespace output size");
+    FREE_RESULT
+
+    // Test no collapsing when there's no consecutive whitespace
+    const char *single_spaces = "hello world test";
+    ATT_ASSERT(mjb_string_filter(single_spaces, strlen(single_spaces), enc, enc, MJB_FILTER_COLLAPSE_SPACES, &result), true, "No collapse needed");
+    ATT_ASSERT(result.output, (char*)"hello world test", "No collapse needed output");
+    ATT_ASSERT(result.output_size, 16, "No collapse needed output size");
+    FREE_RESULT
+
     #undef FREE_RESULT
 
     return NULL;
