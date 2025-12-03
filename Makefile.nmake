@@ -13,6 +13,9 @@ WASM_BUILD_DIR=build-wasm
 BUILD_TYPE=Release
 !ENDIF
 
+# Source files that trigger regeneration.
+GENERATE_SOURCES = utils\generate\generate.bat utils\generate\*.json utils\generate\*.ts
+
 # Aggregate
 all: configure build
 
@@ -32,6 +35,13 @@ configure-cpp:
 build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
+# AddressSanitizer targets
+configure-asan:
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
+
+build-asan: configure-asan
+	@cmake --build $(BUILD_DIR)
+
 # WASM targets
 configure-wasm:
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
@@ -41,8 +51,7 @@ build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake nmake
 
 # WASM targets
-wasm: build-wasm
-	@cd utils\generate && bun run generate -- site
+wasm: build-wasm generate-site
 
 # Generate TESTS.md file
 coverage:
@@ -61,7 +70,14 @@ generate-amalgamation:
 	@cd utils\generate && bun run generate -- amalgamation
 
 generate-sqlite:
+	@cd utils\sqlite3 && generate-sqlite.bat
 
+generate-site: src\site\index.html
+	@cd utils\generate && bun run generate -- site
+
+# Serve WASM site with live reload
+serve: wasm generate-site
+	@cd $(WASM_BUILD_DIR)\src && python -m http.server
 
 # Run tests
 test: mojibake.db
@@ -72,6 +88,12 @@ test: mojibake.db
 # Run tests with C++ compiler
 test-cpp: mojibake.db
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
+	@cmake --build $(BUILD_DIR)
+	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+
+# Run tests with AddressSanitizer
+test-asan: mojibake.db
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test -DUSE_ASAN=ON
 	@cmake --build $(BUILD_DIR)
 	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
@@ -98,10 +120,13 @@ help:
 	@echo Available targets:
 	@echo   all          - Build the project (default)
 	@echo   build-cpp    - Build the project with C++ compiler
+	@echo   build-asan   - Build the project with AddressSanitizer
 	@echo   test-cpp     - Build and run tests with C++ compiler
+	@echo   test-asan    - Build and run tests with AddressSanitizer
 	@echo   wasm         - Build the project for WebAssembly
 	@echo   test         - Build and run tests
 	@echo   ctest        - Build and run tests using CTest
+	@echo   serve        - Serve site
 	@echo   clean        - Remove build artifacts
 	@echo   clean-wasm   - Remove WASM build artifacts
 	@echo   clean-native - Remove all build artifacts
