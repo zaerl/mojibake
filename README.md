@@ -34,9 +34,6 @@ It has been tested on:
 2. Alpine Linux
 3. Windows 11
 
-It has a `0.0.0` version because the various parts I consider critical have not 100% coverage. These
-are the major parts:
-
 **Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
 
 **Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
