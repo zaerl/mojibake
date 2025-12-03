@@ -39,8 +39,7 @@ build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
 # WASM targets
-wasm: build-wasm
-	cd ./utils/generate && bun run generate -- site
+wasm: build-wasm generate-site
 
 # Generate TESTS.md file
 coverage:
@@ -60,6 +59,13 @@ generate-amalgamation:
 
 generate-sqlite:
 	cd ./utils/sqlite3 && ./generate-sqlite.sh
+
+generate-site: src/site/index.html
+	cd ./utils/generate && bun run generate -- site
+
+# Serve WASM site with live reload
+serve: wasm generate-site
+	cd $(WASM_BUILD_DIR)/src && python3 -m http.server
 
 # Run tests
 test: BUILD_TYPE = Test
@@ -108,6 +114,7 @@ help:
 	@echo "  test         - Build and run tests"
 	@echo "  ctest        - Build and run tests using CTest"
 	@echo "  test-docker  - Build and run tests in Docker container"
+	@echo "  serve        - Serve site"
 	@echo "  clean        - Remove build artifacts"
 	@echo "  clean-wasm   - Remove WASM build artifacts"
 	@echo "  clean-native - Remove all build artifacts"
@@ -116,4 +123,4 @@ help:
 
 .PHONY: all clean clean-native clean-wasm clean-build configure configure-wasm configure-cpp \
 		configure-asan build build-wasm build-cpp build-asan wasm test test-cpp test-asan ctest \
-		test-docker generate coverage help
+		test-docker generate coverage serve help generate-site
