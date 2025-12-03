@@ -8,6 +8,7 @@ set(SOURCES
     east-asian-width.c
     emoji.c
     hangul.c
+    filter.c
     next.c
     mojibake.c
     normalization.c
@@ -46,6 +47,7 @@ if(BUILD_WASM)
         "\"_mjb_normalize\""
         "\"_mjb_next_character\""
         "\"_mjb_string_is_normalized\""
+        "\"_mjb_string_filter\""
         "\"_mjb_string_encoding\""
         "\"_mjb_string_is_utf8\""
         "\"_mjb_string_is_utf16\""

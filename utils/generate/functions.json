@@ -60,6 +60,24 @@
     "wasm": true
   },
   {
+    "comment": "Filter a string to remove invalid characters",
+    "ret": "bool",
+    "name": "string_filter",
+    "attributes": ["MJB_NONNULL(1, 6)"],
+    "args": ["buffer", "size", "encoding", "output_encoding", "filters", "result"],
+    "args_types": ["const char *", "size_t", "mjb_encoding", "mjb_encoding", "mjb_filter", "mjb_result *"],
+    "args_description": [
+      "The string to filter",
+      "The size of the string, in bytes",
+      "The encoding of the string",
+      "The output encoding of the string",
+      "The filters to use",
+      "The pointer to store the result"
+    ],
+    "wasm_generated": [false, true, false, false, false, true],
+    "wasm": true
+  },
+  {
     "comment": "Return the string encoding (the most probable)",
     "ret": "mjb_encoding",
     "name": "string_encoding",

@@ -193,6 +193,12 @@ typedef enum mjb_quick_check_result {
     MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
 
+typedef enum mjb_filter {
+    MJB_FILTER_NONE = 0x0,
+    MJB_FILTER_NORMALIZE = 0x1,
+    MJB_FILTER_SPACES = 0x2
+} mjb_filter;
+
 typedef enum mjb_case_type {
     MJB_CASE_NONE,
     MJB_CASE_UPPER,
@@ -252,15 +258,6 @@ typedef struct mjb_emoji_properties {
     bool extended_pictographic;
 } mjb_emoji_properties;
 
-// A smaller version of mjb_character that only contains the information needed for the
-// normalization process.
-typedef struct {
-    mjb_codepoint codepoint;
-    uint8_t combining;
-    uint8_t decomposition;
-    uint16_t quick_check;
-} mjb_normalization_character;
-
 // Buffer character used in composition phase
 typedef struct {
     uint32_t codepoint;
@@ -294,6 +291,9 @@ MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_e
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
 MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+
+// Filter a string to remove invalid characters
+MJB_NONNULL(1, 6) bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);

@@ -7,6 +7,7 @@ set(TEST_SOURCES
     emoji.c
     encoding.c
     east-asian-width.c
+    filter.c
     hangul-composition.c
     hangul.c
     mojibake.c
@@ -59,6 +60,7 @@ add_test(NAME "Case" COMMAND mojibake-test -f case)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
 add_test(NAME "Encoding" COMMAND mojibake-test -f encoding)
+add_test(NAME "Filter" COMMAND mojibake-test -f filter)
 add_test(NAME "Hangul Composition" COMMAND mojibake-test -f hangul_composition)
 add_test(NAME "Hangul" COMMAND mojibake-test -f hangul)
 add_test(NAME "Mojibake" COMMAND mojibake-test -f mojibake)
