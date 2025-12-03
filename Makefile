@@ -63,6 +63,9 @@ generate-sqlite:
 generate-site: src/site/index.html
 	cd ./utils/generate && bun run generate -- site
 
+watch-site:
+	cd ./utils/generate && bunx --bun chokidar-cli "../../src/site/**/*" -c "bun run generate -- site && echo '[Regenerated]'" --initial
+
 # Serve WASM site with live reload
 serve: wasm generate-site
 	cd $(WASM_BUILD_DIR)/src && python3 -m http.server

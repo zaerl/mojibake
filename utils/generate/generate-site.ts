@@ -15,7 +15,7 @@ function getFunctions() {
 }
 
 export async function generateSite() {
-  let fileContent = readFileSync('../../build-wasm/src/index.html', 'utf-8');
+  let fileContent = readFileSync('../../src/site/index.html', 'utf-8');
   const functs = getFunctions();
 
   fileContent = substituteText(fileContent,
