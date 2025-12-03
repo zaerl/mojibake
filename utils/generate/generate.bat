@@ -36,7 +36,7 @@ REM Create build directory and remove old database
 if not exist "..\..\build" mkdir "..\..\build"
 if exist "..\..\mojibake.db" del "..\..\mojibake.db"
 
-REM Run npm generate
-npm run generate -- %*
+REM Run bun generate
+bun run generate -- %*
 
 endlocal
