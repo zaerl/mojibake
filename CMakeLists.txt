@@ -5,7 +5,7 @@ option(BUILD_CPP "Build with C++ instead of C" OFF)
 
 project(
     Mojibake
-    VERSION 0.0.2
+    VERSION 0.0.3
     DESCRIPTION "Mojibake"
     LANGUAGES C CXX
 )
