@@ -30,10 +30,17 @@ export async function generateSite() {
 
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
+  const wasmFileName = `mojibake-wasm-${version.major}${version.minor}${version.revision}.zip`;
 
   fileContent = substituteText(fileContent, '[AM_HREF]', fileName);
   fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
+  fileContent = substituteText(fileContent, '[WASM_HREF]', wasmFileName);
+  fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   writeFileSync('../../build-wasm/src/index.html', fileContent);
+
+  // Copy style.css to build-wasm directory
+  const styleContent = readFileSync('../../src/site/style.css', 'utf-8');
+  writeFileSync('../../build-wasm/src/style.css', styleContent);
 }
