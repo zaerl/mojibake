@@ -49,9 +49,10 @@ extern "C" {
     #define MJB_VERSION "0.0.3"
 #endif
 
-#define MJB_UNICODE_VERSION       "17.0"
+#define MJB_UNICODE_VERSION       "17.0.0"
 #define MJB_UNICODE_VERSION_MAJOR 17
 #define MJB_UNICODE_VERSION_MINOR 0
+#define MJB_UNICODE_VERSION_REVISION 0
 
 #ifndef MJB_EXTERN
     #define MJB_EXTERN extern
