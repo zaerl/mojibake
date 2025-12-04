@@ -6,11 +6,11 @@
 
 #include <stdio.h>
 
-#include "../mojibake.h"
+#include "../build-amalgamation/mojibake.h"
 
 // This is a simple example of how to use the Mojibake library.
 // To compile this example, you can use the following command:
-// gcc -o example example.c ../mojibake.c
+// gcc -o example example.c mojibake.c
 int main(int argc, char * const argv[]) {
     // We initialize the library. No need to call this. It's only needed if you want to specify
     // where the database is located.
