@@ -18,6 +18,7 @@ import { generateAmalgamation } from './generate-amalgamation';
 import { generateAPI } from './generate-api';
 import { generateBreaks, generateBreaksTest } from './generate-break';
 import { generateEastAsianWidth } from './generate-east-asian-width';
+import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateEmojiProperties } from './generate-emoji';
 import { generateHeader } from './generate-header';
 import { generateLocales } from './generate-locales';
@@ -169,6 +170,10 @@ for(let i = 2; i < process.argv.length; ++i) {
     generateTarget = 'locales';
   } else if(process.argv[i] === 'amalgamation') {
     generateTarget = 'amalgamation';
+  } else if(process.argv[i] === 'embedded-db') {
+    generateTarget = 'embedded-db';
+  } else if(process.argv[i] === 'embedded-amalgamation') {
+    generateTarget = 'embedded-amalgamation';
   } else if(process.argv[i] === 'update-version') {
     generateTarget = 'update-version';
   }
@@ -184,12 +189,25 @@ async function generate() {
   } else if(generateTarget === 'amalgamation') {
     await generateAmalgamation();
     return;
+  } else if(generateTarget === 'embedded-db') {
+    await generateEmbeddedDB();
+    return;
+  } else if(generateTarget === 'embedded-amalgamation') {
+    await generateAmalgamation(true);
+    return;
   } else if(generateTarget === 'update-version') {
     await updateVersion();
     return;
   }
 
-  dbInit('../../mojibake.db', compact);
+  const dbName = '../../mojibake.db';
+  const db = Bun.file(dbName);
+
+  if(await db.exists()) {
+    await db.delete();
+  }
+
+  dbInit(dbName, compact);
 
   const blocks = await readBlocks();
   await readUnicodeData(blocks, await readCompositionExclusions());

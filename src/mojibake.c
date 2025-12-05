@@ -10,6 +10,11 @@
 
 #include "mojibake-internal.h"
 
+// Include embedded database if enabled
+#ifdef MJB_USE_EMBEDDED_DB
+#include "embedded-db.h"
+#endif
+
 MJB_EXPORT mojibake mjb_global;
 
 // Initialize the library
@@ -18,9 +23,17 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
+#ifdef MJB_USE_EMBEDDED_DB
+    // Use embedded database
+    if(mjb_initialize_v2(malloc, realloc, free, (const char*)mjb_db_embedded, mjb_db_embedded_len)) {
+        return true;
+    }
+#else
+    // Use external database file
     if(mjb_initialize_v2(malloc, realloc, free, NULL, 0)) {
         return true;
     }
+#endif
 
     return false;
 }
@@ -80,26 +93,51 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return false;
     }
 #else
-    const char *filename = db;
-
-    if(filename == NULL) {
-        filename = getenv("WRD_DB_PATH");
-
-        if(filename == NULL) {
-            filename = "./mojibake.db";
-        }
-    }
-
-    rc = sqlite3_open(filename, &mjb_global.db);
-
-    if(rc != SQLITE_OK) {
-        // Try again with the default path.
-        rc = sqlite3_open("./mojibake.db", &mjb_global.db);
+    // Non-WASM builds
+#ifdef MJB_USE_EMBEDDED_DB
+    // If database buffer is provided (embedded mode), load from memory. Similar to WASM build.
+    if(db != NULL && db_size > 0) {
+        rc = sqlite3_open(":memory:", &mjb_global.db);
 
         if(rc != SQLITE_OK) {
-            MJB_LOG_VA("Can't open database: %s", sqlite3_errmsg(mjb_global.db));
+            MJB_LOG_VA("Can't create in-memory database: %s", sqlite3_errmsg(mjb_global.db));
 
             return false;
+        }
+
+        rc = sqlite3_deserialize(mjb_global.db, "main", (unsigned char*)db, db_size, db_size,
+            SQLITE_DESERIALIZE_READONLY);
+
+        if(rc != SQLITE_OK) {
+            MJB_LOG_VA("Can't deserialize database: %s", sqlite3_errmsg(mjb_global.db));
+
+            return false;
+        }
+    } else
+#endif
+    {
+        // File-based database (default for non-embedded builds)
+        const char *filename = db;
+
+        if(filename == NULL) {
+            filename = getenv("WRD_DB_PATH");
+
+            if(filename == NULL) {
+                filename = "./mojibake.db";
+            }
+        }
+
+        rc = sqlite3_open(filename, &mjb_global.db);
+
+        if(rc != SQLITE_OK) {
+            // Try again with the default path.
+            rc = sqlite3_open("./mojibake.db", &mjb_global.db);
+
+            if(rc != SQLITE_OK) {
+                MJB_LOG_VA("Can't open database: %s", sqlite3_errmsg(mjb_global.db));
+
+                return false;
+            }
         }
     }
 #endif

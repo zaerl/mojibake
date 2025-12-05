@@ -27,6 +27,11 @@ if(BUILD_CPP)
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()
 
+# Add embedded database support
+if(USE_EMBEDDED_DB)
+    target_compile_definitions(mojibake_lib PRIVATE MJB_USE_EMBEDDED_DB)
+endif()
+
 # Link SQLite library
 # target_link_libraries(mojibake_lib PRIVATE mojibake_sqlite)
 
