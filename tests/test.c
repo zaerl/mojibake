@@ -214,7 +214,7 @@ int main(int argc, char * const argv[]) {
     }
 
     if(is_ctest) {
-        // ctest CWD is /build/tests, so we need to set the db path to ./build/tests/mojibake.db
+        // ctest CWD is /build/tests, so we need to move where the database is located
         chdir("../../");
     }
 
