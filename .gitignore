@@ -1,22 +1,32 @@
+# Various
+!.gitkeep
+.claude/
+CLAUDE.md
+deploy*
+
+# Build artifacts
 build
-build-amalgamation
-build-wasm
-cli/*
-src/sqlite/*
+build-*
+
+src/sqlite3/*.h
+src/sqlite3/*.c
 src/gui/*
-src/mojibake.db-journal
+
+# Utils artifacts
 utils/generate/node_modules
 utils/generate/UCD/*
 utils/generate/unihan/*
 utils/generate/emoji/*
 utils/generate/sqlite-*
+utils/generate/locales/*
+
+# Utils SQLite artifacts
 utils/sqlite3/sqlite-src-*
 utils/sqlite3/sqlite3.zip
-utils/generate/locales/*
-!.gitkeep
-.claude/
-CLAUDE.md
-deploy*
-mojibake.h
-mojibake.c
-doc/example
+
+src/embedded-db.h
+
+# Doc
+doc/*
+!doc/*.c
+!doc/Makefile
