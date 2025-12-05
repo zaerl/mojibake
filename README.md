@@ -22,11 +22,16 @@ It consists in a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file
 file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want. Also a
 C++ wrapper can be found on `ext/cpp/mojibake.cpp` if you prefer it.
 
+An alternative embedded version is provided, where the `mojibake.db` file is not needed, and only
+the `mojibake.c` and `mojibake.h` are needed. The content of the database is loaded directly from
+the C file. This will increase the size of your executable. If you don't mind opening files, use
+the other mode.
+
 An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
 use to preview the API.
 
-This library works in little-endian systems to avoid adding too much overhead. This means that it
-works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.)
+This library works only in little-endian systems to avoid adding too much overhead. This means that
+it works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.)
 
 It has been tested on:
 
