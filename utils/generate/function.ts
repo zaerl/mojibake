@@ -74,10 +74,11 @@ export class CFunction {
   formatHTML(): string {
     return `<section id="${this.getName()}">
       <div class="code function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
-        ${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});
+        <div class="function-call-comment">// ${this.comment}</div>
+        <div>${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</div>
       </div>
       <div class="function-card">
-        <div>${this.#formInputHTML()}        </div>
+        <div>${this.#formInputHTML()}</div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </section>`;
