@@ -56,7 +56,7 @@ export async function generateAmalgamation(embedded = false) {
  * This file is an amalgamation of all Mojibake source files. It is automatically generated. Do not
  * edit. If you want to generate it, run the following command:
  *
- * make generate-amalgamation
+ * make amalgamation
  */\n\n#include "mojibake.h"\n`;
 
   for(const header of headers) {

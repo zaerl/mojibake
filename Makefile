@@ -67,7 +67,7 @@ generate-locales:
 	cd ./utils/generate && ./generate-locales.sh
 
 # Generate amalgamation
-generate-amalgamation:
+amalgamation:
 	cd ./utils/generate && ./generate-amalgamation.sh
 
 generate-sqlite:
@@ -161,11 +161,11 @@ help:
 	@echo "  clean-embedded-amalgamation - Remove embedded amalgamation build artifacts"
 	@echo "  generate     - Regenerate source files"
 	@echo "  generate-embedded-db - Generate embedded database header"
-	@echo "  generate-amalgamation - Generate single-file amalgamation"
+	@echo "  amalgamation - Generate single-file amalgamation"
 	@echo "  update-version - Update version in source files"
 	@echo "  coverage     - Run coverage analysis"
 
 .PHONY: all clean clean-native clean-wasm clean-build clean-amalgamation clean-embedded-amalgamation \
 		configure configure-wasm configure-cpp configure-asan configure-embedded build build-wasm \
 		build-cpp build-asan build-embedded wasm test test-embedded test-cpp test-asan ctest test-docker \
-		generate coverage serve help generate-site update-version generate-embedded-db generate-amalgamation
+		generate coverage serve help generate-site update-version generate-embedded-db amalgamation
