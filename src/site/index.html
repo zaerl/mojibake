@@ -98,17 +98,24 @@
             in your project. The <strong>mojibake.db</strong> file is a SQLite database file that contains all the data from the Unicode
             Character Database.
         </section>
-        <section>
-            Amalgamation: <a href="[AM_HREF]" target="_blank">[AM_NAME]</a>, version <strong>[VERSION]</strong>.
+        <section>An alternative embedded version is provided, where the <strong>mojibake.db</strong> file is not needed, and only
+            the <strong>mojibake.c</strong> and <strong>mojibake.h</strong> are needed. The content of the database is loaded directly from
+            the C file.
         </section>
         <section>
-            Precompiled WASM: <a href="[WASM_HREF]" target="_blank">[WASM_NAME]</a>, version <strong>[VERSION]</strong>.
+            <a href="[AM_HREF]" target="_blank">[AM_NAME]</a>, version <strong>[VERSION]</strong>. Amalgamation of mojibake.c, mojibake.h and mojibake.db.
+        </section>
+        <section>
+            <a href="[EMBEDDED_HREF]" target="_blank">[EMBEDDED_NAME]</a>, version <strong>[VERSION]</strong>. Amalgamation of mojibake.c with embedded database and mojibake.h.
+        </section>
+        <section>
+            <a href="[WASM_HREF]" target="_blank">[WASM_NAME]</a>, version <strong>[VERSION]</strong>. Precompiled WASM version of mojibake.js, mojibake.wasm and mojibake.db.
         </section>
         <section>
             <h2>Try it online</h2>
             <p>
                 You can try the library online by using the WASM-compiled version. It is a live demo that
-                you can use to preview the API. It is a WASM-compiled version you can use to preview the API.
+                you can use to preview the API.
             </p>
         </section>
         <section id="loading">

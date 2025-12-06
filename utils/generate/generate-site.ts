@@ -30,10 +30,13 @@ export async function generateSite() {
 
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
+  const embeddedFileName = `mojibake-embedded-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
   const wasmFileName = `mojibake-wasm-${version.major}${version.minor}${version.revision}.zip`;
 
   fileContent = substituteText(fileContent, '[AM_HREF]', fileName);
   fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
+  fileContent = substituteText(fileContent, '[EMBEDDED_HREF]', embeddedFileName);
+  fileContent = substituteText(fileContent, '[EMBEDDED_NAME]', embeddedFileName);
   fileContent = substituteText(fileContent, '[WASM_HREF]', wasmFileName);
   fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
