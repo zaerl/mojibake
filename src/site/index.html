@@ -464,7 +464,7 @@
             }
         }
 
-        function ccallNormalize(buffer, size, encoding, form) {
+        function ccallNormalize(argTypes,buffer, size, encoding, form) {
             // See mjb_result on mojibake.h
             const structSize = 24;
             const ptr = window.mojibake._malloc(structSize);
@@ -474,8 +474,11 @@
                 window.mojibake.HEAPU8[ptr + i] = 0;
             }
 
+            console.log(window.mojibake);
+
             // Call mjb_codepoint_character
-            const result = window.mojibake._mjb_normalize(buffer, size, encoding, form, ptr);
+            // const result = window.mojibake._mjb_normalize(buffer, size, encoding, form, ptr);
+            const result = window.mojibake.ccall('mjb_normalize', 'boolean', argTypes, [buffer, size, encoding, form, ptr]);
 
             if(result) {
                 const struct = new CStruct(ptr);
@@ -517,18 +520,18 @@
         }
 
         function ccCall(func, ret, argTypes, args) {
+            console.log(functions[func]);
+            console.log(func, ret, argTypes, args);
+
             if(func === 'mjb_codepoint_character') {
                 return ccallCodepointCharacter(args[0]);
             } else if(func === 'mjb_normalize') {
-                return ccallNormalize(args[0], args[1], args[2], args[3]);
+                return ccallNormalize(argTypes, args[0], args[1], args[2], args[3]);
             } else if(func === 'mjb_codepoint_encode') {
                 return ccallCodepointEncode(args[0], args[3]);
             } else if(func === 'mjb_codepoint_emoji') {
                 return ccallEmoji(args[0]);
             } else {
-                console.log(functions[func]);
-                console.log(func, ret, argTypes, args);
-
                 return window.mojibake.ccall(func, ret, argTypes, args);
             }
         }
