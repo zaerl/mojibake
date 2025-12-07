@@ -173,8 +173,8 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
             print_value("Plane", 1, "[%d] %s", plane, plane_name);
         }
 
-        mjb_codepoint_block block;
-        bool valid_block = mjb_character_block(character->codepoint, &block);
+        mjb_block_info block;
+        bool valid_block = mjb_codepoint_block(character->codepoint, &block);
 
         // Need to flush stdout here to ensure the block is printed before the next character
         fflush(stdout);

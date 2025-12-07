@@ -13,7 +13,7 @@
 | `mjb_codepoint_encode`              | 33         |
 | `mjb_codepoint_emoji`               | 18         |
 | `mjb_string_is_utf8`                | 16         |
-| `mjb_character_block`               | 14         |
+| `mjb_codepoint_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
 | `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |

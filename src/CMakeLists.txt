@@ -69,7 +69,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_is_cjk_ideograph\""
         "\"_mjb_category_is_graphic\""
         "\"_mjb_category_is_combining\""
-        "\"_mjb_character_block\""
+        "\"_mjb_codepoint_block\""
         "\"_mjb_codepoint_to_lowercase\""
         "\"_mjb_codepoint_to_uppercase\""
         "\"_mjb_codepoint_to_titlecase\""

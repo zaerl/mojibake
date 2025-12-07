@@ -327,10 +327,10 @@
   {
     "comment": "Return the character block",
     "ret": "bool",
-    "name": "character_block",
+    "name": "codepoint_block",
     "attributes": ["MJB_CONST"],
     "args": ["codepoint", "block"],
-    "args_types": ["mjb_codepoint", "mjb_codepoint_block *"],
+    "args_types": ["mjb_codepoint", "mjb_block_info *"],
     "args_description": ["The codepoint to check", "The block to store the result"],
     "wasm_generated": [false, true],
     "wasm": true

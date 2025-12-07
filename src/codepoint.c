@@ -196,7 +196,7 @@ MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
 }
 
 // Return the character block
-MJB_EXPORT bool mjb_character_block(mjb_codepoint codepoint, mjb_codepoint_block *block) {
+MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block) {
     if(!mjb_initialize()) {
         return false;
     }

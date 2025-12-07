@@ -40,27 +40,27 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(last_syllable, &character), true, "Last hangul syllable")
     ATT_ASSERT((const char*)character.name, "HANGUL SYLLABLE HIH", "Last hangul syllable")
 
-    mjb_codepoint_block block;
+    mjb_block_info block;
 
-    ATT_ASSERT(mjb_character_block(MJB_CODEPOINT_MAX, &block), false, "Not valid codepoint")
-    ATT_ASSERT(mjb_character_block(0xE0080, &block), false, "Not mapped codepoint")
+    ATT_ASSERT(mjb_codepoint_block(MJB_CODEPOINT_MAX, &block), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_codepoint_block(0xE0080, &block), false, "Not mapped codepoint")
 
-    ATT_ASSERT(mjb_character_block(0, &block), true, "Valid basic Latin block 1")
+    ATT_ASSERT(mjb_codepoint_block(0, &block), true, "Valid basic Latin block 1")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_BASIC_LATIN, "Basic Latin block 2")
 
-    ATT_ASSERT(mjb_character_block(0x80 - 1, &block), true, "Valid basic final Latin block")
+    ATT_ASSERT(mjb_codepoint_block(0x80 - 1, &block), true, "Valid basic final Latin block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_BASIC_LATIN, "Basic Latin block 3")
 
-    ATT_ASSERT(mjb_character_block(0x80 + 1, &block), true, "Valid latin-1 Supplement block")
+    ATT_ASSERT(mjb_codepoint_block(0x80 + 1, &block), true, "Valid latin-1 Supplement block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_LATIN_1_SUPPLEMENT, "Latin-1 Supplement block")
 
-    ATT_ASSERT(mjb_character_block(0xE0000 + 1, &block), true, "Valid tags block")
+    ATT_ASSERT(mjb_codepoint_block(0xE0000 + 1, &block), true, "Valid tags block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_TAGS, "Tags block")
 
-    ATT_ASSERT(mjb_character_block(0xC0C0, &block), true, "Hangul Syllables block")
+    ATT_ASSERT(mjb_codepoint_block(0xC0C0, &block), true, "Hangul Syllables block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_HANGUL_SYLLABLES, "Hangul block")
 
-    ATT_ASSERT(mjb_character_block(0x10C0, &block), true, "Georgian block")
+    ATT_ASSERT(mjb_codepoint_block(0x10C0, &block), true, "Georgian block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_GEORGIAN, "Georgian block")
 
     ATT_ASSERT(mjb_codepoint_character(0xF0000 + 3, &character), false, "Supplementary Private Use Area-A block")
