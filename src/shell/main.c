@@ -25,7 +25,10 @@
 #include "shell.h"
 
 int show_version(void) {
-    printf("Mojibake %sv%s%s\n", color_green_start(), MJB_VERSION, color_reset());
+    mjb_character character;
+    bool valid = mjb_codepoint_character(MJB_VERSION_NUMBER, &character);
+
+    printf("Mojibake %sv%s [%s]%s\n", color_green_start(), mjb_version(), valid ? character.name : "UNKNOWN", color_reset());
 
     return 0;
  }
