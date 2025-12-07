@@ -14,7 +14,7 @@
 
 extern mojibake mjb_global;
 
-typedef struct {
+typedef struct mjb_lbc_result {
     mjb_line_breaking_class line_breaking_class;
     mjb_line_breaking_class original_class; // Before CM resolution
     mjb_category category;

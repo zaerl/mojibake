@@ -8,7 +8,7 @@
 
 typedef int (*command_function)(int argc, char * const argv[], unsigned int flags);
 
-typedef struct {
+typedef struct mjb_command {
     const char *name;
     const char *description;
     command_function function;

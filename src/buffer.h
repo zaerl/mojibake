@@ -13,7 +13,7 @@
 
 // A smaller version of mjb_character that only contains the information needed for the
 // normalization process.
-typedef struct {
+typedef struct mjb_n_character {
     mjb_codepoint codepoint;
     uint8_t combining;
     uint8_t decomposition;

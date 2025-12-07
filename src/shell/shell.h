@@ -14,7 +14,7 @@
     #define STDIN_FILENO _fileno(stdin)
 
     // Windows terminal state structure
-    typedef struct {
+    typedef struct mjb_terminal_state {
         HANDLE h_stdin;
         DWORD orig_mode;
     } terminal_state;

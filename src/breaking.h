@@ -76,7 +76,7 @@ typedef enum mjb_line_breaking_class {
     MJB_LBC_XX  // Unknown
 } mjb_line_breaking_class;
 
-typedef struct {
+typedef struct mjb_line_breaking {
     mjb_line_breaking_class line_breaking_class;
     mjb_category category;
     bool extended_pictographic;

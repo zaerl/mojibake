@@ -263,12 +263,12 @@ typedef struct mjb_emoji_properties {
 } mjb_emoji_properties;
 
 // Buffer character used in composition phase
-typedef struct {
+typedef struct mjb_buffer_character {
     uint32_t codepoint;
     uint16_t combining;
 } mjb_buffer_character;
 
-typedef struct {
+typedef struct mjb_line_break {
     size_t index;
     bool mandatory;
 } mjb_line_break;
