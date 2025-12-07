@@ -52,7 +52,7 @@
     ATT_ASSERT(result.output_size, 17, "Filter spaces output size");
     FREE_RESULT
 
-    ATT_ASSERT(mjb_string_filter(spaces, strlen(spaces), enc, enc, MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES, &result), true, "Filter spaces and normalize");
+    ATT_ASSERT(mjb_string_filter(spaces, strlen(spaces), enc, enc, (mjb_filter)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), &result), true, "Filter spaces and normalize");
     ATT_ASSERT(result.output, (char*)"                 ", "Filter spaces and normalize output");
     ATT_ASSERT(result.output_size, 17, "Filter spaces and normalize output size");
     FREE_RESULT
@@ -90,7 +90,7 @@
         "hello"
         "\xE2\x80\x80\xE2\x80\x81"  // U+2000 EN QUAD, U+2001 EM QUAD
         "world";
-    ATT_ASSERT(mjb_string_filter(unicode_multiple_spaces, strlen(unicode_multiple_spaces), enc, enc, MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES, &result), true, "Collapse Unicode spaces");
+    ATT_ASSERT(mjb_string_filter(unicode_multiple_spaces, strlen(unicode_multiple_spaces), enc, enc, (mjb_filter)(MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES), &result), true, "Collapse Unicode spaces");
     ATT_ASSERT(result.output, (char*)"hello world", "Collapse Unicode spaces output");
     ATT_ASSERT(result.output_size, 11, "Collapse Unicode spaces output size");
     FREE_RESULT
