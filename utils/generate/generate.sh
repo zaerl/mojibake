@@ -19,9 +19,8 @@ fi
 
 if [ ! -d "./emoji" ] ; then
     mkdir -p "./emoji"
-    files=("ReadMe.txt" "emoji-sequences.txt" "emoji-test.txt" "emoji-zwj-sequences.txt")
 
-    for file in "${files[@]}"; do
+    for file in "ReadMe.txt" "emoji-sequences.txt" "emoji-test.txt" "emoji-zwj-sequences.txt"; do
         curl -o "./emoji/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/$file"
     done
 fi
