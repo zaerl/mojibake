@@ -37,9 +37,10 @@ it works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, e
 tested on:
 
 1. macOS
-2. Alpine
-3. Ubuntu
-4. Windows 11
+2. Alpine Linux
+3. Ubuntu Linux
+4. FreeBSD
+5. Windows 11
 
 **Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
 
