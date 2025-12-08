@@ -5,16 +5,15 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
+import { open } from 'fs/promises';
 import { substituteBlock } from './utils';
 
 export async function generateLocales() {
-  const file = Bun.file('./locales/ISO-639-2.txt');
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open('./locales/ISO-639-2.txt');
   const locales = [];
   const names = [];
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     const split = line.split('|');
 
     if(split[2].length) {

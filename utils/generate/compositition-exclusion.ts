@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
 import { log } from './log';
 
 export async function readCompositionExclusions(path = './UCD/CompositionExclusions.txt'): Promise<number[]> {
@@ -11,11 +12,9 @@ export async function readCompositionExclusions(path = './UCD/CompositionExclusi
 
   const exclusions: number[] = [];
 
-  const file = Bun.file(path);
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open(path);
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
     }

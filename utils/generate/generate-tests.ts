@@ -16,7 +16,7 @@ export function generateNormalizationCount() {
   const lines = fileContent.split('\n');
 
   for(const line of lines) {
-    if (!line.startsWith('#') && !line.startsWith('@') && line.trim().length > 0) {
+    if(!line.startsWith('#') && !line.startsWith('@') && line.trim().length > 0) {
       ++count;
     }
   }

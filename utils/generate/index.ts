@@ -4,6 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { constants } from 'fs';
+import { access, open, unlink } from 'fs/promises';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { generateCasefold } from './casefold';
@@ -45,14 +47,12 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   let currentBlock = 0;
   let characters: Character[] = [];
 
-  const file = Bun.file('./UCD/UnicodeData.txt');
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open('./UCD/UnicodeData.txt');
 
   iLog('PARSE UNICODE DATA');
 
-  for (const line of lines) {
-    if (!line || line.trim() === '') continue;
+  for await (const line of file.readLines()) {
+    if(!line || line.trim() === '') continue;
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
     let name: string | null = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
@@ -201,11 +201,11 @@ async function generate() {
   }
 
   const dbName = '../../mojibake.db';
-  const db = Bun.file(dbName);
-
-  if(await db.exists()) {
-    await db.delete();
-  }
+  // Check if dbName file exists, if it exists, delete it
+  try {
+    await access(dbName, constants.F_OK);
+    await unlink(dbName);
+  } catch (err) {}
 
   dbInit(dbName, compact);
 

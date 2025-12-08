@@ -4,16 +4,15 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
+import { Character } from './character';
 import { Emoji } from './emoji';
 import { log } from './log';
 import { EmojiProperties, EmojiPropertiesStrings } from './types';
-import { Character } from './character';
 
 export async function generateEmojiProperties(characters: Character[], path = './UCD/emoji/emoji-data.txt') {
   log('GENERATE EMOJI PROPERTIES');
-  const file = Bun.file(path);
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open(path);
   const emojiMap: { [key: string]: Emoji } = {};
   const characterMap: { [key: string]: Character } = {};
 
@@ -21,7 +20,7 @@ export async function generateEmojiProperties(characters: Character[], path = '.
     characterMap['' + char.codepoint] = char;
   }
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.length === 0 || line.startsWith('#')) {
       continue;
     }

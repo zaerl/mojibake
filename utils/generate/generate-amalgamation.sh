@@ -6,9 +6,9 @@
 mkdir -p ../../build-amalgamation
 mkdir -p ../../build-embedded-amalgamation
 
-bun run generate -- embedded-db
-bun run generate -- amalgamation
-bun run generate -- embedded-amalgamation
+npm run generate -- embedded-db
+npm run generate -- amalgamation
+npm run generate -- embedded-amalgamation
 
 # Copy database
 cp ../../mojibake.db ../../build-amalgamation/mojibake.db

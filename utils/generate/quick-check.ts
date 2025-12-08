@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
 
@@ -52,9 +53,7 @@ export async function readNormalizationProps(characters: Character[], path = './
 
   let id = 0;
 
-  const file = Bun.file(path);
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open(path);
 
   const quickCheck: QuickCheck = {
     NFD_QC: { N: 0, M: 0 },
@@ -63,7 +62,7 @@ export async function readNormalizationProps(characters: Character[], path = './
     NFKD_QC: { N: 0, M: 0 }
   };
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.startsWith('#') || line === '') { // Comment
       continue
     }

@@ -4,13 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
 import { log } from './log';
 
 export async function generateCasefold() {
   log('GENERATE CASEFOLD');
-  const file = Bun.file('./UCD/CaseFolding.txt');
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open('./UCD/CaseFolding.txt');
 
   let maxFolded = 0;
   let counts = {
@@ -20,7 +19,7 @@ export async function generateCasefold() {
     'T': 0,
   }
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.startsWith('#') || line.trim() === '') {
       continue;
     }

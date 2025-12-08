@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
 
@@ -27,16 +28,14 @@ export async function readSpecialCasingProps(characters: Character[], path = './
     characterMap['' + char.codepoint] = char;
   }
 
-  const file = Bun.file(path);
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open(path);
   let newCases: NewCases = [];
   let count = 0;
   let hasMultiple = 0;
   let maxNewCases = 0;
   let maxNewCasesCount = 0;
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
     }

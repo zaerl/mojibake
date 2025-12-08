@@ -28,4 +28,4 @@ fi
 
 mkdir -p ../../build
 rm -f ../../mojibake.db
-bun run generate -- "$@"
+npm run generate -- "$@"

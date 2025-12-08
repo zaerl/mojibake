@@ -4,22 +4,21 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
 import { EastAsianWidth, EastAsianWidthStrings } from './types';
 
 export async function generateEastAsianWidth(characters: Character[], path = './UCD/EastAsianWidth.txt') {
   log('GENERATE EAST ASIAN WIDTH');
-  const file = Bun.file(path);
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open(path);
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {
     characterMap['' + char.codepoint] = char;
   }
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.length === 0 || line.startsWith('#') || line.startsWith('F0000') ||
       line.startsWith('100000')) {
       continue;

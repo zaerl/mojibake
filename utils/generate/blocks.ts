@@ -4,9 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { open } from 'fs/promises';
 import { dbInsertBlock } from './db';
-import { Block } from './types';
 import { log } from './log';
+import { Block } from './types';
 
 export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   log('READ BLOCKS');
@@ -14,11 +15,9 @@ export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   const blocks: Block[] = [];
   let id = 0;
 
-  const file = Bun.file(path);
-  const content = await file.text();
-  const lines = content.split('\n');
+  const file = await open(path);
 
-  for (const line of lines) {
+  for await (const line of file.readLines()) {
     if(line.startsWith('#') || line === '') { // Comment
       continue;
     }

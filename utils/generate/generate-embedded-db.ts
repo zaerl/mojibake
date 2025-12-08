@@ -4,13 +4,18 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { createReadStream, createWriteStream } from 'fs';
+import { resolve } from 'path';
+
 export async function generateEmbeddedDB() {
   let length = 0;
-  const file = Bun.file('../../mojibake.db');
-  const reader = file.stream().getReader();
-  const writer = Bun.file('../../src/embedded-db.h').writer();
+  const dbPath = resolve(__dirname, '../../mojibake.db');
+  const headerPath = resolve(__dirname, '../../src/embedded-db.h');
 
-  writer.write(`/**
+  const reader = createReadStream(dbPath);
+  const writer = createWriteStream(headerPath);
+
+  const header = `/**
  * The Mojibake library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
@@ -27,14 +32,15 @@ export async function generateEmbeddedDB() {
 extern "C" {
 #endif
 
-static const unsigned char mjb_db_embedded[] = {\n`);
+static const unsigned char mjb_db_embedded[] = {
+`;
+
+  writer.write(header);
 
   let first = true;
 
-  while(true) {
-    const { value: chunk, done } = await reader.read();
-
-    for(const byte of chunk ?? []) {
+  for await (const chunk of reader) {
+    for(const byte of chunk) {
       if(first) {
         first = false;
       } else {
@@ -48,13 +54,9 @@ static const unsigned char mjb_db_embedded[] = {\n`);
         writer.write('\n');
       }
     }
-
-    if(done) {
-      break;
-    }
   }
 
-  writer.write(`};
+  const footer = `};
 
 static const unsigned int mjb_db_embedded_len = ${length};
 
@@ -62,5 +64,13 @@ static const unsigned int mjb_db_embedded_len = ${length};
 }
 #endif
 
-#endif // MJB_EMBEDDED_DB_H\n`);
+#endif // MJB_EMBEDDED_DB_H\n`;
+
+  writer.write(footer);
+  writer.end();
+
+  return new Promise<void>((resolve, reject) => {
+    writer.on('finish', resolve);
+    writer.on('error', reject);
+  });
 }

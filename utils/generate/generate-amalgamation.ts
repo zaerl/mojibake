@@ -80,7 +80,7 @@ export async function generateAmalgamation(embedded = false) {
 
   for(let define of defines ?? []) {
     // Skip excluded defines
-    if (excludedDefines.some(excluded => define.includes(excluded))) {
+    if(excludedDefines.some(excluded => define.includes(excluded))) {
       continue;
     }
     define = define.replace(/=/g, ' ');

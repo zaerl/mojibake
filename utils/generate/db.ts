@@ -4,14 +4,14 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { Database, Statement } from 'bun:sqlite';
+import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
 import { Emoji } from './emoji';
 import { NewCases } from './special-casing';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
-let db: Database;
+let db: Database.Database;
 let dbPath: string;
 let insertDataSmt: Statement;
 let insertDecompositionSmt: Statement;
@@ -46,7 +46,7 @@ let isCompact: boolean;
 // block             mir      dig dec  deco     bidi     comb     cat
 export function dbInit(path = '../../mojibake.db', compact = false) {
   dbPath = path;
-  db = Database.open(dbPath);
+  db = new Database(dbPath);
   isCompact = compact;
 
   if(isCompact) {
@@ -269,9 +269,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     ) VALUES (?, ?, ?, ?);
   `);*/
 
-  db.exec('PRAGMA synchronous = OFF');
-  db.exec('PRAGMA journal_mode = MEMORY');
-  db.exec('PRAGMA temp_store = MEMORY');
+  db.pragma('synchronous = OFF');
+  db.pragma('journal_mode = MEMORY');
+  db.pragma('temp_store = MEMORY');
 }
 
 export function dbSize() {
@@ -406,7 +406,7 @@ export function dbRunEmojiProperties(emojiProperties: Emoji[]) {
 }
 
 export function dbRunAfter() {
-  db.exec('PRAGMA optimize');
+  db.pragma('optimize');
   db.exec('ANALYZE;');
   db.exec('DROP TABLE IF EXISTS sqlite_stat1;');
   db.exec('DROP TABLE IF EXISTS sqlite_stat4;');
