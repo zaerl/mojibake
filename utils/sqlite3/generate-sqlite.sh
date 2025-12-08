@@ -6,6 +6,13 @@
 SQLITE_VERSION="3510000"
 SQLITE_YEAR="2025"
 
+# Use gmake on FreeBSD (BSD make doesn't support GNU make functions)
+if [ "$(uname -s)" = "FreeBSD" ]; then
+    MAKE_CMD="gmake"
+else
+    MAKE_CMD="make"
+fi
+
 if [ ! -d "./sqlite-src-$SQLITE_VERSION" ] ; then
     curl -o sqlite3.zip "https://www.sqlite.org/$SQLITE_YEAR/sqlite-src-$SQLITE_VERSION.zip"
     unzip sqlite3.zip
@@ -17,7 +24,7 @@ if [ ! -f "Makefile" ]; then
     cp Makefile.linux-generic Makefile
 fi
 
-make clean
+$MAKE_CMD clean
 
 OPTS="-DSQLITE_OMIT_ALTERTABLE \
 -DSQLITE_OMIT_ANALYZE \
@@ -83,7 +90,7 @@ OPTS="-DSQLITE_OMIT_ALTERTABLE \
 # SQLITE_OMIT_XFER_OPT
 # SQLITE_UNTESTABLE
 # SQLITE_ZERO_MALLOC
-make sqlite3.c OPTS="$OPTS"
+$MAKE_CMD sqlite3.c OPTS="$OPTS"
 
 # Append windows-fixes.c to the generated sqlite3.c
 cat ../windows-fixes.c >> sqlite3.c
