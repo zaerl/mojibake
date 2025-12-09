@@ -347,3 +347,51 @@ a:hover {
 .mt-1 { margin-top: 0.5rem; }
 .mt-2 { margin-top: 1rem; }
 .mt-3 { margin-top: 1.5rem; }
+
+/* Custom styles */
+.code {
+    line-height: 1.5;
+    border: 1px solid var(--border);
+    padding: 1rem;
+}
+
+.function-call {
+    cursor: pointer;
+}
+
+.function-call:hover {
+    border-color: var(--border-hover);
+}
+
+.function-card {
+    display: none;
+}
+
+#functions .code {
+    text-align: left;
+}
+
+#functions .selected .function-card {
+    display: block;
+}
+
+.function-results {
+    margin-top: 1rem;
+    display: none;
+}
+
+.loading {
+    display: none;
+}
+
+#loading {
+    text-align: center;
+}
+
+.function-form label {
+    text-transform: capitalize;
+}
+
+.function-form div, .function-form-button {
+    margin-top: 1rem;
+}
