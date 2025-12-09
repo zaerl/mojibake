@@ -429,8 +429,6 @@
                 window.mojibake.HEAPU8[ptr + i] = 0;
             }
 
-            console.log(window.mojibake);
-
             // Call mjb_codepoint_character
             // const result = window.mojibake._mjb_normalize(buffer, size, encoding, form, ptr);
             const result = window.mojibake.ccall('mjb_normalize', 'boolean', argTypes, [buffer, size, encoding, form, ptr]);
