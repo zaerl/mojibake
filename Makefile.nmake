@@ -24,15 +24,18 @@ BUILD_TYPE=Release
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils\generate\generate.bat utils\generate\*.json utils\generate\*.ts
 
+# SQLite source files
+SQLITE_SOURCES = src\sqlite3\sqlite3.c src\sqlite3\sqlite3.h
+
 # Aggregate
-all: configure build
+all: configure build mojibake.db
 
 # C targets
-configure:
+configure: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
 # Embedded database build
-configure-embedded: generate-embedded-db
+configure-embedded: $(SQLITE_SOURCES) generate-embedded-db
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_EMBEDDED_DB=ON
 
 # C targets
@@ -43,7 +46,7 @@ build-embedded: configure-embedded
 	@cmake --build $(BUILD_DIR)
 
 # C++ targets
-configure-cpp:
+configure-cpp: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
 
 # C++ targets
@@ -51,14 +54,14 @@ build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
 # AddressSanitizer targets
-configure-asan:
+configure-asan: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
 
 build-asan: configure-asan
 	@cmake --build $(BUILD_DIR)
 
 # WASM targets
-configure-wasm:
+configure-wasm: $(SQLITE_SOURCES)
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
 
 # WASM targets
@@ -88,6 +91,11 @@ generate-locales:
 amalgamation:
 	@cd utils\generate && npm run generate -- amalgamation
 
+# Rule to generate SQLite source files (only if they don't exist)
+$(SQLITE_SOURCES):
+	@cd utils\sqlite3 && generate-sqlite.bat
+
+# Manual target to force regeneration
 generate-sqlite:
 	@cd utils\sqlite3 && generate-sqlite.bat
 
@@ -157,7 +165,11 @@ clean-embedded-amalgamation:
 clean-database:
 	@if exist mojibake.db del /Q mojibake.db
 
-clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database
+clean-sqlite:
+	@if exist src\sqlite3\sqlite3.c del /Q src\sqlite3\sqlite3.c
+	@if exist src\sqlite3\sqlite3.h del /Q src\sqlite3\sqlite3.h
+
+clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database clean-sqlite
 
 # Help
 help:
@@ -179,6 +191,7 @@ help:
 	@echo   clean-native - Remove all build artifacts
 	@echo   clean-amalgamation - Remove amalgamation build artifacts
 	@echo   clean-embedded-amalgamation - Remove embedded amalgamation build artifacts
+	@echo   clean-sqlite - Remove generated SQLite source files
 	@echo   generate     - Regenerate source files
 	@echo   generate-embedded-db - Generate embedded database header
 	@echo   amalgamation - Generate single-file amalgamation

@@ -7,14 +7,17 @@ BUILD_TYPE ?= Release
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
 
-all: configure build
+# SQLite source files
+SQLITE_SOURCES = src/sqlite3/sqlite3.c src/sqlite3/sqlite3.h
+
+all: configure build mojibake.db
 
 # C targets
-configure:
+configure: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
 # Embedded database build
-configure-embedded: generate-embedded-db
+configure-embedded: $(SQLITE_SOURCES) generate-embedded-db
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_EMBEDDED_DB=ON
 
 # C targets
@@ -25,7 +28,7 @@ build-embedded: configure-embedded
 	@cmake --build $(BUILD_DIR)
 
 # C++ targets
-configure-cpp:
+configure-cpp: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
 
 # C++ targets
@@ -33,14 +36,14 @@ build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
 # AddressSanitizer targets
-configure-asan:
+configure-asan: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
 
 build-asan: configure-asan
 	@cmake --build $(BUILD_DIR)
 
 # WASM targets
-configure-wasm:
+configure-wasm: $(SQLITE_SOURCES)
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
 
 # WASM targets
@@ -70,6 +73,11 @@ generate-locales:
 amalgamation:
 	cd ./utils/generate && ./generate-amalgamation.sh
 
+# Rule to generate SQLite source files (only if they don't exist)
+$(SQLITE_SOURCES):
+	cd ./utils/sqlite3 && ./generate-sqlite.sh
+
+# Manual target to force regeneration
 generate-sqlite:
 	cd ./utils/sqlite3 && ./generate-sqlite.sh
 
@@ -138,7 +146,10 @@ clean-embedded-amalgamation:
 clean-database:
 	rm mojibake.db
 
-clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database
+clean-sqlite:
+	rm -f $(SQLITE_SOURCES)
+
+clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database clean-sqlite
 
 help:
 	@echo "Available targets:"
@@ -159,6 +170,7 @@ help:
 	@echo "  clean-native - Remove all build artifacts"
 	@echo "  clean-amalgamation - Remove amalgamation build artifacts"
 	@echo "  clean-embedded-amalgamation - Remove embedded amalgamation build artifacts"
+	@echo "  clean-sqlite - Remove generated SQLite source files"
 	@echo "  generate     - Regenerate source files"
 	@echo "  generate-embedded-db - Generate embedded database header"
 	@echo "  amalgamation - Generate single-file amalgamation"
@@ -166,6 +178,7 @@ help:
 	@echo "  coverage     - Run coverage analysis"
 
 .PHONY: all clean clean-native clean-wasm clean-build clean-amalgamation clean-embedded-amalgamation \
-		configure configure-wasm configure-cpp configure-asan configure-embedded build build-wasm \
-		build-cpp build-asan build-embedded wasm test test-embedded test-cpp test-asan ctest test-docker \
-		generate coverage serve help generate-site update-version generate-embedded-db amalgamation
+		clean-sqlite clean-database configure configure-wasm configure-cpp configure-asan configure-embedded \
+		build build-wasm build-cpp build-asan build-embedded wasm test test-embedded test-cpp test-asan \
+		ctest test-docker generate coverage serve help generate-site update-version generate-embedded-db \
+		amalgamation
