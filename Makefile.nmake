@@ -70,7 +70,7 @@ wasm: build-wasm generate-site
 
 # Generate TESTS.md file
 coverage:
-	@cd utils\generate && bun run coverage
+	@cd utils\generate && npm run coverage
 
 # Generate source files and database
 generate: $(GENERATE_SOURCES)
@@ -86,23 +86,23 @@ generate-locales:
 
 # WASM targets
 amalgamation:
-	@cd utils\generate && bun run generate -- amalgamation
+	@cd utils\generate && npm run generate -- amalgamation
 
 generate-sqlite:
 	@cd utils\sqlite3 && generate-sqlite.bat
 
 # Generate embedded database header
 generate-embedded-db:
-	@cd utils\generate && bun run generate -- embedded-db
+	@cd utils\generate && npm run generate -- embedded-db
 
 generate-site: src\site\index.html
-	@cd utils\generate && bun run generate -- site
+	@cd utils\generate && npm run generate -- site
 
 update-version:
-	@cd utils\generate && bun run generate -- update-version
+	@cd utils\generate && npm run generate -- update-version
 
 watch-site:
-	@cd utils\generate && bunx --bun chokidar-cli "..\..\src\site\**\*" -c "bun run generate -- site && echo [Regenerated]" --initial
+	@cd utils\generate && npx chokidar-cli "..\..\src\site\**\*" -c "npm run generate -- site && echo [Regenerated]" --initial
 
 # Serve WASM site with live reload
 serve: wasm generate-site
