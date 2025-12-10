@@ -22,6 +22,9 @@ option(USE_ASAN "Enable AddressSanitizer" OFF)
 # Embedded database option
 option(USE_EMBEDDED_DB "Use embedded database instead of external file" OFF)
 
+# Shared library option
+option(BUILD_SHARED "Build as shared library instead of static" OFF)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()

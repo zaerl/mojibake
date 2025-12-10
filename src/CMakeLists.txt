@@ -19,7 +19,15 @@ set(SOURCES
     version.c
 )
 
-add_library(mojibake_lib STATIC ${SOURCES})
+# Build as shared or static library based on BUILD_SHARED option
+if(BUILD_SHARED)
+    add_library(mojibake_lib SHARED ${SOURCES})
+else()
+    add_library(mojibake_lib STATIC ${SOURCES})
+endif()
+
+# Link SQLite library
+target_link_libraries(mojibake_lib PRIVATE mojibake_sqlite)
 
 # Force C++ compilation if BUILD_CPP is enabled
 if(BUILD_CPP)
@@ -31,9 +39,6 @@ endif()
 if(USE_EMBEDDED_DB)
     target_compile_definitions(mojibake_lib PRIVATE MJB_USE_EMBEDDED_DB)
 endif()
-
-# Link SQLite library
-# target_link_libraries(mojibake_lib PRIVATE mojibake_sqlite)
 
 # WASM-specific configuration
 if(BUILD_WASM)

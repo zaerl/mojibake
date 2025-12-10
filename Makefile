@@ -35,6 +35,13 @@ configure-cpp: $(SQLITE_SOURCES)
 build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
+# Shared library targets
+configure-shared: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_SHARED=ON
+
+build-shared: configure-shared
+	@cmake --build $(BUILD_DIR)
+
 # AddressSanitizer targets
 configure-asan: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
@@ -155,6 +162,7 @@ help:
 	@echo "Available targets:"
 	@echo "  all          - Build the project (default)"
 	@echo "  build-cpp    - Build the project with C++ compiler"
+	@echo "  build-shared - Build the project as a shared library"
 	@echo "  build-asan   - Build the project with AddressSanitizer"
 	@echo "  build-embedded - Build with embedded database (no .db file needed)"
 	@echo "  test         - Build and run tests"
@@ -178,7 +186,7 @@ help:
 	@echo "  coverage     - Run coverage analysis"
 
 .PHONY: all clean clean-native clean-wasm clean-build clean-amalgamation clean-embedded-amalgamation \
-		clean-sqlite clean-database configure configure-wasm configure-cpp configure-asan configure-embedded \
-		build build-wasm build-cpp build-asan build-embedded wasm test test-embedded test-cpp test-asan \
+		clean-sqlite clean-database configure configure-wasm configure-cpp configure-shared configure-asan configure-embedded \
+		build build-wasm build-cpp build-shared build-asan build-embedded wasm test test-embedded test-cpp test-asan \
 		ctest test-docker generate coverage serve help generate-site update-version generate-embedded-db \
 		amalgamation
