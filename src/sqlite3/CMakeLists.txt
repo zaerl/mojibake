@@ -39,6 +39,7 @@ target_compile_definitions(mojibake_sqlite
     SQLITE_USE_ALLOCA
     SQLITE_STRICT_SUBTYPE=1
     # See generate-sqlite.sh for more details
+    SQLITE_MAX_MMAP_SIZE=0
     SQLITE_OMIT_ALTERTABLE
     SQLITE_OMIT_ANALYZE
     SQLITE_OMIT_AUTHORIZATION
@@ -72,6 +73,7 @@ target_compile_definitions(mojibake_sqlite
     SQLITE_OMIT_TRACE
     SQLITE_OMIT_TRIGGER
     SQLITE_OMIT_UTF16
+    SQLITE_OMIT_WAL
 )
 
 # WASM-specific configuration for SQLite
