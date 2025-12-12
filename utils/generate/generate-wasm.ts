@@ -21,5 +21,5 @@ export function generateWASM() {
     "\n        # Core memory functions",
     getFunctions());
 
-  writeFileSync('../../src/CmakeLists.txt', fileContent);
+  writeFileSync('../../src/CMakeLists.txt', fileContent);
 }
