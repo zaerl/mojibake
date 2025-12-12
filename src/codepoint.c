@@ -13,7 +13,7 @@ extern mojibake mjb_global;
 
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
-    if(codepoint < MJB_CODEPOINT_MIN || codepoint > MJB_CODEPOINT_MAX ||
+    if(codepoint > MJB_CODEPOINT_MAX ||
         (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || // Noncharacter
         (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { // Noncharacter
         return false;
