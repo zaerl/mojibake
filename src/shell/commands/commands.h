@@ -16,8 +16,9 @@ typedef struct mjb_command {
 } command;
 
 int break_command(int argc, char * const argv[], unsigned int flags);
+int case_command(int argc, char * const argv[], unsigned int flags);
 int character_command(int argc, char * const argv[], unsigned int flags);
 int codepoint_command(int argc, char * const argv[], unsigned int flags);
+int filter_command(int argc, char * const argv[], unsigned int flags);
 int normalize_command(int argc, char * const argv[], unsigned int flags);
 int normalize_string_command(int argc, char * const argv[], unsigned int flags);
-int case_command(int argc, char * const argv[], unsigned int flags);

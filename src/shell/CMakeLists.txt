@@ -3,6 +3,7 @@ set(SOURCES
     commands/break.c
     commands/character.c
     commands/codepoint.c
+    commands/filter.c
     commands/normalize.c
     commands/string.c
     main.c
