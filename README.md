@@ -253,5 +253,4 @@ make serve # or similar systems that let you serve static files
 
 Mojibake is built using the work of extraordinary individuals and teams.
 
-1. The `utf8.h` file is Copyright (c) 2014 Taylor R Campbell
-2. SQLite is in the [public domain](https://sqlite.org/copyright.html)
+1. SQLite is in the [public domain](https://sqlite.org/copyright.html)

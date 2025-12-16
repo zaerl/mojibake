@@ -117,28 +117,28 @@ serve: wasm generate-site
 	@cd $(WASM_BUILD_DIR)\src && python -m http.server
 
 # Run tests
-test: BUILD_TYPE = Test
-test: configure build mojibake.db
+test: mojibake.db
+	@nmake /NOLOGO /F Makefile.nmake configure build BUILD_TYPE=Test
 	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with embedded database
-test-embedded: BUILD_TYPE = Test
-test-embedded: configure-embedded build-embedded
+test-embedded:
+	@nmake /NOLOGO /F Makefile.nmake configure-embedded build-embedded BUILD_TYPE=Test
 	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with C++ compiler
-test-cpp: BUILD_TYPE = Test
-test-cpp: configure-cpp build-cpp mojibake.db
+test-cpp: mojibake.db
+	@nmake /NOLOGO /F Makefile.nmake configure-cpp build-cpp BUILD_TYPE=Test
 	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with AddressSanitizer
-test-asan: BUILD_TYPE = Test
-test-asan: configure-asan build-asan mojibake.db
+test-asan: mojibake.db
+	@nmake /NOLOGO /F Makefile.nmake configure-asan build-asan BUILD_TYPE=Test
 	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests using CTest
-ctest: BUILD_TYPE = Test
-ctest: configure build mojibake.db
+ctest: mojibake.db
+	@nmake /NOLOGO /F Makefile.nmake configure build BUILD_TYPE=Test
 	@cd $(BUILD_DIR) && ctest $(ARGS)
 
 # Run tests in Docker container
