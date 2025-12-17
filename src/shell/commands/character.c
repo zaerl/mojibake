@@ -200,13 +200,13 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         if(character->decimal == MJB_NUMBER_NOT_VALID) {
             print_null_value("Decimal", 1);
         } else {
-            print_value("Decimal", 1, "%d", character->decimal);
+            print_numeric_value("Decimal", 1, character->decimal);
         }
 
         if(character->digit == MJB_NUMBER_NOT_VALID) {
             print_null_value("Digit", 1);
         } else {
-            print_value("Digit", 1, "%d", character->digit);
+            print_numeric_value("Digit", 1, character->digit);
         }
 
         if(character->numeric[0] != '\0') {

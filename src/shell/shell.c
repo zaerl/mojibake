@@ -19,7 +19,7 @@ int cmd_show_colors = 0;
 unsigned int cmd_verbose = 0;
 interpret_mode cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
 output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
-unsigned int cmd_json_indent = 2;
+unsigned int cmd_json_indent = 0;
 unsigned int cmd_width = 80;
 
 static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
@@ -190,6 +190,13 @@ void print_bool_value(const char* label, unsigned int nl, bool value) {
     } else {
         print_generic_value(label, nl, value ? "Y" : "N");
     }
+}
+
+void print_numeric_value(const char* label, unsigned int nl, unsigned int value) {
+    char num_str[32];
+    snprintf(num_str, sizeof(num_str), "%u", value);
+
+    print_generic_value(label, nl, num_str);
 }
 
 void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl) {

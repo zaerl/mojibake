@@ -60,6 +60,7 @@ void restore_mode(terminal_state *term_state);
 void print_value(const char* label, unsigned int nl, const char* format, ...);
 void print_null_value(const char* label, unsigned int nl);
 void print_bool_value(const char* label, unsigned int nl, bool value);
+void print_numeric_value(const char* label, unsigned int nl, unsigned int value);
 void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl);
 void print_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normalization form,
     const char *name, const char *label, unsigned int nl);
