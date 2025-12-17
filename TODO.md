@@ -2,6 +2,7 @@
 
 ## Main
 
+- [ ] Check integer output on shell
 - [ ] UTF-16 strings
 - [ ] Add `mjb_casefold`
 - [ ] Check maximum size of combining characters
