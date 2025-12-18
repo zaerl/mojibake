@@ -8,6 +8,7 @@ set(SOURCES
     commands/string.c
     main.c
     maps.c
+    screen.c
     shell.c
 )
 
