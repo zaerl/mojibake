@@ -44,7 +44,7 @@ MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *outp
  * Return size of a string.
  */
 MJB_EXPORT size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding) {
-    if(buffer == 0 || max_length == 0) {
+    if(buffer == NULL || max_length == 0) {
         return 0;
     }
 
