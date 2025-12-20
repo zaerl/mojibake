@@ -109,7 +109,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         snprintf(character->name, 128, "CUNEIFORM SIGN %s", name);
     } else {
         if(name != NULL) {
-            strncpy(character->name, name, 128);
+            strncpy(character->name, name, 127);
+            character->name[127] = '\0';
         } else {
             character->name[0] = '\0';
         }
@@ -138,7 +139,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     char *numeric = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 8);
 
     if(numeric != NULL) {
-        strncpy(character->numeric, numeric, 16);
+        strncpy(character->numeric, numeric, 15);
+        character->numeric[15] = '\0';
     } else {
         character->numeric[0] = '\0';
     }
@@ -224,7 +226,8 @@ MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *blo
     block->id = (mjb_block)raw_id;
 
     if(name != NULL) {
-        strncpy(block->name, name, 128);
+        strncpy(block->name, name, 127);
+        block->name[127] = '\0';
     } else {
         block->name[0] = '\0';
     }
