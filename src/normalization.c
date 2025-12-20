@@ -33,11 +33,14 @@ static void mjb_normalization_sort(mjb_n_character array[], size_t size) {
 static char *mjb_flush_d_buffer(mjb_n_character *characters_buffer, size_t buffer_index,
     char *output, size_t *output_index, size_t *output_size, mjb_normalization form) {
 
-    // Sort combining characters by Canonical Combining Class (required for all forms)
-    if(buffer_index) {
-        mjb_normalization_sort(characters_buffer, buffer_index);
-    } else {
+    if(buffer_index == 0) {
         return output;
+    }
+
+    // Sort combining characters by Canonical Combining Class (required for all forms)
+    // Skip sorting if only one character (already sorted)
+    if(buffer_index > 1) {
+        mjb_normalization_sort(characters_buffer, buffer_index);
     }
 
     // Write combining characters.
@@ -58,11 +61,14 @@ static mjb_buffer_character *mjb_flush_c_buffer(mjb_n_character *characters_buff
     size_t buffer_index, mjb_buffer_character *output, size_t *output_index, size_t *output_size,
     mjb_normalization form) {
 
-    // Sort combining characters by Canonical Combining Class (required for all forms)
-    if(buffer_index) {
-        mjb_normalization_sort(characters_buffer, buffer_index);
-    } else {
+    if(buffer_index == 0) {
         return output;
+    }
+
+    // Sort combining characters by Canonical Combining Class (required for all forms)
+    // Skip sorting if only one character (already sorted)
+    if(buffer_index > 1) {
+        mjb_normalization_sort(characters_buffer, buffer_index);
     }
 
     for(size_t i = 0; i < buffer_index; ++i) {

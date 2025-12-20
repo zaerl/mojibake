@@ -20,7 +20,10 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
     }
 
     if(*output_index + input_size > *output_size) {
-        *output_size *= 2;
+        // Grow to at least fit the required size, doubling if that's larger
+        size_t required = *output_index + input_size;
+        size_t doubled = *output_size * 2;
+        *output_size = (doubled > required) ? doubled : required;
         ret = (char*)mjb_realloc(ret, *output_size);
     }
 
