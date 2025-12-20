@@ -264,8 +264,8 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     // size_t codepoints_count = 0;
 
     // Combining characters buffer.
-    // TODO: set a limit and check it.
-    mjb_n_character characters_buffer[32];
+    #define MJB_MAX_COMBINING_CHARACTERS 32
+    mjb_n_character characters_buffer[MJB_MAX_COMBINING_CHARACTERS];
     size_t buffer_index = 0;
 
     // We directly return the string for NFD/NFKD forms.
@@ -381,6 +381,19 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     buffer_index = 0;
                 }
 
+                if(buffer_index >= MJB_MAX_COMBINING_CHARACTERS) {
+                    // Buffer full, flush and continue
+                    if(is_composition) {
+                        composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                            composition_buffer, &output_index, &result->output_size, form);
+                    } else {
+                        result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                            result->output, &output_index, &result->output_size, form);
+                    }
+
+                    buffer_index = 0;
+                }
+
                 characters_buffer[buffer_index++] = current_character;
                 ++characters_decomposed;
             }
@@ -435,6 +448,19 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     buffer_index = 0;
                 }
 
+                if(buffer_index >= MJB_MAX_COMBINING_CHARACTERS) {
+                    // Buffer full, flush and continue
+                    if(is_composition) {
+                        composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                            composition_buffer, &output_index, &result->output_size, form);
+                    } else {
+                        result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                            result->output, &output_index, &result->output_size, form);
+                    }
+
+                    buffer_index = 0;
+                }
+
                 characters_buffer[buffer_index++] = current_character;
             }
 
@@ -475,6 +501,19 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                     result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
                         result->output, &output_index, &result->output_size, form);
                 }
+                buffer_index = 0;
+            }
+
+            if(buffer_index >= MJB_MAX_COMBINING_CHARACTERS) {
+                // Buffer full, flush and continue
+                if(is_composition) {
+                    composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                        composition_buffer, &output_index, &result->output_size, form);
+                } else {
+                    result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                        result->output, &output_index, &result->output_size, form);
+                }
+
                 buffer_index = 0;
             }
 
