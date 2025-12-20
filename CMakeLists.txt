@@ -7,6 +7,7 @@ project(
     Mojibake
     VERSION 0.0.7
     DESCRIPTION "Mojibake"
+    HOMEPAGE_URL "https://mojibake.zaerl.com"
     LANGUAGES C CXX
 )
 

@@ -28,7 +28,7 @@ endif()
 
 if(WIN32)
     # Suppress warnings for Windows
-    target_compile_options(mojibake-test
+    target_compile_options(mojibake
         PRIVATE
         /wd4996 # Suppress 'the POSIX name for this item is deprecated'
     )
