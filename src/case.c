@@ -115,10 +115,14 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         // sqlite3_clear_bindings(stmt);
 
         if(sqlite3_bind_int(stmt, 1, codepoint) != SQLITE_OK) {
+            mjb_free(output);
+
             return NULL;
         }
 
         if(sqlite3_step(stmt) != SQLITE_ROW) {
+            mjb_free(output);
+
             return NULL;
         }
 
@@ -167,6 +171,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
 
             if(new_output != NULL) {
                 output = new_output;
+
                 continue;
             }
         }
@@ -243,12 +248,16 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         int rc = sqlite3_bind_int(stmt, 1, codepoint);
 
         if(rc != SQLITE_OK) {
+            mjb_free(output);
+
             return NULL;
         }
 
         rc = sqlite3_step(stmt);
 
         if(rc != SQLITE_ROW) {
+            mjb_free(output);
+
             return NULL;
         }
 
