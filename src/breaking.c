@@ -82,8 +82,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         return NULL;
     }
 
-    mjb_lbc_result *results = (mjb_lbc_result*)malloc(real_length * sizeof(mjb_lbc_result));
-    char *breaks = (char*)malloc(real_length + 1);  // real_length + 1 break positions
+    mjb_lbc_result *results = (mjb_lbc_result*)mjb_alloc(real_length * sizeof(mjb_lbc_result));
+    char *breaks = (char*)mjb_alloc(real_length + 1);  // real_length + 1 break positions
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
@@ -542,8 +542,11 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             // Count preceding RI
             size_t ri_count = 0;
 
-            for(size_t j = i - 1; j > 0 && results[j].line_breaking_class == MJB_LBC_RI; --j) {
+            for(size_t j = i - 1; results[j].line_breaking_class == MJB_LBC_RI; --j) {
                 ++ri_count;
+                if(j == 0) {
+                    break;
+                }
             }
 
             if(ri_count % 2 == 1) {
@@ -581,7 +584,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         }
     }
 
-    mjb_line_break *line_breaks = (mjb_line_break*)malloc(num_breaks * sizeof(mjb_line_break));
+    mjb_line_break *line_breaks = (mjb_line_break*)mjb_alloc(num_breaks * sizeof(mjb_line_break));
     j = 0;
 
     for(size_t i = 1; i <= real_length; ++i) {
@@ -596,8 +599,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
 
     *output_size = num_breaks;
 
-    free(results);
-    free(breaks);
+    mjb_free(results);
+    mjb_free(breaks);
 
     return line_breaks;
 }
