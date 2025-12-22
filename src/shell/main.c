@@ -109,7 +109,8 @@ int main(int argc, char * const argv[]) {
         { "char", "Print the characters for the given string", character_command, 0 },
         { "codepoint", "Print the character for the given codepoint", codepoint_command, 0 },
         { "filter", "Filter the input", filter_command,
-            MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES | MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC },
+            MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES |
+            MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC },
         { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
         { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD },
         { "nfc", "Normalize the input to NFC", normalize_command, MJB_NORMALIZATION_NFC },
