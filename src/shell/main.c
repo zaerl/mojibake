@@ -239,7 +239,7 @@ int main(int argc, char * const argv[]) {
 
     if(argc - optind == 1) {
         // Break command has a realtime mode
-        if(strcmp(argv[optind], "break") != 0) {
+        if(!(strcmp(argv[optind], "break") == 0 || strcmp(argv[optind], "filter") == 0)) {
             fprintf(stderr, "No command value specified.\n");
             show_help(long_options, descriptions, commands, NULL);
 
