@@ -10,79 +10,69 @@ GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/genera
 # SQLite source files
 SQLITE_SOURCES = src/sqlite3/sqlite3.c src/sqlite3/sqlite3.h
 
+.PHONY: all configure configure-embedded configure-cpp configure-shared configure-asan configure-wasm
+
 all: configure build mojibake.db
 
 # C targets
 configure: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
-# Embedded database build
+# Embedded database targets
 configure-embedded: $(SQLITE_SOURCES) generate-embedded-db
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_EMBEDDED_DB=ON
+
+# C++ targets
+configure-cpp: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
+
+# Shared library targets
+configure-shared: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_SHARED=ON
+
+# AddressSanitizer targets
+configure-asan: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
+
+# WASM targets
+configure-wasm: $(SQLITE_SOURCES)
+	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
+
+.PHONY: build build-embedded build-cpp build-shared build-asan build-wasm
 
 # C targets
 build: configure
 	@cmake --build $(BUILD_DIR)
 
+# Embedded database targets
 build-embedded: configure-embedded
 	@cmake --build $(BUILD_DIR)
-
-# C++ targets
-configure-cpp: $(SQLITE_SOURCES)
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_CPP=ON
 
 # C++ targets
 build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
 # Shared library targets
-configure-shared: $(SQLITE_SOURCES)
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_SHARED=ON
-
 build-shared: configure-shared
 	@cmake --build $(BUILD_DIR)
-
-# AddressSanitizer targets
-configure-asan: $(SQLITE_SOURCES)
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
 
 build-asan: configure-asan
 	@cmake --build $(BUILD_DIR)
 
 # WASM targets
-configure-wasm: $(SQLITE_SOURCES)
-	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_WASM=ON
-
-# WASM targets
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
-# WASM targets
-wasm: build-wasm generate-site
-
-# Generate TESTS.md file
-coverage:
-	cd ./utils/generate && npm run coverage
+.PHONY: generate generate-locales generate-sqlite generate-embedded-db generate-site wasm coverage \
+		amalgamation
 
 # Generate source files and database
 generate: $(GENERATE_SOURCES)
 	cd ./utils/generate && ./generate.sh $(ARGS)
 
-# Rule for mojibake.db
-mojibake.db: $(GENERATE_SOURCES)
-	cd ./utils/generate && ./generate.sh $(ARGS)
-
 # Generate locale files
 generate-locales:
 	cd ./utils/generate && ./generate-locales.sh
-
-# Generate amalgamation
-amalgamation:
-	cd ./utils/generate && ./generate-amalgamation.sh
-
-# Rule to generate SQLite source files (only if they don't exist)
-$(SQLITE_SOURCES):
-	cd ./utils/sqlite3 && ./generate-sqlite.sh
 
 # Manual target to force regeneration
 generate-sqlite:
@@ -95,15 +85,41 @@ generate-embedded-db:
 generate-site: src/site/index.html
 	cd ./utils/generate && npm run generate -- site
 
+# Generate WASM library
+wasm: build-wasm generate-site
+
+# Generate TESTS.md file
+coverage:
+	cd ./utils/generate && npm run coverage
+
+# Generate amalgamation
+amalgamation:
+	cd ./utils/generate && ./generate-amalgamation.sh
+
+# Rule for mojibake.db
+mojibake.db: $(GENERATE_SOURCES)
+	cd ./utils/generate && ./generate.sh $(ARGS)
+
+# Rule to generate SQLite source files (only if they don't exist)
+$(SQLITE_SOURCES):
+	cd ./utils/sqlite3 && ./generate-sqlite.sh
+
+# Tools
+.PHONY: update-version watch-site serve
+
+# Update version in source files
 update-version:
 	cd ./utils/generate && npm run generate -- update-version
 
+# Watch site files and regenerate site
 watch-site:
 	cd ./utils/generate && npx chokidar-cli "../../src/site/**/*" -c "npm run generate -- site && echo '[Regenerated]'" --initial
 
 # Serve WASM site with live reload
 serve: wasm generate-site
 	cd $(WASM_BUILD_DIR)/src && python3 -m http.server
+
+.PHONY: test test-embedded test-cpp test-asan ctest test-docker
 
 # Run tests
 test: BUILD_TYPE = Test
@@ -135,58 +151,72 @@ test-docker:
 	docker build -t mojibake .
 	docker run mojibake
 
+.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation \
+		clean-database clean-sqlite clean
+
+# Clean targets
 clean-build:
 	@cmake --build $(BUILD_DIR) --target clean
 
+# Clean native build
 clean-native:
 	rm -rf $(BUILD_DIR)
 
+# Clean WASM build
 clean-wasm:
 	rm -rf $(WASM_BUILD_DIR)
 
+# Clean amalgamation build
 clean-amalgamation:
 	rm -rf $(AMALGAMATION_BUILD_DIR)
 
+# Clean embedded amalgamation build
 clean-embedded-amalgamation:
 	rm -rf $(EMBEDDED_AMALGAMATION_BUILD_DIR)
 
+# Clean main database file
 clean-database:
 	rm mojibake.db
 
+# Clean generated SQLite source files
 clean-sqlite:
 	rm -f $(SQLITE_SOURCES)
 
 clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database clean-sqlite
 
+.PHONY: help
+
 help:
 	@echo "Available targets:"
 	@echo "  all          - Build the project (default)"
+	@echo "  build-embedded - Build with embedded database (no .db file needed)"
 	@echo "  build-cpp    - Build the project with C++ compiler"
 	@echo "  build-shared - Build the project as a shared library"
 	@echo "  build-asan   - Build the project with AddressSanitizer"
-	@echo "  build-embedded - Build with embedded database (no .db file needed)"
+	@echo "  build-wasm"  - Build the project for WebAssembly"
+	@echo "  generate     - Regenerate source files"
+	@echo "  generate-locales - Generate locale files"
+	@echo "  generate-sqlite - Generate SQLite source files"
+	@echo "  generate-embedded-db - Generate embedded database header"
+	@echo "  generate-site - Generate site"
+	@echo "  wasm         - Build the project for WebAssembly"
+	@echo "  coverage     - Run coverage analysis"
+	@echo "  amalgamation - Generate single-file amalgamation"
+	@echo "  update-version - Update version in source files"
+	@echo "  watch-site   - Watch site files and regenerate site"
+	@echo "  serve        - Serve site"
 	@echo "  test         - Build and run tests"
 	@echo "  test-embedded - Build and run tests with embedded database"
 	@echo "  test-cpp     - Build and run tests with C++ compiler"
 	@echo "  test-asan    - Build and run tests with AddressSanitizer"
 	@echo "  ctest        - Build and run tests using CTest"
 	@echo "  test-docker  - Build and run tests in Docker container"
-	@echo "  wasm         - Build the project for WebAssembly"
-	@echo "  serve        - Serve site"
-	@echo "  clean        - Remove build artifacts"
-	@echo "  clean-wasm   - Remove WASM build artifacts"
+	@echo "  clean-build  - Remove build artifacts"
 	@echo "  clean-native - Remove all build artifacts"
+	@echo "  clean-wasm   - Remove WASM build artifacts"
 	@echo "  clean-amalgamation - Remove amalgamation build artifacts"
 	@echo "  clean-embedded-amalgamation - Remove embedded amalgamation build artifacts"
+	@echo "  clean-database - Remove main database file"
 	@echo "  clean-sqlite - Remove generated SQLite source files"
-	@echo "  generate     - Regenerate source files"
-	@echo "  generate-embedded-db - Generate embedded database header"
-	@echo "  amalgamation - Generate single-file amalgamation"
-	@echo "  update-version - Update version in source files"
-	@echo "  coverage     - Run coverage analysis"
+	@echo "  clean        - Remove build artifacts"
 
-.PHONY: all clean clean-native clean-wasm clean-build clean-amalgamation clean-embedded-amalgamation \
-		clean-sqlite clean-database configure configure-wasm configure-cpp configure-shared configure-asan configure-embedded \
-		build build-wasm build-cpp build-shared build-asan build-embedded wasm test test-embedded test-cpp test-asan \
-		ctest test-docker generate coverage serve help generate-site update-version generate-embedded-db \
-		amalgamation
