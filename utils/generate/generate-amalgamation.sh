@@ -21,9 +21,15 @@ VERSION=$(cat ../../VERSION | tr -d ' \n.' )
 
 cd ../../build-amalgamation
 rm -f ../build-wasm/src/mojibake-amalgamation-${VERSION}.zip
+
+echo "Creating amalgamation zip file..."
 zip ../build-wasm/src/mojibake-amalgamation-${VERSION}.zip mojibake.h mojibake.c mojibake.db
-zip ../build-wasm/src/mojibake-wasm-${VERSION}.zip mojibake.js mojibake.wasm mojibake.db
 
 cd ../build-embedded-amalgamation
 rm -f ../build-wasm/src/mojibake-embedded-amalgamation-${VERSION}.zip
+
+echo "Creating embedded amalgamation zip file..."
 zip ../build-wasm/src/mojibake-embedded-amalgamation-${VERSION}.zip mojibake.h mojibake.c
+
+echo "Creating WASM zip file..."
+zip ../build-wasm/src/mojibake-wasm-${VERSION}.zip mojibake.js mojibake.wasm mojibake.db

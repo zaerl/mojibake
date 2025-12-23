@@ -174,6 +174,9 @@ clean-amalgamation:
 clean-embedded-amalgamation:
 	rm -rf $(EMBEDDED_AMALGAMATION_BUILD_DIR)
 
+clean-embedded-amalgamation-header:
+	rm -f src/embedded-db.h
+
 # Clean main database file
 clean-database:
 	rm mojibake.db
@@ -182,7 +185,7 @@ clean-database:
 clean-sqlite:
 	rm -f $(SQLITE_SOURCES)
 
-clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database clean-sqlite
+clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-embedded-amalgamation-header clean-database clean-sqlite
 
 .PHONY: help
 
