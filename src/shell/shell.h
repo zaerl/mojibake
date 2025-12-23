@@ -11,38 +11,38 @@
  typedef enum {
     INTERPRET_MODE_CODEPOINT,
     INTERPRET_MODE_CHARACTER
-} interpret_mode;
+} mjbsh_interpret_mode;
 
 typedef enum {
     OUTPUT_MODE_PLAIN,
     OUTPUT_MODE_JSON
-} output_mode;
+} mjbsh_output_mode;
 
 extern int cmd_show_colors;
 extern unsigned int cmd_verbose;
-extern interpret_mode cmd_interpret_mode;
-extern output_mode cmd_output_mode;
+extern mjbsh_interpret_mode cmd_interpret_mode;
+extern mjbsh_output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
 extern unsigned int cmd_width;
 
-bool print_escaped_character(const char *buffer_utf8);
+bool mjbsh_print_escaped_character(const char *buffer_utf8);
 
 // Color formatting helper functions
-const char* color_green_start(void);
-const char* color_red_start(void);
-const char* color_reset(void);
-void show_cursor(bool show);
+const char* mjbsh_green(void);
+const char* mjbsh_red(void);
+const char* mjbsh_reset(void);
+void mjbsh_show_cursor(bool show);
 
-void print_value(const char* label, unsigned int nl, const char* format, ...);
-void print_null_value(const char* label, unsigned int nl);
-void print_bool_value(const char* label, unsigned int nl, bool value);
-void print_numeric_value(const char* label, unsigned int nl, unsigned int value);
-void print_id_name_value(const char* label, unsigned int id, const char* name, unsigned int nl);
-void print_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normalization form,
+void mjbsh_value(const char* label, unsigned int nl, const char* format, ...);
+void mjbsh_null(const char* label, unsigned int nl);
+void mjbsh_bool(const char* label, unsigned int nl, bool value);
+void mjbsh_numeric(const char* label, unsigned int nl, unsigned int value);
+void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigned int nl);
+void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normalization form,
     const char *name, const char *label, unsigned int nl);
-void print_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint);
+void mjbsh_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint);
 
-bool parse_codepoint(const char *input, mjb_codepoint *codepoint);
+bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint);
 
-const char* json_i(void);
-const char* json_nl(void);
+const char* mjbsh_json_i(void);
+const char* mjbsh_json_nl(void);

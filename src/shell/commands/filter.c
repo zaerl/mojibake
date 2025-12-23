@@ -33,7 +33,7 @@ static void print_filter_analysis(const char* input) {
 }
 
 void display_filter_output(const char* input) {
-    clear_screen();
+    mjbsh_clear_screen();
     printf("Filter the input\n");
     printf("Ctrl+C or ESC to exit\n");
 
@@ -48,8 +48,8 @@ void display_filter_output(const char* input) {
     fflush(stdout);
 }
 
-int filter_command(int argc, char * const argv[], unsigned int flags) {
-    filter_flags = flags;
+int mjbsh_filter_command(int argc, char * const argv[], unsigned int flags) {
+    filter_flags = (mjb_filter)flags;
 
     if(argc != 0) {
         print_filter_analysis(argv[0]);
@@ -57,7 +57,7 @@ int filter_command(int argc, char * const argv[], unsigned int flags) {
         return 0;
     }
 
-    screen_mode(display_filter_output);
+    mjbsh_screen_mode(display_filter_output);
 
     return 0;
 }

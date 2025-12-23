@@ -6,19 +6,19 @@
 
 #include "../../mojibake.h"
 
-typedef int (*command_function)(int argc, char * const argv[], unsigned int flags);
+typedef int (*mjbsh_command_function)(int argc, char * const argv[], unsigned int flags);
 
 typedef struct mjb_command {
     const char *name;
     const char *description;
-    command_function function;
+    mjbsh_command_function function;
     unsigned int flags;
-} command;
+} mjbsh_command;
 
-int break_command(int argc, char * const argv[], unsigned int flags);
-int case_command(int argc, char * const argv[], unsigned int flags);
-int character_command(int argc, char * const argv[], unsigned int flags);
-int codepoint_command(int argc, char * const argv[], unsigned int flags);
-int filter_command(int argc, char * const argv[], unsigned int flags);
-int normalize_command(int argc, char * const argv[], unsigned int flags);
-int normalize_string_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_break_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_case_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_character_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_codepoint_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_filter_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int flags);

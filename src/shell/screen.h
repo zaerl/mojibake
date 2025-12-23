@@ -9,12 +9,12 @@
 #ifndef MJB_SCREEN_H
 #define MJB_SCREEN_H
 
-typedef void (*screen_fn)(const char* input);
+typedef void (*mjbsh_screen_fn)(const char* input);
 
-void clear_screen(void);
-void screen_mode(screen_fn fn);
+void mjbsh_clear_screen(void);
+void mjbsh_screen_mode(mjbsh_screen_fn fn);
 
-void table_top(void);
-void table_bottom(void);
+void mjbsh_table_top(void);
+void mjbsh_table_bottom(void);
 
 #endif // MJB_SCREEN_H

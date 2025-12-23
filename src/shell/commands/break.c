@@ -69,7 +69,7 @@ static void print_break_analysis(const char* input) {
             mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
             if(is_control_picture) {
-                printf("%s%s%s", color_green_start(), buffer_utf8, color_reset());
+                printf("%s%s%s", mjbsh_green(), buffer_utf8, mjbsh_reset());
             } else {
                 printf("%s", buffer_utf8);
             }
@@ -85,8 +85,8 @@ static void print_break_analysis(const char* input) {
     if(output_size > 0) {
         for(size_t i = 0; i < input_real_size; ++i) {
             if(check_break && i == line_breaks[breaks_index].index) {
-                printf("%s%s%s", color_green_start(), line_breaks[breaks_index].mandatory ? "!" :
-                    "÷", color_reset());
+                printf("%s%s%s", mjbsh_green(), line_breaks[breaks_index].mandatory ? "!" :
+                    "÷", mjbsh_reset());
 
                 if(breaks_index == output_size - 1) {
                     check_break = false;
@@ -103,7 +103,7 @@ static void print_break_analysis(const char* input) {
         fflush(stdout);
     }
 
-    table_top();
+    mjbsh_table_top();
 
     unsigned int column = 0;
     unsigned int current_i = 0;
@@ -150,10 +150,10 @@ static void print_break_analysis(const char* input) {
             mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
             if(is_overflow) {
-                printf("%s%s%s", color_red_start(), buffer_utf8, color_reset());
+                printf("%s%s%s", mjbsh_red(), buffer_utf8, mjbsh_reset());
             } else {
                 if(is_control_picture) {
-                    printf("%s%s%s", color_green_start(), buffer_utf8, color_reset());
+                    printf("%s%s%s", mjbsh_green(), buffer_utf8, mjbsh_reset());
                 } else {
                     printf("%s", buffer_utf8);
                 }
@@ -168,12 +168,12 @@ static void print_break_analysis(const char* input) {
         flush_line(column);
     }
 
-    table_bottom();
+    mjbsh_table_bottom();
     free(line_breaks);
 }
 
-void display_break_output(const char* input) {
-    clear_screen();
+static void display_break_output(const char* input) {
+    mjbsh_clear_screen();
     printf("Break the input into line breaks\n");
     printf("Ctrl+C or ESC to exit\n");
 
@@ -188,14 +188,14 @@ void display_break_output(const char* input) {
     fflush(stdout);
 }
 
-int break_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_break_command(int argc, char * const argv[], unsigned int flags) {
     if(argc != 0) {
         print_break_analysis(argv[0]);
 
         return 0;
     }
 
-    screen_mode(display_break_output);
+    mjbsh_screen_mode(display_break_output);
 
     return 0;
 }

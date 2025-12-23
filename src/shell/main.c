@@ -24,16 +24,16 @@
 #include "maps.h"
 #include "shell.h"
 
-int show_version(void) {
+static int show_version(void) {
     mjb_character character;
     bool valid = mjb_codepoint_character(MJB_VERSION_NUMBER, &character);
 
-    printf("Mojibake %sv%s [%s]%s\n", color_green_start(), mjb_version(), valid ? character.name : "UNKNOWN", color_reset());
+    printf("Mojibake %sv%s [%s]%s\n", mjbsh_green(), mjb_version(), valid ? character.name : "UNKNOWN", mjbsh_reset());
 
     return 0;
  }
 
-void show_help(struct option options[], const char *descriptions[], command commands[], const char *error) {
+static void show_help(struct option options[], const char *descriptions[], mjbsh_command commands[], const char *error) {
     FILE *stream = error ? stderr : stdout;
 
     fprintf(stream, "%s%sUsage: mojibake [options...] <command> [<args>]\n\nMojibake client [v%s]\n\n",
@@ -56,18 +56,6 @@ void show_help(struct option options[], const char *descriptions[], command comm
     for(unsigned long i = 0; commands[i].name != NULL; ++i) {
         fprintf(stream, "  %s\n\t%s\n", commands[i].name, commands[i].description);
     }
-}
-
-bool get_interpret_mode(const char *input) {
-    if(strcmp(input, "code") == 0) {
-        cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
-    } else if(strcmp(input, "char") == 0) {
-        cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
-    } else {
-        return false;
-    }
-
-    return true;
 }
 
 int main(int argc, char * const argv[]) {
@@ -104,20 +92,20 @@ int main(int argc, char * const argv[]) {
         "Width of output"
     };
 
-    command commands[] = {
-        { "break", "Break the input into line breaks", break_command, 0 },
-        { "char", "Print the characters for the given string", character_command, 0 },
-        { "codepoint", "Print the character for the given codepoint", codepoint_command, 0 },
-        { "filter", "Filter the input", filter_command,
+    mjbsh_command commands[] = {
+        { "break", "Break the input into line breaks", mjbsh_break_command, 0 },
+        { "char", "Print the characters for the given string", mjbsh_character_command, 0 },
+        { "codepoint", "Print the character for the given codepoint", mjbsh_codepoint_command, 0 },
+        { "filter", "Filter the input", mjbsh_filter_command,
             MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES |
             MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC },
-        { "nfd", "Normalize the input to NFD", normalize_command, MJB_NORMALIZATION_NFD },
-        { "nfkd", "Normalize the input to NFKD", normalize_command, MJB_NORMALIZATION_NFKD },
-        { "nfc", "Normalize the input to NFC", normalize_command, MJB_NORMALIZATION_NFC },
-        { "nfkc", "Normalize the input to NFKC", normalize_command, MJB_NORMALIZATION_NFKC },
-        { "upper", "Convert the input to uppercase", case_command, MJB_CASE_UPPER },
-        { "lower", "Convert the input to lowercase", case_command, MJB_CASE_LOWER },
-        { "title", "Convert the input to titlecase", case_command, MJB_CASE_TITLE },
+        { "nfd", "Normalize the input to NFD", mjbsh_normalize_command, MJB_NORMALIZATION_NFD },
+        { "nfkd", "Normalize the input to NFKD", mjbsh_normalize_command, MJB_NORMALIZATION_NFKD },
+        { "nfc", "Normalize the input to NFC", mjbsh_normalize_command, MJB_NORMALIZATION_NFC },
+        { "nfkc", "Normalize the input to NFKC", mjbsh_normalize_command, MJB_NORMALIZATION_NFKC },
+        { "upper", "Convert the input to uppercase", mjbsh_case_command, MJB_CASE_UPPER },
+        { "lower", "Convert the input to lowercase", mjbsh_case_command, MJB_CASE_LOWER },
+        { "title", "Convert the input to titlecase", mjbsh_case_command, MJB_CASE_TITLE },
         { NULL, NULL, NULL, 0 }
     };
 

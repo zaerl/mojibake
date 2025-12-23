@@ -24,9 +24,9 @@ int normalize_string_command(int argc, char * const argv[], unsigned int flags) 
         return 1;
     }
 
-    printf("%s", color_green_start());
-    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, next_string_character);
-    printf("%s", color_reset());
+    printf("%s", mjbsh_green());
+    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, mjbsh_next_string_character);
+    printf("%s", mjbsh_reset());
     puts("");
 
     if(result.output != NULL && result.output != argv[0]) {
@@ -36,7 +36,7 @@ int normalize_string_command(int argc, char * const argv[], unsigned int flags) 
     return 0;
 }
 
-int normalize_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
     if(cmd_interpret_mode == INTERPRET_MODE_CHARACTER) {
         return normalize_string_command(argc, argv, flags);
     }
@@ -48,7 +48,7 @@ int normalize_command(int argc, char * const argv[], unsigned int flags) {
     for(int i = 0; i < argc; ++i) {
         mjb_codepoint codepoint = 0;
 
-        if(!parse_codepoint(argv[i], &codepoint)) {
+        if(!mjbsh_parse_codepoint(argv[i], &codepoint)) {
             fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
 
             free(codepoints);
@@ -72,7 +72,7 @@ int normalize_command(int argc, char * const argv[], unsigned int flags) {
         return 1;
     }
 
-    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, next_character);
+    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, mjbsh_next_character);
     puts("");
 
     if(result.output != NULL && result.output != codepoints) {

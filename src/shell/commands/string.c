@@ -14,7 +14,7 @@ static char *get_case_string(const char *buffer, size_t size, mjb_case_type type
     return mjb_case(buffer, size, type, encoding);
 }
 
-int case_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_case_command(int argc, char * const argv[], unsigned int flags) {
     char *output = get_case_string(argv[0], strlen(argv[0]), (mjb_case_type)flags, MJB_ENCODING_UTF_8);
 
     if(output == NULL) {

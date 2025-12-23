@@ -8,7 +8,7 @@
 
 #include "commands.h"
 
-int codepoint_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_codepoint_command(int argc, char * const argv[], unsigned int flags) {
     char buffer[5];
 
     mjb_codepoint codepoint;
@@ -25,5 +25,5 @@ int codepoint_command(int argc, char * const argv[], unsigned int flags) {
 
     char *argv_buffer[] = { buffer };
 
-    return character_command(1, argv_buffer, flags);
+    return mjbsh_character_command(1, argv_buffer, flags);
 }

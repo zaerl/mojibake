@@ -39,7 +39,7 @@ static terminal_state *saved_term_state = NULL;
 // Cleanup function to restore terminal and show cursor
 static void cleanup_terminal(void) {
     if(in_raw_mode && saved_term_state != NULL) {
-        show_cursor(true);
+        mjbsh_show_cursor(true);
         fflush(stdout);
 
 #ifdef _WIN32
@@ -108,12 +108,12 @@ void restore_mode(terminal_state *term_state) {
 }
 #endif
 
-void clear_screen(void) {
+void mjbsh_clear_screen(void) {
     printf("\033[2J\033[H");
     fflush(stdout);
 }
 
-void screen_mode(screen_fn fn) {
+void mjbsh_screen_mode(mjbsh_screen_fn fn) {
     terminal_state term_state;
 
 #ifdef _WIN32
@@ -144,7 +144,7 @@ void screen_mode(screen_fn fn) {
     set_raw_mode(&term_state);
 
     in_raw_mode = true;
-    show_cursor(false);
+    mjbsh_show_cursor(false);
 
     while(1) {
 #ifdef _WIN32
@@ -214,9 +214,9 @@ void screen_mode(screen_fn fn) {
     // Show cursor and restore terminal mode
     in_raw_mode = false;
 
-    show_cursor(true);
+    mjbsh_show_cursor(true);
     restore_mode(&term_state);
-    clear_screen();
+    mjbsh_clear_screen();
 
     // Restore signal handlers
 #ifdef _WIN32
@@ -230,7 +230,7 @@ void screen_mode(screen_fn fn) {
     saved_term_state = NULL;
 }
 
-void table_top(void) {
+void mjbsh_table_top(void) {
     printf("┌");
 
     for(unsigned int i = 0; i < cmd_width; i++) {
@@ -240,7 +240,7 @@ void table_top(void) {
     printf("┐\n");
 }
 
-void table_bottom(void) {
+void mjbsh_table_bottom(void) {
     printf("└");
 
     for(unsigned int i = 0; i < cmd_width; i++) {

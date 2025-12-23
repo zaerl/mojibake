@@ -9,7 +9,7 @@
 
 #include "maps.h"
 
-static const char *category_names[] = {
+static const char *mjbsh_category_names[] = {
     "Letter, uppercase",          // MJB_CATEGORY_LU
     "Letter, lowercase",          // MJB_CATEGORY_LL
     "Letter, titlecase",          // MJB_CATEGORY_LT
@@ -42,7 +42,7 @@ static const char *category_names[] = {
     "Other, not assigned"         // MJB_CATEGORY_CN
 };
 
-static const char *ccc_names[] = {
+static const char *mjbsh_ccc_names[] = {
     "Not reordered",        // MJB_CCC_NOT_REORDERED
     "Overlays",             // MJB_CCC_OVERLAYS
     NULL,
@@ -55,7 +55,7 @@ static const char *ccc_names[] = {
     "Virama",               // MJB_CCC_VIRAMA
 };
 
-static const char *ccc_names_200_to_240[] = {
+static const char *mjbsh_ccc_names_200_to_240[] = {
     "Below left attached",  // MJB_CCC_BELOW_LEFT_ATTACHED
     NULL,
     "Below attached",       // MJB_CCC_BELOW_ATTACHED
@@ -93,7 +93,7 @@ static const char *ccc_names_200_to_240[] = {
     "Double above",         // MJB_CCC_DOUBLE_ABOVE
 };
 
-static const char *bidi_names[] = {
+static const char *mjbsh_bidi_names[] = {
     "None",                       // MJB_BIDI_NONE
     "Left-to-right",              // MJB_BIDI_L
     "Right-to-left",              // MJB_BIDI_R
@@ -120,7 +120,7 @@ static const char *bidi_names[] = {
     "Pop directional isolate",    // MJB_BIDI_PDI
 };
 
-static const char *decomposition_names[] = {
+static const char *mjbsh_decomposition_names[] = {
     "None",                // MJB_DECOMPOSITION_NONE
     "Canonical",           // MJB_DECOMPOSITION_CANONICAL
     "Circle",              // MJB_DECOMPOSITION_CIRCLE
@@ -141,7 +141,7 @@ static const char *decomposition_names[] = {
     "Wide",                // MJB_DECOMPOSITION_WIDE
 };
 
-static const char *line_breaking_class_names[] = {
+static const char *mjbsh_line_breaking_class_names[] = {
    // Non-tailorable Line Breaking Classes
    "BK", // Mandatory Break
    "CR", // Carriage Return
@@ -201,7 +201,7 @@ static const char *line_breaking_class_names[] = {
    "XX"  // Unknown
 };
 
-static const char *east_asian_width_names[] = {
+static const char *mjbsh_east_asian_width_names[] = {
     "Ambiguous", // MJB_EAW_AMBIGUOUS
     "Full-width", // MJB_EAW_FULL_WIDTH
     "Half-width", // MJB_EAW_HALF_WIDTH
@@ -210,29 +210,29 @@ static const char *east_asian_width_names[] = {
     "Wide" // MJB_EAW_WIDE
 };
 
-const char *decomposition_name(mjb_decomposition decomposition) {
+const char *mjbsh_decomposition_name(mjb_decomposition decomposition) {
     if(decomposition > MJB_DECOMPOSITION_WIDE) {
         return "Unknown";
     }
 
-    return decomposition_names[decomposition];
+    return mjbsh_decomposition_names[decomposition];
 }
 
-const char *category_name(mjb_category category) {
+const char *mjbsh_category_name(mjb_category category) {
     if(category >= MJB_CATEGORY_COUNT) {
         return "Unknown";
     }
 
-    return category_names[category];
+    return mjbsh_category_names[category];
 }
 
-char *ccc_name(mjb_canonical_combining_class ccc) {
+char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
     if(ccc > MJB_CCC_BELOW_IOTA) {
         return strdup("Unknown");
     }
 
     if(ccc < MJB_CCC_10) {
-        return strdup(ccc_names[ccc] ? ccc_names[ccc] : "Unknown");
+        return strdup(mjbsh_ccc_names[ccc] ? mjbsh_ccc_names[ccc] : "Unknown");
     }
 
     if(ccc <= MJB_CCC_36 || ccc == MJB_CCC_84 || ccc == MJB_CCC_91 || ccc == MJB_CCC_103 ||
@@ -248,8 +248,8 @@ char *ccc_name(mjb_canonical_combining_class ccc) {
     }
 
     if(ccc >= MJB_CCC_BELOW_LEFT_ATTACHED && ccc <= MJB_CCC_DOUBLE_ABOVE) {
-        return strdup(ccc_names_200_to_240[ccc - MJB_CCC_BELOW_LEFT_ATTACHED] ?
-            ccc_names_200_to_240[ccc - MJB_CCC_BELOW_LEFT_ATTACHED] : "Unknown");
+        return strdup(mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_BELOW_LEFT_ATTACHED] ?
+            mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_BELOW_LEFT_ATTACHED] : "Unknown");
     }
 
     if(ccc == MJB_CCC_BELOW_IOTA) {
@@ -259,26 +259,26 @@ char *ccc_name(mjb_canonical_combining_class ccc) {
     return strdup("Unknown");
 }
 
-const char *bidi_name(mjb_bidi_categories bidi) {
+const char *mjbsh_bidi_name(mjb_bidi_categories bidi) {
     if(bidi >= MJB_BIDI_COUNT) {
         return "Unknown";
     }
 
-    return bidi_names[bidi];
+    return mjbsh_bidi_names[bidi];
 }
 
-const char *line_breaking_class_name(mjb_line_breaking_class line_breaking_class) {
+const char *mjbsh_line_breaking_class_name(mjb_line_breaking_class line_breaking_class) {
     if(line_breaking_class >= MJB_LBC_COUNT) {
         return "XX";
     }
 
-    return line_breaking_class_names[line_breaking_class];
+    return mjbsh_line_breaking_class_names[line_breaking_class];
 }
 
-const char *east_asian_width_name(mjb_east_asian_width east_asian_width) {
+const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width) {
     if(east_asian_width >= MJB_EAW_COUNT) {
         return "Unknown";
     }
 
-    return east_asian_width_names[east_asian_width];
+    return mjbsh_east_asian_width_names[east_asian_width];
 }
