@@ -102,6 +102,14 @@ const char* color_reset(void) {
     return cmd_show_colors ? "\x1B[0m" : "";
 }
 
+void show_cursor(bool show) {
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        return;
+    }
+
+    printf("\x1B[?25%s", show ? "h" : "l");
+}
+
 void print_value(const char* label, unsigned int nl, const char* format, ...) {
     va_list args;
     va_start(args, format);

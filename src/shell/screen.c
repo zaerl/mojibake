@@ -5,10 +5,7 @@
  */
 
 #include <stdio.h>
-
-#ifndef _WIN32
-    #include <sys/select.h>
-#endif
+#include <stdbool.h>
 
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
@@ -23,6 +20,8 @@
         DWORD orig_mode;
     } terminal_state;
 #else
+    #include <signal.h>
+    #include <sys/select.h>
     #include <termios.h>
     #include <unistd.h>
 
@@ -32,6 +31,54 @@
 
 #include "screen.h"
 #include "shell.h"
+
+// Global state for signal handling
+static bool in_raw_mode = false;
+static terminal_state *saved_term_state = NULL;
+
+// Cleanup function to restore terminal and show cursor
+static void cleanup_terminal(void) {
+    if(in_raw_mode && saved_term_state != NULL) {
+        show_cursor(true);
+        fflush(stdout);
+
+#ifdef _WIN32
+        SetConsoleMode(saved_term_state->h_stdin, saved_term_state->orig_mode);
+#else
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, saved_term_state);
+#endif
+
+        in_raw_mode = false;
+        saved_term_state = NULL;
+    }
+}
+
+#ifdef _WIN32
+// Windows console control handler
+static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type) {
+    switch(ctrl_type) {
+        case CTRL_C_EVENT:
+        case CTRL_BREAK_EVENT:
+        case CTRL_CLOSE_EVENT:
+        case CTRL_LOGOFF_EVENT:
+        case CTRL_SHUTDOWN_EVENT:
+            cleanup_terminal();
+
+            return FALSE;  // Let default handler terminate
+        default:
+            return FALSE;
+    }
+}
+#else
+// POSIX signal handler
+static void signal_handler(int signum) {
+    cleanup_terminal();
+
+    // Re-raise the signal with default handler
+    signal(signum, SIG_DFL);
+    raise(signum);
+}
+#endif
 
 #ifdef _WIN32
 void set_raw_mode(terminal_state *term_state) {
@@ -74,8 +121,19 @@ void screen_mode(screen_fn fn) {
     term_state.h_stdin = GetStdHandle(STD_INPUT_HANDLE);
     GetConsoleMode(term_state.h_stdin, &term_state.orig_mode);
 #else
-    // Unix-specific initialization
+    // POSIX-specific initialization
     tcgetattr(STDIN_FILENO, &term_state);
+#endif
+
+    // Set up signal handling
+    saved_term_state = &term_state;
+
+#ifdef _WIN32
+    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+#else
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+    signal(SIGHUP, signal_handler);
 #endif
 
     char input_buffer[1024] = {0};
@@ -84,6 +142,9 @@ void screen_mode(screen_fn fn) {
 
     fn("");
     set_raw_mode(&term_state);
+
+    in_raw_mode = true;
+    show_cursor(false);
 
     while(1) {
 #ifdef _WIN32
@@ -150,8 +211,23 @@ void screen_mode(screen_fn fn) {
 #endif
     }
 
+    // Show cursor and restore terminal mode
+    in_raw_mode = false;
+
+    show_cursor(true);
     restore_mode(&term_state);
     clear_screen();
+
+    // Restore signal handlers
+#ifdef _WIN32
+    SetConsoleCtrlHandler(console_ctrl_handler, FALSE);
+#else
+    signal(SIGINT, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
+    signal(SIGHUP, SIG_DFL);
+#endif
+
+    saved_term_state = NULL;
 }
 
 void table_top(void) {
