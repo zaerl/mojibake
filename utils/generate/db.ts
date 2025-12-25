@@ -124,7 +124,6 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       composite_codepoint INTEGER NOT NULL,
       PRIMARY KEY (starter_codepoint, combining_codepoint)
     );
-    CREATE INDEX idx_compositions_starter_combining ON compositions(starter_codepoint, combining_codepoint);
   `);
 
   db.exec(`
@@ -136,7 +135,6 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       new_case_3 INTEGER,
       PRIMARY KEY (codepoint, case_type)
     );
-    CREATE INDEX idx_special_casing_codepoint ON special_casing(codepoint, case_type);
   `);
   db.exec(`
     CREATE TABLE IF NOT EXISTS emoji_properties (
@@ -408,7 +406,5 @@ export function dbRunEmojiProperties(emojiProperties: Emoji[]) {
 export function dbRunAfter() {
   db.pragma('optimize');
   db.exec('ANALYZE;');
-  db.exec('DROP TABLE IF EXISTS sqlite_stat1;');
-  db.exec('DROP TABLE IF EXISTS sqlite_stat4;');
   db.exec('VACUUM;');
 }
