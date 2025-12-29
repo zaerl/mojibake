@@ -69,3 +69,26 @@ export function getVersion() {
     version: `${major}.${minor}.${revision}`,
   }
 }
+
+export function compressName(codepoint: number, name: string): string | null {
+  // Strip away egyptian names
+  if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
+    if(codepoint >= 0x13460) {
+      return null;
+    } else {
+      return name.replace('EGYPTIAN HIEROGLYPH ', '');
+    }
+  } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
+    // CJK Compatibility Ideographs
+    return null;
+  } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
+    // Anatolian Hieroglyphs
+    return name.replace('ANATOLIAN HIEROGLYPH A', '');
+  } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
+    (codepoint >= 0x12480 && codepoint <= 0x12543)) {
+    // Cuneiform signs
+    return name.replace('CUNEIFORM SIGN ', '');
+  }
+
+  return name;
+}
