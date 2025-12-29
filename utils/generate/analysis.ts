@@ -12,6 +12,7 @@ import { commonPrefix } from './utils';
 export class Analysis {
   categoryBuffer: { [name: string]: number } = {};
   nameBuffer: { [name: string]: number } = {};
+  prefixesBuffer: { [name: string]: number } = {};
 
   combinings = 0;
   decompositions = 0;
@@ -107,6 +108,16 @@ export class Analysis {
         ++this.categoryBuffer[category];
       }
     }
+
+    if(words.length >= 2) {
+      const prefix = words[0] + ' ' + words[1];
+
+      if(typeof(this.prefixesBuffer[prefix]) === 'undefined') {
+        this.prefixesBuffer[prefix] = 1;
+      } else {
+        ++this.prefixesBuffer[prefix];
+      }
+    }
   }
 
   decomposition(decomposition: Decomposition): void {
@@ -170,6 +181,17 @@ export class Analysis {
     }
 
     iLog(`\nWORDS: ${Object.keys(this.nameBuffer).length}`);
+
+    let wordsBiggerThan2 = 0;
+
+    for(const name in Object.keys(this.nameBuffer)) {
+      if(name.length > 1) {
+        ++wordsBiggerThan2;
+      }
+    }
+
+    iLog(`WORDS BIGGER THAN 2 BYTES: ${wordsBiggerThan2}\n`);
+
     iLog(`SPACES: ${this.spacesCount}\n`);
 
     // Calculate compressed count words by characters
@@ -182,9 +204,16 @@ export class Analysis {
       ret.push({ name, count: this.nameBuffer[name] });
     }
 
+    for(const name in this.prefixesBuffer) {
+      ret.push({ name, count: this.prefixesBuffer[name] });
+    }
+
     ret.sort(this.compareFn);
     buffer = [];
     prevCount = ret[0].count;
+
+    let oneCharSpace = 0;
+    let totalSpace = 0;
 
     for(const entry of ret) {
       buffer.push(entry.name);
@@ -196,7 +225,13 @@ export class Analysis {
 
       if(entry.count !== prevCount) {
         const line = buffer.length > 10 ? buffer.slice(0, 10).join(', ') + '...' : buffer.join(', ');
-        log(`${entry.count}: ${line}`);
+        const oneChar = entry.count * buffer.length;
+        const total = entry.name.length * oneChar;
+
+        oneCharSpace += oneChar;
+        totalSpace += total;
+
+        log(`${entry.count} (${oneChar}/${total} bytes): ${line}`);
 
         prevCount = entry.count;
         buffer = [];
@@ -204,6 +239,7 @@ export class Analysis {
     }
 
     iLog(`COMPRESSED BYTES: ${compressedCount}\n`);
+    iLog(`ONE CHAR SPACE COMPRESSED: (${(totalSpace - oneCharSpace).toLocaleString()} bytes)\n`);
 
     log('\nNUMBERS\n');
 
