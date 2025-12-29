@@ -36,9 +36,9 @@ export class Analysis {
 
   addCharacter(char: Character, originalName: string | null): void {
     if(char.category === Categories.Mn || char.category === Categories.Me || char.category === Categories.Mc) {
-        if(char.combining !== 0) {
-          ++this.combinings;
-        }
+      if(char.combining !== 0) {
+        ++this.combinings;
+      }
     }
 
     // Calculate max decimal
@@ -88,7 +88,7 @@ export class Analysis {
 
     // Indexed by the `numeric` field (string)
     if(numeric !== '') {
-      if(typeof(this.hasNumber[numeric]) === 'undefined') {
+      if(typeof (this.hasNumber[numeric]) === 'undefined') {
         this.hasNumber[numeric] = 1;
       } else {
         ++this.hasNumber[numeric];
@@ -96,13 +96,13 @@ export class Analysis {
     }
 
     for(const word of words) {
-      if(typeof(this.nameBuffer[word]) === 'undefined') {
+      if(typeof (this.nameBuffer[word]) === 'undefined') {
         this.nameBuffer[word] = 1;
       } else {
         ++this.nameBuffer[word];
       }
 
-      if(typeof(this.categoryBuffer[category]) === 'undefined') {
+      if(typeof (this.categoryBuffer[category]) === 'undefined') {
         this.categoryBuffer[category] = 1;
       } else {
         ++this.categoryBuffer[category];
@@ -243,13 +243,23 @@ export class Analysis {
 
     iLog(`PREFIXES\n`);
     let prefixesCount = 0;
+    const ret3: CountBuffer[] = [];
 
     for(const entry of ret) {
-      if(typeof(this.prefixesBuffer[entry.name]) !== 'undefined') {
-        log(`${entry.name}: ${this.prefixesBuffer[entry.name]} (${entry.name.length * this.prefixesBuffer[entry.name]})`);
-
-        ++prefixesCount;
+      if(typeof (this.prefixesBuffer[entry.name]) !== 'undefined') {
+        ret3.push({
+          name: entry.name,
+          count: this.prefixesBuffer[entry.name],
+          countTotal: entry.name.length * this.prefixesBuffer[entry.name]
+        });
       }
+    }
+
+    ret3.sort((a: CountBuffer, b: CountBuffer) => (b.countTotal ?? 0) - (a.countTotal ?? 0));
+
+    for(const entry of ret3) {
+      log(`${entry.name}: ${entry.countTotal} (${entry.count})`);
+      ++prefixesCount;
 
       if(prefixesCount === 64) {
         break;

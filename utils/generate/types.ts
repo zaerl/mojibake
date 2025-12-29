@@ -7,6 +7,7 @@
 export interface CountBuffer {
   name: string;
   count: number;
+  countTotal?: number;
 }
 
 export interface PrefixCalc {
