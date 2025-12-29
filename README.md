@@ -75,8 +75,10 @@ mjb_result result;
 char *normalized = mjb_normalize(hello, 13, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC, &result);
 printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
 
-// Remember to free() the string
-mjb_free(result.output);
+// Remember to free() the string if needed
+if(results.transformed) {
+    mjb_free(result.output);
+}
 
 ```
 
@@ -155,9 +157,9 @@ Extended Pictographic: N/A
 JSON format:
 
 ```sh
-mojibake -vv -o json char $'\U022A'
+mojibake -vv -o json -j 2 char $'\U022A'
 # Similar to
-# mojibake -vv -o json codepoint 022A
+# mojibake -vv -o json -j 2 codepoint 022A
 ```
 
 Output:
