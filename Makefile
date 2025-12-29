@@ -83,7 +83,7 @@ generate-embedded-db:
 	@cd ./utils/generate && npm run generate -- embedded-db
 
 generate-site: src/site/index.html
-	cd ./utils/generate && npm run generate -- site
+	cd ./utils/generate && npm run generate-site
 
 # Generate WASM library
 wasm: build-wasm generate-site
@@ -113,7 +113,7 @@ update-version:
 
 # Watch site files and regenerate site
 watch-site:
-	cd ./utils/generate && npx chokidar-cli "../../src/site/**/*" -c "npm run generate -- site && echo '[Regenerated]'" --initial
+	cd ./utils/generate && npx chokidar-cli "../../src/site/**/*" -c "npm run generate-site && echo '[Regenerated]'" --initial
 
 # Serve WASM site with live reload
 serve: wasm generate-site

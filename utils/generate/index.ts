@@ -24,7 +24,6 @@ import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateEmojiProperties } from './generate-emoji';
 import { generateHeader } from './generate-header';
 import { generateLocales } from './generate-locales';
-import { generateSite } from './generate-site';
 import { generateNormalizationCount } from './generate-tests';
 import { generateWASM } from './generate-wasm';
 import { iLog, isVerbose, log, setVerbose } from './log';
@@ -164,8 +163,6 @@ for(let i = 2; i < process.argv.length; ++i) {
     setVerbose(true);
   } else if(process.argv[i] === '-c') {
     compact = true;
-  } else if(process.argv[i] === 'site') {
-    generateTarget = 'site';
   } else if(process.argv[i] === 'locales') {
     generateTarget = 'locales';
   } else if(process.argv[i] === 'amalgamation') {
@@ -182,9 +179,6 @@ for(let i = 2; i < process.argv.length; ++i) {
 async function generate() {
   if(generateTarget === 'locales') {
     await generateLocales();
-    return;
-  } else if(generateTarget === 'site') {
-    await generateSite();
     return;
   } else if(generateTarget === 'amalgamation') {
     await generateAmalgamation();
