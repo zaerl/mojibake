@@ -241,6 +241,21 @@ export class Analysis {
     iLog(`COMPRESSED BYTES: ${compressedCount}\n`);
     iLog(`ONE CHAR SPACE COMPRESSED: (${(totalSpace - oneCharSpace).toLocaleString()} bytes)\n`);
 
+    iLog(`PREFIXES\n`);
+    let prefixesCount = 0;
+
+    for(const entry of ret) {
+      if(typeof(this.prefixesBuffer[entry.name]) !== 'undefined') {
+        log(`${entry.name}: ${this.prefixesBuffer[entry.name]} (${entry.name.length * this.prefixesBuffer[entry.name]})`);
+
+        ++prefixesCount;
+      }
+
+      if(prefixesCount === 64) {
+        break;
+      }
+    }
+
     log('\nNUMBERS\n');
 
     const numbersBuffer: Numeric[] = [];
