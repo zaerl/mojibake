@@ -40,7 +40,7 @@ int getopt(int argc, char * const argv[], const char *optstring) {
         }
 
         nextchar = argv[optind] + 1;
-        optind++;
+        ++optind;
     }
 
     char c = *nextchar++;
@@ -89,7 +89,8 @@ int getopt_long(int argc, char * const argv[], const char *optstring, const stru
     }
 
     if(strcmp(argv[optind], "--") == 0) {
-        optind++;
+        ++optind;
+
         return -1;
     }
 
@@ -106,7 +107,7 @@ int getopt_long(int argc, char * const argv[], const char *optstring, const stru
                     *longindex = i;
                 }
 
-                optind++;
+                ++optind;
 
                 if(longopts[i].has_arg == required_argument ||
                     longopts[i].has_arg == optional_argument) {
@@ -139,7 +140,8 @@ int getopt_long(int argc, char * const argv[], const char *optstring, const stru
         if(opterr) {
             fprintf(stderr, "Unknown option: %s\n", argv[optind]);
         }
-        optind++;
+
+        ++optind;
 
         return '?';
     }

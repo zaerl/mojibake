@@ -128,7 +128,7 @@
                 }
 
                 funcResults.innerHTML = '';
-            } else if (type & 0x2) {
+            } else if(type & 0x2) {
                 position = '<br><strong>Last</strong>: ';
             } else {
                 position = '<br>';
@@ -373,15 +373,15 @@
         function stringToCodepointList(string) {
             const codepoints = [];
 
-            for (let i = 0; i < string.length; i++) {
+            for(let i = 0; i < string.length; i++) {
                 const codepoint = string.codePointAt(i);
 
                 if(codepoint) {
                     codepoints.push(codepointToString(codepoint));
 
                     // Skip the second surrogate pair code unit
-                    if (codepoint > 0xFFFF) {
-                        i++;
+                    if(codepoint > 0xFFFF) {
+                        ++i;
                     }
                 }
             }
@@ -517,10 +517,10 @@
                 // Handle different codepoint formats: decimal, hex, 0x hex, U+FFFF
                 value = value.trim().toUpperCase();
 
-                if (value.startsWith('U+')) {
+                if(value.startsWith('U+')) {
                     // U+FFFF format
                     return parseInt(value.substring(2), 16);
-                } else if (value.startsWith('0X')) {
+                } else if(value.startsWith('0X')) {
                     // 0xFFFF format
                     return parseInt(value.substring(2), 16);
                 } else {
