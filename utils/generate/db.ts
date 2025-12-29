@@ -177,7 +177,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class,
         east_asian_width,
         extended_pictographic
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -300,7 +300,7 @@ export function dbRun(characters: Character[]) {
         char.quickCheck,
         char.lineBreakingClass,
         char.eastAsianWidth,
-        char.extendedPictographic
+        char.extendedPictographic ? 1 : 0
         );
     } else {
       insertDataSmt.run(
