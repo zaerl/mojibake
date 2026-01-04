@@ -68,48 +68,48 @@ build-wasm: configure-wasm
 
 # Generate source files and database
 generate: $(GENERATE_SOURCES)
-	cd ./utils/generate && ./generate.sh $(ARGS)
+	@cd ./utils/generate && ./generate.sh $(ARGS)
 
 # Generate locale files
 generate-locales:
-	cd ./utils/generate && ./generate-locales.sh
+	@cd ./utils/generate && ./generate-locales.sh
 
 # Manual target to force regeneration
 generate-sqlite:
-	cd ./utils/sqlite3 && ./generate-sqlite.sh
+	@cd ./utils/sqlite3 && ./generate-sqlite.sh
 
 # Generate embedded database header
 generate-embedded-db:
 	@cd ./utils/generate && npm run generate -- embedded-db
 
 generate-site: src/site/index.html
-	cd ./utils/generate && npm run generate-site
+	@cd ./utils/generate && npm run generate-site
 
 # Generate WASM library
 wasm: build-wasm generate-site
 
 # Generate TESTS.md file
 coverage:
-	cd ./utils/generate && npm run coverage
+	@cd ./utils/generate && npm run coverage
 
 # Generate amalgamation
 amalgamation:
-	cd ./utils/generate && ./generate-amalgamation.sh
+	@cd ./utils/generate && ./generate-amalgamation.sh
 
 # Rule for mojibake.db
 mojibake.db: $(GENERATE_SOURCES)
-	cd ./utils/generate && ./generate.sh $(ARGS)
+	@cd ./utils/generate && ./generate.sh $(ARGS)
 
 # Rule to generate SQLite source files (only if they don't exist)
 $(SQLITE_SOURCES):
-	cd ./utils/sqlite3 && ./generate-sqlite.sh
+	@cd ./utils/sqlite3 && ./generate-sqlite.sh
 
 # Tools
 .PHONY: update-version watch-site serve
 
 # Update version in source files
 update-version:
-	cd ./utils/generate && npm run generate -- update-version
+	@cd ./utils/generate && npm run generate -- update-version
 
 # Watch site files and regenerate site
 watch-site:
@@ -160,30 +160,30 @@ clean-build:
 
 # Clean native build
 clean-native:
-	rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
-	rm -rf $(WASM_BUILD_DIR)
+	@rm -rf $(WASM_BUILD_DIR)
 
 # Clean amalgamation build
 clean-amalgamation:
-	rm -rf $(AMALGAMATION_BUILD_DIR)
+	@rm -rf $(AMALGAMATION_BUILD_DIR)
 
 # Clean embedded amalgamation build
 clean-embedded-amalgamation:
-	rm -rf $(EMBEDDED_AMALGAMATION_BUILD_DIR)
+	@rm -rf $(EMBEDDED_AMALGAMATION_BUILD_DIR)
 
 clean-embedded-amalgamation-header:
-	rm -f src/embedded-db.h
+	@rm -f src/embedded-db.h
 
 # Clean main database file
 clean-database:
-	rm mojibake.db
+	@rm mojibake.db
 
 # Clean generated SQLite source files
 clean-sqlite:
-	rm -f $(SQLITE_SOURCES)
+	@rm -f $(SQLITE_SOURCES)
 
 clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-embedded-amalgamation-header clean-database clean-sqlite
 
