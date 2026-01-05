@@ -81,6 +81,9 @@ export function compressName(codepoint: number, name: string): string | null {
   } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
     // CJK Compatibility Ideographs
     return null;
+  } else if(codepoint >= 0x2F800 && codepoint <= 0x2FA1F) {
+    // CJK Compatibility Ideographs Supplement
+    return null;
   } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
     // Anatolian Hieroglyphs
     return name.replace('ANATOLIAN HIEROGLYPH A', '');

@@ -146,6 +146,12 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0xFAD9, &character), true, "CJK CI 2")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-FAD9", "CJK CI 2")
 
+    ATT_ASSERT(mjb_codepoint_character(0x2F800, &character), true, "CJK CI SUPPLEMENT 1")
+    ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-2F800", "CJK CI SUPPLEMENT 1")
+
+    ATT_ASSERT(mjb_codepoint_character(0x2FA1D, &character), true, "CJK CI SUPPLEMENT 2")
+    ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-2FA1D", "CJK CI SUPPLEMENT 2")
+
     ATT_ASSERT(mjb_codepoint_character(0x14400, &character), true, "ANATOLIAN HIEROGLYPH 1")
     ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
 
