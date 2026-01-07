@@ -167,5 +167,18 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0x12541, &character), true, "CUNEIFORM SIGN 2")
     ATT_ASSERT((const char*)character.name, "CUNEIFORM SIGN ZA7", "CUNEIFORM SIGN 2")
 
+    // Aliases
+    ATT_ASSERT(mjb_codepoint_character(0x0, &character), true, "Alias 0000")
+    ATT_ASSERT((const char*)character.name, "NULL", "Alias 0000")
+
+    ATT_ASSERT(mjb_codepoint_character(0x9F, &character), true, "Alias 009F")
+    ATT_ASSERT((const char*)character.name, "APPLICATION PROGRAM COMMAND", "Alias 009F")
+
+    ATT_ASSERT(mjb_codepoint_character(0x1A2, &character), true, "Alias GHA")
+    ATT_ASSERT((const char*)character.name, "LATIN CAPITAL LETTER GHA", "Alias GHA")
+
+    ATT_ASSERT(mjb_codepoint_character(0xFE18, &character), true, "Alias FE18 BRAKCET")
+    ATT_ASSERT((const char*)character.name, "PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET", "Alias FE18 BRAKCET")
+
     return NULL;
 }

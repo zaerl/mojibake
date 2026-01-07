@@ -18,6 +18,7 @@
 - [ ] Check `without rowid` tables
 - [ ] Check Windows UTF-8 console mode
 - [ ] Add UTF16 and UTF32 support for WASM build
+- [x] Add support for NameAliases.txt
 - [x] Add amalgamation script
 - [x] Add Codeberg upstream
 - [x] Add UTF16 support for `mjb_next_character`

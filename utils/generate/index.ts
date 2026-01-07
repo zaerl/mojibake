@@ -6,6 +6,7 @@
 
 import { constants } from 'fs';
 import { access, open, unlink } from 'fs/promises';
+import { readAliases } from './aliases';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
 import { generateCasefold } from './casefold';
@@ -47,15 +48,20 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   let currentBlock = 0;
   let characters: Character[] = [];
 
+  iLog('PARSE UNICODE DATA');
+  const aliases = await readAliases();
+
+  log('READ UNICODE DATA');
   const file = await open('./UCD/UnicodeData.txt');
 
-  iLog('PARSE UNICODE DATA');
-
   for await (const line of file.readLines()) {
-    if(!line || line.trim() === '') continue;
+    if(!line || line.trim() === '') {
+      continue;
+    }
+
     const split = line.split(';') as UnicodeDataRow;
     // 10 unicode 1.0 name if Cc
-    let name: string | null = split[2] === 'Cc' && split[10] !== '' ? split[10] : split[1];
+    let name: string | null = aliases[split[0]] ? aliases[split[0]] : split[1];
     const originalName = name;
     codepoint = parseInt(split[0], 16);
 
