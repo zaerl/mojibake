@@ -137,8 +137,7 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0x143FA, &character), true, "EGYPTIAN HIEROGLYPH 4")
     ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-143FA", "HIEROGLYPH 4")
 
-    ATT_ASSERT(mjb_codepoint_character(0x13460, &character), true, "EGYPTIAN HIEROGLYPH 3")
-    ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-13460", "HIEROGLYPH 3")
+    ATT_ASSERT(mjb_codepoint_character(0x143FF, &character), false, "EGYPTIAN HIEROGLYPH-143FF not exists")
 
     ATT_ASSERT(mjb_codepoint_character(0xF900, &character), true, "CJK CI 1")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-F900", "CJK CI 1")
