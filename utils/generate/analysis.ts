@@ -222,6 +222,58 @@ export class Analysis {
     }
   }
 
+  outputNumbers(): void {
+    log('\nNUMBERS\n');
+
+    const numbersBuffer: Numeric[] = [];
+
+    // `name` is the `numeric` field
+    for(const name in this.hasNumber) {
+      const values = name.split('/'); // Check if it's a fraction
+      const value = values.length === 1 ? parseFloat(values[0]) :
+        Math.floor((parseFloat(values[0]) / parseFloat(values[1])) * 100) / 100;
+      const count = this.hasNumber[name];
+
+      numbersBuffer.push({ name, value, count });
+    }
+
+    numbersBuffer.sort((a: Numeric, b: Numeric) => b.count - a.count);
+
+    for(const num of numbersBuffer) {
+      log(`${num.name} (${num.value}): ${num.count}`);
+    }
+  }
+
+  outputFinalStats(verbose: boolean, codepoint: number): void {
+    log(`\nDECOMPOSITION COUNT: ${this.decompositions}\n`);
+
+    log(`DECOMPOSITIONS\n`);
+
+    for(let i = 0; i < this.maxDecompositions.length; ++i) {
+      if(typeof this.maxDecompositions[i] !== 'undefined') {
+        log(`${i}: ${this.maxDecompositions[i]}`);
+      }
+    }
+
+    log(`\nCOMBINING CHARACTERS: ${this.combinings}\n`);
+
+    log(`STEPS COUNT: ${this.totalSteps}\n`);
+    log(`STEPS COUNT OVER 8: ${this.totalStepsOver8}\n`);
+    log(`STEPS COUNT OVER 16: ${this.totalStepsOver16}\n`);
+
+    log(`STEPS TOTAL: ${this.diffs}/${codepoint}\n`);
+
+    log(`${verbose ? '' : '\n'}MAX NUMBERS\n`);
+    log(`MAX DECIMAL: ${this.maxDecimal}`);
+    log(`MAX DIGIT: ${this.maxDigit}`);
+
+    iLog(`${verbose ? "\n" : ''}COUNTS\n`);
+    iLog(`${this.codepointsCount.toLocaleString()} codepoints (${(this.codepointsCount * 5).toLocaleString()} bytes)`);
+    iLog(`${this.wordsCount.toLocaleString()} words (${(this.wordsCount * 5).toLocaleString()} bytes)`);
+    iLog(`${this.charsCount.toLocaleString()} characters (${(this.charsCount).toLocaleString()} bytes)`);
+    iLog(`${this.charsCount.toLocaleString()} characters (packed: ${(this.charsBaseSixCount).toLocaleString()} bytes)`);
+  }
+
   outputGeneratedData(codepoint: number, verbose = false): void {
     const ret: CountBuffer[] = [];
 
@@ -276,54 +328,8 @@ export class Analysis {
     iLog(`ONE CHAR SPACE COMPRESSED: (${(totalSpace - oneCharSpace).toLocaleString()} bytes)\n`);
 
     this.outputPrefixes(ret);
-
-    log('\nNUMBERS\n');
-
-    const numbersBuffer: Numeric[] = [];
-
-    // `name` is the `numeric` field
-    for(const name in this.hasNumber) {
-      const values = name.split('/'); // Check if it's a fraction
-      const value = values.length === 1 ? parseFloat(values[0]) :
-        Math.floor((parseFloat(values[0]) / parseFloat(values[1])) * 100) / 100;
-      const count = this.hasNumber[name];
-
-      numbersBuffer.push({ name, value, count });
-    }
-
-    numbersBuffer.sort((a: Numeric, b: Numeric) => b.count - a.count);
-
-    for(const num of numbersBuffer) {
-      log(`${num.name} (${num.value}): ${num.count}`);
-    }
-
-    log(`\nDECOMPOSITION COUNT: ${this.decompositions}\n`);
-
-    log(`DECOMPOSITIONS\n`);
-
-    for(let i = 0; i < this.maxDecompositions.length; ++i) {
-      if(typeof this.maxDecompositions[i] !== 'undefined') {
-        log(`${i}: ${this.maxDecompositions[i]}`);
-      }
-    }
-
-    log(`\nCOMBINING CHARACTERS: ${this.combinings}\n`);
-
-    log(`STEPS COUNT: ${this.totalSteps}\n`);
-    log(`STEPS COUNT OVER 8: ${this.totalStepsOver8}\n`);
-    log(`STEPS COUNT OVER 16: ${this.totalStepsOver16}\n`);
-
-    log(`STEPS TOTAL: ${this.diffs}/${codepoint}\n`);
-
-    log(`${verbose ? '' : '\n'}MAX NUMBERS\n`);
-    log(`MAX DECIMAL: ${this.maxDecimal}`);
-    log(`MAX DIGIT: ${this.maxDigit}`);
-
-    iLog(`${verbose ? "\n" : ''}COUNTS\n`);
-    iLog(`${this.codepointsCount.toLocaleString()} codepoints (${(this.codepointsCount * 5).toLocaleString()} bytes)`);
-    iLog(`${this.wordsCount.toLocaleString()} words (${(this.wordsCount * 5).toLocaleString()} bytes)`);
-    iLog(`${this.charsCount.toLocaleString()} characters (${(this.charsCount).toLocaleString()} bytes)`);
-    iLog(`${this.charsCount.toLocaleString()} characters (packed: ${(this.charsBaseSixCount).toLocaleString()} bytes)`);
+    this.outputNumbers();
+    this.outputFinalStats(verbose, codepoint);
   }
 
   compareFn(a: CountBuffer, b: CountBuffer): number {
