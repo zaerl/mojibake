@@ -212,14 +212,19 @@ export class Analysis {
 
     buffer.sort((a: CountBuffer, b: CountBuffer) => (b.countTotal ?? 0) - (a.countTotal ?? 0));
 
-    for(const entry of buffer) {
-      log(`${entry.name}: ${entry.countTotal} (${entry.count})`);
-      ++prefixesCount;
+    let totalBytes = 0;
 
-      if(prefixesCount === 64) {
-        break;
+    for(const entry of buffer) {
+      ++prefixesCount;
+      totalBytes += entry.countTotal ?? 0;
+
+      if(prefixesCount <= 64) {
+        log(`${entry.name}: ${entry.countTotal} bytes (${entry.count})`);
       }
     }
+
+    log(`\nPREFIXES COUNT: ${prefixesCount}`);
+    log(`TOTAL BYTES: ${totalBytes}\n`);
   }
 
   outputNumbers(): void {
