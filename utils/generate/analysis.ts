@@ -180,11 +180,7 @@ export class Analysis {
     }
   }
 
-  outputGeneratedData(codepoint: number, verbose = false): void {
-    const ret: CountBuffer[] = [];
-
-    this.outputCategories();
-
+  outputWords(): void {
     iLog(`\nWORDS: ${Object.keys(this.nameBuffer).length}`);
 
     let wordsBiggerThan2 = 0;
@@ -196,8 +192,14 @@ export class Analysis {
     }
 
     iLog(`WORDS BIGGER THAN 2 BYTES: ${wordsBiggerThan2}\n`);
-
     iLog(`SPACES: ${this.spacesCount}\n`);
+  }
+
+  outputGeneratedData(codepoint: number, verbose = false): void {
+    const ret: CountBuffer[] = [];
+
+    this.outputCategories();
+    this.outputWords();
 
     // Calculate compressed count words by characters
     // Biggest word is the space character
