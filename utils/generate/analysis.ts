@@ -274,27 +274,13 @@ export class Analysis {
     iLog(`${this.charsCount.toLocaleString()} characters (packed: ${(this.charsBaseSixCount).toLocaleString()} bytes)`);
   }
 
-  outputGeneratedData(codepoint: number, verbose = false): void {
-    const ret: CountBuffer[] = [];
-
-    this.outputCategories();
-    this.outputWords();
-
+  outputCompressedData(ret: CountBuffer[]): void {
     // Calculate compressed count words by characters
     // Biggest word is the space character
     let compressedCount = this.spacesCount;
     // First codepoint is START OF HEADING, not 0 (NULL)
     let compressedCodepoint = 1;
 
-    for(const name in this.nameBuffer) {
-      ret.push({ name, count: this.nameBuffer[name] });
-    }
-
-    for(const name in this.prefixesBuffer) {
-      ret.push({ name, count: this.prefixesBuffer[name] });
-    }
-
-    ret.sort(this.compareFn);
     let buffer: string[] = [];
     let prevCount = ret[0].count;
 
@@ -326,7 +312,25 @@ export class Analysis {
 
     iLog(`COMPRESSED BYTES: ${compressedCount}\n`);
     iLog(`ONE CHAR SPACE COMPRESSED: (${(totalSpace - oneCharSpace).toLocaleString()} bytes)\n`);
+  }
 
+  outputGeneratedData(codepoint: number, verbose = false): void {
+    const ret: CountBuffer[] = [];
+
+    this.outputCategories();
+    this.outputWords();
+
+    for(const name in this.nameBuffer) {
+      ret.push({ name, count: this.nameBuffer[name] });
+    }
+
+    for(const name in this.prefixesBuffer) {
+      ret.push({ name, count: this.prefixesBuffer[name] });
+    }
+
+    ret.sort(this.compareFn);
+
+    this.outputCompressedData(ret);
     this.outputPrefixes(ret);
     this.outputNumbers();
     this.outputFinalStats(verbose, codepoint);
