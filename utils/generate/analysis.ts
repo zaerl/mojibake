@@ -155,8 +155,7 @@ export class Analysis {
     }
   }
 
-  outputGeneratedData(codepoint: number, verbose = false): void {
-    const ret: CountBuffer[] = [];
+  outputCategories(): void {
     const ret2: CountBuffer[] = [];
 
     for(const name in this.categoryBuffer) {
@@ -179,6 +178,12 @@ export class Analysis {
         buffer = [];
       }
     }
+  }
+
+  outputGeneratedData(codepoint: number, verbose = false): void {
+    const ret: CountBuffer[] = [];
+
+    this.outputCategories();
 
     iLog(`\nWORDS: ${Object.keys(this.nameBuffer).length}`);
 
@@ -209,8 +214,8 @@ export class Analysis {
     }
 
     ret.sort(this.compareFn);
-    buffer = [];
-    prevCount = ret[0].count;
+    let buffer: string[] = [];
+    let prevCount = ret[0].count;
 
     let oneCharSpace = 0;
     let totalSpace = 0;
