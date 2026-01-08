@@ -57,8 +57,29 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         character->combining = MJB_CCC_NOT_REORDERED;
         character->bidirectional = MJB_BIDI_L;
         character->decomposition = MJB_DECOMPOSITION_NONE;
-        character->decimal = 0;
-        character->digit = 0;
+        character->decimal = MJB_NUMBER_NOT_VALID;
+        character->digit = MJB_NUMBER_NOT_VALID;
+        character->numeric[0] = '\0';
+        character->mirrored = false;
+        character->uppercase = 0;
+        character->lowercase = 0;
+        character->titlecase = 0;
+
+        return true;
+    } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
+        if(codepoint >= 0x143FF) {
+            // Last valid is EGYPTIAN HIEROGLYPH-143FA
+            return false;
+        }
+
+        // Egyptian Hieroglyphs Extended-A
+        snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH-%X", codepoint);
+        character->category = MJB_CATEGORY_LO;
+        character->combining = MJB_CCC_NOT_REORDERED;
+        character->bidirectional = MJB_BIDI_L;
+        character->decomposition = MJB_DECOMPOSITION_NONE;
+        character->decimal = MJB_NUMBER_NOT_VALID;
+        character->digit = MJB_NUMBER_NOT_VALID;
         character->numeric[0] = '\0';
         character->mirrored = false;
         character->uppercase = 0;
@@ -89,13 +110,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
 
     // Egyptian Hieroglyphs
     // Egyptian Hieroglyph Format Controls
-    if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
-        // Egyptian Hieroglyphs Extended-A
-        if(codepoint >= 0x13460) {
-            snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH-%X", codepoint);
-        } else {
-            snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
-        }
+    if(codepoint >= MJB_EGYPTIAN_H_START && codepoint < MJB_EGYPTIAN_H_FORMAT_EXT_START) {
+        snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
     } else if(
         (codepoint >= MJB_CJK_COMPATIBILITY_IDEOGRAPH_START &&
         codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_END) ||

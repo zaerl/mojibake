@@ -35,7 +35,7 @@ import {
   UnicodeDataRow
 } from './types';
 import { updateVersion } from './update-version';
-import { compressName } from './utils';
+import { compressName, isValidCharacter } from './utils';
 
 let compact = false;
 
@@ -60,13 +60,12 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
     }
 
     const split = line.split(';') as UnicodeDataRow;
-    // 10 unicode 1.0 name if Cc
     let name: string | null = aliases[split[0]] ? aliases[split[0]] : split[1];
     const originalName = name;
     codepoint = parseInt(split[0], 16);
 
     // Special start end.
-    if(name.startsWith('<') && name !== '<control>') {
+    if(!isValidCharacter(codepoint, name ?? '')) {
       continue;
     }
 

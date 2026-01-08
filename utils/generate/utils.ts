@@ -70,14 +70,30 @@ export function getVersion() {
   }
 }
 
+const EGYPTIAN_H_START = 0x13000;
+const EGYPTIAN_H_FORMAT_EXT_START = 0x13460;
+const EGYPTIAN_H_EXT_END = 0x143FF;
+
+// Filter away characters that will not be included in the database
+export function isValidCharacter(codepoint: number, name: string): boolean {
+  if(name.startsWith('<') && name !== '<control>') {
+    // Special start/end.
+    return false;
+  }
+
+  if(codepoint >= EGYPTIAN_H_FORMAT_EXT_START &&
+    codepoint <= EGYPTIAN_H_EXT_END) {
+    return false;
+  }
+
+  return true;
+}
+
 export function compressName(codepoint: number, name: string): string | null {
   // Strip away egyptian names
-  if(codepoint >= 0x13000 && codepoint <= 0x143FF) {
-    if(codepoint >= 0x13460) {
-      return null;
-    } else {
-      return name.replace('EGYPTIAN HIEROGLYPH ', '');
-    }
+  // EGYPTIAN HIEROGLYPH A001 -> EGYPTIAN HIEROGLYPH-143FA -> U+143FF
+  if(codepoint >= EGYPTIAN_H_START && codepoint <= EGYPTIAN_H_EXT_END) {
+    return name.replace('EGYPTIAN HIEROGLYPH ', '');
   } else if(codepoint >= 0xF900 && codepoint <= 0xFAD9) {
     // CJK Compatibility Ideographs
     return null;
