@@ -195,6 +195,33 @@ export class Analysis {
     iLog(`SPACES: ${this.spacesCount}\n`);
   }
 
+  outputPrefixes(ret: CountBuffer[]): void {
+    iLog(`PREFIXES\n`);
+    let prefixesCount = 0;
+    const buffer: CountBuffer[] = [];
+
+    for(const entry of ret) {
+      if(typeof (this.prefixesBuffer[entry.name]) !== 'undefined') {
+        buffer.push({
+          name: entry.name,
+          count: this.prefixesBuffer[entry.name],
+          countTotal: entry.name.length * this.prefixesBuffer[entry.name]
+        });
+      }
+    }
+
+    buffer.sort((a: CountBuffer, b: CountBuffer) => (b.countTotal ?? 0) - (a.countTotal ?? 0));
+
+    for(const entry of buffer) {
+      log(`${entry.name}: ${entry.countTotal} (${entry.count})`);
+      ++prefixesCount;
+
+      if(prefixesCount === 64) {
+        break;
+      }
+    }
+  }
+
   outputGeneratedData(codepoint: number, verbose = false): void {
     const ret: CountBuffer[] = [];
 
@@ -248,30 +275,7 @@ export class Analysis {
     iLog(`COMPRESSED BYTES: ${compressedCount}\n`);
     iLog(`ONE CHAR SPACE COMPRESSED: (${(totalSpace - oneCharSpace).toLocaleString()} bytes)\n`);
 
-    iLog(`PREFIXES\n`);
-    let prefixesCount = 0;
-    const ret3: CountBuffer[] = [];
-
-    for(const entry of ret) {
-      if(typeof (this.prefixesBuffer[entry.name]) !== 'undefined') {
-        ret3.push({
-          name: entry.name,
-          count: this.prefixesBuffer[entry.name],
-          countTotal: entry.name.length * this.prefixesBuffer[entry.name]
-        });
-      }
-    }
-
-    ret3.sort((a: CountBuffer, b: CountBuffer) => (b.countTotal ?? 0) - (a.countTotal ?? 0));
-
-    for(const entry of ret3) {
-      log(`${entry.name}: ${entry.countTotal} (${entry.count})`);
-      ++prefixesCount;
-
-      if(prefixesCount === 64) {
-        break;
-      }
-    }
+    this.outputPrefixes(ret);
 
     log('\nNUMBERS\n');
 
