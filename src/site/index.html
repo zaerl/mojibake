@@ -30,6 +30,46 @@
             window.mojibake.HEAPU8.set(dbBytes, dbPtr);
 
             console.log(window.mojibake._mjb_initialize_v2(0, 0, 0, dbPtr, dbBytes.length) ? 'Initialized' : 'Not initialized');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const functionParam = urlParams.get('function');
+
+            // Use the function parameter if provided
+            if(functionParam && functions[functionParam]) {
+                const targetDiv = document.getElementById(functionParam);
+                const form = document.getElementById(functionParam + '-form');
+                let ready = true;
+
+                if(form) {
+                    form.reset();
+                }
+
+                for(let i = 0; i < functions[functionParam].args.length; ++i) {
+                    if(functions[functionParam].wasmGenerated[i]) {
+                        continue;
+                    }
+
+                    const param = urlParams.get(functions[functionParam].args[i]);
+
+                    if(param === null) {
+                        ready = false;
+                        break;
+                    }
+
+                    const input = document.getElementById(functionParam + '-' + functions[functionParam].args[i]);
+
+                    if(input) {
+                        input.value = param;
+                    }
+                }
+
+                targetDiv.scrollIntoView({ block: 'start' });
+                toggleFunctionCall(functionParam);
+
+                if(ready) {
+                    callFunction(functionParam);
+                }
+            }
         }).catch(err => {
             console.error('Failed to load WASM module:', err);
         });
