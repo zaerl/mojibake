@@ -28,7 +28,8 @@ export class Character {
     public quickCheck: QuickCheckResult | null,
     public lineBreakingClass: number | null,
     public eastAsianWidth: number | null,
-    public extendedPictographic: boolean
+    public extendedPictographic: boolean,
+    public prefix: number | null
   ) {}
 
   formatC(): string {

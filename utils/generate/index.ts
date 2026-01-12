@@ -28,6 +28,7 @@ import { generateLocales } from './generate-locales';
 import { generateNormalizationCount } from './generate-tests';
 import { generateWASM } from './generate-wasm';
 import { iLog, isVerbose, log, setVerbose } from './log';
+import { PrefixCompressor } from './prefix-compressor';
 import { readNormalizationProps } from './quick-check';
 import { readSpecialCasingProps } from './special-casing';
 import {
@@ -106,7 +107,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       null, // quick check
       null, // line breaking class
       null, // east asian width,
-      false // extended pictographic
+      false, // extended pictographic
+      null // prefix
     );
 
     characters.push(char);
@@ -126,8 +128,11 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   await generateBreaksTest('WordBreak');
   await generateBreaksTest('SentenceBreak');
 
+  const prefixCompressor = new PrefixCompressor(characters);
+  const prefixes = prefixCompressor.compress();
+
   // Insert characters
-  dbRun(characters);
+  dbRun(characters, prefixes);
 
   dbRunDecompositions(generateDecomposition(characters));
   dbRunDecompositions(generateDecomposition(characters, true), true);

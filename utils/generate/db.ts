@@ -8,6 +8,7 @@ import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
 import { Emoji } from './emoji';
+import { Prefix } from './prefix-compressor';
 import { NewCases } from './special-casing';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
@@ -20,6 +21,7 @@ let insertCompositionSmt: Statement;
 let insertBlockSmt: Statement;
 let insertSpecialCasingSmt: Statement;
 let insertEmojiPropertiesSmt: Statement;
+let insertPrefixSmt: Statement;
 // let insertNumericSmt: Statement;
 let isCompact: boolean;
 
@@ -62,7 +64,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         quick_check INTEGER,
         line_breaking_class INTEGER,
         east_asian_width INTEGER,
-        extended_pictographic INTEGER -- emoji properties
+        extended_pictographic INTEGER, -- emoji properties
+        prefix INTEGER
       );
     `);
   } else {
@@ -86,10 +89,18 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         quick_check INTEGER,
         line_breaking_class INTEGER,
         east_asian_width INTEGER,
-        extended_pictographic INTEGER -- emoji properties
+        extended_pictographic INTEGER, -- emoji properties
+        prefix INTEGER
       );
     `);
   }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS prefixes (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL
+    );
+  `);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS decompositions (
@@ -176,8 +187,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         quick_check,
         line_breaking_class,
         east_asian_width,
-        extended_pictographic
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        extended_pictographic,
+        prefix
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -200,10 +212,18 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         quick_check,
         line_breaking_class,
         east_asian_width,
-        extended_pictographic
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        extended_pictographic,
+        prefix
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
+
+  insertPrefixSmt = db.prepare(`
+    INSERT INTO prefixes (
+      id,
+      name
+    ) VALUES (?, ?);
+  `);
 
   insertDecompositionSmt = db.prepare(`
     INSERT INTO decompositions (
@@ -276,7 +296,11 @@ export function dbSize() {
   return statSync(dbPath).size;
 }
 
-export function dbRun(characters: Character[]) {
+export function dbRun(characters: Character[], prefixes: Prefix[]) {
+  for(let i = 1; i < prefixes.length; ++i) {
+    insertPrefixSmt.run(prefixes[i].id, prefixes[i].prefix);
+  }
+
   for(const char of characters) {
     if(isCompact) {
       // 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
@@ -300,7 +324,8 @@ export function dbRun(characters: Character[]) {
         char.quickCheck,
         char.lineBreakingClass,
         char.eastAsianWidth,
-        char.extendedPictographic ? 1 : 0
+        char.extendedPictographic ? 1 : 0,
+        char.prefix
         );
     } else {
       insertDataSmt.run(
@@ -320,7 +345,8 @@ export function dbRun(characters: Character[]) {
         char.quickCheck,
         char.lineBreakingClass,
         char.eastAsianWidth,
-        char.extendedPictographic ? 1 : 0
+        char.extendedPictographic ? 1 : 0,
+        char.prefix
       );
 
       /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {

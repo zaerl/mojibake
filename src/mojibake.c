@@ -167,9 +167,10 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
             return false; \
         }
 
-    const char query[] = "SELECT codepoint, name, category, combining, bidirectional, "
-        "decomposition, decimal, digit, numeric, mirrored, uppercase, lowercase, titlecase "
-        "FROM unicode_data WHERE codepoint = ?";
+    const char query[] = "SELECT u.codepoint, CASE WHEN p.name IS NOT NULL THEN p.name || u.name ELSE u.name END as name, "
+        "u.category, u.combining, u.bidirectional, u.decomposition, u.decimal, u.digit, u.numeric, "
+        "u.mirrored, u.uppercase, u.lowercase, u.titlecase "
+        "FROM unicode_data u LEFT JOIN prefixes p ON u.prefix = p.id WHERE u.codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
 
     const char query_blocks[] = "SELECT * FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
