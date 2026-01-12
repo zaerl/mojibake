@@ -151,6 +151,34 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0x2FA1D, &character), true, "CJK CI SUPPLEMENT 2")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-2FA1D", "CJK CI SUPPLEMENT 2")
 
+    // First tangut
+    ATT_ASSERT(mjb_codepoint_character(0x17000, &character), true, "<Tangut Ideograph, First>")
+    ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-17000", "TANGUT IDEOGRAPH-17000")
+
+    ATT_ASSERT(mjb_codepoint_character(0x187F7, &character), true, "<Tangut Ideograph, Last>")
+    ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-187F7", "TANGUT IDEOGRAPH-187F7")
+
+    // Second tangut
+    ATT_ASSERT(mjb_codepoint_character(0x18D00, &character), true, "<Tangut Ideograph Supplement, First>")
+    ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-18D00", "TANGUT IDEOGRAPH-18D00")
+
+    ATT_ASSERT(mjb_codepoint_character(0x18D1E, &character), true, "<Tangut Ideograph Supplement, Last>")
+    ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-18D1E", "TANGUT IDEOGRAPH-18D1E")
+
+    // First tangut component
+    ATT_ASSERT(mjb_codepoint_character(0x18800, &character), true, "TANGUT COMPONENT-001")
+    ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-001", "TANGUT COMPONENT-001")
+
+    ATT_ASSERT(mjb_codepoint_character(0x18AFF, &character), true, "TANGUT COMPONENT-768")
+    ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-768", "TANGUT COMPONENT-768")
+
+    // Second tangut component
+    ATT_ASSERT(mjb_codepoint_character(0x18D80, &character), true, "TANGUT COMPONENT-769")
+    ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-769", "TANGUT COMPONENT-769")
+
+    ATT_ASSERT(mjb_codepoint_character(0x18DF2, &character), true, "TANGUT COMPONENT-883")
+    ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-883", "TANGUT COMPONENT-883")
+
     ATT_ASSERT(mjb_codepoint_character(0x14400, &character), true, "ANATOLIAN HIEROGLYPH 1")
     ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
 

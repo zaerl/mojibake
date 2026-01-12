@@ -22,6 +22,29 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     return true;
 }
 
+bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, char *format, mjb_character *character) {
+    snprintf(
+        character->name,
+        128,
+        format,
+        codepoint
+    );
+
+    character->category = MJB_CATEGORY_LO;
+    character->combining = MJB_CCC_NOT_REORDERED;
+    character->bidirectional = MJB_BIDI_L;
+    character->decomposition = MJB_DECOMPOSITION_NONE;
+    character->decimal = MJB_NUMBER_NOT_VALID;
+    character->digit = MJB_NUMBER_NOT_VALID;
+    character->numeric[0] = '\0';
+    character->mirrored = false;
+    character->uppercase = 0;
+    character->lowercase = 0;
+    character->titlecase = 0;
+
+    return true;
+}
+
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
     if(!mjb_initialize()) {
@@ -50,43 +73,23 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
 
         return true;
     } else if(mjb_codepoint_is_cjk_ideograph(codepoint)) {
-        // CJK Ideograph
-        character->codepoint = codepoint;
-        snprintf(character->name, 128, "CJK UNIFIED IDEOGRAPH-%X", codepoint);
-        character->category = MJB_CATEGORY_LO;
-        character->combining = MJB_CCC_NOT_REORDERED;
-        character->bidirectional = MJB_BIDI_L;
-        character->decomposition = MJB_DECOMPOSITION_NONE;
-        character->decimal = MJB_NUMBER_NOT_VALID;
-        character->digit = MJB_NUMBER_NOT_VALID;
-        character->numeric[0] = '\0';
-        character->mirrored = false;
-        character->uppercase = 0;
-        character->lowercase = 0;
-        character->titlecase = 0;
-
-        return true;
+        return mjb_codepoint_cjk_th_character(codepoint, "CJK UNIFIED IDEOGRAPH-%X", character);
+    } else if(
+        (codepoint >= MJB_TANGUT_IDEOGRAPH_START && codepoint <= MJB_TANGUT_IDEOGRAPH_END) ||
+        (codepoint >= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START && codepoint <= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END)
+    ) {
+        return mjb_codepoint_cjk_th_character(codepoint, "TANGUT IDEOGRAPH-%X", character);
+    } else if(codepoint >= MJB_TANGUT_COMPONENT_START && codepoint <= MJB_TANGUT_COMPONENT_END) {
+        return mjb_codepoint_cjk_th_character(codepoint - MJB_TANGUT_COMPONENT_START + 1, "TANGUT COMPONENT-%03d", character);
+    } else if(codepoint >= MJB_TANGUT_COMPONENT_SUPPLEMENT_START && codepoint <= MJB_TANGUT_COMPONENT_SUPPLEMENT_END) {
+        return mjb_codepoint_cjk_th_character(codepoint - MJB_TANGUT_COMPONENT_SUPPLEMENT_START + 769, "TANGUT COMPONENT-%03d", character);
     } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
         if(codepoint >= 0x143FF) {
             // Last valid is EGYPTIAN HIEROGLYPH-143FA
             return false;
         }
 
-        // Egyptian Hieroglyphs Extended-A
-        snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH-%X", codepoint);
-        character->category = MJB_CATEGORY_LO;
-        character->combining = MJB_CCC_NOT_REORDERED;
-        character->bidirectional = MJB_BIDI_L;
-        character->decomposition = MJB_DECOMPOSITION_NONE;
-        character->decimal = MJB_NUMBER_NOT_VALID;
-        character->digit = MJB_NUMBER_NOT_VALID;
-        character->numeric[0] = '\0';
-        character->mirrored = false;
-        character->uppercase = 0;
-        character->lowercase = 0;
-        character->titlecase = 0;
-
-        return true;
+        return mjb_codepoint_cjk_th_character(codepoint, "EGYPTIAN HIEROGLYPH-%X", character);
     }
 
     sqlite3_reset(mjb_global.stmt_get_codepoint);

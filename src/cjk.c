@@ -23,7 +23,5 @@ MJB_EXPORT bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint) {
         (codepoint >= MJB_CJK_EXTENSION_F_START &&
             codepoint <= MJB_CJK_EXTENSION_F_END) ||
         (codepoint >= MJB_CJK_EXTENSION_I_START &&
-            codepoint <= MJB_CJK_EXTENSION_I_END) ||
-        (codepoint >= MJB_TANGUT_IDEOGRAPH_START &&
-            codepoint <= MJB_TANGUT_IDEOGRAPH_END);
+            codepoint <= MJB_CJK_EXTENSION_I_END);
 }

@@ -74,6 +74,15 @@ const EGYPTIAN_H_START = 0x13000;
 const EGYPTIAN_H_FORMAT_EXT_START = 0x13460;
 const EGYPTIAN_H_EXT_END = 0x143FF;
 
+const TANGUT_IDEOGRAPH_SUPPLEMENT_START = 0x18D00;
+const TANGUT_IDEOGRAPH_SUPPLEMENT_END = 0x18D1E;
+
+const TANGUT_COMPONENT_START = 0x18800;
+const TANGUT_COMPONENT_END = 0x18AFF;
+
+const TANGUT_COMPONENT_SUPPLEMENT_START = 0x18D80;
+const TANGUT_COMPONENT_SUPPLEMENT_END = 0x18DF2;
+
 // Filter away characters that will not be included in the database
 export function isValidCharacter(codepoint: number, name: string): boolean {
   if(name.startsWith('<') && name !== '<control>') {
@@ -83,6 +92,16 @@ export function isValidCharacter(codepoint: number, name: string): boolean {
 
   if(codepoint >= EGYPTIAN_H_FORMAT_EXT_START &&
     codepoint <= EGYPTIAN_H_EXT_END) {
+    return false;
+  }
+
+  if(codepoint >= TANGUT_COMPONENT_START &&
+    codepoint <= TANGUT_COMPONENT_END) {
+    return false;
+  }
+
+  if(codepoint >= TANGUT_COMPONENT_SUPPLEMENT_START &&
+    codepoint <= TANGUT_COMPONENT_SUPPLEMENT_END) {
     return false;
   }
 
