@@ -219,7 +219,7 @@
             }
 
             u8() {
-                const ret = window.window.mojibake.HEAPU8[this.#ptr + this.#offset];
+                const ret = window.mojibake.HEAPU8[this.#ptr + this.#offset];
                 this.#offset += 1;
                 return ret;
             }
@@ -484,7 +484,7 @@
                 const output = window.mojibake.UTF8ToString(result.output);
                 let ret = `Output: <strong>${output}</strong><br>`;
                 ret += `Hex UTF-8: <strong>${utf8StringToHex(result.output, result.output_size).join(' ')}</strong><br>`;
-                ret += `Output: <strong>${stringToCodepointList(output).join(' ')}</strong><br>`;
+                ret += `Codepoints: <strong>${stringToCodepointList(output).join(' ')}</strong><br>`;
                 ret += `Output size: <strong>${result.output_size}</strong><br>`;
                 ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
 
