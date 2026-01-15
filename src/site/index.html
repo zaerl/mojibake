@@ -194,6 +194,21 @@
             return ret;
         }
 
+        function parseNextCharacter(result) {
+            let ret = '';
+
+            // Use an index and add a <br> if it's not the last one
+            for(let i = 0; i < result.characters.length; ++i) {
+                ret += parseCodepointCharacter(result.characters[i]);
+
+                if(i !== result.characters.length - 1) {
+                    ret += '<br><br>';
+                }
+            }
+
+            return ret;
+        }
+
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-form');
@@ -248,6 +263,8 @@
                 data = parseNormalize(data);
             } else if(func === 'mjb_codepoint_emoji') {
                 data = parseEmoji(data);
+            } else if(func === 'mjb_next_character') {
+                data = parseNextCharacter(data);
             }
 
             if(functions[func].ret === 'mjb_codepoint') {
