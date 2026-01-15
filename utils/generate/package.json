@@ -8,6 +8,7 @@
   "scripts": {
     "generate": "npx ts-node index.ts",
     "generate-site": "npx ts-node site/generate-site.ts",
+    "watch-site": "npx ts-node site/generate-site.ts --watch",
     "coverage": "npx ts-node coverage.ts"
   },
   "dependencies": {

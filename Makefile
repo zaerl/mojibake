@@ -63,7 +63,7 @@ build-asan: configure-asan
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
-.PHONY: generate generate-locales generate-sqlite generate-embedded-db generate-site wasm coverage \
+.PHONY: generate generate-locales generate-sqlite generate-embedded-db generate-site watch-site wasm coverage \
 		amalgamation
 
 # Generate source files and database
@@ -85,6 +85,9 @@ generate-embedded-db:
 generate-site: src/site/index.html
 	@cd ./utils/generate && npm run generate-site
 
+watch-site: src/site/index.html
+	@cd ./utils/generate && npm run watch-site
+
 # Generate WASM library
 wasm: build-wasm generate-site
 
@@ -105,15 +108,15 @@ $(SQLITE_SOURCES):
 	@cd ./utils/sqlite3 && ./generate-sqlite.sh
 
 # Tools
-.PHONY: update-version watch-site serve
+.PHONY: update-version serve
 
 # Update version in source files
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-# Watch site files and regenerate site
-watch-site:
-	cd ./utils/generate && npx chokidar-cli "../../src/site/**/*" -c "npm run generate-site && echo '[Regenerated]'" --initial
+# Watch API files
+watch-api:
+	cd ./src/api && node --watch index.js
 
 # Serve WASM site with live reload
 serve: wasm generate-site
@@ -206,7 +209,7 @@ help:
 	@echo "  coverage     - Run coverage analysis"
 	@echo "  amalgamation - Generate single-file amalgamation"
 	@echo "  update-version - Update version in source files"
-	@echo "  watch-site   - Watch site files and regenerate site"
+	@echo "  watch-site   - Watch site files and regenerate on changes"
 	@echo "  serve        - Serve site"
 	@echo "  test         - Build and run tests"
 	@echo "  test-embedded - Build and run tests with embedded database"

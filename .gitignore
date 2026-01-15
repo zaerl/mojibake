@@ -25,6 +25,10 @@ utils/sqlite3/sqlite-src-*
 utils/sqlite3/sqlite3.zip
 
 src/embedded-db.h
+src/api/mojibake.js
+src/api/mojibake.wasm
+src/api/mojibake.db
+src/api/functions.json
 
 # Doc
 doc/*

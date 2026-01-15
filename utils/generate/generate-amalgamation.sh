@@ -17,6 +17,11 @@ cp ../../mojibake.db ../../build-amalgamation/mojibake.db
 cp ../../build-wasm/src/mojibake.js ../../build-amalgamation/mojibake.js
 cp ../../build-wasm/src/mojibake.wasm ../../build-amalgamation/mojibake.wasm
 
+cp ../../build-wasm/src/mojibake.js ../../src/api/mojibake.js
+cp ../../build-wasm/src/mojibake.wasm ../../src/api/mojibake.wasm
+cp ../../mojibake.db ../../src/api/mojibake.db
+cp ./functions.json ../../src/api/functions.json
+
 VERSION=$(cat ../../VERSION | tr -d ' \n.' )
 
 cd ../../build-amalgamation

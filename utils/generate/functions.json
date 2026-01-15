@@ -351,7 +351,7 @@
     "ret": "mjb_codepoint",
     "name": "codepoint_to_uppercase",
     "attributes": ["MJB_CONST"],
-      "args": ["codepoint"],
+    "args": ["codepoint"],
     "args_types": ["mjb_codepoint"],
     "args_description": ["The codepoint"],
     "wasm_generated": [false],
@@ -493,7 +493,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
-    "wasm_generated": [false],
+    "wasm_generated": [],
     "wasm": true
   },
   {
@@ -504,7 +504,7 @@
     "args": [],
     "args_types": [],
     "args_description": [],
-    "wasm_generated": [false],
+    "wasm_generated": [],
     "wasm": true
   },
   {
