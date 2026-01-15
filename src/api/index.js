@@ -248,7 +248,7 @@ function ccallNormalize(argTypes, buffer, size, encoding, form) {
     const result = struct.toObject({
       output: 'u32',
       output_size: 'u32',
-      normalized: 'u8'
+      transformed: 'u8'
     }, mojibake.HEAPU8);
 
     const output = mojibake.UTF8ToString(result.output);
@@ -257,7 +257,7 @@ function ccallNormalize(argTypes, buffer, size, encoding, form) {
       utf8: utf8StringToHex(result.output, result.output_size).join(' '),
       codepoints: stringToCodepointList(output).join(' '),
       output_size: result.output_size,
-      transformed: result.transformed
+      transformed: result.transformed === 1
     };
 
     // Free allocated memory
@@ -478,6 +478,17 @@ async function parseRequest(req) {
 const server = http.createServer(async (req, res) => {
   let httpStatus = 200;
   let response = null;
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if(req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+
+    return;
+  }
 
   try {
     response = await parseRequest(req);
