@@ -30,7 +30,7 @@ function processIndexHtml() {
     functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
 
   fileContent = substituteBlock(fileContent,
-    '<section id="functions" class="loading">',
+    '<section id="functions">',
     '</section>',
     functs.map(fn => '    ' + fn.formatHTML()).join('\n'));
 

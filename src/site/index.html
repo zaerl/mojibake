@@ -12,68 +12,6 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
-    <script type="module">
-        window.mojibake = null;
-
-        // Load the WASM module
-        import('./mojibake.js').then(async (Module) => {
-            window.mojibake = await Module.default();
-            console.log('Mojibake WASM module loaded. Version:', window.mojibake.UTF8ToString(window.mojibake._mjb_version()));
-            document.getElementById('loading').remove();
-            document.getElementById('functions').classList.remove('loading');
-
-            const dbResponse = await fetch('mojibake.db');
-            const dbArrayBuffer = await dbResponse.arrayBuffer();
-            const dbBytes = new Uint8Array(dbArrayBuffer);
-            const dbPtr = window.mojibake._malloc(dbBytes.length);
-            window.mojibake.HEAPU8.set(dbBytes, dbPtr);
-
-            console.log(window.mojibake._mjb_initialize_v2(0, 0, 0, dbPtr, dbBytes.length) ? 'Initialized' : 'Not initialized');
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const functionParam = urlParams.get('function');
-
-            // Use the function parameter if provided
-            if(functionParam && functions[functionParam]) {
-                const targetDiv = document.getElementById(functionParam);
-                const form = document.getElementById(functionParam + '-form');
-                let ready = true;
-
-                if(form) {
-                    form.reset();
-                }
-
-                for(let i = 0; i < functions[functionParam].args.length; ++i) {
-                    if(functions[functionParam].wasmGenerated[i]) {
-                        continue;
-                    }
-
-                    const param = urlParams.get(functions[functionParam].args[i]);
-
-                    if(param === null) {
-                        ready = false;
-                        break;
-                    }
-
-                    const input = document.getElementById(functionParam + '-' + functions[functionParam].args[i]);
-
-                    if(input) {
-                        input.value = param;
-                    }
-                }
-
-                targetDiv.scrollIntoView({ block: 'start' });
-                toggleFunctionCall(functionParam);
-
-                if(ready) {
-                    callFunction(functionParam);
-                }
-            }
-        }).catch(err => {
-            console.error('Failed to load WASM module:', err);
-        });
-    </script>
     <div id="main" class="container">
         <h1 title="文字化け">Mojibake</h1>
         <section>
@@ -113,169 +51,10 @@
                 you can use to preview the API.
             </p>
         </section>
-        <section id="loading">
-            <progress></progress>
-        </section>
-        <section id="functions" class="loading"></section>
+        <section id="functions"></section>
     </div>
+    <!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
     <script>
-        function codepointToString(codepoint, all = true) {
-            if(!all && codepoint === 0) {
-                return 'N/A';
-            }
-
-            return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
-        }
-
-        function encodingToString(encoding) {
-            const encodings = {
-                0x0: 'Unknown',
-                0x1: 'ASCII',
-                0x2: 'UTF-8',
-                0x4: 'UTF-16',
-                0x8: 'UTF-16BE',
-                0x10: 'UTF-16LE',
-                0x20: 'UTF-32',
-                0x40: 'UTF-32BE',
-                0x80: 'UTF-32LE',
-            };
-
-            let ret = [];
-
-            for(const key in encodings) {
-                if(encoding & key) {
-                    ret.push(encodings[key] + ' (0x' + key.toString(16).toUpperCase() + ')');
-                }
-            }
-
-            return ret.join(', ');
-        }
-
-        // Used for mjb_next_character callback.
-        function _mjbNextCharacterCallback(character, type) {
-            const char = pointerToCharacter(character);
-
-            const funcResults = document.getElementById('mjb_next_character-results');
-            funcResults.style.display = 'block';
-            let position = 'First';
-
-            // See mjb_next_character_type on mojibake.h
-            if(type & 0x1) {
-                if(type & 0x2) {
-                    position = '<strong>First and last</strong>: ';
-                } else {
-                    position = '<strong>First</strong>: ';
-                }
-
-                funcResults.innerHTML = '';
-            } else if(type & 0x2) {
-                position = '<br><strong>Last</strong>: ';
-            } else {
-                position = '<br>';
-            }
-
-            funcResults.innerHTML += `${position} ${codepointToString(char.codepoint)} <span class="text-primary">${char.name}</span>`;
-
-            return true;
-        }
-
-        function pointerToCharacter(ptr) {
-            const struct = new CStruct(ptr);
-
-            const char = struct.toObject({
-                codepoint: 'u32',
-                name: 'str128',
-                category: 'u32',
-                combining: 'u32',
-                bidirectional: 'u16',
-                decomposition: 'u32',
-                decimal: 'i32',
-                digit: 'i32',
-                numeric: 'str16',
-                mirrored: 'u8',
-                uppercase: 'u32',
-                lowercase: 'u32',
-                titlecase: 'u32',
-            });
-
-            if(char.decimal === -1) {
-                char.decimal = null;
-            }
-
-            if(char.digit === -1) {
-                char.digit = null;
-            }
-
-            return char;
-        }
-
-        class CStruct {
-            #ptr;
-            #offset = 0;
-
-            constructor(ptr) {
-                this.#ptr = ptr;
-                this.#offset = 0;
-            }
-
-            u8() {
-                const ret = window.mojibake.HEAPU8[this.#ptr + this.#offset];
-                this.#offset += 1;
-                return ret;
-            }
-
-            u16() {
-                // Ensure 2-byte alignment
-                this.#offset = Math.ceil(this.#offset / 2) * 2;
-                const ret = new DataView(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset).getUint16(0, true);
-                this.#offset += 2;
-                return ret;
-            }
-
-            u32() {
-                // Ensure 4-byte alignment
-                this.#offset = Math.ceil(this.#offset / 4) * 4;
-                const ret = new DataView(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset).getUint32(0, true);
-                this.#offset += 4;
-                return ret;
-            }
-
-            i32() {
-                // Ensure 4-byte alignment
-                this.#offset = Math.ceil(this.#offset / 4) * 4;
-                const ret = new DataView(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset).getInt32(0, true);
-                this.#offset += 4;
-                return ret;
-            }
-
-            str(max) {
-                const nameBytes = new Uint8Array(window.mojibake.HEAPU8.buffer, this.#ptr + this.#offset, max);
-                let end = nameBytes.indexOf(0);
-
-                if(end === -1) {
-                    end = max;
-                }
-
-                this.#offset += max;
-
-                return new TextDecoder().decode(nameBytes.subarray(0, end));
-            }
-
-            toObject(signature) {
-                const object = {};
-
-                for(const name in signature) {
-                    if(signature[name].startsWith('str')) {
-                        object[name] = this.str(Number(signature[name].split('str')[1]));
-                    } else {
-                        object[name] = this[signature[name]]();
-                    }
-                }
-
-                return object;
-            }
-        }
-
         // This is used for auto-generated site, do not edit this object.
         const functions = {};
 
@@ -313,190 +92,47 @@
             'Other, not assigned',
         ];
 
-        function ccallCodepointCharacter(codepoint) {
-            // Allocate memory for mjb_character structure
-            const structSize = 512;
-            const ptr = window.mojibake._malloc(structSize);
-
-            // Initialize memory to zero
-            for(let i = 0; i < structSize; ++i) {
-                window.mojibake.HEAPU8[ptr + i] = 0;
+        function typeMap(type) {
+            if(type === 'const char *') {
+                return 'string';
+            } else if(type === 'char *') {
+                return 'string';
+            } else if(type === 'bool') {
+                return 'boolean';
             }
-
-            // Call mjb_codepoint_character
-            const result = window.mojibake._mjb_codepoint_character(codepoint, ptr);
-
-            if(result) {
-                const char = pointerToCharacter(ptr);
-
-                let ret = `Codepoint <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
-                ret += `Name: <span class="text-primary">${char.name}</span><br>`;
-                ret += `Category: <strong>${categories[char.category]}</strong><br>`;
-                ret += `Combining: <strong>${char.combining}</strong><br>`;
-                ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
-                ret += `Decimal: <strong>${char.decimal === null ? 'N/A' : char.decimal}</strong><br>`;
-                ret += `Digit: <strong>${char.digit === null ? 'N/A' : char.digit}</strong><br>`;
-                ret += `Numeric: <strong>${char.numeric === '' ? 'N/A' : char.numeric}</strong><br>`;
-                ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
-                ret += `Uppercase: <strong>${codepointToString(char.uppercase, false)}</strong><br>`;
-                ret += `Lowercase: <strong>${codepointToString(char.lowercase, false)}</strong><br>`;
-                ret += `Titlecase: <strong>${codepointToString(char.titlecase, false)}</strong>`;
-
-                return ret;
-            } else {
-                console.log(`Failed to get character data for ${codepointToString(codepoint)}`);
-            }
-
-            // Free allocated memory
-            window.mojibake._free(ptr);
-
-            return false;
+            return 'number';
         }
 
-        function ccallCodepointEncode(codepoint, encoding) {
-            const buffer = window.mojibake._malloc(5);
-
-            for(let i = 0; i < 5; ++i) {
-                window.mojibake.HEAPU8[buffer + i] = 0;
+        function codepointToString(codepoint, all = true) {
+            if(!all && (codepoint === 0 || codepoint === null)) {
+                return 'N/A';
             }
 
-            const result = window.mojibake._mjb_codepoint_encode(codepoint, buffer, 5, encoding);
-
-            if(result) {
-                return decodeString(buffer, result, encoding);
-            }
-
-            window.mojibake._free(buffer);
-
-            return false;
+            return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
-        function ccallEmoji(codepoint) {
-            const structSize = 10;
-            const ptr = window.mojibake._malloc(structSize);
+        function encodingToString(encoding) {
+            const encodings = {
+                0x0: 'Unknown',
+                0x1: 'ASCII',
+                0x2: 'UTF-8',
+                0x4: 'UTF-16',
+                0x8: 'UTF-16BE',
+                0x10: 'UTF-16LE',
+                0x20: 'UTF-32',
+                0x40: 'UTF-32BE',
+                0x80: 'UTF-32LE',
+            };
 
-            for(let i = 0; i < structSize; ++i) {
-                window.mojibake.HEAPU8[ptr + i] = 0;
-            }
+            let ret = [];
 
-            const result = window.mojibake._mjb_codepoint_emoji(codepoint, ptr);
-            let ret = '';
-
-            if(result) {
-                const struct = new CStruct(ptr);
-                const result = struct.toObject({
-                    codepoint: 'u32',
-                    emoji: 'u8',
-                    presentation: 'u8',
-                    modifier: 'u8',
-                    modifier_base: 'u8',
-                    component: 'u8',
-                    extended_pictographic: 'u8'
-                });
-
-                ret = `Codepoint <strong>${codepointToString(result.codepoint)}</strong>:<br>`;
-                ret += `Emoji: <strong>${result.emoji ? 'true' : 'false'}</strong><br>`;
-                ret += `Presentation: <strong>${result.presentation ? 'true' : 'false'}</strong><br>`;
-                ret += `Modifier: <strong>${result.modifier ? 'true' : 'false'}</strong><br>`;
-                ret += `Modifier Base: <strong>${result.modifier_base ? 'true' : 'false'}</strong><br>`;
-                ret += `Component: <strong>${result.component ? 'true' : 'false'}</strong><br>`;
-                ret += `Extended Pictographic: <strong>${result.extended_pictographic ? 'true' : 'false'}</strong><br>`;
-            } else {
-                ret = false;
-            }
-
-            window.mojibake._free(ptr);
-
-            return ret;
-        }
-
-        function stringToCodepointList(string) {
-            const codepoints = [];
-
-            for(let i = 0; i < string.length; i++) {
-                const codepoint = string.codePointAt(i);
-
-                if(codepoint) {
-                    codepoints.push(codepointToString(codepoint));
-
-                    // Skip the second surrogate pair code unit
-                    if(codepoint > 0xFFFF) {
-                        ++i;
-                    }
+            for(const key in encodings) {
+                if(encoding & key) {
+                    ret.push(encodings[key] + ' (0x' + key.toString(16).toUpperCase() + ')');
                 }
             }
 
-            return codepoints;
-        }
-
-        function utf8StringToHex(ptr, length) {
-            const heap = window.mojibake.HEAPU8;
-            const hex = [];
-            let i = 0;
-
-            while(heap[ptr] !== 0 || (i < length)) {
-                hex.push(heap[ptr].toString(16).toUpperCase().padStart(2, '0'));
-                ++ptr;
-                ++i;
-            }
-
-            return hex;
-        }
-
-        function decodeString(buffer, size, encoding) {
-            let ret = '';
-
-            if(encoding == 0x2) { // UTF-8
-                return window.mojibake.UTF8ToString(buffer, size);
-            } else {
-                let ret_hex = [];
-
-                for(let i = 0; i < size; ++i) {
-                    ret_hex.push(window.mojibake.HEAPU8[buffer + i].toString(16).toUpperCase().padStart(2, '0'));
-                }
-
-                return ret_hex.join(' ');
-            }
-        }
-
-        function ccallNormalize(argTypes, buffer, size, encoding, form) {
-            // See mjb_result on mojibake.h
-            const structSize = 24;
-            const ptr = window.mojibake._malloc(structSize);
-
-            // Initialize memory to zero
-            for(let i = 0; i < structSize; ++i) {
-                window.mojibake.HEAPU8[ptr + i] = 0;
-            }
-
-            // Call mjb_codepoint_character
-            // const result = window.mojibake._mjb_normalize(buffer, size, encoding, form, ptr);
-            const result = window.mojibake.ccall('mjb_normalize', 'boolean', argTypes, [buffer, size, encoding, form, ptr]);
-
-            if(result) {
-                const struct = new CStruct(ptr);
-                const result = struct.toObject({
-                    output: 'u32',
-                    output_size: 'u32',
-                    normalized: 'u8'
-                });
-
-                const output = window.mojibake.UTF8ToString(result.output);
-                let ret = `Output: <strong>${output}</strong><br>`;
-                ret += `Hex UTF-8: <strong>${utf8StringToHex(result.output, result.output_size).join(' ')}</strong><br>`;
-                ret += `Codepoints: <strong>${stringToCodepointList(output).join(' ')}</strong><br>`;
-                ret += `Output size: <strong>${result.output_size}</strong><br>`;
-                ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
-
-                return ret;
-            } else {
-                console.log('Failed to get normalization data');
-            }
-
-            // Free allocated memory
-            window.mojibake._free(ptr);
-
-            return false;
+            return ret.join(', ');
         }
 
         function toggleFunctionCall(func) {
@@ -512,108 +148,107 @@
             }
         }
 
-        function ccCall(func, ret, argTypes, args) {
-            console.log(functions[func]);
-            console.log(func, ret, argTypes, args);
+        async function callAPI(args) {
+            const params = new URLSearchParams(args);
+            const result = await fetch('https://moji.zaerl.com/?' + params.toString());
 
-            if(func === 'mjb_codepoint_character') {
-                return ccallCodepointCharacter(args[0]);
-            } else if(func === 'mjb_normalize') {
-                return ccallNormalize(argTypes, args[0], args[1], args[2], args[3]);
-            } else if(func === 'mjb_codepoint_encode') {
-                return ccallCodepointEncode(args[0], args[3]);
-            } else if(func === 'mjb_codepoint_emoji') {
-                return ccallEmoji(args[0]);
-            } else {
-                return window.mojibake.ccall(func, ret, argTypes, args);
-            }
+            return await result.json();
         }
 
-        function callFunction(func) {
+        function parseCodepointCharacter(char) {
+            let ret = `Codepoint <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
+            ret += `Name: <span class="text-primary">${char.name}</span><br>`;
+            ret += `Category: <strong>${categories[char.category]}</strong><br>`;
+            ret += `Combining: <strong>${char.combining}</strong><br>`;
+            ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
+            ret += `Decimal: <strong>${char.decimal === null ? 'N/A' : char.decimal}</strong><br>`;
+            ret += `Digit: <strong>${char.digit === null ? 'N/A' : char.digit}</strong><br>`;
+            ret += `Numeric: <strong>${char.numeric === '' ? 'N/A' : char.numeric}</strong><br>`;
+            ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
+            ret += `Uppercase: <strong>${codepointToString(char.uppercase, false)}</strong><br>`;
+            ret += `Lowercase: <strong>${codepointToString(char.lowercase, false)}</strong><br>`;
+            ret += `Titlecase: <strong>${codepointToString(char.titlecase, false)}</strong>`;
+
+            return ret;
+        }
+
+        function parseNormalize(result) {
+            let ret = `Output: <strong>${result.output}</strong><br>`;
+            ret += `Hex UTF-8: <strong>${result.utf8}</strong><br>`;
+            ret += `Codepoints: <strong>${result.codepoints}</strong><br>`;
+            ret += `Output size: <strong>${result.output_size}</strong><br>`;
+            ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
+
+            return ret;
+        }
+
+        function parseEmoji(result) {
+            let ret = `Codepoint <strong>${codepointToString(result.codepoint)}</strong>:<br>`;
+            ret += `Emoji: <strong>${result.emoji ? 'true' : 'false'}</strong><br>`;
+            ret += `Presentation: <strong>${result.presentation ? 'true' : 'false'}</strong><br>`;
+            ret += `Modifier: <strong>${result.modifier ? 'true' : 'false'}</strong><br>`;
+            ret += `Modifier Base: <strong>${result.modifier_base ? 'true' : 'false'}</strong><br>`;
+            ret += `Component: <strong>${result.component ? 'true' : 'false'}</strong><br>`;
+            ret += `Extended Pictographic: <strong>${result.extended_pictographic ? 'true' : 'false'}</strong><br>`;
+
+            return ret;
+        }
+
+        async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-form');
             const funcResults = document.getElementById(func + '-results');
+            console.log(func, functions[func].args);
 
-            if(functions[func].args.length === 1 && functions[func].args[0] === 'void') {
-                const result = window.mojibake.ccall(func, functions[func].ret === 'const char *' ? 'string' : 'number', []);
-                funcResults.innerHTML = result;
+            if(functions[func].args.length === 0 ||
+                (functions[func].args.length === 1 && functions[func].args[0] === 'void')) {
+                const data = await callAPI({ 'function': func });
+
+                if(data.error) {
+                    funcResults.innerHTML = data.message;
+                } else {
+                    funcResults.innerHTML = data[func.replace(/^mjb_/, '')];
+                }
+
+                funcResults.style.display = 'block';
 
                 return;
             }
 
-            function typeMap(type) {
-                if(type === 'const char *') {
-                    return 'string';
-                } else if(type === 'char *') {
-                    return 'string';
-                } else if(type === 'bool') {
-                    return 'boolean';
-                }
-
-                return 'number';
-            }
-
-            function readCodepoint(value) {
-                // Handle different codepoint formats: decimal, hex, 0x hex, U+FFFF
-                value = value.trim().toUpperCase();
-
-                if(value.startsWith('U+')) {
-                    // U+FFFF format
-                    return parseInt(value.substring(2), 16);
-                } else if(value.startsWith('0X')) {
-                    // 0xFFFF format
-                    return parseInt(value.substring(2), 16);
-                } else {
-                    // Plain hex format
-                    return parseInt(value, 16);
-                }
-            }
-
             let i = 0;
-            const args = [];
-            const argTypes = [];
-            const ret = typeMap(functions[func].ret);
-            let hasBuffer = null;
+            let args = { 'function': func };
 
             for(const arg of functions[func].args) {
-                const mappedType = typeMap(functions[func].argsTypes[i]);
-                let value = null;
-
-                argTypes.push(mappedType);
-
                 if(functions[func].wasmGenerated[i]) {
-                    if(functions[func].argsTypes[i] === 'size_t' && (
-                        arg === 'size' ||
-                        arg === 'max_length' ||
-                        arg === 's1_length' ||
-                        arg === 's2_length') && hasBuffer !== null) {
-                        // Calculate the size of the buffer in bytes (UTF-8)
-                        const encoder = new TextEncoder().encode(hasBuffer);
-                        value = encoder.length;
-                    }
-                } else {
-                    value = form.elements[`${func}-${arg}`].value;
-
-                    if(functions[func].argsTypes[i] === 'mjb_codepoint') {
-                        value = readCodepoint(value);
-                    } else if(mappedType === 'number') {
-                        value = parseInt(value, 10);
-                    } else if(mappedType === 'boolean') {
-                        value = form.elements[`${func}-${arg}`].checked;
-                    }
-
-                    if(hasBuffer === null && functions[func].argsTypes[i] === 'const char *' &&
-                        (arg === 'buffer' || arg === 's1' || arg === 's2')) {
-                        hasBuffer = value;
-                    }
+                    continue;
                 }
 
-                args.push(value);
+                value = form.elements[`${func}-${arg}`].value;
 
+                if(functions[func].argsTypes[i] === 'bool') {
+                    value = form.elements[`${func}-${arg}`].checked;
+                }
+
+                args[arg] = value;
                 ++i;
             }
 
-            let result = ccCall(func, ret, argTypes, args);
+            let data = await callAPI(args);
+
+            if(data.error) {
+                funcResults.innerHTML = data.message;
+                funcResults.style.display = 'block';
+
+                return;
+            }
+
+            if(func === 'mjb_codepoint_character') {
+                data = parseCodepointCharacter(data);
+            } else if(func === 'mjb_normalize') {
+                data = parseNormalize(data);
+            } else if(func === 'mjb_codepoint_emoji') {
+                data = parseEmoji(data);
+            }
 
             if(functions[func].ret === 'mjb_codepoint') {
                 result = codepointToString(result);
@@ -621,13 +256,48 @@
                 result = encodingToString(result);
             }
 
+            funcResults.innerHTML = data;
             funcResults.style.display = 'block';
+        }
 
-            if(func === 'mjb_next_character') {
-                return;
+        const urlParams = new URLSearchParams(window.location.search);
+        const functionParam = urlParams.get('function');
+
+        // Use the function parameter if provided
+        if(functionParam && functions[functionParam]) {
+            const targetDiv = document.getElementById(functionParam);
+            const form = document.getElementById(functionParam + '-form');
+            let ready = true;
+
+            if(form) {
+                form.reset();
             }
 
-            funcResults.innerHTML = result;
+            for(let i = 0; i < functions[functionParam].args.length; ++i) {
+                if(functions[functionParam].wasmGenerated[i]) {
+                    continue;
+                }
+
+                const param = urlParams.get(functions[functionParam].args[i]);
+
+                if(param === null) {
+                    ready = false;
+                    break;
+                }
+
+                const input = document.getElementById(functionParam + '-' + functions[functionParam].args[i]);
+
+                if(input) {
+                    input.value = param;
+                }
+            }
+
+            targetDiv.scrollIntoView({ block: 'start' });
+            toggleFunctionCall(functionParam);
+
+            if(ready) {
+                callFunction(functionParam);
+            }
         }
     </script>
 </body>
