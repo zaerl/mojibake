@@ -444,7 +444,8 @@ async function parseRequest(req) {
         arg === 'size' ||
         arg === 'max_length' ||
         arg === 's1_length' ||
-        arg === 's2_length') && hasBuffer !== null) {
+        arg === 's2_length') &&
+        hasBuffer !== null) {
         // Calculate the size of the buffer in bytes (UTF-8)
         const encoder = new TextEncoder().encode(hasBuffer);
         value = encoder.length;
