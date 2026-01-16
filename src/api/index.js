@@ -493,7 +493,9 @@ const server = http.createServer(async (req, res) => {
   try {
     response = await parseRequest(req);
   } catch (error) {
-    console.error(error);
+    const clientIp = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.error(`[${new Date().toISOString()}] ${clientIp} - Error:`, error.message);
+
     httpStatus = 400;
     response = {
       error: error.name,
@@ -510,4 +512,19 @@ server.listen(3000, '0.0.0.0', async () => {
   mojibake = await mojibakeModule();
   await initializeMojibake();
   console.log('Server running on http://0.0.0.0:3000');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
