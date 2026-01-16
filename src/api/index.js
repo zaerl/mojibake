@@ -152,11 +152,10 @@ function pointerToCharacter(ptr) {
     char.digit = null;
   }
 
-  char.mirrored = char.mirrored === 1;
-  char.codepoint = char.codepoint === 0 ? null : char.codepoint;
   char.uppercase = char.uppercase === 0 ? null : char.uppercase;
   char.lowercase = char.lowercase === 0 ? null : char.lowercase;
   char.titlecase = char.titlecase === 0 ? null : char.titlecase;
+  char.mirrored = char.mirrored === 1;
 
   return char;
 }
