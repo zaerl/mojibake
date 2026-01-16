@@ -84,17 +84,24 @@ function getenum(value, enumMap, defaultValue) {
 function readCodepoint(value) {
   // Handle different codepoint formats: decimal, hex, 0x hex, U+FFFF
   value = value.trim().toUpperCase();
+  let codepoint = null;
 
   if(value.startsWith('U+')) {
     // U+FFFF format
-    return parseInt(value.substring(2), 16);
+    codepoint = parseInt(value.substring(2), 16);
   } else if(value.startsWith('0X')) {
     // 0xFFFF format
-    return parseInt(value.substring(2), 16);
+    codepoint = parseInt(value.substring(2), 16);
   } else {
     // Plain hex format
-    return parseInt(value, 16);
+    codepoint = parseInt(value, 16);
   }
+
+  if(isNaN(codepoint) || codepoint < 0) {
+    throw new Error(`Invalid codepoint. Must be a 16-bit positive integer in decimal, hex (0xFFFF), or U+FFFF format.`);
+  }
+
+  return codepoint;
 }
 
 function getArgValue(type, value) {
@@ -108,7 +115,11 @@ function getArgValue(type, value) {
     case 'mjb_plane':
       return getenum(value, planeTypes, null);
     case 'mjb_codepoint':
-      return readCodepoint(value);
+      if(typeof value === 'string' && value.trim() !== '') {
+        return readCodepoint(value);
+      } else {
+        return null;
+      }
     default:
       return value;
   }
@@ -492,9 +503,10 @@ const server = http.createServer(async (req, res) => {
 
   try {
     response = await parseRequest(req);
-  } catch (error) {
+  } catch(error) {
     const clientIp = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     console.error(`[${new Date().toISOString()}] ${clientIp} - Error:`, error.message);
+    console.error(error);
 
     httpStatus = 400;
     response = {
