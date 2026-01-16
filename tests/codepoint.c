@@ -179,6 +179,14 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0x18DF2, &character), true, "TANGUT COMPONENT-883")
     ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-883", "TANGUT COMPONENT-883")
 
+    // First khitan small script character
+    ATT_ASSERT(mjb_codepoint_character(0x18B00, &character), true, "KHITAN SMALL SCRIPT CHARACTER-18B00")
+    ATT_ASSERT((const char*)character.name, "KHITAN SMALL SCRIPT CHARACTER-18B00", "KHITAN SMALL SCRIPT CHARACTER-18B00")
+
+    // Last khitan small script character
+    ATT_ASSERT(mjb_codepoint_character(0x18CFF, &character), true, "KHITAN SMALL SCRIPT CHARACTER-18CFF")
+    ATT_ASSERT((const char*)character.name, "KHITAN SMALL SCRIPT CHARACTER-18CFF", "KHITAN SMALL SCRIPT CHARACTER-18CFF")
+
     ATT_ASSERT(mjb_codepoint_character(0x14400, &character), true, "ANATOLIAN HIEROGLYPH 1")
     ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
 

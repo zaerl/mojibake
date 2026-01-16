@@ -18,7 +18,7 @@
 - [ ] Check `without rowid` tables
 - [ ] Check Windows UTF-8 console mode
 - [ ] Add UTF16 and UTF32 support for WASM build
-- [ ] Add support for KHITAN SMALL SCRIPT CHARACTER-18XX
+- [x] Add support for KHITAN SMALL SCRIPT CHARACTER-18XX
 - [x] Check TANGUT IDEOGRAPH
 - [x] Add support for NameAliases.txt
 - [x] Add amalgamation script

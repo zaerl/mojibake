@@ -83,6 +83,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         return mjb_codepoint_cjk_th_character(codepoint - MJB_TANGUT_COMPONENT_START + 1, "TANGUT COMPONENT-%03d", character);
     } else if(codepoint >= MJB_TANGUT_COMPONENT_SUPPLEMENT_START && codepoint <= MJB_TANGUT_COMPONENT_SUPPLEMENT_END) {
         return mjb_codepoint_cjk_th_character(codepoint - MJB_TANGUT_COMPONENT_SUPPLEMENT_START + 769, "TANGUT COMPONENT-%03d", character);
+    } else if(codepoint >= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START && codepoint <= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
+        return mjb_codepoint_cjk_th_character(codepoint, "KHITAN SMALL SCRIPT CHARACTER-%X", character);
     } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
         if(codepoint >= 0x143FF) {
             // Last valid is EGYPTIAN HIEROGLYPH-143FA

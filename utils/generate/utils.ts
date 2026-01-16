@@ -83,6 +83,9 @@ const TANGUT_COMPONENT_END = 0x18AFF;
 const TANGUT_COMPONENT_SUPPLEMENT_START = 0x18D80;
 const TANGUT_COMPONENT_SUPPLEMENT_END = 0x18DF2;
 
+const KHITAN_SMALL_SCRIPT_CHARACTER_START = 0x18B00;
+const KHITAN_SMALL_SCRIPT_CHARACTER_END = 0x18CFF;
+
 // Filter away characters that will not be included in the database
 export function isValidCharacter(codepoint: number, name: string): boolean {
   if(name.startsWith('<') && name !== '<control>') {
@@ -102,6 +105,11 @@ export function isValidCharacter(codepoint: number, name: string): boolean {
 
   if(codepoint >= TANGUT_COMPONENT_SUPPLEMENT_START &&
     codepoint <= TANGUT_COMPONENT_SUPPLEMENT_END) {
+    return false;
+  }
+
+  if(codepoint >= KHITAN_SMALL_SCRIPT_CHARACTER_START &&
+    codepoint <= KHITAN_SMALL_SCRIPT_CHARACTER_END) {
     return false;
   }
 
