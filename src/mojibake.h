@@ -148,16 +148,16 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_START 0x2F800
 #define MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_END   0x2FA1D
 
-#define MJB_EGYPTIAN_H_START 0x13000
+#define MJB_EGYPTIAN_H_START            0x13000
 #define MJB_EGYPTIAN_H_FORMAT_EXT_START 0x13460
-#define MJB_EGYPTIAN_H_EXT_END 0x143FF
+#define MJB_EGYPTIAN_H_EXT_END          0x143FF
 
 // Tangut Ideographs
 #define MJB_TANGUT_IDEOGRAPH_START 0x17000
 #define MJB_TANGUT_IDEOGRAPH_END   0x187F7
 
 #define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START 0x18D00
-#define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END 0x18D1E
+#define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END   0x18D1E
 
 // Tangut components
 #define MJB_TANGUT_COMPONENT_START 0x18800
@@ -168,7 +168,7 @@ typedef uint32_t mjb_codepoint;
 
 // Khitan Small Script Characters
 #define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START 0x18B00
-#define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END 0x18CFF
+#define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END   0x18CFF
 
 // Numeric values, to be used when the decimal and digit mjb_character fields are not valid
 #define MJB_NUMBER_NOT_VALID -1
@@ -216,12 +216,12 @@ typedef enum mjb_quick_check_result {
 } mjb_quick_check_result;
 
 typedef enum mjb_filter {
-    MJB_FILTER_NONE = 0x0,
-    MJB_FILTER_NORMALIZE = 0x1,
-    MJB_FILTER_SPACES = 0x2,
+    MJB_FILTER_NONE            = 0x0,
+    MJB_FILTER_NORMALIZE       = 0x1,
+    MJB_FILTER_SPACES          = 0x2,
     MJB_FILTER_COLLAPSE_SPACES = 0x4,
-    MJB_FILTER_CONTROLS = 0x8,
-    MJB_FILTER_NUMERIC = 0x10
+    MJB_FILTER_CONTROLS        = 0x8,
+    MJB_FILTER_NUMERIC         = 0x10
 } mjb_filter;
 
 typedef enum mjb_case_type {
