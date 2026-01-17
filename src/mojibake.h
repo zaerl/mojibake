@@ -92,14 +92,6 @@ typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
 typedef void (*mjb_free_fn)(void *ptr);
 
 /**
- * Mojibake is represented by a pointer to an instance of the opaque structure
- * named "mojibake". The [mjb_initialize()] and [mjb_initialize_v2()] functions
- * are its constructor. Every function accept an instance to this allocated
- * pointer. This is used to ensure reentrancy.
- */
-typedef struct mojibake mojibake;
-
-/**
  * A unicode codepoint, a value in the range 0 to 0x10FFFF
  * [see: https://www.unicode.org/glossary/#code_point]
  */
