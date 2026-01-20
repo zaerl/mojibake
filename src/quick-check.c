@@ -30,14 +30,18 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_n_character current_character;
     result = MJB_QC_YES;
+    bool in_error = false;
 
     for(size_t i = 0; i < size; ++i) {
         // Find next codepoint.
-        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
             break;
         }
 
-        if(state != MJB_UTF_ACCEPT) {
+        if(decode_status == MJB_DECODE_INCOMPLETE) {
             continue;
         }
 

@@ -13,21 +13,20 @@ extern mojibake mjb_global;
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding) {
     uint8_t state = MJB_UTF_ACCEPT;
+    bool in_error = false;
     mjb_codepoint codepoint;
     // bool has_previous_character = false;
     // bool first_character = true;
 
     for(size_t i = 0; i < size; ++i) {
-        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
             break;
         }
 
-        if(state == MJB_UTF_REJECT) {
-            continue;
-        }
-
-        // Still not found a UTF-8 character, continue.
-        if(state != MJB_UTF_ACCEPT) {
+        if(decode_status == MJB_DECODE_INCOMPLETE) {
             continue;
         }
 

@@ -305,29 +305,28 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
     result->output_size = size;
     result->transformed = true;
     size_t output_index = 0;
+    bool in_error = false;
 
     for(size_t i = 0; i < size; ++i) {
-        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
             break;
         }
 
-        bool replaced = false;
-
-        if(state == MJB_UTF_REJECT) {
-            codepoint = MJB_CODEPOINT_REPLACEMENT;
-            replaced = true;
+        if(decode_status == MJB_DECODE_INCOMPLETE) {
+            continue;
         }
 
-        if(state == MJB_UTF_ACCEPT || replaced) {
-            char *new_output = mjb_string_output_codepoint(codepoint, result->output, &output_index,
-                &result->output_size, output_encoding);
+        char *new_output = mjb_string_output_codepoint(codepoint, result->output, &output_index,
+            &result->output_size, output_encoding);
 
-            if(new_output != NULL) {
-                result->output = new_output;
-            } else {
-                // TODO: check if this is the correct behavior
-                return false;
-            }
+        if(new_output != NULL) {
+            result->output = new_output;
+        } else {
+            // TODO: check if this is the correct behavior
+            return false;
         }
     }
 

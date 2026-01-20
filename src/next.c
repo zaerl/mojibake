@@ -21,6 +21,7 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
+    bool in_error = false;
     mjb_codepoint codepoint;
     mjb_character character;
     bool has_previous_character = false;
@@ -29,17 +30,18 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     // Loop through the string.
     for(size_t i = 0; i < size; ++i) {
         // Find next codepoint.
-        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(result == MJB_DECODE_END) {
             break;
         }
 
-        if(state == MJB_UTF_REJECT) {
+        if(result == MJB_DECODE_INCOMPLETE) {
             continue;
         }
 
-        if(state != MJB_UTF_ACCEPT) {
-            continue;
-        }
+        // result is MJB_DECODE_OK or MJB_DECODE_ERROR (both have valid codepoint)
 
         if(has_previous_character) {
 #ifdef __EMSCRIPTEN__

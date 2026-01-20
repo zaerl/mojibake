@@ -86,21 +86,21 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
     char *breaks = (char*)mjb_alloc(real_length + 1);  // real_length + 1 break positions
 
     uint8_t state = MJB_UTF_ACCEPT;
+    bool in_error = false;
     mjb_codepoint codepoint;
     size_t i = 0;
     size_t j = 0;
 
     // Phase 1: Decode string and assign line breaking classes (LB1)
     for(i = 0; i < size; ++i) {
-        if(!mjb_decode_step(buffer, size, &state, &i, encoding, &codepoint)) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
             break;
         }
 
-        if(state == MJB_UTF_REJECT) {
-            continue;
-        }
-
-        if(state == MJB_UTF_ACCEPT) {
+        if(decode_status == MJB_DECODE_OK || decode_status == MJB_DECODE_ERROR) {
             mjb_line_breaking line_breaking;
             mjb_east_asian_width eaw;
 
