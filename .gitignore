@@ -28,7 +28,7 @@ src/embedded-db.h
 src/api/mojibake.js
 src/api/mojibake.wasm
 src/api/mojibake.db
-src/api/functions.json
+src/api/functions.js
 
 # Doc
 doc/*

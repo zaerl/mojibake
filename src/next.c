@@ -37,7 +37,6 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
             continue;
         }
 
-        // Still not found a UTF-8 character, continue.
         if(state != MJB_UTF_ACCEPT) {
             continue;
         }

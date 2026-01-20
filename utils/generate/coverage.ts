@@ -6,6 +6,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import path, { join } from 'path';
+import { functions } from './function';
 
 // Types
 type FuncCoverage = {
@@ -18,11 +19,7 @@ type Coverage = { [key: string]: FuncCoverage };
 const coverage: Coverage = {};
 
 function findExports(): void {
-  const jsonPath = path.join(__dirname, 'functions.json');
-  const jsonData = readFileSync(jsonPath, 'utf8');
-  const data: any[] = JSON.parse(jsonData);
-
-  for(const item of data) {
+  for(const item of functions) {
     coverage[`mjb_${item.name}`] = { u: 0, p: item.args.length };
   }
 }

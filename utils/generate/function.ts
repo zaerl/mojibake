@@ -7,18 +7,35 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 import { categories } from './types';
+// @ts-expect-error - functions.js is a JavaScript file without type declarations
+import functionsDefault from './functions.js';
 
-export class CFunction {
+export const functions: Function[] = functionsDefault;
+
+export type FunctionArg = {
+  name: string;
+  type: string;
+  description: string;
+  wasm_generated: boolean;
+};
+
+export type Function = {
+  comment: string;
+  ret: string;
+  name: string;
+  attributes: string[];
+  args: FunctionArg[];
+  wasm: boolean;
+};
+
+export class CFunction implements Function {
   constructor(
-    private comment: string,
-    private ret: string,
-    private name: string,
-    private attributes: string[] = [],
-    private args: string[] = [],
-    private argsTypes: string[] = [],
-    private argsDescription: string[] = [],
-    private wasmGenerated: boolean[] = [],
-    private wasm: boolean = false
+    public comment: string,
+    public ret: string,
+    public name: string,
+    public attributes: string[] = [],
+    public args: FunctionArg[] = [],
+    public wasm: boolean = false
   ) {
     if(!this.ret.endsWith('*')) {
       this.ret += ' ';
@@ -30,7 +47,7 @@ export class CFunction {
   }
 
   getArgs(): string[] {
-    const args = this.args.map((arg, index) => `${this.argsTypes[index]}${this.argsTypes[index].endsWith('*') ? '' : ' '}${arg}`);
+    const args = this.args.map((arg, index) => `${arg.type}${arg.type.endsWith('*') ? '' : ' '}${arg.name}`);
 
     return args.length ? args : ['void'];
   }
@@ -39,8 +56,8 @@ export class CFunction {
     return 'mjb_' + this.name;
   }
 
-  getLabelName(label: string) {
-    return label.replace('_', ' ');
+  getLabelName(arg: number) {
+    return this.args[arg].name.replace('_', ' ');
   }
 
   isInternal() {
@@ -62,8 +79,7 @@ export class CFunction {
       ret: this.ret.trimEnd(),
       name: this.getName(),
       args: this.args,
-      argsTypes: this.argsTypes,
-      wasmGenerated: this.wasmGenerated,
+      wasm: this.wasm,
     });
   }
 
@@ -85,9 +101,9 @@ export class CFunction {
   }
 
   #getDescription(arg: number): string {
-    let ret = this.wasmGenerated[arg] ? `${this.argsDescription[arg]} (automatically generated)` : this.argsDescription[arg];
+    let ret = this.args[arg].wasm_generated ? `${this.args[arg].description} (automatically generated)` : this.args[arg].description;
 
-    if(this.argsTypes[arg] === 'mjb_codepoint') {
+    if(this.args[arg].type === 'mjb_codepoint') {
       ret += ' (U+XXXXX, 0xXXXXX or XXXXX hexadecimal format)';
     }
 
@@ -95,33 +111,33 @@ export class CFunction {
   }
 
   #getInput(arg: number, type = 'text'): string {
-    const disabled = this.wasmGenerated[arg];
-    const name = `${this.getName()}-${this.args[arg]}`;
+    const disabled = this.args[arg].wasm_generated;
+    const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(this.args[arg])}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
     ret += `<input id="${name}" type="${type}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
 
     return ret + '</div>';
   }
 
   #getCheckbox(arg: number): string {
-    const disabled = this.wasmGenerated[arg];
-    const name = `${this.getName()}-${this.args[arg]}`;
+    const disabled = this.args[arg].wasm_generated;
+    const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.#getDescription(arg);
 
     let ret = `<div><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
-      `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(this.args[arg])}</label>`;
+      `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
 
     return ret + '</div>';
   }
 
   #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
-    const disabled = this.wasmGenerated[arg];
-    const name = `${this.getName()}-${this.args[arg]}`;
+    const disabled = this.args[arg].wasm_generated;
+    const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.#getDescription(arg);
 
-    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(this.args[arg])}</label>`;
+    let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
     ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
@@ -137,27 +153,28 @@ export class CFunction {
     let ret = `\n          <form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
     let i = 0;
 
-    for(const arg of this.argsTypes) {
+    for(const arg of this.args) {
       ret += `\n            `;
-      if(arg.startsWith('const char *')) {
+      const type = arg.type;
+      if(type.startsWith('const char *')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('char *')) {
+      } else if(type.startsWith('char *')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('size_t *')) {
+      } else if(type.startsWith('size_t *')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('mjb_character *')) {
+      } else if(type.startsWith('mjb_character *')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('mjb_emoji_properties *')) {
+      } else if(type.startsWith('mjb_emoji_properties *')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('size_t')) {
+      } else if(type.startsWith('size_t')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('mjb_codepoint')) {
+      } else if(type.startsWith('mjb_codepoint')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('bool')) {
+      } else if(type.startsWith('bool')) {
         ret += this.#getCheckbox(i);
-      } else if(arg.startsWith('mjb_category')) {
+      } else if(type.startsWith('mjb_category')) {
         ret += this.#getSelectInput(i, categories, null);
-      } else if(arg.startsWith('mjb_encoding')) {
+      } else if(type.startsWith('mjb_encoding')) {
         const options = [
           'MJB_ENCODING_UTF_8',
           'MJB_ENCODING_UTF_16_BE',
@@ -176,7 +193,7 @@ export class CFunction {
         ];
 
         ret += this.#getSelectInput(i, options, values);
-      } else if(arg.startsWith('mjb_case_type')) {
+      } else if(type.startsWith('mjb_case_type')) {
         // See mjb_case_type on mojibake.h
         const options = [
           'MJB_CASE_UPPER',
@@ -194,9 +211,9 @@ export class CFunction {
         ];
 
         ret += this.#getSelectInput(i, options, values);
-      } else if(arg.startsWith('mjb_result')) {
+      } else if(type.startsWith('mjb_result')) {
         ret += this.#getInput(i);
-      } else if(arg.startsWith('mjb_normalization')) {
+      } else if(type.startsWith('mjb_normalization')) {
         // See mjb_normalization on mojibake.h
         const options = [
           'MJB_NORMALIZATION_NFC',
@@ -206,7 +223,7 @@ export class CFunction {
         ];
 
         ret += this.#getSelectInput(i, options);
-      } else if(arg.startsWith('mjb_plane')) {
+      } else if(type.startsWith('mjb_plane')) {
         // See mjb_plane on unicode.h
         const options = [
           'MJB_PLANE_BMP',
@@ -244,19 +261,12 @@ export class CFunction {
 }
 
 export function cfns(): CFunction[] {
-  const jsonPath = path.join(__dirname, 'functions.json');
-  const jsonData = readFileSync(jsonPath, 'utf8');
-  const data: any[] = JSON.parse(jsonData);
-
-  return data.map(item => new CFunction(
+  return functions.map(item => new CFunction(
     item.comment,
     item.ret,
     item.name,
     item.attributes,
     item.args,
-    item.args_types,
-    item.args_description,
-    item.wasm_generated,
     item.wasm
   ));
 }

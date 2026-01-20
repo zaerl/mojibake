@@ -111,7 +111,7 @@
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
-        function encodingToString(encoding) {
+        function encodingToString(encoding, includeHex = false) {
             const encodings = {
                 0x0: 'Unknown',
                 0x1: 'ASCII',
@@ -128,7 +128,7 @@
 
             for(const key in encodings) {
                 if(encoding & key) {
-                    ret.push(encodings[key] + ' (0x' + key.toString(16).toUpperCase() + ')');
+                    ret.push(encodings[key] + (includeHex ? ' (0x' + key.toString(16).toUpperCase() + ')' : ''));
                 }
             }
 
@@ -216,7 +216,7 @@
             console.log(func, functions[func].args);
 
             if(functions[func].args.length === 0 ||
-                (functions[func].args.length === 1 && functions[func].args[0] === 'void')) {
+                (functions[func].args.length === 1 && functions[func].args[0].type === 'void')) {
                 const data = await callAPI({ 'function': func });
 
                 if(data.error) {
@@ -234,17 +234,21 @@
             let args = { 'function': func };
 
             for(const arg of functions[func].args) {
-                if(functions[func].wasmGenerated[i]) {
+                if(arg.wasm_generated) {
                     continue;
                 }
 
-                value = form.elements[`${func}-${arg}`].value;
+                console.log(`${func}-${arg.name}`);
+                console.log(form.elements[`${func}-${arg.name}`]);
+                value = form.elements[`${func}-${arg.name}`].value;
 
-                if(functions[func].argsTypes[i] === 'bool') {
-                    value = form.elements[`${func}-${arg}`].checked;
+                if(arg.type === 'bool') {
+                    value = form.elements[`${func}-${arg.name}`].checked;
+                } else if(arg.type === 'mjb_encoding') {
+                    value = encodingToString(value);
                 }
 
-                args[arg] = value;
+                args[arg.name] = value;
                 ++i;
             }
 
@@ -270,7 +274,7 @@
             if(functions[func].ret === 'mjb_codepoint') {
                 result = codepointToString(result);
             } else if(functions[func].ret === 'mjb_encoding') {
-                result = encodingToString(result);
+                result = encodingToString(result, true);
             }
 
             funcResults.innerHTML = data;
@@ -291,18 +295,19 @@
             }
 
             for(let i = 0; i < functions[functionParam].args.length; ++i) {
-                if(functions[functionParam].wasmGenerated[i]) {
+                let arg = functions[functionParam].args[i];
+                if(arg.wasm_generated) {
                     continue;
                 }
 
-                const param = urlParams.get(functions[functionParam].args[i]);
+                const param = urlParams.get(arg.name);
 
                 if(param === null) {
                     ready = false;
                     break;
                 }
 
-                const input = document.getElementById(functionParam + '-' + functions[functionParam].args[i]);
+                const input = document.getElementById(functionParam + '-' + arg.name);
 
                 if(input) {
                     input.value = param;

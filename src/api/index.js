@@ -8,6 +8,7 @@ import http from 'http';
 import { promises as fs } from 'fs';
 import mojibakeModule from './mojibake.js';
 import { CStruct } from './cstruct.js';
+import functionsDefault from './functions.js';
 
 let functions = {};
 let mojibake = null;
@@ -46,20 +47,12 @@ const planeTypes = {
 };
 
 async function loadFunctions() {
-  const buf = await fs.readFile('./functions.json');
-  const raw = JSON.parse(buf.toString());
-
-  for(const func of raw) {
+  for(const func of functionsDefault) {
     if(!func.wasm) {
       continue;
     }
 
-    functions[`mjb_${func.name}`] = {
-      ret: func.ret,
-      args: func.args,
-      args_types: func.args_types,
-      generated: func.wasm_generated,
-    };
+    functions[`mjb_${func.name}`] = func;
   }
 }
 
@@ -346,17 +339,17 @@ function ccallEmoji(codepoint) {
   }
 }
 
-function ccCall(func, ret, argTypes, args) {
-  if(func === 'mjb_codepoint_character') {
+function ccCall(functionName, ret, argTypes, args) {
+  if(functionName === 'mjb_codepoint_character') {
     return ccallCodepointCharacter(args[0]);
-  } else if(func === 'mjb_normalize') {
+  } else if(functionName === 'mjb_normalize') {
     return ccallNormalize(argTypes, args[0], args[1], args[2], args[3]);
-  } else if(func === 'mjb_codepoint_encode') {
+  } else if(functionName === 'mjb_codepoint_encode') {
     return ccallCodepointEncode(args[0], args[3]);
-  } else if(func === 'mjb_codepoint_emoji') {
+  } else if(functionName === 'mjb_codepoint_emoji') {
     return ccallEmoji(args[0]);
   } else {
-    return mojibake.ccall(func, ret, argTypes, args);
+    return mojibake.ccall(functionName, ret, argTypes, args);
   }
 }
 
@@ -403,7 +396,7 @@ async function parseRequest(req) {
   const functionName = url.searchParams.get('function');
 
   if(functionName === null) {
-    return functions;
+    return functionsDefault;
   }
 
   if(!functions[functionName]) {
@@ -413,7 +406,7 @@ async function parseRequest(req) {
   const functionArgs = functions[functionName].args;
 
   // A function with no arguments returns the returned value
-  if(functionArgs.length === 0 || (functionArgs.length === 1 && functionArgs[0] === 'void')) {
+  if(functionArgs.length === 0 || (functionArgs.length === 1 && functionArgs[0].type === 'void')) {
     const result = mojibake.ccall(
       functionName,
       functions[functionName].ret === 'const char *' ? 'string' : 'number', []
@@ -432,13 +425,14 @@ async function parseRequest(req) {
   // Get all parameters from the function declaration
   for(let i = 0; i < functionArgs.length; ++i) {
     const arg = functionArgs[i];
-    const rawType = functions[functionName].args_types[i];
+    const rawType = arg.type;
     const mappedType = typeMap(rawType);
     let value = null;
+    console.log(arg, rawType, mappedType);
 
     argTypes.push(mappedType);
 
-    if(functions[functionName].generated[i]) {
+    if(arg.wasm_generated) {
       if(rawType === 'size_t' && (
         arg === 'size' ||
         arg === 'max_length' ||
@@ -450,11 +444,11 @@ async function parseRequest(req) {
         value = encoder.length;
       }
     } else {
-      const name = functionArgs[i];
-      value = getArgValue(rawType, url.searchParams.get(name));
+      value = getArgValue(rawType, url.searchParams.get(arg.name));
+      console.log(rawType, url.searchParams.get(arg.name));
 
       if(value === undefined || value === null) {
-        throw new Error(`Missing parameter: ${name}`);
+        throw new Error(`Missing parameter: ${arg.name}`);
       }
 
       if(mappedType === 'number') {
@@ -464,7 +458,7 @@ async function parseRequest(req) {
       }
 
       if(hasBuffer === null && rawType === 'const char *' &&
-        (arg === 'buffer' || arg === 's1' || arg === 's2')) {
+        (arg.name === 'buffer' || arg.name === 's1' || arg.name === 's2')) {
         hasBuffer = value;
       }
     }

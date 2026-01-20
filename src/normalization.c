@@ -327,7 +327,6 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
             continue;
         }
 
-        // Still not found a UTF-8 character, continue.
         if(state != MJB_UTF_ACCEPT) {
             continue;
         }
