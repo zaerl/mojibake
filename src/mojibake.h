@@ -99,7 +99,7 @@ typedef uint32_t mjb_codepoint;
 
 #define MJB_CODEPOINT_MIN         0x0
 #define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid unicode code point
-#define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data
+#define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data "�"
 #define MJB_PRIVATE_USE_START     0xF0000  // Private use area start
 #define MJB_PRIVATE_USE_END       0x10FFFD // Private use area end
 #define MJB_CODEPOINT_NOT_VALID   0x110000 // Not a valid codepoint

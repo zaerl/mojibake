@@ -759,7 +759,7 @@ export default [
     "ret": "bool",
     "name": "segmentation",
     "attributes": [
-      "MJB_NONNULL(1, 4)"
+      "MJB_NONNULL(1)"
     ],
     "args": [
       {
@@ -779,12 +779,6 @@ export default [
         "type": "mjb_encoding",
         "description": "The encoding of the string",
         "wasm_generated": false
-      },
-      {
-        "name": "next_state",
-        "type": "mjb_next_state *",
-        "description": "The next state to use",
-        "wasm_generated": true
       }
     ],
     "wasm": true

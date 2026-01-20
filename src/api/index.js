@@ -79,11 +79,8 @@ function readCodepoint(value) {
   value = value.trim().toUpperCase();
   let codepoint = null;
 
-  if(value.startsWith('U+')) {
-    // U+FFFF format
-    codepoint = parseInt(value.substring(2), 16);
-  } else if(value.startsWith('0X')) {
-    // 0xFFFF format
+  if(value.startsWith('U+') || value.startsWith('0X')) {
+    // U+FFFF or 0xFFFF format
     codepoint = parseInt(value.substring(2), 16);
   } else {
     // Plain hex format
