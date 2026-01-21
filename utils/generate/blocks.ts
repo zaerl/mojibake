@@ -4,9 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { open } from 'fs/promises';
 import { dbInsertBlock } from './db';
 import { log } from './log';
+import { parsePropertyFile } from './parse-property-file';
 import { Block } from './types';
 
 export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
@@ -15,14 +15,11 @@ export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   const blocks: Block[] = [];
   let id = 0;
 
-  const file = await open(path);
-
-  for await (const line of file.readLines()) {
-    if(line.startsWith('#') || line === '') { // Comment
+  for await (const split of parsePropertyFile(path)) {
+    if(split.length < 2) {
       continue;
     }
 
-    const split = line.split('; ');
     const name = split[1];
     const values = split[0].split('..');
     const start = parseInt(values[0], 16);

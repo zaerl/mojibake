@@ -5,17 +5,14 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { open } from 'fs/promises';
+import { parsePropertyFile } from './parse-property-file';
 import { substituteBlock } from './utils';
 
 export async function generateLocales() {
-  const file = await open('./locales/ISO-639-2.txt');
   const locales = [];
   const names = [];
 
-  for await (const line of file.readLines()) {
-    const split = line.split('|');
-
+  for await (const split of parsePropertyFile('./locales/ISO-639-2.txt', [], '|', false)) {
     if(split[2].length) {
       locales.push(split[2]);
       names.push(split[3]);

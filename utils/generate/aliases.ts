@@ -1,19 +1,12 @@
-import { open } from 'fs/promises';
 import { log } from './log';
+import { parsePropertyFile } from './parse-property-file';
 
 export async function readAliases(): Promise<{ [key: string]: string }> {
   log('READ UNICODE ALIASES');
 
-  const file = await open('./UCD/NameAliases.txt');
   const aliases: { [key: string]: string } = {};
 
-  for await (const line of file.readLines()) {
-    if(!line || line.startsWith('#') || line.trim() === '') {
-      continue;
-    }
-
-    const split = line.split(';');
-
+  for await (const split of parsePropertyFile('./UCD/NameAliases.txt')) {
     if(split.length < 3) {
       continue;
     }

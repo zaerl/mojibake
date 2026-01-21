@@ -4,15 +4,15 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { open } from 'fs/promises';
 import { Character } from './character';
 import { Emoji } from './emoji';
 import { log } from './log';
+import { parsePropertyFile } from './parse-property-file';
 import { EmojiProperties, EmojiPropertiesStrings } from './types';
 
 export async function generateEmojiProperties(characters: Character[], path = './UCD/emoji/emoji-data.txt') {
   log('GENERATE EMOJI PROPERTIES');
-  const file = await open(path);
+
   const emojiMap: { [key: string]: Emoji } = {};
   const characterMap: { [key: string]: Character } = {};
 
@@ -20,17 +20,14 @@ export async function generateEmojiProperties(characters: Character[], path = '.
     characterMap['' + char.codepoint] = char;
   }
 
-  for await (const line of file.readLines()) {
-    if(line.length === 0 || line.startsWith('#')) {
+  for await (const split of parsePropertyFile(path, ['F0000', '100000'])) {
+    if(split.length < 2) {
       continue;
     }
 
-    const split = line.split(';');
+    const codepoint = split[0];
+    const emoji = split[1];
 
-    if(split.length < 2) continue;
-
-    const codepoint = split[0].trim();
-    const emoji = split[1].trim().split('#')[0].trim();
     let codepointStart = 0;
     let codepointEnd = 0;
 

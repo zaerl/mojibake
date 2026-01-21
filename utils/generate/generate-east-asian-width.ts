@@ -4,32 +4,27 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
+import { parsePropertyFile } from './parse-property-file';
 import { EastAsianWidth, EastAsianWidthStrings } from './types';
 
 export async function generateEastAsianWidth(characters: Character[], path = './UCD/EastAsianWidth.txt') {
   log('GENERATE EAST ASIAN WIDTH');
-  const file = await open(path);
+
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {
     characterMap['' + char.codepoint] = char;
   }
 
-  for await (const line of file.readLines()) {
-    if(line.length === 0 || line.startsWith('#') || line.startsWith('F0000') ||
-      line.startsWith('100000')) {
+  for await (const split of parsePropertyFile(path, ['F0000', '100000'])) {
+    if(split.length < 2) {
       continue;
     }
 
-    const split = line.split(';');
-
-    if(split.length < 2) continue;
-
-    const codepoint = split[0].trim();
-    const width = split[1].trim().split('#')[0].trim();
+    const codepoint = split[0];
+    const width = split[1];
     let codepointStart = 0;
     let codepointEnd = 0;
 

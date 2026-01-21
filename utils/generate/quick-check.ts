@@ -4,9 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
+import { parsePropertyFile } from './parse-property-file';
 
 export enum QuickCheckResult {
   YES        = 0x0,
@@ -53,8 +53,6 @@ export async function readNormalizationProps(characters: Character[], path = './
 
   let id = 0;
 
-  const file = await open(path);
-
   const quickCheck: QuickCheck = {
     NFD_QC: { N: 0, M: 0 },
     NFC_QC: { N: 0, M: 0 },
@@ -62,14 +60,13 @@ export async function readNormalizationProps(characters: Character[], path = './
     NFKD_QC: { N: 0, M: 0 }
   };
 
-  for await (const line of file.readLines()) {
-    if(line.startsWith('#') || line === '') { // Comment
-      continue
+  for await (const split of parsePropertyFile(path, [], ';', false)) {
+    if(split.length < 3) {
+      continue;
     }
 
-    const split = line.split('; ');
-    const codepoint = split[0].trim();
-    const decomposition = split[1].trim() as keyof QuickCheck;
+    const codepoint = split[0];
+    const decomposition = split[1] as keyof QuickCheck;
 
     if(!(decomposition in quickCheck)) {
       continue;

@@ -5,7 +5,7 @@
  */
 
 import { constants } from 'fs';
-import { access, open, unlink } from 'fs/promises';
+import { access, unlink } from 'fs/promises';
 import { readAliases } from './aliases';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
@@ -28,6 +28,7 @@ import { generateLocales } from './generate-locales';
 import { generateNormalizationCount } from './generate-tests';
 import { generateWASM } from './generate-wasm';
 import { iLog, isVerbose, log, setVerbose } from './log';
+import { parsePropertyFile } from './parse-property-file';
 import { PrefixCompressor } from './prefix-compressor';
 import { readNormalizationProps } from './quick-check';
 import { readSpecialCasingProps } from './special-casing';
@@ -53,14 +54,9 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const aliases = await readAliases();
 
   log('READ UNICODE DATA');
-  const file = await open('./UCD/UnicodeData.txt');
+  for await (const line of parsePropertyFile('./UCD/UnicodeData.txt', [], ';', false)) {
+    const split = line as UnicodeDataRow;
 
-  for await (const line of file.readLines()) {
-    if(!line || line.trim() === '') {
-      continue;
-    }
-
-    const split = line.split(';') as UnicodeDataRow;
     let name: string | null = aliases[split[0]] ? aliases[split[0]] : split[1];
     const originalName = name;
     codepoint = parseInt(split[0], 16);

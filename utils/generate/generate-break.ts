@@ -5,32 +5,27 @@
  */
 
 import { writeFileSync } from 'fs';
-import { open } from 'fs/promises';
 import { Character } from './character';
 import { log } from './log';
+import { parsePropertyFile } from './parse-property-file';
 import { LineBreakingClass, LineBreakingClassStrings } from './types';
 
 export async function generateBreaks(characters: Character[], path = './UCD/LineBreak.txt') {
   log('GENERATE BREAKS');
-  const file = await open(path);
+
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {
     characterMap['' + char.codepoint] = char;
   }
 
-  for await (const line of file.readLines()) {
-    if(line.length === 0 || line.startsWith('#') || line.startsWith('F0000') ||
-      line.startsWith('100000')) {
+  for await (const split of parsePropertyFile(path, ['F0000', '100000'])) {
+    if(split.length < 2) {
       continue;
     }
 
-    const split = line.split(';');
-
-    if(split.length < 2) continue;
-
-    const codepoint = split[0].trim();
-    const breakClass = split[1].trim().split('#')[0].trim();
+    const codepoint = split[0];
+    const breakClass = split[1];
     let codepointStart = 0;
     let codepointEnd = 0;
 
@@ -63,19 +58,16 @@ export async function generateBreaks(characters: Character[], path = './UCD/Line
 
 export async function generateBreaksTest(path: string) {
   log(`GENERATE BREAKS TEST ${path}`);
-  const file = await open(`./UCD/auxiliary/${path}Test.txt`);
+
   let max = 0;
   let output: string[] = [];
 
-  for await (const line of file.readLines()) {
-    if(line.length === 0 || line.startsWith('#')) {
+  for await (const split of parsePropertyFile(`./UCD/auxiliary/${path}Test.txt`, [], '#', false)) {
+    if(split.length < 2) {
       continue;
     }
 
-    const split = line.split('#');
-    if(split.length < 2) continue;
-
-    const rule = split[0].trim();
+    const rule = split[0];
     const withSlash = rule.replace(/÷/g, '+');
     const final = withSlash.replace(/×/g, 'x');
 
