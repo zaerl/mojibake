@@ -169,7 +169,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
 
     const char query[] = "SELECT u.codepoint, CASE WHEN p.name IS NOT NULL THEN p.name || u.name ELSE u.name END as name, "
         "u.category, u.combining, u.bidirectional, u.decomposition, u.decimal, u.digit, u.numeric, "
-        "u.mirrored, u.uppercase, u.lowercase, u.titlecase "
+        "u.mirrored, u.uppercase, u.lowercase, u.titlecase, u.derived_core_properties "
         "FROM unicode_data u LEFT JOIN prefixes p ON u.prefix = p.id WHERE u.codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
 

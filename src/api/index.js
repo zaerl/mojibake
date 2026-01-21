@@ -132,6 +132,7 @@ function pointerToCharacter(ptr) {
     uppercase: 'u32',
     lowercase: 'u32',
     titlecase: 'u32',
+    derived_core_properties: 'u32',
   }, mojibake.HEAPU8);
 
   if(char.decimal === -1) {
@@ -425,7 +426,6 @@ async function parseRequest(req) {
     const rawType = arg.type;
     const mappedType = typeMap(rawType);
     let value = null;
-    console.log(arg, rawType, mappedType);
 
     argTypes.push(mappedType);
 
@@ -442,7 +442,6 @@ async function parseRequest(req) {
       }
     } else {
       value = getArgValue(rawType, url.searchParams.get(arg.name));
-      console.log(rawType, url.searchParams.get(arg.name));
 
       if(value === undefined || value === null) {
         throw new Error(`Missing parameter: ${arg.name}`);

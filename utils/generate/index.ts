@@ -19,12 +19,13 @@ import { generateNormalizationCount } from './generate-tests';
 import { generateHeader } from './header';
 import { generateLocales } from './locales';
 import { iLog, isVerbose, log, setVerbose } from './log';
-import { parsePropertyFile } from './parse-ucd/parse-property-file';
 import { readAliases } from './parse-ucd/aliases';
 import { readBlocks } from './parse-ucd/blocks';
 import { generateBreaks, generateBreaksTest } from './parse-ucd/breaks';
 import { generateCasefold } from './parse-ucd/casefold';
+import { generateDerivedCoreProperties } from './parse-ucd/derived-core-properties';
 import { generateEastAsianWidth } from './parse-ucd/east-asian-width';
+import { parsePropertyFile } from './parse-ucd/parse-property-file';
 import { readNormalizationProps } from './parse-ucd/quick-check';
 import { readSpecialCasingProps } from './parse-ucd/special-casing';
 import { PrefixCompressor } from './prefix-compressor';
@@ -33,7 +34,7 @@ import {
   UnicodeDataRow
 } from './types';
 import { updateVersion } from './update-version';
-import { compressName, isValidCharacter } from './utils';
+import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
 import { generateWASM } from './wasm';
 
 let compact = false;
@@ -46,6 +47,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   let codepoint = 0;
   let currentBlock = 0;
   let characters: Character[] = [];
+  let ranges: CodepointsRangeMap = {};
 
   iLog('PARSE UNICODE DATA');
   const aliases = await readAliases();
@@ -59,7 +61,21 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
     codepoint = parseInt(split[0], 16);
 
     // Special start end.
-    if(!isValidCharacter(codepoint, name ?? '')) {
+    const codepointsRange = isCodepointOnRanges(codepoint, name ?? '');
+
+    if(codepointsRange === null) {
+      continue;
+    }
+
+    if(codepointsRange.range) {
+      if(ranges[codepointsRange.name] === undefined) {
+        codepointsRange.rangeStart = codepoint;
+        ranges[codepointsRange.name] = codepointsRange;
+      } else {
+        // Start already exists, update the end.
+        ranges[codepointsRange.name].rangeEnd = codepoint;
+      }
+
       continue;
     }
 
@@ -101,7 +117,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       null, // line breaking class
       null, // east asian width,
       false, // extended pictographic
-      null // prefix
+      null, // prefix
+      null // derived core properties
     );
 
     characters.push(char);
@@ -116,6 +133,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const emojis = await generateEmojiProperties(characters);
   await generateBreaks(characters);
   await generateEastAsianWidth(characters);
+  await generateDerivedCoreProperties(characters, ranges);
   await generateBreaksTest('LineBreak');
   await generateBreaksTest('GraphemeBreak');
   await generateBreaksTest('WordBreak');

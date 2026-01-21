@@ -551,4 +551,36 @@ typedef enum mjb_decomposition {
     MJB_DECOMPOSITION_WIDE
 } mjb_decomposition;
 
+/**
+ * Derived core properties
+ * [see: https://www.unicode.org/reports/tr44/#Derived_Props]
+ */
+typedef enum mjb_derived_core_property {
+    MJB_DCP_GRAPHEME_BASE = 0x1,
+    MJB_DCP_ID_CONTINUE = 0x2,
+    MJB_DCP_XID_CONTINUE = 0x4,
+    MJB_DCP_ALPHABETIC = 0x8,
+    MJB_DCP_ID_START = 0x10,
+    MJB_DCP_XID_START = 0x20,
+    MJB_DCP_CASED = 0x40,
+    MJB_DCP_INCB = 0x80,
+    MJB_DCP_CHANGES_WHEN_CASEMAPPED = 0x100,
+    MJB_DCP_CASE_IGNORABLE = 0x200,
+    MJB_DCP_LOWERCASE = 0x400,
+    MJB_DCP_MATH = 0x800,
+    MJB_DCP_GRAPHEME_EXTEND = 0x1000,
+    MJB_DCP_EXTEND = 0x2000,
+    MJB_DCP_UPPERCASE = 0x4000,
+    MJB_DCP_CHANGES_WHEN_UPPERCASED = 0x8000,
+    MJB_DCP_CHANGES_WHEN_CASEFOLDED = 0x10000,
+    MJB_DCP_CHANGES_WHEN_TITLECASED = 0x20000,
+    MJB_DCP_CHANGES_WHEN_LOWERCASED = 0x40000,
+    MJB_DCP_CONSONANT = 0x80000,
+    MJB_DCP_DEFAULT_IGNORABLE_CODE_POINT = 0x100000,
+    MJB_DCP_GRAPHEME_LINK = 0x200000,
+    MJB_DCP_LINKER = 0x400000
+} mjb_derived_core_property;
+
+#define MJB_DERIVED_CORE_PROPERTY_COUNT 23
+
 #endif // MJB_UNICODE_H

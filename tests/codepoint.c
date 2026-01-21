@@ -205,5 +205,16 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0xFE18, &character), true, "Alias FE18 BRAKCET")
     ATT_ASSERT((const char*)character.name, "PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET", "Alias FE18 BRAKCET")
 
+    ATT_ASSERT(mjb_codepoint_character(0x2B, &character), true, "PLUS SIGN")
+    ATT_ASSERT(character.derived_core_properties, MJB_DCP_MATH | MJB_DCP_GRAPHEME_BASE, "PLUS SIGN")
+
+    mjb_derived_core_property property = MJB_DCP_ALPHABETIC | MJB_DCP_UPPERCASE | MJB_DCP_CASED |
+        MJB_DCP_CHANGES_WHEN_LOWERCASED | MJB_DCP_CHANGES_WHEN_CASEFOLDED |
+        MJB_DCP_CHANGES_WHEN_CASEMAPPED | MJB_DCP_ID_START | MJB_DCP_ID_CONTINUE |
+        MJB_DCP_XID_START | MJB_DCP_XID_CONTINUE | MJB_DCP_GRAPHEME_BASE;
+
+    ATT_ASSERT(mjb_codepoint_character(0x41, &character), true, "LATIN CAPITAL LETTER A")
+    ATT_ASSERT(character.derived_core_properties, property, "LATIN CAPITAL LETTER A")
+
     return NULL;
 }

@@ -259,6 +259,7 @@ typedef struct mjb_character {
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
     mjb_codepoint titlecase;
+    mjb_derived_core_property derived_core_properties;
 } mjb_character;
 
 /**

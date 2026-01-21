@@ -6,6 +6,7 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './function';
+import { properties } from './parse-ucd/derived-core-properties';
 import { Block, Categories, characterDecompositionMapping } from './types';
 import { substituteBlock } from './utils';
 
@@ -27,6 +28,15 @@ function getDecompositionEnumNames() {
   return Object.keys(characterDecompositionMapping).map((value: string, index: number) => `    MJB_DECOMPOSITION_${value.toUpperCase().replace(/[<>]/g, '')}`).join(',\n')
 }
 
+function getDerivedCorePropertiesEnumNames() {
+  return Object.keys(properties).map((value: string, index: number) => {
+    const hexValue = properties[value as keyof typeof properties].flag.toString(16);
+    const enumName = `MJB_DCP_${value.toUpperCase()}`;
+
+    return `    ${enumName} = 0x${hexValue}`;
+  }).join(',\n');
+}
+
 function getFunctions() {
   return cfns().map(value => value.formatC()).join("\n\n") + "\n";
 }
@@ -39,6 +49,8 @@ export function generateHeader(blocks: Block[], categories: string[]) {
   fileContent = substituteBlock(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
   fileContent = substituteBlock(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
   fileContent = substituteBlock(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
+  fileContent = substituteBlock(fileContent, "typedef enum mjb_derived_core_property {\n", "\n} mjb_derived_core_property;", getDerivedCorePropertiesEnumNames());
+  fileContent = substituteBlock(fileContent, '#define MJB_DERIVED_CORE_PROPERTY_COUNT ', "\n", '' + Object.keys(properties).length);
 
   writeFileSync('../../src/unicode.h', fileContent);
 

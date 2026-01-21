@@ -83,34 +83,73 @@ const TANGUT_COMPONENT_SUPPLEMENT_END = 0x18DF2;
 const KHITAN_SMALL_SCRIPT_CHARACTER_START = 0x18B00;
 const KHITAN_SMALL_SCRIPT_CHARACTER_END = 0x18CFF;
 
+export interface CodepointsRange {
+  range: boolean;
+  name: string;
+  rangeStart: number;
+  rangeEnd: number;
+}
+
+export type CodepointsRangeMap = { [name: string]: CodepointsRange };
+
 // Filter away characters that will not be included in the database
-export function isValidCharacter(codepoint: number, name: string): boolean {
+export function isCodepointOnRanges(codepoint: number, name: string): CodepointsRange | null {
+  const ret: CodepointsRange = {
+    range: false,
+    name: name,
+    rangeStart: 0,
+    rangeEnd: 0,
+  };
+
   if(name.startsWith('<') && name !== '<control>') {
-    // Special start/end.
-    return false;
+    const split = name.split(',');
+    ret.name = split[0].substring(1);
+    ret.range = true;
+
+    return ret;
   }
 
   if(codepoint >= EGYPTIAN_H_FORMAT_EXT_START &&
     codepoint <= EGYPTIAN_H_EXT_END) {
-    return false;
+    ret.range = true;
+    ret.name = 'EGYPTIAN HIEROGLYPH';
+    ret.rangeStart = EGYPTIAN_H_FORMAT_EXT_START;
+    ret.rangeEnd = EGYPTIAN_H_EXT_END;
+
+    return ret;
   }
 
   if(codepoint >= TANGUT_COMPONENT_START &&
     codepoint <= TANGUT_COMPONENT_END) {
-    return false;
+    ret.range = true;
+    ret.name = 'TANGUT COMPONENT';
+    ret.rangeStart = TANGUT_COMPONENT_START;
+    ret.rangeEnd = TANGUT_COMPONENT_END;
+
+    return ret;
   }
 
   if(codepoint >= TANGUT_COMPONENT_SUPPLEMENT_START &&
     codepoint <= TANGUT_COMPONENT_SUPPLEMENT_END) {
-    return false;
+    ret.range = true;
+    ret.name = 'TANGUT COMPONENT SUPPLEMENT';
+    ret.rangeStart = TANGUT_COMPONENT_SUPPLEMENT_START;
+    ret.rangeEnd = TANGUT_COMPONENT_SUPPLEMENT_END;
+
+    return ret;
   }
 
   if(codepoint >= KHITAN_SMALL_SCRIPT_CHARACTER_START &&
     codepoint <= KHITAN_SMALL_SCRIPT_CHARACTER_END) {
-    return false;
+    ret.range = true;
+    ret.name = 'KHITAN SMALL SCRIPT CHARACTER';
+    ret.rangeStart = KHITAN_SMALL_SCRIPT_CHARACTER_START;
+    ret.rangeEnd = KHITAN_SMALL_SCRIPT_CHARACTER_END;
+
+    return ret;
   }
 
-  return true;
+  return ret;
 }
 
 export function compressName(codepoint: number, name: string): string | null {

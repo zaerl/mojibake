@@ -65,7 +65,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class INTEGER,
         east_asian_width INTEGER,
         extended_pictographic INTEGER, -- emoji properties
-        prefix INTEGER
+        prefix INTEGER,
+        derived_core_properties INTEGER
       );
     `);
   } else {
@@ -90,7 +91,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class INTEGER,
         east_asian_width INTEGER,
         extended_pictographic INTEGER, -- emoji properties
-        prefix INTEGER
+        prefix INTEGER,
+        derived_core_properties INTEGER
       );
     `);
   }
@@ -188,8 +190,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class,
         east_asian_width,
         extended_pictographic,
-        prefix
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        prefix,
+        derived_core_properties
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -213,8 +216,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class,
         east_asian_width,
         extended_pictographic,
-        prefix
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        prefix,
+        derived_core_properties
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
 
@@ -325,7 +329,8 @@ export function dbRun(characters: Character[], prefixes: Prefix[]) {
         char.lineBreakingClass,
         char.eastAsianWidth,
         char.extendedPictographic ? 1 : 0,
-        char.prefix
+        char.prefix,
+        char.derivedCoreProperties
         );
     } else {
       insertDataSmt.run(
@@ -346,7 +351,8 @@ export function dbRun(characters: Character[], prefixes: Prefix[]) {
         char.lineBreakingClass,
         char.eastAsianWidth,
         char.extendedPictographic ? 1 : 0,
-        char.prefix
+        char.prefix,
+        char.derivedCoreProperties
       );
 
       /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {
