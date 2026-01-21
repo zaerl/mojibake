@@ -189,17 +189,6 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     return true;
 }
 
-// Return true if the codepoint is graphic
-MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
-    mjb_character character;
-
-    if(!mjb_codepoint_character(codepoint, &character)) {
-        return false;
-    }
-
-    return mjb_category_is_graphic(character.category);
-}
-
 MJB_EXPORT bool mjb_category_is_graphic(mjb_category category) {
     // All C categories can be printed
     switch(category) {
@@ -216,18 +205,6 @@ MJB_EXPORT bool mjb_category_is_graphic(mjb_category category) {
     return true;
 }
 
-// Return true if the codepoint is combining
-MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
-    mjb_character character;
-
-    if(!mjb_codepoint_character(codepoint, &character)) {
-        return false;
-    }
-
-    return mjb_category_is_combining(character.category);
-}
-
-// Return true if the category is combining
 MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
     return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_MC ||
     category == MJB_CATEGORY_ME;
@@ -278,4 +255,26 @@ MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *blo
     block->end = (mjb_codepoint)raw_end;
 
     return true;
+}
+
+// Return true if the codepoint is graphic
+MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
+    mjb_character character;
+
+    if(!mjb_codepoint_character(codepoint, &character)) {
+        return false;
+    }
+
+    return mjb_category_is_graphic(character.category);
+}
+
+// Return true if the codepoint is combining
+MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
+    mjb_character character;
+
+    if(!mjb_codepoint_character(codepoint, &character)) {
+        return false;
+    }
+
+    return mjb_category_is_combining(character.category);
 }
