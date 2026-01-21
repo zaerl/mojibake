@@ -19,7 +19,7 @@ import {
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAmalgamation } from './generate-amalgamation';
 import { generateAPI } from './generate-api';
-import { generateBreaks, generateBreaksTest } from './generate-break';
+import { generateBreaks, generateBreaksTest } from './breaks';
 import { generateEastAsianWidth } from './generate-east-asian-width';
 import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateEmojiProperties } from './generate-emoji';
