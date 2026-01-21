@@ -9,7 +9,7 @@ import { statSync } from 'fs';
 import { Character } from './character';
 import { Emoji } from './emoji';
 import { Prefix } from './prefix-compressor';
-import { NewCases } from './special-casing';
+import { NewCases } from './parse-ucd/special-casing';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
 let db: Database.Database;

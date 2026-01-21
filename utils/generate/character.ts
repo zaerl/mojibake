@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { QuickCheckResult } from './quick-check';
+import { QuickCheckResult } from './parse-ucd/quick-check';
 import { BidirectionalCategories, CharacterDecomposition } from './types';
 
 export class Character {

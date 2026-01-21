@@ -6,31 +6,28 @@
 
 import { constants } from 'fs';
 import { access, unlink } from 'fs/promises';
-import { readAliases } from './aliases';
 import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
-import { readBlocks } from './blocks';
-import { generateBreaks, generateBreaksTest } from './breaks';
-import { generateCasefold } from './casefold';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
-import {
-  dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties,
-  dbRunSpecialCasing, dbSize
-} from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateEmojiProperties } from './emoji-properties';
 import { generateAPI } from './generate-api';
-import { generateEastAsianWidth } from './generate-east-asian-width';
 import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateNormalizationCount } from './generate-tests';
 import { generateHeader } from './header';
 import { generateLocales } from './locales';
 import { iLog, isVerbose, log, setVerbose } from './log';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile } from './parse-ucd/parse-property-file';
+import { readAliases } from './parse-ucd/aliases';
+import { readBlocks } from './parse-ucd/blocks';
+import { generateBreaks, generateBreaksTest } from './parse-ucd/breaks';
+import { generateCasefold } from './parse-ucd/casefold';
+import { generateEastAsianWidth } from './parse-ucd/east-asian-width';
+import { readNormalizationProps } from './parse-ucd/quick-check';
+import { readSpecialCasingProps } from './parse-ucd/special-casing';
 import { PrefixCompressor } from './prefix-compressor';
-import { readNormalizationProps } from './quick-check';
-import { readSpecialCasingProps } from './special-casing';
 import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow

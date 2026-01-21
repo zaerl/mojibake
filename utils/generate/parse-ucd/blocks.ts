@@ -4,10 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { dbInsertBlock } from './db';
-import { log } from './log';
+import { dbInsertBlock } from '../db';
+import { log } from '../log';
+import { Block } from '../types';
 import { parsePropertyFile } from './parse-property-file';
-import { Block } from './types';
 
 export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   log('READ BLOCKS');

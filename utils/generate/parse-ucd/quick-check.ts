@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { Character } from './character';
-import { log } from './log';
+import { Character } from '../character';
+import { log } from '../log';
 import { parsePropertyFile } from './parse-property-file';
 
 export enum QuickCheckResult {

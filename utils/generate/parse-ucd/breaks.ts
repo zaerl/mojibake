@@ -5,10 +5,10 @@
  */
 
 import { writeFileSync } from 'fs';
-import { Character } from './character';
-import { log } from './log';
+import { Character } from '../character';
+import { log } from '../log';
 import { parsePropertyFile } from './parse-property-file';
-import { LineBreakingClass, LineBreakingClassStrings } from './types';
+import { LineBreakingClass, LineBreakingClassStrings } from '../types';
 
 export async function generateBreaks(characters: Character[], path = './UCD/LineBreak.txt') {
   log('GENERATE BREAKS');

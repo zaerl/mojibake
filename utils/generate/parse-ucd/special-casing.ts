@@ -5,8 +5,8 @@
  */
 
 import { open } from 'fs/promises';
-import { Character } from './character';
-import { log } from './log';
+import { Character } from '../character';
+import { log } from '../log';
 
 export type NewCase = {
   codepoint: number;

@@ -5,7 +5,7 @@
  */
 
 import { log } from './log';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile } from './parse-ucd/parse-property-file';
 
 export async function readCompositionExclusions(path = './UCD/CompositionExclusions.txt'): Promise<number[]> {
   log('READ COMPOSITION EXCLUSIONS');

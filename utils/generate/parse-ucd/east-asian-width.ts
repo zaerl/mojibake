@@ -4,10 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { Character } from './character';
-import { log } from './log';
+import { Character } from '../character';
+import { log } from '../log';
 import { parsePropertyFile } from './parse-property-file';
-import { EastAsianWidth, EastAsianWidthStrings } from './types';
+import { EastAsianWidth, EastAsianWidthStrings } from '../types';
 
 export async function generateEastAsianWidth(characters: Character[], path = './UCD/EastAsianWidth.txt') {
   log('GENERATE EAST ASIAN WIDTH');

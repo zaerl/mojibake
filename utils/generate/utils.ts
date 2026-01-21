@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { readFileSync } from "fs";
+import { readFileSync } from 'fs';
 
 export function substituteBlock(fileContent: string, start: string, end: string | null, replacement: string) {
   const startIndex = fileContent.indexOf(start) + start.length;

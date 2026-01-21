@@ -1,4 +1,4 @@
-import { log } from './log';
+import { log } from '../log';
 import { parsePropertyFile } from './parse-property-file';
 
 export async function readAliases(): Promise<{ [key: string]: string }> {
