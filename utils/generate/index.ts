@@ -24,7 +24,7 @@ import { generateEastAsianWidth } from './generate-east-asian-width';
 import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateEmojiProperties } from './generate-emoji';
 import { generateHeader } from './generate-header';
-import { generateLocales } from './generate-locales';
+import { generateLocales } from './locales';
 import { generateNormalizationCount } from './generate-tests';
 import { generateWASM } from './generate-wasm';
 import { iLog, isVerbose, log, setVerbose } from './log';
