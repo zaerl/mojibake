@@ -7,8 +7,10 @@
 import { constants } from 'fs';
 import { access, unlink } from 'fs/promises';
 import { readAliases } from './aliases';
+import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
 import { readBlocks } from './blocks';
+import { generateBreaks, generateBreaksTest } from './breaks';
 import { generateCasefold } from './casefold';
 import { Character } from './character';
 import { readCompositionExclusions } from './compositition-exclusion';
@@ -17,16 +19,13 @@ import {
   dbRunSpecialCasing, dbSize
 } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
-import { generateAmalgamation } from './generate-amalgamation';
+import { generateEmojiProperties } from './emoji-properties';
 import { generateAPI } from './generate-api';
-import { generateBreaks, generateBreaksTest } from './breaks';
 import { generateEastAsianWidth } from './generate-east-asian-width';
 import { generateEmbeddedDB } from './generate-embedded-db';
-import { generateEmojiProperties } from './generate-emoji';
-import { generateHeader } from './generate-header';
-import { generateLocales } from './locales';
 import { generateNormalizationCount } from './generate-tests';
-import { generateWASM } from './generate-wasm';
+import { generateHeader } from './header';
+import { generateLocales } from './locales';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { parsePropertyFile } from './parse-property-file';
 import { PrefixCompressor } from './prefix-compressor';
@@ -38,6 +37,7 @@ import {
 } from './types';
 import { updateVersion } from './update-version';
 import { compressName, isValidCharacter } from './utils';
+import { generateWASM } from './wasm';
 
 let compact = false;
 
