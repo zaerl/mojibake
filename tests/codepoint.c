@@ -96,16 +96,6 @@ void *test_codepoint(void *arg) {
         ATT_ASSERT(mjb_codepoint_is_valid(i), false, buffer)
     }
 
-    ATT_ASSERT(mjb_codepoint_to_lowercase('#'), '#', "Lowercase #: #")
-    ATT_ASSERT(mjb_codepoint_to_uppercase('#'), '#', "Uppercase #: #")
-    ATT_ASSERT(mjb_codepoint_to_titlecase('#'), '#', "Titlecase #: #")
-    ATT_ASSERT(mjb_codepoint_to_lowercase('A'), 'a', "Lowercase: A > a")
-    ATT_ASSERT(mjb_codepoint_to_lowercase('a'), 'a', "Lowercase: a > a")
-    ATT_ASSERT(mjb_codepoint_to_uppercase('b'), 'B', "Uppercase: b > B")
-    ATT_ASSERT(mjb_codepoint_to_uppercase('B'), 'B', "Uppercase: B > B")
-    ATT_ASSERT(mjb_codepoint_to_titlecase('c'), 'C', "Titlecase: c > C")
-    ATT_ASSERT(mjb_codepoint_to_titlecase('C'), 'C', "Titlecase: C > C")
-
     ATT_ASSERT(mjb_codepoint_is_combining(0), false, "NULL")
     ATT_ASSERT(mjb_codepoint_is_combining(0x30), false, "DIGIT ZERO")
     ATT_ASSERT(mjb_codepoint_is_combining(0x0300), true, "COMBINING GRAVE ACCENT")

@@ -279,3 +279,36 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
     return output;
 }
+
+// Return the codepoint lowercase codepoint
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
+    mjb_character character;
+
+    if(!mjb_codepoint_character(codepoint, &character)) {
+        return codepoint;
+    }
+
+    return character.lowercase == 0 ? codepoint : character.lowercase;
+}
+
+// Return the codepoint uppercase codepoint
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
+    mjb_character character;
+
+    if(!mjb_codepoint_character(codepoint, &character)) {
+        return codepoint;
+    }
+
+    return character.uppercase == 0 ? codepoint : character.uppercase;
+}
+
+// Return the codepoint titlecase codepoint
+MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
+    mjb_character character;
+
+    if(!mjb_codepoint_character(codepoint, &character)) {
+        return codepoint;
+    }
+
+    return character.titlecase == 0 ? codepoint : character.titlecase;
+}

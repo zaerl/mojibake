@@ -279,36 +279,3 @@ MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *blo
 
     return true;
 }
-
-// Return the codepoint lowercase codepoint
-MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
-    mjb_character character;
-
-    if(!mjb_codepoint_character(codepoint, &character)) {
-        return codepoint;
-    }
-
-    return character.lowercase == 0 ? codepoint : character.lowercase;
-}
-
-// Return the codepoint uppercase codepoint
-MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
-    mjb_character character;
-
-    if(!mjb_codepoint_character(codepoint, &character)) {
-        return codepoint;
-    }
-
-    return character.uppercase == 0 ? codepoint : character.uppercase;
-}
-
-// Return the codepoint titlecase codepoint
-MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
-    mjb_character character;
-
-    if(!mjb_codepoint_character(codepoint, &character)) {
-        return codepoint;
-    }
-
-    return character.titlecase == 0 ? codepoint : character.titlecase;
-}
