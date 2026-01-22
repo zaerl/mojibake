@@ -157,6 +157,7 @@ void *test_codepoint(void *arg) {
 
     // First tangut component
     ATT_ASSERT(mjb_codepoint_character(0x18800, &character), true, "TANGUT COMPONENT-001")
+    ATT_ASSERT(character.codepoint, 0x18800, "TANGUT COMPONENT-001")
     ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-001", "TANGUT COMPONENT-001")
 
     ATT_ASSERT(mjb_codepoint_character(0x18AFF, &character), true, "TANGUT COMPONENT-768")

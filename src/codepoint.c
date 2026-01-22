@@ -22,14 +22,46 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     return true;
 }
 
-bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, char *format, mjb_character *character) {
-    snprintf(
-        character->name,
-        128,
-        format,
-        codepoint
-    );
 
+static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_character *character) {
+    character->name[0] = '\0';
+    const char *format = NULL;
+    mjb_codepoint format_codepoint = codepoint;
+
+    if(mjb_codepoint_is_hangul_syllable(codepoint)) {
+        // Hangul syllable
+        mjb_hangul_syllable_name(codepoint, character->name, 128);
+    } else if(mjb_codepoint_is_cjk_ideograph(codepoint)) {
+        format = "CJK UNIFIED IDEOGRAPH-%X";
+    } else if(
+        (codepoint >= MJB_TANGUT_IDEOGRAPH_START && codepoint <= MJB_TANGUT_IDEOGRAPH_END) ||
+        (codepoint >= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START && codepoint <= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END)
+    ) {
+        format = "TANGUT IDEOGRAPH-%X";
+    } else if(codepoint >= MJB_TANGUT_COMPONENT_START && codepoint <= MJB_TANGUT_COMPONENT_END) {
+        format_codepoint = codepoint - MJB_TANGUT_COMPONENT_START + 1;
+        format = "TANGUT COMPONENT-%03d";
+    } else if(codepoint >= MJB_TANGUT_COMPONENT_SUPPLEMENT_START && codepoint <= MJB_TANGUT_COMPONENT_SUPPLEMENT_END) {
+        format_codepoint = codepoint - MJB_TANGUT_COMPONENT_SUPPLEMENT_START + 769;
+        format = "TANGUT COMPONENT-%03d";
+    } else if(codepoint >= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START && codepoint <= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
+        format = "KHITAN SMALL SCRIPT CHARACTER-%X";
+    } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
+        if(codepoint >= 0x143FF) {
+            // Last valid is EGYPTIAN HIEROGLYPH-143FA
+            return false;
+        }
+
+        format = "EGYPTIAN HIEROGLYPH-%X";
+    } else {
+        return false;
+    }
+
+    if(format != NULL) {
+        snprintf(character->name, 128, format, format_codepoint);
+    }
+
+    character->codepoint = codepoint;
     character->category = MJB_CATEGORY_LO;
     character->combining = MJB_CCC_NOT_REORDERED;
     character->bidirectional = MJB_BIDI_L;
@@ -56,46 +88,6 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         return false;
     }
 
-    if(mjb_codepoint_is_hangul_syllable(codepoint)) {
-        // Hangul syllable
-        character->codepoint = codepoint;
-        mjb_hangul_syllable_name(codepoint, character->name, 128);
-        character->category = MJB_CATEGORY_LO;
-        character->combining = MJB_CCC_NOT_REORDERED;
-        character->bidirectional = MJB_BIDI_L;
-        character->decomposition = MJB_DECOMPOSITION_NONE;
-        character->decimal = 0;
-        character->digit = 0;
-        character->numeric[0] = '\0';
-        character->mirrored = false;
-        character->uppercase = 0;
-        character->lowercase = 0;
-        character->titlecase = 0;
-        character->derived_core_properties = 0; // TODO: check the derived core properties
-
-        return true;
-    } else if(mjb_codepoint_is_cjk_ideograph(codepoint)) {
-        return mjb_codepoint_cjk_th_character(codepoint, "CJK UNIFIED IDEOGRAPH-%X", character);
-    } else if(
-        (codepoint >= MJB_TANGUT_IDEOGRAPH_START && codepoint <= MJB_TANGUT_IDEOGRAPH_END) ||
-        (codepoint >= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START && codepoint <= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END)
-    ) {
-        return mjb_codepoint_cjk_th_character(codepoint, "TANGUT IDEOGRAPH-%X", character);
-    } else if(codepoint >= MJB_TANGUT_COMPONENT_START && codepoint <= MJB_TANGUT_COMPONENT_END) {
-        return mjb_codepoint_cjk_th_character(codepoint - MJB_TANGUT_COMPONENT_START + 1, "TANGUT COMPONENT-%03d", character);
-    } else if(codepoint >= MJB_TANGUT_COMPONENT_SUPPLEMENT_START && codepoint <= MJB_TANGUT_COMPONENT_SUPPLEMENT_END) {
-        return mjb_codepoint_cjk_th_character(codepoint - MJB_TANGUT_COMPONENT_SUPPLEMENT_START + 769, "TANGUT COMPONENT-%03d", character);
-    } else if(codepoint >= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START && codepoint <= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
-        return mjb_codepoint_cjk_th_character(codepoint, "KHITAN SMALL SCRIPT CHARACTER-%X", character);
-    } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
-        if(codepoint >= 0x143FF) {
-            // Last valid is EGYPTIAN HIEROGLYPH-143FA
-            return false;
-        }
-
-        return mjb_codepoint_cjk_th_character(codepoint, "EGYPTIAN HIEROGLYPH-%X", character);
-    }
-
     sqlite3_reset(mjb_global.stmt_get_codepoint);
     // sqlite3_clear_bindings(mjb_global.stmt_get_codepoint);
 
@@ -108,7 +100,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     rc = sqlite3_step(mjb_global.stmt_get_codepoint);
 
     if(rc != SQLITE_ROW) {
-        return false;
+        // Try CJK or ancient scripts characters before returning false
+        return mjb_codepoint_cjk_th_character(codepoint, character);
     }
 
     character->codepoint = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 0);
