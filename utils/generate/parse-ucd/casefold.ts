@@ -5,7 +5,7 @@
  */
 
 import { log } from '../log';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile, ucdInt } from './utils';
 
 export async function generateCasefold() {
   log('GENERATE CASEFOLD');
@@ -19,7 +19,7 @@ export async function generateCasefold() {
   }
 
   for await (const split of parsePropertyFile('./UCD/CaseFolding.txt')) {
-    const codepoint = parseInt(split[0], 16);
+    const codepoint = ucdInt(split[0]);
     const status = split[1];
     const mapping = split[2].split(' ');
 

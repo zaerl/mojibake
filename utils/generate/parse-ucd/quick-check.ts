@@ -6,7 +6,7 @@
 
 import { Character } from '../character';
 import { log } from '../log';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile, ucdCodepointRange } from './utils';
 
 export enum QuickCheckResult {
   YES        = 0x0,
@@ -75,23 +75,11 @@ export async function readNormalizationProps(characters: Character[], path = './
     const add = split[2].split('#')[0].trim() as keyof QuickCheck[typeof decomposition];
     ++quickCheck[decomposition][add];
 
-    let codepointStart = 0;
-    let codepointEnd = 0;
-
-    if(codepoint.includes('..')) {
-      const codepoints = codepoint.split('..');
-
-      if(codepoints.length === 2) {
-        codepointStart = parseInt(codepoints[0], 16);
-        codepointEnd = parseInt(codepoints[1], 16);
-      }
-    } else {
-      codepointStart = parseInt(codepoint, 16);
-      codepointEnd = codepointStart;
-    }
+    let { codepointStart, codepointEnd } = ucdCodepointRange(codepoint);
 
     for(let cp = codepointStart; cp <= codepointEnd; ++cp) {
       const index = '' + cp;
+
       if(characterMap[index]) {
         const qc = quickCheckResultToNumber(decomposition, add);
 

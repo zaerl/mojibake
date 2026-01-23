@@ -6,8 +6,8 @@
 
 import { Character } from '../character';
 import { log } from '../log';
-import { parsePropertyFile } from './parse-property-file';
 import { EastAsianWidth, EastAsianWidthStrings } from '../types';
+import { parsePropertyFile, ucdCodepointRange } from './utils';
 
 export async function generateEastAsianWidth(characters: Character[], path = './UCD/EastAsianWidth.txt') {
   log('GENERATE EAST ASIAN WIDTH');
@@ -25,20 +25,7 @@ export async function generateEastAsianWidth(characters: Character[], path = './
 
     const codepoint = split[0];
     const width = split[1];
-    let codepointStart = 0;
-    let codepointEnd = 0;
-
-    if(codepoint.includes('..')) {
-      const codepoints = codepoint.split('..');
-
-      if(codepoints.length === 2) {
-        codepointStart = parseInt(codepoints[0], 16);
-        codepointEnd = parseInt(codepoints[1], 16);
-      }
-    } else {
-      codepointStart = parseInt(codepoint, 16);
-      codepointEnd = codepointStart;
-    }
+    let { codepointStart, codepointEnd } = ucdCodepointRange(codepoint);
 
     if(EastAsianWidth[width as EastAsianWidthStrings] === undefined) {
       console.log(`Unknown east asian width: ${width}`);

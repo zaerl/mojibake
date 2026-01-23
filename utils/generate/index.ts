@@ -25,9 +25,9 @@ import { generateBreaks, generateBreaksTest } from './parse-ucd/breaks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { generateDerivedCoreProperties } from './parse-ucd/derived-core-properties';
 import { generateEastAsianWidth } from './parse-ucd/east-asian-width';
-import { parsePropertyFile } from './parse-ucd/parse-property-file';
 import { readNormalizationProps } from './parse-ucd/quick-check';
 import { readSpecialCasingProps } from './parse-ucd/special-casing';
+import { parsePropertyFile, ucdBool, ucdInt, ucdString } from './parse-ucd/utils';
 import { PrefixCompressor } from './prefix-compressor';
 import {
   BidirectionalCategories, Block, categories, Categories,
@@ -104,15 +104,15 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       split[4] === '' ? BidirectionalCategories.NONE : BidirectionalCategories[split[4]],
       decomposition.type,
       decomposition.decomposition,
-      split[6] === '' ? null : parseInt(split[6]), // decimal
-      split[7] === '' ? null : parseInt(split[7]), // digit
-      split[8] === '' ? null : split[8], // numeric
-      split[9] === 'Y', // mirrored
+      ucdInt(split[6]), // decimal
+      ucdInt(split[7]), // digit
+      ucdString(split[8]), // numeric
+      ucdBool(split[9]), // mirrored
       // unicode 1.0 name
       // 10646 comment field
-      split[12] === '' ? null : parseInt(split[12], 16), // uppercase
-      split[13] === '' ? null : parseInt(split[13], 16), // lowercase
-      split[14] === '' ? null : parseInt(split[14], 16), // titlecase
+      ucdInt(split[12], 16), // uppercase
+      ucdInt(split[13], 16), // lowercase
+      ucdInt(split[14], 16), // titlecase
       null, // quick check
       null, // line breaking class
       null, // east asian width,

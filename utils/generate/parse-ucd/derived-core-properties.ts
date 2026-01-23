@@ -7,7 +7,7 @@
 import { Character } from '../character';
 import { log } from '../log';
 import { CodepointsRangeMap } from '../utils';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile, ucdCodepointRange } from './utils';
 
 // Sorted by most used properties first
 export const properties = {
@@ -53,20 +53,7 @@ export async function generateDerivedCoreProperties(characters: Character[], ran
     const codepoint = split[0];
     const property = split[1];
     const additionalProperty = split.length > 2 ? split[2] : null;
-    let codepointStart = 0;
-    let codepointEnd = 0;
-
-    if(codepoint.includes('..')) {
-      const codepoints = codepoint.split('..');
-
-      if(codepoints.length === 2) {
-        codepointStart = parseInt(codepoints[0], 16);
-        codepointEnd = parseInt(codepoints[1], 16);
-      }
-    } else {
-      codepointStart = parseInt(codepoint, 16);
-      codepointEnd = codepointStart;
-    }
+    let { codepointStart, codepointEnd } = ucdCodepointRange(codepoint);
 
     for(let cp = codepointStart; cp <= codepointEnd; ++cp) {
       const index = '' + cp;

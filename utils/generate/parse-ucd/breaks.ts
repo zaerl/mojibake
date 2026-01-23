@@ -7,8 +7,8 @@
 import { writeFileSync } from 'fs';
 import { Character } from '../character';
 import { log } from '../log';
-import { parsePropertyFile } from './parse-property-file';
 import { LineBreakingClass, LineBreakingClassStrings } from '../types';
+import { parsePropertyFile, ucdCodepointRange } from './utils';
 
 export async function generateBreaks(characters: Character[], path = './UCD/LineBreak.txt') {
   log('GENERATE BREAKS');
@@ -26,20 +26,8 @@ export async function generateBreaks(characters: Character[], path = './UCD/Line
 
     const codepoint = split[0];
     const breakClass = split[1];
-    let codepointStart = 0;
-    let codepointEnd = 0;
 
-    if(codepoint.includes('..')) {
-      const codepoints = codepoint.split('..');
-
-      if(codepoints.length === 2) {
-        codepointStart = parseInt(codepoints[0], 16);
-        codepointEnd = parseInt(codepoints[1], 16);
-      }
-    } else {
-      codepointStart = parseInt(codepoint, 16);
-      codepointEnd = codepointStart;
-    }
+    let { codepointStart, codepointEnd } = ucdCodepointRange(codepoint);
 
     if(LineBreakingClass[breakClass as keyof typeof LineBreakingClass] === undefined) {
       console.log(`Unknown line breaking class: ${breakClass}`);

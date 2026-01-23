@@ -1,5 +1,51 @@
 import { open } from 'fs/promises';
 
+export function ucdInt(field: string, base: number = 16) {
+  if(field === '') {
+    return null;
+  }
+
+  return parseInt(field, base);
+}
+
+export function ucdString(field: string) {
+  if(field === '') {
+    return null;
+  }
+
+  return field;
+}
+
+export function ucdBool(field: string) {
+  if(field === '') {
+    return false;
+  }
+
+  return field === 'Y';
+}
+
+export function ucdCodepointRange(field: string) {
+  let codepointStart = 0;
+  let codepointEnd = 0;
+
+  if(field.includes('..')) {
+    const codepoints = field.split('..');
+
+    if(codepoints.length === 2) {
+      codepointStart = ucdInt(codepoints[0]) as number;
+      codepointEnd = ucdInt(codepoints[1]) as number;
+    }
+  } else {
+    codepointStart = ucdInt(field) as number;
+    codepointEnd = codepointStart;
+  }
+
+  return {
+    codepointStart,
+    codepointEnd
+  };
+}
+
 // Parse files like DerivedNormalizationProps.txt, SpecialCasing.txt, etc.
 export async function* parsePropertyFile(path: string, starts: string[] = [], divider: string = ';', filterEmpty: boolean = true) {
   const file = await open(path);

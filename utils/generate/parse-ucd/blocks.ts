@@ -7,7 +7,7 @@
 import { dbInsertBlock } from '../db';
 import { log } from '../log';
 import { Block } from '../types';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile, ucdCodepointRange } from './utils';
 
 export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   log('READ BLOCKS');
@@ -21,14 +21,13 @@ export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
     }
 
     const name = split[1];
-    const values = split[0].split('..');
-    const start = parseInt(values[0], 16);
-    const end = parseInt(values[1], 16);
+    let { codepointStart, codepointEnd } = ucdCodepointRange(split[0]);
+
     const block = {
       name,
       enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
-      start,
-      end
+      start: codepointStart,
+      end: codepointEnd
     };
 
     blocks.push(block);

@@ -7,7 +7,7 @@
 import { Character } from './character';
 import { Emoji } from './emoji';
 import { log } from './log';
-import { parsePropertyFile } from './parse-ucd/parse-property-file';
+import { parsePropertyFile } from './parse-ucd/utils';
 import { EmojiProperties, EmojiPropertiesStrings } from './types';
 
 export async function generateEmojiProperties(characters: Character[], path = './UCD/emoji/emoji-data.txt') {

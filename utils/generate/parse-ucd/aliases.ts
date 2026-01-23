@@ -1,5 +1,5 @@
 import { log } from '../log';
-import { parsePropertyFile } from './parse-property-file';
+import { parsePropertyFile } from './utils';
 
 export async function readAliases(): Promise<{ [key: string]: string }> {
   log('READ UNICODE ALIASES');
