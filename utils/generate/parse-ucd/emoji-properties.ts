@@ -4,11 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { Character } from './character';
-import { Emoji } from './emoji';
-import { log } from './log';
-import { parsePropertyFile } from './parse-ucd/utils';
-import { EmojiProperties, EmojiPropertiesStrings } from './types';
+import { Character } from '../character';
+import { Emoji } from '../emoji';
+import { log } from '../log';
+import { EmojiProperties, EmojiPropertiesStrings } from '../types';
+import { parsePropertyFile, ucdCodepointRange } from './utils';
 
 export async function generateEmojiProperties(characters: Character[], path = './UCD/emoji/emoji-data.txt') {
   log('GENERATE EMOJI PROPERTIES');
@@ -28,20 +28,7 @@ export async function generateEmojiProperties(characters: Character[], path = '.
     const codepoint = split[0];
     const emoji = split[1];
 
-    let codepointStart = 0;
-    let codepointEnd = 0;
-
-    if(codepoint.includes('..')) {
-      const codepoints = codepoint.split('..');
-
-      if(codepoints.length === 2) {
-        codepointStart = parseInt(codepoints[0], 16);
-        codepointEnd = parseInt(codepoints[1], 16);
-      }
-    } else {
-      codepointStart = parseInt(codepoint, 16);
-      codepointEnd = codepointStart;
-    }
+    let { codepointStart, codepointEnd } = ucdCodepointRange(codepoint);
 
     if(EmojiProperties[emoji as EmojiPropertiesStrings] === undefined) {
       console.log(`Unknown emoji property: ${emoji}`);

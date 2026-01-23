@@ -7,7 +7,7 @@
 import { dbInsertBlock } from '../db';
 import { log } from '../log';
 import { Block } from '../types';
-import { parsePropertyFile, ucdCodepointRange } from './utils';
+import { parsePropertyFile, ucdCodepointRange, ucdNameToEnumName } from './utils';
 
 export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
   log('READ BLOCKS');
@@ -25,7 +25,7 @@ export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
 
     const block = {
       name,
-      enumName: `MJB_BLOCK_${split[1].toUpperCase().replace(/[ \-]/g, '_')}`,
+      enumName: ucdNameToEnumName('MJB_BLOCK', name),
       start: codepointStart,
       end: codepointEnd
     };

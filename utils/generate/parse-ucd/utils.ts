@@ -1,3 +1,9 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { open } from 'fs/promises';
 
 export function ucdInt(field: string, base: number = 16) {
@@ -73,4 +79,8 @@ export async function* parsePropertyFile(path: string, starts: string[] = [], di
   }
 
   file.close();
+}
+
+export function ucdNameToEnumName(prefix: string, name: string): string {
+  return `${prefix}_${name.toUpperCase().replace(/[ \-]/g, '_')}`;
 }

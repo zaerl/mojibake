@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { log } from './log';
-import { parsePropertyFile } from './parse-ucd/utils';
+import { log } from '../log';
+import { parsePropertyFile } from './utils';
 
 export async function readCompositionExclusions(path = './UCD/CompositionExclusions.txt'): Promise<number[]> {
   log('READ COMPOSITION EXCLUSIONS');
