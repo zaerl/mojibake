@@ -10,9 +10,10 @@ import { log } from '../log';
 import { LineBreakingClass, LineBreakingClassStrings } from '../types';
 import { parsePropertyFile, ucdCodepointRange } from './utils';
 
-export async function generateBreaks(characters: Character[], path = './UCD/LineBreak.txt') {
+export async function generateBreaks(characters: Character[]) {
   log('GENERATE BREAKS');
 
+  const path = './UCD/LineBreak.txt';
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {

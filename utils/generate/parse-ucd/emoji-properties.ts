@@ -10,9 +10,10 @@ import { log } from '../log';
 import { EmojiProperties, EmojiPropertiesStrings } from '../types';
 import { parsePropertyFile, ucdCodepointRange } from './utils';
 
-export async function generateEmojiProperties(characters: Character[], path = './UCD/emoji/emoji-data.txt') {
+export async function generateEmojiProperties(characters: Character[]) {
   log('GENERATE EMOJI PROPERTIES');
 
+  const path = './UCD/emoji/emoji-data.txt';
   const emojiMap: { [key: string]: Emoji } = {};
   const characterMap: { [key: string]: Character } = {};
 

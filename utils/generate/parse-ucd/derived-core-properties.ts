@@ -36,9 +36,10 @@ export const properties = {
   'Linker': { flag: 0x400000, count: 0 }, // Indic_Conjunct_Break=Linker
 };
 
-export async function generateDerivedCoreProperties(characters: Character[], ranges: CodepointsRangeMap, path = './UCD/DerivedCoreProperties.txt') {
+export async function generateDerivedCoreProperties(characters: Character[], ranges: CodepointsRangeMap) {
   log('GENERATE DERIVED CORE PROPERTIES');
 
+  const path = './UCD/DerivedCoreProperties.txt';
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {

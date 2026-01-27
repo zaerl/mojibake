@@ -7,9 +7,10 @@
 import { log } from '../log';
 import { parsePropertyFile } from './utils';
 
-export async function readCompositionExclusions(path = './UCD/CompositionExclusions.txt'): Promise<number[]> {
+export async function readCompositionExclusions(): Promise<number[]> {
   log('READ COMPOSITION EXCLUSIONS');
 
+  const path = './UCD/CompositionExclusions.txt';
   const exclusions: number[] = [];
 
   for await (const split of parsePropertyFile(path)) {

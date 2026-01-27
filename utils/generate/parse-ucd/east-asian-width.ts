@@ -9,9 +9,10 @@ import { log } from '../log';
 import { EastAsianWidth, EastAsianWidthStrings } from '../types';
 import { parsePropertyFile, ucdCodepointRange } from './utils';
 
-export async function generateEastAsianWidth(characters: Character[], path = './UCD/EastAsianWidth.txt') {
+export async function generateEastAsianWidth(characters: Character[]) {
   log('GENERATE EAST ASIAN WIDTH');
 
+  const path = './UCD/EastAsianWidth.txt';
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {

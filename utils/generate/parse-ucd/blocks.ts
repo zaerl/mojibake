@@ -9,9 +9,10 @@ import { log } from '../log';
 import { Block } from '../types';
 import { parsePropertyFile, ucdCodepointRange, ucdNameToEnumName } from './utils';
 
-export async function readBlocks(path = './UCD/Blocks.txt'): Promise<Block[]> {
+export async function readBlocks(): Promise<Block[]> {
   log('READ BLOCKS');
 
+  const path = './UCD/Blocks.txt';
   const blocks: Block[] = [];
   let id = 0;
 

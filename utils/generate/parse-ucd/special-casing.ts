@@ -20,8 +20,10 @@ export type NewCase = {
 
 export type NewCases = Array<NewCase>;
 
-export async function readSpecialCasingProps(characters: Character[], path = './UCD/SpecialCasing.txt'): Promise<NewCases> {
+export async function readSpecialCasingProps(characters: Character[]): Promise<NewCases> {
   log('READ SPECIAL CASING');
+
+  const path = './UCD/SpecialCasing.txt';
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {
