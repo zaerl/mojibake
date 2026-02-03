@@ -30,6 +30,12 @@ Filter a string to remove invalid characters
 bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 ```
 
+Return if a codepoint has a property
+
+```c
+bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property);
+```
+
 Return the string encoding (the most probable)
 
 ```c

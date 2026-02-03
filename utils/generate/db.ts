@@ -8,8 +8,9 @@ import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
 import { Emoji } from './emoji';
-import { Prefix } from './prefix-compressor';
+import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
+import { Prefix } from './prefix-compressor';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
 let db: Database.Database;
@@ -22,6 +23,8 @@ let insertBlockSmt: Statement;
 let insertSpecialCasingSmt: Statement;
 let insertEmojiPropertiesSmt: Statement;
 let insertPrefixSmt: Statement;
+let insertPropertyRangesSmt: Statement;
+
 // let insertNumericSmt: Statement;
 let isCompact: boolean;
 
@@ -65,8 +68,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class INTEGER,
         east_asian_width INTEGER,
         extended_pictographic INTEGER, -- emoji properties
-        prefix INTEGER,
-        derived_core_properties INTEGER
+        prefix INTEGER
       );
     `);
   } else {
@@ -91,8 +93,7 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class INTEGER,
         east_asian_width INTEGER,
         extended_pictographic INTEGER, -- emoji properties
-        prefix INTEGER,
-        derived_core_properties INTEGER
+        prefix INTEGER
       );
     `);
   }
@@ -161,6 +162,17 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     );
   `);
 
+  // Single unified table for all range-based properties
+  // Uses BLOB to store multiple properties per range
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS property_ranges (
+      start_codepoint INTEGER NOT NULL,
+      end_codepoint INTEGER,
+      properties BLOB NOT NULL,
+      PRIMARY KEY (start_codepoint, end_codepoint)
+    );
+  `);
+
   /*db.exec(`
     CREATE TABLE IF NOT EXISTS numerics (
       codepoint INTEGER PRIMARY KEY,
@@ -190,9 +202,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class,
         east_asian_width,
         extended_pictographic,
-        prefix,
-        derived_core_properties
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        prefix
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -216,9 +227,8 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         line_breaking_class,
         east_asian_width,
         extended_pictographic,
-        prefix,
-        derived_core_properties
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        prefix
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
 
@@ -282,6 +292,14 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     ) VALUES (?, ?, ?, ?, ?, ?, ?);
   `);
 
+  insertPropertyRangesSmt = db.prepare(`
+    INSERT INTO property_ranges (
+      start_codepoint,
+      end_codepoint,
+      properties
+    ) VALUES (?, ?, ?);
+  `);
+
   /*insertNumericSmt = db.prepare(`
     INSERT INTO numerics (
       codepoint,
@@ -329,8 +347,7 @@ export function dbRun(characters: Character[], prefixes: Prefix[]) {
         char.lineBreakingClass,
         char.eastAsianWidth,
         char.extendedPictographic ? 1 : 0,
-        char.prefix,
-        char.derivedCoreProperties
+        char.prefix
         );
     } else {
       insertDataSmt.run(
@@ -351,8 +368,7 @@ export function dbRun(characters: Character[], prefixes: Prefix[]) {
         char.lineBreakingClass,
         char.eastAsianWidth,
         char.extendedPictographic ? 1 : 0,
-        char.prefix,
-        char.derivedCoreProperties
+        char.prefix
       );
 
       /*if(char.decimal !== null || char.digit !== null || char.numeric !== null) {
@@ -432,6 +448,17 @@ export function dbRunEmojiProperties(emojiProperties: Emoji[]) {
       emoji.emoji_component ? 1 : 0,
       emoji.extended_pictographic ? 1 : 0
     );
+  }
+}
+
+export function dbRunPropertyRanges(propertyRanges: PropertyRange[]) {
+  // This function expects propertyRanges to already be grouped and encoded
+  // Each PropertyRange should now contain the BLOB in its 'properties' field
+  for(const pr of propertyRanges) {
+    insertPropertyRangesSmt.run(
+      pr.start,
+      pr.start === pr.end ? null : pr.end,
+      pr.properties);
   }
 }
 

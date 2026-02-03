@@ -259,7 +259,6 @@ typedef struct mjb_character {
     mjb_codepoint uppercase;
     mjb_codepoint lowercase;
     mjb_codepoint titlecase;
-    mjb_derived_core_property derived_core_properties;
 } mjb_character;
 
 /**
@@ -312,6 +311,9 @@ MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffe
 
 // Filter a string to remove invalid characters
 MJB_NONNULL(1, 6) bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+
+// Return if a codepoint has a property
+bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property);
 
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);

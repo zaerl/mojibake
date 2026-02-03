@@ -14,6 +14,7 @@ set(TEST_SOURCES
     next.c
     normalization.c
     plane.c
+    properties.c
     quick-check.c
     segmentation.c
     special-case.c

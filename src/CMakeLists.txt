@@ -14,6 +14,7 @@ set(SOURCES
     normalization.c
     quick-check.c
     plane.c
+    properties.c
     segmentation.c
     string.c
     version.c
@@ -58,6 +59,7 @@ if(BUILD_WASM)
         "\"_mjb_next_character\""
         "\"_mjb_string_is_normalized\""
         "\"_mjb_string_filter\""
+        "\"_mjb_codepoint_has_property\""
         "\"_mjb_string_encoding\""
         "\"_mjb_string_is_utf8\""
         "\"_mjb_string_is_utf16\""

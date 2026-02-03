@@ -19,7 +19,7 @@ export async function generateCasefold() {
     'T': 0,
   }
 
-  for await (const split of parsePropertyFile(path) {
+  for await (const split of parsePropertyFile(path)) {
     const codepoint = ucdInt(split[0]);
     const status = split[1];
     const mapping = split[2].split(' ');

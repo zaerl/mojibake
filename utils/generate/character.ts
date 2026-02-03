@@ -29,8 +29,7 @@ export class Character {
     public lineBreakingClass: number | null,
     public eastAsianWidth: number | null,
     public extendedPictographic: boolean,
-    public prefix: number | null,
-    public derivedCoreProperties: number | null
+    public prefix: number | null
   ) {}
 
   formatC(): string {
@@ -39,7 +38,7 @@ export class Character {
       `${this.fmt(this.decimal)}, ${this.fmt(this.digit)}, ` + `${this.fmt(this.numeric)}, ${this.mirrored}, ` +
       `${this.fmt(this.uppercase)}, ${this.fmt(this.lowercase)}, ${this.fmt(this.titlecase)}, ` +
       `${this.fmt(this.quickCheck)}, ${this.fmt(this.lineBreakingClass)}, ${this.fmt(this.eastAsianWidth)}, ` +
-      `${this.extendedPictographic}, ${this.fmt(this.prefix)}, ${this.fmt(this.derivedCoreProperties)} }`;
+      `${this.extendedPictographic}, ${this.fmt(this.prefix)} }`;
   }
 
   public fmt(value: string | number | null, defaultC = 'NULL'): string {

@@ -73,7 +73,6 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
     character->uppercase = 0;
     character->lowercase = 0;
     character->titlecase = 0;
-    character->derived_core_properties = 0; // TODO: check the derived core properties
 
     return true;
 }
@@ -180,8 +179,6 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     character->uppercase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 10);
     character->lowercase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 11);
     character->titlecase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 12);
-
-    character->derived_core_properties = (mjb_derived_core_property)sqlite3_column_int(mjb_global.stmt_get_codepoint, 13);
 
     return true;
 }

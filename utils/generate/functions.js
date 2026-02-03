@@ -181,6 +181,27 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return if a codepoint has a property",
+    "ret": "bool",
+    "name": "codepoint_has_property",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "property",
+        "type": "mjb_property",
+        "description": "The property to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Return the string encoding (the most probable)",
     "ret": "mjb_encoding",
     "name": "string_encoding",

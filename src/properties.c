@@ -1,0 +1,79 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+#include "mojibake-internal.h"
+
+extern mojibake mjb_global;
+
+// Return if a codepoint has a property
+MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property) {
+    if(!mjb_codepoint_is_valid(codepoint)) {
+        return false;
+    }
+
+    if(!mjb_initialize()) {
+        return false;
+    }
+
+    int rc = sqlite3_bind_int(mjb_global.stmt_get_properties, 1, codepoint);
+
+    if(rc != SQLITE_OK) {
+        sqlite3_reset(mjb_global.stmt_get_properties);
+
+        return false;
+    }
+
+    bool found = false;
+
+    while((rc = sqlite3_step(mjb_global.stmt_get_properties)) == SQLITE_ROW) {
+        const unsigned char *blob = sqlite3_column_blob(mjb_global.stmt_get_properties, 0);
+        int blob_size = sqlite3_column_bytes(mjb_global.stmt_get_properties, 0);
+
+        if(!blob || blob_size < 2) {
+            continue;
+        }
+
+        // Decode the BLOB
+        // Format: [bool_count] [bool_prop_id_1] [bool_prop_id_2] ...
+        //         [enum_count] [enum_prop_id_1] [value_1] [enum_prop_id_2] [value_2] ...
+
+        unsigned int offset = 0;
+
+        // Check boolean properties
+        unsigned char bool_count = blob[offset++];
+
+        for(unsigned int i = 0; i < bool_count && offset < blob_size; ++i) {
+            if(blob[offset++] == property) {
+                found = true;
+
+                break;
+            }
+        }
+
+        // Check enumerated properties if not found in boolean properties
+        if(!found && offset < blob_size) {
+            unsigned char enum_count = blob[offset++];
+
+            for(unsigned int i = 0; i < enum_count && offset + 1 < blob_size; ++i) {
+                if(blob[offset] == property) {
+                    found = true;
+
+                    break;
+                }
+
+                offset += 2; // Skip property ID and value
+            }
+        }
+
+        if(found) {
+            break;
+        }
+    }
+
+    sqlite3_reset(mjb_global.stmt_get_properties);
+
+    return found;
+}

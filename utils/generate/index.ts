@@ -9,7 +9,7 @@ import { access, unlink } from 'fs/promises';
 import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
 import { Character } from './character';
-import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunSpecialCasing, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateEmbeddedDB } from './generate-embedded-db';
@@ -22,9 +22,9 @@ import { readBlocks } from './parse-ucd/blocks';
 import { generateBreaks, generateBreaksTest } from './parse-ucd/breaks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
-import { generateDerivedCoreProperties } from './parse-ucd/derived-core-properties';
 import { generateEastAsianWidth } from './parse-ucd/east-asian-width';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
+import { buildPropertyRanges, Property } from './parse-ucd/properties';
 import { readNormalizationProps } from './parse-ucd/quick-check';
 import { readSpecialCasingProps } from './parse-ucd/special-casing';
 import { parsePropertyFile, ucdBool, ucdInt, ucdString } from './parse-ucd/utils';
@@ -39,7 +39,8 @@ import { generateWASM } from './wasm';
 
 let compact = false;
 
-async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true): Promise<Character[]> {
+async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true):
+  Promise<{ characters: Character[], properties: Property[] }> {
   log('READ UNICODE DATA');
   const analysis = new Analysis();
 
@@ -118,7 +119,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       null, // east asian width,
       false, // extended pictographic
       null, // prefix
-      null // derived core properties
     );
 
     characters.push(char);
@@ -128,12 +128,12 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   iLog('INSERT UNICODE DATA');
 
   analysis.beforeDB();
+  const { propertyRanges, properties } = await buildPropertyRanges(characters);
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   const emojis = await generateEmojiProperties(characters);
   await generateBreaks(characters);
   await generateEastAsianWidth(characters);
-  await generateDerivedCoreProperties(characters, ranges);
   await generateBreaksTest('LineBreak');
   await generateBreaksTest('GraphemeBreak');
   await generateBreaksTest('WordBreak');
@@ -150,6 +150,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   dbRunComposition(generateComposition(characters, exclusions));
   dbRunEmojiProperties(emojis);
   dbRunSpecialCasing(newCases);
+  dbRunPropertyRanges(propertyRanges);
 
   await generateCasefold();
 
@@ -157,7 +158,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
 
   analysis.outputGeneratedData(codepoint, isVerbose());
 
-  return characters;
+  return { characters, properties };
 }
 
 let generateTarget: string | null = null;
@@ -209,9 +210,9 @@ async function generate() {
   dbInit(dbName, compact);
 
   const blocks = await readBlocks();
-  await readUnicodeData(blocks, await readCompositionExclusions());
+  const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
 
-  generateHeader(blocks, categories);
+  generateHeader(blocks, categories, properties);
   generateWASM();
   // generateData(characters);
   generateAPI();

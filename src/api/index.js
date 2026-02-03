@@ -132,7 +132,6 @@ function pointerToCharacter(ptr) {
     uppercase: 'u32',
     lowercase: 'u32',
     titlecase: 'u32',
-    derived_core_properties: 'u32',
   }, mojibake.HEAPU8);
 
   if(char.decimal === -1) {

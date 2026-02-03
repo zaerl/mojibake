@@ -169,7 +169,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
 
     const char query[] = "SELECT u.codepoint, CASE WHEN p.name IS NOT NULL THEN p.name || u.name ELSE u.name END as name, "
         "u.category, u.combining, u.bidirectional, u.decomposition, u.decimal, u.digit, u.numeric, "
-        "u.mirrored, u.uppercase, u.lowercase, u.titlecase, u.derived_core_properties "
+        "u.mirrored, u.uppercase, u.lowercase, u.titlecase "
         "FROM unicode_data u LEFT JOIN prefixes p ON u.prefix = p.id WHERE u.codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
 
@@ -214,6 +214,10 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
 
     const char query_emoji[] = "SELECT * FROM emoji_properties WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_emoji, query_emoji)
+
+    const char query_properties[] = "select properties from property_ranges where ? BETWEEN "
+        "start_codepoint AND COALESCE(end_codepoint, start_codepoint);";
+    MJB_PREPARE_STMT(mjb_global.stmt_get_properties, query_properties)
 
     #undef MJB_PREPARE_STMT
 
@@ -284,6 +288,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_get_emoji) {
         sqlite3_finalize(mjb_global.stmt_get_emoji);
+    }
+
+    if(mjb_global.stmt_get_properties) {
+        sqlite3_finalize(mjb_global.stmt_get_properties);
     }
 
     if(mjb_global.db) {

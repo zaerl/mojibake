@@ -245,6 +245,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(next)
     RUN_TEST(normalization)
     RUN_TEST(plane)
+    RUN_TEST(properties)
     RUN_TEST(quick_check)
     RUN_TEST(segmentation)
     RUN_TEST(special_case)
