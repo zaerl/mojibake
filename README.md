@@ -251,8 +251,13 @@ make serve # or similar systems that let you serve static files
 # Open http://[::1]:8000/wasm.html. It will show the Mojibake version on console
 ```
 
+## Licenses
+
+This project is released under the MIT License (see LICENSE file).
+
 ## Thanks
 
 Mojibake is built using the work of extraordinary individuals and teams.
 
 1. SQLite is in the [public domain](https://sqlite.org/copyright.html)
+2. Unicode Character Database - Unicode, Inc. (see UNICODE-LICENSE)
