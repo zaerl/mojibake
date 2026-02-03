@@ -34,3 +34,6 @@ src/api/functions.js
 doc/*
 !doc/*.c
 !doc/Makefile
+
+# Clang
+.cache/*
