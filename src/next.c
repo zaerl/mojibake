@@ -28,7 +28,7 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
     bool first_character = true;
 
     // Loop through the string.
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < size;) {
         // Find next codepoint.
         mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);

@@ -307,7 +307,7 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
     size_t output_index = 0;
     bool in_error = false;
 
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < size;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);
 

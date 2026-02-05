@@ -40,6 +40,7 @@ void *test_properties(void *arg);
 void *test_segmentation(void *arg);
 void *test_special_case(void *arg);
 void *test_string(void *arg);
+void *test_utf(void *arg);
 void *test_version(void *arg);
 
 #ifdef __cplusplus

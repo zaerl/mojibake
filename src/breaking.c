@@ -92,7 +92,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
     size_t j = 0;
 
     // Phase 1: Decode string and assign line breaking classes (LB1)
-    for(i = 0; i < size; ++i) {
+    for(i = 0; i < size;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);
 

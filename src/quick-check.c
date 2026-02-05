@@ -32,7 +32,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     result = MJB_QC_YES;
     bool in_error = false;
 
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < size;) {
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);

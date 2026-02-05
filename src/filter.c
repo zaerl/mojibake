@@ -56,7 +56,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
     bool any_transformation = false;
 
     bool in_error = false;
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < size;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);
 

@@ -98,7 +98,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
     size_t output_size = size;
     bool in_word = false;
 
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < size;) {
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);
@@ -212,7 +212,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
     size_t output_index = 0;
     size_t output_size = size;
 
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < size;) {
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
             &codepoint, &in_error);
