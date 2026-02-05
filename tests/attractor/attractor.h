@@ -160,11 +160,14 @@ inline unsigned int att_assert_cpp(T1 result, T2 expected, const char *descripti
         } else if constexpr (std::is_same_v<common_type, std::string>) {
             return att_assert_cp_c(result.c_str(), expected.c_str(), description);
         } else {
-            return att_assert_unknown((void*)&converted_result, (void*)&converted_expected, description);
+            // Unsupported type with common_type - compile error
+            static_assert(sizeof(T1) == 0, "ATT_ASSERT: Unsupported type. Supported types are: char, short, int, long, long long (signed/unsigned), float, double, long double, bool, std::string, and pointer types.");
+            return 0;
         }
     } else {
-        // No common type, fall back to unknown
-        return att_assert_unknown((void*)&result, (void*)&expected, description);
+        // No common type - compile error
+        static_assert(sizeof(T1) == 0, "ATT_ASSERT: Cannot compare incompatible types with no common type.");
+        return 0;
     }
 }
 
@@ -192,6 +195,21 @@ inline unsigned int att_assert_cpp(char* result, long expected, const char *desc
 
 inline unsigned int att_assert_cpp(void* result, long expected, const char *description) {
     return att_assert_p_p(result, (void*)expected, description);
+}
+
+// Mixed char pointer types (char* vs const char*)
+inline unsigned int att_assert_cpp(char* result, const char* expected, const char *description) {
+    return att_assert_cp_c(result, expected, description);
+}
+
+inline unsigned int att_assert_cpp(const char* result, char* expected, const char *description) {
+    return att_assert_cp_c(result, expected, description);
+}
+
+// Generic pointer type catch-all (for any pointer types not covered by specific overloads)
+template<typename T>
+inline unsigned int att_assert_cpp(T* result, T* expected, const char *description) {
+    return att_assert_unknown((void*)result, (void*)expected, description);
 }
 #endif
 

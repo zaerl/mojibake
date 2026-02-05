@@ -20,12 +20,12 @@
     #include <unistd.h>
 #endif
 
-#define ATT_ERROR_MESSAGE(RESULT, FORMAT, EXPECTED) \
+#define ATT_ERROR_MESSAGE(RESULT, FORMAT_1, FORMAT_2, EXPECTED) \
 if(att_verbose >= 1 && att_show_error) { \
     fputs(att_show_colors ? "Expected \x1B[32m" : "Expected ", stdout); \
-    printf(FORMAT, EXPECTED); \
+    printf(FORMAT_1, EXPECTED); \
     fputs(att_show_colors ? "\x1B[0m, got \x1B[31m" : ", got ", stdout); \
-    printf(FORMAT, RESULT); \
+    printf(FORMAT_2, RESULT); \
     fputs(att_show_colors ? "\x1B[0m\n\n" : "\n\n", stdout); \
 }
 
@@ -67,7 +67,22 @@ ATT_API unsigned int att_assert_c(char result, char expected, const char *descri
     int test = att_assert("char", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%c", expected);
+        const char *format_1;
+        const char *format_2;
+
+        if(expected < 32 || expected == 127) {
+            format_1 = "\\x%02X";
+        } else {
+            format_1 = "%c";
+        }
+
+        if(result < 32 || result == 127) {
+            format_2 = "\\x%02X";
+        } else {
+            format_2 = "%c";
+        }
+
+        ATT_ERROR_MESSAGE(result, format_1, format_2, expected);
     }
 
     if(att_t_callback) {
@@ -81,7 +96,22 @@ ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected
     int test = att_assert("unsigned char", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%c", expected);
+        const char *format_1;
+        const char *format_2;
+
+        if(expected < 32 || expected == 127) {
+            format_1 = "\\x%02X";
+        } else {
+            format_1 = "%c";
+        }
+
+        if(result < 32 || result == 127) {
+            format_2 = "\\x%02X";
+        } else {
+            format_2 = "%c";
+        }
+
+        ATT_ERROR_MESSAGE(result, format_1, format_2, expected);
     }
 
     if(att_t_callback) {
@@ -95,7 +125,7 @@ ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *de
     int test = att_assert("char*", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
+        ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
     }
 
     if(att_t_callback) {
@@ -109,7 +139,7 @@ ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, c
     int test = att_assert("const char*", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
+        ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
     }
 
     if(att_t_callback) {
@@ -123,7 +153,7 @@ ATT_API unsigned int att_assert_hd(short result, short expected, const char *des
     int test = att_assert("short", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%hd", expected);
+        ATT_ERROR_MESSAGE(result, "%hd", "%hd", expected);
     }
 
     if(att_t_callback) {
@@ -137,7 +167,7 @@ ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expec
     int test = att_assert("unsigned short", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%hu", expected);
+        ATT_ERROR_MESSAGE(result, "%hu", "%hu", expected);
     }
 
     if(att_t_callback) {
@@ -151,7 +181,7 @@ ATT_API unsigned int att_assert_d(int result, int expected, const char *descript
     int test = att_assert("int", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%d", expected);
+        ATT_ERROR_MESSAGE(result, "%d", "%d", expected);
     }
 
     if(att_t_callback) {
@@ -165,7 +195,7 @@ ATT_API unsigned int att_assert_u_u(unsigned int result, unsigned int expected, 
     int test = att_assert("unsigned int", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%u", expected);
+        ATT_ERROR_MESSAGE(result, "%u", "%u", expected);
     }
 
     if(att_t_callback) {
@@ -179,7 +209,7 @@ ATT_API unsigned int att_assert_ld(long result, long expected, const char *descr
     int test = att_assert("long", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%ld", expected);
+        ATT_ERROR_MESSAGE(result, "%ld", "%ld", expected);
     }
 
     if(att_t_callback) {
@@ -193,7 +223,7 @@ ATT_API unsigned int att_assert_u_lu(unsigned long result, unsigned long expecte
     int test = att_assert("unsigned long", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%lu", expected);
+        ATT_ERROR_MESSAGE(result, "%lu", "%lu", expected);
     }
 
     if(att_t_callback) {
@@ -207,7 +237,7 @@ ATT_API unsigned int att_assert_lld(long long result, long long expected, const 
     int test = att_assert("long long", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%lld", expected);
+        ATT_ERROR_MESSAGE(result, "%lld", "%lld", expected);
     }
 
     if(att_t_callback) {
@@ -221,7 +251,7 @@ ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long l
     int test = att_assert("unsigned long long", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%llu", expected);
+        ATT_ERROR_MESSAGE(result, "%llu", "%llu", expected);
     }
 
     if(att_t_callback) {
@@ -235,7 +265,7 @@ ATT_API unsigned int att_assert_f(float result, float expected, const char *desc
     int test = att_assert("float", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%f", expected);
+        ATT_ERROR_MESSAGE(result, "%f", "%f", expected);
     }
 
     if(att_t_callback) {
@@ -249,7 +279,7 @@ ATT_API unsigned int att_assert_lf(double result, double expected, const char *d
     int test = att_assert("double", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%lf", expected);
+        ATT_ERROR_MESSAGE(result, "%lf", "%lf", expected);
     }
 
     if(att_t_callback) {
@@ -263,7 +293,7 @@ ATT_API unsigned int att_assert_Lf(long double result, long double expected, con
     int test = att_assert("long double", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%Lf", expected);
+        ATT_ERROR_MESSAGE(result, "%Lf", "%Lf", expected);
     }
 
     if(att_t_callback) {
@@ -277,7 +307,7 @@ ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *de
     int test = att_assert("void*", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%p", expected);
+        ATT_ERROR_MESSAGE(result, "%p", "%p", expected);
     }
 
     if(att_t_callback) {
@@ -291,7 +321,7 @@ ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *desc
     int test = att_assert("_Bool", result == expected, description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%d", expected);
+        ATT_ERROR_MESSAGE(result, "%d", "%d", expected);
     }
 
     if(att_t_callback) {
@@ -305,7 +335,7 @@ ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char
     int test = att_assert(att_callback ? "callback" : "default", att_callback ? att_callback(result, expected, description) : (result == expected), description);
 
     if(!test) {
-        ATT_ERROR_MESSAGE(result, "%p", expected);
+        ATT_ERROR_MESSAGE(result, "%p", "%p", expected);
     }
 
     if(att_t_callback) {
@@ -384,4 +414,3 @@ int att_assert(const char *format, int test, const char *description) {
 
     return test;
 }
-
