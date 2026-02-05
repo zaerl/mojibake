@@ -7,9 +7,14 @@
 #include "test.h"
 
 void *test_properties(void *arg) {
-    ATT_ASSERT(mjb_codepoint_has_property(MJB_CODEPOINT_MAX + 1, MJB_PROPERTY_ALPHABETIC), false, "Not valid codepoint");
-    ATT_ASSERT(mjb_codepoint_has_property(0x41, MJB_PROPERTY_CASED), true, "LATIN CAPITAL LETTER A");
-    ATT_ASSERT(mjb_codepoint_has_property(0x41, MJB_PROPERTY_UPPERCASE), true, "LATIN CAPITAL LETTER A");
+    char buffer[MJB_PR_BUFFER_SIZE] = { 0 };
+    ATT_ASSERT(mjb_codepoint_properties(0x41, buffer), true, "LCLA pproperties");
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CASED), 1, "LCLA cased");
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_ALPHABETIC), 1, "LCLA alphabetic");
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_LOWERCASE), 0, "LCLA uppercase");
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_UPPERCASE), 1, "LCLA uppercase");
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_LOWERCASED), 1, "LCLA changes when lowercased");
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_CASEFOLDED), 1, "LCLA changes when casefolded");
 
     return NULL;
 }

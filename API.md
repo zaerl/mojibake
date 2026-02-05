@@ -36,6 +36,18 @@ Return if a codepoint has a property
 bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property);
 ```
 
+Return all properties of a codepoint
+
+```c
+bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer);
+```
+
+Return a property value
+
+```c
+char mjb_codepoint_property(char *properties, mjb_property property);
+```
+
 Return the string encoding (the most probable)
 
 ```c
@@ -189,7 +201,7 @@ mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding enc
 Word and grapheme cluster breaking
 
 ```c
-bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding);
+bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 ```
 
 Return the plane of the codepoint

@@ -33,7 +33,7 @@ function getPropertyEnumNames(properties: Property[]) {
 
   for(let i = 0; i < properties.length; ++i) {
     const name = properties[i].name.toUpperCase().replace(/[<>]/g, '');
-    propertyEnums.push(`    MJB_PROPERTY_${name}${ i === properties.length - 1 ? ' ' : ','}${properties[i].bool ? '' : ' // enumerated'}`);
+    propertyEnums.push(`    MJB_PR_${name} = ${properties[i].id}${ i === properties.length - 1 ? '' : ','}${properties[i].bool ? '' : ' // enumerated'}`);
   }
 
   return propertyEnums.join('\n');
@@ -51,11 +51,14 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = substituteBlock(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
   fileContent = substituteBlock(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
   fileContent = substituteBlock(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
-  // fileContent = substituteBlock(fileContent, "typedef enum mjb_derived_core_property {\n", "\n} mjb_derived_core_property;", getDerivedCorePropertiesEnumNames());
-  // fileContent = substituteBlock(fileContent, '#define MJB_DERIVED_CORE_PROPERTY_COUNT ', "\n", '' + Object.keys(properties).length);
-
   fileContent = substituteBlock(fileContent, "typedef enum mjb_property {\n", "\n} mjb_property;", getPropertyEnumNames(properties));
-  fileContent = substituteBlock(fileContent, '#define MJB_PROPERTY_COUNT ', "\n", '' + properties.length);
+  fileContent = substituteBlock(fileContent, '#define MJB_PR_COUNT ', "\n", '' + properties.length);
+
+  let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);
+  let enumCount = properties.length - boolCount;
+  fileContent = substituteBlock(fileContent, '#define MJB_PR_BOOL_COUNT ', "\n", '' + boolCount);
+  fileContent = substituteBlock(fileContent, '#define MJB_PR_ENUM_COUNT ', "\n", '' + enumCount);
+  fileContent = substituteBlock(fileContent, '#define MJB_PR_BUFFER_SIZE ', "\n", '' + (boolCount + enumCount * 2));
 
   writeFileSync('../../src/unicode.h', fileContent);
 

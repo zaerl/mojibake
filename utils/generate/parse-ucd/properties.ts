@@ -25,11 +25,10 @@ interface PropertyEntry {
   value: number;
 }
 
-export async function readPropertyNamesValues(): Promise<Property[]> {
+async function readPropertyNamesValues(): Promise<Property[]> {
   log('READ PROPERTY NAMES VALUES');
 
   const properties: { [key: string]: Property } = {};
-  let id = 0;
 
   for await (const split of parsePropertyFile('./UCD/PropertyAliases.txt')) {
     const property = split[0];
@@ -41,7 +40,7 @@ export async function readPropertyNamesValues(): Promise<Property[]> {
 
     if(properties[property] === undefined) {
       properties[property] = {
-        id: id++,
+        id: 0,
         enumCount: 0,
         shortName: property,
         name: longName,
@@ -73,11 +72,13 @@ export async function readPropertyNamesValues(): Promise<Property[]> {
 
   let bools = 0;
   let longestEnum = 0;
+  let id = 0;
 
   for(const property in properties) {
     const value = properties[property];
 
     value.bool = value.values['N'] === 0;
+    value.id = id++;
 
     if(value.bool) {
       ++bools;
@@ -179,6 +180,7 @@ export async function buildPropertyRanges(characters: Character[]): Promise<{ pr
     './UCD/DerivedCoreProperties.txt',
     './UCD/EastAsianWidth.txt',
     './UCD/LineBreak.txt',
+    'UCD/auxiliary/GraphemeBreakProperty.txt',
     // './UCD/Scripts.txt',
   ];
 
@@ -187,6 +189,7 @@ export async function buildPropertyRanges(characters: Character[]): Promise<{ pr
     '',
     'ea',
     'lb',
+    'GCB',
     // 'sc',
   ]
 

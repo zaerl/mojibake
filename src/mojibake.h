@@ -293,6 +293,15 @@ typedef enum mjb_next_character_type {
     MJB_NEXT_CHAR_LAST  = 0x2
 } mjb_next_character_type;
 
+typedef struct mjb_next_state {
+    uint8_t state;
+    size_t index;
+    unsigned int count;
+    mjb_codepoint codepoint;
+    mjb_codepoint previous_codepoint;
+    bool in_error;
+} mjb_next_state;
+
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
 
 // This functions list is automatically generated. Do not edit.
@@ -314,6 +323,12 @@ MJB_NONNULL(1, 6) bool mjb_string_filter(const char *buffer, size_t size, mjb_en
 
 // Return if a codepoint has a property
 bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property);
+
+// Return all properties of a codepoint
+bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer);
+
+// Return a property value
+char mjb_codepoint_property(char *properties, mjb_property property);
 
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
@@ -391,7 +406,7 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 MJB_NONNULL(1, 4) mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, size_t *output_size);
 
 // Word and grapheme cluster breaking
-MJB_NONNULL(1) bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding);
+MJB_NONNULL(1, 4) bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
