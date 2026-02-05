@@ -32,7 +32,11 @@ target_link_libraries(mojibake_lib PRIVATE mojibake_sqlite)
 
 # Force C++ compilation if BUILD_CPP is enabled
 if(BUILD_CPP)
-    set_target_properties(mojibake_lib PROPERTIES LINKER_LANGUAGE CXX)
+    set_target_properties(mojibake_lib PROPERTIES
+        LINKER_LANGUAGE CXX
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()
 
