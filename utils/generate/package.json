@@ -1,6 +1,6 @@
 {
   "name": "mojibake-utils",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "author": "Francesco Bigiarini",
   "main": "index.ts",
   "description": "Mojibake Unicode data generator",
