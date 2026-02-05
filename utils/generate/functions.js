@@ -202,6 +202,48 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return all properties of a codepoint",
+    "ret": "bool",
+    "name": "codepoint_properties",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "buffer",
+        "type": "char *",
+        "description": "The buffer to store the properties",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return a property value",
+    "ret": "char",
+    "name": "codepoint_property",
+    "attributes": [],
+    "args": [
+      {
+        "name": "properties",
+        "type": "char *",
+        "description": "The buffer to store the properties",
+        "wasm_generated": true
+      },
+      {
+        "name": "property",
+        "type": "mjb_property",
+        "description": "The property to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": false
+  },
+  {
     "comment": "Return the string encoding (the most probable)",
     "ret": "mjb_encoding",
     "name": "string_encoding",
@@ -780,7 +822,7 @@ export default [
     "ret": "bool",
     "name": "segmentation",
     "attributes": [
-      "MJB_NONNULL(1)"
+      "MJB_NONNULL(1, 4)"
     ],
     "args": [
       {
@@ -800,6 +842,12 @@ export default [
         "type": "mjb_encoding",
         "description": "The encoding of the string",
         "wasm_generated": false
+      },
+      {
+        "name": "state",
+        "type": "mjb_next_state *",
+        "description": "The state to store the result",
+        "wasm_generated": true
       }
     ],
     "wasm": true

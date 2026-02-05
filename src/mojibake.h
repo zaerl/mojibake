@@ -297,9 +297,11 @@ typedef struct mjb_next_state {
     uint8_t state;
     size_t index;
     unsigned int count;
-    mjb_codepoint codepoint;
     mjb_codepoint previous_codepoint;
+    mjb_codepoint codepoint;
     bool in_error;
+    char previous_properties[MJB_PR_BUFFER_SIZE];
+    char properties[MJB_PR_BUFFER_SIZE];
 } mjb_next_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);

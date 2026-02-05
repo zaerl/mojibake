@@ -10,7 +10,14 @@
 #include "test.h"
 
 void *test_segmentation(void *arg) {
-    ATT_ASSERT(mjb_segmentation("", 0, MJB_ENCODING_UTF_8), true, "Empty string")
+    mjb_next_state state;
+    state.count = 0;
+
+    ATT_ASSERT(mjb_segmentation("", 0, MJB_ENCODING_UTF_8, &state), false, "Empty string")
+
+    while(mjb_segmentation("AB\r\nC", 3, MJB_ENCODING_UTF_8, &state)) {
+
+    }
 
     /*char line[2048] = { 0 };
     char breakings[256] = { 0 };
