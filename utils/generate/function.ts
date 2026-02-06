@@ -4,8 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { readFileSync } from 'fs';
-import path from 'path';
 import { categories } from './types';
 // @ts-expect-error - functions.js is a JavaScript file without type declarations
 import functionsDefault from './functions.js';

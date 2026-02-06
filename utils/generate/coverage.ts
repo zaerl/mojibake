@@ -5,7 +5,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
-import path, { join } from 'path';
+import { join } from 'path';
 import { functions } from './function';
 
 // Types

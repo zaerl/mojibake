@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { readFileSync, writeFileSync, copyFileSync, mkdirSync, watch, readdirSync, statSync } from 'fs';
-import { join, basename, relative } from 'path';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'fs';
+import { basename, join, relative } from 'path';
 import { cfns } from '../function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
 
