@@ -22,7 +22,6 @@ import { readBlocks } from './parse-ucd/blocks';
 import { generateBreaks, generateBreaksTest } from './parse-ucd/breaks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
-import { generateEastAsianWidth } from './parse-ucd/east-asian-width';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
 import { buildPropertyRanges, Property } from './parse-ucd/properties';
 import { readNormalizationProps } from './parse-ucd/quick-check';
@@ -116,7 +115,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       ucdInt(split[14], 16), // titlecase
       null, // quick check
       null, // line breaking class
-      null, // east asian width,
       false, // extended pictographic
       null, // prefix
     );
@@ -133,7 +131,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const newCases = await readSpecialCasingProps(characters);
   const emojis = await generateEmojiProperties(characters);
   await generateBreaks(characters);
-  await generateEastAsianWidth(characters);
   await generateBreaksTest('LineBreak');
   await generateBreaksTest('GraphemeBreak');
   await generateBreaksTest('WordBreak');

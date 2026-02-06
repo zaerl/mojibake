@@ -288,18 +288,6 @@ export enum LineBreakingClass {
 
 export type LineBreakingClassStrings = keyof typeof LineBreakingClass;
 
-export enum EastAsianWidth {
-  NotSet, // 0 is "no value"
-  A, // Ambiguous
-  F, // FullWidth,
-  H, // HalfWidth,
-  N, // Neutral,
-  Na, // Narrow,
-  W, // Wide
-};
-
-export type EastAsianWidthStrings = keyof typeof EastAsianWidth;
-
 export enum EmojiProperties {
   Emoji,
   Emoji_Presentation,

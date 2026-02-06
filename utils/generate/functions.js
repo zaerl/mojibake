@@ -1021,6 +1021,29 @@ export default [
     "wasm": false
   },
   {
+    "comment": "Return the east asian width of a codepoint",
+    "ret": "bool",
+    "name": "codepoint_east_asian_width",
+    "attributes": [
+      "MJB_NONNULL(2)"
+    ],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "width",
+        "type": "mjb_east_asian_width *",
+        "description": "The width to store the result",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Output the current library version (MJB_VERSION)",
     "ret": "const char *",
     "name": "version",

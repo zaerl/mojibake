@@ -66,7 +66,6 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase INTEGER,
         quick_check INTEGER,
         line_breaking_class INTEGER,
-        east_asian_width INTEGER,
         extended_pictographic INTEGER, -- emoji properties
         prefix INTEGER
       );
@@ -91,7 +90,6 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase INTEGER,
         quick_check INTEGER,
         line_breaking_class INTEGER,
-        east_asian_width INTEGER,
         extended_pictographic INTEGER, -- emoji properties
         prefix INTEGER
       );
@@ -200,10 +198,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase,
         quick_check,
         line_breaking_class,
-        east_asian_width,
         extended_pictographic,
         prefix
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   } else {
     insertDataSmt = db.prepare(`
@@ -225,10 +222,9 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
         titlecase,
         quick_check,
         line_breaking_class,
-        east_asian_width,
         extended_pictographic,
         prefix
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `);
   }
 
@@ -345,7 +341,6 @@ export function dbRun(characters: Character[], prefixes: Prefix[]) {
         char.titlecase,
         char.quickCheck,
         char.lineBreakingClass,
-        char.eastAsianWidth,
         char.extendedPictographic ? 1 : 0,
         char.prefix
         );
@@ -366,7 +361,6 @@ export function dbRun(characters: Character[], prefixes: Prefix[]) {
         char.titlecase,
         char.quickCheck,
         char.lineBreakingClass,
-        char.eastAsianWidth,
         char.extendedPictographic ? 1 : 0,
         char.prefix
       );

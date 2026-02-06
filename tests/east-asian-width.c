@@ -5,7 +5,6 @@
  */
 
 #include "test.h"
-#include "../src/east-asian-width.h"
 
 void *test_east_asian_width(void *arg) {
     mjb_east_asian_width width = MJB_EAW_NEUTRAL;

@@ -26,7 +26,6 @@ export async function generateAmalgamation(embedded = false) {
   const headers = [
     'breaking.h',
     'buffer.h',
-    'east-asian-width.h',
     'locales.h',
     'segmentation.h',
   ];

@@ -431,6 +431,9 @@ MJB_NODISCARD MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoin
 // Hangul syllable composition
 MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 
+// Return the east asian width of a codepoint
+MJB_NONNULL(2) bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
+
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);
 

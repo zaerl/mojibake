@@ -5,7 +5,6 @@
  */
 
 #include "test.h"
-#include "../src/east-asian-width.h"
 
 void *test_properties(void *arg) {
     uint8_t buffer[MJB_PR_BUFFER_SIZE] = { 0 };

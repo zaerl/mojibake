@@ -208,10 +208,6 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         "FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_line_breaking, query_line_breaking)
 
-    const char query_east_asian_width[] = "SELECT east_asian_width FROM unicode_data WHERE "
-        "codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_east_asian_width, query_east_asian_width)
-
     const char query_emoji[] = "SELECT * FROM emoji_properties WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_get_emoji, query_emoji)
 
@@ -280,10 +276,6 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_line_breaking) {
         sqlite3_finalize(mjb_global.stmt_line_breaking);
-    }
-
-    if(mjb_global.stmt_east_asian_width) {
-        sqlite3_finalize(mjb_global.stmt_east_asian_width);
     }
 
     if(mjb_global.stmt_get_emoji) {

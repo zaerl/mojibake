@@ -6,7 +6,6 @@
 
 #include "../mojibake.h"
 #include "../breaking.h"
-#include "../east-asian-width.h"
 
 const char *mjbsh_category_name(mjb_category category);
 char *mjbsh_ccc_name(mjb_canonical_combining_class ccc);
