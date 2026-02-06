@@ -39,6 +39,13 @@ function getPropertyEnumNames(properties: Property[]) {
   return propertyEnums.join('\n');
 }
 
+function getPropertyNames(properties: Property[]) {
+  return properties.map((value: Property, index: number) => {
+    const name = value.name.replace(/_/g, ' ');
+    return `    "${name}"`;
+  }).join(',\n');
+}
+
 function getFunctions() {
   return cfns().map(value => value.formatC()).join("\n\n") + "\n";
 }
@@ -66,4 +73,8 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = substituteBlock(fileContent, "// This functions list is automatically generated. Do not edit.\n\n", "\n#ifdef __cplusplus", getFunctions());
 
   writeFileSync('../../src/mojibake.h', fileContent);
+
+  fileContent = readFileSync('../../src/shell/maps.c', 'utf-8');
+  fileContent = substituteBlock(fileContent, "static const char *mjbsh_property_names[] = {\n", "\n};", getPropertyNames(properties));
+  writeFileSync('../../src/shell/maps.c', fileContent);
 }

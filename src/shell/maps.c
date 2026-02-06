@@ -121,24 +121,24 @@ static const char *mjbsh_bidi_names[] = {
 };
 
 static const char *mjbsh_decomposition_names[] = {
-    "None",                // MJB_DECOMPOSITION_NONE
-    "Canonical",           // MJB_DECOMPOSITION_CANONICAL
-    "Circle",              // MJB_DECOMPOSITION_CIRCLE
-    "Compatibility",       // MJB_DECOMPOSITION_COMPAT
-    "Final",               // MJB_DECOMPOSITION_FINAL
-    "Font",                // MJB_DECOMPOSITION_FONT
-    "Fraction",            // MJB_DECOMPOSITION_FRACTION
-    "Initial",             // MJB_DECOMPOSITION_INITIAL
-    "Isolated",            // MJB_DECOMPOSITION_ISOLATED
-    "Medial",              // MJB_DECOMPOSITION_MEDIAL
-    "Narrow",              // MJB_DECOMPOSITION_NARROW
-    "No break",            // MJB_DECOMPOSITION_NOBREAK
-    "Small",               // MJB_DECOMPOSITION_SMALL
-    "Square",              // MJB_DECOMPOSITION_SQUARE
-    "Sub",                 // MJB_DECOMPOSITION_SUB
-    "Super",               // MJB_DECOMPOSITION_SUPER
-    "Vertical",            // MJB_DECOMPOSITION_VERTICAL
-    "Wide",                // MJB_DECOMPOSITION_WIDE
+    "None",          // MJB_DECOMPOSITION_NONE
+    "Canonical",     // MJB_DECOMPOSITION_CANONICAL
+    "Circle",        // MJB_DECOMPOSITION_CIRCLE
+    "Compatibility", // MJB_DECOMPOSITION_COMPAT
+    "Final",         // MJB_DECOMPOSITION_FINAL
+    "Font",          // MJB_DECOMPOSITION_FONT
+    "Fraction",      // MJB_DECOMPOSITION_FRACTION
+    "Initial",       // MJB_DECOMPOSITION_INITIAL
+    "Isolated",      // MJB_DECOMPOSITION_ISOLATED
+    "Medial",        // MJB_DECOMPOSITION_MEDIAL
+    "Narrow",        // MJB_DECOMPOSITION_NARROW
+    "No break",      // MJB_DECOMPOSITION_NOBREAK
+    "Small",         // MJB_DECOMPOSITION_SMALL
+    "Square",        // MJB_DECOMPOSITION_SQUARE
+    "Sub",           // MJB_DECOMPOSITION_SUB
+    "Super",         // MJB_DECOMPOSITION_SUPER
+    "Vertical",      // MJB_DECOMPOSITION_VERTICAL
+    "Wide",          // MJB_DECOMPOSITION_WIDE
 };
 
 static const char *mjbsh_line_breaking_class_names[] = {
@@ -202,12 +202,158 @@ static const char *mjbsh_line_breaking_class_names[] = {
 };
 
 static const char *mjbsh_east_asian_width_names[] = {
-    "Ambiguous", // MJB_EAW_AMBIGUOUS
+    "Ambiguous",  // MJB_EAW_AMBIGUOUS
     "Full-width", // MJB_EAW_FULL_WIDTH
     "Half-width", // MJB_EAW_HALF_WIDTH
-    "Neutral", // MJB_EAW_NEUTRAL
-    "Narrow", // MJB_EAW_NARROW
-    "Wide" // MJB_EAW_WIDE
+    "Neutral",    // MJB_EAW_NEUTRAL
+    "Narrow",     // MJB_EAW_NARROW
+    "Wide"        // MJB_EAW_WIDE
+};
+
+static const char *mjbsh_property_names[] = {
+    "kAccountingNumeric",
+    "kOtherNumeric",
+    "kPrimaryNumeric",
+    "Numeric Value",
+    "Bidi Mirroring Glyph",
+    "Bidi Paired Bracket",
+    "Case Folding",
+    "kCompatibilityVariant",
+    "Decomposition Mapping",
+    "Equivalent Unified Ideograph",
+    "FC NFKC Closure",
+    "Lowercase Mapping",
+    "NFKC Casefold",
+    "NFKC Simple Casefold",
+    "Simple Case Folding",
+    "Simple Lowercase Mapping",
+    "Simple Titlecase Mapping",
+    "Simple Uppercase Mapping",
+    "Titlecase Mapping",
+    "Uppercase Mapping",
+    "kIICore",
+    "kIRG GSource",
+    "kIRG HSource",
+    "kIRG JSource",
+    "kIRG KPSource",
+    "kIRG KSource",
+    "kIRG MSource",
+    "kIRG SSource",
+    "kIRG TSource",
+    "kIRG UKSource",
+    "kIRG USource",
+    "kIRG VSource",
+    "kMandarin",
+    "kRSUnicode",
+    "kTotalStrokes",
+    "kUnihanCore2020",
+    "ISO Comment",
+    "Jamo Short Name",
+    "kEH Cat",
+    "kEH Desc",
+    "kEH HG",
+    "kEH IFAO",
+    "kEH JSesh",
+    "Name",
+    "Name Alias",
+    "Script Extensions",
+    "Age",
+    "Script",
+    "Bidi Class",
+    "Bidi Paired Bracket Type",
+    "Canonical Combining Class",
+    "Decomposition Type",
+    "East Asian Width",
+    "General Category",
+    "Grapheme Cluster Break",
+    "Hangul Syllable Type",
+    "Indic Conjunct Break",
+    "Indic Positional Category",
+    "Indic Syllabic Category",
+    "Joining Group",
+    "Joining Type",
+    "Line Break",
+    "NFC Quick Check",
+    "NFD Quick Check",
+    "NFKC Quick Check",
+    "NFKD Quick Check",
+    "Numeric Type",
+    "Sentence Break",
+    "Vertical Orientation",
+    "Word Break",
+    "ASCII Hex Digit",
+    "Alphabetic",
+    "Bidi Control",
+    "Bidi Mirrored",
+    "Cased",
+    "Composition Exclusion",
+    "Case Ignorable",
+    "Full Composition Exclusion",
+    "Changes When Casefolded",
+    "Changes When Casemapped",
+    "Changes When NFKC Casefolded",
+    "Changes When Lowercased",
+    "Changes When Titlecased",
+    "Changes When Uppercased",
+    "Dash",
+    "Deprecated",
+    "Default Ignorable Code Point",
+    "Diacritic",
+    "Emoji Modifier Base",
+    "Emoji Component",
+    "Emoji Modifier",
+    "Emoji",
+    "Emoji Presentation",
+    "Extender",
+    "Extended Pictographic",
+    "Grapheme Base",
+    "Grapheme Extend",
+    "Grapheme Link",
+    "Hex Digit",
+    "Hyphen",
+    "ID Compat Math Continue",
+    "ID Compat Math Start",
+    "ID Continue",
+    "Ideographic",
+    "ID Start",
+    "IDS Binary Operator",
+    "IDS Trinary Operator",
+    "IDS Unary Operator",
+    "Join Control",
+    "kEH NoMirror",
+    "kEH NoRotate",
+    "Logical Order Exception",
+    "Lowercase",
+    "Math",
+    "Modifier Combining Mark",
+    "Noncharacter Code Point",
+    "Other Alphabetic",
+    "Other Default Ignorable Code Point",
+    "Other Grapheme Extend",
+    "Other ID Continue",
+    "Other ID Start",
+    "Other Lowercase",
+    "Other Math",
+    "Other Uppercase",
+    "Pattern Syntax",
+    "Pattern White Space",
+    "Prepended Concatenation Mark",
+    "Quotation Mark",
+    "Radical",
+    "Regional Indicator",
+    "Soft Dotted",
+    "Sentence Terminal",
+    "Terminal Punctuation",
+    "Unified Ideograph",
+    "Uppercase",
+    "Variation Selector",
+    "White Space",
+    "XID Continue",
+    "XID Start",
+    "Expands On NFC",
+    "Expands On NFD",
+    "Expands On NFKC",
+    "Expands On NFKD"
 };
 
 const char *mjbsh_decomposition_name(mjb_decomposition decomposition) {
@@ -281,4 +427,12 @@ const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width) {
     }
 
     return mjbsh_east_asian_width_names[east_asian_width];
+}
+
+const char *mjbsh_property_name(mjb_property property) {
+    if(property >= MJB_PR_COUNT) {
+        return "Unknown";
+    }
+
+    return mjbsh_property_names[property];
 }
