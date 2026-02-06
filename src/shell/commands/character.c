@@ -156,7 +156,7 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
 
         free(cc_name);
 
-        const char *bi_name = mjbsh_bidi_name((mjb_bidi_categories)character->bidirectional);
+        const char *bi_name = mjbsh_bidi_name((mjb_bidi_class)character->bidirectional);
 
         if(is_json) {
             mjbsh_id_name("bidirectional", character->bidirectional, bi_name, 1);

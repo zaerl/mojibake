@@ -259,8 +259,8 @@ char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
     return strdup("Unknown");
 }
 
-const char *mjbsh_bidi_name(mjb_bidi_categories bidi) {
-    if(bidi >= MJB_BIDI_COUNT) {
+const char *mjbsh_bidi_name(mjb_bidi_class bidi) {
+    if(bidi >= MJB_BIDI_CLASS_COUNT) {
         return "Unknown";
     }
 

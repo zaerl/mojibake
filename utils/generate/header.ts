@@ -33,7 +33,7 @@ function getPropertyEnumNames(properties: Property[]) {
 
   for(let i = 0; i < properties.length; ++i) {
     const name = properties[i].name.toUpperCase().replace(/[<>]/g, '');
-    propertyEnums.push(`    MJB_PR_${name} = ${properties[i].id}${ i === properties.length - 1 ? '' : ','}${properties[i].bool ? '' : ' // enumerated'}`);
+    propertyEnums.push(`    MJB_PR_${name}${ i === properties.length - 1 ? '' : ','}${properties[i].bool ? '' : ' // enumerated'}`);
   }
 
   return propertyEnums.join('\n');

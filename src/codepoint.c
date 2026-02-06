@@ -64,7 +64,7 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
     character->codepoint = codepoint;
     character->category = MJB_CATEGORY_LO;
     character->combining = MJB_CCC_NOT_REORDERED;
-    character->bidirectional = MJB_BIDI_L;
+    character->bidirectional = MJB_PR_BIDI_CLASS_L;
     character->decomposition = MJB_DECOMPOSITION_NONE;
     character->decimal = MJB_NUMBER_NOT_VALID;
     character->digit = MJB_NUMBER_NOT_VALID;

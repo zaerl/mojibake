@@ -107,7 +107,7 @@ export const categories = [
   'Other, not assigned',
 ];
 
-// C: mjb_bidi_categories
+// C: mjb_bidi_class
 export enum BidirectionalCategories {
   NONE,
   // Strong
