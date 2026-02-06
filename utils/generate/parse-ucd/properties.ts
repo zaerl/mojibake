@@ -91,6 +91,11 @@ async function readPropertyNamesValues(): Promise<Property[]> {
 
     if(value.bool) {
       ++bools;
+    } else {
+      // All enums should start from 1, because 0 is "no value"
+      for(const key in value.values) {
+        ++value.values[key];
+      }
     }
 
     if(value.enumCount > longestEnum && property !== 'blk') {

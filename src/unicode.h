@@ -19,7 +19,7 @@
  * Bidi_Class (bc)
  */
 typedef enum mjb_bidi_class {
-    MJB_PR_BIDI_CLASS_NONE,
+    MJB_PR_BIDI_CLASS_NOT_SET, // 0 is "no value"
     MJB_PR_BIDI_CLASS_L,
     MJB_PR_BIDI_CLASS_R,
     MJB_PR_BIDI_CLASS_AL,
@@ -51,10 +51,13 @@ typedef enum mjb_bidi_class {
  * Bidi_Paired_Bracket_Type
  */
 typedef enum mjb_bidi_paired_bracket_type {
+    MJB_PR_BPT_NOT_SET, // 0 is "no value"
     MJB_PR_BPT_CLOSE,
     MJB_PR_BPT_NONE,
     MJB_PR_BPT_OPEN,
 } mjb_bidi_paired_bracket_type;
+
+#define MJB_BPT_COUNT 3
 
 /**
  * Block (blk)
@@ -548,6 +551,7 @@ typedef enum mjb_decomposition {
  * East_Asian_Width (ea)
  */
 typedef enum mjb_east_asian_width {
+    MJB_EAW_NOT_SET, // 0 is "no value"
     MJB_EAW_AMBIGUOUS,
     MJB_EAW_FULL_WIDTH,
     MJB_EAW_HALF_WIDTH,
@@ -562,6 +566,7 @@ typedef enum mjb_east_asian_width {
  * General_Category (gc)
  */
 typedef enum mjb_general_category {
+    MJB_GC_NOT_SET, // 0 is "no value"
     MJB_GC_OTHER,
     MJB_GC_CONTROL,
     MJB_GC_FORMAT,
@@ -608,6 +613,7 @@ typedef enum mjb_general_category {
  * Grapheme_Cluster_Break (GCB)
  */
 typedef enum mjb_grapheme_cluster_break {
+    MJB_GBP_NOT_SET, // 0 is "no value"
     MJB_GBP_CONTROL,
     MJB_GBP_CR,
     MJB_GBP_E_BASE, // obsolete
@@ -634,6 +640,7 @@ typedef enum mjb_grapheme_cluster_break {
  * Hangul_Syllable_Type (hst)
  */
 typedef enum mjb_hangul_syllable_type {
+    MJB_HST_NOT_SET, // 0 is "no value"
     MJB_HST_L,
     MJB_HST_LV,
     MJB_HST_LVT,
@@ -667,6 +674,7 @@ typedef enum mjb_plane {
  * https://www.unicode.org/reports/tr29/#Table_Word_Break_Property_Values
  */
 typedef enum mjb_word_break_property {
+    MJB_WBP_NOT_SET, // 0 is "no value"
     MJB_WBP_CR,
     MJB_WBP_DOUBLE_QUOTE,
     MJB_WBP_E_BASE,
