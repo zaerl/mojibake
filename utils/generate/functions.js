@@ -203,6 +203,12 @@ export default [
         "type": "mjb_property",
         "description": "The property to check",
         "wasm_generated": false
+      },
+      {
+        "name": "value",
+        "type": "char *",
+        "description": "The property value, if any",
+        "wasm_generated": true
       }
     ],
     "wasm": true

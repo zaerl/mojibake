@@ -324,7 +324,7 @@ MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffe
 MJB_NONNULL(1, 6) bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Return if a codepoint has a property
-bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property);
+bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, char *value);
 
 // Return all properties of a codepoint
 bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer);

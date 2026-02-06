@@ -9,7 +9,8 @@
 extern mojibake mjb_global;
 
 // Return if a codepoint has a property
-MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property) {
+MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property,
+    char *value) {
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
@@ -17,6 +18,8 @@ MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property
     if(!mjb_initialize()) {
         return false;
     }
+
+    sqlite3_reset(mjb_global.stmt_get_properties);
 
     int rc = sqlite3_bind_int(mjb_global.stmt_get_properties, 1, codepoint);
 
@@ -39,7 +42,6 @@ MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property
         // Decode the BLOB
         // Format: [bool_count] [bool_prop_id_1] [bool_prop_id_2] ...
         //         [enum_count] [enum_prop_id_1] [value_1] [enum_prop_id_2] [value_2] ...
-
         unsigned int offset = 0;
 
         // Check boolean properties
@@ -57,14 +59,18 @@ MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property
         if(!found && offset < (unsigned int)blob_size) {
             unsigned char enum_count = blob[offset++];
 
-            for(unsigned int i = 0; i < enum_count && offset + 1 < (unsigned int)blob_size; ++i) {
+            for(unsigned int i = 0; i < enum_count && (offset + 1) < (unsigned int)blob_size; i += 2) {
                 if(blob[offset] == property) {
                     found = true;
+
+                    if(value) {
+                        *value = blob[offset + 1];
+                    }
 
                     break;
                 }
 
-                offset += 2; // Skip property ID and value
+                offset += 2;
             }
         }
 
@@ -86,6 +92,8 @@ MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer) 
     if(!mjb_initialize()) {
         return false;
     }
+
+    sqlite3_reset(mjb_global.stmt_get_properties);
 
     int rc = sqlite3_bind_int(mjb_global.stmt_get_properties, 1, codepoint);
 
