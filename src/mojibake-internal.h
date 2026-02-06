@@ -24,7 +24,6 @@
 #include "breaking.h"
 #include "buffer.h"
 #include "locales.h"
-#include "segmentation.h"
 #include "sqlite3/sqlite3.h"
 
 #include "mojibake.h"
