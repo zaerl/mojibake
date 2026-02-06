@@ -326,23 +326,3 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
 
   return { propertyRanges, properties };
 }
-
-/**
- * Get property metadata for use in C code generation
- * Returns information about which properties are boolean vs enumerated
- */
-export async function getPropertyMetadata(): Promise<{
-  all: Property[],
-  boolean: Property[],
-  enumerated: Property[]
-}> {
-  const properties = await readPropertyNamesValues();
-  const booleanProps = properties.filter(p => p.bool);
-  const enumeratedProps = properties.filter(p => !p.bool);
-
-  return {
-    all: properties,
-    boolean: booleanProps,
-    enumerated: enumeratedProps
-  };
-}
