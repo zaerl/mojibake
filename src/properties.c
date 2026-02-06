@@ -10,7 +10,7 @@ extern mojibake mjb_global;
 
 // Return if a codepoint has a property
 MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property,
-    char *value) {
+    uint8_t *value) {
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
@@ -84,7 +84,7 @@ MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property
     return found;
 }
 
-MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer) {
+MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer) {
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
@@ -135,6 +135,6 @@ MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer) 
     return true;
 }
 
-MJB_EXPORT char mjb_codepoint_property(char *properties, mjb_property property) {
+MJB_EXPORT uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property) {
     return properties[property];
 }

@@ -206,7 +206,7 @@ export default [
       },
       {
         "name": "value",
-        "type": "char *",
+        "type": "uint8_t *",
         "description": "The property value, if any",
         "wasm_generated": true
       }
@@ -227,7 +227,7 @@ export default [
       },
       {
         "name": "buffer",
-        "type": "char *",
+        "type": "uint8_t *",
         "description": "The buffer to store the properties",
         "wasm_generated": true
       }
@@ -236,13 +236,13 @@ export default [
   },
   {
     "comment": "Return a property value",
-    "ret": "char",
+    "ret": "uint8_t",
     "name": "codepoint_property",
     "attributes": [],
     "args": [
       {
         "name": "properties",
-        "type": "char *",
+        "type": "uint8_t *",
         "description": "The buffer to store the properties",
         "wasm_generated": true
       },

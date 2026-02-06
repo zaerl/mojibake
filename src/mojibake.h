@@ -300,8 +300,8 @@ typedef struct mjb_next_state {
     mjb_codepoint previous_codepoint;
     mjb_codepoint codepoint;
     bool in_error;
-    char previous_properties[MJB_PR_BUFFER_SIZE];
-    char properties[MJB_PR_BUFFER_SIZE];
+    uint8_t previous_properties[MJB_PR_BUFFER_SIZE];
+    uint8_t properties[MJB_PR_BUFFER_SIZE];
 } mjb_next_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
@@ -324,13 +324,13 @@ MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffe
 MJB_NONNULL(1, 6) bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Return if a codepoint has a property
-bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, char *value);
+bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 
 // Return all properties of a codepoint
-bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer);
+bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 
 // Return a property value
-char mjb_codepoint_property(char *properties, mjb_property property);
+uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
 
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);

@@ -33,19 +33,19 @@ bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, m
 Return if a codepoint has a property
 
 ```c
-bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, char *value);
+bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 ```
 
 Return all properties of a codepoint
 
 ```c
-bool mjb_codepoint_properties(mjb_codepoint codepoint, char *buffer);
+bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 ```
 
 Return a property value
 
 ```c
-char mjb_codepoint_property(char *properties, mjb_property property);
+uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
 ```
 
 Return the string encoding (the most probable)
