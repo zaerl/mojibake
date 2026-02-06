@@ -57,6 +57,7 @@ async function readPropertyNamesValues(): Promise<Property[]> {
   for await (const split of parsePropertyFile('./UCD/PropertyValueAliases.txt')) {
     const property = split[0];
     const value = split[1];
+    const longValue = split[2];
 
     if(property === 'blk' || property === 'na1') {
       continue;
@@ -66,7 +67,10 @@ async function readPropertyNamesValues(): Promise<Property[]> {
       log(`Property ${property} does not exist`);
     }
 
-    properties[property].values[value] = properties[property].enumCount++;
+    properties[property].values[value] = properties[property].enumCount;
+    properties[property].values[longValue] = properties[property].enumCount;
+    ++properties[property].enumCount;
+
     ++valuesCount;
   }
 
@@ -163,7 +167,7 @@ function encodePropertyRange(
   return blob;
 }
 
-export async function buildPropertyRanges(characters: Character[]): Promise<{ propertyRanges: PropertyRange[], properties: Property[] }> {
+export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyRange[], properties: Property[] }> {
   log('READ PROPERTY RANGES');
 
   const properties = await readPropertyNamesValues();
@@ -215,11 +219,11 @@ export async function buildPropertyRanges(characters: Character[]): Promise<{ pr
           if(typeof properties[propertyMap[property]].values[value] === 'number') {
             valueId = properties[propertyMap[property]].values[value];
           } else {
-            log(`Unknown property value: ${value}`);
+            console.log(`Unknown property value: ${value}`);
           }
         } else {
           if(!properties[propertyMap[property]].bool) {
-            log(`Non-boolean property: ${property} has no value`);
+            console.log(`Non-boolean property: ${property} has no value`);
           }
         }
 
@@ -230,7 +234,7 @@ export async function buildPropertyRanges(characters: Character[]): Promise<{ pr
           value: valueId,
         });
       } else {
-        log(`Unknown property: ${property}`);
+        console.log(`Unknown property: ${property}`);
       }
     }
   }

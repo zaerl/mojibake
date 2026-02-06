@@ -128,7 +128,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   iLog('INSERT UNICODE DATA');
 
   analysis.beforeDB();
-  const { propertyRanges, properties } = await buildPropertyRanges(characters);
+  const { propertyRanges, properties } = await buildPropertyRanges();
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   const emojis = await generateEmojiProperties(characters);
