@@ -115,68 +115,6 @@ async function readPropertyNamesValues(): Promise<Property[]> {
   return Object.values(properties);
 }
 
-/**
- * Encode property range BLOB with separate boolean and enumerated sections.
- *
- * [bool_count] [bool_prop_id 1] [bool_prop_id 2] ...
- * [enum_count] [enum_prop_id] [value 2] [enum_prop_id 2] [value 2] ...
- */
-function encodePropertyRange(
-  properties: { propertyId: number, value: number }[],
-  propertyMetadata: Property[]
-): Uint8Array {
-  const sorted = properties.sort((a, b) => a.propertyId - b.propertyId);
-
-  const boolProps: number[] = [];
-  const enumProps: {id: number, value: number}[] = [];
-
-  for(const prop of sorted) {
-    const metadata = propertyMetadata[prop.propertyId];
-
-    if(!metadata) {
-      log(`No metadata found for property ID ${prop.propertyId}`);
-      enumProps.push({id: prop.propertyId, value: prop.value});
-
-      continue;
-    }
-
-    if(metadata.bool) {
-      // Store only ID
-      if(prop.value !== 1) {
-        log(
-          `Boolean property ${prop.propertyId} (${metadata.name}) has value ${prop.value}, expected 1`
-        );
-      }
-      boolProps.push(prop.propertyId);
-    } else {
-      // Store ID + value
-      enumProps.push({id: prop.propertyId, value: prop.value});
-    }
-  }
-
-  // Calculate size: [bool_count] + bool_ids + [enum_count] + enum_pairs
-  const size = 1 + boolProps.length + 1 + 2 * enumProps.length;
-  const blob = new Uint8Array(size);
-  let offset = 0;
-
-  // Encode boolean properties (just IDs, no values)
-  blob[offset++] = boolProps.length;
-
-  for(const id of boolProps) {
-    blob[offset++] = id;
-  }
-
-  // Encode enumerated properties (ID + value pairs)
-  blob[offset++] = enumProps.length;
-
-  for(const prop of enumProps) {
-    blob[offset++] = prop.id;
-    blob[offset++] = prop.value;
-  }
-
-  return blob;
-}
-
 export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyRange[], properties: Property[] }> {
   log('READ PROPERTY RANGES');
 
@@ -325,4 +263,66 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
   }*/
 
   return { propertyRanges, properties };
+}
+
+/**
+ * Encode property range BLOB with separate boolean and enumerated sections.
+ *
+ * [bool_count] [bool_prop_id 1] [bool_prop_id 2] ...
+ * [enum_count] [enum_prop_id] [value 2] [enum_prop_id 2] [value 2] ...
+ */
+function encodePropertyRange(
+  properties: { propertyId: number, value: number }[],
+  propertyMetadata: Property[]
+): Uint8Array {
+  const sorted = properties.sort((a, b) => a.propertyId - b.propertyId);
+
+  const boolProps: number[] = [];
+  const enumProps: {id: number, value: number}[] = [];
+
+  for(const prop of sorted) {
+    const metadata = propertyMetadata[prop.propertyId];
+
+    if(!metadata) {
+      log(`No metadata found for property ID ${prop.propertyId}`);
+      enumProps.push({id: prop.propertyId, value: prop.value});
+
+      continue;
+    }
+
+    if(metadata.bool) {
+      // Store only ID
+      if(prop.value !== 1) {
+        log(
+          `Boolean property ${prop.propertyId} (${metadata.name}) has value ${prop.value}, expected 1`
+        );
+      }
+      boolProps.push(prop.propertyId);
+    } else {
+      // Store ID + value
+      enumProps.push({id: prop.propertyId, value: prop.value});
+    }
+  }
+
+  // Calculate size: [bool_count] + bool_ids + [enum_count] + enum_pairs
+  const size = 1 + boolProps.length + 1 + 2 * enumProps.length;
+  const blob = new Uint8Array(size);
+  let offset = 0;
+
+  // Encode boolean properties (just IDs, no values)
+  blob[offset++] = boolProps.length;
+
+  for(const id of boolProps) {
+    blob[offset++] = id;
+  }
+
+  // Encode enumerated properties (ID + value pairs)
+  blob[offset++] = enumProps.length;
+
+  for(const prop of enumProps) {
+    blob[offset++] = prop.id;
+    blob[offset++] = prop.value;
+  }
+
+  return blob;
 }
