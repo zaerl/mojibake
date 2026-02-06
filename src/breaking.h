@@ -16,6 +16,8 @@
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef enum mjb_line_breaking_class {
+    MJB_LBC_NOT_SET, // Not set
+
     // Non-tailorable Line Breaking Classes
     MJB_LBC_BK, // Mandatory Break
     MJB_LBC_CR, // Carriage Return

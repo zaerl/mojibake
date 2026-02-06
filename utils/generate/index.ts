@@ -19,7 +19,7 @@ import { generateLocales } from './locales';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { readAliases } from './parse-ucd/aliases';
 import { readBlocks } from './parse-ucd/blocks';
-import { generateBreaks, generateBreaksTest } from './parse-ucd/breaks';
+import { generateBreaksTest } from './parse-ucd/breaks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
@@ -114,7 +114,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       ucdInt(split[13], 16), // lowercase
       ucdInt(split[14], 16), // titlecase
       null, // quick check
-      null, // line breaking class
       false, // extended pictographic
       null, // prefix
     );
@@ -130,7 +129,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   const emojis = await generateEmojiProperties(characters);
-  await generateBreaks(characters);
   await generateBreaksTest('LineBreak');
   await generateBreaksTest('GraphemeBreak');
   await generateBreaksTest('WordBreak');

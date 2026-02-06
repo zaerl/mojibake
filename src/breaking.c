@@ -46,8 +46,8 @@ MJB_EXPORT bool mjb_codepoint_line_breaking(mjb_codepoint codepoint,
         return false;
     }
 
-    line_breaking->line_breaking_class = (mjb_line_breaking_class)sqlite3_column_int(
-        mjb_global.stmt_line_breaking, 0);
+    line_breaking->line_breaking_class = MJB_LBC_NOT_SET;
+    mjb_codepoint_has_property(codepoint, MJB_PR_LINE_BREAK, (uint8_t*)&line_breaking->line_breaking_class);
 
     line_breaking->category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 1);
     line_breaking->extended_pictographic = (bool)sqlite3_column_int(mjb_global.stmt_line_breaking, 2);
