@@ -27,17 +27,13 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         state->state = MJB_UTF_ACCEPT;
         state->index = 0;
         state->count = 0;
-        state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
-        state->codepoint = MJB_CODEPOINT_NOT_VALID;
+        state->previous = MJB_GBP_OTHER;
+        state->current = MJB_GBP_OTHER;
         state->in_error = false;
-        memset(state->previous_properties, 0, MJB_PR_BUFFER_SIZE);
-        memset(state->properties, 0, MJB_PR_BUFFER_SIZE);
     }
 
     mjb_codepoint codepoint;
-
-    #define MJB_PREVIOUS_CP(VALUE) mjb_codepoint_property(state->previous_properties, MJB_PR_GRAPHEME_CLUSTER_BREAK) == VALUE
-    #define MJB_CURRENT_CP(VALUE) mjb_codepoint_property(state->properties, MJB_PR_GRAPHEME_CLUSTER_BREAK) == VALUE
+    mjb_gcb gcb;
 
     for(; state->index < size; ) {  // No loop increment - mjb_next_codepoint manages index
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
@@ -55,50 +51,43 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
 
         // Break at the start and end of text, unless the text is empty.
         // GB1 sot ÷ Any
-        if(state->count == 1) {
-            mjb_codepoint_properties(state->codepoint, state->properties);
-            state->codepoint = codepoint;
+        // Not needed
 
-            return true;
+        mjb_codepoint_has_property(codepoint, MJB_PR_GRAPHEME_CLUSTER_BREAK, (uint8_t*)&gcb);
+
+        if(gcb == MJB_GBP_NOT_SET) {
+            // # @missing: 0000..10FFFF; Other
+            gcb = MJB_GBP_OTHER;
         }
 
         // Swap previous and current codepoints
-        state->previous_codepoint = state->codepoint;
-        memcpy(state->previous_properties, state->properties, MJB_PR_BUFFER_SIZE);
-
-        state->codepoint = codepoint;
-        mjb_codepoint_properties(state->codepoint, state->properties);
+        state->previous = state->current;
+        state->current = gcb;
 
         // GB2 Any ÷ eot
         // Not handled
 
         // Do not break between a CR and LF. Otherwise, break before and after controls.
         // GB3 CR × LF
-        if(state->previous_codepoint == 0x0D && state->codepoint == 0x0A) {
-            continue;
-        }
-
-        mjb_character character;
-
-        if(!mjb_codepoint_character(state->previous_codepoint, &character)) {
+        if(state->previous == MJB_GBP_CR && state->current == MJB_GBP_LF) {
             continue;
         }
 
         // GB4 (Control | CR | LF) ÷
         if(
-            MJB_PREVIOUS_CP(MJB_GBP_CONTROL) ||
-            MJB_PREVIOUS_CP(MJB_GBP_CONTROL) ||
-            state->previous_codepoint == 0x0D ||
-            state->previous_codepoint == 0x0A
+            state->previous == MJB_GBP_CONTROL ||
+            state->previous == MJB_GBP_CONTROL ||
+            state->previous == MJB_GBP_CR ||
+            state->previous == MJB_GBP_LF
         ) {
             return true;
         }
 
         // GB5 ÷ (Control | CR | LF)
         if(
-            MJB_CURRENT_CP(MJB_GBP_CONTROL) ||
-            state->codepoint == 0x0D ||
-            state->codepoint == 0x0A
+            state->current == MJB_GBP_CONTROL ||
+            state->current == MJB_GBP_CR ||
+            state->current == MJB_GBP_LF
         ) {
             return true;
         }
@@ -106,12 +95,12 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         // Do not break Hangul syllable or other conjoining sequences.
         // GB6 L × (L | V | LV | LVT)
         if(
-            MJB_PREVIOUS_CP(MJB_GBP_L) &&
+            state->previous == MJB_GBP_L &&
             (
-                MJB_CURRENT_CP(MJB_GBP_L) ||
-                MJB_CURRENT_CP(MJB_GBP_V) ||
-                MJB_CURRENT_CP(MJB_GBP_LV) ||
-                MJB_CURRENT_CP(MJB_GBP_LVT)
+                state->current == MJB_GBP_L ||
+                state->current == MJB_GBP_V ||
+                state->current == MJB_GBP_LV ||
+                state->current == MJB_GBP_LVT
             )
         ) {
             continue;
@@ -120,12 +109,12 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         // GB7 (LV | V) × (V | T)
         if(
             (
-                MJB_PREVIOUS_CP(MJB_GBP_LV) ||
-                MJB_PREVIOUS_CP(MJB_GBP_V)
+                state->previous == MJB_GBP_LV ||
+                state->previous == MJB_GBP_V
             ) &&
             (
-                MJB_CURRENT_CP(MJB_GBP_V) ||
-                MJB_CURRENT_CP(MJB_GBP_T)
+                state->current == MJB_GBP_V ||
+                state->current == MJB_GBP_T
             )
         ) {
             continue;
@@ -134,10 +123,10 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         // GB8 (LVT | T) × T
         if(
             (
-                MJB_PREVIOUS_CP(MJB_GBP_LVT) ||
-                MJB_PREVIOUS_CP(MJB_GBP_T)
+                state->previous == MJB_GBP_LVT ||
+                state->previous == MJB_GBP_T
             ) &&
-            MJB_CURRENT_CP(MJB_GBP_T)
+            state->current == MJB_GBP_T
         ) {
             continue;
         }
@@ -145,8 +134,8 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         // Do not break before extending characters or ZWJ.
         // GB9 × (Extend | ZWJ)
         if(
-            MJB_CURRENT_CP(MJB_GBP_EXTEND) ||
-            MJB_CURRENT_CP(MJB_GBP_ZWJ)
+            state->current == MJB_GBP_EXTEND ||
+            state->current == MJB_GBP_ZWJ
         ) {
             continue;
         }
@@ -155,14 +144,14 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         // Do not break before SpacingMarks, or after Prepend characters.
         // GB9a × SpacingMark
         if(
-            MJB_CURRENT_CP(MJB_GBP_SPACING_MARK)
+            state->current == MJB_GBP_SPACING_MARK
         ) {
             continue;
         }
 
         // GB9b Prepend ×
         if(
-            MJB_PREVIOUS_CP(MJB_GBP_PREPEND)
+            state->previous == MJB_GBP_PREPEND
         ) {
             continue;
         }

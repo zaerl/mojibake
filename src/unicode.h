@@ -612,7 +612,7 @@ typedef enum mjb_general_category {
 /**
  * Grapheme_Cluster_Break (GCB)
  */
-typedef enum mjb_grapheme_cluster_break {
+typedef enum mjb_gcb {
     MJB_GBP_NOT_SET, // 0 is "no value"
     MJB_GBP_CONTROL,
     MJB_GBP_CR,
@@ -632,7 +632,7 @@ typedef enum mjb_grapheme_cluster_break {
     MJB_GBP_V,
     MJB_GBP_OTHER,
     MJB_GBP_ZWJ
-} mjb_grapheme_cluster_break;
+} mjb_gcb;
 
 #define MJB_GCB_COUNT 18
 
