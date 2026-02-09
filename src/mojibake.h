@@ -300,6 +300,9 @@ typedef struct mjb_next_state {
     mjb_gcb previous;
     mjb_gcb current;
     bool in_error;
+    unsigned short ri_count;
+    bool ext_pict_seen;
+    bool zwj_seen;
 } mjb_next_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);

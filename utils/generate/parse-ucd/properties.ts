@@ -132,7 +132,8 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
     './UCD/DerivedCoreProperties.txt',
     './UCD/EastAsianWidth.txt',
     './UCD/LineBreak.txt',
-    'UCD/auxiliary/GraphemeBreakProperty.txt',
+    './UCD/auxiliary/GraphemeBreakProperty.txt',
+    './UCD/emoji/emoji-data.txt',
     // './UCD/Scripts.txt',
   ];
 
@@ -142,6 +143,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
     'ea',
     'lb',
     'GCB',
+    '',
     // 'sc',
   ]
 
