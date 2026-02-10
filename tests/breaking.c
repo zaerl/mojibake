@@ -64,8 +64,6 @@ void *test_breaking(void *arg) {
         return NULL;
     }
 
-    puts("Start breaking test");
-
     while(fgets(line, 16384, file)) {
         if(line[0] == '#' || strnlen(line, 16384) <= 1) {
             ++current_line;
@@ -79,6 +77,8 @@ void *test_breaking(void *arg) {
         unsigned int generated_index = 0;
         unsigned int allowed_count = 0;
 
+        // × (U+00D7) = 0xC3 0x97
+        // ÷ (U+00F7) = 0xC3 0xB7
         while((token = strsep(&string, "\xC3")) != NULL) {
             if(token == NULL || token[0] == '\0') {
                 continue;

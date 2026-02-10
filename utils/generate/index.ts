@@ -19,7 +19,6 @@ import { generateLocales } from './locales';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { readAliases } from './parse-ucd/aliases';
 import { readBlocks } from './parse-ucd/blocks';
-import { generateBreaksTest } from './parse-ucd/breaks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
@@ -129,10 +128,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   const emojis = await generateEmojiProperties(characters);
-  await generateBreaksTest('LineBreak');
-  await generateBreaksTest('GraphemeBreak');
-  await generateBreaksTest('WordBreak');
-  await generateBreaksTest('SentenceBreak');
 
   const prefixCompressor = new PrefixCompressor(characters);
   const prefixes = prefixCompressor.compress();
