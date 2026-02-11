@@ -58,6 +58,11 @@ static void show_help(struct option options[], const char *descriptions[], mjbsh
     }
 }
 
+/**
+ * The Mojibake shell
+ *
+ * EX SIGNIS ORDO
+ */
 int main(int argc, char * const argv[]) {
     int option = 0;
     int option_index = 0;
