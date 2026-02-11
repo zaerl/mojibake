@@ -1,7 +1,7 @@
 # Various
 !.gitkeep
-.claude/
-CLAUDE.md
+.claude/*
+!.claude/skills/
 deploy*
 
 # Build artifacts
