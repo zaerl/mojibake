@@ -201,7 +201,7 @@ mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding enc
 Word and grapheme cluster breaking
 
 ```c
-bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 ```
 
 Return the plane of the codepoint

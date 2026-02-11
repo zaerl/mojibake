@@ -11,12 +11,20 @@
 
 void *test_segmentation(void *arg) {
     mjb_next_state state;
-    state.count = 0;
+    mjb_break_type bt;
+    state.break_index = 0;
 
-    ATT_ASSERT(mjb_segmentation("", 0, MJB_ENCODING_UTF_8, &state), false, "Empty string")
+    ATT_ASSERT(mjb_segmentation("", 0, MJB_ENCODING_UTF_8, &state), MJB_BT_NOT_SET, "Empty string")
 
-    while(mjb_segmentation("AB\r\nC", 3, MJB_ENCODING_UTF_8, &state)) {
+    mjb_break_type expected_a[] = { MJB_BT_ALLOWED };
+    while((bt = mjb_segmentation("A", 1, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        ATT_ASSERT(bt, expected_a[state.break_index - 1], "A test")
+    }
 
+    state.break_index = 0;
+    mjb_break_type expected_b[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED };
+    while((bt = mjb_segmentation("AB", 1, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        ATT_ASSERT(bt, expected_b[state.break_index - 1], "AB test")
     }
 
     /*char line[2048] = { 0 };

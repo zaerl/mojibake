@@ -8,25 +8,26 @@
 #include "utf.h"
 
 #include <string.h>
+#include <stdio.h>
 
 extern mojibake mjb_global;
 
 // Word and Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_state *state) {
     // bool has_previous_character = false;
     // bool first_character = true;
 
     if(size == 0) {
-        return false;
+        return MJB_BT_NOT_SET;
     }
 
-    if(state->count == 0) {
+    if(state->break_index == 0) {
         // Initialize the state.
         state->state = MJB_UTF_ACCEPT;
         state->index = 0;
-        state->count = 0;
+        state->break_index = 0;
         state->previous = MJB_GBP_OTHER;
         state->current = MJB_GBP_OTHER;
         state->in_error = false;
@@ -35,15 +36,20 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         state->zwj_seen = false;
     }
 
+    if(state->index >= size) {
+        // Reached end of string.
+        return MJB_BT_NOT_SET;
+    }
+
     mjb_codepoint codepoint;
     mjb_gcb gcb;
 
-    for(; state->index < size; ) {  // No loop increment - mjb_next_codepoint manages index
+    for(; state->index < size;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
-            return false;
+            return MJB_BT_ALLOWED;
         }
 
         if(decode_status == MJB_DECODE_INCOMPLETE) {
@@ -66,13 +72,13 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
         // Swap previous and current codepoints
         state->previous = state->current;
         state->current = gcb;
-        ++state->count;
+        ++state->break_index;
 
-        if(state->count > 1) {
+        if(state->break_index > 1) {
             // Do not break between a CR and LF. Otherwise, break before and after controls.
             // GB3 CR × LF
             if(state->previous == MJB_GBP_CR && state->current == MJB_GBP_LF) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // GB4 (Control | CR | LF) ÷
@@ -82,7 +88,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                 state->previous == MJB_GBP_CR ||
                 state->previous == MJB_GBP_LF
             ) {
-                return true;
+                return MJB_BT_ALLOWED;
             }
 
             // GB5 ÷ (Control | CR | LF)
@@ -91,7 +97,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                 state->current == MJB_GBP_CR ||
                 state->current == MJB_GBP_LF
             ) {
-                return true;
+                return MJB_BT_ALLOWED;
             }
 
             // Do not break Hangul syllable or other conjoining sequences.
@@ -105,7 +111,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                     state->current == MJB_GBP_LVT
                 )
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // GB7 (LV | V) × (V | T)
@@ -119,7 +125,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                     state->current == MJB_GBP_T
                 )
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // GB8 (LVT | T) × T
@@ -130,7 +136,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                 ) &&
                 state->current == MJB_GBP_T
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // Do not break before extending characters or ZWJ.
@@ -139,7 +145,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                 state->current == MJB_GBP_EXTEND ||
                 state->current == MJB_GBP_ZWJ
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // The GB9a and GB9b rules only apply to extended grapheme clusters:
@@ -148,14 +154,14 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
             if(
                 state->current == MJB_GBP_SPACING_MARK
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // GB9b Prepend ×
             if(
                 state->previous == MJB_GBP_PREPEND
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // The GB9c rule only applies to extended grapheme clusters:
@@ -169,7 +175,7 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
                 prev_ext_pict_zwj &&
                 mjb_codepoint_has_property(codepoint, MJB_PR_EXTENDED_PICTOGRAPHIC, NULL)
             ) {
-                return false;
+                return MJB_BT_NO_BREAK;
             }
 
             // Do not break within emoji flag sequences. That is, do not break between regional
@@ -198,8 +204,8 @@ MJB_EXPORT bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding e
 
         // Otherwise, break everywhere.
         // GB999 Any ÷ Any
-        return true;
+        return MJB_BT_ALLOWED;
     }
 
-    return false;
+    return MJB_BT_NOT_SET;
 }

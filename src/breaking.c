@@ -21,13 +21,6 @@ typedef struct mjb_lbc_result {
     bool extended_pictographic;
 } mjb_lbc_result;
 
-enum mjb_line_break_type {
-    MJB_LBT_NOT_SET = ' ', // Not set
-    MJB_LBT_MANDATORY = '!', // !
-    MJB_LBT_NO_BREAK = 'x', // ×
-    MJB_LBT_ALLOWED = '+' // ÷
-};
-
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_line_breaking(mjb_codepoint codepoint,
     mjb_line_breaking *line_breaking) {
@@ -149,11 +142,11 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
     // Phase 3: Initialize break opportunities
     // breaks[i] = break opportunity BEFORE character i
     for(i = 0; i <= real_length; ++i) {
-        breaks[i] = MJB_LBT_NOT_SET;
+        breaks[i] = MJB_BT_NOT_SET;
     }
 
-    breaks[0] = MJB_LBT_NO_BREAK;  // LB2: Never break at start of text
-    breaks[real_length] = MJB_LBT_MANDATORY;  // LB3: Always break at end of text
+    breaks[0] = MJB_BT_NO_BREAK;  // LB2: Never break at start of text
+    breaks[real_length] = MJB_BT_MANDATORY;  // LB3: Always break at end of text
 
     // Phase 4: Apply line breaking rules
     for(i = 0; i < real_length; ++i) {
@@ -164,33 +157,33 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // BK !
         if(cc == MJB_LBC_BK) {
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_MANDATORY;
+                breaks[i + 1] = MJB_BT_MANDATORY;
             }
         }
 
         // LB5: Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks
         // CR × LF
         if(prev == MJB_LBC_CR && cc == MJB_LBC_LF) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // CR !, LF !, NL !
         if(cc == MJB_LBC_CR || cc == MJB_LBC_LF || cc == MJB_LBC_NL) {
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_MANDATORY;
+                breaks[i + 1] = MJB_BT_MANDATORY;
             }
         }
 
         // LB6: Do not break before hard line breaks
         // × ( BK | CR | LF | NL )
         if(cc == MJB_LBC_BK || cc == MJB_LBC_CR || cc == MJB_LBC_LF || cc == MJB_LBC_NL) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB7: Do not break before spaces or zero width space
         // × SP, × ZW
         if(cc == MJB_LBC_SP || cc == MJB_LBC_ZW) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB8: Break before any character following a zero-width space, even if one or more spaces
@@ -200,7 +193,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             size_t next = skip_spaces(results, i + 1, real_length);
 
             if(next < real_length) {
-                breaks[next] = MJB_LBT_ALLOWED;
+                breaks[next] = MJB_BT_ALLOWED;
             }
         }
 
@@ -208,16 +201,16 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // ZWJ ×
         if(cc == MJB_LBC_ZWJ) {
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_NO_BREAK;
+                breaks[i + 1] = MJB_BT_NO_BREAK;
             }
         }
 
         // LB11: Do not break before or after Word joiner and related characters
         // × WJ, WJ ×
         if(cc == MJB_LBC_WJ) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_NO_BREAK;
+                breaks[i + 1] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -225,21 +218,21 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // GL ×
         if(cc == MJB_LBC_GL) {
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_NO_BREAK;
+                breaks[i + 1] = MJB_BT_NO_BREAK;
             }
         }
 
         // LB12a: Do not break before NBSP and related characters, except after spaces and hyphens
         // [^SP BA HY] × GL
         if(cc == MJB_LBC_GL && prev != MJB_LBC_SP && prev != MJB_LBC_BA && prev != MJB_LBC_HY) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB13: Do not break before ']' or '!' or ';' or '/', even after spaces
         // × CL, × CP, × EX, × IS, × SY
         if(cc == MJB_LBC_CL || cc == MJB_LBC_CP || cc == MJB_LBC_EX || cc == MJB_LBC_IS ||
             cc == MJB_LBC_SY) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB14: Do not break after '[', even after spaces
@@ -248,7 +241,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             size_t next = skip_spaces(results, i + 1, real_length);
 
             if(next < real_length) {
-                breaks[next] = MJB_LBT_NO_BREAK;
+                breaks[next] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -258,7 +251,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             size_t next = skip_spaces(results, i + 1, real_length);
 
             if(next < real_length && results[next].line_breaking_class == MJB_LBC_OP) {
-                breaks[next] = MJB_LBT_NO_BREAK;
+                breaks[next] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -273,7 +266,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
                 size_t next = skip_spaces(results, i + 1, real_length);
 
                 if(next < real_length) {
-                    breaks[next] = MJB_LBT_NO_BREAK;
+                    breaks[next] = MJB_BT_NO_BREAK;
                 }
             }
         }
@@ -284,7 +277,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // × [\p{Pf}&QU] ( SP | GL | WJ | CL | QU | CP | EX | IS | SY | BK | CR | LF | NL | ZW | eot)
         if(results[i].category == MJB_CATEGORY_PF && cc == MJB_LBC_QU) {
             if(i + 1 >= real_length) {
-                breaks[i] = MJB_LBT_NO_BREAK;
+                breaks[i] = MJB_BT_NO_BREAK;
             } else {
                 mjb_line_breaking_class next_class = results[i + 1].line_breaking_class;
 
@@ -293,7 +286,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
                    next_class == MJB_LBC_EX || next_class == MJB_LBC_IS || next_class == MJB_LBC_SY ||
                    next_class == MJB_LBC_BK || next_class == MJB_LBC_CR || next_class == MJB_LBC_LF ||
                    next_class == MJB_LBC_NL || next_class == MJB_LBC_ZW) {
-                    breaks[i] = MJB_LBT_NO_BREAK;
+                    breaks[i] = MJB_BT_NO_BREAK;
                 }
             }
         }
@@ -313,7 +306,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             size_t next = skip_spaces(results, i + 1, real_length);
 
             if(next < real_length && results[next].line_breaking_class == MJB_LBC_NS) {
-                breaks[next] = MJB_LBT_NO_BREAK;
+                breaks[next] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -323,7 +316,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             size_t next = skip_spaces(results, i + 1, real_length);
 
             if(next < real_length && results[next].line_breaking_class == MJB_LBC_B2) {
-                breaks[next] = MJB_LBT_NO_BREAK;
+                breaks[next] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -331,7 +324,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // SP ÷
         if(cc == MJB_LBC_SP) {
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_ALLOWED;
+                breaks[i + 1] = MJB_BT_ALLOWED;
             }
         }
 
@@ -342,11 +335,11 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // × QU, QU ×
         if(cc == MJB_LBC_QU) {
             if(results[i].category != MJB_CATEGORY_PI) {
-                breaks[i] = MJB_LBT_NO_BREAK;
+                breaks[i] = MJB_BT_NO_BREAK;
             }
 
             if(results[i].category != MJB_CATEGORY_PF && i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_NO_BREAK;
+                breaks[i + 1] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -361,9 +354,9 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // LB20: Break before and after unresolved CB
         // ÷ CB, CB ÷
         if(cc == MJB_LBC_CB) {
-            breaks[i] = MJB_LBT_ALLOWED;
+            breaks[i] = MJB_BT_ALLOWED;
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_ALLOWED;
+                breaks[i + 1] = MJB_BT_ALLOWED;
             }
         }
 
@@ -375,13 +368,13 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // and other non-starters, or after acute accents.
         // × BA, × HH, × HY, × NS, BB ×
         if(cc == MJB_LBC_BA || cc == MJB_LBC_HH || cc == MJB_LBC_HY || cc == MJB_LBC_NS) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // BB ×
         if(cc == MJB_LBC_BB) {
             if(i + 1 <= real_length) {
-                breaks[i + 1] = MJB_LBT_NO_BREAK;
+                breaks[i + 1] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -389,20 +382,20 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // HL (HY | HH) × [^HL]
         if(prev == MJB_LBC_HL && (cc == MJB_LBC_HY || cc == MJB_LBC_HH)) {
             if(i + 1 < real_length && results[i + 1].line_breaking_class != MJB_LBC_HL) {
-                breaks[i + 1] = MJB_LBT_NO_BREAK;
+                breaks[i + 1] = MJB_BT_NO_BREAK;
             }
         }
 
         // LB21b: Do not break between Solidus and Hebrew letters
         // SY × HL
         if(prev == MJB_LBC_SY && cc == MJB_LBC_HL) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB22: Do not break before ellipses
         // × IN
         if(cc == MJB_LBC_IN) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // Numbers:
@@ -410,113 +403,113 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // LB23: Do not break between digits and letters
         // (AL | HL) × NU
         if((prev == MJB_LBC_AL || prev == MJB_LBC_HL) && cc == MJB_LBC_NU) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // NU × (AL | HL)
         if(prev == MJB_LBC_NU && (cc == MJB_LBC_AL || cc == MJB_LBC_HL)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB23a: Do not break between numeric prefixes and ideographs, or between ideographs and
         // numeric postfixes.
         // PR × (ID | EB | EM)
         if(prev == MJB_LBC_PR && (cc == MJB_LBC_ID || cc == MJB_LBC_EB || cc == MJB_LBC_EM)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // (ID | EB | EM) × PO
         if((prev == MJB_LBC_ID || prev == MJB_LBC_EB || prev == MJB_LBC_EM) && cc == MJB_LBC_PO) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB24: Do not break between numeric prefix/postfix and letters, or between letters and
         // prefix/postfix.
         // (PR | PO) × (AL | HL)
         if((prev == MJB_LBC_PR || prev == MJB_LBC_PO) && (cc == MJB_LBC_AL || cc == MJB_LBC_HL)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // (AL | HL) × (PR | PO)
         if((prev == MJB_LBC_AL || prev == MJB_LBC_HL) && (cc == MJB_LBC_PR || cc == MJB_LBC_PO)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB25: Do not break numbers
         // (PR | PO) × ( OP | HY )? NU
         if((prev == MJB_LBC_PR || prev == MJB_LBC_PO) && cc == MJB_LBC_NU) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         if((prev == MJB_LBC_PR || prev == MJB_LBC_PO) && (cc == MJB_LBC_OP || cc == MJB_LBC_HY) &&
             i + 1 < real_length && results[i + 1].line_breaking_class == MJB_LBC_NU) {
-            breaks[i] = MJB_LBT_NO_BREAK;
-            breaks[i + 1] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
+            breaks[i + 1] = MJB_BT_NO_BREAK;
         }
 
         // HY × NU, IS × NU, NU × NU, SY × NU
         if((prev == MJB_LBC_HY || prev == MJB_LBC_IS || prev == MJB_LBC_NU || prev == MJB_LBC_SY) &&
            cc == MJB_LBC_NU) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB26: Do not break a Korean syllable
         // JL × (JL | JV | H2 | H3)
         if(prev == MJB_LBC_JL && (cc == MJB_LBC_JL || cc == MJB_LBC_JV || cc == MJB_LBC_H2 ||
             cc == MJB_LBC_H3)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // (JV | H2) × (JV | JT)
         if((prev == MJB_LBC_JV || prev == MJB_LBC_H2) && (cc == MJB_LBC_JV || cc == MJB_LBC_JT)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // (JT | H3) × JT
         if((prev == MJB_LBC_JT || prev == MJB_LBC_H3) && cc == MJB_LBC_JT) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB27: Treat a Korean Syllable Block the same as ID
         // (JL | JV | JT | H2 | H3) × PO
         if((prev == MJB_LBC_JL || prev == MJB_LBC_JV || prev == MJB_LBC_JT || prev == MJB_LBC_H2 ||
             prev == MJB_LBC_H3) && cc == MJB_LBC_PO) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // (JL | JV | JT | H2 | H3) × IN
         if((prev == MJB_LBC_JL || prev == MJB_LBC_JV || prev == MJB_LBC_JT || prev == MJB_LBC_H2 ||
             prev == MJB_LBC_H3) && cc == MJB_LBC_IN) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // PR × (JL | JV | JT | H2 | H3)
         if(prev == MJB_LBC_PR && (cc == MJB_LBC_JL || cc == MJB_LBC_JV || cc == MJB_LBC_JT ||
             cc == MJB_LBC_H2 || cc == MJB_LBC_H3)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB28: Do not break between alphabetics (“at”).
         // (AL | HL) × (AL | HL)
         if((prev == MJB_LBC_AL || prev == MJB_LBC_HL) && (cc == MJB_LBC_AL || cc == MJB_LBC_HL)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB28a: Do not break inside Brahmic scripts
         // AP × (AK | AS)
         if(prev == MJB_LBC_AP && (cc == MJB_LBC_AK || cc == MJB_LBC_AS)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // (AK | AS) × (VF | VI)
         if((prev == MJB_LBC_AK || prev == MJB_LBC_AS) && (cc == MJB_LBC_VF || cc == MJB_LBC_VI)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB29: Do not break between numeric punctuation and alphabetics
         // IS × (AL | HL)
         if(prev == MJB_LBC_IS && (cc == MJB_LBC_AL || cc == MJB_LBC_HL)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB30: Do not break between letters, numbers, or ordinary symbols and opening or closing
@@ -524,13 +517,13 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // (AL | HL | NU) × [OP-$EastAsian]
         if((prev == MJB_LBC_AL || prev == MJB_LBC_HL || prev == MJB_LBC_NU) &&
            cc == MJB_LBC_OP && !is_east_asian_class(results[i].east_asian_width)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // [CP-$EastAsian] × (AL | HL | NU)
         if(prev == MJB_LBC_CP && !is_east_asian_class(results[i - 1].east_asian_width) &&
            (cc == MJB_LBC_AL || cc == MJB_LBC_HL || cc == MJB_LBC_NU)) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // LB30a: Break between two regional indicator symbols if and only if there are an even
@@ -549,7 +542,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
             }
 
             if(ri_count % 2 == 1) {
-                breaks[i] = MJB_LBT_NO_BREAK;
+                breaks[i] = MJB_BT_NO_BREAK;
             }
         }
 
@@ -557,7 +550,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
         // EB × EM
         // [\p{Extended_Pictographic}&\p{Cn}] × EM
         if(prev == MJB_LBC_EB && cc == MJB_LBC_EM) {
-            breaks[i] = MJB_LBT_NO_BREAK;
+            breaks[i] = MJB_BT_NO_BREAK;
         }
 
         // TODO: missing LB30b second rule
@@ -565,8 +558,8 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
 
     // Phase 5: Apply default rule (LB31) - Break everywhere else
     for(i = 1; i < real_length; ++i) {
-        if(breaks[i] == MJB_LBT_NOT_SET) {
-            breaks[i] = MJB_LBT_ALLOWED;
+        if(breaks[i] == MJB_BT_NOT_SET) {
+            breaks[i] = MJB_BT_ALLOWED;
         }
     }
 
@@ -578,7 +571,7 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
     size_t num_breaks = 0;
 
     for(size_t i = 1; i <= real_length; ++i) {
-        if(breaks[i] == MJB_LBT_ALLOWED || breaks[i] == MJB_LBT_MANDATORY) {
+        if(breaks[i] == MJB_BT_ALLOWED || breaks[i] == MJB_BT_MANDATORY) {
             ++num_breaks;
         }
     }
@@ -587,10 +580,10 @@ MJB_EXPORT mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_e
     j = 0;
 
     for(size_t i = 1; i <= real_length; ++i) {
-        if(breaks[i] == MJB_LBT_ALLOWED || breaks[i] == MJB_LBT_MANDATORY) {
+        if(breaks[i] == MJB_BT_ALLOWED || breaks[i] == MJB_BT_MANDATORY) {
             // Report as "break after character i-1"
             line_breaks[j].index = i - 1;
-            line_breaks[j].mandatory = breaks[i] == MJB_LBT_MANDATORY;
+            line_breaks[j].mandatory = breaks[i] == MJB_BT_MANDATORY;
 
             ++j;
         }

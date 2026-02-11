@@ -831,7 +831,7 @@ export default [
   },
   {
     "comment": "Word and grapheme cluster breaking",
-    "ret": "bool",
+    "ret": "mjb_break_type",
     "name": "segmentation",
     "attributes": [
       "MJB_NONNULL(1, 4)"

@@ -275,6 +275,13 @@ typedef struct mjb_emoji_properties {
     bool extended_pictographic;
 } mjb_emoji_properties;
 
+typedef enum mjb_break_type {
+    MJB_BT_NOT_SET, // Not set
+    MJB_BT_MANDATORY, // !
+    MJB_BT_NO_BREAK, // ×
+    MJB_BT_ALLOWED // ÷
+} mjb_break_type;
+
 // Buffer character used in composition phase
 typedef struct mjb_buffer_character {
     uint32_t codepoint;
@@ -296,7 +303,7 @@ typedef enum mjb_next_character_type {
 typedef struct mjb_next_state {
     uint8_t state;
     size_t index;
-    unsigned int count;
+    unsigned int break_index;
     mjb_gcb previous;
     mjb_gcb current;
     bool in_error;
@@ -409,7 +416,7 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 MJB_NONNULL(1, 4) mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, size_t *output_size);
 
 // Word and grapheme cluster breaking
-MJB_NONNULL(1, 4) bool mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+MJB_NONNULL(1, 4) mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
