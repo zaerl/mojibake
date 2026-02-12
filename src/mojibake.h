@@ -303,7 +303,6 @@ typedef enum mjb_next_character_type {
 typedef struct mjb_next_state {
     uint8_t state;
     size_t index;
-    unsigned int break_index;
     mjb_gcb previous;
     mjb_gcb current;
     bool in_error;

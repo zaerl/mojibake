@@ -16,6 +16,7 @@
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_codepoint_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
+| `mjb_segmentation`                  | 10         |
 | `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |
 | `mjb_string_is_normalized`          | 9          |
@@ -38,7 +39,6 @@
 | `mjb_string_compare`                | 3          |
 | `mjb_initialize_v2`                 | 2          |
 | `mjb_next_character`                | 2          |
-| `mjb_segmentation`                  | 2          |
 | `mjb_alloc`                         | 1          |
 | `mjb_break_line`                    | 1          |
 | `mjb_codepoint_is_cjk_ideograph`    | 1          |
@@ -53,4 +53,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **401729** |
+| **Total**                           | **401737** |

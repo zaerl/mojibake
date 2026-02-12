@@ -11,55 +11,53 @@
 
 void *test_segmentation(void *arg) {
     mjb_next_state state;
-    mjb_break_type bt;
-    state.break_index = 0;
+    mjb_break_type bt = MJB_BT_NOT_SET;
+    state.index = 0;
+    size_t index = 0;
+
+    #define MJB_TEST_S \
+        state.index = 0; \
+        index = 0; \
 
     ATT_ASSERT(mjb_segmentation("", 0, MJB_ENCODING_UTF_8, &state), MJB_BT_NOT_SET, "Empty string")
 
+    MJB_TEST_S
     mjb_break_type expected_a[] = { MJB_BT_ALLOWED };
+
     while((bt = mjb_segmentation("A", 1, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT(bt, expected_a[state.break_index - 1], "A test")
+        ATT_ASSERT(bt, expected_a[index++], "A test")
     }
 
-    state.break_index = 0;
-    mjb_break_type expected_b[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED };
-    while((bt = mjb_segmentation("AB", 1, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT(bt, expected_b[state.break_index - 1], "AB test")
+    MJB_TEST_S
+    mjb_break_type expected_ab[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED };
+
+    while((bt = mjb_segmentation("AB", 2, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        ATT_ASSERT(bt, expected_ab[index++], "AB test")
     }
+    ATT_ASSERT(index, 2, "AB test break index")
 
-    /*char line[2048] = { 0 };
-    char breakings[256] = { 0 };
-
-    unsigned int current_line = 1;
-    FILE *file = fopen("./utils/generate/UCD/auxiliary/GraphemeBreakTestModified.txt", "r");
-
-    if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "Valid segmentation test file")
-
-        return NULL;
+    MJB_TEST_S
+    mjb_break_type expected_abc[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED, MJB_BT_ALLOWED };
+    while((bt = mjb_segmentation("ABC", 3, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        ATT_ASSERT(bt, expected_abc[index++], "AB test")
     }
+    ATT_ASSERT(index, 3, "ABC test break index")
 
-    while(fgets(line, 2048, file)) {
-        size_t length = strnlen(line, 2048);
-
-        if(length <= 1) {
-            ++current_line;
-
-            continue;
-        }
-
-        char *source = strdup(line);
-        size_t line_len = strlen(source);
-
-        if(line_len > 0 && source[line_len - 1] == '\n') {
-            source[line_len - 1] = '\0';
-        }
-
-        ++current_line;
-        free(source);
+    MJB_TEST_S
+    mjb_break_type expected_brnl[] = { MJB_BT_ALLOWED, MJB_BT_NO_BREAK, MJB_BT_ALLOWED, MJB_BT_ALLOWED };
+    while((bt = mjb_segmentation("A\r\nB", 4, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        ATT_ASSERT(bt, expected_brnl[index++], "A\\r\\nB test")
     }
+    ATT_ASSERT(index, 4, "A\\r\\nB test break index")
 
-    fclose(file);*/
+    MJB_TEST_S
+    mjb_break_type expected_itit[] = { MJB_BT_NO_BREAK, MJB_BT_ALLOWED, MJB_BT_NO_BREAK, MJB_BT_ALLOWED };
+    while((bt = mjb_segmentation("🇮🇹🇮🇹", 16, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        ATT_ASSERT(bt, expected_itit[index++], "ITIT test")
+    }
+    ATT_ASSERT(index, 4, "ITIT test break index")
+
+    #undef MJB_TEST_S
 
     return NULL;
 }
