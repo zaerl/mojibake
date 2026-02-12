@@ -9,7 +9,7 @@
 
 #include "test.h"
 
-void *test_segmentation(void *arg) {
+static void test_basic_segmentation(void) {
     mjb_next_state state;
     mjb_break_type bt = MJB_BT_NOT_SET;
     state.index = 0;
@@ -58,6 +58,10 @@ void *test_segmentation(void *arg) {
     ATT_ASSERT(index, 4, "ITIT test break index")
 
     #undef MJB_TEST_S
+}
+
+void *test_segmentation(void *arg) {
+    test_basic_segmentation();
 
     return NULL;
 }
