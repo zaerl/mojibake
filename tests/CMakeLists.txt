@@ -7,6 +7,7 @@ set(TEST_SOURCES
     emoji.c
     encoding.c
     east-asian-width.c
+    embedded-null.c
     filter.c
     hangul-composition.c
     hangul.c
@@ -39,6 +40,12 @@ add_executable(mojibake-test ${TEST_SOURCES})
 
 target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
 
+# Enable embedded NULL support if requested
+if(ALLOW_EMBEDDED_NULLS)
+    message(STATUS "Building tests with embedded NULL support enabled")
+    target_compile_definitions(mojibake-test PRIVATE MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS=1)
+endif()
+
 # Force C++ compilation if BUILD_CPP is enabled
 if(BUILD_CPP)
     set_target_properties(mojibake-test PROPERTIES
@@ -66,6 +73,7 @@ add_test(NAME "Case" COMMAND mojibake-test -f case)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
 add_test(NAME "East Asian Width" COMMAND mojibake-test -f east_asian_width)
+add_test(NAME "Embedded NULL" COMMAND mojibake-test -f embedded_null)
 add_test(NAME "Emoji" COMMAND mojibake-test -f emoji)
 add_test(NAME "Encoding" COMMAND mojibake-test -f encoding)
 add_test(NAME "Filter" COMMAND mojibake-test -f filter)

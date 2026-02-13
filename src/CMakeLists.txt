@@ -45,6 +45,12 @@ if(USE_EMBEDDED_DB)
     target_compile_definitions(mojibake_lib PRIVATE MJB_USE_EMBEDDED_DB)
 endif()
 
+# Enable embedded NULL support for library if requested
+if(ALLOW_EMBEDDED_NULLS)
+    message(STATUS "Building library with embedded NULL support enabled")
+    target_compile_definitions(mojibake_lib PRIVATE MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS=1)
+endif()
+
 # WASM-specific configuration
 if(BUILD_WASM)
     # EM_ASM_* macros

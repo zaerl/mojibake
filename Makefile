@@ -10,13 +10,17 @@ GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/genera
 # SQLite source files
 SQLITE_SOURCES = src/sqlite3/sqlite3.c src/sqlite3/sqlite3.h
 
-.PHONY: all configure configure-embedded configure-cpp configure-shared configure-asan configure-wasm
+.PHONY: all configure configure-embedded configure-cpp configure-shared configure-asan configure-null configure-wasm
 
 all: configure build mojibake.db
 
 # C targets
 configure: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
+# NULL-safe testing targets
+configure-null: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DALLOW_EMBEDDED_NULLS=ON
 
 # Embedded database targets
 configure-embedded: $(SQLITE_SOURCES) generate-embedded-db
@@ -122,11 +126,16 @@ watch-api:
 serve: wasm generate-site
 	cd $(WASM_BUILD_DIR)/src && python3 -m http.server
 
-.PHONY: test test-embedded test-cpp test-asan ctest test-docker
+.PHONY: test test-embedded test-cpp test-asan test-null ctest test-docker
 
 # Run tests
 test: BUILD_TYPE = Test
 test: configure build mojibake.db
+	build/tests/mojibake-test $(ARGS)
+
+# Run tests with embedded NULL support
+test-null: BUILD_TYPE = Test
+test-null: configure-null build mojibake.db
 	build/tests/mojibake-test $(ARGS)
 
 # Run tests with embedded database
@@ -199,7 +208,7 @@ help:
 	@echo "  build-cpp    - Build the project with C++ compiler"
 	@echo "  build-shared - Build the project as a shared library"
 	@echo "  build-asan   - Build the project with AddressSanitizer"
-	@echo "  build-wasm"  - Build the project for WebAssembly"
+	@echo "  build-wasm   - Build the project for WebAssembly"
 	@echo "  generate     - Regenerate source files"
 	@echo "  generate-locales - Generate locale files"
 	@echo "  generate-sqlite - Generate SQLite source files"
@@ -215,6 +224,7 @@ help:
 	@echo "  test-embedded - Build and run tests with embedded database"
 	@echo "  test-cpp     - Build and run tests with C++ compiler"
 	@echo "  test-asan    - Build and run tests with AddressSanitizer"
+	@echo "  test-null    - Build and run tests with embedded NULL support"
 	@echo "  ctest        - Build and run tests using CTest"
 	@echo "  test-docker  - Build and run tests in Docker container"
 	@echo "  clean-build  - Remove build artifacts"

@@ -28,6 +28,7 @@ void *test_codepoint(void *arg);
 void *test_emoji(void *arg);
 void *test_encoding(void *arg);
 void *test_east_asian_width(void *arg);
+void *test_embedded_null(void *arg);
 void *test_filter(void *arg);
 void *test_hangul_composition(void *arg);
 void *test_hangul(void *arg);

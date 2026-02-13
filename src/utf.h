@@ -10,6 +10,21 @@
 #include "utf16.h"
 #include "utf32.h"
 
+/**
+ * WARNING: Setting this macro to 1 disables NULL termination checks. This allows processing strings
+ * with embedded U+0000 codepoints but removes a **critical safety feature**. Only enable it if you
+ * know what you are doing.
+ *
+ * Default: 0 (NULL codepoints terminate string processing)
+ */
+#ifndef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+#define MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS 0
+#endif
+
+#if MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+#warning "MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS is enabled - NULL termination checks are disabled!"
+#endif
+
 typedef enum {
     MJB_DECODE_OK,         // Successfully decoded a codepoint
     MJB_DECODE_INCOMPLETE, // Still accumulating bytes for multi-byte sequence
@@ -20,9 +35,11 @@ typedef enum {
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
     if(encoding == MJB_ENCODING_UTF_8) {
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         if(!buffer[*index]) {
             return false;
         }
+#endif
 
         *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
         ++*index;  // Increment by 1 byte
@@ -30,9 +47,11 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
         if(*index + 1 >= size) {
             *state = MJB_UTF_REJECT;
         } else {
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(!buffer[*index] && !buffer[*index + 1]) {
                 return false;
             }
+#endif
 
             *state = mjb_utf16_decode_step(*state, buffer[*index], buffer[*index + 1], codepoint,
                 encoding == MJB_ENCODING_UTF_16_BE);
@@ -42,9 +61,11 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
         if(*index + 3 >= size) {
             *state = MJB_UTF_REJECT;
         } else {
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(!buffer[*index] && !buffer[*index + 1] && !buffer[*index + 2] && !buffer[*index + 3]) {
                 return false;
             }
+#endif
 
             *state = mjb_utf32_decode_step(*state, buffer[*index], buffer[*index + 1], buffer[*index + 2],
                 buffer[*index + 3], codepoint, encoding == MJB_ENCODING_UTF_32_BE);

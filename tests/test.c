@@ -236,6 +236,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(cjk)
     RUN_TEST(codepoint)
     RUN_TEST(east_asian_width)
+    RUN_TEST(embedded_null)
     RUN_TEST(emoji)
     RUN_TEST(encoding)
     RUN_TEST(filter)
