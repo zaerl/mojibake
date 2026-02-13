@@ -45,7 +45,6 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
     }
 
     mjb_codepoint codepoint = 0;
-    mjb_gcb gcb = MJB_GBP_NOT_SET;
     bool first_codepoint = state->index == 0;
 
     for(; state->index < size;) {
@@ -64,6 +63,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // GB1 sot ÷ Any
         // Not needed
 
+        mjb_gcb gcb = MJB_GBP_NOT_SET;
         mjb_codepoint_has_property(codepoint, MJB_PR_GRAPHEME_CLUSTER_BREAK, (uint8_t*)&gcb);
 
         if(gcb == MJB_GBP_NOT_SET) {
@@ -93,7 +93,6 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
 
         // GB4 (Control | CR | LF) ÷
         if(
-            state->previous == MJB_GBP_CONTROL ||
             state->previous == MJB_GBP_CONTROL ||
             state->previous == MJB_GBP_CR ||
             state->previous == MJB_GBP_LF

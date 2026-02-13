@@ -92,6 +92,7 @@ void *test_segmentation(void *arg) {
         unsigned int allowed_count = 0;
         memset(expected_types, MJB_BT_NOT_SET, 1024);
         memset(generated_input, 0, 1024);
+        bool skip_line = false;
 
         // × (U+00D7) = 0xC3 0x97
         // ÷ (U+00F7) = 0xC3 0xB7
@@ -101,8 +102,6 @@ void *test_segmentation(void *arg) {
 
                 continue;
             }
-
-            mjb_break_type current_break = MJB_BT_NOT_SET;
 
             // Odd index means break type
             if(i++ % 2 != 0) {
@@ -122,21 +121,50 @@ void *test_segmentation(void *arg) {
                 }
             }
 
-            mjb_codepoint codepoint = strtoul((const char*)(token + 2), NULL, 16);
+            mjb_codepoint codepoint = strtoul((const char*)(token), NULL, 16);
 
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+            if(codepoint == 0) {
+                free(tofree);
+                ++current_line;
+                skip_line = true;
+
+                break;
+            }
+#endif
             unsigned int encoded_size = mjb_codepoint_encode(codepoint, generated_input +
                 generated_index, 1024 - generated_index, MJB_ENCODING_UTF_8);
 
             generated_index += encoded_size;
         }
 
+        if(skip_line) {
+            continue;
+        }
+
+        // CURRENT_ASSERT mjb_segmentation
+        // CURRENT_COUNT 766
         generated_input[generated_index] = '\0';
         size_t generated_length = mjb_strnlen(generated_input, 1024, MJB_ENCODING_UTF_8);
         snprintf(test_name, 256, "#%u %u/%u grapheme breakings", current_line, allowed_count, types_i);
-        // ATT_ASSERT(types_i, generated_length, test_name)
+        ATT_ASSERT(types_i, generated_length, test_name)
+
+        mjb_break_type bt = MJB_BT_NOT_SET;
+        mjb_next_state state;
+        state.index = 0;
+        size_t index = 0;
+
+        while((bt = mjb_segmentation(generated_input, generated_index, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+            // snprintf(test_name, 256, "Index %zu", index);
+            ATT_ASSERT(bt, expected_types[index++], test_name)
+        }
 
         free(tofree);
         ++current_line;
+
+        if(current_line == 766) {
+            break;
+        }
     }
 
     fclose(file);

@@ -59,7 +59,7 @@ MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property
         if(!found && offset < (unsigned int)blob_size) {
             unsigned char enum_count = blob[offset++];
 
-            for(unsigned int i = 0; i < enum_count && (offset + 1) < (unsigned int)blob_size; i += 2) {
+            for(unsigned int i = 0; i < enum_count && (offset + 1) < (unsigned int)blob_size; ++i) {
                 if(blob[offset] == property) {
                     found = true;
 
