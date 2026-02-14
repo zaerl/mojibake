@@ -305,6 +305,8 @@ typedef struct mjb_next_state {
     size_t index;
     mjb_gcb previous;
     mjb_gcb current;
+    mjb_codepoint previous_codepoint;
+    mjb_codepoint current_codepoint;
     bool in_error;
     unsigned short ri_count;
     bool ext_pict_seen;

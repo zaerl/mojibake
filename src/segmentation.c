@@ -59,6 +59,8 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_GBP_NOT_SET;
         state->current = MJB_GBP_NOT_SET;
+        state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
+        state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->in_error = false;
         state->ri_count = 0;
         state->ext_pict_seen = false;
@@ -108,6 +110,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         if(first_codepoint) {
             // First codepoint
             state->current = gcb;
+            state->current_codepoint = codepoint;
             first_codepoint = false;
             mjb_update_sequence_flags(state, gcb, codepoint);
 
@@ -117,6 +120,8 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // Swap previous and current codepoints
         state->previous = state->current;
         state->current = gcb;
+        state->previous_codepoint = state->current_codepoint;
+        state->current_codepoint = codepoint;
 
         bool prev_ext_pict_zwj = state->ext_pict_seen && state->zwj_seen;
 
