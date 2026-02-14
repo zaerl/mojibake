@@ -21,10 +21,6 @@
 #define MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS 0
 #endif
 
-#if MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-#warning "MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS is enabled - NULL termination checks are disabled!"
-#endif
-
 typedef enum {
     MJB_DECODE_OK,         // Successfully decoded a codepoint
     MJB_DECODE_INCOMPLETE, // Still accumulating bytes for multi-byte sequence

@@ -145,7 +145,12 @@ void *test_segmentation(void *arg) {
         // CURRENT_ASSERT mjb_segmentation
         // CURRENT_COUNT 792
         generated_input[generated_index] = '\0';
+
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         size_t generated_length = mjb_strnlen(generated_input, 1024, MJB_ENCODING_UTF_8);
+#else
+        size_t generated_length = types_i;
+#endif
         snprintf(test_name, 256, "#%u %u/%u grapheme breakings", current_line, allowed_count, types_i);
         ATT_ASSERT(types_i, generated_length, test_name)
 
@@ -155,7 +160,7 @@ void *test_segmentation(void *arg) {
         size_t index = 0;
 
         while((bt = mjb_segmentation(generated_input, generated_index, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
-            // snprintf(test_name, 256, "Index %zu", index);
+            snprintf(test_name, 256, "Index %zu", index);
             ATT_ASSERT(bt, expected_types[index++], test_name)
         }
 
