@@ -26,10 +26,12 @@ extern unsigned int cmd_json_indent;
 extern unsigned int cmd_width;
 
 bool mjbsh_print_escaped_character(const char *buffer_utf8);
+mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint);
 
 // Color formatting helper functions
 const char* mjbsh_green(void);
 const char* mjbsh_red(void);
+const char* mjbsh_yellow(void);
 const char* mjbsh_reset(void);
 void mjbsh_show_cursor(bool show);
 

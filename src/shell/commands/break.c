@@ -28,21 +28,6 @@ static void flush_line(unsigned int column) {
     }
 }
 
-static mjb_codepoint control_picture_codepoint(mjb_codepoint codepoint) {
-    if(codepoint < 0x20) {
-        // Add 0x2400 to the codepoint to make it a printable character by using the
-        // "Control Pictures" block.
-        codepoint += 0x2400;
-    } else if(codepoint == 0x20) {
-        codepoint = 0x2423;
-    } else if(codepoint == 0x7F) {
-        // The delete character.
-        codepoint = 0x2421;
-    }
-
-    return codepoint;
-}
-
 static void print_break_analysis(const char* input) {
     size_t input_size = strlen(input);
     size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
@@ -63,7 +48,7 @@ static void print_break_analysis(const char* input) {
         state = mjb_utf8_decode_step(state, input[i], &codepoint);
 
         if(state == MJB_UTF_ACCEPT) {
-            mjb_codepoint picture_codepoint = control_picture_codepoint(codepoint);
+            mjb_codepoint picture_codepoint = mjbsh_control_picture_codepoint(codepoint);
             bool is_control_picture = picture_codepoint != codepoint;
             char buffer_utf8[5];
             mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
@@ -143,7 +128,7 @@ static void print_break_analysis(const char* input) {
 
             unsigned int char_width = 1;
             bool is_overflow = column + char_width > cmd_width + 1;
-            mjb_codepoint picture_codepoint = control_picture_codepoint(codepoint);
+            mjb_codepoint picture_codepoint = mjbsh_control_picture_codepoint(codepoint);
             bool is_control_picture = picture_codepoint != codepoint;
 
             char buffer_utf8[5];

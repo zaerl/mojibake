@@ -5,6 +5,7 @@ set(SOURCES
     commands/codepoint.c
     commands/filter.c
     commands/normalize.c
+    commands/segment.c
     commands/string.c
     main.c
     maps.c

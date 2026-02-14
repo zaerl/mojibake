@@ -89,6 +89,21 @@ bool mjbsh_print_escaped_character(const char *buffer_utf8) {
     return false;
 }
 
+mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint) {
+    if(codepoint < 0x20) {
+        // Add 0x2400 to the codepoint to make it a printable character by using the
+        // "Control Pictures" block.
+        codepoint += 0x2400;
+    } else if(codepoint == 0x20) {
+        codepoint = 0x2423;
+    } else if(codepoint == 0x7F) {
+        // The delete character.
+        codepoint = 0x2421;
+    }
+
+    return codepoint;
+}
+
 // Color formatting helper functions
 const char* mjbsh_green(void) {
     return cmd_show_colors ? "\x1B[32m" : "";
@@ -96,6 +111,10 @@ const char* mjbsh_green(void) {
 
 const char* mjbsh_red(void) {
     return cmd_show_colors ? "\x1B[31m" : "";
+}
+
+const char* mjbsh_yellow(void) {
+    return cmd_show_colors ? "\x1B[33m" : "";
 }
 
 const char* mjbsh_reset(void) {

@@ -99,6 +99,7 @@ int main(int argc, char * const argv[]) {
 
     mjbsh_command commands[] = {
         { "break", "Break the input into line breaks", mjbsh_break_command, 0 },
+        { "segment", "Segment the input into grapheme clusters", mjbsh_segment_command, 0 },
         { "char", "Print the characters for the given string", mjbsh_character_command, 0 },
         { "codepoint", "Print the character for the given codepoint", mjbsh_codepoint_command, 0 },
         { "filter", "Filter the input", mjbsh_filter_command,
@@ -233,7 +234,11 @@ int main(int argc, char * const argv[]) {
 
     if(argc - optind == 1) {
         // Break command has a realtime mode
-        if(!(strcmp(argv[optind], "break") == 0 || strcmp(argv[optind], "filter") == 0)) {
+        if(!(
+            strcmp(argv[optind], "break") == 0 ||
+            strcmp(argv[optind], "filter") == 0 ||
+            strcmp(argv[optind], "segment") == 0
+        )) {
             fprintf(stderr, "No command value specified.\n");
             show_help(long_options, descriptions, commands, NULL);
 
