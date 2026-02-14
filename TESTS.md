@@ -3,7 +3,7 @@
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 400684     |
-| `mjb_segmentation`                  | 778        |
+| `mjb_segmentation`                  | 804        |
 | `mjb_case`                          | 389        |
 | `mjb_string_filter`                 | 130        |
 | `mjb_codepoint_character`           | 80         |
@@ -53,4 +53,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **402537** |
+| **Total**                           | **402563** |

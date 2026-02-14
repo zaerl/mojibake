@@ -651,6 +651,16 @@ typedef enum mjb_hangul_syllable_type {
 
 #define MJB_HST_COUNT 6
 
+typedef enum mjb_indic_conjunct_break {
+    MJB_INCB_NOT_SET, // 0 is "no value"
+    MJB_INCB_CONSONANT,
+    MJB_INCB_EXTEND,
+    MJB_INCB_LINKER,
+    MJB_INCB_NONE,
+} mjb_indic_conjunct_break;
+
+#define MJB_INCB_COUNT 5
+
 /**
  * Unicode plane
  * [see: https://www.unicode.org/glossary/#plane]

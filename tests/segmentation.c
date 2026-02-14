@@ -143,7 +143,7 @@ void *test_segmentation(void *arg) {
         }
 
         // CURRENT_ASSERT mjb_segmentation
-        // CURRENT_COUNT 766
+        // CURRENT_COUNT 792
         generated_input[generated_index] = '\0';
         size_t generated_length = mjb_strnlen(generated_input, 1024, MJB_ENCODING_UTF_8);
         snprintf(test_name, 256, "#%u %u/%u grapheme breakings", current_line, allowed_count, types_i);

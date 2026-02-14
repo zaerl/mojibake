@@ -309,6 +309,8 @@ typedef struct mjb_next_state {
     unsigned short ri_count;
     bool ext_pict_seen;
     bool zwj_seen;
+    bool incb_consonant_seen;
+    bool incb_linker_seen;
 } mjb_next_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);

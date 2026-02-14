@@ -13,6 +13,7 @@ extern mojibake mjb_global;
 
 static inline void mjb_update_sequence_flags(mjb_next_state *state, mjb_gcb gcb,
     mjb_codepoint codepoint) {
+    // Update GB11: Extended_Pictographic + ZWJ sequences
     if(mjb_codepoint_has_property(codepoint, MJB_PR_EXTENDED_PICTOGRAPHIC, NULL)) {
         // Start of new Extended_Pictographic sequence
         state->ext_pict_seen = true;
@@ -26,7 +27,23 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, mjb_gcb gcb,
         state->zwj_seen = false;
     }
 
-    // If gcb == MJB_GBP_EXTEND, keep flags unchanged (sequence continues through Extend)
+    // Update GB9c: Indic Conjunct Break sequences
+    uint8_t incb_value = 0;
+    bool has_incb = mjb_codepoint_has_property(codepoint, MJB_PR_INDIC_CONJUNCT_BREAK, &incb_value);
+
+    if(has_incb && incb_value == MJB_INCB_CONSONANT) {
+        // Start new Consonant sequence
+        state->incb_consonant_seen = true;
+        state->incb_linker_seen = false;
+    } else if(has_incb && incb_value == MJB_INCB_LINKER && state->incb_consonant_seen) {
+        // Mark that we've seen a Linker in this sequence
+        state->incb_linker_seen = true;
+    } else if(!has_incb || (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
+        // Break in sequence: character is not InCB-relevant, or is None
+        // Reset unless it's Extend or Linker (which continue the sequence)
+        state->incb_consonant_seen = false;
+        state->incb_linker_seen = false;
+    }
 }
 
 // Word and Grapheme Cluster Breaking
@@ -46,6 +63,8 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         state->ri_count = 0;
         state->ext_pict_seen = false;
         state->zwj_seen = false;
+        state->incb_consonant_seen = false;
+        state->incb_linker_seen = false;
     }
 
     if(state->index == size) {
@@ -211,6 +230,17 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // Do not break within certain combinations with Indic_Conjunct_Break (InCB)=Linker.
         // GB9c \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]* \p{InCB=Linker}
         //   [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
+        uint8_t curr_incb = 0;
+        bool has_incb = mjb_codepoint_has_property(codepoint, MJB_PR_INDIC_CONJUNCT_BREAK, &curr_incb);
+
+        if(has_incb &&
+            state->incb_consonant_seen &&
+            state->incb_linker_seen &&
+            curr_incb == MJB_INCB_CONSONANT) {
+            mjb_update_sequence_flags(state, gcb, codepoint);
+
+            return MJB_BT_NO_BREAK;
+        }
 
         // Do not break within emoji modifier sequences or emoji zwj sequences.
         // GB11 \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
