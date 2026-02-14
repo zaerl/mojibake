@@ -161,10 +161,6 @@ void *test_segmentation(void *arg) {
 
         free(tofree);
         ++current_line;
-
-        if(current_line == 766) {
-            break;
-        }
     }
 
     fclose(file);
