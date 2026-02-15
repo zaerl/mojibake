@@ -11,34 +11,32 @@
 
 extern mojibake mjb_global;
 
-static inline void mjb_update_sequence_flags(mjb_next_state *state, mjb_gcb gcb,
-    mjb_codepoint codepoint) {
+static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buffer) {
     // Update GB11: Extended_Pictographic + ZWJ sequences
-    if(mjb_codepoint_has_property(codepoint, MJB_PR_EXTENDED_PICTOGRAPHIC, NULL)) {
+    if(mjb_codepoint_property(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
         // Start of new Extended_Pictographic sequence
         state->ext_pict_seen = true;
         state->zwj_seen = false;
-    } else if(gcb == MJB_GBP_ZWJ && state->ext_pict_seen) {
+    } else if(state->current == MJB_GBP_ZWJ && state->ext_pict_seen) {
         // ZWJ after Extended_Pictographic, mark sequence as ExtPict...ZWJ
         state->zwj_seen = true;
-    } else if(gcb != MJB_GBP_EXTEND) {
+    } else if(state->current != MJB_GBP_EXTEND) {
         // Break in sequence (not Extend, not ZWJ, not ExtPict)
         state->ext_pict_seen = false;
         state->zwj_seen = false;
     }
 
     // Update GB9c: Indic Conjunct Break sequences
-    uint8_t incb_value = 0;
-    bool has_incb = mjb_codepoint_has_property(codepoint, MJB_PR_INDIC_CONJUNCT_BREAK, &incb_value);
+    uint8_t incb_value = mjb_codepoint_property(buffer, MJB_PR_INDIC_CONJUNCT_BREAK);
 
-    if(has_incb && incb_value == MJB_INCB_CONSONANT) {
+    if(incb_value == MJB_INCB_CONSONANT) {
         // Start new Consonant sequence
         state->incb_consonant_seen = true;
         state->incb_linker_seen = false;
-    } else if(has_incb && incb_value == MJB_INCB_LINKER && state->incb_consonant_seen) {
+    } else if(incb_value == MJB_INCB_LINKER && state->incb_consonant_seen) {
         // Mark that we've seen a Linker in this sequence
         state->incb_linker_seen = true;
-    } else if(!has_incb || (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
+    } else if(incb_value == MJB_INCB_NOT_SET || (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
         // Break in sequence: character is not InCB-relevant, or is None
         // Reset unless it's Extend or Linker (which continue the sequence)
         state->incb_consonant_seen = false;
@@ -82,6 +80,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
 
     mjb_codepoint codepoint = 0;
     bool first_codepoint = state->index == 0;
+    uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
     for(; state->index < size;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
@@ -99,8 +98,9 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // GB1 sot ÷ Any
         // Not needed
 
-        mjb_gcb gcb = MJB_GBP_NOT_SET;
-        mjb_codepoint_has_property(codepoint, MJB_PR_GRAPHEME_CLUSTER_BREAK, (uint8_t*)&gcb);
+        memset(cpb, 0, MJB_PR_BUFFER_SIZE);
+        mjb_codepoint_properties(codepoint, cpb);
+        mjb_gcb gcb = mjb_codepoint_property(cpb, MJB_PR_GRAPHEME_CLUSTER_BREAK);
 
         if(gcb == MJB_GBP_NOT_SET) {
             // # @missing: 0000..10FFFF; Other
@@ -112,7 +112,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
             state->current = gcb;
             state->current_codepoint = codepoint;
             first_codepoint = false;
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             continue;
         }
@@ -128,7 +128,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // Do not break between a CR and LF. Otherwise, break before and after controls.
         // GB3 CR × LF
         if(state->previous == MJB_GBP_CR && state->current == MJB_GBP_LF) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -139,7 +139,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
             state->previous == MJB_GBP_CR ||
             state->previous == MJB_GBP_LF
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_ALLOWED;
         }
@@ -150,7 +150,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
             state->current == MJB_GBP_CR ||
             state->current == MJB_GBP_LF
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_ALLOWED;
         }
@@ -166,7 +166,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
                 state->current == MJB_GBP_LVT
             )
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -182,7 +182,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
                 state->current == MJB_GBP_T
             )
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -195,7 +195,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
             ) &&
             state->current == MJB_GBP_T
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -206,7 +206,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
             state->current == MJB_GBP_EXTEND ||
             state->current == MJB_GBP_ZWJ
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -217,7 +217,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         if(
             state->current == MJB_GBP_SPACING_MARK
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -226,7 +226,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         if(
             state->previous == MJB_GBP_PREPEND
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -235,14 +235,13 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // Do not break within certain combinations with Indic_Conjunct_Break (InCB)=Linker.
         // GB9c \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]* \p{InCB=Linker}
         //   [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
-        uint8_t curr_incb = 0;
-        bool has_incb = mjb_codepoint_has_property(codepoint, MJB_PR_INDIC_CONJUNCT_BREAK, &curr_incb);
+        uint8_t curr_incb = mjb_codepoint_property(cpb, MJB_PR_INDIC_CONJUNCT_BREAK);
 
-        if(has_incb &&
+        if(curr_incb != MJB_INCB_NOT_SET &&
             state->incb_consonant_seen &&
             state->incb_linker_seen &&
             curr_incb == MJB_INCB_CONSONANT) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -251,9 +250,9 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // GB11 \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
         if(
             prev_ext_pict_zwj &&
-            mjb_codepoint_has_property(codepoint, MJB_PR_EXTENDED_PICTOGRAPHIC, NULL)
+            mjb_codepoint_property(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)
         ) {
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
@@ -264,7 +263,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // GB13 [^RI] (RI RI)* RI × RI
         if(state->previous == MJB_GBP_REGIONAL_INDICATOR && state->current == MJB_GBP_REGIONAL_INDICATOR) {
             mjb_break_type result = (state->ri_count++ % 2) == 0 ? MJB_BT_NO_BREAK : MJB_BT_ALLOWED;
-            mjb_update_sequence_flags(state, gcb, codepoint);
+            mjb_update_sequence_flags(state, cpb);
 
             return result;
         } else {
@@ -273,7 +272,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
 
         // Otherwise, break everywhere.
         // GB999 Any ÷ Any
-        mjb_update_sequence_flags(state, gcb, codepoint);
+        mjb_update_sequence_flags(state, cpb);
 
         return MJB_BT_ALLOWED;
     }
