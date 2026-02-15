@@ -4,10 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "mojibake-internal.h"
 #include "utf.h"
-
-#include <string.h>
 
 extern mojibake mjb_global;
 
@@ -100,7 +101,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
         mjb_codepoint_properties(codepoint, cpb);
-        mjb_gcb gcb = mjb_codepoint_property(cpb, MJB_PR_GRAPHEME_CLUSTER_BREAK);
+        mjb_gcb gcb = (mjb_gcb)mjb_codepoint_property(cpb, MJB_PR_GRAPHEME_CLUSTER_BREAK);
 
         if(gcb == MJB_GBP_NOT_SET) {
             // # @missing: 0000..10FFFF; Other
