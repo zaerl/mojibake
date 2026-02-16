@@ -5,7 +5,6 @@
  */
 
 #include "mojibake-internal.h"
-#include "breaking.h"
 #include "utf.h"
 
 extern mojibake mjb_global;

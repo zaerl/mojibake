@@ -796,7 +796,7 @@ export default [
   },
   {
     "comment": "Unicode line break algorithm",
-    "ret": "mjb_line_break *",
+    "ret": "mjb_break_type",
     "name": "break_line",
     "attributes": [
       "MJB_NONNULL(1, 4)"
@@ -821,9 +821,9 @@ export default [
         "wasm_generated": false
       },
       {
-        "name": "output_size",
-        "type": "size_t *",
-        "description": "The size of the output",
+        "name": "state",
+        "type": "mjb_next_state *",
+        "description": "The state to store the result",
         "wasm_generated": true
       }
     ],

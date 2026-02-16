@@ -712,6 +712,61 @@ typedef enum mjb_word_break_property {
 
 #define MJB_WBP_COUNT 24
 
+typedef enum mjb_lbp {
+    MJB_LBP_NOT_SET, // 0 is "no value"
+    MJB_LBP_AI,
+    MJB_LBP_AK,
+    MJB_LBP_AL,
+    MJB_LBP_AP,
+    MJB_LBP_AS,
+    MJB_LBP_B2,
+    MJB_LBP_BA,
+    MJB_LBP_BB,
+    MJB_LBP_BK,
+    MJB_LBP_CB,
+    MJB_LBP_CJ,
+    MJB_LBP_CL,
+    MJB_LBP_CM,
+    MJB_LBP_CP,
+    MJB_LBP_CR,
+    MJB_LBP_EB,
+    MJB_LBP_EM,
+    MJB_LBP_EX,
+    MJB_LBP_GL,
+    MJB_LBP_H2,
+    MJB_LBP_H3,
+    MJB_LBP_HH,
+    MJB_LBP_HL,
+    MJB_LBP_HY,
+    MJB_LBP_ID,
+    MJB_LBP_IN,
+    MJB_LBP_IS,
+    MJB_LBP_JL,
+    MJB_LBP_JT,
+    MJB_LBP_JV,
+    MJB_LBP_LF,
+    MJB_LBP_NL,
+    MJB_LBP_NS,
+    MJB_LBP_NU,
+    MJB_LBP_OP,
+    MJB_LBP_PO,
+    MJB_LBP_PR,
+    MJB_LBP_QU,
+    MJB_LBP_RI,
+    MJB_LBP_SA,
+    MJB_LBP_SG,
+    MJB_LBP_SP,
+    MJB_LBP_SY,
+    MJB_LBP_VF,
+    MJB_LBP_VI,
+    MJB_LBP_WJ,
+    MJB_LBP_XX,
+    MJB_LBP_ZW,
+    MJB_LBP_ZWJ
+} mjb_lbp;
+
+#define MJB_LBP_COUNT 50
+
 typedef enum mjb_property {
     MJB_PR_KACCOUNTINGNUMERIC, // enumerated
     MJB_PR_KOTHERNUMERIC, // enumerated

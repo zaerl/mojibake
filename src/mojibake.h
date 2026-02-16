@@ -288,11 +288,6 @@ typedef struct mjb_buffer_character {
     uint16_t combining;
 } mjb_buffer_character;
 
-typedef struct mjb_line_break {
-    size_t index;
-    bool mandatory;
-} mjb_line_break;
-
 // UTF-8 next character type
 typedef enum mjb_next_character_type {
     MJB_NEXT_CHAR_NONE  = 0x0,
@@ -303,8 +298,8 @@ typedef enum mjb_next_character_type {
 typedef struct mjb_next_state {
     uint8_t state;
     size_t index;
-    mjb_gcb previous;
-    mjb_gcb current;
+    unsigned int previous;
+    unsigned int current;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
@@ -416,7 +411,7 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 // Unicode line break algorithm
-MJB_NONNULL(1, 4) mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, size_t *output_size);
+MJB_NONNULL(1, 4) mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 
 // Word and grapheme cluster breaking
 MJB_NONNULL(1, 4) mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);

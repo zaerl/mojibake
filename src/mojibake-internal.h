@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "breaking.h"
 #include "buffer.h"
 #include "locales.h"
 #include "sqlite3/sqlite3.h"

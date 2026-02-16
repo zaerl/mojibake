@@ -195,7 +195,7 @@ mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 Unicode line break algorithm
 
 ```c
-mjb_line_break *mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, size_t *output_size);
+mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 ```
 
 Word and grapheme cluster breaking

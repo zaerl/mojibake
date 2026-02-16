@@ -14,7 +14,7 @@
 #include "../shell.h"
 #include "commands.h"
 
-static void flush_line(unsigned int column) {
+/*static void flush_line(unsigned int column) {
     // Fill remaining space to reach cmd_width total content
     while(column <= cmd_width) {
         printf(" ");
@@ -26,41 +26,43 @@ static void flush_line(unsigned int column) {
     } else {
         printf("│\n");
     }
-}
+}*/
 
 static void print_break_analysis(const char* input) {
+    bool first = true;
     size_t input_size = strlen(input);
-    size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
-    size_t output_size = 0;
-    mjb_line_break *line_breaks = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8,
-        &output_size);
+    // size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
+    mjb_next_state state;
+    mjb_break_type bt;
+    state.index = 0;
 
-    if(line_breaks == NULL) {
-        puts("Could not analyze string");
-        fflush(stdout);
-        return;
-    }
+    while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+        bool is_eot = (state.index > input_size);
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint;
+        if(first) {
+            print_break_symbol(MJB_BT_NO_BREAK);
 
-    for(size_t i = 0; i < input_size; ++i) {
-        state = mjb_utf8_decode_step(state, input[i], &codepoint);
+            // First iteration: print the starting codepoint
+            print_codepoint(state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
+                ? state.previous_codepoint : state.current_codepoint);
 
-        if(state == MJB_UTF_ACCEPT) {
-            mjb_codepoint picture_codepoint = mjbsh_control_picture_codepoint(codepoint);
-            bool is_control_picture = picture_codepoint != codepoint;
-            char buffer_utf8[5];
-            mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+            print_break_symbol(bt);
 
-            if(is_control_picture) {
-                printf("%s%s%s", mjbsh_green(), buffer_utf8, mjbsh_reset());
-            } else {
-                printf("%s", buffer_utf8);
+            // If previous was valid, print current; if not, we already printed current
+            if(state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
+                print_codepoint(state.current_codepoint);
             }
+
+            first = false;
+        } else if(!is_eot) {
+            print_break_symbol(bt);
+            print_codepoint(state.current_codepoint);
+        } else {
+            print_break_symbol(bt);
         }
     }
 
+/*
     puts("");
 
     size_t breaks_index = 0;
@@ -155,6 +157,7 @@ static void print_break_analysis(const char* input) {
 
     mjbsh_table_bottom();
     free(line_breaks);
+*/
 }
 
 static void display_break_output(const char* input) {

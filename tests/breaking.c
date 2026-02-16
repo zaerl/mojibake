@@ -10,49 +10,10 @@
 #include "test.h"
 #include "../src/mojibake-internal.h"
 
-/**
- * Get codepoints from a string
- * Example: "0044 0307", gives 2 codepoints
- */
-/*static size_t get_string_from_codepoints(char *buffer, char *codepoints, size_t size, char *breakings) {
-    char *token, *string, *tofree;
-    tofree = string = strdup(buffer);
-    unsigned int index = 0;
-    unsigned int breakings_index = 0;
-    unsigned int i = 0;
-
-    while((token = strsep(&string, " ")) != NULL) {
-        if(i % 2 == 0) {
-            breakings[breakings_index] = token[0];
-            ++breakings_index;
-        } else {
-            mjb_codepoint codepoint = strtoul((const char*)token, NULL, 16);
-            index += mjb_codepoint_encode(codepoint, codepoints + index, size - index, MJB_ENCODING_UTF_8);
-        }
-
-        ++i;
-    }
-
-    codepoints[++index] = '\0';
-    breakings[breakings_index] = '\0';
-    free(tofree);
-
-    return index;
-}*/
-
 void *test_breaking(void *arg) {
-    mjb_line_breaking lb;
-
-    ATT_ASSERT(mjb_codepoint_line_breaking(MJB_CODEPOINT_MAX + 1, &lb), false, "Invalid")
-
-    // CURRENT_ASSERT mjb_codepoint_line_breaking
-    ATT_ASSERT(mjb_codepoint_line_breaking(0x0, &lb), true, "NULL")
-    ATT_ASSERT((unsigned int)lb.line_breaking_class, (unsigned int)MJB_LBC_CM, "CM")
-
     char line[16384]; // 16384, see line #19335
     char generated_input[1024]; // String to be used by mjb_break_line
-    char expected_string[1024]; // String that the test should generate
-    char generated_string[1024]; // String that the test generated
+    mjb_break_type expected_types[1024];
     char test_name[256];
     unsigned int current_line = 1;
 
@@ -72,76 +33,87 @@ void *test_breaking(void *arg) {
         }
 
         char *token, *string, *tofree;
-        tofree = string = strdup(line);
-        unsigned int field = 0;
+        tofree = string = strdup(line + 3);
+        unsigned int types_i = 0;
+        unsigned int i = 0;
         unsigned int generated_index = 0;
         unsigned int allowed_count = 0;
+        memset(expected_types, MJB_LBP_NOT_SET, 1024);
+        memset(generated_input, 0, 1024);
+        bool skip_line = false;
 
         // × (U+00D7) = 0xC3 0x97
         // ÷ (U+00F7) = 0xC3 0xB7
-        while((token = strsep(&string, "\xC3")) != NULL) {
+        while((token = strsep(&string, " ")) != NULL) {
             if(token == NULL || token[0] == '\0') {
+                i = 0;
+
                 continue;
             }
 
-            char current_break = ' ';
+            // Odd index means break type
+            if(i++ % 2 != 0) {
+                if((unsigned char)token[1] == 0xB7) { // ÷
+                    expected_types[types_i++] = MJB_BT_ALLOWED;
+                    ++allowed_count;
 
-            if((unsigned char)token[0] == 0xB7) { // ÷
-                if((unsigned char)token[1] == 0x09) { // Tab # comment until next line
-                    break;
+                    if((unsigned char)token[2] == 0x09) { // Tab # comment until next line
+                        break;
+                    }
+
+                    continue;
+                } else if((unsigned char)token[1] == 0x97) {
+                    expected_types[types_i++] = MJB_BT_NO_BREAK;
+
+                    continue;
                 }
-
-                current_break = '+';
-                ++allowed_count;
-            } else {
-                current_break = 'x';
             }
 
-            mjb_codepoint codepoint = strtoul((const char*)(token + 2), NULL, 16);
-            expected_string[field] = current_break;
+            mjb_codepoint codepoint = strtoul((const char*)(token), NULL, 16);
 
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+            if(codepoint == 0) {
+                free(tofree);
+                ++current_line;
+                skip_line = true;
+
+                break;
+            }
+#endif
             unsigned int encoded_size = mjb_codepoint_encode(codepoint, generated_input +
                 generated_index, 1024 - generated_index, MJB_ENCODING_UTF_8);
 
             generated_index += encoded_size;
-            ++field;
         }
 
-        expected_string[field] = '+';
-        expected_string[field + 1] = '\0';
+        if(skip_line) {
+            continue;
+        }
+
         generated_input[generated_index] = '\0';
-        ++allowed_count;
 
-        size_t output_size = 0;
-        mjb_line_break *breakings = mjb_break_line(generated_input, generated_index,
-            MJB_ENCODING_UTF_8, &output_size);
+        #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+        size_t generated_length = mjb_strnlen(generated_input, 1024, MJB_ENCODING_UTF_8);
+#else
+        size_t generated_length = types_i;
+#endif
+        snprintf(test_name, 256, "#%u %u/%u line breakings", current_line, allowed_count, types_i);
+        ATT_ASSERT(types_i, generated_length, test_name)
 
-        snprintf(test_name, 256, "#%u %zu/%u breakings", current_line, output_size,
-            allowed_count);
-        ATT_ASSERT(output_size, allowed_count, test_name)
+        mjb_break_type bt = MJB_BT_NOT_SET;
+        mjb_next_state state;
+        state.index = 0;
+        size_t index = 0;
 
-        size_t breaks_index = 0;
-        memset(generated_string, '\0', 1024);
+        while((bt = mjb_break_line(generated_input, generated_index, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+            snprintf(test_name, 256, "Index %zu", index);
 
-        if(output_size > 0) {
-            // First element is always x
-            generated_string[0] = 'x';
-
-            for(size_t i = 0; i < field; ++i) {
-                if(i == breakings[breaks_index].index) {
-                    generated_string[i + 1] = '+';
-                    ++breaks_index;
-                } else {
-                    generated_string[i + 1] = 'x';
-                }
+            if(bt == MJB_BT_MANDATORY) {
+                bt = MJB_BT_ALLOWED;
             }
 
-            free(breakings);
+            ATT_ASSERT((uint8_t)bt, (uint8_t)expected_types[index++], test_name)
         }
-
-        snprintf(test_name, 256, "#%u generated breakings", current_line);
-        // CURRENT_ASSERT mjb_break_line
-        ATT_ASSERT(generated_string, expected_string, test_name)
 
         free(tofree);
         ++current_line;

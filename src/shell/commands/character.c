@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../breaking.h"
 #include "../../mojibake.h"
 #include "../shell.h"
 #include "../maps.h"
@@ -237,21 +236,6 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
     }
 
     if(cmd_verbose > 1) {
-        mjb_line_breaking line_breaking;
-        bool lbc_valid = mjb_codepoint_line_breaking(character->codepoint, &line_breaking);
-
-        if(lbc_valid) {
-            if(is_json) {
-                mjbsh_id_name("line_breaking_class", line_breaking.line_breaking_class,
-                    mjbsh_line_breaking_class_name(line_breaking.line_breaking_class), 1);
-            } else {
-                mjbsh_value("Line Breaking Class", 1, "[%d] %s", line_breaking.line_breaking_class,
-                    mjbsh_line_breaking_class_name(line_breaking.line_breaking_class));
-            }
-        } else {
-            mjbsh_null("Line Breaking Class", 1);
-        }
-
         mjb_east_asian_width east_asian_width;
         bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width);
 

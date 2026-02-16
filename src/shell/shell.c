@@ -104,6 +104,34 @@ mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint) {
     return codepoint;
 }
 
+void print_codepoint(mjb_codepoint codepoint) {
+    if(codepoint == MJB_CODEPOINT_NOT_VALID) {
+        return;
+    }
+
+    mjb_codepoint picture_codepoint = mjbsh_control_picture_codepoint(codepoint);
+    bool is_control_picture = picture_codepoint != codepoint;
+
+    char buffer_utf8[5];
+    mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+
+    if(is_control_picture) {
+        printf("%s%s%s", mjbsh_yellow(), buffer_utf8, mjbsh_reset());
+    } else {
+        printf("%s", buffer_utf8);
+    }
+}
+
+void print_break_symbol(mjb_break_type bt) {
+    if(bt == MJB_BT_ALLOWED) {
+        printf("%s÷%s", mjbsh_green(), mjbsh_reset());
+    } else if(bt == MJB_BT_NO_BREAK) {
+        printf("%s×%s", mjbsh_red(), mjbsh_reset());
+    } else if(bt == MJB_BT_MANDATORY) {
+        printf("%s!%s", mjbsh_yellow(), mjbsh_reset());
+    }
+}
+
 // Color formatting helper functions
 const char* mjbsh_green(void) {
     return cmd_show_colors ? "\x1B[32m" : "";
