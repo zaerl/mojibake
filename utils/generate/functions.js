@@ -1044,6 +1044,41 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return the display width of a string",
+    "ret": "bool",
+    "name": "display_width",
+    "attributes": [
+      "MJB_NONNULL(1, 4)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to normalize",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "width",
+        "type": "size_t *",
+        "description": "The width to store the result",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Output the current library version (MJB_VERSION)",
     "ret": "const char *",
     "name": "version",

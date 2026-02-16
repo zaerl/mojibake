@@ -98,6 +98,7 @@ if(BUILD_WASM)
         "\"_mjb_plane_name\""
         "\"_mjb_codepoint_emoji\""
         "\"_mjb_codepoint_east_asian_width\""
+        "\"_mjb_display_width\""
         "\"_mjb_version\""
         "\"_mjb_version_number\""
         "\"_mjb_unicode_version\""

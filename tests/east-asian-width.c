@@ -56,5 +56,13 @@ void *test_east_asian_width(void *arg) {
     ATT_ASSERT(mjb_codepoint_east_asian_width(0x1FBFA + 1, &width), true, "Unassigned")
     ATT_ASSERT((int)width, MJB_EAW_NEUTRAL, "ALARM BELL SYMBOL + 1")
 
+    size_t sw = 0;
+
+    ATT_ASSERT(mjb_display_width("", 0, MJB_ENCODING_UTF_8, &sw), true, "Empty string")
+    ATT_ASSERT(sw, 0, "Empty string")
+
+    ATT_ASSERT(mjb_display_width(" ", 1, MJB_ENCODING_UTF_8, &sw), true, "Space")
+    ATT_ASSERT(sw, 1, "Space")
+
     return NULL;
 }
