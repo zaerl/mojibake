@@ -4,6 +4,7 @@ set(TEST_SOURCES
     case.c
     cjk.c
     codepoint.c
+    display.c
     emoji.c
     encoding.c
     east-asian-width.c
@@ -72,6 +73,7 @@ add_test(NAME "Breaking" COMMAND mojibake-test -f breaking)
 add_test(NAME "Case" COMMAND mojibake-test -f case)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
+add_test(NAME "Display" COMMAND mojibake-test -f display)
 add_test(NAME "East Asian Width" COMMAND mojibake-test -f east_asian_width)
 add_test(NAME "Embedded NULL" COMMAND mojibake-test -f embedded_null)
 add_test(NAME "Emoji" COMMAND mojibake-test -f emoji)

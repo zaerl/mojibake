@@ -4,6 +4,7 @@ set(SOURCES
     case.c
     codepoint.c
     cjk.c
+    display.c
     encoding.c
     east-asian-width.c
     emoji.c
