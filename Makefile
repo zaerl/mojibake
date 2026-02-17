@@ -67,8 +67,8 @@ build-asan: configure-asan
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
-.PHONY: generate generate-locales generate-sqlite generate-embedded-db generate-site watch-site wasm coverage \
-		amalgamation
+.PHONY: generate generate-locales generate-sqlite generate-embedded-db generate-site watch-site \
+		watch-api wasm coverage amalgamation update-version
 
 # Generate source files and database
 generate: $(GENERATE_SOURCES)
@@ -89,8 +89,13 @@ generate-embedded-db:
 generate-site: src/site/index.html
 	@cd ./utils/generate && npm run generate-site
 
+# Watch site files
 watch-site: src/site/index.html
 	@cd ./utils/generate && npm run watch-site
+
+# Watch API files
+watch-api:
+	cd ./src/api && node --watch index.js
 
 # Generate WASM library
 wasm: build-wasm generate-site
@@ -111,20 +116,9 @@ mojibake.db: $(GENERATE_SOURCES)
 $(SQLITE_SOURCES):
 	@cd ./utils/sqlite3 && ./generate-sqlite.sh
 
-# Tools
-.PHONY: update-version serve
-
 # Update version in source files
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
-
-# Watch API files
-watch-api:
-	cd ./src/api && node --watch index.js
-
-# Serve WASM site with live reload
-serve: wasm generate-site
-	cd $(WASM_BUILD_DIR)/src && python3 -m http.server
 
 .PHONY: test test-embedded test-cpp test-asan test-null ctest test-docker
 
@@ -218,8 +212,7 @@ help:
 	@echo "  coverage     - Run coverage analysis"
 	@echo "  amalgamation - Generate single-file amalgamation"
 	@echo "  update-version - Update version in source files"
-	@echo "  watch-site   - Watch site files and regenerate on changes"
-	@echo "  serve        - Serve site"
+	@echo "  watch-site   - Watch site files, regenerate on changes and serve at localhost:8080"
 	@echo "  test         - Build and run tests"
 	@echo "  test-embedded - Build and run tests with embedded database"
 	@echo "  test-cpp     - Build and run tests with C++ compiler"

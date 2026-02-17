@@ -150,7 +150,7 @@
 
         async function callAPI(args) {
             const params = new URLSearchParams(args);
-            const result = await fetch('https://moji.zaerl.com/?' + params.toString());
+            const result = await fetch('[API_URL]?' + params.toString());
 
             return await result.json();
         }

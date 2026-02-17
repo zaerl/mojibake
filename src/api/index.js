@@ -4,11 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import http from 'http';
 import { promises as fs } from 'fs';
-import mojibakeModule from './mojibake.js';
+import http from 'http';
 import { CStruct } from './cstruct.js';
 import functionsDefault from './functions.js';
+import mojibakeModule from './mojibake.js';
 
 let functions = {};
 let mojibake = null;
