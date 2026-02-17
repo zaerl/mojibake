@@ -1048,7 +1048,7 @@ export default [
     "ret": "bool",
     "name": "display_width",
     "attributes": [
-      "MJB_NONNULL(1, 4)"
+      "MJB_NONNULL(1, 5)"
     ],
     "args": [
       {
@@ -1067,6 +1067,12 @@ export default [
         "name": "encoding",
         "type": "mjb_encoding",
         "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "context",
+        "type": "mjb_width_context",
+        "description": "The width context for ambiguous-width characters",
         "wasm_generated": false
       },
       {

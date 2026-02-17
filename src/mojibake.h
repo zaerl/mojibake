@@ -295,6 +295,13 @@ typedef enum mjb_next_character_type {
     MJB_NEXT_CHAR_LAST  = 0x2
 } mjb_next_character_type;
 
+// Display width context for ambiguous-width characters
+typedef enum mjb_width_context {
+    MJB_WIDTH_CONTEXT_WESTERN,    // Treat ambiguous characters as narrow (width 1)
+    MJB_WIDTH_CONTEXT_EAST_ASIAN, // Treat ambiguous characters as wide (width 2)
+    MJB_WIDTH_CONTEXT_AUTO        // Auto-detect from string content
+} mjb_width_context;
+
 typedef struct mjb_next_state {
     uint8_t state;
     size_t index;
@@ -441,7 +448,7 @@ MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *char
 MJB_NONNULL(2) bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 
 // Return the display width of a string
-MJB_NONNULL(1, 4) bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, size_t *width);
+MJB_NONNULL(1, 5) bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);

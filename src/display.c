@@ -14,14 +14,16 @@ extern mojibake mjb_global;
  * Return display width of a string.
  */
 MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
-    size_t *width) {
-    if(size == 0) {
-        *width = 0;
+    mjb_width_context context, size_t *width) {
+    *width = 0;
 
+    if(size == 0) {
         return true;
     }
 
-    *width = 0;
+    size_t ambiguous_count = 0;
+    size_t wide_count = 0;
+    size_t visible_count = 0;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint;
@@ -38,6 +40,7 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
             continue;
         }
 
+        // Check General Category for zero-width cases
         sqlite3_reset(mjb_global.stmt_line_breaking);
         sqlite3_bind_int(mjb_global.stmt_line_breaking, 1, codepoint);
 
@@ -64,25 +67,48 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
             sqlite3_reset(mjb_global.stmt_line_breaking);
         }
 
-        // Now handle visible characters using East Asian Width
+        // Handle visible characters using East Asian Width
         mjb_east_asian_width eaw = MJB_EAW_NOT_SET;
 
         if(mjb_codepoint_east_asian_width(codepoint, &eaw)) {
             if(eaw == MJB_EAW_NEUTRAL || eaw == MJB_EAW_NARROW || eaw == MJB_EAW_HALF_WIDTH) {
                 *width += 1;
+                visible_count++;
             } else if(eaw == MJB_EAW_FULL_WIDTH || eaw == MJB_EAW_WIDE) {
                 *width += 2;
+                wide_count++;
+                visible_count++;
             } else if(eaw == MJB_EAW_AMBIGUOUS) {
-                // UAX#11: Ambiguous width depends on context (East Asian vs Western).
-                // Default to narrow (1) for Western/non-CJK contexts.
+                // Initially count as narrow (1), track for later adjustment
                 *width += 1;
+                ambiguous_count++;
+                visible_count++;
             } else {
                 // Fallback for any unhandled EAW values
                 *width += 1;
+                visible_count++;
             }
         } else {
             // No EAW property found - default to narrow
             *width += 1;
+            visible_count++;
+        }
+    }
+
+    // Adjust width for ambiguous characters based on context
+    if(ambiguous_count > 0) {
+        bool use_east_asian_width = false;
+
+        if(context == MJB_WIDTH_CONTEXT_AUTO) {
+            // If ≥50% of visible characters are wide, treat as East Asian context
+            use_east_asian_width = (visible_count > 0 && wide_count * 2 >= visible_count);
+        } else {
+            use_east_asian_width = (context == MJB_WIDTH_CONTEXT_EAST_ASIAN);
+        }
+
+        // If East Asian context, add 1 for each ambiguous character (they were initially counted as 1, need to be 2)
+        if(use_east_asian_width) {
+            *width += ambiguous_count;
         }
     }
 

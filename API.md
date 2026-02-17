@@ -255,7 +255,7 @@ bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_widt
 Return the display width of a string
 
 ```c
-bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, size_t *width);
+bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 ```
 
 Output the current library version (MJB_VERSION)
