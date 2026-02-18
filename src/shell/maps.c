@@ -43,54 +43,54 @@ static const char *mjbsh_category_names[] = {
 };
 
 static const char *mjbsh_ccc_names[] = {
-    "Not reordered",        // MJB_CCC_NOT_REORDERED
-    "Overlays",             // MJB_CCC_OVERLAYS
+    "Not_Reordered",
+    "Overlay",
     NULL,
     NULL,
     NULL,
     NULL,
-    "Han reading",          // MJB_CCC_VIETNAMES_ALT
-    "Nukta",                // MJB_CCC_NUKTA
-    "Kana voicing",         // MJB_CCC_KANA_VOICING
-    "Virama",               // MJB_CCC_VIRAMA
+    "Han_Reading",
+    "Nukta",
+    "Kana_Voicing",
+    "Virama",
 };
 
 static const char *mjbsh_ccc_names_200_to_240[] = {
-    "Below left attached",  // MJB_CCC_BELOW_LEFT_ATTACHED
+    "Attached_Below_Left", // MJB_CCC_ATTACHED_BELOW_LEFT
     NULL,
-    "Below attached",       // MJB_CCC_BELOW_ATTACHED
-    NULL,
-    "Below right attached", // MJB_CCC_BELOW_RIGHT_ATTACHED
+    "Attached_Below", // MJB_CCC_ATTACHED_BELOW
     NULL,
     NULL,
     NULL,
-    "Left attached",        // MJB_CCC_LEFT_ATTACHED
     NULL,
-    "Right attached",       // MJB_CCC_RIGHT_ATTACHED
     NULL,
-    "Above left attached",  // MJB_CCC_ABOVE_LEFT_ATTACHED
     NULL,
-    "Above attached",       // MJB_CCC_ABOVE_ATTACHED
     NULL,
-    "Above right attached", // MJB_CCC_ABOVE_RIGHT_ATTACHED
     NULL,
-    "Below left",           // MJB_CCC_BELOW_LEFT
     NULL,
-    "Below",                // MJB_CCC_BELOW
     NULL,
-    "Below right",          // MJB_CCC_BELOW_RIGHT
     NULL,
-    "Left",                 // MJB_CCC_LEFT
+    "Attached_Above", // MJB_CCC_ATTACHED_ABOVE
     NULL,
-    "Right",                // MJB_CCC_RIGHT
+    "Attached_Above_Right",
     NULL,
-    "Above left",           // MJB_CCC_ABOVE_LEFT
+    "Below_Left",
     NULL,
-    "Above",                // MJB_CCC_ABOVE
+    "Below",
     NULL,
-    "Above right",          // MJB_CCC_ABOVE_RIGHT
-    "Double below",         // MJB_CCC_DOUBLE_BELOW
-    "Double above",         // MJB_CCC_DOUBLE_ABOVE
+    "Below_Right",
+    NULL,
+    "Left",
+    NULL,
+    "Right",
+    NULL,
+    "Above_Left",
+    NULL,
+    "Above",
+    NULL,
+    "Above_Right",
+    "Double_Below",
+    "Double_Above"
 };
 
 static const char *mjbsh_bidi_names[] = {
@@ -333,16 +333,16 @@ char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
         return str;
     }
 
-    if(ccc >= MJB_CCC_BELOW_LEFT_ATTACHED && ccc <= MJB_CCC_DOUBLE_ABOVE) {
-        return strdup(mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_BELOW_LEFT_ATTACHED] ?
-            mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_BELOW_LEFT_ATTACHED] : "Unknown");
+    if(ccc >= MJB_CCC_ATTACHED_BELOW_LEFT && ccc <= MJB_CCC_DOUBLE_ABOVE) {
+        return strdup(mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_ATTACHED_BELOW_LEFT] ?
+            mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_ATTACHED_BELOW_LEFT] : "Unknown");
     }
 
     if(ccc == MJB_CCC_BELOW_IOTA) {
-        return strdup("Iota subscript");
+        return strdup("Iota_Subscript");
     }
 
-    return strdup("Unknown");
+    return strdup(mjbsh_ccc_names[0]);
 }
 
 const char *mjbsh_bidi_name(mjb_bidi_class bidi) {
