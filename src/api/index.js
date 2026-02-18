@@ -430,10 +430,10 @@ async function parseRequest(req) {
 
     if(arg.wasm_generated) {
       if(rawType === 'size_t' && (
-        arg === 'size' ||
-        arg === 'max_length' ||
-        arg === 's1_length' ||
-        arg === 's2_length') &&
+        arg.name === 'size' ||
+        arg.name === 'max_length' ||
+        arg.name === 's1_length' ||
+        arg.name === 's2_length') &&
         hasBuffer !== null) {
         // Calculate the size of the buffer in bytes (UTF-8)
         const encoder = new TextEncoder().encode(hasBuffer);
