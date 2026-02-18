@@ -63,8 +63,8 @@ function getenum(value, enumMap, defaultValue) {
     }
 
     return enumMap[defaultValue];
-  } else if(typeof value === 'number') {
-    return value;
+  } else if(typeof value === 'number' || (typeof value === 'string' && !isNaN(Number(value)))) {
+    return typeof value === 'number' ? value : Number(value);
   } else {
     const transformed = value.toUpperCase();
 
