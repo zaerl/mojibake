@@ -218,7 +218,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
         if(ret) {
             for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
-                if(mjbsh_property_is_bool(i)) {
+                if(mjbsh_property_is_bool((mjb_property)i)) {
                     if(properties[i]) last_prop = i;
                 } else {
                     if(properties[i] != 0) last_prop = i;
@@ -260,13 +260,13 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
         if(has_properties) {
             for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
-                if(mjbsh_property_is_bool(i)) {
+                if(mjbsh_property_is_bool((mjb_property)i)) {
                     if(properties[i]) {
-                        mjbsh_bool(mjbsh_property_name(i), i == last_prop ? 0 : 1, true);
+                        mjbsh_bool(mjbsh_property_name((mjb_property)i), i == last_prop ? 0 : 1, true);
                     }
                 } else {
                     if(properties[i] != 0) {
-                        mjbsh_numeric(mjbsh_property_name(i), i == last_prop ? 0 : 1, properties[i]);
+                        mjbsh_numeric(mjbsh_property_name((mjb_property)i), i == last_prop ? 0 : 1, properties[i]);
                     }
                 }
             }

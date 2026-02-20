@@ -45,7 +45,7 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
         sqlite3_bind_int(mjb_global.stmt_line_breaking, 1, codepoint);
 
         if(sqlite3_step(mjb_global.stmt_line_breaking) == SQLITE_ROW) {
-            mjb_category category = sqlite3_column_int(mjb_global.stmt_line_breaking, 0);
+            mjb_category category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 0);
 
             sqlite3_reset(mjb_global.stmt_line_breaking);
 
