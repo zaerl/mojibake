@@ -40,13 +40,13 @@ static void print_break_analysis(const char* input) {
         bool is_eot = (state.index > input_size);
 
         if(first) {
-            print_break_symbol(MJB_BT_NO_BREAK);
+            mjbsh_print_break_symbol(MJB_BT_NO_BREAK);
 
             // First iteration: print the starting codepoint
             mjbsh_print_codepoint(state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
                 ? state.previous_codepoint : state.current_codepoint);
 
-            print_break_symbol(bt);
+            mjbsh_print_break_symbol(bt);
 
             // If previous was valid, print current; if not, we already printed current
             if(state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
@@ -55,10 +55,10 @@ static void print_break_analysis(const char* input) {
 
             first = false;
         } else if(!is_eot) {
-            print_break_symbol(bt);
+            mjbsh_print_break_symbol(bt);
             mjbsh_print_codepoint(state.current_codepoint);
         } else {
-            print_break_symbol(bt);
+            mjbsh_print_break_symbol(bt);
         }
     }
 

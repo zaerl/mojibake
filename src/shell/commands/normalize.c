@@ -13,7 +13,7 @@
 #include "../characters.h"
 #include "commands.h"
 
-int normalize_string_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int flags) {
     mjb_result result;
 
     bool ret = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8, (mjb_normalization)flags, &result);
@@ -38,7 +38,7 @@ int normalize_string_command(int argc, char * const argv[], unsigned int flags) 
 
 int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
     if(cmd_interpret_mode == INTERPRET_MODE_CHARACTER) {
-        return normalize_string_command(argc, argv, flags);
+        return mjbsh_normalize_string_command(argc, argv, flags);
     }
 
     unsigned int index = 0;

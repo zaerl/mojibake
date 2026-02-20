@@ -39,7 +39,7 @@ static const char* indents[11] = {
     "                  ",
 };
 
-static void print_nl(unsigned int nl) {
+static void mjbsh_print_nl(unsigned int nl) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         printf("%s%s", nl >= 1 ? "," : "", mjbsh_json_nl());
     } else {
@@ -47,7 +47,7 @@ static void print_nl(unsigned int nl) {
     }
 }
 
-static bool next_current_character(mjb_character *character, mjb_next_character_type type) {
+static bool mjbsh_next_current_character(mjb_character *character, mjb_next_character_type type) {
     current_codepoint = character->codepoint;
 
     return false;
@@ -107,7 +107,7 @@ void mjbsh_print_codepoint(mjb_codepoint codepoint) {
     }
 }
 
-void print_break_symbol(mjb_break_type bt) {
+void mjbsh_print_break_symbol(mjb_break_type bt) {
     if(bt == MJB_BT_ALLOWED) {
         printf("%s÷%s", mjbsh_green(), mjbsh_reset());
     } else if(bt == MJB_BT_NO_BREAK) {
@@ -162,11 +162,11 @@ void mjbsh_value(const char* label, unsigned int nl, const char* format, ...) {
     vprintf(format, args);
     printf("%s%s", mjbsh_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"" : "");
 
-    print_nl(nl);
+    mjbsh_print_nl(nl);
     va_end(args);
 }
 
-void print_generic_value(const char* label, unsigned int nl, const char* value) {
+static void mjbsh_print_generic_value(const char* label, unsigned int nl, const char* value) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         char json_label[256];
 
@@ -180,12 +180,12 @@ void print_generic_value(const char* label, unsigned int nl, const char* value) 
         printf("%s: %s%s%s", label, mjbsh_green(), value, mjbsh_reset());
     }
 
-    print_nl(nl);
+    mjbsh_print_nl(nl);
 }
 
 void mjbsh_null(const char* label, unsigned int nl) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        print_generic_value(label, nl, "null");
+        mjbsh_print_generic_value(label, nl, "null");
     } else {
         mjbsh_value(label, nl, "N/A");
     }
@@ -193,9 +193,9 @@ void mjbsh_null(const char* label, unsigned int nl) {
 
 void mjbsh_bool(const char* label, unsigned int nl, bool value) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        print_generic_value(label, nl, value ? "true" : "false");
+        mjbsh_print_generic_value(label, nl, value ? "true" : "false");
     } else {
-        print_generic_value(label, nl, value ? "Y" : "N");
+        mjbsh_print_generic_value(label, nl, value ? "Y" : "N");
     }
 }
 
@@ -203,7 +203,7 @@ void mjbsh_numeric(const char* label, unsigned int nl, unsigned int value) {
     char num_str[32];
     snprintf(num_str, sizeof(num_str), "%u", value);
 
-    print_generic_value(label, nl, num_str);
+    mjbsh_print_generic_value(label, nl, num_str);
 }
 
 void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigned int nl) {
@@ -224,7 +224,7 @@ void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigne
         mjbsh_json_i(), mjbsh_json_i(), mjbsh_json_i(), val_indent,
         mjbsh_green(), name, mjbsh_reset(), mjbsh_json_nl(), mjbsh_json_i(), mjbsh_json_i());
 
-    print_nl(nl);
+    mjbsh_print_nl(nl);
 }
 
 void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normalization form,
@@ -260,7 +260,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
         printf("%s", mjbsh_reset());
     }
 
-    print_nl(nl);
+    mjbsh_print_nl(nl);
 
     if(result.output != NULL && result.output != buffer_utf8) {
         mjb_free(result.output);
@@ -281,7 +281,7 @@ void mjbsh_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint
         printf("%s: %sU+%04X%s", label, mjbsh_green(), (unsigned int)codepoint, mjbsh_reset());
     }
 
-    print_nl(nl);
+    mjbsh_print_nl(nl);
 }
 
 bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
@@ -297,7 +297,7 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
             value = strtoul(input, &endptr, 16);
         }
     } else {
-        mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8, next_current_character);
+        mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8, mjbsh_next_current_character);
 
         if(current_codepoint == MJB_CODEPOINT_NOT_VALID) {
             return false;

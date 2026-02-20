@@ -27,7 +27,7 @@ extern unsigned int cmd_width;
 
 bool mjbsh_print_escaped_character(const char *buffer_utf8);
 void mjbsh_print_codepoint(mjb_codepoint codepoint);
-void print_break_symbol(mjb_break_type bt);
+void mjbsh_print_break_symbol(mjb_break_type bt);
 
 // Color formatting helper functions
 const char* mjbsh_green(void);

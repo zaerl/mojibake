@@ -12,7 +12,7 @@
 #include "../shell.h"
 #include "../maps.h"
 
-bool output_next_character(mjb_character *character, mjb_next_character_type type) {
+static bool mjbsh_output_next_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
     unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
 
@@ -302,7 +302,7 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
 }
 
 int mjbsh_character_command(int argc, char * const argv[], unsigned int flags) {
-    mjb_next_character(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8, output_next_character);
+    mjb_next_character(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8, mjbsh_output_next_character);
 
     return 0;
 }

@@ -24,7 +24,7 @@
 #include "maps.h"
 #include "shell.h"
 
-static int show_version(void) {
+static int mjbsh_show_version(void) {
     mjb_character character;
     bool valid = mjb_codepoint_character(MJB_VERSION_NUMBER, &character);
 
@@ -33,7 +33,7 @@ static int show_version(void) {
     return 0;
  }
 
-static void show_help(struct option options[], const char *descriptions[], mjbsh_command commands[], const char *error) {
+static void mjbsh_show_help(struct option options[], const char *descriptions[], mjbsh_command commands[], const char *error) {
     FILE *stream = error ? stderr : stdout;
 
     fprintf(stream, "%s%sUsage: mojibake [options...] <command> [<args>]\n\nMojibake client [v%s]\n\n",
@@ -169,7 +169,7 @@ int main(int argc, char * const argv[]) {
 
         switch(option) {
             case 'h':
-                show_help(long_options, descriptions, commands, NULL);
+                mjbsh_show_help(long_options, descriptions, commands, NULL);
                 return 0;
             case 'c':
                 cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
@@ -180,7 +180,7 @@ int main(int argc, char * const argv[]) {
 
                 if(endptr == optarg || *endptr != '\0' || cmd_json_indent > 10) {
                     fprintf(stderr, "JSON indent level must be a number between 0 and 10.\n");
-                    show_help(long_options, descriptions, commands, NULL);
+                    mjbsh_show_help(long_options, descriptions, commands, NULL);
 
                     return 1;
                 }
@@ -194,7 +194,7 @@ int main(int argc, char * const argv[]) {
                     cmd_output_mode = OUTPUT_MODE_JSON;
                 } else {
                     fprintf(stderr, "Invalid output mode: %s\n", optarg);
-                    show_help(long_options, descriptions, commands, NULL);
+                    mjbsh_show_help(long_options, descriptions, commands, NULL);
 
                     return 1;
                 }
@@ -203,14 +203,14 @@ int main(int argc, char * const argv[]) {
                 ++cmd_verbose;
                 break;
             case 'V':
-                return show_version();
+                return mjbsh_show_version();
             case 'w':
                 endptr = NULL;
                 cmd_width = strtoul(optarg, &endptr, 10);
 
                 if(endptr == optarg || *endptr != '\0' || cmd_width == 0 || cmd_width > 100) {
                     fprintf(stderr, "Output width must be a number between 1 and 100.\n");
-                    show_help(long_options, descriptions, commands, NULL);
+                    mjbsh_show_help(long_options, descriptions, commands, NULL);
 
                     return 1;
                 }
@@ -227,7 +227,7 @@ int main(int argc, char * const argv[]) {
     // After global options, the next argument is the subcommand
     if(optind >= argc) {
         fprintf(stderr, "No command specified.\n");
-        show_help(long_options, descriptions, commands, NULL);
+        mjbsh_show_help(long_options, descriptions, commands, NULL);
 
         return 1;
     }
@@ -240,7 +240,7 @@ int main(int argc, char * const argv[]) {
             strcmp(argv[optind], "segment") == 0
         )) {
             fprintf(stderr, "No command value specified.\n");
-            show_help(long_options, descriptions, commands, NULL);
+            mjbsh_show_help(long_options, descriptions, commands, NULL);
 
             return 1;
         }
@@ -256,7 +256,7 @@ int main(int argc, char * const argv[]) {
     }
 
     fprintf(stderr, "Unknown command: %s\n", argv[optind]);
-    show_help(long_options, descriptions, commands, NULL);
+    mjbsh_show_help(long_options, descriptions, commands, NULL);
 
 #ifdef _WIN32
     SetConsoleOutputCP(originalCP);

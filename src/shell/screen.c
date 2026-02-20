@@ -37,7 +37,7 @@ static bool in_raw_mode = false;
 static terminal_state *saved_term_state = NULL;
 
 // Cleanup function to restore terminal and show cursor
-static void cleanup_terminal(void) {
+static void mjbsh_cleanup_terminal(void) {
     if(in_raw_mode && saved_term_state != NULL) {
         mjbsh_show_cursor(true);
         fflush(stdout);
@@ -55,14 +55,14 @@ static void cleanup_terminal(void) {
 
 #ifdef _WIN32
 // Windows console control handler
-static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type) {
+static BOOL WINAPI mjbsh_console_ctrl_handler(DWORD ctrl_type) {
     switch(ctrl_type) {
         case CTRL_C_EVENT:
         case CTRL_BREAK_EVENT:
         case CTRL_CLOSE_EVENT:
         case CTRL_LOGOFF_EVENT:
         case CTRL_SHUTDOWN_EVENT:
-            cleanup_terminal();
+            mjbsh_cleanup_terminal();
 
             return FALSE;  // Let default handler terminate
         default:
@@ -71,8 +71,8 @@ static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type) {
 }
 #else
 // POSIX signal handler
-static void signal_handler(int signum) {
-    cleanup_terminal();
+static void mjbsh_signal_handler(int signum) {
+    mjbsh_cleanup_terminal();
 
     // Re-raise the signal with default handler
     signal(signum, SIG_DFL);
@@ -81,7 +81,7 @@ static void signal_handler(int signum) {
 #endif
 
 #ifdef _WIN32
-void set_raw_mode(terminal_state *term_state) {
+static void mjbsh_set_raw_mode(terminal_state *term_state) {
     term_state->h_stdin = GetStdHandle(STD_INPUT_HANDLE);
     GetConsoleMode(term_state->h_stdin, &term_state->orig_mode);
 
@@ -91,11 +91,11 @@ void set_raw_mode(terminal_state *term_state) {
     SetConsoleMode(term_state->h_stdin, mode);
 }
 
-void restore_mode(terminal_state *term_state) {
+static void mjbsh_restore_mode(terminal_state *term_state) {
     SetConsoleMode(term_state->h_stdin, term_state->orig_mode);
 }
 #else
-void set_raw_mode(terminal_state *term_state) {
+static void mjbsh_set_raw_mode(terminal_state *term_state) {
     terminal_state raw = *term_state;
     raw.c_lflag &= ~(ECHO | ICANON);
     raw.c_cc[VMIN] = 0;
@@ -103,7 +103,7 @@ void set_raw_mode(terminal_state *term_state) {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-void restore_mode(terminal_state *term_state) {
+static void mjbsh_restore_mode(terminal_state *term_state) {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, term_state);
 }
 #endif
@@ -129,11 +129,11 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
     saved_term_state = &term_state;
 
 #ifdef _WIN32
-    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+    SetConsoleCtrlHandler(mjbsh_console_ctrl_handler, TRUE);
 #else
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
-    signal(SIGHUP, signal_handler);
+    signal(SIGINT, mjbsh_signal_handler);
+    signal(SIGTERM, mjbsh_signal_handler);
+    signal(SIGHUP, mjbsh_signal_handler);
 #endif
 
     char input_buffer[1024] = {0};
@@ -141,7 +141,7 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
     char c;
 
     fn("");
-    set_raw_mode(&term_state);
+    mjbsh_set_raw_mode(&term_state);
 
     in_raw_mode = true;
     mjbsh_show_cursor(false);
@@ -215,12 +215,12 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
     in_raw_mode = false;
 
     mjbsh_show_cursor(true);
-    restore_mode(&term_state);
+    mjbsh_restore_mode(&term_state);
     mjbsh_clear_screen();
 
     // Restore signal handlers
 #ifdef _WIN32
-    SetConsoleCtrlHandler(console_ctrl_handler, FALSE);
+    SetConsoleCtrlHandler(mjbsh_console_ctrl_handler, FALSE);
 #else
     signal(SIGINT, SIG_DFL);
     signal(SIGTERM, SIG_DFL);
