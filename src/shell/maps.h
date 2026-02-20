@@ -12,3 +12,4 @@ const char *mjbsh_bidi_name(mjb_bidi_class bidi);
 const char *mjbsh_decomposition_name(mjb_decomposition decomposition);
 // const char *mjbsh_line_breaking_class_name(mjb_line_breaking_class line_breaking_class);
 const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width);
+const char *mjbsh_property_name(mjb_property property);

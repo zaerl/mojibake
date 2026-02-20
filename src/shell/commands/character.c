@@ -271,6 +271,25 @@ bool output_next_character(mjb_character *character, mjb_next_character_type typ
         }
     }
 
+    if(cmd_verbose >= 2) {
+        uint8_t properties[MJB_PR_BUFFER_SIZE];
+        bool ret = mjb_codepoint_properties(character->codepoint, properties);
+
+        if(ret) {
+            for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
+                if(mjbsh_property_is_bool(i)) {
+                    if(properties[i]) {
+                        mjbsh_bool(mjbsh_property_name(i), 1, true);
+                    }
+                } else {
+                    if(properties[i] != 0) {
+                        mjbsh_value(mjbsh_property_name(i), 1, "%d", properties[i]);
+                    }
+                }
+            }
+        }
+    }
+
     if(is_json) {
         printf("%s}%s%s", mjbsh_json_i(), (type & MJB_NEXT_CHAR_LAST) ? "" : ",", mjbsh_json_nl());
 
