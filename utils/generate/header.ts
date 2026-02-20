@@ -76,5 +76,6 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   fileContent = readFileSync('../../src/shell/maps.c', 'utf-8');
   fileContent = substituteBlock(fileContent, "static const char *mjbsh_property_names[] = {\n", "\n};", getPropertyNames(properties));
+
   writeFileSync('../../src/shell/maps.c', fileContent);
 }

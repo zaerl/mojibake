@@ -812,7 +812,6 @@ typedef enum mjb_property {
     MJB_PR_SCRIPT_EXTENSIONS, // enumerated
     MJB_PR_AGE, // enumerated
     MJB_PR_SCRIPT, // enumerated
-    MJB_PR_BIDI_CLASS, // enumerated
     MJB_PR_BIDI_PAIRED_BRACKET_TYPE, // enumerated
     MJB_PR_CANONICAL_COMBINING_CLASS, // enumerated
     MJB_PR_DECOMPOSITION_TYPE, // enumerated
@@ -909,12 +908,12 @@ typedef enum mjb_property {
     MJB_PR_EXPANDS_ON_NFKD
 } mjb_property;
 
-#define MJB_PR_COUNT 143
+#define MJB_PR_COUNT 142
 
-#define MJB_PR_ENUM_COUNT 68
+#define MJB_PR_ENUM_COUNT 67
 
 #define MJB_PR_BOOL_COUNT 75
 
-#define MJB_PR_BUFFER_SIZE 211
+#define MJB_PR_BUFFER_SIZE 209
 
 #endif // MJB_UNICODE_H

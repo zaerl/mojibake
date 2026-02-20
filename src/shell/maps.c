@@ -199,7 +199,6 @@ static const char *mjbsh_property_names[] = {
     "Script Extensions",
     "Age",
     "Script",
-    "Bidi Class",
     "Bidi Paired Bracket Type",
     "Canonical Combining Class",
     "Decomposition Type",

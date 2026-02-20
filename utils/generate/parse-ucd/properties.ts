@@ -30,6 +30,10 @@ interface PropertyEntry {
   value: number;
 }
 
+function isPropertyExcluded(property: string): boolean {
+  return property === 'blk' || property === 'na1' || property === 'bc';
+}
+
 async function readPropertyNamesValues(): Promise<Property[]> {
   log('READ PROPERTY NAMES VALUES');
 
@@ -39,7 +43,7 @@ async function readPropertyNamesValues(): Promise<Property[]> {
     const property = split[0];
     const longName = split[1];
 
-    if(property === 'blk' || property === 'na1') {
+    if(isPropertyExcluded(property)) {
       continue;
     }
 
@@ -64,7 +68,7 @@ async function readPropertyNamesValues(): Promise<Property[]> {
     const value = split[1];
     const longValue = split[2];
 
-    if(property === 'blk' || property === 'na1') {
+    if(isPropertyExcluded(property)) {
       continue;
     }
 
@@ -98,7 +102,7 @@ async function readPropertyNamesValues(): Promise<Property[]> {
       }
     }
 
-    if(value.enumCount > longestEnum && property !== 'blk') {
+    if(value.enumCount > longestEnum && !isPropertyExcluded(property)) {
       longestEnum = value.enumCount;
     }
 
