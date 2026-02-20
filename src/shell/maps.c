@@ -56,11 +56,9 @@ static const char *mjbsh_ccc_names[] = {
 };
 
 static const char *mjbsh_ccc_names_200_to_240[] = {
-    "Attached_Below_Left", // MJB_CCC_ATTACHED_BELOW_LEFT
+    "Attached Below Left", // MJB_CCC_ATTACHED_BELOW_LEFT
     NULL,
-    "Attached_Below", // MJB_CCC_ATTACHED_BELOW
-    NULL,
-    NULL,
+    "Attached Below", // MJB_CCC_ATTACHED_BELOW
     NULL,
     NULL,
     NULL,
@@ -70,27 +68,29 @@ static const char *mjbsh_ccc_names_200_to_240[] = {
     NULL,
     NULL,
     NULL,
-    "Attached_Above", // MJB_CCC_ATTACHED_ABOVE
     NULL,
-    "Attached_Above_Right",
     NULL,
-    "Below_Left",
+    "Attached Above", // MJB_CCC_ATTACHED_ABOVE
+    NULL,
+    "Attached Above Right",
+    NULL,
+    "Below Left",
     NULL,
     "Below",
     NULL,
-    "Below_Right",
+    "Below Right",
     NULL,
     "Left",
     NULL,
     "Right",
     NULL,
-    "Above_Left",
+    "Above Left",
     NULL,
     "Above",
     NULL,
-    "Above_Right",
-    "Double_Below",
-    "Double_Above"
+    "Above Right",
+    "Double Below",
+    "Double Above"
 };
 
 static const char *mjbsh_bidi_names[] = {
