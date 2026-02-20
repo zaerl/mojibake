@@ -43,15 +43,15 @@ static const char *mjbsh_category_names[] = {
 };
 
 static const char *mjbsh_ccc_names[] = {
-    "Not_Reordered",
+    "Not Reordered",
     "Overlay",
     NULL,
     NULL,
     NULL,
     NULL,
-    "Han_Reading",
+    "Han Reading",
     "Nukta",
-    "Kana_Voicing",
+    "Kana Voicing",
     "Virama",
 };
 
