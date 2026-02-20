@@ -51,7 +51,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
     // Hex UTF-8
     if(is_json) {
-        printf("%s%s\"hex_utf-8\":%s[%s", mjbsh_json_i(), mjbsh_json_i(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"hex_utf_8\":%s[%s", mjbsh_json_i(), mjbsh_json_i(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
     } else {
         printf("Hex UTF-8: %s", mjbsh_green());
     }
@@ -98,7 +98,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
             if(is_json) {
                 printf(
-                    "%s%s\"hex_utf-%s\":%s[%s",
+                    "%s%s\"hex_utf_%s\":%s[%s",
                     mjbsh_json_i(), mjbsh_json_i(),
                     other_encodings_labels[i],
                     cmd_json_indent == 0 ? "" : " ", mjbsh_green());
@@ -136,41 +136,24 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         fflush(stdout);
     }
 
-    if(is_json) {
-        mjbsh_id_name("category", character->category, mjbsh_category_name(character->category),
-            cmd_verbose == 0 ? 0 : 1);
-    } else {
-        mjbsh_value("Category", cmd_verbose == 0 ? 0 : 1, "[%d] %s", character->category,
-            mjbsh_category_name(character->category));
-    }
+    mjbsh_id_name("Category", character->category, mjbsh_category_name(character->category),
+        cmd_verbose == 0 ? 0 : 1);
 
     if(cmd_verbose > 0) {
         char *cc_name = mjbsh_ccc_name(character->combining);
 
-        if(is_json) {
-            mjbsh_id_name("combining", character->combining, cc_name, 1);
-        } else {
-            mjbsh_value("Combining", 1, "[%d] %s", character->combining, cc_name);
-        }
+        mjbsh_id_name("Combining", character->combining, cc_name, 1);
 
         free(cc_name);
 
         const char *bi_name = mjbsh_bidi_name((mjb_bidi_class)character->bidirectional);
 
-        if(is_json) {
-            mjbsh_id_name("bidirectional", character->bidirectional, bi_name, 1);
-        } else {
-            mjbsh_value("Bidirectional", 1, "[%d] %s", character->bidirectional, bi_name);
-        }
+        mjbsh_id_name("Bidirectional", character->bidirectional, bi_name, 1);
 
         mjb_plane plane = mjb_codepoint_plane(character->codepoint);
         const char *plane_name = mjb_plane_name(plane, false);
 
-        if(is_json) {
-            mjbsh_id_name("plane", plane, plane_name, 1);
-        } else {
-            mjbsh_value("Plane", 1, "[%d] %s", plane, plane_name);
-        }
+        mjbsh_id_name("Plane", plane, plane_name, 1);
 
         mjb_block_info block;
         bool valid_block = mjb_codepoint_block(character->codepoint, &block);
@@ -179,20 +162,12 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         fflush(stdout);
 
         if(valid_block) {
-            if(is_json) {
-                mjbsh_id_name("block", block.id, block.name, 1);
-            } else {
-                mjbsh_value("Block", 1, "[%d] %s", block.id, block.name);
-            }
+            mjbsh_id_name("Block", block.id, block.name, 1);
         }
 
         const char *d_name = mjbsh_decomposition_name(character->decomposition);
 
-        if(is_json) {
-            mjbsh_id_name("decomposition", character->decomposition, d_name, 1);
-        } else {
-            mjbsh_value("Decomposition", 1, "[%d] %s", character->decomposition, d_name);
-        }
+        mjbsh_id_name("Decomposition", character->decomposition, d_name, 1);
     }
 
     if(cmd_verbose > 0) {
@@ -236,54 +211,62 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     }
 
     if(cmd_verbose > 1) {
+        // Pre-scan properties to find the last one that will be printed.
+        uint8_t properties[MJB_PR_BUFFER_SIZE];
+        bool ret = mjb_codepoint_properties(character->codepoint, properties);
+        size_t last_prop = MJB_PR_COUNT;
+
+        if(ret) {
+            for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
+                if(mjbsh_property_is_bool(i)) {
+                    if(properties[i]) last_prop = i;
+                } else {
+                    if(properties[i] != 0) last_prop = i;
+                }
+            }
+        }
+
+        bool has_properties = last_prop < MJB_PR_COUNT;
+
         mjb_east_asian_width east_asian_width;
         bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width);
 
         if(eaw_valid) {
-            if(is_json) {
-                mjbsh_id_name("east_asian_width", east_asian_width,
-                    mjbsh_east_asian_width_name(east_asian_width), 1);
-            } else {
-                mjbsh_value("East Asian Width", 1, "[%d] %s", east_asian_width,
-                    mjbsh_east_asian_width_name(east_asian_width));
-            }
+            mjbsh_id_name("East Asian Width", east_asian_width,
+                mjbsh_east_asian_width_name(east_asian_width), 1);
         } else {
             mjbsh_null("East Asian Width", 1);
         }
 
         mjb_emoji_properties emoji_properties;
         bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji_properties);
+        unsigned int ep_nl = has_properties ? 1 : 0;
 
         if(emoji_valid) {
             mjbsh_bool("Emoji", 1, emoji_properties.emoji);
-            mjbsh_bool(is_json ? "emoji_presentation" : "Emoji Presentation", 1, emoji_properties.presentation);
-            mjbsh_bool(is_json ? "emoji_modifier" : "Emoji Modifier", 1, emoji_properties.modifier);
-            mjbsh_bool(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 1, emoji_properties.modifier_base);
-            mjbsh_bool(is_json ? "emoji_component" : "Emoji Component", 1, emoji_properties.component);
-            mjbsh_bool(is_json ? "extended_pictographic" : "Extended Pictographic", 0, emoji_properties.extended_pictographic);
+            mjbsh_bool("Emoji Presentation", 1, emoji_properties.presentation);
+            mjbsh_bool("Emoji Modifier", 1, emoji_properties.modifier);
+            mjbsh_bool("Emoji Modifier Base", 1, emoji_properties.modifier_base);
+            mjbsh_bool("Emoji Component", 1, emoji_properties.component);
+            mjbsh_bool("Extended Pictographic", ep_nl, emoji_properties.extended_pictographic);
         } else {
             mjbsh_null("Emoji", 1);
-            mjbsh_null(is_json ? "emoji_presentation" : "Emoji Presentation", 1);
-            mjbsh_null(is_json ? "emoji_modifier" : "Emoji Modifier", 1);
-            mjbsh_null(is_json ? "emoji_modifier_base" : "Emoji Modifier Base", 1);
-            mjbsh_null(is_json ? "emoji_component" : "Emoji Component", 1);
-            mjbsh_null(is_json ? "extended_pictographic" : "Extended Pictographic", 0);
+            mjbsh_null("Emoji Presentation", 1);
+            mjbsh_null("Emoji Modifier", 1);
+            mjbsh_null("Emoji Modifier Base", 1);
+            mjbsh_null("Emoji Component", 1);
+            mjbsh_null("Extended Pictographic", ep_nl);
         }
-    }
 
-    if(cmd_verbose >= 2) {
-        uint8_t properties[MJB_PR_BUFFER_SIZE];
-        bool ret = mjb_codepoint_properties(character->codepoint, properties);
-
-        if(ret) {
+        if(has_properties) {
             for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
                 if(mjbsh_property_is_bool(i)) {
                     if(properties[i]) {
-                        mjbsh_bool(mjbsh_property_name(i), 1, true);
+                        mjbsh_bool(mjbsh_property_name(i), i == last_prop ? 0 : 1, true);
                     }
                 } else {
                     if(properties[i] != 0) {
-                        mjbsh_value(mjbsh_property_name(i), 1, "%d", properties[i]);
+                        mjbsh_numeric(mjbsh_property_name(i), i == last_prop ? 0 : 1, properties[i]);
                     }
                 }
             }
