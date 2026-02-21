@@ -153,13 +153,26 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB9 Do not break a combining character sequence; treat it as if it has the line breaking
         // class of the base character in all of the following rules. Treat ZWJ as if it were CM.
         // Treat X (CM | ZWJ)* as if it were X.
-        // TODO
+        // X is any class except BK, CR, LF, NL, SP, ZW.
+        if(
+            (state->current == MJB_LBP_CM || state->current == MJB_LBP_ZWJ) &&
+            state->previous != MJB_LBP_BK &&
+            state->previous != MJB_LBP_CR &&
+            state->previous != MJB_LBP_LF &&
+            state->previous != MJB_LBP_NL &&
+            state->previous != MJB_LBP_SP &&
+            state->previous != MJB_LBP_ZW
+        ) {
+            // Re-map to the base class so subsequent calls see X as previous, not CM/ZWJ.
+            state->current = state->previous;
 
-        // LB10 Treat any remaining combining mark or ZWJ as AL.
-        // Treat any remaining CM or ZWJ as if it had the properties of U+0041 A LATIN CAPITAL
-        // LETTER A, that is, Line_Break=AL, General_Category=Lu, East_Asian_Width=Na,
-        // Extended_Pictographic=N.
-        // TODO
+            return MJB_BT_NO_BREAK;
+        }
+
+        // LB10 Treat any remaining CM or ZWJ as AL (base was one of the excluded classes above).
+        if(state->current == MJB_LBP_CM || state->current == MJB_LBP_ZWJ) {
+            state->current = MJB_LBP_AL;
+        }
 
         // LB11 Do not break before or after Word joiner and related characters.
         // × WJ
