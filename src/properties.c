@@ -125,7 +125,7 @@ MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffe
         if(offset < (unsigned int)blob_size) {
             unsigned char enum_count = blob[offset++];
 
-            for(unsigned int i = 0; i < enum_count && (offset + 1) < (unsigned int)blob_size; i += 2) {
+            for(unsigned int i = 0; i < enum_count && (offset + 1) < (unsigned int)blob_size; ++i) {
                 buffer[blob[offset]] = blob[offset + 1];
                 offset += 2;
             }

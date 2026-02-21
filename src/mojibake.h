@@ -328,6 +328,7 @@ typedef struct mjb_next_line_state {
     unsigned short ri_count;
     bool zw_seen;
     mjb_lbp prev_resolved;
+    mjb_east_asian_width prev_ea;
 } mjb_next_line_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);

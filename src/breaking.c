@@ -31,6 +31,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         state->ri_count = 0;
         state->zw_seen = false;
         state->prev_resolved = MJB_LBP_NOT_SET;
+        state->prev_ea = MJB_EAW_NOT_SET;
     }
 
     if(state->index == size) {
@@ -74,10 +75,26 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             lbp = MJB_LBP_XX;
         }
 
+        // LB1 Resolve ambiguous and context-dependent classes before applying pairwise rules.
+        // AI, SG, XX -> AL
+        // CJ -> NS
+        // SA -> CM if the codepoint is a non-spacing or spacing-combining mark, otherwise AL
+        if(lbp == MJB_LBP_AI || lbp == MJB_LBP_SG || lbp == MJB_LBP_XX) {
+            lbp = MJB_LBP_AL;
+        } else if(lbp == MJB_LBP_CJ) {
+            lbp = MJB_LBP_NS;
+        } else if(lbp == MJB_LBP_SA) {
+            mjb_category gc = (mjb_category)mjb_codepoint_property(cpb, MJB_PR_GENERAL_CATEGORY);
+            lbp = (gc == MJB_CATEGORY_MN || gc == MJB_CATEGORY_MC) ? MJB_LBP_CM : MJB_LBP_AL;
+        }
+
+        mjb_east_asian_width ea = (mjb_east_asian_width)cpb[MJB_PR_EAST_ASIAN_WIDTH];
+
         if(first_codepoint) {
             // First codepoint
             state->current = lbp;
             state->current_codepoint = codepoint;
+            state->prev_ea = ea;
             first_codepoint = false;
 
             continue;
@@ -88,6 +105,10 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         state->current = lbp;
         state->previous_codepoint = state->current_codepoint;
         state->current_codepoint = codepoint;
+
+        // Update EA width tracking: prev_ea = old current's EA, save new current's EA for next call
+        mjb_east_asian_width prev_ea = state->prev_ea;
+        state->prev_ea = ea;
 
         if(state->previous == MJB_LBP_ZW) {
             state->zw_seen = true;
@@ -353,6 +374,19 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // prefix / postfix.
         // (PR | PO) × (AL | HL)
         // (AL | HL) × (PR | PO)
+        if(
+            (state->previous == MJB_LBP_PR || state->previous == MJB_LBP_PO) &&
+            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)
+        ) {
+            return MJB_BT_NO_BREAK;
+        }
+
+        if(
+            (state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
+            (state->current == MJB_LBP_PR || state->current == MJB_LBP_PO)
+        ) {
+            return MJB_BT_NO_BREAK;
+        }
 
         // LB25 Do not break numbers:
         // NU ( SY | IS )* CL × PO
@@ -411,9 +445,26 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         }
 
         // LB30 Do not break between letters, numbers, or ordinary symbols and opening or closing
-        // parentheses.
+        // parentheses. $EastAsian = [\p{ea=F}\p{ea=W}\p{ea=H}]
         // (AL | HL | NU) × [OP-$EastAsian]
         // [CP-$EastAsian] × (AL | HL | NU)
+        if(
+            (state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL ||
+             state->previous == MJB_LBP_NU) &&
+            state->current == MJB_LBP_OP &&
+            ea != MJB_EAW_FULL_WIDTH && ea != MJB_EAW_WIDE && ea != MJB_EAW_HALF_WIDTH
+        ) {
+            return MJB_BT_NO_BREAK;
+        }
+
+        if(
+            state->previous == MJB_LBP_CP &&
+            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL ||
+             state->current == MJB_LBP_NU) &&
+            prev_ea != MJB_EAW_FULL_WIDTH && prev_ea != MJB_EAW_WIDE && prev_ea != MJB_EAW_HALF_WIDTH
+        ) {
+            return MJB_BT_NO_BREAK;
+        }
 
         // LB30a Break between two regional indicator symbols if and only if there are an even
         // number of regional indicators preceding the position of the break.
