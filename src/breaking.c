@@ -12,43 +12,10 @@
 
 extern mojibake mjb_global;
 
-static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buffer) {
-    // Update GB11: Extended_Pictographic + ZWJ sequences
-    if(mjb_codepoint_property(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
-        // Start of new Extended_Pictographic sequence
-        state->ext_pict_seen = true;
-        state->zwj_seen = false;
-    } else if(state->current == MJB_GBP_ZWJ && state->ext_pict_seen) {
-        // ZWJ after Extended_Pictographic, mark sequence as ExtPict...ZWJ
-        state->zwj_seen = true;
-    } else if(state->current != MJB_GBP_EXTEND) {
-        // Break in sequence (not Extend, not ZWJ, not ExtPict)
-        state->ext_pict_seen = false;
-        state->zwj_seen = false;
-    }
-
-    // Update GB9c: Indic Conjunct Break sequences
-    uint8_t incb_value = mjb_codepoint_property(buffer, MJB_PR_INDIC_CONJUNCT_BREAK);
-
-    if(incb_value == MJB_INCB_CONSONANT) {
-        // Start new Consonant sequence
-        state->incb_consonant_seen = true;
-        state->incb_linker_seen = false;
-    } else if(incb_value == MJB_INCB_LINKER && state->incb_consonant_seen) {
-        // Mark that we've seen a Linker in this sequence
-        state->incb_linker_seen = true;
-    } else if(incb_value == MJB_INCB_NOT_SET || (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
-        // Break in sequence: character is not InCB-relevant, or is None
-        // Reset unless it's Extend or Linker (which continue the sequence)
-        state->incb_consonant_seen = false;
-        state->incb_linker_seen = false;
-    }
-}
-
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
 MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding,
-    mjb_next_state *state) {
+    mjb_next_line_state *state) {
     if(size == 0) {
         return MJB_BT_NOT_SET;
     }
@@ -56,16 +23,14 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
     if(state->index == 0) {
         // Initialize the state.
         state->state = MJB_UTF_ACCEPT;
-        state->previous = MJB_GBP_NOT_SET;
-        state->current = MJB_GBP_NOT_SET;
+        state->previous = MJB_LBP_NOT_SET;
+        state->current = MJB_LBP_NOT_SET;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->in_error = false;
         state->ri_count = 0;
-        state->ext_pict_seen = false;
-        state->zwj_seen = false;
-        state->incb_consonant_seen = false;
-        state->incb_linker_seen = false;
+        state->zw_seen = false;
+        state->prev_resolved = MJB_LBP_NOT_SET;
     }
 
     if(state->index == size) {
@@ -114,7 +79,6 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             state->current = lbp;
             state->current_codepoint = codepoint;
             first_codepoint = false;
-            mjb_update_sequence_flags(state, cpb);
 
             continue;
         }
@@ -125,14 +89,9 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         state->previous_codepoint = state->current_codepoint;
         state->current_codepoint = codepoint;
 
-#define MJB_NBR mjb_update_sequence_flags(state, cpb); return MJB_BT_NO_BREAK;
-#define MJB_AR mjb_update_sequence_flags(state, cpb); return MJB_BT_ALLOWED;
-
         // LB4 Always break after hard line breaks.
         // BK !
         if(state->previous == MJB_LBP_BK) {
-            mjb_update_sequence_flags(state, cpb);
-
             return MJB_BT_MANDATORY;
         }
 
@@ -140,7 +99,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
 
         // CR × LF
         if(state->previous == MJB_LBP_CR && state->current == MJB_LBP_LF) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // CR !
@@ -151,8 +110,6 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             state->previous == MJB_LBP_LF ||
             state->previous == MJB_LBP_NL
         ) {
-            mjb_update_sequence_flags(state, cpb);
-
             return MJB_BT_MANDATORY;
         }
 
@@ -164,14 +121,14 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             state->current == MJB_LBP_LF ||
             state->current == MJB_LBP_NL
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB7 Do not break before spaces or zero width space.
         // × SP
         // × ZW
         if(state->current == MJB_LBP_SP || state->current == MJB_LBP_ZW) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB8 Break before any character following a zero-width space, even if one or more spaces
@@ -182,7 +139,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB8a Do not break after a zero width joiner.
         // ZWJ ×
         if(state->previous == MJB_LBP_ZWJ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB9 Do not break a combining character sequence; treat it as if it has the line breaking
@@ -200,13 +157,13 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // × WJ
         // WJ ×
         if(state->previous == MJB_LBP_WJ || state->current == MJB_LBP_WJ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB12 Do not break after NBSP and related characters.
         // GL ×
         if(state->previous == MJB_LBP_GL) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // 6.2 Tailorable Line Breaking Rules
@@ -225,7 +182,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             state->current == MJB_LBP_EX ||
             state->current == MJB_LBP_SY
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB14 Do not break after ‘[’, even after spaces.
@@ -247,7 +204,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB15d Otherwise, do not break before ‘;’, ‘,’, or ‘.’, even after spaces.
         // × IS
         if(state->current == MJB_LBP_IS) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB16 Do not break between closing punctuation and a nonstarter (lb=NS), even with
@@ -260,7 +217,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB18 Break after spaces.
         // SP ÷
         if(state->previous == MJB_LBP_SP) {
-            MJB_AR
+            return MJB_BT_ALLOWED;
         }
 
         // LB19 Do not break before non-initial unresolved quotation marks, such as ‘ ” ’ or ‘ " ’,
@@ -279,13 +236,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // ÷ CB
         // CB ÷
         if(state->previous == MJB_LBP_CB || state->current == MJB_LBP_CB) {
-            MJB_AR
+            return MJB_BT_ALLOWED;
         }
-
-        // LB31 Break everywhere else.
-        // ALL ÷
-        // ÷ ALL
-        mjb_update_sequence_flags(state, cpb);
 
         // LB20a Do not break after a word-initial hyphen.
         // ( sot | BK | CR | LF | NL | SP | ZW | CB | GL ) ( HY | HH ) × ( AL | HL )
@@ -296,15 +248,18 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // × HH
         // × HY
         // × NS
-        // BB ×
         if(
             state->current == MJB_LBP_BA ||
             state->current == MJB_LBP_HH ||
             state->current == MJB_LBP_HY ||
-            state->current == MJB_LBP_NS ||
-            state->current == MJB_LBP_BB
+            state->current == MJB_LBP_NS
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
+        }
+
+        // BB ×
+        if(state->previous == MJB_LBP_BB) {
+            return MJB_BT_NO_BREAK;
         }
 
         // LB21a Do not break after the hyphen in Hebrew + Hyphen + non-Hebrew.
@@ -313,13 +268,13 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB21b Do not break between Solidus and Hebrew letters.
         // SY × HL
         if(state->previous == MJB_LBP_SY && state->current == MJB_LBP_HL) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB22 Do not break before ellipses.
         // × IN
         if(state->current == MJB_LBP_IN) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB23 Do not break between digits and letters.
@@ -335,7 +290,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
                 (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)
             )
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB23a Do not break between numeric prefixes and ideographs, or between ideographs and
@@ -350,18 +305,18 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
                 state->current == MJB_LBP_EM
             )
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         if(
             (
-                state->current == MJB_LBP_ID ||
-                state->current == MJB_LBP_EB ||
-                state->current == MJB_LBP_EM
+                state->previous == MJB_LBP_ID ||
+                state->previous == MJB_LBP_EB ||
+                state->previous == MJB_LBP_EM
             ) &&
-            state->previous == MJB_LBP_PO
+            state->current == MJB_LBP_PO
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB24 Do not break between numeric prefix/postfix and letters, or between letters and
@@ -405,7 +360,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
                 state->current == MJB_LBP_AL || state->current == MJB_LBP_HL
             )
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB28a Do not break inside the orthographic syllables of Brahmic scripts.
@@ -422,7 +377,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
                 state->current == MJB_LBP_AL || state->current == MJB_LBP_HL
             )
         ) {
-            MJB_NBR
+            return MJB_BT_NO_BREAK;
         }
 
         // LB30 Do not break between letters, numbers, or ordinary symbols and opening or closing
@@ -434,9 +389,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // number of regional indicators preceding the position of the break.
         // sot (RI RI)* RI × RI
         // [^RI] (RI RI)* RI × RI
-        if(state->previous == MJB_GBP_REGIONAL_INDICATOR && state->current == MJB_GBP_REGIONAL_INDICATOR) {
+        if(state->previous == MJB_LBP_RI && state->current == MJB_LBP_RI) {
             mjb_break_type result = (state->ri_count++ % 2) == 0 ? MJB_BT_NO_BREAK : MJB_BT_ALLOWED;
-            mjb_update_sequence_flags(state, cpb);
 
             return result;
         } else {
@@ -450,14 +404,10 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB31 Break everywhere else.
         // ALL ÷
         // ÷ ALL
-        mjb_update_sequence_flags(state, cpb);
-
         return MJB_BT_ALLOWED;
     }
 
     ++state->index;
-
-#undef MJB_NBR
 
     return MJB_BT_ALLOWED;
 }

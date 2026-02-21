@@ -101,7 +101,7 @@ void *test_breaking(void *arg) {
         ATT_ASSERT(types_i, generated_length, test_name)
 
         mjb_break_type bt = MJB_BT_NOT_SET;
-        mjb_next_state state;
+        mjb_next_line_state state;
         state.index = 0;
         size_t index = 0;
 

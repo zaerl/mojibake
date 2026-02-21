@@ -32,7 +32,7 @@ static void print_break_analysis(const char* input) {
     bool first = true;
     size_t input_size = strlen(input);
     // size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
-    mjb_next_state state;
+    mjb_next_line_state state;
     mjb_break_type bt;
     state.index = 0;
 

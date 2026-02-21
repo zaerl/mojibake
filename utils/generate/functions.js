@@ -822,7 +822,7 @@ export default [
       },
       {
         "name": "state",
-        "type": "mjb_next_state *",
+        "type": "mjb_next_line_state *",
         "description": "The state to store the result",
         "wasm_generated": true
       }
