@@ -89,6 +89,12 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         state->previous_codepoint = state->current_codepoint;
         state->current_codepoint = codepoint;
 
+        if(state->previous == MJB_LBP_ZW) {
+            state->zw_seen = true;
+        } else if(state->previous != MJB_LBP_SP) {
+            state->zw_seen = false;
+        }
+
         // LB4 Always break after hard line breaks.
         // BK !
         if(state->previous == MJB_LBP_BK) {
@@ -134,7 +140,9 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // LB8 Break before any character following a zero-width space, even if one or more spaces
         // intervene.
         // ZW SP* ÷
-        // TODO
+        if(state->zw_seen) {
+            return MJB_BT_ALLOWED;
+        }
 
         // LB8a Do not break after a zero width joiner.
         // ZWJ ×
