@@ -3,6 +3,7 @@
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
 | `mjb_normalize`                     | 400684     |
+| `mjb_break_line`                    | 18791      |
 | `mjb_segmentation`                  | 804        |
 | `mjb_case`                          | 389        |
 | `mjb_string_filter`                 | 130        |
@@ -47,11 +48,10 @@
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
-| `mjb_break_line`                    | 0          |
 | `mjb_category_is_combining`         | 0          |
 | `mjb_category_is_graphic`           | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **402608** |
+| **Total**                           | **421399** |

@@ -97,6 +97,8 @@ void *test_breaking(void *arg) {
 #else
         size_t generated_length = types_i;
 #endif
+        // CURRENT_ASSERT mjb_break_line
+        // CURRENT_COUNT 18790
         snprintf(test_name, 256, "#%u %u/%u line breakings", current_line, allowed_count, types_i);
         ATT_ASSERT(types_i, generated_length, test_name)
 
