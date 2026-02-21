@@ -170,6 +170,15 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
 
         // LB12a Do not break before NBSP and related characters, except after spaces and hyphens.
         // [^SP BA HY HH] × GL
+        if(
+            state->current == MJB_LBP_GL &&
+            state->previous != MJB_LBP_SP &&
+            state->previous != MJB_LBP_BA &&
+            state->previous != MJB_LBP_HY &&
+            state->previous != MJB_LBP_HH
+        ) {
+            return MJB_BT_NO_BREAK;
+        }
 
         // LB13 Do not break before ‘]’ or ‘!’ or ‘/’, even after spaces.
         // × CL
