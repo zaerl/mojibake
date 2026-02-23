@@ -43,6 +43,8 @@ static void mjbsh_print_break_analysis(const char* input) {
     printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
     printf("Display width: %s%zu%s\n\nLine breaking:\n", mjbsh_green(), display_width, mjbsh_reset());
 
+    fflush(stdout);
+
     while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
         bool is_eot = (state.index > input_size);
 
@@ -73,6 +75,8 @@ static void mjbsh_print_break_analysis(const char* input) {
     n_state.index = 0;
     first = true;
     printf("\nGrapheme cluster segmentation:\n");
+
+    fflush(stdout);
 
     while((bt = mjb_segmentation(input, input_size, MJB_ENCODING_UTF_8, &n_state)) != MJB_BT_NOT_SET) {
         bool is_eot = (n_state.index > input_size);
