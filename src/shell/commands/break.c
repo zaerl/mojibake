@@ -41,9 +41,21 @@ static void mjbsh_print_break_analysis(const char* input) {
     mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, &display_width);
     printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
     printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
-    printf("Display width: %s%zu%s\n\nLine breaking:\n", mjbsh_green(), display_width, mjbsh_reset());
+    printf("Display width: %s%zu%s\n", mjbsh_green(), display_width, mjbsh_reset());
 
-    fflush(stdout);
+    printf("\nRaw bytes: ");
+
+    for(size_t i = 0; i < input_size; ++i) {
+        unsigned char byte = (unsigned char)input[i];
+
+        if((byte >= 0x20 && byte <= 0x7E) || byte == 0x0A || byte == 0x0D) {
+            printf("%c", byte);
+        } else {
+            printf("%s<%02X>%s", mjbsh_yellow(), byte, mjbsh_reset());
+        }
+    }
+
+    printf("\n\nLine breaking:\n");
 
     while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
         bool is_eot = (state.index > input_size);
