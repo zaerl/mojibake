@@ -80,7 +80,7 @@ static void print_break_analysis(const char* input) {
                     continue;
                 }
 
-                ++breaks_index;
+                ++breaks_i
             } else {
                 printf("×");
             }
@@ -163,7 +163,7 @@ static void print_break_analysis(const char* input) {
 static void display_break_output(const char* input) {
     mjbsh_clear_screen();
     printf("Break the input into line breaks\n");
-    printf("Ctrl+C or ESC to exit\n");
+    printf("Ctrl+C to exit\n");
 
     if(input == NULL || strlen(input) == 0) {
         fflush(stdout);
@@ -176,6 +176,15 @@ static void display_break_output(const char* input) {
     fflush(stdout);
 }
 
+static void handle_key(mjbsh_key key) {
+    switch(key) {
+        case MJBSH_KEY_LEFT:
+            break;
+        case MJBSH_KEY_DOWN:
+            break;
+    }
+}
+
 int mjbsh_break_command(int argc, char * const argv[], unsigned int flags) {
     if(argc != 0) {
         print_break_analysis(argv[0]);
@@ -183,7 +192,7 @@ int mjbsh_break_command(int argc, char * const argv[], unsigned int flags) {
         return 0;
     }
 
-    mjbsh_screen_mode(display_break_output);
+    mjbsh_screen_mode(display_break_output, NULL);
 
     return 0;
 }

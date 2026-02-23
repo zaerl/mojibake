@@ -57,7 +57,7 @@ int mjbsh_filter_command(int argc, char * const argv[], unsigned int flags) {
         return 0;
     }
 
-    mjbsh_screen_mode(mjbsh_display_filter_output);
+    mjbsh_screen_mode(mjbsh_display_filter_output, NULL);
 
     return 0;
 }

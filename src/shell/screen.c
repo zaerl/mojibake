@@ -113,7 +113,7 @@ void mjbsh_clear_screen(void) {
     fflush(stdout);
 }
 
-void mjbsh_screen_mode(mjbsh_screen_fn fn) {
+void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
     terminal_state term_state;
 
 #ifdef _WIN32
@@ -140,7 +140,10 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
     size_t buffer_pos = 0;
     char c;
 
-    fn("");
+    if(fn != NULL) {
+        fn("");
+    }
+
     mjbsh_set_raw_mode(&term_state);
 
     in_raw_mode = true;
@@ -152,13 +155,28 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
         if(_kbhit()) {
             c = (char)_getch();
 
-            if(c == 3 || c == 27) { // Ctrl+C or ESC
+            if(c == 3) { // Ctrl+C
                 break;
+            } else if(c == 0 || c == (char)0xE0) { // Extended key prefix
+                int ext = _getch();
+
+                if(key_fn != NULL) {
+                    switch(ext) {
+                        case 0x48: key_fn(MJBSH_KEY_UP);    break;
+                        case 0x50: key_fn(MJBSH_KEY_DOWN);  break;
+                        case 0x4D: key_fn(MJBSH_KEY_RIGHT); break;
+                        case 0x4B: key_fn(MJBSH_KEY_LEFT);  break;
+                        default: break;
+                    }
+                }
             } else if(c == 127 || c == 8) { // DELETE or BACKSPACE
                 if(buffer_pos > 0) {
                     --buffer_pos;
                     input_buffer[buffer_pos] = '\0';
-                    fn(input_buffer);
+
+                    if(fn != NULL) {
+                        fn(input_buffer);
+                    }
                 }
             } else {
                 if(buffer_pos < sizeof(input_buffer) - 1) {
@@ -166,7 +184,9 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
                     ++buffer_pos;
                     input_buffer[buffer_pos] = '\0';
 
-                    fn(input_buffer);
+                    if(fn != NULL) {
+                        fn(input_buffer);
+                    }
                 }
             }
         }
@@ -189,13 +209,43 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
             ssize_t bytes_read = read(STDIN_FILENO, &c, 1);
 
             if(bytes_read > 0) {
-                if(c == 3 || c == 27) { // Ctrl+C or ESC
+                if(c == 3) { // Ctrl+C
                     break;
+                } else if(c == 27) { // Escape sequence (arrow keys, etc.)
+                    fd_set seq_fds;
+                    FD_ZERO(&seq_fds);
+                    FD_SET(STDIN_FILENO, &seq_fds);
+
+                    struct timeval seq_timeout;
+                    seq_timeout.tv_sec = 0;
+                    seq_timeout.tv_usec = 50000;
+
+                    if(select(STDIN_FILENO + 1, &seq_fds, NULL, NULL, &seq_timeout) > 0) {
+                        char seq[2];
+                        ssize_t n = read(STDIN_FILENO, seq, 1);
+
+                        if(n > 0 && seq[0] == '[') {
+                            n = read(STDIN_FILENO, seq, 1);
+
+                            if(n > 0 && key_fn != NULL) {
+                                switch(seq[0]) {
+                                    case 'A': key_fn(MJBSH_KEY_UP);    break;
+                                    case 'B': key_fn(MJBSH_KEY_DOWN);  break;
+                                    case 'C': key_fn(MJBSH_KEY_RIGHT); break;
+                                    case 'D': key_fn(MJBSH_KEY_LEFT);  break;
+                                    default: break;
+                                }
+                            }
+                        }
+                    }
                 } else if(c == 127 || c == 8) { // DELETE or BACKSPACE
                     if(buffer_pos > 0) {
                         --buffer_pos;
                         input_buffer[buffer_pos] = '\0';
-                        fn(input_buffer);
+
+                        if(fn != NULL) {
+                            fn(input_buffer);
+                        }
                     }
                 } else {
                     if(buffer_pos < sizeof(input_buffer) - 1) {
@@ -203,7 +253,9 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn) {
                         ++buffer_pos;
                         input_buffer[buffer_pos] = '\0';
 
-                        fn(input_buffer);
+                        if(fn != NULL) {
+                            fn(input_buffer);
+                        }
                     }
                 }
             }

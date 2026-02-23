@@ -11,8 +11,17 @@
 
 typedef void (*mjbsh_screen_fn)(const char* input);
 
+typedef enum {
+    MJBSH_KEY_UP,
+    MJBSH_KEY_DOWN,
+    MJBSH_KEY_LEFT,
+    MJBSH_KEY_RIGHT
+} mjbsh_key;
+
+typedef void (*mjbsh_key_fn)(mjbsh_key key);
+
 void mjbsh_clear_screen(void);
-void mjbsh_screen_mode(mjbsh_screen_fn fn);
+void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn);
 
 void mjbsh_table_top(void);
 void mjbsh_table_bottom(void);
