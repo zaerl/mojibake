@@ -10,7 +10,7 @@
 #include "test.h"
 #include "../src/mojibake-internal.h"
 
-void *test_breaking(void *arg) {
+void *test_break_line(void *arg) {
     char line[16384]; // 16384, see line #19335
     char generated_input[1024]; // String to be used by mjb_break_line
     mjb_break_type expected_types[1024];

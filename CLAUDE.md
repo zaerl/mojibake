@@ -42,7 +42,7 @@ emoji archives):
 
 Core modules in `src/`:
 
-- `breaking.c` - Unicode Line Breaking algorithm
+- `break_line.c` - Unicode Line Breaking algorithm
 - `case.c` - Unicode casing methods
 - `cjk.c` - CJK ideograph detection
 - `mojibake.c/.h` - Main API and library initialization

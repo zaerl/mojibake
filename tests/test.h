@@ -21,15 +21,15 @@ extern "C" {
 #endif
 
 // Start tests declarations.
-void *test_breaking(void *arg);
+void *test_break_line(void *arg);
 void *test_case(void *arg);
 void *test_cjk(void *arg);
 void *test_codepoint(void *arg);
 void *test_display(void *arg);
-void *test_emoji(void *arg);
-void *test_encoding(void *arg);
 void *test_east_asian_width(void *arg);
 void *test_embedded_null(void *arg);
+void *test_emoji(void *arg);
+void *test_encoding(void *arg);
 void *test_filter(void *arg);
 void *test_hangul_composition(void *arg);
 void *test_hangul(void *arg);
@@ -37,8 +37,8 @@ void *test_mojibake(void *arg);
 void *test_next(void *arg);
 void *test_normalization(void *arg);
 void *test_plane(void *arg);
-void *test_quick_check(void *arg);
 void *test_properties(void *arg);
+void *test_quick_check(void *arg);
 void *test_segmentation(void *arg);
 void *test_special_case(void *arg);
 void *test_string(void *arg);

@@ -111,7 +111,7 @@ MJB_EXPORT mojibake mjb_global;\n`;
     'utf16.h',
     'utf32.h',
     'utf.h',
-    'breaking.c',
+    'break-line.c',
     'buffer.c',
     'case.c',
     'codepoint.c',

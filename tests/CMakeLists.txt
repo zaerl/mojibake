@@ -1,6 +1,6 @@
 set(TEST_SOURCES
     attractor/attractor.c
-    breaking.c
+    break-line.c
     case.c
     cjk.c
     codepoint.c
@@ -69,7 +69,7 @@ if(WIN32)
 endif()
 
 # Add test to CTest
-add_test(NAME "Breaking" COMMAND mojibake-test -f breaking)
+add_test(NAME "Break Line" COMMAND mojibake-test -f break_line)
 add_test(NAME "Case" COMMAND mojibake-test -f case)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
