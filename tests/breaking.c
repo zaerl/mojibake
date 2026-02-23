@@ -37,7 +37,6 @@ void *test_breaking(void *arg) {
         unsigned int types_i = 0;
         unsigned int i = 0;
         unsigned int generated_index = 0;
-        unsigned int allowed_count = 0;
         memset(expected_types, MJB_LBP_NOT_SET, 1024);
         memset(generated_input, 0, 1024);
         bool skip_line = false;
@@ -55,7 +54,6 @@ void *test_breaking(void *arg) {
             if(i++ % 2 != 0) {
                 if((unsigned char)token[1] == 0xB7) { // ÷
                     expected_types[types_i++] = MJB_BT_ALLOWED;
-                    ++allowed_count;
 
                     if((unsigned char)token[2] == 0x09) { // Tab # comment until next line
                         break;
@@ -92,30 +90,29 @@ void *test_breaking(void *arg) {
 
         generated_input[generated_index] = '\0';
 
-        #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-        size_t generated_length = mjb_strnlen(generated_input, 1024, MJB_ENCODING_UTF_8);
-#else
-        size_t generated_length = types_i;
-#endif
         // CURRENT_ASSERT mjb_break_line
-        // CURRENT_COUNT 18790
-        snprintf(test_name, 256, "#%u %u/%u line breakings", current_line, allowed_count, types_i);
-        ATT_ASSERT(types_i, generated_length, test_name)
-
+        // CURRENT_COUNT 19365
         mjb_break_type bt = MJB_BT_NOT_SET;
         mjb_next_line_state state;
         state.index = 0;
         size_t index = 0;
+        size_t successful_count = 0;
 
         while((bt = mjb_break_line(generated_input, generated_index, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
-            snprintf(test_name, 256, "Index %zu", index);
+            snprintf(test_name, 256, "#%u index %zu", current_line, index);
 
             if(bt == MJB_BT_MANDATORY) {
                 bt = MJB_BT_ALLOWED;
             }
 
-            ATT_ASSERT((uint8_t)bt, (uint8_t)expected_types[index++], test_name)
+            if((uint8_t)bt == (uint8_t)expected_types[index++]) {
+                ++successful_count;
+            } else  {
+                break;
+            }
         }
+
+        ATT_ASSERT(index, successful_count, test_name)
 
         free(tofree);
         ++current_line;

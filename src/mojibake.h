@@ -322,13 +322,19 @@ typedef struct mjb_next_line_state {
     size_t index;
     mjb_lbp previous;
     mjb_lbp current;
+    mjb_codepoint prev_prev_codepoint;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
-    unsigned short ri_count;
     bool zw_seen;
+    bool pi_qu_context;
+    bool cm_merged;
+    unsigned short ri_count;
     mjb_lbp prev_resolved;
     mjb_east_asian_width prev_ea;
+    mjb_east_asian_width qu_prev_ea;
+    mjb_lbp prev_prev_lbp;
+    mjb_lbp prev_num_lbp;
 } mjb_next_line_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
