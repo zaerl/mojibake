@@ -28,13 +28,20 @@
     }
 }*/
 
-static void print_break_analysis(const char* input) {
+static void mjbsh_print_break_analysis(const char* input) {
     bool first = true;
     size_t input_size = strlen(input);
-    // size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
+    size_t display_width;
+
+    size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
     mjb_next_line_state state;
     mjb_break_type bt;
     state.index = 0;
+
+    mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, &display_width);
+    printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
+    printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
+    printf("Display width: %s%zu%s\n\nLine breaking:\n", mjbsh_green(), display_width, mjbsh_reset());
 
     while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
         bool is_eot = (state.index > input_size);
@@ -57,6 +64,37 @@ static void print_break_analysis(const char* input) {
         } else if(!is_eot) {
             mjbsh_print_break_symbol(bt);
             mjbsh_print_codepoint(state.current_codepoint);
+        } else {
+            mjbsh_print_break_symbol(bt);
+        }
+    }
+
+    mjb_next_state n_state;
+    n_state.index = 0;
+    first = true;
+    printf("\nGrapheme cluster segmentation:\n");
+
+    while((bt = mjb_segmentation(input, input_size, MJB_ENCODING_UTF_8, &n_state)) != MJB_BT_NOT_SET) {
+        bool is_eot = (n_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_break_symbol(MJB_BT_ALLOWED);
+
+            // First iteration: print the starting codepoint
+            mjbsh_print_codepoint(n_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
+                ? n_state.previous_codepoint : n_state.current_codepoint);
+
+            mjbsh_print_break_symbol(bt);
+
+            // If previous was valid, print current; if not, we already printed current
+            if(n_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
+                mjbsh_print_codepoint(n_state.current_codepoint);
+            }
+
+            first = false;
+        } else if(!is_eot) {
+            mjbsh_print_break_symbol(bt);
+            mjbsh_print_codepoint(n_state.current_codepoint);
         } else {
             mjbsh_print_break_symbol(bt);
         }
@@ -160,7 +198,7 @@ static void print_break_analysis(const char* input) {
 */
 }
 
-static void display_break_output(const char* input) {
+static void mjbsh_display_break_output(const char* input) {
     mjbsh_clear_screen();
     printf("Break the input into line breaks\n");
     printf("Ctrl+C to exit\n");
@@ -171,28 +209,32 @@ static void display_break_output(const char* input) {
         return;
     }
 
-    puts(input);
-    print_break_analysis(input);
+    // puts(input);
+    mjbsh_print_break_analysis(input);
     fflush(stdout);
 }
 
-static void handle_key(mjbsh_key key) {
+static void mjbsh_handle_key(mjbsh_key key) {
     switch(key) {
         case MJBSH_KEY_LEFT:
             break;
+        case MJBSH_KEY_RIGHT:
+            break;
+        case MJBSH_KEY_UP:
         case MJBSH_KEY_DOWN:
+        default:
             break;
     }
 }
 
 int mjbsh_break_command(int argc, char * const argv[], unsigned int flags) {
     if(argc != 0) {
-        print_break_analysis(argv[0]);
+        mjbsh_print_break_analysis(argv[0]);
 
         return 0;
     }
 
-    mjbsh_screen_mode(display_break_output, NULL);
+    mjbsh_screen_mode(mjbsh_display_break_output, mjbsh_handle_key);
 
     return 0;
 }

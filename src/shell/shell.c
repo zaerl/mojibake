@@ -157,7 +157,7 @@ void mjbsh_print_break_symbol(mjb_break_type bt) {
     } else if(bt == MJB_BT_NO_BREAK) {
         printf("%s×%s", mjbsh_red(), mjbsh_reset());
     } else if(bt == MJB_BT_MANDATORY) {
-        printf("%s!%s", mjbsh_yellow(), mjbsh_reset());
+        printf("%s!%s\n", mjbsh_yellow(), mjbsh_reset());
     }
 }
 

@@ -35,7 +35,7 @@ static void mjbsh_print_filter_analysis(const char* input) {
 static void mjbsh_display_filter_output(const char* input) {
     mjbsh_clear_screen();
     printf("Filter the input\n");
-    printf("Ctrl+C or ESC to exit\n");
+    printf("Ctrl+C to exit\n");
 
     if(input == NULL || strlen(input) == 0) {
         fflush(stdout);
