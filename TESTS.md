@@ -5,7 +5,7 @@
 | `mjb_normalize`                     | 400684     |
 | `mjb_break_line`                    | 19365      |
 | `mjb_break_word`                    | 1826       |
-| `mjb_segmentation`                  | 804        |
+| `mjb_segmentation`                  | 721        |
 | `mjb_case`                          | 389        |
 | `mjb_string_filter`                 | 130        |
 | `mjb_codepoint_character`           | 80         |
@@ -49,10 +49,11 @@
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
+| `mjb_break_sentence`                | 0          |
 | `mjb_category_is_combining`         | 0          |
 | `mjb_category_is_graphic`           | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **423799** |
+| **Total**                           | **423716** |

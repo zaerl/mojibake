@@ -55,7 +55,10 @@ void set_error_callback(att_test_callback callback);
 bool is_exit_on_error(void);
 
 // Utils
+typedef void (*test_file_callback)(const char *buffer, size_t size, unsigned int current_line, mjb_break_type *expected_types);
+
 size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints);
+void read_test_file(const char *filename, test_file_callback callback);
 
 #ifdef _WIN32
 // Windows-compatible strsep declaration
