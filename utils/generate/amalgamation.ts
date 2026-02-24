@@ -24,10 +24,8 @@ export async function generateAmalgamation(embedded = false) {
   const baseFolder = embedded ? '../../build-embedded-amalgamation' : '../../build-amalgamation';
 
   const headers = [
-    'breaking.h',
     'buffer.h',
     'locales.h',
-    'segmentation.h',
   ];
 
   let header = `/**
