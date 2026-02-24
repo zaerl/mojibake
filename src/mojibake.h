@@ -358,9 +358,14 @@ typedef struct mjb_next_sentence_state {
     size_t index;
     mjb_sbp previous;
     mjb_sbp current;
+    mjb_sbp prev_prev;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
+    bool sb5_merged;
+    bool in_sat;
+    bool sat_has_sp;
+    bool sat_is_aterm;
 } mjb_next_sentence_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);

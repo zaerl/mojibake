@@ -765,21 +765,21 @@ typedef enum mjb_lbp {
 
 typedef enum mjb_sbp {
     MJB_SBP_NOT_SET, // 0 is "no value"
-    MJB_SBP_AT,
-    MJB_SBP_CL,
+    MJB_SBP_ATERM,
+    MJB_SBP_CLOSE,
     MJB_SBP_CR,
-    MJB_SBP_EX,
-    MJB_SBP_FO,
-    MJB_SBP_LE,
+    MJB_SBP_EXTEND,
+    MJB_SBP_FORMAT,
+    MJB_SBP_OLETTER,
     MJB_SBP_LF,
-    MJB_SBP_LO,
-    MJB_SBP_NU,
-    MJB_SBP_SC,
-    MJB_SBP_SE,
+    MJB_SBP_LOWER,
+    MJB_SBP_NUMERIC,
+    MJB_SBP_SCONTINUE,
+    MJB_SBP_SEP,
     MJB_SBP_SP,
-    MJB_SBP_ST,
-    MJB_SBP_UP,
-    MJB_SBP_XX
+    MJB_SBP_STERM,
+    MJB_SBP_UPPER,
+    MJB_SBP_OTHER
 } mjb_sbp;
 
 #define MJB_SBP_COUNT 16
