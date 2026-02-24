@@ -28,6 +28,30 @@
     }
 }*/
 
+static void mjbsh_print_first_iteration(mjb_break_type first_bt, mjb_break_type bt, bool is_eot,
+    mjb_codepoint previous_codepoint, mjb_codepoint current_codepoint) {
+    mjbsh_print_break_symbol(first_bt);
+
+    // First iteration: print the starting codepoint
+    mjbsh_print_codepoint(previous_codepoint != MJB_CODEPOINT_NOT_VALID
+        ? previous_codepoint : current_codepoint);
+
+    mjbsh_print_break_symbol(bt);
+
+    // If previous was valid, print current; if not, we already printed current
+    if(previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
+        mjbsh_print_codepoint(current_codepoint);
+    }
+}
+
+static void mjbsh_print_iteration(bool is_eot, mjb_break_type bt, mjb_codepoint current_codepoint) {
+    mjbsh_print_break_symbol(bt);
+
+    if(!is_eot) {
+        mjbsh_print_codepoint(current_codepoint);
+    }
+}
+
 static void mjbsh_print_break_analysis(const char* input) {
     bool first = true;
     size_t input_size = strlen(input);
@@ -63,25 +87,12 @@ static void mjbsh_print_break_analysis(const char* input) {
         bool is_eot = (segment_state.index > input_size);
 
         if(first) {
-            mjbsh_print_break_symbol(MJB_BT_ALLOWED);
-
-            // First iteration: print the starting codepoint
-            mjbsh_print_codepoint(segment_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
-                ? segment_state.previous_codepoint : segment_state.current_codepoint);
-
-            mjbsh_print_break_symbol(bt);
-
-            // If previous was valid, print current; if not, we already printed current
-            if(segment_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
-                mjbsh_print_codepoint(segment_state.current_codepoint);
-            }
+            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, segment_state.previous_codepoint,
+                segment_state.current_codepoint);
 
             first = false;
-        } else if(!is_eot) {
-            mjbsh_print_break_symbol(bt);
-            mjbsh_print_codepoint(segment_state.current_codepoint);
         } else {
-            mjbsh_print_break_symbol(bt);
+            mjbsh_print_iteration(is_eot, bt, segment_state.current_codepoint);
         }
     }
 
@@ -95,25 +106,12 @@ static void mjbsh_print_break_analysis(const char* input) {
         bool is_eot = (word_state.index > input_size);
 
         if(first) {
-            mjbsh_print_break_symbol(MJB_BT_ALLOWED);
-
-            // First iteration: print the starting codepoint
-            mjbsh_print_codepoint(word_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
-                ? word_state.previous_codepoint : word_state.current_codepoint);
-
-            mjbsh_print_break_symbol(bt);
-
-            // If previous was valid, print current; if not, we already printed current
-            if(word_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
-                mjbsh_print_codepoint(word_state.current_codepoint);
-            }
+            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, word_state.previous_codepoint,
+                word_state.current_codepoint);
 
             first = false;
-        } else if(!is_eot) {
-            mjbsh_print_break_symbol(bt);
-            mjbsh_print_codepoint(word_state.current_codepoint);
         } else {
-            mjbsh_print_break_symbol(bt);
+            mjbsh_print_iteration(is_eot, bt, word_state.current_codepoint);
         }
     }
 
@@ -127,25 +125,31 @@ static void mjbsh_print_break_analysis(const char* input) {
         bool is_eot = (line_state.index > input_size);
 
         if(first) {
-            mjbsh_print_break_symbol(MJB_BT_NO_BREAK);
-
-            // First iteration: print the starting codepoint
-            mjbsh_print_codepoint(line_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
-                ? line_state.previous_codepoint : line_state.current_codepoint);
-
-            mjbsh_print_break_symbol(bt);
-
-            // If previous was valid, print current; if not, we already printed current
-            if(line_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
-                mjbsh_print_codepoint(line_state.current_codepoint);
-            }
+            mjbsh_print_first_iteration(MJB_BT_NO_BREAK, bt, is_eot, line_state.previous_codepoint,
+                line_state.current_codepoint);
 
             first = false;
-        } else if(!is_eot) {
-            mjbsh_print_break_symbol(bt);
-            mjbsh_print_codepoint(line_state.current_codepoint);
         } else {
-            mjbsh_print_break_symbol(bt);
+            mjbsh_print_iteration(is_eot, bt, line_state.current_codepoint);
+        }
+    }
+
+    printf("\n\nSentence breaking:\n");
+
+    mjb_next_sentence_state sentence_state;
+    sentence_state.index = 0;
+    first = true;
+
+    while((bt = mjb_break_sentence(input, input_size, MJB_ENCODING_UTF_8, &sentence_state)) != MJB_BT_NOT_SET) {
+        bool is_eot = (sentence_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, sentence_state.previous_codepoint,
+                sentence_state.current_codepoint);
+
+            first = false;
+        } else {
+            mjbsh_print_iteration(is_eot, bt, sentence_state.current_codepoint);
         }
     }
 
