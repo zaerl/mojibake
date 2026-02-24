@@ -1,5 +1,6 @@
 set(TEST_SOURCES
     attractor/attractor.c
+    utils/utils.c
     break-line.c
     break-word.c
     case.c
