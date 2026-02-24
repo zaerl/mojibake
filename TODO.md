@@ -12,12 +12,12 @@
 - [ ] `CaseFolding.txt` table
 - [ ] `WordBreakProperty.txt` table
 - [ ] `SpecialCasing.txt` table
-- [ ] `auxiliary/GraphemeBreakProperty.txt` table
-- [ ] `auxiliary/SentenceBreakProperty.txt` table
-- [ ] `auxiliary/WordBreakProperty.txt` table
 - [ ] Check `without rowid` tables
 - [ ] Check Windows UTF-8 console mode
 - [ ] Add UTF16 and UTF32 support for WASM build
+- [x] `auxiliary/GraphemeBreakProperty.txt` table
+- [x] `auxiliary/SentenceBreakProperty.txt` table
+- [x] `auxiliary/WordBreakProperty.txt` table
 - [x] Add support for KHITAN SMALL SCRIPT CHARACTER-18XX
 - [x] Check TANGUT IDEOGRAPH
 - [x] Add support for NameAliases.txt
