@@ -19,9 +19,8 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
         return NULL;
     }
 
-    if(*output_index + input_size > *output_size) {
-        // Grow to at least fit the required size, doubling if that's larger
-        size_t required = *output_index + input_size;
+    if(*output_index + input_size >= *output_size) {
+        size_t required = *output_index + input_size + 1;
         size_t doubled = *output_size * 2;
         *output_size = (doubled > required) ? doubled : required;
         ret = (char*)mjb_realloc(ret, *output_size);
@@ -29,6 +28,9 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
 
     memcpy((char*)ret + *output_index, input, input_size);
     *output_index += input_size;
+
+    // Null-terminate the string. jemalloc reuses freed heap blocks without clearing them.
+    ret[*output_index] = '\0';
 
     return ret;
 }
