@@ -45,7 +45,7 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
     }
 }
 
-// Word and Grapheme Cluster Breaking
+// Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_state *state) {

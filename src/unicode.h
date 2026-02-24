@@ -679,7 +679,7 @@ typedef enum mjb_plane {
  * Word_Break Property Values
  * https://www.unicode.org/reports/tr29/#Table_Word_Break_Property_Values
  */
-typedef enum mjb_word_break_property {
+typedef enum mjb_wbp {
     MJB_WBP_NOT_SET, // 0 is "no value"
     MJB_WBP_CR,
     MJB_WBP_DOUBLE_QUOTE,
@@ -704,7 +704,7 @@ typedef enum mjb_word_break_property {
     MJB_WBP_W_SEG_SPACE,
     MJB_WBP_OTHER,
     MJB_WBP_ZWJ
-} mjb_word_break_property;
+} mjb_wbp;
 
 #define MJB_WBP_COUNT 24
 

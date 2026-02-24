@@ -1,6 +1,7 @@
 set(TEST_SOURCES
     attractor/attractor.c
     break-line.c
+    break-word.c
     case.c
     cjk.c
     codepoint.c

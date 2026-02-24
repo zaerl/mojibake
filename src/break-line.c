@@ -969,7 +969,6 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             }
 
             // Check [\p{Extended_Pictographic} & Cn]
-            // extended_pictographic IS stored in property_ranges blob.
             // Cn (unassigned) means the codepoint has no row in unicode_data.
             uint8_t prev_props[MJB_PR_BUFFER_SIZE] = {0};
             mjb_codepoint_properties(state->previous_codepoint, prev_props);

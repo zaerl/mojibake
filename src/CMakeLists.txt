@@ -1,5 +1,6 @@
 set(SOURCES
     break-line.c
+    break-word.c
     buffer.c
     case.c
     codepoint.c
@@ -93,6 +94,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_to_uppercase\""
         "\"_mjb_codepoint_to_titlecase\""
         "\"_mjb_break_line\""
+        "\"_mjb_break_word\""
         "\"_mjb_segmentation\""
         "\"_mjb_codepoint_plane\""
         "\"_mjb_plane_is_valid\""

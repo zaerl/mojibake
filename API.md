@@ -198,7 +198,13 @@ Unicode line break algorithm
 mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_line_state *state);
 ```
 
-Word and grapheme cluster breaking
+Word cluster breaking
+
+```c
+mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
+```
+
+Grapheme cluster breaking
 
 ```c
 mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);

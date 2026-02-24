@@ -337,6 +337,19 @@ typedef struct mjb_next_line_state {
     mjb_lbp prev_num_lbp;
 } mjb_next_line_state;
 
+typedef struct mjb_next_word_state {
+    uint8_t state;
+    size_t index;
+    mjb_wbp previous;
+    mjb_wbp current;
+    mjb_codepoint prev_prev_codepoint;
+    mjb_codepoint previous_codepoint;
+    mjb_codepoint current_codepoint;
+    mjb_wbp prev_prev_wbp;
+    bool in_error;
+    unsigned short ri_count;
+} mjb_next_word_state;
+
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
 
 // This functions list is automatically generated. Do not edit.
@@ -440,7 +453,10 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 // Unicode line break algorithm
 MJB_NONNULL(1, 4) mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_line_state *state);
 
-// Word and grapheme cluster breaking
+// Word cluster breaking
+MJB_NONNULL(1, 4) mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
+
+// Grapheme cluster breaking
 MJB_NONNULL(1, 4) mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 
 // Return the plane of the codepoint
