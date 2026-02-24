@@ -204,6 +204,12 @@ Word cluster breaking
 mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
 ```
 
+Sentence boundaries breaking
+
+```c
+mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_sentence_state *state);
+```
+
 Grapheme cluster breaking
 
 ```c

@@ -763,6 +763,27 @@ typedef enum mjb_lbp {
 
 #define MJB_LBP_COUNT 50
 
+typedef enum mjb_sbp {
+    MJB_SBP_NOT_SET, // 0 is "no value"
+    MJB_SBP_AT,
+    MJB_SBP_CL,
+    MJB_SBP_CR,
+    MJB_SBP_EX,
+    MJB_SBP_FO,
+    MJB_SBP_LE,
+    MJB_SBP_LF,
+    MJB_SBP_LO,
+    MJB_SBP_NU,
+    MJB_SBP_SC,
+    MJB_SBP_SE,
+    MJB_SBP_SP,
+    MJB_SBP_ST,
+    MJB_SBP_UP,
+    MJB_SBP_XX
+} mjb_sbp;
+
+#define MJB_SBP_COUNT 16
+
 typedef enum mjb_property {
     MJB_PR_KACCOUNTINGNUMERIC, // enumerated
     MJB_PR_KOTHERNUMERIC, // enumerated

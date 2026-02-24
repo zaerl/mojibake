@@ -197,6 +197,7 @@ int main(int argc, char * const argv[]) {
 
     // Start tests declarations.
     RUN_TEST(break_line)
+    RUN_TEST(break_sentence)
     RUN_TEST(break_word)
     RUN_TEST(case)
     RUN_TEST(cjk)

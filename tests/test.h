@@ -22,6 +22,7 @@ extern "C" {
 
 // Start tests declarations.
 void *test_break_line(void *arg);
+void *test_break_sentence(void *arg);
 void *test_break_word(void *arg);
 void *test_case(void *arg);
 void *test_cjk(void *arg);

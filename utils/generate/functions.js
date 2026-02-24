@@ -865,6 +865,41 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Sentence boundaries breaking",
+    "ret": "mjb_break_type",
+    "name": "break_sentence",
+    "attributes": [
+      "MJB_NONNULL(1, 4)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "state",
+        "type": "mjb_next_sentence_state *",
+        "description": "The state to store the result",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Grapheme cluster breaking",
     "ret": "mjb_break_type",
     "name": "segmentation",

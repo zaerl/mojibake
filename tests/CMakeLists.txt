@@ -2,6 +2,7 @@ set(TEST_SOURCES
     attractor/attractor.c
     utils/utils.c
     break-line.c
+    break-sentence.c
     break-word.c
     case.c
     cjk.c
