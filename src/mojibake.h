@@ -348,6 +348,9 @@ typedef struct mjb_next_word_state {
     mjb_wbp prev_prev_wbp;
     bool in_error;
     unsigned short ri_count;
+    bool wb4_merged;    // WB4 just fired: skip prev_prev update next call
+    bool zwj_pending;   // Current char (before any WB4 remap) was literally ZWJ
+    bool prev_was_zwj;  // Previous char (before any WB4 remap) was literally ZWJ
 } mjb_next_word_state;
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);

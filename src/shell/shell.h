@@ -19,6 +19,7 @@ typedef enum {
 } mjbsh_output_mode;
 
 extern int cmd_show_colors;
+extern bool cmd_show_allowed_symbols;
 extern unsigned int cmd_verbose;
 extern mjbsh_interpret_mode cmd_interpret_mode;
 extern mjbsh_output_mode cmd_output_mode;

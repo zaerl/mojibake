@@ -79,6 +79,7 @@ int main(int argc, char * const argv[]) {
         { "help", no_argument, NULL, 'h' },
         { "json-indent", required_argument, NULL, 'j' },
         { "output", required_argument, NULL, 'o' },
+        { "show-allowed-symbols", no_argument, NULL, 's' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
         { "width", no_argument, NULL, 'w' },
@@ -92,6 +93,7 @@ int main(int argc, char * const argv[]) {
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",
+        "Show allowed symbols",
         "Verbose output",
         "Print version",
         "Width of output"
@@ -163,7 +165,7 @@ int main(int argc, char * const argv[]) {
     }
 #endif
 
-    while((option = getopt_long(argc, argv, "hj:co:vVw:", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "hj:co:vVsw:", long_options, &option_index)) != -1) {
         char *endptr = NULL;
 
         switch(option) {
@@ -197,6 +199,9 @@ int main(int argc, char * const argv[]) {
 
                     return 1;
                 }
+                break;
+            case 's':
+                cmd_show_allowed_symbols = true;
                 break;
             case 'v':
                 ++cmd_verbose;

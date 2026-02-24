@@ -11,6 +11,44 @@
 
 extern mojibake mjb_global;
 
+// Peek at the next codepoint's WBP (for look-ahead rules WB6, WB7b, WB12).
+// When skip_wb4 is true, Extend/Format/ZWJ characters are skipped (WB4 transparency).
+static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t size, size_t peek_index,
+    mjb_encoding encoding, bool skip_wb4) {
+    uint8_t peek_state = MJB_UTF_ACCEPT;
+    mjb_codepoint peek_cp = 0;
+    bool peek_error = false;
+    size_t i = peek_index;
+
+    for(; i < size;) {
+        mjb_decode_result dr = mjb_next_codepoint(buffer, size, &peek_state, &peek_index,
+            encoding, &peek_cp, &peek_error);
+
+        if(dr == MJB_DECODE_END) {
+            return MJB_WBP_NOT_SET;
+        }
+
+        if(dr == MJB_DECODE_OK) {
+            uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
+            mjb_codepoint_properties(peek_cp, cpb);
+            mjb_wbp wbp = (mjb_wbp)mjb_codepoint_property(cpb, MJB_PR_WORD_BREAK);
+
+            if(wbp == MJB_WBP_NOT_SET) {
+                wbp = MJB_WBP_OTHER;
+            }
+
+            // Skip WB4-transparent characters (Extend, Format, ZWJ).
+            if(skip_wb4 && (wbp == MJB_WBP_EXTEND || wbp == MJB_WBP_FORMAT || wbp == MJB_WBP_ZWJ)) {
+                continue;
+            }
+
+            return wbp;
+        }
+    }
+
+    return MJB_WBP_NOT_SET;
+}
+
 // Word cluster breaking
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding,
@@ -30,6 +68,9 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
         state->prev_prev_wbp = MJB_WBP_NOT_SET;
         state->in_error = false;
         state->ri_count = 0;
+        state->wb4_merged = false;
+        state->zwj_pending = false;
+        state->prev_was_zwj = false;
     }
 
     if(state->index == size) {
@@ -76,13 +117,30 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
             // First codepoint
             state->current = wbp;
             state->current_codepoint = codepoint;
+            state->zwj_pending = (wbp == MJB_WBP_ZWJ);
             first_codepoint = false;
 
             continue;
         }
 
-        state->prev_prev_wbp = state->previous;
-        state->prev_prev_codepoint = state->previous_codepoint;
+        // Track whether the character CURRENTLY becoming "previous" (old state->current)
+        // was literally ZWJ before any WB4 remapping, for WB3c.
+        state->prev_was_zwj = state->zwj_pending;
+        state->zwj_pending = (wbp == MJB_WBP_ZWJ);
+
+        // Save wb4_merged before clearing: used to guard WB3d so it does not fire
+        // when the "previous WSegSpace" is actually a WB4-remapped Extend/Format/ZWJ.
+        bool prev_was_remapped = state->wb4_merged;
+
+        // Update prev_prev, but skip the update when WB4 just merged a character
+        // (same technique as break-line.c cm_merged, ensures 3-char lookback rules
+        // like WB7 and WB11 see the correct context before the WB4 base).
+        if(!state->wb4_merged) {
+            state->prev_prev_wbp = state->previous;
+            state->prev_prev_codepoint = state->previous_codepoint;
+        }
+
+        state->wb4_merged = false;
 
         // Swap previous and current codepoints
         state->previous = state->current;
@@ -117,11 +175,15 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
 
         // Do not break within emoji zwj sequences.
         // WB3c ZWJ × \p{Extended_Pictographic}
+        if(state->prev_was_zwj && mjb_codepoint_property(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
+            return MJB_BT_NO_BREAK;
+        }
 
         // Keep horizontal whitespace together.
         // WB3d WSegSpace × WSegSpace
         if(
-            state->previous == MJB_WBP_W_SEG_SPACE ||
+            !prev_was_remapped &&
+            state->previous == MJB_WBP_W_SEG_SPACE &&
             state->current == MJB_WBP_W_SEG_SPACE
         ) {
             return MJB_BT_NO_BREAK;
@@ -130,6 +192,20 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
         // Ignore Format and Extend characters, except after sot, CR, LF, and Newline. (See Section
         // 6.2, Replacing Ignore Rules.) This also has the effect of: Any × (Format | Extend | ZWJ)
         // WB4 X (Extend | Format | ZWJ)* -> X
+        if(
+            (state->current == MJB_WBP_EXTEND || state->current == MJB_WBP_FORMAT || state->current == MJB_WBP_ZWJ) &&
+            state->previous != MJB_WBP_NOT_SET && // SOT exception
+            state->previous != MJB_WBP_CR &&
+            state->previous != MJB_WBP_LF &&
+            state->previous != MJB_WBP_NEWLINE
+        ) {
+            // Re-map to the base class so subsequent calls see X as previous, not Extend/Format/ZWJ.
+            state->current = state->previous;
+            state->current_codepoint = state->previous_codepoint;
+            state->wb4_merged = true;
+
+            return MJB_BT_NO_BREAK;
+        }
 
         // Do not break between most letters
         // WB5 AHLetter × AHLetter
@@ -142,13 +218,29 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
 
         // Do not break letters across certain punctuation, such as within "e.g." or "example.com".
         // WB6 AHLetter × (MidLetter | MidNumLetQ) AHLetter
+        // (look-ahead: next effective char after skipping WB4-transparent chars must be AHLetter)
+        if(
+            (state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
+            (
+                state->current == MJB_WBP_MID_LETTER ||
+                state->current == MJB_WBP_MID_NUM_LET ||
+                state->current == MJB_WBP_SINGLE_QUOTE
+            )
+        ) {
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, size, state->index, encoding, true);
+
+            if(next_wbp == MJB_WBP_A_LETTER || next_wbp == MJB_WBP_HEBREW_LETTER) {
+                return MJB_BT_NO_BREAK;
+            }
+        }
 
         // WB7 AHLetter (MidLetter | MidNumLetQ) × AHLetter
         if(
             (state->prev_prev_wbp == MJB_WBP_A_LETTER || state->prev_prev_wbp == MJB_WBP_HEBREW_LETTER) &&
             (
                 state->previous == MJB_WBP_MID_LETTER ||
-                (state->previous == MJB_WBP_MID_NUM_LET && state->current == MJB_WBP_SINGLE_QUOTE)
+                state->previous == MJB_WBP_MID_NUM_LET ||
+                state->previous == MJB_WBP_SINGLE_QUOTE
             ) &&
             (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)
         ) {
@@ -161,6 +253,14 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
         }
 
         // WB7b Hebrew_Letter × Double_Quote Hebrew_Letter
+        // (look-ahead: next effective char must be Hebrew_Letter)
+        if(state->previous == MJB_WBP_HEBREW_LETTER && state->current == MJB_WBP_DOUBLE_QUOTE) {
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, size, state->index, encoding, true);
+
+            if(next_wbp == MJB_WBP_HEBREW_LETTER) {
+                return MJB_BT_NO_BREAK;
+            }
+        }
 
         // WB7c Hebrew_Letter Double_Quote × Hebrew_Letter
         if(
@@ -198,7 +298,34 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
 
         // Do not break within sequences, such as "3.2" or "3,456.789".
         // WB11 Numeric (MidNum | MidNumLetQ) × Numeric
+        if(
+            state->prev_prev_wbp == MJB_WBP_NUMERIC &&
+            (
+                state->previous == MJB_WBP_MID_NUM ||
+                state->previous == MJB_WBP_MID_NUM_LET ||
+                state->previous == MJB_WBP_SINGLE_QUOTE
+            ) &&
+            state->current == MJB_WBP_NUMERIC
+        ) {
+            return MJB_BT_NO_BREAK;
+        }
+
         // WB12 Numeric × (MidNum | MidNumLetQ) Numeric
+        // (look-ahead: next effective char must be Numeric)
+        if(
+            state->previous == MJB_WBP_NUMERIC &&
+            (
+                state->current == MJB_WBP_MID_NUM ||
+                state->current == MJB_WBP_MID_NUM_LET ||
+                state->current == MJB_WBP_SINGLE_QUOTE
+            )
+        ) {
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, size, state->index, encoding, true);
+
+            if(next_wbp == MJB_WBP_NUMERIC) {
+                return MJB_BT_NO_BREAK;
+            }
+        }
 
         // Do not break between Katakana.
         // WB13 Katakana × Katakana

@@ -34,9 +34,7 @@ static void mjbsh_print_break_analysis(const char* input) {
     size_t display_width;
 
     size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
-    mjb_next_line_state state;
     mjb_break_type bt;
-    state.index = 0;
 
     mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, &display_width);
     printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
@@ -55,62 +53,97 @@ static void mjbsh_print_break_analysis(const char* input) {
         }
     }
 
-    printf("\n\nLine breaking:\n");
+    printf("\n\nGrapheme cluster segmentation:\n");
 
-    while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (state.index > input_size);
-
-        if(first) {
-            mjbsh_print_break_symbol(MJB_BT_NO_BREAK);
-
-            // First iteration: print the starting codepoint
-            mjbsh_print_codepoint(state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
-                ? state.previous_codepoint : state.current_codepoint);
-
-            mjbsh_print_break_symbol(bt);
-
-            // If previous was valid, print current; if not, we already printed current
-            if(state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
-                mjbsh_print_codepoint(state.current_codepoint);
-            }
-
-            first = false;
-        } else if(!is_eot) {
-            mjbsh_print_break_symbol(bt);
-            mjbsh_print_codepoint(state.current_codepoint);
-        } else {
-            mjbsh_print_break_symbol(bt);
-        }
-    }
-
-    mjb_next_state n_state;
-    n_state.index = 0;
+    mjb_next_state segment_state;
+    segment_state.index = 0;
     first = true;
-    printf("\nGrapheme cluster segmentation:\n");
 
-    fflush(stdout);
-
-    while((bt = mjb_segmentation(input, input_size, MJB_ENCODING_UTF_8, &n_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (n_state.index > input_size);
+    while((bt = mjb_segmentation(input, input_size, MJB_ENCODING_UTF_8, &segment_state)) != MJB_BT_NOT_SET) {
+        bool is_eot = (segment_state.index > input_size);
 
         if(first) {
             mjbsh_print_break_symbol(MJB_BT_ALLOWED);
 
             // First iteration: print the starting codepoint
-            mjbsh_print_codepoint(n_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
-                ? n_state.previous_codepoint : n_state.current_codepoint);
+            mjbsh_print_codepoint(segment_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
+                ? segment_state.previous_codepoint : segment_state.current_codepoint);
 
             mjbsh_print_break_symbol(bt);
 
             // If previous was valid, print current; if not, we already printed current
-            if(n_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
-                mjbsh_print_codepoint(n_state.current_codepoint);
+            if(segment_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
+                mjbsh_print_codepoint(segment_state.current_codepoint);
             }
 
             first = false;
         } else if(!is_eot) {
             mjbsh_print_break_symbol(bt);
-            mjbsh_print_codepoint(n_state.current_codepoint);
+            mjbsh_print_codepoint(segment_state.current_codepoint);
+        } else {
+            mjbsh_print_break_symbol(bt);
+        }
+    }
+
+    printf("\n\nWord cluster breaking:\n");
+
+    mjb_next_word_state word_state;
+    word_state.index = 0;
+    first = true;
+
+    while((bt = mjb_break_word(input, input_size, MJB_ENCODING_UTF_8, &word_state)) != MJB_BT_NOT_SET) {
+        bool is_eot = (word_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_break_symbol(MJB_BT_ALLOWED);
+
+            // First iteration: print the starting codepoint
+            mjbsh_print_codepoint(word_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
+                ? word_state.previous_codepoint : word_state.current_codepoint);
+
+            mjbsh_print_break_symbol(bt);
+
+            // If previous was valid, print current; if not, we already printed current
+            if(word_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
+                mjbsh_print_codepoint(word_state.current_codepoint);
+            }
+
+            first = false;
+        } else if(!is_eot) {
+            mjbsh_print_break_symbol(bt);
+            mjbsh_print_codepoint(word_state.current_codepoint);
+        } else {
+            mjbsh_print_break_symbol(bt);
+        }
+    }
+
+    printf("\n\nLine breaking:\n");
+
+    mjb_next_line_state line_state;
+    line_state.index = 0;
+    first = true;
+
+    while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &line_state)) != MJB_BT_NOT_SET) {
+        bool is_eot = (line_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_break_symbol(MJB_BT_NO_BREAK);
+
+            // First iteration: print the starting codepoint
+            mjbsh_print_codepoint(line_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID
+                ? line_state.previous_codepoint : line_state.current_codepoint);
+
+            mjbsh_print_break_symbol(bt);
+
+            // If previous was valid, print current; if not, we already printed current
+            if(line_state.previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
+                mjbsh_print_codepoint(line_state.current_codepoint);
+            }
+
+            first = false;
+        } else if(!is_eot) {
+            mjbsh_print_break_symbol(bt);
+            mjbsh_print_codepoint(line_state.current_codepoint);
         } else {
             mjbsh_print_break_symbol(bt);
         }

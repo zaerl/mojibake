@@ -16,6 +16,7 @@
 
 // Global command-line option variables
 int cmd_show_colors = 0;
+bool cmd_show_allowed_symbols = false;
 unsigned int cmd_verbose = 0;
 mjbsh_interpret_mode cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
 mjbsh_output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
@@ -154,7 +155,15 @@ void mjbsh_print_codepoint(mjb_codepoint codepoint) {
 void mjbsh_print_break_symbol(mjb_break_type bt) {
     if(bt == MJB_BT_ALLOWED) {
         printf("%s÷%s", mjbsh_green(), mjbsh_reset());
-    } else if(bt == MJB_BT_NO_BREAK) {
+
+        return;
+    }
+
+    if(!cmd_show_allowed_symbols) {
+        return;
+    }
+
+    if(bt == MJB_BT_NO_BREAK) {
         printf("%s×%s", mjbsh_red(), mjbsh_reset());
     } else if(bt == MJB_BT_MANDATORY) {
         printf("%s!%s\n", mjbsh_yellow(), mjbsh_reset());
