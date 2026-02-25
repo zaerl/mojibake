@@ -329,6 +329,7 @@ typedef struct mjb_next_line_state {
     bool zw_seen;
     bool pi_qu_context;
     bool cm_merged;
+    bool zwj_absorbed;
     unsigned short ri_count;
     mjb_lbp prev_resolved;
     mjb_east_asian_width prev_ea;

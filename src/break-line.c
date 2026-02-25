@@ -117,6 +117,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         state->prev_prev_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->pi_qu_context = false;
         state->cm_merged = false;
+        state->zwj_absorbed = false;
     }
 
     if(state->index == size) {
@@ -194,6 +195,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         }
 
         state->cm_merged = false;
+        bool prev_zwj_absorbed = state->zwj_absorbed;
+        state->zwj_absorbed = false;
 
         // Swap previous and current codepoints
         state->previous = state->current;
@@ -325,7 +328,10 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
 
         // LB8a Do not break after a zero width joiner.
         // ZWJ ×
-        if(state->previous == MJB_LBP_ZWJ) {
+        // Also check prev_zwj_absorbed: when LB9 absorbed a ZWJ in the previous call it
+        // remapped current -> base, so state->previous is now the base class (not ZWJ). We
+        // need the flag to ensure LB8a still fires for the ZWJ→next position.
+        if(state->previous == MJB_LBP_ZWJ || prev_zwj_absorbed) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -347,9 +353,20 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             // next pair reflects the true base codepoint (needed for e.g. LB28a [◌]).
             state->current = state->previous;
             state->current_codepoint = state->previous_codepoint;
+
             // Signal that prev_prev_lbp should be preserved (not overwritten) in the next
             // call, so that rules like LB20a see the correct context before the base.
             state->cm_merged = true;
+
+            // If the absorbed character was ZWJ (not CM), signal LB8a to fire in the next
+            // call. The remap above sets current→base, so state->previous in the next call
+            // will be the base class, not ZWJ; the flag restores LB8a's ability to fire.
+            if(lbp == MJB_LBP_ZWJ) {
+                // The LineBreakTest.txt v17 tests that cover 200D × (LB8a) are all at the start of
+                // the string (lines 18795–18890+). ZWJ is the first codepoint, so previous is
+                // literally ZWJ when the next character is processed — LB8a fires correctly.
+                state->zwj_absorbed = true;
+            }
 
             return MJB_BT_NO_BREAK;
         }
