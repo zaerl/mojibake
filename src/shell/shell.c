@@ -153,20 +153,14 @@ void mjbsh_print_codepoint(mjb_codepoint codepoint) {
 }
 
 void mjbsh_print_break_symbol(mjb_break_type bt) {
-    if(bt == MJB_BT_ALLOWED) {
-        printf("%s÷%s", mjbsh_green(), mjbsh_reset());
+    if(bt == MJB_BT_ALLOWED || bt == MJB_BT_MANDATORY) {
+        printf("%s%s%s", mjbsh_green(), bt == MJB_BT_MANDATORY ? "!" : "÷", mjbsh_reset());
 
         return;
     }
 
-    if(!cmd_show_allowed_symbols) {
-        return;
-    }
-
-    if(bt == MJB_BT_NO_BREAK) {
+    if(cmd_show_allowed_symbols && bt == MJB_BT_NO_BREAK) {
         printf("%s×%s", mjbsh_red(), mjbsh_reset());
-    } else if(bt == MJB_BT_MANDATORY) {
-        printf("%s!%s\n", mjbsh_yellow(), mjbsh_reset());
     }
 }
 
