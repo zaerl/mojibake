@@ -38,13 +38,13 @@ export async function readSpecialCasingProps(characters: Character[]): Promise<N
   let maxNewCasesCount = 0;
 
   for await (const line of file.readLines()) {
-    if(line.startsWith('#') || line === '') { // Comment
-      continue;
-    }
-
     // TODO: add support for conditional mappings.
     if(line === '# Conditional Mappings') {
       break;
+    }
+
+    if(line.startsWith('#') || line === '') { // Comment
+      continue;
     }
 
     const filter = (field: string) => {

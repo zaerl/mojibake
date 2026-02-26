@@ -10,11 +10,11 @@
 - [ ] Add Github actions for testing
 - [ ] Add support for conditional mappings
 - [ ] `CaseFolding.txt` table
-- [ ] `WordBreakProperty.txt` table
 - [ ] `SpecialCasing.txt` table
 - [ ] Check `without rowid` tables
-- [ ] Check Windows UTF-8 console mode
 - [ ] Add UTF16 and UTF32 support for WASM build
+- [x] `WordBreakProperty.txt` table
+- [x] Check Windows UTF-8 console mode
 - [x] `auxiliary/GraphemeBreakProperty.txt` table
 - [x] `auxiliary/SentenceBreakProperty.txt` table
 - [x] `auxiliary/WordBreakProperty.txt` table
