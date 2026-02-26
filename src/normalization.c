@@ -142,7 +142,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         // Found a starter
         mjb_codepoint starter = composition_buffer[i].codepoint;
         size_t starter_pos = i;
-        uint8_t last_combining_class = 0;
+        uint16_t last_combining_class = 0;
 
         ++i; // Move to first character after starter
 
@@ -160,7 +160,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
             // Check if composition is blocked
             bool blocked = (last_combining_class != 0 &&
-            last_combining_class >= current_combining_class);
+                last_combining_class >= current_combining_class);
 
             if(!blocked) {
                 // Try to compose starter with this combining character

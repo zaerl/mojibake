@@ -16,5 +16,7 @@ SQLITE_PRIVATE void sqlite3AlterBeginAddColumn(Parse *pParse, SrcList *pSrc) { r
 SQLITE_PRIVATE void sqlite3Reindex(Parse *pParse, Token *pName1, Token *pName2) { return; }
 SQLITE_PRIVATE void sqlite3AlterFinishAddColumn(Parse *pParse, Token *pColDef) { return; }
 SQLITE_PRIVATE void sqlite3AlterRenameTable(Parse *pParse, SrcList *pSrc, Token *pName) { return; }
+SQLITE_PRIVATE void sqlite3Analyze(Parse *pParse, Token *pName1, Token *pName2) { return; }
+SQLITE_PRIVATE void sqlite3AlterDropColumn(Parse *pParse, SrcList *pSrc, const Token *pName) { return; }
 
 #endif
