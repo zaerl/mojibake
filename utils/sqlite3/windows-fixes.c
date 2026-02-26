@@ -35,7 +35,8 @@ SQLITE_PRIVATE void sqlite3RenameTokenRemap(Parse *pParse, const void *pTo, cons
     return;
 }
 
-SQLITE_PRIVATE void sqlite3AlterRenameColumn(Parse*, SrcList*, Token*, Token*) {
+SQLITE_PRIVATE void sqlite3AlterRenameColumn(Parse *pParse, SrcList *pSrc, Token *pOld,
+    Token *pNew) {
     // Fake function for MSVC compatibility
 
     return;
