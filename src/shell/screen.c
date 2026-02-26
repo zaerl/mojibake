@@ -10,8 +10,8 @@
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
-    #include <conio.h>
     #include <io.h>
+    #include "../utf16.h"
     #define STDIN_FILENO _fileno(stdin)
 
     // Windows terminal state structure
@@ -138,8 +138,6 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
 
     char input_buffer[1024] = {0};
     size_t buffer_pos = 0;
-    char c;
-
     if(fn != NULL) {
         fn("");
     }
@@ -149,29 +147,58 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
     in_raw_mode = true;
     mjbsh_show_cursor(false);
 
+#ifdef _WIN32
+    // UTF-16 decode state for surrogate pair tracking across key events
+    uint8_t utf16_state = MJB_UTF_ACCEPT;
+    mjb_codepoint utf16_cp = 0;
+#endif
+
     while(1) {
 #ifdef _WIN32
-        // Windows input handling
-        if(_kbhit()) {
-            c = (char)_getch();
+        INPUT_RECORD ir;
+        DWORD events_read;
+        DWORD wait_result = WaitForSingleObject(term_state.h_stdin, 10);
 
-            if(c == 3) { // Ctrl+C
+        if(
+            wait_result == WAIT_OBJECT_0 &&
+            ReadConsoleInput(term_state.h_stdin, &ir, 1, &events_read) &&
+            events_read > 0 &&
+            ir.EventType == KEY_EVENT &&
+            ir.Event.KeyEvent.bKeyDown
+        ) {
+            WCHAR wc = ir.Event.KeyEvent.uChar.UnicodeChar;
+            WORD vk = ir.Event.KeyEvent.wVirtualKeyCode;
+
+            if(wc == 3) { // Ctrl+C
                 break;
-            } else if(c == 0 || c == (char)0xE0) { // Extended key prefix
-                int ext = _getch();
-
+            } else if(wc == 0) { // Extended key (arrow keys, function keys, etc.)
                 if(key_fn != NULL) {
-                    switch(ext) {
-                        case 0x48: key_fn(MJBSH_KEY_UP);    break;
-                        case 0x50: key_fn(MJBSH_KEY_DOWN);  break;
-                        case 0x4D: key_fn(MJBSH_KEY_RIGHT); break;
-                        case 0x4B: key_fn(MJBSH_KEY_LEFT);  break;
-                        default: break;
+                    switch(vk) {
+                        case VK_UP:
+                            key_fn(MJBSH_KEY_UP);
+                            break;
+                        case VK_DOWN:
+                            key_fn(MJBSH_KEY_DOWN);
+                            break;
+                        case VK_RIGHT:
+                            key_fn(MJBSH_KEY_RIGHT);
+                            break;
+                        case VK_LEFT:
+                            key_fn(MJBSH_KEY_LEFT);
+                            break;
+                        default:
+                            break;
                     }
                 }
-            } else if(c == 127 || c == 8) { // DELETE or BACKSPACE
+            } else if(wc == 8) { // BACKSPACE
                 if(buffer_pos > 0) {
                     --buffer_pos;
+
+                    // Walk back over UTF-8 continuation bytes
+                    while(buffer_pos > 0 && ((unsigned char)input_buffer[buffer_pos] & 0xC0) == 0x80) {
+                        --buffer_pos;
+                    }
+
                     input_buffer[buffer_pos] = '\0';
 
                     if(fn != NULL) {
@@ -179,22 +206,31 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
                     }
                 }
             } else {
-                if(buffer_pos < sizeof(input_buffer) - 1) {
-                    input_buffer[buffer_pos] = c;
-                    ++buffer_pos;
-                    input_buffer[buffer_pos] = '\0';
+                // Decode UTF-16 unit to codepoint; handles surrogate pairs across events
+                utf16_state = mjb_utf16_decode_step(utf16_state,
+                    (uint8_t)(wc & 0xFF), (uint8_t)((wc >> 8) & 0xFF), &utf16_cp, false);
 
-                    if(fn != NULL) {
-                        fn(input_buffer);
+                if(utf16_state == MJB_UTF_ACCEPT) {
+                    char utf8[5] = {0};
+                    unsigned int utf8_len = mjb_codepoint_encode(utf16_cp, utf8, 5, MJB_ENCODING_UTF_8);
+
+                    if(utf8_len > 0 && buffer_pos + utf8_len < sizeof(input_buffer) - 1) {
+                        for(unsigned int i = 0; i < utf8_len; i++) {
+                            input_buffer[buffer_pos++] = utf8[i];
+                        }
+
+                        input_buffer[buffer_pos] = '\0';
+
+                        if(fn != NULL) {
+                            fn(input_buffer);
+                        }
                     }
                 }
             }
         }
-
-        // Sleep to avoid busy-waiting
-        Sleep(10);
 #else
         // Unix input handling with select()
+        char c;
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(STDIN_FILENO, &readfds);
@@ -229,11 +265,20 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
 
                             if(n > 0 && key_fn != NULL) {
                                 switch(seq[0]) {
-                                    case 'A': key_fn(MJBSH_KEY_UP);    break;
-                                    case 'B': key_fn(MJBSH_KEY_DOWN);  break;
-                                    case 'C': key_fn(MJBSH_KEY_RIGHT); break;
-                                    case 'D': key_fn(MJBSH_KEY_LEFT);  break;
-                                    default: break;
+                                    case 'A':
+                                        key_fn(MJBSH_KEY_UP);
+                                        break;
+                                    case 'B':
+                                        key_fn(MJBSH_KEY_DOWN);
+                                        break;
+                                    case 'C':
+                                        key_fn(MJBSH_KEY_RIGHT);
+                                        break;
+                                    case 'D':
+                                        key_fn(MJBSH_KEY_LEFT);
+                                        break;
+                                    default:
+                                        break;
                                 }
                             }
                         }
