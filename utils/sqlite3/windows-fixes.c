@@ -13,6 +13,6 @@ SQLITE_PRIVATE void sqlite3RenameExprlistUnmap(Parse *pParse, ExprList *pEList) 
 SQLITE_PRIVATE void sqlite3RenameTokenRemap(Parse *pParse, const void *pTo, const void *pFrom) { return; }
 SQLITE_PRIVATE void sqlite3AlterRenameColumn(Parse *pParse, SrcList *pSrc, Token *pOld, Token *pNew) { return; }
 SQLITE_PRIVATE void sqlite3AlterBeginAddColumn(Parse *pParse, SrcList *pSrc) { return; }
-SQLITE_PRIVATE void sqlite3Reindex(Parse *pParse, Token *pName1, Token *pName2) { return }
+SQLITE_PRIVATE void sqlite3Reindex(Parse *pParse, Token *pName1, Token *pName2) { return; }
 
 #endif
