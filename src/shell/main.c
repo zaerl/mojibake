@@ -263,7 +263,7 @@ int main(int argc, char * const argv[]) {
     mjbsh_show_help(long_options, descriptions, commands, NULL);
 
 #ifdef _WIN32
-    SetConsoleOutputCP(originalCP);
+    SetConsoleOutputCP(original_cp);
 #endif
 
     return 0;
