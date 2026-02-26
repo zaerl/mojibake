@@ -34,9 +34,17 @@ all: configure build mojibake.db
 configure: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
+# NULL-safe testing targets
+configure-null: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DALLOW_EMBEDDED_NULLS=ON
+
 # Embedded database build
 configure-embedded: $(SQLITE_SOURCES) generate-embedded-db
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_EMBEDDED_DB=ON
+
+# Shared library targets
+configure-shared: $(SQLITE_SOURCES)
+	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_SHARED=ON
 
 # C targets
 build: configure
@@ -58,6 +66,10 @@ configure-asan: $(SQLITE_SOURCES)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DUSE_ASAN=ON
 
 build-asan: configure-asan
+	@cmake --build $(BUILD_DIR)
+
+# Shared library targets
+build-shared: configure-shared
 	@cmake --build $(BUILD_DIR)
 
 # WASM targets
@@ -112,6 +124,10 @@ update-version:
 watch-site:
 	@cd utils\generate && npx chokidar-cli "..\..\src\site\**\*" -c "npm run generate-site && echo [Regenerated]" --initial
 
+# Watch API files
+watch-api:
+	@cd src\api && node --watch index.js
+
 # Serve WASM site with live reload
 serve: wasm generate-site
 	@cd $(WASM_BUILD_DIR)\src && python -m http.server
@@ -119,6 +135,11 @@ serve: wasm generate-site
 # Run tests
 test: mojibake.db
 	@nmake /NOLOGO /F Makefile.nmake configure build BUILD_TYPE=Test
+	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+
+# Run tests with embedded NULL support
+test-null: mojibake.db
+	@nmake /NOLOGO /F Makefile.nmake configure-null build BUILD_TYPE=Test
 	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with embedded database
@@ -162,6 +183,9 @@ clean-amalgamation:
 clean-embedded-amalgamation:
 	@if exist $(EMBEDDED_AMALGAMATION_BUILD_DIR) rmdir /S /Q $(EMBEDDED_AMALGAMATION_BUILD_DIR)
 
+clean-embedded-amalgamation-header:
+	@if exist src\embedded-db.h del /Q src\embedded-db.h
+
 clean-database:
 	@if exist mojibake.db del /Q mojibake.db
 
@@ -169,31 +193,41 @@ clean-sqlite:
 	@if exist src\sqlite3\sqlite3.c del /Q src\sqlite3\sqlite3.c
 	@if exist src\sqlite3\sqlite3.h del /Q src\sqlite3\sqlite3.h
 
-clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-database clean-sqlite
+clean: clean-native clean-wasm clean-amalgamation clean-embedded-amalgamation clean-embedded-amalgamation-header clean-database clean-sqlite
 
 # Help
 help:
 	@echo Available targets:
 	@echo   all          - Build the project (default)
-	@echo   build-cpp    - Build the project with C++ compiler
-	@echo   build-asan   - Build the project with AddressSanitizer
 	@echo   build-embedded - Build with embedded database (no .db file needed)
+	@echo   build-cpp    - Build the project with C++ compiler
+	@echo   build-shared - Build the project as a shared library
+	@echo   build-asan   - Build the project with AddressSanitizer
+	@echo   build-wasm   - Build the project for WebAssembly
+	@echo   generate     - Regenerate source files
+	@echo   generate-locales - Generate locale files
+	@echo   generate-sqlite - Generate SQLite source files
+	@echo   generate-embedded-db - Generate embedded database header
+	@echo   generate-site - Generate site
+	@echo   wasm         - Build the project for WebAssembly
+	@echo   coverage     - Run coverage analysis
+	@echo   amalgamation - Generate single-file amalgamation
+	@echo   update-version - Update version in source files
+	@echo   watch-site   - Watch site files, regenerate on changes and serve at localhost:8080
 	@echo   test         - Build and run tests
 	@echo   test-embedded - Build and run tests with embedded database
 	@echo   test-cpp     - Build and run tests with C++ compiler
 	@echo   test-asan    - Build and run tests with AddressSanitizer
+	@echo   test-null    - Build and run tests with embedded NULL support
 	@echo   ctest        - Build and run tests using CTest
 	@echo   test-docker  - Build and run tests in Docker container
-	@echo   wasm         - Build the project for WebAssembly
 	@echo   serve        - Serve site
-	@echo   clean        - Remove build artifacts
-	@echo   clean-wasm   - Remove WASM build artifacts
+	@echo   clean-build  - Remove build artifacts
 	@echo   clean-native - Remove all build artifacts
+	@echo   clean-wasm   - Remove WASM build artifacts
 	@echo   clean-amalgamation - Remove amalgamation build artifacts
 	@echo   clean-embedded-amalgamation - Remove embedded amalgamation build artifacts
+	@echo   clean-embedded-amalgamation-header - Remove embedded amalgamation header
+	@echo   clean-database - Remove main database file
 	@echo   clean-sqlite - Remove generated SQLite source files
-	@echo   generate     - Regenerate source files
-	@echo   generate-embedded-db - Generate embedded database header
-	@echo   amalgamation - Generate single-file amalgamation
-	@echo   update-version - Update version in source files
-	@echo   coverage     - Run coverage analysis
+	@echo   clean        - Remove build artifacts
