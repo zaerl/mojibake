@@ -14,5 +14,6 @@ SQLITE_PRIVATE void sqlite3RenameTokenRemap(Parse *pParse, const void *pTo, cons
 SQLITE_PRIVATE void sqlite3AlterRenameColumn(Parse *pParse, SrcList *pSrc, Token *pOld, Token *pNew) { return; }
 SQLITE_PRIVATE void sqlite3AlterBeginAddColumn(Parse *pParse, SrcList *pSrc) { return; }
 SQLITE_PRIVATE void sqlite3Reindex(Parse *pParse, Token *pName1, Token *pName2) { return; }
+SQLITE_PRIVATE void sqlite3AlterFinishAddColumn(Parse *pParse, Token *pColDef) { return; }
 
 #endif
