@@ -9,6 +9,7 @@
 #include <string.h>
 
 #ifdef _WIN32
+    #include <windows.h>
     #include <io.h>
     #include "getopt/getopt.h"
     #define isatty _isatty
