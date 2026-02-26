@@ -84,7 +84,7 @@ static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
 }
 
 /**
- * See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G34078
+ * See: https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G34078
  */
 static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encoding) {
     uint8_t state = MJB_UTF_ACCEPT;

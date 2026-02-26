@@ -8,7 +8,7 @@
 
 #include "mojibake.h"
 
-// See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G61399
+// See: https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G61399
 
 // Arrays holding the names of the individual components
 static const char* mjb_choseong_names[] = {

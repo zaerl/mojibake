@@ -105,7 +105,7 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CODEPOINT_NOT_VALID   0x110000 // Not a valid codepoint
 
 // Hangul Syllables constants
-// See: https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G61399
+// See: https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G61399
 #define MJB_CP_HANGUL_S_BASE  0xAC00
 #define MJB_CP_HANGUL_L_BASE  0x1100
 #define MJB_CP_HANGUL_V_BASE  0x1161

@@ -41,7 +41,7 @@
 
 ## Unicode Conformance Requirements
 
-See https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G29705
+See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G29705
 
 **C1** A process shall not interpret a high-surrogate code point or a low-surrogate code point
 as an abstract character.

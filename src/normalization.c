@@ -441,7 +441,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                  * When we encounter a "starter" character (CCC = 0), we must flush any pending
                  * combining characters in the buffer to ensure proper ordering.
                  *
-                 * See https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G49579
+                 * See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G49579
                  */
                 if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                     if(is_composition) {
