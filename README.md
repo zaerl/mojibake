@@ -21,19 +21,19 @@ like any of the existing one. It aims to be, in order of importance:
 It consists in a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file (a SQLite database
 file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want. Also a
 C++ wrapper can be found on `ext/cpp/mojibake.cpp` if you prefer it. Download it here
-[mojibake-amalgamation-008.zip](https://mojibake.zaerl.com/mojibake-amalgamation-012.zip).
+[mojibake-amalgamation-012.zip](https://mojibake.zaerl.com/mojibake-amalgamation-012.zip).
 
 An alternative embedded version is provided, where the `mojibake.db` file is not needed, and only
 the `mojibake.c` and `mojibake.h` are needed. The content of the database is loaded directly from
 the C file. This will increase the size of your executable. If you don't mind opening files, use
 the other mode. You can get it here
-[mojibake-embedded-amalgamation-008.zip](https://mojibake.zaerl.com/mojibake-embedded-amalgamation-012.zip).
+[mojibake-embedded-amalgamation-012.zip](https://mojibake.zaerl.com/mojibake-embedded-amalgamation-012.zip).
 
 An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
 use to preview the API.
 
 This library works only in little-endian systems to avoid adding too much overhead. This means that
-it works in all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.) It has been
+it works on all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.) It has been
 tested on:
 
 1. macOS
@@ -107,7 +107,7 @@ U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 A `shell.c` file is provided that let you have a CLI to test the library. Example usage:
 
 ```sh
-mojibake -vv char $'\U022A'
+mojibake -v char $'\U022A'
 # Similar to
 # mojibake -vv codepoint 022A
 ```
@@ -132,7 +132,7 @@ NFKD normalization: U+004F U+0308 U+0304
 NFKC: Ȫ
 NFKC normalization: U+004F U+0308 U+0304
 Category: [0] Letter, uppercase
-Combining: [0] Not reordered
+Combining: [0] Not Reordered
 Bidirectional: [1] Left-to-right
 Plane: [0] Basic Multilingual Plane
 Block: [3] Latin Extended-B
@@ -144,14 +144,6 @@ Mirrored: N
 Uppercase: N/A
 Lowercase: U+022B
 Titlecase: N/A
-Line Breaking Class: [31] AP
-East Asian Width: [3] Neutral
-Emoji: N/A
-Emoji Presentation: N/A
-Emoji Modifier: N/A
-Emoji Modifier Base: N/A
-Emoji Component: N/A
-Extended Pictographic: N/A
 ```
 
 JSON format:
@@ -162,84 +154,15 @@ mojibake -vv -o json -j 2 char $'\U022A'
 # mojibake -vv -o json -j 2 codepoint 022A
 ```
 
-Output:
-
-```json
-[
-  {
-    "codepoint": "U+022A",
-    "name": "LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON",
-    "character": "Ȫ",
-    "hex_utf-8": [200, 170],
-    "hex_utf-16be": [2, 42],
-    "hex_utf-16le": [42, 2],
-    "hex_utf-32be": [0, 0, 2, 42],
-    "hex_utf-32le": [42, 2, 0, 0],
-    "nfd": "Ȫ",
-    "nfd_normalization": [79, 776, 772],
-    "nfc": "Ȫ",
-    "nfc_normalization": [554],
-    "nfkd": "Ȫ",
-    "nfkd_normalization": [79, 776, 772],
-    "nfkc": "Ȫ",
-    "nfkc_normalization": [79, 776, 772],
-    "category": {
-      "code": 0,
-      "value": "Letter, uppercase"
-    },
-    "combining": {
-      "code": 0,
-      "value": "Not reordered"
-    },
-    "bidirectional": {
-      "code": 1,
-      "value": "Left-to-right"
-    },
-    "plane": {
-      "code": 0,
-      "value": "Basic Multilingual Plane"
-    },
-    "block": {
-      "code": 3,
-      "value": "Latin Extended-B"
-    },
-    "decomposition": {
-      "code": 1,
-      "value": "Canonical"
-    },
-    "decimal": null,
-    "digit": null,
-    "numeric": null,
-    "mirrored": false,
-    "uppercase": null,
-    "lowercase": 555,
-    "titlecase": null,
-    "line_breaking_class": {
-      "code": 31,
-      "value": "AP"
-    },
-    "east_asian_width": {
-      "code": 3,
-      "value": "Neutral"
-    },
-    "emoji": null,
-    "emoji_presentation": null,
-    "emoji_modifier": null,
-    "emoji_modifier_base": null,
-    "emoji_component": null,
-    "extended_pictographic": null
-  }
-]
-```
-
-JSON is by default indented with two characters. But you can change it, if you need to parse
-multiple codepoints. E.g. `mojibake -j 0 -o json char $'\U61\U62'`
-
 ### Coverage
 
-Mojibake run all the normalization tests found in the standard
-[NormalizationTest.txt](https://www.unicode.org/Public/16.0.0/ucd/NormalizationTest.txt) suite of
-tests.
+Mojibake run all the official tests found in the standard:
+1. [GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
+2. [LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
+3. [SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
+4. [WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
+5. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
+
 
 ## WebAssembly
 
@@ -247,8 +170,14 @@ You can run a local server of `mojibake.zaerl.com`.
 
 ```
 make wasm
-make serve # or similar systems that let you serve static files
-# Open http://[::1]:8000/wasm.html. It will show the Mojibake version on console
+make watch-site
+# Open http://localhost:6251
+```
+
+In another terminal:
+
+```
+make watch-api
 ```
 
 ## Licenses
