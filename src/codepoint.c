@@ -201,7 +201,7 @@ MJB_EXPORT bool mjb_category_is_graphic(mjb_category category) {
 
 MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
     return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_MC ||
-    category == MJB_CATEGORY_ME;
+        category == MJB_CATEGORY_ME;
 }
 
 // Return the character block
