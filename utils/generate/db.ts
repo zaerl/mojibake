@@ -8,6 +8,7 @@ import Database, { Statement } from 'better-sqlite3';
 import { statSync } from 'fs';
 import { Character } from './character';
 import { Emoji } from './emoji';
+import { CaseFoldEntry } from './parse-ucd/casefold';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
 import { Prefix } from './prefix-compressor';
@@ -418,6 +419,18 @@ export function dbRunSpecialCasing(newCases: NewCases) {
         newCases[i].uppercase[2],
       );
     }
+  }
+}
+
+export function dbRunCaseFolding(entries: CaseFoldEntry[]) {
+  for(const entry of entries) {
+    insertSpecialCasingSmt.run(
+      entry.codepoint,
+      CaseType.CaseFold,
+      entry.mapping[0] ?? null,
+      entry.mapping[1] ?? null,
+      entry.mapping[2] ?? null,
+    );
   }
 }
 

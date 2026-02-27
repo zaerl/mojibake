@@ -14,7 +14,7 @@ void *test_case(void *arg) {
 
     // Test case conversion functions
     // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 20
+    // CURRENT_COUNT 28
     char *result = NULL;
 
     // Test uppercase conversion
@@ -110,6 +110,44 @@ void *test_case(void *arg) {
 
     result = mjb_case("123abc", 8, MJB_CASE_TITLE, encoding);
     ATT_ASSERT(result, (char*)"123Abc", "UTF-8 titlecase: 123abc")
+    mjb_free(result);
+
+    // Test casefold: ASCII uppercase via unicode_data.lowercase fallback
+    result = mjb_case("ABC", 3, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"abc", "Casefold: ABC -> abc")
+    mjb_free(result);
+
+    result = mjb_case("Hello World", 11, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"hello world", "Casefold: Hello World -> hello world")
+    mjb_free(result);
+
+    // Test casefold: ß (U+00DF) -> ss, F entry (multi-char expansion)
+    result = mjb_case("ß", 2, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"ss", "Casefold: ß -> ss")
+    mjb_free(result);
+
+    result = mjb_case("straße", 7, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"strasse", "Casefold: straße -> strasse")
+    mjb_free(result);
+
+    // Test casefold: µ (U+00B5 MICRO SIGN) -> μ (U+03BC), C exception entry
+    result = mjb_case("µ", 2, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"μ", "Casefold: µ (U+00B5) -> μ (U+03BC)")
+    mjb_free(result);
+
+    // Test casefold: ﬃ (U+FB03) -> ffi, F entry with 3-codepoint expansion
+    result = mjb_case("ﬃ", 3, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"ffi", "Casefold: ﬃ -> ffi")
+    mjb_free(result);
+
+    // Test casefold: Greek uppercase via unicode_data.lowercase fallback
+    result = mjb_case("Σ", 2, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"σ", "Casefold: Σ -> σ")
+    mjb_free(result);
+
+    // Test casefold: digits/symbols pass through unchanged (identity path)
+    result = mjb_case("123", 3, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"123", "Casefold: 123 -> 123")
     mjb_free(result);
 
     ATT_ASSERT(mjb_codepoint_to_lowercase('#'), '#', "Lowercase #: #")

@@ -9,7 +9,7 @@ import { access, unlink } from 'fs/promises';
 import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
 import { Character } from './character';
-import { dbInit, dbRun, dbRunAfter, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateEmbeddedDB } from './generate-embedded-db';
@@ -142,7 +142,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   dbRunSpecialCasing(newCases);
   dbRunPropertyRanges(propertyRanges);
 
-  await generateCasefold();
+  const caseFolds = await generateCasefold(characters);
+  dbRunCaseFolding(caseFolds);
 
   dbRunAfter();
 

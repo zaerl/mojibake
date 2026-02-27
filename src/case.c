@@ -226,6 +226,40 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         }
 
         if(type == MJB_CASE_CASEFOLD) {
+            sqlite3_stmt *scf = mjb_global.stmt_special_casing;
+
+            sqlite3_reset(scf);
+
+            if(sqlite3_bind_int(scf, 1, codepoint) == SQLITE_OK &&
+                sqlite3_bind_int(scf, 2, MJB_CASE_CASEFOLD) == SQLITE_OK &&
+                sqlite3_step(scf) == SQLITE_ROW) {
+
+                // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
+                for(int k = 0; k < 3; ++k) {
+                    if(sqlite3_column_type(scf, k) == SQLITE_NULL) {
+                        break;
+                    }
+
+                    mjb_codepoint mapped = (mjb_codepoint)sqlite3_column_int(scf, k);
+                    output = mjb_string_output_codepoint(mapped, output, &output_index,
+                        &output_size, encoding);
+                }
+
+                continue;
+            }
+
+            // Fall back to unicode_data lowercase
+            sqlite3_reset(stmt);
+
+            if(
+                sqlite3_bind_int(stmt, 1, codepoint) == SQLITE_OK &&
+                sqlite3_step(stmt) == SQLITE_ROW &&
+                sqlite3_column_type(stmt, MJB_CASE_LOWER) != SQLITE_NULL
+            ) {
+                codepoint = (mjb_codepoint)sqlite3_column_int(stmt, MJB_CASE_LOWER);
+            }
+
+            // Identity: codepoint unchanged if no lowercase found
             output = mjb_string_output_codepoint(codepoint, output, &output_index,
                 &output_size, encoding);
 
