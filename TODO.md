@@ -3,16 +3,16 @@
 ## Main
 
 - [ ] UTF-16 strings
-- [ ] Add `mjb_casefold`
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
 - [ ] Add Github actions for testing
 - [ ] Add support for conditional mappings
-- [ ] `CaseFolding.txt` table
 - [ ] `SpecialCasing.txt` table
 - [ ] Check `without rowid` tables
 - [ ] Add UTF16 and UTF32 support for WASM build
+- [x] Add `mjb_casefold`
+- [x] `CaseFolding.txt` table
 - [x] `WordBreakProperty.txt` table
 - [x] Check Windows UTF-8 console mode
 - [x] `auxiliary/GraphemeBreakProperty.txt` table

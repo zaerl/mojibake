@@ -7,7 +7,7 @@
 | `mjb_break_word`                    | 1826       |
 | `mjb_segmentation`                  | 721        |
 | `mjb_break_sentence`                | 454        |
-| `mjb_case`                          | 389        |
+| `mjb_case`                          | 413        |
 | `mjb_string_filter`                 | 130        |
 | `mjb_codepoint_character`           | 80         |
 | `mjb_strnlen`                       | 80         |
@@ -56,4 +56,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **424170** |
+| **Total**                           | **424194** |

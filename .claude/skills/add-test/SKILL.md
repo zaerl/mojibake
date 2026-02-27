@@ -1,7 +1,7 @@
 ---
 name: add-test
 description: Add a new test assertion to the mojibake test suite
-version: 0.1.2
+version: 0.1.3
 author: Claude
 tags: [testing, mojibake, c]
 ---
