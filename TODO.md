@@ -2,42 +2,10 @@
 
 ## Main
 
-- [ ] UTF-16 strings
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
 - [ ] Add Github actions for testing
-- [ ] Add support for conditional mappings
-- [ ] `SpecialCasing.txt` table
-- [ ] Check `without rowid` tables
-- [ ] Add UTF16 and UTF32 support for WASM build
-- [x] Add `mjb_casefold`
-- [x] `CaseFolding.txt` table
-- [x] `WordBreakProperty.txt` table
-- [x] Check Windows UTF-8 console mode
-- [x] `auxiliary/GraphemeBreakProperty.txt` table
-- [x] `auxiliary/SentenceBreakProperty.txt` table
-- [x] `auxiliary/WordBreakProperty.txt` table
-- [x] Add support for KHITAN SMALL SCRIPT CHARACTER-18XX
-- [x] Check TANGUT IDEOGRAPH
-- [x] Add support for NameAliases.txt
-- [x] Add amalgamation script
-- [x] Add Codeberg upstream
-- [x] Add UTF16 support for `mjb_next_character`
-- [x] Add UTF16 support for `mjb_normalize`
-- [x] Add UTF16 support for `mjb_string_is_normalized`
-- [x] Add WASM version
-- [x] Add support for Windows
-- [x] Add support for Alpine Linux
-- [x] `UnicodeData.txt` table
-- [x] `Blocks.txt` table
-- [x] Composition table
-- [x] Decomposition table
-- [x] Compatibility decomposition table
-- [x] Codepoint to character transformation
-- [x] UTF-8 strings
-- [x] Remove `mjb_string_next_codepoint`
-- [x] Remove `sqlite3.h` import on `mojibake.h`
 
 ## Unicode Conformance Requirements
 
