@@ -14,7 +14,7 @@ void *test_case(void *arg) {
 
     // Test case conversion functions
     // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 28
+    // CURRENT_COUNT 32
     char *result = NULL;
 
     // Test uppercase conversion
@@ -148,6 +148,25 @@ void *test_case(void *arg) {
     // Test casefold: digits/symbols pass through unchanged (identity path)
     result = mjb_case("123", 3, MJB_CASE_CASEFOLD, encoding);
     ATT_ASSERT(result, (char*)"123", "Casefold: 123 -> 123")
+    mjb_free(result);
+
+    // Test Final_Sigma rule: word-final Σ → ς, non-final Σ → σ
+    result = mjb_case("ΣΕΙΣ", 8, MJB_CASE_LOWER, encoding);
+    ATT_ASSERT(result, (char*)"σεις", "UTF-8 lowercase Final_Sigma: ΣΕΙΣ -> σεις")
+    mjb_free(result);
+
+    result = mjb_case("ΑΣΑ", 6, MJB_CASE_LOWER, encoding);
+    ATT_ASSERT(result, (char*)"ασα", "UTF-8 lowercase non-final sigma: ΑΣΑ -> ασα")
+    mjb_free(result);
+
+    result = mjb_case("ΣΕΙΣ", 8, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"Σεις", "UTF-8 titlecase Final_Sigma: ΣΕΙΣ -> Σεις")
+    mjb_free(result);
+
+    // Test that titlecase uses original codepoint for special-casing lookup (Fix 2):
+    // In-word İ (U+0130) must lower to "i + U+0307 (combining dot above)", not bare "i".
+    result = mjb_case("AİB", 4, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"Ai\xCC\x87""b", "UTF-8 titlecase special casing: AİB -> Ai\u0307b")
     mjb_free(result);
 
     ATT_ASSERT(mjb_codepoint_to_lowercase('#'), '#', "Lowercase #: #")

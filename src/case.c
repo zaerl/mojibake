@@ -9,47 +9,41 @@
 
 extern mojibake mjb_global;
 
-static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
-    // This values are manually picked from the SpecialCasing.txt file during the generation.
+static bool mjb_is_cased(mjb_category category) {
+    return category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL ||
+        category == MJB_CATEGORY_LT;
+}
 
+// Mn, Me and Cf do not break words.
+static bool mjb_is_case_ignorable(mjb_category category) {
+    return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_ME ||
+        category == MJB_CATEGORY_CF;
+}
+
+static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
+    // Codepoints with unconditional multi-char entries in SpecialCasing.txt.
     switch(codepoint) {
-        case 73:
-        case 74:
-        case 105:
-        case 204:
-        case 205:
-        case 223:
-        case 296:
-        case 302:
-        case 304:
-        case 329:
-        case 496:
-        case 775:
-        case 912:
-        case 931:
-        case 944:
-        case 1415:
+        case 223:  // U+00DF ß LATIN SMALL LETTER SHARP S
+        case 304:  // U+0130 İ LATIN CAPITAL LETTER I WITH DOT ABOVE
+        case 329:  // U+0149 ŉ LATIN SMALL LETTER N PRECEDED BY APOSTROPHE
+        case 496:  // U+01F0 ǰ LATIN SMALL LETTER J WITH CARON
+        case 912:  // U+0390 ΐ GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS
+        case 944:  // U+03B0 ΰ GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS
+        case 1415: // U+0587 եւ ARMENIAN SMALL LIGATURE ECH YIWN
             return true;
     }
 
     return
-        (codepoint >= 7830 && codepoint <= 7834) ||
-        (codepoint >= 8016 && codepoint <= 8188) ||
-        (codepoint >= 64256 && codepoint <= 64279);
+        (codepoint >= 7830 && codepoint <= 7834) || // U+1E96–U+1E9A
+        (codepoint >= 8016 && codepoint <= 8188) || // U+1F50–U+1FFC
+        (codepoint >= 64256 && codepoint <= 64279); // U+FB00–U+FB17
 }
 
 static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
     size_t *output_index, size_t *output_size, mjb_case_type type) {
     sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
 
-    // Potential query:
-    // SELECT new_case_1, new_case_2, new_case_3 FROM special_casing WHERE id = ? AND case_type = ?
-    // UNION ALL
-    // SELECT uppercase, lowercase, titlecase FROM characters WHERE id = ?
-    // AND NOT EXISTS (SELECT 1 FROM special_casing WHERE id = ? AND case_type = ?);
-
     sqlite3_reset(stmt_special_casing);
-    // sqlite3_clear_bindings(stmt_special_casing);
 
     if(sqlite3_bind_int(stmt_special_casing, 1, codepoint) != SQLITE_OK) {
         return NULL;
@@ -81,6 +75,30 @@ static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
     }
 
     return found > 0 ? output : NULL;
+}
+
+// Peek at the next decoded codepoint and return whether it is cased (Lu/Ll/Lt).
+static bool mjb_next_is_cased(const char *buffer, size_t size, size_t i,
+    uint8_t state, mjb_encoding encoding, sqlite3_stmt *stmt) {
+    mjb_codepoint next_cp = 0;
+    bool next_in_error = false;
+    mjb_decode_result ps;
+
+    do {
+        ps = mjb_next_codepoint(buffer, size, &state, &i, encoding, &next_cp, &next_in_error);
+    } while(ps == MJB_DECODE_INCOMPLETE);
+
+    if(ps == MJB_DECODE_END) {
+        return false;
+    }
+
+    sqlite3_reset(stmt);
+
+    if(sqlite3_bind_int(stmt, 1, next_cp) != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW) {
+        return false;
+    }
+
+    return mjb_is_cased((mjb_category)sqlite3_column_int(stmt, 0));
 }
 
 /**
@@ -126,6 +144,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             return NULL;
         }
 
+        mjb_codepoint original = codepoint;
         mjb_category category = (mjb_category)sqlite3_column_int(stmt, 0);
         mjb_case_type case_type = MJB_CASE_NONE;
 
@@ -164,8 +183,23 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             in_word = false;
         }
 
-        if(mjb_maybe_has_special_casing(codepoint)) {
-            char *new_output = mjb_special_casing_codepoint(codepoint, output,
+        // Final_Sigma (SpecialCasing.txt condition Final_Sigma):
+        // In-word Σ (U+03A3) → ς (U+03C2) when not followed by a cased letter.
+        if(original == 0x03A3 && case_type == MJB_CASE_LOWER) {
+            mjb_codepoint sigma_out = mjb_next_is_cased(buffer, size, i, state, encoding, stmt)
+                ? 0x03C3   // σ: followed by a cased letter, not word-final
+                : 0x03C2;  // ς: word-final sigma
+
+            output = mjb_string_output_codepoint(sigma_out, output, &output_index,
+                &output_size, encoding);
+
+            continue;
+        }
+
+        // Check against the original codepoint (before any remapping by the word-boundary
+        // block above). The remapped form may not be the source of any special casing rule.
+        if(mjb_maybe_has_special_casing(original)) {
+            char *new_output = mjb_special_casing_codepoint(original, output,
                 &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE :
                 case_type);
 
@@ -211,6 +245,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
     size_t output_index = 0;
     size_t output_size = size;
+    bool in_word = false; // tracks word context for Final_Sigma (MJB_CASE_LOWER only)
 
     for(size_t i = 0; i < size;) {
         // Find next codepoint.
@@ -233,7 +268,6 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             if(sqlite3_bind_int(scf, 1, codepoint) == SQLITE_OK &&
                 sqlite3_bind_int(scf, 2, MJB_CASE_CASEFOLD) == SQLITE_OK &&
                 sqlite3_step(scf) == SQLITE_ROW) {
-
                 // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
                 for(int k = 0; k < 3; ++k) {
                     if(sqlite3_column_type(scf, k) == SQLITE_NULL) {
@@ -266,18 +300,42 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             continue;
         }
 
+        // Final_Sigma (SpecialCasing.txt condition Final_Sigma):
+        // Σ (U+03A3) → ς (U+03C2) when preceded by a cased letter in the same word
+        // and not followed by a cased letter.
+        if(type == MJB_CASE_LOWER && codepoint == 0x03A3) {
+            mjb_codepoint sigma_out;
+
+            if(in_word && !mjb_next_is_cased(buffer, size, i, state, encoding, stmt)) {
+                sigma_out = 0x03C2; // ς: word-final sigma
+            } else {
+                sigma_out = 0x03C3; // σ: non-final or no preceding cased letter
+            }
+
+            in_word = true;  // Σ is a cased letter
+
+            output = mjb_string_output_codepoint(sigma_out, output, &output_index,
+                &output_size, encoding);
+
+            continue;
+        }
+
         if(mjb_maybe_has_special_casing(codepoint)) {
             char *new_output = mjb_special_casing_codepoint(codepoint, output,
                 &output_index, &output_size, type);
 
             if(new_output != NULL) {
+                if(type == MJB_CASE_LOWER) {
+                    in_word = true;
+                }
+
                 output = new_output;
+
                 continue;
             }
         }
 
         sqlite3_reset(stmt);
-        // sqlite3_clear_bindings(stmt);
 
         int rc = sqlite3_bind_int(stmt, 1, codepoint);
 
@@ -293,6 +351,16 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             mjb_free(output);
 
             return NULL;
+        }
+
+        if(type == MJB_CASE_LOWER) {
+            mjb_category cat = (mjb_category)sqlite3_column_int(stmt, 0);
+
+            if(mjb_is_cased(cat)) {
+                in_word = true;
+            } else if(!mjb_is_case_ignorable(cat)) {
+                in_word = false;
+            }
         }
 
         if(sqlite3_column_type(stmt, type) == SQLITE_NULL) {
