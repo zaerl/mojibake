@@ -204,6 +204,10 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         "special_casing WHERE codepoint = ? AND case_type = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_special_casing, query_special_casing)
 
+    const char query_casefold[] = "SELECT new_case_1, new_case_2, new_case_3 "
+        "FROM case_folding WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_casefold, query_casefold)
+
     const char query_line_breaking[] = "SELECT category, extended_pictographic FROM unicode_data "
         "WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_line_breaking, query_line_breaking)
@@ -272,6 +276,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_special_casing) {
         sqlite3_finalize(mjb_global.stmt_special_casing);
+    }
+
+    if(mjb_global.stmt_casefold) {
+        sqlite3_finalize(mjb_global.stmt_casefold);
     }
 
     if(mjb_global.stmt_line_breaking) {

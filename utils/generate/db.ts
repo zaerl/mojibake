@@ -22,6 +22,7 @@ let insertCompatDecompositionSmt: Statement;
 let insertCompositionSmt: Statement;
 let insertBlockSmt: Statement;
 let insertSpecialCasingSmt: Statement;
+let insertCaseFoldingSmt: Statement;
 let insertEmojiPropertiesSmt: Statement;
 let insertPrefixSmt: Statement;
 let insertPropertyRangesSmt: Statement;
@@ -147,6 +148,16 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       PRIMARY KEY (codepoint, case_type)
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS case_folding (
+      codepoint INTEGER NOT NULL PRIMARY KEY,
+      new_case_1 INTEGER NOT NULL,
+      new_case_2 INTEGER,
+      new_case_3 INTEGER
+    );
+  `);
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS emoji_properties (
       codepoint INTEGER PRIMARY KEY,
@@ -271,6 +282,11 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       new_case_2,
       new_case_3)
       VALUES (?, ?, ?, ?, ?);
+  `);
+
+  insertCaseFoldingSmt = db.prepare(`
+    INSERT INTO case_folding (codepoint, new_case_1, new_case_2, new_case_3)
+    VALUES (?, ?, ?, ?);
   `);
 
   insertEmojiPropertiesSmt = db.prepare(`
@@ -424,9 +440,8 @@ export function dbRunSpecialCasing(newCases: NewCases) {
 
 export function dbRunCaseFolding(entries: CaseFoldEntry[]) {
   for(const entry of entries) {
-    insertSpecialCasingSmt.run(
+    insertCaseFoldingSmt.run(
       entry.codepoint,
-      CaseType.CaseFold,
       entry.mapping[0] ?? null,
       entry.mapping[1] ?? null,
       entry.mapping[2] ?? null,

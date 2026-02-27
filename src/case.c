@@ -261,12 +261,11 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         }
 
         if(type == MJB_CASE_CASEFOLD) {
-            sqlite3_stmt *scf = mjb_global.stmt_special_casing;
+            sqlite3_stmt *scf = mjb_global.stmt_casefold;
 
             sqlite3_reset(scf);
 
             if(sqlite3_bind_int(scf, 1, codepoint) == SQLITE_OK &&
-                sqlite3_bind_int(scf, 2, MJB_CASE_CASEFOLD) == SQLITE_OK &&
                 sqlite3_step(scf) == SQLITE_ROW) {
                 // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
                 for(int k = 0; k < 3; ++k) {
