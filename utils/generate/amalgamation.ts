@@ -99,12 +99,11 @@ export async function generateAmalgamation(embedded = false) {
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-
-MJB_EXPORT mojibake mjb_global;\n`;
+#include <stdint.h>\n\n`;
 
   const sources = [
     'mojibake-internal.h',
+    'mojibake.c',
     'utf8.h',
     'utf16.h',
     'utf32.h',
@@ -112,17 +111,19 @@ MJB_EXPORT mojibake mjb_global;\n`;
     'break-line.c',
     'buffer.c',
     'case.c',
-    'codepoint.c',
     'cjk.c',
-    'encoding.c',
+    'codepoint.c',
+    'display.c',
     'east-asian-width.c',
     'emoji.c',
+    'encoding.c',
+    'filter.c',
     'hangul.c',
     'next.c',
-    'mojibake.c',
     'normalization.c',
-    'quick-check.c',
     'plane.c',
+    'properties.c',
+    'quick-check.c',
     'segmentation.c',
     'string.c',
     'version.c',
