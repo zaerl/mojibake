@@ -93,8 +93,8 @@ OPTS="-DSQLITE_MAX_MMAP_SIZE=0 \
 # SQLITE_ZERO_MALLOC
 $MAKE_CMD sqlite3.c OPTS="$OPTS"
 
-# Append windows-fixes.c to the generated sqlite3.c
-cat ../windows-fixes.c >> sqlite3.c
+# Append linkage-fixes.c to the generated sqlite3.c
+cat ../linkage-fixes.c >> sqlite3.c
 
 mv sqlite3.c ../../../src/sqlite3/sqlite3.c
 mv sqlite3.h ../../../src/sqlite3/sqlite3.h

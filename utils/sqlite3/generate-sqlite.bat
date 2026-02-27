@@ -104,8 +104,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Append windows-fixes.c to the generated sqlite3.c
-type ..\windows-fixes.c >> sqlite3.c
+REM Append linkage-fixes.c to the generated sqlite3.c
+type ..\linkage-fixes.c >> sqlite3.c
 
 move /Y sqlite3.c ..\..\..\src\sqlite3\sqlite3.c
 move /Y sqlite3.h ..\..\..\src\sqlite3\sqlite3.h
