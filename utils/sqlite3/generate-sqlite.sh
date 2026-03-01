@@ -7,7 +7,7 @@ SQLITE_VERSION="3510000"
 SQLITE_YEAR="2025"
 
 # Use gmake on FreeBSD (BSD make doesn't support GNU make functions)
-if [ "$(uname -s)" = "FreeBSD" ]; then
+if [ "$(uname -s)" = "FreeBSD" ] || [ "$(uname -s)" = "OpenBSD" ]; then
     MAKE_CMD="gmake"
 else
     MAKE_CMD="make"
