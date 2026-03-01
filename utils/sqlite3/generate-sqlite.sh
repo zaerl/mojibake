@@ -3,8 +3,8 @@
 # The Mojibake library
 # This file is distributed under the MIT License. See LICENSE for details.
 
-SQLITE_VERSION="3510000"
-SQLITE_YEAR="2025"
+SQLITE_VERSION="3510200"
+SQLITE_YEAR="2026"
 
 # Use gmake on FreeBSD (BSD make doesn't support GNU make functions)
 if [ "$(uname -s)" = "FreeBSD" ] || [ "$(uname -s)" = "OpenBSD" ]; then

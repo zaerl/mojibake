@@ -4,8 +4,8 @@ setlocal EnableDelayedExpansion
 REM The Mojibake library
 REM This file is distributed under the MIT License. See LICENSE for details.
 
-set SQLITE_VERSION=3510000
-set SQLITE_YEAR=2025
+set SQLITE_VERSION=3510200
+set SQLITE_YEAR=2026
 
 if not exist "sqlite-src-%SQLITE_VERSION%" (
     curl -o sqlite3.zip "https://www.sqlite.org/%SQLITE_YEAR%/sqlite-src-%SQLITE_VERSION%.zip"
