@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14...3.30)
+cmake_minimum_required(VERSION 3.14...3.31)
 
 # Option to build with C++
 option(BUILD_CPP "Build with C++ instead of C" OFF)
