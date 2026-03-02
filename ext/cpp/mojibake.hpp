@@ -226,6 +226,74 @@ inline std::string nfkd(std::string_view input) {
     return normalize(input, NormalizationForm::NFKD);
 }
 
+struct BreakResult {
+    size_t index;
+    mjb_codepoint codepoint;
+    mjb_break_type type;
+
+    [[nodiscard]] bool is_mandatory() const noexcept {
+        return type == MJB_BT_MANDATORY;
+    }
+
+    [[nodiscard]] bool is_allowed() const noexcept {
+        return type == MJB_BT_ALLOWED;
+    }
+
+    [[nodiscard]] bool is_no_break() const noexcept {
+        return type == MJB_BT_NO_BREAK;
+    }
+
+    [[nodiscard]] bool is_break() const noexcept {
+        return type == MJB_BT_MANDATORY || type == MJB_BT_ALLOWED;
+    }
+};
+
+template<typename State, mjb_break_type(*BreakFn)(const char*, size_t, mjb_encoding, State*)>
+class Breaker {
+    std::string buffer;
+    State state{};
+    bool done = false;
+
+public:
+    explicit Breaker(std::string_view input) : buffer(input) {}
+
+    [[nodiscard]] std::optional<BreakResult> next() {
+        if(done) {
+            return std::nullopt;
+        }
+
+        mjb_break_type type = BreakFn(buffer.data(), buffer.size(), MJB_ENCODING_UTF_8, &state);
+
+        if(type == MJB_BT_NOT_SET) {
+            done = true;
+            return std::nullopt;
+        }
+
+        return BreakResult{state.index, state.current_codepoint, type};
+    }
+
+    void reset() noexcept {
+        state = {};
+        done = false;
+    }
+
+    [[nodiscard]] bool is_done() const noexcept {
+        return done;
+    }
+
+    template<typename Fn>
+    void for_each(Fn&& fn) {
+        while(auto result = next()) {
+            fn(*result);
+        }
+    }
+};
+
+using WordBreaker = Breaker<mjb_next_word_state, mjb_break_word>;
+using SentenceBreaker = Breaker<mjb_next_sentence_state, mjb_break_sentence>;
+using LineBreaker = Breaker<mjb_next_line_state, mjb_break_line>;
+using GraphemeBreaker = Breaker<mjb_next_state, mjb_segmentation>;
+
 } // namespace mjb
 
 #endif // MJB_CPP_MOJIBAKE_HPP

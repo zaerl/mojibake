@@ -48,6 +48,7 @@ void *test_utf(void *arg);
 void *test_version(void *arg);
 
 #ifdef __cplusplus
+void *test_cpp_break(void *arg);
 void *test_cpp_mojibake(void *arg);
 void *test_cpp_normalization(void *arg);
 #endif
