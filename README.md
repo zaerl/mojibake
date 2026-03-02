@@ -1,12 +1,8 @@
 # Mojibake
 
-> [!IMPORTANT]
-> This project is an **experimental library**. It is not designed for production use, and there may
-> be bugs, limitations, or incomplete features. The API can change from one commit to another.
->
-> Use at your own discretion, and feel free to collaborate.
-
 **Mojibake** is a low-level Unicode 17 library written in C11. It can be compiled as C++17 as well.
+
+## Introduction
 
 **Mojibake** (Japanese: 文字化け 'character transformation') is the garbled text that is the result
 of text being decoded using an unintended character encoding. I created this library because I don't
@@ -18,16 +14,50 @@ like any of the existing one. It aims to be, in order of importance:
 4. Pass all Unicode Standard tests
 5. Self-contained
 
-It consists in a `mojibake.c` file, a `mojibake.h` file and a `mojibake.db` file (a SQLite database
-file). A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want. Also a
-C++ wrapper can be found on `ext/cpp/mojibake.cpp` if you prefer it. Download it here
-[mojibake-amalgamation-013.zip](https://mojibake.zaerl.com/mojibake-amalgamation-013.zip).
+It consists of three files:
+
+1. `mojibake.h`
+2. `mojibake.c`
+3. `mojibake.db`
+
+A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want. Also a
+C++ wrapper can be found on `ext/cpp/mojibake.cpp`.
+
+## Usage
+
+You don't need to install anything, you only need the database and the C source code.
+
+1. Download it here
+[mojibake-amalgamation-013.zip](https://mojibake.zaerl.com/mojibake-amalgamation-013.zip)
+2. Unzip it
+3. Add the file to the list of your files
 
 An alternative embedded version is provided, where the `mojibake.db` file is not needed, and only
-the `mojibake.c` and `mojibake.h` are needed. The content of the database is loaded directly from
-the C file. This will increase the size of your executable. If you don't mind opening files, use
-the other mode. You can get it here
+the `mojibake.c` and `mojibake.h` are needed. The content of the database is loaded **directly**
+from the C file. This will increase the size of your executable. If you don't mind opening files,
+use the other mode. You can get it here
 [mojibake-embedded-amalgamation-013.zip](https://mojibake.zaerl.com/mojibake-embedded-amalgamation-013.zip).
+
+Example:
+
+```c
+#include <stdio.h>
+#include "mojibake.h"
+
+// This is a simple example of how to use the Mojibake library.
+int main(int argc, char * const argv[]) {
+    printf("This is an example of Mojibake v%s\n", mjb_version());
+    printf("Unicode version: %s\n", mjb_unicode_version());
+
+    mjb_character character;
+    mjb_codepoint_character(0x022A, &character);
+
+    // This will print: "U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON"
+    printf("U+%04X: %s\n", character.codepoint, character.name);
+
+    return 0;
+}
+```
 
 An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
 use to preview the API.
@@ -42,21 +72,18 @@ tested on:
 5. OpenBSD
 6. Windows 11
 
-**Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
+### Minimal API documentation
 
-**Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
+1. **Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
+2. **Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
 properties found in the Unicode Character Database.
-
-**Case**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
+3. **Case**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
 titlecase. Etc.
-
-**Parsing**: `mjb_next_character`, and other, let you parse a UTF-8, UTF-16(BE, LE), UTF-32(BE, LE)
+4. **Parsing**: `mjb_next_character`, and other, let you parse a UTF-8, UTF-16(BE, LE), UTF-32(BE, LE)
 string.
-
-**Segmentation and line breaking**: `mjb_break_line`, and other, let you break a string by line, and
+5. **Segmentation and line breaking**: `mjb_break_line`, and other, let you break a string by line, and
 segment it.
-
-**Base string functions**: `mjb_strncmp`, and other, aim to have a full coverage of standard C
+6. **Base string functions**: `mjb_strncmp`, and other, aim to have a full coverage of standard C
 library `string.h` header.
 
 Following an incomplete documentation of current API.
@@ -66,20 +93,22 @@ Following an incomplete documentation of current API.
 Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
 
 ```c
+#include <stdio.h>
 #include "mojibake.h"
 
-// The string to normalize
-const char *hello = "Hello, World!"
-mjb_result result;
+int main(int argc, char * const argv[]) {
+    // The string to normalize
+    const char *hello = "Hello, World!"
+    mjb_result result;
 
-char *normalized = mjb_normalize(hello, 13, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC, &result);
-printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
+    char *normalized = mjb_normalize(hello, 13, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC, &result);
+    printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
 
-// Remember to free() the string if needed
-if(results.transformed) {
-    mjb_free(result.output);
+    // Remember to free() the string if needed
+    if(results.transformed) {
+        mjb_free(result.output);
+    }
 }
-
 ```
 
 ## Codepoints informations
@@ -87,13 +116,16 @@ if(results.transformed) {
 You can retrieved informations about codepoints. Example for `U+022A LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON`
 
 ```c
+#include <stdio.h>
 #include "mojibake.h"
 
-mjb_character character;
-mjb_codepoint_character(0x022A, &character);
+int main(int argc, char * const argv[]) {
+    mjb_character character;
+    mjb_codepoint_character(0x022A, &character);
 
-printf("U+%04X: %s\n", character.codepoint, character.name);
-// See the `mojibake` struct for other fields
+    printf("U+%04X: %s\n", character.codepoint, character.name);
+    // See the `mojibake` struct for other fields
+}
 ```
 
 Output:
@@ -189,4 +221,4 @@ This project is released under the MIT License (see LICENSE file).
 Mojibake is built using the work of extraordinary individuals and teams.
 
 1. SQLite is in the [public domain](https://sqlite.org/copyright.html)
-2. Unicode Character Database - Unicode, Inc. (see UNICODE-LICENSE)
+2. Unicode Character Database - Unicode, Inc. (see [UNICODE-LICENSE](UNICODE-LICENSE))
