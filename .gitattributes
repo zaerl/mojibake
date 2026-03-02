@@ -1,0 +1,41 @@
+# The Mojibake library
+# This file is distributed under the MIT License. See LICENSE for details.
+
+# Default: normalize line endings to LF
+* text=auto eol=lf
+
+# Explicit text files
+*.c     text eol=lf
+*.cmake text eol=lf
+*.cpp   text eol=lf
+*.h     text eol=lf
+*.hpp   text eol=lf
+*.in    text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.sh    text eol=lf
+*.sql   text eol=lf
+*.ts    text eol=lf
+*.txt   text eol=lf
+*.yml   text eol=lf
+
+# Binary files
+*.db   binary
+*.wasm binary
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.ico  binary
+
+# SQLite amalgamation
+src/sqlite3/* linguist-vendored
+
+# Export ignore
+.gitattributes export-ignore
+.gitignore     export-ignore
+.clang-format  export-ignore
+.editorconfig  export-ignore
+CLAUDE.md      export-ignore
+utils/         export-ignore
