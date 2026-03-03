@@ -216,6 +216,30 @@ Grapheme cluster breaking
 mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 ```
 
+Resolve bidirectional text (TR9) for a paragraph
+
+```c
+bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
+```
+
+Free a bidi paragraph allocated by mjb_bidi_resolve
+
+```c
+void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
+```
+
+Reorder a line visually (L1-L4); visual_order is caller-allocated
+
+```c
+bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
+```
+
+Compute visual level runs; pass runs=NULL to count first
+
+```c
+bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
+```
+
 Return the plane of the codepoint
 
 ```c

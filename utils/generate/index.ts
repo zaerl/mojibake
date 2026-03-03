@@ -34,6 +34,7 @@ import {
 import { updateVersion } from './update-version';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
 import { generateWASM } from './wasm';
+import { readBidiBrackets } from './parse-ucd/bidi-brackets';
 
 let compact = false;
 
@@ -202,8 +203,9 @@ async function generate() {
 
   const blocks = await readBlocks();
   const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
+  const bidiBrackets = await readBidiBrackets();
 
-  generateHeader(blocks, categories, properties);
+  generateHeader(blocks, categories, properties, bidiBrackets);
   generateWASM();
   // generateData(characters);
   generateAPI();

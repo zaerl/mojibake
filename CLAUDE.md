@@ -44,9 +44,10 @@ emoji archives):
 
 Core modules in `src/`:
 
-- `break-line.c` - Unicode Line Breaking algorithm (LB, TR14)
-- `break-sentence.c` - Unicode Sentence Breaking algorithm (SB, TR29)
-- `break-word.c` - Unicode Word Breaking algorithm (WB, TR29)
+- `bidi.c` - Unicode Bidirectional Algorithm (TR9)
+- `break-line.c` - Unicode Line Breaking algorithm (TR14)
+- `break-sentence.c` - Unicode Sentence Breaking algorithm (TR29)
+- `break-word.c` - Unicode Word Breaking algorithm (TR29)
 - `buffer.c/.h` - Internal buffer used during normalization
 - `case.c` - Unicode casing methods (upper, lower, title, casefold)
 - `cjk.c` - CJK ideograph detection
@@ -64,7 +65,7 @@ Core modules in `src/`:
 - `plane.c` - Unicode plane operations
 - `properties.c` - Codepoints properties
 - `quick-check.c` - Normalization quick-check (`mjb_string_is_normalized`)
-- `segmentation.c` - Grapheme Cluster Breaking algorithm (GB, TR29)
+- `segmentation.c` - Grapheme Cluster Breaking algorithm (TR29)
 - `shell/` provides CLI access to library functions
 - `site/` files for generating the WASM version site
 - `sqlite3/` - Embedded SQLite for Unicode data lookup
@@ -97,6 +98,7 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 
 ### Commands
 
+- `bidi` - print the results of the bidirectional algorithm
 - `break` — break the input into grapheme clusters and line breaks
 - `char` — print character information for a string
 - `codepoint` — print character information for a codepoint

@@ -234,3 +234,9 @@ export enum EmojiProperties {
 };
 
 export type EmojiPropertiesStrings = keyof typeof EmojiProperties;
+
+export interface BidiBracket {
+  cp: number;
+  pair: number;
+  isOpen: boolean;
+}

@@ -83,7 +83,8 @@ titlecase. Etc.
 string.
 5. **Segmentation and line breaking**: `mjb_break_line`, and other, let you break a string by line, and
 segment it.
-6. **Base string functions**: `mjb_strncmp`, and other, aim to have a full coverage of standard C
+6. **Bidirectional reordering**: `mjb_bidi_resolve`, apply the Unicode Bidirectional Algorithm
+7. **Base string functions**: `mjb_strncmp`, and other, aim to have a full coverage of standard C
 library `string.h` header.
 
 Following an incomplete documentation of current API.
@@ -189,12 +190,13 @@ mojibake -vv -o json -j 2 char $'\U022A'
 ### Coverage
 
 Mojibake run all the official tests found in the standard:
-1. [GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
-2. [LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
-3. [SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
-4. [WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
-5. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
 
+1. [BidiCharacterTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiCharacterTest.txt)
+2. [GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
+3. [LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
+4. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
+5. [SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
+6. [WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
 
 ## WebAssembly
 

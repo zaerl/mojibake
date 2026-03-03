@@ -219,6 +219,9 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         "start_codepoint AND COALESCE(end_codepoint, start_codepoint);";
     MJB_PREPARE_STMT(mjb_global.stmt_get_properties, query_properties)
 
+    const char query_bidi[] = "SELECT bidirectional, mirrored FROM unicode_data WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_bidi, query_bidi)
+
     #undef MJB_PREPARE_STMT
 
     mjb_global.memory_alloc = alloc_fn;
@@ -292,6 +295,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_get_properties) {
         sqlite3_finalize(mjb_global.stmt_get_properties);
+    }
+
+    if(mjb_global.stmt_bidi) {
+        sqlite3_finalize(mjb_global.stmt_bidi);
     }
 
     if(mjb_global.db) {

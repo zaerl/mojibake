@@ -371,6 +371,34 @@ typedef struct mjb_next_sentence_state {
 
 typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
 
+typedef enum mjb_direction {
+    MJB_DIRECTION_LTR  = 0,
+    MJB_DIRECTION_RTL  = 1,
+    MJB_DIRECTION_AUTO = 2,
+} mjb_direction;
+
+typedef struct mjb_bidi_char {
+    mjb_codepoint codepoint;
+    size_t byte_offset;
+    uint8_t level;
+    mjb_bidi_class resolved_class;
+    mjb_codepoint mirroring_glyph;
+} mjb_bidi_char;
+
+typedef struct mjb_bidi_paragraph {
+    mjb_bidi_char *chars;
+    size_t count;
+    uint8_t paragraph_level;
+    mjb_direction direction;
+} mjb_bidi_paragraph;
+
+typedef struct mjb_bidi_run {
+    size_t start;
+    size_t end;
+    uint8_t level;
+    mjb_direction direction;
+} mjb_bidi_run;
+
 // This functions list is automatically generated. Do not edit.
 
 // Return the codepoint character
@@ -480,6 +508,18 @@ MJB_NONNULL(1, 4) mjb_break_type mjb_break_sentence(const char *buffer, size_t s
 
 // Grapheme cluster breaking
 MJB_NONNULL(1, 4) mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+
+// Resolve bidirectional text (TR9) for a paragraph
+MJB_NONNULL(1, 5) bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
+
+// Free a bidi paragraph allocated by mjb_bidi_resolve
+MJB_NONNULL(1) void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
+
+// Reorder a line visually (L1-L4); visual_order is caller-allocated
+MJB_NONNULL(1, 4) bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
+
+// Compute visual level runs; pass runs=NULL to count first
+MJB_NONNULL(1, 5) bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);

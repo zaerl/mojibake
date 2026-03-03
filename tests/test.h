@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 // Start tests declarations.
+void *test_bidi(void *arg);
 void *test_break_line(void *arg);
 void *test_break_sentence(void *arg);
 void *test_break_word(void *arg);

@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './function';
 import { Property } from './parse-ucd/properties';
-import { Block, Categories, characterDecompositionMapping } from './types';
+import { BidiBracket, Block, Categories, characterDecompositionMapping } from './types';
 import { substituteBlock } from './utils';
 
 function getBlockEnumNames(blocks: Block[]) {
@@ -50,7 +50,26 @@ function getFunctions() {
   return cfns().map(value => value.formatC()).join("\n\n") + "\n";
 }
 
-export function generateHeader(blocks: Block[], categories: string[], properties: Property[]) {
+function getBidiBracketInfo(bidiBrackets: BidiBracket[]) {
+  let ret = '';
+  let i = 0;
+
+  for(const bidiBracket of bidiBrackets) {
+    let prefix = i === 0 ? '    ' : ', ';
+    let suffix = i === 2 ? ',\n' : '';
+
+    if(++i === 3) {
+      i = 0;
+    }
+
+    ret += `${prefix}{ 0x${bidiBracket.cp.toString(16).padStart(4, '0').toUpperCase()}, `
+    ret += `0x${bidiBracket.pair.toString(16).padStart(4, '0').toUpperCase()}, ${bidiBracket.isOpen ? 'true' : 'false' } }${suffix}`;
+  }
+
+  return ret;
+}
+
+export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
 
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
@@ -78,4 +97,10 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = substituteBlock(fileContent, "static const char *mjbsh_property_names[] = {\n", "\n};", getPropertyNames(properties));
 
   writeFileSync('../../src/shell/maps.c', fileContent);
+
+  fileContent = readFileSync('../../src/bidi.c', 'utf-8');
+  fileContent = substituteBlock(fileContent, "#define MJB_BIDI_BRACKET_COUNT", "\n", ' ' + bidiBrackets.length);
+  fileContent = substituteBlock(fileContent, "static const mjb_bidi_bracket_info mjb_bidi_brackets[] = {\n", "\n};", getBidiBracketInfo(bidiBrackets));
+
+  writeFileSync('../../src/bidi.c', fileContent);
 }

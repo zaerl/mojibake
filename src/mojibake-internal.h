@@ -60,6 +60,7 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_line_breaking;
     sqlite3_stmt *stmt_get_emoji;
     sqlite3_stmt *stmt_get_properties;
+    sqlite3_stmt *stmt_bidi;
 } mojibake;
 
 // Internal functions

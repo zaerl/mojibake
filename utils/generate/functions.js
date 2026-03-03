@@ -935,6 +935,140 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Resolve bidirectional text (TR9) for a paragraph",
+    "ret": "bool",
+    "name": "bidi_resolve",
+    "attributes": [
+      "MJB_NONNULL(1, 5)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The input string",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string in bytes",
+        "wasm_generated": false
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "direction",
+        "type": "mjb_direction",
+        "description": "The base paragraph direction (LTR, RTL, or AUTO for P2/P3)",
+        "wasm_generated": false
+      },
+      {
+        "name": "result",
+        "type": "mjb_bidi_paragraph *",
+        "description": "Output paragraph; chars is library-allocated",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Free a bidi paragraph allocated by mjb_bidi_resolve",
+    "ret": "void",
+    "name": "bidi_free",
+    "attributes": [
+      "MJB_NONNULL(1)"
+    ],
+    "args": [
+      {
+        "name": "paragraph",
+        "type": "mjb_bidi_paragraph *",
+        "description": "The paragraph to free",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": false
+  },
+  {
+    "comment": "Reorder a line visually (L1-L4); visual_order is caller-allocated",
+    "ret": "bool",
+    "name": "bidi_reorder_line",
+    "attributes": [
+      "MJB_NONNULL(1, 4)"
+    ],
+    "args": [
+      {
+        "name": "paragraph",
+        "type": "const mjb_bidi_paragraph *",
+        "description": "The resolved paragraph",
+        "wasm_generated": false
+      },
+      {
+        "name": "line_start",
+        "type": "size_t",
+        "description": "Start index into paragraph->chars",
+        "wasm_generated": false
+      },
+      {
+        "name": "line_end",
+        "type": "size_t",
+        "description": "End index (exclusive) into paragraph->chars",
+        "wasm_generated": false
+      },
+      {
+        "name": "visual_order",
+        "type": "size_t *",
+        "description": "Caller-allocated array of size (line_end - line_start)",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": false
+  },
+  {
+    "comment": "Compute visual level runs; pass runs=NULL to count first",
+    "ret": "bool",
+    "name": "bidi_line_runs",
+    "attributes": [
+      "MJB_NONNULL(1, 5)"
+    ],
+    "args": [
+      {
+        "name": "paragraph",
+        "type": "const mjb_bidi_paragraph *",
+        "description": "The resolved paragraph",
+        "wasm_generated": false
+      },
+      {
+        "name": "visual_order",
+        "type": "const size_t *",
+        "description": "Visual order array from mjb_bidi_reorder_line",
+        "wasm_generated": false
+      },
+      {
+        "name": "count",
+        "type": "size_t",
+        "description": "Length of visual_order",
+        "wasm_generated": false
+      },
+      {
+        "name": "runs",
+        "type": "mjb_bidi_run *",
+        "description": "Caller-allocated array, or NULL to only count",
+        "wasm_generated": false
+      },
+      {
+        "name": "run_count",
+        "type": "size_t *",
+        "description": "On output: number of runs written (or total if runs=NULL)",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": false
+  },
+  {
     "comment": "Return the plane of the codepoint",
     "ret": "mjb_plane",
     "name": "codepoint_plane",

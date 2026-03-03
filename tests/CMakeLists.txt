@@ -1,6 +1,7 @@
 set(TEST_SOURCES
     attractor/attractor.c
     utils/utils.c
+    bidi.c
     break-line.c
     break-sentence.c
     break-word.c
@@ -73,7 +74,10 @@ if(WIN32)
 endif()
 
 # Add test to CTest
+add_test(NAME "Bidi" COMMAND mojibake-test -f bidi)
 add_test(NAME "Break Line" COMMAND mojibake-test -f break_line)
+add_test(NAME "Break Sentence" COMMAND mojibake-test -f break_sentence)
+add_test(NAME "Break Word" COMMAND mojibake-test -f break_word)
 add_test(NAME "Case" COMMAND mojibake-test -f case)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
@@ -89,6 +93,7 @@ add_test(NAME "Mojibake" COMMAND mojibake-test -f mojibake)
 add_test(NAME "Next" COMMAND mojibake-test -f next)
 add_test(NAME "Normalization" COMMAND mojibake-test -f normalization)
 add_test(NAME "Plane" COMMAND mojibake-test -f plane)
+add_test(NAME "Properties" COMMAND mojibake-test -f properties)
 add_test(NAME "Quick Check" COMMAND mojibake-test -f quick_check)
 add_test(NAME "Segmentation" COMMAND mojibake-test -f segmentation)
 add_test(NAME "Special Case" COMMAND mojibake-test -f special_case)

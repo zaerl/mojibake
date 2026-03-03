@@ -1,4 +1,5 @@
 set(SOURCES
+    bidi.c
     break-line.c
     break-sentence.c
     break-word.c
@@ -98,6 +99,7 @@ if(BUILD_WASM)
         "\"_mjb_break_word\""
         "\"_mjb_break_sentence\""
         "\"_mjb_segmentation\""
+        "\"_mjb_bidi_resolve\""
         "\"_mjb_codepoint_plane\""
         "\"_mjb_plane_is_valid\""
         "\"_mjb_plane_name\""
