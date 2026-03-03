@@ -18,6 +18,8 @@ portable. Key commands:
 - `make generate-embedded-db` - Generate embedded database header
 - `make coverage` - Generate test coverage reports
 - `make wasm` - Generate a WASM version of the library
+- `make watch-site` - Serve the WASM site locally at localhost:8080, regenerate on changes
+- `make watch-api` - Start the JavaScript API server at localhost:3000, restart on changes
 
 Build configurations: Debug, Release, Test (via BUILD_TYPE environment variable)
 
@@ -42,51 +44,111 @@ emoji archives):
 
 Core modules in `src/`:
 
-- `break_line.c` - Unicode Line Breaking algorithm
-- `case.c` - Unicode casing methods
+- `break-line.c` - Unicode Line Breaking algorithm (LB, TR14)
+- `break-sentence.c` - Unicode Sentence Breaking algorithm (SB, TR29)
+- `break-word.c` - Unicode Word Breaking algorithm (WB, TR29)
+- `buffer.c/.h` - Internal buffer used during normalization
+- `case.c` - Unicode casing methods (upper, lower, title, casefold)
 - `cjk.c` - CJK ideograph detection
-- `mojibake.c/.h` - Main API and library initialization
-- `encoding.c` - String encoding detection
 - `codepoint.c` - Unicode codepoint operations
-- `normalization.c` - Unicode normalization (NFC, NFD, NFKC, NFKD)
+- `display.c` - Display width calculation (`mjb_display_width`)
+- `east-asian-width.c` - East Asian width property (`mjb_codepoint_east_asian_width`)
+- `emoji.c` - Emoji property detection (`mjb_codepoint_emoji`)
+- `encoding.c` - String encoding detection
+- `ext/cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
+- `filter.c` - String filtering (`mjb_string_filter`)
 - `hangul.c` - Hangul syllable handling
+- `mojibake.c/.h` - Main API and library initialization
+- `next.c` - Character-by-character iteration (`mjb_next_character`)
+- `normalization.c` - Unicode normalization (NFC, NFD, NFKC, NFKD)
 - `plane.c` - Unicode plane operations
 - `properties.c` - Codepoints properties
-- `segmentation.c` - Word and Grapheme Cluster Breaking algorithm
-- `sqlite3/` - Embedded SQLite for Unicode data lookup
+- `quick-check.c` - Normalization quick-check (`mjb_string_is_normalized`)
+- `segmentation.c` - Grapheme Cluster Breaking algorithm (GB, TR29)
 - `shell/` provides CLI access to library functions
 - `site/` files for generating the WASM version site
-- `ext/cpp/mojibake.cpp` a C++ wrapper for the C library
+- `sqlite3/` - Embedded SQLite for Unicode data lookup
+- `string.c` - Internal string output utilities
+- `version.c` - Version query functions
 
 Key headers:
 
 - `unicode.h` - Unicode constants and enums
 - `utf*.h` UTF encode/decode functions
 
-Tests in `tests/` mirror the source structure with comprehensive coverage tracking.
+Tests in `tests/` mirror the source structure with comprehensive coverage tracking. The
+`tests/attractor/` directory contains the Attractor unit test framework used across all tests.
+C++ wrapper tests are in `tests/ext/cpp/`.
 
 ## CLI access
 
-The library can be accessed by the build/src/shell/mojibake executable, once compiled. The mojibake.sh
-bash script can be used to simplify the access on POSIX systems, the mojibake.bat on Windows.
+The library can be accessed by the `build/src/shell/mojibake` executable, once compiled. The
+`mojibake.sh` bash script can be used to simplify access on POSIX systems, `mojibake.bat` on Windows.
 
-The CLI accept three commands:
+### Global options
 
-## The `char` command
+- `-c / --codepoint` — interpret input as a list of codepoints (e.g. `U+0041`)
+- `-j / --json-indent <0-10>` — pretty-print JSON output with the given indent level
+- `-o / --output <plain|json>` — output format (default: `plain`)
+- `-s / --show-allowed-symbols` — show allowed symbols
+- `-v / --verbose` — verbose output
+- `-V / --version` — print library version
+- `-w / --width <n>` — output width
 
-Used to get information from the `unicode_data` table.
+### Commands
 
-`./mojibake.sh char "A"` return the information in plain text
-`./mojibake.sh -o json char "A"` return the information in JSON
+- `break` — break the input into grapheme clusters and line breaks
+- `char` — print character information for a string
+- `codepoint` — print character information for a codepoint
+- `filter` — filter input (normalize to NFC, strip spaces/controls/numeric characters)
+- `nfd` / `nfkd` / `nfc` / `nfkc` — normalize input to the given Unicode normalization form
+- `upper` / `lower` / `title` / `casefold` — case conversion
 
-## The nfd and nfkd commands
+### Examples
 
-Calculate the NFD and NFKD normalization of the string passed
+```
+./mojibake.sh char "A"                 # plain text character info
+./mojibake.sh -o json char "A"         # JSON character info
+./mojibake.sh nfd "ABC"                # NFD normalization
+./mojibake.sh -c nfd "U+0041" "U+0042" # normalize from codepoint list
+./mojibake.sh upper "Hello"            # uppercase conversion
+./mojibake.sh break "Hello World"      # grapheme/line break analysis
+```
 
-`./mojibake.sh nfd "ABC"` return the NFD normalized form of the string passed
-`./mojibake.sh -c nfd "U+0041" "U+0042" "U+0043"` by specifying `-c` you can pass a list of codepoints
+## JavaScript API
 
-The `NFC` and `NFKC` are yet to be implemented.
+The `src/api/` directory contains a Node.js HTTP server that exposes library functions over HTTP
+using the WASM build of the library (requires `mojibake.wasm` and `mojibake.db` in that directory).
+
+- `make watch-api` — start the server with `node --watch` (auto-restarts on file changes)
+- Server listens on `http://0.0.0.0:3000`
+
+### Request format
+
+All requests are `GET` with query parameters:
+
+- `?function=<name>` — the `mjb_*` function to call (e.g. `mjb_codepoint_character`)
+- Additional parameters match the function's argument names
+
+Without a `function` parameter the server returns the full list of available functions from
+`functions.js`.
+
+### Examples
+
+```
+# Get character info for codepoint 0x41 ('A')
+GET http://localhost:3000/?function=mjb_codepoint_character&codepoint=U+0041
+
+# Normalize a string to NFD
+GET http://localhost:3000/?function=mjb_normalize&buffer=café&encoding=UTF-8&form=NFD
+```
+
+### Source files
+
+- `index.js` — HTTP server, request routing, WASM interop
+- `functions.js` — function registry (name, return type, argument types)
+- `cstruct.js` — reads C structs from WASM linear memory
+- `mojibake.js` / `mojibake.wasm` — compiled WASM library (generated by `make wasm`)
 
 ## Code Standards
 
