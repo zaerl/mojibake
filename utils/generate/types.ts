@@ -240,3 +240,8 @@ export interface BidiBracket {
   pair: number;
   isOpen: boolean;
 }
+
+export interface BidiMirroringPair {
+  cp: number;
+  mirror: number;
+}

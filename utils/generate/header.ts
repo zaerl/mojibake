@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './function';
 import { Property } from './parse-ucd/properties';
-import { BidiBracket, Block, Categories, characterDecompositionMapping } from './types';
+import { BidiBracket, BidiMirroringPair, Block, Categories, characterDecompositionMapping } from './types';
 import { substituteBlock } from './utils';
 
 function getBlockEnumNames(blocks: Block[]) {
@@ -69,7 +69,26 @@ function getBidiBracketInfo(bidiBrackets: BidiBracket[]) {
   return ret;
 }
 
-export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[]) {
+function getBidiMirroringInfo(pairs: BidiMirroringPair[]) {
+  let ret = '';
+  let i = 0;
+
+  for(const pair of pairs) {
+    let prefix = i === 0 ? '    ' : ', ';
+    let suffix = i === 2 ? ',\n' : '';
+
+    if(++i === 3) {
+      i = 0;
+    }
+
+    ret += `${prefix}{ 0x${pair.cp.toString(16).padStart(4, '0').toUpperCase()}, `
+    ret += `0x${pair.mirror.toString(16).padStart(4, '0').toUpperCase()} }${suffix}`;
+  }
+
+  return ret;
+}
+
+export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[], bidiMirroring: BidiMirroringPair[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
 
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
@@ -101,6 +120,8 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = readFileSync('../../src/bidi.c', 'utf-8');
   fileContent = substituteBlock(fileContent, "#define MJB_BIDI_BRACKET_COUNT", "\n", ' ' + bidiBrackets.length);
   fileContent = substituteBlock(fileContent, "static const mjb_bidi_bracket_info mjb_bidi_brackets[] = {\n", "\n};", getBidiBracketInfo(bidiBrackets));
+  fileContent = substituteBlock(fileContent, "#define MJB_BIDI_MIRRORING_COUNT", "\n", ' ' + bidiMirroring.length);
+  fileContent = substituteBlock(fileContent, "static const mjb_bidi_mirroring_pair mjb_bidi_mirroring[] = {\n", "\n};", getBidiMirroringInfo(bidiMirroring));
 
   writeFileSync('../../src/bidi.c', fileContent);
 }
