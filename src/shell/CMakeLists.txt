@@ -1,5 +1,6 @@
 set(SOURCES
     characters.c
+    commands/bidi.c
     commands/break.c
     commands/character.c
     commands/codepoint.c

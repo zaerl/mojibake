@@ -24,9 +24,9 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
     if(is_json) {
         if(type & MJB_NEXT_CHAR_FIRST) {
-            printf("[%s%s{%s", mjbsh_json_nl(), mjbsh_json_i(), mjbsh_json_nl());
+            printf("[%s%s{%s", mjbsh_jnl(), mjbsh_ji(), mjbsh_jnl());
         } else {
-            printf("%s{%s", mjbsh_json_i(), mjbsh_json_nl());
+            printf("%s{%s", mjbsh_ji(), mjbsh_jnl());
         }
     } else {
         if(!(type & MJB_NEXT_CHAR_FIRST)) {
@@ -38,20 +38,20 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     mjbsh_value("Name", 1, "%s", character->name);
 
     if(is_json) {
-        printf("%s%s\"character\":%s\"%s", mjbsh_json_i(), mjbsh_json_i(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"character\":%s\"%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
 
         if(!mjbsh_print_escaped_character(buffer_utf8)) {
             printf("%s", buffer_utf8);
         }
 
-        printf("%s\",%s", mjbsh_reset(), mjbsh_json_nl());
+        printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
     } else {
         mjbsh_value("Character", 1, "%s", buffer_utf8);
     }
 
     // Hex UTF-8
     if(is_json) {
-        printf("%s%s\"hex_utf_8\":%s[%s", mjbsh_json_i(), mjbsh_json_i(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"hex_utf_8\":%s[%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
     } else {
         printf("Hex UTF-8: %s", mjbsh_green());
     }
@@ -67,7 +67,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     printf("%s%s", mjbsh_reset(), is_json ? "]" : "");
 
     if(is_json) {
-        printf(",%s", mjbsh_json_nl());
+        printf(",%s", mjbsh_jnl());
     }
 
     if(cmd_verbose > 0) {
@@ -99,7 +99,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
             if(is_json) {
                 printf(
                     "%s%s\"hex_utf_%s\":%s[%s",
-                    mjbsh_json_i(), mjbsh_json_i(),
+                    mjbsh_ji(), mjbsh_ji(),
                     other_encodings_labels[i],
                     cmd_json_indent == 0 ? "" : " ", mjbsh_green());
             } else {
@@ -117,7 +117,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
             printf("%s%s", mjbsh_reset(), is_json ? "]" : "");
 
             if(is_json) {
-                printf(",%s", mjbsh_json_nl());
+                printf(",%s", mjbsh_jnl());
             }
         }
     }
@@ -274,10 +274,10 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     }
 
     if(is_json) {
-        printf("%s}%s%s", mjbsh_json_i(), (type & MJB_NEXT_CHAR_LAST) ? "" : ",", mjbsh_json_nl());
+        printf("%s}%s%s", mjbsh_ji(), (type & MJB_NEXT_CHAR_LAST) ? "" : ",", mjbsh_jnl());
 
         if(type & MJB_NEXT_CHAR_LAST) {
-            printf("]%s", mjbsh_json_nl());
+            printf("]%s", mjbsh_jnl());
         }
     }
 

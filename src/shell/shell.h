@@ -48,8 +48,8 @@ void mjbsh_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint
 
 bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint);
 
-const char* mjbsh_json_i(void);
-const char* mjbsh_json_nl(void);
+const char* mjbsh_ji(void);
+const char* mjbsh_jnl(void);
 
 // Utils
 mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint);

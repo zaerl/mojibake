@@ -75,18 +75,18 @@ static void mjbsh_to_json_key(const char* label, char* buf, size_t bufsize) {
 static void mjbsh_json_field(const char* label) {
     char key[256];
     mjbsh_to_json_key(label, key, sizeof(key));
-    printf("%s%s\"%s\":%s", mjbsh_json_i(), mjbsh_json_i(), key, cmd_json_indent > 0 ? " " : "");
+    printf("%s%s\"%s\":%s", mjbsh_ji(), mjbsh_ji(), key, cmd_json_indent > 0 ? " " : "");
 }
 
 static void mjbsh_json_nested_field(const char* label) {
     char key[256];
     mjbsh_to_json_key(label, key, sizeof(key));
-    printf("%s%s%s\"%s\":%s", mjbsh_json_i(), mjbsh_json_i(), mjbsh_json_i(), key, cmd_json_indent > 0 ? " " : "");
+    printf("%s%s%s\"%s\":%s", mjbsh_ji(), mjbsh_ji(), mjbsh_ji(), key, cmd_json_indent > 0 ? " " : "");
 }
 
 static void mjbsh_print_nl(unsigned int nl) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        printf("%s%s", nl >= 1 ? "," : "", mjbsh_json_nl());
+        printf("%s%s", nl >= 1 ? "," : "", mjbsh_jnl());
     } else {
         puts("");
     }
@@ -249,13 +249,13 @@ void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigne
 
     // {"label": {"code": id, "value": "name"}}
     mjbsh_json_field(label);
-    printf("{%s", mjbsh_json_nl());
+    printf("{%s", mjbsh_jnl());
 
     mjbsh_json_nested_field("code");
-    printf("%s%u%s,%s", mjbsh_green(), id, mjbsh_reset(), mjbsh_json_nl());
+    printf("%s%u%s,%s", mjbsh_green(), id, mjbsh_reset(), mjbsh_jnl());
 
     mjbsh_json_nested_field("value");
-    printf("\"%s%s%s\"%s%s%s}", mjbsh_green(), name, mjbsh_reset(), mjbsh_json_nl(), mjbsh_json_i(), mjbsh_json_i());
+    printf("\"%s%s%s\"%s%s%s}", mjbsh_green(), name, mjbsh_reset(), mjbsh_jnl(), mjbsh_ji(), mjbsh_ji());
 
     mjbsh_print_nl(nl);
 }
@@ -269,9 +269,9 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
 
     if(ret) {
         if(is_json) {
-            printf("%s%s\"%s\":%s\"%s", mjbsh_json_i(), mjbsh_json_i(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+            printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
             mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, mjbsh_next_escaped_character);
-            printf("%s\",%s", mjbsh_reset(), mjbsh_json_nl());
+            printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
         } else {
             mjbsh_value(is_json ? name : label, true, "%s", result.output);
         }
@@ -280,7 +280,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     }
 
     if(is_json) {
-        printf("%s%s\"%s_normalization\":%s[%s", mjbsh_json_i(), mjbsh_json_i(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"%s_normalization\":%s[%s", mjbsh_ji(), mjbsh_ji(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
     } else {
         printf("%s normalization: %s", label, mjbsh_green());
     }
@@ -345,7 +345,7 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     return true;
 }
 
-const char* mjbsh_json_i(void) {
+const char* mjbsh_ji(void) {
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         return "";
     }
@@ -353,7 +353,7 @@ const char* mjbsh_json_i(void) {
     return indents[cmd_json_indent];
 }
 
-const char* mjbsh_json_nl(void) {
+const char* mjbsh_jnl(void) {
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         return "";
     }
