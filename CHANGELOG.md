@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-03-04
+
+### Added
+- Unicode Bidirectional Algorithm
+- BidiCharacterTest.txt tests
+- Support for OpenBSD
+- .gitattributes
+- CHANGELOG.md
+- bug_report.md template issue
+- Breakers in C++ API
+- CLI bidi command
+
+## Changed
+- Windows placeholder functions are now added to all OS
+- Update SQLite to 3.51.2
+- Minor refactoring of README.md
+- CMake upper bound to 3.31
+
+### Fixes
+- Missing files on amalgamation
+
 ## [0.1.3] - 2026-02-27
 
 ### Added
@@ -163,7 +184,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/0.1.3...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/0.1.4...HEAD
+[0.1.4]: https://github.com/zaerl/mojibake/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/zaerl/mojibake/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/zaerl/mojibake/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/zaerl/mojibake/compare/0.1.0...0.1.1

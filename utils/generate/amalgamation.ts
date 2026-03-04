@@ -108,6 +108,7 @@ export async function generateAmalgamation(embedded = false) {
     'utf16.h',
     'utf32.h',
     'utf.h',
+    'bidi.c',
     'break-line.c',
     'buffer.c',
     'case.c',
