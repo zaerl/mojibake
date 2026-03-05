@@ -101,8 +101,8 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);
   let enumCount = properties.length - boolCount;
-  fileContent = substituteBlock(fileContent, '#define MJB_PR_BOOL_COUNT ', "\n", '' + boolCount);
   fileContent = substituteBlock(fileContent, '#define MJB_PR_ENUM_COUNT ', "\n", '' + enumCount);
+  fileContent = substituteBlock(fileContent, '#define MJB_PR_BOOL_COUNT ', "\n", '' + boolCount);
   fileContent = substituteBlock(fileContent, '#define MJB_PR_BUFFER_SIZE ', "\n", '' + (boolCount + enumCount * 2));
 
   writeFileSync('../../src/unicode.h', fileContent);
