@@ -39,6 +39,30 @@ function getPropertyEnumNames(properties: Property[]) {
   return propertyEnums.join('\n');
 }
 
+function getScriptEnumNames(properties: { [key: string]: number }) {
+  const propertyEnums: string[] = [];
+
+  /*
+    {
+      Adlm: 1,
+      Adlam: 1,
+      ...
+    }
+  */
+  let previousValue = 0;
+
+  for(const key in properties) {
+    if(properties[key] === previousValue) {
+      continue;
+    }
+
+    propertyEnums.push(`    MJB_SC_${key.toUpperCase()}`);
+    previousValue = properties[key];
+  }
+
+  return propertyEnums;
+}
+
 function getPropertyNames(properties: Property[]) {
   return properties.map((value: Property, index: number) => {
     const name = value.name.replace(/_/g, ' ');
@@ -98,6 +122,14 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = substituteBlock(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
   fileContent = substituteBlock(fileContent, "typedef enum mjb_property {\n", "\n} mjb_property;", getPropertyEnumNames(properties));
   fileContent = substituteBlock(fileContent, '#define MJB_PR_COUNT ', "\n", '' + properties.length);
+
+  const scriptProperty = properties.find(property => property.name === 'Script');
+
+  if(scriptProperty) {
+    const scriptEnumNames = getScriptEnumNames(scriptProperty.values);
+    fileContent = substituteBlock(fileContent, "  MJB_SC_NOT_SET, // 0 is \"no value\"\n", "\n} mjb_script;", scriptEnumNames.join(',\n'));
+    fileContent = substituteBlock(fileContent, '#define MJB_SC_COUNT ', "\n", '' + scriptEnumNames.length + 1);
+  }
 
   let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);
   let enumCount = properties.length - boolCount;

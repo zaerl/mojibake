@@ -140,7 +140,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
     './UCD/auxiliary/WordBreakProperty.txt',
     './UCD/auxiliary/SentenceBreakProperty.txt',
     './UCD/emoji/emoji-data.txt',
-    // './UCD/Scripts.txt',
+    './UCD/Scripts.txt',
   ];
 
   const defaultProperties = [
@@ -152,7 +152,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
     'WB',
     'SB',
     '',
-    // 'sc',
+    'sc',
   ]
 
   // Collect all property entries
