@@ -90,6 +90,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_is_combining\""
         "\"_mjb_codepoint_is_hangul_syllable\""
         "\"_mjb_codepoint_is_cjk_ideograph\""
+        "\"_mjb_codepoint_is_cjk_ext\""
         "\"_mjb_category_is_graphic\""
         "\"_mjb_category_is_combining\""
         "\"_mjb_codepoint_block\""

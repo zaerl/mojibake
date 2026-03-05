@@ -84,7 +84,8 @@ string.
 5. **Segmentation and line breaking**: `mjb_break_line`, and other, let you break a string by line, and
 segment it.
 6. **Bidirectional reordering**: `mjb_bidi_resolve`, apply the Unicode Bidirectional Algorithm
-7. **Base string functions**: `mjb_strncmp`, and other, aim to have a full coverage of standard C
+7. **Collation comparing**: `mjb_string_compare`, compare two string using the Unicode Collation Algorithm
+8. **Base string functions**: `mjb_strnlen`, and other, aim to have a full coverage of standard C
 library `string.h` header.
 
 Following an incomplete documentation of current API.

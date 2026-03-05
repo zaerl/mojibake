@@ -61,6 +61,8 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_get_emoji;
     sqlite3_stmt *stmt_get_properties;
     sqlite3_stmt *stmt_bidi;
+    sqlite3_stmt *stmt_collation_entry;
+    sqlite3_stmt *stmt_collation_contraction;
 } mojibake;
 
 // Internal functions

@@ -33,7 +33,7 @@ export default [
     "ret": "bool",
     "name": "normalize",
     "attributes": [
-      "MJB_NONNULL(1, 5)"
+      "MJB_NONNULL(1, 6)"
     ],
     "args": [
       {
@@ -58,6 +58,12 @@ export default [
         "name": "form",
         "type": "mjb_normalization",
         "description": "The normalization form to use",
+        "wasm_generated": false
+      },
+      {
+        "name": "output_encoding",
+        "type": "mjb_encoding",
+        "description": "The output encoding of the string",
         "wasm_generated": false
       },
       {
@@ -451,11 +457,10 @@ export default [
     "wasm": true
   },
   {
-    "comment": "Compare two strings",
+    "comment": "Compare two strings using UCA",
     "ret": "int",
     "name": "string_compare",
     "attributes": [
-      "MJB_PURE",
       "MJB_NONNULL(1, 3)"
     ],
     "args": [
@@ -487,6 +492,12 @@ export default [
         "name": "encoding",
         "type": "mjb_encoding",
         "description": "The encoding of the strings",
+        "wasm_generated": false
+      },
+      {
+        "name": "mode",
+        "type": "mjb_collation_mode",
+        "description": "The variable weighting strategy",
         "wasm_generated": false
       }
     ],
@@ -667,6 +678,23 @@ export default [
     "comment": "Return if the codepoint is CJK ideograph",
     "ret": "bool",
     "name": "codepoint_is_cjk_ideograph",
+    "attributes": [
+      "MJB_CONST"
+    ],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return if the codepoint is CJK extension",
+    "ret": "bool",
+    "name": "codepoint_is_cjk_ext",
     "attributes": [
       "MJB_CONST"
     ],

@@ -9,7 +9,7 @@ import { access, unlink } from 'fs/promises';
 import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
 import { Character } from './character';
-import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunCollation, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateEmbeddedDB } from './generate-embedded-db';
@@ -18,8 +18,11 @@ import { generateHeader } from './header';
 import { generateLocales } from './locales';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { readAliases } from './parse-ucd/aliases';
+import { readBidiBrackets } from './parse-ucd/bidi-brackets';
+import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
 import { readBlocks } from './parse-ucd/blocks';
 import { generateCasefold } from './parse-ucd/casefold';
+import { parseCollationAllKeys } from './parse-ucd/collation';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
 import { buildPropertyRanges, Property } from './parse-ucd/properties';
@@ -34,8 +37,6 @@ import {
 import { updateVersion } from './update-version';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
 import { generateWASM } from './wasm';
-import { readBidiBrackets } from './parse-ucd/bidi-brackets';
-import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
 
 let compact = false;
 
@@ -147,8 +148,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const caseFolds = await generateCasefold(characters);
   dbRunCaseFolding(caseFolds);
 
-  dbRunAfter();
-
   analysis.outputGeneratedData(codepoint, isVerbose());
 
   return { characters, properties };
@@ -206,6 +205,10 @@ async function generate() {
   const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
   const bidiBrackets = await readBidiBrackets();
   const bidiMirroring = await readBidiMirroring();
+
+  const { entries: collationEntries } = await parseCollationAllKeys('./collation/allkeys.txt');
+  dbRunCollation(collationEntries);
+  dbRunAfter();
 
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);
   generateWASM();

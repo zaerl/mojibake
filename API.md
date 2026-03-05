@@ -90,10 +90,10 @@ Return the length of a string
 size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 ```
 
-Compare two strings
+Compare two strings using UCA
 
 ```c
-int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding);
+int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
 ```
 
 Change string case
@@ -154,6 +154,12 @@ Return if the codepoint is CJK ideograph
 
 ```c
 bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+```
+
+Return if the codepoint is CJK extension
+
+```c
+bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint);
 ```
 
 Return true if the category is graphic

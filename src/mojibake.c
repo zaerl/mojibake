@@ -222,6 +222,13 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query_bidi[] = "SELECT bidirectional, mirrored FROM unicode_data WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_bidi, query_bidi)
 
+    const char query_collation_entry[] = "SELECT weights FROM collation_entries WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_collation_entry, query_collation_entry)
+
+    const char query_collation_contraction[] =
+        "SELECT sequence, weights FROM collation_contractions WHERE first_codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_collation_contraction, query_collation_contraction)
+
     #undef MJB_PREPARE_STMT
 
     mjb_global.memory_alloc = alloc_fn;
@@ -299,6 +306,14 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_bidi) {
         sqlite3_finalize(mjb_global.stmt_bidi);
+    }
+
+    if(mjb_global.stmt_collation_entry) {
+        sqlite3_finalize(mjb_global.stmt_collation_entry);
+    }
+
+    if(mjb_global.stmt_collation_contraction) {
+        sqlite3_finalize(mjb_global.stmt_collation_contraction);
     }
 
     if(mjb_global.db) {

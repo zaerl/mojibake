@@ -2,6 +2,7 @@
 
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
+| `mjb_string_compare`                | 437935     |
 | `mjb_normalize`                     | 400684     |
 | `mjb_bidi_resolve`                  | 91787      |
 | `mjb_break_line`                    | 19365      |
@@ -47,7 +48,6 @@
 | `mjb_codepoint_is_cjk_ideograph`    | 1          |
 | `mjb_codepoint_is_hangul_syllable`  | 1          |
 | `mjb_codepoint_properties`          | 1          |
-| `mjb_string_compare`                | 1          |
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
@@ -60,4 +60,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **515979** |
+| **Total**                           | **953913** |

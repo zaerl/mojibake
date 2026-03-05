@@ -405,6 +405,12 @@ typedef struct mjb_bidi_run {
     mjb_direction direction;
 } mjb_bidi_run;
 
+// Collation variable-weighting strategy (UTS#10 §3.6)
+typedef enum mjb_collation_mode {
+    MJB_COLLATION_NON_IGNORABLE = 0, // variable elements keep their weights unchanged
+    MJB_COLLATION_SHIFTED       = 1, // variable elements move primary to level 4
+} mjb_collation_mode;
+
 // This functions list is automatically generated. Do not edit.
 
 // Return the codepoint character
@@ -452,8 +458,8 @@ MJB_NONNULL(1, 5) bool mjb_string_convert_encoding(const char *buffer, size_t si
 // Return the length of a string
 MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 
-// Compare two strings
-MJB_PURE MJB_NONNULL(1, 3) int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding);
+// Compare two strings using UCA
+MJB_NONNULL(1, 3) int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
 
 // Change string case
 MJB_NONNULL(1) char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);

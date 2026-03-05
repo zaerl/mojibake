@@ -9,6 +9,7 @@ import { statSync } from 'fs';
 import { Character } from './character';
 import { Emoji } from './emoji';
 import { CaseFoldEntry } from './parse-ucd/casefold';
+import { CollationEntry, encodeCodepointSequence, encodeCollationWeights } from './parse-ucd/collation';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
 import { Prefix } from './prefix-compressor';
@@ -26,6 +27,8 @@ let insertCaseFoldingSmt: Statement;
 let insertEmojiPropertiesSmt: Statement;
 let insertPrefixSmt: Statement;
 let insertPropertyRangesSmt: Statement;
+let insertCollationEntrySmt: Statement;
+let insertCollationContractionSmt: Statement;
 
 // let insertNumericSmt: Statement;
 let isCompact: boolean;
@@ -181,6 +184,28 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     );
   `);
 
+  // DUCET collation entries: single-codepoint → weight BLOB
+  // weights BLOB: N x 6 bytes = [uint16_t primary][uint16_t secondary][uint16_t tertiary]
+  // Bit 15 of primary is set if the element is variable (marked with * in allkeys.txt)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collation_entries (
+      codepoint INTEGER PRIMARY KEY,
+      weights BLOB NOT NULL
+    );
+  `);
+
+  // DUCET multi-codepoint contractions
+  // sequence BLOB: N x 4-byte big-endian uint32_t codepoints (N >= 2)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collation_contractions (
+      id INTEGER PRIMARY KEY,
+      first_codepoint INTEGER NOT NULL,
+      sequence BLOB NOT NULL,
+      weights BLOB NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_contractions_first ON collation_contractions(first_codepoint);
+  `);
+
   /*db.exec(`
     CREATE TABLE IF NOT EXISTS numerics (
       codepoint INTEGER PRIMARY KEY,
@@ -307,6 +332,14 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
       end_codepoint,
       properties
     ) VALUES (?, ?, ?);
+  `);
+
+  insertCollationEntrySmt = db.prepare(`
+    INSERT INTO collation_entries (codepoint, weights) VALUES (?, ?);
+  `);
+
+  insertCollationContractionSmt = db.prepare(`
+    INSERT INTO collation_contractions (first_codepoint, sequence, weights) VALUES (?, ?, ?);
   `);
 
   /*insertNumericSmt = db.prepare(`
@@ -475,6 +508,19 @@ export function dbRunPropertyRanges(propertyRanges: PropertyRange[]) {
       pr.start,
       pr.start === pr.end ? null : pr.end,
       pr.properties);
+  }
+}
+
+export function dbRunCollation(entries: CollationEntry[]) {
+  for (const entry of entries) {
+    const weightBlob = encodeCollationWeights(entry.elements);
+
+    if (entry.codepoints.length === 1) {
+      insertCollationEntrySmt.run(entry.codepoints[0], weightBlob);
+    } else {
+      const seqBlob = encodeCodepointSequence(entry.codepoints);
+      insertCollationContractionSmt.run(entry.codepoints[0], seqBlob, weightBlob);
+    }
   }
 }
 
