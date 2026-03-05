@@ -7,9 +7,8 @@
 #include "test.h"
 
 void *test_collation(void *arg) {
-    mjb_encoding enc = MJB_ENCODING_UTF_8;
-
-    ATT_ASSERT(mjb_string_compare("hello", 5, enc, "hello", 5, enc), 0, "UTF-8 compare: hello == hello")
+    ATT_ASSERT(mjb_string_compare("", 0, "", 0, MJB_ENCODING_UTF_8), 0, "Collation: '' == ''")
+    ATT_ASSERT(mjb_string_compare("hello", 5, "hello", 5, MJB_ENCODING_UTF_8), 0, "Collation: hello == hello")
 
     return NULL;
 }

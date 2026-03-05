@@ -93,7 +93,7 @@ size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
 Compare two strings
 
 ```c
-int mjb_string_compare(const char *s1, size_t s1_length, mjb_encoding s1_encoding, const char *s2, size_t s2_length, mjb_encoding s2_encoding);
+int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding);
 ```
 
 Change string case

@@ -456,7 +456,7 @@ export default [
     "name": "string_compare",
     "attributes": [
       "MJB_PURE",
-      "MJB_NONNULL(1, 4)"
+      "MJB_NONNULL(1, 3)"
     ],
     "args": [
       {
@@ -472,12 +472,6 @@ export default [
         "wasm_generated": true
       },
       {
-        "name": "s1_encoding",
-        "type": "mjb_encoding",
-        "description": "The encoding of the first string",
-        "wasm_generated": false
-      },
-      {
         "name": "s2",
         "type": "const char *",
         "description": "The second string to compare",
@@ -490,9 +484,9 @@ export default [
         "wasm_generated": true
       },
       {
-        "name": "s2_encoding",
+        "name": "encoding",
         "type": "mjb_encoding",
-        "description": "The encoding of the second string",
+        "description": "The encoding of the strings",
         "wasm_generated": false
       }
     ],
