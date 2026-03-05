@@ -142,6 +142,7 @@ static const char *mjbsh_decomposition_names[] = {
 };
 
 static const char *mjbsh_east_asian_width_names[] = {
+    "Not set",    // MJB_EAW_NOT_SET
     "Ambiguous",  // MJB_EAW_AMBIGUOUS
     "Full-width", // MJB_EAW_FULL_WIDTH
     "Half-width", // MJB_EAW_HALF_WIDTH
