@@ -203,6 +203,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(case)
     RUN_TEST(cjk)
     RUN_TEST(codepoint)
+    RUN_TEST(collation)
     RUN_TEST(display)
     RUN_TEST(east_asian_width)
     RUN_TEST(embedded_null)

@@ -41,13 +41,13 @@
 | `mjb_codepoint_to_titlecase`        | 3          |
 | `mjb_codepoint_to_uppercase`        | 3          |
 | `mjb_plane_is_valid`                | 3          |
-| `mjb_string_compare`                | 3          |
 | `mjb_initialize_v2`                 | 2          |
 | `mjb_next_character`                | 2          |
 | `mjb_alloc`                         | 1          |
 | `mjb_codepoint_is_cjk_ideograph`    | 1          |
 | `mjb_codepoint_is_hangul_syllable`  | 1          |
 | `mjb_codepoint_properties`          | 1          |
+| `mjb_string_compare`                | 1          |
 | `mjb_unicode_version`               | 1          |
 | `mjb_version`                       | 1          |
 | `mjb_version_number`                | 1          |
@@ -60,4 +60,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **515981** |
+| **Total**                           | **515979** |

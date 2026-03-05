@@ -177,19 +177,5 @@ void *test_string(void *arg) {
 
     enc = MJB_ENCODING_UTF_8;
 
-    // Test string compare
-    ATT_ASSERT(mjb_string_compare("hello", 5, enc, "hello", 5, enc), 0, "UTF-8 compare: hello == hello")
-    ATT_ASSERT(mjb_string_compare("hello", 5, enc, "world", 5, enc), -1, "UTF-8 compare: hello < world")
-    ATT_ASSERT(mjb_string_compare("world", 5, enc, "hello", 5, enc), 1, "UTF-8 compare: world > hello")
-
-    // TODO: add support for WordBreakProperty.txt
-    // See: https://www.unicode.org/reports/tr29/#Word_Boundaries
-    // 2019..2019    MidLetter # Po  RIGHT SINGLE QUOTATION MARK
-    // WB6: ALetter × MidLetter ALetter
-    // WB7: ALetter MidLetter × ALetter
-    // result = mjb_case("o’connor", 9, MJB_CASE_TITLE, MJB_ENCODING_UTF_8);
-    // ATT_ASSERT_NO(result, "O’Connor", "UTF-8 titlecase: o’connor")
-    // mjb_free(result);
-
     return NULL;
  }

@@ -25,6 +25,18 @@ if [ ! -d "./emoji" ] ; then
     done
 fi
 
+if [ ! -d "./collation" ] ; then
+    mkdir -p "./collation"
+
+    for file in "allkeys.txt" "decomps.txt"; do
+        curl -o "./collation/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/uca/$file"
+    done
+
+    curl -o CollationTest.zip "https://www.unicode.org/Public/$UNICODE_VERSION/uca/CollationTest.zip"
+    unzip CollationTest.zip -d "collation"
+    rm CollationTest.zip
+fi
+
 
 mkdir -p ../../build
 rm -f ../../mojibake.db

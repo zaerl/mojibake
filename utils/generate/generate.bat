@@ -32,6 +32,16 @@ if not exist "emoji" (
     curl -o "emoji\emoji-zwj-sequences.txt" "https://www.unicode.org/Public/%UNICODE_VERSION%/emoji/emoji-zwj-sequences.txt"
 )
 
+REM Check if collation directory exists
+if not exist "collation" (
+    mkdir collation
+    curl -o "collation\allkeys.txt" "https://www.unicode.org/Public/%UNICODE_VERSION%/uca/allkeys.txt"
+    curl -o "collation\decomps.txt" "https://www.unicode.org/Public/%UNICODE_VERSION%/uca/decomps.txt"
+    curl -o CollationTest.zip "https://www.unicode.org/Public/%UNICODE_VERSION%/uca/CollationTest.zip"
+    tar -xf CollationTest.zip -C collation
+    del CollationTest.zip
+)
+
 REM Create build directory and remove old database
 if not exist "..\..\build" mkdir "..\..\build"
 if exist "..\..\mojibake.db" del "..\..\mojibake.db"

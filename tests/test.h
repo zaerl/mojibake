@@ -28,6 +28,7 @@ void *test_break_word(void *arg);
 void *test_case(void *arg);
 void *test_cjk(void *arg);
 void *test_codepoint(void *arg);
+void *test_collation(void *arg);
 void *test_display(void *arg);
 void *test_east_asian_width(void *arg);
 void *test_embedded_null(void *arg);

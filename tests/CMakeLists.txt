@@ -8,6 +8,7 @@ set(TEST_SOURCES
     case.c
     cjk.c
     codepoint.c
+    collation.c
     display.c
     emoji.c
     encoding.c

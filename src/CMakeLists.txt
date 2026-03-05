@@ -6,6 +6,7 @@ set(SOURCES
     buffer.c
     case.c
     codepoint.c
+    collation.c
     cjk.c
     display.c
     encoding.c
