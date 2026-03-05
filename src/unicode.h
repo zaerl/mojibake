@@ -55,7 +55,7 @@ typedef enum mjb_bidi_paired_bracket_type {
     MJB_PR_BPT_OPEN,
 } mjb_bidi_paired_bracket_type;
 
-#define MJB_BPT_COUNT 3
+#define MJB_BPT_COUNT 4
 
 /**
  * Block (blk)
@@ -558,7 +558,7 @@ typedef enum mjb_east_asian_width {
     MJB_EAW_WIDE
 } mjb_east_asian_width;
 
-#define MJB_EAW_COUNT 6
+#define MJB_EAW_COUNT 7
 
 /**
  * General_Category (gc)
@@ -605,7 +605,7 @@ typedef enum mjb_general_category {
     MJB_GC_SPACE_SEPARATOR
 } mjb_general_category;
 
-#define MJB_GC_COUNT 24
+#define MJB_GC_COUNT 39
 
 /**
  * Grapheme_Cluster_Break (GCB)
@@ -632,7 +632,7 @@ typedef enum mjb_gcb {
     MJB_GBP_ZWJ
 } mjb_gcb;
 
-#define MJB_GCB_COUNT 18
+#define MJB_GCB_COUNT 19
 
 /**
  * Hangul_Syllable_Type (hst)
@@ -647,7 +647,7 @@ typedef enum mjb_hangul_syllable_type {
     MJB_HST_V,
 } mjb_hangul_syllable_type;
 
-#define MJB_HST_COUNT 6
+#define MJB_HST_COUNT 7
 
 typedef enum mjb_indic_conjunct_break {
     MJB_INCB_NOT_SET, // 0 is "no value"
