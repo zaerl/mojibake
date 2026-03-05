@@ -124,15 +124,21 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CJK_EXTENSION_B_START 0x20000
 #define MJB_CJK_EXTENSION_B_END   0x2A6DF
 #define MJB_CJK_EXTENSION_C_START 0x2A700
-#define MJB_CJK_EXTENSION_C_END   0x2B739
+#define MJB_CJK_EXTENSION_C_END   0x2B73F
 #define MJB_CJK_EXTENSION_D_START 0x2B740
 #define MJB_CJK_EXTENSION_D_END   0x2B81D
 #define MJB_CJK_EXTENSION_E_START 0x2B820
-#define MJB_CJK_EXTENSION_E_END   0x2CEA1
+#define MJB_CJK_EXTENSION_E_END   0x2CEAD
 #define MJB_CJK_EXTENSION_F_START 0x2CEB0
 #define MJB_CJK_EXTENSION_F_END   0x2EBE0
+#define MJB_CJK_EXTENSION_G_START 0x30000
+#define MJB_CJK_EXTENSION_G_END   0x3134A
+#define MJB_CJK_EXTENSION_H_START 0x31350
+#define MJB_CJK_EXTENSION_H_END   0x323AF
 #define MJB_CJK_EXTENSION_I_START 0x2EBF0
 #define MJB_CJK_EXTENSION_I_END   0x2EE5D
+#define MJB_CJK_EXTENSION_J_START 0x323B0
+#define MJB_CJK_EXTENSION_J_END   0x33479
 
 #define MJB_CJK_COMPATIBILITY_IDEOGRAPH_START 0xF900
 #define MJB_CJK_COMPATIBILITY_IDEOGRAPH_END   0xFAD9
@@ -478,6 +484,9 @@ MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK ideograph
 MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
+
+// Return if the codepoint is CJK extension
+MJB_CONST bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint);
 
 // Return true if the category is graphic
 MJB_CONST bool mjb_category_is_graphic(mjb_category category);
