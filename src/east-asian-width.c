@@ -15,11 +15,14 @@ MJB_EXPORT bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east
         return false;
     }
 
-    bool found = mjb_codepoint_has_property(codepoint, MJB_PR_EAST_ASIAN_WIDTH, (uint8_t*)width);
+    uint8_t raw = 0;
+    bool found = mjb_codepoint_has_property(codepoint, MJB_PR_EAST_ASIAN_WIDTH, &raw);
 
     if(!found) {
         // All code points, assigned or unassigned, that are not listed are given the value "N".
         *width = MJB_EAW_NEUTRAL;
+    } else {
+        *width = (mjb_east_asian_width)raw;
     }
 
     return true;
