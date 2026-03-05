@@ -48,7 +48,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
     // CURRENT_ASSERT mjb_normalize
     // CURRENT_COUNT 400680
-    bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, &result);
+    bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, MJB_ENCODING_UTF_8, &result);
 
     if(!ret) {
         snprintf(test_name, 128, "#%u %s", current_line, step);

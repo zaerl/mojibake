@@ -190,7 +190,7 @@ inline std::string normalize(std::string_view input, NormalizationForm form) {
 
     mjb_result result{};
     bool success = mjb_normalize(input.data(), input.size(), MJB_ENCODING_UTF_8,
-        static_cast<mjb_normalization>(form), &result);
+        static_cast<mjb_normalization>(form), MJB_ENCODING_UTF_8, &result);
 
     if(!success) {
         throw LibraryError("Normalization failed");

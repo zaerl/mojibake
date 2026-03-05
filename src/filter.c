@@ -26,7 +26,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
     bool is_normalized = false;
 
     if(filters & MJB_FILTER_NORMALIZE) {
-        if(!mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFC, result)) {
+        if(!mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFC, encoding, result)) {
             return false;
         }
 

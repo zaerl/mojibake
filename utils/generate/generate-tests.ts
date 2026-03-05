@@ -25,7 +25,7 @@ export function generateNormalizationCount() {
 
   fileContent = readFileSync('../../tests/normalization.c', 'utf-8');
   fileContent = substituteBlock(fileContent, "// CURRENT_ASSERT mjb_normalize\n",
-    "bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, &result);",
+    "bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, MJB_ENCODING_UTF_8, &result);",
     `    // CURRENT_COUNT ${count * 20}\n    `);
 
   writeFileSync('../../tests/normalization.c', fileContent);
