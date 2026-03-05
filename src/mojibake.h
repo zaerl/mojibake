@@ -405,7 +405,7 @@ typedef struct mjb_bidi_run {
 MJB_NONNULL(2) bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form
-MJB_NONNULL(1, 5) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_result *result);
+MJB_NONNULL(1, 6) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the next character from a string
 MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
