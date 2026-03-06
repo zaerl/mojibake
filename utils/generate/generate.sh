@@ -37,6 +37,14 @@ if [ ! -d "./collation" ] ; then
     rm CollationTest.zip
 fi
 
+if [ ! -d "./security" ] ; then
+    mkdir -p "./security"
+
+    for file in "confusables.txt" "intentional.txt"; do
+        curl -o "./security/$file" "https://www.unicode.org/Public/security/latest/$file"
+    done
+fi
+
 
 mkdir -p ../../build
 rm -f ../../mojibake.db

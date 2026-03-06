@@ -10,6 +10,7 @@ import { Character } from './character';
 import { Emoji } from './emoji';
 import { CaseFoldEntry } from './parse-ucd/casefold';
 import { CollationEntry, encodeCodepointSequence, encodeCollationWeights } from './parse-ucd/collation';
+import { ConfusableEntry } from './parse-ucd/confusables';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
 import { Prefix } from './prefix-compressor';
@@ -29,6 +30,7 @@ let insertPrefixSmt: Statement;
 let insertPropertyRangesSmt: Statement;
 let insertCollationEntrySmt: Statement;
 let insertCollationContractionSmt: Statement;
+let insertConfusableSmt: Statement;
 
 // let insertNumericSmt: Statement;
 let isCompact: boolean;
@@ -206,6 +208,15 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
     CREATE INDEX IF NOT EXISTS idx_contractions_first ON collation_contractions(first_codepoint);
   `);
 
+  // UTS#39 confusable skeleton mappings
+  // skeleton BLOB: N x 4-byte big-endian uint32_t codepoints (the skeleton of the source codepoint)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS confusables (
+      codepoint INTEGER PRIMARY KEY,
+      skeleton BLOB NOT NULL
+    );
+  `);
+
   /*db.exec(`
     CREATE TABLE IF NOT EXISTS numerics (
       codepoint INTEGER PRIMARY KEY,
@@ -340,6 +351,10 @@ export function dbInit(path = '../../mojibake.db', compact = false) {
 
   insertCollationContractionSmt = db.prepare(`
     INSERT INTO collation_contractions (first_codepoint, sequence, weights) VALUES (?, ?, ?);
+  `);
+
+  insertConfusableSmt = db.prepare(`
+    INSERT INTO confusables (codepoint, skeleton) VALUES (?, ?);
   `);
 
   /*insertNumericSmt = db.prepare(`
@@ -521,6 +536,13 @@ export function dbRunCollation(entries: CollationEntry[]) {
       const seqBlob = encodeCodepointSequence(entry.codepoints);
       insertCollationContractionSmt.run(entry.codepoints[0], seqBlob, weightBlob);
     }
+  }
+}
+
+export function dbRunConfusables(entries: ConfusableEntry[]) {
+  for(const entry of entries) {
+    const blob = encodeCodepointSequence(entry.skeleton);
+    insertConfusableSmt.run(entry.codepoint, blob);
   }
 }
 

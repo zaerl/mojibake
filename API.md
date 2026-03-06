@@ -342,6 +342,12 @@ Return true if the string is a valid Unicode identifier (UAX#31)
 bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
 ```
 
+Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
+
+```c
+bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
+```
+
 Return the emoji properties
 
 ```c

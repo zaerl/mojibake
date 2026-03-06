@@ -9,7 +9,7 @@ import { access, unlink } from 'fs/promises';
 import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
 import { Character } from './character';
-import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunCollation, dbRunComposition, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
+import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunCollation, dbRunComposition, dbRunConfusables, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateEmbeddedDB } from './generate-embedded-db';
@@ -23,6 +23,7 @@ import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
 import { readBlocks } from './parse-ucd/blocks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { parseCollationAllKeys } from './parse-ucd/collation';
+import { parseConfusables } from './parse-ucd/confusables';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
 import { buildPropertyRanges, Property } from './parse-ucd/properties';
@@ -208,6 +209,10 @@ async function generate() {
 
   const { entries: collationEntries } = await parseCollationAllKeys('./collation/allkeys.txt');
   dbRunCollation(collationEntries);
+
+  const confusableEntries = await parseConfusables('./security/confusables.txt');
+  dbRunConfusables(confusableEntries);
+
   dbRunAfter();
 
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);

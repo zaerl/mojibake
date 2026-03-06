@@ -20,6 +20,7 @@ utils/generate/emoji/*
 utils/generate/sqlite-*
 utils/generate/locales/*
 utils/generate/collation/*
+utils/generate/security/*
 
 # Utils SQLite artifacts
 utils/sqlite3/sqlite-src-*

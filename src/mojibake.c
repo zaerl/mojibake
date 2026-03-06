@@ -229,6 +229,9 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         "SELECT sequence, weights FROM collation_contractions WHERE first_codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_collation_contraction, query_collation_contraction)
 
+    const char query_confusable[] = "SELECT skeleton FROM confusables WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_confusable, query_confusable)
+
     #undef MJB_PREPARE_STMT
 
     mjb_global.memory_alloc = alloc_fn;
@@ -314,6 +317,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_collation_contraction) {
         sqlite3_finalize(mjb_global.stmt_collation_contraction);
+    }
+
+    if(mjb_global.stmt_confusable) {
+        sqlite3_finalize(mjb_global.stmt_confusable);
     }
 
     if(mjb_global.db) {

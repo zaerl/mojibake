@@ -21,6 +21,7 @@ set(SOURCES
     quick-check.c
     plane.c
     properties.c
+    security.c
     segmentation.c
     string.c
     version.c

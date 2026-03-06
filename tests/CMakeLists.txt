@@ -24,6 +24,7 @@ set(TEST_SOURCES
     plane.c
     properties.c
     quick-check.c
+    security.c
     segmentation.c
     special-case.c
     string.c
@@ -98,6 +99,7 @@ add_test(NAME "Normalization" COMMAND mojibake-test -f normalization)
 add_test(NAME "Plane" COMMAND mojibake-test -f plane)
 add_test(NAME "Properties" COMMAND mojibake-test -f properties)
 add_test(NAME "Quick Check" COMMAND mojibake-test -f quick_check)
+add_test(NAME "Security" COMMAND mojibake-test -f security)
 add_test(NAME "Segmentation" COMMAND mojibake-test -f segmentation)
 add_test(NAME "Special Case" COMMAND mojibake-test -f special_case)
 add_test(NAME "String" COMMAND mojibake-test -f string)

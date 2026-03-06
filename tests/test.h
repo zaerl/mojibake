@@ -44,6 +44,7 @@ void *test_normalization(void *arg);
 void *test_plane(void *arg);
 void *test_properties(void *arg);
 void *test_quick_check(void *arg);
+void *test_security(void *arg);
 void *test_segmentation(void *arg);
 void *test_special_case(void *arg);
 void *test_string(void *arg);

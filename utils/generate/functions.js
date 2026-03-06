@@ -1481,6 +1481,47 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)",
+    "ret": "bool",
+    "name": "string_is_confusable",
+    "attributes": [
+      "MJB_NONNULL(1, 3)"
+    ],
+    "args": [
+      {
+        "name": "s1",
+        "type": "const char *",
+        "description": "The first string",
+        "wasm_generated": false
+      },
+      {
+        "name": "s1_size",
+        "type": "size_t",
+        "description": "The size of the first string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "s2",
+        "type": "const char *",
+        "description": "The second string",
+        "wasm_generated": false
+      },
+      {
+        "name": "s2_size",
+        "type": "size_t",
+        "description": "The size of the second string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of both strings",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": false
+  },
+  {
     "comment": "Return the emoji properties",
     "ret": "bool",
     "name": "codepoint_emoji",
