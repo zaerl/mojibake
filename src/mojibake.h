@@ -268,6 +268,15 @@ typedef struct mjb_character {
 } mjb_character;
 
 /**
+ * Numeric value of a codepoint
+ */
+typedef struct mjb_numeric_value {
+    int decimal;
+    int digit;
+    char numeric[16];
+} mjb_numeric_value;
+
+/**
  * Emoji data
  * [see: https://www.unicode.org/reports/tr51]
  */
@@ -282,10 +291,10 @@ typedef struct mjb_emoji_properties {
 } mjb_emoji_properties;
 
 typedef enum mjb_break_type {
-    MJB_BT_NOT_SET, // Not set
+    MJB_BT_NOT_SET,   // Not set
     MJB_BT_MANDATORY, // !
-    MJB_BT_NO_BREAK, // ×
-    MJB_BT_ALLOWED // ÷
+    MJB_BT_NO_BREAK,  // ×
+    MJB_BT_ALLOWED    // ÷
 } mjb_break_type;
 
 // Buffer character used in composition phase
@@ -296,9 +305,9 @@ typedef struct mjb_buffer_character {
 
 // UTF-8 next character type
 typedef enum mjb_next_character_type {
-    MJB_NEXT_CHAR_NONE  = 0x0,
-    MJB_NEXT_CHAR_FIRST = 0x1,
-    MJB_NEXT_CHAR_LAST  = 0x2
+    MJB_NEXT_CHAR_NONE,
+    MJB_NEXT_CHAR_FIRST,
+    MJB_NEXT_CHAR_LAST
 } mjb_next_character_type;
 
 // Display width context for ambiguous-width characters
@@ -407,8 +416,8 @@ typedef struct mjb_bidi_run {
 
 // Collation variable-weighting strategy (UTS#10 §3.6)
 typedef enum mjb_collation_mode {
-    MJB_COLLATION_NON_IGNORABLE = 0, // variable elements keep their weights unchanged
-    MJB_COLLATION_SHIFTED       = 1, // variable elements move primary to level 4
+    MJB_COLLATION_NON_IGNORABLE, // variable elements keep their weights unchanged
+    MJB_COLLATION_SHIFTED        // variable elements move primary to level 4
 } mjb_collation_mode;
 
 // UAX#31 identifier profile
@@ -511,6 +520,9 @@ MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 
 // Return true if the category is combining
 MJB_CONST bool mjb_category_is_combining(mjb_category category);
+
+// Return the numeric value of a codepoint
+MJB_NONNULL(2) bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
 
 // Return the character block
 MJB_CONST bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);

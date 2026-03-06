@@ -186,6 +186,12 @@ Return true if the category is combining
 bool mjb_category_is_combining(mjb_category category);
 ```
 
+Return the numeric value of a codepoint
+
+```c
+bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
+```
+
 Return the character block
 
 ```c

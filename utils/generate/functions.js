@@ -799,6 +799,29 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return the numeric value of a codepoint",
+    "ret": "bool",
+    "name": "codepoint_numeric_value",
+    "attributes": [
+      "MJB_NONNULL(2)"
+    ],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "value",
+        "type": "mjb_numeric_value *",
+        "description": "The numeric value to store the result",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Return the character block",
     "ret": "bool",
     "name": "codepoint_block",

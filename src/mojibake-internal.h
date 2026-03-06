@@ -64,6 +64,7 @@ typedef struct mojibake {
     sqlite3_stmt *stmt_collation_entry;
     sqlite3_stmt *stmt_collation_contraction;
     sqlite3_stmt *stmt_confusable;
+    sqlite3_stmt *stmt_numeric_value;
 } mojibake;
 
 // Internal functions

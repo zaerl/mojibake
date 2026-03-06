@@ -262,6 +262,58 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
     return mjb_category_is_graphic(character.category);
 }
 
+// Return the numeric value of a codepoint (decimal, digit, numeric string)
+MJB_EXPORT bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value) {
+    if(!mjb_initialize()) {
+        return false;
+    }
+
+    if(!mjb_codepoint_is_valid(codepoint)) {
+        return false;
+    }
+
+    sqlite3_reset(mjb_global.stmt_numeric_value);
+    sqlite3_bind_int(mjb_global.stmt_numeric_value, 1, (int)codepoint);
+
+    if(sqlite3_step(mjb_global.stmt_numeric_value) != SQLITE_ROW) {
+        // Can potentially be a CJK or ancient script character
+        value->decimal = MJB_NUMBER_NOT_VALID;
+        value->digit = MJB_NUMBER_NOT_VALID;
+        value->numeric[0] = '\0';
+
+        return true;
+    }
+
+    if(sqlite3_column_type(mjb_global.stmt_numeric_value, 0) == SQLITE_NULL) {
+        value->decimal = MJB_NUMBER_NOT_VALID;
+    } else {
+        value->decimal = sqlite3_column_int(mjb_global.stmt_numeric_value, 0);
+    }
+
+    if(sqlite3_column_type(mjb_global.stmt_numeric_value, 1) == SQLITE_NULL) {
+        value->digit = MJB_NUMBER_NOT_VALID;
+    } else {
+        value->digit = sqlite3_column_int(mjb_global.stmt_numeric_value, 1);
+    }
+
+    const char *numeric = (const char *)sqlite3_column_text(mjb_global.stmt_numeric_value, 2);
+
+    if(numeric != NULL) {
+        size_t len = strlen(numeric);
+
+        if(len > 15) {
+            len = 15;
+        }
+
+        memcpy(value->numeric, numeric, len);
+        value->numeric[len] = '\0';
+    } else {
+        value->numeric[0] = '\0';
+    }
+
+    return true;
+}
+
 // Return true if the codepoint is combining
 MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
     mjb_character character;

@@ -232,6 +232,9 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     const char query_confusable[] = "SELECT skeleton FROM confusables WHERE codepoint = ?";
     MJB_PREPARE_STMT(mjb_global.stmt_confusable, query_confusable)
 
+    const char query_numeric_value[] = "SELECT decimal, digit, numeric FROM unicode_data WHERE codepoint = ?";
+    MJB_PREPARE_STMT(mjb_global.stmt_numeric_value, query_numeric_value)
+
     #undef MJB_PREPARE_STMT
 
     mjb_global.memory_alloc = alloc_fn;
@@ -321,6 +324,10 @@ MJB_EXPORT void mjb_shutdown(void) {
 
     if(mjb_global.stmt_confusable) {
         sqlite3_finalize(mjb_global.stmt_confusable);
+    }
+
+    if(mjb_global.stmt_numeric_value) {
+        sqlite3_finalize(mjb_global.stmt_numeric_value);
     }
 
     if(mjb_global.db) {

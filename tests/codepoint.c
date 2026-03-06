@@ -206,5 +206,34 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_character(0xFE18, &character), true, "Alias FE18 BRAKCET")
     ATT_ASSERT((const char*)character.name, "PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET", "Alias FE18 BRAKCET")
 
+    mjb_numeric_value num;
+
+    // U+0031 = '1': decimal=1, digit=1, numeric="1"
+    ATT_ASSERT(mjb_codepoint_numeric_value(0x0031, &num), true, "numeric_value: '1' returns true")
+    ATT_ASSERT(num.decimal, 1, "numeric_value: '1' decimal")
+    ATT_ASSERT(num.digit, 1, "numeric_value: '1' digit")
+    ATT_ASSERT((const char*)num.numeric, "1", "numeric_value: '1' numeric string")
+
+    // U+00BD = '½': no decimal, no digit, numeric="1/2"
+    ATT_ASSERT(mjb_codepoint_numeric_value(0x00BD, &num), true, "numeric_value: ½ returns true")
+    ATT_ASSERT(num.decimal, MJB_NUMBER_NOT_VALID, "numeric_value: ½ decimal not valid")
+    ATT_ASSERT(num.digit, MJB_NUMBER_NOT_VALID, "numeric_value: ½ digit not valid")
+    ATT_ASSERT((const char*)num.numeric, "1/2", "numeric_value: ½ numeric string")
+
+    // U+0041 = 'A': no numeric value at all
+    ATT_ASSERT(mjb_codepoint_numeric_value(0x0041, &num), true, "numeric_value: 'A' returns true")
+    ATT_ASSERT(num.decimal, MJB_NUMBER_NOT_VALID, "numeric_value: 'A' decimal not valid")
+    ATT_ASSERT(num.digit, MJB_NUMBER_NOT_VALID, "numeric_value: 'A' digit not valid")
+    ATT_ASSERT((const char*)num.numeric, "", "numeric_value: 'A' numeric string empty")
+
+    // U+0039 = '9': decimal=9, digit=9, numeric="9"
+    ATT_ASSERT(mjb_codepoint_numeric_value(0x0039, &num), true, "numeric_value: '9' returns true")
+    ATT_ASSERT(num.decimal, 9, "numeric_value: '9' decimal")
+    ATT_ASSERT(num.digit, 9, "numeric_value: '9' digit")
+    ATT_ASSERT((const char*)num.numeric, "9", "numeric_value: '9' numeric string")
+
+    // Invalid codepoint returns false
+    ATT_ASSERT(mjb_codepoint_numeric_value(MJB_CODEPOINT_MAX, &num), false, "numeric_value: invalid codepoint")
+
     return NULL;
 }
