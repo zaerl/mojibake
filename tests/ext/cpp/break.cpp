@@ -5,7 +5,7 @@
  */
 
 #include "../../test.h"
-#include "../../../ext/cpp/mojibake.hpp"
+#include "../../../src/cpp/mojibake.hpp"
 
 void *test_cpp_break(void *arg) {
     mjb::BreakResult r1{1, 0x41, MJB_BT_MANDATORY};

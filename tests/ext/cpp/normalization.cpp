@@ -5,7 +5,7 @@
  */
 
 #include "../../test.h"
-#include "../../../ext/cpp/mojibake.hpp"
+#include "../../../src/cpp/mojibake.hpp"
 
 void *test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::nfc(""), std::string(""), "nfc(\"\")");

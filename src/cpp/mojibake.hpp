@@ -9,7 +9,7 @@
 #ifndef MJB_CPP_MOJIBAKE_HPP
 #define MJB_CPP_MOJIBAKE_HPP
 
-#include "../../src/mojibake.h"
+#include "../mojibake.h"
 
 #include <string>
 #include <string_view>
