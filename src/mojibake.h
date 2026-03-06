@@ -464,6 +464,9 @@ MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding 
 // Compare two strings using UCA
 MJB_NONNULL(1, 3) int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
 
+// Generate a UCA sort key for a string
+MJB_NONNULL(1, 5) bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result*result);
+
 // Change string case
 MJB_NONNULL(1) char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
 

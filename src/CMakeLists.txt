@@ -85,6 +85,7 @@ if(BUILD_WASM)
         "\"_mjb_string_convert_encoding\""
         "\"_mjb_strnlen\""
         "\"_mjb_string_compare\""
+        "\"_mjb_collation_key\""
         "\"_mjb_case\""
         "\"_mjb_codepoint_is_valid\""
         "\"_mjb_codepoint_is_graphic\""

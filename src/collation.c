@@ -476,8 +476,7 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         return true;
     }
 
-    // TODO: check
-    bool *used = (bool*)calloc(len, sizeof(bool));
+    bool *used = (bool*)mjb_alloc(len * sizeof(bool));
 
     if(!used) {
         return false;
@@ -710,6 +709,49 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
     return true;
 }
 
+static bool compute_sort_key(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_collation_mode mode, mjb_sort_key *sk) {
+    sk->data = NULL;
+    sk->count = 0;
+    sk->cap = 0;
+
+    if(size == 0) {
+        return true;
+    }
+
+    mjb_result r;
+    bool ok = mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFD, encoding, &r);
+
+    if(!ok) {
+        return false;
+    }
+
+    size_t len = 0;
+    mjb_codepoint *cps = utf8_to_codepoints(r.output, r.output_size, &len);
+
+    if(r.output && r.output != buffer) {
+        mjb_free((void*)r.output);
+    }
+
+    mjb_cea cea = { 0, 0, 0 };
+
+    if(len > 0) {
+        build_cea(cps, len, &cea);
+    }
+
+    mjb_free(cps);
+
+    if(mode == MJB_COLLATION_SHIFTED) {
+        build_sort_key_shifted(&cea, sk);
+    } else {
+        build_sort_key_non_ignorable(&cea, sk);
+    }
+
+    cea_free(&cea);
+
+    return true;
+}
+
 static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
     size_t min_count = k1->count < k2->count ? k1->count : k2->count;
 
@@ -734,6 +776,44 @@ static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
     return 0;
 }
 
+MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_collation_mode mode, mjb_result *result) {
+    result->output = NULL;
+    result->output_size = 0;
+    result->transformed = false;
+
+    if(!mjb_initialize()) {
+        return false;
+    }
+
+    mjb_sort_key sk = { 0, 0, 0 };
+
+    if(!compute_sort_key(buffer, size, encoding, mode, &sk)) {
+        return false;
+    }
+
+    size_t byte_count = sk.count * 2;
+    uint8_t *bytes = (uint8_t*)mjb_alloc(byte_count);
+
+    if(!bytes) {
+        sk_free(&sk);
+        return false;
+    }
+
+    for(size_t i = 0; i < sk.count; ++i) {
+        bytes[i * 2] = (uint8_t)(sk.data[i] >> 8);
+        bytes[i * 2 + 1] = (uint8_t)(sk.data[i] & 0xFF);
+    }
+
+    sk_free(&sk);
+
+    result->output = (char*)bytes;
+    result->output_size = byte_count;
+    result->transformed = true;
+
+    return true;
+}
+
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *s2,
     size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode) {
     if(!mjb_initialize()) {
@@ -752,67 +832,18 @@ MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *
         return 1;
     }
 
-    // NFD-normalize both strings.
-    mjb_result r1, r2;
-
-    bool ok1 = mjb_normalize(s1, s1_length, encoding, MJB_NORMALIZATION_NFD, encoding, &r1);
-    bool ok2 = mjb_normalize(s2, s2_length, encoding, MJB_NORMALIZATION_NFD, encoding, &r2);
-
-    if(!ok1 || !ok2) {
-        if(ok1 && r1.output && r1.output != s1) {
-            mjb_free((void*)r1.output);
-        }
-
-        if(ok2 && r2.output && r2.output != s2) {
-            mjb_free((void*)r2.output);
-        }
-
-        return -1;
-    }
-
-    // Decode to codepoint arrays
-    size_t len1 = 0;
-    size_t len2 = 0;
-    mjb_codepoint *cps1 = utf8_to_codepoints(r1.output, r1.output_size, &len1);
-    mjb_codepoint *cps2 = utf8_to_codepoints(r2.output, r2.output_size, &len2);
-
-    if(r1.output && r1.output != s1) {
-        mjb_free((void *)r1.output);
-    }
-
-    if(r2.output && r2.output != s2) {
-        mjb_free((void *)r2.output);
-    }
-
-    // Build Collation Element Arrays
-    mjb_cea cea1 = { 0, 0, 0 };
-    mjb_cea cea2 = { 0, 0, 0 };
-
-    if(len1 > 0) {
-        build_cea(cps1, len1, &cea1);
-    }
-
-    if(len2 > 0) {
-        build_cea(cps2, len2, &cea2);
-    }
-
-    mjb_free(cps1);
-    mjb_free(cps2);
-
-    // Build sort keys
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    if(mode == MJB_COLLATION_SHIFTED) {
-        build_sort_key_shifted(&cea1, &sk1);
-        build_sort_key_shifted(&cea2, &sk2);
-    } else {
-        build_sort_key_non_ignorable(&cea1, &sk1);
-        build_sort_key_non_ignorable(&cea2, &sk2);
+    if(!compute_sort_key(s1, s1_length, encoding, mode, &sk1)) {
+        return -1;
     }
 
-    cea_free(&cea1);
-    cea_free(&cea2);
+    if(!compute_sort_key(s2, s2_length, encoding, mode, &sk2)) {
+        sk_free(&sk1);
+
+        return -1;
+    }
 
     int result = compare_sort_keys(&sk1, &sk2);
 

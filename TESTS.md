@@ -2,7 +2,7 @@
 
 | Test                                | Coverage   |
 | ----------------------------------- | ---------- |
-| `mjb_string_compare`                | 437935     |
+| `mjb_string_compare`                | 437936     |
 | `mjb_normalize`                     | 400684     |
 | `mjb_bidi_resolve`                  | 91787      |
 | `mjb_break_line`                    | 19365      |
@@ -22,6 +22,7 @@
 | `mjb_codepoint_emoji`               | 18         |
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_codepoint_block`               | 14         |
+| `mjb_collation_key`                 | 14         |
 | `mjb_string_is_utf16`               | 14         |
 | `mjb_codepoint_script`              | 9          |
 | `mjb_string_encoding`               | 9          |
@@ -62,4 +63,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **953922** |
+| **Total**                           | **953937** |

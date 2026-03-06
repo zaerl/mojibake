@@ -519,6 +519,47 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Generate a UCA sort key for a string",
+    "ret": "bool",
+    "name": "collation_key",
+    "attributes": [
+      "MJB_NONNULL(1, 5)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to generate the sort key for",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "mode",
+        "type": "mjb_collation_mode",
+        "description": "The variable weighting strategy",
+        "wasm_generated": false
+      },
+      {
+        "name": "result",
+        "type": "mjb_result*",
+        "description": "The pointer to store the result",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Change string case",
     "ret": "char *",
     "name": "case",
