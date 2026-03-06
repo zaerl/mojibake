@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, readdirSync, writeFileSync } from 'fs';
 import path from 'path';
 
 function loadFile(file: string) {
@@ -101,6 +101,12 @@ export async function generateAmalgamation(embedded = false) {
 #include <string.h>
 #include <stdint.h>\n\n`;
 
+  const srcDir = '../../src';
+  const cFiles = readdirSync(srcDir, { withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.c') && entry.name !== 'mojibake.c')
+    .map(entry => entry.name)
+    .sort();
+
   const sources = [
     'mojibake-internal.h',
     'mojibake.c',
@@ -108,30 +114,7 @@ export async function generateAmalgamation(embedded = false) {
     'utf16.h',
     'utf32.h',
     'utf.h',
-    'bidi.c',
-    'break-line.c',
-    'break-sentence.c',
-    'break-word.c',
-    'buffer.c',
-    'case.c',
-    'cjk.c',
-    'codepoint.c',
-    'collation.c',
-    'display.c',
-    'east-asian-width.c',
-    'emoji.c',
-    'encoding.c',
-    'filter.c',
-    'hangul.c',
-    'identifier.c',
-    'next.c',
-    'normalization.c',
-    'plane.c',
-    'properties.c',
-    'quick-check.c',
-    'segmentation.c',
-    'string.c',
-    'version.c',
+    ...cFiles,
   ];
 
   for(const file of sources) {
