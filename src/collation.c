@@ -40,7 +40,7 @@ static bool cea_grow(mjb_cea *a, size_t need) {
         new_cap *= 2;
     }
 
-    mjb_ce *p = mjb_realloc(a->data, new_cap * sizeof(mjb_ce));
+    mjb_ce *p = (mjb_ce*)mjb_realloc(a->data, new_cap * sizeof(mjb_ce));
 
     if(!p) {
         return false;
@@ -57,7 +57,13 @@ static void cea_push(mjb_cea *a, uint16_t p, uint16_t s, uint16_t t, bool var) {
         return;
     }
 
-    a->data[a->count++] = (mjb_ce){p, s, t, 0, var};
+    a->data[a->count].primary = p;
+    a->data[a->count].secondary = s;
+    a->data[a->count].tertiary = t;
+    a->data[a->count].quaternary = 0;
+    a->data[a->count].variable = var;
+
+    ++a->count;
 }
 
 static void cea_free(mjb_cea *a) {
@@ -77,7 +83,7 @@ typedef struct {
 static bool sk_push(mjb_sort_key *sk, uint16_t w) {
     if(sk->count >= sk->cap) {
         size_t new_cap = sk->cap == 0 ? 64 : sk->cap * 2;
-        uint16_t *p = mjb_realloc(sk->data, new_cap * sizeof(uint16_t));
+        uint16_t *p = (uint16_t*)mjb_realloc(sk->data, new_cap * sizeof(uint16_t));
 
         if(!p) {
             return false;
@@ -183,7 +189,13 @@ static void cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
             t &= 0x7FFF;
         }
 
-        cea->data[cea->count++] = (mjb_ce){p, s, t, 0, var};
+        cea->data[cea->count].primary = p;
+        cea->data[cea->count].secondary = s;
+        cea->data[cea->count].tertiary = t;
+        cea->data[cea->count].quaternary = 0;
+        cea->data[cea->count].variable = var;
+
+        ++cea->count;
     }
 }
 
@@ -265,7 +277,7 @@ static mjb_codepoint *utf8_to_codepoints(const char *buf, size_t len, size_t *ou
         return NULL;
     }
 
-    mjb_codepoint *arr = (mjb_codepoint *)mjb_alloc(count * sizeof(mjb_codepoint));
+    mjb_codepoint *arr = (mjb_codepoint*)mjb_alloc(count * sizeof(mjb_codepoint));
 
     if(!arr) {
         *out_count = 0;
@@ -338,7 +350,7 @@ static void cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
     sqlite3_bind_int(stmt, 1, (int)cp);
 
     if(sqlite3_step(stmt) == SQLITE_ROW) {
-        const uint8_t *blob = sqlite3_column_blob(stmt, 0);
+        const uint8_t *blob = (uint8_t*)sqlite3_column_blob(stmt, 0);
         int bytes = sqlite3_column_bytes(stmt, 0);
 
         cea_append_blob(cea, blob, bytes);
@@ -362,7 +374,7 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
     *out_advance = 0;
 
     while(sqlite3_step(stmt) == SQLITE_ROW) {
-        const uint8_t *seq = sqlite3_column_blob(stmt, 0);
+        const uint8_t *seq = (uint8_t*)sqlite3_column_blob(stmt, 0);
         int sb = sqlite3_column_bytes(stmt, 0);
         int sl = sb / 4;
 
@@ -381,7 +393,7 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
 
         if(match && (size_t)sl > *out_advance) {
             *out_advance = (size_t)sl;
-            const uint8_t *wb = sqlite3_column_blob(stmt, 1);
+            const uint8_t *wb = (uint8_t*)sqlite3_column_blob(stmt, 1);
             *out_bytes = sqlite3_column_bytes(stmt, 1);
 
             if(*out_bytes <= 18 * 6) {
@@ -406,7 +418,7 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
     sqlite3_bind_int(stmt, 1, (int)seq[0]);
 
     while(sqlite3_step(stmt) == SQLITE_ROW) {
-        const uint8_t *db_seq = sqlite3_column_blob(stmt, 0);
+        const uint8_t *db_seq = (uint8_t*)sqlite3_column_blob(stmt, 0);
         int db_bytes = sqlite3_column_bytes(stmt, 0);
         int db_len = db_bytes / 4;
 
@@ -424,8 +436,9 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
         }
 
         if(match) {
-            const uint8_t *wb = sqlite3_column_blob(stmt, 1);
+            const uint8_t *wb = (uint8_t*)sqlite3_column_blob(stmt, 1);
             *out_bytes = sqlite3_column_bytes(stmt, 1);
+
             if(*out_bytes <= 18 * 6) {
                 memcpy(out_weights, wb, (size_t)*out_bytes);
             } else {
@@ -464,7 +477,7 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
     }
 
     // TODO: check
-    bool *used = calloc(len, sizeof(bool));
+    bool *used = (bool*)calloc(len, sizeof(bool));
 
     if(!used) {
         return false;
@@ -617,10 +630,10 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
 
     /* We need adjusted weights; avoid dynamic allocation by iterating twice. Compute L1/L2/L3 and
     L4 in three passes: first collect into a scratch array (malloc), then emit. */
-    uint16_t *l1 = mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l2 = mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l3 = mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l4 = mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l1 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l2 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l3 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l4 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
 
     if(!l1 || !l2 || !l3 || !l4) {
         mjb_free(l1);
@@ -772,8 +785,8 @@ MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *
     }
 
     // Build Collation Element Arrays
-    mjb_cea cea1 = { 0 };
-    mjb_cea cea2 = { 0 };
+    mjb_cea cea1 = { 0, 0, 0 };
+    mjb_cea cea2 = { 0, 0, 0 };
 
     if(len1 > 0) {
         build_cea(cps1, len1, &cea1);
@@ -787,8 +800,8 @@ MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *
     mjb_free(cps2);
 
     // Build sort keys
-    mjb_sort_key sk1 = { 0 };
-    mjb_sort_key sk2 = { 0 };
+    mjb_sort_key sk1 = { 0, 0, 0 };
+    mjb_sort_key sk2 = { 0, 0, 0 };
 
     if(mode == MJB_COLLATION_SHIFTED) {
         build_sort_key_shifted(&cea1, &sk1);
