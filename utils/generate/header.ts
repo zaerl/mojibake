@@ -128,7 +128,7 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   if(scriptProperty) {
     const scriptEnumNames = getScriptEnumNames(scriptProperty.values);
     fileContent = substituteBlock(fileContent, "  MJB_SC_NOT_SET, // 0 is \"no value\"\n", "\n} mjb_script;", scriptEnumNames.join(',\n'));
-    fileContent = substituteBlock(fileContent, '#define MJB_SC_COUNT ', "\n", '' + scriptEnumNames.length + 1);
+    fileContent = substituteBlock(fileContent, '#define MJB_SC_COUNT ', "\n", '' + (scriptEnumNames.length + 1));
   }
 
   let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);

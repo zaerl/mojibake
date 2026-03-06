@@ -437,6 +437,9 @@ bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 // Return a property value
 uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
 
+// Return the script of a codepoint
+mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
+
 // Return the string encoding (the most probable)
 MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 

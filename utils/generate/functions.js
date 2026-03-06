@@ -262,6 +262,21 @@ export default [
     "wasm": false
   },
   {
+    "comment": "Return the script of a codepoint",
+    "ret": "mjb_script",
+    "name": "codepoint_script",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Return the string encoding (the most probable)",
     "ret": "mjb_encoding",
     "name": "string_encoding",

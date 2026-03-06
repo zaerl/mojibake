@@ -48,6 +48,12 @@ Return a property value
 uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
 ```
 
+Return the script of a codepoint
+
+```c
+mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
+```
+
 Return the string encoding (the most probable)
 
 ```c

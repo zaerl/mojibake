@@ -970,7 +970,7 @@ typedef enum mjb_script {
     MJB_SC_ZZZZ
 } mjb_script;
 
-#define MJB_SC_COUNT 1761
+#define MJB_SC_COUNT 177
 
 /**
  * Property (pr)

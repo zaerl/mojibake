@@ -138,3 +138,17 @@ MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffe
 MJB_EXPORT uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property) {
     return properties[property];
 }
+
+MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
+    if(!mjb_codepoint_is_valid(codepoint)) {
+        return MJB_SC_ZZZZ;
+    }
+
+    uint8_t raw = 0;
+
+    if(!mjb_codepoint_has_property(codepoint, MJB_PR_SCRIPT, &raw) || raw == MJB_SC_NOT_SET) {
+        return MJB_SC_ZZZZ;
+    }
+
+    return (mjb_script)raw;
+}
