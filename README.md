@@ -28,7 +28,7 @@ C++ wrapper can be found on `ext/cpp/mojibake.cpp`.
 You don't need to install anything, you only need the database and the C source code.
 
 1. Download it here
-[mojibake-amalgamation-014.zip](https://mojibake.zaerl.com/mojibake-amalgamation-014.zip)
+[mojibake-amalgamation-015.zip](https://mojibake.zaerl.com/mojibake-amalgamation-015.zip)
 2. Unzip it
 3. Add the file to the list of your files
 
@@ -36,7 +36,7 @@ An alternative embedded version is provided, where the `mojibake.db` file is not
 the `mojibake.c` and `mojibake.h` are needed. The content of the database is loaded **directly**
 from the C file. This will increase the size of your executable. If you don't mind opening files,
 use the other mode. You can get it here
-[mojibake-embedded-amalgamation-014.zip](https://mojibake.zaerl.com/mojibake-embedded-amalgamation-014.zip).
+[mojibake-embedded-amalgamation-015.zip](https://mojibake.zaerl.com/mojibake-embedded-amalgamation-015.zip).
 
 Example:
 

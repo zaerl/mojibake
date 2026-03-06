@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-03-06
+
+### Added
+- Unicode collation algorithm
+- Collation key generation
+- Truncate grapheme function
+- Truncate word function
+- Identifier function
+- Normalization output encoding
+- Support for bidi mirroring
+- Scripts detection
+
+### Changed
+- Normalization function now accept an output encoding
+- CJK ideograph now intercept all Unicode 17 extension ranges
+
+### Fixed
+- Wrong enum counts
+- Missing EAW name
+- Uninitialized memory on EAW function
+- Missing test files on Dockerfile
+
 ## [0.1.4] - 2026-03-04
 
 ### Added
@@ -184,7 +206,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/0.1.4...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/0.1.5...HEAD
+[0.1.5]: https://github.com/zaerl/mojibake/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/zaerl/mojibake/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/zaerl/mojibake/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/zaerl/mojibake/compare/0.1.1...0.1.2
