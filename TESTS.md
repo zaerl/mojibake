@@ -23,6 +23,7 @@
 | `mjb_string_is_utf8`                | 16         |
 | `mjb_codepoint_block`               | 14         |
 | `mjb_string_is_utf16`               | 14         |
+| `mjb_codepoint_script`              | 9          |
 | `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |
 | `mjb_string_is_normalized`          | 9          |
@@ -56,8 +57,9 @@
 | `mjb_bidi_reorder_line`             | 0          |
 | `mjb_category_is_combining`         | 0          |
 | `mjb_category_is_graphic`           | 0          |
+| `mjb_codepoint_is_cjk_ext`          | 0          |
 | `mjb_free`                          | 0          |
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **953913** |
+| **Total**                           | **953922** |
