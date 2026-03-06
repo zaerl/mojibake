@@ -151,6 +151,36 @@ public:
         return mjb_codepoint_is_cjk_ideograph(data.codepoint);
     }
 
+    [[nodiscard]] bool is_id_start() const {
+        ensure_valid();
+        return mjb_codepoint_is_id_start(data.codepoint);
+    }
+
+    [[nodiscard]] bool is_id_continue() const {
+        ensure_valid();
+        return mjb_codepoint_is_id_continue(data.codepoint);
+    }
+
+    [[nodiscard]] bool is_xid_start() const {
+        ensure_valid();
+        return mjb_codepoint_is_xid_start(data.codepoint);
+    }
+
+    [[nodiscard]] bool is_xid_continue() const {
+        ensure_valid();
+        return mjb_codepoint_is_xid_continue(data.codepoint);
+    }
+
+    [[nodiscard]] bool is_pattern_syntax() const {
+        ensure_valid();
+        return mjb_codepoint_is_pattern_syntax(data.codepoint);
+    }
+
+    [[nodiscard]] bool is_pattern_white_space() const {
+        ensure_valid();
+        return mjb_codepoint_is_pattern_white_space(data.codepoint);
+    }
+
     [[nodiscard]] mjb_plane plane() const {
         ensure_valid();
         return mjb_codepoint_plane(data.codepoint);
@@ -175,6 +205,42 @@ public:
         return data;
     }
 };
+
+struct NumericValue {
+    mjb_numeric_value data{};
+
+    [[nodiscard]] std::optional<int> decimal() const noexcept {
+        return data.decimal == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.decimal};
+    }
+
+    [[nodiscard]] std::optional<int> digit() const noexcept {
+        return data.digit == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.digit};
+    }
+
+    [[nodiscard]] std::string_view numeric() const noexcept {
+        return std::string_view(data.numeric);
+    }
+};
+
+inline NumericValue codepoint_numeric_value(mjb_codepoint codepoint) {
+    NumericValue value;
+
+    if(!mjb_codepoint_numeric_value(codepoint, &value.data)) {
+        throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));
+    }
+
+    return value;
+}
+
+inline bool is_identifier(std::string_view input,
+    mjb_identifier_profile profile = MJB_IDENTIFIER_DEFAULT) {
+    return mjb_string_is_identifier(input.data(), input.size(), MJB_ENCODING_UTF_8, profile);
+}
+
+inline bool is_confusable(std::string_view s1, std::string_view s2) {
+    return mjb_string_is_confusable(s1.data(), s1.size(), s2.data(), s2.size(),
+        MJB_ENCODING_UTF_8);
+}
 
 enum class NormalizationForm {
     NFC = MJB_NORMALIZATION_NFC,
@@ -224,6 +290,53 @@ inline std::string nfkc(std::string_view input) {
 
 inline std::string nfkd(std::string_view input) {
     return normalize(input, NormalizationForm::NFKD);
+}
+
+inline std::string collation_key(std::string_view input,
+    mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE) {
+    if(input.empty()) {
+        return std::string{};
+    }
+
+    mjb_result result{};
+    bool success = mjb_collation_key(input.data(), input.size(), MJB_ENCODING_UTF_8, mode,
+        &result);
+
+    if(!success) {
+        throw LibraryError("Collation key generation failed");
+    }
+
+    std::string key(result.output, result.output_size);
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
+
+    return key;
+}
+
+inline std::string_view truncate(std::string_view input, size_t max_graphemes) {
+    size_t n = mjb_truncate(input.data(), input.size(), MJB_ENCODING_UTF_8, max_graphemes);
+    return input.substr(0, n);
+}
+
+inline std::string_view truncate_width(std::string_view input, size_t max_columns,
+    mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO) {
+    size_t n = mjb_truncate_width(input.data(), input.size(), MJB_ENCODING_UTF_8, context,
+        max_columns);
+    return input.substr(0, n);
+}
+
+inline std::string_view truncate_word(std::string_view input, size_t max_segments) {
+    size_t n = mjb_truncate_word(input.data(), input.size(), MJB_ENCODING_UTF_8, max_segments);
+    return input.substr(0, n);
+}
+
+inline std::string_view truncate_word_width(std::string_view input, size_t max_columns,
+    mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO) {
+    size_t n = mjb_truncate_word_width(input.data(), input.size(), MJB_ENCODING_UTF_8, context,
+        max_columns);
+    return input.substr(0, n);
 }
 
 struct BreakResult {
