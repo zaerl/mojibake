@@ -148,3 +148,33 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
 
     return MJB_DECODE_INCOMPLETE;
 }
+
+/**
+ * Return the number of encoded bytes a codepoint occupies in the given encoding.
+ * UTF-8:  1–4 bytes depending on codepoint value.
+ * UTF-16: 2 bytes for BMP (U+0000–U+FFFF), 4 bytes for supplementary planes.
+ * UTF-32: always 4 bytes.
+ */
+static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_encoding encoding) {
+    if(encoding == MJB_ENCODING_UTF_8) {
+        if(cp < 0x80) {
+            return 1;
+        }
+
+        if(cp < 0x800) {
+            return 2;
+        }
+
+        if(cp < 0x10000) {
+            return 3;
+        }
+
+        return 4;
+    }
+
+    if(encoding == MJB_ENCODING_UTF_16_BE || encoding == MJB_ENCODING_UTF_16_LE) {
+        return cp >= 0x10000 ? 4 : 2;
+    }
+
+    return 4;
+}

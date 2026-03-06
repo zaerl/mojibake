@@ -222,6 +222,18 @@ Word cluster breaking
 mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
 ```
 
+Return the number of bytes that form the first max_segments word-break segments
+
+```c
+size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding, size_t max_segments);
+```
+
+Return the number of bytes whose word-break segments fit within max_columns display columns
+
+```c
+size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+```
+
 Sentence boundaries breaking
 
 ```c
@@ -232,6 +244,18 @@ Grapheme cluster breaking
 
 ```c
 mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+```
+
+Return the number of bytes that form the first max_graphemes grapheme cluster segments
+
+```c
+size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
+```
+
+Return the number of bytes whose grapheme clusters fit within max_columns display columns
+
+```c
+size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 ```
 
 Resolve bidirectional text (TR9) for a paragraph

@@ -87,8 +87,35 @@ static void test_basic_segmentation(void) {
     #undef MJB_TEST_S
 }
 
+static void test_truncate(void) {
+    /* mjb_truncate: empty / zero */
+    ATT_ASSERT(mjb_truncate("", 0, MJB_ENCODING_UTF_8, 3), (size_t)0, "Truncate: empty string")
+    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENCODING_UTF_8, 0), (size_t)0, "Truncate: 0 graphemes")
+
+    /* ASCII: each byte is one grapheme cluster */
+    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENCODING_UTF_8, 1), (size_t)1, "Truncate: ABC to 1")
+    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENCODING_UTF_8, 2), (size_t)2, "Truncate: ABC to 2")
+    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENCODING_UTF_8, 3), (size_t)3, "Truncate: ABC to 3 (no-op)")
+    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENCODING_UTF_8, 5), (size_t)3, "Truncate: ABC to 5 (no-op)")
+
+    /* Multi-byte: "aé" = 0x61 0xC3 0xA9 = 3 bytes, 2 grapheme clusters */
+    ATT_ASSERT(mjb_truncate("a\xC3\xA9", 3, MJB_ENCODING_UTF_8, 1), (size_t)1, "Truncate: aé to 1 grapheme")
+    ATT_ASSERT(mjb_truncate("a\xC3\xA9", 3, MJB_ENCODING_UTF_8, 2), (size_t)3, "Truncate: aé to 2 graphemes (no-op)")
+
+    /* Flag emoji 🇺🇸 = two RI codepoints (4+4=8 bytes), one grapheme cluster */
+    ATT_ASSERT(mjb_truncate("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_ENCODING_UTF_8, 1), (size_t)8, "Truncate: flag emoji to 1 grapheme (no-op)")
+
+    /* mjb_truncate_width */
+    ATT_ASSERT(mjb_truncate_width("", 0, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 5), (size_t)0, "Truncate width: empty string")
+    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 0), (size_t)0, "Truncate width: 0 columns")
+    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 2), (size_t)2, "Truncate width: ABC to 2 columns")
+    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 3), (size_t)3, "Truncate width: ABC to 3 columns (no-op)")
+    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)3, "Truncate width: ABC to 10 columns (no-op)")
+}
+
 void *test_segmentation(void *arg) {
     test_basic_segmentation();
+    test_truncate();
     read_test_file("./utils/generate/UCD/auxiliary/GraphemeBreakTest.txt", &segmentation_callback);
 
     return NULL;

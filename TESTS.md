@@ -28,11 +28,15 @@
 | `mjb_string_encoding`               | 9          |
 | `mjb_string_is_ascii`               | 9          |
 | `mjb_string_is_normalized`          | 9          |
+| `mjb_truncate`                      | 9          |
 | `mjb_hangul_syllable_name`          | 8          |
 | `mjb_plane_name`                    | 8          |
 | `mjb_codepoint_property`            | 6          |
+| `mjb_truncate_word`                 | 6          |
 | `mjb_codepoint_is_combining`        | 5          |
 | `mjb_codepoint_is_graphic`          | 5          |
+| `mjb_truncate_width`                | 5          |
+| `mjb_truncate_word_width`           | 5          |
 | `mjb_codepoint_is_hangul_jamo`      | 4          |
 | `mjb_hangul_syllable_decomposition` | 4          |
 | `mjb_codepoint_has_property`        | 3          |
@@ -63,4 +67,4 @@
 | `mjb_initialize`                    | 0          |
 | `mjb_realloc`                       | 0          |
 | `mjb_shutdown`                      | 0          |
-| **Total**                           | **953937** |
+| **Total**                           | **953962** |

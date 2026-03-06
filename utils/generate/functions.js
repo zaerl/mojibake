@@ -943,6 +943,82 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return the number of bytes that form the first max_segments word-break segments",
+    "ret": "size_t",
+    "name": "truncate_word",
+    "attributes": [
+      "MJB_NONNULL(1)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "max_segments",
+        "type": "size_t",
+        "description": "The maximum number of segments to return",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return the number of bytes whose word-break segments fit within max_columns display columns",
+    "ret": "size_t",
+    "name": "truncate_word_width",
+    "attributes": [
+      "MJB_NONNULL(1)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "context",
+        "type": "mjb_width_context",
+        "description": "The width context",
+        "wasm_generated": false
+      },
+      {
+        "name": "max_columns",
+        "type": "size_t",
+        "description": "The maximum number of columns to return",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Sentence boundaries breaking",
     "ret": "mjb_break_type",
     "name": "break_sentence",
@@ -1008,6 +1084,82 @@ export default [
         "type": "mjb_next_state *",
         "description": "The state to store the result",
         "wasm_generated": true
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return the number of bytes that form the first max_graphemes grapheme cluster segments",
+    "ret": "size_t",
+    "name": "truncate",
+    "attributes": [
+      "MJB_NONNULL(1)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "max_graphemes",
+        "type": "size_t",
+        "description": "The maximum number of graphemes to return",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return the number of bytes whose grapheme clusters fit within max_columns display columns",
+    "ret": "size_t",
+    "name": "truncate_width",
+    "attributes": [
+      "MJB_NONNULL(1)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to check",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "context",
+        "type": "mjb_width_context",
+        "description": "The width context",
+        "wasm_generated": false
+      },
+      {
+        "name": "max_columns",
+        "type": "size_t",
+        "description": "The maximum number of columns to return",
+        "wasm_generated": false
       }
     ],
     "wasm": true

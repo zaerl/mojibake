@@ -524,11 +524,23 @@ MJB_NONNULL(1, 4) mjb_break_type mjb_break_line(const char *buffer, size_t size,
 // Word cluster breaking
 MJB_NONNULL(1, 4) mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
 
+// Return the number of bytes that form the first max_segments word-break segments
+MJB_NONNULL(1) size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding, size_t max_segments);
+
+// Return the number of bytes whose word-break segments fit within max_columns display columns
+MJB_NONNULL(1) size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+
 // Sentence boundaries breaking
 MJB_NONNULL(1, 4) mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_sentence_state *state);
 
 // Grapheme cluster breaking
 MJB_NONNULL(1, 4) mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+
+// Return the number of bytes that form the first max_graphemes grapheme cluster segments
+MJB_NONNULL(1) size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
+
+// Return the number of bytes whose grapheme clusters fit within max_columns display columns
+MJB_NONNULL(1) size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph
 MJB_NONNULL(1, 5) bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);

@@ -380,3 +380,74 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
 
     return MJB_BT_ALLOWED;
 }
+
+
+// Return the number of bytes that form the first max_segments word-break segments.
+MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
+    size_t max_segments) {
+    if(size == 0 || max_segments == 0) {
+        return 0;
+    }
+
+    mjb_next_word_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t segment_count = 0;
+
+    while((bt = mjb_break_word(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = (state.index > size) ? size :
+            state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
+
+        if(++segment_count >= max_segments) {
+            return break_pos;
+        }
+    }
+
+    return size;
+}
+
+// Return the number of bytes whose word-break segments fit within max_columns display columns.
+MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_width_context context, size_t max_columns) {
+    if(size == 0 || max_columns == 0) {
+        return 0;
+    }
+
+    if(!mjb_initialize()) {
+        return 0;
+    }
+
+    mjb_next_word_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t total_width = 0;
+    size_t prev_break = 0;
+
+    while((bt = mjb_break_word(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = (state.index > size) ? size :
+            state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
+
+        size_t segment_width = 0;
+        mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+            &segment_width);
+
+        if(total_width + segment_width > max_columns) {
+            return prev_break;
+        }
+
+        total_width += segment_width;
+        prev_break = break_pos;
+    }
+
+    return size;
+}

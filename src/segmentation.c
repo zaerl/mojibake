@@ -12,6 +12,8 @@
 
 extern mojibake mjb_global;
 
+
+
 static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buffer) {
     // Update GB11: Extended_Pictographic + ZWJ sequences
     if(mjb_codepoint_property(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
@@ -281,4 +283,74 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
     ++state->index;
 
     return MJB_BT_ALLOWED;
+}
+
+// Return the number of bytes that form the first max_graphemes grapheme clusters.
+MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding,
+    size_t max_graphemes) {
+    if(size == 0 || max_graphemes == 0) {
+        return 0;
+    }
+
+    mjb_next_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t cluster_count = 0;
+
+    while((bt = mjb_segmentation(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = (state.index > size) ? size :
+            state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
+
+        if(++cluster_count >= max_graphemes) {
+            return break_pos;
+        }
+    }
+
+    return size;
+}
+
+// Return the number of bytes whose grapheme clusters fit within max_columns display columns.
+MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_width_context context, size_t max_columns) {
+    if(size == 0 || max_columns == 0) {
+        return 0;
+    }
+
+    if(!mjb_initialize()) {
+        return 0;
+    }
+
+    mjb_next_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t total_width = 0;
+    size_t prev_break = 0;
+
+    while((bt = mjb_segmentation(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = (state.index > size) ? size :
+            state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
+
+        size_t cluster_width = 0;
+        mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+            &cluster_width);
+
+        if(total_width + cluster_width > max_columns) {
+            return prev_break;
+        }
+
+        total_width += cluster_width;
+        prev_break = break_pos;
+    }
+
+    return size;
 }
