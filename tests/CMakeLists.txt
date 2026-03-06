@@ -17,6 +17,7 @@ set(TEST_SOURCES
     filter.c
     hangul-composition.c
     hangul.c
+    identifier.c
     mojibake.c
     next.c
     normalization.c
@@ -90,6 +91,7 @@ add_test(NAME "Encoding" COMMAND mojibake-test -f encoding)
 add_test(NAME "Filter" COMMAND mojibake-test -f filter)
 add_test(NAME "Hangul Composition" COMMAND mojibake-test -f hangul_composition)
 add_test(NAME "Hangul" COMMAND mojibake-test -f hangul)
+add_test(NAME "Identifier" COMMAND mojibake-test -f identifier)
 add_test(NAME "Mojibake" COMMAND mojibake-test -f mojibake)
 add_test(NAME "Next" COMMAND mojibake-test -f next)
 add_test(NAME "Normalization" COMMAND mojibake-test -f normalization)

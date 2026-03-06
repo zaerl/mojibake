@@ -1356,6 +1356,131 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)",
+    "ret": "bool",
+    "name": "codepoint_is_id_start",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)",
+    "ret": "bool",
+    "name": "codepoint_is_id_continue",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)",
+    "ret": "bool",
+    "name": "codepoint_is_xid_start",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)",
+    "ret": "bool",
+    "name": "codepoint_is_xid_continue",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)",
+    "ret": "bool",
+    "name": "codepoint_is_pattern_syntax",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)",
+    "ret": "bool",
+    "name": "codepoint_is_pattern_white_space",
+    "attributes": [],
+    "args": [
+      {
+        "name": "codepoint",
+        "type": "mjb_codepoint",
+        "description": "The codepoint to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
+    "comment": "Return true if the string is a valid Unicode identifier (UAX#31)",
+    "ret": "bool",
+    "name": "string_is_identifier",
+    "attributes": [
+      "MJB_NONNULL(1)"
+    ],
+    "args": [
+      {
+        "name": "buffer",
+        "type": "const char *",
+        "description": "The string to validate",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the string, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the string",
+        "wasm_generated": false
+      },
+      {
+        "name": "profile",
+        "type": "mjb_identifier_profile",
+        "description": "The identifier profile (DEFAULT or NFKC)",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Return the emoji properties",
     "ret": "bool",
     "name": "codepoint_emoji",

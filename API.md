@@ -300,6 +300,48 @@ Return the name of a plane, NULL if the place specified is not valid
 const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 ```
 
+Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)
+
+```c
+bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)
+
+```c
+bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)
+
+```c
+bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)
+
+```c
+bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)
+
+```c
+bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)
+
+```c
+bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
+```
+
+Return true if the string is a valid Unicode identifier (UAX#31)
+
+```c
+bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
+```
+
 Return the emoji properties
 
 ```c

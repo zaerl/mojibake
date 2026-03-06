@@ -152,3 +152,27 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
 
     return (mjb_script)raw;
 }
+
+MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint) {
+    return mjb_codepoint_has_property(codepoint, MJB_PR_ID_START, NULL);
+}
+
+MJB_EXPORT bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint) {
+    return mjb_codepoint_has_property(codepoint, MJB_PR_ID_CONTINUE, NULL);
+}
+
+MJB_EXPORT bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint) {
+    return mjb_codepoint_has_property(codepoint, MJB_PR_XID_START, NULL);
+}
+
+MJB_EXPORT bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint) {
+    return mjb_codepoint_has_property(codepoint, MJB_PR_XID_CONTINUE, NULL);
+}
+
+MJB_EXPORT bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint) {
+    return mjb_codepoint_has_property(codepoint, MJB_PR_PATTERN_SYNTAX, NULL);
+}
+
+MJB_EXPORT bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint) {
+    return mjb_codepoint_has_property(codepoint, MJB_PR_PATTERN_WHITE_SPACE, NULL);
+}

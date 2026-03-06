@@ -14,6 +14,7 @@ set(SOURCES
     emoji.c
     hangul.c
     filter.c
+    identifier.c
     next.c
     mojibake.c
     normalization.c
@@ -111,6 +112,13 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_plane\""
         "\"_mjb_plane_is_valid\""
         "\"_mjb_plane_name\""
+        "\"_mjb_codepoint_is_id_start\""
+        "\"_mjb_codepoint_is_id_continue\""
+        "\"_mjb_codepoint_is_xid_start\""
+        "\"_mjb_codepoint_is_xid_continue\""
+        "\"_mjb_codepoint_is_pattern_syntax\""
+        "\"_mjb_codepoint_is_pattern_white_space\""
+        "\"_mjb_string_is_identifier\""
         "\"_mjb_codepoint_emoji\""
         "\"_mjb_codepoint_east_asian_width\""
         "\"_mjb_display_width\""

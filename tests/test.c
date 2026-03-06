@@ -212,6 +212,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(filter)
     RUN_TEST(hangul_composition)
     RUN_TEST(hangul)
+    RUN_TEST(identifier)
     RUN_TEST(mojibake)
     RUN_TEST(next)
     RUN_TEST(normalization)

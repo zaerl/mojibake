@@ -411,6 +411,12 @@ typedef enum mjb_collation_mode {
     MJB_COLLATION_SHIFTED       = 1, // variable elements move primary to level 4
 } mjb_collation_mode;
 
+// UAX#31 identifier profile
+typedef enum mjb_identifier_profile {
+    MJB_IDENTIFIER_DEFAULT, // NFC + ID_Start / ID_Continue
+    MJB_IDENTIFIER_NFKC     // NFKC + XID_Start / XID_Continue
+} mjb_identifier_profile;
+
 // This functions list is automatically generated. Do not edit.
 
 // Return the codepoint character
@@ -562,6 +568,27 @@ MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
 
 // Return the name of a plane, NULL if the place specified is not valid
 MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
+
+// Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)
+bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
+
+// Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)
+bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
+
+// Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)
+bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
+
+// Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)
+bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
+
+// Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)
+bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
+
+// Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)
+bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
+
+// Return true if the string is a valid Unicode identifier (UAX#31)
+MJB_NONNULL(1) bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
 
 // Return the emoji properties
 MJB_NONNULL(2) bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
