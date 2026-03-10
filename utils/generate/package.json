@@ -8,6 +8,7 @@
   "scripts": {
     "generate": "npx ts-node index.ts",
     "generate-site": "npx ts-node site/generate-site.ts",
+    "generate-locales": "npx ts-node locales/generate-locales.ts",
     "watch-site": "npx ts-node site/generate-site.ts --watch",
     "coverage": "npx ts-node coverage.ts"
   },
@@ -15,6 +16,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.0.3",
     "better-sqlite3": "^12.5.0",
+    "fast-xml-parser": "^5.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

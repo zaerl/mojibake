@@ -18,9 +18,9 @@ utils/generate/UCD/*
 utils/generate/unihan/*
 utils/generate/emoji/*
 utils/generate/sqlite-*
-utils/generate/locales/*
 utils/generate/collation/*
 utils/generate/security/*
+utils/generate/locales/*.xml
 
 # Utils SQLite artifacts
 utils/sqlite3/sqlite-src-*

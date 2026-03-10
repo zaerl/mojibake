@@ -67,7 +67,7 @@ build-asan: configure-asan
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
-.PHONY: generate generate-locales generate-sqlite generate-embedded-db generate-site watch-site \
+.PHONY: generate generate-locale generate-sqlite generate-embedded-db generate-site watch-site \
 		watch-api wasm coverage amalgamation update-version
 
 # Generate source files and database
@@ -75,8 +75,8 @@ generate: $(GENERATE_SOURCES)
 	@cd ./utils/generate && ./generate.sh $(ARGS)
 
 # Generate locale files
-generate-locales:
-	@cd ./utils/generate && ./generate-locales.sh
+generate-locale:
+	@cd ./utils/generate && npm run generate -- generate-locale
 
 # Manual target to force regeneration
 generate-sqlite:
@@ -204,7 +204,7 @@ help:
 	@echo "  build-asan   - Build the project with AddressSanitizer"
 	@echo "  build-wasm   - Build the project for WebAssembly"
 	@echo "  generate     - Regenerate source files"
-	@echo "  generate-locales - Generate locale files"
+	@echo "  generate-locale - Generate locale file"
 	@echo "  generate-sqlite - Generate SQLite source files"
 	@echo "  generate-embedded-db - Generate embedded database header"
 	@echo "  generate-site - Generate site"

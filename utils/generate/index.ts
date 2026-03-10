@@ -15,7 +15,7 @@ import { generateAPI } from './generate-api';
 import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateNormalizationCount } from './generate-tests';
 import { generateHeader } from './header';
-import { generateLocales } from './locales';
+import { generateLocale } from './locales/generate-locale';
 import { iLog, isVerbose, log, setVerbose } from './log';
 import { readAliases } from './parse-ucd/aliases';
 import { readBidiBrackets } from './parse-ucd/bidi-brackets';
@@ -23,8 +23,8 @@ import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
 import { readBlocks } from './parse-ucd/blocks';
 import { generateCasefold } from './parse-ucd/casefold';
 import { parseCollationAllKeys } from './parse-ucd/collation';
-import { parseConfusables } from './parse-ucd/confusables';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
+import { parseConfusables } from './parse-ucd/confusables';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
 import { buildPropertyRanges, Property } from './parse-ucd/properties';
 import { readNormalizationProps } from './parse-ucd/quick-check';
@@ -162,8 +162,8 @@ for(let i = 2; i < process.argv.length; ++i) {
     setVerbose(true);
   } else if(process.argv[i] === '-c') {
     compact = true;
-  } else if(process.argv[i] === 'locales') {
-    generateTarget = 'locales';
+  } else if(process.argv[i] === 'generate-locale') {
+    generateTarget = 'locale';
   } else if(process.argv[i] === 'amalgamation') {
     generateTarget = 'amalgamation';
   } else if(process.argv[i] === 'embedded-db') {
@@ -176,8 +176,8 @@ for(let i = 2; i < process.argv.length; ++i) {
 }
 
 async function generate() {
-  if(generateTarget === 'locales') {
-    await generateLocales();
+  if(generateTarget === 'locale') {
+    await generateLocale('it');
     return;
   } else if(generateTarget === 'amalgamation') {
     await generateAmalgamation();
