@@ -2,6 +2,17 @@
 
 ## Main
 
+- [ ] Add RLE generic arrays
+- [ ] Add generic binary search
+- [ ] Move properties to RLE arrays
+- [ ] Move categories to RLE arrays
+- [ ] Move generator to C
+- [ ] Export libmojibake
+- [ ] Remove mojibake.db
+- [ ] Remove SQLite dependency
+- [ ] Remove TypeScript dependency
+- [ ] Create Cosmpolitan CLI
+- [ ] Add support for NetBSD
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
