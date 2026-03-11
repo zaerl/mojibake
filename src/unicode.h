@@ -419,36 +419,36 @@ typedef enum mjb_block {
  * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
-    MJB_CATEGORY_LU, // 0 (Lu) Letter, uppercase
-    MJB_CATEGORY_LL, // 1 (Ll) Letter, lowercase
-    MJB_CATEGORY_LT, // 2 (Lt) Letter, titlecase
-    MJB_CATEGORY_LM, // 3 (Lm) Letter, modifier
-    MJB_CATEGORY_LO, // 4 (Lo) Letter, other
-    MJB_CATEGORY_MN, // 5 (Mn) Mark, non-spacing
-    MJB_CATEGORY_MC, // 6 (Mc) Mark, spacing combining
-    MJB_CATEGORY_ME, // 7 (Me) Mark, enclosing
-    MJB_CATEGORY_ND, // 8 (Nd) Number, decimal digit
-    MJB_CATEGORY_NL, // 9 (Nl) Number, letter
-    MJB_CATEGORY_NO, // 10 (No) Number, other
-    MJB_CATEGORY_PC, // 11 (Pc) Punctuation, connector
-    MJB_CATEGORY_PD, // 12 (Pd) Punctuation, dash
-    MJB_CATEGORY_PS, // 13 (Ps) Punctuation, open
-    MJB_CATEGORY_PE, // 14 (Pe) Punctuation, close
-    MJB_CATEGORY_PI, // 15 (Pi) Punctuation, initial quote
-    MJB_CATEGORY_PF, // 16 (Pf) Punctuation, final quote
-    MJB_CATEGORY_PO, // 17 (Po) Punctuation, other
-    MJB_CATEGORY_SM, // 18 (Sm) Symbol, math
-    MJB_CATEGORY_SC, // 19 (Sc) Symbol, currency
-    MJB_CATEGORY_SK, // 20 (Sk) Symbol, modifier
-    MJB_CATEGORY_SO, // 21 (So) Symbol, other
-    MJB_CATEGORY_ZS, // 22 (Zs) Separator, space
-    MJB_CATEGORY_ZL, // 23 (Zl) Separator, line
-    MJB_CATEGORY_ZP, // 24 (Zp) Separator, paragraph
-    MJB_CATEGORY_CC, // 25 (Cc) Other, control
-    MJB_CATEGORY_CF, // 26 (Cf) Other, format
-    MJB_CATEGORY_CS, // 27 (Cs) Other, surrogate
-    MJB_CATEGORY_CO, // 28 (Co) Other, private use
-    MJB_CATEGORY_CN  // 29 (Cn) Other, not assigned
+    MJB_CATEGORY_CN,
+    MJB_CATEGORY_LU,
+    MJB_CATEGORY_LL,
+    MJB_CATEGORY_LT,
+    MJB_CATEGORY_LM,
+    MJB_CATEGORY_LO,
+    MJB_CATEGORY_MN,
+    MJB_CATEGORY_MC,
+    MJB_CATEGORY_ME,
+    MJB_CATEGORY_ND,
+    MJB_CATEGORY_NL,
+    MJB_CATEGORY_NO,
+    MJB_CATEGORY_PC,
+    MJB_CATEGORY_PD,
+    MJB_CATEGORY_PS,
+    MJB_CATEGORY_PE,
+    MJB_CATEGORY_PI,
+    MJB_CATEGORY_PF,
+    MJB_CATEGORY_PO,
+    MJB_CATEGORY_SM,
+    MJB_CATEGORY_SC,
+    MJB_CATEGORY_SK,
+    MJB_CATEGORY_SO,
+    MJB_CATEGORY_ZS,
+    MJB_CATEGORY_ZL,
+    MJB_CATEGORY_ZP,
+    MJB_CATEGORY_CC,
+    MJB_CATEGORY_CF,
+    MJB_CATEGORY_CS,
+    MJB_CATEGORY_CO
 } mjb_category;
 
 #define MJB_CATEGORY_COUNT 30

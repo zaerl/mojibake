@@ -9,7 +9,9 @@
 
 #include "maps.h"
 
+// # @missing: 0000..10FFFF; General_Category; Unassigned
 static const char *mjbsh_category_names[] = {
+    "Other, not assigned",        // MJB_CATEGORY_CN
     "Letter, uppercase",          // MJB_CATEGORY_LU
     "Letter, lowercase",          // MJB_CATEGORY_LL
     "Letter, titlecase",          // MJB_CATEGORY_LT
@@ -38,8 +40,7 @@ static const char *mjbsh_category_names[] = {
     "Other, control",             // MJB_CATEGORY_CC
     "Other, format",              // MJB_CATEGORY_CF
     "Other, surrogate",           // MJB_CATEGORY_CS
-    "Other, private use",         // MJB_CATEGORY_CO
-    "Other, not assigned"         // MJB_CATEGORY_CN
+    "Other, private use"          // MJB_CATEGORY_CO
 };
 
 static const char *mjbsh_ccc_names[] = {

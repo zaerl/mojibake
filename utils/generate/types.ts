@@ -39,6 +39,7 @@ export interface Decomposition {
 
 // C: mjb_category
 export enum Categories {
+  Cn,
   Lu,
   Ll,
   Lt,
@@ -67,14 +68,14 @@ export enum Categories {
   Cc,
   Cf,
   Cs,
-  Co,
-  Cn
+  Co
 }
 
 export type CategoriesStrings = keyof typeof Categories;
 
 // C: mjb_category
 export const categories = [
+  'Other, not assigned',
   'Letter, uppercase',
   'Letter, lowercase',
   'Letter, titlecase',
@@ -103,8 +104,7 @@ export const categories = [
   'Other, control',
   'Other, format',
   'Other, surrogate',
-  'Other, private use',
-  'Other, not assigned',
+  'Other, private use'
 ];
 
 // C: mjb_bidi_class
