@@ -32,7 +32,7 @@ static int mjbsh_show_version(void) {
     printf("Mojibake %sv%s [%s]%s\n", mjbsh_green(), mjb_version(), valid ? character.name : "UNKNOWN", mjbsh_reset());
 
     return 0;
- }
+}
 
 static void mjbsh_show_help(struct option options[], const char *descriptions[], mjbsh_command commands[], const char *error) {
     FILE *stream = error ? stderr : stdout;

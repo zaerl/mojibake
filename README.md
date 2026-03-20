@@ -59,8 +59,8 @@ int main(int argc, char * const argv[]) {
 }
 ```
 
-An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
-use to preview the API.
+~~An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
+use to preview the API.~~ _Temporarly offline._
 
 This library works only in little-endian systems to avoid adding too much overhead. This means that
 it works on all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.) It has been
