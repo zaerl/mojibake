@@ -9,6 +9,7 @@ else()
 endif()
 
 add_library(mojibake_sqlite STATIC ${SQLITE3_SOURCES})
+
 if(MSVC)
     # MSVC-specific: Suppress warnings for SQLite amalgamation
     target_compile_options(mojibake_sqlite PRIVATE
