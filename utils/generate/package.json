@@ -14,10 +14,10 @@
   },
   "dependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^25.0.3",
-    "better-sqlite3": "^12.5.0",
-    "fast-xml-parser": "^5.4.2",
+    "@types/node": "^26.0.0",
+    "better-sqlite3": "^12.11.1",
+    "fast-xml-parser": "^5.9.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }
