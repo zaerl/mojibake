@@ -6,18 +6,18 @@
   "description": "Mojibake Unicode data generator",
   "license": "MIT",
   "scripts": {
-    "generate": "npx ts-node index.ts",
-    "generate-site": "npx ts-node site/generate-site.ts",
-    "generate-locales": "npx ts-node locales/generate-locales.ts",
-    "watch-site": "npx ts-node site/generate-site.ts --watch",
-    "coverage": "npx ts-node coverage.ts"
+    "generate": "tsx index.ts",
+    "generate-site": "tsx site/generate-site.ts",
+    "generate-locales": "tsx locales/generate-locales.ts",
+    "watch-site": "tsx site/generate-site.ts --watch",
+    "coverage": "tsx coverage.ts"
   },
   "dependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^26.0.0",
     "better-sqlite3": "^12.11.1",
     "fast-xml-parser": "^5.9.3",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }
