@@ -185,7 +185,7 @@ clean-embedded-amalgamation-header:
 
 # Clean main database file
 clean-database:
-	@rm mojibake.db
+	@rm -f mojibake.db
 
 # Clean generated SQLite source files
 clean-sqlite:
