@@ -419,36 +419,36 @@ typedef enum mjb_block {
  * [see: https://www.unicode.org/glossary/#general_category]
  */
 typedef enum mjb_category {
-    MJB_CATEGORY_CN,
-    MJB_CATEGORY_LU,
-    MJB_CATEGORY_LL,
-    MJB_CATEGORY_LT,
-    MJB_CATEGORY_LM,
-    MJB_CATEGORY_LO,
-    MJB_CATEGORY_MN,
-    MJB_CATEGORY_MC,
-    MJB_CATEGORY_ME,
-    MJB_CATEGORY_ND,
-    MJB_CATEGORY_NL,
-    MJB_CATEGORY_NO,
-    MJB_CATEGORY_PC,
-    MJB_CATEGORY_PD,
-    MJB_CATEGORY_PS,
-    MJB_CATEGORY_PE,
-    MJB_CATEGORY_PI,
-    MJB_CATEGORY_PF,
-    MJB_CATEGORY_PO,
-    MJB_CATEGORY_SM,
-    MJB_CATEGORY_SC,
-    MJB_CATEGORY_SK,
-    MJB_CATEGORY_SO,
-    MJB_CATEGORY_ZS,
-    MJB_CATEGORY_ZL,
-    MJB_CATEGORY_ZP,
-    MJB_CATEGORY_CC,
-    MJB_CATEGORY_CF,
-    MJB_CATEGORY_CS,
-    MJB_CATEGORY_CO
+    MJB_CATEGORY_CN, // 0 (Cn) Other, not assigned
+    MJB_CATEGORY_LU, // 1 (Lu) Letter, uppercase
+    MJB_CATEGORY_LL, // 2 (Ll) Letter, lowercase
+    MJB_CATEGORY_LT, // 3 (Lt) Letter, titlecase
+    MJB_CATEGORY_LM, // 4 (Lm) Letter, modifier
+    MJB_CATEGORY_LO, // 5 (Lo) Letter, other
+    MJB_CATEGORY_MN, // 6 (Mn) Mark, non-spacing
+    MJB_CATEGORY_MC, // 7 (Mc) Mark, spacing combining
+    MJB_CATEGORY_ME, // 8 (Me) Mark, enclosing
+    MJB_CATEGORY_ND, // 9 (Nd) Number, decimal digit
+    MJB_CATEGORY_NL, // 10 (Nl) Number, letter
+    MJB_CATEGORY_NO, // 11 (No) Number, other
+    MJB_CATEGORY_PC, // 12 (Pc) Punctuation, connector
+    MJB_CATEGORY_PD, // 13 (Pd) Punctuation, dash
+    MJB_CATEGORY_PS, // 14 (Ps) Punctuation, open
+    MJB_CATEGORY_PE, // 15 (Pe) Punctuation, close
+    MJB_CATEGORY_PI, // 16 (Pi) Punctuation, initial quote
+    MJB_CATEGORY_PF, // 17 (Pf) Punctuation, final quote
+    MJB_CATEGORY_PO, // 18 (Po) Punctuation, other
+    MJB_CATEGORY_SM, // 19 (Sm) Symbol, math
+    MJB_CATEGORY_SC, // 20 (Sc) Symbol, currency
+    MJB_CATEGORY_SK, // 21 (Sk) Symbol, modifier
+    MJB_CATEGORY_SO, // 22 (So) Symbol, other
+    MJB_CATEGORY_ZS, // 23 (Zs) Separator, space
+    MJB_CATEGORY_ZL, // 24 (Zl) Separator, line
+    MJB_CATEGORY_ZP, // 25 (Zp) Separator, paragraph
+    MJB_CATEGORY_CC, // 26 (Cc) Other, control
+    MJB_CATEGORY_CF, // 27 (Cf) Other, format
+    MJB_CATEGORY_CS, // 28 (Cs) Other, surrogate
+    MJB_CATEGORY_CO  // 29 (Co) Other, private use
 } mjb_category;
 
 #define MJB_CATEGORY_COUNT 30
