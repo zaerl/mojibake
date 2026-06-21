@@ -68,8 +68,7 @@ static void read_bidi_test_file(const char *filename) {
         bool skip = false;
 
         char cp_copy[512];
-        strncpy(cp_copy, fields[0], sizeof(cp_copy) - 1);
-        cp_copy[sizeof(cp_copy) - 1] = '\0';
+        snprintf(cp_copy, sizeof(cp_copy), "%s", fields[0]);
         char *cp_ptr = cp_copy;
         char *cp_tok;
 
@@ -117,8 +116,7 @@ static void read_bidi_test_file(const char *filename) {
         size_t non_removed = 0;
 
         char lvl_copy[512];
-        strncpy(lvl_copy, fields[3], sizeof(lvl_copy) - 1);
-        lvl_copy[sizeof(lvl_copy) - 1] = '\0';
+        snprintf(lvl_copy, sizeof(lvl_copy), "%s", fields[3]);
         char *lvl_ptr = lvl_copy;
         char *lvl_tok;
 
@@ -144,8 +142,7 @@ static void read_bidi_test_file(const char *filename) {
         size_t order_count = 0;
 
         char ord_copy[512];
-        strncpy(ord_copy, fields[4], sizeof(ord_copy) - 1);
-        ord_copy[sizeof(ord_copy) - 1] = '\0';
+        snprintf(ord_copy, sizeof(ord_copy), "%s", fields[4]);
         char *ord_ptr = ord_copy;
         char *ord_tok;
 
