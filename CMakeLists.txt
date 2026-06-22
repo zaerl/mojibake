@@ -20,9 +20,6 @@ option(BUILD_WASM "Build for WebAssembly" OFF)
 # AddressSanitizer option
 option(USE_ASAN "Enable AddressSanitizer" OFF)
 
-# Kept for compatibility; generated Unicode tables are always embedded now.
-option(USE_EMBEDDED_DB "Compatibility option; data is always embedded" OFF)
-
 # Shared library option
 option(BUILD_SHARED "Build as shared library instead of static" OFF)
 

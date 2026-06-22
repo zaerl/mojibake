@@ -75,7 +75,7 @@ export function packByteSequences(sequences: number[][]) {
   return { data, offsets };
 }
 
-// Decodes a big-endian codepoint blob from SQLite into numeric codepoints.
+// Decodes a big-endian codepoint blob into numeric codepoints.
 function codepointsFromBlob(blob: Buffer) {
   const values: number[] = [];
 

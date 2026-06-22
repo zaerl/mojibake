@@ -19,9 +19,9 @@ function loadFile(file: string) {
   return fileContent;
 }
 
-export async function generateAmalgamation(embedded = false) {
-  console.log(`Generating amalgamation${embedded ? ' compatibility build' : ''}...`);
-  const baseFolder = embedded ? '../../build-embedded-amalgamation' : '../../build-amalgamation';
+export async function generateAmalgamation() {
+  console.log('Generating amalgamation...');
+  const baseFolder = '../../build-amalgamation';
 
   const headers = [
     'buffer.h',
@@ -75,8 +75,8 @@ export async function generateAmalgamation(embedded = false) {
 
   const sources = [
     'mojibake-internal.h',
-    'unicode-data.h',
     'unicode-tables.h',
+    'unicode-data.h',
     'mojibake.c',
     'utf8.h',
     'utf16.h',

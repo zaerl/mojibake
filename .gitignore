@@ -9,8 +9,6 @@ deploy*
 build
 build-*
 
-src/sqlite3/*.h
-src/sqlite3/*.c
 src/gui/*
 
 # Utils artifacts
@@ -18,19 +16,12 @@ utils/generate/node_modules
 utils/generate/UCD/*
 utils/generate/unihan/*
 utils/generate/emoji/*
-utils/generate/sqlite-*
 utils/generate/collation/*
 utils/generate/security/*
 utils/generate/locales/*.xml
 
-# Utils SQLite artifacts
-utils/sqlite3/sqlite-src-*
-utils/sqlite3/sqlite3.zip
-
-src/embedded-db.h
 src/api/mojibake.js
 src/api/mojibake.wasm
-src/api/mojibake.db
 src/api/functions.js
 
 # Doc

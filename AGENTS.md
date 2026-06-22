@@ -28,10 +28,6 @@ portable. Key commands:
 
 Build configurations: Debug, Release, Test (via BUILD_TYPE environment variable)
 
-Compatibility note: `make build-embedded` and `make test-embedded` still exist, but generated
-Unicode tables are always embedded now. Treat those targets as historical compatibility aliases,
-not as a separate runtime database mode.
-
 ## Unicode Data Generation
 
 Runtime Unicode data lives in generated C tables:
@@ -65,8 +61,8 @@ When changing generated table layout, keep each step measurable and reversible:
     build/src/libmojibake_lib.a
   ```
 - run `node_modules/.bin/tsc --noEmit` from `utils/generate/`
-- run `make generate-unicode-tables`, `make build`, focused tests for affected features, `make test`,
-  and `make test-embedded`
+- run `make generate-unicode-tables`, `make build`, focused tests for affected features, and
+  `make test`
 - keep the change only when behavior is unchanged, performance stays in the same range, and the
   generated source plus compiled artifacts are smaller
 

@@ -129,10 +129,8 @@ bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_si
     uint32_t name_offset = entry & 0x000FFFFF;
     uint16_t prefix = (uint16_t)(entry >> 20);
 
-    index = mjb_append_table_string(name, name_size, index,
-        mjb_unicode_prefix_lookup(prefix));
-    mjb_append_table_string(name, name_size, index,
-        &mjb_unicode_name_data[name_offset]);
+    index = mjb_append_table_string(name, name_size, index, mjb_unicode_prefix_lookup(prefix));
+    mjb_append_table_string(name, name_size, index, &mjb_unicode_name_data[name_offset]);
 
     return true;
 }

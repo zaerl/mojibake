@@ -29,9 +29,6 @@
 *.gif  binary
 *.ico  binary
 
-# SQLite amalgamation
-src/sqlite3/* linguist-vendored
-
 # Export ignore
 .gitattributes export-ignore
 .gitignore     export-ignore

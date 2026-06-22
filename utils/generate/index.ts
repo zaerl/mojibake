@@ -12,7 +12,6 @@ import { Character } from './character';
 import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunCollation, dbRunComposition, dbRunConfusables, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
-import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateNormalizationCount } from './generate-tests';
 import { generateUnicodeTables } from './generate-unicode-tables';
 import { generateHeader } from './header';
@@ -167,12 +166,8 @@ for(let i = 2; i < process.argv.length; ++i) {
     generateTarget = 'locale';
   } else if(process.argv[i] === 'amalgamation') {
     generateTarget = 'amalgamation';
-  } else if(process.argv[i] === 'embedded-db') {
-    generateTarget = 'embedded-db';
   } else if(process.argv[i] === 'unicode-tables') {
     generateTarget = 'unicode-tables';
-  } else if(process.argv[i] === 'embedded-amalgamation') {
-    generateTarget = 'embedded-amalgamation';
   } else if(process.argv[i] === 'update-version') {
     generateTarget = 'update-version';
   }
@@ -185,14 +180,8 @@ async function generate() {
   } else if(generateTarget === 'amalgamation') {
     await generateAmalgamation();
     return;
-  } else if(generateTarget === 'embedded-db') {
-    await generateEmbeddedDB();
-    return;
   } else if(generateTarget === 'unicode-tables') {
     await generateUnicodeTables();
-    return;
-  } else if(generateTarget === 'embedded-amalgamation') {
-    await generateAmalgamation(true);
     return;
   } else if(generateTarget === 'update-version') {
     await updateVersion();

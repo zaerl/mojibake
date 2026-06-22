@@ -19,7 +19,6 @@ WORKDIR /app
 # Copy source files
 COPY src/ src/
 COPY CMakeLists.txt .
-COPY mojibake.db .
 
 # Copy test files
 COPY tests/ tests/

@@ -5,7 +5,7 @@
 - [ ] Add generic binary search
 - [ ] Export libmojibake
 - [ ] Remove mojibake.db
-- [ ] Remove SQLite dependency
+- [x] Remove SQLite dependency
 - [ ] Remove TypeScript dependency
 - [ ] Create Cosmpolitan CLI
 - [ ] Add support for NetBSD

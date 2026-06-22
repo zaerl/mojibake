@@ -254,5 +254,4 @@ This project is released under the MIT License (see LICENSE file).
 
 Mojibake is built using the work of extraordinary individuals and teams.
 
-1. SQLite is in the [public domain](https://sqlite.org/copyright.html)
-2. Unicode Character Database - Unicode, Inc. (see [UNICODE-LICENSE](UNICODE-LICENSE))
+1. Unicode Character Database - Unicode, Inc. (see [UNICODE-LICENSE](UNICODE-LICENSE))
