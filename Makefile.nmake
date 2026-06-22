@@ -22,21 +22,21 @@ NATIVE_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=OFF -DUSE_ASA
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils\generate\generate.bat utils\generate\*.json utils\generate\*.ts
 
-UNICODE_TABLES = src\unicode-tables.c
+UNICODE_DATA = src\unicode-data.h
 
 # Aggregate
 all: configure build
 
 # C targets
-configure: $(UNICODE_TABLES)
+configure: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 
 # NULL-safe testing targets
-configure-null: $(UNICODE_TABLES)
+configure-null: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DALLOW_EMBEDDED_NULLS=ON
 
 # Shared library targets
-configure-shared: $(UNICODE_TABLES)
+configure-shared: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_SHARED=ON
 
 # C targets
@@ -44,7 +44,7 @@ build: configure
 	@cmake --build $(BUILD_DIR)
 
 # C++ targets
-configure-cpp: $(UNICODE_TABLES)
+configure-cpp: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_CPP=ON
 
 # C++ targets
@@ -52,7 +52,7 @@ build-cpp: configure-cpp
 	@cmake --build $(BUILD_DIR)
 
 # AddressSanitizer targets
-configure-asan: $(UNICODE_TABLES)
+configure-asan: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DUSE_ASAN=ON
 
 build-asan: configure-asan
@@ -63,7 +63,7 @@ build-shared: configure-shared
 	@cmake --build $(BUILD_DIR)
 
 # WASM targets
-configure-wasm: $(UNICODE_TABLES)
+configure-wasm: $(UNICODE_DATA)
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_WASM=ON
 
 # WASM targets
@@ -77,12 +77,12 @@ wasm: sync-api-wasm generate-site
 coverage:
 	@cd utils\generate && npm run coverage
 
-# Generate source files and database
+# Generate source files
 generate: $(GENERATE_SOURCES)
 	@cd utils\generate && generate.bat $(ARGS)
 
 # Rule for generated Unicode data
-mojibake.db $(UNICODE_TABLES): $(GENERATE_SOURCES)
+$(UNICODE_DATA): $(GENERATE_SOURCES)
 	@cd utils\generate && generate.bat $(ARGS)
 
 # Generate locale file
@@ -162,10 +162,7 @@ clean-wasm:
 clean-amalgamation:
 	@if exist $(AMALGAMATION_BUILD_DIR) rmdir /S /Q $(AMALGAMATION_BUILD_DIR)
 
-clean-database:
-	@if exist mojibake.db del /Q mojibake.db
-
-clean: clean-native clean-wasm clean-amalgamation clean-database
+clean: clean-native clean-wasm clean-amalgamation
 
 # Help
 help:
@@ -196,5 +193,4 @@ help:
 	@echo   clean-native - Remove all build artifacts
 	@echo   clean-wasm   - Remove WASM build artifacts
 	@echo   clean-amalgamation - Remove amalgamation build artifacts
-	@echo   clean-database - Remove main database file
 	@echo   clean        - Remove build artifacts

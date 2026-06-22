@@ -4,7 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import Database from 'better-sqlite3';
 import { writeFile } from 'fs/promises';
 import { resolve } from 'path';
 import { generateBlocks } from './tables/blocks';
@@ -17,106 +16,11 @@ import { generateNCharacters } from './tables/n-characters';
 import { generateNames } from './tables/names';
 import { generateNumericValues } from './tables/numeric';
 import { generateProperties } from './tables/properties';
-import { BlockRow, CaseFoldRow, CollationContractionRow, CollationEntryRow, CompositionRow, ConfusableRow, DecompositionRow, EmojiRow, NameRow, NCharacterRow, NumericRow, PrefixRow, PropertyRangeRow, SimpleCaseRow, SpecialCaseRow } from './tables/types';
+import { getUnicodeTableData, UnicodeTableData } from './unicode-data-store';
 
-// Returns the SQL query for normalized character metadata rows.
-function nCharacterQuery() {
-  return `
-    SELECT codepoint, category, combining, bidirectional, decomposition, quick_check, mirrored
-    FROM unicode_data
-    ORDER BY codepoint
-  `;
-}
-
-// Reads generation data from SQLite and writes the generated Unicode C tables.
-export async function generateUnicodeTables() {
-  const dbPath = resolve(__dirname, '../../mojibake.db');
+// Writes the generated Unicode C tables from the in-memory generation data.
+export async function generateUnicodeTables(data: UnicodeTableData = getUnicodeTableData()) {
   const outputPath = resolve(__dirname, '../../src/unicode-data.h');
-  const db = new Database(dbPath, { readonly: true, fileMustExist: true });
-
-  const blocks = db.prepare(`
-    SELECT id, start, end, name
-    FROM blocks
-    ORDER BY start
-  `).all() as BlockRow[];
-  const prefixes = db.prepare(`
-    SELECT id, name
-    FROM prefixes
-    ORDER BY id
-  `).all() as PrefixRow[];
-  const names = db.prepare(`
-    SELECT codepoint, name, prefix
-    FROM unicode_data
-    WHERE name IS NOT NULL
-    ORDER BY codepoint
-  `).all() as NameRow[];
-
-  const emoji = db.prepare(`
-    SELECT codepoint, emoji, emoji_presentation, emoji_modifier, emoji_modifier_base,
-      emoji_component, extended_pictographic
-    FROM emoji_properties
-    ORDER BY codepoint
-  `).all() as EmojiRow[];
-
-  const properties = db.prepare(`
-    SELECT start_codepoint, end_codepoint, properties
-    FROM property_ranges
-    ORDER BY start_codepoint, end_codepoint
-  `).all() as PropertyRangeRow[];
-
-  const nCharacters = db.prepare(nCharacterQuery()).all() as NCharacterRow[];
-  const decompositions = db.prepare(`
-    SELECT id, value
-    FROM decompositions
-    ORDER BY id, rowid
-  `).all() as DecompositionRow[];
-  const compatibilityDecompositions = db.prepare(`
-    SELECT id, value
-    FROM compatibility_decompositions
-    ORDER BY id, rowid
-  `).all() as DecompositionRow[];
-  const compositions = db.prepare(`
-    SELECT starter_codepoint, combining_codepoint, composite_codepoint
-    FROM compositions
-    ORDER BY starter_codepoint, combining_codepoint
-  `).all() as CompositionRow[];
-  const numericValues = db.prepare(`
-    SELECT codepoint, decimal, digit, numeric
-    FROM unicode_data
-    WHERE decimal IS NOT NULL OR digit IS NOT NULL OR numeric IS NOT NULL
-    ORDER BY codepoint
-  `).all() as NumericRow[];
-  const simpleCaseMappings = db.prepare(`
-    SELECT codepoint, uppercase, lowercase, titlecase
-    FROM unicode_data
-    WHERE uppercase IS NOT NULL OR lowercase IS NOT NULL OR titlecase IS NOT NULL
-    ORDER BY codepoint
-  `).all() as SimpleCaseRow[];
-  const specialCaseMappings = db.prepare(`
-    SELECT codepoint, case_type, new_case_1, new_case_2, new_case_3
-    FROM special_casing
-    ORDER BY codepoint, case_type
-  `).all() as SpecialCaseRow[];
-  const caseFoldMappings = db.prepare(`
-    SELECT codepoint, new_case_1, new_case_2, new_case_3
-    FROM case_folding
-    ORDER BY codepoint
-  `).all() as CaseFoldRow[];
-  const confusables = db.prepare(`
-    SELECT codepoint, skeleton
-    FROM confusables
-    ORDER BY codepoint
-  `).all() as ConfusableRow[];
-  const collationEntries = db.prepare(`
-    SELECT codepoint, weights
-    FROM collation_entries
-    ORDER BY codepoint
-  `).all() as CollationEntryRow[];
-  const collationContractions = db.prepare(`
-    SELECT first_codepoint, sequence, weights
-    FROM collation_contractions
-    ORDER BY first_codepoint, id
-  `).all() as CollationContractionRow[];
 
   const output = `/**
  * The Mojibake library
@@ -129,20 +33,20 @@ export async function generateUnicodeTables() {
 #include <stddef.h>
 #include <string.h>
 
-${generateBlocks(blocks)}
-${generateNames(prefixes, names)}
-${generateEmoji(emoji)}
-${generateProperties(properties)}
-${generateNCharacters(nCharacters)}
-${generateDecompositionAndCompositionTables(decompositions, compatibilityDecompositions, compositions)}
-${generateNumericValues(numericValues)}
-${generateSimpleCaseMappings(simpleCaseMappings)}
-${generateSpecialCaseMappings(specialCaseMappings)}
-${generateCaseFoldMappings(caseFoldMappings)}
-${generateConfusables(confusables)}
-${generateCollationEntries(collationEntries)}
-${generateCollationContractions(collationContractions)}`;
+${generateBlocks(data.blocks)}
+${generateNames(data.prefixes, data.names)}
+${generateEmoji(data.emoji)}
+${generateProperties(data.properties)}
+${generateNCharacters(data.nCharacters)}
+${generateDecompositionAndCompositionTables(data.decompositions,
+  data.compatibilityDecompositions, data.compositions)}
+${generateNumericValues(data.numericValues)}
+${generateSimpleCaseMappings(data.simpleCaseMappings)}
+${generateSpecialCaseMappings(data.specialCaseMappings)}
+${generateCaseFoldMappings(data.caseFoldMappings)}
+${generateConfusables(data.confusables)}
+${generateCollationEntries(data.collationEntries)}
+${generateCollationContractions(data.collationContractions)}`;
 
   await writeFile(outputPath, output);
-  db.close();
 }

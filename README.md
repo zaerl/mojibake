@@ -19,20 +19,20 @@ The amalgamation consists of two files:
 1. `mojibake.h`
 2. `mojibake.c`
 
-Unicode data is generated into compact C tables, so no separate runtime database is required. A CLI
-implementation is provided in `src/shell`, and the C++ wrapper is in `src/cpp/mojibake.hpp`.
+Unicode data is generated into compact C tables used directly by the library. A CLI implementation
+is provided in `src/shell`, and the C++ wrapper is in `src/cpp/mojibake.hpp`.
 
 ## Unicode data
 
 Runtime Unicode data lives in generated C tables:
 
-1. `src/unicode-tables.c`
+1. `src/unicode-data.h`
 2. `src/unicode-tables.h`
+3. `src/unicode-tables.c`
 
-The generator is in `utils/generate/generate-unicode-tables.ts`. It reads the Unicode Character
-Database, Unihan, emoji, collation, and security data collected under `utils/generate/`, then emits
-compact lookup tables used directly by the C library. The full generation path can still create
-`mojibake.db` as an intermediate artifact, but the database is not shipped or opened at runtime.
+The generator is in `utils/generate/generate-unicode-tables.ts`. It reads Unicode character,
+Unihan, emoji, collation, and security data collected under `utils/generate/`, then emits compact
+lookup tables used directly by the C library.
 
 The generated tables use compact representations inspired by small Unicode runtimes: sparse page
 indexes for codepoint lookups, packed 32-bit and 64-bit entries, shared string/codepoint/byte

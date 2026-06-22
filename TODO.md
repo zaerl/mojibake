@@ -4,7 +4,6 @@
 
 - [ ] Add generic binary search
 - [ ] Export libmojibake
-- [ ] Remove mojibake.db
 - [x] Remove SQLite dependency
 - [ ] Remove TypeScript dependency
 - [ ] Create Cosmpolitan CLI

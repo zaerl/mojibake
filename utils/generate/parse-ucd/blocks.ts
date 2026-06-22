@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { dbInsertBlock } from '../db';
 import { log } from '../log';
+import { addBlock } from '../unicode-data-store';
 import { Block } from '../types';
 import { parsePropertyFile, ucdCodepointRange, ucdNameToEnumName } from './utils';
 
@@ -32,7 +32,7 @@ export async function readBlocks(): Promise<Block[]> {
     };
 
     blocks.push(block);
-    dbInsertBlock(id, block);
+    addBlock(id, block);
 
     ++id;
   }

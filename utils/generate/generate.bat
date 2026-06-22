@@ -42,9 +42,8 @@ if not exist "collation" (
     del CollationTest.zip
 )
 
-REM Create build directory and remove old database
+REM Create build directory
 if not exist "..\..\build" mkdir "..\..\build"
-if exist "..\..\mojibake.db" del "..\..\mojibake.db"
 
 REM Run npm generate
 npm run generate -- %*

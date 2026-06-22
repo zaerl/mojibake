@@ -92,7 +92,7 @@ export interface CodepointsRange {
 
 export type CodepointsRangeMap = { [name: string]: CodepointsRange };
 
-// Filter away characters that will not be included in the database
+// Filter away characters that will not be included in generated tables.
 export function isCodepointOnRanges(codepoint: number, name: string): CodepointsRange | null {
   const ret: CodepointsRange = {
     range: false,

@@ -8,34 +8,34 @@ NATIVE_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=OFF -DUSE_A
 # Source files that trigger regeneration.
 GENERATE_SOURCES = utils/generate/generate.sh utils/generate/*.json utils/generate/*.ts
 
-UNICODE_TABLES = src/unicode-tables.c
+UNICODE_DATA = src/unicode-data.h
 
 .PHONY: all configure configure-cpp configure-shared configure-asan configure-null configure-wasm
 
 all: configure build
 
 # C targets
-configure: $(UNICODE_TABLES)
+configure: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 
 # NULL-safe testing targets
-configure-null: $(UNICODE_TABLES)
+configure-null: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DALLOW_EMBEDDED_NULLS=ON
 
 # C++ targets
-configure-cpp: $(UNICODE_TABLES)
+configure-cpp: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_CPP=ON
 
 # Shared library targets
-configure-shared: $(UNICODE_TABLES)
+configure-shared: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_SHARED=ON
 
 # AddressSanitizer targets
-configure-asan: $(UNICODE_TABLES)
+configure-asan: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DUSE_ASAN=ON
 
 # WASM targets
-configure-wasm: $(UNICODE_TABLES)
+configure-wasm: $(UNICODE_DATA)
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_WASM=ON
 
 .PHONY: build build-cpp build-shared build-asan build-wasm
@@ -63,7 +63,7 @@ build-wasm: configure-wasm
 		generate-site sync-api-wasm watch-site \
 		watch-api wasm coverage amalgamation update-version
 
-# Generate source files and database
+# Generate source files
 generate: $(GENERATE_SOURCES)
 	@cd ./utils/generate && ./generate.sh $(ARGS)
 
@@ -103,7 +103,7 @@ amalgamation:
 	@cd ./utils/generate && ./generate-amalgamation.sh
 
 # Rule for generated Unicode data
-mojibake.db $(UNICODE_TABLES): $(GENERATE_SOURCES)
+$(UNICODE_DATA): $(GENERATE_SOURCES)
 	@cd ./utils/generate && ./generate.sh $(ARGS)
 
 # Update version in source files
@@ -142,7 +142,7 @@ test-docker:
 	docker build -t mojibake .
 	docker run mojibake
 
-.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean-database clean
+.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean
 
 # Clean targets
 clean-build:
@@ -160,11 +160,7 @@ clean-wasm:
 clean-amalgamation:
 	@rm -rf $(AMALGAMATION_BUILD_DIR)
 
-# Clean main database file
-clean-database:
-	@rm -f mojibake.db
-
-clean: clean-native clean-wasm clean-amalgamation clean-database
+clean: clean-native clean-wasm clean-amalgamation
 
 .PHONY: help
 
@@ -195,5 +191,4 @@ help:
 	@echo "  clean-native - Remove all build artifacts"
 	@echo "  clean-wasm   - Remove WASM build artifacts"
 	@echo "  clean-amalgamation - Remove amalgamation build artifacts"
-	@echo "  clean-database - Remove main database file"
 	@echo "  clean        - Remove build artifacts"

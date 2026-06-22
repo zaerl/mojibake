@@ -19,6 +19,7 @@ utils/generate/emoji/*
 utils/generate/collation/*
 utils/generate/security/*
 utils/generate/locales/*.xml
+utils/generate/locales/*.json
 
 src/api/mojibake.js
 src/api/mojibake.wasm

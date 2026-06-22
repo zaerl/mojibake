@@ -4,12 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { constants } from 'fs';
-import { access, unlink } from 'fs/promises';
 import { generateAmalgamation } from './amalgamation';
 import { Analysis } from './analysis';
 import { Character } from './character';
-import { dbInit, dbRun, dbRunAfter, dbRunCaseFolding, dbRunCollation, dbRunComposition, dbRunConfusables, dbRunDecompositions, dbRunEmojiProperties, dbRunPropertyRanges, dbRunSpecialCasing, dbSize } from './db';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
 import { generateNormalizationCount } from './generate-tests';
@@ -36,10 +33,13 @@ import {
   UnicodeDataRow
 } from './types';
 import { updateVersion } from './update-version';
+import {
+  addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
+  addDecompositions, addEmojiProperties, addPropertyRanges, addSpecialCasing,
+  resetUnicodeTableData, unicodeTableDataSummary,
+} from './unicode-data-store';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
 import { generateWASM } from './wasm';
-
-let compact = false;
 
 async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true):
   Promise<{ characters: Character[], properties: Property[] }> {
@@ -125,7 +125,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
     analysis.addCharacter(char, originalName);
   }
 
-  iLog('INSERT UNICODE DATA');
+  iLog('BUILD UNICODE DATA');
 
   analysis.beforeDB();
   const { propertyRanges, properties } = await buildPropertyRanges();
@@ -136,18 +136,17 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const prefixCompressor = new PrefixCompressor(characters);
   const prefixes = prefixCompressor.compress();
 
-  // Insert characters
-  dbRun(characters, prefixes);
+  addCharacters(characters, prefixes);
 
-  dbRunDecompositions(generateDecomposition(characters));
-  dbRunDecompositions(generateDecomposition(characters, true), true);
-  dbRunComposition(generateComposition(characters, exclusions));
-  dbRunEmojiProperties(emojis);
-  dbRunSpecialCasing(newCases);
-  dbRunPropertyRanges(propertyRanges);
+  addDecompositions(generateDecomposition(characters));
+  addDecompositions(generateDecomposition(characters, true), true);
+  addCompositions(generateComposition(characters, exclusions));
+  addEmojiProperties(emojis);
+  addSpecialCasing(newCases);
+  addPropertyRanges(propertyRanges);
 
   const caseFolds = await generateCasefold(characters);
-  dbRunCaseFolding(caseFolds);
+  addCaseFolding(caseFolds);
 
   analysis.outputGeneratedData(codepoint, isVerbose());
 
@@ -160,8 +159,6 @@ let generateTarget: string | null = null;
 for(let i = 2; i < process.argv.length; ++i) {
   if(process.argv[i] === '-v' || process.argv[i] === '--verbose') {
     setVerbose(true);
-  } else if(process.argv[i] === '-c') {
-    compact = true;
   } else if(process.argv[i] === 'generate-locale') {
     generateTarget = 'locale';
   } else if(process.argv[i] === 'amalgamation') {
@@ -173,6 +170,20 @@ for(let i = 2; i < process.argv.length; ++i) {
   }
 }
 
+async function buildUnicodeTableData() {
+  resetUnicodeTableData();
+
+  const blocks = await readBlocks();
+  const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
+  const { entries: collationEntries } = await parseCollationAllKeys('./collation/allkeys.txt');
+  addCollation(collationEntries);
+
+  const confusableEntries = await parseConfusables('./security/confusables.txt');
+  addConfusables(confusableEntries);
+
+  return { blocks, properties };
+}
+
 async function generate() {
   if(generateTarget === 'locale') {
     await generateLocale('it');
@@ -181,6 +192,7 @@ async function generate() {
     await generateAmalgamation();
     return;
   } else if(generateTarget === 'unicode-tables') {
+    await buildUnicodeTableData();
     await generateUnicodeTables();
     return;
   } else if(generateTarget === 'update-version') {
@@ -188,27 +200,9 @@ async function generate() {
     return;
   }
 
-  const dbName = '../../mojibake.db';
-  // Check if dbName file exists, if it exists, delete it
-  try {
-    await access(dbName, constants.F_OK);
-    await unlink(dbName);
-  } catch (err) {}
-
-  dbInit(dbName, compact);
-
-  const blocks = await readBlocks();
-  const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
+  const { blocks, properties } = await buildUnicodeTableData();
   const bidiBrackets = await readBidiBrackets();
   const bidiMirroring = await readBidiMirroring();
-
-  const { entries: collationEntries } = await parseCollationAllKeys('./collation/allkeys.txt');
-  dbRunCollation(collationEntries);
-
-  const confusableEntries = await parseConfusables('./security/confusables.txt');
-  dbRunConfusables(confusableEntries);
-
-  dbRunAfter();
 
   await generateUnicodeTables();
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);
@@ -216,8 +210,8 @@ async function generate() {
   // generateData(characters);
   generateAPI();
 
-  const size = dbSize();
-  iLog(`Database size: ${size.toLocaleString()} bytes\n`);
+  const summary = unicodeTableDataSummary();
+  iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
 
   generateNormalizationCount();
 }

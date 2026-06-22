@@ -47,5 +47,4 @@ fi
 
 
 mkdir -p ../../build
-rm -f ../../mojibake.db
 npm run generate -- "$@"

@@ -37,4 +37,4 @@ RUN cmake -S . -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     && cmake --build ${BUILD_DIR}
 
 # Default command to run tests
-CMD ["sh", "-c", "WRD_DB_PATH=./mojibake.db ${BUILD_DIR}/tests/mojibake-test"]
+CMD ["sh", "-c", "${BUILD_DIR}/tests/mojibake-test"]

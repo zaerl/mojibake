@@ -17,7 +17,7 @@ portable. Key commands:
 - `make test-null` - Build and run tests with embedded NULL support
 - `make test-cpp` - Build and run tests with a C++ compiler
 - `make test-asan` - Build and run tests with AddressSanitizer
-- `make clean` - Remove build artifacts and generated local database artifacts
+- `make clean` - Remove build artifacts
 - `make generate` - Regenerate Unicode data from utils/generate/
 - `make generate-unicode-tables` - Regenerate embedded Unicode lookup tables
 - `make sync-api-wasm` - Copy the current WASM build output into `src/api`
@@ -32,14 +32,15 @@ Build configurations: Debug, Release, Test (via BUILD_TYPE environment variable)
 
 Runtime Unicode data lives in generated C tables:
 
-- `src/unicode-tables.c`
+- `src/unicode-data.h`
 - `src/unicode-tables.h`
+- `src/unicode-tables.c`
 
 The generator reads Unicode data from `utils/generate/UCD/`, `utils/generate/unihan/`,
 `utils/generate/emoji/`, `utils/generate/collation/`, and `utils/generate/security/`.
-`mojibake.db` is still created by the full generation path as an intermediate artifact; it is not a
-runtime dependency of the C library. Prefer changing `utils/generate/generate-unicode-tables.ts`
-and regenerating the tables instead of hand-editing generated C.
+It builds the generated C tables directly in memory. Prefer changing
+`utils/generate/generate-unicode-tables.ts` and regenerating the tables instead of hand-editing
+generated C.
 
 The generated tables are intentionally compressed. Current techniques include:
 

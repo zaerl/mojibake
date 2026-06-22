@@ -4,10 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import Database from 'better-sqlite3';
 import { XMLParser } from 'fast-xml-parser';
 import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { get } from 'https';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
@@ -22,16 +21,14 @@ interface LocaleKey {
   '#text': string;
 }
 
-export function generateDB(name: string, data: any) {
-  const dbPath = `./locales/${name}.db`;
+export async function generateLocaleData(name: string, data: any) {
+  const outputPath = `./locales/${name}.json`;
 
-  if(existsSync(dbPath)) {
-    console.log(`Removing old database '${dbPath}'`);
+  if(existsSync(outputPath)) {
+    console.log(`Removing old locale data '${outputPath}'`);
 
-    unlinkSync(dbPath);
+    unlinkSync(outputPath);
   }
-
-  const db = new Database(dbPath);
 
   const tables = [
     ['languages', 'language'],
@@ -44,20 +41,11 @@ export function generateDB(name: string, data: any) {
     ['measurementSystemNames', 'measurementSystemName'],
     ['codePatterns', 'codePattern'],
   ];
+  const localeData: Record<string, Record<string, string>> = {};
 
   for(const table of tables) {
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS ${table[0]} (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL
-      );
-    `);
-
-    const insertSmt = db.prepare(`
-      INSERT INTO ${table[0]} (id, name) VALUES (?, ?);
-    `);
-
     const items = data.localeDisplayNames[table[0]];
+    const rows: Record<string, string> = {};
 
     for(const item of items[table[1]] as LocaleKey[]) {
       let id = item['@_type'];
@@ -82,22 +70,17 @@ export function generateDB(name: string, data: any) {
         id += `-scope-${item['@_scope']}`;
       }
 
-      insertSmt.run(id, item['#text']);
+      rows[id] = item['#text'];
     }
+
+    localeData[table[0]] = rows;
   }
 
-  db.pragma('synchronous = OFF');
-  db.pragma('journal_mode = MEMORY');
-  db.pragma('temp_store = MEMORY');
+  await writeFile(outputPath, JSON.stringify(localeData, null, 2));
+  console.log('Locale data generated successfully');
 
-  db.pragma('optimize');
-  db.exec('ANALYZE;');
-  db.exec('VACUUM;');
-
-  console.log('Database generated successfully');
-
-  const size = statSync(dbPath).size;
-  console.log('Database size:', size, 'bytes');
+  const size = statSync(outputPath).size;
+  console.log('Locale data size:', size, 'bytes');
 }
 
 export async function generateLocale(name: string) {
@@ -147,6 +130,6 @@ async function parseLocale(name: string) {
   console.log(data.localeDisplayNames.variants.variant.length, 'variants');
   console.log(data.localeDisplayNames.keys.key.length, 'keys');
 
-  console.log('Generating database');
-  generateDB(name, data);
+  console.log('Generating locale data');
+  await generateLocaleData(name, data);
 }
