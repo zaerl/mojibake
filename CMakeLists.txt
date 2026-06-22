@@ -20,8 +20,8 @@ option(BUILD_WASM "Build for WebAssembly" OFF)
 # AddressSanitizer option
 option(USE_ASAN "Enable AddressSanitizer" OFF)
 
-# Embedded database option
-option(USE_EMBEDDED_DB "Use embedded database instead of external file" OFF)
+# Kept for compatibility; generated Unicode tables are always embedded now.
+option(USE_EMBEDDED_DB "Compatibility option; data is always embedded" OFF)
 
 # Shared library option
 option(BUILD_SHARED "Build as shared library instead of static" OFF)
@@ -79,9 +79,6 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Test" CACHE STRING "Configurations"
 
 # Mojibake library
 add_subdirectory(src)
-
-# SQLite library
-add_subdirectory(src/sqlite3)
 
 # Tests and shell (only for native builds)
 if(NOT BUILD_WASM)

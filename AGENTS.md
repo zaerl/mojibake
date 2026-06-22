@@ -1,44 +1,74 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents when working with code in this repository.
 
 ## Build System
 
 This is a C11 Unicode library using CMake and Make. The library is written to be small, fast and
 portable. Key commands:
 
-- `make all` - Full build including configure, build, and database generation
+- `make all` - Full build including configure and build
 - `make configure` - Configure CMake build system
 - `make build` - Build the project (calls cmake --build)
-- `make build-embedded` - Build with embedded database (no .db file needed)
-- `make test` - Run tests (requires mojibake.db)
-- `make test-embedded` - Run tests with embedded database
-- `make clean` - Remove build directory and database
+- `make build-cpp` - Build the project with a C++ compiler
+- `make build-shared` - Build the project as a shared library
+- `make build-asan` - Build the project with AddressSanitizer
+- `make test` - Build and run tests
+- `make test-null` - Build and run tests with embedded NULL support
+- `make test-cpp` - Build and run tests with a C++ compiler
+- `make test-asan` - Build and run tests with AddressSanitizer
+- `make clean` - Remove build artifacts and generated local database artifacts
 - `make generate` - Regenerate Unicode data from utils/generate/
-- `make generate-embedded-db` - Generate embedded database header
+- `make generate-unicode-tables` - Regenerate embedded Unicode lookup tables
+- `make sync-api-wasm` - Copy the current WASM build output into `src/api`
 - `make coverage` - Generate test coverage reports
 - `make wasm` - Generate a WASM version of the library
-- `make watch-site` - Serve the WASM site locally at localhost:8080, regenerate on changes
+- `make watch-site` - Serve the WASM site locally at localhost:6251, regenerate on changes
 - `make watch-api` - Start the JavaScript API server at localhost:3000, restart on changes
 
 Build configurations: Debug, Release, Test (via BUILD_TYPE environment variable)
 
-### Embedded Database
+Compatibility note: `make build-embedded` and `make test-embedded` still exist, but generated
+Unicode tables are always embedded now. Treat those targets as historical compatibility aliases,
+not as a separate runtime database mode.
 
-The library can be built with the database embedded directly in the binary (no separate .db file needed):
-- Use `make build-embedded` for a single-file distribution
-- CMake option: `-DUSE_EMBEDDED_DB=ON`
+## Unicode Data Generation
 
-## Database Generation
+Runtime Unicode data lives in generated C tables:
 
-The library requires `mojibake.db` (SQLite database with Unicode data from UCD.zip, Unihan.zip and
-emoji archives):
+- `src/unicode-tables.c`
+- `src/unicode-tables.h`
 
-- Generated from Unicode Character Database files in `utils/generate/UCD/`
-- Table `unicode_data` has data from the UnicodeData.txt Unicode file
-- Table `decompositions` has data to be used in the NFC and NFD normalizations
-- Table `compatibility_decompositions` has data using in the NFKC and NFKD normalizations
-- Table `property_ranges` has data from the codepoints properties grouped and saved in ranges to save space
+The generator reads Unicode data from `utils/generate/UCD/`, `utils/generate/unihan/`,
+`utils/generate/emoji/`, `utils/generate/collation/`, and `utils/generate/security/`.
+`mojibake.db` is still created by the full generation path as an intermediate artifact; it is not a
+runtime dependency of the C library. Prefer changing `utils/generate/generate-unicode-tables.ts`
+and regenerating the tables instead of hand-editing generated C.
+
+The generated tables are intentionally compressed. Current techniques include:
+
+- sparse page indexes for codepoint-keyed tables instead of direct page arrays
+- packed 32-bit and 64-bit records for blocks, prefixes, emoji, decompositions, compositions,
+  numeric values, simple case mappings, special casing, case folding, and collation contractions
+- shared string, codepoint, and byte payload tables for names, decompositions, confusables, and
+  collation weights
+- interned property blobs and bitsets for compact property and mirrored-character data
+- substring/suffix sharing for confusable skeletons and collation weight sequences
+
+When changing generated table layout, keep each step measurable and reversible:
+
+- capture this size snapshot before and after the change:
+  ```sh
+  wc -c \
+    src/unicode-tables.c \
+    build/src/CMakeFiles/mojibake_lib.dir/unicode-tables.c.o \
+    build/src/libmojibake_lib.a
+  ```
+- run `node_modules/.bin/tsc --noEmit` from `utils/generate/`
+- run `make generate-unicode-tables`, `make build`, focused tests for affected features, `make test`,
+  and `make test-embedded`
+- keep the change only when behavior is unchanged, performance stays in the same range, and the
+  generated source plus compiled artifacts are smaller
 
 ## Architecture
 
@@ -56,7 +86,7 @@ Core modules in `src/`:
 - `east-asian-width.c` - East Asian width property (`mjb_codepoint_east_asian_width`)
 - `emoji.c` - Emoji property detection (`mjb_codepoint_emoji`)
 - `encoding.c` - String encoding detection
-- `ext/cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
+- `cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
 - `filter.c` - String filtering (`mjb_string_filter`)
 - `hangul.c` - Hangul syllable handling
 - `mojibake.c/.h` - Main API and library initialization
@@ -68,8 +98,8 @@ Core modules in `src/`:
 - `segmentation.c` - Grapheme Cluster Breaking algorithm (TR29)
 - `shell/` provides CLI access to library functions
 - `site/` files for generating the WASM version site
-- `sqlite3/` - Embedded SQLite for Unicode data lookup
 - `string.c` - Internal string output utilities
+- `unicode-tables.c/.h` - Generated Unicode lookup tables
 - `version.c` - Version query functions
 
 Key headers:
@@ -120,8 +150,12 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 ## JavaScript API
 
 The `src/api/` directory contains a Node.js HTTP server that exposes library functions over HTTP
-using the WASM build of the library (requires `mojibake.wasm` and `mojibake.db` in that directory).
+using the WASM build of the library (requires generated `mojibake.js` and `mojibake.wasm` in that
+directory).
 
+- `make wasm` — build WASM, generate the site, and refresh `src/api/mojibake.js`,
+  `src/api/mojibake.wasm`, and `src/api/functions.js`
+- `make sync-api-wasm` — refresh only the generated API artifacts from `build-wasm/src`
 - `make watch-api` — start the server with `node --watch` (auto-restarts on file changes)
 - Server listens on `http://0.0.0.0:3000`
 

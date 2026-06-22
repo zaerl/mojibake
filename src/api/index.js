@@ -4,7 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { promises as fs } from 'fs';
 import http from 'http';
 import { CStruct } from './cstruct.js';
 import functionsDefault from './functions.js';
@@ -374,14 +373,7 @@ function _mjbNextCharacterCallback(character, type) {
 global._mjbNextCharacterCallback = _mjbNextCharacterCallback;
 
 async function initializeMojibake() {
-  const buf = await fs.readFile('./mojibake.db');
-  const dbBytes = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-  const dbPtr = mojibake._malloc(dbBytes.length);
-  mojibake.HEAPU8.set(dbBytes, dbPtr);
-
-  // Initialize the library
-  const initialized = mojibake._mjb_initialize_v2(0, 0, 0, dbPtr, dbBytes.length);
-  mojibake._free(dbPtr);
+  const initialized = mojibake._mjb_initialize_v2(0, 0, 0);
 
   if(!initialized) {
     throw new Error('Failed to initialize Mojibake');

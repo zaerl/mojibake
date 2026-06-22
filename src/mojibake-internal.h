@@ -23,7 +23,6 @@
 
 #include "buffer.h"
 #include "locales.h"
-#include "sqlite3/sqlite3.h"
 
 #include "mojibake.h"
 
@@ -45,26 +44,7 @@ typedef struct mojibake {
     mjb_alloc_fn memory_alloc;
     mjb_realloc_fn memory_realloc;
     mjb_free_fn memory_free;
-    sqlite3 *db;
     mjb_locale locale;
-    sqlite3_stmt *stmt_get_codepoint;
-    sqlite3_stmt *stmt_get_block;
-    sqlite3_stmt *stmt_is_combining;
-    sqlite3_stmt *stmt_decompose;
-    sqlite3_stmt *stmt_compatibility_decompose;
-    sqlite3_stmt *stmt_compose;
-    sqlite3_stmt *stmt_buffer_character;
-    sqlite3_stmt *stmt_case;
-    sqlite3_stmt *stmt_special_casing;
-    sqlite3_stmt *stmt_casefold;
-    sqlite3_stmt *stmt_line_breaking;
-    sqlite3_stmt *stmt_get_emoji;
-    sqlite3_stmt *stmt_get_properties;
-    sqlite3_stmt *stmt_bidi;
-    sqlite3_stmt *stmt_collation_entry;
-    sqlite3_stmt *stmt_collation_contraction;
-    sqlite3_stmt *stmt_confusable;
-    sqlite3_stmt *stmt_numeric_value;
 } mojibake;
 
 // Internal functions

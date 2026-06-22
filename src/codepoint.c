@@ -8,8 +8,7 @@
 #include <string.h>
 
 #include "mojibake-internal.h"
-
-extern mojibake mjb_global;
+#include "unicode-tables.h"
 
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
@@ -79,33 +78,23 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
-    if(!mjb_initialize()) {
-        return false;
-    }
-
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 
-    sqlite3_reset(mjb_global.stmt_get_codepoint);
-    // sqlite3_clear_bindings(mjb_global.stmt_get_codepoint);
+    mjb_category category;
 
-    int rc = sqlite3_bind_int(mjb_global.stmt_get_codepoint, 1, codepoint);
-
-    if(rc != SQLITE_OK) {
-        return false;
-    }
-
-    rc = sqlite3_step(mjb_global.stmt_get_codepoint);
-
-    if(rc != SQLITE_ROW) {
+    if(!mjb_unicode_category_lookup(codepoint, &category)) {
         // Try CJK or ancient scripts characters before returning false
         return mjb_codepoint_cjk_th_character(codepoint, character);
     }
 
-    character->codepoint = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 0);
+    character->codepoint = codepoint;
 
-    char *name = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 1);
+    char name[128];
+    name[0] = '\0';
+
+    mjb_unicode_name_lookup(codepoint, name, sizeof(name));
 
     // Egyptian Hieroglyphs
     // Egyptian Hieroglyph Format Controls
@@ -126,59 +115,51 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         // Cuneiform signs
         snprintf(character->name, 128, "CUNEIFORM SIGN %s", name);
     } else {
-        if(name != NULL) {
-            size_t len = strlen(name);
-
-            if(len > 127) {
-                len = 127;
-            }
-
-            memcpy(character->name, name, len);
-            character->name[len] = '\0';
-        } else {
-            character->name[0] = '\0';
-        }
+        snprintf(character->name, 128, "%s", name);
     }
 
-    character->category = (mjb_category)sqlite3_column_int(mjb_global.stmt_get_codepoint, 2);
-    character->combining = (mjb_canonical_combining_class)sqlite3_column_int(
-        mjb_global.stmt_get_codepoint, 3);
-    character->bidirectional = (unsigned short)sqlite3_column_int(mjb_global.stmt_get_codepoint,
-        4);
-    character->decomposition = (mjb_decomposition)sqlite3_column_int(mjb_global.stmt_get_codepoint,
-        5);
+    character->category = category;
+    character->combining = MJB_CCC_NOT_REORDERED;
+    character->bidirectional = MJB_PR_BIDI_CLASS_L;
+    character->decomposition = MJB_DECOMPOSITION_NONE;
+    character->decimal = MJB_NUMBER_NOT_VALID;
+    character->digit = MJB_NUMBER_NOT_VALID;
+    character->numeric[0] = '\0';
+    character->mirrored = false;
+    character->uppercase = 0;
+    character->lowercase = 0;
+    character->titlecase = 0;
 
-    if(sqlite3_column_type(mjb_global.stmt_get_codepoint, 6) == SQLITE_NULL) {
-        character->decimal = MJB_NUMBER_NOT_VALID;
-    } else {
-        character->decimal = sqlite3_column_int(mjb_global.stmt_get_codepoint, 6);
+    mjb_n_character n_character;
+
+    if(mjb_unicode_n_character_lookup(codepoint, &n_character)) {
+        character->combining = (mjb_canonical_combining_class)n_character.combining;
+        character->decomposition = (mjb_decomposition)n_character.decomposition;
     }
 
-    if(sqlite3_column_type(mjb_global.stmt_get_codepoint, 7) == SQLITE_NULL) {
-        character->digit = MJB_NUMBER_NOT_VALID;
-    } else {
-        character->digit = sqlite3_column_int(mjb_global.stmt_get_codepoint, 7);
+    bool mirrored;
+    mjb_bidi_class bidi;
+
+    if(mjb_unicode_bidi_lookup(codepoint, &bidi, &mirrored)) {
+        character->bidirectional = (unsigned short)bidi;
+        character->mirrored = mirrored;
     }
 
-    char *numeric = (char*)sqlite3_column_text(mjb_global.stmt_get_codepoint, 8);
+    mjb_numeric_value numeric;
 
-    if(numeric != NULL) {
-        size_t len = strlen(numeric);
-
-        if(len > 15) {
-            len = 15;
-        }
-
-        memcpy(character->numeric, numeric, len);
-        character->numeric[len] = '\0';
-    } else {
-        character->numeric[0] = '\0';
+    if(mjb_unicode_numeric_value_lookup(codepoint, &numeric)) {
+        character->decimal = numeric.decimal;
+        character->digit = numeric.digit;
+        snprintf(character->numeric, sizeof(character->numeric), "%s", numeric.numeric);
     }
 
-    character->mirrored = sqlite3_column_int(mjb_global.stmt_get_codepoint, 9) == 1;
-    character->uppercase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 10);
-    character->lowercase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 11);
-    character->titlecase = (mjb_codepoint)sqlite3_column_int(mjb_global.stmt_get_codepoint, 12);
+    mjb_unicode_case_mapping case_mapping;
+
+    if(mjb_unicode_case_lookup(codepoint, &case_mapping)) {
+        character->uppercase = case_mapping.uppercase;
+        character->lowercase = case_mapping.lowercase;
+        character->titlecase = case_mapping.titlecase;
+    }
 
     return true;
 }
@@ -206,49 +187,11 @@ MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
 
 // Return the character block
 MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block) {
-    if(!mjb_initialize()) {
-        return false;
-    }
-
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 
-    sqlite3_reset(mjb_global.stmt_get_block);
-    //sqlite3_clear_bindings(mjb_global.stmt_get_block);
-
-    int rc = sqlite3_bind_int(mjb_global.stmt_get_block, 1, codepoint);
-
-    rc = sqlite3_step(mjb_global.stmt_get_block);
-
-    if(rc != SQLITE_ROW) {
-        return false;
-    }
-
-    int raw_id = sqlite3_column_int(mjb_global.stmt_get_block, 0);
-    int raw_start = sqlite3_column_int(mjb_global.stmt_get_block, 1);
-    int raw_end = sqlite3_column_int(mjb_global.stmt_get_block, 2);
-    char *name = (char*)sqlite3_column_text(mjb_global.stmt_get_block, 3);
-
-    block->id = (mjb_block)raw_id;
-
-    if(name != NULL) {
-        size_t len = strlen(name);
-
-        if(len > 127) {
-            len = 127;
-        }
-
-        memcpy(block->name, name, len);
-        block->name[len] = '\0';
-    } else {
-        block->name[0] = '\0';
-    }
-
-    block->start = (mjb_codepoint)raw_start;
-    block->end = (mjb_codepoint)raw_end;
-
-    return true;
+    return mjb_unicode_block_lookup(codepoint, block);
 }
 
 // Return true if the codepoint is graphic
@@ -264,63 +207,30 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
 
 // Return the numeric value of a codepoint (decimal, digit, numeric string)
 MJB_EXPORT bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value) {
-    if(!mjb_initialize()) {
-        return false;
-    }
-
     if(!mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 
-    sqlite3_reset(mjb_global.stmt_numeric_value);
-    sqlite3_bind_int(mjb_global.stmt_numeric_value, 1, (int)codepoint);
-
-    if(sqlite3_step(mjb_global.stmt_numeric_value) != SQLITE_ROW) {
-        // Can potentially be a CJK or ancient script character
-        value->decimal = MJB_NUMBER_NOT_VALID;
-        value->digit = MJB_NUMBER_NOT_VALID;
-        value->numeric[0] = '\0';
-
+    if(mjb_unicode_numeric_value_lookup(codepoint, value)) {
         return true;
     }
 
-    if(sqlite3_column_type(mjb_global.stmt_numeric_value, 0) == SQLITE_NULL) {
-        value->decimal = MJB_NUMBER_NOT_VALID;
-    } else {
-        value->decimal = sqlite3_column_int(mjb_global.stmt_numeric_value, 0);
-    }
-
-    if(sqlite3_column_type(mjb_global.stmt_numeric_value, 1) == SQLITE_NULL) {
-        value->digit = MJB_NUMBER_NOT_VALID;
-    } else {
-        value->digit = sqlite3_column_int(mjb_global.stmt_numeric_value, 1);
-    }
-
-    const char *numeric = (const char *)sqlite3_column_text(mjb_global.stmt_numeric_value, 2);
-
-    if(numeric != NULL) {
-        size_t len = strlen(numeric);
-
-        if(len > 15) {
-            len = 15;
-        }
-
-        memcpy(value->numeric, numeric, len);
-        value->numeric[len] = '\0';
-    } else {
-        value->numeric[0] = '\0';
-    }
+    // Can potentially be a CJK or ancient script character.
+    value->decimal = MJB_NUMBER_NOT_VALID;
+    value->digit = MJB_NUMBER_NOT_VALID;
+    value->numeric[0] = '\0';
 
     return true;
 }
 
 // Return true if the codepoint is combining
 MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
-    mjb_character character;
+    mjb_category category;
 
-    if(!mjb_codepoint_character(codepoint, &character)) {
+    if(!mjb_codepoint_is_valid(codepoint) ||
+        !mjb_unicode_category_lookup(codepoint, &category)) {
         return false;
     }
 
-    return mjb_category_is_combining(character.category);
+    return mjb_category_is_combining(category);
 }

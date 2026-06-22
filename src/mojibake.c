@@ -4,16 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "mojibake-internal.h"
-
-// Include embedded database if enabled
-#ifdef MJB_USE_EMBEDDED_DB
-#include "embedded-db.h"
-#endif
 
 MJB_EXPORT mojibake mjb_global;
 
@@ -23,29 +17,21 @@ MJB_EXPORT bool mjb_initialize(void) {
         return true;
     }
 
-#ifdef MJB_USE_EMBEDDED_DB
-    // Use embedded database
-    if(mjb_initialize_v2(malloc, realloc, free, (const char*)mjb_db_embedded, mjb_db_embedded_len)) {
+    if(mjb_initialize_v2(malloc, realloc, free)) {
         return true;
     }
-#else
-    // Use external database file
-    if(mjb_initialize_v2(malloc, realloc, free, NULL, 0)) {
-        return true;
-    }
-#endif
 
     return false;
 }
 
 // Initialize the library with custom values
 MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
-    mjb_free_fn free_fn, const char *db, size_t db_size) {
+    mjb_free_fn free_fn) {
     if(mjb_global.ok) {
         return true;
     }
 
-    MJB_LOG("DB initialization");
+    MJB_LOG("Mojibake initialization");
 
     if(alloc_fn == NULL) {
         alloc_fn = malloc;
@@ -59,191 +45,11 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         free_fn = free;
     }
 
-    mjb_global.ok = false;
-
-    int rc = sqlite3_initialize();
-
-    if(rc != SQLITE_OK) {
-        MJB_LOG_VA("Can't initialize database: %s", sqlite3_errmsg(mjb_global.db));
-
-        return false;
-    }
-
-#ifdef __EMSCRIPTEN__
-    if(db != NULL && db_size > 0) {
-        rc = sqlite3_open(":memory:", &mjb_global.db);
-
-        if(rc != SQLITE_OK) {
-            MJB_LOG_VA("Can't create in-memory database: %s", sqlite3_errmsg(mjb_global.db));
-
-            return false;
-        }
-
-        rc = sqlite3_deserialize(mjb_global.db, "main", (unsigned char*)db, db_size, db_size,
-            SQLITE_DESERIALIZE_READONLY);
-
-        if(rc != SQLITE_OK) {
-            MJB_LOG_VA("Can't deserialize database: %s", sqlite3_errmsg(mjb_global.db));
-
-            return false;
-        }
-    } else {
-        MJB_LOG("No database provided for WASM build");
-
-        return false;
-    }
-#else
-    // Non-WASM builds
-#ifdef MJB_USE_EMBEDDED_DB
-    // If database buffer is provided (embedded mode), load from memory. Similar to WASM build.
-    if(db != NULL && db_size > 0) {
-        rc = sqlite3_open(":memory:", &mjb_global.db);
-
-        if(rc != SQLITE_OK) {
-            MJB_LOG_VA("Can't create in-memory database: %s", sqlite3_errmsg(mjb_global.db));
-
-            return false;
-        }
-
-        rc = sqlite3_deserialize(mjb_global.db, "main", (unsigned char*)db, db_size, db_size,
-            SQLITE_DESERIALIZE_READONLY);
-
-        if(rc != SQLITE_OK) {
-            MJB_LOG_VA("Can't deserialize database: %s", sqlite3_errmsg(mjb_global.db));
-
-            return false;
-        }
-    } else
-#endif
-    {
-        // File-based database (default for non-embedded builds)
-        const char *filename = db;
-
-        if(filename == NULL) {
-            filename = getenv("WRD_DB_PATH");
-
-            if(filename == NULL) {
-                filename = "./mojibake.db";
-            }
-        }
-
-        rc = sqlite3_open(filename, &mjb_global.db);
-
-        if(rc != SQLITE_OK) {
-            // Try again with the default path.
-            rc = sqlite3_open("./mojibake.db", &mjb_global.db);
-
-            if(rc != SQLITE_OK) {
-                MJB_LOG_VA("Can't open database: %s", sqlite3_errmsg(mjb_global.db));
-
-                return false;
-            }
-        }
-    }
-#endif
-
-    sqlite3_extended_result_codes(mjb_global.db, 1);
-
-    // TODO: Check what PRAGMA are valid
-    const char *sql =
-        "PRAGMA synchronous = OFF;"
-        "PRAGMA temp_store = MEMORY;"
-        "PRAGMA journal_mode = OFF;"
-        "PRAGMA cache_size = -1000000;"
-        "PRAGMA query_only = TRUE;"
-        "PRAGMA locking_mode = EXCLUSIVE;"
-        "PRAGMA mmap_size = 268435456;";
-
-    rc = sqlite3_exec(mjb_global.db, sql, 0, 0, NULL);
-
-    if(rc != SQLITE_OK) {
-        return false;
-    }
-
-    #define MJB_PREPARE_STMT(STMT, QUERY) \
-        rc = sqlite3_prepare_v2(mjb_global.db, QUERY, -1, &STMT, NULL); \
-        if(rc != SQLITE_OK) { \
-            MJB_LOG_VA("Can't prepare statement: %s", sqlite3_errmsg(mjb_global.db)); \
-            return false; \
-        }
-
-    const char query[] = "SELECT u.codepoint, CASE WHEN p.name IS NOT NULL THEN p.name || u.name ELSE u.name END as name, "
-        "u.category, u.combining, u.bidirectional, u.decomposition, u.decimal, u.digit, u.numeric, "
-        "u.mirrored, u.uppercase, u.lowercase, u.titlecase "
-        "FROM unicode_data u LEFT JOIN prefixes p ON u.prefix = p.id WHERE u.codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_get_codepoint, query)
-
-    const char query_blocks[] = "SELECT * FROM blocks WHERE ? BETWEEN start AND end LIMIT 1";
-    MJB_PREPARE_STMT(mjb_global.stmt_get_block, query_blocks)
-
-    // MJB_CATEGORY_MN and MJB_CATEGORY_MC
-    const char query_combining[] = "SELECT COUNT(*) from unicode_data WHERE codepoint = ? AND "
-        "category IN (5, 6);";
-    MJB_PREPARE_STMT(mjb_global.stmt_is_combining, query_combining)
-
-    const char query_decompose[] = "SELECT value FROM decompositions WHERE id = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_decompose, query_decompose)
-
-    const char query_compatibility_decompose[] = "SELECT value FROM compatibility_decompositions "
-        "WHERE id = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_compatibility_decompose, query_compatibility_decompose)
-
-    const char query_compose[] = "SELECT composite_codepoint FROM compositions WHERE "
-        "starter_codepoint = ? AND combining_codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_compose, query_compose)
-
-    const char query_buffer_character[] = "SELECT codepoint, combining, decomposition, "
-        "quick_check FROM unicode_data WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_buffer_character, query_buffer_character)
-
-    const char query_case[] = "SELECT category, uppercase, lowercase, titlecase FROM unicode_data "
-        "WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_case, query_case)
-
-    const char query_special_casing[] = "SELECT new_case_1, new_case_2, new_case_3 FROM "
-        "special_casing WHERE codepoint = ? AND case_type = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_special_casing, query_special_casing)
-
-    const char query_casefold[] = "SELECT new_case_1, new_case_2, new_case_3 "
-        "FROM case_folding WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_casefold, query_casefold)
-
-    const char query_line_breaking[] = "SELECT category, extended_pictographic FROM unicode_data "
-        "WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_line_breaking, query_line_breaking)
-
-    const char query_emoji[] = "SELECT * FROM emoji_properties WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_get_emoji, query_emoji)
-
-    const char query_properties[] = "select properties from property_ranges where ? BETWEEN "
-        "start_codepoint AND COALESCE(end_codepoint, start_codepoint);";
-    MJB_PREPARE_STMT(mjb_global.stmt_get_properties, query_properties)
-
-    const char query_bidi[] = "SELECT bidirectional, mirrored FROM unicode_data WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_bidi, query_bidi)
-
-    const char query_collation_entry[] = "SELECT weights FROM collation_entries WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_collation_entry, query_collation_entry)
-
-    const char query_collation_contraction[] =
-        "SELECT sequence, weights FROM collation_contractions WHERE first_codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_collation_contraction, query_collation_contraction)
-
-    const char query_confusable[] = "SELECT skeleton FROM confusables WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_confusable, query_confusable)
-
-    const char query_numeric_value[] = "SELECT decimal, digit, numeric FROM unicode_data WHERE codepoint = ?";
-    MJB_PREPARE_STMT(mjb_global.stmt_numeric_value, query_numeric_value)
-
-    #undef MJB_PREPARE_STMT
-
     mjb_global.memory_alloc = alloc_fn;
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;
     mjb_global.ok = true;
     mjb_global.locale = MJB_LOCALE_EN;
-
-    MJB_LOG("DB initialized successfully");
 
     return true;
 }
@@ -257,84 +63,6 @@ MJB_EXPORT void mjb_shutdown(void) {
     mjb_global.memory_free = NULL;
     mjb_global.memory_realloc = NULL;
     mjb_global.memory_alloc = NULL;
-
-    if(mjb_global.stmt_get_codepoint) {
-        sqlite3_finalize(mjb_global.stmt_get_codepoint);
-    }
-
-    if(mjb_global.stmt_get_block) {
-        sqlite3_finalize(mjb_global.stmt_get_block);
-    }
-
-    if(mjb_global.stmt_is_combining) {
-        sqlite3_finalize(mjb_global.stmt_is_combining);
-    }
-
-    if(mjb_global.stmt_decompose) {
-        sqlite3_finalize(mjb_global.stmt_decompose);
-    }
-
-    if(mjb_global.stmt_compatibility_decompose) {
-        sqlite3_finalize(mjb_global.stmt_compatibility_decompose);
-    }
-
-    if(mjb_global.stmt_compose) {
-        sqlite3_finalize(mjb_global.stmt_compose);
-    }
-
-    if(mjb_global.stmt_buffer_character) {
-        sqlite3_finalize(mjb_global.stmt_buffer_character);
-    }
-
-    if(mjb_global.stmt_case) {
-        sqlite3_finalize(mjb_global.stmt_case);
-    }
-
-    if(mjb_global.stmt_special_casing) {
-        sqlite3_finalize(mjb_global.stmt_special_casing);
-    }
-
-    if(mjb_global.stmt_casefold) {
-        sqlite3_finalize(mjb_global.stmt_casefold);
-    }
-
-    if(mjb_global.stmt_line_breaking) {
-        sqlite3_finalize(mjb_global.stmt_line_breaking);
-    }
-
-    if(mjb_global.stmt_get_emoji) {
-        sqlite3_finalize(mjb_global.stmt_get_emoji);
-    }
-
-    if(mjb_global.stmt_get_properties) {
-        sqlite3_finalize(mjb_global.stmt_get_properties);
-    }
-
-    if(mjb_global.stmt_bidi) {
-        sqlite3_finalize(mjb_global.stmt_bidi);
-    }
-
-    if(mjb_global.stmt_collation_entry) {
-        sqlite3_finalize(mjb_global.stmt_collation_entry);
-    }
-
-    if(mjb_global.stmt_collation_contraction) {
-        sqlite3_finalize(mjb_global.stmt_collation_contraction);
-    }
-
-    if(mjb_global.stmt_confusable) {
-        sqlite3_finalize(mjb_global.stmt_confusable);
-    }
-
-    if(mjb_global.stmt_numeric_value) {
-        sqlite3_finalize(mjb_global.stmt_numeric_value);
-    }
-
-    if(mjb_global.db) {
-        sqlite3_close(mjb_global.db);
-    }
-
-    mjb_global.db = NULL;
 }
 
 // Allocate and zero memory

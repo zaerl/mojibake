@@ -7,9 +7,8 @@
 #include <string.h>
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "utf.h"
-
-extern mojibake mjb_global;
 
 // Maximum number of codepoints a single codepoint's skeleton can expand to.
 #define MJB_SKELETON_MAX_EXPAND 8
@@ -18,32 +17,24 @@ extern mojibake mjb_global;
 // Returns the number of skeleton codepoints written to result (0 if no mapping exists).
 static size_t confusable_lookup(mjb_codepoint codepoint, mjb_codepoint *result,
     size_t result_size) {
-    sqlite3_bind_int(mjb_global.stmt_confusable, 1, (int)codepoint);
+    const mjb_codepoint *values = NULL;
+    uint8_t length = 0;
 
-    if(sqlite3_step(mjb_global.stmt_confusable) == SQLITE_ROW) {
-        const uint8_t *blob = (const uint8_t *)sqlite3_column_blob(mjb_global.stmt_confusable, 0);
-        int bytes = sqlite3_column_bytes(mjb_global.stmt_confusable, 0);
-        size_t count = (size_t)(bytes / 4);
-
-        if(count > result_size) {
-            count = result_size;
-        }
-
-        for(size_t i = 0; i < count; ++i) {
-            result[i] = ((uint32_t)blob[i * 4] << 24) |
-                ((uint32_t)blob[i * 4 + 1] << 16) |
-                ((uint32_t)blob[i * 4 + 2] <<  8) |
-                ((uint32_t)blob[i * 4 + 3]);
-        }
-
-        sqlite3_reset(mjb_global.stmt_confusable);
-
-        return count;
+    if(!mjb_unicode_confusable_lookup(codepoint, &values, &length)) {
+        return 0;
     }
 
-    sqlite3_reset(mjb_global.stmt_confusable);
+    size_t count = length;
 
-    return 0;
+    if(count > result_size) {
+        count = result_size;
+    }
+
+    for(size_t i = 0; i < count; ++i) {
+        result[i] = values[i];
+    }
+
+    return count;
 }
 
 // Compute the Unicode security skeleton of a string (UTS#39 §4).

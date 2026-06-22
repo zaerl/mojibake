@@ -47,7 +47,7 @@ endif()
 
 add_executable(mojibake-test ${TEST_SOURCES})
 
-target_link_libraries(mojibake-test PRIVATE mojibake_lib mojibake_sqlite)
+target_link_libraries(mojibake-test PRIVATE mojibake_lib)
 
 # Enable embedded NULL support if requested
 if(ALLOW_EMBEDDED_NULLS)

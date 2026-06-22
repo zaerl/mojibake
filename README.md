@@ -14,29 +14,46 @@ like any of the existing one. It aims to be, in order of importance:
 4. Pass all Unicode Standard tests
 5. Self-contained
 
-It consists of three files:
+The amalgamation consists of two files:
 
 1. `mojibake.h`
 2. `mojibake.c`
-3. `mojibake.db`
 
-A `shell.c` file is also provided that let you build a `mojibake` CLI, if you want. Also a
-C++ wrapper can be found on `ext/cpp/mojibake.cpp`.
+Unicode data is generated into compact C tables, so no separate runtime database is required. A CLI
+implementation is provided in `src/shell`, and the C++ wrapper is in `src/cpp/mojibake.hpp`.
+
+## Unicode data
+
+Runtime Unicode data lives in generated C tables:
+
+1. `src/unicode-tables.c`
+2. `src/unicode-tables.h`
+
+The generator is in `utils/generate/generate-unicode-tables.ts`. It reads the Unicode Character
+Database, Unihan, emoji, collation, and security data collected under `utils/generate/`, then emits
+compact lookup tables used directly by the C library. The full generation path can still create
+`mojibake.db` as an intermediate artifact, but the database is not shipped or opened at runtime.
+
+The generated tables use compact representations inspired by small Unicode runtimes: sparse page
+indexes for codepoint lookups, packed 32-bit and 64-bit entries, shared string/codepoint/byte
+payloads, bitsets for boolean data, interned property blobs, substring sharing for confusable
+skeletons and collation weights, and packed case, decomposition, composition, numeric, emoji, block,
+prefix, and collation-contraction records.
+
+Regenerate the tables with:
+
+```sh
+make generate-unicode-tables
+```
 
 ## Usage
 
-You don't need to install anything, you only need the database and the C source code.
+You don't need to install anything. Add the C source and header to your build.
 
 1. Download it here
 [mojibake-amalgamation-015.zip](https://mojibake.zaerl.com/mojibake-amalgamation-015.zip)
 2. Unzip it
-3. Add the file to the list of your files
-
-An alternative embedded version is provided, where the `mojibake.db` file is not needed, and only
-the `mojibake.c` and `mojibake.h` are needed. The content of the database is loaded **directly**
-from the C file. This will increase the size of your executable. If you don't mind opening files,
-use the other mode. You can get it here
-[mojibake-embedded-amalgamation-015.zip](https://mojibake.zaerl.com/mojibake-embedded-amalgamation-015.zip).
+3. Add `mojibake.c` and `mojibake.h` to your project
 
 Example:
 
@@ -58,9 +75,6 @@ int main(int argc, char * const argv[]) {
     return 0;
 }
 ```
-
-~~An online demo can be found at https://mojibake.zaerl.com/. It is a WASM-compiled version you can
-use to preview the API.~~ _Temporarly offline._
 
 This library works only in little-endian systems to avoid adding too much overhead. This means that
 it works on all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.) It has been
@@ -96,21 +110,27 @@ Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
 
 ```c
 #include <stdio.h>
+#include <string.h>
 #include "mojibake.h"
 
 int main(int argc, char * const argv[]) {
     // The string to normalize
-    const char *hello = "Hello, World!"
+    const char *hello = "Hello, World!";
     mjb_encoding encoding = MJB_ENCODING_UTF_8;
     mjb_result result;
 
-    char *normalized = mjb_normalize(hello, 13, encoding, MJB_NORMALIZATION_NFC, encoding, &result);
+    if(!mjb_normalize(hello, strlen(hello), encoding, MJB_NORMALIZATION_NFC, encoding, &result)) {
+        return 1;
+    }
+
     printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
 
     // Remember to free() the string if needed
-    if(results.transformed) {
+    if(result.transformed) {
         mjb_free(result.output);
     }
+
+    return 0;
 }
 ```
 
@@ -139,7 +159,7 @@ U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 
 ### CLI
 
-A `shell.c` file is provided that let you have a CLI to test the library. Example usage:
+The `src/shell` directory builds the `mojibake` CLI used to test the library. Example usage:
 
 ```sh
 mojibake -v char $'\U022A'
@@ -204,17 +224,25 @@ Mojibake run all the official tests found in the standard:
 
 ## WebAssembly
 
-You can run a local server of `mojibake.zaerl.com`.
+Build the WASM module and generated site assets with:
 
-```
+```sh
 make wasm
+```
+
+This writes the current Emscripten output to `build-wasm/src/` and refreshes the generated API
+artifacts in `src/api/`.
+
+You can run a local server of `mojibake.zaerl.com` with:
+
+```sh
 make watch-site
 # Open http://localhost:6251
 ```
 
-In another terminal:
+Run the JavaScript API server with:
 
-```
+```sh
 make watch-api
 ```
 

@@ -19,7 +19,7 @@ if(WIN32)
 endif()
 
 add_executable(mojibake ${SOURCES})
-target_link_libraries(mojibake PRIVATE mojibake_lib mojibake_sqlite)
+target_link_libraries(mojibake PRIVATE mojibake_lib)
 
 # Force C++ compilation if BUILD_CPP is enabled
 if(BUILD_CPP)

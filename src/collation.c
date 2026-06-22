@@ -8,10 +8,9 @@
 #include <string.h>
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "unicode.h"
 #include "utf.h"
-
-extern mojibake mjb_global;
 
 // Collation element
 typedef struct {
@@ -322,38 +321,24 @@ static mjb_codepoint *utf8_to_codepoints(const char *buf, size_t len, size_t *ou
 
 // Build CEA from NFD codepoint array
 
-// Canonical Combining Class for a codepoint (stmt_buffer_character, col 1).
+// Canonical Combining Class for a codepoint.
 static uint8_t ccc_of(mjb_codepoint cp) {
-    sqlite3_stmt *stmt = mjb_global.stmt_buffer_character;
+    mjb_n_character character;
 
-    sqlite3_reset(stmt);
-    sqlite3_bind_int(stmt, 1, (int)cp);
-
-    if(sqlite3_step(stmt) == SQLITE_ROW) {
-        return (uint8_t)sqlite3_column_int(stmt, 1);
+    if(mjb_unicode_n_character_lookup(cp, &character)) {
+        return (uint8_t)character.combining;
     }
 
     return 0;
 }
 
-// Decode codepoint k from a 4-byte-per-cp sequence BLOB.
-static uint32_t seq_cp(const uint8_t *seq, int k) {
-    return ((uint32_t)seq[k * 4] << 24) | ((uint32_t)seq[k * 4 + 1] << 16) |
-        ((uint32_t)seq[k * 4 + 2] <<  8) | (uint32_t)seq[k * 4 + 3];
-}
-
 // Look up or synthesize CEs for a single codepoint and append to cea.
 static void cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
-    sqlite3_stmt *stmt = mjb_global.stmt_collation_entry;
+    const uint8_t *weights = NULL;
+    uint8_t length = 0;
 
-    sqlite3_reset(stmt);
-    sqlite3_bind_int(stmt, 1, (int)cp);
-
-    if(sqlite3_step(stmt) == SQLITE_ROW) {
-        const uint8_t *blob = (uint8_t*)sqlite3_column_blob(stmt, 0);
-        int bytes = sqlite3_column_bytes(stmt, 0);
-
-        cea_append_blob(cea, blob, bytes);
+    if(mjb_unicode_collation_entry_lookup(cp, &weights, &length)) {
+        cea_append_blob(cea, weights, length);
     } else {
         cea_append_implicit(cea, cp);
     }
@@ -366,17 +351,19 @@ static void cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
  */
 static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t total,
     uint8_t *out_weights, int *out_bytes, size_t *out_advance) {
-    sqlite3_stmt *stmt = mjb_global.stmt_collation_contraction;
-
-    sqlite3_reset(stmt);
-    sqlite3_bind_int(stmt, 1, (int)cps[pos]);
+    const mjb_unicode_collation_contraction_entry *entries = NULL;
+    size_t entry_count = 0;
 
     *out_advance = 0;
 
-    while(sqlite3_step(stmt) == SQLITE_ROW) {
-        const uint8_t *seq = (uint8_t*)sqlite3_column_blob(stmt, 0);
-        int sb = sqlite3_column_bytes(stmt, 0);
-        int sl = sb / 4;
+    if(!mjb_unicode_collation_contraction_range(cps[pos], &entries, &entry_count)) {
+        return false;
+    }
+
+    for(size_t entry_index = 0; entry_index < entry_count; ++entry_index) {
+        uint8_t sl = 0;
+        const mjb_codepoint *seq =
+            mjb_unicode_collation_contraction_sequence(&entries[entry_index], &sl);
 
         if(sl < 2 || pos + (size_t)sl > total) {
             continue;
@@ -385,7 +372,7 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
         bool match = true;
 
         for(int k = 0; k < sl; ++k) {
-            if(cps[pos + k] != seq_cp(seq, k)) {
+            if(cps[pos + k] != seq[k]) {
                 match = false;
                 break;
             }
@@ -393,11 +380,15 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
 
         if(match && (size_t)sl > *out_advance) {
             *out_advance = (size_t)sl;
-            const uint8_t *wb = (uint8_t*)sqlite3_column_blob(stmt, 1);
-            *out_bytes = sqlite3_column_bytes(stmt, 1);
+            uint8_t weights_length = 0;
+            const uint8_t *weights =
+            mjb_unicode_collation_contraction_weights(&entries[entry_index],
+                    &weights_length);
+
+            *out_bytes = weights_length;
 
             if(*out_bytes <= 18 * 6) {
-                memcpy(out_weights, wb, (size_t)*out_bytes);
+                memcpy(out_weights, weights, (size_t)*out_bytes);
             } else {
                 *out_bytes = 0;
             }
@@ -413,14 +404,17 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
  */
 static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
     uint8_t *out_weights, int *out_bytes) {
-    sqlite3_stmt *stmt = mjb_global.stmt_collation_contraction;
-    sqlite3_reset(stmt);
-    sqlite3_bind_int(stmt, 1, (int)seq[0]);
+    const mjb_unicode_collation_contraction_entry *entries = NULL;
+    size_t entry_count = 0;
 
-    while(sqlite3_step(stmt) == SQLITE_ROW) {
-        const uint8_t *db_seq = (uint8_t*)sqlite3_column_blob(stmt, 0);
-        int db_bytes = sqlite3_column_bytes(stmt, 0);
-        int db_len = db_bytes / 4;
+    if(!mjb_unicode_collation_contraction_range(seq[0], &entries, &entry_count)) {
+        return false;
+    }
+
+    for(size_t entry_index = 0; entry_index < entry_count; ++entry_index) {
+        uint8_t db_len = 0;
+        const mjb_codepoint *db_seq =
+            mjb_unicode_collation_contraction_sequence(&entries[entry_index], &db_len);
 
         if(db_len != seq_len) {
             continue;
@@ -429,18 +423,22 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
         bool match = true;
 
         for(int k = 0; k < seq_len; ++k) {
-            if(seq[k] != seq_cp(db_seq, k)) {
+            if(seq[k] != db_seq[k]) {
                 match = false;
                 break;
             }
         }
 
         if(match) {
-            const uint8_t *wb = (uint8_t*)sqlite3_column_blob(stmt, 1);
-            *out_bytes = sqlite3_column_bytes(stmt, 1);
+            uint8_t weights_length = 0;
+            const uint8_t *weights =
+                mjb_unicode_collation_contraction_weights(&entries[entry_index],
+                    &weights_length);
+
+            *out_bytes = weights_length;
 
             if(*out_bytes <= 18 * 6) {
-                memcpy(out_weights, wb, (size_t)*out_bytes);
+                memcpy(out_weights, weights, (size_t)*out_bytes);
             } else {
                 *out_bytes = 0;
             }

@@ -9,9 +9,8 @@
 #include <string.h>
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "utf.h"
-
-extern mojibake mjb_global;
 
 #define MJB_BIDI_MAX_DEPTH 125
 #define MJB_BIDI_STACK_SIZE (MJB_BIDI_MAX_DEPTH + 2)
@@ -310,42 +309,12 @@ static inline bool is_isolate_initiator(mjb_bidi_class c) {
     return c == MJB_PR_BIDI_CLASS_LRI || c == MJB_PR_BIDI_CLASS_RLI || c == MJB_PR_BIDI_CLASS_FSI;
 }
 
-// DB look-up: bidi class + mirrored flag
+// Generated table look-up: bidi class + mirrored flag.
 static bool bidi_query(mjb_codepoint cp, mjb_bidi_class *out_class, bool *out_mirrored) {
-    if(!mjb_initialize()) {
-        return false;
-    }
-
-    sqlite3_reset(mjb_global.stmt_bidi);
-
-    if(sqlite3_bind_int(mjb_global.stmt_bidi, 1, (int)cp) != SQLITE_OK) {
-        sqlite3_reset(mjb_global.stmt_bidi);
-
-        return false;
-    }
-
-    int rc = sqlite3_step(mjb_global.stmt_bidi);
-
-    if(rc != SQLITE_ROW) {
-        sqlite3_reset(mjb_global.stmt_bidi);
-        *out_class   = MJB_PR_BIDI_CLASS_L; // default: L.
+    if(!mjb_unicode_bidi_lookup(cp, out_class, out_mirrored)) {
+        *out_class = MJB_PR_BIDI_CLASS_L; // Default: L.
         *out_mirrored = false;
-
-        return true;
     }
-
-    int bidi_val = sqlite3_column_int(mjb_global.stmt_bidi, 0);
-    int mirrored_v = sqlite3_column_int(mjb_global.stmt_bidi, 1);
-
-    sqlite3_reset(mjb_global.stmt_bidi);
-
-    if(bidi_val <= 0 || bidi_val >= MJB_BIDI_CLASS_COUNT) {
-        *out_class = MJB_PR_BIDI_CLASS_L;
-    } else {
-        *out_class = (mjb_bidi_class)bidi_val;
-    }
-
-    *out_mirrored = (mirrored_v != 0);
 
     return true;
 }

@@ -5,10 +5,9 @@
  */
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "unicode.h"
 #include "utf.h"
-
-extern mojibake mjb_global;
 
 /**
  * Return display width of a string.
@@ -41,14 +40,9 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
         }
 
         // Check General Category for zero-width cases
-        sqlite3_reset(mjb_global.stmt_line_breaking);
-        sqlite3_bind_int(mjb_global.stmt_line_breaking, 1, codepoint);
+        mjb_category category = MJB_CATEGORY_CN;
 
-        if(sqlite3_step(mjb_global.stmt_line_breaking) == SQLITE_ROW) {
-            mjb_category category = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 0);
-
-            sqlite3_reset(mjb_global.stmt_line_breaking);
-
+        if(mjb_unicode_category_lookup(codepoint, &category)) {
             if(category == MJB_CATEGORY_MN || category == MJB_CATEGORY_ME) {
                 // Combining marks
                 continue;
@@ -63,8 +57,6 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
                 // Control characters
                 continue;
             }
-        } else {
-            sqlite3_reset(mjb_global.stmt_line_breaking);
         }
 
         // Handle visible characters using East Asian Width

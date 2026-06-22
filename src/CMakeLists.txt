@@ -24,6 +24,7 @@ set(SOURCES
     security.c
     segmentation.c
     string.c
+    unicode-tables.c
     version.c
 )
 
@@ -34,9 +35,6 @@ else()
     add_library(mojibake_lib STATIC ${SOURCES})
 endif()
 
-# Link SQLite library
-target_link_libraries(mojibake_lib PRIVATE mojibake_sqlite)
-
 # Force C++ compilation if BUILD_CPP is enabled
 if(BUILD_CPP)
     set_target_properties(mojibake_lib PROPERTIES
@@ -45,11 +43,6 @@ if(BUILD_CPP)
         CXX_STANDARD_REQUIRED ON
     )
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
-endif()
-
-# Add embedded database support
-if(USE_EMBEDDED_DB)
-    target_compile_definitions(mojibake_lib PRIVATE MJB_USE_EMBEDDED_DB)
 endif()
 
 # Enable embedded NULL support for library if requested
@@ -154,7 +147,7 @@ if(BUILD_WASM)
 
     # Create WASM module executable
     add_executable(mojibake mojibake.c)
-    target_link_libraries(mojibake mojibake_lib mojibake_sqlite)
+    target_link_libraries(mojibake mojibake_lib)
 
     # Set Emscripten-specific flags for the WASM executable
     target_link_options(mojibake PRIVATE
@@ -175,10 +168,4 @@ if(BUILD_WASM)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/site/
          DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-    # Generate database file for WASM
-    configure_file(
-        ${CMAKE_SOURCE_DIR}/mojibake.db
-        ${CMAKE_CURRENT_BINARY_DIR}/mojibake.db
-        COPYONLY
-    )
 endif()

@@ -14,6 +14,7 @@ import { characterDecomposition, generateComposition, generateDecomposition } fr
 import { generateAPI } from './generate-api';
 import { generateEmbeddedDB } from './generate-embedded-db';
 import { generateNormalizationCount } from './generate-tests';
+import { generateUnicodeTables } from './generate-unicode-tables';
 import { generateHeader } from './header';
 import { generateLocale } from './locales/generate-locale';
 import { iLog, isVerbose, log, setVerbose } from './log';
@@ -168,6 +169,8 @@ for(let i = 2; i < process.argv.length; ++i) {
     generateTarget = 'amalgamation';
   } else if(process.argv[i] === 'embedded-db') {
     generateTarget = 'embedded-db';
+  } else if(process.argv[i] === 'unicode-tables') {
+    generateTarget = 'unicode-tables';
   } else if(process.argv[i] === 'embedded-amalgamation') {
     generateTarget = 'embedded-amalgamation';
   } else if(process.argv[i] === 'update-version') {
@@ -184,6 +187,9 @@ async function generate() {
     return;
   } else if(generateTarget === 'embedded-db') {
     await generateEmbeddedDB();
+    return;
+  } else if(generateTarget === 'unicode-tables') {
+    await generateUnicodeTables();
     return;
   } else if(generateTarget === 'embedded-amalgamation') {
     await generateAmalgamation(true);
@@ -215,6 +221,7 @@ async function generate() {
 
   dbRunAfter();
 
+  await generateUnicodeTables();
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);
   generateWASM();
   // generateData(characters);
