@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-23
+
+### Added
+- Replaced SQLite with embedded data tables
+- Confusable detection
+- Numeric functions
+- Initial support for locales
+
+### Changed
+- Removed SQLite usage
+- Removed usage of `mojibake.db` in the generator
+- Removed harcoded .c amalgamation arrays
+- Updated Node
+- Removed the embedded database mode
+- Moved C++ API to src folder
+- Moved to `tsx`, removed `ts-node`
+- Moved AI main file to `AGENTS.md`
+
+### Fixed
+- Set default CN category to zero
+- The online demo is temporarly offline
+- Remove usage of `strncpy`
+
 ## [0.1.5] - 2026-03-06
 
 ### Added
@@ -206,7 +229,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/0.1.5...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/zaerl/mojibake/compare/0.1.5...0.2.0
 [0.1.5]: https://github.com/zaerl/mojibake/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/zaerl/mojibake/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/zaerl/mojibake/compare/0.1.2...0.1.3

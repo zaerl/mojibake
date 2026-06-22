@@ -38,15 +38,15 @@ extern "C" {
     _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #endif
 
-#define MJB_VERSION_NUMBER   0x15 // MAJOR << 8 | MINOR << 4 | REVISION
+#define MJB_VERSION_NUMBER   0x20 // MAJOR << 8 | MINOR << 4 | REVISION
 #define MJB_VERSION_MAJOR    0
-#define MJB_VERSION_MINOR    1
-#define MJB_VERSION_REVISION 5
+#define MJB_VERSION_MINOR    2
+#define MJB_VERSION_REVISION 0
 
 #ifdef __EMSCRIPTEN__
-    #define MJB_VERSION "0.1.5-WASM"
+    #define MJB_VERSION "0.2.0-WASM"
 #else
-    #define MJB_VERSION "0.1.5"
+    #define MJB_VERSION "0.2.0"
 #endif
 
 #define MJB_UNICODE_VERSION       "17.0.0"
