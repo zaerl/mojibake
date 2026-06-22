@@ -3,6 +3,7 @@
 .claude/*
 !.claude/skills/
 deploy*
+.DS_Store
 
 # Build artifacts
 build

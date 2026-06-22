@@ -8,20 +8,13 @@
 #include <string.h>
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 static inline mjb_category mjb_lbp_category(mjb_codepoint cp) {
-    sqlite3_reset(mjb_global.stmt_line_breaking);
-    sqlite3_bind_int(mjb_global.stmt_line_breaking, 1, (int)cp);
-    mjb_category cat = (mjb_category)0;
+    mjb_category cat = MJB_CATEGORY_CN;
 
-    if(sqlite3_step(mjb_global.stmt_line_breaking) == SQLITE_ROW) {
-        cat = (mjb_category)sqlite3_column_int(mjb_global.stmt_line_breaking, 0);
-    }
-
-    sqlite3_reset(mjb_global.stmt_line_breaking);
+    mjb_unicode_category_lookup(cp, &cat);
 
     return cat;
 }
@@ -424,8 +417,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         }
 
         // For LB15a, LB15b, and LB19: when current is QU we need its General_Category.
-        // general_category not in property blob — use the lightweight stmt_line_breaking query.
-        mjb_category qu_cur_cat = (mjb_category)0xFF; // sentinel: not yet loaded
+        mjb_category qu_cur_cat = (mjb_category)0xFF; // Sentinel: not yet loaded
 
         if(state->current == MJB_LBP_QU) {
             qu_cur_cat = mjb_lbp_category(codepoint);
@@ -992,11 +984,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             uint8_t ext_pic = mjb_codepoint_property(prev_props, MJB_PR_EXTENDED_PICTOGRAPHIC);
 
             if(ext_pic != 0) {
-                // A codepoint is Cn iff it has no entry in unicode_data.
-                sqlite3_reset(mjb_global.stmt_line_breaking);
-                sqlite3_bind_int(mjb_global.stmt_line_breaking, 1, (int)state->previous_codepoint);
-                bool is_assigned = (sqlite3_step(mjb_global.stmt_line_breaking) == SQLITE_ROW);
-                sqlite3_reset(mjb_global.stmt_line_breaking);
+                // Preserve the previous value, assignment check.
+                bool is_assigned = mjb_unicode_codepoint_assigned(state->previous_codepoint);
 
                 if(!is_assigned) {
                     return MJB_BT_NO_BREAK;

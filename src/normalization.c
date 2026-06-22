@@ -5,12 +5,10 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "utf.h"
-
-extern mojibake mjb_global;
 
 // Normalization sort.
 static void mjb_normalization_sort(mjb_n_character array[], size_t size) {
@@ -126,7 +124,6 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
     char *composed_output = (char*)mjb_alloc(*output_size);
 
     size_t composed_output_index = 0;
-    sqlite3_stmt *stmt = mjb_global.stmt_compose;
     size_t i = 0;
 
     while(i < codepoints_count) {
@@ -165,28 +162,7 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 
             if(!blocked) {
                 // Try to compose starter with this combining character
-                sqlite3_reset(stmt);
-                // sqlite3_clear_bindings(stmt);
-
-                int rc = sqlite3_bind_int(stmt, 1, starter);
-                if(rc != SQLITE_OK) {
-                    mjb_free(composed_output);
-
-                    return false;
-                }
-
-                rc = sqlite3_bind_int(stmt, 2, combining_char);
-                if(rc != SQLITE_OK) {
-                    mjb_free(composed_output);
-
-                    return false;
-                }
-
-                mjb_codepoint composed = MJB_CODEPOINT_NOT_VALID;
-
-                while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-                    composed = (mjb_codepoint)sqlite3_column_int(stmt, 0);
-                }
+                mjb_codepoint composed = mjb_unicode_compose_pair(starter, combining_char);
 
                 if(composed != MJB_CODEPOINT_NOT_VALID) {
                     // Composition successful
@@ -263,8 +239,6 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         return true;
     }
 
-    sqlite3_stmt *stmt;
-
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     mjb_n_character current_character;
@@ -338,17 +312,6 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     }
 
     result->output_size = potential_output_size;
-
-    if(is_compatibility) {
-        // SELECT value FROM compatibility_decompositions WHERE id = ?
-        stmt = mjb_global.stmt_compatibility_decompose;
-    } else {
-        // SELECT value FROM decompositions WHERE id = ?
-        stmt = mjb_global.stmt_decompose;
-    }
-
-    sqlite3_reset(stmt);
-    sqlite3_clear_bindings(stmt);
 
     // Loop through the string.
     bool in_error = false;
@@ -437,75 +400,61 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                 ++characters_decomposed;
             }
         } else if(should_decompose) {
-            // Decompose the character using database lookup
-            int rc = sqlite3_bind_int(stmt, 1, codepoint);
+            const mjb_codepoint *decompositions = NULL;
+            uint8_t decomposition_count = 0;
 
-            if(rc != SQLITE_OK) {
-                if(composition_buffer) {
-                    mjb_free(composition_buffer);
-                }
+            if(mjb_unicode_decomposition_lookup(codepoint, is_compatibility, &decompositions,
+                &decomposition_count)) {
+                for(uint8_t decomposition_index = 0; decomposition_index < decomposition_count;
+                    ++decomposition_index) {
+                    mjb_codepoint decomposed = decompositions[decomposition_index];
 
-                if(result->output != NULL) {
-                    mjb_free(result->output);
-                }
-
-                result->output = NULL;
-                result->output_size = 0;
-                result->transformed = false;
-
-                return false;
-            }
-
-            while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-                mjb_codepoint decomposed = (mjb_codepoint)sqlite3_column_int(stmt, 0);
-
-                if(decomposed == MJB_CODEPOINT_NOT_VALID) {
-                    continue;
-                }
-
-                if(!mjb_n_codepoint_character(decomposed, &current_character)) {
-                    continue;
-                }
-
-                // ++codepoints_count;
-                ++characters_decomposed;
-
-                /*
-                 * When we encounter a "starter" character (CCC = 0), we must flush any pending
-                 * combining characters in the buffer to ensure proper ordering.
-                 *
-                 * See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G49579
-                 */
-                if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
-                    if(is_composition) {
-                        composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                           composition_buffer, &output_index, &result->output_size, form);
-                    } else {
-                        result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
-                            result->output, &output_index, &result->output_size, form,
-                            output_encoding);
-                    }
-                    buffer_index = 0;
-                }
-
-                if(buffer_index >= MJB_MAX_COMBINING_CHARACTERS) {
-                    // Buffer full, flush and continue
-                    if(is_composition) {
-                        composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
-                            composition_buffer, &output_index, &result->output_size, form);
-                    } else {
-                        result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
-                            result->output, &output_index, &result->output_size, form,
-                            output_encoding);
+                    if(decomposed == MJB_CODEPOINT_NOT_VALID) {
+                        continue;
                     }
 
-                    buffer_index = 0;
+                    if(!mjb_n_codepoint_character(decomposed, &current_character)) {
+                        continue;
+                    }
+
+                    // ++codepoints_count;
+                    ++characters_decomposed;
+
+                    /*
+                     * When we encounter a "starter" character (CCC = 0), we must flush any pending
+                     * combining characters in the buffer to ensure proper ordering.
+                     *
+                     * See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G49579
+                     */
+                    if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
+                        if(is_composition) {
+                            composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                                composition_buffer, &output_index, &result->output_size, form);
+                        } else {
+                            result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                                result->output, &output_index, &result->output_size, form,
+                                output_encoding);
+                        }
+                        buffer_index = 0;
+                    }
+
+                    if(buffer_index >= MJB_MAX_COMBINING_CHARACTERS) {
+                        // Buffer full, flush and continue
+                        if(is_composition) {
+                            composition_buffer = mjb_flush_c_buffer(characters_buffer, buffer_index,
+                                composition_buffer, &output_index, &result->output_size, form);
+                        } else {
+                            result->output = mjb_flush_d_buffer(characters_buffer, buffer_index,
+                                result->output, &output_index, &result->output_size, form,
+                                output_encoding);
+                        }
+
+                        buffer_index = 0;
+                    }
+
+                    characters_buffer[buffer_index++] = current_character;
                 }
-
-                characters_buffer[buffer_index++] = current_character;
             }
-
-            sqlite3_reset(stmt);
         }
 
         if(!characters_decomposed) {

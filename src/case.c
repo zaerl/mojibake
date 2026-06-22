@@ -5,9 +5,8 @@
  */
 
 #include "mojibake-internal.h"
+#include "unicode-tables.h"
 #include "utf.h"
-
-extern mojibake mjb_global;
 
 static bool mjb_is_cased(mjb_category category) {
     return category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL ||
@@ -41,48 +40,32 @@ static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
 
 static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
     size_t *output_index, size_t *output_size, mjb_case_type type) {
-    sqlite3_stmt *stmt_special_casing = mjb_global.stmt_special_casing;
+    const mjb_codepoint *values = NULL;
+    uint8_t length = 0;
 
-    sqlite3_reset(stmt_special_casing);
-
-    if(sqlite3_bind_int(stmt_special_casing, 1, codepoint) != SQLITE_OK) {
+    if(!mjb_unicode_special_casing_lookup(codepoint, type, &values, &length)) {
         return NULL;
     }
 
-    if(sqlite3_bind_int(stmt_special_casing, 2, type) != SQLITE_OK) {
-        return NULL;
-    }
+    for(uint8_t i = 0; i < length; ++i) {
+        char *new_output = mjb_string_output_codepoint(values[i], output, output_index, output_size,
+            MJB_ENCODING_UTF_8);
 
-    unsigned int found = 0;
-
-    while(sqlite3_step(stmt_special_casing) == SQLITE_ROW) {
-        for(int i = 0; i < 3; ++i) {
-            if(sqlite3_column_type(stmt_special_casing, i) != SQLITE_NULL) {
-                mjb_codepoint new_cp = (mjb_codepoint)sqlite3_column_int(stmt_special_casing,i);
-
-                char *new_output = mjb_string_output_codepoint(new_cp, output, output_index,
-                    output_size, MJB_ENCODING_UTF_8);
-
-                if(new_output != NULL) {
-                    output = new_output;
-                }
-            } else {
-                break;
-            }
+        if(new_output != NULL) {
+            output = new_output;
         }
-
-        ++found;
     }
 
-    return found > 0 ? output : NULL;
+    return output;
 }
 
 // Peek at the next decoded codepoint and return whether it is cased (Lu/Ll/Lt).
-static bool mjb_next_is_cased(const char *buffer, size_t size, size_t i,
-    uint8_t state, mjb_encoding encoding, sqlite3_stmt *stmt) {
+static bool mjb_next_is_cased(const char *buffer, size_t size, size_t i, uint8_t state,
+    mjb_encoding encoding) {
     mjb_codepoint next_cp = 0;
     bool next_in_error = false;
     mjb_decode_result ps;
+    mjb_unicode_case_mapping mapping;
 
     do {
         ps = mjb_next_codepoint(buffer, size, &state, &i, encoding, &next_cp, &next_in_error);
@@ -92,13 +75,11 @@ static bool mjb_next_is_cased(const char *buffer, size_t size, size_t i,
         return false;
     }
 
-    sqlite3_reset(stmt);
-
-    if(sqlite3_bind_int(stmt, 1, next_cp) != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW) {
+    if(!mjb_unicode_case_lookup(next_cp, &mapping)) {
         return false;
     }
 
-    return mjb_is_cased((mjb_category)sqlite3_column_int(stmt, 0));
+    return mjb_is_cased(mapping.category);
 }
 
 /**
@@ -108,7 +89,6 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint;
-    sqlite3_stmt *stmt = mjb_global.stmt_case;
     char *output = (char*)mjb_alloc(size);
 
     // char *output = mjb_alloc(length);
@@ -129,23 +109,16 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             continue;
         }
 
-        sqlite3_reset(stmt);
-        // sqlite3_clear_bindings(stmt);
+        mjb_unicode_case_mapping mapping;
 
-        if(sqlite3_bind_int(stmt, 1, codepoint) != SQLITE_OK) {
-            mjb_free(output);
-
-            return NULL;
-        }
-
-        if(sqlite3_step(stmt) != SQLITE_ROW) {
+        if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
             mjb_free(output);
 
             return NULL;
         }
 
         mjb_codepoint original = codepoint;
-        mjb_category category = (mjb_category)sqlite3_column_int(stmt, 0);
+        mjb_category category = mapping.category;
         mjb_case_type case_type = MJB_CASE_NONE;
 
         // Word boundary.
@@ -153,29 +126,30 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             // Is cased.
             category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL ||
             category == MJB_CATEGORY_LT ||
-            // Is modifier.
+            // Is a modifier.
             category == MJB_CATEGORY_LM ||
-            // Is number.
-            category == MJB_CATEGORY_LO || category == MJB_CATEGORY_NL) {
+            // Is a number.
+            category == MJB_CATEGORY_LO || category == MJB_CATEGORY_NL
+        ) {
 
             if(!in_word) {
                 // Try titlecase first.
-                if(sqlite3_column_type(stmt, 3) == SQLITE_NULL) {
+                if(mapping.titlecase == 0) {
                     // If titlecase is not available, try uppercase.
-                    if(sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
-                        codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 1);
+                    if(mapping.uppercase != 0) {
+                        codepoint = mapping.uppercase;
                         case_type = MJB_CASE_UPPER;
                     }
                 } else {
-                    codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 3);
+                    codepoint = mapping.titlecase;
                     case_type = MJB_CASE_TITLE;
                 }
 
                 in_word = true;
             } else {
                 // Try lowercase.
-                if(sqlite3_column_type(stmt, 2) != SQLITE_NULL) {
-                    codepoint = (mjb_codepoint)sqlite3_column_int(stmt, 2);
+                if(mapping.lowercase != 0) {
+                    codepoint = mapping.lowercase;
                     case_type = MJB_CASE_LOWER;
                 }
             }
@@ -186,7 +160,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         // Final_Sigma (SpecialCasing.txt condition Final_Sigma):
         // In-word Σ (U+03A3) → ς (U+03C2) when not followed by a cased letter.
         if(original == 0x03A3 && case_type == MJB_CASE_LOWER) {
-            mjb_codepoint sigma_out = mjb_next_is_cased(buffer, size, i, state, encoding, stmt)
+            mjb_codepoint sigma_out = mjb_next_is_cased(buffer, size, i, state, encoding)
                 ? 0x03C3   // σ: followed by a cased letter, not word-final
                 : 0x03C2;  // ς: word-final sigma
 
@@ -237,10 +211,9 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         return mjb_titlecase(buffer, size, encoding);
     }
 
+    mjb_codepoint codepoint;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
-    sqlite3_stmt *stmt = mjb_global.stmt_case;
     char *output = (char*)mjb_alloc(size);
 
     size_t output_index = 0;
@@ -261,20 +234,13 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         }
 
         if(type == MJB_CASE_CASEFOLD) {
-            sqlite3_stmt *scf = mjb_global.stmt_casefold;
+            const mjb_codepoint *values = NULL;
+            uint8_t length = 0;
 
-            sqlite3_reset(scf);
-
-            if(sqlite3_bind_int(scf, 1, codepoint) == SQLITE_OK &&
-                sqlite3_step(scf) == SQLITE_ROW) {
+            if(mjb_unicode_case_folding_lookup(codepoint, &values, &length)) {
                 // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
-                for(int k = 0; k < 3; ++k) {
-                    if(sqlite3_column_type(scf, k) == SQLITE_NULL) {
-                        break;
-                    }
-
-                    mjb_codepoint mapped = (mjb_codepoint)sqlite3_column_int(scf, k);
-                    output = mjb_string_output_codepoint(mapped, output, &output_index,
+                for(uint8_t k = 0; k < length; ++k) {
+                    output = mjb_string_output_codepoint(values[k], output, &output_index,
                         &output_size, encoding);
                 }
 
@@ -282,14 +248,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             }
 
             // Fall back to unicode_data lowercase
-            sqlite3_reset(stmt);
+            mjb_unicode_case_mapping mapping;
 
-            if(
-                sqlite3_bind_int(stmt, 1, codepoint) == SQLITE_OK &&
-                sqlite3_step(stmt) == SQLITE_ROW &&
-                sqlite3_column_type(stmt, MJB_CASE_LOWER) != SQLITE_NULL
-            ) {
-                codepoint = (mjb_codepoint)sqlite3_column_int(stmt, MJB_CASE_LOWER);
+            if(mjb_unicode_case_lookup(codepoint, &mapping) && mapping.lowercase != 0) {
+                codepoint = mapping.lowercase;
             }
 
             // Identity: codepoint unchanged if no lowercase found
@@ -305,7 +267,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         if(type == MJB_CASE_LOWER && codepoint == 0x03A3) {
             mjb_codepoint sigma_out;
 
-            if(in_word && !mjb_next_is_cased(buffer, size, i, state, encoding, stmt)) {
+            if(in_word && !mjb_next_is_cased(buffer, size, i, state, encoding)) {
                 sigma_out = 0x03C2; // ς: word-final sigma
             } else {
                 sigma_out = 0x03C3; // σ: non-final or no preceding cased letter
@@ -334,38 +296,40 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             }
         }
 
-        sqlite3_reset(stmt);
+        mjb_unicode_case_mapping mapping;
 
-        int rc = sqlite3_bind_int(stmt, 1, codepoint);
-
-        if(rc != SQLITE_OK) {
-            mjb_free(output);
-
-            return NULL;
-        }
-
-        rc = sqlite3_step(stmt);
-
-        if(rc != SQLITE_ROW) {
+        if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
             mjb_free(output);
 
             return NULL;
         }
 
         if(type == MJB_CASE_LOWER) {
-            mjb_category cat = (mjb_category)sqlite3_column_int(stmt, 0);
-
-            if(mjb_is_cased(cat)) {
+            if(mjb_is_cased(mapping.category)) {
                 in_word = true;
-            } else if(!mjb_is_case_ignorable(cat)) {
+            } else if(!mjb_is_case_ignorable(mapping.category)) {
                 in_word = false;
             }
         }
 
-        if(sqlite3_column_type(stmt, type) == SQLITE_NULL) {
-            // Skip.
-        } else {
-            codepoint = (mjb_codepoint)sqlite3_column_int(stmt, type);
+        mjb_codepoint mapped = 0;
+
+        switch(type) {
+            case MJB_CASE_UPPER:
+                mapped = mapping.uppercase;
+                break;
+            case MJB_CASE_LOWER:
+                mapped = mapping.lowercase;
+                break;
+            case MJB_CASE_TITLE:
+                mapped = mapping.titlecase;
+                break;
+            default:
+                break;
+        }
+
+        if(mapped != 0) {
+            codepoint = mapped;
         }
 
         output = mjb_string_output_codepoint(codepoint, output, &output_index,
@@ -383,33 +347,33 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
 // Return the codepoint lowercase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint) {
-    mjb_character character;
+    mjb_unicode_case_mapping mapping;
 
-    if(!mjb_codepoint_character(codepoint, &character)) {
+    if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
         return codepoint;
     }
 
-    return character.lowercase == 0 ? codepoint : character.lowercase;
+    return mapping.lowercase == 0 ? codepoint : mapping.lowercase;
 }
 
 // Return the codepoint uppercase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint) {
-    mjb_character character;
+    mjb_unicode_case_mapping mapping;
 
-    if(!mjb_codepoint_character(codepoint, &character)) {
+    if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
         return codepoint;
     }
 
-    return character.uppercase == 0 ? codepoint : character.uppercase;
+    return mapping.uppercase == 0 ? codepoint : mapping.uppercase;
 }
 
 // Return the codepoint titlecase codepoint
 MJB_EXPORT mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint) {
-    mjb_character character;
+    mjb_unicode_case_mapping mapping;
 
-    if(!mjb_codepoint_character(codepoint, &character)) {
+    if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
         return codepoint;
     }
 
-    return character.titlecase == 0 ? codepoint : character.titlecase;
+    return mapping.titlecase == 0 ? codepoint : mapping.titlecase;
 }

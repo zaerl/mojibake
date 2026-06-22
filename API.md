@@ -417,7 +417,7 @@ bool mjb_initialize(void);
 Initialize the library with custom values. Not needed to be called
 
 ```c
-bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn, const char *db, size_t db_size);
+bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 ```
 
 Shutdown the library. Not needed to be called

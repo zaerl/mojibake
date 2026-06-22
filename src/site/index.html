@@ -22,27 +22,19 @@
         </section>
         <section>
             The <a href="https://github.com/zaerl/mojibake" target="_blank">source code</a> is released under the MIT License.
-            It consists in a <strong>mojibake.c</strong> file, a <strong>mojibake.h</strong> file and a <strong>mojibake.db</strong> file.
+            It consists in a <strong>mojibake.c</strong> file and a <strong>mojibake.h</strong> file.
             A <strong>shell.c</strong> file is also provided that let you build a <strong>mojibake</strong> CLI, if you want. Also a
             C++ wrapper can be found on <strong>ext/cpp/mojibake.cpp</strong> if you prefer it.
         </section>
         <section>
             The <strong>mojibake.c/.h</strong> files are an amalgamation of all the source files. And are the only files you need to include
-            in your project. The <strong>mojibake.db</strong> file is a SQLite database file that contains all the data from the Unicode
-            Character Database.
-        </section>
-        <section>An alternative embedded version is provided, where the <strong>mojibake.db</strong> file is not needed, and only
-            the <strong>mojibake.c</strong> and <strong>mojibake.h</strong> are needed. The content of the database is loaded directly from
-            the C file.
+            in your project. Unicode data from the Unicode Character Database is compiled into generated lookup tables.
         </section>
         <section>
-            <a href="[AM_HREF]" target="_blank">[AM_NAME]</a>, version <strong>[VERSION]</strong>. Amalgamation of mojibake.c, mojibake.h and mojibake.db.
+            <a href="[AM_HREF]" target="_blank">[AM_NAME]</a>, version <strong>[VERSION]</strong>. Amalgamation of mojibake.c and mojibake.h.
         </section>
         <section>
-            <a href="[EMBEDDED_HREF]" target="_blank">[EMBEDDED_NAME]</a>, version <strong>[VERSION]</strong>. Amalgamation of mojibake.c with embedded database and mojibake.h.
-        </section>
-        <section>
-            <a href="[WASM_HREF]" target="_blank">[WASM_NAME]</a>, version <strong>[VERSION]</strong>. Precompiled WASM version of mojibake.js, mojibake.wasm and mojibake.db.
+            <a href="[WASM_HREF]" target="_blank">[WASM_NAME]</a>, version <strong>[VERSION]</strong>. Precompiled WASM version of mojibake.js and mojibake.wasm.
         </section>
         <section>
             <h2>Try it online</h2>

@@ -1772,18 +1772,6 @@ export default [
         "type": "mjb_free_fn",
         "description": "The function to free memory",
         "wasm_generated": false
-      },
-      {
-        "name": "db",
-        "type": "const char *",
-        "description": "The database content of path to use",
-        "wasm_generated": false
-      },
-      {
-        "name": "db_size",
-        "type": "size_t",
-        "description": "The size of the database content",
-        "wasm_generated": false
       }
     ],
     "wasm": true

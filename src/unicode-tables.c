@@ -1,0 +1,726 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+#include <stddef.h>
+#include <string.h>
+
+#include "unicode-tables.h"
+#include "unicode-data.h"
+
+#define MJB_COUNT_OF(array) (sizeof(array) / sizeof((array)[0]))
+
+static void mjb_copy_table_string(char *destination, size_t destination_size, const char *source) {
+    if(destination_size == 0) {
+        return;
+    }
+
+    if(source == NULL) {
+        destination[0] = '\0';
+        return;
+    }
+
+    size_t length = strlen(source);
+
+    if(length >= destination_size) {
+        length = destination_size - 1;
+    }
+
+    memcpy(destination, source, length);
+    destination[length] = '\0';
+}
+
+static size_t mjb_append_table_string(char *destination, size_t destination_size,
+    size_t destination_index, const char *source) {
+    if(destination_size == 0 || source == NULL) {
+        return destination_index;
+    }
+
+    while(*source != '\0' && destination_index + 1 < destination_size) {
+        destination[destination_index++] = *source++;
+    }
+
+    destination[destination_index] = '\0';
+
+    return destination_index;
+}
+
+static const char *mjb_unicode_prefix_lookup(uint16_t prefix) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_prefixes);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint32_t entry = mjb_unicode_prefixes[mid];
+        uint16_t entry_id = (uint16_t)(entry & 0xFFFF);
+
+        if(prefix < entry_id) {
+            high = mid;
+        } else if(prefix > entry_id) {
+            low = mid + 1;
+        } else {
+            return &mjb_unicode_prefix_data[entry >> 16];
+        }
+    }
+
+    return "";
+}
+
+static bool mjb_unicode_page_lookup(const uint16_t *page_index, size_t page_count,
+    const mjb_unicode_page *pages, const uint8_t *lows, mjb_codepoint codepoint, size_t *index) {
+    size_t page = codepoint >> 8;
+
+    if(page >= page_count) {
+        return false;
+    }
+
+    uint16_t compact_page = page_index[page];
+
+    if(compact_page == 0xFFFF) {
+        return false;
+    }
+
+    uint8_t codepoint_low = (uint8_t)(codepoint & 0xFF);
+    size_t low = pages[compact_page].start;
+    size_t high = low + pages[compact_page].count;
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint8_t entry_low = lows[mid];
+
+        if(codepoint_low < entry_low) {
+            high = mid;
+        } else if(codepoint_low > entry_low) {
+            low = mid + 1;
+        } else {
+            *index = mid;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool mjb_unicode_bitset_get(const uint8_t *data, size_t index) {
+    return (data[index >> 3] & (uint8_t)(1u << (index & 7))) != 0;
+}
+
+bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_size) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_page_lookup(mjb_unicode_name_page_index,
+        MJB_COUNT_OF(mjb_unicode_name_page_index), mjb_unicode_name_pages,
+        mjb_unicode_name_lows, codepoint, &entry_index)) {
+        return false;
+    }
+
+    if(name_size == 0) {
+        return true;
+    }
+
+    name[0] = '\0';
+
+    size_t index = 0;
+    uint32_t entry = mjb_unicode_name_entries[entry_index];
+
+    uint32_t name_offset = entry & 0x000FFFFF;
+    uint16_t prefix = (uint16_t)(entry >> 20);
+
+    index = mjb_append_table_string(name, name_size, index,
+        mjb_unicode_prefix_lookup(prefix));
+    mjb_append_table_string(name, name_size, index,
+        &mjb_unicode_name_data[name_offset]);
+
+    return true;
+}
+
+bool mjb_unicode_block_lookup(mjb_codepoint codepoint, mjb_block_info *block) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_blocks);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_blocks[mid];
+        mjb_codepoint start = (mjb_codepoint)(entry & 0x1FFFFF);
+        mjb_codepoint end = start + (mjb_codepoint)((entry >> 21) & 0xFFFF);
+        uint16_t id = (uint16_t)((entry >> 37) & 0x1FF);
+        uint16_t name_offset = (uint16_t)((entry >> 46) & 0xFFF);
+        uint8_t name_chunk = (uint8_t)((entry >> 58) & 0x3F);
+
+        if(codepoint < start) {
+            high = mid;
+        } else if(codepoint > end) {
+            low = mid + 1;
+        } else {
+            block->id = (mjb_block)id;
+            block->start = start;
+            block->end = end;
+            mjb_copy_table_string(block->name, sizeof(block->name),
+                &mjb_unicode_block_name_data[name_chunk][name_offset]);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_emoji_lookup(mjb_codepoint codepoint, mjb_emoji_properties *emoji) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_emoji);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_emoji[mid];
+        mjb_codepoint start = (mjb_codepoint)(entry & 0x1FFFFF);
+        mjb_codepoint end = start + (mjb_codepoint)((entry >> 21) & 0xFFFF);
+        uint8_t flags = (uint8_t)((entry >> 37) & 0x3F);
+
+        if(codepoint < start) {
+            high = mid;
+        } else if(codepoint > end) {
+            low = mid + 1;
+        } else {
+            emoji->codepoint = codepoint;
+            emoji->emoji = (flags & MJB_UNICODE_EMOJI_FLAG_EMOJI) != 0;
+            emoji->presentation = (flags & MJB_UNICODE_EMOJI_FLAG_PRESENTATION) != 0;
+            emoji->modifier = (flags & MJB_UNICODE_EMOJI_FLAG_MODIFIER) != 0;
+            emoji->modifier_base = (flags & MJB_UNICODE_EMOJI_FLAG_MODIFIER_BASE) != 0;
+            emoji->component = (flags & MJB_UNICODE_EMOJI_FLAG_COMPONENT) != 0;
+            emoji->extended_pictographic =
+                (flags & MJB_UNICODE_EMOJI_FLAG_EXTENDED_PICTOGRAPHIC) != 0;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool mjb_unicode_blob_has_property(const uint8_t *blob, uint16_t blob_size,
+    mjb_property property, uint8_t *value) {
+    uint16_t offset = 0;
+    uint8_t bool_count = blob[offset++];
+
+    for(uint8_t i = 0; i < bool_count && offset < blob_size; ++i) {
+        if(blob[offset++] == property) {
+            return true;
+        }
+    }
+
+    if(offset >= blob_size) {
+        return false;
+    }
+
+    uint8_t enum_count = blob[offset++];
+
+    for(uint8_t i = 0; i < enum_count && (offset + 1) < blob_size; ++i) {
+        if(blob[offset] == property) {
+            if(value != NULL) {
+                *value = blob[offset + 1];
+            }
+
+            return true;
+        }
+
+        offset += 2;
+    }
+
+    return false;
+}
+
+static void mjb_unicode_decode_properties(const uint8_t *blob, uint16_t blob_size,
+    uint8_t *buffer) {
+    uint16_t offset = 0;
+    uint8_t bool_count = blob[offset++];
+
+    for(uint8_t i = 0; i < bool_count && offset < blob_size; ++i) {
+        buffer[blob[offset++]] = 1;
+    }
+
+    if(offset >= blob_size) {
+        return;
+    }
+
+    uint8_t enum_count = blob[offset++];
+
+    for(uint8_t i = 0; i < enum_count && (offset + 1) < blob_size; ++i) {
+        buffer[blob[offset]] = blob[offset + 1];
+        offset += 2;
+    }
+}
+
+static bool mjb_unicode_property_page_lookup(mjb_codepoint codepoint, size_t *start,
+    size_t *count) {
+    uint16_t page = (uint16_t)(codepoint >> 8);
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_property_page_numbers);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint16_t entry_page = mjb_unicode_property_page_numbers[mid];
+
+        if(page < entry_page) {
+            high = mid;
+        } else if(page > entry_page) {
+            low = mid + 1;
+        } else {
+            *start = mjb_unicode_property_page_starts[mid];
+            *count = mjb_unicode_property_page_counts[mid];
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value) {
+    size_t start_index = 0;
+    size_t count = 0;
+
+    if(!mjb_unicode_property_page_lookup(codepoint, &start_index, &count)) {
+        return false;
+    }
+
+    uint8_t codepoint_low = (uint8_t)codepoint;
+
+    for(size_t i = start_index; i < start_index + count; ++i) {
+        uint32_t entry = mjb_unicode_property_ranges[i];
+        uint8_t start = (uint8_t)(entry & 0xFF);
+        uint8_t end = start + (uint8_t)((entry >> 8) & 0xFF);
+        uint16_t offset = (uint16_t)(entry >> 16);
+        uint8_t length = mjb_unicode_property_data[offset];
+
+        if(start > codepoint_low) {
+            break;
+        }
+
+        if(codepoint_low > end || length < 2) {
+            continue;
+        }
+
+        if(mjb_unicode_blob_has_property(&mjb_unicode_property_data[offset + 1], length,
+            property, value)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer) {
+    size_t start_index = 0;
+    size_t count = 0;
+
+    if(!mjb_unicode_property_page_lookup(codepoint, &start_index, &count)) {
+        return true;
+    }
+
+    uint8_t codepoint_low = (uint8_t)codepoint;
+
+    for(size_t i = start_index; i < start_index + count; ++i) {
+        uint32_t entry = mjb_unicode_property_ranges[i];
+        uint8_t start = (uint8_t)(entry & 0xFF);
+        uint8_t end = start + (uint8_t)((entry >> 8) & 0xFF);
+        uint16_t offset = (uint16_t)(entry >> 16);
+        uint8_t length = mjb_unicode_property_data[offset];
+
+        if(start > codepoint_low) {
+            break;
+        }
+
+        if(codepoint_low > end || length < 2) {
+            continue;
+        }
+
+        mjb_unicode_decode_properties(&mjb_unicode_property_data[offset + 1], length,
+            buffer);
+    }
+
+    return true;
+}
+
+static bool mjb_unicode_n_character_entry_lookup(mjb_codepoint codepoint, size_t *index) {
+    size_t page = codepoint >> 8;
+
+    if(page >= MJB_COUNT_OF(mjb_unicode_n_character_page_index)) {
+        return false;
+    }
+
+    uint16_t compact_page = mjb_unicode_n_character_page_index[page];
+
+    if(compact_page == 0xFFFF) {
+        return false;
+    }
+
+    size_t low = mjb_unicode_n_character_pages[compact_page].start;
+    size_t high = low + mjb_unicode_n_character_pages[compact_page].count;
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint32_t range = mjb_unicode_n_character_ranges[mid];
+        mjb_codepoint start = range & 0x1FFFFF;
+        mjb_codepoint end = start + (range >> 21);
+
+        if(codepoint < start) {
+            high = mid;
+        } else if(codepoint > end) {
+            low = mid + 1;
+        } else {
+            *index = mid;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_n_character_lookup(mjb_codepoint codepoint, mjb_n_character *character) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_n_character_entry_lookup(codepoint, &entry_index)) {
+        return false;
+    }
+
+    uint32_t entry = mjb_unicode_n_character_entries[entry_index];
+
+    character->codepoint = codepoint;
+    character->combining = (uint8_t)((entry >> 14) & 0xFF);
+    character->decomposition = (uint8_t)((entry >> 27) & 0x1F);
+    character->quick_check = (uint16_t)(entry & 0x1FF);
+
+    return true;
+}
+
+bool mjb_unicode_category_lookup(mjb_codepoint codepoint, mjb_category *category) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_n_character_entry_lookup(codepoint, &entry_index)) {
+        return false;
+    }
+
+    uint32_t entry = mjb_unicode_n_character_entries[entry_index];
+
+    *category = (mjb_category)((entry >> 9) & 0x1F);
+
+    return true;
+}
+
+bool mjb_unicode_codepoint_assigned(mjb_codepoint codepoint) {
+    size_t entry_index = 0;
+
+    return mjb_unicode_n_character_entry_lookup(codepoint, &entry_index);
+}
+
+bool mjb_unicode_bidi_lookup(mjb_codepoint codepoint, mjb_bidi_class *bidi,
+    bool *mirrored) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_n_character_entry_lookup(codepoint, &entry_index)) {
+        return false;
+    }
+
+    uint32_t entry = mjb_unicode_n_character_entries[entry_index];
+    uint8_t bidirectional = (uint8_t)((entry >> 22) & 0x1F);
+
+    if(bidirectional <= 0 || bidirectional >= MJB_BIDI_CLASS_COUNT) {
+        *bidi = MJB_PR_BIDI_CLASS_L;
+    } else {
+        *bidi = (mjb_bidi_class)bidirectional;
+    }
+
+    *mirrored = mjb_unicode_bitset_get(mjb_unicode_n_character_mirrored, entry_index);
+
+    return true;
+}
+
+bool mjb_unicode_numeric_value_lookup(mjb_codepoint codepoint, mjb_numeric_value *value) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_page_lookup(mjb_unicode_numeric_page_index,
+        MJB_COUNT_OF(mjb_unicode_numeric_page_index), mjb_unicode_numeric_pages,
+        mjb_unicode_numeric_lows, codepoint, &entry_index)) {
+        return false;
+    }
+
+    uint32_t entry = mjb_unicode_numeric_values[entry_index];
+    uint8_t decimal = (uint8_t)((entry >> 10) & 0xF);
+    uint8_t digit = (uint8_t)((entry >> 14) & 0xF);
+
+    value->decimal = decimal == 0 ? MJB_NUMBER_NOT_VALID : (int8_t)(decimal - 1);
+    value->digit = digit == 0 ? MJB_NUMBER_NOT_VALID : (int8_t)(digit - 1);
+    mjb_copy_table_string(value->numeric, sizeof(value->numeric),
+        &mjb_unicode_numeric_data[entry & 0x3FF]);
+
+    return true;
+}
+
+static bool mjb_unicode_simple_case_entry_lookup(mjb_codepoint codepoint, const uint64_t **entry) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_page_lookup(mjb_unicode_simple_case_page_index,
+        MJB_COUNT_OF(mjb_unicode_simple_case_page_index), mjb_unicode_simple_case_pages,
+        mjb_unicode_simple_case_lows, codepoint, &entry_index)) {
+        return false;
+    }
+
+    *entry = &mjb_unicode_simple_case_mapping_data[mjb_unicode_simple_case_mappings[entry_index]];
+
+    return true;
+}
+
+static int32_t mjb_unicode_simple_case_delta(uint64_t entry, uint8_t shift) {
+    uint32_t value = (uint32_t)((entry >> shift) & 0x3FFFF);
+
+    return (value & 0x20000) != 0 ? (int32_t)(value | 0xFFFC0000) : (int32_t)value;
+}
+
+bool mjb_unicode_case_lookup(mjb_codepoint codepoint, mjb_unicode_case_mapping *mapping) {
+    size_t character_index = 0;
+
+    if(!mjb_unicode_n_character_entry_lookup(codepoint, &character_index)) {
+        return false;
+    }
+
+    uint32_t character = mjb_unicode_n_character_entries[character_index];
+    const uint64_t *entry = NULL;
+    bool has_case_mapping = mjb_unicode_simple_case_entry_lookup(codepoint, &entry);
+    uint64_t entry_data = has_case_mapping ? *entry : 0;
+    uint8_t mask = (uint8_t)((entry_data >> 54) & 0x7);
+
+    mapping->category = (mjb_category)((character >> 9) & 0x1F);
+    mapping->uppercase = has_case_mapping && (mask & 1) != 0 ?
+        (mjb_codepoint)((int32_t)codepoint +
+            mjb_unicode_simple_case_delta(entry_data, 0)) :
+        0;
+    mapping->lowercase = has_case_mapping && (mask & 2) != 0 ?
+        (mjb_codepoint)((int32_t)codepoint +
+            mjb_unicode_simple_case_delta(entry_data, 18)) :
+        0;
+    mapping->titlecase = has_case_mapping && (mask & 4) != 0 ?
+        (mjb_codepoint)((int32_t)codepoint +
+            mjb_unicode_simple_case_delta(entry_data, 36)) :
+        0;
+
+    return true;
+}
+
+bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_case_type case_type,
+    const mjb_codepoint **values, uint8_t *length) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_special_case_mappings);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_special_case_mappings[mid];
+        mjb_codepoint entry_codepoint = (mjb_codepoint)(entry & 0x1FFFFF);
+        uint8_t entry_case_type = (uint8_t)((entry >> 21) & 0x7);
+
+        if(codepoint < entry_codepoint ||
+            (codepoint == entry_codepoint && case_type < entry_case_type)) {
+            high = mid;
+        } else if(codepoint > entry_codepoint ||
+            (codepoint == entry_codepoint && case_type > entry_case_type)) {
+            low = mid + 1;
+        } else {
+            *values = &mjb_unicode_special_case_data[entry >> 26];
+            *length = (uint8_t)((entry >> 24) & 0x3);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
+    uint8_t *length) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_case_fold_mappings);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_case_fold_mappings[mid];
+        mjb_codepoint entry_codepoint = (mjb_codepoint)(entry & 0x1FFFFF);
+
+        if(codepoint < entry_codepoint) {
+            high = mid;
+        } else if(codepoint > entry_codepoint) {
+            low = mid + 1;
+        } else {
+            *values = &mjb_unicode_case_fold_data[entry >> 23];
+            *length = (uint8_t)((entry >> 21) & 0x3);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
+    uint8_t *length) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_page_lookup(mjb_unicode_confusable_page_index,
+        MJB_COUNT_OF(mjb_unicode_confusable_page_index), mjb_unicode_confusable_pages,
+        mjb_unicode_confusable_lows, codepoint, &entry_index)) {
+        return false;
+    }
+
+    uint32_t entry = mjb_unicode_confusables[entry_index];
+    uint32_t offset = entry & 0x00FFFFFF;
+
+    *values = &mjb_unicode_confusable_data[offset];
+    *length = (uint8_t)(entry >> 24);
+
+    return true;
+}
+
+bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint8_t **weights,
+    uint8_t *length) {
+    size_t entry_index = 0;
+
+    if(!mjb_unicode_page_lookup(mjb_unicode_collation_page_index,
+        MJB_COUNT_OF(mjb_unicode_collation_page_index), mjb_unicode_collation_pages,
+        mjb_unicode_collation_lows, codepoint, &entry_index)) {
+        return false;
+    }
+
+    uint32_t entry = mjb_unicode_collation_entries[entry_index];
+    uint32_t offset = entry & 0x00FFFFFF;
+
+    *weights = &mjb_unicode_collation_weight_data[offset];
+    *length = (uint8_t)(entry >> 24);
+
+    return true;
+}
+
+bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
+    const mjb_unicode_collation_contraction_entry **entries, size_t *count) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_collation_contractions);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_collation_contractions[mid];
+        mjb_codepoint entry_first = (mjb_codepoint)(entry & 0x1FFFFF);
+
+        if(first_codepoint <= entry_first) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    if(low >= MJB_COUNT_OF(mjb_unicode_collation_contractions) ||
+        (mjb_codepoint)(mjb_unicode_collation_contractions[low] & 0x1FFFFF) !=
+            first_codepoint) {
+        *entries = NULL;
+        *count = 0;
+
+        return false;
+    }
+
+    size_t end = low + 1;
+
+    while(end < MJB_COUNT_OF(mjb_unicode_collation_contractions) &&
+        (mjb_codepoint)(mjb_unicode_collation_contractions[end] & 0x1FFFFF) ==
+            first_codepoint) {
+        ++end;
+    }
+
+    *entries = &mjb_unicode_collation_contractions[low];
+    *count = end - low;
+
+    return true;
+}
+
+const mjb_codepoint *mjb_unicode_collation_contraction_sequence(
+    const mjb_unicode_collation_contraction_entry *entry, uint8_t *length) {
+    uint64_t entry_data = *entry;
+    size_t offset = (size_t)((entry_data >> 21) & 0xFFFF);
+
+    *length = (uint8_t)((entry_data >> 53) & 0x7);
+
+    return &mjb_unicode_collation_contraction_sequence_data[offset];
+}
+
+const uint8_t *mjb_unicode_collation_contraction_weights(
+    const mjb_unicode_collation_contraction_entry *entry, uint8_t *length) {
+    uint64_t entry_data = *entry;
+    size_t offset = (size_t)((entry_data >> 37) & 0xFFFF);
+
+    *length = (uint8_t)((entry_data >> 56) & 0x3F);
+
+    return &mjb_unicode_collation_contraction_weight_data[offset];
+}
+
+static bool mjb_unicode_decomposition_table_lookup(
+    const mjb_unicode_decomposition_entry *table, size_t table_count, mjb_codepoint codepoint,
+    const mjb_codepoint **values, uint8_t *length) {
+    size_t low = 0;
+    size_t high = table_count;
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = table[mid];
+        mjb_codepoint entry_codepoint = (mjb_codepoint)(entry & 0x1FFFFF);
+
+        if(codepoint < entry_codepoint) {
+            high = mid;
+        } else if(codepoint > entry_codepoint) {
+            low = mid + 1;
+        } else {
+            uint16_t offset = (uint16_t)(entry >> 26);
+
+            *values = &mjb_unicode_decomposition_data[offset];
+            *length = (uint8_t)((entry >> 21) & 0x1F);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mjb_unicode_decomposition_lookup(mjb_codepoint codepoint, bool compatibility,
+    const mjb_codepoint **values, uint8_t *length) {
+    if(compatibility) {
+        return mjb_unicode_decomposition_table_lookup(mjb_unicode_compatibility_decompositions,
+            MJB_COUNT_OF(mjb_unicode_compatibility_decompositions), codepoint, values, length);
+    }
+
+    return mjb_unicode_decomposition_table_lookup(mjb_unicode_canonical_decompositions,
+        MJB_COUNT_OF(mjb_unicode_canonical_decompositions), codepoint, values, length);
+}
+
+mjb_codepoint mjb_unicode_compose_pair(mjb_codepoint starter, mjb_codepoint combining) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_compositions);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_compositions[mid];
+        mjb_codepoint entry_starter = (mjb_codepoint)(entry & 0x1FFFFF);
+        mjb_codepoint entry_combining = (mjb_codepoint)((entry >> 21) & 0x1FFFFF);
+        mjb_codepoint entry_composite = (mjb_codepoint)((entry >> 42) & 0x1FFFFF);
+
+        if(starter < entry_starter ||
+            (starter == entry_starter && combining < entry_combining)) {
+            high = mid;
+        } else if(starter > entry_starter ||
+            (starter == entry_starter && combining > entry_combining)) {
+            low = mid + 1;
+        } else {
+            return entry_composite;
+        }
+    }
+
+    return MJB_CODEPOINT_NOT_VALID;
+}
