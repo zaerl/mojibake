@@ -42,7 +42,7 @@ static size_t confusable_lookup(mjb_codepoint codepoint, mjb_codepoint *result,
 static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_result *result) {
     if(size == 0) {
-        result->output = (char *)buffer;
+        result->output = (char*)buffer;
         result->output_size = 0;
         result->transformed = false;
 
@@ -62,6 +62,14 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
 
     // Step 2: Replace each codepoint with its skeleton mapping.
     // Worst case: each byte expands to MJB_SKELETON_MAX_EXPAND codepoints of 4 UTF-8 bytes each.
+    if(nfd.output_size > (SIZE_MAX - 4) / (MJB_SKELETON_MAX_EXPAND * 4)) {
+        if(nfd.transformed) {
+            mjb_free(nfd.output);
+        }
+
+        return false;
+    }
+
     size_t mid_size = nfd.output_size * MJB_SKELETON_MAX_EXPAND * 4 + 4;
     char *mid = (char *)mjb_alloc(mid_size);
 

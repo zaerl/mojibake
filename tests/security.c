@@ -9,6 +9,9 @@
 #include "test.h"
 
 void *test_security(void *arg) {
+    ATT_ASSERT(mjb_string_is_confusable(NULL, 1, "A", 1, MJB_ENCODING_UTF_8), false,
+        "confusable rejects NULL left string")
+
     // Cyrillic "А" (U+0410, UTF-8: 0xD0 0x90) is confusable with Latin "A"
     // Both have skeleton "A": skeleton("А")="A", skeleton("A")="A"
     ATT_ASSERT(mjb_string_is_confusable("\xD0\x90", 2, "A", 1, MJB_ENCODING_UTF_8), true,
