@@ -71,9 +71,10 @@
 | `mjb_initialize`                       | 2          |
 | `mjb_initialize_v2`                    | 2          |
 | `mjb_next_character`                   | 2          |
+| `mjb_property_name`                    | 2          |
 | `mjb_codepoint_is_hangul_syllable`     | 1          |
 | `mjb_codepoint_properties`             | 1          |
 | `mjb_unicode_version`                  | 1          |
 | `mjb_version`                          | 1          |
 | `mjb_version_number`                   | 1          |
-| **Total**                              | **954076** |
+| **Total**                              | **954078** |
