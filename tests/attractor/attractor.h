@@ -10,7 +10,7 @@
  * int var_to_test = 1;
  * int expected_value = 1;
  *
- * ATT_ASSERT(var_to_test, expected_value, "one == one");
+ * ATT_ASSERT(var_to_test, expected_value, "one == one")
  */
 
 #ifndef ATT_TEST_H
