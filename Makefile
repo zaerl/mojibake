@@ -3,10 +3,12 @@ BUILD_DIR ?= build
 CPP_BUILD_DIR ?= $(BUILD_DIR)-cpp
 SHARED_BUILD_DIR ?= $(BUILD_DIR)-shared
 ASAN_BUILD_DIR ?= $(BUILD_DIR)-asan
+UBSAN_BUILD_DIR ?= $(BUILD_DIR)-ubsan
 # Build test directories
 TEST_BUILD_DIR ?= $(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR ?= $(BUILD_DIR)-test-cpp
 TEST_ASAN_BUILD_DIR ?= $(BUILD_DIR)-test-asan
+TEST_UBSAN_BUILD_DIR ?= $(BUILD_DIR)-test-ubsan
 TEST_NULL_BUILD_DIR ?= $(BUILD_DIR)-test-null
 
 # WASM and amalgamation build directories
@@ -17,17 +19,19 @@ AMALGAMATION_BUILD_DIR ?= build-amalgamation
 BUILD_TYPE ?= Release
 CMAKE_NATIVE_BASE_FLAGS = -DBUILD_WASM=OFF
 NATIVE_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+	-DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 CPP_CMAKE_FLAGS = -DBUILD_CPP=ON -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+	-DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 SHARED_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=ON $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+	-DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 ASAN_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DUSE_ASAN=ON -DALLOW_EMBEDDED_NULLS=OFF
+	-DUSE_ASAN=ON -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+UBSAN_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
+	-DUSE_ASAN=OFF -DUSE_UBSAN=ON -DALLOW_EMBEDDED_NULLS=OFF
 NULL_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=ON
+	-DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=ON
 WASM_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=ON -DUSE_ASAN=OFF \
-	-DALLOW_EMBEDDED_NULLS=OFF
+	-DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
@@ -44,7 +48,7 @@ UNICODE_DATA = src/unicode-data.h
 cmake_configure = cmake -S . -B $(1) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(2)
 cmake_build = cmake --build $(1) --config $(BUILD_TYPE)
 
-.PHONY: all configure configure-cpp configure-shared configure-asan configure-null configure-wasm
+.PHONY: all configure configure-cpp configure-shared configure-asan configure-ubsan configure-null configure-wasm
 
 all: configure build
 
@@ -68,11 +72,15 @@ configure-shared: $(UNICODE_DATA)
 configure-asan: $(UNICODE_DATA)
 	@$(call cmake_configure,$(ASAN_BUILD_DIR),$(ASAN_CMAKE_FLAGS))
 
+# UndefinedBehaviorSanitizer targets
+configure-ubsan: $(UNICODE_DATA)
+	@$(call cmake_configure,$(UBSAN_BUILD_DIR),$(UBSAN_CMAKE_FLAGS))
+
 # WASM targets
 configure-wasm: $(UNICODE_DATA)
 	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(WASM_CMAKE_FLAGS)
 
-.PHONY: build build-cpp build-shared build-asan build-wasm
+.PHONY: build build-cpp build-shared build-asan build-ubsan build-wasm
 
 # C targets
 build: configure
@@ -88,6 +96,9 @@ build-shared: configure-shared
 
 build-asan: configure-asan
 	@$(call cmake_build,$(ASAN_BUILD_DIR))
+
+build-ubsan: configure-ubsan
+	@$(call cmake_build,$(UBSAN_BUILD_DIR))
 
 # WASM targets
 build-wasm: configure-wasm
@@ -144,7 +155,7 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: test test-cpp test-asan test-null ctest test-docker
+.PHONY: test test-cpp test-asan test-ubsan test-null ctest test-docker
 
 # Run tests
 test: BUILD_TYPE = Test
@@ -174,6 +185,13 @@ test-asan: $(UNICODE_DATA)
 	@$(call cmake_build,$(TEST_ASAN_BUILD_DIR))
 	$(TEST_ASAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
+# Run tests with UndefinedBehaviorSanitizer
+test-ubsan: BUILD_TYPE = Test
+test-ubsan: $(UNICODE_DATA)
+	@$(call cmake_configure,$(TEST_UBSAN_BUILD_DIR),$(UBSAN_CMAKE_FLAGS))
+	@$(call cmake_build,$(TEST_UBSAN_BUILD_DIR))
+	$(TEST_UBSAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
+
 # Run tests using CTest
 ctest: BUILD_TYPE = Test
 ctest: $(UNICODE_DATA)
@@ -195,7 +213,8 @@ clean-build:
 # Clean native build
 clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
-		$(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) $(TEST_NULL_BUILD_DIR)
+		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
+		$(TEST_UBSAN_BUILD_DIR) $(TEST_NULL_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
@@ -216,6 +235,7 @@ help:
 	@echo "  build-asan              - Build the project with AddressSanitizer"
 	@echo "  build-cpp               - Build the project with C++ compiler"
 	@echo "  build-shared            - Build the project as a shared library"
+	@echo "  build-ubsan             - Build the project with UndefinedBehaviorSanitizer"
 	@echo "  build-wasm              - Build the project for WebAssembly"
 	@echo "  clean                   - Remove build artifacts"
 	@echo "  clean-amalgamation      - Remove amalgamation build artifacts"
@@ -234,6 +254,7 @@ help:
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-docker             - Build and run tests in Docker container"
 	@echo "  test-null               - Build and run tests with embedded NULL support"
+	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  update-version          - Update version in source files"
 	@echo "  wasm                    - Build the project for WebAssembly"
 	@echo "  watch-site              - Watch site files, regenerate on changes and serve at localhost:6251"

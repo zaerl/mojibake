@@ -20,6 +20,9 @@ option(BUILD_WASM "Build for WebAssembly" OFF)
 # AddressSanitizer option
 option(USE_ASAN "Enable AddressSanitizer" OFF)
 
+# UndefinedBehaviorSanitizer option
+option(USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+
 # Shared library option
 option(BUILD_SHARED "Build as shared library instead of static" OFF)
 
@@ -48,6 +51,14 @@ if(USE_ASAN AND NOT MSVC)
     set(COMMON_FLAGS "${COMMON_FLAGS} ${ASAN_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+endif()
+
+# UndefinedBehaviorSanitizer flags (GCC/Clang only)
+if(USE_UBSAN AND NOT MSVC)
+    set(UBSAN_FLAGS "-fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer")
+    set(COMMON_FLAGS "${COMMON_FLAGS} ${UBSAN_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=undefined")
 endif()
 
 # Language standards
