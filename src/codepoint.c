@@ -78,7 +78,7 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 
 // Return the codepoint character
 MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
+    if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 
@@ -187,7 +187,7 @@ MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
 
 // Return the character block
 MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
+    if(block == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 
@@ -207,7 +207,7 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
 
 // Return the numeric value of a codepoint (decimal, digit, numeric string)
 MJB_EXPORT bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
+    if(value == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 

@@ -13,6 +13,7 @@ void *test_codepoint(void *arg) {
     mjb_character character;
 
     ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX, &character), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_codepoint_character(0, NULL), false, "NULL character pointer")
 
     ATT_ASSERT(mjb_codepoint_character(0, &character), true, "Codepoint: 0")
     ATT_ASSERT((const char*)character.name, "NULL", "Codepoint: 0")
@@ -43,6 +44,7 @@ void *test_codepoint(void *arg) {
     mjb_block_info block;
 
     ATT_ASSERT(mjb_codepoint_block(MJB_CODEPOINT_MAX, &block), false, "Not valid codepoint")
+    ATT_ASSERT(mjb_codepoint_block(0, NULL), false, "NULL block pointer")
     ATT_ASSERT(mjb_codepoint_block(0xE0080, &block), false, "Not mapped codepoint")
 
     ATT_ASSERT(mjb_codepoint_block(0, &block), true, "Valid basic Latin block 1")
@@ -210,6 +212,9 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT((const char*)character.name, "PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET", "Alias FE18 BRAKCET")
 
     mjb_numeric_value num;
+
+    ATT_ASSERT(mjb_codepoint_numeric_value(0x0031, NULL), false,
+        "numeric_value: NULL output pointer")
 
     // U+0031 = '1': decimal=1, digit=1, numeric="1"
     ATT_ASSERT(mjb_codepoint_numeric_value(0x0031, &num), true, "numeric_value: '1' returns true")
