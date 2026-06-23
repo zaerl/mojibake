@@ -1504,6 +1504,23 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Return the name of a property, NULL if the property specified is not valid",
+    "ret": "const char *",
+    "name": "property_name",
+    "attributes": [
+      "MJB_CONST"
+    ],
+    "args": [
+      {
+        "name": "property",
+        "type": "mjb_property",
+        "description": "The property to check",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)",
     "ret": "bool",
     "name": "string_is_confusable",

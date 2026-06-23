@@ -602,6 +602,9 @@ bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 // Return true if the string is a valid Unicode identifier (UAX#31)
 MJB_NONNULL(1) bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
 
+// Return the name of a property, NULL if the property specified is not valid
+MJB_CONST const char *mjb_property_name(mjb_property property);
+
 // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
 MJB_NONNULL(1, 3) bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
 

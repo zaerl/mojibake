@@ -262,11 +262,11 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
             for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
                 if(mjbsh_property_is_bool((mjb_property)i)) {
                     if(properties[i]) {
-                        mjbsh_bool(mjbsh_property_name((mjb_property)i), i == last_prop ? 0 : 1, true);
+                        mjbsh_bool(mjb_property_name((mjb_property)i), i == last_prop ? 0 : 1, true);
                     }
                 } else {
                     if(properties[i] != 0) {
-                        mjbsh_numeric(mjbsh_property_name((mjb_property)i), i == last_prop ? 0 : 1, properties[i]);
+                        mjbsh_numeric(mjb_property_name((mjb_property)i), i == last_prop ? 0 : 1, properties[i]);
                     }
                 }
             }

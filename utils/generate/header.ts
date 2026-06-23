@@ -39,6 +39,12 @@ function getPropertyEnumNames(properties: Property[]) {
   return propertyEnums.join('\n');
 }
 
+function getPropertyNames(properties: Property[]) {
+  return properties.map((value: Property, index: number) => {
+    return `    "${value.name}"${index === properties.length - 1 ? '' : ','}${value.bool ? '' : ' // enumerated'}`;
+  }).join('\n');
+}
+
 function getScriptEnumNames(properties: { [key: string]: number }) {
   const propertyEnums: string[] = [];
 
@@ -61,13 +67,6 @@ function getScriptEnumNames(properties: { [key: string]: number }) {
   }
 
   return propertyEnums;
-}
-
-function getShellPropertyNames(properties: Property[]) {
-  return properties.map((value: Property, index: number) => {
-    const name = value.name.replace(/_/g, ' ');
-    return `    "${name}"${index === properties.length - 1 ? '' : ','}${value.bool ? '' : ' // enumerated'}`;
-  }).join('\n');
 }
 
 function getFunctions() {
@@ -147,12 +146,12 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   writeFileSync('../../src/mojibake.h', fileContent);
 
-  fileContent = readFileSync('../../src/shell/maps.c', 'utf-8');
+  fileContent = readFileSync('../../src/properties.c', 'utf-8');
 
   // Add list of property names to shell maps.c
-  fileContent = substituteBlock(fileContent, "static const char *mjbsh_property_names[] = {\n", "\n};", getShellPropertyNames(properties));
+  fileContent = substituteBlock(fileContent, "static const char *mjb_property_names[] = {\n", "\n};", getPropertyNames(properties));
 
-  writeFileSync('../../src/shell/maps.c', fileContent);
+  writeFileSync('../../src/properties.c', fileContent);
 
   fileContent = readFileSync('../../src/bidi.c', 'utf-8');
 
