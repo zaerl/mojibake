@@ -9,6 +9,8 @@
 #include "test.h"
 
 static unsigned int test_counter = 0;
+static size_t fail_alloc_count = 0;
+static size_t fail_alloc_after = 0;
 
 void *test_malloc(size_t size) {
     ++test_counter;
@@ -26,6 +28,30 @@ void test_free(void *ptr) {
     ++test_counter;
 
     free(ptr);
+}
+
+void *test_fail_malloc(size_t size) {
+    if(fail_alloc_count++ >= fail_alloc_after) {
+        return NULL;
+    }
+
+    return malloc(size);
+}
+
+void *test_fail_realloc(void *ptr, size_t new_size) {
+    if(fail_alloc_count++ >= fail_alloc_after) {
+        return NULL;
+    }
+
+    return realloc(ptr, new_size);
+}
+
+static void test_set_failing_allocator(size_t fail_after) {
+    mjb_shutdown();
+    fail_alloc_count = 0;
+    fail_alloc_after = fail_after;
+    ATT_ASSERT(mjb_initialize_v2(test_fail_malloc, test_fail_realloc, test_free), true,
+        "Initialize failing allocator")
 }
 
 void *test_mojibake(void *arg) {
@@ -55,6 +81,22 @@ void *test_mojibake(void *arg) {
     ATT_ASSERT(test_counter, 2, "Custom realloc function")
     ATT_ASSERT((mjb_free(buffer), test_counter), 3, "Custom free function")
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown custom memory functions")
+
+    test_set_failing_allocator(0);
+
+    mjb_result result;
+    ATT_ASSERT(mjb_string_convert_encoding("a", 1, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_16_LE,
+        &result), false, "Encoding conversion handles allocation failure")
+    ATT_ASSERT(mjb_string_filter("a", 1, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
+        MJB_FILTER_NONE, &result), false, "Filter handles allocation failure")
+    ATT_ASSERT(mjb_normalize("e\xCC\x81", 3, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_8, &result), false, "Normalization handles allocation failure")
+    ATT_ASSERT(mjb_case("a", 1, MJB_CASE_UPPER, MJB_ENCODING_UTF_8), (char*)NULL,
+        "Case conversion handles allocation failure")
+    ATT_ASSERT(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+        &result), false, "Collation key handles allocation failure")
+
+    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown failing allocator")
 
     return NULL;
 }
