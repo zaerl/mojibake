@@ -51,7 +51,7 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_state *state) {
-    if(size == 0) {
+    if(buffer == NULL || state == NULL || size == 0) {
         return MJB_BT_NOT_SET;
     }
 
@@ -288,7 +288,7 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
 // Return the number of bytes that form the first max_graphemes grapheme clusters.
 MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding,
     size_t max_graphemes) {
-    if(size == 0 || max_graphemes == 0) {
+    if(buffer == NULL || size == 0 || max_graphemes == 0) {
         return 0;
     }
 
@@ -317,7 +317,7 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding enc
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
 MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_width_context context, size_t max_columns) {
-    if(size == 0 || max_columns == 0) {
+    if(buffer == NULL || size == 0 || max_columns == 0) {
         return 0;
     }
 
@@ -341,10 +341,12 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
             state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
 
         size_t cluster_width = 0;
-        mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
-            &cluster_width);
+        if(!mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+            &cluster_width)) {
+            return prev_break;
+        }
 
-        if(total_width + cluster_width > max_columns) {
+        if(total_width > max_columns || cluster_width > max_columns - total_width) {
             return prev_break;
         }
 

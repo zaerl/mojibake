@@ -46,7 +46,14 @@ static void test_basic_segmentation(void) {
         state.index = 0; \
         index = 0; \
 
+    ATT_ASSERT((uint8_t)mjb_segmentation(NULL, 1, MJB_ENCODING_UTF_8, &state),
+        (uint8_t)MJB_BT_NOT_SET, "Segmentation rejects NULL buffer")
+    ATT_ASSERT((uint8_t)mjb_segmentation("A", 1, MJB_ENCODING_UTF_8, NULL),
+        (uint8_t)MJB_BT_NOT_SET, "Segmentation rejects NULL state")
     ATT_ASSERT((uint8_t)mjb_segmentation("", 0, MJB_ENCODING_UTF_8, &state), (uint8_t)MJB_BT_NOT_SET, "Empty string")
+    ATT_ASSERT(mjb_truncate(NULL, 1, MJB_ENCODING_UTF_8, 1), (size_t)0, "Truncate rejects NULL buffer")
+    ATT_ASSERT(mjb_truncate_width(NULL, 1, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 1),
+        (size_t)0, "Truncate width rejects NULL buffer")
 
     MJB_TEST_S
     mjb_break_type expected_a[] = { MJB_BT_ALLOWED };
