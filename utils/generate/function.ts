@@ -211,6 +211,8 @@ export class CFunction implements Function {
         ret += this.#getSelectInput(i, options, values);
       } else if(type.startsWith('mjb_result')) {
         ret += this.#getInput(i);
+      } else if(type.startsWith('mjb_property')) {
+        ret += this.#getInput(i);
       } else if(type.startsWith('mjb_normalization')) {
         // See mjb_normalization on mojibake.h
         const options = [
