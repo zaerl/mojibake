@@ -15,6 +15,10 @@ extern mojibake mjb_global;
 // Internal function.
 MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
     size_t *output_size) {
+    if(ret == NULL || (input == NULL && input_size > 0) || output_index == NULL || output_size == NULL) {
+        return NULL;
+    }
+
     if(!input_size) {
         return NULL;
     }
