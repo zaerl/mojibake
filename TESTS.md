@@ -63,6 +63,8 @@
 | `mjb_plane_is_valid`                   | 3          |
 | `mjb_realloc`                          | 3          |
 | `mjb_bidi_free`                        | 2          |
+| `mjb_category_is_combining`            | 2          |
+| `mjb_category_is_graphic`              | 2          |
 | `mjb_codepoint_is_xid_continue`        | 2          |
 | `mjb_codepoint_is_xid_start`           | 2          |
 | `mjb_free`                             | 2          |
@@ -74,6 +76,4 @@
 | `mjb_unicode_version`                  | 1          |
 | `mjb_version`                          | 1          |
 | `mjb_version_number`                   | 1          |
-| `mjb_category_is_combining`            | 0          |
-| `mjb_category_is_graphic`              | 0          |
-| **Total**                              | **954072** |
+| **Total**                              | **954076** |

@@ -64,17 +64,17 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_GEORGIAN, "Georgian block")
 
     ATT_ASSERT(mjb_codepoint_character(0xF0000 + 3, &character), false, "Supplementary Private Use Area-A block")
-
     ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX - 1, &character), false, "Supplementary Private Use Area-B block")
 
     ATT_ASSERT(mjb_codepoint_is_graphic(0), false, "NULL: not graphic")
-
     ATT_ASSERT(mjb_codepoint_is_graphic('#'), true, "#: graphic")
 
     // U+1F642 = 🙂
     ATT_ASSERT(mjb_codepoint_is_graphic(0x1F642), true, "🙂: graphic")
-
     ATT_ASSERT(mjb_codepoint_is_graphic(0x1FFFE), false, "Not valid codepoint: not graphic")
+
+    ATT_ASSERT(mjb_category_is_graphic(MJB_CATEGORY_CN), false, "MJB_CATEGORY_CN: not graphic")
+    ATT_ASSERT(mjb_category_is_graphic(MJB_CATEGORY_LU), true, "MJB_CATEGORY_LU: is graphic")
 
     // U+0377 = ͷ, U+0377 + 1 is not mapped
     ATT_ASSERT(mjb_codepoint_is_graphic(0x0377 + 1), false, "Not mapped codepoint: not graphic")
@@ -101,6 +101,9 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_combining(0x0300), true, "COMBINING GRAVE ACCENT")
     ATT_ASSERT(mjb_codepoint_is_combining(0x1F1E6), false, "REGIONAL INDICATOR SYMBOL LETTER A")
     ATT_ASSERT(mjb_codepoint_is_combining(0x488), true, "COMBINING CYRILLIC HUNDRED THOUSANDS SIGN")
+
+    ATT_ASSERT(mjb_category_is_combining(MJB_CATEGORY_MN), true, "MJB_CATEGORY_MN: is combining")
+    ATT_ASSERT(mjb_category_is_combining(MJB_CATEGORY_CN), false, "MJB_CATEGORY_CN: not combining")
 
     // U+00BD = ½
     ATT_ASSERT(mjb_codepoint_character(0x00BD, &character), true, "Codepoint: ½ 1")
