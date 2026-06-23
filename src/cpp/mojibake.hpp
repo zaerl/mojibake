@@ -30,7 +30,7 @@ private:
     bool valid;
 
     void ensure_valid() const {
-        if (!valid) {
+        if(!valid) {
             throw LibraryError("Library is not initialized");
         }
     }
@@ -46,7 +46,7 @@ public:
     explicit Character(mjb_codepoint codepoint) : data{}, valid(false) {
         valid = mjb_codepoint_character(codepoint, &data);
 
-        if (!valid) {
+        if(!valid) {
             throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));
         }
     }
@@ -54,7 +54,8 @@ public:
     explicit Character(char32_t codepoint) : Character(static_cast<mjb_codepoint>(codepoint)) {}
 
     bool operator==(const Character& other) const noexcept {
-        if (!valid || !other.valid) return false;
+        if(!valid || !other.valid) return false;
+
         return data.codepoint == other.data.codepoint;
     }
 
@@ -193,7 +194,7 @@ public:
         unsigned int len = mjb_codepoint_encode(data.codepoint, buffer.data(), buffer.size(),
             MJB_ENCODING_UTF_8);
 
-        if (len == 0) {
+        if(len == 0) {
             throw LibraryError("Failed to encode codepoint to UTF-8");
         }
 
