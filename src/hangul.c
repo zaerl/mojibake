@@ -28,7 +28,7 @@ static const char* mjb_jongseong_names[] = {
 
 // Return hangul syllable name
 MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size) {
-    if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
+    if(buffer == NULL || size == 0 || !mjb_codepoint_is_hangul_syllable(codepoint)) {
         return false;
     }
 
@@ -47,7 +47,7 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
 // Hangul syllable decomposition
 MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
     mjb_codepoint *codepoints) {
-    if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
+    if(codepoints == NULL || !mjb_codepoint_is_hangul_syllable(codepoint)) {
         return false;
     }
 
@@ -71,7 +71,7 @@ MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
 
 MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters,
     size_t characters_len) {
-    if(characters_len == 0) {
+    if(characters == NULL || characters_len == 0) {
         return 0;
     }
 
