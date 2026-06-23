@@ -91,7 +91,13 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
 
     // Loop through the string.
-    for(size_t i = 0; i < size && buffer[i]; ++i) {
+    for(size_t i = 0; i < size; ++i) {
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+        if(!buffer[i]) {
+            break;
+        }
+#endif
+
         // Find next codepoint.
         state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
 
@@ -112,7 +118,13 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
         return false;
     }
 
-    for(size_t i = 0; i < size && buffer[i]; ++i) {
+    for(size_t i = 0; i < size; ++i) {
+#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+        if(!buffer[i]) {
+            break;
+        }
+#endif
+
         // Every character must have leading bit at zero.
         if(buffer[i] & 0x80) {
             return false;
@@ -214,7 +226,8 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 4;
         }
-    } else if((encoding & MJB_ENCODING_UTF_16_LE) || (encoding & MJB_ENCODING_UTF_16_BE)) {
+    } else if(((encoding & MJB_ENCODING_UTF_16_LE) || (encoding & MJB_ENCODING_UTF_16_BE)) &&
+        !((encoding & MJB_ENCODING_UTF_32_LE) || (encoding & MJB_ENCODING_UTF_32_BE))) {
         if(size < 3) {
             return 0;
         }
@@ -291,9 +304,13 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
 MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && size > 0)) {
+        return false;
+    }
+
     if(size == 0 || encoding == output_encoding) {
         result->output = (char*)buffer;
-        result->output_size = 0;
+        result->output_size = size;
         result->transformed = false;
 
         return true;
@@ -302,6 +319,14 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
     result->output = (char*)mjb_alloc(size);
+
+    if(result->output == NULL) {
+        result->output_size = 0;
+        result->transformed = false;
+
+        return false;
+    }
+
     result->output_size = size;
     result->transformed = true;
     size_t output_index = 0;
@@ -325,7 +350,11 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
         if(new_output != NULL) {
             result->output = new_output;
         } else {
-            // TODO: check if this is the correct behavior
+            mjb_free(result->output);
+            result->output = NULL;
+            result->output_size = 0;
+            result->transformed = false;
+
             return false;
         }
     }

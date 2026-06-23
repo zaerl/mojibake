@@ -37,6 +37,15 @@ void *test_encoding(void *arg) {
     const char *test10 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_is_ascii(test10, 43), true, "Valid string and length")
 
+    const char ascii_null_invalid[] = { 'A', '\0', (char)0x80 };
+#ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+    ATT_ASSERT(mjb_string_is_ascii(ascii_null_invalid, sizeof(ascii_null_invalid)), false,
+        "ASCII rejects non-ASCII after embedded NULL")
+#else
+    ATT_ASSERT(mjb_string_is_ascii(ascii_null_invalid, sizeof(ascii_null_invalid)), true,
+        "ASCII stops at NULL terminator")
+#endif
+
     // \xF0\x9F\x99\x82 = 🙂
     const char *test11 = "\xF0\x9F\x99\x82";
     ATT_ASSERT(mjb_string_is_ascii(test11, 5), false, "String with emoji")
@@ -91,6 +100,20 @@ void *test_encoding(void *arg) {
 
     utf8_test = "Hello\0World";
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, 11), true, "String with NULL character")
+
+    const char utf8_null_invalid[] = { 'A', '\0', (char)0xFF };
+#ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+    ATT_ASSERT(mjb_string_is_utf8(utf8_null_invalid, sizeof(utf8_null_invalid)), false,
+        "UTF-8 rejects invalid byte after embedded NULL")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(utf8_null_invalid, sizeof(utf8_null_invalid)),
+        (unsigned int)MJB_ENCODING_UNKNOWN, "Encoding rejects invalid byte after embedded NULL")
+#else
+    ATT_ASSERT(mjb_string_is_utf8(utf8_null_invalid, sizeof(utf8_null_invalid)), true,
+        "UTF-8 stops at NULL terminator")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(utf8_null_invalid, sizeof(utf8_null_invalid)),
+        (unsigned int)(MJB_ENCODING_UTF_8 | MJB_ENCODING_ASCII),
+        "Encoding stops at NULL terminator")
+#endif
 
     utf8_test = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F"; //
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "All ASCII control characters")
@@ -272,6 +295,12 @@ void *test_encoding(void *arg) {
         "UTF-32BE"
     };
     char test_description[64];
+    mjb_result boundary_result;
+
+    ATT_ASSERT(mjb_string_convert_encoding(NULL, 1, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_16_LE,
+        &boundary_result), false, "Convert encoding rejects NULL buffer")
+    ATT_ASSERT(mjb_string_convert_encoding("", 0, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_16_LE,
+        NULL), false, "Convert encoding rejects NULL result")
 
     // CURRENT_ASSERT mjb_string_convert_encoding
     // CURRENT_COUNT 75
@@ -288,6 +317,7 @@ void *test_encoding(void *arg) {
                 snprintf(test_description, 64, "%s to %s is not transformed", output_encodings[from], output_encodings[to]);
                 ATT_ASSERT(convert_result.transformed, false, test_description)
                 ATT_ASSERT((void*)convert_result.output, (void*)hello_strings[from], test_description)
+                ATT_ASSERT(convert_result.output_size, hello_strings_sizes[from], test_description)
             } else {
                 snprintf(test_description, 64, "%s to %s is transformed", output_encodings[from], output_encodings[to]);
                 ATT_ASSERT(convert_result.transformed, true, test_description)
