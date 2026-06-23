@@ -38,7 +38,10 @@ void break_sentence_callback(const char *buffer, size_t size, unsigned int curre
 }
 
 void *test_break_sentence(void *arg) {
-    read_test_file("./utils/generate/UCD/auxiliary/SentenceBreakTest.txt", &break_sentence_callback);
+    read_test_file(
+        "./utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt",
+        &break_sentence_callback
+    );
 
     return NULL;
 }

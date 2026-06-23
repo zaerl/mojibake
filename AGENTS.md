@@ -36,8 +36,7 @@ Runtime Unicode data lives in generated C tables:
 - `src/unicode-tables.h`
 - `src/unicode-tables.c`
 
-The generator reads Unicode data from `utils/generate/UCD/`, `utils/generate/unihan/`,
-`utils/generate/emoji/`, `utils/generate/collation/`, and `utils/generate/security/`.
+The generator reads downloaded Unicode data from `utils/generate/unicode-data/`.
 It builds the generated C tables directly in memory. Prefer changing
 `utils/generate/generate-unicode-tables.ts` and regenerating the tables instead of hand-editing
 generated C.

@@ -13,7 +13,7 @@ import { parsePropertyFile, ucdCodepointRange } from './utils';
 export async function generateEmojiProperties(characters: Character[]) {
   log('GENERATE EMOJI PROPERTIES');
 
-  const path = './UCD/emoji/emoji-data.txt';
+  const path = './unicode-data/UCD/emoji/emoji-data.txt';
   const emojiMap: { [key: string]: Emoji } = {};
   const characterMap: { [key: string]: Character } = {};
 

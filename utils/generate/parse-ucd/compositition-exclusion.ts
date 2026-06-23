@@ -10,7 +10,7 @@ import { parsePropertyFile } from './utils';
 export async function readCompositionExclusions(): Promise<number[]> {
   log('READ COMPOSITION EXCLUSIONS');
 
-  const path = './UCD/CompositionExclusions.txt';
+  const path = './unicode-data/UCD/CompositionExclusions.txt';
   const exclusions: number[] = [];
 
   for await (const split of parsePropertyFile(path)) {

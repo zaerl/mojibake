@@ -12,7 +12,7 @@ export function generateNormalizationCount() {
   iLog('PARSE NORMALIZATION TESTS');
 
   let count = 0;
-  let fileContent = readFileSync('./UCD/NormalizationTest.txt', 'utf-8');
+  let fileContent = readFileSync('./unicode-data/UCD/NormalizationTest.txt', 'utf-8');
   const lines = fileContent.split('\n');
 
   for(const line of lines) {

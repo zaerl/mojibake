@@ -351,7 +351,7 @@ void *test_bidi(void *arg) {
 
     mjb_bidi_free(&para);
 
-    read_bidi_test_file("./utils/generate/UCD/BidiCharacterTest.txt");
+    read_bidi_test_file("./utils/generate/unicode-data/UCD/BidiCharacterTest.txt");
 
     return NULL;
 }

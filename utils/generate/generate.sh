@@ -4,47 +4,49 @@
 # This file is distributed under the MIT License. See LICENSE for details.
 
 UNICODE_VERSION="17.0.0"
+DATA_DIR="./unicode-data"
 
-if [ ! -d "./UCD" ] ; then
-    curl -o UCD.zip "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/UCD.zip"
-    unzip UCD.zip -d "UCD"
-    rm UCD.zip
+mkdir -p "$DATA_DIR"
+
+if [ ! -d "$DATA_DIR/UCD" ] ; then
+    curl -o "$DATA_DIR/UCD.zip" "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/UCD.zip"
+    unzip "$DATA_DIR/UCD.zip" -d "$DATA_DIR/UCD"
+    rm "$DATA_DIR/UCD.zip"
 fi
 
-if [ ! -d "./unihan" ] ; then
-    curl -o unihan.zip "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/Unihan.zip"
-    unzip unihan.zip -d "unihan"
-    rm unihan.zip
+if [ ! -d "$DATA_DIR/unihan" ] ; then
+    curl -o "$DATA_DIR/unihan.zip" "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/Unihan.zip"
+    unzip "$DATA_DIR/unihan.zip" -d "$DATA_DIR/unihan"
+    rm "$DATA_DIR/unihan.zip"
 fi
 
-if [ ! -d "./emoji" ] ; then
-    mkdir -p "./emoji"
+if [ ! -d "$DATA_DIR/emoji" ] ; then
+    mkdir -p "$DATA_DIR/emoji"
 
     for file in "ReadMe.txt" "emoji-sequences.txt" "emoji-test.txt" "emoji-zwj-sequences.txt"; do
-        curl -o "./emoji/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/$file"
+        curl -o "$DATA_DIR/emoji/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/$file"
     done
 fi
 
-if [ ! -d "./collation" ] ; then
-    mkdir -p "./collation"
+if [ ! -d "$DATA_DIR/collation" ] ; then
+    mkdir -p "$DATA_DIR/collation"
 
     for file in "allkeys.txt" "decomps.txt"; do
-        curl -o "./collation/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/uca/$file"
+        curl -o "$DATA_DIR/collation/$file" "https://www.unicode.org/Public/$UNICODE_VERSION/uca/$file"
     done
 
-    curl -o CollationTest.zip "https://www.unicode.org/Public/$UNICODE_VERSION/uca/CollationTest.zip"
-    unzip CollationTest.zip -d "collation"
-    rm CollationTest.zip
+    curl -o "$DATA_DIR/CollationTest.zip" "https://www.unicode.org/Public/$UNICODE_VERSION/uca/CollationTest.zip"
+    unzip "$DATA_DIR/CollationTest.zip" -d "$DATA_DIR/collation"
+    rm "$DATA_DIR/CollationTest.zip"
 fi
 
-if [ ! -d "./security" ] ; then
-    mkdir -p "./security"
+if [ ! -d "$DATA_DIR/security" ] ; then
+    mkdir -p "$DATA_DIR/security"
 
     for file in "confusables.txt" "intentional.txt"; do
-        curl -o "./security/$file" "https://www.unicode.org/Public/security/latest/$file"
+        curl -o "$DATA_DIR/security/$file" "https://www.unicode.org/Public/security/latest/$file"
     done
 fi
-
 
 mkdir -p ../../build
 npm run generate -- "$@"

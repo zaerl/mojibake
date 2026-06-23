@@ -187,12 +187,14 @@ void *test_collation(void *arg) {
 
     /* UCA conformance tests */
     run_collation_test_file(
-        "./utils/generate/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt",
+        "./utils/generate/unicode-data/collation/CollationTest/"
+        "CollationTest_NON_IGNORABLE_SHORT.txt",
         MJB_COLLATION_NON_IGNORABLE,
         "NON_IGNORABLE");
 
     run_collation_test_file(
-        "./utils/generate/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt",
+        "./utils/generate/unicode-data/collation/CollationTest/"
+        "CollationTest_SHIFTED_SHORT.txt",
         MJB_COLLATION_SHIFTED,
         "SHIFTED");
 

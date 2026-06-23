@@ -38,7 +38,10 @@ void break_line_callback(const char *buffer, size_t size, unsigned int current_l
 }
 
 void *test_break_line(void *arg) {
-    read_test_file("./utils/generate/UCD/auxiliary/LineBreakTest.txt", &break_line_callback);
+    read_test_file(
+        "./utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt",
+        &break_line_callback
+    );
 
     return NULL;
 }

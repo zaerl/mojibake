@@ -5,7 +5,7 @@ import { parsePropertyFile } from './utils';
 export async function readBidiMirroring(): Promise<BidiMirroringPair[]> {
   log('READ BIDI MIRRORING');
 
-  const path = './UCD/BidiMirroring.txt';
+  const path = './unicode-data/UCD/BidiMirroring.txt';
   const pairs: BidiMirroringPair[] = [];
 
   for await (const split of parsePropertyFile(path)) {

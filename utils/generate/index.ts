@@ -56,7 +56,9 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const aliases = await readAliases();
 
   log('READ UNICODE DATA');
-  for await (const line of parsePropertyFile('./UCD/UnicodeData.txt', [], ';', false)) {
+  for await (const line of parsePropertyFile(
+    './unicode-data/UCD/UnicodeData.txt', [], ';', false
+  )) {
     const split = line as UnicodeDataRow;
 
     let name: string | null = aliases[split[0]] ? aliases[split[0]] : split[1];
@@ -175,10 +177,11 @@ async function buildUnicodeTableData() {
 
   const blocks = await readBlocks();
   const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
-  const { entries: collationEntries } = await parseCollationAllKeys('./collation/allkeys.txt');
+  const { entries: collationEntries } =
+    await parseCollationAllKeys('./unicode-data/collation/allkeys.txt');
   addCollation(collationEntries);
 
-  const confusableEntries = await parseConfusables('./security/confusables.txt');
+  const confusableEntries = await parseConfusables('./unicode-data/security/confusables.txt');
   addConfusables(confusableEntries);
 
   return { blocks, properties };

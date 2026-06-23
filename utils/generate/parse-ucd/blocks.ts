@@ -12,7 +12,7 @@ import { parsePropertyFile, ucdCodepointRange, ucdNameToEnumName } from './utils
 export async function readBlocks(): Promise<Block[]> {
   log('READ BLOCKS');
 
-  const path = './UCD/Blocks.txt';
+  const path = './unicode-data/UCD/Blocks.txt';
   const blocks: Block[] = [];
   let id = 0;
 

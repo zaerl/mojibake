@@ -116,7 +116,10 @@ static void test_truncate(void) {
 void *test_segmentation(void *arg) {
     test_basic_segmentation();
     test_truncate();
-    read_test_file("./utils/generate/UCD/auxiliary/GraphemeBreakTest.txt", &segmentation_callback);
+    read_test_file(
+        "./utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt",
+        &segmentation_callback
+    );
 
     return NULL;
 }

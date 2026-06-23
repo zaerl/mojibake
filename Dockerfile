@@ -22,15 +22,15 @@ COPY CMakeLists.txt .
 
 # Copy test files
 COPY tests/ tests/
-COPY utils/generate/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt utils/generate/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt
-COPY utils/generate/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt utils/generate/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt
-COPY utils/generate/UCD/auxiliary/GraphemeBreakTest.txt utils/generate/UCD/auxiliary/GraphemeBreakTest.txt
-COPY utils/generate/UCD/auxiliary/LineBreakTest.txt utils/generate/UCD/auxiliary/LineBreakTest.txt
-COPY utils/generate/UCD/auxiliary/SentenceBreakTest.txt utils/generate/UCD/auxiliary/SentenceBreakTest.txt
-COPY utils/generate/UCD/auxiliary/WordBreakTest.txt utils/generate/UCD/auxiliary/WordBreakTest.txt
-COPY utils/generate/UCD/BidiCharacterTest.txt utils/generate/UCD/BidiCharacterTest.txt
-COPY utils/generate/UCD/NormalizationTest.txt utils/generate/UCD/NormalizationTest.txt
-COPY utils/generate/UCD/SpecialCasing.txt utils/generate/UCD/SpecialCasing.txt
+COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt
+COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt
+COPY utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt
+COPY utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt
+COPY utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt
+COPY utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt
+COPY utils/generate/unicode-data/UCD/BidiCharacterTest.txt utils/generate/unicode-data/UCD/BidiCharacterTest.txt
+COPY utils/generate/unicode-data/UCD/NormalizationTest.txt utils/generate/unicode-data/UCD/NormalizationTest.txt
+COPY utils/generate/unicode-data/UCD/SpecialCasing.txt utils/generate/unicode-data/UCD/SpecialCasing.txt
 
 # Build the project
 RUN cmake -S . -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \

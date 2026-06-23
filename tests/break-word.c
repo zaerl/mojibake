@@ -60,7 +60,10 @@ void break_word_callback(const char *buffer, size_t size, unsigned int current_l
 
  void *test_break_word(void *arg) {
     test_truncate_word();
-    read_test_file("./utils/generate/UCD/auxiliary/WordBreakTest.txt", &break_word_callback);
+    read_test_file(
+        "./utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt",
+        &break_word_callback
+    );
 
     return NULL;
  }

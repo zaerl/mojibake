@@ -13,11 +13,7 @@ src/gui/*
 
 # Utils artifacts
 utils/generate/node_modules
-utils/generate/UCD/*
-utils/generate/unihan/*
-utils/generate/emoji/*
-utils/generate/collation/*
-utils/generate/security/*
+utils/generate/unicode-data
 utils/generate/locales/*.xml
 utils/generate/locales/*.json
 

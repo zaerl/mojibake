@@ -16,7 +16,7 @@ export type CaseFoldEntry = {
 export async function generateCasefold(characters: Character[]): Promise<CaseFoldEntry[]> {
   log('GENERATE CASEFOLD');
 
-  const path = './UCD/CaseFolding.txt';
+  const path = './unicode-data/UCD/CaseFolding.txt';
 
   // Build map from codepoint to unicode_data.lowercase
   const lowercaseMap = new Map<number, number | null>();

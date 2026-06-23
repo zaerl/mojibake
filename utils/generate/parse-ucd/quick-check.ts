@@ -46,7 +46,7 @@ function quickCheckResultToNumber(normalization: keyof QuickCheck, result: 'N' |
 export async function readNormalizationProps(characters: Character[]): Promise<QuickCheck> {
   log('READ NORMALIZATION PROPS');
 
-  const path = './UCD/DerivedNormalizationProps.txt';
+  const path = './unicode-data/UCD/DerivedNormalizationProps.txt';
   const characterMap: { [key: string]: Character } = {};
 
   for(const char of characters) {

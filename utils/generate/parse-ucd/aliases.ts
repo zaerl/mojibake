@@ -12,7 +12,7 @@ export async function readAliases(): Promise<{ [key: string]: string }> {
 
   const aliases: { [key: string]: string } = {};
 
-  for await (const split of parsePropertyFile('./UCD/NameAliases.txt')) {
+  for await (const split of parsePropertyFile('./unicode-data/UCD/NameAliases.txt')) {
     if(split.length < 3) {
       continue;
     }

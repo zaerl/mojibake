@@ -5,7 +5,7 @@ import { parsePropertyFile } from './utils';
 export async function readBidiBrackets(): Promise<BidiBracket[]> {
   log('READ BIDI BRACKETS');
 
-  const path = './UCD/BidiBrackets.txt';
+  const path = './unicode-data/UCD/BidiBrackets.txt';
   const bidiBrackets: BidiBracket[] = [];
 
   for await (const split of parsePropertyFile(path)) {
