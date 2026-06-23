@@ -429,19 +429,19 @@ typedef enum mjb_identifier_profile {
 // This functions list is automatically generated. Do not edit.
 
 // Return the codepoint character
-MJB_NONNULL(2) bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
+bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form
-MJB_NONNULL(1, 6) bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
+bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the next character from a string
-MJB_NONNULL(1, 4) bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
-MJB_NONNULL(1) mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
 // Filter a string to remove invalid characters
-MJB_NONNULL(1, 6) bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Return if a codepoint has a property
 bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
@@ -471,19 +471,19 @@ MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 
 // Convert from an encoding to another
-MJB_NONNULL(1, 5) bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the length of a string
 MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Compare two strings using UCA
-MJB_NONNULL(1, 3) int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
+int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
 
 // Generate a UCA sort key for a string
-MJB_NONNULL(1, 5) bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result*result);
+bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result*result);
 
 // Change string case
-MJB_NONNULL(1) char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
+char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
 
 // Return true if the codepoint is valid
 MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -522,7 +522,7 @@ MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
 // Return the numeric value of a codepoint
-MJB_NONNULL(2) bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
+bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
 
 // Return the character block
 MJB_CONST bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
@@ -537,40 +537,40 @@ MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 // Unicode line break algorithm
-MJB_NONNULL(1, 4) mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_line_state *state);
+mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_line_state *state);
 
 // Word cluster breaking
-MJB_NONNULL(1, 4) mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
+mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
 
 // Return the number of bytes that form the first max_segments word-break segments
-MJB_NONNULL(1) size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding, size_t max_segments);
+size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding, size_t max_segments);
 
 // Return the number of bytes whose word-break segments fit within max_columns display columns
-MJB_NONNULL(1) size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 
 // Sentence boundaries breaking
-MJB_NONNULL(1, 4) mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_sentence_state *state);
+mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_sentence_state *state);
 
 // Grapheme cluster breaking
-MJB_NONNULL(1, 4) mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 
 // Return the number of bytes that form the first max_graphemes grapheme cluster segments
-MJB_NONNULL(1) size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
+size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
 
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns
-MJB_NONNULL(1) size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph
-MJB_NONNULL(1, 5) bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
+bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
 
 // Free a bidi paragraph allocated by mjb_bidi_resolve
-MJB_NONNULL(1) void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
+void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 
 // Reorder a line visually (L1-L4); visual_order is caller-allocated
-MJB_NONNULL(1, 4) bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
+bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
 
 // Compute visual level runs; pass runs=NULL to count first
-MJB_NONNULL(1, 5) bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
+bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
@@ -600,31 +600,31 @@ bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
 bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 
 // Return true if the string is a valid Unicode identifier (UAX#31)
-MJB_NONNULL(1) bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
+bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
 
 // Return the name of a property, NULL if the property specified is not valid
 MJB_CONST const char *mjb_property_name(mjb_property property);
 
 // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
-MJB_NONNULL(1, 3) bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
+bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
 
 // Return the emoji properties
-MJB_NONNULL(2) bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
 
 // Return hangul syllable name
-MJB_NONNULL(2) bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
 
 // Hangul syllable decomposition
-MJB_NODISCARD MJB_NONNULL(2) bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+MJB_NODISCARD bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Hangul syllable composition
-MJB_NONNULL(1) size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
+size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 
 // Return the east asian width of a codepoint
-MJB_NONNULL(2) bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
+bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 
 // Return the display width of a string
-MJB_NONNULL(1, 5) bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
+bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);
@@ -648,10 +648,10 @@ void mjb_shutdown(void);
 MJB_NODISCARD void *mjb_alloc(size_t size);
 
 // Reallocate memory
-MJB_NODISCARD MJB_NONNULL(1) void *mjb_realloc(void *ptr, size_t new_size);
+MJB_NODISCARD void *mjb_realloc(void *ptr, size_t new_size);
 
 // Free memory
-MJB_NONNULL(1) void mjb_free(void *ptr);
+void mjb_free(void *ptr);
 
 #ifdef __cplusplus
 }

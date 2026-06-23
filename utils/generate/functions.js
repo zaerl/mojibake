@@ -9,9 +9,7 @@ export default [
     "comment": "Return the codepoint character",
     "ret": "bool",
     "name": "codepoint_character",
-    "attributes": [
-      "MJB_NONNULL(2)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "codepoint",
@@ -32,9 +30,7 @@ export default [
     "comment": "Normalize a string to NFC/NFKC/NFD/NFKD form",
     "ret": "bool",
     "name": "normalize",
-    "attributes": [
-      "MJB_NONNULL(1, 6)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -79,9 +75,7 @@ export default [
     "comment": "Return the next character from a string",
     "ret": "bool",
     "name": "next_character",
-    "attributes": [
-      "MJB_NONNULL(1, 4)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -114,9 +108,7 @@ export default [
     "comment": "Check if a string is normalized to NFC/NFKC/NFD/NFKD form",
     "ret": "mjb_quick_check_result",
     "name": "string_is_normalized",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -149,9 +141,7 @@ export default [
     "comment": "Filter a string to remove invalid characters",
     "ret": "bool",
     "name": "string_filter",
-    "attributes": [
-      "MJB_NONNULL(1, 6)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -405,9 +395,7 @@ export default [
     "comment": "Convert from an encoding to another",
     "ret": "bool",
     "name": "string_convert_encoding",
-    "attributes": [
-      "MJB_NONNULL(1, 5)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -475,9 +463,7 @@ export default [
     "comment": "Compare two strings using UCA",
     "ret": "int",
     "name": "string_compare",
-    "attributes": [
-      "MJB_NONNULL(1, 3)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "s1",
@@ -522,9 +508,7 @@ export default [
     "comment": "Generate a UCA sort key for a string",
     "ret": "bool",
     "name": "collation_key",
-    "attributes": [
-      "MJB_NONNULL(1, 5)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -563,9 +547,7 @@ export default [
     "comment": "Change string case",
     "ret": "char *",
     "name": "case",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -802,9 +784,7 @@ export default [
     "comment": "Return the numeric value of a codepoint",
     "ret": "bool",
     "name": "codepoint_numeric_value",
-    "attributes": [
-      "MJB_NONNULL(2)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "codepoint",
@@ -899,9 +879,7 @@ export default [
     "comment": "Unicode line break algorithm",
     "ret": "mjb_break_type",
     "name": "break_line",
-    "attributes": [
-      "MJB_NONNULL(1, 4)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -934,9 +912,7 @@ export default [
     "comment": "Word cluster breaking",
     "ret": "mjb_break_type",
     "name": "break_word",
-    "attributes": [
-      "MJB_NONNULL(1, 4)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -969,9 +945,7 @@ export default [
     "comment": "Return the number of bytes that form the first max_segments word-break segments",
     "ret": "size_t",
     "name": "truncate_word",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1004,9 +978,7 @@ export default [
     "comment": "Return the number of bytes whose word-break segments fit within max_columns display columns",
     "ret": "size_t",
     "name": "truncate_word_width",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1045,9 +1017,7 @@ export default [
     "comment": "Sentence boundaries breaking",
     "ret": "mjb_break_type",
     "name": "break_sentence",
-    "attributes": [
-      "MJB_NONNULL(1, 4)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1080,9 +1050,7 @@ export default [
     "comment": "Grapheme cluster breaking",
     "ret": "mjb_break_type",
     "name": "segmentation",
-    "attributes": [
-      "MJB_NONNULL(1, 4)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1115,9 +1083,7 @@ export default [
     "comment": "Return the number of bytes that form the first max_graphemes grapheme cluster segments",
     "ret": "size_t",
     "name": "truncate",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1150,9 +1116,7 @@ export default [
     "comment": "Return the number of bytes whose grapheme clusters fit within max_columns display columns",
     "ret": "size_t",
     "name": "truncate_width",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1191,9 +1155,7 @@ export default [
     "comment": "Resolve bidirectional text (TR9) for a paragraph",
     "ret": "bool",
     "name": "bidi_resolve",
-    "attributes": [
-      "MJB_NONNULL(1, 5)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1232,9 +1194,7 @@ export default [
     "comment": "Free a bidi paragraph allocated by mjb_bidi_resolve",
     "ret": "void",
     "name": "bidi_free",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "paragraph",
@@ -1249,9 +1209,7 @@ export default [
     "comment": "Reorder a line visually (L1-L4); visual_order is caller-allocated",
     "ret": "bool",
     "name": "bidi_reorder_line",
-    "attributes": [
-      "MJB_NONNULL(1, 4)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "paragraph",
@@ -1284,9 +1242,7 @@ export default [
     "comment": "Compute visual level runs; pass runs=NULL to count first",
     "ret": "bool",
     "name": "bidi_line_runs",
-    "attributes": [
-      "MJB_NONNULL(1, 5)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "paragraph",
@@ -1472,9 +1428,7 @@ export default [
     "comment": "Return true if the string is a valid Unicode identifier (UAX#31)",
     "ret": "bool",
     "name": "string_is_identifier",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1524,9 +1478,7 @@ export default [
     "comment": "Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)",
     "ret": "bool",
     "name": "string_is_confusable",
-    "attributes": [
-      "MJB_NONNULL(1, 3)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "s1",
@@ -1565,9 +1517,7 @@ export default [
     "comment": "Return the emoji properties",
     "ret": "bool",
     "name": "codepoint_emoji",
-    "attributes": [
-      "MJB_NONNULL(2)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "codepoint",
@@ -1588,9 +1538,7 @@ export default [
     "comment": "Return hangul syllable name",
     "ret": "bool",
     "name": "hangul_syllable_name",
-    "attributes": [
-      "MJB_NONNULL(2)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "codepoint",
@@ -1618,8 +1566,7 @@ export default [
     "ret": "bool",
     "name": "hangul_syllable_decomposition",
     "attributes": [
-      "MJB_NODISCARD",
-      "MJB_NONNULL(2)"
+      "MJB_NODISCARD"
     ],
     "args": [
       {
@@ -1641,9 +1588,7 @@ export default [
     "comment": "Hangul syllable composition",
     "ret": "size_t",
     "name": "hangul_syllable_composition",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "characters",
@@ -1664,9 +1609,7 @@ export default [
     "comment": "Return the east asian width of a codepoint",
     "ret": "bool",
     "name": "codepoint_east_asian_width",
-    "attributes": [
-      "MJB_NONNULL(2)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "codepoint",
@@ -1687,9 +1630,7 @@ export default [
     "comment": "Return the display width of a string",
     "ret": "bool",
     "name": "display_width",
-    "attributes": [
-      "MJB_NONNULL(1, 5)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "buffer",
@@ -1823,8 +1764,7 @@ export default [
     "ret": "void *",
     "name": "realloc",
     "attributes": [
-      "MJB_NODISCARD",
-      "MJB_NONNULL(1)"
+      "MJB_NODISCARD"
     ],
     "args": [
       {
@@ -1846,9 +1786,7 @@ export default [
     "comment": "Free memory",
     "ret": "void",
     "name": "free",
-    "attributes": [
-      "MJB_NONNULL(1)"
-    ],
+    "attributes": [],
     "args": [
       {
         "name": "ptr",
