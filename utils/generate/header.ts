@@ -63,11 +63,11 @@ function getScriptEnumNames(properties: { [key: string]: number }) {
   return propertyEnums;
 }
 
-function getPropertyNames(properties: Property[]) {
+function getShellPropertyNames(properties: Property[]) {
   return properties.map((value: Property, index: number) => {
     const name = value.name.replace(/_/g, ' ');
-    return `    "${name}"`;
-  }).join(',\n');
+    return `    "${name}"${index === properties.length - 1 ? '' : ','}${value.bool ? '' : ' // enumerated'}`;
+  }).join('\n');
 }
 
 function getFunctions() {
@@ -115,6 +115,7 @@ function getBidiMirroringInfo(pairs: BidiMirroringPair[]) {
 export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[], bidiMirroring: BidiMirroringPair[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
 
+  // Fill all unicode.h enumerations.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
   fileContent = substituteBlock(fileContent, '#define MJB_BLOCK_NUM ', "\n", '' + blocks.length);
   fileContent = substituteBlock(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
@@ -140,16 +141,22 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   writeFileSync('../../src/unicode.h', fileContent);
 
   fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
+
+  // Add list of functions to mojibake.h
   fileContent = substituteBlock(fileContent, "// This functions list is automatically generated. Do not edit.\n\n", "\n#ifdef __cplusplus", getFunctions());
 
   writeFileSync('../../src/mojibake.h', fileContent);
 
   fileContent = readFileSync('../../src/shell/maps.c', 'utf-8');
-  fileContent = substituteBlock(fileContent, "static const char *mjbsh_property_names[] = {\n", "\n};", getPropertyNames(properties));
+
+  // Add list of property names to shell maps.c
+  fileContent = substituteBlock(fileContent, "static const char *mjbsh_property_names[] = {\n", "\n};", getShellPropertyNames(properties));
 
   writeFileSync('../../src/shell/maps.c', fileContent);
 
   fileContent = readFileSync('../../src/bidi.c', 'utf-8');
+
+  // Fill bidi.c static arrays with bidi bracket and mirroring information.
   fileContent = substituteBlock(fileContent, "#define MJB_BIDI_BRACKET_COUNT", "\n", ' ' + bidiBrackets.length);
   fileContent = substituteBlock(fileContent, "static const mjb_bidi_bracket_info mjb_bidi_brackets[] = {\n", "\n};", getBidiBracketInfo(bidiBrackets));
   fileContent = substituteBlock(fileContent, "#define MJB_BIDI_MIRRORING_COUNT", "\n", ' ' + bidiMirroring.length);

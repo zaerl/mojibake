@@ -152,76 +152,79 @@ static const char *mjbsh_east_asian_width_names[] = {
     "Wide"        // MJB_EAW_WIDE
 };
 
+/**
+ * See mjb_property enum in unicode.h for the list of properties.
+ */
 static const char *mjbsh_property_names[] = {
-    "kAccountingNumeric",
-    "kOtherNumeric",
-    "kPrimaryNumeric",
-    "Numeric Value",
-    "Bidi Mirroring Glyph",
-    "Bidi Paired Bracket",
-    "Case Folding",
-    "kCompatibilityVariant",
-    "Decomposition Mapping",
-    "Equivalent Unified Ideograph",
-    "FC NFKC Closure",
-    "Lowercase Mapping",
-    "NFKC Casefold",
-    "NFKC Simple Casefold",
-    "Simple Case Folding",
-    "Simple Lowercase Mapping",
-    "Simple Titlecase Mapping",
-    "Simple Uppercase Mapping",
-    "Titlecase Mapping",
-    "Uppercase Mapping",
-    "kIICore",
-    "kIRG GSource",
-    "kIRG HSource",
-    "kIRG JSource",
-    "kIRG KPSource",
-    "kIRG KSource",
-    "kIRG MSource",
-    "kIRG SSource",
-    "kIRG TSource",
-    "kIRG UKSource",
-    "kIRG USource",
-    "kIRG VSource",
-    "kMandarin",
-    "kRSUnicode",
-    "kTotalStrokes",
-    "kUnihanCore2020",
-    "ISO Comment",
-    "Jamo Short Name",
-    "kEH Cat",
-    "kEH Desc",
-    "kEH HG",
-    "kEH IFAO",
-    "kEH JSesh",
-    "Name",
-    "Name Alias",
-    "Script Extensions",
-    "Age",
-    "Script",
-    "Bidi Paired Bracket Type",
-    "Canonical Combining Class",
-    "Decomposition Type",
-    "East Asian Width",
-    "General Category",
-    "Grapheme Cluster Break",
-    "Hangul Syllable Type",
-    "Indic Conjunct Break",
-    "Indic Positional Category",
-    "Indic Syllabic Category",
-    "Joining Group",
-    "Joining Type",
-    "Line Break",
-    "NFC Quick Check",
+    "kAccountingNumeric", // enumerated
+    "kOtherNumeric", // enumerated
+    "kPrimaryNumeric", // enumerated
+    "Numeric Value", // enumerated
+    "Bidi Mirroring Glyph", // enumerated
+    "Bidi Paired Bracket", // enumerated
+    "Case Folding", // enumerated
+    "kCompatibilityVariant", // enumerated
+    "Decomposition Mapping", // enumerated
+    "Equivalent Unified Ideograph", // enumerated
+    "FC NFKC Closure", // enumerated
+    "Lowercase Mapping", // enumerated
+    "NFKC Casefold", // enumerated
+    "NFKC Simple Casefold", // enumerated
+    "Simple Case Folding", // enumerated
+    "Simple Lowercase Mapping", // enumerated
+    "Simple Titlecase Mapping", // enumerated
+    "Simple Uppercase Mapping", // enumerated
+    "Titlecase Mapping", // enumerated
+    "Uppercase Mapping", // enumerated
+    "kIICore", // enumerated
+    "kIRG GSource", // enumerated
+    "kIRG HSource", // enumerated
+    "kIRG JSource", // enumerated
+    "kIRG KPSource", // enumerated
+    "kIRG KSource", // enumerated
+    "kIRG MSource", // enumerated
+    "kIRG SSource", // enumerated
+    "kIRG TSource", // enumerated
+    "kIRG UKSource", // enumerated
+    "kIRG USource", // enumerated
+    "kIRG VSource", // enumerated
+    "kMandarin", // enumerated
+    "kRSUnicode", // enumerated
+    "kTotalStrokes", // enumerated
+    "kUnihanCore2020", // enumerated
+    "ISO Comment", // enumerated
+    "Jamo Short Name", // enumerated
+    "kEH Cat", // enumerated
+    "kEH Desc", // enumerated
+    "kEH HG", // enumerated
+    "kEH IFAO", // enumerated
+    "kEH JSesh", // enumerated
+    "Name", // enumerated
+    "Name Alias", // enumerated
+    "Script Extensions", // enumerated
+    "Age", // enumerated
+    "Script", // enumerated
+    "Bidi Paired Bracket Type", // enumerated
+    "Canonical Combining Class", // enumerated
+    "Decomposition Type", // enumerated
+    "East Asian Width", // enumerated
+    "General Category", // enumerated
+    "Grapheme Cluster Break", // enumerated
+    "Hangul Syllable Type", // enumerated
+    "Indic Conjunct Break", // enumerated
+    "Indic Positional Category", // enumerated
+    "Indic Syllabic Category", // enumerated
+    "Joining Group", // enumerated
+    "Joining Type", // enumerated
+    "Line Break", // enumerated
+    "NFC Quick Check", // enumerated
     "NFD Quick Check",
-    "NFKC Quick Check",
+    "NFKC Quick Check", // enumerated
     "NFKD Quick Check",
-    "Numeric Type",
-    "Sentence Break",
-    "Vertical Orientation",
-    "Word Break",
+    "Numeric Type", // enumerated
+    "Sentence Break", // enumerated
+    "Vertical Orientation", // enumerated
+    "Word Break", // enumerated
     "ASCII Hex Digit",
     "Alphabetic",
     "Bidi Control",
