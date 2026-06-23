@@ -5,6 +5,37 @@
 BUILD_DIR=build
 !ENDIF
 
+# Build directories
+!IFNDEF CPP_BUILD_DIR
+CPP_BUILD_DIR=$(BUILD_DIR)-cpp
+!ENDIF
+
+!IFNDEF SHARED_BUILD_DIR
+SHARED_BUILD_DIR=$(BUILD_DIR)-shared
+!ENDIF
+
+!IFNDEF ASAN_BUILD_DIR
+ASAN_BUILD_DIR=$(BUILD_DIR)-asan
+!ENDIF
+
+# Build test directories
+!IFNDEF TEST_BUILD_DIR
+TEST_BUILD_DIR=$(BUILD_DIR)-test
+!ENDIF
+
+!IFNDEF TEST_CPP_BUILD_DIR
+TEST_CPP_BUILD_DIR=$(BUILD_DIR)-test-cpp
+!ENDIF
+
+!IFNDEF TEST_ASAN_BUILD_DIR
+TEST_ASAN_BUILD_DIR=$(BUILD_DIR)-test-asan
+!ENDIF
+
+!IFNDEF TEST_NULL_BUILD_DIR
+TEST_NULL_BUILD_DIR=$(BUILD_DIR)-test-null
+!ENDIF
+
+# WASM and amalgamation build directories
 !IFNDEF WASM_BUILD_DIR
 WASM_BUILD_DIR=build-wasm
 !ENDIF
@@ -13,14 +44,21 @@ WASM_BUILD_DIR=build-wasm
 AMALGAMATION_BUILD_DIR=build-amalgamation
 !ENDIF
 
+# CMake build flags
 !IFNDEF BUILD_TYPE
 BUILD_TYPE=Release
 !ENDIF
 
-NATIVE_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=OFF -DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+CMAKE_NATIVE_BASE_FLAGS=-DBUILD_WASM=OFF
+NATIVE_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+CPP_CMAKE_FLAGS=-DBUILD_CPP=ON -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+SHARED_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=ON $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
+ASAN_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=ON -DALLOW_EMBEDDED_NULLS=OFF
+NULL_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=ON
+WASM_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=ON -DUSE_ASAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 
 # Source files that trigger regeneration.
-GENERATE_SOURCES = utils\generate\generate.bat utils\generate\*.json utils\generate\*.ts
+GENERATE_SOURCES = utils\generate\generate.bat utils\generate\*.json utils\generate\*.ts utils\generate\locales\*.ts utils\generate\parse-ucd\*.ts utils\generate\site\*.ts utils\generate\tables\*.ts
 
 UNICODE_DATA = src\unicode-data.h
 
@@ -33,38 +71,38 @@ configure: $(UNICODE_DATA)
 
 # NULL-safe testing targets
 configure-null: $(UNICODE_DATA)
-	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DALLOW_EMBEDDED_NULLS=ON
+	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NULL_CMAKE_FLAGS)
 
 # Shared library targets
 configure-shared: $(UNICODE_DATA)
-	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_SHARED=ON
+	@cmake -S . -B $(SHARED_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(SHARED_CMAKE_FLAGS)
 
 # C targets
 build: configure
-	@cmake --build $(BUILD_DIR)
+	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE)
 
 # C++ targets
 configure-cpp: $(UNICODE_DATA)
-	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_CPP=ON
+	@cmake -S . -B $(CPP_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CPP_CMAKE_FLAGS)
 
 # C++ targets
 build-cpp: configure-cpp
-	@cmake --build $(BUILD_DIR)
+	@cmake --build $(CPP_BUILD_DIR) --config $(BUILD_TYPE)
 
 # AddressSanitizer targets
 configure-asan: $(UNICODE_DATA)
-	@cmake -S . -B $(BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DUSE_ASAN=ON
+	@cmake -S . -B $(ASAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(ASAN_CMAKE_FLAGS)
 
 build-asan: configure-asan
-	@cmake --build $(BUILD_DIR)
+	@cmake --build $(ASAN_BUILD_DIR) --config $(BUILD_TYPE)
 
 # Shared library targets
 build-shared: configure-shared
-	@cmake --build $(BUILD_DIR)
+	@cmake --build $(SHARED_BUILD_DIR) --config $(BUILD_TYPE)
 
 # WASM targets
 configure-wasm: $(UNICODE_DATA)
-	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DBUILD_WASM=ON
+	@emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(WASM_CMAKE_FLAGS)
 
 # WASM targets
 build-wasm: configure-wasm
@@ -120,29 +158,34 @@ serve: wasm generate-site
 	@cd $(WASM_BUILD_DIR)\src && python -m http.server
 
 # Run tests
-test:
-	@nmake /NOLOGO /F Makefile.nmake configure build BUILD_TYPE=Test
-	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+test: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config Test
+	@$(TEST_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with embedded NULL support
-test-null:
-	@nmake /NOLOGO /F Makefile.nmake configure-null build BUILD_TYPE=Test
-	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+test-null: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NULL_CMAKE_FLAGS)
+	@cmake --build $(TEST_NULL_BUILD_DIR) --config Test
+	@$(TEST_NULL_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with C++ compiler
-test-cpp:
-	@nmake /NOLOGO /F Makefile.nmake configure-cpp build-cpp BUILD_TYPE=Test
-	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+test-cpp: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_BUILD_DIR) --config Test
+	@$(TEST_CPP_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with AddressSanitizer
-test-asan:
-	@nmake /NOLOGO /F Makefile.nmake configure-asan build-asan BUILD_TYPE=Test
-	@$(BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+test-asan: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_ASAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(ASAN_CMAKE_FLAGS)
+	@cmake --build $(TEST_ASAN_BUILD_DIR) --config Test
+	@$(TEST_ASAN_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests using CTest
-ctest:
-	@nmake /NOLOGO /F Makefile.nmake configure build BUILD_TYPE=Test
-	@cd $(BUILD_DIR) && ctest $(ARGS)
+ctest: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config Test
+	@cd $(TEST_BUILD_DIR) && ctest -C Test $(ARGS)
 
 # Run tests in Docker container
 test-docker:
@@ -151,10 +194,17 @@ test-docker:
 
 # Clean targets
 clean-build:
-	@cmake --build $(BUILD_DIR) --target clean
+	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) --target clean
 
 clean-native:
 	@if exist $(BUILD_DIR) rmdir /S /Q $(BUILD_DIR)
+	@if exist $(CPP_BUILD_DIR) rmdir /S /Q $(CPP_BUILD_DIR)
+	@if exist $(SHARED_BUILD_DIR) rmdir /S /Q $(SHARED_BUILD_DIR)
+	@if exist $(ASAN_BUILD_DIR) rmdir /S /Q $(ASAN_BUILD_DIR)
+	@if exist $(TEST_BUILD_DIR) rmdir /S /Q $(TEST_BUILD_DIR)
+	@if exist $(TEST_CPP_BUILD_DIR) rmdir /S /Q $(TEST_CPP_BUILD_DIR)
+	@if exist $(TEST_ASAN_BUILD_DIR) rmdir /S /Q $(TEST_ASAN_BUILD_DIR)
+	@if exist $(TEST_NULL_BUILD_DIR) rmdir /S /Q $(TEST_NULL_BUILD_DIR)
 
 clean-wasm:
 	@if exist $(WASM_BUILD_DIR) rmdir /S /Q $(WASM_BUILD_DIR)

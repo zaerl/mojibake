@@ -21,6 +21,10 @@
 
 #include "test.h"
 
+#ifndef MJB_TEST_SOURCE_DIR
+    #define MJB_TEST_SOURCE_DIR "."
+#endif
+
 static att_test_callback error_callback = NULL;
 static bool exit_on_error = false;
 
@@ -179,8 +183,12 @@ int main(int argc, char * const argv[]) {
     }
 
     if(is_ctest) {
-        // ctest CWD is ./build/tests, so we need to move to the root directory
-        chdir("../../");
+        if(chdir(MJB_TEST_SOURCE_DIR) != 0) {
+            // If the test source directory is not found, print an error message and exit
+            perror("chdir");
+
+            return 1;
+        }
     }
 
     unsigned int step = 0;
