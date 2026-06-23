@@ -11,6 +11,10 @@ extern mojibake mjb_global;
 
 MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_encoding output_encoding, mjb_filter filters, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && size > 0)) {
+        return false;
+    }
+
     if(!mjb_initialize()) {
         return false;
     }
@@ -26,7 +30,12 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
     bool is_normalized = false;
 
     if(filters & MJB_FILTER_NORMALIZE) {
-        if(!mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFC, encoding, result)) {
+        // Use the output encoding if only the normalization filter is applied.
+        mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ?
+            output_encoding : encoding;
+
+        if(!mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFC,
+            normalize_output_encoding, result)) {
             return false;
         }
 
@@ -53,6 +62,14 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
     size_t output_index = 0;
     bool last_was_whitespace = false;
     bool any_transformation = false;
+
+    if(output == NULL) {
+        if(is_normalized) {
+            mjb_free(result->output);
+        }
+
+        return false;
+    }
 
     bool in_error = false;
     for(size_t i = 0; i < size;) {
@@ -142,7 +159,12 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
         if(new_output != NULL) {
             output = new_output;
         } else {
-            // TODO: check if this is the correct behavior
+            mjb_free(output);
+
+            if(is_normalized) {
+                mjb_free(result->output);
+            }
+
             return false;
         }
 
@@ -157,14 +179,23 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
 
             if(new_output != NULL) {
                 output = new_output;
+            } else {
+                mjb_free(output);
+
+                if(is_normalized) {
+                    mjb_free(result->output);
+                }
+
+                return false;
             }
 
             any_transformation = true;
         }
     }
 
-    // If no transformation occurred and not normalized, return original buffer
-    if(!any_transformation && !is_normalized) {
+    // If no transformation occurred, not normalized and output encoding matches input encoding,
+    // return original buffer.
+    if(!any_transformation && !is_normalized && encoding == output_encoding) {
         mjb_free(output);
         result->output = (char*)buffer;
         result->output_size = size;

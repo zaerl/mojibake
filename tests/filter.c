@@ -12,6 +12,11 @@
 
     #define FREE_RESULT if(result.output != NULL && result.transformed) { mjb_free(result.output); }
 
+    ATT_ASSERT(mjb_string_filter(NULL, 1, enc, enc, MJB_FILTER_NONE, &result), false,
+        "Filter rejects NULL buffer")
+    ATT_ASSERT(mjb_string_filter("", 0, enc, enc, MJB_FILTER_NONE, NULL), false,
+        "Filter rejects NULL result")
+
     ATT_ASSERT(mjb_string_filter("", 0, enc, enc, MJB_FILTER_NONE, &result), true, "Filter empty string")
     ATT_ASSERT(result.output, (char*)"", "Filter empty string output")
     ATT_ASSERT(result.output_size, 0, "Filter empty string size")
@@ -26,6 +31,20 @@
 
     ATT_ASSERT(mjb_string_filter("   ", 0, enc, enc, MJB_FILTER_SPACES, &result), true, "Filter spaces")
     ATT_ASSERT(result.output, (char*)"   ", "Filter spaces output")
+    FREE_RESULT
+
+    ATT_ASSERT(mjb_string_filter("A", 1, enc, MJB_ENCODING_UTF_16_LE, MJB_FILTER_NONE,
+        &result), true, "Filter converts output encoding without other changes")
+    ATT_ASSERT(result.transformed, true, "Filter output encoding conversion transformed")
+    ATT_ASSERT(result.output_size, (size_t)2, "Filter output encoding conversion size")
+    ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter output encoding conversion bytes")
+    FREE_RESULT
+
+    ATT_ASSERT(mjb_string_filter("A", 1, enc, MJB_ENCODING_UTF_16_LE, MJB_FILTER_NORMALIZE,
+        &result), true, "Filter normalize converts output encoding")
+    ATT_ASSERT(result.transformed, true, "Filter normalize output encoding transformed")
+    ATT_ASSERT(result.output_size, (size_t)2, "Filter normalize output encoding size")
+    ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter normalize output encoding bytes")
     FREE_RESULT
 
     const char *spaces =
