@@ -229,20 +229,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/0.2.0...HEAD
-[0.2.0]: https://github.com/zaerl/mojibake/compare/0.1.5...0.2.0
-[0.1.5]: https://github.com/zaerl/mojibake/compare/0.1.4...0.1.5
-[0.1.4]: https://github.com/zaerl/mojibake/compare/0.1.3...0.1.4
-[0.1.3]: https://github.com/zaerl/mojibake/compare/0.1.2...0.1.3
-[0.1.2]: https://github.com/zaerl/mojibake/compare/0.1.1...0.1.2
-[0.1.1]: https://github.com/zaerl/mojibake/compare/0.1.0...0.1.1
-[0.1.0]: https://github.com/zaerl/mojibake/compare/0.0.9...0.1.0
-[0.0.9]: https://github.com/zaerl/mojibake/compare/0.0.8...0.0.9
-[0.0.8]: https://github.com/zaerl/mojibake/compare/0.0.7...0.0.8
-[0.0.7]: https://github.com/zaerl/mojibake/compare/0.0.6...0.0.7
-[0.0.6]: https://github.com/zaerl/mojibake/compare/0.0.5...0.0.6
-[0.0.5]: https://github.com/zaerl/mojibake/compare/0.0.4...0.0.5
-[0.0.4]: https://github.com/zaerl/mojibake/compare/0.0.3...0.0.4
-[0.0.3]: https://github.com/zaerl/mojibake/compare/0.0.2...0.0.3
-[0.0.2]: https://github.com/zaerl/mojibake/compare/0.0.1...0.0.2
-[0.0.1]: https://github.com/zaerl/mojibake/releases/tag/0.0.1
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/zaerl/mojibake/compare/v0.1.5...v0.2.0
+[0.1.5]: https://github.com/zaerl/mojibake/compare/v0.1.4...v0.1.5
+[0.1.4]: https://github.com/zaerl/mojibake/compare/v0.1.3...v0.1.4
+[0.1.3]: https://github.com/zaerl/mojibake/compare/v0.1.2...v0.1.3
+[0.1.2]: https://github.com/zaerl/mojibake/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/zaerl/mojibake/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/zaerl/mojibake/compare/v0.0.9...v0.1.0
+[0.0.9]: https://github.com/zaerl/mojibake/compare/v0.0.8...v0.0.9
+[0.0.8]: https://github.com/zaerl/mojibake/compare/v0.0.7...v0.0.8
+[0.0.7]: https://github.com/zaerl/mojibake/compare/v0.0.6...v0.0.7
+[0.0.6]: https://github.com/zaerl/mojibake/compare/v0.0.5...v0.0.6
+[0.0.5]: https://github.com/zaerl/mojibake/compare/v0.0.4...v0.0.5
+[0.0.4]: https://github.com/zaerl/mojibake/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/zaerl/mojibake/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/zaerl/mojibake/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/zaerl/mojibake/releases/tag/v0.0.1
