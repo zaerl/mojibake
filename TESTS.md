@@ -4,7 +4,7 @@
 | -------------------------------------- | ---------- |
 | `mjb_string_compare`                   | 437936     |
 | `mjb_normalize`                        | 400684     |
-| `mjb_bidi_resolve`                     | 91787      |
+| `mjb_bidi_resolve`                     | 91770      |
 | `mjb_break_line`                       | 19365      |
 | `mjb_break_word`                       | 1826       |
 | `mjb_segmentation`                     | 721        |
@@ -27,12 +27,14 @@
 | `mjb_codepoint_block`                  | 14         |
 | `mjb_collation_key`                    | 14         |
 | `mjb_string_is_utf16`                  | 14         |
+| `mjb_bidi_reorder_line`                | 13         |
 | `mjb_string_is_identifier`             | 11         |
 | `mjb_codepoint_script`                 | 9          |
 | `mjb_string_encoding`                  | 9          |
 | `mjb_string_is_ascii`                  | 9          |
 | `mjb_string_is_normalized`             | 9          |
 | `mjb_truncate`                         | 9          |
+| `mjb_bidi_line_runs`                   | 8          |
 | `mjb_hangul_syllable_name`             | 8          |
 | `mjb_plane_name`                       | 8          |
 | `mjb_codepoint_is_cjk_ideograph`       | 7          |
@@ -57,6 +59,7 @@
 | `mjb_codepoint_to_titlecase`           | 3          |
 | `mjb_codepoint_to_uppercase`           | 3          |
 | `mjb_plane_is_valid`                   | 3          |
+| `mjb_bidi_free`                        | 2          |
 | `mjb_codepoint_is_xid_continue`        | 2          |
 | `mjb_codepoint_is_xid_start`           | 2          |
 | `mjb_initialize_v2`                    | 2          |
@@ -67,13 +70,10 @@
 | `mjb_unicode_version`                  | 1          |
 | `mjb_version`                          | 1          |
 | `mjb_version_number`                   | 1          |
-| `mjb_bidi_free`                        | 0          |
-| `mjb_bidi_line_runs`                   | 0          |
-| `mjb_bidi_reorder_line`                | 0          |
 | `mjb_category_is_combining`            | 0          |
 | `mjb_category_is_graphic`              | 0          |
 | `mjb_free`                             | 0          |
 | `mjb_initialize`                       | 0          |
 | `mjb_realloc`                          | 0          |
 | `mjb_shutdown`                         | 0          |
-| **Total**                              | **954052** |
+| **Total**                              | **954058** |

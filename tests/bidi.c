@@ -257,10 +257,10 @@ void *test_bidi(void *arg) {
         ATT_ASSERT(para.chars[0].codepoint, (mjb_codepoint)0x41, "LTR A codepoint");
     }
 
-    mjb_bidi_free(&para);
-    ATT_ASSERT(para.chars, (mjb_bidi_char *)NULL, "free clears chars");
-    ATT_ASSERT(para.count, (size_t)0, "free clears count");
+    ATT_ASSERT((mjb_bidi_free(&para), (void *)para.chars), (void *)NULL, "free clears chars");
+    ATT_ASSERT((mjb_bidi_free(&para), para.count), (size_t)0, "free clears count");
 
+    // CURRENT_ASSERT mjb_bidi_resolve
     const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; /* مرحبا */
     ok = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT(ok, true, "RTL resolve ok");
@@ -305,11 +305,13 @@ void *test_bidi(void *arg) {
 
     if(para.count == 3) {
         size_t order[3];
-        ok = mjb_bidi_reorder_line(&para, 0, 3, order);
-        ATT_ASSERT(ok, true, "reorder ltr ok");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder ltr ok");
         ATT_ASSERT(order[0], (size_t)0, "LTR visual[0] = 0");
         ATT_ASSERT(order[1], (size_t)1, "LTR visual[1] = 1");
         ATT_ASSERT(order[2], (size_t)2, "LTR visual[2] = 2");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 1, 1, order), false, "reorder empty range");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 2, 1, order), false, "reorder reversed range");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 4, order), false, "reorder beyond paragraph");
     }
 
     mjb_bidi_free(&para);
@@ -320,8 +322,7 @@ void *test_bidi(void *arg) {
 
     if(para.count == 3) {
         size_t order[3];
-        ok = mjb_bidi_reorder_line(&para, 0, 3, order);
-        ATT_ASSERT(ok, true, "reorder rtl ok");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder rtl ok");
         // All chars at odd level; L2 reversal reverses the sequence
         ATT_ASSERT(order[0], (size_t)2, "RTL visual[0] = 2");
         ATT_ASSERT(order[1], (size_t)1, "RTL visual[1] = 1");
@@ -334,17 +335,21 @@ void *test_bidi(void *arg) {
 
     if(ok && para.count == 3) {
         size_t order[3];
-        mjb_bidi_reorder_line(&para, 0, 3, order);
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "line runs reorder ok");
 
         size_t run_count = 0;
-        ok = mjb_bidi_line_runs(&para, order, 3, NULL, &run_count);
-        ATT_ASSERT(ok, true, "line runs count ok");
+        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count), true,
+            "empty line runs ok");
+        ATT_ASSERT(run_count, (size_t)0, "empty line runs count");
+        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, NULL, &run_count), true,
+            "line runs count ok");
         ATT_ASSERT(run_count, (size_t)1, "LTR one run");
 
         mjb_bidi_run runs[4];
-        ok = mjb_bidi_line_runs(&para, order, 3, runs, &run_count);
-        ATT_ASSERT(ok, true, "line runs fill ok");
-        ATT_ASSERT((unsigned int)runs[0].direction, (unsigned int)MJB_DIRECTION_LTR, "LTR run direction");
+        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, runs, &run_count), true,
+            "line runs fill ok");
+        ATT_ASSERT((unsigned int)runs[0].direction, (unsigned int)MJB_DIRECTION_LTR,
+            "LTR run direction");
         ATT_ASSERT(runs[0].start, (size_t)0, "LTR run start");
         ATT_ASSERT(runs[0].end, (size_t)3, "LTR run end");
     }
