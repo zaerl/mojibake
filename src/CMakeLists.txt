@@ -133,11 +133,6 @@ if(BUILD_WASM)
     set(EXPORTED_RUNTIME_METHODS
         "\"ccall\""
         "\"cwrap\""
-        "\"UTF8ToString\""
-        "\"UTF16ToString\""
-        "\"UTF32ToString\""
-        "\"stringToUTF16\""
-        "\"stringToUTF32\""
         "\"HEAPU8\""
         "\"HEAPU16\""
         "\"HEAPU32\""
