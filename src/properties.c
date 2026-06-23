@@ -4,6 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <string.h>
+
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
 
@@ -166,14 +168,21 @@ MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property
 }
 
 MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
+    if(buffer == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
+
+    // Reset the buffer to zero before filling it with properties.
+    memset(buffer, 0, MJB_PR_BUFFER_SIZE);
 
     return mjb_unicode_properties(codepoint, buffer);
 }
 
 MJB_EXPORT uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property) {
+    if(properties == NULL) {
+        return 0;
+    }
+
     return properties[property];
 }
 
