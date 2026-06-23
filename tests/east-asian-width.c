@@ -14,6 +14,7 @@ void *test_east_asian_width(void *arg) {
     mjb_east_asian_width width = MJB_EAW_NEUTRAL;
 
     ATT_ASSERT(mjb_codepoint_east_asian_width(MJB_CODEPOINT_MAX + 1, &width), false, "Invalid")
+    ATT_ASSERT(mjb_codepoint_east_asian_width(0x00A1, NULL), false, "NULL width pointer")
 
     ATT_ASSERT(mjb_codepoint_east_asian_width(0x00A1, &width), true, "First A")
     ATT_ASSERT((int)width, MJB_EAW_AMBIGUOUS, "INVERTED EXCLAMATION MARK")
