@@ -199,6 +199,7 @@ Mojibake run all the official tests found in the standard:
 6. [CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
 7. [CollationTest/CollationTest_SHIFTED_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
 8. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
+9. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
 
 ## WebAssembly
 
