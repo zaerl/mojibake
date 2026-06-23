@@ -11,6 +11,7 @@ void *test_hangul_composition(void *arg) {
     mjb_buffer_character empty_array[1]; // Empty array for testing
     size_t result_len = mjb_hangul_syllable_composition(empty_array, 0);
     ATT_ASSERT(result_len, 0, "Empty input should have length 0")
+    ATT_ASSERT(mjb_hangul_syllable_composition(NULL, 1), 0, "NULL input should have length 0")
 
     // Test single character (not Hangul syllable)
     mjb_buffer_character not_hangul[2];
