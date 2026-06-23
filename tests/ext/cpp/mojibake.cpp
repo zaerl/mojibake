@@ -15,16 +15,16 @@ void *test_cpp_mojibake(void *arg) {
     // U+1F642 = 🙂
     auto character3 = mjb::Character((mjb_codepoint)0x1F642);
 
-    ATT_ASSERT(character.is_valid(), true, "Character::is_valid");
-    ATT_ASSERT(character.to_utf8(), std::string("\xF0\x9F\x99\x82"), "Character::to_utf8");
+    ATT_ASSERT(character.is_valid(), true, "Character::is_valid")
+    ATT_ASSERT(character.to_utf8(), std::string("\xF0\x9F\x99\x82"), "Character::to_utf8")
 
-    ATT_ASSERT(character2.is_valid(), true, "Character::is_valid");
-    ATT_ASSERT(character2.to_utf8(), std::string("\xF0\x9F\x99\x83"), "Character::to_utf8");
+    ATT_ASSERT(character2.is_valid(), true, "Character::is_valid")
+    ATT_ASSERT(character2.to_utf8(), std::string("\xF0\x9F\x99\x83"), "Character::to_utf8")
 
-    ATT_ASSERT(character == character2, false, "Character::operator==");
-    ATT_ASSERT(character == character3, true, "Character::operator==");
-    ATT_ASSERT(character3 == character, true, "Character::operator==");
-    ATT_ASSERT(character3 != character2, true, "Character::operator!=");
+    ATT_ASSERT(character == character2, false, "Character::operator==")
+    ATT_ASSERT(character == character3, true, "Character::operator==")
+    ATT_ASSERT(character3 == character, true, "Character::operator==")
+    ATT_ASSERT(character3 != character2, true, "Character::operator!=")
 
     // Identifier properties on Character
     // U+0041 = 'A': valid ID_Start and ID_Continue

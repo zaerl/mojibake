@@ -239,94 +239,94 @@ void *test_bidi(void *arg) {
     bool ok;
 
     ok = mjb_bidi_resolve("", 0, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
-    ATT_ASSERT(ok, true, "empty string resolve");
-    ATT_ASSERT(para.count, (size_t)0, "empty string count");
+    ATT_ASSERT(ok, true, "empty string resolve")
+    ATT_ASSERT(para.count, (size_t)0, "empty string count")
     mjb_bidi_free(&para);
 
     const char *ltr = "ABC";
     ok = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
-    ATT_ASSERT(ok, true, "LTR resolve ok");
-    ATT_ASSERT(para.count, (size_t)3, "LTR count");
-    ATT_ASSERT(para.paragraph_level, (uint8_t)0, "LTR paragraph level");
-    ATT_ASSERT((unsigned int)para.direction, (unsigned int)MJB_DIRECTION_LTR, "LTR direction");
+    ATT_ASSERT(ok, true, "LTR resolve ok")
+    ATT_ASSERT(para.count, (size_t)3, "LTR count")
+    ATT_ASSERT(para.paragraph_level, (uint8_t)0, "LTR paragraph level")
+    ATT_ASSERT((unsigned int)para.direction, (unsigned int)MJB_DIRECTION_LTR, "LTR direction")
 
     if(para.count == 3) {
-        ATT_ASSERT(para.chars[0].level, (uint8_t)0, "LTR A level");
-        ATT_ASSERT(para.chars[1].level, (uint8_t)0, "LTR B level");
-        ATT_ASSERT(para.chars[2].level, (uint8_t)0, "LTR C level");
-        ATT_ASSERT(para.chars[0].codepoint, (mjb_codepoint)0x41, "LTR A codepoint");
+        ATT_ASSERT(para.chars[0].level, (uint8_t)0, "LTR A level")
+        ATT_ASSERT(para.chars[1].level, (uint8_t)0, "LTR B level")
+        ATT_ASSERT(para.chars[2].level, (uint8_t)0, "LTR C level")
+        ATT_ASSERT(para.chars[0].codepoint, (mjb_codepoint)0x41, "LTR A codepoint")
     }
 
-    ATT_ASSERT((mjb_bidi_free(&para), (void *)para.chars), (void *)NULL, "free clears chars");
-    ATT_ASSERT((mjb_bidi_free(&para), para.count), (size_t)0, "free clears count");
+    ATT_ASSERT((mjb_bidi_free(&para), (void *)para.chars), (void *)NULL, "free clears chars")
+    ATT_ASSERT((mjb_bidi_free(&para), para.count), (size_t)0, "free clears count")
 
     // CURRENT_ASSERT mjb_bidi_resolve
     const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; /* مرحبا */
     ok = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
-    ATT_ASSERT(ok, true, "RTL resolve ok");
-    ATT_ASSERT(para.paragraph_level, (uint8_t)1, "RTL paragraph level");
-    ATT_ASSERT((unsigned int)para.direction, (unsigned int)MJB_DIRECTION_RTL, "RTL direction");
+    ATT_ASSERT(ok, true, "RTL resolve ok")
+    ATT_ASSERT(para.paragraph_level, (uint8_t)1, "RTL paragraph level")
+    ATT_ASSERT((unsigned int)para.direction, (unsigned int)MJB_DIRECTION_RTL, "RTL direction")
 
     if(para.count > 0) {
         // All characters should be at an odd level
-        ATT_ASSERT((para.chars[0].level & 1), (uint8_t)1, "RTL char level is odd");
+        ATT_ASSERT((para.chars[0].level & 1), (uint8_t)1, "RTL char level is odd")
     }
 
     mjb_bidi_free(&para);
 
     ok = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENCODING_UTF_8, MJB_DIRECTION_LTR, &para);
-    ATT_ASSERT(ok, true, "explicit LTR dir resolve");
-    ATT_ASSERT(para.paragraph_level, (uint8_t)0, "explicit LTR paragraph level");
+    ATT_ASSERT(ok, true, "explicit LTR dir resolve")
+    ATT_ASSERT(para.paragraph_level, (uint8_t)0, "explicit LTR paragraph level")
     mjb_bidi_free(&para);
 
     ok = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENCODING_UTF_8, MJB_DIRECTION_RTL, &para);
-    ATT_ASSERT(ok, true, "explicit RTL dir resolve");
-    ATT_ASSERT(para.paragraph_level, (uint8_t)1, "explicit RTL paragraph level");
+    ATT_ASSERT(ok, true, "explicit RTL dir resolve")
+    ATT_ASSERT(para.paragraph_level, (uint8_t)1, "explicit RTL paragraph level")
     mjb_bidi_free(&para);
 
     // Hello مرحبا
     const char *mixed = "Hello \xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7";
     ok = mjb_bidi_resolve(mixed, strlen(mixed), MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
-    ATT_ASSERT(ok, true, "mixed resolve ok");
-    ATT_ASSERT(para.paragraph_level, (uint8_t)0, "mixed paragraph level LTR");
+    ATT_ASSERT(ok, true, "mixed resolve ok")
+    ATT_ASSERT(para.paragraph_level, (uint8_t)0, "mixed paragraph level LTR")
 
     if(para.count >= 11) {
         // "Hello " = 6 chars at level 0
-        ATT_ASSERT(para.chars[0].level, (uint8_t)0, "mixed H level");
-        ATT_ASSERT(para.chars[5].level, (uint8_t)0, "mixed space level (pre-Arabic)");
+        ATT_ASSERT(para.chars[0].level, (uint8_t)0, "mixed H level")
+        ATT_ASSERT(para.chars[5].level, (uint8_t)0, "mixed space level (pre-Arabic)")
         // Arabic chars should be at odd level
-        ATT_ASSERT((para.chars[6].level & 1), (uint8_t)1, "mixed Arabic char level odd");
+        ATT_ASSERT((para.chars[6].level & 1), (uint8_t)1, "mixed Arabic char level odd")
     }
 
     mjb_bidi_free(&para);
 
     ok = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENCODING_UTF_8, MJB_DIRECTION_LTR, &para);
-    ATT_ASSERT(ok, true, "reorder ltr resolve");
+    ATT_ASSERT(ok, true, "reorder ltr resolve")
 
     if(para.count == 3) {
         size_t order[3];
-        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder ltr ok");
-        ATT_ASSERT(order[0], (size_t)0, "LTR visual[0] = 0");
-        ATT_ASSERT(order[1], (size_t)1, "LTR visual[1] = 1");
-        ATT_ASSERT(order[2], (size_t)2, "LTR visual[2] = 2");
-        ATT_ASSERT(mjb_bidi_reorder_line(&para, 1, 1, order), false, "reorder empty range");
-        ATT_ASSERT(mjb_bidi_reorder_line(&para, 2, 1, order), false, "reorder reversed range");
-        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 4, order), false, "reorder beyond paragraph");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder ltr ok")
+        ATT_ASSERT(order[0], (size_t)0, "LTR visual[0] = 0")
+        ATT_ASSERT(order[1], (size_t)1, "LTR visual[1] = 1")
+        ATT_ASSERT(order[2], (size_t)2, "LTR visual[2] = 2")
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 1, 1, order), false, "reorder empty range")
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 2, 1, order), false, "reorder reversed range")
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 4, order), false, "reorder beyond paragraph")
     }
 
     mjb_bidi_free(&para);
 
     const char *rtl3 = "\xD9\x85\xD8\xB1\xD8\xAD"; // مرح (3 Arabic chars)
     ok = mjb_bidi_resolve(rtl3, strlen(rtl3), MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
-    ATT_ASSERT(ok, true, "reorder rtl resolve");
+    ATT_ASSERT(ok, true, "reorder rtl resolve")
 
     if(para.count == 3) {
         size_t order[3];
-        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder rtl ok");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder rtl ok")
         // All chars at odd level; L2 reversal reverses the sequence
-        ATT_ASSERT(order[0], (size_t)2, "RTL visual[0] = 2");
-        ATT_ASSERT(order[1], (size_t)1, "RTL visual[1] = 1");
-        ATT_ASSERT(order[2], (size_t)0, "RTL visual[2] = 0");
+        ATT_ASSERT(order[0], (size_t)2, "RTL visual[0] = 2")
+        ATT_ASSERT(order[1], (size_t)1, "RTL visual[1] = 1")
+        ATT_ASSERT(order[2], (size_t)0, "RTL visual[2] = 0")
     }
 
     mjb_bidi_free(&para);
@@ -335,23 +335,23 @@ void *test_bidi(void *arg) {
 
     if(ok && para.count == 3) {
         size_t order[3];
-        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "line runs reorder ok");
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "line runs reorder ok")
 
         size_t run_count = 0;
         ATT_ASSERT(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count), true,
-            "empty line runs ok");
-        ATT_ASSERT(run_count, (size_t)0, "empty line runs count");
+            "empty line runs ok")
+        ATT_ASSERT(run_count, (size_t)0, "empty line runs count")
         ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, NULL, &run_count), true,
-            "line runs count ok");
-        ATT_ASSERT(run_count, (size_t)1, "LTR one run");
+            "line runs count ok")
+        ATT_ASSERT(run_count, (size_t)1, "LTR one run")
 
         mjb_bidi_run runs[4];
         ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, runs, &run_count), true,
-            "line runs fill ok");
+            "line runs fill ok")
         ATT_ASSERT((unsigned int)runs[0].direction, (unsigned int)MJB_DIRECTION_LTR,
-            "LTR run direction");
-        ATT_ASSERT(runs[0].start, (size_t)0, "LTR run start");
-        ATT_ASSERT(runs[0].end, (size_t)3, "LTR run end");
+            "LTR run direction")
+        ATT_ASSERT(runs[0].start, (size_t)0, "LTR run start")
+        ATT_ASSERT(runs[0].end, (size_t)3, "LTR run end")
     }
 
     mjb_bidi_free(&para);
