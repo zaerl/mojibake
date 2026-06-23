@@ -45,6 +45,10 @@ const planeTypes = {
   'PUA_B': 16,
 };
 
+const utf8Decoder = new TextDecoder('utf-8');
+const utf16beDecoder = new TextDecoder('utf-16be');
+const utf16leDecoder = new TextDecoder('utf-16le');
+
 async function loadFunctions() {
   for(const func of functionsDefault) {
     if(!func.wasm) {
@@ -67,7 +71,11 @@ function getenum(value, enumMap, defaultValue) {
   } else {
     const transformed = value.toUpperCase();
 
-    if(enumMap[transformed]) {
+    if(Object.prototype.hasOwnProperty.call(enumMap, value)) {
+      return enumMap[value];
+    }
+
+    if(Object.prototype.hasOwnProperty.call(enumMap, transformed)) {
       return enumMap[transformed];
     }
   }
@@ -149,31 +157,56 @@ function pointerToCharacter(ptr) {
   return char;
 }
 
-function utf8StringToHex(ptr, length) {
+function byteArrayToHex(bytes) {
   const hex = [];
-  let i = 0;
 
-  while(mojibake.HEAPU8[ptr] !== 0 || (i < length)) {
-    hex.push(mojibake.HEAPU8[ptr].toString(16).toUpperCase().padStart(2, '0'));
-    ++ptr;
-    ++i;
+  for(let i = 0; i < bytes.length; ++i) {
+    hex.push(bytes[i].toString(16).toUpperCase().padStart(2, '0'));
   }
 
   return hex;
 }
 
-function decodeString(buffer, size, encoding) {
-  if(encoding == encodingTypes['UTF-8']) {
-    return mojibake.UTF8ToString(buffer, size);
-  } else {
-    let retHex = [];
+function bytesToHex(ptr, length) {
+  return byteArrayToHex(mojibake.HEAPU8.subarray(ptr, ptr + length));
+}
 
-    for(let i = 0; i < size; ++i) {
-      retHex.push(mojibake.HEAPU8[buffer + i].toString(16).toUpperCase().padStart(2, '0'));
+function decodeString(buffer, size, encoding) {
+  const bytes = mojibake.HEAPU8.subarray(buffer, buffer + size);
+
+  if(encoding == encodingTypes['UTF-8']) {
+    return utf8Decoder.decode(bytes);
+  } else if(encoding == encodingTypes['UTF-16BE']) {
+    return utf16beDecoder.decode(bytes);
+  } else if(encoding == encodingTypes['UTF-16LE']) {
+    return utf16leDecoder.decode(bytes);
+  } else if(encoding == encodingTypes['UTF-32BE'] || encoding == encodingTypes['UTF-32LE']) {
+    // Javascript don't have a built-in UTF-32 decoder, so we need to manually decode it.
+    let ret = '';
+
+    for(let i = 0; i + 3 < size; i += 4) {
+      let codepoint = 0;
+
+      if(encoding == encodingTypes['UTF-32BE']) {
+        codepoint = (mojibake.HEAPU8[buffer + i] << 24) |
+          (mojibake.HEAPU8[buffer + i + 1] << 16) |
+          (mojibake.HEAPU8[buffer + i + 2] << 8) |
+          mojibake.HEAPU8[buffer + i + 3];
+      } else {
+        codepoint = mojibake.HEAPU8[buffer + i] |
+          (mojibake.HEAPU8[buffer + i + 1] << 8) |
+          (mojibake.HEAPU8[buffer + i + 2] << 16) |
+          (mojibake.HEAPU8[buffer + i + 3] << 24);
+      }
+
+      // Coerce the codepoint into an unsigned 32-bit integer.
+      ret += String.fromCodePoint(codepoint >>> 0);
     }
 
-    return retHex.join(' ');
+    return ret;
   }
+
+  return bytesToHex(buffer, size).join(' ');
 }
 
 function codepointToString(codepoint, all = true) {
@@ -203,6 +236,63 @@ function stringToCodepointList(string) {
   return codepoints;
 }
 
+function stringToEncodedBytes(value, encoding) {
+  if(encoding == encodingTypes['UTF-8']) {
+    return new TextEncoder().encode(value);
+  } else if(encoding == encodingTypes['UTF-16BE'] || encoding == encodingTypes['UTF-16LE']) {
+    const bytes = new Uint8Array(value.length * 2);
+
+    for(let i = 0; i < value.length; ++i) {
+      const codeUnit = value.charCodeAt(i);
+
+      if(encoding == encodingTypes['UTF-16BE']) {
+        bytes[i * 2] = codeUnit >> 8;
+        bytes[i * 2 + 1] = codeUnit & 0xFF;
+      } else {
+        bytes[i * 2] = codeUnit & 0xFF;
+        bytes[i * 2 + 1] = codeUnit >> 8;
+      }
+    }
+
+    return bytes;
+  } else if(encoding == encodingTypes['UTF-32BE'] || encoding == encodingTypes['UTF-32LE']) {
+    const codepoints = Array.from(value);
+    const bytes = new Uint8Array(codepoints.length * 4);
+    let offset = 0;
+
+    for(const char of codepoints) {
+      const codepoint = char.codePointAt(0);
+
+      if(encoding == encodingTypes['UTF-32BE']) {
+        bytes[offset] = (codepoint >> 24) & 0xFF;
+        bytes[offset + 1] = (codepoint >> 16) & 0xFF;
+        bytes[offset + 2] = (codepoint >> 8) & 0xFF;
+        bytes[offset + 3] = codepoint & 0xFF;
+      } else {
+        bytes[offset] = codepoint & 0xFF;
+        bytes[offset + 1] = (codepoint >> 8) & 0xFF;
+        bytes[offset + 2] = (codepoint >> 16) & 0xFF;
+        bytes[offset + 3] = (codepoint >> 24) & 0xFF;
+      }
+
+      offset += 4;
+    }
+
+    return bytes;
+  }
+
+  throw new Error(`Unsupported text encoding: ${encoding}`);
+}
+
+function copyBytesToWasm(bytes) {
+  const ptr = mojibake._malloc(bytes.length + 4);
+
+  mojibake.HEAPU8.fill(0, ptr, ptr + bytes.length + 4);
+  mojibake.HEAPU8.set(bytes, ptr);
+
+  return ptr;
+}
+
 function ccallCodepointCharacter(codepoint) {
   // Allocate memory for mjb_character structure
   const structSize = 512;
@@ -230,17 +320,20 @@ function ccallCodepointCharacter(codepoint) {
   }
 }
 
-function ccallNormalize(argTypes, buffer, size, encoding, form) {
+function ccallNormalize(buffer, encoding, form, outputEncoding) {
   // See mjb_result on mojibake.h
   const structSize = 24;
   const ptr = mojibake._malloc(structSize);
+  const bytes = stringToEncodedBytes(buffer, encoding);
+  const bufferPtr = copyBytesToWasm(bytes);
 
   // Initialize memory to zero
   for(let i = 0; i < structSize; ++i) {
     mojibake.HEAPU8[ptr + i] = 0;
   }
 
-  const result = mojibake.ccall('mjb_normalize', 'boolean', argTypes, [buffer, size, encoding, form, ptr]);
+  const result = mojibake._mjb_normalize(bufferPtr, bytes.length, encoding, form, outputEncoding,
+    ptr);
 
   if(result) {
     const struct = new CStruct(ptr);
@@ -250,21 +343,33 @@ function ccallNormalize(argTypes, buffer, size, encoding, form) {
       transformed: 'u8'
     }, mojibake.HEAPU8);
 
-    const output = mojibake.UTF8ToString(result.output);
+    const isTransformed = result.transformed === 1;
+    const decodeEncoding = isTransformed || encoding == outputEncoding ? outputEncoding : encoding;
+    const output = decodeString(result.output, result.output_size, decodeEncoding);
+    const outputBytes = !isTransformed && encoding != outputEncoding ?
+      stringToEncodedBytes(output, outputEncoding) :
+      mojibake.HEAPU8.subarray(result.output, result.output + result.output_size);
+
     const ret = {
       output: output,
-      utf8: utf8StringToHex(result.output, result.output_size).join(' '),
+      utf8: byteArrayToHex(outputBytes).join(' '),
       codepoints: stringToCodepointList(output).join(' '),
-      output_size: result.output_size,
-      transformed: result.transformed === 1
+      output_size: outputBytes.length,
+      transformed: isTransformed
     };
 
     // Free allocated memory
+    if(result.transformed === 1 && result.output !== 0) {
+      mojibake._free(result.output);
+    }
+
+    mojibake._free(bufferPtr);
     mojibake._free(ptr);
 
     return ret;
   } else {
     // Free allocated memory
+    mojibake._free(bufferPtr);
     mojibake._free(ptr);
 
     throw new Error('Failed to get normalization data');
@@ -281,9 +386,11 @@ function ccallCodepointEncode(codepoint, encoding) {
   const result = mojibake._mjb_codepoint_encode(codepoint, buffer, 5, encoding);
 
   if(result) {
+    const output = decodeString(buffer, result, encoding);
+
     mojibake._free(buffer);
 
-    return decodeString(buffer, result, encoding);
+    return output;
   } else {
     mojibake._free(buffer);
 
@@ -339,7 +446,7 @@ function ccCall(functionName, ret, argTypes, args) {
   if(functionName === 'mjb_codepoint_character') {
     return ccallCodepointCharacter(args[0]);
   } else if(functionName === 'mjb_normalize') {
-    return ccallNormalize(argTypes, args[0], args[1], args[2], args[3]);
+    return ccallNormalize(args[0], args[2], args[3], args[4]);
   } else if(functionName === 'mjb_codepoint_encode') {
     return ccallCodepointEncode(args[0], args[3]);
   } else if(functionName === 'mjb_codepoint_emoji') {
