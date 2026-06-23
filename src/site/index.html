@@ -127,6 +127,28 @@
             return ret.join(', ');
         }
 
+        function quickCheckResultToString(result) {
+            const qcResults = {
+                0x0: 'Yes',
+                0x1: 'No',
+                0x2: 'Maybe',
+                0x4: 'NFD No',
+                0x8: 'NFD Maybe',
+                0x10: 'NFC No',
+                0x20: 'NFC Maybe',
+                0x40: 'NFKC No',
+                0x80: 'NFKC Maybe',
+                0x100: 'NFKD No',
+                0x200: 'NFKD Maybe'
+            };
+
+            if(typeof qcResults[result] !== 'undefined') {
+                return qcResults[result];
+            }
+
+            return 'Unknown';
+        }
+
         function toggleFunctionCall(func) {
             const funcDiv = document.getElementById(func);
             const selected = funcDiv.classList.toggle('selected');
@@ -264,9 +286,11 @@
             }
 
             if(functions[func].ret === 'mjb_codepoint') {
-                result = codepointToString(result);
+                data = codepointToString(data);
             } else if(functions[func].ret === 'mjb_encoding') {
-                result = encodingToString(result, true);
+                data = encodingToString(data, true);
+            } else if(functions[func].ret === 'mjb_quick_check_result') {
+                data = quickCheckResultToString(data);
             }
 
             funcResults.innerHTML = data;
