@@ -10,7 +10,7 @@
 // Return true if the string is a valid Unicode identifier (UAX#31).
 MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_identifier_profile profile) {
-    if(size == 0) {
+    if(buffer == NULL || size == 0) {
         return false;
     }
 

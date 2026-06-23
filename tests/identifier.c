@@ -42,6 +42,7 @@ void *test_identifier(void *arg) {
 
     /* mjb_string_is_identifier — DEFAULT profile */
     ATT_ASSERT(mjb_string_is_identifier("", 0, MJB_ENCODING_UTF_8, MJB_IDENTIFIER_DEFAULT), false, "Identifier: empty string")
+    ATT_ASSERT(mjb_string_is_identifier(NULL, 1, MJB_ENCODING_UTF_8, MJB_IDENTIFIER_DEFAULT), false, "Identifier: NULL string")
     ATT_ASSERT(mjb_string_is_identifier("hello", 5, MJB_ENCODING_UTF_8, MJB_IDENTIFIER_DEFAULT), true, "Identifier: 'hello'")
     ATT_ASSERT(mjb_string_is_identifier("_x", 2, MJB_ENCODING_UTF_8, MJB_IDENTIFIER_DEFAULT), false, "Identifier: '_x' (_ not ID_Start)")
     ATT_ASSERT(mjb_string_is_identifier("hello123", 8, MJB_ENCODING_UTF_8, MJB_IDENTIFIER_DEFAULT), true, "Identifier: 'hello123'")
