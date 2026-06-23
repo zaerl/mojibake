@@ -14,37 +14,13 @@ like any of the existing one. It aims to be, in order of importance:
 4. Pass all Unicode Standard tests
 5. Self-contained
 
-The amalgamation consists of two files:
+All the C files, together with the Unicode data tables are concatenaded into a single large file and
+and header:
 
 1. `mojibake.h`
 2. `mojibake.c`
 
-Unicode data is generated into compact C tables used directly by the library. A CLI implementation
-is provided in `src/shell`, and the C++ wrapper is in `src/cpp/mojibake.hpp`.
-
-## Unicode data
-
-Runtime Unicode data lives in generated C tables:
-
-1. `src/unicode-data.h`
-2. `src/unicode-tables.h`
-3. `src/unicode-tables.c`
-
-The generator is in `utils/generate/generate-unicode-tables.ts`. It reads Unicode character,
-Unihan, emoji, collation, and security data collected under `utils/generate/`, then emits compact
-lookup tables used directly by the C library.
-
-The generated tables use compact representations inspired by small Unicode runtimes: sparse page
-indexes for codepoint lookups, packed 32-bit and 64-bit entries, shared string/codepoint/byte
-payloads, bitsets for boolean data, interned property blobs, substring sharing for confusable
-skeletons and collation weights, and packed case, decomposition, composition, numeric, emoji, block,
-prefix, and collation-contraction records.
-
-Regenerate the tables with:
-
-```sh
-make generate-unicode-tables
-```
+A CLI implementation is provided in `src/shell`, and a C++ wrapper is in `src/cpp/mojibake.hpp`.
 
 ## Usage
 
@@ -124,6 +100,8 @@ int main(int argc, char * const argv[]) {
     }
 
     printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
+    // Normalized: Hello, World!
+    // Size: 13
 
     // Remember to free() the string if needed
     if(result.transformed) {
