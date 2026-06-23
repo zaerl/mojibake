@@ -38,8 +38,17 @@ void break_word_callback(const char *buffer, size_t size, unsigned int current_l
 }
 
  static void test_truncate_word(void) {
+    mjb_next_word_state state;
+    state.index = 0;
+
+    ATT_ASSERT((uint8_t)mjb_break_word(NULL, 1, MJB_ENCODING_UTF_8, &state),
+        (uint8_t)MJB_BT_NOT_SET, "Word break rejects NULL buffer")
+    ATT_ASSERT((uint8_t)mjb_break_word("A", 1, MJB_ENCODING_UTF_8, NULL),
+        (uint8_t)MJB_BT_NOT_SET, "Word break rejects NULL state")
+
     /* edge cases */
     ATT_ASSERT(mjb_truncate_word("", 0, MJB_ENCODING_UTF_8, 3), (size_t)0, "Truncate word: empty string")
+    ATT_ASSERT(mjb_truncate_word(NULL, 1, MJB_ENCODING_UTF_8, 3), (size_t)0, "Truncate word: NULL string")
     ATT_ASSERT(mjb_truncate_word("Hello World", 11, MJB_ENCODING_UTF_8, 0), (size_t)0, "Truncate word: 0 segments")
 
     /* "Hello World": breaks at 5 (after Hello), 6 (after space), 11 (end) */
@@ -50,6 +59,7 @@ void break_word_callback(const char *buffer, size_t size, unsigned int current_l
 
     /* mjb_truncate_word_width */
     ATT_ASSERT(mjb_truncate_word_width("", 0, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)0, "Truncate word width: empty string")
+    ATT_ASSERT(mjb_truncate_word_width(NULL, 1, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)0, "Truncate word width: NULL string")
     ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 0), (size_t)0, "Truncate word width: 0 columns")
     /* "Hello"=5 cols, " "=1 col would exceed 5 */
     ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 5), (size_t)5, "Truncate word width: 5 columns")
