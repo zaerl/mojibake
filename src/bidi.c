@@ -1156,6 +1156,10 @@ static void pass6_implicit(mjb_bidi_work *work, size_t count) {
 // Resolve bidirectional text (TR9) for a paragraph.
 MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_direction direction, mjb_bidi_paragraph *result) {
+    if(result == NULL || (buffer == NULL && size > 0)) {
+        return false;
+    }
+
     if(!mjb_initialize()) {
         return false;
     }
@@ -1170,6 +1174,10 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
     }
 
     // Upper bound: size bytes cannot produce more than size codepoints.
+    if(size > SIZE_MAX / sizeof(mjb_bidi_work)) {
+        return false;
+    }
+
     mjb_bidi_work *work = (mjb_bidi_work *)mjb_alloc(size * sizeof(mjb_bidi_work));
 
     if(!work) {
@@ -1283,6 +1291,12 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
     mjb_bidi_char *out = NULL;
 
     if(out_count > 0) {
+        if(out_count > SIZE_MAX / sizeof(mjb_bidi_char)) {
+            mjb_free(work);
+
+            return false;
+        }
+
         out = (mjb_bidi_char *)mjb_alloc(out_count * sizeof(mjb_bidi_char));
 
         if(!out) {
@@ -1324,6 +1338,10 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
 
 // Free a bidi paragraph allocated by mjb_bidi_resolve.
 MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph) {
+    if(paragraph == NULL) {
+        return;
+    }
+
     if(paragraph->chars) {
         mjb_free(paragraph->chars);
     }
@@ -1335,7 +1353,9 @@ MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph) {
 // Reorder a line visually (L1-L4); visual_order is caller-allocated.
 MJB_EXPORT bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
     size_t line_start, size_t line_end, size_t *visual_order) {
-    if(line_start >= line_end || line_end > paragraph->count) {
+    if(paragraph == NULL || visual_order == NULL ||
+        (paragraph->chars == NULL && paragraph->count > 0) ||
+        line_start >= line_end || line_end > paragraph->count) {
         return false;
     }
 
@@ -1436,6 +1456,11 @@ MJB_EXPORT bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
 // Compute visual level runs; pass runs=NULL to count first.
 MJB_EXPORT bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph,
     const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count) {
+    if(run_count == NULL || paragraph == NULL || (visual_order == NULL && count > 0) ||
+        (paragraph->chars == NULL && count > 0)) {
+        return false;
+    }
+
     *run_count = 0;
 
     if(count == 0) {

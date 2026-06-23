@@ -238,6 +238,12 @@ void *test_bidi(void *arg) {
     mjb_bidi_paragraph para;
     bool ok;
 
+    ATT_ASSERT(mjb_bidi_resolve(NULL, 1, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para),
+        false, "resolve rejects NULL buffer")
+    ATT_ASSERT(mjb_bidi_resolve("", 0, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, NULL),
+        false, "resolve rejects NULL result")
+    mjb_bidi_free(NULL);
+
     ok = mjb_bidi_resolve("", 0, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT(ok, true, "empty string resolve")
     ATT_ASSERT(para.count, (size_t)0, "empty string count")
@@ -305,6 +311,10 @@ void *test_bidi(void *arg) {
 
     if(para.count == 3) {
         size_t order[3];
+        ATT_ASSERT(mjb_bidi_reorder_line(NULL, 0, 3, order), false,
+            "reorder rejects NULL paragraph")
+        ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, NULL), false,
+            "reorder rejects NULL visual order")
         ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "reorder ltr ok")
         ATT_ASSERT(order[0], (size_t)0, "LTR visual[0] = 0")
         ATT_ASSERT(order[1], (size_t)1, "LTR visual[1] = 1")
@@ -338,6 +348,12 @@ void *test_bidi(void *arg) {
         ATT_ASSERT(mjb_bidi_reorder_line(&para, 0, 3, order), true, "line runs reorder ok")
 
         size_t run_count = 0;
+        ATT_ASSERT(mjb_bidi_line_runs(NULL, order, 3, NULL, &run_count), false,
+            "line runs rejects NULL paragraph")
+        ATT_ASSERT(mjb_bidi_line_runs(&para, NULL, 3, NULL, &run_count), false,
+            "line runs rejects NULL visual order")
+        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, NULL, NULL), false,
+            "line runs rejects NULL run count")
         ATT_ASSERT(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count), true,
             "empty line runs ok")
         ATT_ASSERT(run_count, (size_t)0, "empty line runs count")
