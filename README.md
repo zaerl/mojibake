@@ -51,7 +51,7 @@ make generate-unicode-tables
 You don't need to install anything. Add the C source and header to your build.
 
 1. Download it here
-[mojibake-amalgamation-015.zip](https://mojibake.zaerl.com/mojibake-amalgamation-015.zip)
+[mojibake-amalgamation-020.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.0/mojibake-amalgamation-020.zip)
 2. Unzip it
 3. Add `mojibake.c` and `mojibake.h` to your project
 
@@ -233,7 +233,7 @@ make wasm
 This writes the current Emscripten output to `build-wasm/src/` and refreshes the generated API
 artifacts in `src/api/`.
 
-You can run a local server of `mojibake.zaerl.com` with:
+You can run a local server with:
 
 ```sh
 make watch-site
