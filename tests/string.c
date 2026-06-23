@@ -8,9 +8,20 @@
 #include <string.h>
 
 #include "test.h"
+#include "../src/mojibake-internal.h"
 
 void *test_string(void *arg) {
     mjb_encoding enc = MJB_ENCODING_UTF_8;
+    size_t output_index = 0;
+    size_t output_size = 0;
+    char output_input[] = "A";
+
+    ATT_ASSERT(mjb_string_output(NULL, NULL, 1, &output_index, &output_size), (char*)NULL,
+        "String output rejects NULL input")
+    ATT_ASSERT(mjb_string_output(NULL, output_input, 1, NULL, &output_size), (char*)NULL,
+        "String output rejects NULL output index")
+    ATT_ASSERT(mjb_string_output(NULL, output_input, 1, &output_index, NULL), (char*)NULL,
+        "String output rejects NULL output size")
 
     ATT_ASSERT(mjb_strnlen("Hello", 5, enc), 5, "UTF-8 length: Hello")
     ATT_ASSERT(mjb_strnlen("Hello", 4, enc), 4, "UTF-8 length: Hello")
@@ -29,6 +40,9 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen("こんにちは", 15, enc), 5, "UTF-8 length: こんにちは")
     ATT_ASSERT(mjb_strnlen("Γειά σου", 15, enc), 8, "UTF-8 length: Γειά σου")
     ATT_ASSERT(mjb_strnlen("Héllö", 1, enc), 1, "UTF-8 length: Héllö (1 max value)")
+    ATT_ASSERT(mjb_strnlen("Hello", 5, MJB_ENCODING_ASCII), 5, "ASCII length: Hello")
+    ATT_ASSERT(mjb_strnlen("Hello", 5, MJB_ENCODING_UNKNOWN), 5,
+        "Unknown encoding advances with replacement")
 
     enc = MJB_ENCODING_UTF_16_LE;
     const char utf16le_hello[] = "H\0e\0l\0l\0o\0";
