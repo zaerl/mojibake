@@ -8,7 +8,7 @@
 #include "unicode-tables.h"
 
 MJB_EXPORT bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
+    if(emoji == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return false;
     }
 

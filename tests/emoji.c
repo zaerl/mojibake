@@ -10,6 +10,7 @@ void *test_emoji(void *arg) {
     mjb_emoji_properties emoji;
 
     ATT_ASSERT(mjb_codepoint_emoji(MJB_CODEPOINT_MAX + 1, &emoji), false, "Invalid codepoint")
+    ATT_ASSERT(mjb_codepoint_emoji(0x23, NULL), false, "NULL emoji pointer")
 
     // CURRENT_ASSERT mjb_codepoint_emoji
     ATT_ASSERT(mjb_codepoint_emoji(0x0, &emoji), false, "NULL")
