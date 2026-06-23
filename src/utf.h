@@ -30,7 +30,7 @@ typedef enum {
 
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
-    if(encoding == MJB_ENCODING_UTF_8) {
+    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENCODING_ASCII) {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         if(!buffer[*index]) {
             return false;
@@ -67,6 +67,10 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
                 buffer[*index + 3], codepoint, encoding == MJB_ENCODING_UTF_32_BE);
             *index += 4;  // Increment by 4 bytes (full code unit)
         }
+    } else {
+        *codepoint = MJB_CODEPOINT_REPLACEMENT;
+        *state = MJB_UTF_ACCEPT;
+        ++*index;
     }
 
     return true;
