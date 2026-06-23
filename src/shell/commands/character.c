@@ -156,6 +156,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         mjbsh_id_name("Plane", plane, plane_name, 1);
 
         mjb_block_info block;
+        memset(&block, 0, sizeof(block));
         bool valid_block = mjb_codepoint_block(character->codepoint, &block);
 
         // Need to flush stdout here to ensure the block is printed before the next character
