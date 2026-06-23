@@ -12,11 +12,18 @@
  */
 MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_character_fn fn) {
-    if(!mjb_initialize()) {
+    if(buffer == NULL || size == 0 || !mjb_initialize()) {
         return false;
     }
 
-    if(size == 0) {
+#ifndef __EMSCRIPTEN__
+    // Emscripten uses _mjbNextCharacterCallback.
+    if(fn == NULL) {
+        return false;
+    }
+#endif
+
+    if(!mjb_initialize()) {
         return false;
     }
 
