@@ -23,6 +23,7 @@
 | `mjb_codepoint_emoji`                  | 18         |
 | `mjb_codepoint_numeric_value`          | 17         |
 | `mjb_string_is_utf8`                   | 16         |
+| `mjb_codepoint_is_cjk_ext`             | 15         |
 | `mjb_codepoint_block`                  | 14         |
 | `mjb_collation_key`                    | 14         |
 | `mjb_string_is_utf16`                  | 14         |
@@ -34,6 +35,7 @@
 | `mjb_truncate`                         | 9          |
 | `mjb_hangul_syllable_name`             | 8          |
 | `mjb_plane_name`                       | 8          |
+| `mjb_codepoint_is_cjk_ideograph`       | 7          |
 | `mjb_codepoint_is_id_start`            | 6          |
 | `mjb_codepoint_property`               | 6          |
 | `mjb_truncate_word`                    | 6          |
@@ -60,7 +62,6 @@
 | `mjb_initialize_v2`                    | 2          |
 | `mjb_next_character`                   | 2          |
 | `mjb_alloc`                            | 1          |
-| `mjb_codepoint_is_cjk_ideograph`       | 1          |
 | `mjb_codepoint_is_hangul_syllable`     | 1          |
 | `mjb_codepoint_properties`             | 1          |
 | `mjb_unicode_version`                  | 1          |
@@ -71,9 +72,8 @@
 | `mjb_bidi_reorder_line`                | 0          |
 | `mjb_category_is_combining`            | 0          |
 | `mjb_category_is_graphic`              | 0          |
-| `mjb_codepoint_is_cjk_ext`             | 0          |
 | `mjb_free`                             | 0          |
 | `mjb_initialize`                       | 0          |
 | `mjb_realloc`                          | 0          |
 | `mjb_shutdown`                         | 0          |
-| **Total**                              | **954031** |
+| **Total**                              | **954052** |
