@@ -53,7 +53,7 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t size, size_t
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_word_state *state) {
-    if(size == 0) {
+    if(buffer == NULL || state == NULL || size == 0) {
         return MJB_BT_NOT_SET;
     }
 
@@ -385,7 +385,7 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
 // Return the number of bytes that form the first max_segments word-break segments.
 MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
     size_t max_segments) {
-    if(size == 0 || max_segments == 0) {
+    if(buffer == NULL || size == 0 || max_segments == 0) {
         return 0;
     }
 
@@ -414,7 +414,7 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encodin
 // Return the number of bytes whose word-break segments fit within max_columns display columns.
 MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_width_context context, size_t max_columns) {
-    if(size == 0 || max_columns == 0) {
+    if(buffer == NULL || size == 0 || max_columns == 0) {
         return 0;
     }
 
@@ -438,10 +438,12 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_e
             state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
 
         size_t segment_width = 0;
-        mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
-            &segment_width);
+        if(!mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+            &segment_width)) {
+            return prev_break;
+        }
 
-        if(total_width + segment_width > max_columns) {
+        if(total_width > max_columns || segment_width > max_columns - total_width) {
             return prev_break;
         }
 
