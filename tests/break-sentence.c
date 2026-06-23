@@ -38,6 +38,14 @@ void break_sentence_callback(const char *buffer, size_t size, unsigned int curre
 }
 
 void *test_break_sentence(void *arg) {
+    mjb_next_sentence_state state;
+    state.index = 0;
+
+    ATT_ASSERT((uint8_t)mjb_break_sentence(NULL, 1, MJB_ENCODING_UTF_8, &state),
+        (uint8_t)MJB_BT_NOT_SET, "Sentence break rejects NULL buffer")
+    ATT_ASSERT((uint8_t)mjb_break_sentence("A", 1, MJB_ENCODING_UTF_8, NULL),
+        (uint8_t)MJB_BT_NOT_SET, "Sentence break rejects NULL state")
+
     read_test_file(
         "./utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt",
         &break_sentence_callback

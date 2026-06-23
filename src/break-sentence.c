@@ -72,7 +72,7 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t size, size
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_sentence_state *state) {
-    if(size == 0) {
+    if(buffer == NULL || state == NULL || size == 0) {
         return MJB_BT_NOT_SET;
     }
 
