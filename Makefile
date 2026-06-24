@@ -155,7 +155,7 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: test test-cpp test-asan test-ubsan test-null ctest test-docker
+.PHONY: test test-all test-cpp test-asan test-ubsan test-null ctest test-docker
 
 # Run tests
 test: BUILD_TYPE = Test
@@ -191,6 +191,14 @@ test-ubsan: $(UNICODE_DATA)
 	@$(call cmake_configure,$(TEST_UBSAN_BUILD_DIR),$(UBSAN_CMAKE_FLAGS))
 	@$(call cmake_build,$(TEST_UBSAN_BUILD_DIR))
 	$(TEST_UBSAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
+
+# Run all local test configurations
+test-all:
+	$(MAKE) test
+	$(MAKE) test-null
+	$(MAKE) test-cpp
+	$(MAKE) test-asan
+	$(MAKE) test-ubsan
 
 # Run tests using CTest
 ctest: BUILD_TYPE = Test
@@ -250,6 +258,7 @@ help:
 	@echo "  generate-unicode-tables - Generate embedded Unicode lookup tables"
 	@echo "  sync-api-wasm           - Copy current WASM build artifacts into src/api"
 	@echo "  test                    - Build and run tests"
+	@echo "  test-all                - Build and run all local test configurations"
 	@echo "  test-asan               - Build and run tests with AddressSanitizer"
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-docker             - Build and run tests in Docker container"

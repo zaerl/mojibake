@@ -203,6 +203,14 @@ test-ubsan: $(UNICODE_DATA)
 	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config Test
 	@$(TEST_UBSAN_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
+# Run all local test configurations
+test-all:
+	@$(MAKE) /F Makefile.nmake test
+	@$(MAKE) /F Makefile.nmake test-null
+	@$(MAKE) /F Makefile.nmake test-cpp
+	@$(MAKE) /F Makefile.nmake test-asan
+	@$(MAKE) /F Makefile.nmake test-ubsan
+
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
 	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NATIVE_CMAKE_FLAGS)
@@ -260,6 +268,7 @@ help:
 	@echo   generate-unicode-tables - Generate embedded Unicode lookup tables
 	@echo   sync-api-wasm           - Copy current WASM build artifacts into src\api
 	@echo   test                    - Build and run tests
+	@echo   test-all                - Build and run all local test configurations
 	@echo   test-asan               - Build and run tests with AddressSanitizer
 	@echo   test-cpp                - Build and run tests with C++ compiler
 	@echo   test-docker             - Build and run tests in Docker container
