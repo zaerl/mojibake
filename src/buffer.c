@@ -4,7 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "buffer.h"
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
 

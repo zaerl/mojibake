@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "mojibake-internal.h"
 #include "unicode-tables.h"
 #include "unicode-data.h"
 

@@ -13,7 +13,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "buffer.h"
 #include "mojibake.h"
 
 typedef struct mjb_unicode_case_mapping {
