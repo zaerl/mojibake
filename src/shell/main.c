@@ -83,7 +83,7 @@ int main(int argc, char * const argv[]) {
         { "show-allowed-symbols", no_argument, NULL, 's' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
-        { "width", no_argument, NULL, 'w' },
+        { "width", required_argument, NULL, 'w' },
         { NULL, 0, NULL, 0 }
     };
 
