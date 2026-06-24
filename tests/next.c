@@ -14,7 +14,7 @@ static bool next_character(mjb_character *character, mjb_next_character_type typ
     return true;
 }
 
- void *test_next(void *arg) {
+void *test_next(void *arg) {
     ATT_ASSERT(mjb_next_character(NULL, 1, MJB_ENCODING_UTF_8, next_character), false,
         "NULL next buffer")
     ATT_ASSERT(mjb_next_character("A", 1, MJB_ENCODING_UTF_8, NULL), false,
@@ -23,4 +23,4 @@ static bool next_character(mjb_character *character, mjb_next_character_type typ
     ATT_ASSERT(mjb_test_count, 5, "mjb_next_character")
 
     return NULL;
- }
+}
