@@ -108,6 +108,25 @@ void *test_normalization(void *arg) {
     char line[1024];
     unsigned int current_line = 1;
     // unsigned int index = 0;
+    mjb_result guard_result;
+
+    ATT_ASSERT(mjb_normalize(NULL, 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_8, &guard_result), false, "Normalize rejects NULL buffer")
+    ATT_ASSERT(mjb_normalize("", 0, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_8, NULL), false, "Normalize rejects NULL result")
+
+    ATT_ASSERT(mjb_normalize("A", 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_16_LE, &guard_result), true,
+        "Normalize converts output encoding for already-normalized input")
+    ATT_ASSERT(guard_result.transformed, true,
+        "Normalize converted already-normalized input transformed")
+    ATT_ASSERT(guard_result.output_size, (size_t)2,
+        "Normalize converted already-normalized input size")
+    ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
+        "Normalize converted already-normalized input bytes")
+    if(guard_result.transformed) {
+        mjb_free(guard_result.output);
+    }
 
     // 256 characters is enough for any test.
     const char source[256] = { 0 };
