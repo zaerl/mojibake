@@ -153,48 +153,58 @@ static const char *mjbsh_east_asian_width_names[] = {
 };
 
 const char *mjbsh_decomposition_name(mjb_decomposition decomposition) {
-    if(decomposition > MJB_DECOMPOSITION_WIDE) {
+    size_t decomposition_index = (size_t)(unsigned int)decomposition;
+
+    if(decomposition_index > MJB_DECOMPOSITION_WIDE) {
         return "Unknown";
     }
 
-    return mjbsh_decomposition_names[decomposition];
+    return mjbsh_decomposition_names[decomposition_index];
 }
 
 const char *mjbsh_category_name(mjb_category category) {
-    if(category >= MJB_CATEGORY_COUNT) {
+    size_t category_index = (size_t)(unsigned int)category;
+
+    if(category_index >= MJB_CATEGORY_COUNT) {
         return "Unknown";
     }
 
-    return mjbsh_category_names[category];
+    return mjbsh_category_names[category_index];
 }
 
 char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
-    if(ccc > MJB_CCC_BELOW_IOTA) {
+    size_t ccc_index = (size_t)(unsigned int)ccc;
+
+    if(ccc_index > MJB_CCC_BELOW_IOTA) {
         return strdup("Unknown");
     }
 
-    if(ccc < MJB_CCC_10) {
-        return strdup(mjbsh_ccc_names[ccc] ? mjbsh_ccc_names[ccc] : "Unknown");
+    if(ccc_index < MJB_CCC_10) {
+        return strdup(mjbsh_ccc_names[ccc_index] ? mjbsh_ccc_names[ccc_index] : "Unknown");
     }
 
-    if(ccc <= MJB_CCC_36 || ccc == MJB_CCC_84 || ccc == MJB_CCC_91 || ccc == MJB_CCC_103 ||
-        ccc == MJB_CCC_107 || ccc == MJB_CCC_118 || ccc == MJB_CCC_122 || ccc == MJB_CCC_129 ||
-        ccc == MJB_CCC_130 || ccc == MJB_CCC_132) {
+    if(ccc_index <= MJB_CCC_36 || ccc_index == MJB_CCC_84 || ccc_index == MJB_CCC_91 ||
+        ccc_index == MJB_CCC_103 || ccc_index == MJB_CCC_107 ||
+        ccc_index == MJB_CCC_118 || ccc_index == MJB_CCC_122 ||
+        ccc_index == MJB_CCC_129 || ccc_index == MJB_CCC_130 ||
+        ccc_index == MJB_CCC_132) {
         char *str = (char*)malloc(8);
 
         if(str) {
-            snprintf(str, 8, "CCC%d", ccc);
+            snprintf(str, 8, "CCC%zu", ccc_index);
         }
 
         return str;
     }
 
-    if(ccc >= MJB_CCC_ATTACHED_BELOW_LEFT && ccc <= MJB_CCC_DOUBLE_ABOVE) {
-        return strdup(mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_ATTACHED_BELOW_LEFT] ?
-            mjbsh_ccc_names_200_to_240[ccc - MJB_CCC_ATTACHED_BELOW_LEFT] : "Unknown");
+    if(ccc_index >= MJB_CCC_ATTACHED_BELOW_LEFT && ccc_index <= MJB_CCC_DOUBLE_ABOVE) {
+        size_t index = ccc_index - MJB_CCC_ATTACHED_BELOW_LEFT;
+
+        return strdup(mjbsh_ccc_names_200_to_240[index] ?
+            mjbsh_ccc_names_200_to_240[index] : "Unknown");
     }
 
-    if(ccc == MJB_CCC_BELOW_IOTA) {
+    if(ccc_index == MJB_CCC_BELOW_IOTA) {
         return strdup("Iota_Subscript");
     }
 
@@ -202,17 +212,21 @@ char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
 }
 
 const char *mjbsh_bidi_name(mjb_bidi_class bidi) {
-    if(bidi >= MJB_BIDI_CLASS_COUNT) {
+    size_t bidi_index = (size_t)(unsigned int)bidi;
+
+    if(bidi_index >= MJB_BIDI_CLASS_COUNT) {
         return "Unknown";
     }
 
-    return mjbsh_bidi_names[bidi];
+    return mjbsh_bidi_names[bidi_index];
 }
 
 const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width) {
-    if(east_asian_width >= MJB_EAW_COUNT) {
+    size_t east_asian_width_index = (size_t)(unsigned int)east_asian_width;
+
+    if(east_asian_width_index >= MJB_EAW_COUNT) {
         return "Unknown";
     }
 
-    return mjbsh_east_asian_width_names[east_asian_width];
+    return mjbsh_east_asian_width_names[east_asian_width_index];
 }
