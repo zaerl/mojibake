@@ -29,14 +29,28 @@ typedef struct {
 } mjb_cea;
 
 static bool cea_grow(mjb_cea *a, size_t need) {
-    if(a->count + need <= a->cap) {
+    if(need > SIZE_MAX - a->count) {
+        return false;
+    }
+
+    size_t required = a->count + need;
+
+    if(required <= a->cap) {
         return true;
     }
 
     size_t new_cap = a->cap == 0 ? 16 : a->cap;
 
-    while(new_cap < a->count + need) {
+    while(new_cap < required) {
+        if(new_cap > SIZE_MAX / 2) {
+            return false;
+        }
+
         new_cap *= 2;
+    }
+
+    if(new_cap > SIZE_MAX / sizeof(mjb_ce)) {
+        return false;
     }
 
     mjb_ce *p = (mjb_ce*)mjb_realloc(a->data, new_cap * sizeof(mjb_ce));
@@ -51,9 +65,9 @@ static bool cea_grow(mjb_cea *a, size_t need) {
     return true;
 }
 
-static void cea_push(mjb_cea *a, uint16_t p, uint16_t s, uint16_t t, bool var) {
+static bool cea_push(mjb_cea *a, uint16_t p, uint16_t s, uint16_t t, bool var) {
     if(!cea_grow(a, 1)) {
-        return;
+        return false;
     }
 
     a->data[a->count].primary = p;
@@ -63,6 +77,8 @@ static void cea_push(mjb_cea *a, uint16_t p, uint16_t s, uint16_t t, bool var) {
     a->data[a->count].variable = var;
 
     ++a->count;
+
+    return true;
 }
 
 static void cea_free(mjb_cea *a) {
@@ -81,7 +97,16 @@ typedef struct {
 
 static bool sk_push(mjb_sort_key *sk, uint16_t w) {
     if(sk->count >= sk->cap) {
+        if(sk->cap > SIZE_MAX / 2) {
+            return false;
+        }
+
         size_t new_cap = sk->cap == 0 ? 64 : sk->cap * 2;
+
+        if(new_cap > SIZE_MAX / sizeof(uint16_t)) {
+            return false;
+        }
+
         uint16_t *p = (uint16_t*)mjb_realloc(sk->data, new_cap * sizeof(uint16_t));
 
         if(!p) {
@@ -132,7 +157,7 @@ static const struct {
  *   CJK Extensions A-J -> 0xFB80  (NOTE: different from main!)
  *   Everything else -> 0xFBC0
  */
-static void cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
+static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
     uint16_t base;
     bool found = false;
 
@@ -160,10 +185,12 @@ static void cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
     uint16_t bbbb = (uint16_t)((cp & 0x7FFF) | 0x8000);
 
     // CE1: [AAAA.0020.0002] non-variable
-    cea_push(cea, aaaa, 0x0020, 0x0002, false);
+    if(!cea_push(cea, aaaa, 0x0020, 0x0002, false)) {
+        return false;
+    }
 
     // CE2: [BBBB.0000.0000]
-    cea_push(cea, bbbb, 0x0000, 0x0000, false);
+    return cea_push(cea, bbbb, 0x0000, 0x0000, false);
 }
 
 /**
@@ -171,11 +198,11 @@ static void cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
  * Format: 6 bytes/element [P_hi P_lo S_hi S_lo T_hi T_lo]
  * Bit 15 of TERTIARY holds the variable flag (primary can reach 0xFBC2).
  */
-static void cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
+static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
     int n = blob_bytes / 6;
 
     if(n <= 0 || !cea_grow(cea, (size_t)n)) {
-        return;
+        return n <= 0;
     }
 
     for(int i = 0; i < n; ++i) {
@@ -196,6 +223,8 @@ static void cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
 
         ++cea->count;
     }
+
+    return true;
 }
 
 // Decode UTF-8 to a codepoint array
@@ -237,7 +266,11 @@ static bool try_cesu8_surrogate(const char *buf, size_t len, size_t i,
     return true;
 }
 
-static mjb_codepoint *utf8_to_codepoints(const char *buf, size_t len, size_t *out_count) {
+static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_codepoints,
+    size_t *out_count) {
+    *out_codepoints = NULL;
+    *out_count = 0;
+
     // First pass: count
     size_t count = 0;
     size_t i = 0;
@@ -272,15 +305,17 @@ static mjb_codepoint *utf8_to_codepoints(const char *buf, size_t len, size_t *ou
     }
 
     if(count == 0) {
-        *out_count = 0;
-        return NULL;
+        return true;
+    }
+
+    if(count > SIZE_MAX / sizeof(mjb_codepoint)) {
+        return false;
     }
 
     mjb_codepoint *arr = (mjb_codepoint*)mjb_alloc(count * sizeof(mjb_codepoint));
 
     if(!arr) {
-        *out_count = 0;
-        return NULL;
+        return false;
     }
 
     // Second pass: fill
@@ -315,8 +350,9 @@ static mjb_codepoint *utf8_to_codepoints(const char *buf, size_t len, size_t *ou
     }
 
     *out_count = j;
+    *out_codepoints = arr;
 
-    return arr;
+    return true;
 }
 
 // Build CEA from NFD codepoint array
@@ -333,14 +369,14 @@ static uint8_t ccc_of(mjb_codepoint cp) {
 }
 
 // Look up or synthesize CEs for a single codepoint and append to cea.
-static void cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
+static bool cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
     const uint8_t *weights = NULL;
     uint8_t length = 0;
 
     if(mjb_unicode_collation_entry_lookup(cp, &weights, &length)) {
-        cea_append_blob(cea, weights, length);
+        return cea_append_blob(cea, weights, length);
     } else {
-        cea_append_implicit(cea, cp);
+        return cea_append_implicit(cea, cp);
     }
 }
 
@@ -583,9 +619,15 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         }
 
         if(have_match) {
-            cea_append_blob(cea, best_w, best_bytes);
-        } else {
-            cea_lookup_or_implicit(cea, cps[i]);
+            if(!cea_append_blob(cea, best_w, best_bytes)) {
+                mjb_free(used);
+
+                return false;
+            }
+        } else if(!cea_lookup_or_implicit(cea, cps[i])) {
+            mjb_free(used);
+
+            return false;
         }
 
         i += cons_advance;
@@ -600,30 +642,46 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
 static bool build_sort_key_non_ignorable(const mjb_cea *cea, mjb_sort_key *sk) {
     // L1: non-zero primary weights
     for(size_t i = 0; i < cea->count; ++i) {
-        if(cea->data[i].primary != 0) sk_push(sk, cea->data[i].primary);
+        if(cea->data[i].primary != 0 && !sk_push(sk, cea->data[i].primary)) {
+            return false;
+        }
     }
 
-    sk_push(sk, 0x0000); // Level separator
+    if(!sk_push(sk, 0x0000)) { // Level separator
+        return false;
+    }
 
     // L2: non-zero secondary weights
     for(size_t i = 0; i < cea->count; ++i) {
-        if(cea->data[i].secondary != 0) sk_push(sk, cea->data[i].secondary);
+        if(cea->data[i].secondary != 0 && !sk_push(sk, cea->data[i].secondary)) {
+            return false;
+        }
     }
 
-    sk_push(sk, 0x0000);
+    if(!sk_push(sk, 0x0000)) {
+        return false;
+    }
 
     // L3: non-zero tertiary weights
     for(size_t i = 0; i < cea->count; ++i) {
-        if(cea->data[i].tertiary != 0) sk_push(sk, cea->data[i].tertiary);
+        if(cea->data[i].tertiary != 0 && !sk_push(sk, cea->data[i].tertiary)) {
+            return false;
+        }
     }
 
-    sk_push(sk, 0x0000);
+    if(!sk_push(sk, 0x0000)) {
+        return false;
+    }
 
     return true;
 }
 
 static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
     size_t n = cea->count;
+
+    if(n > SIZE_MAX / sizeof(uint16_t)) {
+        return false;
+    }
 
     /* We need adjusted weights; avoid dynamic allocation by iterating twice. Compute L1/L2/L3 and
     L4 in three passes: first collect into a scratch array (malloc), then emit. */
@@ -668,34 +726,48 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
     // Emit L1
     for(size_t i = 0; i < n; ++i) {
         if(l1[i] != 0) {
-            sk_push(sk, l1[i]);
+            if(!sk_push(sk, l1[i])) {
+                goto fail;
+            }
         }
     }
 
-    sk_push(sk, 0x0000);
+    if(!sk_push(sk, 0x0000)) {
+        goto fail;
+    }
 
     // Emit L2
     for(size_t i = 0; i < n; ++i) {
         if(l2[i] != 0) {
-            sk_push(sk, l2[i]);
+            if(!sk_push(sk, l2[i])) {
+                goto fail;
+            }
         }
     }
 
-    sk_push(sk, 0x0000);
+    if(!sk_push(sk, 0x0000)) {
+        goto fail;
+    }
 
     // Emit L3
     for(size_t i = 0; i < n; ++i) {
         if(l3[i] != 0) {
-            sk_push(sk, l3[i]);
+            if(!sk_push(sk, l3[i])) {
+                goto fail;
+            }
         }
     }
 
-    sk_push(sk, 0x0000);
+    if(!sk_push(sk, 0x0000)) {
+        goto fail;
+    }
 
     // Emit L4: only the shifted primaries (non-zero)
     for(size_t i = 0; i < n; ++i) {
         if(l4[i] != 0) {
-            sk_push(sk, l4[i]);
+            if(!sk_push(sk, l4[i])) {
+                goto fail;
+            }
         }
     }
 
@@ -705,6 +777,14 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
     mjb_free(l4);
 
     return true;
+
+fail:
+    mjb_free(l1);
+    mjb_free(l2);
+    mjb_free(l3);
+    mjb_free(l4);
+
+    return false;
 }
 
 static bool compute_sort_key(const char *buffer, size_t size, mjb_encoding encoding,
@@ -725,27 +805,45 @@ static bool compute_sort_key(const char *buffer, size_t size, mjb_encoding encod
     }
 
     size_t len = 0;
-    mjb_codepoint *cps = utf8_to_codepoints(r.output, r.output_size, &len);
+    mjb_codepoint *cps = NULL;
+    bool codepoints_ok = utf8_to_codepoints(r.output, r.output_size, &cps, &len);
 
     if(r.output && r.output != buffer) {
         mjb_free((void*)r.output);
     }
 
+    if(!codepoints_ok) {
+        return false;
+    }
+
     mjb_cea cea = { 0, 0, 0 };
 
     if(len > 0) {
-        build_cea(cps, len, &cea);
+        if(!build_cea(cps, len, &cea)) {
+            mjb_free(cps);
+            cea_free(&cea);
+
+            return false;
+        }
     }
 
     mjb_free(cps);
 
+    bool key_ok = false;
+
     if(mode == MJB_COLLATION_SHIFTED) {
-        build_sort_key_shifted(&cea, sk);
+        key_ok = build_sort_key_shifted(&cea, sk);
     } else {
-        build_sort_key_non_ignorable(&cea, sk);
+        key_ok = build_sort_key_non_ignorable(&cea, sk);
     }
 
     cea_free(&cea);
+
+    if(!key_ok) {
+        sk_free(sk);
+
+        return false;
+    }
 
     return true;
 }
@@ -776,6 +874,10 @@ static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
 
 MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_collation_mode mode, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && size > 0)) {
+        return false;
+    }
+
     result->output = NULL;
     result->output_size = 0;
     result->transformed = false;
@@ -790,7 +892,20 @@ MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding 
         return false;
     }
 
+    if(sk.count > SIZE_MAX / 2) {
+        sk_free(&sk);
+
+        return false;
+    }
+
     size_t byte_count = sk.count * 2;
+
+    if(byte_count == 0) {
+        result->transformed = true;
+
+        return true;
+    }
+
     uint8_t *bytes = (uint8_t*)mjb_alloc(byte_count);
 
     if(!bytes) {
@@ -814,6 +929,10 @@ MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding 
 
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *s2,
     size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode) {
+    if((s1 == NULL && s1_length > 0) || (s2 == NULL && s2_length > 0)) {
+        return -1;
+    }
+
     if(!mjb_initialize()) {
         return -1;
     }

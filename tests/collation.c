@@ -136,6 +136,13 @@ void *test_collation(void *arg) {
     /* mjb_collation_key */
     mjb_result ka, kb, kc, kd;
 
+    ATT_ASSERT(mjb_collation_key(NULL, 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &ka), false, "Key rejects NULL buffer")
+    ATT_ASSERT(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, NULL), false, "Key rejects NULL result")
+    ATT_ASSERT(mjb_string_compare(NULL, 1, "a", 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE), -1, "Compare rejects NULL left")
+
     // Key generation succeeds
     ATT_ASSERT(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &ka), true, "Key: 'a' succeeds")
     ATT_ASSERT(mjb_collation_key("b", 1, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kb), true, "Key: 'b' succeeds")
