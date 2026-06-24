@@ -38,25 +38,40 @@ static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
         (codepoint >= 64256 && codepoint <= 64279); // U+FB00–U+FB17
 }
 
-static char *mjb_special_casing_codepoint(mjb_codepoint codepoint, char *output,
-    size_t *output_index, size_t *output_size, mjb_case_type type) {
-    const mjb_codepoint *values = NULL;
-    uint8_t length = 0;
+static bool mjb_case_output_codepoint(mjb_codepoint codepoint, char **output,
+    size_t *output_index, size_t *output_size, mjb_encoding encoding) {
+    char *new_output = mjb_string_output_codepoint(codepoint, *output, output_index,
+        output_size, encoding);
 
-    if(!mjb_unicode_special_casing_lookup(codepoint, type, &values, &length)) {
-        return NULL;
+    if(new_output == NULL) {
+        return false;
     }
 
-    for(uint8_t i = 0; i < length; ++i) {
-        char *new_output = mjb_string_output_codepoint(values[i], output, output_index, output_size,
-            MJB_ENCODING_UTF_8);
+    *output = new_output;
 
-        if(new_output != NULL) {
-            output = new_output;
+    return true;
+}
+
+static bool mjb_special_casing_codepoint(mjb_codepoint codepoint, char **output,
+    size_t *output_index, size_t *output_size, mjb_case_type type, bool *found) {
+    const mjb_codepoint *values = NULL;
+    uint8_t length = 0;
+    *found = false;
+
+    if(!mjb_unicode_special_casing_lookup(codepoint, type, &values, &length)) {
+        return true;
+    }
+
+    *found = true;
+
+    for(uint8_t i = 0; i < length; ++i) {
+        if(!mjb_case_output_codepoint(values[i], output, output_index, output_size,
+            MJB_ENCODING_UTF_8)) {
+            return false;
         }
     }
 
-    return output;
+    return true;
 }
 
 // Peek at the next decoded codepoint and return whether it is cased (Lu/Ll/Lt).
@@ -90,6 +105,10 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
     bool in_error = false;
     mjb_codepoint codepoint;
     char *output = (char*)mjb_alloc(size);
+
+    if(output == NULL) {
+        return NULL;
+    }
 
     // char *output = mjb_alloc(length);
     size_t output_index = 0;
@@ -164,8 +183,12 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
                 ? 0x03C3   // σ: followed by a cased letter, not word-final
                 : 0x03C2;  // ς: word-final sigma
 
-            output = mjb_string_output_codepoint(sigma_out, output, &output_index,
-                &output_size, encoding);
+            if(!mjb_case_output_codepoint(sigma_out, &output, &output_index,
+                &output_size, encoding)) {
+                mjb_free(output);
+
+                return NULL;
+            }
 
             continue;
         }
@@ -173,23 +196,39 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         // Check against the original codepoint (before any remapping by the word-boundary
         // block above). The remapped form may not be the source of any special casing rule.
         if(mjb_maybe_has_special_casing(original)) {
-            char *new_output = mjb_special_casing_codepoint(original, output,
-                &output_index, &output_size, case_type == MJB_CASE_NONE ? MJB_CASE_TITLE :
-                case_type);
+            bool found_special_casing = false;
 
-            if(new_output != NULL) {
-                output = new_output;
+            if(!mjb_special_casing_codepoint(original, &output, &output_index, &output_size,
+                case_type == MJB_CASE_NONE ? MJB_CASE_TITLE : case_type,
+                &found_special_casing)) {
+                mjb_free(output);
 
+                return NULL;
+            }
+
+            if(found_special_casing) {
                 continue;
             }
         }
 
-        output = mjb_string_output_codepoint(codepoint, output, &output_index,
-            &output_size, encoding);
+        if(!mjb_case_output_codepoint(codepoint, &output, &output_index, &output_size,
+            encoding)) {
+            mjb_free(output);
+
+            return NULL;
+        }
     }
 
     if(output_index >= output_size) {
-        output = (char*)mjb_realloc(output, output_size + 1);
+        char *new_output = (char*)mjb_realloc(output, output_size + 1);
+
+        if(new_output == NULL) {
+            mjb_free(output);
+
+            return NULL;
+        }
+
+        output = new_output;
     }
 
     output[output_index] = '\0';
@@ -199,6 +238,10 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
 
 MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
     mjb_encoding encoding) {
+    if(buffer == NULL && size > 0) {
+        return NULL;
+    }
+
     if(size == 0) {
         return (char*)buffer;
     }
@@ -215,6 +258,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     char *output = (char*)mjb_alloc(size);
+
+    if(output == NULL) {
+        return NULL;
+    }
 
     size_t output_index = 0;
     size_t output_size = size;
@@ -240,8 +287,12 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             if(mjb_unicode_case_folding_lookup(codepoint, &values, &length)) {
                 // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
                 for(uint8_t k = 0; k < length; ++k) {
-                    output = mjb_string_output_codepoint(values[k], output, &output_index,
-                        &output_size, encoding);
+                    if(!mjb_case_output_codepoint(values[k], &output, &output_index,
+                        &output_size, encoding)) {
+                        mjb_free(output);
+
+                        return NULL;
+                    }
                 }
 
                 continue;
@@ -255,8 +306,12 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             }
 
             // Identity: codepoint unchanged if no lowercase found
-            output = mjb_string_output_codepoint(codepoint, output, &output_index,
-                &output_size, encoding);
+            if(!mjb_case_output_codepoint(codepoint, &output, &output_index,
+                &output_size, encoding)) {
+                mjb_free(output);
+
+                return NULL;
+            }
 
             continue;
         }
@@ -275,22 +330,30 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
             in_word = true;  // Σ is a cased letter
 
-            output = mjb_string_output_codepoint(sigma_out, output, &output_index,
-                &output_size, encoding);
+            if(!mjb_case_output_codepoint(sigma_out, &output, &output_index,
+                &output_size, encoding)) {
+                mjb_free(output);
+
+                return NULL;
+            }
 
             continue;
         }
 
         if(mjb_maybe_has_special_casing(codepoint)) {
-            char *new_output = mjb_special_casing_codepoint(codepoint, output,
-                &output_index, &output_size, type);
+            bool found_special_casing = false;
 
-            if(new_output != NULL) {
+            if(!mjb_special_casing_codepoint(codepoint, &output, &output_index, &output_size,
+                type, &found_special_casing)) {
+                mjb_free(output);
+
+                return NULL;
+            }
+
+            if(found_special_casing) {
                 if(type == MJB_CASE_LOWER) {
                     in_word = true;
                 }
-
-                output = new_output;
 
                 continue;
             }
@@ -332,12 +395,24 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             codepoint = mapped;
         }
 
-        output = mjb_string_output_codepoint(codepoint, output, &output_index,
-            &output_size, encoding);
+        if(!mjb_case_output_codepoint(codepoint, &output, &output_index, &output_size,
+            encoding)) {
+            mjb_free(output);
+
+            return NULL;
+        }
     }
 
     if(output_index >= output_size) {
-        output = (char*)mjb_realloc(output, output_size + 1);
+        char *new_output = (char*)mjb_realloc(output, output_size + 1);
+
+        if(new_output == NULL) {
+            mjb_free(output);
+
+            return NULL;
+        }
+
+        output = new_output;
     }
 
     output[output_index] = '\0';

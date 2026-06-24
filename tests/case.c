@@ -17,6 +17,9 @@ void *test_case(void *arg) {
     // CURRENT_COUNT 32
     char *result = NULL;
 
+    ATT_ASSERT(mjb_case(NULL, 1, MJB_CASE_UPPER, encoding), (char*)NULL,
+        "Case conversion rejects NULL buffer")
+
     // Test uppercase conversion
     result = mjb_case("hello", 5, MJB_CASE_UPPER, encoding);
     ATT_ASSERT(result, (char*)"HELLO", "UTF-8 uppercase: hello")
