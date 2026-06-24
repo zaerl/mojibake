@@ -5,6 +5,7 @@
  */
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,6 +135,22 @@ bool mjbsh_print_escaped_character(const char *buffer_utf8) {
     return false;
 }
 
+static void mjbsh_print_json_string(const char *value) {
+    if(value == NULL) {
+        value = "";
+    }
+
+    for(const unsigned char *p = (const unsigned char *)value; *p != '\0'; ++p) {
+        char c = (char)*p;
+
+        if(mjbsh_print_escaped_character(&c)) {
+            continue;
+        }
+
+        putchar(c);
+    }
+}
+
 void mjbsh_print_codepoint(mjb_codepoint codepoint) {
     if(codepoint == MJB_CODEPOINT_NOT_VALID) {
         return;
@@ -196,11 +213,26 @@ void mjbsh_value(const char* label, unsigned int nl, const char* format, ...) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_json_field(label);
         printf("\"%s", mjbsh_green());
+
+        va_list args_copy;
+        va_copy(args_copy, args);
+        int length = vsnprintf(NULL, 0, format, args_copy);
+        va_end(args_copy);
+
+        if(length >= 0) {
+            char *value = (char*)malloc((size_t)length + 1);
+
+            if(value != NULL) {
+                vsnprintf(value, (size_t)length + 1, format, args);
+                mjbsh_print_json_string(value);
+                free(value);
+            }
+        }
     } else {
         printf("%s: %s", label, mjbsh_green());
+        vprintf(format, args);
     }
 
-    vprintf(format, args);
     printf("%s%s", mjbsh_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"" : "");
 
     mjbsh_print_nl(nl);
@@ -242,6 +274,10 @@ void mjbsh_numeric(const char* label, unsigned int nl, unsigned int value) {
 }
 
 void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigned int nl) {
+    if(name == NULL) {
+        name = "Unknown";
+    }
+
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         mjbsh_value(label, nl, "[%d] %s", id, name);
         return;
@@ -255,7 +291,9 @@ void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigne
     printf("%s%u%s,%s", mjbsh_green(), id, mjbsh_reset(), mjbsh_jnl());
 
     mjbsh_json_nested_field("value");
-    printf("\"%s%s%s\"%s%s%s}", mjbsh_green(), name, mjbsh_reset(), mjbsh_jnl(), mjbsh_ji(), mjbsh_ji());
+    printf("\"%s", mjbsh_green());
+    mjbsh_print_json_string(name);
+    printf("%s\"%s%s%s}", mjbsh_reset(), mjbsh_jnl(), mjbsh_ji(), mjbsh_ji());
 
     mjbsh_print_nl(nl);
 }
@@ -313,16 +351,33 @@ void mjbsh_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint
 
 bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     char *endptr;
-    mjb_codepoint value = 0;
+
+    if(input == NULL || codepoint == NULL) {
+        return false;
+    }
 
     if(cmd_interpret_mode == INTERPRET_MODE_CODEPOINT) {
+        errno = 0;
+        unsigned long value = 0;
+        const char *start = input;
+
         if(strncmp(input, "U+", 2) == 0 || strncmp(input, "u+", 2) == 0) {
             // Parse as hex after "U+" prefix
-            value = strtoul(input + 2, &endptr, 16);
+            start = input + 2;
+            value = strtoul(start, &endptr, 16);
         } else {
             // Try parsing as hex
-            value = strtoul(input, &endptr, 16);
+            value = strtoul(start, &endptr, 16);
         }
+
+        if(endptr == start || *endptr != '\0' || errno == ERANGE ||
+            value > MJB_CODEPOINT_MAX) {
+            return false;
+        }
+
+        *codepoint = (mjb_codepoint)value;
+
+        return true;
     } else {
         mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8, mjbsh_next_current_character);
 
@@ -335,14 +390,6 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
 
         return true;
     }
-
-    if(*endptr != '\0') {
-        return false;
-    }
-
-    *codepoint = value;
-
-    return true;
 }
 
 const char* mjbsh_ji(void) {
