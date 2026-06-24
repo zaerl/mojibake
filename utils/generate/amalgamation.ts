@@ -36,12 +36,13 @@ export async function generateAmalgamation() {
   console.log('Generating amalgamation...');
   const baseFolder = '../../build-amalgamation';
 
-  let header = getFileLicense([
+  const description = [
     'This file is an amalgamation of all Mojibake source files. It is automatically generated. Do not',
     'edit. If you want to generate it, run the following command:',
     '',
     'make amalgamation'
-  ]);
+  ];
+  let header = getFileLicense(description);
 
   header += '\n\n#pragma once\n';
   header += loadFile('mojibake.h');
@@ -55,28 +56,8 @@ export async function generateAmalgamation() {
   // Generate main header
   writeFileSync(baseFolder + '/mojibake.h', header);
 
-  let source = `/**
- * The Mojibake library
- *
- * This file is distributed under the MIT License. See LICENSE for details.
- *
- * This file is an amalgamation of all Mojibake source files. It is automatically generated. Do not
- * edit. If you want to generate it, run the following command:
- *
- * make amalgamation
- */\n\n#include "mojibake.h"\n`;
-
-  // Headers that need to be included before the sources
-  const headers = [
-    'buffer.h',
-  ];
-
-  for(const header of headers) {
-    let content = `\n// ----------\n// ${header}\n// ----------\n\n` + loadFile(header);
-    content = content.replace(/#include "mojibake\.h"/g, match => `// ${match}`);
-
-    source += content;
-  }
+  let source = getFileLicense(description);
+  source += `\n\n#include "mojibake.h"\n`;
 
   source += `\n// ----------\n// Start of sources\n// ----------\n
 #include <stdbool.h>
@@ -84,7 +65,7 @@ export async function generateAmalgamation() {
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>\n\n`;
+#include <stdint.h>\n`;
 
   const srcDir = '../../src';
   const cFiles = readdirSync(srcDir, { withFileTypes: true })
@@ -105,7 +86,7 @@ export async function generateAmalgamation() {
   ];
 
   for(const file of sources) {
-    let content = `\n// ----------\n// ${file}\n// ----------\n\n` + loadFile(file);
+    let content = `\n// ----------\n// ${file}\n// ----------\n` + loadFile(file);
     content = content.replace(/#include .+/g, match => `// ${match}`);
     content = content.replace(/extern mojibake mjb_global;/g, match => `// ${match}`);
 
