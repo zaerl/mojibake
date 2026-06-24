@@ -18,6 +18,7 @@ set(TEST_SOURCES
     hangul-composition.c
     hangul.c
     identifier.c
+    locales.c
     mojibake.c
     next.c
     normalization.c

@@ -38,6 +38,7 @@ void *test_filter(void *arg);
 void *test_hangul_composition(void *arg);
 void *test_hangul(void *arg);
 void *test_identifier(void *arg);
+void *test_locales(void *arg);
 void *test_mojibake(void *arg);
 void *test_next(void *arg);
 void *test_normalization(void *arg);

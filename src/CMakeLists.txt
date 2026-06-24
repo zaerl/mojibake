@@ -15,6 +15,7 @@ set(SOURCES
     hangul.c
     filter.c
     identifier.c
+    locales.c
     next.c
     mojibake.c
     normalization.c
@@ -118,6 +119,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_emoji\""
         "\"_mjb_codepoint_east_asian_width\""
         "\"_mjb_display_width\""
+        "\"_mjb_locale_set\""
         "\"_mjb_version\""
         "\"_mjb_version_number\""
         "\"_mjb_unicode_version\""

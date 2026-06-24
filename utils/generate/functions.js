@@ -1666,6 +1666,21 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Set current locale",
+    "ret": "bool",
+    "name": "locale_set",
+    "attributes": [],
+    "args": [
+      {
+        "name": "locale",
+        "type": "unsigned int",
+        "description": "The locale to set",
+        "wasm_generated": false
+      }
+    ],
+    "wasm": true
+  },
+  {
     "comment": "Output the current library version (MJB_VERSION)",
     "ret": "const char *",
     "name": "version",

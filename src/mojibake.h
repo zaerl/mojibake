@@ -24,6 +24,7 @@
 #include <stdint.h>
 
 #include "unicode.h"
+#include "locales.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -625,6 +626,9 @@ bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_widt
 
 // Return the display width of a string
 bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
+
+// Set current locale
+bool mjb_locale_set(unsigned int locale);
 
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);

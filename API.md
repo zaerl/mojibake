@@ -396,6 +396,12 @@ Return the display width of a string
 bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 ```
 
+Set current locale
+
+```c
+bool mjb_locale_set(unsigned int locale);
+```
+
 Output the current library version (MJB_VERSION)
 
 ```c
