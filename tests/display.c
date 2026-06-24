@@ -9,6 +9,9 @@
 void *test_display(void *arg) {
     size_t sw = 0;
 
+    ATT_ASSERT(mjb_display_width("A", 1, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, NULL), false, "NULL width pointer")
+    ATT_ASSERT(mjb_display_width(NULL, 1, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, &sw), false, "NULL display buffer")
+
     ATT_ASSERT(mjb_display_width("", 0, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, &sw), true, "Empty string")
     ATT_ASSERT(sw, 0, "Empty string")
 

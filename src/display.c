@@ -14,10 +14,18 @@
  */
 MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_width_context context, size_t *width) {
+    if(width == NULL) {
+        return false;
+    }
+
     *width = 0;
 
     if(size == 0) {
         return true;
+    }
+
+    if(buffer == NULL) {
+        return false;
     }
 
     size_t ambiguous_count = 0;
@@ -61,29 +69,35 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
 
         // Handle visible characters using East Asian Width
         mjb_east_asian_width eaw = MJB_EAW_NOT_SET;
+        size_t width_increment = 1;
+        bool is_visible = true;
 
         if(mjb_codepoint_east_asian_width(codepoint, &eaw)) {
             if(eaw == MJB_EAW_NEUTRAL || eaw == MJB_EAW_NARROW || eaw == MJB_EAW_HALF_WIDTH) {
-                *width += 1;
-                visible_count++;
+                width_increment = 1;
             } else if(eaw == MJB_EAW_FULL_WIDTH || eaw == MJB_EAW_WIDE) {
-                *width += 2;
-                wide_count++;
-                visible_count++;
+                width_increment = 2;
+                ++wide_count;
             } else if(eaw == MJB_EAW_AMBIGUOUS) {
                 // Initially count as narrow (1), track for later adjustment
-                *width += 1;
-                ambiguous_count++;
-                visible_count++;
+                width_increment = 1;
+                ++ambiguous_count;
             } else {
                 // Fallback for any unhandled EAW values
-                *width += 1;
-                visible_count++;
+                width_increment = 1;
             }
         } else {
             // No EAW property found - default to narrow
-            *width += 1;
-            visible_count++;
+            width_increment = 1;
+        }
+
+        if(is_visible) {
+            if(*width > SIZE_MAX - width_increment) {
+                return false;
+            }
+
+            ++visible_count;
+            *width += width_increment;
         }
     }
 
@@ -93,13 +107,17 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
 
         if(context == MJB_WIDTH_CONTEXT_AUTO) {
             // If ≥50% of visible characters are wide, treat as East Asian context
-            use_east_asian_width = (visible_count > 0 && wide_count * 2 >= visible_count);
+            use_east_asian_width = (visible_count > 0 && wide_count >= visible_count - wide_count);
         } else {
             use_east_asian_width = (context == MJB_WIDTH_CONTEXT_EAST_ASIAN);
         }
 
         // If East Asian context, add 1 for each ambiguous character (they were initially counted as 1, need to be 2)
         if(use_east_asian_width) {
+            if(*width > SIZE_MAX - ambiguous_count) {
+                return false;
+            }
+
             *width += ambiguous_count;
         }
     }
