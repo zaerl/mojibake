@@ -4,7 +4,17 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { readFileSync } from 'fs';
+import { createWriteStream, mkdirSync, readFileSync } from 'fs';
+import { get } from 'https';
+import { dirname } from 'path';
+import { pipeline } from 'stream';
+import { promisify } from 'util';
+
+const DOWNLOAD_OPTIONS = {
+  headers: {
+    'User-Agent': 'mojibake-locale-generator',
+  },
+};
 
 export function substituteBlock(fileContent: string, start: string, end: string | null, replacement: string) {
   const startIndex = fileContent.indexOf(start) + start.length;
@@ -390,4 +400,53 @@ export function compareBytes(a: number[], b: number[]) {
   }
 
   return a.length - b.length;
+}
+
+export async function downloadFile(url: string, dest: string) {
+  const streamPipeline = promisify(pipeline);
+  mkdirSync(dirname(dest), { recursive: true });
+
+  return new Promise((resolve, reject) => {
+    get(url, DOWNLOAD_OPTIONS, async (res) => {
+      if(res.statusCode !== 200) {
+        reject(new Error(`Failed to get '${url}' (${res.statusCode})`));
+        res.resume();
+
+        return;
+      }
+
+      const fileStream = createWriteStream(dest);
+
+      try {
+        await streamPipeline(res, fileStream);
+        resolve(undefined);
+      } catch(err) {
+        reject(err);
+      }
+    }).on('error', reject);
+  });
+}
+
+export async function downloadText(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    get(url, DOWNLOAD_OPTIONS, (res) => {
+      if(res.statusCode !== 200) {
+        reject(new Error(`Failed to get '${url}' (${res.statusCode})`));
+        res.resume();
+
+        return;
+      }
+
+      res.setEncoding('utf-8');
+      let data = '';
+
+      res.on('data', chunk => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        resolve(data);
+      });
+    }).on('error', reject);
+  });
 }

@@ -227,10 +227,13 @@ make watch-api
 
 ## Licenses
 
-This project is released under the MIT License (see LICENSE file).
+This project is released under the MIT License (see [LICENSE](LICENSE) file).
 
 ## Thanks
 
 Mojibake is built using the work of extraordinary individuals and teams.
 
-1. Unicode Character Database - Unicode, Inc. (see [UNICODE-LICENSE](UNICODE-LICENSE))
+1. Unicode Character Database - Copyright © 1991-2026 Unicode, Inc.
+(see [license.txt](https://www.unicode.org/license.txt))
+2. Unicode CLDR Project - Copyright © 2004-2026 Unicode, Inc.
+(see [LICENSE](https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/LICENSE))

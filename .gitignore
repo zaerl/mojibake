@@ -16,6 +16,7 @@ utils/generate/node_modules
 utils/generate/unicode-data
 utils/generate/locales/*.xml
 utils/generate/locales/*.json
+utils/generate/locales/cldr/*
 
 src/api/mojibake.js
 src/api/mojibake.wasm
