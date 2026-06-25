@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { functions } from './function';
+import { functions } from './html-function';
 
 // Types
 type FuncCoverage = {

@@ -7,7 +7,7 @@
 import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'fs';
 import http from 'http';
 import { basename, extname, join, relative } from 'path';
-import { cfns } from '../function';
+import { cfns } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
 
 const SOURCE_DIR = '../../src/site';

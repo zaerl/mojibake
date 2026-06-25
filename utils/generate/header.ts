@@ -5,7 +5,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { cfns } from './function';
+import { cfns } from './html-function';
 import { Property } from './parse-ucd/properties';
 import { BidiBracket, BidiMirroringPair, Block, Categories, characterDecompositionMapping } from './types';
 import { substituteBlock } from './utils';

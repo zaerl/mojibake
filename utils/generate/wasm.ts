@@ -5,7 +5,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { cfns } from './function';
+import { cfns } from './html-function';
 import { substituteBlock } from './utils';
 
 function getFunctions() {
