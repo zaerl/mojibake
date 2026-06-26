@@ -4,10 +4,10 @@
 | -------------------------------------- | ---------- |
 | `mjb_string_compare`                   | 437937     |
 | `mjb_normalize`                        | 400691     |
-| `mjb_bidi_resolve`                     | 91772      |
+| `mjb_bidi_resolve`                     | 91771      |
 | `mjb_break_line`                       | 19367      |
 | `mjb_break_word`                       | 1828       |
-| `mjb_segmentation`                     | 714        |
+| `mjb_segmentation`                     | 732        |
 | `mjb_break_sentence`                   | 456        |
 | `mjb_case`                             | 415        |
 | `mjb_string_convert_encoding`          | 147        |
@@ -28,7 +28,6 @@
 | `mjb_bidi_reorder_line`                | 15         |
 | `mjb_codepoint_block`                  | 15         |
 | `mjb_codepoint_is_cjk_ext`             | 15         |
-| `mjb_truncate_width`                   | 15         |
 | `mjb_string_is_utf16`                  | 14         |
 | `mjb_string_is_identifier`             | 12         |
 | `mjb_bidi_line_runs`                   | 11         |
@@ -44,6 +43,7 @@
 | `mjb_truncate_word`                    | 7          |
 | `mjb_codepoint_is_id_start`            | 6          |
 | `mjb_shutdown`                         | 6          |
+| `mjb_truncate_width`                   | 6          |
 | `mjb_truncate_word_width`              | 6          |
 | `mjb_codepoint_is_combining`           | 5          |
 | `mjb_codepoint_is_graphic`             | 5          |
@@ -79,4 +79,4 @@
 | `mjb_unicode_version`                  | 1          |
 | `mjb_version`                          | 1          |
 | `mjb_version_number`                   | 1          |
-| **Total**                              | **954343** |
+| **Total**                              | **954351** |

@@ -326,7 +326,6 @@ void *test_encoding(void *arg) {
         MJB_ENCODING_ASCII, &ascii_result), false, "Convert UTF-8 non-ASCII text to ASCII")
 
     // CURRENT_ASSERT mjb_string_convert_encoding
-    // CURRENT_COUNT 75
     for(size_t from = 0; from < 5; ++from) {
         for(size_t to = 0; to < 5; ++to) {
             mjb_result convert_result;
@@ -334,16 +333,22 @@ void *test_encoding(void *arg) {
                 encodings[from], encodings[to], &convert_result);
 
             snprintf(test_description, 64, "%s to %s", output_encodings[from], output_encodings[to]);
+            // CURRENT_COUNT 25
             ATT_ASSERT(ret, true, test_description)
 
             if(from == to) {
                 snprintf(test_description, 64, "%s to %s is not transformed", output_encodings[from], output_encodings[to]);
+                // CURRENT_COUNT 5
                 ATT_ASSERT(convert_result.transformed, false, test_description)
+                // CURRENT_COUNT 5
                 ATT_ASSERT((void*)convert_result.output, (void*)hello_strings[from], test_description)
+                // CURRENT_COUNT 5
                 ATT_ASSERT(convert_result.output_size, hello_strings_sizes[from], test_description)
             } else {
                 snprintf(test_description, 64, "%s to %s is transformed", output_encodings[from], output_encodings[to]);
+                // CURRENT_COUNT 20
                 ATT_ASSERT(convert_result.transformed, true, test_description)
+                // CURRENT_COUNT 20
                 ATT_ASSERT(memcmp(convert_result.output, hello_strings[to], convert_result.output_size), 0, test_description)
             }
 

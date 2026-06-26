@@ -165,8 +165,6 @@ static void read_bidi_test_file(const char *filename) {
         size_t total      = 0;
 
         if(!ok) {
-            // CURRENT_ASSERT mjb_bidi_resolve
-            // CURRENT_COUNT 91745
             ATT_ASSERT(total, successful, test_name)
 
             continue;
@@ -226,6 +224,7 @@ static void read_bidi_test_file(const char *filename) {
         }
 
         // CURRENT_ASSERT mjb_bidi_resolve
+        // CURRENT_COUNT 91745
         ATT_ASSERT(total, successful, test_name)
 
         mjb_bidi_free(&para);
