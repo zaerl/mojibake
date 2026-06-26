@@ -182,7 +182,14 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
         return 0;
     }
 
-    if(encoding == MJB_ENCODING_UTF_8) {
+    if(encoding == MJB_ENCODING_ASCII) {
+        if(codepoint <= 0x7F) {
+            buffer[0] = (char)codepoint;
+            buffer[1] = '\0';
+
+            return 1;
+        }
+    } else if(encoding == MJB_ENCODING_UTF_8) {
         if(codepoint <= 0x7F) {
             // 0b0x|xx|xx|xx, 1 byte sequence (ASCII)
             buffer[0] = (char)codepoint;

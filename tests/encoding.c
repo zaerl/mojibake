@@ -211,6 +211,15 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 4, "0x0000 UTF-32BE")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-32BE")
 
+    ATT_ASSERT(mjb_codepoint_encode(0x007F, (char*)buffer, 5, MJB_ENCODING_ASCII), 1,
+        "ASCII encode limit")
+    ATT_ASSERT(buffer[0], (char)0x7F, "ASCII encode limit value")
+
+    ATT_ASSERT(mjb_codepoint_encode(0x0080, (char*)buffer, 5, MJB_ENCODING_ASCII), 0,
+        "ASCII encode rejects non-ASCII")
+    ATT_ASSERT(mjb_codepoint_encode(0x00E9, (char*)buffer, 5, MJB_ENCODING_ASCII), 0,
+        "ASCII encode rejects Latin-1")
+
     mjb_encoding encoding;
 
     #define TEST_UTF(CHAR, STR, RES, COMMENT) \
@@ -301,6 +310,20 @@ void *test_encoding(void *arg) {
         &boundary_result), false, "Convert encoding rejects NULL buffer")
     ATT_ASSERT(mjb_string_convert_encoding("", 0, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_16_LE,
         NULL), false, "Convert encoding rejects NULL result")
+
+    const char utf16le_ascii[] = { 'e', '\0', 'n', '\0' };
+    mjb_result ascii_result;
+
+    ATT_ASSERT(mjb_string_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
+        MJB_ENCODING_UTF_16_LE, MJB_ENCODING_ASCII, &ascii_result), true,
+        "Convert UTF-16LE ASCII text to ASCII")
+    ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
+    ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size")
+    ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output")
+    mjb_free(ascii_result.output);
+
+    ATT_ASSERT(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENCODING_UTF_8,
+        MJB_ENCODING_ASCII, &ascii_result), false, "Convert UTF-8 non-ASCII text to ASCII")
 
     // CURRENT_ASSERT mjb_string_convert_encoding
     // CURRENT_COUNT 75
