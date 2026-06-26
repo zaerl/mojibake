@@ -37,12 +37,14 @@ void *test_encoding(void *arg) {
     const char *test10 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_string_is_ascii(test10, 43), true, "Valid string and length")
 
-    const char ascii_null_invalid[] = { 'A', '\0', (char)0x80 };
+    const unsigned char ascii_null_invalid[] = { 'A', '\0', 0x80 };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_string_is_ascii(ascii_null_invalid, sizeof(ascii_null_invalid)), false,
+    ATT_ASSERT(mjb_string_is_ascii((const char*)ascii_null_invalid, sizeof(ascii_null_invalid)),
+        false,
         "ASCII rejects non-ASCII after embedded NULL")
 #else
-    ATT_ASSERT(mjb_string_is_ascii(ascii_null_invalid, sizeof(ascii_null_invalid)), true,
+    ATT_ASSERT(mjb_string_is_ascii((const char*)ascii_null_invalid, sizeof(ascii_null_invalid)),
+        true,
         "ASCII stops at NULL terminator")
 #endif
 
@@ -101,16 +103,20 @@ void *test_encoding(void *arg) {
     utf8_test = "Hello\0World";
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, 11), true, "String with NULL character")
 
-    const char utf8_null_invalid[] = { 'A', '\0', (char)0xFF };
+    const unsigned char utf8_null_invalid[] = { 'A', '\0', 0xFF };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_string_is_utf8(utf8_null_invalid, sizeof(utf8_null_invalid)), false,
+    ATT_ASSERT(mjb_string_is_utf8((const char*)utf8_null_invalid, sizeof(utf8_null_invalid)),
+        false,
         "UTF-8 rejects invalid byte after embedded NULL")
-    ATT_ASSERT((unsigned int)mjb_string_encoding(utf8_null_invalid, sizeof(utf8_null_invalid)),
-        (unsigned int)MJB_ENCODING_UNKNOWN, "Encoding rejects invalid byte after embedded NULL")
+    ATT_ASSERT((unsigned int)mjb_string_encoding((const char*)utf8_null_invalid,
+        sizeof(utf8_null_invalid)), (unsigned int)MJB_ENCODING_UNKNOWN,
+        "Encoding rejects invalid byte after embedded NULL")
 #else
-    ATT_ASSERT(mjb_string_is_utf8(utf8_null_invalid, sizeof(utf8_null_invalid)), true,
+    ATT_ASSERT(mjb_string_is_utf8((const char*)utf8_null_invalid, sizeof(utf8_null_invalid)),
+        true,
         "UTF-8 stops at NULL terminator")
-    ATT_ASSERT((unsigned int)mjb_string_encoding(utf8_null_invalid, sizeof(utf8_null_invalid)),
+    ATT_ASSERT((unsigned int)mjb_string_encoding((const char*)utf8_null_invalid,
+        sizeof(utf8_null_invalid)),
         (unsigned int)(MJB_ENCODING_UTF_8 | MJB_ENCODING_ASCII),
         "Encoding stops at NULL terminator")
 #endif
