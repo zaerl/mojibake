@@ -17,6 +17,7 @@ AMALGAMATION_BUILD_DIR ?= build-amalgamation
 
 # CMake build flags
 BUILD_TYPE ?= Release
+TEST_BUILD_TYPE ?= Test
 CMAKE_NATIVE_BASE_FLAGS = -DBUILD_WASM=OFF
 NATIVE_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
@@ -45,36 +46,34 @@ GENERATE_SOURCES = \
 
 UNICODE_DATA = src/unicode-data.h
 
-cmake_configure = cmake -S . -B $(1) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(2)
-cmake_build = cmake --build $(1) --config $(BUILD_TYPE)
-
-.PHONY: all configure configure-cpp configure-shared configure-asan configure-ubsan configure-null configure-wasm
-
 all: configure build
+
+.PHONY: all configure configure-cpp configure-shared configure-asan configure-ubsan configure-null \
+	configure-wasm
 
 # C targets
 configure: $(UNICODE_DATA)
-	@$(call cmake_configure,$(BUILD_DIR),$(NATIVE_CMAKE_FLAGS))
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 
 # NULL-safe testing targets
 configure-null: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_NULL_BUILD_DIR),$(NULL_CMAKE_FLAGS))
+	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NULL_CMAKE_FLAGS)
 
 # C++ targets
 configure-cpp: $(UNICODE_DATA)
-	@$(call cmake_configure,$(CPP_BUILD_DIR),$(CPP_CMAKE_FLAGS))
+	@cmake -S . -B $(CPP_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CPP_CMAKE_FLAGS)
 
 # Shared library targets
 configure-shared: $(UNICODE_DATA)
-	@$(call cmake_configure,$(SHARED_BUILD_DIR),$(SHARED_CMAKE_FLAGS))
+	@cmake -S . -B $(SHARED_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(SHARED_CMAKE_FLAGS)
 
 # AddressSanitizer targets
 configure-asan: $(UNICODE_DATA)
-	@$(call cmake_configure,$(ASAN_BUILD_DIR),$(ASAN_CMAKE_FLAGS))
+	@cmake -S . -B $(ASAN_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(ASAN_CMAKE_FLAGS)
 
 # UndefinedBehaviorSanitizer targets
 configure-ubsan: $(UNICODE_DATA)
-	@$(call cmake_configure,$(UBSAN_BUILD_DIR),$(UBSAN_CMAKE_FLAGS))
+	@cmake -S . -B $(UBSAN_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(UBSAN_CMAKE_FLAGS)
 
 # WASM targets
 configure-wasm: $(UNICODE_DATA)
@@ -84,21 +83,21 @@ configure-wasm: $(UNICODE_DATA)
 
 # C targets
 build: configure
-	@$(call cmake_build,$(BUILD_DIR))
+	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE)
 
 # C++ targets
 build-cpp: configure-cpp
-	@$(call cmake_build,$(CPP_BUILD_DIR))
+	@cmake --build $(CPP_BUILD_DIR) --config $(BUILD_TYPE)
 
 # Shared library targets
 build-shared: configure-shared
-	@$(call cmake_build,$(SHARED_BUILD_DIR))
+	@cmake --build $(SHARED_BUILD_DIR) --config $(BUILD_TYPE)
 
 build-asan: configure-asan
-	@$(call cmake_build,$(ASAN_BUILD_DIR))
+	@cmake --build $(ASAN_BUILD_DIR) --config $(BUILD_TYPE)
 
 build-ubsan: configure-ubsan
-	@$(call cmake_build,$(UBSAN_BUILD_DIR))
+	@cmake --build $(UBSAN_BUILD_DIR) --config $(BUILD_TYPE)
 
 # WASM targets
 build-wasm: configure-wasm
@@ -158,38 +157,33 @@ update-version:
 .PHONY: test test-all test-cpp test-asan test-ubsan test-null ctest test-docker
 
 # Run tests
-test: BUILD_TYPE = Test
 test: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_BUILD_DIR),$(NATIVE_CMAKE_FLAGS))
-	@$(call cmake_build,$(TEST_BUILD_DIR))
+	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests with embedded NULL support
-test-null: BUILD_TYPE = Test
 test-null: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_NULL_BUILD_DIR),$(NULL_CMAKE_FLAGS))
-	@$(call cmake_build,$(TEST_NULL_BUILD_DIR))
+	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NULL_CMAKE_FLAGS)
+	@cmake --build $(TEST_NULL_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_NULL_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests with C++ compiler
-test-cpp: BUILD_TYPE = Test
 test-cpp: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_CPP_BUILD_DIR),$(CPP_CMAKE_FLAGS))
-	@$(call cmake_build,$(TEST_CPP_BUILD_DIR))
+	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_CPP_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests with AddressSanitizer
-test-asan: BUILD_TYPE = Test
 test-asan: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_ASAN_BUILD_DIR),$(ASAN_CMAKE_FLAGS))
-	@$(call cmake_build,$(TEST_ASAN_BUILD_DIR))
+	@cmake -S . -B $(TEST_ASAN_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(ASAN_CMAKE_FLAGS)
+	@cmake --build $(TEST_ASAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_ASAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests with UndefinedBehaviorSanitizer
-test-ubsan: BUILD_TYPE = Test
 test-ubsan: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_UBSAN_BUILD_DIR),$(UBSAN_CMAKE_FLAGS))
-	@$(call cmake_build,$(TEST_UBSAN_BUILD_DIR))
+	@cmake -S . -B $(TEST_UBSAN_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(UBSAN_CMAKE_FLAGS)
+	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_UBSAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run all local test configurations
@@ -201,11 +195,10 @@ test-all:
 	$(MAKE) test-ubsan
 
 # Run tests using CTest
-ctest: BUILD_TYPE = Test
 ctest: $(UNICODE_DATA)
-	@$(call cmake_configure,$(TEST_BUILD_DIR),$(NATIVE_CMAKE_FLAGS))
-	@$(call cmake_build,$(TEST_BUILD_DIR))
-	cd $(TEST_BUILD_DIR) && ctest -C $(BUILD_TYPE) $(ARGS)
+	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
+	cd $(TEST_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
 # Run tests in Docker container
 test-docker:
@@ -216,7 +209,7 @@ test-docker:
 
 # Clean targets
 clean-build:
-	@$(call cmake_build,$(BUILD_DIR)) --target clean
+	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) --target clean
 
 # Clean native build
 clean-native:
