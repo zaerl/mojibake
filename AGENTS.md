@@ -78,13 +78,14 @@ Core modules in `src/`:
 - `case.c` - Unicode casing methods (upper, lower, title, casefold)
 - `cjk.c` - CJK ideograph detection
 - `codepoint.c` - Unicode codepoint operations
+- `cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
 - `display.c` - Display width calculation (`mjb_display_width`)
 - `east-asian-width.c` - East Asian width property (`mjb_codepoint_east_asian_width`)
 - `emoji.c` - Emoji property detection (`mjb_codepoint_emoji`)
-- `encoding.c` - String encoding detection
-- `cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
+- `encoding.c` - String encoding detection, codepoint encoding, and encoding conversion
 - `filter.c` - String filtering (`mjb_string_filter`)
 - `hangul.c` - Hangul syllable handling
+- `locales.c` - Locale APIs, including strict BCP 47 parsing (`mjb_locale_parse`)
 - `mojibake.c/.h` - Main API and library initialization
 - `next.c` - Character-by-character iteration (`mjb_next_character`)
 - `normalization.c` - Unicode normalization (NFC, NFD, NFKC, NFKD)
@@ -100,6 +101,8 @@ Core modules in `src/`:
 
 Key headers:
 
+- `locales.h` - Generated ISO-639-2 locale enum
+- `mojibake.h` - Public API, including `mjb_locale_id`, `mjb_error`, and `mjb_locale_parse`
 - `unicode.h` - Unicode constants and enums
 - `utf*.h` UTF encode/decode functions
 

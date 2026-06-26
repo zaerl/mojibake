@@ -396,6 +396,12 @@ Return the display width of a string
 bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 ```
 
+Parse a BCP 47 language tag
+
+```c
+bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
+```
+
 Set current locale
 
 ```c

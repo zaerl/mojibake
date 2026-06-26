@@ -1666,6 +1666,45 @@ export default [
     "wasm": true
   },
   {
+    "comment": "Parse a BCP 47 language tag",
+    "ret": "bool",
+    "name": "locale_parse",
+    "attributes": [],
+    "args": [
+      {
+        "name": "id",
+        "type": "const char *",
+        "description": "The BCP 47 language tag to parse",
+        "wasm_generated": false
+      },
+      {
+        "name": "size",
+        "type": "size_t",
+        "description": "The size of the locale identifier, in bytes",
+        "wasm_generated": true
+      },
+      {
+        "name": "encoding",
+        "type": "mjb_encoding",
+        "description": "The encoding of the locale identifier",
+        "wasm_generated": false
+      },
+      {
+        "name": "locale",
+        "type": "mjb_locale_id *",
+        "description": "The locale structure to store the result",
+        "wasm_generated": true
+      },
+      {
+        "name": "error",
+        "type": "mjb_error *",
+        "description": "The error to store when parsing fails",
+        "wasm_generated": true
+      }
+    ],
+    "wasm": false
+  },
+  {
     "comment": "Set current locale",
     "ret": "bool",
     "name": "locale_set",

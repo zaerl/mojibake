@@ -231,6 +231,23 @@ typedef enum mjb_case_type {
     MJB_CASE_CASEFOLD
 } mjb_case_type;
 
+typedef enum mjb_error {
+    MJB_ERROR_NONE,
+    MJB_ERROR_INVALID_ARGUMENT,
+    MJB_ERROR_UNSUPPORTED
+} mjb_error;
+
+typedef struct mjb_locale_id {
+    char language[9];
+    char extlang[12];
+    char script[5];
+    char region[4];
+    char variant[32];
+    char extensions[128];
+    char privateuse[128];
+    char grandfathered[32];
+} mjb_locale_id;
+
 typedef struct mjb_result {
     char *output;
     size_t output_size;
@@ -626,6 +643,9 @@ bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_widt
 
 // Return the display width of a string
 bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
+
+// Parse a BCP 47 language tag
+bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
 
 // Set current locale
 bool mjb_locale_set(unsigned int locale);

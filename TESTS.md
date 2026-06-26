@@ -10,14 +10,15 @@
 | `mjb_segmentation`                     | 714        |
 | `mjb_break_sentence`                   | 456        |
 | `mjb_case`                             | 415        |
-| `mjb_string_convert_encoding`          | 142        |
+| `mjb_string_convert_encoding`          | 147        |
 | `mjb_string_filter`                    | 141        |
 | `mjb_strnlen`                          | 82         |
 | `mjb_codepoint_character`              | 81         |
+| `mjb_locale_parse`                     | 52         |
 | `mjb_display_width`                    | 48         |
 | `mjb_hangul_syllable_composition`      | 44         |
 | `mjb_codepoint_is_valid`               | 39         |
-| `mjb_codepoint_encode`                 | 33         |
+| `mjb_codepoint_encode`                 | 37         |
 | `mjb_codepoint_east_asian_width`       | 32         |
 | `mjb_string_is_confusable`             | 21         |
 | `mjb_codepoint_emoji`                  | 19         |
@@ -78,4 +79,4 @@
 | `mjb_unicode_version`                  | 1          |
 | `mjb_version`                          | 1          |
 | `mjb_version_number`                   | 1          |
-| **Total**                              | **954214** |
+| **Total**                              | **954275** |
