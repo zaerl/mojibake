@@ -4,11 +4,14 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { formatBytes, formatHalfwords, formatWords } from '../utils';
 import { PropertyRangeRow } from './types';
 
 // Emits interned property blobs and page-local property ranges.
 export function generateProperties(rows: PropertyRangeRow[]) {
+  iLog('Properties');
+
   const data: number[] = [];
   const dataOffsets = new Map<string, number>();
   const pageEntries = new Map<number, number[]>();

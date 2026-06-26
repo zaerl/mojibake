@@ -13,7 +13,7 @@ import { generateNormalizationCount } from './generate-tests';
 import { generateUnicodeTables } from './generate-unicode-tables';
 import { generateHeader } from './header';
 import { generateLocale } from './locales/generate-locale';
-import { iLog, isVerbose, log, setVerbose } from './log';
+import { iLog, isVerbose, setVerbose } from './log';
 import { readAliases } from './parse-ucd/aliases';
 import { readBidiBrackets } from './parse-ucd/bidi-brackets';
 import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
@@ -32,18 +32,17 @@ import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
 } from './types';
-import { updateVersion } from './update-version';
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
   addDecompositions, addEmojiProperties, addPropertyRanges, addSpecialCasing,
   resetUnicodeTableData, unicodeTableDataSummary,
 } from './unicode-data-store';
+import { updateVersion } from './update-version';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
 import { generateWASM } from './wasm';
 
 async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true):
   Promise<{ characters: Character[], properties: Property[] }> {
-  log('READ UNICODE DATA');
   const analysis = new Analysis();
 
   let previousCodepoint = 0;
@@ -52,10 +51,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   let characters: Character[] = [];
   let ranges: CodepointsRangeMap = {};
 
-  iLog('PARSE UNICODE DATA');
   const aliases = await readAliases();
 
-  log('READ UNICODE DATA');
   for await (const line of parsePropertyFile(
     './unicode-data/UCD/UnicodeData.txt', [], ';', false
   )) {
@@ -127,7 +124,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
     analysis.addCharacter(char, originalName);
   }
 
-  iLog('BUILD UNICODE DATA');
+  iLog('Build unicode data');
 
   analysis.beforeDB();
   const { propertyRanges, properties } = await buildPropertyRanges();
@@ -150,7 +147,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const caseFolds = await generateCasefold(characters);
   addCaseFolding(caseFolds);
 
-  analysis.outputGeneratedData(codepoint, isVerbose());
+  // analysis.outputGeneratedData(codepoint, isVerbose());
 
   return { characters, properties };
 }
@@ -173,14 +170,18 @@ for(let i = 2; i < process.argv.length; ++i) {
 }
 
 async function buildUnicodeTableData() {
+  iLog('Build unicode data');
   resetUnicodeTableData();
 
   const blocks = await readBlocks();
   const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
+
+  iLog('Parse collation data');
   const { entries: collationEntries } =
     await parseCollationAllKeys('./unicode-data/collation/allkeys.txt');
   addCollation(collationEntries);
 
+  iLog('Parse confusables data');
   const confusableEntries = await parseConfusables('./unicode-data/security/confusables.txt');
   addConfusables(confusableEntries);
 
@@ -213,8 +214,8 @@ async function generate() {
   // generateData(characters);
   generateAPI();
 
-  const summary = unicodeTableDataSummary();
-  iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
+  // const summary = unicodeTableDataSummary();
+  // iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
 
   generateNormalizationCount();
 }

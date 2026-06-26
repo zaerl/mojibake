@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { formatCodepoints, formatLongWords } from '../utils';
 import { CompositionRow, DecompositionRow } from './types';
 
@@ -43,6 +44,8 @@ export function generateDecompositionAndCompositionTables(
   compatibilityRows: DecompositionRow[],
   compositionRows: CompositionRow[],
 ) {
+  iLog('Decomposition and composition');
+
   const canonicalGroups = collectDecompositionGroups(canonicalRows);
   const compatibilityGroups = collectDecompositionGroups(compatibilityRows);
   const data: number[] = [];

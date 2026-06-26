@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { codepointPages, compareBytes, formatBytes, formatCodepoints, formatHalfwords, formatLongWords, formatPages, formatWords, indexedPages } from '../utils';
 import { CollationContractionRow, CollationEntryRow } from './types';
 
@@ -93,6 +94,8 @@ function codepointsFromBlob(blob: Buffer) {
 
 // Emits indexed collation entries with shared packed weight data.
 export function generateCollationEntries(rows: CollationEntryRow[]) {
+  iLog('Collation entries');
+
   const weightsByRow = rows.map((row) => [...row.weights]);
   const packedWeights = packByteSequences(weightsByRow);
   const pages = indexedPages(codepointPages(rows));
@@ -139,6 +142,8 @@ ${formatWords(entries)}
 
 // Emits packed collation contraction entries, sequences, and shared weights.
 export function generateCollationContractions(rows: CollationContractionRow[]) {
+  iLog('Collation contractions');
+
   const sequenceData: number[] = [];
   const weightsByRow = rows.map((row) => [...row.weights]);
   const packedWeights = packByteSequences(weightsByRow);

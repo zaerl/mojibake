@@ -4,11 +4,14 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { codepointPages, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
 import { NumericRow } from './types';
 
 // Emits packed numeric value lookups and shared numeric string data.
 export function generateNumericValues(rows: NumericRow[]) {
+  iLog('Numeric values');
+
   const data: number[] = [0];
   const stringOffsets = new Map<string, number>([['', 0]]);
   const pages = indexedPages(codepointPages(rows));

@@ -4,11 +4,14 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { codepointPages, formatBytes, formatCodepoints, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
 import { ConfusableRow } from './types';
 
 // Emits indexed confusable skeleton mappings with shared skeleton payloads.
 export function generateConfusables(rows: ConfusableRow[]) {
+  iLog('Confusables');
+
   const data: number[] = [];
   const dataOffsets = new Map<string, { offset: number; length: number }>();
   const pages = indexedPages(codepointPages(rows));

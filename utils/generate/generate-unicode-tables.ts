@@ -6,6 +6,7 @@
 
 import { writeFile } from 'fs/promises';
 import { resolve } from 'path';
+import { iLog } from './log';
 import { generateBlocks } from './tables/blocks';
 import { generateCaseFoldMappings, generateSimpleCaseMappings, generateSpecialCaseMappings } from './tables/case';
 import { generateCollationContractions, generateCollationEntries } from './tables/collation';
@@ -20,6 +21,8 @@ import { getUnicodeTableData, UnicodeTableData } from './unicode-data-store';
 
 // Writes the generated Unicode C tables from the in-memory generation data.
 export async function generateUnicodeTables(data: UnicodeTableData = getUnicodeTableData()) {
+  iLog('Generate Unicode tables');
+
   const outputPath = resolve(__dirname, '../../src/unicode-data.h');
 
   const output = `/**

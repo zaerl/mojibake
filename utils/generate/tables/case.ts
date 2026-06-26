@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { codepointPages, formatBytes, formatCodepoints, formatHalfwords, formatLongWords, formatPages, indexedPages, packCodepointSequences } from '../utils';
 import { CaseFoldRow, SimpleCaseRow, SpecialCaseRow } from './types';
 
@@ -24,6 +25,8 @@ function caseSequenceValues(row: SpecialCaseRow | CaseFoldRow) {
 
 // Emits indexed simple case mappings with packed signed deltas.
 export function generateSimpleCaseMappings(rows: SimpleCaseRow[]) {
+  iLog('Simple case mappings');
+
   const pages = indexedPages(codepointPages(rows));
   const lows = rows.map((row) => row.codepoint & 0xFF);
   const data: bigint[] = [];
@@ -89,6 +92,8 @@ ${formatBytes(entries, 24)}
 
 // Emits packed full special-casing mappings and their shared sequence payload.
 export function generateSpecialCaseMappings(rows: SpecialCaseRow[]) {
+  iLog('Special case mappings');
+
   const sequences = packCodepointSequences(rows.map((row) => caseSequenceValues(row)));
   const entries = rows.map((row, index) => {
     const sequence = sequences.entries[index];
@@ -118,6 +123,8 @@ ${formatLongWords(entries)}
 
 // Emits packed case-fold mappings and their shared sequence payload.
 export function generateCaseFoldMappings(rows: CaseFoldRow[]) {
+  iLog('Case fold mappings');
+
   const sequences = packCodepointSequences(rows.map((row) => caseSequenceValues(row)));
   const entries = rows.map((row, index) => {
     const sequence = sequences.entries[index];

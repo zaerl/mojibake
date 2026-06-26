@@ -9,7 +9,7 @@ import { iLog } from './log';
 import { substituteBlock } from './utils';
 
 export function generateNormalizationCount() {
-  iLog('PARSE NORMALIZATION TESTS');
+  iLog('Parse normalization test data');
 
   let count = 0;
   let fileContent = readFileSync('./unicode-data/UCD/NormalizationTest.txt', 'utf-8');
@@ -21,7 +21,7 @@ export function generateNormalizationCount() {
     }
   }
 
-  iLog(`${count.toLocaleString()} tests\n`);
+  // iLog(`${count.toLocaleString()} tests\n`);
 
   fileContent = readFileSync('../../tests/normalization.c', 'utf-8');
   fileContent = substituteBlock(fileContent, "// CURRENT_ASSERT mjb_normalize\n",

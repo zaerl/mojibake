@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { bitset, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
 import { NCharacterRow } from './types';
 
@@ -37,6 +38,8 @@ function codepointRangePages(rows: { start: number; end: number }[]) {
 
 // Emits compressed general character metadata runs and mirrored bitsets.
 export function generateNCharacters(rows: NCharacterRow[]) {
+  iLog('N-Characters');
+
   const runs: Array<{
     start: number;
     end: number;

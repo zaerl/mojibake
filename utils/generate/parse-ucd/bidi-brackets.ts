@@ -1,9 +1,9 @@
-import { log } from '../log';
+import { iLog } from '../log';
 import { BidiBracket } from '../types';
 import { parsePropertyFile } from './utils';
 
 export async function readBidiBrackets(): Promise<BidiBracket[]> {
-  log('READ BIDI BRACKETS');
+  iLog('Parse Bidi Brackets');
 
   const path = './unicode-data/UCD/BidiBrackets.txt';
   const bidiBrackets: BidiBracket[] = [];

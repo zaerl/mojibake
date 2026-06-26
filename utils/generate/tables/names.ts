@@ -4,11 +4,14 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { addStringData, codepointPages, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
 import { NameRow, PrefixRow } from './types';
 
 // Emits packed character name and prefix lookup tables.
 export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
+  iLog('Names');
+
   const prefixData: number[] = [0];
   const nameData: number[] = [0];
   const prefixOffsets = new Map<string, number>([['', 0]]);

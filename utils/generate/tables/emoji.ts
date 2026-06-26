@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { iLog } from '../log';
 import { formatLongWords } from '../utils';
 import { EmojiRow } from './types';
 
@@ -49,6 +50,8 @@ function emojiFlags(row: EmojiRow) {
 
 // Emits compact emoji property ranges with packed flags.
 export function generateEmoji(rows: EmojiRow[]) {
+  iLog('Emoji');
+
   const ranges: { start: number; end: number; flags: number }[] = [];
 
   for(const row of rows) {
