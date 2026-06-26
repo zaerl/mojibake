@@ -145,7 +145,7 @@ generate-locale:
 
 # WASM targets
 amalgamation:
-	@cd utils\generate && npm run generate -- amalgamation
+	@cd utils\generate && generate-amalgamation.bat
 
 # Generate embedded Unicode lookup tables
 generate-unicode-tables:

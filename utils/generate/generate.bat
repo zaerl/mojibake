@@ -56,6 +56,7 @@ REM Create build directory
 if not exist "..\..\build" mkdir "..\..\build"
 
 REM Run npm generate
-npm run generate -- %*
+call npm run generate -- %*
+set "GENERATE_STATUS=%ERRORLEVEL%"
 
-endlocal
+endlocal & exit /b %GENERATE_STATUS%

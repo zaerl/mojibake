@@ -9,4 +9,5 @@ if not exist "locales\ISO-639-2.txt" (
 )
 
 REM Run npm generate for locales
-npm run generate -- "locales"
+call npm run generate -- "locales"
+exit /b %ERRORLEVEL%
