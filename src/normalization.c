@@ -490,12 +490,12 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                 continue;
             }
 
-            for(size_t i = 0; i < 3; ++i) {
-                if(codepoints[i] == 0) {
+            for(size_t j = 0; j < 3; ++j) {
+                if(codepoints[j] == 0) {
                     continue;
                 }
 
-                if(!mjb_n_codepoint_character(codepoints[i], &current_character)) {
+                if(!mjb_n_codepoint_character(codepoints[j], &current_character)) {
                     continue;
                 }
 
