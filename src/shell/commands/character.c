@@ -106,11 +106,11 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
                 printf("\nHex UTF-%s: %s", other_encodings_names[i], mjbsh_green());
             }
 
-            for(size_t i = 0; i < length; ++i) {
+            for(size_t j = 0; j < length; ++j) {
                 if(is_json) {
-                    printf("%u%s", (unsigned char)buffer[i], i == length - 1 ? "" : ", ");
+                    printf("%u%s", (unsigned char)buffer[j], j == length - 1 ? "" : ", ");
                 } else {
-                    printf("%02X%s", (unsigned char)buffer[i], i == length - 1 ? "" : " ");
+                    printf("%02X%s", (unsigned char)buffer[j], j == length - 1 ? "" : " ");
                 }
             }
 
