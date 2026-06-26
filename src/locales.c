@@ -363,8 +363,8 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     // ^ private-use-only tag
     if(MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "x")) {
         // See https://datatracker.ietf.org/doc/html/rfc5646 "privateuse" section.
-        if(subtag_count < 2 || !mjb_locale_copy_subtags(locale->privateuse,
-            sizeof(locale->privateuse), subtags, 0, subtag_count, MJB_LOCALE_CASE_LOWER)) {
+        if(subtag_count < 2 || !mjb_locale_copy_subtags(locale->private_use,
+            sizeof(locale->private_use), subtags, 0, subtag_count, MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -494,7 +494,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     //                                                        ^ optional private-use tail
     if(index < subtag_count && MJB_LOCALE_SUBTAG_MATCHES(&subtags[index], "x")) {
         if(index + 1 >= subtag_count ||
-            !mjb_locale_copy_subtags(locale->privateuse, sizeof(locale->privateuse), subtags,
+            !mjb_locale_copy_subtags(locale->private_use, sizeof(locale->private_use), subtags,
                 index, subtag_count, MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }

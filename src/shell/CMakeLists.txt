@@ -5,6 +5,7 @@ set(SOURCES
     commands/character.c
     commands/codepoint.c
     commands/filter.c
+    commands/locale.c
     commands/normalize.c
     commands/string.c
     main.c

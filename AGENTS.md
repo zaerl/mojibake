@@ -132,6 +132,7 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 - `char` — print character information for a string
 - `codepoint` — print character information for a codepoint
 - `filter` — filter input (normalize to NFC, strip spaces/controls/numeric characters)
+- `locale` — parse a BCP 47 language tag
 - `nfd` / `nfkd` / `nfc` / `nfkc` — normalize input to the given Unicode normalization form
 - `upper` / `lower` / `title` / `casefold` — case conversion
 
@@ -144,6 +145,7 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 ./mojibake.sh -c nfd "U+0041" "U+0042" # normalize from codepoint list
 ./mojibake.sh upper "Hello"            # uppercase conversion
 ./mojibake.sh break "Hello World"      # grapheme/line break analysis
+./mojibake.sh locale "sr-Latn-RS"      # BCP 47 language tag parsing
 ```
 
 ## JavaScript API

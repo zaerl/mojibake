@@ -21,5 +21,6 @@ int mjbsh_case_command(int argc, char * const argv[], unsigned int flags);
 int mjbsh_character_command(int argc, char * const argv[], unsigned int flags);
 int mjbsh_codepoint_command(int argc, char * const argv[], unsigned int flags);
 int mjbsh_filter_command(int argc, char * const argv[], unsigned int flags);
+int mjbsh_locale_command(int argc, char * const argv[], unsigned int flags);
 int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags);
 int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int flags);

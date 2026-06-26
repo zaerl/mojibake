@@ -244,7 +244,7 @@ typedef struct mjb_locale_id {
     char region[4];
     char variant[32];
     char extensions[128];
-    char privateuse[128];
+    char private_use[128];
     char grandfathered[32];
 } mjb_locale_id;
 

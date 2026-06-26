@@ -73,7 +73,7 @@ void *test_locales(void *arg) {
         true, "Parse private use")
     ATT_ASSERT(locale.language, "de", "Parse private use language")
     ATT_ASSERT(locale.region, "CH", "Parse private use region")
-    ATT_ASSERT(locale.privateuse, "x-phonebk", "Parse private use value")
+    ATT_ASSERT(locale.private_use, "x-phonebk", "Parse private use value")
 
     error = MJB_ERROR_INVALID_ARGUMENT;
     ATT_ASSERT(mjb_locale_parse("i-enochian", 10, MJB_ENCODING_UTF_8, &locale, &error), true,
@@ -83,7 +83,7 @@ void *test_locales(void *arg) {
     error = MJB_ERROR_INVALID_ARGUMENT;
     ATT_ASSERT(mjb_locale_parse("x-whatever", 10, MJB_ENCODING_UTF_8, &locale, &error), true,
         "Parse private use only")
-    ATT_ASSERT(locale.privateuse, "x-whatever", "Parse private use only value")
+    ATT_ASSERT(locale.private_use, "x-whatever", "Parse private use only value")
 
     const char utf16le_locale[] = { 'e', '\0', 'n', '\0', '-', '\0', 'U', '\0', 'S', '\0' };
     error = MJB_ERROR_INVALID_ARGUMENT;

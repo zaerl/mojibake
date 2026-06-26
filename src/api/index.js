@@ -393,7 +393,7 @@ function pointerToLocaleId(ptr) {
     region: 'str4',
     variant: 'str32',
     extensions: 'str128',
-    privateuse: 'str128',
+    private_use: 'str128',
     grandfathered: 'str32'
   }, mojibake.HEAPU8);
 
