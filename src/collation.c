@@ -158,7 +158,7 @@ static const struct {
  *   Everything else -> 0xFBC0
  */
 static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
-    uint16_t base;
+    uint16_t base = 0xFBC0;
     bool found = false;
 
     for(int i = 0; i < IMPLICIT_RANGES_COUNT; ++i) {
