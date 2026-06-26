@@ -102,7 +102,8 @@ int main(int argc, char * const argv[]) {
 
     mjbsh_command commands[] = {
         { "bidi", "Resolve the bidirectional algorithm for the input", mjbsh_bidi_command, 0 },
-        { "break", "Break the input into grapheme and line breaks", mjbsh_break_command, 0 },
+        { "break", "Break the input into grapheme, word, line, and sentence breaks",
+            mjbsh_break_command, 0 },
         { "char", "Print the characters for the given string", mjbsh_character_command, 0 },
         { "codepoint", "Print the character for the given codepoint", mjbsh_codepoint_command, 0 },
         { "filter", "Filter the input", mjbsh_filter_command,

@@ -5,28 +5,53 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "../../mojibake.h"
-#include "../../utf8.h"
 #include "../screen.h"
 #include "../shell.h"
 #include "commands.h"
 
-/*static void flush_line(unsigned int column) {
-    // Fill remaining space to reach cmd_width total content
-    while(column <= cmd_width) {
-        printf(" ");
-        ++column;
+typedef enum {
+    MJBSH_BREAK_MODE_ALL,
+    MJBSH_BREAK_MODE_GRAPHEME,
+    MJBSH_BREAK_MODE_WORD,
+    MJBSH_BREAK_MODE_LINE,
+    MJBSH_BREAK_MODE_SENTENCE
+} mjbsh_break_mode;
+
+static bool mjbsh_break_parse_mode(const char *value, mjbsh_break_mode *mode) {
+    if(strcmp(value, "all") == 0) {
+        *mode = MJBSH_BREAK_MODE_ALL;
+        return true;
     }
 
-    if(column > cmd_width + 1) {
-        puts("");
-    } else {
-        printf("│\n");
+    if(strcmp(value, "grapheme") == 0 || strcmp(value, "graphemes") == 0) {
+        *mode = MJBSH_BREAK_MODE_GRAPHEME;
+        return true;
     }
-}*/
+
+    if(strcmp(value, "word") == 0 || strcmp(value, "words") == 0) {
+        *mode = MJBSH_BREAK_MODE_WORD;
+        return true;
+    }
+
+    if(strcmp(value, "line") == 0 || strcmp(value, "lines") == 0) {
+        *mode = MJBSH_BREAK_MODE_LINE;
+        return true;
+    }
+
+    if(strcmp(value, "sentence") == 0 || strcmp(value, "sentences") == 0) {
+        *mode = MJBSH_BREAK_MODE_SENTENCE;
+        return true;
+    }
+
+    return false;
+}
+
+static bool mjbsh_break_should_print(mjbsh_break_mode selected, mjbsh_break_mode current) {
+    return selected == MJBSH_BREAK_MODE_ALL || selected == current;
+}
 
 static void mjbsh_print_first_iteration(mjb_break_type first_bt, mjb_break_type bt, bool is_eot,
     mjb_codepoint previous_codepoint, mjb_codepoint current_codepoint) {
@@ -52,15 +77,109 @@ static void mjbsh_print_iteration(bool is_eot, mjb_break_type bt, mjb_codepoint 
     }
 }
 
-static void mjbsh_print_break_analysis(const char* input) {
+static void mjbsh_print_grapheme_breaks(const char *input, size_t input_size) {
     bool first = true;
-    size_t input_size = strlen(input);
-    size_t display_width;
-
-    size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
     mjb_break_type bt;
 
-    mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO, &display_width);
+    printf("\n\nGrapheme cluster segmentation:\n");
+
+    mjb_next_state segment_state;
+    segment_state.index = 0;
+
+    while((bt = mjb_segmentation(input, input_size, MJB_ENCODING_UTF_8, &segment_state)) !=
+          MJB_BT_NOT_SET) {
+        bool is_eot = (segment_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot,
+                segment_state.previous_codepoint, segment_state.current_codepoint);
+
+            first = false;
+        } else {
+            mjbsh_print_iteration(is_eot, bt, segment_state.current_codepoint);
+        }
+    }
+}
+
+static void mjbsh_print_word_breaks(const char *input, size_t input_size) {
+    bool first = true;
+    mjb_break_type bt;
+
+    printf("\n\nWord breaking:\n");
+
+    mjb_next_word_state word_state;
+    word_state.index = 0;
+
+    while((bt = mjb_break_word(input, input_size, MJB_ENCODING_UTF_8, &word_state)) !=
+          MJB_BT_NOT_SET) {
+        bool is_eot = (word_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, word_state.previous_codepoint,
+                word_state.current_codepoint);
+
+            first = false;
+        } else {
+            mjbsh_print_iteration(is_eot, bt, word_state.current_codepoint);
+        }
+    }
+}
+
+static void mjbsh_print_line_breaks(const char *input, size_t input_size) {
+    bool first = true;
+    mjb_break_type bt;
+
+    printf("\n\nLine breaking:\n");
+
+    mjb_next_line_state line_state;
+    line_state.index = 0;
+
+    while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &line_state)) !=
+          MJB_BT_NOT_SET) {
+        bool is_eot = (line_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_first_iteration(MJB_BT_NO_BREAK, bt, is_eot, line_state.previous_codepoint,
+                line_state.current_codepoint);
+
+            first = false;
+        } else {
+            mjbsh_print_iteration(is_eot, bt, line_state.current_codepoint);
+        }
+    }
+}
+
+static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
+    bool first = true;
+    mjb_break_type bt;
+
+    printf("\n\nSentence breaking:\n");
+
+    mjb_next_sentence_state sentence_state;
+    sentence_state.index = 0;
+
+    while((bt = mjb_break_sentence(input, input_size, MJB_ENCODING_UTF_8, &sentence_state)) !=
+          MJB_BT_NOT_SET) {
+        bool is_eot = (sentence_state.index > input_size);
+
+        if(first) {
+            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot,
+                sentence_state.previous_codepoint, sentence_state.current_codepoint);
+
+            first = false;
+        } else {
+            mjbsh_print_iteration(is_eot, bt, sentence_state.current_codepoint);
+        }
+    }
+}
+
+static void mjbsh_print_break_analysis(const char* input, mjbsh_break_mode mode) {
+    size_t input_size = strlen(input);
+    size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
+    size_t display_width;
+
+    mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO,
+        &display_width);
     printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
     printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
     printf("Display width: %s%zu%s\n", mjbsh_green(), display_width, mjbsh_reset());
@@ -77,183 +196,26 @@ static void mjbsh_print_break_analysis(const char* input) {
         }
     }
 
-    printf("\n\nGrapheme cluster segmentation:\n");
-
-    mjb_next_state segment_state;
-    segment_state.index = 0;
-    first = true;
-
-    while((bt = mjb_segmentation(input, input_size, MJB_ENCODING_UTF_8, &segment_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (segment_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, segment_state.previous_codepoint,
-                segment_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, segment_state.current_codepoint);
-        }
+    if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_GRAPHEME)) {
+        mjbsh_print_grapheme_breaks(input, input_size);
     }
 
-    printf("\n\nWord cluster breaking:\n");
-
-    mjb_next_word_state word_state;
-    word_state.index = 0;
-    first = true;
-
-    while((bt = mjb_break_word(input, input_size, MJB_ENCODING_UTF_8, &word_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (word_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, word_state.previous_codepoint,
-                word_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, word_state.current_codepoint);
-        }
+    if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_WORD)) {
+        mjbsh_print_word_breaks(input, input_size);
     }
 
-    printf("\n\nLine breaking:\n");
-
-    mjb_next_line_state line_state;
-    line_state.index = 0;
-    first = true;
-
-    while((bt = mjb_break_line(input, input_size, MJB_ENCODING_UTF_8, &line_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (line_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_NO_BREAK, bt, is_eot, line_state.previous_codepoint,
-                line_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, line_state.current_codepoint);
-        }
+    if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_LINE)) {
+        mjbsh_print_line_breaks(input, input_size);
     }
 
-    printf("\n\nSentence breaking:\n");
-
-    mjb_next_sentence_state sentence_state;
-    sentence_state.index = 0;
-    first = true;
-
-    while((bt = mjb_break_sentence(input, input_size, MJB_ENCODING_UTF_8, &sentence_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (sentence_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, sentence_state.previous_codepoint,
-                sentence_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, sentence_state.current_codepoint);
-        }
+    if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_SENTENCE)) {
+        mjbsh_print_sentence_breaks(input, input_size);
     }
-
-/*
-    puts("");
-
-    size_t breaks_index = 0;
-    bool check_break = true;
-    state = MJB_UTF_ACCEPT;
-
-    if(output_size > 0) {
-        for(size_t i = 0; i < input_real_size; ++i) {
-            if(check_break && i == line_breaks[breaks_index].index) {
-                printf("%s%s%s", mjbsh_green(), line_breaks[breaks_index].mandatory ? "!" :
-                    "÷", mjbsh_reset());
-
-                if(breaks_index == output_size - 1) {
-                    check_break = false;
-                    continue;
-                }
-
-                ++breaks_i
-            } else {
-                printf("×");
-            }
-        }
-
-        puts("");
-        fflush(stdout);
-    }
-
-    mjbsh_table_top();
-
-    unsigned int column = 0;
-    unsigned int current_i = 0;
-    check_break = output_size > 0;
-    breaks_index = 0;
-    state = MJB_UTF_ACCEPT;
-    codepoint = 0x0;
-
-    for(size_t i = 0; i < input_size; ++i) {
-        state = mjb_utf8_decode_step(state, input[i], &codepoint);
-
-        if(state == MJB_UTF_ACCEPT) {
-            bool can_break = false;
-            bool is_mandatory = false;
-
-            if(check_break && line_breaks[breaks_index].index == current_i) {
-                can_break = true;
-                is_mandatory = line_breaks[breaks_index].mandatory;
-
-                if(breaks_index == output_size - 1) {
-                    check_break = false;
-                } else {
-                    ++breaks_index;
-                }
-            }
-
-            if(column == 0) {
-                printf("│");
-                column = 1;
-            }
-
-            if(can_break && is_mandatory) {
-                flush_line(column);
-                printf("│");
-                column = 1;
-            }
-
-            unsigned int char_width = 1;
-            bool is_overflow = column + char_width > cmd_width + 1;
-            mjb_codepoint picture_codepoint = mjbsh_control_picture_codepoint(codepoint);
-            bool is_control_picture = picture_codepoint != codepoint;
-
-            char buffer_utf8[5];
-            mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
-
-            if(is_overflow) {
-                printf("%s%s%s", mjbsh_red(), buffer_utf8, mjbsh_reset());
-            } else {
-                if(is_control_picture) {
-                    printf("%s%s%s", mjbsh_green(), buffer_utf8, mjbsh_reset());
-                } else {
-                    printf("%s", buffer_utf8);
-                }
-            }
-
-            column += char_width;
-            ++current_i;
-        }
-    }
-
-    if(column != 0) {
-        flush_line(column);
-    }
-
-    mjbsh_table_bottom();
-    free(line_breaks);
-*/
 }
 
 static void mjbsh_display_break_output(const char* input) {
     mjbsh_clear_screen();
-    printf("Break the input into line breaks\n");
+    printf("Break the input\n");
     printf("Ctrl+C to exit\n");
 
     if(input == NULL || strlen(input) == 0) {
@@ -262,8 +224,7 @@ static void mjbsh_display_break_output(const char* input) {
         return;
     }
 
-    // puts(input);
-    mjbsh_print_break_analysis(input);
+    mjbsh_print_break_analysis(input, MJBSH_BREAK_MODE_ALL);
     fflush(stdout);
 }
 
@@ -282,7 +243,21 @@ static void mjbsh_handle_key(mjbsh_key key) {
 
 int mjbsh_break_command(int argc, char * const argv[], unsigned int flags) {
     if(argc != 0) {
-        mjbsh_print_break_analysis(argv[0]);
+        mjbsh_break_mode mode = MJBSH_BREAK_MODE_ALL;
+        const char *input = argv[0];
+
+        if(argc > 1) {
+            if(!mjbsh_break_parse_mode(argv[0], &mode)) {
+                fprintf(stderr, "break: unknown mode: %s\n", argv[0]);
+                fprintf(stderr, "break: expected all, grapheme, word, line, or sentence\n");
+
+                return 1;
+            }
+
+            input = argv[1];
+        }
+
+        mjbsh_print_break_analysis(input, mode);
 
         return 0;
     }

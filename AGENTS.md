@@ -128,7 +128,7 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 ### Commands
 
 - `bidi` - print the results of the bidirectional algorithm
-- `break` — break the input into grapheme clusters and line breaks
+- `break` — break the input into grapheme, word, line, and sentence boundaries
 - `char` — print character information for a string
 - `codepoint` — print character information for a codepoint
 - `filter` — filter input (normalize to NFC, strip spaces/controls/numeric characters)
@@ -144,7 +144,8 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 ./mojibake.sh nfd "ABC"                # NFD normalization
 ./mojibake.sh -c nfd "U+0041" "U+0042" # normalize from codepoint list
 ./mojibake.sh upper "Hello"            # uppercase conversion
-./mojibake.sh break "Hello World"      # grapheme/line break analysis
+./mojibake.sh break "Hello World"      # all break analyses
+./mojibake.sh break word "Hello World" # word break analysis
 ./mojibake.sh locale "sr-Latn-RS"      # BCP 47 language tag parsing
 ```
 
