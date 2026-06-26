@@ -683,8 +683,8 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
         return false;
     }
 
-    /* We need adjusted weights; avoid dynamic allocation by iterating twice. Compute L1/L2/L3 and
-    L4 in three passes: first collect into a scratch array (malloc), then emit. */
+    // We need adjusted weights; avoid dynamic allocation by iterating twice. Compute L1/L2/L3 and
+    // L4 in three passes: first collect into a scratch array (malloc), then emit.
     uint16_t *l1 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
     uint16_t *l2 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
     uint16_t *l3 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
