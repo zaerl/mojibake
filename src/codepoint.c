@@ -176,8 +176,6 @@ MJB_EXPORT bool mjb_category_is_graphic(mjb_category category) {
         default:
             return true;
     }
-
-    return true;
 }
 
 MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
