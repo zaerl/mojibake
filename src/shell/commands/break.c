@@ -189,8 +189,10 @@ static void mjbsh_print_break_analysis(const char* input, mjbsh_break_mode mode)
     for(size_t i = 0; i < input_size; ++i) {
         unsigned char byte = (unsigned char)input[i];
 
-        if((byte >= 0x20 && byte <= 0x7E) || byte == 0x0A || byte == 0x0D) {
+        if(byte >= 0x21 && byte <= 0x7E) {
             printf("%c", byte);
+        } else if(byte == 0x0A || byte == 0x0D) {
+            printf("%s<%02X>%s%c", mjbsh_yellow(), byte, mjbsh_reset(), byte);
         } else {
             printf("%s<%02X>%s", mjbsh_yellow(), byte, mjbsh_reset());
         }
