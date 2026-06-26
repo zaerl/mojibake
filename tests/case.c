@@ -168,8 +168,9 @@ void *test_case(void *arg) {
 
     // Test that titlecase uses original codepoint for special-casing lookup (Fix 2):
     // In-word İ (U+0130) must lower to "i + U+0307 (combining dot above)", not bare "i".
-    result = mjb_case("AİB", 4, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Ai\xCC\x87""b", "UTF-8 titlecase special casing: AİB -> Ai\u0307b")
+    result = mjb_case("A\xC4\xB0""B", 4, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"Ai\xCC\x87""b",
+        "UTF-8 titlecase special casing: A\\xC4\\xB0B -> Ai\\xCC\\x87b")
     mjb_free(result);
 
     ATT_ASSERT(mjb_codepoint_to_lowercase('#'), '#', "Lowercase #: #")
