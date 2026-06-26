@@ -223,6 +223,19 @@
             return ret;
         }
 
+        function parseLocale(result) {
+            let ret = `Language: <strong>${result.language}</strong><br>`;
+            ret += `Extended language: <strong>${result.extlang}</strong><br>`;
+            ret += `Script: <strong>${result.script}</strong><br>`;
+            ret += `Region: <strong>${result.region}</strong><br>`;
+            ret += `Variant: <strong>${result.variant}</strong><br>`;
+            ret += `Extensions: <strong>${result.extensions}</strong><br>`;
+            ret += `Private Use: <strong>${result.privateuse}</strong><br>`;
+            ret += `Grandfathered: <strong>${result.grandfathered}</strong><br>`;
+
+            return ret;
+        }
+
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-form');
@@ -283,6 +296,8 @@
                 data = parseEmoji(data);
             } else if(func === 'mjb_next_character') {
                 data = parseNextCharacter(data);
+            } else if(func === 'mjb_locale_parse') {
+                data = parseLocale(data);
             }
 
             if(functions[func].ret === 'mjb_codepoint') {

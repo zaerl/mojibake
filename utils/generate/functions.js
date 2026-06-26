@@ -536,7 +536,7 @@ export default [
       },
       {
         "name": "result",
-        "type": "mjb_result*",
+        "type": "mjb_result *",
         "description": "The pointer to store the result",
         "wasm_generated": true
       }
@@ -1702,7 +1702,7 @@ export default [
         "wasm_generated": true
       }
     ],
-    "wasm": false
+    "wasm": true
   },
   {
     "comment": "Set current locale",

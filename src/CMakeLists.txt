@@ -119,6 +119,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_emoji\""
         "\"_mjb_codepoint_east_asian_width\""
         "\"_mjb_display_width\""
+        "\"_mjb_locale_parse\""
         "\"_mjb_locale_set\""
         "\"_mjb_version\""
         "\"_mjb_version_number\""

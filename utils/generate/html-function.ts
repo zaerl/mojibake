@@ -213,6 +213,10 @@ export class CFunction implements Function {
         ret += this.#getInput(i);
       } else if(type.startsWith('mjb_property')) {
         ret += this.#getInput(i);
+      } else if(type.startsWith('mjb_locale_id')) {
+        ret += this.#getInput(i);
+      } else if(type.startsWith('mjb_error')) {
+        ret += this.#getInput(i);
       } else if(type.startsWith('mjb_normalization')) {
         // See mjb_normalization on mojibake.h
         const options = [

@@ -14,6 +14,7 @@ let mojibake = null;
 let nextCharacterBuffer = null;
 
 const encodingTypes = {
+  'ASCII': 0x1,
   'UTF-8': 0x2,
   'UTF-16BE': 0x8,
   'UTF-16LE': 0x10,
@@ -43,6 +44,12 @@ const planeTypes = {
   'SSP': 4,
   'PUA_A': 5,
   'PUA_B': 16,
+};
+
+const errorTypes = {
+  0: 'MJB_ERROR_NONE',
+  1: 'MJB_ERROR_INVALID_ARGUMENT',
+  2: 'MJB_ERROR_UNSUPPORTED',
 };
 
 const utf8Decoder = new TextDecoder('utf-8');
@@ -376,6 +383,59 @@ function ccallNormalize(buffer, encoding, form, outputEncoding) {
   }
 }
 
+function pointerToLocaleId(ptr) {
+  const struct = new CStruct(ptr);
+
+  const locale = struct.toObject({
+    language: 'str9',
+    extlang: 'str12',
+    script: 'str5',
+    region: 'str4',
+    variant: 'str32',
+    extensions: 'str128',
+    privateuse: 'str128',
+    grandfathered: 'str32'
+  }, mojibake.HEAPU8);
+
+  return locale;
+}
+
+function ccallLocaleParse(buffer, encoding) {
+  // See mjb_locale_id on mojibake.h
+  const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
+  const localeIdPtr = mojibake._malloc(localeStructSize);
+  const errorPtr = mojibake._malloc(4);
+
+  // Initialize memory to zero
+  for(let i = 0; i < localeStructSize; ++i) {
+    mojibake.HEAPU8[localeIdPtr + i] = 0;
+  }
+
+  mojibake.HEAP32[errorPtr >> 2] = 0;
+  const bytes = stringToEncodedBytes(buffer, encoding);
+  const bufferPtr = copyBytesToWasm(bytes);
+
+  const result = mojibake._mjb_locale_parse(bufferPtr, bytes.length, encoding, localeIdPtr,
+    errorPtr);
+  const error = mojibake.HEAP32[errorPtr >> 2];
+
+  if(result) {
+    const locale = pointerToLocaleId(localeIdPtr);
+
+    mojibake._free(bufferPtr);
+    mojibake._free(errorPtr);
+    mojibake._free(localeIdPtr);
+
+    return locale;
+  } else {
+    mojibake._free(bufferPtr);
+    mojibake._free(errorPtr);
+    mojibake._free(localeIdPtr);
+
+    throw new Error(`Failed to parse locale: ${errorTypes[error] || `MJB_ERROR_${error}`}`);
+  }
+}
+
 function ccallCodepointEncode(codepoint, encoding) {
   const buffer = mojibake._malloc(5);
 
@@ -449,6 +509,8 @@ function ccCall(functionName, ret, argTypes, args) {
     return ccallNormalize(args[0], args[2], args[3], args[4]);
   } else if(functionName === 'mjb_codepoint_encode') {
     return ccallCodepointEncode(args[0], args[3]);
+  } else if(functionName === 'mjb_locale_parse') {
+    return ccallLocaleParse(args[0], args[2]);
   } else if(functionName === 'mjb_codepoint_emoji') {
     return ccallEmoji(args[0]);
   } else {

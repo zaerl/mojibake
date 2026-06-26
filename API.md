@@ -105,7 +105,7 @@ int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t 
 Generate a UCA sort key for a string
 
 ```c
-bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result*result);
+bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
 ```
 
 Change string case
