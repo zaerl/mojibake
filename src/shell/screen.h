@@ -23,7 +23,4 @@ typedef void (*mjbsh_key_fn)(mjbsh_key key);
 void mjbsh_clear_screen(void);
 void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn);
 
-void mjbsh_table_top(void);
-void mjbsh_table_bottom(void);
-
 #endif // MJB_SCREEN_H

@@ -83,7 +83,6 @@ int main(int argc, char * const argv[]) {
         { "show-allowed-symbols", no_argument, NULL, 's' },
         { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' },
-        { "width", required_argument, NULL, 'w' },
         { NULL, 0, NULL, 0 }
     };
 
@@ -213,18 +212,6 @@ int main(int argc, char * const argv[]) {
                 break;
             case 'V':
                 return mjbsh_show_version();
-            case 'w':
-                endptr = NULL;
-                cmd_width = strtoul(optarg, &endptr, 10);
-
-                if(endptr == optarg || *endptr != '\0' || cmd_width == 0 || cmd_width > 100) {
-                    fprintf(stderr, "Output width must be a number between 1 and 100.\n");
-                    mjbsh_show_help(long_options, descriptions, commands, NULL);
-
-                    return 1;
-                }
-
-                break;
             case '?':
                 // getopt_long already printed an error message
                 break;

@@ -24,7 +24,6 @@ extern unsigned int cmd_verbose;
 extern mjbsh_interpret_mode cmd_interpret_mode;
 extern mjbsh_output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
-extern unsigned int cmd_width;
 
 bool mjbsh_print_escaped_character(const char *buffer_utf8);
 void mjbsh_print_codepoint(mjb_codepoint codepoint);

@@ -123,7 +123,6 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 - `-s / --show-allowed-symbols` — show allowed symbols
 - `-v / --verbose` — verbose output
 - `-V / --version` — print library version
-- `-w / --width <n>` — output width
 
 ### Commands
 

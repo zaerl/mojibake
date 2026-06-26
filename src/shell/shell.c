@@ -22,7 +22,6 @@ unsigned int cmd_verbose = 0;
 mjbsh_interpret_mode cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
 mjbsh_output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
 unsigned int cmd_json_indent = 0;
-unsigned int cmd_width = 80;
 
 static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
 

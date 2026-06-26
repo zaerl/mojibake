@@ -326,23 +326,3 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
 
     saved_term_state = NULL;
 }
-
-void mjbsh_table_top(void) {
-    printf("┌");
-
-    for(unsigned int i = 0; i < cmd_width; i++) {
-        printf("─");
-    }
-
-    printf("┐\n");
-}
-
-void mjbsh_table_bottom(void) {
-    printf("└");
-
-    for(unsigned int i = 0; i < cmd_width; i++) {
-        printf("─");
-    }
-
-    printf("┘\n");
-}
