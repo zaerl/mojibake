@@ -60,7 +60,7 @@ tested on:
 2. Alpine/Debian/Ubuntu Linux
 4. FreeBSD
 5. OpenBSD
-6. Windows 11
+6. Windows 10/11
 
 ### Minimal API documentation
 
