@@ -189,7 +189,7 @@ mojibake -vv -o json -j 2 char $'\U022A'
 
 ### Coverage
 
-Mojibake run all the official tests found in the standard:
+Mojibake a total of **954,275** tests including all the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
 2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)

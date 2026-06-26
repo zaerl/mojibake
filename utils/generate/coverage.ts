@@ -7,6 +7,7 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { functions } from './html-function';
+import { substituteBlock } from './utils';
 
 // Types
 type FuncCoverage = {
@@ -135,6 +136,14 @@ function printCoverage(): void {
   output += `| **Total** ${totalPost} | **${totalStr}**${totalCountPost} |\n`;
 
   writeFileSync('../../TESTS.md', output);
+
+  // Update README.md with the total coverage count
+  const readmePath = '../../README.md';
+  const readmeContent = readFileSync(readmePath, 'utf8');
+  const updatedReadmeContent = substituteBlock(readmeContent, 'a total of **', `** tests including`,
+    total.toLocaleString('en-US')
+  );
+  writeFileSync(readmePath, updatedReadmeContent);
 }
 
 function main(): void {
