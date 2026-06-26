@@ -31,6 +31,12 @@ You don't need to install anything. Add the C source and header to your build.
 2. Unzip it
 3. Add `mojibake.c` and `mojibake.h` to your project
 
+## Building from source
+
+Most users do not need to build this repository because the amalgamation archive is enough. If you
+are developing Mojibake itself, running tests, building the CLI, or regenerating release artifacts,
+see [INSTALL.md](INSTALL.md).
+
 Example:
 
 ```c
@@ -200,30 +206,6 @@ Mojibake run a total of **954,351** tests including all the official tests inclu
 7. [CollationTest/CollationTest_SHIFTED_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
 8. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
 9. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
-
-## WebAssembly
-
-Build the WASM module and generated site assets with:
-
-```sh
-make wasm
-```
-
-This writes the current Emscripten output to `build-wasm/src/` and refreshes the generated API
-artifacts in `src/api/`.
-
-You can run a local server with:
-
-```sh
-make watch-site
-# Open http://localhost:6251
-```
-
-Run the JavaScript API server with:
-
-```sh
-make watch-api
-```
 
 ## Licenses
 
