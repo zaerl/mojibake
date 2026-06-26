@@ -81,6 +81,7 @@ function parseAvailableLocales(raw: string): AvailableLocales {
 
 async function generateAvailableLocales(): Promise<AvailableLocales> {
   console.log(`Downloading locales list from ${CLDR_MAIN_DIRECTORY_URL}`);
+  // TODO: check if /unicode-org/cldr-json/main/cldr-json/cldr-core/availableLocales.json is better
   const raw = await downloadText(CLDR_MAIN_DIRECTORY_URL);
   const response: unknown = JSON.parse(raw);
 
