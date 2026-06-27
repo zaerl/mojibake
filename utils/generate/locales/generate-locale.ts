@@ -194,7 +194,6 @@ export async function generateLocaleData(name: string, data: any) {
 
 async function parseLocale(name: string) {
   const raw = await readFile(`./locales/${name}.xml`, 'utf-8');
-  // const xml = raw.replace(/<!DOCTYPE[^>]*>/s, '');
 
   const parser = new XMLParser({
     ignoreAttributes: false,
@@ -212,6 +211,69 @@ async function parseLocale(name: string) {
 
   console.log('Generating locale data');
   await generateLocaleData(name, data);
+}
+
+function expandValidityId(id: string): string[] {
+  // In the CLDR validity data, some IDs are specified as ranges using a tilde (~) character. For
+  // example, "aaa~i" is aaa, aab, ..., aai.
+  const tildeIndex = id.indexOf('~');
+
+  if(tildeIndex === -1) {
+    return [id];
+  }
+
+  const start = id.slice(0, tildeIndex);
+  const endSuffix = id.slice(tildeIndex + 1);
+
+  if(start.length === 0 || endSuffix.length === 0 || endSuffix.length > start.length) {
+    throw new Error(`Invalid validity ID range '${id}'`);
+  }
+
+  const prefix = start.slice(0, start.length - endSuffix.length);
+  const end = `${prefix}${endSuffix}`;
+  const base = start.slice(0, -1);
+
+  if(end.length !== start.length || end.slice(0, -1) !== base) {
+    throw new Error(`Unsupported validity ID range '${id}'`);
+  }
+
+  const startCode = start.charCodeAt(start.length - 1);
+  const endCode = end.charCodeAt(end.length - 1);
+
+  if(endCode < startCode) {
+    throw new Error(`Invalid descending validity ID range '${id}'`);
+  }
+
+  const ids: string[] = [];
+
+  for(let code = startCode; code <= endCode; ++code) {
+    ids.push(`${base}${String.fromCharCode(code)}`);
+  }
+
+  return ids;
+}
+
+async function parseValidity(name: string) {
+  const raw = await readFile(`./locales/cldr/validity/${name}.xml`, 'utf-8');
+
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+  });
+
+  const data = parser.parse(raw).supplementalData;
+
+  // See ./cldr/validity/*.xml for the XML schema.
+  for(const entry of data.idValidity.id) {
+    if(entry['@_idStatus'] === 'regular') {
+      const ids: string[] = entry['#text'].trim().split(/\s+/);
+
+      for(const id of ids) {
+        for(const expandedId of expandValidityId(id)) {
+          console.log(expandedId);
+        }
+      }
+    }
+  }
 }
 
 export async function generateLocale(name: string) {
@@ -235,4 +297,7 @@ export async function generateLocale(name: string) {
 
   console.log(`Parsing '${localeName}'`);
   await parseLocale(localeName);
+
+  // console.log(`Parsing validity data for 'language'`);
+  // await parseValidity('language');
 }
