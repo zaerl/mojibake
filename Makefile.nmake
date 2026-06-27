@@ -167,7 +167,7 @@ watch-site:
 
 # Watch API files
 watch-api: sync-api-wasm
-	@cd src\api && node --watch index.js
+	@cd src\api && node --watch server.js
 
 # Serve WASM site with live reload
 serve: wasm generate-site

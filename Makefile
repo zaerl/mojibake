@@ -133,7 +133,7 @@ watch-site: src/site/index.html
 
 # Watch API files
 watch-api: sync-api-wasm
-	cd ./src/api && node --watch index.js
+	cd ./src/api && node --watch server.js
 
 # Generate WASM library
 wasm: sync-api-wasm generate-site
