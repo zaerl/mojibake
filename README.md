@@ -203,9 +203,7 @@ Mojibake run a total of **954,351** tests including all the official tests inclu
 
 ## Building from source
 
-Most users do not need to build this repository because the amalgamation archive is enough. If you
-are developing Mojibake itself, running tests, building the CLI, or regenerating release artifacts,
-see [INSTALL.md](INSTALL.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions.
 
 ## Licenses
 
