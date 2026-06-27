@@ -154,7 +154,7 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: test test-all test-cpp test-asan test-ubsan test-null ctest test-docker
+.PHONY: test test-all test-cpp test-asan test-ubsan test-null ctest ctest-cpp test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -199,6 +199,12 @@ ctest: $(UNICODE_DATA)
 	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	cd $(TEST_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
+
+# Run C++ tests using CTest
+ctest-cpp: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
+	cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
 # Run tests in Docker container
 test-docker:
@@ -245,6 +251,7 @@ help:
 	@echo "  clean-wasm              - Remove WASM build artifacts"
 	@echo "  coverage                - Run coverage analysis"
 	@echo "  ctest                   - Build and run tests using CTest"
+	@echo "  ctest-cpp               - Build and run C++ tests using CTest"
 	@echo "  generate                - Regenerate source files"
 	@echo "  generate-locale         - Generate locale file"
 	@echo "  generate-site           - Generate site"

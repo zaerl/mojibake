@@ -108,6 +108,7 @@ You can run tests in multiple ways. On POSIX platforms:
 4. `make test-ubsan` run tests with [UndefinedBehaviorSanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html)
 5. `make test-null` run tests with embedded NULL support
 6. `make ctest` run tests using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html)
+7. `make ctest-cpp` run C and C++ tests using `ctest`
 
 Windows 10/11:
 
@@ -117,6 +118,7 @@ Windows 10/11:
 4. `nmake /F Makefile.nmake test-ubsan` run tests with `UndefinedBehaviorSanitizer`
 5. `nmake /F Makefile.nmake test-null` run tests with embedded `NULL` support
 6. `nmake /F Makefile.nmake ctest` run tests using `ctest`
+7. `make ctest-cpp` run C and C++ tests using `ctest`
 
 Docker:
 
