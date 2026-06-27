@@ -56,10 +56,11 @@ This library works only in little-endian systems to avoid adding too much overhe
 it works on all modern general-purpose CPUs today (x86, x86-64, ARMv8, RISC-V, etc.) It has been
 tested on:
 
-1. macOS
-2. Alpine/Debian/Ubuntu Linux
-4. FreeBSD
-5. OpenBSD
+1. Linux
+2. macOS
+3. FreeBSD
+4. OpenBSD
+5. NetBSD
 6. Windows 10/11
 
 ### Minimal API documentation

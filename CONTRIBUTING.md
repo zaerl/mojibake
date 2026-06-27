@@ -9,7 +9,7 @@ files.
 
 ### Requirements
 
-On POSIX systems: macOS, Linux, FreeBSD, OpenBSD:
+On POSIX systems: Linux, macOS, FreeBSD, OpenBSD, NetBSD:
 
 - `CMake`
 - `Node.js` and `npm`
