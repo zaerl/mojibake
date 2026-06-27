@@ -27,7 +27,7 @@ A CLI implementation is provided in `src/shell`, and a C++ wrapper is in `src/cp
 You don't need to install anything. Add the C source and header to your build.
 
 1. Download it here
-[mojibake-amalgamation-020.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.0/mojibake-amalgamation-020.zip)
+[mojibake-amalgamation-021.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.1/mojibake-amalgamation-021.zip)
 2. Unzip it
 3. Add `mojibake.c` and `mojibake.h` to your project
 

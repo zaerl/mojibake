@@ -5,7 +5,43 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.1] - 2026-06-27
+
+### Added
+- Added tests for main allocation functions
+- Added tests for `mjb_category_is_*` functions
+- Added `UndefinedBehaviorSanitizer` (`UBSan`) build and test targets
+- Added missing `mjb_break_word` tests
+- Added `test-all` target
+- Download of `CLDR` artifacts
+- Added `BCP 47` language tag parser
+- Added `mjb_locale_parse` WASM support
+- Added `mjb_locale_parse` CLI support
+- Added `grapheme`, `word`, `line`, `sentence` CLI subcommands
+- Added missing `generate-amalgamation.bat` file
+- Initial support for CLDR validity parsing
+
+### Changed
+- Moved all builds to separate folders
+- Updated coverage
+- Remove unused WASM exported functions
+- Add `NULL` checks to all functions that had `MJB_NONNULL` before
+- Add memory allocation safety checks
+- Cleaned amalgamation generated code
+- Removed `width` CLI parameter
+- `\r` and `\n` are now displayed as special characters on CLI
+
+### Fixed
+- Minor documentation fixes
+- Fixed WASM `mjb_normalize` call
+- Removed all `MJB_NONNULL` declarations
+- Added missing ASCII check to `mjb_decode_step`
+- Added missing ASCII check to `mjb_codepoint_encode`
+- Fixed output encoding on `mjb_string_filter` normalized strings
+- Added support for `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` to `mjb_string_is_utf8`
+- Set `width` CLI argument as required
+- FreeBSD: removed `gmake` specific syntax
+- Windows: fixed `C4310`, `C4456`, `C4566`, `C4701`, `C4702` warnings
 
 ## [0.2.0] - 2026-06-23
 
@@ -229,7 +265,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/zaerl/mojibake/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/zaerl/mojibake/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/zaerl/mojibake/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/zaerl/mojibake/compare/v0.1.3...v0.1.4
