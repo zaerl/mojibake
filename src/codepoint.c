@@ -10,6 +10,32 @@
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
 
+static void mjb_codepoint_append_name(char *destination, size_t destination_size,
+    size_t *index, const char *source) {
+    if(*index >= destination_size) {
+        return;
+    }
+
+    while(source[0] != '\0' && *index + 1 < destination_size) {
+        destination[(*index)++] = *source++;
+    }
+
+    destination[*index] = '\0';
+}
+
+static void mjb_codepoint_set_name(char *destination, size_t destination_size,
+    const char *prefix, const char *name) {
+    size_t index = 0;
+
+    if(destination_size == 0) {
+        return;
+    }
+
+    destination[0] = '\0';
+    mjb_codepoint_append_name(destination, destination_size, &index, prefix);
+    mjb_codepoint_append_name(destination, destination_size, &index, name);
+}
+
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     if(codepoint > MJB_CODEPOINT_MAX ||
@@ -99,7 +125,8 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
     // Egyptian Hieroglyphs
     // Egyptian Hieroglyph Format Controls
     if(codepoint >= MJB_EGYPTIAN_H_START && codepoint < MJB_EGYPTIAN_H_FORMAT_EXT_START) {
-        snprintf(character->name, 128, "EGYPTIAN HIEROGLYPH %s", name);
+        mjb_codepoint_set_name(character->name, sizeof(character->name),
+            "EGYPTIAN HIEROGLYPH ", name);
     } else if(
         (codepoint >= MJB_CJK_COMPATIBILITY_IDEOGRAPH_START &&
         codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_END) ||
@@ -109,11 +136,13 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         snprintf(character->name, 128, "CJK COMPATIBILITY IDEOGRAPH-%X", codepoint);
     } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
         // Anatolian Hieroglyphs
-        snprintf(character->name, 128, "ANATOLIAN HIEROGLYPH A%s", name);
+        mjb_codepoint_set_name(character->name, sizeof(character->name),
+            "ANATOLIAN HIEROGLYPH A", name);
     } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
         (codepoint >= 0x12480 && codepoint <= 0x12543)) {
         // Cuneiform signs
-        snprintf(character->name, 128, "CUNEIFORM SIGN %s", name);
+        mjb_codepoint_set_name(character->name, sizeof(character->name),
+            "CUNEIFORM SIGN ", name);
     } else {
         snprintf(character->name, 128, "%s", name);
     }
