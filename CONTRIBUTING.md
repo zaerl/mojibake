@@ -55,7 +55,7 @@ nmake /F Makefile.nmake test
 
 ## WebAssembly
 
-Build the WASM module and generated site assets with:
+To build the WASM module you need [Emscripten](https://emscripten.org) and generate assets with:
 
 ```sh
 make wasm
