@@ -68,7 +68,11 @@ void read_test_file(const char *filename, test_file_callback callback) {
         unsigned int types_i = 0;
         unsigned int i = 0;
         unsigned int generated_index = 0;
-        memset(expected_types, MJB_LBP_NOT_SET, 1024);
+
+        for(size_t expected_i = 0; expected_i < 1024; ++expected_i) {
+            expected_types[expected_i] = MJB_BT_NOT_SET;
+        }
+
         memset(generated_input, 0, 1024);
         bool skip_line = false;
 
