@@ -31,12 +31,6 @@ You don't need to install anything. Add the C source and header to your build.
 2. Unzip it
 3. Add `mojibake.c` and `mojibake.h` to your project
 
-## Building from source
-
-Most users do not need to build this repository because the amalgamation archive is enough. If you
-are developing Mojibake itself, running tests, building the CLI, or regenerating release artifacts,
-see [INSTALL.md](INSTALL.md).
-
 Example:
 
 ```c
@@ -206,6 +200,12 @@ Mojibake run a total of **954,351** tests including all the official tests inclu
 7. [CollationTest/CollationTest_SHIFTED_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
 8. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
 9. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
+
+## Building from source
+
+Most users do not need to build this repository because the amalgamation archive is enough. If you
+are developing Mojibake itself, running tests, building the CLI, or regenerating release artifacts,
+see [INSTALL.md](INSTALL.md).
 
 ## Licenses
 
