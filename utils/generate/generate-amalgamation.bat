@@ -15,7 +15,6 @@ copy /Y "..\..\build-wasm\src\mojibake.wasm" "..\..\build-amalgamation\mojibake.
 
 copy /Y "..\..\build-wasm\src\mojibake.js" "..\..\src\api\mojibake.js" >NUL
 copy /Y "..\..\build-wasm\src\mojibake.wasm" "..\..\src\api\mojibake.wasm" >NUL
-copy /Y ".\functions.js" "..\..\src\api\functions.js" >NUL
 
 set /P VERSION=<"..\..\VERSION"
 set "VERSION=!VERSION: =!"

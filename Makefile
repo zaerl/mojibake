@@ -125,7 +125,6 @@ generate-site: src/site/index.html
 sync-api-wasm: build-wasm
 	@cp $(WASM_BUILD_DIR)/src/mojibake.js src/api/mojibake.js
 	@cp $(WASM_BUILD_DIR)/src/mojibake.wasm src/api/mojibake.wasm
-	@cp utils/generate/functions.js src/api/functions.js
 
 # Watch site files
 watch-site: src/site/index.html
@@ -133,7 +132,7 @@ watch-site: src/site/index.html
 
 # Watch API files
 watch-api: sync-api-wasm
-	cd ./src/api && node --watch server.js
+	cd ./src/api && npm run dev
 
 # Generate WASM library
 wasm: sync-api-wasm generate-site

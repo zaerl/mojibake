@@ -1,0 +1,1448 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+import mojibakeModule from './mojibake.js';
+import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
+
+// mjb_encoding
+export enum EncodingTypes {
+  UNKNOWN = 0x0,
+  ASCII = 0x1,
+  UTF_8 = 0x2,
+  UTF_16 = 0x4,
+  UTF_16BE = 0x8,
+  UTF_16LE = 0x10,
+  UTF_32 = 0x20,
+  UTF_32BE = 0x40,
+  UTF_32LE = 0x80,
+};
+
+// mjb_normalization
+export enum Normalizations {
+  NFC,
+  NFD,
+  NFKC,
+  NFKD,
+};
+
+// mjb_case_type
+export enum CaseTypes {
+  NONE = 0x0,
+  UPPER = 0x1,
+  LOWER = 0x2,
+  TITLE = 0x3,
+  CASEFOLD = 0x4,
+};
+
+// mjb_error
+export enum ErrorTypes {
+  MJB_ERROR_NONE,
+  MJB_ERROR_INVALID_ARGUMENT,
+  MJB_ERROR_UNSUPPORTED,
+};
+
+// mjb_collation_mode
+export enum CollationMode {
+  NON_IGNORABLE,
+  SHIFTED,
+};
+
+export enum FilterTypes {
+  NONE = 0x0,
+  NORMALIZE = 0x1,
+  SPACES = 0x2,
+  COLLAPSE_SPACES = 0x4,
+  CONTROLS = 0x8,
+  NUMERIC = 0x10,
+};
+
+// mjb_plane
+export enum PlaneTypes {
+  NOT_VALID = -1,
+  BMP = 0,
+  SMP = 1,
+  SIP = 2,
+  TIP = 3,
+  SSP = 4,
+  PUA_A = 5,
+  PUA_B = 16,
+};
+
+// mjb_property
+export enum PropertyTypes {
+  // TODO
+};
+
+// mjb_script
+export enum ScriptTypes {
+  // TODO
+};
+
+// mjb_identifier_profile
+export enum IdentifierProfile {
+  DEFAULT,
+  NFKC,
+};
+
+// mjb_width_context
+export enum WidthContext {
+  WESTERN,
+  EAST_ASIAN,
+  AUTO
+};
+
+// mjb_break_type
+export enum BreakTypes {
+  NOT_SET,
+  MANDATORY,
+  NO_BREAK,
+  ALLOWED,
+};
+
+// mjb_next_character_type
+export enum NextCharacterTypes {
+  NONE,
+  FIRST,
+  LAST,
+};
+
+// mjb_direction
+export enum BidiDirection {
+  LTR,
+  RTL,
+  AUTO,
+};
+
+// mjb_character
+export type Character = {
+  codepoint: number | null;
+  name: string; // 128
+  category: number;
+  combining: number;
+  bidirectional: number;
+  decomposition: number;
+  decimal: number | null;
+  digit: number | null;
+  numeric: string; // 16
+  mirrored: boolean;
+  uppercase: number | null;
+  lowercase: number | null;
+  titlecase: number | null;
+}
+
+// mjb_locale_id
+export type LocaleID = {
+  language: string; // 9
+  extlang: string; // 12
+  script: string; // 5
+  region: string; // 4
+  variant: string; // 32
+  extensions: string; // 128
+  private_use: string; // 128
+  grandfathered: string; // 32
+}
+
+// mjb_emoji_properties
+export type EmojiProperties = {
+  codepoint: number | null;
+  emoji: boolean;
+  presentation: boolean;
+  modifier: boolean;
+  modifier_base: boolean;
+  component: boolean;
+  extended_pictographic: boolean;
+}
+
+// mjb_numeric_value
+export type NumericValue = {
+  decimal: number | null;
+  digit: number | null;
+  numeric: string; // 16
+}
+
+// mjb_block_info
+export type BlockInfo = {
+  id: number;
+  name: string; // 128
+  start: number;
+  end: number;
+}
+
+// mjb_bidi_char
+export type BidiChar = {
+  codepoint: number;
+  byte_offset: number;
+  level: number;
+  resolved_class: number;
+  mirroring_glyph: number | null;
+}
+
+// mjb_bidi_paragraph
+export type BidiParagraph = {
+  chars: BidiChar[];
+  count: number;
+  paragraph_level: number;
+  direction: BidiDirection;
+}
+
+export type NextCharacter = {
+  character: Character;
+  type: NextCharacterTypes; // mjb_next_character_type
+}
+
+// Generic pointer type for memory management
+export type Pointer = number;
+
+// Mojibake accept UTF_8, UTF_16, UTF_32
+export type MojibakeInput = string | ArrayBuffer | ArrayBufferView;
+
+// Used for `buffer, encoding, output_encoding` type of functions
+export type TextInputOptions = {
+  encoding?: EncodingTypes;
+  outputEncoding?: EncodingTypes;
+};
+
+// Used for preRun and postRun callbacks
+export type MojibakeRuntimeCallback = (module: MojibakeWasmModule) => void;
+
+// Seem Module object: https://emscripten.org/docs/api_reference/module.html
+export type MojibakeModuleOptions = {
+  arguments?: string[];
+  // buffer
+  // wasmMemory: ArrayBuffer | SharedArrayBuffer
+  locateFile?: (path: string, prefix: string) => string;
+  // logReadFiles: boolean
+  // printWithColors: boolean
+  onAbort?: (reason: unknown) => void;
+  onRuntimeInitialized?: () => void;
+  noExitRuntime?: boolean;
+  // noItialRun: boolean
+  preInit?: (() => void) | (() => void)[];
+  // preinitializedWebGLContext: WebGLRenderingContext
+  preRun?: MojibakeRuntimeCallback | MojibakeRuntimeCallback[];
+  postRun?: MojibakeRuntimeCallback | MojibakeRuntimeCallback[];
+  print?: (text: string) => void;
+  printErr?: (text: string) => void;
+  // mainScriptUrlOrBlob: any
+};
+
+// String data structure for handling string data in WebAssembly heap memory
+type WasmInput = {
+  ptr: Pointer;
+  size: number;
+  encoding: EncodingTypes;
+};
+
+// mjb_result
+type MojibakeResult = {
+  output: Pointer;
+  outputSize: number;
+  transformed: boolean;
+};
+
+// Used by collectBreaks callbacks
+type BreakFunction = (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
+
+// Emscripten exported function type
+type MojibakeModuleFactory = (options?: MojibakeModuleOptions) => Promise<MojibakeWasmModule>;
+
+// Read memory to be collected as a structure
+class StructReader {
+  private offset = 0;
+
+  constructor(private readonly ptr: Pointer, private readonly heap: Uint8Array,
+    private readonly view: DataView, private readonly decoder: TextDecoder) {}
+
+  u8(): number {
+    return this.heap[this.ptr + this.offset++];
+  }
+
+  u16(): number {
+    this.align(2);
+    const value = this.view.getUint16(this.ptr + this.offset, true);
+    this.offset += 2;
+
+    return value;
+  }
+
+  u32(): number {
+    this.align(4);
+    const value = this.view.getUint32(this.ptr + this.offset, true);
+    this.offset += 4;
+
+    return value;
+  }
+
+  i32(): number {
+    this.align(4);
+    const value = this.view.getInt32(this.ptr + this.offset, true);
+    this.offset += 4;
+
+    return value;
+  }
+
+  str(maxLength: number): string {
+    const start = this.ptr + this.offset;
+    const bytes = this.heap.subarray(start, start + maxLength);
+    const end = bytes.indexOf(0);
+    this.offset += maxLength;
+
+    return this.decoder.decode(end === -1 ? bytes : bytes.subarray(0, end));
+  }
+
+  private align(bytes: number): void {
+    this.offset = (this.offset + bytes - 1) & ~(bytes - 1);
+  }
+}
+
+export class Mojibake {
+  utf8Encoder = new TextEncoder();
+  utf8Decoder = new TextDecoder('utf-8');
+  utf16beDecoder = new TextDecoder('utf-16be');
+  utf16leDecoder = new TextDecoder('utf-16le');
+
+  private constructor(private readonly module: MojibakeWasmModule) {}
+
+  static async create(options?: MojibakeModuleOptions): Promise<Mojibake> {
+    const module = await (mojibakeModule as MojibakeModuleFactory)(options);
+    const mojibake = new Mojibake(module);
+    mojibake.initializeV2();
+
+    return mojibake;
+  }
+
+  // bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character)
+  codepointCharacter(codepoint: number): Character | null {
+    // Allocate memory for mjb_character structure
+    const structSize = 512;
+    const ptr = this.malloc(structSize);
+
+    try {
+      const result = this.module._mjb_codepoint_character(codepoint, ptr);
+
+      if(result) {
+        return this.pointerToCharacter(ptr);
+      }
+
+      throw new Error('Failed to get character data for codepoint');
+    } finally {
+      this.free(ptr);
+    }
+  }
+
+  // bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization
+  // form, mjb_encoding output_encoding, mjb_result *result)
+  normalize(input: MojibakeInput, form = Normalizations.NFC,
+    options: TextInputOptions = {}): string | null {
+    const wasmInput = this.copyInput(input, options);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    let result: MojibakeResult | null = null;
+
+    try {
+      const ret = this.module._mjb_normalize(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, form, outputEncoding, resultPtr);
+
+      if(!ret) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+
+      return this.decodeString(result.output, result.outputSize, outputEncoding);
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+  // mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_next_character_fn fn)
+  nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
+    const wasmInput = this.copyInput(input, options);
+    const previousCallback = (globalThis as any)._mjbNextCharacterCallback;
+    const characters: NextCharacter[] = [];
+
+    // See mjb_next_character function
+    (globalThis as any)._mjbNextCharacterCallback = (character: Pointer, type: number) => {
+      characters.push({
+        character: this.pointerToCharacter(character),
+        type
+      });
+
+      return true;
+    };
+
+    try {
+      const ret = this.module._mjb_next_character(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, 0);
+
+      if(!ret) {
+        return null;
+      }
+
+      return characters;
+    } finally {
+      if(previousCallback === undefined) {
+        delete (globalThis as any)._mjbNextCharacterCallback;
+      } else {
+        (globalThis as any)._mjbNextCharacterCallback = previousCallback;
+      }
+
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding
+  // encoding, mjb_normalization form)
+  stringIsNormalized(input: MojibakeInput, form = Normalizations.NFC,
+    options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_normalized(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, form);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding
+  // output_encoding, mjb_filter filters, mjb_result *result)
+  stringFilter(input: MojibakeInput, filters = FilterTypes.NONE,
+    options: TextInputOptions = {}): string | null {
+    const wasmInput = this.copyInput(input, options);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    let result: MojibakeResult | null = null;
+
+    try {
+      const ret = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, outputEncoding, filters, resultPtr);
+
+      if(!ret) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+
+      return this.decodeString(result.output, result.outputSize, outputEncoding);
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
+  // bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value)
+  codepointHasProperty(codepoint: Codepoint, property: number): boolean {
+    return this.module._mjb_codepoint_has_property(codepoint, property, 0) ? true : false;
+  }
+
+  // bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer)
+  codepointProperties(codepoint: Codepoint): Uint8Array | null {
+    const bufferSize = 209; // MJB_PR_BUFFER_SIZE
+    const ptr = this.malloc(bufferSize);
+
+    try {
+      const ret = this.module._mjb_codepoint_properties(codepoint, ptr);
+
+      if(!ret) {
+        return null;
+      }
+
+      return new Uint8Array(this.module.HEAPU8.subarray(ptr, ptr + bufferSize));
+    } finally {
+      this.free(ptr);
+    }
+  }
+
+  // mjb_codepoint_script
+  codepointScript(codepoint: Codepoint): number {
+    return this.module._mjb_codepoint_script(codepoint);
+  }
+
+  // mjb_encoding mjb_string_encoding(const char *buffer, size_t size)
+  stringEncoding(input: MojibakeInput, options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_encoding(wasmInput.ptr, wasmInput.size);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_string_is_utf8(const char *buffer, size_t size)
+  stringIsUTF8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_utf8(wasmInput.ptr, wasmInput.size) ? true : false;
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_string_is_utf16(const char *buffer, size_t size)
+  stringIsUTF16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_utf16(wasmInput.ptr, wasmInput.size) ? true : false;
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // bool mjb_string_is_ascii(const char *buffer, size_t size)
+  stringIsASCII(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_ascii(wasmInput.ptr, wasmInput.size) ? true : false;
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size,
+  // mjb_encoding encoding)
+  codepointEncode(codepoint: Codepoint, encoding = EncodingTypes.UTF_8): string | null {
+    encoding = this.resolveEncoding(encoding);
+    const bufferPtr = this.malloc(5);
+
+    try {
+      const size = this.module._mjb_codepoint_encode(codepoint, bufferPtr, 5, encoding);
+
+      if(size === 0) {
+        return null;
+      }
+
+      return this.decodeString(bufferPtr, size, encoding);
+    } finally {
+      this.free(bufferPtr);
+    }
+  }
+
+  // bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_encoding output_encoding, mjb_result *result)
+  stringConvertEncoding(input: MojibakeInput, outputEncoding = EncodingTypes.UTF_8,
+    options: TextInputOptions = {}): string | null {
+    const wasmInput = this.copyInput(input, options);
+    outputEncoding = this.resolveEncoding(outputEncoding);
+    const resultPtr = this.malloc(24);
+    let result: MojibakeResult | null = null;
+
+    try {
+      const ret = this.module._mjb_string_convert_encoding(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, outputEncoding, resultPtr);
+
+      if(!ret) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+
+      return this.decodeString(result.output, result.outputSize, outputEncoding);
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
+  // size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
+  strnlen(input: MojibakeInput, maxLength = 0x7FFFFFFF,
+    options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_strnlen(wasmInput.ptr, Math.min(maxLength, wasmInput.size),
+        wasmInput.encoding);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length,
+  // mjb_encoding encoding, mjb_collation_mode mode)
+  stringCompare(first: MojibakeInput, second: MojibakeInput,
+    mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number {
+    const firstInput = this.copyInput(first, options);
+    const secondInput = this.copyInput(second, options);
+
+    try {
+      return this.module._mjb_string_compare(firstInput.ptr, firstInput.size,
+        secondInput.ptr, secondInput.size, firstInput.encoding, mode);
+    } finally {
+      this.free(firstInput.ptr);
+      this.free(secondInput.ptr);
+    }
+  }
+
+  // bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_collation_mode mode, mjb_result *result)
+  collationKey(input: MojibakeInput, mode = CollationMode.NON_IGNORABLE,
+    options: TextInputOptions = {}): Uint8Array | null {
+    const wasmInput = this.copyInput(input, options);
+    const resultPtr = this.malloc(24);
+    let result: MojibakeResult | null = null;
+
+    try {
+      const ret = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, mode, resultPtr);
+
+      if(!ret) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+
+      if(result.output === 0 || result.outputSize === 0) {
+        return new Uint8Array();
+      }
+
+      return new Uint8Array(this.module.HEAPU8.subarray(result.output,
+        result.output + result.outputSize));
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
+  // char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding)
+  case(input: MojibakeInput, type: CaseTypes, options: TextInputOptions = {}): string | null {
+    const wasmInput = this.copyInput(input, options);
+    const encoding = wasmInput.encoding;
+    let outputPtr = 0;
+
+    try {
+      if(encoding !== EncodingTypes.ASCII && encoding !== EncodingTypes.UTF_8) {
+        return null;
+      }
+
+      outputPtr = this.module._mjb_case(wasmInput.ptr, wasmInput.size, type, encoding);
+
+      if(outputPtr === 0) {
+        return null;
+      }
+
+      return this.decodeString(outputPtr, this.nullTerminatedByteLength(outputPtr), encoding);
+    } finally {
+      if(outputPtr !== 0 && outputPtr !== wasmInput.ptr) {
+        this.free(outputPtr);
+      }
+
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // bool mjb_codepoint_is_valid(mjb_codepoint codepoint)
+  codepointIsValid(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_valid(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_graphic(mjb_codepoint codepoint)
+  codepointIsGraphic(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_graphic(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_combining(mjb_codepoint codepoint)
+  codepointIsCombining(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_combining(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint)
+  // bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint)
+  // bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint)
+  // bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint)
+
+  // bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint)
+  codepointIsHangulSyllable(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_syllable(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint)
+  codepointIsCjkIdeograph(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_cjk_ideograph(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint)
+  codepointIsCjkExt(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_cjk_ext(codepoint) ? true : false;
+  }
+
+  // mjb_category_is_graphic
+  categoryIsGraphic(category: number): boolean {
+    return this.module._mjb_category_is_graphic(category) ? true : false;
+  }
+
+  // bool mjb_category_is_combining(mjb_category category)
+  categoryIsCombining(category: number): boolean {
+    return this.module._mjb_category_is_combining(category) ? true : false;
+  }
+
+  // bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value)
+  codepointNumericValue(codepoint: Codepoint): NumericValue | null {
+    const ptr = this.malloc(24);
+
+    try {
+      const ret = this.module._mjb_codepoint_numeric_value(codepoint, ptr);
+
+      if(!ret) {
+        return null;
+      }
+
+      return this.pointerToNumericValue(ptr);
+    } finally {
+      this.free(ptr);
+    }
+  }
+
+  // bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block)
+  codepointBlock(codepoint: Codepoint): BlockInfo | null {
+    const ptr = this.malloc(144);
+
+    try {
+      const ret = this.module._mjb_codepoint_block(codepoint, ptr);
+
+      if(!ret) {
+        return null;
+      }
+
+      return this.pointerToBlockInfo(ptr);
+    } finally {
+      this.free(ptr);
+    }
+  }
+
+  // mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint)
+  codepointToLowercase(codepoint: Codepoint): Codepoint {
+    return this.module._mjb_codepoint_to_lowercase(codepoint);
+  }
+
+  // mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint)
+  codepointToUppercase(codepoint: Codepoint): Codepoint {
+    return this.module._mjb_codepoint_to_uppercase(codepoint);
+  }
+
+  // mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint)
+  codepointToTitlecase(codepoint: Codepoint): Codepoint {
+    return this.module._mjb_codepoint_to_titlecase(codepoint);
+  }
+
+  // mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_next_line_state *state)
+  breakLine(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_break_line, options);
+  }
+
+  // mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_next_word_state *state)
+  breakWord(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_break_word, options);
+  }
+
+  // size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
+  // size_t max_segments)
+  truncateWord(input: MojibakeInput, maxSegments: number,
+    options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_truncate_word(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, maxSegments);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_width_context context, size_t max_columns)
+  truncateWordWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
+    options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_truncate_word_width(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, context, maxColumns);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_next_sentence_state *state)
+  breakSentence(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_break_sentence, options);
+  }
+
+  // mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_next_state *state)
+  segmentation(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_segmentation, options);
+  }
+
+  // size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t
+  // max_graphemes)
+  truncate(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_truncate(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, maxGraphemes);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_width_context context, size_t max_columns)
+  truncateWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
+    options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_truncate_width(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, context, maxColumns);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction
+  // direction, mjb_bidi_paragraph *result)
+  bidiResolve(input: MojibakeInput, direction = BidiDirection.AUTO,
+    options: TextInputOptions = {}): BidiParagraph | null {
+    const wasmInput = this.copyInput(input, options);
+    const resultPtr = this.malloc(24);
+    let charsPtr = 0;
+
+    try {
+      const ret = this.module._mjb_bidi_resolve(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, direction, resultPtr);
+
+      if(!ret) {
+        return null;
+      }
+
+      const paragraph = this.pointerToBidiParagraph(resultPtr);
+      charsPtr = paragraph.charsPtr;
+
+      return {
+        chars: paragraph.chars,
+        count: paragraph.count,
+        paragraph_level: paragraph.paragraph_level,
+        direction: paragraph.direction
+      };
+    } finally {
+      if(charsPtr !== 0) {
+        this.free(charsPtr);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
+  // void mjb_bidi_free(mjb_bidi_paragraph *paragraph)
+  // bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t
+  // line_end, size_t *visual_order)
+  // bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t
+  // count, mjb_bidi_run *runs, size_t *run_count)
+
+  // mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint)
+  codepointPlane(codepoint: Codepoint): number {
+    return this.module._mjb_codepoint_plane(codepoint);
+  }
+
+  // bool mjb_plane_is_valid(mjb_plane plane)
+  planeIsValid(plane: number): boolean {
+    return this.module._mjb_plane_is_valid(plane) ? true : false;
+  }
+
+  // const char *mjb_plane_name(mjb_plane plane, bool abbreviation)
+  planeName(plane: number, abbreviation = false): string | null {
+    const ptr = this.module._mjb_plane_name(plane, abbreviation);
+
+    if(ptr === 0) {
+      return null;
+    }
+
+    return this.decodeString(ptr, null, EncodingTypes.UTF_8);
+  }
+
+  // bool mjb_codepoint_is_id_start(mjb_codepoint codepoint)
+  codepointIsIdStart(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_id_start(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint)
+  codepointIsIdContinue(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_id_continue(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint)
+  codepointIsXidStart(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_xid_start(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint)
+  codepointIsXidContinue(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_xid_continue(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint)
+  codepointIsPatternSyntax(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_pattern_syntax(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint)
+  codepointIsPatternWhiteSpace(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_pattern_white_space(codepoint) ? true : false;
+  }
+
+  // bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_identifier_profile profile)
+  stringIsIdentifier(input: MojibakeInput, profile = IdentifierProfile.DEFAULT,
+    options: TextInputOptions = {}): boolean {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_identifier(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, profile) ? true : false;
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // const char *mjb_property_name(mjb_property property)
+  propertyName(property: number): string | null {
+    const ptr = this.module._mjb_property_name(property);
+
+    if(ptr === 0) {
+      return null;
+    }
+
+    return this.decodeString(ptr, null, EncodingTypes.UTF_8);
+  }
+
+  // bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size,
+  // mjb_encoding encoding)
+
+  // bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji)
+  codepointEmoji(codepoint: Codepoint): EmojiProperties | null {
+    const structSize = 16;
+    const ptr = this.malloc(structSize);
+
+    try {
+      const ret = this.module._mjb_codepoint_emoji(codepoint, ptr);
+
+      if(!ret) {
+        return null;
+      }
+
+      return this.pointerToEmojiProperties(ptr);
+    } finally {
+      this.free(ptr);
+    }
+  }
+
+  // bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size)
+  // bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints)
+  // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)
+
+  // bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
+  codepointEastAsianWidth(codepoint: Codepoint): number | null {
+    const widthPtr = this.malloc(4);
+
+    try {
+      const ret = this.module._mjb_codepoint_east_asian_width(codepoint, widthPtr);
+
+      if(ret) {
+        return this.module.HEAP32[widthPtr / 4];
+      }
+
+      return null;
+    } finally {
+      this.free(widthPtr);
+    }
+  }
+
+  // bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_width_context context, size_t *width);
+  displayWidth(input: MojibakeInput, context = WidthContext.AUTO,
+    options: TextInputOptions = {}): number | null {
+    const wasmInput = this.copyInput(input, options);
+    const widthPtr = this.malloc(4);
+
+    try {
+      const ret = this.module._mjb_display_width(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, context, widthPtr);
+
+      if(ret) {
+        return this.module.HEAP32[widthPtr / 4];
+      }
+
+      return null;
+    } finally {
+      this.free(wasmInput.ptr);
+      this.free(widthPtr);
+    }
+  }
+
+  // bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id
+  // *locale, mjb_error *error);
+  parseLocale(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
+    const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
+    const wasmInput = this.copyInput(id, options);
+    const localePtr = this.malloc(localeStructSize);
+    const errorPtr = this.malloc(4);
+
+    try {
+      const result = this.module._mjb_locale_parse(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, localePtr, errorPtr);
+
+      if(result) {
+        return this.pointerToLocaleId(localePtr);
+      }
+
+      throw new Error(`Failed to parse locale`);
+    } finally {
+      this.free(wasmInput.ptr);
+      this.free(localePtr);
+      this.free(errorPtr);
+    }
+  }
+
+  // bool mjb_locale_set(unsigned int locale);
+  setLocale(locale: number): boolean {
+    return this.module._mjb_locale_set(locale) ? true : false;
+  }
+
+  // const char *mjb_version(void);
+  version(): string | null {
+    return this.decodeString(this.module._mjb_version(), null, EncodingTypes.UTF_8);
+  }
+
+  // unsigned int mjb_version_number(void);
+  versionNumber(): number {
+    return this.module._mjb_version_number();
+  }
+
+  // const char *mjb_unicode_version(void);
+  unicodeVersion(): string | null {
+    return this.decodeString(this.module._mjb_unicode_version(), null, EncodingTypes.UTF_8);
+  }
+
+  // bool mjb_initialize(void);
+
+  // bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+  initializeV2(): void {
+    this.module._mjb_initialize_v2(0, 0, 0);
+  }
+
+  // void mjb_shutdown(void);
+  // void *mjb_alloc(size_t size);
+  // void *mjb_realloc(void *ptr, size_t new_size);
+
+  private struct(ptr: Pointer, view = new DataView(this.module.HEAPU8.buffer)): StructReader {
+    return new StructReader(ptr, this.module.HEAPU8, view, this.utf8Decoder);
+  }
+
+  // Create a mjb_character structure from a pointer to it in memory
+  private pointerToCharacter(ptr: Pointer): Character {
+    const reader = this.struct(ptr);
+    const codepoint = reader.u32();
+    const name = reader.str(128);
+    const category = reader.u32();
+    const combining = reader.u32();
+    const bidirectional = reader.u16();
+    const decomposition = reader.u32();
+    const decimal = reader.i32();
+    const digit = reader.i32();
+    const numeric = reader.str(16);
+    const mirrored = reader.u8();
+    const uppercase = reader.u32();
+    const lowercase = reader.u32();
+    const titlecase = reader.u32();
+
+    return {
+      codepoint,
+      name,
+      category,
+      combining,
+      bidirectional,
+      decomposition,
+      decimal: decimal === -1 ? null : decimal,
+      digit: digit === -1 ? null : digit,
+      numeric,
+      mirrored: mirrored !== 0,
+      uppercase: uppercase === 0 ? null : uppercase,
+      lowercase: lowercase === 0 ? null : lowercase,
+      titlecase: titlecase === 0 ? null : titlecase
+    };
+  }
+
+  // Create a mjb_locale_id structure from a pointer to it in memory
+  private pointerToLocaleId(ptr: Pointer): LocaleID {
+    const reader = this.struct(ptr);
+
+    return {
+      language: reader.str(9),
+      extlang: reader.str(12),
+      script: reader.str(5),
+      region: reader.str(4),
+      variant: reader.str(32),
+      extensions: reader.str(128),
+      private_use: reader.str(128),
+      grandfathered: reader.str(32)
+    };
+  }
+
+  // Create a mjb_numeric_value structure from a pointer to it in memory
+  private pointerToNumericValue(ptr: Pointer): NumericValue {
+    const reader = this.struct(ptr);
+    const decimal = reader.i32();
+    const digit = reader.i32();
+
+    return {
+      decimal: decimal === -1 ? null : decimal,
+      digit: digit === -1 ? null : digit,
+      numeric: reader.str(16)
+    };
+  }
+
+  // Create a mjb_block_info structure from a pointer to it in memory
+  private pointerToBlockInfo(ptr: Pointer): BlockInfo {
+    const reader = this.struct(ptr);
+
+    return {
+      id: reader.u32(),
+      name: reader.str(128),
+      start: reader.u32(),
+      end: reader.u32()
+    };
+  }
+
+  // Create a mjb_bidi_paragraph structure from a pointer to it in memory
+  private pointerToBidiParagraph(ptr: Pointer): BidiParagraph & { charsPtr: Pointer } {
+    const view = new DataView(this.module.HEAPU8.buffer);
+    const reader = this.struct(ptr, view);
+    const charsPtr = reader.u32();
+    const count = reader.u32();
+    const paragraphLevel = reader.u8();
+    const direction = reader.u32();
+    const chars: BidiChar[] = new Array(count);
+    const bidiCharSize = 20;
+
+    for(let i = 0; i < count; ++i) {
+      chars[i] = this.pointerToBidiChar(charsPtr + i * bidiCharSize, view);
+    }
+
+    return {
+      chars,
+      charsPtr,
+      count,
+      paragraph_level: paragraphLevel,
+      direction
+    };
+  }
+
+  // Create a mjb_bidi_char structure from a pointer to it in memory
+  private pointerToBidiChar(ptr: Pointer, view = new DataView(this.module.HEAPU8.buffer)): BidiChar {
+    const reader = this.struct(ptr, view);
+    const codepoint = reader.u32();
+    const byteOffset = reader.u32();
+    const level = reader.u8();
+    const resolvedClass = reader.u32();
+    const mirroringGlyph = reader.u32();
+
+    return {
+      codepoint,
+      byte_offset: byteOffset,
+      level,
+      resolved_class: resolvedClass,
+      mirroring_glyph: mirroringGlyph === 0 ? null : mirroringGlyph
+    };
+  }
+
+  // Create a mjb_result structure from a pointer to it in memory
+  private pointerToResult(ptr: Pointer): MojibakeResult {
+    const reader = this.struct(ptr);
+
+    return {
+      output: reader.u32(),
+      outputSize: reader.u32(),
+      transformed: reader.u8() !== 0
+    };
+  }
+
+  // Create a mjb_emoji_properties structure from a pointer to it in memory
+  private pointerToEmojiProperties(ptr: Pointer): EmojiProperties {
+    const reader = this.struct(ptr);
+    const codepoint = reader.u32();
+
+    return {
+      codepoint: codepoint === 0 ? null : codepoint,
+      emoji: reader.u8() !== 0,
+      presentation: reader.u8() !== 0,
+      modifier: reader.u8() !== 0,
+      modifier_base: reader.u8() !== 0,
+      component: reader.u8() !== 0,
+      extended_pictographic: reader.u8() !== 0
+    };
+  }
+
+  // Decode a string from a pointer in memory
+  private decodeString(buffer: Pointer, size: number | null, encoding: EncodingTypes): string | null {
+    encoding = this.resolveEncoding(encoding);
+
+    if(size === null) {
+      size = this.nullTerminatedByteLength(buffer);
+
+      if(size === 0) {
+        return '';
+      }
+    }
+
+    const bytes = this.module.HEAPU8.subarray(buffer, buffer + size);
+
+    if(encoding == EncodingTypes.ASCII || encoding == EncodingTypes.UTF_8) {
+      return this.utf8Decoder.decode(bytes);
+    } else if(encoding == EncodingTypes.UTF_16BE) {
+      return this.utf16beDecoder.decode(bytes);
+    } else if(encoding == EncodingTypes.UTF_16LE) {
+      return this.utf16leDecoder.decode(bytes);
+    } else if(encoding == EncodingTypes.UTF_32BE || encoding == EncodingTypes.UTF_32LE) {
+      // Javascript don't have a built-in UTF-32 decoder, so we need to manually decode it.
+      let ret = '';
+
+      for(let i = 0; i + 3 < size; i += 4) {
+        let codepoint = 0;
+
+        if(encoding == EncodingTypes.UTF_32BE) {
+          codepoint = (this.module.HEAPU8[buffer + i] << 24) |
+            (this.module.HEAPU8[buffer + i + 1] << 16) |
+            (this.module.HEAPU8[buffer + i + 2] << 8) |
+            this.module.HEAPU8[buffer + i + 3];
+        } else {
+          codepoint = this.module.HEAPU8[buffer + i] |
+            (this.module.HEAPU8[buffer + i + 1] << 8) |
+            (this.module.HEAPU8[buffer + i + 2] << 16) |
+            (this.module.HEAPU8[buffer + i + 3] << 24);
+        }
+
+        // Coerce the codepoint into an unsigned 32-bit integer.
+        ret += String.fromCodePoint(codepoint >>> 0);
+      }
+
+      return ret;
+    }
+
+    return null;
+  }
+
+  private nullTerminatedByteLength(buffer: Pointer): number {
+    let end = buffer;
+
+    while(this.module.HEAPU8[end] !== 0) {
+      ++end;
+    }
+
+    return end - buffer;
+  }
+
+  private collectBreaks(input: MojibakeInput, fn: BreakFunction,
+    options: TextInputOptions = {}): number[] {
+    const wasmInput = this.copyInput(input, options);
+    const statePtr = this.malloc(256);
+    const breaks: number[] = [];
+
+    try {
+      for(;;) {
+        const type = fn(wasmInput.ptr, wasmInput.size, wasmInput.encoding, statePtr);
+
+        if(type === BreakTypes.NOT_SET) {
+          break;
+        }
+
+        breaks.push(type);
+      }
+
+      return breaks;
+    } finally {
+      this.free(wasmInput.ptr);
+      this.free(statePtr);
+    }
+  }
+
+  private copyInput(input: MojibakeInput, options: TextInputOptions = {}): WasmInput {
+    const encoding = this.resolveEncoding(options.encoding ?? EncodingTypes.UTF_8);
+    let bytes: Uint8Array;
+
+    if(typeof input === 'string') {
+      bytes = this.encodeString(input, encoding);
+    } else if(ArrayBuffer.isView(input)) {
+      bytes = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+    } else {
+      bytes = new Uint8Array(input);
+    }
+
+    return {
+      ptr: this.memcpy(bytes),
+      size: bytes.length,
+      encoding
+    };
+  }
+
+  private encodeString(str: string, encoding = EncodingTypes.UTF_8): Uint8Array {
+    encoding = this.resolveEncoding(encoding);
+    this.assertWellFormedString(str);
+
+    if(encoding == EncodingTypes.ASCII) {
+      const bytes = new Uint8Array(str.length);
+
+      for(let i = 0; i < str.length; ++i) {
+        const codeUnit = str.charCodeAt(i);
+
+        if(codeUnit > 0x7F) {
+          throw new Error('Cannot encode non-ASCII codepoint as ASCII');
+        }
+
+        bytes[i] = codeUnit;
+      }
+
+      return bytes;
+    } else if(encoding == EncodingTypes.UTF_8) {
+      return this.utf8Encoder.encode(str);
+    } else if(encoding == EncodingTypes.UTF_16BE || encoding == EncodingTypes.UTF_16LE) {
+      const bytes = new Uint8Array(str.length * 2);
+      const view = new DataView(bytes.buffer);
+      const littleEndian = encoding == EncodingTypes.UTF_16LE;
+
+      for(let i = 0; i < str.length; ++i) {
+        view.setUint16(i * 2, str.charCodeAt(i), littleEndian);
+      }
+
+      return bytes;
+    } else if(encoding == EncodingTypes.UTF_32BE || encoding == EncodingTypes.UTF_32LE) {
+      const bytes = new Uint8Array(str.length * 4);
+      const view = new DataView(bytes.buffer);
+      const littleEndian = encoding == EncodingTypes.UTF_32LE;
+      let offset = 0;
+
+      for(const char of str) {
+        const codepoint = char.codePointAt(0) as number;
+
+        view.setUint32(offset, codepoint, littleEndian);
+        offset += 4;
+      }
+
+      return bytes.subarray(0, offset);
+    }
+
+    throw new Error(`Unsupported text encoding: ${encoding}`);
+  }
+
+  private assertWellFormedString(str: string): void {
+    for(let i = 0; i < str.length; ++i) {
+      const codeUnit = str.charCodeAt(i);
+
+      if(codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
+        const next = str.charCodeAt(i + 1);
+
+        if(i + 1 >= str.length || next < 0xDC00 || next > 0xDFFF) {
+          throw new Error('Cannot encode malformed string: unpaired high surrogate');
+        }
+
+        ++i;
+      } else if(codeUnit >= 0xDC00 && codeUnit <= 0xDFFF) {
+        throw new Error('Cannot encode malformed string: unpaired low surrogate');
+      }
+    }
+  }
+
+  private resolveEncoding(encoding: EncodingTypes): EncodingTypes {
+    if((encoding & EncodingTypes.UTF_32LE) === EncodingTypes.UTF_32LE) {
+      return EncodingTypes.UTF_32LE;
+    }
+
+    if((encoding & EncodingTypes.UTF_32BE) === EncodingTypes.UTF_32BE) {
+      return EncodingTypes.UTF_32BE;
+    }
+
+    if(encoding === EncodingTypes.UTF_32) {
+      return EncodingTypes.UTF_32LE;
+    }
+
+    if((encoding & EncodingTypes.UTF_16LE) === EncodingTypes.UTF_16LE) {
+      return EncodingTypes.UTF_16LE;
+    }
+
+    if((encoding & EncodingTypes.UTF_16BE) === EncodingTypes.UTF_16BE) {
+      return EncodingTypes.UTF_16BE;
+    }
+
+    if(encoding === EncodingTypes.UTF_16) {
+      return EncodingTypes.UTF_16LE;
+    }
+
+    if((encoding & EncodingTypes.UTF_8) === EncodingTypes.UTF_8) {
+      return EncodingTypes.UTF_8;
+    }
+
+    if((encoding & EncodingTypes.ASCII) === EncodingTypes.ASCII) {
+      return EncodingTypes.ASCII;
+    }
+
+    return encoding;
+  }
+
+  private malloc(size: number, zero = true): Pointer {
+    const ptr = this.module._malloc(size);
+
+    if(zero) {
+      this.module.HEAPU8.fill(0, ptr, ptr + size);
+    }
+
+    return ptr;
+  }
+
+  private memcpy(bytes: Uint8Array): number {
+    const ptr = this.malloc(bytes.length + 4, false);
+    const heap = this.module.HEAPU8;
+
+    heap.set(bytes, ptr);
+    heap.fill(0, ptr + bytes.length, ptr + bytes.length + 4);
+
+    return ptr;
+  }
+
+  private free(ptr: Pointer): void {
+    this.module._free(ptr);
+  }
+}
+
+export function createMojibake(options?: MojibakeModuleOptions): Promise<Mojibake> {
+  return Mojibake.create(options);
+}
+
+export default createMojibake;

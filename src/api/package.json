@@ -1,3 +1,34 @@
 {
-  "type": "module"
+  "name": "mojibake",
+  "version": "0.2.1",
+  "description": "Mojibake TypeScript API",
+  "homepage": "https://mojibake.zaerl.com",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "node ./scripts/clean-dist.mjs",
+    "build": "npm run clean && npx --yes --package typescript tsc && node ./scripts/copy-assets.mjs",
+    "typecheck": "npx --yes --package typescript tsc --noEmit",
+    "dev": "npx --yes tsx --watch tests/index.ts",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/node": "^26.0.1"
+  }
 }

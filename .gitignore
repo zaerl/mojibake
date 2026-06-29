@@ -20,7 +20,8 @@ utils/generate/locales/cldr/*
 
 src/api/mojibake.js
 src/api/mojibake.wasm
-src/api/functions.js
+src/api/node_modules
+src/api/dist
 
 # Doc
 doc/*

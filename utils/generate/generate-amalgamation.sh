@@ -13,7 +13,6 @@ cp ../../build-wasm/src/mojibake.wasm ../../build-amalgamation/mojibake.wasm
 
 cp ../../build-wasm/src/mojibake.js ../../src/api/mojibake.js
 cp ../../build-wasm/src/mojibake.wasm ../../src/api/mojibake.wasm
-cp ./functions.js ../../src/api/functions.js
 
 VERSION=$(cat ../../VERSION | tr -d ' \n.' )
 

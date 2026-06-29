@@ -157,7 +157,6 @@ generate-site: src\site\index.html
 sync-api-wasm: build-wasm
 	@copy /Y $(WASM_BUILD_DIR)\src\mojibake.js src\api\mojibake.js >NUL
 	@copy /Y $(WASM_BUILD_DIR)\src\mojibake.wasm src\api\mojibake.wasm >NUL
-	@copy /Y utils\generate\functions.js src\api\functions.js >NUL
 
 update-version:
 	@cd utils\generate && npm run generate -- update-version

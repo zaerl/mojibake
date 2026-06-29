@@ -24,7 +24,7 @@ portable. Key commands:
 - `make coverage` - Generate test coverage reports
 - `make wasm` - Generate a WASM version of the library
 - `make watch-site` - Serve the WASM site locally at localhost:6251, regenerate on changes
-- `make watch-api` - Start the JavaScript API server at localhost:3000, restart on changes
+- `make watch-api` - Watch the JavaScript API files
 
 Build configurations: Debug, Release, Test (via BUILD_TYPE environment variable)
 
@@ -150,25 +150,12 @@ The library can be accessed by the `build/src/shell/mojibake` executable, once c
 
 ## JavaScript API
 
-The `src/api/` directory contains a Node.js HTTP server that exposes library functions over HTTP
-using the WASM build of the library (requires generated `mojibake.js` and `mojibake.wasm` in that
-directory).
+The `src/api/` directory contains the Mojibake Typescript library. It requires the generated
+`mojibake.js` and `mojibake.wasm` in that directory.
 
 - `make wasm` — build WASM, generate the site, and refresh `src/api/mojibake.js`,
-  `src/api/mojibake.wasm`, and `src/api/functions.js`
+  `src/api/mojibake.wasm`
 - `make sync-api-wasm` — refresh only the generated API artifacts from `build-wasm/src`
-- `make watch-api` — start the server with `node --watch` (auto-restarts on file changes)
-- Server listens on `http://0.0.0.0:3000`
-
-### Request format
-
-All requests are `GET` with query parameters:
-
-- `?function=<name>` — the `mjb_*` function to call (e.g. `mjb_codepoint_character`)
-- Additional parameters match the function's argument names
-
-Without a `function` parameter the server returns the full list of available functions from
-`functions.js`.
 
 ### Examples
 

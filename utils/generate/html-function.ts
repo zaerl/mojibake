@@ -5,7 +5,6 @@
  */
 
 import { categories } from './types';
-// @ts-expect-error - functions.js is a JavaScript file without type declarations
 import functionsDefault from './functions.js';
 
 export const functions: Function[] = functionsDefault;
