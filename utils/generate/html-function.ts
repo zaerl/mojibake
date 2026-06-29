@@ -4,10 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import functions from './functions';
 import { categories } from './types';
-import functionsDefault from './functions.js';
-
-export const functions: Function[] = functionsDefault;
 
 export type FunctionArg = {
   name: string;

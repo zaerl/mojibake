@@ -6,7 +6,7 @@
 
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
-import functions from './functions.js';
+import functions from './functions';
 import { getFileLicense } from './license';
 import { iLog } from './log';
 
