@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { functions } from './html-function';
+import functions from './functions';
 import { substituteBlock } from './utils';
 
 // Types
