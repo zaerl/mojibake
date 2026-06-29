@@ -9,13 +9,13 @@ import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
 
 // mjb_encoding
 export enum Encoding {
-  UNKNOWN = 0x0,
-  ASCII = 0x1,
-  UTF_8 = 0x2,
-  UTF_16 = 0x4,
+  UNKNOWN  = 0x0,
+  ASCII    = 0x1,
+  UTF_8    = 0x2,
+  UTF_16   = 0x4,
   UTF_16BE = 0x8,
   UTF_16LE = 0x10,
-  UTF_32 = 0x20,
+  UTF_32   = 0x20,
   UTF_32BE = 0x40,
   UTF_32LE = 0x80,
 };
@@ -56,82 +56,46 @@ export enum FilterType {
 
 // mjb_case_type
 export enum CaseType {
-  NONE = 0x0,
-  UPPER = 0x1,
-  LOWER = 0x2,
-  TITLE = 0x3,
-  CASEFOLD = 0x4,
+  NONE,
+  UPPER,
+  LOWER,
+  TITLE,
+  CASEFOLD
 };
 
 // mjb_error
-export enum ErrorTypes {
-  MJB_ERROR_NONE,
-  MJB_ERROR_INVALID_ARGUMENT,
-  MJB_ERROR_UNSUPPORTED,
-};
-
-// mjb_collation_mode
-export enum CollationMode {
-  NON_IGNORABLE,
-  SHIFTED,
-};
-
-// mjb_plane
-export enum PlaneTypes {
-  NOT_VALID = -1,
-  BMP = 0,
-  SMP = 1,
-  SIP = 2,
-  TIP = 3,
-  SSP = 4,
-  PUA_A = 5,
-  PUA_B = 16,
-};
-
-// mjb_property
-export enum PropertyTypes {
-  // TODO
-};
-
-// mjb_script
-export enum ScriptTypes {
-  // TODO
-};
-
-// mjb_identifier_profile
-export enum IdentifierProfile {
-  DEFAULT,
-  NFKC,
-};
-
-// mjb_width_context
-export enum WidthContext {
-  WESTERN,
-  EAST_ASIAN,
-  AUTO
-};
-
-// mjb_break_type
-export enum BreakTypes {
-  NOT_SET,
-  MANDATORY,
-  NO_BREAK,
-  ALLOWED,
-};
-
-// mjb_next_character_type
-export enum NextCharacterTypes {
+export enum ErrorType {
   NONE,
-  FIRST,
-  LAST,
+  INVALID_ARGUMENT,
+  UNSUPPORTED,
 };
 
-// mjb_direction
-export enum BidiDirection {
-  LTR,
-  RTL,
-  AUTO,
+// mjb_locale_id
+export type LocaleID = {
+  language: string;      // 9
+  extlang: string;       // 12
+  script: string;        // 5
+  region: string;        // 4
+  variant: string;       // 32
+  extensions: string;    // 128
+  private_use: string;   // 128
+  grandfathered: string; // 32
+}
+
+// mjb_result
+type Result = {
+  output: Pointer;
+  output_size: number;
+  transformed: boolean;
 };
+
+// mjb_block_info
+export type BlockInfo = {
+  id: number;
+  name: string; // 128
+  start: number;
+  end: number;
+}
 
 // mjb_character
 export type Character = {
@@ -150,16 +114,11 @@ export type Character = {
   titlecase: number | null;
 }
 
-// mjb_locale_id
-export type LocaleID = {
-  language: string; // 9
-  extlang: string; // 12
-  script: string; // 5
-  region: string; // 4
-  variant: string; // 32
-  extensions: string; // 128
-  private_use: string; // 128
-  grandfathered: string; // 32
+// mjb_numeric_value
+export type NumericValue = {
+  decimal: number | null;
+  digit: number | null;
+  numeric: string; // 16
 }
 
 // mjb_emoji_properties
@@ -173,20 +132,45 @@ export type EmojiProperties = {
   extended_pictographic: boolean;
 }
 
-// mjb_numeric_value
-export type NumericValue = {
-  decimal: number | null;
-  digit: number | null;
-  numeric: string; // 16
+// mjb_break_type
+export enum BreakType {
+  NOT_SET,
+  MANDATORY,
+  NO_BREAK,
+  ALLOWED,
+};
+
+export type BufferCharacter = {
+  codepoint: Codepoint;
+  combining: number;
 }
 
-// mjb_block_info
-export type BlockInfo = {
-  id: number;
-  name: string; // 128
-  start: number;
-  end: number;
-}
+// mjb_next_character_type
+export enum NextCharacterType {
+  NONE,
+  FIRST,
+  LAST,
+};
+
+// mjb_width_context
+export enum WidthContext {
+  WESTERN,
+  EAST_ASIAN,
+  AUTO
+};
+
+// mjb_next_state
+// mjb_next_line_state
+// mjb_next_word_state
+// mjb_next_sentence_state
+// mjb_next_character_fn
+
+// mjb_direction
+export enum Direction {
+  LTR,
+  RTL,
+  AUTO
+};
 
 // mjb_bidi_char
 export type BidiChar = {
@@ -195,19 +179,34 @@ export type BidiChar = {
   level: number;
   resolved_class: number;
   mirroring_glyph: number | null;
-}
+};
 
 // mjb_bidi_paragraph
 export type BidiParagraph = {
   chars: BidiChar[];
   count: number;
   paragraph_level: number;
-  direction: BidiDirection;
+  direction: Direction;
 }
 
+// mjb_bidi_run
+
+// mjb_collation_mode
+export enum CollationMode {
+  NON_IGNORABLE,
+  SHIFTED,
+};
+
+// mjb_identifier_profile
+export enum IdentifierProfile {
+  DEFAULT,
+  NFKC,
+};
+
+// Result of mjb_next_character function
 export type NextCharacter = {
   character: Character;
-  type: NextCharacterTypes; // mjb_next_character_type
+  type: NextCharacterType; // mjb_next_character_type
 }
 
 // Generic pointer type for memory management
@@ -251,13 +250,6 @@ type WasmInput = {
   ptr: Pointer;
   size: number;
   encoding: Encoding;
-};
-
-// mjb_result
-type MojibakeResult = {
-  output: Pointer;
-  outputSize: number;
-  transformed: boolean;
 };
 
 // Used by collectBreaks callbacks
@@ -357,7 +349,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
-    let result: MojibakeResult | null = null;
+    let result: Result | null = null;
 
     try {
       const ret = this.module._mjb_normalize(wasmInput.ptr, wasmInput.size,
@@ -369,7 +361,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.outputSize, outputEncoding);
+      return this.decodeString(result.output, result.output_size, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -437,7 +429,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
-    let result: MojibakeResult | null = null;
+    let result: Result | null = null;
 
     try {
       const ret = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
@@ -449,7 +441,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.outputSize, outputEncoding);
+      return this.decodeString(result.output, result.output_size, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -558,7 +550,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options);
     outputEncoding = this.resolveEncoding(outputEncoding);
     const resultPtr = this.malloc(24);
-    let result: MojibakeResult | null = null;
+    let result: Result | null = null;
 
     try {
       const ret = this.module._mjb_string_convert_encoding(wasmInput.ptr, wasmInput.size,
@@ -570,7 +562,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.outputSize, outputEncoding);
+      return this.decodeString(result.output, result.output_size, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -616,7 +608,7 @@ export class Mojibake {
     options: TextInputOptions = {}): Uint8Array | null {
     const wasmInput = this.copyInput(input, options);
     const resultPtr = this.malloc(24);
-    let result: MojibakeResult | null = null;
+    let result: Result | null = null;
 
     try {
       const ret = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
@@ -628,12 +620,12 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      if(result.output === 0 || result.outputSize === 0) {
+      if(result.output === 0 || result.output_size === 0) {
         return new Uint8Array();
       }
 
       return new Uint8Array(this.module.HEAPU8.subarray(result.output,
-        result.output + result.outputSize));
+        result.output + result.output_size));
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -846,7 +838,7 @@ export class Mojibake {
 
   // mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction
   // direction, mjb_bidi_paragraph *result)
-  bidiResolve(input: MojibakeInput, direction = BidiDirection.AUTO,
+  bidiResolve(input: MojibakeInput, direction = Direction.AUTO,
     options: TextInputOptions = {}): BidiParagraph | null {
     const wasmInput = this.copyInput(input, options);
     const resultPtr = this.malloc(24);
@@ -1202,12 +1194,12 @@ export class Mojibake {
   }
 
   // Create a mjb_result structure from a pointer to it in memory
-  private pointerToResult(ptr: Pointer): MojibakeResult {
+  private pointerToResult(ptr: Pointer): Result {
     const reader = this.struct(ptr);
 
     return {
       output: reader.u32(),
-      outputSize: reader.u32(),
+      output_size: reader.u32(),
       transformed: reader.u8() !== 0
     };
   }
@@ -1297,7 +1289,7 @@ export class Mojibake {
       for(;;) {
         const type = fn(wasmInput.ptr, wasmInput.size, wasmInput.encoding, statePtr);
 
-        if(type === BreakTypes.NOT_SET) {
+        if(type === BreakType.NOT_SET) {
           break;
         }
 
