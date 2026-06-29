@@ -10,15 +10,16 @@ import { Property } from './parse-ucd/properties';
 import { BidiBracket, BidiMirroringPair, Block, Categories, characterDecompositionMapping } from './types';
 import { substituteBlock } from './utils';
 
-function getBlockEnumNames(blocks: Block[]) {
-  return blocks.map((value: Block, index: number) => `    ${value.enumName}`).join(',\n');
+function getBlockEnumNames(blocks: Block[], wasm = false) {
+  return blocks.map((value: Block, index: number) => `  ${wasm ? value.wasmEnumName : '  ' + value.enumName}`).join(',\n');
 }
 
-function getCategoryEnumNames(categories: string[]) {
+function getCategoryEnumNames(categories: string[], wasm = false) {
   const categoryEnums: string[] = [];
 
   for(let i = 0; i < categories.length; ++i) {
-    categoryEnums.push(`    MJB_CATEGORY_${Categories[i].toUpperCase()}${ i === categories.length - 1 ? ' ' : ','} // ${i} (${Categories[i]}) ${categories[i]}`);
+    const comment = ` // ${i} (${Categories[i]}) ${categories[i]}`;
+    categoryEnums.push(`${wasm ? '  ' : '    MJB_CATEGORY_'}${Categories[i].toUpperCase()}${ i === categories.length - 1 ? ' ' : ','}${comment}`);
   }
 
   return categoryEnums.join('\n');
@@ -113,12 +114,17 @@ function getBidiMirroringInfo(pairs: BidiMirroringPair[]) {
 
 export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[], bidiMirroring: BidiMirroringPair[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
+  let fileWASMContent = readFileSync('../../src/api/unicode.ts', 'utf-8');
 
-  // Fill all unicode.h enumerations.
+  // Fill all unicode.h enumerations in header and WASM.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
+  fileWASMContent = substituteBlock(fileWASMContent, "export enum Block {\n", "\n};", getBlockEnumNames(blocks, true));
   fileContent = substituteBlock(fileContent, '#define MJB_BLOCK_NUM ', "\n", '' + blocks.length);
+
   fileContent = substituteBlock(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
+  fileWASMContent = substituteBlock(fileWASMContent, "export enum Category {\n", "\n};", getCategoryEnumNames(categories, true));
   fileContent = substituteBlock(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
+
   fileContent = substituteBlock(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
   fileContent = substituteBlock(fileContent, "typedef enum mjb_property {\n", "\n} mjb_property;", getPropertyEnumNames(properties));
   fileContent = substituteBlock(fileContent, '#define MJB_PR_COUNT ', "\n", '' + properties.length);
@@ -162,4 +168,5 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = substituteBlock(fileContent, "static const mjb_bidi_mirroring_pair mjb_bidi_mirroring[] = {\n", "\n};", getBidiMirroringInfo(bidiMirroring));
 
   writeFileSync('../../src/bidi.c', fileContent);
+  writeFileSync('../../src/api/unicode.ts', fileWASMContent);
 }

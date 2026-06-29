@@ -212,6 +212,7 @@ export type UnicodeDataRow = [
 export interface Block {
   name: string;
   enumName: string;
+  wasmEnumName: string;
   start: number;
   end: number;
 };

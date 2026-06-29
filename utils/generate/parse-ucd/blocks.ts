@@ -26,7 +26,8 @@ export async function readBlocks(): Promise<Block[]> {
 
     const block = {
       name,
-      enumName: ucdNameToEnumName('MJB_BLOCK', name),
+      enumName: ucdNameToEnumName('MJB_BLOCK_', name),
+      wasmEnumName: ucdNameToEnumName('', name),
       start: codepointStart,
       end: codepointEnd
     };

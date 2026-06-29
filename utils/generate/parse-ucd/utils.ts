@@ -82,5 +82,5 @@ export async function* parsePropertyFile(path: string, starts: string[] = [], di
 }
 
 export function ucdNameToEnumName(prefix: string, name: string): string {
-  return `${prefix}_${name.toUpperCase().replace(/[ \-]/g, '_')}`;
+  return `${prefix}${name.toUpperCase().replace(/[ \-]/g, '_')}`;
 }
