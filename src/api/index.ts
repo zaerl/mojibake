@@ -483,7 +483,7 @@ export class Mojibake {
   }
 
   // mjb_string_is_utf8(const char *buffer, size_t size)
-  stringIsUTF8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  stringIsUtf8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
     try {
@@ -494,7 +494,7 @@ export class Mojibake {
   }
 
   // mjb_string_is_utf16(const char *buffer, size_t size)
-  stringIsUTF16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  stringIsUtf16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
     try {
@@ -505,7 +505,7 @@ export class Mojibake {
   }
 
   // bool mjb_string_is_ascii(const char *buffer, size_t size)
-  stringIsASCII(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  stringIsAscii(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
     try {
