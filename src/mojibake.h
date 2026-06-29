@@ -177,13 +177,13 @@ typedef uint32_t mjb_codepoint;
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef enum mjb_encoding {
-    MJB_ENCODING_UNKNOWN =   0x0,
-    MJB_ENCODING_ASCII =     0x1,
-    MJB_ENCODING_UTF_8 =     0x2,
-    MJB_ENCODING_UTF_16 =    0x4,
+    MJB_ENCODING_UNKNOWN   = 0x0,
+    MJB_ENCODING_ASCII     = 0x1,
+    MJB_ENCODING_UTF_8     = 0x2,
+    MJB_ENCODING_UTF_16    = 0x4,
     MJB_ENCODING_UTF_16_BE = 0x8,
     MJB_ENCODING_UTF_16_LE = 0x10,
-    MJB_ENCODING_UTF_32 =    0x20,
+    MJB_ENCODING_UTF_32    = 0x20,
     MJB_ENCODING_UTF_32_BE = 0x40,
     MJB_ENCODING_UTF_32_LE = 0x80
 } mjb_encoding;
