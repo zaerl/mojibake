@@ -8,7 +8,7 @@ import mojibakeModule from './mojibake.js';
 import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
 
 // mjb_encoding
-export enum EncodingTypes {
+export enum Encoding {
   UNKNOWN = 0x0,
   ASCII = 0x1,
   UTF_8 = 0x2,
@@ -21,11 +21,27 @@ export enum EncodingTypes {
 };
 
 // mjb_normalization
-export enum Normalizations {
+export enum Normalization {
   NFC,
   NFD,
   NFKC,
   NFKD,
+};
+
+// mjb_quick_check_result
+export enum QuickCheckResult {
+  YES        = 0x0,
+  NO         = 0x1,
+  MAYBE      = 0x2,
+  // See: DerivedNormalizationProps.txt
+  NFD_NO     = 0x4,
+  NFD_MAYBE  = 0x8, // Impossible to happen
+  NFC_NO     = 0x10,
+  NFC_MAYBE  = 0x20,
+  NFKC_NO    = 0x40,
+  NFKC_MAYBE = 0x80,
+  NFKD_NO    = 0x100,
+  NFKD_MAYBE = 0x200 // Impossible to happen
 };
 
 // mjb_case_type
@@ -201,8 +217,8 @@ export type MojibakeInput = string | ArrayBuffer | ArrayBufferView;
 
 // Used for `buffer, encoding, output_encoding` type of functions
 export type TextInputOptions = {
-  encoding?: EncodingTypes;
-  outputEncoding?: EncodingTypes;
+  encoding?: Encoding;
+  outputEncoding?: Encoding;
 };
 
 // Used for preRun and postRun callbacks
@@ -233,7 +249,7 @@ export type MojibakeModuleOptions = {
 type WasmInput = {
   ptr: Pointer;
   size: number;
-  encoding: EncodingTypes;
+  encoding: Encoding;
 };
 
 // mjb_result
@@ -335,7 +351,7 @@ export class Mojibake {
 
   // bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization
   // form, mjb_encoding output_encoding, mjb_result *result)
-  normalize(input: MojibakeInput, form = Normalizations.NFC,
+  normalize(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
@@ -401,7 +417,7 @@ export class Mojibake {
 
   // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding
   // encoding, mjb_normalization form)
-  stringIsNormalized(input: MojibakeInput, form = Normalizations.NFC,
+  stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options);
 
@@ -517,7 +533,7 @@ export class Mojibake {
 
   // unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size,
   // mjb_encoding encoding)
-  codepointEncode(codepoint: Codepoint, encoding = EncodingTypes.UTF_8): string | null {
+  codepointEncode(codepoint: Codepoint, encoding = Encoding.UTF_8): string | null {
     encoding = this.resolveEncoding(encoding);
     const bufferPtr = this.malloc(5);
 
@@ -536,7 +552,7 @@ export class Mojibake {
 
   // bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_result *result)
-  stringConvertEncoding(input: MojibakeInput, outputEncoding = EncodingTypes.UTF_8,
+  stringConvertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
     options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
     outputEncoding = this.resolveEncoding(outputEncoding);
@@ -634,7 +650,7 @@ export class Mojibake {
     let outputPtr = 0;
 
     try {
-      if(encoding !== EncodingTypes.ASCII && encoding !== EncodingTypes.UTF_8) {
+      if(encoding !== Encoding.ASCII && encoding !== Encoding.UTF_8) {
         return null;
       }
 
@@ -886,7 +902,7 @@ export class Mojibake {
       return null;
     }
 
-    return this.decodeString(ptr, null, EncodingTypes.UTF_8);
+    return this.decodeString(ptr, null, Encoding.UTF_8);
   }
 
   // bool mjb_codepoint_is_id_start(mjb_codepoint codepoint)
@@ -941,7 +957,7 @@ export class Mojibake {
       return null;
     }
 
-    return this.decodeString(ptr, null, EncodingTypes.UTF_8);
+    return this.decodeString(ptr, null, Encoding.UTF_8);
   }
 
   // bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size,
@@ -1039,7 +1055,7 @@ export class Mojibake {
 
   // const char *mjb_version(void);
   version(): string | null {
-    return this.decodeString(this.module._mjb_version(), null, EncodingTypes.UTF_8);
+    return this.decodeString(this.module._mjb_version(), null, Encoding.UTF_8);
   }
 
   // unsigned int mjb_version_number(void);
@@ -1049,7 +1065,7 @@ export class Mojibake {
 
   // const char *mjb_unicode_version(void);
   unicodeVersion(): string | null {
-    return this.decodeString(this.module._mjb_unicode_version(), null, EncodingTypes.UTF_8);
+    return this.decodeString(this.module._mjb_unicode_version(), null, Encoding.UTF_8);
   }
 
   // bool mjb_initialize(void);
@@ -1212,7 +1228,7 @@ export class Mojibake {
   }
 
   // Decode a string from a pointer in memory
-  private decodeString(buffer: Pointer, size: number | null, encoding: EncodingTypes): string | null {
+  private decodeString(buffer: Pointer, size: number | null, encoding: Encoding): string | null {
     encoding = this.resolveEncoding(encoding);
 
     if(size === null) {
@@ -1225,20 +1241,20 @@ export class Mojibake {
 
     const bytes = this.module.HEAPU8.subarray(buffer, buffer + size);
 
-    if(encoding == EncodingTypes.ASCII || encoding == EncodingTypes.UTF_8) {
+    if(encoding == Encoding.ASCII || encoding == Encoding.UTF_8) {
       return this.utf8Decoder.decode(bytes);
-    } else if(encoding == EncodingTypes.UTF_16BE) {
+    } else if(encoding == Encoding.UTF_16BE) {
       return this.utf16beDecoder.decode(bytes);
-    } else if(encoding == EncodingTypes.UTF_16LE) {
+    } else if(encoding == Encoding.UTF_16LE) {
       return this.utf16leDecoder.decode(bytes);
-    } else if(encoding == EncodingTypes.UTF_32BE || encoding == EncodingTypes.UTF_32LE) {
+    } else if(encoding == Encoding.UTF_32BE || encoding == Encoding.UTF_32LE) {
       // Javascript don't have a built-in UTF-32 decoder, so we need to manually decode it.
       let ret = '';
 
       for(let i = 0; i + 3 < size; i += 4) {
         let codepoint = 0;
 
-        if(encoding == EncodingTypes.UTF_32BE) {
+        if(encoding == Encoding.UTF_32BE) {
           codepoint = (this.module.HEAPU8[buffer + i] << 24) |
             (this.module.HEAPU8[buffer + i + 1] << 16) |
             (this.module.HEAPU8[buffer + i + 2] << 8) |
@@ -1295,7 +1311,7 @@ export class Mojibake {
   }
 
   private copyInput(input: MojibakeInput, options: TextInputOptions = {}): WasmInput {
-    const encoding = this.resolveEncoding(options.encoding ?? EncodingTypes.UTF_8);
+    const encoding = this.resolveEncoding(options.encoding ?? Encoding.UTF_8);
     let bytes: Uint8Array;
 
     if(typeof input === 'string') {
@@ -1313,11 +1329,11 @@ export class Mojibake {
     };
   }
 
-  private encodeString(str: string, encoding = EncodingTypes.UTF_8): Uint8Array {
+  private encodeString(str: string, encoding = Encoding.UTF_8): Uint8Array {
     encoding = this.resolveEncoding(encoding);
     this.assertWellFormedString(str);
 
-    if(encoding == EncodingTypes.ASCII) {
+    if(encoding == Encoding.ASCII) {
       const bytes = new Uint8Array(str.length);
 
       for(let i = 0; i < str.length; ++i) {
@@ -1331,22 +1347,22 @@ export class Mojibake {
       }
 
       return bytes;
-    } else if(encoding == EncodingTypes.UTF_8) {
+    } else if(encoding == Encoding.UTF_8) {
       return this.utf8Encoder.encode(str);
-    } else if(encoding == EncodingTypes.UTF_16BE || encoding == EncodingTypes.UTF_16LE) {
+    } else if(encoding == Encoding.UTF_16BE || encoding == Encoding.UTF_16LE) {
       const bytes = new Uint8Array(str.length * 2);
       const view = new DataView(bytes.buffer);
-      const littleEndian = encoding == EncodingTypes.UTF_16LE;
+      const littleEndian = encoding == Encoding.UTF_16LE;
 
       for(let i = 0; i < str.length; ++i) {
         view.setUint16(i * 2, str.charCodeAt(i), littleEndian);
       }
 
       return bytes;
-    } else if(encoding == EncodingTypes.UTF_32BE || encoding == EncodingTypes.UTF_32LE) {
+    } else if(encoding == Encoding.UTF_32BE || encoding == Encoding.UTF_32LE) {
       const bytes = new Uint8Array(str.length * 4);
       const view = new DataView(bytes.buffer);
-      const littleEndian = encoding == EncodingTypes.UTF_32LE;
+      const littleEndian = encoding == Encoding.UTF_32LE;
       let offset = 0;
 
       for(const char of str) {
@@ -1380,37 +1396,37 @@ export class Mojibake {
     }
   }
 
-  private resolveEncoding(encoding: EncodingTypes): EncodingTypes {
-    if((encoding & EncodingTypes.UTF_32LE) === EncodingTypes.UTF_32LE) {
-      return EncodingTypes.UTF_32LE;
+  private resolveEncoding(encoding: Encoding): Encoding {
+    if((encoding & Encoding.UTF_32LE) === Encoding.UTF_32LE) {
+      return Encoding.UTF_32LE;
     }
 
-    if((encoding & EncodingTypes.UTF_32BE) === EncodingTypes.UTF_32BE) {
-      return EncodingTypes.UTF_32BE;
+    if((encoding & Encoding.UTF_32BE) === Encoding.UTF_32BE) {
+      return Encoding.UTF_32BE;
     }
 
-    if(encoding === EncodingTypes.UTF_32) {
-      return EncodingTypes.UTF_32LE;
+    if(encoding === Encoding.UTF_32) {
+      return Encoding.UTF_32LE;
     }
 
-    if((encoding & EncodingTypes.UTF_16LE) === EncodingTypes.UTF_16LE) {
-      return EncodingTypes.UTF_16LE;
+    if((encoding & Encoding.UTF_16LE) === Encoding.UTF_16LE) {
+      return Encoding.UTF_16LE;
     }
 
-    if((encoding & EncodingTypes.UTF_16BE) === EncodingTypes.UTF_16BE) {
-      return EncodingTypes.UTF_16BE;
+    if((encoding & Encoding.UTF_16BE) === Encoding.UTF_16BE) {
+      return Encoding.UTF_16BE;
     }
 
-    if(encoding === EncodingTypes.UTF_16) {
-      return EncodingTypes.UTF_16LE;
+    if(encoding === Encoding.UTF_16) {
+      return Encoding.UTF_16LE;
     }
 
-    if((encoding & EncodingTypes.UTF_8) === EncodingTypes.UTF_8) {
-      return EncodingTypes.UTF_8;
+    if((encoding & Encoding.UTF_8) === Encoding.UTF_8) {
+      return Encoding.UTF_8;
     }
 
-    if((encoding & EncodingTypes.ASCII) === EncodingTypes.ASCII) {
-      return EncodingTypes.ASCII;
+    if((encoding & Encoding.ASCII) === Encoding.ASCII) {
+      return Encoding.ASCII;
     }
 
     return encoding;
