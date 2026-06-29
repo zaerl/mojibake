@@ -44,8 +44,18 @@ export enum QuickCheckResult {
   NFKD_MAYBE = 0x200 // Impossible to happen
 };
 
+// mjb_filter
+export enum FilterType {
+  NONE            = 0x0,
+  NORMALIZE       = 0x1,
+  SPACES          = 0x2,
+  COLLAPSE_SPACES = 0x4,
+  CONTROLS        = 0x8,
+  NUMERIC         = 0x10
+};
+
 // mjb_case_type
-export enum CaseTypes {
+export enum CaseType {
   NONE = 0x0,
   UPPER = 0x1,
   LOWER = 0x2,
@@ -64,15 +74,6 @@ export enum ErrorTypes {
 export enum CollationMode {
   NON_IGNORABLE,
   SHIFTED,
-};
-
-export enum FilterTypes {
-  NONE = 0x0,
-  NORMALIZE = 0x1,
-  SPACES = 0x2,
-  COLLAPSE_SPACES = 0x4,
-  CONTROLS = 0x8,
-  NUMERIC = 0x10,
 };
 
 // mjb_plane
@@ -431,7 +432,7 @@ export class Mojibake {
 
   // bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding
   // output_encoding, mjb_filter filters, mjb_result *result)
-  stringFilter(input: MojibakeInput, filters = FilterTypes.NONE,
+  stringFilter(input: MojibakeInput, filters = FilterType.NONE,
     options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
@@ -644,7 +645,7 @@ export class Mojibake {
   }
 
   // char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding)
-  case(input: MojibakeInput, type: CaseTypes, options: TextInputOptions = {}): string | null {
+  case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
     const encoding = wasmInput.encoding;
     let outputPtr = 0;
