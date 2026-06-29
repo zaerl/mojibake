@@ -105,7 +105,7 @@ build-wasm: configure-wasm
 
 .PHONY: generate generate-locale generate-unicode-tables \
 		generate-site sync-api-wasm watch-site \
-		watch-api wasm coverage amalgamation update-version
+		watch-api wasm coverage amalgamation update-version build-api
 
 # Generate source files
 generate: $(GENERATE_SOURCES)
@@ -126,8 +126,11 @@ sync-api-wasm: build-wasm
 	@cp $(WASM_BUILD_DIR)/src/mojibake.js src/api/mojibake.js
 	@cp $(WASM_BUILD_DIR)/src/mojibake.wasm src/api/mojibake.wasm
 
+build-api: sync-api-wasm
+	@cd ./src/api && npm run build
+
 # Watch site files
-watch-site: src/site/index.html
+watch-site: build-api src/site/index.html
 	@cd ./utils/generate && npm run watch-site
 
 # Watch API files
@@ -243,6 +246,7 @@ help:
 	@echo "  build-shared            - Build the project as a shared library"
 	@echo "  build-ubsan             - Build the project with UndefinedBehaviorSanitizer"
 	@echo "  build-wasm              - Build the project for WebAssembly"
+	@echo "  build-api               - Build the JavaScript API library"
 	@echo "  clean                   - Remove build artifacts"
 	@echo "  clean-amalgamation      - Remove amalgamation build artifacts"
 	@echo "  clean-build             - Remove build artifacts"

@@ -12,6 +12,8 @@ import { getVersion, substituteBlock, substituteText } from '../utils';
 
 const SOURCE_DIR = '../../src/site';
 const BUILD_DIR = '../../build-wasm/src';
+const API_DIST_DIR = '../../src/api/dist';
+const API_ROUTE = '/api/';
 const SERVE_PORT = 6251;
 
 const MIME_TYPES: Record<string, string> = {
@@ -56,7 +58,6 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[WASM_HREF]', wasmFileName);
   fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
-  fileContent = substituteText(fileContent, '[API_URL]', apiUrl);
 
   writeFileSync(`${BUILD_DIR}/index.html`, fileContent);
   console.log('index.html processed successfully');
@@ -114,7 +115,6 @@ function watchDirectory(dir: string) {
 
 // Check if watch mode is enabled
 const watchMode = process.argv.includes('--watch');
-const apiUrl = watchMode ? 'http://localhost:3000/' : 'https://moji.zaerl.com/';
 
 // Ensure build directory exists
 mkdirSync(BUILD_DIR, { recursive: true });
@@ -167,9 +167,15 @@ function serveStatic(port = SERVE_PORT) {
     let urlPath = req.url === '/' ? '/index.html' : req.url!;
     urlPath = urlPath.split('?')[0];
 
-    const filePath = join(BUILD_DIR, urlPath);
+    if(urlPath === '/api' || urlPath === API_ROUTE) {
+      urlPath = `${API_ROUTE}index.js`;
+    }
 
-    if(!existsSync(filePath)) {
+    const filePath = urlPath.startsWith(API_ROUTE) ?
+      join(API_DIST_DIR, urlPath.slice(API_ROUTE.length)) :
+      join(BUILD_DIR, urlPath);
+
+    if(!existsSync(filePath) || !statSync(filePath).isFile()) {
       res.writeHead(404);
       res.end('Not found');
       return;
@@ -193,6 +199,7 @@ function serveStatic(port = SERVE_PORT) {
 
   server.listen(port, '127.0.0.1', () => {
     console.log(`Site served at http://localhost:${port}`);
+    console.log(`API library served at http://localhost:${port}${API_ROUTE}`);
   });
 }
 
