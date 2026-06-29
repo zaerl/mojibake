@@ -11,6 +11,7 @@ import { characterDecomposition, generateComposition, generateDecomposition } fr
 import { generateAPI } from './generate-api';
 import { generateNormalizationCount } from './generate-tests';
 import { generateUnicodeTables } from './generate-unicode-tables';
+import { generateWasmTD } from './generate-wasm-td';
 import { generateHeader } from './header';
 import { generateLocale } from './locales/generate-locale';
 import { iLog, isVerbose, setVerbose } from './log';
@@ -218,6 +219,7 @@ async function generate() {
   // iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
 
   generateNormalizationCount();
+  generateWasmTD();
 }
 
 generate();
