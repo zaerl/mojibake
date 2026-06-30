@@ -354,13 +354,15 @@
         }
     </script>
     <script type="module">
-        import createMojibake from '/api/index.js';
+        import createMojibake, { Mojibake }from '/api/index.js';
 
         globalThis.mojibakeReady = createMojibake();
         globalThis.mojibakeReady.then(mojibake => {
             globalThis.mojibake = mojibake;
-            console.log(mojibake.version());
         });
+
+        // This is used for auto-generated site, do not edit next line.
+        // On click events
     </script>
 </body>
 </html>

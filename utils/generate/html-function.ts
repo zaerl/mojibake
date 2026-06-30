@@ -4,32 +4,16 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import functions from './functions';
+import functions, { MojibakeArg, MojibakeFunction } from './functions';
 import { categories } from './types';
 
-export type FunctionArg = {
-  name: string;
-  type: string;
-  description: string;
-  wasm_generated: boolean;
-};
-
-export type Function = {
-  comment: string;
-  ret: string;
-  name: string;
-  attributes: string[];
-  args: FunctionArg[];
-  wasm: boolean;
-};
-
-export class CFunction implements Function {
+export class CFunction implements MojibakeFunction {
   constructor(
     public comment: string,
     public ret: string,
     public name: string,
     public attributes: string[] = [],
-    public args: FunctionArg[] = [],
+    public args: MojibakeArg[] = [],
     public wasm: boolean = false
   ) {
     if(!this.ret.endsWith('*')) {
@@ -254,10 +238,24 @@ export class CFunction implements Function {
     }
 
     ret += `\n            <div class="function-form-button">
-              <button type="submit" onclick="callFunction('${this.getName()}')">Call function</button>
+              <button type="submit" id="${this.getName()}-submit">Call function</button>
             </div>\n          </form>\n`;
 
     return ret;
+  }
+
+  public formatEventListener(): string {
+    return `document.getElementById('${this.getName()}-submit').addEventListener('click', () => { ${this.methodCall()}; });`
+  }
+
+  private snakeToCamel(str: string): string {
+    return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+  }
+
+  private methodCall(): string {
+    const args = this.args.filter(arg => !arg.wasm_generated);
+
+    return `mojibake.${this.snakeToCamel(this.name)}(${args.map(arg => arg.name).join(', ')})`;
   }
 }
 

@@ -49,6 +49,11 @@ function processIndexHtml() {
     '</section>',
     functs.map(fn => '    ' + fn.formatHTML()).join('\n'));
 
+  fileContent = substituteBlock(fileContent,
+    "// On click events\n",
+    '</script>',
+    functs.map(fn => '        ' + fn.formatEventListener()).join('\n'));
+
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
   const wasmFileName = `mojibake-wasm-${version.major}${version.minor}${version.revision}.zip`;
