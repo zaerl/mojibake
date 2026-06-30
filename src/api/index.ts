@@ -1021,7 +1021,7 @@ export class Mojibake {
 
   // bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id
   // *locale, mjb_error *error);
-  parseLocale(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
+  localeParse(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
     const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
     const wasmInput = this.copyInput(id, options);
     const localePtr = this.malloc(localeStructSize);
@@ -1044,7 +1044,7 @@ export class Mojibake {
   }
 
   // bool mjb_locale_set(unsigned int locale);
-  setLocale(locale: number): boolean {
+  localeSet(locale: number): boolean {
     return this.module._mjb_locale_set(locale) ? true : false;
   }
 
