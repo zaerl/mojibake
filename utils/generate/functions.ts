@@ -20,12 +20,12 @@ export type MojibakeFunction = {
   wasm: boolean;
 };
 
-function buffer(description: string, name = 'buffer', isConst = true): MojibakeArg {
+function buffer(description: string, name = 'buffer', isConst = true, wasm_generated = false): MojibakeArg {
   return {
     name,
     type: isConst ? 'const char *' : 'char *',
     description,
-    wasm_generated: false
+    wasm_generated
   };
 }
 
@@ -285,7 +285,7 @@ export default [
     attributes: [],
     args: [
       codepoint('The codepoint to encode'),
-      buffer('The buffer to encode the codepoint to', 'buffer', false),
+      buffer('The buffer to encode the codepoint to', 'buffer', false, true),
       size('The size of the buffer, in bytes'),
       encoding('The encoding to use')
     ],
