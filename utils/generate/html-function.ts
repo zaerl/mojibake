@@ -95,7 +95,7 @@ export class CFunction implements Function {
     </section>`;
   }
 
-  getDescription(arg: number): string {
+  private getDescription(arg: number): string {
     let ret = this.args[arg].wasm_generated ? `${this.args[arg].description} (automatically generated)` : this.args[arg].description;
 
     if(this.args[arg].type === 'mjb_codepoint') {
@@ -105,7 +105,7 @@ export class CFunction implements Function {
     return ret;
   }
 
-  getInput(arg: number, type = 'text'): string {
+  private getInput(arg: number, type = 'text'): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.getDescription(arg);
@@ -116,7 +116,7 @@ export class CFunction implements Function {
     return ret + '</div>';
   }
 
-  getCheckbox(arg: number): string {
+  private getCheckbox(arg: number): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.getDescription(arg);
@@ -127,7 +127,7 @@ export class CFunction implements Function {
     return ret + '</div>';
   }
 
-  getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
+  private getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.getDescription(arg);
@@ -144,7 +144,7 @@ export class CFunction implements Function {
     return ret + '</select></div>';
   }
 
-  formInputHTML(): string {
+  private formInputHTML(): string {
     let ret = `\n          <form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
     let i = 0;
 
