@@ -152,7 +152,7 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
     // Fill unicode.ts Script.
     scriptEnumNames = getScriptEnumNames(scriptProperty.values, true);
-    fileWASMContent = substituteBlock(fileWASMContent, "  NOT_SET, // 0 is \"no value\"\n", "\n};", scriptEnumNames.join(',\n'));
+    fileWASMContent = substituteBlock(fileWASMContent, "export enum Script {\n  NOT_SET, // 0 is \"no value\"\n", "\n};", scriptEnumNames.join(',\n'));
   }
 
   let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);
