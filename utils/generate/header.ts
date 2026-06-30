@@ -25,16 +25,19 @@ function getCategoryEnumNames(categories: string[], wasm = false) {
   return categoryEnums.join('\n');
 }
 
-function getDecompositionEnumNames() {
-  return Object.keys(characterDecompositionMapping).map((value: string, index: number) => `    MJB_DECOMPOSITION_${value.toUpperCase().replace(/[<>]/g, '')}`).join(',\n');
+function getDecompositionEnumNames(wasm = false) {
+  const prefix = wasm ? '  ' : '    MJB_DECOMPOSITION_';
+
+  return Object.keys(characterDecompositionMapping).map((value: string, index: number) => `${prefix}${value.toUpperCase().replace(/[<>]/g, '')}`).join(',\n');
 }
 
-function getPropertyEnumNames(properties: Property[]) {
+function getPropertyEnumNames(properties: Property[], wasm = false) {
   const propertyEnums: string[] = [];
+  const prefix = wasm ? '  ' : '    MJB_PR_';
 
   for(let i = 0; i < properties.length; ++i) {
     const name = properties[i].name.toUpperCase().replace(/[<>]/g, '');
-    propertyEnums.push(`    MJB_PR_${name}${ i === properties.length - 1 ? '' : ','}${properties[i].bool ? '' : ' // enumerated'}`);
+    propertyEnums.push(`${prefix}${name}${ i === properties.length - 1 ? '' : ','}${properties[i].bool ? '' : ' // enumerated'}`);
   }
 
   return propertyEnums.join('\n');
@@ -46,7 +49,7 @@ function getPropertyNames(properties: Property[]) {
   }).join('\n');
 }
 
-function getScriptEnumNames(properties: { [key: string]: number }) {
+function getScriptEnumNames(properties: { [key: string]: number }, wasm = false) {
   const propertyEnums: string[] = [];
 
   /*
@@ -63,7 +66,7 @@ function getScriptEnumNames(properties: { [key: string]: number }) {
       continue;
     }
 
-    propertyEnums.push(`    MJB_SC_${key.toUpperCase()}`);
+    propertyEnums.push(`${wasm ? '  ' : '    MJB_SC_'}${key.toUpperCase()}`);
     previousValue = properties[key];
   }
 
@@ -116,25 +119,40 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
   let fileWASMContent = readFileSync('../../src/api/unicode.ts', 'utf-8');
 
-  // Fill all unicode.h enumerations in header and WASM.
+  // Fill unicode.h mjb_block.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
-  fileWASMContent = substituteBlock(fileWASMContent, "export enum Block {\n", "\n};", getBlockEnumNames(blocks, true));
   fileContent = substituteBlock(fileContent, '#define MJB_BLOCK_NUM ', "\n", '' + blocks.length);
 
+  // Fill unicode.ts Block.
+  fileWASMContent = substituteBlock(fileWASMContent, "export enum Block {\n", "\n};", getBlockEnumNames(blocks, true));
+
+  // Fill unicode.h mjb_category.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_category {\n", "\n} mjb_category;", getCategoryEnumNames(categories));
-  fileWASMContent = substituteBlock(fileWASMContent, "export enum Category {\n", "\n};", getCategoryEnumNames(categories, true));
   fileContent = substituteBlock(fileContent, '#define MJB_CATEGORY_COUNT ', "\n", '' + categories.length);
 
+  // Fill unicode.ts Category.
+  fileWASMContent = substituteBlock(fileWASMContent, "export enum Category {\n", "\n};", getCategoryEnumNames(categories, true));
+
+  // Fill unicode.h mjb_decomposition and mjb_property.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_decomposition {\n", "\n} mjb_decomposition;", getDecompositionEnumNames());
   fileContent = substituteBlock(fileContent, "typedef enum mjb_property {\n", "\n} mjb_property;", getPropertyEnumNames(properties));
   fileContent = substituteBlock(fileContent, '#define MJB_PR_COUNT ', "\n", '' + properties.length);
 
+  // Fill unicode.ts Decomposition and Property.
+  fileWASMContent = substituteBlock(fileWASMContent, "export enum Decomposition {\n", "\n};", getDecompositionEnumNames(true));
+  fileWASMContent = substituteBlock(fileWASMContent, "export enum Property {\n", "\n};", getPropertyEnumNames(properties, true));
+
   const scriptProperty = properties.find(property => property.name === 'Script');
 
   if(scriptProperty) {
-    const scriptEnumNames = getScriptEnumNames(scriptProperty.values);
+    // Fill unicode.h mjb_script.
+    let scriptEnumNames = getScriptEnumNames(scriptProperty.values);
     fileContent = substituteBlock(fileContent, "  MJB_SC_NOT_SET, // 0 is \"no value\"\n", "\n} mjb_script;", scriptEnumNames.join(',\n'));
     fileContent = substituteBlock(fileContent, '#define MJB_SC_COUNT ', "\n", '' + (scriptEnumNames.length + 1));
+
+    // Fill unicode.ts Script.
+    scriptEnumNames = getScriptEnumNames(scriptProperty.values, true);
+    fileWASMContent = substituteBlock(fileWASMContent, "  NOT_SET, // 0 is \"no value\"\n", "\n};", scriptEnumNames.join(',\n'));
   }
 
   let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);
