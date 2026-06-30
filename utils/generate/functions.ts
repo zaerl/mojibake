@@ -34,7 +34,7 @@ function size(description = 'The size of the string, in bytes', name = 'size'): 
     name,
     type: 'size_t',
     description,
-    wasm_generated: false
+    wasm_generated: true
   };
 }
 
