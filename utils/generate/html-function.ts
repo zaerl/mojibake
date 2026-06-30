@@ -147,6 +147,8 @@ export class CFunction implements MojibakeFunction {
         ret += this.getInput(i);
       } else if(type.startsWith('size_t')) {
         ret += this.getInput(i);
+      } else if(type.startsWith('unsigned int')) {
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_codepoint')) {
         ret += this.getInput(i);
       } else if(type.startsWith('bool')) {
@@ -245,7 +247,7 @@ export class CFunction implements MojibakeFunction {
   }
 
   public formatEventListener(): string {
-    return `document.getElementById('${this.getName()}-submit').addEventListener('click', () => { ${this.methodCall()}; });`
+    return `document.getElementById('${this.getName()}-submit').addEventListener('click', () => { callFunction('${this.getName()}'); });`
   }
 
   private snakeToCamel(str: string): string {
@@ -254,8 +256,9 @@ export class CFunction implements MojibakeFunction {
 
   private methodCall(): string {
     const args = this.args.filter(arg => !arg.wasm_generated);
+    const argStrings = args.map(arg => `getArg('${this.getName()}-${arg.name}')`);
 
-    return `mojibake.${this.snakeToCamel(this.name)}(${args.map(arg => arg.name).join(', ')})`;
+    return `mojibake.${this.snakeToCamel(this.name)}(${argStrings.join(', ')})`;
   }
 }
 

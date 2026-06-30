@@ -46,7 +46,7 @@
         <section id="functions"></section>
     </div>
     <!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
-    <script>
+    <script type="module">
         // This is used for auto-generated site, do not edit this object.
         const functions = {};
 
@@ -149,7 +149,7 @@
             return 'Unknown';
         }
 
-        function toggleFunctionCall(func) {
+        window.toggleFunctionCall = (func) => {
             const funcDiv = document.getElementById(func);
             const selected = funcDiv.classList.toggle('selected');
 
@@ -160,13 +160,6 @@
                     form.reset();
                 }
             }
-        }
-
-        async function callAPI(args) {
-            const params = new URLSearchParams(args);
-            const result = await fetch('[API_URL]?' + params.toString());
-
-            return await result.json();
         }
 
         function parseCodepointCharacter(char) {
@@ -236,20 +229,30 @@
             return ret;
         }
 
+        function callAPI(func, args = []) {
+            let name = func.replace(/^mjb_/, '');
+            name = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+            console.log(name, args);
+
+            const ret = mojibake[name].apply(mojibake, args);
+
+            console.log(ret);
+
+            return ret;
+        }
+
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-form');
             const funcResults = document.getElementById(func + '-results');
-            console.log(func, functions[func].args);
 
             if(functions[func].args.length === 0 ||
                 (functions[func].args.length === 1 && functions[func].args[0].type === 'void')) {
-                const data = await callAPI({ 'function': func });
-
-                if(data.error) {
-                    funcResults.innerHTML = data.message;
-                } else {
-                    funcResults.innerHTML = data[func.replace(/^mjb_/, '')];
+                try {
+                    const data = await callAPI(func);
+                    funcResults.innerHTML = data;
+                } catch (error) {
+                    funcResults.innerHTML = error.message;
                 }
 
                 funcResults.style.display = 'block';
@@ -258,16 +261,14 @@
             }
 
             let i = 0;
-            let args = { 'function': func };
+            let args = [];
 
             for(const arg of functions[func].args) {
                 if(arg.wasm_generated) {
                     continue;
                 }
 
-                console.log(`${func}-${arg.name}`);
-                console.log(form.elements[`${func}-${arg.name}`]);
-                value = form.elements[`${func}-${arg.name}`].value;
+                let value = form.elements[`${func}-${arg.name}`].value;
 
                 if(arg.type === 'bool') {
                     value = form.elements[`${func}-${arg.name}`].checked;
@@ -275,14 +276,16 @@
                     value = encodingToString(value);
                 }
 
-                args[arg.name] = value;
+                args.push(value);
                 ++i;
             }
 
-            let data = await callAPI(args);
+            let data = null;
 
-            if(data.error) {
-                funcResults.innerHTML = data.message;
+            try {
+                data = callAPI(func, args);
+            } catch (error) {
+                funcResults.innerHTML = error.message;
                 funcResults.style.display = 'block';
 
                 return;
@@ -352,8 +355,7 @@
                 callFunction(functionParam);
             }
         }
-    </script>
-    <script type="module">
+
         import createMojibake, { Mojibake }from '/api/index.js';
 
         globalThis.mojibakeReady = createMojibake();

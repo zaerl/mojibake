@@ -51,8 +51,9 @@ function processIndexHtml() {
 
   fileContent = substituteBlock(fileContent,
     "// On click events\n",
-    '</script>',
-    functs.map(fn => '        ' + fn.formatEventListener()).join('\n'));
+    "    </script>",
+    functs.map(fn => '        ' + fn.formatEventListener()).join('\n') + "\n"
+  );
 
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
