@@ -89,13 +89,13 @@ export class CFunction implements Function {
         <div>${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</div>
       </div>
       <div class="function-card">
-        <div>${this.#formInputHTML()}</div>
+        <div>${this.formInputHTML()}</div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </section>`;
   }
 
-  #getDescription(arg: number): string {
+  getDescription(arg: number): string {
     let ret = this.args[arg].wasm_generated ? `${this.args[arg].description} (automatically generated)` : this.args[arg].description;
 
     if(this.args[arg].type === 'mjb_codepoint') {
@@ -105,10 +105,10 @@ export class CFunction implements Function {
     return ret;
   }
 
-  #getInput(arg: number, type = 'text'): string {
+  getInput(arg: number, type = 'text'): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
-    const description = this.#getDescription(arg);
+    const description = this.getDescription(arg);
 
     let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
     ret += `<input id="${name}" type="${type}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
@@ -116,10 +116,10 @@ export class CFunction implements Function {
     return ret + '</div>';
   }
 
-  #getCheckbox(arg: number): string {
+  getCheckbox(arg: number): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
-    const description = this.#getDescription(arg);
+    const description = this.getDescription(arg);
 
     let ret = `<div><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
       `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
@@ -127,10 +127,10 @@ export class CFunction implements Function {
     return ret + '</div>';
   }
 
-  #getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
+  getSelectInput(arg: number, options: string[], values: number[]|null = null): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
-    const description = this.#getDescription(arg);
+    const description = this.getDescription(arg);
 
     let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
     ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
@@ -144,7 +144,7 @@ export class CFunction implements Function {
     return ret + '</select></div>';
   }
 
-  #formInputHTML(): string {
+  formInputHTML(): string {
     let ret = `\n          <form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
     let i = 0;
 
@@ -152,23 +152,23 @@ export class CFunction implements Function {
       ret += `\n            `;
       const type = arg.type;
       if(type.startsWith('const char *')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('char *')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('size_t *')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_character *')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_emoji_properties *')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('size_t')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_codepoint')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('bool')) {
-        ret += this.#getCheckbox(i);
+        ret += this.getCheckbox(i);
       } else if(type.startsWith('mjb_category')) {
-        ret += this.#getSelectInput(i, categories, null);
+        ret += this.getSelectInput(i, categories, null);
       } else if(type.startsWith('mjb_encoding')) {
         const options = [
           'MJB_ENCODING_UTF_8',
@@ -187,7 +187,7 @@ export class CFunction implements Function {
           0x80,
         ];
 
-        ret += this.#getSelectInput(i, options, values);
+        ret += this.getSelectInput(i, options, values);
       } else if(type.startsWith('mjb_case_type')) {
         // See mjb_case_type on mojibake.h
         const options = [
@@ -205,15 +205,15 @@ export class CFunction implements Function {
           4,
         ];
 
-        ret += this.#getSelectInput(i, options, values);
+        ret += this.getSelectInput(i, options, values);
       } else if(type.startsWith('mjb_result')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_property')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_locale_id')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_error')) {
-        ret += this.#getInput(i);
+        ret += this.getInput(i);
       } else if(type.startsWith('mjb_normalization')) {
         // See mjb_normalization on mojibake.h
         const options = [
@@ -223,7 +223,7 @@ export class CFunction implements Function {
           'MJB_NORMALIZATION_NFKD',
         ];
 
-        ret += this.#getSelectInput(i, options);
+        ret += this.getSelectInput(i, options);
       } else if(type.startsWith('mjb_plane')) {
         // See mjb_plane on unicode.h
         const options = [
@@ -247,7 +247,7 @@ export class CFunction implements Function {
           16,
         ];
 
-        ret += this.#getSelectInput(i, options, values);
+        ret += this.getSelectInput(i, options, values);
       }
 
       ++i;
