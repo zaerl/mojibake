@@ -30,6 +30,8 @@ COPY utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt utils/generate/
 COPY utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt
 COPY utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt
 COPY utils/generate/unicode-data/UCD/BidiCharacterTest.txt utils/generate/unicode-data/UCD/BidiCharacterTest.txt
+COPY utils/generate/unicode-data/UCD/BidiTest.txt utils/generate/unicode-data/UCD/BidiTest.txt
+COPY utils/generate/unicode-data/UCD/CaseFolding.txt utils/generate/unicode-data/UCD/CaseFolding.txt
 COPY utils/generate/unicode-data/UCD/NormalizationTest.txt utils/generate/unicode-data/UCD/NormalizationTest.txt
 COPY utils/generate/unicode-data/UCD/SpecialCasing.txt utils/generate/unicode-data/UCD/SpecialCasing.txt
 
