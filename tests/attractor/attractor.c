@@ -29,8 +29,11 @@
 #endif
 
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT_1, FORMAT_2, EXPECTED) \
-if(att_verbose >= 1 && att_show_error) { \
+if(att_show_error) { \
     printf(att_show_colors ? "\x1B[90m%s:%u:\x1B[0m " : "%s:%u: ", file, line); \
+    if(att_verbose < 2) { \
+        printf("%s: ", description); \
+    } \
     fputs(att_show_colors ? "Expected \x1B[32m" : "Expected ", stdout); \
     printf(FORMAT_1, EXPECTED); \
     fputs(att_show_colors ? "\x1B[0m, got \x1B[31m" : ", got ", stdout); \
