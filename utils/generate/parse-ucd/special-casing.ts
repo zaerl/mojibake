@@ -38,7 +38,7 @@ export async function readSpecialCasingProps(characters: Character[]): Promise<N
   let maxNewCasesCount = 0;
 
   for await (const line of file.readLines()) {
-    // TODO: add support for conditional mappings.
+    // Conditional mappings are implemented directly in src/case.c.
     if(line === '# Conditional Mappings') {
       break;
     }

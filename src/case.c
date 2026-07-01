@@ -8,15 +8,61 @@
 #include "unicode-tables.h"
 #include "utf.h"
 
-static bool mjb_is_cased(mjb_category category) {
-    return category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL ||
-        category == MJB_CATEGORY_LT;
+extern mojibake mjb_global;
+
+// Cased: Lu, Ll and Lt plus Other_Uppercase and Other_Lowercase.
+static bool mjb_is_cased(mjb_codepoint codepoint) {
+    return mjb_unicode_has_property(codepoint, MJB_PR_CASED, NULL);
 }
 
-// Mn, Me and Cf do not break words.
-static bool mjb_is_case_ignorable(mjb_category category) {
-    return category == MJB_CATEGORY_MN || category == MJB_CATEGORY_ME ||
-        category == MJB_CATEGORY_CF;
+// Characters that do not interrupt a casing context, like combining marks and apostrophes.
+static bool mjb_is_case_ignorable(mjb_codepoint codepoint) {
+    return mjb_unicode_has_property(codepoint, MJB_PR_CASE_IGNORABLE, NULL);
+}
+
+static uint8_t mjb_combining_class(mjb_codepoint codepoint) {
+    mjb_n_character character;
+
+    if(!mjb_unicode_n_character_lookup(codepoint, &character)) {
+        return 0;
+    }
+
+    return character.combining;
+}
+
+// Casing context for the conditional mappings of SpecialCasing.txt. The flags describe the
+// characters already consumed; lookahead conditions are computed on demand.
+typedef struct mjb_case_context {
+    bool preceded_by_cased; // Final_Sigma: a cased letter precedes, skipping case-ignorable.
+    bool after_i; // After_I (tr/az): the last character of combining class 0 or 230 was U+0049.
+    bool after_soft_dotted; // After_Soft_Dotted (lt): it was a Soft_Dotted character.
+    bool track_locale; // after_i and after_soft_dotted are only needed for tr, az and lt.
+} mjb_case_context;
+
+static void mjb_case_context_update(mjb_case_context *context, mjb_codepoint codepoint) {
+    if(mjb_is_cased(codepoint)) {
+        context->preceded_by_cased = true;
+    } else if(!mjb_is_case_ignorable(codepoint)) {
+        context->preceded_by_cased = false;
+    }
+
+    if(!context->track_locale) {
+        return;
+    }
+
+    uint8_t combining = mjb_combining_class(codepoint);
+
+    if(codepoint == 0x49) { // U+0049 LATIN CAPITAL LETTER I
+        context->after_i = true;
+    } else if(combining == MJB_CCC_NOT_REORDERED || combining == MJB_CCC_ABOVE) {
+        context->after_i = false;
+    }
+
+    if(mjb_unicode_has_property(codepoint, MJB_PR_SOFT_DOTTED, NULL)) {
+        context->after_soft_dotted = true;
+    } else if(combining == MJB_CCC_NOT_REORDERED || combining == MJB_CCC_ABOVE) {
+        context->after_soft_dotted = false;
+    }
 }
 
 static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
@@ -74,27 +120,164 @@ static bool mjb_special_casing_codepoint(mjb_codepoint codepoint, char **output,
     return true;
 }
 
-// Peek at the next decoded codepoint and return whether it is cased (Lu/Ll/Lt).
-static bool mjb_next_is_cased(const char *buffer, size_t size, size_t i, uint8_t state,
+// Final_Sigma lookahead: a cased letter follows, skipping case-ignorable characters.
+static bool mjb_followed_by_cased(const char *buffer, size_t size, size_t i, uint8_t state,
     mjb_encoding encoding) {
-    mjb_codepoint next_cp = 0;
-    bool next_in_error = false;
-    mjb_decode_result ps;
-    mjb_unicode_case_mapping mapping;
+    mjb_codepoint codepoint = 0;
+    bool in_error = false;
 
-    do {
-        ps = mjb_next_codepoint(buffer, size, &state, &i, encoding, &next_cp, &next_in_error);
-    } while(ps == MJB_DECODE_INCOMPLETE);
+    for(;;) {
+        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
 
-    if(ps == MJB_DECODE_END) {
-        return false;
+        if(result == MJB_DECODE_END) {
+            return false;
+        }
+
+        if(result == MJB_DECODE_INCOMPLETE || mjb_is_case_ignorable(codepoint)) {
+            continue;
+        }
+
+        return mjb_is_cased(codepoint);
+    }
+}
+
+// More_Above (lt) lookahead: a character of combining class 230 follows, with no intervening
+// character of combining class 0.
+static bool mjb_more_above(const char *buffer, size_t size, size_t i, uint8_t state,
+    mjb_encoding encoding) {
+    mjb_codepoint codepoint = 0;
+    bool in_error = false;
+
+    for(;;) {
+        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(result == MJB_DECODE_END) {
+            return false;
+        }
+
+        if(result == MJB_DECODE_INCOMPLETE) {
+            continue;
+        }
+
+        uint8_t combining = mjb_combining_class(codepoint);
+
+        if(combining == MJB_CCC_ABOVE) {
+            return true;
+        }
+
+        if(combining == MJB_CCC_NOT_REORDERED) {
+            return false;
+        }
+    }
+}
+
+// Before_Dot (tr/az) lookahead: U+0307 COMBINING DOT ABOVE follows, skipping characters with
+// combining class other than 0 and 230.
+static bool mjb_before_dot(const char *buffer, size_t size, size_t i, uint8_t state,
+    mjb_encoding encoding) {
+    mjb_codepoint codepoint = 0;
+    bool in_error = false;
+
+    for(;;) {
+        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(result == MJB_DECODE_END) {
+            return false;
+        }
+
+        if(result == MJB_DECODE_INCOMPLETE) {
+            continue;
+        }
+
+        if(codepoint == 0x307) {
+            return true;
+        }
+
+        uint8_t combining = mjb_combining_class(codepoint);
+
+        if(combining == MJB_CCC_NOT_REORDERED || combining == MJB_CCC_ABOVE) {
+            return false;
+        }
+    }
+}
+
+// Language-sensitive conditional mappings of SpecialCasing.txt for Lithuanian (lt), Turkish (tr)
+// and Azerbaijani (az). Final_Sigma is language-insensitive and handled in the casing loops.
+// Sets *handled when a rule matched; a matched rule may emit no output (removed character).
+static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type type,
+    const mjb_case_context *context, const char *buffer, size_t size, size_t i, uint8_t state,
+    mjb_encoding encoding, char **output, size_t *output_index, size_t *output_size,
+    bool *handled) {
+    mjb_codepoint mapped[3];
+    uint8_t length = 0;
+    bool turkic = mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ;
+
+    *handled = false;
+
+    if(turkic) {
+        if(type == MJB_CASE_LOWER) {
+            if(codepoint == 0x130) { // İ → i
+                mapped[length++] = 0x69;
+            } else if(codepoint == 0x307 && context->after_i) {
+                // Remove the dot above of a lowercased I: the pair becomes a plain i.
+            } else if(codepoint == 0x49 && !mjb_before_dot(buffer, size, i, state, encoding)) {
+                mapped[length++] = 0x131; // I → ı
+            } else {
+                return true;
+            }
+        } else if(codepoint == 0x69) { // i → İ when uppercasing or titlecasing
+            mapped[length++] = 0x130;
+        } else {
+            return true;
+        }
+    } else if(mjb_global.locale == MJB_LOCALE_LT) {
+        if(type == MJB_CASE_LOWER) {
+            switch(codepoint) {
+                // Introduce an explicit dot above when there are more accents above.
+                case 0x49: // I → i + dot above
+                case 0x4A: // J → j + dot above
+                case 0x12E: // Į → į + dot above
+                    if(!mjb_more_above(buffer, size, i, state, encoding)) {
+                        return true;
+                    }
+
+                    mapped[length++] = codepoint == 0x12E ? 0x12F : codepoint + 0x20;
+                    mapped[length++] = 0x307;
+                    break;
+
+                case 0xCC: // Ì → i + dot above + grave
+                case 0xCD: // Í → i + dot above + acute
+                case 0x128: // Ĩ → i + dot above + tilde
+                    mapped[length++] = 0x69;
+                    mapped[length++] = 0x307;
+                    mapped[length++] = codepoint == 0xCC ? 0x300 :
+                        (codepoint == 0xCD ? 0x301 : 0x303);
+                    break;
+
+                default:
+                    return true;
+            }
+        } else if(codepoint == 0x307 && context->after_soft_dotted) {
+            // Remove the dot above: the soft-dotted base letter loses its dot when cased.
+        } else {
+            return true;
+        }
+    } else {
+        return true;
     }
 
-    if(!mjb_unicode_case_lookup(next_cp, &mapping)) {
-        return false;
+    *handled = true;
+
+    for(uint8_t k = 0; k < length; ++k) {
+        if(!mjb_case_output_codepoint(mapped[k], output, output_index, output_size, encoding)) {
+            return false;
+        }
     }
 
-    return mjb_is_cased(mapping.category);
+    return true;
 }
 
 /**
@@ -114,6 +297,9 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
     size_t output_index = 0;
     size_t output_size = size;
     bool in_word = false;
+    bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
+        mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
+    mjb_case_context context = {false, false, false, locale_sensitive};
 
     for(size_t i = 0; i < size;) {
         // Find next codepoint.
@@ -139,6 +325,9 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         mjb_codepoint original = codepoint;
         mjb_category category = mapping.category;
         mjb_case_type case_type = MJB_CASE_NONE;
+        // Position-based type: the word-initial character takes its titlecase mapping, every
+        // other character its lowercase mapping.
+        mjb_case_type effective_type = MJB_CASE_LOWER;
 
         // Word boundary.
         if(
@@ -150,8 +339,9 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             // Is a number.
             category == MJB_CATEGORY_LO || category == MJB_CATEGORY_NL
         ) {
-
             if(!in_word) {
+                effective_type = MJB_CASE_TITLE;
+
                 // Try titlecase first.
                 if(mapping.titlecase == 0) {
                     // If titlecase is not available, try uppercase.
@@ -177,11 +367,15 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         }
 
         // Final_Sigma (SpecialCasing.txt condition Final_Sigma):
-        // In-word Σ (U+03A3) → ς (U+03C2) when not followed by a cased letter.
+        // In-word Σ (U+03A3) → ς (U+03C2) when preceded by a cased letter and not followed by a
+        // cased letter, in both cases skipping case-ignorable characters.
         if(original == 0x03A3 && case_type == MJB_CASE_LOWER) {
-            mjb_codepoint sigma_out = mjb_next_is_cased(buffer, size, i, state, encoding)
-                ? 0x03C3   // σ: followed by a cased letter, not word-final
-                : 0x03C2;  // ς: word-final sigma
+            mjb_codepoint sigma_out = context.preceded_by_cased &&
+                !mjb_followed_by_cased(buffer, size, i, state, encoding)
+                ? 0x03C2   // ς: word-final sigma
+                : 0x03C3;  // σ: followed by a cased letter, not word-final
+
+            mjb_case_context_update(&context, original);
 
             if(!mjb_case_output_codepoint(sigma_out, &output, &output_index,
                 &output_size, encoding)) {
@@ -192,6 +386,26 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
 
             continue;
         }
+
+        // Language-sensitive conditional rules.
+        if(locale_sensitive) {
+            bool handled = false;
+
+            if(!mjb_locale_special_casing(original, effective_type, &context, buffer, size,
+                i, state, encoding, &output, &output_index, &output_size, &handled)) {
+                mjb_free(output);
+
+                return NULL;
+            }
+
+            if(handled) {
+                mjb_case_context_update(&context, original);
+
+                continue;
+            }
+        }
+
+        mjb_case_context_update(&context, original);
 
         // Check against the original codepoint (before any remapping by the word-boundary
         // block above). The remapped form may not be the source of any special casing rule.
@@ -265,7 +479,11 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
     size_t output_index = 0;
     size_t output_size = size;
-    bool in_word = false; // tracks word context for Final_Sigma (MJB_CASE_LOWER only)
+    bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
+        mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
+    // The context is only needed for Final_Sigma (lowercase) and the language-sensitive rules.
+    bool track_context = type == MJB_CASE_LOWER || locale_sensitive;
+    mjb_case_context context = {false, false, false, locale_sensitive};
 
     for(size_t i = 0; i < size;) {
         // Find next codepoint.
@@ -316,19 +534,38 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             continue;
         }
 
+        // Language-sensitive conditional rules (SpecialCasing.txt "Conditional Mappings").
+        if(locale_sensitive) {
+            bool handled = false;
+
+            if(!mjb_locale_special_casing(codepoint, type, &context, buffer, size, i, state,
+                encoding, &output, &output_index, &output_size, &handled)) {
+                mjb_free(output);
+
+                return NULL;
+            }
+
+            if(handled) {
+                mjb_case_context_update(&context, codepoint);
+
+                continue;
+            }
+        }
+
         // Final_Sigma (SpecialCasing.txt condition Final_Sigma):
-        // Σ (U+03A3) → ς (U+03C2) when preceded by a cased letter in the same word
-        // and not followed by a cased letter.
+        // Σ (U+03A3) → ς (U+03C2) when preceded by a cased letter and not followed by a cased
+        // letter, in both cases skipping case-ignorable characters.
         if(type == MJB_CASE_LOWER && codepoint == 0x03A3) {
             mjb_codepoint sigma_out;
 
-            if(in_word && !mjb_next_is_cased(buffer, size, i, state, encoding)) {
+            if(context.preceded_by_cased &&
+                !mjb_followed_by_cased(buffer, size, i, state, encoding)) {
                 sigma_out = 0x03C2; // ς: word-final sigma
             } else {
                 sigma_out = 0x03C3; // σ: non-final or no preceding cased letter
             }
 
-            in_word = true;  // Σ is a cased letter
+            mjb_case_context_update(&context, codepoint);
 
             if(!mjb_case_output_codepoint(sigma_out, &output, &output_index,
                 &output_size, encoding)) {
@@ -338,6 +575,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             }
 
             continue;
+        }
+
+        if(track_context) {
+            mjb_case_context_update(&context, codepoint);
         }
 
         if(mjb_maybe_has_special_casing(codepoint)) {
@@ -351,10 +592,6 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             }
 
             if(found_special_casing) {
-                if(type == MJB_CASE_LOWER) {
-                    in_word = true;
-                }
-
                 continue;
             }
         }
@@ -365,14 +602,6 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             mjb_free(output);
 
             return NULL;
-        }
-
-        if(type == MJB_CASE_LOWER) {
-            if(mjb_is_cased(mapping.category)) {
-                in_word = true;
-            } else if(!mjb_is_case_ignorable(mapping.category)) {
-                in_word = false;
-            }
         }
 
         mjb_codepoint mapped = 0;
