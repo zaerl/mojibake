@@ -118,21 +118,23 @@ function printCoverage(): void {
 
   const post = ' '.repeat(maxNameLength - 5);
   const bar = '-'.repeat(maxNameLength);
+  const totalStr = total.toString();
+  // Width of the count column: the widest of "Coverage", the counts, and the bold total.
+  const countWidth = Math.max(10, totalStr.length + 4);
 
   let output = '# Test coverage\n\n';
-  output += `| Test ${post} | Coverage   |\n`;
-  output += `| ${bar} | ---------- |\n`;
+  output += `| Test ${post} | Coverage${' '.repeat(countWidth - 8)} |\n`;
+  output += `| ${bar} | ${'-'.repeat(countWidth)} |\n`;
 
   for(const [key, value] of sortedCov) {
     const post = ' '.repeat(maxNameLength - key.length - 2);
     const countStr = value.u.toString();
-    const countPost = ' '.repeat(10 - countStr.length);
+    const countPost = ' '.repeat(countWidth - countStr.length);
     output += `| \`${key}\`${post} | ${countStr}${countPost} |\n`;
   }
 
   const totalPost = ' '.repeat(maxNameLength - 10);
-  const totalStr = total.toString();
-  const totalCountPost = ' '.repeat(10 - totalStr.length - 4);
+  const totalCountPost = ' '.repeat(countWidth - totalStr.length - 4);
   output += `| **Total** ${totalPost} | **${totalStr}**${totalCountPost} |\n`;
 
   writeFileSync('../../TESTS.md', output);
