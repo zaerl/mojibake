@@ -90,6 +90,11 @@ export type CaseFoldRow = {
   new_case_3: number | null;
 };
 
+export type CaseFoldSimpleRow = {
+  codepoint: number;
+  mapping: number;
+};
+
 export type ConfusableRow = {
   codepoint: number;
   skeleton: Buffer;

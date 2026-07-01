@@ -6,9 +6,10 @@
 
 import { writeFile } from 'fs/promises';
 import { resolve } from 'path';
+import { getFileLicense } from './license';
 import { iLog } from './log';
 import { generateBlocks } from './tables/blocks';
-import { generateCaseFoldMappings, generateSimpleCaseMappings, generateSpecialCaseMappings } from './tables/case';
+import { generateCaseFoldMappings, generateCaseFoldSimpleMappings, generateSimpleCaseMappings, generateSpecialCaseMappings } from './tables/case';
 import { generateCollationContractions, generateCollationEntries } from './tables/collation';
 import { generateDecompositionAndCompositionTables } from './tables/composition';
 import { generateConfusables } from './tables/confusable';
@@ -18,7 +19,6 @@ import { generateNames } from './tables/names';
 import { generateNumericValues } from './tables/numeric';
 import { generateProperties } from './tables/properties';
 import { getUnicodeTableData, UnicodeTableData } from './unicode-data-store';
-import { getFileLicense } from './license';
 
 // Writes the generated Unicode C tables from the in-memory generation data.
 export async function generateUnicodeTables(data: UnicodeTableData = getUnicodeTableData()) {
@@ -43,6 +43,7 @@ ${generateNumericValues(data.numericValues)}
 ${generateSimpleCaseMappings(data.simpleCaseMappings)}
 ${generateSpecialCaseMappings(data.specialCaseMappings)}
 ${generateCaseFoldMappings(data.caseFoldMappings)}
+${generateCaseFoldSimpleMappings(data.caseFoldSimpleMappings)}
 ${generateConfusables(data.confusables)}
 ${generateCollationEntries(data.collationEntries)}
 ${generateCollationContractions(data.collationContractions)}`;

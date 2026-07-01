@@ -5,8 +5,8 @@
  */
 
 import { iLog } from '../log';
-import { codepointPages, formatBytes, formatCodepoints, formatHalfwords, formatLongWords, formatPages, indexedPages, packCodepointSequences } from '../utils';
-import { CaseFoldRow, SimpleCaseRow, SpecialCaseRow } from './types';
+import { codepointPages, formatBytes, formatCodepoints, formatHalfwords, formatLongWords, formatPages, formatWords, indexedPages, packCodepointSequences } from '../utils';
+import { CaseFoldRow, CaseFoldSimpleRow, SimpleCaseRow, SpecialCaseRow } from './types';
 
 // Returns the non-null codepoint sequence for special casing or case folding.
 function caseSequenceValues(row: SpecialCaseRow | CaseFoldRow) {
@@ -146,6 +146,24 @@ ${formatCodepoints(sequences.data)}
 
 static const mjb_unicode_case_fold_entry mjb_unicode_case_fold_mappings[] = {
 ${formatLongWords(entries)}
+};
+`;
+}
+
+// Emits packed simple (S) case-fold mappings: codepoint in the high halfword, mapping in the low.
+export function generateCaseFoldSimpleMappings(rows: CaseFoldSimpleRow[]) {
+  iLog('Simple case fold mappings');
+
+  const entries = rows.map((row) => {
+    if(row.codepoint > 0xFFFF || row.mapping > 0xFFFF) {
+      throw new Error(`Simple case folding mapping is too large to pack: ${row.codepoint}`);
+    }
+
+    return ((row.codepoint << 16) | row.mapping) >>> 0;
+  });
+
+  return `static const uint32_t mjb_unicode_case_fold_simple_mappings[] = {
+${formatWords(entries)}
 };
 `;
 }

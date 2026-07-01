@@ -6,10 +6,10 @@
 | `mjb_normalize`                        | 400691     |
 | `mjb_bidi_resolve`                     | 91771      |
 | `mjb_break_line`                       | 19367      |
+| `mjb_case`                             | 3549       |
 | `mjb_break_word`                       | 1828       |
 | `mjb_segmentation`                     | 732        |
 | `mjb_break_sentence`                   | 456        |
-| `mjb_case`                             | 440        |
 | `mjb_string_convert_encoding`          | 147        |
 | `mjb_string_filter`                    | 141        |
 | `mjb_locale_parse`                     | 120        |
@@ -79,4 +79,4 @@
 | `mjb_unicode_version`                  | 1          |
 | `mjb_version`                          | 1          |
 | `mjb_version_number`                   | 1          |
-| **Total**                              | **954376** |
+| **Total**                              | **957485** |

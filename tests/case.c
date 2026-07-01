@@ -9,6 +9,112 @@
 
 #include "test.h"
 
+static int check_fold(const char *source, size_t source_size, const char *target,
+    size_t target_size, mjb_case_type type, unsigned int current_line, const char *status) {
+    char test_name[128];
+
+    snprintf(test_name, 128, "CaseFolding #%u %s", current_line, status);
+
+    if(source_size == 0 || target_size == 0) {
+        return 0;
+    }
+
+    char *result = mjb_case(source, source_size, type, MJB_ENCODING_UTF_8);
+
+    // CURRENT_ASSERT mjb_case
+    // CURRENT_COUNT 3101
+    ATT_ASSERT(result, (char*)target, test_name)
+
+    if(result != NULL) {
+        mjb_free(result);
+    }
+
+    return 0;
+}
+
+// Drive full (C + F), simple (C + S) and Turkic (T) case folding from CaseFolding.txt.
+static void test_case_folding_file(void) {
+    char line[1024];
+    unsigned int current_line = 1;
+    FILE *file = fopen("./utils/generate/unicode-data/UCD/CaseFolding.txt", "r");
+
+    if(file == NULL) {
+        ATT_ASSERT("Not opened", "Opened file", "Valid case folding test file")
+
+        return;
+    }
+
+    char source[64];
+    char target[64];
+
+    while(fgets(line, 1024, file)) {
+        if(line[0] == '#' || strnlen(line, 512) <= 1) {
+            ++current_line;
+
+            continue;
+        }
+
+        char *token, *string, *tofree;
+        tofree = string = strdup(line);
+        unsigned int field = 0;
+        char status = 0;
+        size_t source_size = 0;
+        size_t target_size = 0;
+
+        while((token = strsep(&string, ";")) != NULL) {
+            if(field == 0) {
+                source_size = get_string_from_codepoints(token, 64, source);
+            } else if(field == 1) {
+                while(*token == ' ') {
+                    ++token;
+                }
+
+                status = token[0];
+            } else if(field == 2) {
+                target_size = get_string_from_codepoints(token, 64, target);
+            }
+
+            if(++field == 3) {
+                break;
+            }
+        }
+
+        free(tofree);
+
+        switch(status) {
+            case 'C': // Common: applies to both full and simple folding.
+                check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD,
+                    current_line, "C full");
+                check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD_SIMPLE,
+                    current_line, "C simple");
+                break;
+
+            case 'F': // Full folding only.
+                check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD,
+                    current_line, "F full");
+                break;
+
+            case 'S': // Simple folding only.
+                check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD_SIMPLE,
+                    current_line, "S simple");
+                break;
+
+            case 'T': // Turkic: applies to both folding types when the locale is tr or az.
+                mjb_locale_set(MJB_LOCALE_TR);
+                check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD,
+                    current_line, "T full");
+                check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD_SIMPLE,
+                    current_line, "T simple");
+                mjb_locale_set(MJB_LOCALE_EN);
+                break;
+        }
+
+        ++current_line;
+    }
+
+    fclose(file);
+}
+
 void *test_case(void *arg) {
     mjb_encoding encoding = MJB_ENCODING_UTF_8;
 
@@ -153,6 +259,40 @@ void *test_case(void *arg) {
     ATT_ASSERT(result, (char*)"123", "Casefold: 123 -> 123")
     mjb_free(result);
 
+    // Simple case folding (C + S statuses): multi-char full folds are not applied.
+    result = mjb_case("straße", 7, MJB_CASE_CASEFOLD_SIMPLE, encoding);
+    ATT_ASSERT(result, (char*)"straße", "Simple casefold: ß folds to itself")
+    mjb_free(result);
+
+    result = mjb_case("ẞ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
+    ATT_ASSERT(result, (char*)"ß", "Simple casefold: ẞ -> ß")
+    mjb_free(result);
+
+    result = mjb_case("ﬃ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
+    ATT_ASSERT(result, (char*)"ﬃ", "Simple casefold: ﬃ folds to itself")
+    mjb_free(result);
+
+    result = mjb_case("İ", 2, MJB_CASE_CASEFOLD_SIMPLE, encoding);
+    ATT_ASSERT(result, (char*)"İ", "Simple casefold: İ folds to itself")
+    mjb_free(result);
+
+    // Turkic (T) case folding, active for the tr and az locales.
+    mjb_locale_set(MJB_LOCALE_TR);
+
+    result = mjb_case("KIRMIZI", 7, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"kırmızı", "Turkic casefold: KIRMIZI -> kırmızı")
+    mjb_free(result);
+
+    result = mjb_case("İZMİR", 7, MJB_CASE_CASEFOLD, encoding);
+    ATT_ASSERT(result, (char*)"izmir", "Turkic casefold: İZMİR -> izmir")
+    mjb_free(result);
+
+    result = mjb_case("I", 1, MJB_CASE_CASEFOLD_SIMPLE, encoding);
+    ATT_ASSERT(result, (char*)"ı", "Turkic simple casefold: I -> ı")
+    mjb_free(result);
+
+    mjb_locale_set(MJB_LOCALE_EN);
+
     // Test Final_Sigma rule: word-final Σ → ς, non-final Σ → σ
     result = mjb_case("ΣΕΙΣ", 8, MJB_CASE_LOWER, encoding);
     ATT_ASSERT(result, (char*)"σεις", "UTF-8 lowercase Final_Sigma: ΣΕΙΣ -> σεις")
@@ -182,6 +322,8 @@ void *test_case(void *arg) {
     ATT_ASSERT(mjb_codepoint_to_uppercase('B'), 'B', "Uppercase: B > B")
     ATT_ASSERT(mjb_codepoint_to_titlecase('c'), 'C', "Titlecase: c > C")
     ATT_ASSERT(mjb_codepoint_to_titlecase('C'), 'C', "Titlecase: C > C")
+
+    test_case_folding_file();
 
     return NULL;
 }

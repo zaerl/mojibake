@@ -562,6 +562,30 @@ bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoin
     return false;
 }
 
+// Simple (S) case folds: single-char alternatives for codepoints whose full fold is multi-char.
+bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_case_fold_simple_mappings);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint32_t entry = mjb_unicode_case_fold_simple_mappings[mid];
+        mjb_codepoint entry_codepoint = (mjb_codepoint)(entry >> 16);
+
+        if(codepoint < entry_codepoint) {
+            high = mid;
+        } else if(codepoint > entry_codepoint) {
+            low = mid + 1;
+        } else {
+            *value = (mjb_codepoint)(entry & 0xFFFF);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length) {
     size_t entry_index = 0;

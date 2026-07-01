@@ -14,7 +14,7 @@ import { generateUnicodeTables } from './generate-unicode-tables';
 import { generateWasmTD } from './generate-wasm-td';
 import { generateHeader } from './header';
 import { generateLocale } from './locales/generate-locale';
-import { iLog, isVerbose, setVerbose } from './log';
+import { iLog, setVerbose } from './log';
 import { readAliases } from './parse-ucd/aliases';
 import { readBidiBrackets } from './parse-ucd/bidi-brackets';
 import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
@@ -35,8 +35,8 @@ import {
 } from './types';
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
-  addDecompositions, addEmojiProperties, addPropertyRanges, addSpecialCasing,
-  resetUnicodeTableData, unicodeTableDataSummary,
+  addDecompositions, addEmojiProperties, addPropertyRanges, addSimpleCaseFolding,
+  addSpecialCasing, resetUnicodeTableData
 } from './unicode-data-store';
 import { updateVersion } from './update-version';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
@@ -146,7 +146,8 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   addPropertyRanges(propertyRanges);
 
   const caseFolds = await generateCasefold(characters);
-  addCaseFolding(caseFolds);
+  addCaseFolding(caseFolds.full);
+  addSimpleCaseFolding(caseFolds.simple);
 
   // analysis.outputGeneratedData(codepoint, isVerbose());
 

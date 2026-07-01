@@ -39,6 +39,7 @@ bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_case_type ca
     const mjb_codepoint **values, uint8_t *length);
 bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
+bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value);
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
 bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint8_t **weights,

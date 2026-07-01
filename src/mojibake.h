@@ -228,7 +228,8 @@ typedef enum mjb_case_type {
     MJB_CASE_UPPER,
     MJB_CASE_LOWER,
     MJB_CASE_TITLE,
-    MJB_CASE_CASEFOLD
+    MJB_CASE_CASEFOLD,       // C + F statuses, string may grow
+    MJB_CASE_CASEFOLD_SIMPLE // C + S statuses, length-preserving
 } mjb_case_type;
 
 typedef enum mjb_error {

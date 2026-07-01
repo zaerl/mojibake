@@ -117,6 +117,8 @@ int main(int argc, char * const argv[]) {
         { "lower", "Convert the input to lowercase", mjbsh_case_command, MJB_CASE_LOWER },
         { "title", "Convert the input to titlecase", mjbsh_case_command, MJB_CASE_TITLE },
         { "casefold", "Convert the input to case fold", mjbsh_case_command, MJB_CASE_CASEFOLD },
+        { "casefold-simple", "Convert the input to simple case fold", mjbsh_case_command,
+            MJB_CASE_CASEFOLD_SIMPLE },
         { NULL, NULL, NULL, 0 }
     };
 

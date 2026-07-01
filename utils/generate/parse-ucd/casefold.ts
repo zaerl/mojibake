@@ -13,7 +13,17 @@ export type CaseFoldEntry = {
   mapping: number[];
 };
 
-export async function generateCasefold(characters: Character[]): Promise<CaseFoldEntry[]> {
+export type SimpleCaseFoldEntry = {
+  codepoint: number;
+  mapping: number;
+};
+
+export type CaseFoldData = {
+  full: CaseFoldEntry[];
+  simple: SimpleCaseFoldEntry[];
+};
+
+export async function generateCasefold(characters: Character[]): Promise<CaseFoldData> {
   log('GENERATE CASEFOLD');
 
   const path = './unicode-data/UCD/CaseFolding.txt';
@@ -26,6 +36,7 @@ export async function generateCasefold(characters: Character[]): Promise<CaseFol
   }
 
   const entries: CaseFoldEntry[] = [];
+  const simpleEntries: SimpleCaseFoldEntry[] = [];
 
   for await (const split of parsePropertyFile(path)) {
     const codepoint = ucdInt(split[0]) as number;
@@ -42,10 +53,13 @@ export async function generateCasefold(characters: Character[]): Promise<CaseFol
     } else if(status === 'F') {
       // Always store multi-char full folds (ß→ss, ﬃ→ffi, etc.)
       entries.push({ codepoint, mapping });
+    } else if(status === 'S') {
+      // Single-char simple folds for codepoints whose full fold is multi-char (ẞ→ß, ᾈ→ᾀ, etc.)
+      simpleEntries.push({ codepoint, mapping: mapping[0] });
     }
 
-    // Skip S (simple) and T (Turkic)
+    // Skip T (Turkic): the two entries (I→ı, İ→i) are implemented directly in src/case.c.
   }
 
-  return entries;
+  return { full: entries, simple: simpleEntries };
 }

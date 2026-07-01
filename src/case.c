@@ -479,8 +479,8 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
     size_t output_index = 0;
     size_t output_size = size;
-    bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
-        mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
+    bool turkic = mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ;
+    bool locale_sensitive = turkic || mjb_global.locale == MJB_LOCALE_LT;
     // The context is only needed for Final_Sigma (lowercase) and the language-sensitive rules.
     bool track_context = type == MJB_CASE_LOWER || locale_sensitive;
     mjb_case_context context = {false, false, false, locale_sensitive};
@@ -498,11 +498,53 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             continue;
         }
 
-        if(type == MJB_CASE_CASEFOLD) {
+        if(type == MJB_CASE_CASEFOLD || type == MJB_CASE_CASEFOLD_SIMPLE) {
+            // Turkic (T) foldings [CaseFolding.txt]: in tr/az, I folds to ı and İ to i, in
+            // both full and simple folding.
+            if(turkic && (codepoint == 0x49 || codepoint == 0x130)) {
+                if(!mjb_case_output_codepoint(codepoint == 0x49 ? 0x131 : 0x69, &output,
+                    &output_index, &output_size, encoding)) {
+                    mjb_free(output);
+
+                    return NULL;
+                }
+
+                continue;
+            }
+
+            // Simple (S) foldings: single-char alternatives to multi-char full folds.
+            mjb_codepoint simple = 0;
+
+            if(type == MJB_CASE_CASEFOLD_SIMPLE &&
+                mjb_unicode_case_folding_simple_lookup(codepoint, &simple)) {
+                if(!mjb_case_output_codepoint(simple, &output, &output_index, &output_size,
+                    encoding)) {
+                    mjb_free(output);
+
+                    return NULL;
+                }
+
+                continue;
+            }
+
             const mjb_codepoint *values = NULL;
             uint8_t length = 0;
 
             if(mjb_unicode_case_folding_lookup(codepoint, &values, &length)) {
+                // A single codepoint is a common (C) fold, valid for both folding types. A
+                // multi-char fold is full (F) only: without a simple (S) alternative, simple
+                // folding maps the character to itself.
+                if(type == MJB_CASE_CASEFOLD_SIMPLE) {
+                    if(!mjb_case_output_codepoint(length == 1 ? values[0] : codepoint, &output,
+                        &output_index, &output_size, encoding)) {
+                        mjb_free(output);
+
+                        return NULL;
+                    }
+
+                    continue;
+                }
+
                 // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
                 for(uint8_t k = 0; k < length; ++k) {
                     if(!mjb_case_output_codepoint(values[k], &output, &output_index,

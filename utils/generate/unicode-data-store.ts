@@ -6,14 +6,14 @@
 
 import { Character } from './character';
 import { Emoji } from './emoji';
-import { CaseFoldEntry } from './parse-ucd/casefold';
+import { CaseFoldEntry, SimpleCaseFoldEntry } from './parse-ucd/casefold';
 import { CollationEntry, encodeCodepointSequence, encodeCollationWeights } from './parse-ucd/collation';
 import { ConfusableEntry } from './parse-ucd/confusables';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
 import { Prefix } from './prefix-compressor';
 import {
-  BlockRow, CaseFoldRow, CollationContractionRow, CollationEntryRow, CompositionRow,
+  BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow, CompositionRow,
   ConfusableRow, DecompositionRow, EmojiRow, NameRow, NCharacterRow, NumericRow,
   PrefixRow, PropertyRangeRow, SimpleCaseRow, SpecialCaseRow,
 } from './tables/types';
@@ -33,6 +33,7 @@ export type UnicodeTableData = {
   simpleCaseMappings: SimpleCaseRow[];
   specialCaseMappings: SpecialCaseRow[];
   caseFoldMappings: CaseFoldRow[];
+  caseFoldSimpleMappings: CaseFoldSimpleRow[];
   confusables: ConfusableRow[];
   collationEntries: CollationEntryRow[];
   collationContractions: CollationContractionRow[];
@@ -53,6 +54,7 @@ function emptyUnicodeTableData(): UnicodeTableData {
     simpleCaseMappings: [],
     specialCaseMappings: [],
     caseFoldMappings: [],
+    caseFoldSimpleMappings: [],
     confusables: [],
     collationEntries: [],
     collationContractions: [],
@@ -101,6 +103,7 @@ export function getUnicodeTableData(): UnicodeTableData {
       a.codepoint - b.codepoint || a.case_type - b.case_type
     ),
     caseFoldMappings: [...unicodeTableData.caseFoldMappings].sort(byCodepoint),
+    caseFoldSimpleMappings: [...unicodeTableData.caseFoldSimpleMappings].sort(byCodepoint),
     confusables: [...unicodeTableData.confusables].sort(byCodepoint),
     collationEntries: [...unicodeTableData.collationEntries].sort(byCodepoint),
     collationContractions: [...unicodeTableData.collationContractions].sort((a, b) =>
@@ -258,6 +261,16 @@ export function addCaseFolding(entries: CaseFoldEntry[]) {
       new_case_1: entry.mapping[0],
       new_case_2: entry.mapping[1] ?? null,
       new_case_3: entry.mapping[2] ?? null,
+    });
+  }
+}
+
+// Add simple (S) case-folding rows.
+export function addSimpleCaseFolding(entries: SimpleCaseFoldEntry[]) {
+  for(const entry of entries) {
+    unicodeTableData.caseFoldSimpleMappings.push({
+      codepoint: entry.codepoint,
+      mapping: entry.mapping,
     });
   }
 }
