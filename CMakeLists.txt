@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.14...3.31)
 
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
 # Option to build with C++
 option(BUILD_CPP "Build with C++ instead of C" OFF)
 

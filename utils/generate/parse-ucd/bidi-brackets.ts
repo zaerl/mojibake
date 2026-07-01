@@ -1,3 +1,9 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
 import { iLog } from '../log';
 import { BidiBracket } from '../types';
 import { parsePropertyFile } from './utils';

@@ -1,3 +1,7 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
 BUILD_DIR ?= build
 # Build directories
 CPP_BUILD_DIR ?= $(BUILD_DIR)-cpp

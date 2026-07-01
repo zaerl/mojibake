@@ -1,3 +1,7 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
 set(SOURCES
     bidi.c
     break-line.c
