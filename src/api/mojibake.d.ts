@@ -123,6 +123,8 @@ export type MojibakeWasmModule = {
   _mjb_string_is_identifier: (buffer: Pointer, size: number, encoding: number, profile: number) => boolean;
   // Return the name of a property, NULL if the property specified is not valid
   _mjb_property_name: (property: number) => Pointer;
+  // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
+  _mjb_string_is_confusable: (s1: Pointer, s1_size: number, s2: Pointer, s2_size: number, encoding: number) => boolean;
   // Return the emoji properties
   _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => boolean;
   // Return the east asian width of a codepoint

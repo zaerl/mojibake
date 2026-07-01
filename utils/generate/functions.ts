@@ -966,7 +966,7 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: true
   },
   {
     comment: 'Return the emoji properties',

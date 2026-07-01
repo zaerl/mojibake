@@ -373,7 +373,7 @@ export class Mojibake {
       this.free(resultPtr);
     }
   }
-  // mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+  // bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_next_character_fn fn)
   nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options);
@@ -477,7 +477,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_codepoint_script
+  // mjb_script mjb_codepoint_script(mjb_codepoint codepoint)
   codepointScript(codepoint: Codepoint): number {
     return this.module._mjb_codepoint_script(codepoint);
   }
@@ -493,7 +493,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_string_is_utf8(const char *buffer, size_t size)
+  // bool mjb_string_is_utf8(const char *buffer, size_t size)
   stringIsUtf8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -504,7 +504,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_string_is_utf16(const char *buffer, size_t size)
+  // bool mjb_string_is_utf16(const char *buffer, size_t size)
   stringIsUtf16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -700,7 +700,7 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_cjk_ext(codepoint) ? true : false;
   }
 
-  // mjb_category_is_graphic
+  // bool mjb_category_is_graphic(mjb_category category)
   categoryIsGraphic(category: number): boolean {
     return this.module._mjb_category_is_graphic(category) ? true : false;
   }
@@ -957,6 +957,18 @@ export class Mojibake {
 
   // bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size,
   // mjb_encoding encoding)
+  stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
+    const wasmInput1 = this.copyInput(s1, options);
+    const wasmInput2 = this.copyInput(s2, options);
+
+    try {
+      return this.module._mjb_string_is_confusable(wasmInput1.ptr, wasmInput1.size,
+        wasmInput2.ptr, wasmInput2.size, wasmInput1.encoding) ? true : false;
+    } finally {
+      this.free(wasmInput1.ptr);
+      this.free(wasmInput2.ptr);
+    }
+  }
 
   // bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji)
   codepointEmoji(codepoint: Codepoint): EmojiProperties | null {

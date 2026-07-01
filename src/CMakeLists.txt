@@ -120,6 +120,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_is_pattern_white_space\""
         "\"_mjb_string_is_identifier\""
         "\"_mjb_property_name\""
+        "\"_mjb_string_is_confusable\""
         "\"_mjb_codepoint_emoji\""
         "\"_mjb_codepoint_east_asian_width\""
         "\"_mjb_display_width\""
