@@ -20,12 +20,20 @@
     #include <unistd.h>
 #endif
 
+// ATT_FETCH_INCREMENT atomically increments and returns the previous value.
 #ifdef __cplusplus
     #include <atomic>
     typedef std::atomic<unsigned int> att_atomic_uint;
+    #define ATT_FETCH_INCREMENT(value) ((value)++)
+#elif defined(_MSC_VER)
+    // MSVC ships no C11 <stdatomic.h> when compiling as C (error C1189 without the
+    // /experimental:c11atomics switch), so use the Interlocked intrinsics instead.
+    typedef volatile LONG att_atomic_uint;
+    #define ATT_FETCH_INCREMENT(value) ((unsigned int)InterlockedIncrement(&(value)) - 1)
 #else
     #include <stdatomic.h>
     typedef atomic_uint att_atomic_uint;
+    #define ATT_FETCH_INCREMENT(value) ((value)++)
 #endif
 
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT_1, FORMAT_2, EXPECTED) \
@@ -51,11 +59,11 @@ static att_generic_callback att_callback = NULL;
 static att_test_callback att_t_callback = NULL;
 
 unsigned int att_get_valid_tests(void) {
-    return att_valid_tests;
+    return (unsigned int)att_valid_tests;
 }
 
 unsigned int att_get_total_tests(void) {
-    return att_total_tests;
+    return (unsigned int)att_total_tests;
 }
 
 void att_set_verbose(unsigned int verbose) {
@@ -367,9 +375,9 @@ ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char
 }
 
 int att_assert(const char *format, int test, const char *description) {
-    // Initialize the library on the first assertion. Post-increment returns the
+    // Initialize the library on the first assertion. The fetch-increment returns the
     // previous value atomically, so exactly one thread observes zero here.
-    if(att_total_tests++ == 0) {
+    if(ATT_FETCH_INCREMENT(att_total_tests) == 0) {
         if(isatty(STDOUT_FILENO)) {
             const char *no_color = getenv("NO_COLOR");
 
@@ -413,7 +421,7 @@ int att_assert(const char *format, int test, const char *description) {
     }
 
     if(test) {
-        ++att_valid_tests;
+        ATT_FETCH_INCREMENT(att_valid_tests);
     }
 
     if(att_verbose == 0) {
