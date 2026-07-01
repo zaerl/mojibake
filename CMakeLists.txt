@@ -12,7 +12,7 @@ project(
     VERSION 0.2.1
     DESCRIPTION "Mojibake"
     HOMEPAGE_URL "https://mojibake.zaerl.com"
-    LANGUAGES C CXX
+    LANGUAGES C
 )
 
 # Enable CTest
@@ -67,6 +67,7 @@ endif()
 
 # Language standards
 if(BUILD_CPP)
+    enable_language(CXX)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_FLAGS_DEBUG ${COMMON_FLAGS_DEBUG})
