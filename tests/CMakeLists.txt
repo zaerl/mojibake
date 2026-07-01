@@ -55,6 +55,9 @@ add_executable(mojibake-test ${TEST_SOURCES})
 target_link_libraries(mojibake-test PRIVATE mojibake_lib)
 target_compile_definitions(mojibake-test PRIVATE MJB_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
+# The tests use strdup, strsep and strnlen, which strict C11 hides on glibc/musl.
+target_compile_definitions(mojibake-test PRIVATE _DEFAULT_SOURCE)
+
 # Enable embedded NULL support if requested
 if(ALLOW_EMBEDDED_NULLS)
     message(STATUS "Building tests with embedded NULL support enabled")
