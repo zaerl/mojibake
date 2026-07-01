@@ -21,7 +21,7 @@ const coverage: Coverage = {};
 
 function findExports(): void {
   for(const item of functions) {
-    coverage[`mjb_${item.name}`] = { u: 0, p: item.args.length };
+    coverage[`${item.name}`] = { u: 0, p: item.args.length };
   }
 }
 

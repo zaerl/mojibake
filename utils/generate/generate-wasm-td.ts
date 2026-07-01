@@ -35,7 +35,7 @@ function functionList() {
     }).join(', ');
 
     output.push(`  // ${func.comment}
-  _mjb_${func.name}: (${args}) => ${typeMap(func.ret)};`);
+  _${func.name}: (${args}) => ${typeMap(func.ret)};`);
   }
 
   return output.join('\n');

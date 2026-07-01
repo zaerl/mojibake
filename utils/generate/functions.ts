@@ -60,7 +60,7 @@ export default [
   {
     comment: 'Return the codepoint character',
     ret: 'bool',
-    name: 'codepoint_character',
+    name: 'mjb_codepoint_character',
     attributes: [],
     args: [
       codepoint(),
@@ -76,7 +76,7 @@ export default [
   {
     comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form',
     ret: 'bool',
-    name: 'normalize',
+    name: 'mjb_normalize',
     attributes: [],
     args: [
       buffer('The string to normalize'),
@@ -101,7 +101,7 @@ export default [
   {
     comment: 'Return the next character from a string',
     ret: 'bool',
-    name: 'next_character',
+    name: 'mjb_next_character',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -119,7 +119,7 @@ export default [
   {
     comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form',
     ret: 'mjb_quick_check_result',
-    name: 'string_is_normalized',
+    name: 'mjb_string_is_normalized',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -137,7 +137,7 @@ export default [
   {
     comment: 'Filter a string to remove invalid characters',
     ret: 'bool',
-    name: 'string_filter',
+    name: 'mjb_string_filter',
     attributes: [],
     args: [
       buffer('The string to filter'),
@@ -162,7 +162,7 @@ export default [
   {
     comment: 'Return if a codepoint has a property',
     ret: 'bool',
-    name: 'codepoint_has_property',
+    name: 'mjb_codepoint_has_property',
     attributes: [],
     args: [
       codepoint(),
@@ -184,7 +184,7 @@ export default [
   {
     comment: 'Return all properties of a codepoint',
     ret: 'bool',
-    name: 'codepoint_properties',
+    name: 'mjb_codepoint_properties',
     attributes: [],
     args: [
       codepoint(),
@@ -200,7 +200,7 @@ export default [
   {
     comment: 'Return a property value',
     ret: 'uint8_t',
-    name: 'codepoint_property',
+    name: 'mjb_codepoint_property',
     attributes: [],
     args: [
       {
@@ -221,7 +221,7 @@ export default [
   {
     comment: 'Return the script of a codepoint',
     ret: 'mjb_script',
-    name: 'codepoint_script',
+    name: 'mjb_codepoint_script',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -229,7 +229,7 @@ export default [
   {
     comment: 'Return the string encoding (the most probable)',
     ret: 'mjb_encoding',
-    name: 'string_encoding',
+    name: 'mjb_string_encoding',
     attributes: [
       'MJB_PURE'
     ],
@@ -242,7 +242,7 @@ export default [
   {
     comment: 'Return true if the string is encoded in UTF-8',
     ret: 'bool',
-    name: 'string_is_utf8',
+    name: 'mjb_string_is_utf8',
     attributes: [
       'MJB_PURE'
     ],
@@ -255,7 +255,7 @@ export default [
   {
     comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE',
     ret: 'bool',
-    name: 'string_is_utf16',
+    name: 'mjb_string_is_utf16',
     attributes: [
       'MJB_PURE'
     ],
@@ -268,7 +268,7 @@ export default [
   {
     comment: 'Return true if the string is encoded in ASCII',
     ret: 'bool',
-    name: 'string_is_ascii',
+    name: 'mjb_string_is_ascii',
     attributes: [
       'MJB_PURE'
     ],
@@ -281,7 +281,7 @@ export default [
   {
     comment: 'Encode a codepoint to a string',
     ret: 'unsigned int',
-    name: 'codepoint_encode',
+    name: 'mjb_codepoint_encode',
     attributes: [],
     args: [
       codepoint('The codepoint to encode'),
@@ -294,7 +294,7 @@ export default [
   {
     comment: 'Convert from an encoding to another',
     ret: 'bool',
-    name: 'string_convert_encoding',
+    name: 'mjb_string_convert_encoding',
     attributes: [],
     args: [
       buffer('The string to convert'),
@@ -313,7 +313,7 @@ export default [
   {
     comment: 'Return the length of a string',
     ret: 'size_t',
-    name: 'strnlen',
+    name: 'mjb_strnlen',
     attributes: [
       'MJB_PURE'
     ],
@@ -332,7 +332,7 @@ export default [
   {
     comment: 'Compare two strings using UCA',
     ret: 'int',
-    name: 'string_compare',
+    name: 'mjb_string_compare',
     attributes: [],
     args: [
       buffer('The first string to compare', 's1'),
@@ -352,7 +352,7 @@ export default [
   {
     comment: 'Generate a UCA sort key for a string',
     ret: 'bool',
-    name: 'collation_key',
+    name: 'mjb_collation_key',
     attributes: [],
     args: [
       buffer('The string to generate the sort key for'),
@@ -376,7 +376,7 @@ export default [
   {
     comment: 'Change string case',
     ret: 'char *',
-    name: 'case',
+    name: 'mjb_case',
     attributes: [],
     args: [
       buffer('The string to change case'),
@@ -394,7 +394,7 @@ export default [
   {
     comment: 'Return true if the codepoint is valid',
     ret: 'bool',
-    name: 'codepoint_is_valid',
+    name: 'mjb_codepoint_is_valid',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -402,7 +402,7 @@ export default [
   {
     comment: 'Return true if the codepoint is graphic',
     ret: 'bool',
-    name: 'codepoint_is_graphic',
+    name: 'mjb_codepoint_is_graphic',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -410,7 +410,7 @@ export default [
   {
     comment: 'Return true if the codepoint is combining',
     ret: 'bool',
-    name: 'codepoint_is_combining',
+    name: 'mjb_codepoint_is_combining',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -418,7 +418,7 @@ export default [
   {
     comment: 'Return if the codepoint is an hangul L',
     ret: 'bool',
-    name: 'codepoint_is_hangul_l',
+    name: 'mjb_codepoint_is_hangul_l',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false
@@ -426,7 +426,7 @@ export default [
   {
     comment: 'Return if the codepoint is an hangul V',
     ret: 'bool',
-    name: 'codepoint_is_hangul_v',
+    name: 'mjb_codepoint_is_hangul_v',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false
@@ -434,7 +434,7 @@ export default [
   {
     comment: 'Return if the codepoint is an hangul T',
     ret: 'bool',
-    name: 'codepoint_is_hangul_t',
+    name: 'mjb_codepoint_is_hangul_t',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false
@@ -442,7 +442,7 @@ export default [
   {
     comment: 'Return if the codepoint is an hangul jamo',
     ret: 'bool',
-    name: 'codepoint_is_hangul_jamo',
+    name: 'mjb_codepoint_is_hangul_jamo',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false
@@ -450,7 +450,7 @@ export default [
   {
     comment: 'Return if the codepoint is an hangul syllable',
     ret: 'bool',
-    name: 'codepoint_is_hangul_syllable',
+    name: 'mjb_codepoint_is_hangul_syllable',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -458,7 +458,7 @@ export default [
   {
     comment: 'Return if the codepoint is CJK ideograph',
     ret: 'bool',
-    name: 'codepoint_is_cjk_ideograph',
+    name: 'mjb_codepoint_is_cjk_ideograph',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -466,7 +466,7 @@ export default [
   {
     comment: 'Return if the codepoint is CJK extension',
     ret: 'bool',
-    name: 'codepoint_is_cjk_ext',
+    name: 'mjb_codepoint_is_cjk_ext',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -474,7 +474,7 @@ export default [
   {
     comment: 'Return true if the category is graphic',
     ret: 'bool',
-    name: 'category_is_graphic',
+    name: 'mjb_category_is_graphic',
     attributes: ['MJB_CONST'],
     args: [
       {
@@ -489,7 +489,7 @@ export default [
   {
     comment: 'Return true if the category is combining',
     ret: 'bool',
-    name: 'category_is_combining',
+    name: 'mjb_category_is_combining',
     attributes: ['MJB_CONST'],
     args: [
       {
@@ -504,7 +504,7 @@ export default [
   {
     comment: 'Return the numeric value of a codepoint',
     ret: 'bool',
-    name: 'codepoint_numeric_value',
+    name: 'mjb_codepoint_numeric_value',
     attributes: [],
     args: [
       codepoint(),
@@ -520,7 +520,7 @@ export default [
   {
     comment: 'Return the character block',
     ret: 'bool',
-    name: 'codepoint_block',
+    name: 'mjb_codepoint_block',
     attributes: ['MJB_CONST'],
     args: [
       codepoint(),
@@ -536,7 +536,7 @@ export default [
   {
     comment: 'Return the codepoint lowercase codepoint',
     ret: 'mjb_codepoint',
-    name: 'codepoint_to_lowercase',
+    name: 'mjb_codepoint_to_lowercase',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -544,7 +544,7 @@ export default [
   {
     comment: 'Return the codepoint uppercase codepoint',
     ret: 'mjb_codepoint',
-    name: 'codepoint_to_uppercase',
+    name: 'mjb_codepoint_to_uppercase',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -552,7 +552,7 @@ export default [
   {
     comment: 'Return the codepoint titlecase codepoint',
     ret: 'mjb_codepoint',
-    name: 'codepoint_to_titlecase',
+    name: 'mjb_codepoint_to_titlecase',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -560,7 +560,7 @@ export default [
   {
     comment: 'Unicode line break algorithm',
     ret: 'mjb_break_type',
-    name: 'break_line',
+    name: 'mjb_break_line',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -578,7 +578,7 @@ export default [
   {
     comment: 'Word cluster breaking',
     ret: 'mjb_break_type',
-    name: 'break_word',
+    name: 'mjb_break_word',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -596,7 +596,7 @@ export default [
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments',
     ret: 'size_t',
-    name: 'truncate_word',
+    name: 'mjb_truncate_word',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -614,7 +614,7 @@ export default [
   {
     comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns',
     ret: 'size_t',
-    name: 'truncate_word_width',
+    name: 'mjb_truncate_word_width',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -638,7 +638,7 @@ export default [
   {
     comment: 'Sentence boundaries breaking',
     ret: 'mjb_break_type',
-    name: 'break_sentence',
+    name: 'mjb_break_sentence',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -656,7 +656,7 @@ export default [
   {
     comment: 'Grapheme cluster breaking',
     ret: 'mjb_break_type',
-    name: 'segmentation',
+    name: 'mjb_segmentation',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -674,7 +674,7 @@ export default [
   {
     comment: 'Return the number of bytes that form the first max_graphemes grapheme cluster segments',
     ret: 'size_t',
-    name: 'truncate',
+    name: 'mjb_truncate',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -692,7 +692,7 @@ export default [
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns',
     ret: 'size_t',
-    name: 'truncate_width',
+    name: 'mjb_truncate_width',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -716,7 +716,7 @@ export default [
   {
     comment: 'Resolve bidirectional text (TR9) for a paragraph',
     ret: 'bool',
-    name: 'bidi_resolve',
+    name: 'mjb_bidi_resolve',
     attributes: [],
     args: [
       buffer('The input string'),
@@ -740,7 +740,7 @@ export default [
   {
     comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve',
     ret: 'void',
-    name: 'bidi_free',
+    name: 'mjb_bidi_free',
     attributes: [],
     args: [
       {
@@ -755,7 +755,7 @@ export default [
   {
     comment: 'Reorder a line visually (L1-L4); visual_order is caller-allocated',
     ret: 'bool',
-    name: 'bidi_reorder_line',
+    name: 'mjb_bidi_reorder_line',
     attributes: [],
     args: [
       {
@@ -788,7 +788,7 @@ export default [
   {
     comment: 'Compute visual level runs; pass runs=NULL to count first',
     ret: 'bool',
-    name: 'bidi_line_runs',
+    name: 'mjb_bidi_line_runs',
     attributes: [],
     args: [
       {
@@ -827,7 +827,7 @@ export default [
   {
     comment: 'Return the plane of the codepoint',
     ret: 'mjb_plane',
-    name: 'codepoint_plane',
+    name: 'mjb_codepoint_plane',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true
@@ -835,7 +835,7 @@ export default [
   {
     comment: 'Return true if the plane is valid',
     ret: 'bool',
-    name: 'plane_is_valid',
+    name: 'mjb_plane_is_valid',
     attributes: ['MJB_CONST'],
     args: [
       {
@@ -850,7 +850,7 @@ export default [
   {
     comment: 'Return the name of a plane, NULL if the place specified is not valid',
     ret: 'const char *',
-    name: 'plane_name',
+    name: 'mjb_plane_name',
     attributes: ['MJB_CONST'],
     args: [
       {
@@ -871,7 +871,7 @@ export default [
   {
     comment: 'Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)',
     ret: 'bool',
-    name: 'codepoint_is_id_start',
+    name: 'mjb_codepoint_is_id_start',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -879,7 +879,7 @@ export default [
   {
     comment: 'Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)',
     ret: 'bool',
-    name: 'codepoint_is_id_continue',
+    name: 'mjb_codepoint_is_id_continue',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -887,7 +887,7 @@ export default [
   {
     comment: 'Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)',
     ret: 'bool',
-    name: 'codepoint_is_xid_start',
+    name: 'mjb_codepoint_is_xid_start',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -895,7 +895,7 @@ export default [
   {
     comment: 'Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)',
     ret: 'bool',
-    name: 'codepoint_is_xid_continue',
+    name: 'mjb_codepoint_is_xid_continue',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -903,7 +903,7 @@ export default [
   {
     comment: 'Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)',
     ret: 'bool',
-    name: 'codepoint_is_pattern_syntax',
+    name: 'mjb_codepoint_is_pattern_syntax',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -911,7 +911,7 @@ export default [
   {
     comment: 'Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)',
     ret: 'bool',
-    name: 'codepoint_is_pattern_white_space',
+    name: 'mjb_codepoint_is_pattern_white_space',
     attributes: [],
     args: [codepoint()],
     wasm: true
@@ -919,7 +919,7 @@ export default [
   {
     comment: 'Return true if the string is a valid Unicode identifier (UAX#31)',
     ret: 'bool',
-    name: 'string_is_identifier',
+    name: 'mjb_string_is_identifier',
     attributes: [],
     args: [
       buffer('The string to validate'),
@@ -937,7 +937,7 @@ export default [
   {
     comment: 'Return the name of a property, NULL if the property specified is not valid',
     ret: 'const char *',
-    name: 'property_name',
+    name: 'mjb_property_name',
     attributes: ['MJB_CONST'],
     args: [
       {
@@ -952,7 +952,7 @@ export default [
   {
     comment: 'Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)',
     ret: 'bool',
-    name: 'string_is_confusable',
+    name: 'mjb_string_is_confusable',
     attributes: [],
     args: [
       buffer('The first string', 's1'),
@@ -971,7 +971,7 @@ export default [
   {
     comment: 'Return the emoji properties',
     ret: 'bool',
-    name: 'codepoint_emoji',
+    name: 'mjb_codepoint_emoji',
     attributes: [],
     args: [
       codepoint(),
@@ -987,7 +987,7 @@ export default [
   {
     comment: 'Return hangul syllable name',
     ret: 'bool',
-    name: 'hangul_syllable_name',
+    name: 'mjb_hangul_syllable_name',
     attributes: [],
     args: [
       codepoint(),
@@ -1004,7 +1004,7 @@ export default [
   {
     comment: 'Hangul syllable decomposition',
     ret: 'bool',
-    name: 'hangul_syllable_decomposition',
+    name: 'mjb_hangul_syllable_decomposition',
     attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
@@ -1020,7 +1020,7 @@ export default [
   {
     comment: 'Hangul syllable composition',
     ret: 'size_t',
-    name: 'hangul_syllable_composition',
+    name: 'mjb_hangul_syllable_composition',
     attributes: [],
     args: [
       {
@@ -1041,7 +1041,7 @@ export default [
   {
     comment: 'Return the east asian width of a codepoint',
     ret: 'bool',
-    name: 'codepoint_east_asian_width',
+    name: 'mjb_codepoint_east_asian_width',
     attributes: [],
     args: [
       codepoint(),
@@ -1057,7 +1057,7 @@ export default [
   {
     comment: 'Return the display width of a string',
     ret: 'bool',
-    name: 'display_width',
+    name: 'mjb_display_width',
     attributes: [],
     args: [
       buffer('The string to normalize'),
@@ -1081,7 +1081,7 @@ export default [
   {
     comment: 'Parse a BCP 47 language tag',
     ret: 'bool',
-    name: 'locale_parse',
+    name: 'mjb_locale_parse',
     attributes: [],
     args: [
       {
@@ -1120,7 +1120,7 @@ export default [
   {
     comment: 'Set current locale',
     ret: 'bool',
-    name: 'locale_set',
+    name: 'mjb_locale_set',
     attributes: [],
     args: [
       {
@@ -1135,7 +1135,7 @@ export default [
   {
     comment: 'Output the current library version (MJB_VERSION)',
     ret: 'const char *',
-    name: 'version',
+    name: 'mjb_version',
     attributes: ['MJB_CONST'],
     args: [],
     wasm: true
@@ -1143,7 +1143,7 @@ export default [
   {
     comment: 'Output the current library version number (MJB_VERSION_NUMBER)',
     ret: 'unsigned int',
-    name: 'version_number',
+    name: 'mjb_version_number',
     attributes: ['MJB_CONST'],
     args: [],
     wasm: true
@@ -1151,7 +1151,7 @@ export default [
   {
     comment: 'Output the current supported unicode version (MJB_UNICODE_VERSION)',
     ret: 'const char *',
-    name: 'unicode_version',
+    name: 'mjb_unicode_version',
     attributes: ['MJB_CONST'],
     args: [],
     wasm: true
@@ -1159,7 +1159,7 @@ export default [
   {
     comment: 'Initialize the library. Not needed to be called',
     ret: 'bool',
-    name: 'initialize',
+    name: 'mjb_initialize',
     attributes: ['MJB_NODISCARD'],
     args: [],
     wasm: false
@@ -1167,7 +1167,7 @@ export default [
   {
     comment: 'Initialize the library with custom values. Not needed to be called',
     ret: 'bool',
-    name: 'initialize_v2',
+    name: 'mjb_initialize_v2',
     attributes: ['MJB_NODISCARD'],
     args: [
       {
@@ -1194,7 +1194,7 @@ export default [
   {
     comment: 'Shutdown the library. Not needed to be called',
     ret: 'void',
-    name: 'shutdown',
+    name: 'mjb_shutdown',
     attributes: [],
     args: [],
     wasm: false
@@ -1202,7 +1202,7 @@ export default [
   {
     comment: 'Allocate and zero memory',
     ret: 'void *',
-    name: 'alloc',
+    name: 'mjb_alloc',
     attributes: ['MJB_NODISCARD'],
     args: [
       {
@@ -1217,7 +1217,7 @@ export default [
   {
     comment: 'Reallocate memory',
     ret: 'void *',
-    name: 'realloc',
+    name: 'mjb_realloc',
     attributes: ['MJB_NODISCARD'],
     args: [
       {
@@ -1238,7 +1238,7 @@ export default [
   {
     comment: 'Free memory',
     ret: 'void',
-    name: 'free',
+    name: 'mjb_free',
     attributes: [],
     args: [
       {

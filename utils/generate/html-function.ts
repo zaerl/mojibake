@@ -32,7 +32,7 @@ export class CFunction implements MojibakeFunction {
   }
 
   getName() {
-    return 'mjb_' + this.name;
+    return this.name;
   }
 
   getLabelName(arg: number) {
