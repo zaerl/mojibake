@@ -190,17 +190,19 @@ mojibake -vv -o json -j 2 char $'\U022A'
 
 ### Coverage
 
-Mojibake run a total of **957,485** tests including all the official tests included in the standard:
+Mojibake run a total of **1,448,332** tests including all the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
 2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
 3. [auxiliary/SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
 4. [auxiliary/WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
 5. [BidiCharacterTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiCharacterTest.txt)
-6. [CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
-7. [CollationTest/CollationTest_SHIFTED_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
-8. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
-9. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
+6. [BidiTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiTest.txt)
+7. [CaseFolding.txt](https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt)
+8. [CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
+9. [CollationTest/CollationTest_SHIFTED_SHORT.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
+10. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
+11. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
 
 ## Building from source
 

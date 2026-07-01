@@ -534,6 +534,14 @@ static void pass2_explicit(mjb_bidi_work *work, size_t count, uint8_t para_level
             // BN: keep level but mark removed for further processing.
             work[i].level = stack[top].level;
             work[i].removed = true;
+        } else if(bc == MJB_PR_BIDI_CLASS_B) {
+            // X8: a paragraph separator terminates all embeddings, overrides and isolates.
+            // It gets the paragraph embedding level and its class is never overridden.
+            top = 0;
+            overflow_isolate = 0;
+            overflow_embed = 0;
+            valid_isolate = 0;
+            work[i].level = para_level;
         } else {
             // Standard character.
             work[i].level = stack[top].level;
