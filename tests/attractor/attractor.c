@@ -1,7 +1,7 @@
 /**
- * 2025-08-13
- *
  * The Attractor Unit Test library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
  */
 
 #include "attractor.h"
@@ -20,8 +20,17 @@
     #include <unistd.h>
 #endif
 
+#ifdef __cplusplus
+    #include <atomic>
+    typedef std::atomic<unsigned int> att_atomic_uint;
+#else
+    #include <stdatomic.h>
+    typedef atomic_uint att_atomic_uint;
+#endif
+
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT_1, FORMAT_2, EXPECTED) \
 if(att_verbose >= 1 && att_show_error) { \
+    printf(att_show_colors ? "\x1B[90m%s:%u:\x1B[0m " : "%s:%u: ", file, line); \
     fputs(att_show_colors ? "Expected \x1B[32m" : "Expected ", stdout); \
     printf(FORMAT_1, EXPECTED); \
     fputs(att_show_colors ? "\x1B[0m, got \x1B[31m" : ", got ", stdout); \
@@ -29,11 +38,12 @@ if(att_verbose >= 1 && att_show_error) { \
     fputs(att_show_colors ? "\x1B[0m\n\n" : "\n\n", stdout); \
 }
 
-static unsigned int att_valid_tests = 0;
-static unsigned int att_total_tests = 0;
+static att_atomic_uint att_valid_tests = 0;
+static att_atomic_uint att_total_tests = 0;
 static unsigned int att_verbose = ATT_VERBOSE;
 static unsigned int att_show_error = ATT_SHOW_ERROR;
 static int att_show_colors = 0;
+static long double att_float_epsilon = ATT_FLOAT_EPSILON;
 static att_generic_callback att_callback = NULL;
 static att_test_callback att_t_callback = NULL;
 
@@ -53,6 +63,14 @@ void att_set_show_error(unsigned int show_error) {
     att_show_error = show_error;
 }
 
+long double att_get_float_epsilon(void) {
+    return att_float_epsilon;
+}
+
+void att_set_float_epsilon(long double epsilon) {
+    att_float_epsilon = epsilon;
+}
+
 void att_set_generic_callback(att_generic_callback callback) {
     att_callback = callback;
 }
@@ -63,7 +81,7 @@ void att_set_test_callback(att_test_callback callback) {
 
 int att_assert(const char *type, int test, const char *description);
 
-ATT_API unsigned int att_assert_c(char result, char expected, const char *description) {
+ATT_API unsigned int att_assert_c(char result, char expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("char", result == expected, description);
 
     if(!test) {
@@ -92,7 +110,7 @@ ATT_API unsigned int att_assert_c(char result, char expected, const char *descri
     return test;
 }
 
-ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected, const char *description) {
+ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("unsigned char", result == expected, description);
 
     if(!test) {
@@ -121,7 +139,7 @@ ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected
     return test;
 }
 
-ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *description) {
+ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("char*", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
 
     if(!test) {
@@ -135,7 +153,7 @@ ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *de
     return test;
 }
 
-ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, const char *description) {
+ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("const char*", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
 
     if(!test) {
@@ -149,7 +167,7 @@ ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, c
     return test;
 }
 
-ATT_API unsigned int att_assert_hd(short result, short expected, const char *description) {
+ATT_API unsigned int att_assert_hd(short result, short expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("short", result == expected, description);
 
     if(!test) {
@@ -163,7 +181,7 @@ ATT_API unsigned int att_assert_hd(short result, short expected, const char *des
     return test;
 }
 
-ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expected, const char *description) {
+ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("unsigned short", result == expected, description);
 
     if(!test) {
@@ -177,7 +195,7 @@ ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expec
     return test;
 }
 
-ATT_API unsigned int att_assert_d(int result, int expected, const char *description) {
+ATT_API unsigned int att_assert_d(int result, int expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("int", result == expected, description);
 
     if(!test) {
@@ -191,7 +209,7 @@ ATT_API unsigned int att_assert_d(int result, int expected, const char *descript
     return test;
 }
 
-ATT_API unsigned int att_assert_u_u(unsigned int result, unsigned int expected, const char *description) {
+ATT_API unsigned int att_assert_u_u(unsigned int result, unsigned int expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("unsigned int", result == expected, description);
 
     if(!test) {
@@ -205,7 +223,7 @@ ATT_API unsigned int att_assert_u_u(unsigned int result, unsigned int expected, 
     return test;
 }
 
-ATT_API unsigned int att_assert_ld(long result, long expected, const char *description) {
+ATT_API unsigned int att_assert_ld(long result, long expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("long", result == expected, description);
 
     if(!test) {
@@ -219,7 +237,7 @@ ATT_API unsigned int att_assert_ld(long result, long expected, const char *descr
     return test;
 }
 
-ATT_API unsigned int att_assert_u_lu(unsigned long result, unsigned long expected, const char *description) {
+ATT_API unsigned int att_assert_u_lu(unsigned long result, unsigned long expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("unsigned long", result == expected, description);
 
     if(!test) {
@@ -233,7 +251,7 @@ ATT_API unsigned int att_assert_u_lu(unsigned long result, unsigned long expecte
     return test;
 }
 
-ATT_API unsigned int att_assert_lld(long long result, long long expected, const char *description) {
+ATT_API unsigned int att_assert_lld(long long result, long long expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("long long", result == expected, description);
 
     if(!test) {
@@ -247,7 +265,7 @@ ATT_API unsigned int att_assert_lld(long long result, long long expected, const 
     return test;
 }
 
-ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long long expected, const char *description) {
+ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long long expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("unsigned long long", result == expected, description);
 
     if(!test) {
@@ -261,8 +279,8 @@ ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long l
     return test;
 }
 
-ATT_API unsigned int att_assert_f(float result, float expected, const char *description) {
-    int test = att_assert("float", result == expected, description);
+ATT_API unsigned int att_assert_f(float result, float expected, const char *description, const char *file, unsigned int line) {
+    int test = att_assert("float", (result == expected) || ((result > expected ? result - expected : expected - result) <= att_float_epsilon), description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%f", "%f", expected);
@@ -275,8 +293,8 @@ ATT_API unsigned int att_assert_f(float result, float expected, const char *desc
     return test;
 }
 
-ATT_API unsigned int att_assert_lf(double result, double expected, const char *description) {
-    int test = att_assert("double", result == expected, description);
+ATT_API unsigned int att_assert_lf(double result, double expected, const char *description, const char *file, unsigned int line) {
+    int test = att_assert("double", (result == expected) || ((result > expected ? result - expected : expected - result) <= att_float_epsilon), description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%lf", "%lf", expected);
@@ -289,8 +307,8 @@ ATT_API unsigned int att_assert_lf(double result, double expected, const char *d
     return test;
 }
 
-ATT_API unsigned int att_assert_Lf(long double result, long double expected, const char *description) {
-    int test = att_assert("long double", result == expected, description);
+ATT_API unsigned int att_assert_Lf(long double result, long double expected, const char *description, const char *file, unsigned int line) {
+    int test = att_assert("long double", (result == expected) || ((result > expected ? result - expected : expected - result) <= att_float_epsilon), description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%Lf", "%Lf", expected);
@@ -303,7 +321,7 @@ ATT_API unsigned int att_assert_Lf(long double result, long double expected, con
     return test;
 }
 
-ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *description) {
+ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("void*", result == expected, description);
 
     if(!test) {
@@ -317,7 +335,7 @@ ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *de
     return test;
 }
 
-ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *description) {
+ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert("_Bool", result == expected, description);
 
     if(!test) {
@@ -331,7 +349,7 @@ ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *desc
     return test;
 }
 
-ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description) {
+ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert(att_callback ? "callback" : "default", att_callback ? att_callback(result, expected, description) : (result == expected), description);
 
     if(!test) {
@@ -346,10 +364,9 @@ ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char
 }
 
 int att_assert(const char *format, int test, const char *description) {
-    ++att_total_tests;
-
-    // Initialize the library
-    if(att_total_tests == 1) {
+    // Initialize the library on the first assertion. Post-increment returns the
+    // previous value atomically, so exactly one thread observes zero here.
+    if(att_total_tests++ == 0) {
         if(isatty(STDOUT_FILENO)) {
             const char *no_color = getenv("NO_COLOR");
 
