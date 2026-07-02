@@ -31,8 +31,6 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
         return true;
     }
 
-    MJB_LOG("Mojibake initialization");
-
     if(alloc_fn == NULL) {
         alloc_fn = malloc;
     }
