@@ -217,6 +217,15 @@ test-docker:
 	docker build -t mojibake .
 	docker run mojibake
 
+# Fuzz the public API with libFuzzer in a container (requires Docker)
+FUZZ_TIME ?= 60
+
+.PHONY: fuzz
+
+fuzz:
+	docker build -f fuzz/Dockerfile -t mojibake-fuzz .
+	docker run --rm -e FUZZ_TIME=$(FUZZ_TIME) mojibake-fuzz
+
 .PHONY: clean-build clean-native clean-wasm clean-amalgamation clean
 
 # Clean targets
@@ -271,6 +280,7 @@ help:
 	@echo "  test-docker             - Build and run tests in Docker container"
 	@echo "  test-null               - Build and run tests with embedded NULL support"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
+	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"
 	@echo "  update-version          - Update version in source files"
 	@echo "  wasm                    - Build the project for WebAssembly"
 	@echo "  watch-site              - Watch site files, regenerate on changes and serve at localhost:6251"

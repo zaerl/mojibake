@@ -17,6 +17,8 @@ portable. Key commands:
 - `make test-null` - Build and run tests with embedded NULL support
 - `make test-cpp` - Build and run tests with a C++ compiler
 - `make test-asan` - Build and run tests with AddressSanitizer
+- `make test-docker` - Build and run tests in a Linux container
+- `make fuzz` - Fuzz the public API with libFuzzer in Docker (`FUZZ_TIME` sets the duration)
 - `make clean` - Remove build artifacts
 - `make generate` - Regenerate Unicode data from utils/generate/
 - `make generate-unicode-tables` - Regenerate embedded Unicode lookup tables
