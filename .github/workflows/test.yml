@@ -34,10 +34,10 @@ jobs:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cache Unicode test data
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: utils/generate/unicode-data
           key: test-data-17.0.0
@@ -79,10 +79,10 @@ jobs:
     name: Test (windows, MSVC)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cache Unicode test data
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: utils/generate/unicode-data
           key: test-data-17.0.0
@@ -102,7 +102,7 @@ jobs:
     name: Fuzz (smoke)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # The runner ships a libFuzzer-capable clang, so build directly instead of via Docker.
       - name: Fuzz
