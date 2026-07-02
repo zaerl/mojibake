@@ -41,7 +41,9 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
         ++*index;  // Increment by 1 byte
     } else if(encoding == MJB_ENCODING_UTF_16_BE || encoding == MJB_ENCODING_UTF_16_LE) {
         if(*index + 1 >= size) {
+            // Truncated trailing unit: consume it, or decoding would never terminate.
             *state = MJB_UTF_REJECT;
+            *index = size;
         } else {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(!buffer[*index] && !buffer[*index + 1]) {
@@ -55,7 +57,9 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
         }
     } else if(encoding == MJB_ENCODING_UTF_32_BE || encoding == MJB_ENCODING_UTF_32_LE) {
         if(*index + 3 >= size) {
+            // Truncated trailing unit: consume it, or decoding would never terminate.
             *state = MJB_UTF_REJECT;
+            *index = size;
         } else {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(!buffer[*index] && !buffer[*index + 1] && !buffer[*index + 2] && !buffer[*index + 3]) {

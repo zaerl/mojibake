@@ -80,5 +80,15 @@ void *test_utf(void *arg) {
     ATT_ASSERT((int)state, (int)MJB_UTF_ACCEPT, "UTF-16LE: MJB_UTF_ACCEPT")
     ATT_ASSERT(index, 2, "UTF-16LE: index 2")
 
+    // Truncated trailing units must terminate decoding (one replacement, then end), not loop.
+    ATT_ASSERT(mjb_strnlen("A\0B", 3, MJB_ENCODING_UTF_16_BE), 2,
+        "UTF-16BE: truncated trailing unit ends decoding")
+    ATT_ASSERT(mjb_strnlen("A", 1, MJB_ENCODING_UTF_16_LE), 1,
+        "UTF-16LE: lone trailing byte decodes as replacement")
+    ATT_ASSERT(mjb_strnlen("\0\0\0A!", 5, MJB_ENCODING_UTF_32_BE), 2,
+        "UTF-32BE: truncated trailing unit ends decoding")
+    ATT_ASSERT(mjb_strnlen("A!\0", 3, MJB_ENCODING_UTF_32_LE), 1,
+        "UTF-32LE: lone truncated unit decodes as replacement")
+
     return NULL;
 }
