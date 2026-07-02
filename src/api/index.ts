@@ -7,6 +7,7 @@
 import mojibakeModule from './mojibake.js';
 import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
 
+export * from './locales.js';
 export * from './unicode.js';
 
 // mjb_encoding
