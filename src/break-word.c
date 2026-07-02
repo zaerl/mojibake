@@ -400,8 +400,8 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encodin
             continue;
         }
 
-        size_t break_pos = (state.index > size) ? size :
-            state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
+        size_t break_pos = mjb_cluster_start(state.index, size, state.current_codepoint,
+            encoding);
 
         if(++segment_count >= max_segments) {
             return break_pos;
@@ -434,8 +434,8 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_e
             continue;
         }
 
-        size_t break_pos = (state.index > size) ? size :
-            state.index - mjb_codepoint_encoded_bytes(state.current_codepoint, encoding);
+        size_t break_pos = mjb_cluster_start(state.index, size, state.current_codepoint,
+            encoding);
 
         size_t segment_width = 0;
         if(!mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,

@@ -159,12 +159,12 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
 
 /**
  * Return the number of encoded bytes a codepoint occupies in the given encoding.
- * UTF-8:  1–4 bytes depending on codepoint value.
+ * UTF-8:  1–4 bytes depending on codepoint value (ASCII shares the UTF-8 decode path).
  * UTF-16: 2 bytes for BMP (U+0000–U+FFFF), 4 bytes for supplementary planes.
  * UTF-32: always 4 bytes.
  */
 static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_encoding encoding) {
-    if(encoding == MJB_ENCODING_UTF_8) {
+    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENCODING_ASCII) {
         if(cp < 0x80) {
             return 1;
         }
@@ -185,4 +185,20 @@ static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_
     }
 
     return 4;
+}
+
+/**
+ * Byte offset at which the codepoint most recently decoded into |index| begins. Guards against
+ * underflow when a replacement codepoint reports more encoded bytes than were consumed from a
+ * malformed sequence.
+ */
+static inline size_t MJB_USED mjb_cluster_start(size_t index, size_t size, mjb_codepoint cp,
+    mjb_encoding encoding) {
+    if(index > size) {
+        return size;
+    }
+
+    size_t encoded = mjb_codepoint_encoded_bytes(cp, encoding);
+
+    return encoded > index ? 0 : index - encoded;
 }
