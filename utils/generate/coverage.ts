@@ -5,7 +5,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { join, relative } from 'path';
 import functions from './functions';
 import { substituteBlock } from './utils';
 
@@ -18,6 +18,10 @@ type FuncCoverage = {
 type Coverage = { [key: string]: FuncCoverage };
 
 const coverage: Coverage = {};
+const notAllowedFiles = new Set([
+  'attractor',
+  'utils',
+]);
 
 function findExports(): void {
   for(const item of functions) {
@@ -89,6 +93,10 @@ function findTests(directory: string): void {
       const stat = statSync(fullPath);
 
       if(stat.isDirectory()) {
+        if(notAllowedFiles.has(relative(directory, fullPath))) {
+          continue;
+        }
+
         walkDir(fullPath);
       } else if(item.endsWith('.c')) {
         scanTestFile(fullPath);
