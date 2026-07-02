@@ -1051,7 +1051,8 @@ export default [
     wasm: true
   },
   {
-    comment: 'Return true if the complete string is an emoji sequence listed by Unicode',
+    comment: 'Return true if the complete string is an emoji sequence listed by Unicode, ' +
+      'including standardized emoji variation sequences',
     ret: 'bool',
     name: 'mjb_string_is_emoji_sequence',
     attributes: [],
@@ -1063,7 +1064,8 @@ export default [
     wasm: true
   },
   {
-    comment: 'Return true if the complete string is an RGI emoji sequence',
+    comment: 'Return true if the complete string is an RGI emoji sequence, excluding plain ' +
+      'standardized variation sequences',
     ret: 'bool',
     name: 'mjb_string_is_rgi_emoji',
     attributes: [],

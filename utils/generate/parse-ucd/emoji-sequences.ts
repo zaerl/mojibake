@@ -15,6 +15,8 @@ export const enum EmojiSequenceType {
   Tag,
   Modifier,
   ZWJ,
+  TextVariation,
+  EmojiVariation,
 }
 
 export const enum EmojiQualification {
@@ -45,6 +47,11 @@ const qualifications: Record<string, EmojiQualification> = {
   'fully-qualified': EmojiQualification.FullyQualified,
   'minimally-qualified': EmojiQualification.MinimallyQualified,
   unqualified: EmojiQualification.Unqualified,
+};
+
+const variationSequenceTypes: Record<string, EmojiSequenceType> = {
+  'text style': EmojiSequenceType.TextVariation,
+  'emoji style': EmojiSequenceType.EmojiVariation,
 };
 
 function sequenceKey(codepoints: number[]) {
@@ -91,6 +98,24 @@ function setType(rows: Map<string, EmojiSequence>, codepoints: number[], type: E
 
   if(row) {
     row.type = type;
+  } else {
+    rows.set(key, {
+      codepoints,
+      type,
+      qualification: EmojiQualification.None,
+    });
+  }
+}
+
+function setFallbackType(rows: Map<string, EmojiSequence>, codepoints: number[],
+    type: EmojiSequenceType) {
+  const key = sequenceKey(codepoints);
+  const row = rows.get(key);
+
+  if(row) {
+    if(row.type === EmojiSequenceType.None) {
+      row.type = type;
+    }
   } else {
     rows.set(key, {
       codepoints,
@@ -154,6 +179,25 @@ async function readEmojiQualifications(rows: Map<string, EmojiSequence>, path: s
   }
 }
 
+async function readEmojiVariationSequences(rows: Map<string, EmojiSequence>, path: string) {
+  for await (const split of parsePropertyFile(path)) {
+    if(split.length < 2) {
+      continue;
+    }
+
+    const type = variationSequenceTypes[split[1]];
+
+    if(type === undefined) {
+      console.log(`Unknown emoji variation sequence type: ${split[1]}`);
+      continue;
+    }
+
+    for(const codepoints of parseCodepointSequences(split[0])) {
+      setFallbackType(rows, codepoints, type);
+    }
+  }
+}
+
 export async function generateEmojiSequences() {
   log('GENERATE EMOJI SEQUENCES');
 
@@ -162,6 +206,10 @@ export async function generateEmojiSequences() {
   await readEmojiSequenceTypes(rows, './unicode-data/emoji/emoji-sequences.txt');
   await readEmojiSequenceTypes(rows, './unicode-data/emoji/emoji-zwj-sequences.txt');
   await readEmojiQualifications(rows, './unicode-data/emoji/emoji-test.txt');
+  await readEmojiVariationSequences(
+    rows,
+    './unicode-data/UCD/emoji/emoji-variation-sequences.txt'
+  );
 
   return [...rows.values()].sort(compareSequences);
 }

@@ -408,13 +408,15 @@ Return emoji sequence metadata for a complete string
 bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 ```
 
-Return true if the complete string is an emoji sequence listed by Unicode
+Return true if the complete string is an emoji sequence listed by Unicode, including standardized
+emoji variation sequences
 
 ```c
 bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);
 ```
 
-Return true if the complete string is an RGI emoji sequence
+Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation
+sequences
 
 ```c
 bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);

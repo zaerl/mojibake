@@ -8,7 +8,7 @@
 | `mjb_string_compare`                     | 437937      |
 | `mjb_normalize`                          | 400691      |
 | `mjb_break_line`                         | 19369       |
-| `mjb_string_emoji_sequence`              | 5231        |
+| `mjb_string_emoji_sequence`              | 5263        |
 | `mjb_case`                               | 3549        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1423        |
@@ -68,6 +68,7 @@
 | `mjb_initialize_v2`                      | 3           |
 | `mjb_plane_is_valid`                     | 3           |
 | `mjb_realloc`                            | 3           |
+| `mjb_string_is_rgi_emoji`                | 3           |
 | `mjb_bidi_free`                          | 2           |
 | `mjb_category_is_combining`              | 2           |
 | `mjb_category_is_graphic`                | 2           |
@@ -80,7 +81,6 @@
 | `mjb_locale_set`                         | 2           |
 | `mjb_property_name`                      | 2           |
 | `mjb_string_is_emoji_sequence`           | 2           |
-| `mjb_string_is_rgi_emoji`                | 2           |
 | `mjb_codepoint_is_emoji_component`       | 1           |
 | `mjb_codepoint_is_emoji_modifier`        | 1           |
 | `mjb_codepoint_is_emoji_modifier_base`   | 1           |
@@ -90,7 +90,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1455073** |
+| **Total**                                | **1455106** |
 
 ## JavaScript
 

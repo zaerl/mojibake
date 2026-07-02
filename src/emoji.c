@@ -122,7 +122,8 @@ MJB_EXPORT bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_enc
         return false;
     }
 
-    return emoji.type != MJB_EMOJI_SEQUENCE_NONE ||
+    return (emoji.type >= MJB_EMOJI_SEQUENCE_BASIC &&
+        emoji.type <= MJB_EMOJI_SEQUENCE_ZWJ) ||
         emoji.qualification == MJB_EMOJI_QUALIFICATION_COMPONENT ||
         emoji.qualification == MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED;
 }

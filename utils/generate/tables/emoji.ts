@@ -20,11 +20,11 @@ const enum EmojiFlag {
 const enum EmojiSequenceEntry {
   EdgeStartBits = 13,
   EdgeCountBits = 11,
-  TypeBits = 3,
+  TypeBits = 4,
   QualificationBits = 3,
   EdgeCountShift = 13,
   TypeShift = 24,
-  QualificationShift = 27,
+  QualificationShift = 28,
 }
 
 type EmojiTrieNode = {

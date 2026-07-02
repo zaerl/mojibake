@@ -144,6 +144,8 @@ export enum EmojiSequenceType {
   TAG,
   MODIFIER,
   ZWJ,
+  TEXT_VARIATION,
+  EMOJI_VARIATION,
 };
 
 // mjb_emoji_qualification

@@ -228,9 +228,14 @@ static void assert_emoji_sequence(const char *buffer, size_t size, mjb_emoji_seq
     mjb_emoji_qualification qualification, size_t codepoint_count, const char *name) {
     mjb_emoji_sequence emoji;
 
+    // CURRENT_ASSERT mjb_string_emoji_sequence
+    // CURRENT_COUNT 9
     ATT_ASSERT(mjb_string_emoji_sequence(buffer, size, MJB_ENCODING_UTF_8, &emoji), true, name)
+    // CURRENT_COUNT 9
     ATT_ASSERT((int)emoji.type, (int)type, name)
+    // CURRENT_COUNT 9
     ATT_ASSERT((int)emoji.qualification, (int)qualification, name)
+    // CURRENT_COUNT 9
     ATT_ASSERT(emoji.codepoint_count, codepoint_count, name)
 }
 
@@ -272,30 +277,51 @@ void *test_emoji(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_emoji(MJB_CODEPOINT_MAX + 1), false,
         "Invalid codepoint is not Emoji")
 
+    // 😀
     assert_emoji_sequence("\xF0\x9F\x98\x80", 4, MJB_EMOJI_SEQUENCE_BASIC,
         MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 1, "Basic emoji sequence");
+    // ☺
     assert_emoji_sequence("\xE2\x98\xBA", 3, MJB_EMOJI_SEQUENCE_NONE,
         MJB_EMOJI_QUALIFICATION_UNQUALIFIED, 1, "Unqualified emoji sequence");
+    // ☺️
     assert_emoji_sequence("\xE2\x98\xBA\xEF\xB8\x8F", 6, MJB_EMOJI_SEQUENCE_BASIC,
         MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 2, "Qualified basic emoji sequence");
+    // #️⃣
     assert_emoji_sequence("\x23\xEF\xB8\x8F\xE2\x83\xA3", 7, MJB_EMOJI_SEQUENCE_KEYCAP,
         MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 3, "Keycap emoji sequence");
+    // ⌚︎
+    assert_emoji_sequence("\xE2\x8C\x9A\xEF\xB8\x8E", 6,
+        MJB_EMOJI_SEQUENCE_TEXT_VARIATION, MJB_EMOJI_QUALIFICATION_NONE, 2,
+        "Text variation emoji sequence");
+    // ⌚️
+    assert_emoji_sequence("\xE2\x8C\x9A\xEF\xB8\x8F", 6,
+        MJB_EMOJI_SEQUENCE_EMOJI_VARIATION, MJB_EMOJI_QUALIFICATION_NONE, 2,
+        "Emoji variation emoji sequence");
+    // 🇺🇸
     assert_emoji_sequence("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_EMOJI_SEQUENCE_FLAG,
         MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 2, "Flag emoji sequence");
+    // 👋🏻
     assert_emoji_sequence("\xF0\x9F\x91\x8B\xF0\x9F\x8F\xBB", 8,
         MJB_EMOJI_SEQUENCE_MODIFIER, MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 2,
         "Modifier emoji sequence");
+    // 👨‍👩‍👧
     assert_emoji_sequence(
         "\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7",
         18, MJB_EMOJI_SEQUENCE_ZWJ, MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 5,
         "ZWJ emoji sequence");
 
+    // ☺
     ATT_ASSERT(mjb_string_is_emoji_sequence("\xE2\x98\xBA", 3, MJB_ENCODING_UTF_8), true,
         "Unqualified emoji is a listed emoji sequence")
+    // ☺
     ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x98\xBA", 3, MJB_ENCODING_UTF_8), false,
         "Unqualified emoji is not RGI")
+    // ☺️
     ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x98\xBA\xEF\xB8\x8F", 6, MJB_ENCODING_UTF_8),
         true, "Fully-qualified emoji is RGI")
+    // ⌚️
+    ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x8C\x9A\xEF\xB8\x8F", 6, MJB_ENCODING_UTF_8),
+        false, "Emoji variation sequence is not RGI by itself")
     ATT_ASSERT(mjb_string_is_emoji_sequence("ABC", 3, MJB_ENCODING_UTF_8), false,
         "ASCII word is not an emoji sequence")
     ATT_ASSERT(mjb_string_emoji_sequence(NULL, 0, MJB_ENCODING_UTF_8, NULL), false,
