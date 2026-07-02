@@ -5,6 +5,35 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-07-02
+
+### Added
+- NetBSD support
+- Typescript library
+- Typescript `unicode.ts` generator
+- Support for conditional mappings
+- Support for `S` and `T` case foldings
+- Support for `BidiTest.txt` test file
+- `libFuzzer` fuzz tests
+- Github test workflow
+- Security file
+
+### Changed
+- Removed server
+- Moved `functions.js` to `functions.ts`
+- Changed `onclick` events in main HTML file
+- Removed `UNICODE-LICENSE` file
+- Updated Attractor to last version
+
+### Fixed
+- Missing `ctest-cpp` target
+- Moved `mjb_size` to WASM generated
+- Added missing license headers
+- Added missig `mjb_string_is_confusable` to WASM
+- Fixed missing files import in Dockerfile
+- Windows: fixed `C1189`, `C4267` warnings
+- `UBSan`: fixed multiple security problems
+
 ## [0.2.1] - 2026-06-27
 
 ### Added
@@ -24,9 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Moved all builds to separate folders
 - Updated coverage
-- Remove unused WASM exported functions
-- Add `NULL` checks to all functions that had `MJB_NONNULL` before
-- Add memory allocation safety checks
+- Removed unused WASM exported functions
+- Added `NULL` checks to all functions that had `MJB_NONNULL` before
+- Added memory allocation safety checks
 - Cleaned amalgamation generated code
 - Removed `width` CLI parameter
 - `\r` and `\n` are now displayed as special characters on CLI
@@ -265,7 +294,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/zaerl/mojibake/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/zaerl/mojibake/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/zaerl/mojibake/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/zaerl/mojibake/compare/v0.1.4...v0.1.5

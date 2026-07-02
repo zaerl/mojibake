@@ -58,7 +58,8 @@ export async function updateVersion() {
   updateSkillMdFiles(path.resolve(__dirname, '../../.claude/skills'));
 
   console.log(`\nVersion updated to ${v.version}`);
-  console.log('make wasm')
+  console.log('make wasm');
+  console.log('make amalgamation');
   console.log('Update README.md');
   console.log(`Update CHANGELOG.md: add a [${v.version}] section`);
   console.log(`git commit -am "Update version to ${v.version}"`);
