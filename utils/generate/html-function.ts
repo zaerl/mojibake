@@ -250,7 +250,7 @@ export class CFunction implements MojibakeFunction {
     return `document.getElementById('${this.getName()}-submit').addEventListener('click', () => { callFunction('${this.getName()}'); });`
   }
 
-  private snakeToCamel(str: string): string {
+  public static snakeToCamel(str: string): string {
     return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
   }
 
@@ -258,7 +258,7 @@ export class CFunction implements MojibakeFunction {
     const args = this.args.filter(arg => !arg.wasm_generated);
     const argStrings = args.map(arg => `getArg('${this.getName()}-${arg.name}')`);
 
-    return `mojibake.${this.snakeToCamel(this.name)}(${argStrings.join(', ')})`;
+    return `mojibake.${CFunction.snakeToCamel(this.name)}(${argStrings.join(', ')})`;
   }
 }
 

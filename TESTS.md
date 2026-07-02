@@ -1,5 +1,7 @@
 # Test coverage
 
+## C
+
 | Test                                   | Coverage    |
 | -------------------------------------- | ----------- |
 | `mjb_bidi_resolve`                     | 582617      |
@@ -80,3 +82,71 @@
 | `mjb_version`                          | 1           |
 | `mjb_version_number`                   | 1           |
 | **Total**                              | **1448348** |
+
+## JavaScript
+
+| Test                                    | Coverage   |
+| --------------------------------------- | ---------- |
+| `Mojibake.bidiResolve`                  | 1          |
+| `Mojibake.breakLine`                    | 1          |
+| `Mojibake.breakSentence`                | 1          |
+| `Mojibake.breakWord`                    | 1          |
+| `Mojibake.case`                         | 1          |
+| `Mojibake.categoryIsCombining`          | 1          |
+| `Mojibake.categoryIsGraphic`            | 1          |
+| `Mojibake.codepointBlock`               | 1          |
+| `Mojibake.codepointCharacter`           | 1          |
+| `Mojibake.codepointEastAsianWidth`      | 1          |
+| `Mojibake.codepointEmoji`               | 1          |
+| `Mojibake.codepointEncode`              | 1          |
+| `Mojibake.codepointHasProperty`         | 1          |
+| `Mojibake.codepointIsCjkExt`            | 1          |
+| `Mojibake.codepointIsCjkIdeograph`      | 1          |
+| `Mojibake.codepointIsCombining`         | 1          |
+| `Mojibake.codepointIsGraphic`           | 1          |
+| `Mojibake.codepointIsHangulSyllable`    | 1          |
+| `Mojibake.codepointIsIdContinue`        | 1          |
+| `Mojibake.codepointIsIdStart`           | 1          |
+| `Mojibake.codepointIsPatternSyntax`     | 1          |
+| `Mojibake.codepointIsPatternWhiteSpace` | 1          |
+| `Mojibake.codepointIsValid`             | 1          |
+| `Mojibake.codepointIsXidContinue`       | 1          |
+| `Mojibake.codepointIsXidStart`          | 1          |
+| `Mojibake.codepointNumericValue`        | 1          |
+| `Mojibake.codepointPlane`               | 1          |
+| `Mojibake.codepointProperties`          | 1          |
+| `Mojibake.codepointScript`              | 1          |
+| `Mojibake.codepointToLowercase`         | 1          |
+| `Mojibake.codepointToTitlecase`         | 1          |
+| `Mojibake.codepointToUppercase`         | 1          |
+| `Mojibake.collationKey`                 | 1          |
+| `Mojibake.create`                       | 1          |
+| `Mojibake.displayWidth`                 | 1          |
+| `Mojibake.initializeV2`                 | 1          |
+| `Mojibake.localeParse`                  | 1          |
+| `Mojibake.localeSet`                    | 1          |
+| `Mojibake.nextCharacter`                | 1          |
+| `Mojibake.normalize`                    | 1          |
+| `Mojibake.planeIsValid`                 | 1          |
+| `Mojibake.planeName`                    | 1          |
+| `Mojibake.propertyName`                 | 1          |
+| `Mojibake.segmentation`                 | 1          |
+| `Mojibake.stringCompare`                | 1          |
+| `Mojibake.stringConvertEncoding`        | 1          |
+| `Mojibake.stringEncoding`               | 1          |
+| `Mojibake.stringFilter`                 | 1          |
+| `Mojibake.stringIsAscii`                | 1          |
+| `Mojibake.stringIsConfusable`           | 1          |
+| `Mojibake.stringIsIdentifier`           | 1          |
+| `Mojibake.stringIsNormalized`           | 1          |
+| `Mojibake.stringIsUtf16`                | 1          |
+| `Mojibake.stringIsUtf8`                 | 1          |
+| `Mojibake.strnlen`                      | 1          |
+| `Mojibake.truncate`                     | 1          |
+| `Mojibake.truncateWidth`                | 1          |
+| `Mojibake.truncateWord`                 | 1          |
+| `Mojibake.truncateWordWidth`            | 1          |
+| `Mojibake.unicodeVersion`               | 1          |
+| `Mojibake.version`                      | 1          |
+| `Mojibake.versionNumber`                | 1          |
+| **Total**                               | **62**     |
