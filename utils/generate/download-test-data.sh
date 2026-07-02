@@ -32,22 +32,27 @@ for file in "GraphemeBreakTest.txt" "LineBreakTest.txt" "SentenceBreakTest.txt" 
         "$DATA_DIR/UCD/auxiliary/$file"
 done
 
+fetch "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/emoji-test.txt" \
+    "$DATA_DIR/emoji/emoji-test.txt"
+fetch "https://www.unicode.org/Public/security/latest/intentional.txt" \
+    "$DATA_DIR/security/intentional.txt"
+
 # The collation test files are only distributed inside CollationTest.zip.
-if [ ! -f "$DATA_DIR/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt" ] || \
-    [ ! -f "$DATA_DIR/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt" ]; then
+if [ ! -f "$DATA_DIR/collation/CollationTest/CollationTest_NON_IGNORABLE.txt" ] || \
+    [ ! -f "$DATA_DIR/collation/CollationTest/CollationTest_SHIFTED.txt" ]; then
     mkdir -p "$DATA_DIR/collation"
     fetch "https://www.unicode.org/Public/$UNICODE_VERSION/uca/CollationTest.zip" \
         "$DATA_DIR/CollationTest.zip"
 
     if command -v unzip >/dev/null 2>&1; then
         unzip -o -q "$DATA_DIR/CollationTest.zip" \
-            "CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt" \
-            "CollationTest/CollationTest_SHIFTED_SHORT.txt" -d "$DATA_DIR/collation"
+            "CollationTest/CollationTest_NON_IGNORABLE.txt" \
+            "CollationTest/CollationTest_SHIFTED.txt" -d "$DATA_DIR/collation"
     else
         # Windows runners have bsdtar, which extracts zip archives.
         tar -xf "$DATA_DIR/CollationTest.zip" -C "$DATA_DIR/collation" \
-            "CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt" \
-            "CollationTest/CollationTest_SHIFTED_SHORT.txt"
+            "CollationTest/CollationTest_NON_IGNORABLE.txt" \
+            "CollationTest/CollationTest_SHIFTED.txt"
     fi
 
     rm "$DATA_DIR/CollationTest.zip"

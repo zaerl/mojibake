@@ -8,6 +8,127 @@
 
 #include "test.h"
 
+static char *trim_ascii(char *text) {
+    while(*text == ' ' || *text == '\t' || *text == '\r' || *text == '\n') {
+        ++text;
+    }
+
+    char *end = text + strlen(text);
+
+    while(end > text &&
+        (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
+        *--end = '\0';
+    }
+
+    return text;
+}
+
+static size_t codepoint_field_to_utf8(char *field, char *output, size_t output_size) {
+    char *p = trim_ascii(field);
+    size_t output_len = 0;
+
+    while(*p) {
+        char *end;
+        unsigned long cp = strtoul(p, &end, 16);
+
+        if(end == p || cp > MJB_CODEPOINT_MAX) {
+            return 0;
+        }
+
+        unsigned int encoded = mjb_codepoint_encode((mjb_codepoint)cp, output + output_len,
+            output_size - output_len - 1, MJB_ENCODING_UTF_8);
+
+        if(encoded == 0) {
+            return 0;
+        }
+
+        output_len += encoded;
+        p = trim_ascii(end);
+    }
+
+    output[output_len] = '\0';
+
+    return output_len;
+}
+
+static bool parse_intentional_line(char *line, char *left, size_t *left_len, char *right,
+    size_t *right_len) {
+    char *comment = strchr(line, '#');
+
+    if(comment) {
+        *comment = '\0';
+    }
+
+    char *semi = strchr(line, ';');
+
+    if(!semi) {
+        return false;
+    }
+
+    *semi = '\0';
+
+    *left_len = codepoint_field_to_utf8(line, left, 64);
+    *right_len = codepoint_field_to_utf8(semi + 1, right, 64);
+
+    return *left_len > 0 && *right_len > 0;
+}
+
+static void run_intentional_confusable_file(const char *filename) {
+    FILE *file = fopen(filename, "r");
+
+    if(!file) {
+        ATT_ASSERT("Not opened", "Opened file", "intentional.txt")
+
+        return;
+    }
+
+    char line[1024];
+    char left[64];
+    char right[64];
+    unsigned int current_line = 0;
+    unsigned int tested = 0;
+    unsigned int failures = 0;
+
+    while(fgets(line, (int)sizeof(line), file)) {
+        ++current_line;
+
+        size_t left_len = 0;
+        size_t right_len = 0;
+
+        if(!parse_intentional_line(line, left, &left_len, right, &right_len)) {
+            continue;
+        }
+
+        bool ok = mjb_string_is_confusable(left, left_len, right, right_len,
+            MJB_ENCODING_UTF_8);
+
+        if(!ok) {
+            ++failures;
+            char test_name[128];
+            snprintf(test_name, sizeof(test_name), "intentional.txt line %u", current_line);
+            ATT_ASSERT(0, 1, test_name)
+
+            if(is_exit_on_error()) {
+                break;
+            }
+        } else {
+            // CURRENT_ASSERT mjb_string_is_confusable
+            // CURRENT_COUNT 77
+            ATT_ASSERT(0, 0, "intentional.txt confusable pair")
+        }
+
+        ++tested;
+    }
+
+    fclose(file);
+
+    char summary[128];
+    snprintf(summary, sizeof(summary), "intentional.txt: %u/%u pairs passed",
+        tested - failures, tested);
+    ATT_ASSERT(tested > 0, true, "intentional.txt has confusable pairs")
+    ATT_ASSERT(failures, 0u, summary)
+}
+
 void *test_security(void *arg) {
     ATT_ASSERT(mjb_string_is_confusable(NULL, 1, "A", 1, MJB_ENCODING_UTF_8), false,
         "confusable rejects NULL left string")
@@ -87,6 +208,8 @@ void *test_security(void *arg) {
     // Confusability is symmetric
     ATT_ASSERT(mjb_string_is_confusable("pal", 3, "\xD1\x80" "al", 4, MJB_ENCODING_UTF_8), true,
         "confusability is symmetric")
+
+    run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
 
     return NULL;
 }

@@ -2,7 +2,7 @@
  * The Mojibake library
  *
  * Unicode Collation Algorithm conformance tests.
- * Runs CollationTest_NON_IGNORABLE_SHORT.txt and CollationTest_SHIFTED_SHORT.txt.
+ * Runs CollationTest_NON_IGNORABLE.txt and CollationTest_SHIFTED.txt.
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  */
@@ -65,7 +65,7 @@ static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size
 }
 
 /**
- * Run collation conformance test against one SHORT test file.
+ * Run collation conformance test against one UCA test file.
  * Each non-comment line contains a string (as hex codepoints).
  * Consecutive strings must be in non-descending collation order.
  */
@@ -195,13 +195,13 @@ void *test_collation(void *arg) {
     /* UCA conformance tests */
     run_collation_test_file(
         "./utils/generate/unicode-data/collation/CollationTest/"
-        "CollationTest_NON_IGNORABLE_SHORT.txt",
+        "CollationTest_NON_IGNORABLE.txt",
         MJB_COLLATION_NON_IGNORABLE,
         "NON_IGNORABLE");
 
     run_collation_test_file(
         "./utils/generate/unicode-data/collation/CollationTest/"
-        "CollationTest_SHIFTED_SHORT.txt",
+        "CollationTest_SHIFTED.txt",
         MJB_COLLATION_SHIFTED,
         "SHIFTED");
 

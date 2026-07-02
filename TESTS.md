@@ -10,11 +10,13 @@
 | `mjb_break_line`                       | 19369       |
 | `mjb_case`                             | 3549        |
 | `mjb_break_word`                       | 1828        |
+| `mjb_codepoint_emoji`                  | 1421        |
 | `mjb_segmentation`                     | 734         |
 | `mjb_break_sentence`                   | 458         |
 | `mjb_string_convert_encoding`          | 147         |
 | `mjb_string_filter`                    | 141         |
 | `mjb_locale_parse`                     | 120         |
+| `mjb_string_is_confusable`             | 100         |
 | `mjb_strnlen`                          | 86          |
 | `mjb_codepoint_character`              | 81          |
 | `mjb_display_width`                    | 48          |
@@ -22,8 +24,6 @@
 | `mjb_codepoint_is_valid`               | 39          |
 | `mjb_codepoint_encode`                 | 37          |
 | `mjb_codepoint_east_asian_width`       | 32          |
-| `mjb_string_is_confusable`             | 21          |
-| `mjb_codepoint_emoji`                  | 19          |
 | `mjb_codepoint_numeric_value`          | 18          |
 | `mjb_string_is_utf8`                   | 18          |
 | `mjb_collation_key`                    | 17          |
@@ -81,7 +81,7 @@
 | `mjb_unicode_version`                  | 1           |
 | `mjb_version`                          | 1           |
 | `mjb_version_number`                   | 1           |
-| **Total**                              | **1448348** |
+| **Total**                              | **1449829** |
 
 ## JavaScript
 
