@@ -31,9 +31,9 @@ function att_assert(format: string, test: boolean, description: string): boolean
     ++att_valid_tests;
   }
 
-  if(att_verbose == 0) {
+  if(att_verbose === 0) {
     // Do nothing
-  } else if(att_verbose == 1) {
+  } else if(att_verbose === 1) {
     process.stdout.write(test ? "." : (att_show_colors ? "\x1B[31mF\x1B[0m" : "F"));
 
     if(!test) {
@@ -43,8 +43,8 @@ function att_assert(format: string, test: boolean, description: string): boolean
     const ok = att_show_colors ? "\x1B[32mOK\x1B[0m" : "OK";
     const fail = att_show_colors ? "\x1B[31mNO\x1B[0m" : "NO";
 
-    console.log(att_show_colors ? `${test ? ok : fail} [\x1b[36m${format}\x1b[0m] ${description}\n` :
-      `${test ? ok : fail} [${format}] ${description}\n`);
+    console.log(att_show_colors ? `${test ? ok : fail} [\x1b[36m${format}\x1b[0m] ${description}` :
+      `${test ? ok : fail} [${format}] ${description}`);
   }
 
   return test;
