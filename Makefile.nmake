@@ -58,6 +58,10 @@ AMALGAMATION_BUILD_DIR=build-amalgamation
 BUILD_TYPE=Release
 !ENDIF
 
+!IFNDEF TEST_BUILD_TYPE
+TEST_BUILD_TYPE=Test
+!ENDIF
+
 CMAKE_NATIVE_BASE_FLAGS=-DBUILD_WASM=OFF
 NATIVE_CMAKE_FLAGS=-DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 CPP_CMAKE_FLAGS=-DBUILD_CPP=ON -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
@@ -159,15 +163,18 @@ sync-api-wasm: build-wasm
 	@copy /Y $(WASM_BUILD_DIR)\src\mojibake.js src\api\mojibake.js >NUL
 	@copy /Y $(WASM_BUILD_DIR)\src\mojibake.wasm src\api\mojibake.wasm >NUL
 
+build-api: sync-api-wasm
+	@cd src\api && npm run build
+
 update-version:
 	@cd utils\generate && npm run generate -- update-version
 
-watch-site:
-	@cd utils\generate && npx chokidar-cli "..\..\src\site\**\*" -c "npm run generate-site && echo [Regenerated]" --initial
+watch-site: build-api src\site\index.html
+	@cd utils\generate && npm run watch-site
 
 # Watch API files
 watch-api: sync-api-wasm
-	@cd src\api && node --watch server.js
+	@cd src\api && npm run dev
 
 # Serve WASM site with live reload
 serve: wasm generate-site
@@ -175,32 +182,32 @@ serve: wasm generate-site
 
 # Run tests
 test: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NATIVE_CMAKE_FLAGS)
-	@cmake --build $(TEST_BUILD_DIR) --config Test
+	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with embedded NULL support
 test-null: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NULL_CMAKE_FLAGS)
-	@cmake --build $(TEST_NULL_BUILD_DIR) --config Test
+	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NULL_CMAKE_FLAGS)
+	@cmake --build $(TEST_NULL_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_NULL_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with C++ compiler
 test-cpp: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(CPP_CMAKE_FLAGS)
-	@cmake --build $(TEST_CPP_BUILD_DIR) --config Test
+	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_CPP_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with AddressSanitizer
 test-asan: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_ASAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(ASAN_CMAKE_FLAGS)
-	@cmake --build $(TEST_ASAN_BUILD_DIR) --config Test
+	@cmake -S . -B $(TEST_ASAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(ASAN_CMAKE_FLAGS)
+	@cmake --build $(TEST_ASAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_ASAN_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run tests with UndefinedBehaviorSanitizer
 test-ubsan: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_UBSAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(UBSAN_CMAKE_FLAGS)
-	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config Test
+	@cmake -S . -B $(TEST_UBSAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(UBSAN_CMAKE_FLAGS)
+	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_UBSAN_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
 # Run all local test configurations
@@ -213,14 +220,29 @@ test-all:
 
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Test $(NATIVE_CMAKE_FLAGS)
-	@cmake --build $(TEST_BUILD_DIR) --config Test
-	@cd $(TEST_BUILD_DIR) && ctest -C Test $(ARGS)
+	@cmake -S . -B $(TEST_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
+	@cd $(TEST_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
+
+# Run C++ tests using CTest
+ctest-cpp: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
+	@cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
 # Run tests in Docker container
 test-docker:
 	@docker build -t mojibake .
 	@docker run mojibake
+
+!IFNDEF FUZZ_TIME
+FUZZ_TIME=60
+!ENDIF
+
+# Fuzz the public API with libFuzzer in a container (requires Docker)
+fuzz:
+	@docker build -f fuzz\Dockerfile -t mojibake-fuzz .
+	@docker run --rm -e FUZZ_TIME=$(FUZZ_TIME) mojibake-fuzz
 
 # Clean targets
 clean-build:
@@ -254,7 +276,9 @@ help:
 	@echo   build-asan              - Build the project with AddressSanitizer
 	@echo   build-cpp               - Build the project with C++ compiler
 	@echo   build-shared            - Build the project as a shared library
+	@echo   build-ubsan             - Build the project with UndefinedBehaviorSanitizer
 	@echo   build-wasm              - Build the project for WebAssembly
+	@echo   build-api               - Build the JavaScript API library
 	@echo   clean                   - Remove build artifacts
 	@echo   clean-amalgamation      - Remove amalgamation build artifacts
 	@echo   clean-build             - Remove build artifacts
@@ -262,6 +286,7 @@ help:
 	@echo   clean-wasm              - Remove WASM build artifacts
 	@echo   coverage                - Run coverage analysis
 	@echo   ctest                   - Build and run tests using CTest
+	@echo   ctest-cpp               - Build and run C++ tests using CTest
 	@echo   generate                - Regenerate source files
 	@echo   generate-locale         - Generate locale file
 	@echo   generate-site           - Generate site
@@ -273,6 +298,9 @@ help:
 	@echo   test-cpp                - Build and run tests with C++ compiler
 	@echo   test-docker             - Build and run tests in Docker container
 	@echo   test-null               - Build and run tests with embedded NULL support
+	@echo   test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer
+	@echo   fuzz                    - Fuzz the public API with libFuzzer in Docker
 	@echo   update-version          - Update version in source files
 	@echo   wasm                    - Build the project for WebAssembly
+	@echo   watch-api               - Watch JavaScript API files
 	@echo   watch-site              - Watch site files, regenerate on changes and serve at localhost:6251
