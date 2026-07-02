@@ -58,6 +58,9 @@ endif()
 
 # WASM-specific configuration
 if(BUILD_WASM)
+    # Emscripten's EM_ASM_* macros require GNU C mode.
+    set_target_properties(mojibake_lib PROPERTIES C_EXTENSIONS ON)
+
     # EM_ASM_* macros
     target_compile_options(
         mojibake_lib
