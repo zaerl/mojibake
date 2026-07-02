@@ -33,6 +33,7 @@
 #endif
 
 #define	MJB_UTF_ACCEPT 0
+#define MJB_UTF_TERMINATED 0xE
 #define	MJB_UTF_REJECT 0xF
 
 /**

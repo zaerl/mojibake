@@ -66,6 +66,17 @@ void break_word_callback(const char *buffer, size_t size, unsigned int current_l
     /* "Hello " = 6 cols, "World" would exceed 6 */
     ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 6), (size_t)6, "Truncate word width: 6 columns")
     ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 11), (size_t)11, "Truncate word width: 11 columns (no-op)")
+
+#if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
+    const char utf16le_with_null[] = { 'A', '\0', '\0', '\0', 'B', '\0' };
+
+    ATT_ASSERT(mjb_truncate_word(utf16le_with_null, sizeof(utf16le_with_null),
+        MJB_ENCODING_UTF_16_LE, 5), (size_t)2,
+        "Truncate word: UTF-16LE stops at NULL")
+    ATT_ASSERT(mjb_truncate_word_width(utf16le_with_null, sizeof(utf16le_with_null),
+        MJB_ENCODING_UTF_16_LE, MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)2,
+        "Truncate word width: UTF-16LE stops at NULL")
+#endif
 }
 
  void *test_break_word(void *arg) {

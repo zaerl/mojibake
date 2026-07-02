@@ -70,6 +70,10 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         state->incb_linker_seen = false;
     }
 
+    if(state->state == MJB_UTF_TERMINATED) {
+        return MJB_BT_NOT_SET;
+    }
+
     if(state->index == size) {
         // Reached end of string.
         ++state->index;
@@ -90,6 +94,9 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
+            mjb_mark_decode_terminated(&state->state, &state->index,
+                &state->current_codepoint, encoding);
+
             return MJB_BT_ALLOWED;
         }
 
@@ -297,21 +304,23 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding enc
 
     mjb_break_type bt;
     size_t cluster_count = 0;
+    size_t last_break = 0;
 
     while((bt = mjb_segmentation(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_cluster_start(state.index, size, state.current_codepoint,
-            encoding);
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, size,
+            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
+        last_break = break_pos;
 
         if(++cluster_count >= max_graphemes) {
             return break_pos;
         }
     }
 
-    return size;
+    return state.state == MJB_UTF_TERMINATED ? last_break : size;
 }
 
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
@@ -337,10 +346,10 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
             continue;
         }
 
-        size_t break_pos = mjb_cluster_start(state.index, size, state.current_codepoint,
-            encoding);
-
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, size,
+            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t cluster_width = 0;
+
         if(!mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
             &cluster_width)) {
             return prev_break;
@@ -354,5 +363,5 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
         prev_break = break_pos;
     }
 
-    return size;
+    return state.state == MJB_UTF_TERMINATED ? prev_break : size;
 }

@@ -91,6 +91,10 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
         state->sat_is_aterm = false;
     }
 
+    if(state->state == MJB_UTF_TERMINATED) {
+        return MJB_BT_NOT_SET;
+    }
+
     if(state->index == size) {
         // Reached end of string.
         ++state->index;
@@ -111,6 +115,9 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
+            mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
+                encoding);
+
             return MJB_BT_ALLOWED;
         }
 

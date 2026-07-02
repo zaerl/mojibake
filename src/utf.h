@@ -202,3 +202,31 @@ static inline size_t MJB_USED mjb_cluster_start(size_t index, size_t size, mjb_c
 
     return encoded > index ? 0 : index - encoded;
 }
+
+static inline void MJB_USED mjb_mark_decode_terminated(uint8_t *state, size_t *index,
+    mjb_codepoint *current_codepoint, mjb_encoding encoding) {
+    if(*current_codepoint == MJB_CODEPOINT_NOT_VALID) {
+        *current_codepoint = 0;
+    }
+
+    *index += mjb_codepoint_encoded_bytes(*current_codepoint, encoding);
+    *state = MJB_UTF_TERMINATED;
+}
+
+static inline size_t MJB_USED mjb_boundary_position(size_t index, size_t size, mjb_codepoint cp,
+    mjb_encoding encoding, bool terminated) {
+    if(terminated) {
+        size_t encoded = mjb_codepoint_encoded_bytes(cp, encoding);
+
+        return encoded > index ? 0 : index - encoded;
+    }
+
+    return mjb_cluster_start(index, size, cp, encoding);
+}
+
+static inline size_t MJB_USED mjb_monotonic_boundary_position(size_t index, size_t size,
+    mjb_codepoint cp, mjb_encoding encoding, bool terminated, size_t previous) {
+    size_t position = mjb_boundary_position(index, size, cp, encoding, terminated);
+
+    return position < previous ? previous : position;
+}
