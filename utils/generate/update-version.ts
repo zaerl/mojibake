@@ -32,6 +32,10 @@ export async function updateVersion() {
   fileContent = substituteBlock(fileContent, '"version": "', '",\n', v.version);
   writeFileSync('package.json', fileContent);
 
+  fileContent = readFileSync('../../src/api/package.json', 'utf-8');
+  fileContent = substituteBlock(fileContent, '"version": "', '",\n', v.version);
+  writeFileSync('../../src/api/package.json', fileContent);
+
   // Find all SKILL.md files recursively under a directory
   function updateSkillMdFiles(dir: string) {
     const entries = readdirSync(dir);
