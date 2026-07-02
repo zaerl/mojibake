@@ -11,7 +11,7 @@
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
-- [ ] Add Github actions for testing
+- [x] Add Github actions for testing
 
 ## Unicode Conformance Requirements
 

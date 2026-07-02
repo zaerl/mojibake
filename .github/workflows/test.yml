@@ -1,0 +1,113 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }}, ${{ matrix.cc }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+          - os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+          - os: macos-latest
+            cc: clang
+            cxx: clang++
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Unicode test data
+        uses: actions/cache@v4
+        with:
+          path: utils/generate/unicode-data
+          key: test-data-17.0.0
+
+      - name: Download Unicode test data
+        run: ./utils/generate/download-test-data.sh
+
+      - name: Test
+        run: |
+          cmake -S . -B build-test -DCMAKE_BUILD_TYPE=Test
+          cmake --build build-test
+          ./build-test/tests/mojibake-test
+
+      - name: Test (embedded NULLs)
+        run: |
+          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DALLOW_EMBEDDED_NULLS=ON
+          cmake --build build-test-null
+          ./build-test-null/tests/mojibake-test
+
+      - name: Test (C++)
+        run: |
+          cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
+          cmake --build build-test-cpp
+          ./build-test-cpp/tests/mojibake-test
+
+      - name: Test (AddressSanitizer)
+        run: |
+          cmake -S . -B build-test-asan -DCMAKE_BUILD_TYPE=Test -DUSE_ASAN=ON
+          cmake --build build-test-asan
+          ./build-test-asan/tests/mojibake-test
+
+      - name: Test (UndefinedBehaviorSanitizer)
+        run: |
+          cmake -S . -B build-test-ubsan -DCMAKE_BUILD_TYPE=Test -DUSE_UBSAN=ON
+          cmake --build build-test-ubsan
+          ./build-test-ubsan/tests/mojibake-test
+
+  test-windows:
+    name: Test (windows, MSVC)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Unicode test data
+        uses: actions/cache@v4
+        with:
+          path: utils/generate/unicode-data
+          key: test-data-17.0.0
+
+      - name: Download Unicode test data
+        shell: bash
+        run: ./utils/generate/download-test-data.sh
+
+      - name: Test
+        shell: bash
+        run: |
+          cmake -S . -B build-test
+          cmake --build build-test --config Test
+          ./build-test/tests/Test/mojibake-test.exe
+
+  fuzz:
+    name: Fuzz (smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The runner ships a libFuzzer-capable clang, so build directly instead of via Docker.
+      - name: Fuzz
+        run: |
+          clang -g -O1 -std=c17 -fsanitize=fuzzer,address,undefined \
+            -fno-sanitize-recover=undefined -Isrc \
+            -o mojibake-fuzz fuzz/fuzz.c src/*.c
+          ./mojibake-fuzz -max_total_time=60 fuzz/corpus
