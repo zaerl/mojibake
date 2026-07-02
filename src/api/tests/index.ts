@@ -7,7 +7,7 @@
 // This is a temporary file for testing the Mojibake API. Do not edit.
 
 import createMojibake from '../index.js';
-import { ATT_ASSERT, att_get_total_tests, att_get_valid_tests, att_set_verbose } from './attraction.js';
+import { ATT_ASSERT, att_get_total_tests, att_get_valid_tests, att_set_verbose } from './attractor.js';
 
 // Temporary file, do not edit.
 const mojibake = await createMojibake({
