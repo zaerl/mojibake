@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - NetBSD support
-- Typescript library
-- Typescript `unicode.ts` generator
+- TypeScript library
+- TypeScript `unicode.ts` generator
 - Support for conditional mappings
 - Support for `S` and `T` case foldings
 - Support for `BidiTest.txt` test file
 - `libFuzzer` fuzz tests
-- Github test workflow
+- GitHub test workflow
 - Security file
 
 ### Changed
@@ -23,14 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved `functions.js` to `functions.ts`
 - Changed `onclick` events in main HTML file
 - Removed `UNICODE-LICENSE` file
-- Updated Attractor to last version
+- Updated Attractor to the latest version
 
 ### Fixed
 - Missing `ctest-cpp` target
 - Moved `mjb_size` to WASM generated
 - Added missing license headers
-- Added missig `mjb_string_is_confusable` to WASM
-- Fixed missing files import in Dockerfile
+- Added missing `mjb_string_is_confusable` to WASM
+- Fixed missing file imports in Dockerfile
 - Windows: fixed `C1189`, `C4267` warnings
 - `UBSan`: fixed multiple security problems
 
