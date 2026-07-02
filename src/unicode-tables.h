@@ -27,6 +27,8 @@ typedef uint64_t mjb_unicode_collation_contraction_entry;
 bool mjb_unicode_block_lookup(mjb_codepoint codepoint, mjb_block_info *block);
 bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_size);
 bool mjb_unicode_emoji_lookup(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+bool mjb_unicode_emoji_sequence_lookup(const mjb_codepoint *codepoints, size_t count,
+    mjb_emoji_sequence *emoji);
 bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer);
 bool mjb_unicode_n_character_lookup(mjb_codepoint codepoint, mjb_n_character *character);

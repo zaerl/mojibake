@@ -199,6 +199,62 @@ bool mjb_unicode_emoji_lookup(mjb_codepoint codepoint, mjb_emoji_properties *emo
     return false;
 }
 
+bool mjb_unicode_emoji_sequence_lookup(const mjb_codepoint *codepoints, size_t count,
+    mjb_emoji_sequence *emoji) {
+    if(codepoints == NULL || emoji == NULL || count == 0) {
+        return false;
+    }
+
+    uint16_t node = 0;
+
+    for(size_t i = 0; i < count; ++i) {
+        mjb_unicode_emoji_sequence_node entry = mjb_unicode_emoji_sequence_nodes[node];
+        size_t edge_start = (size_t)(entry & MJB_UNICODE_EMOJI_SEQUENCE_EDGE_START_MASK);
+        size_t edge_count = (size_t)((entry >> MJB_UNICODE_EMOJI_SEQUENCE_EDGE_COUNT_SHIFT) &
+            MJB_UNICODE_EMOJI_SEQUENCE_EDGE_COUNT_MASK);
+        size_t low = edge_start;
+        size_t high = edge_start + edge_count;
+        bool found = false;
+
+        while(low < high) {
+            size_t mid = low + (high - low) / 2;
+            mjb_codepoint edge = mjb_unicode_emoji_sequence_codepoints[mid];
+
+            if(codepoints[i] < edge) {
+                high = mid;
+            } else if(codepoints[i] > edge) {
+                low = mid + 1;
+            } else {
+                node = mjb_unicode_emoji_sequence_children[mid];
+                found = true;
+
+                break;
+            }
+        }
+
+        if(!found) {
+            return false;
+        }
+    }
+
+    mjb_unicode_emoji_sequence_node entry = mjb_unicode_emoji_sequence_nodes[node];
+    mjb_emoji_sequence_type type = (mjb_emoji_sequence_type)((entry >>
+        MJB_UNICODE_EMOJI_SEQUENCE_TYPE_SHIFT) & MJB_UNICODE_EMOJI_SEQUENCE_TYPE_MASK);
+    mjb_emoji_qualification qualification = (mjb_emoji_qualification)((entry >>
+        MJB_UNICODE_EMOJI_SEQUENCE_QUALIFICATION_SHIFT) &
+        MJB_UNICODE_EMOJI_SEQUENCE_QUALIFICATION_MASK);
+
+    if(type == MJB_EMOJI_SEQUENCE_NONE && qualification == MJB_EMOJI_QUALIFICATION_NONE) {
+        return false;
+    }
+
+    emoji->type = type;
+    emoji->qualification = qualification;
+    emoji->codepoint_count = count;
+
+    return true;
+}
+
 static bool mjb_unicode_blob_has_property(const uint8_t *blob, uint16_t blob_size,
     mjb_property property, uint8_t *value) {
     uint16_t offset = 0;

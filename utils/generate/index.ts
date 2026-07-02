@@ -24,6 +24,7 @@ import { parseCollationAllKeys } from './parse-ucd/collation';
 import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
 import { parseConfusables } from './parse-ucd/confusables';
 import { generateEmojiProperties } from './parse-ucd/emoji-properties';
+import { generateEmojiSequences } from './parse-ucd/emoji-sequences';
 import { buildPropertyRanges, Property } from './parse-ucd/properties';
 import { readNormalizationProps } from './parse-ucd/quick-check';
 import { readSpecialCasingProps } from './parse-ucd/special-casing';
@@ -35,7 +36,7 @@ import {
 } from './types';
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
-  addDecompositions, addEmojiProperties, addPropertyRanges, addSimpleCaseFolding,
+  addDecompositions, addEmojiProperties, addEmojiSequences, addPropertyRanges, addSimpleCaseFolding,
   addSpecialCasing, resetUnicodeTableData
 } from './unicode-data-store';
 import { updateVersion } from './update-version';
@@ -132,6 +133,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   await readNormalizationProps(characters);
   const newCases = await readSpecialCasingProps(characters);
   const emojis = await generateEmojiProperties(characters);
+  const emojiSequences = await generateEmojiSequences();
 
   const prefixCompressor = new PrefixCompressor(characters);
   const prefixes = prefixCompressor.compress();
@@ -142,6 +144,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   addDecompositions(generateDecomposition(characters, true), true);
   addCompositions(generateComposition(characters, exclusions));
   addEmojiProperties(emojis);
+  addEmojiSequences(emojiSequences);
   addSpecialCasing(newCases);
   addPropertyRanges(propertyRanges);
 

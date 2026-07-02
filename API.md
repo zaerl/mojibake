@@ -366,6 +366,60 @@ Return the emoji properties
 bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
 ```
 
+Return true if the codepoint has the Unicode Emoji property
+
+```c
+bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the Unicode Emoji_Presentation property
+
+```c
+bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the Unicode Emoji_Modifier property
+
+```c
+bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the Unicode Emoji_Modifier_Base property
+
+```c
+bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the Unicode Emoji_Component property
+
+```c
+bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
+```
+
+Return true if the codepoint has the Unicode Extended_Pictographic property
+
+```c
+bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
+```
+
+Return emoji sequence metadata for a complete string
+
+```c
+bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+```
+
+Return true if the complete string is an emoji sequence listed by Unicode
+
+```c
+bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);
+```
+
+Return true if the complete string is an RGI emoji sequence
+
+```c
+bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);
+```
+
 Return hangul syllable name
 
 ```c

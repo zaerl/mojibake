@@ -9,12 +9,13 @@ import { Emoji } from './emoji';
 import { CaseFoldEntry, SimpleCaseFoldEntry } from './parse-ucd/casefold';
 import { CollationEntry, encodeCodepointSequence, encodeCollationWeights } from './parse-ucd/collation';
 import { ConfusableEntry } from './parse-ucd/confusables';
+import { EmojiSequence } from './parse-ucd/emoji-sequences';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
 import { Prefix } from './prefix-compressor';
 import {
   BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow, CompositionRow,
-  ConfusableRow, DecompositionRow, EmojiRow, NameRow, NCharacterRow, NumericRow,
+  ConfusableRow, DecompositionRow, EmojiRow, EmojiSequenceRow, NameRow, NCharacterRow, NumericRow,
   PrefixRow, PropertyRangeRow, SimpleCaseRow, SpecialCaseRow,
 } from './tables/types';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
@@ -37,6 +38,7 @@ export type UnicodeTableData = {
   confusables: ConfusableRow[];
   collationEntries: CollationEntryRow[];
   collationContractions: CollationContractionRow[];
+  emojiSequences: EmojiSequenceRow[];
 };
 
 function emptyUnicodeTableData(): UnicodeTableData {
@@ -58,6 +60,7 @@ function emptyUnicodeTableData(): UnicodeTableData {
     confusables: [],
     collationEntries: [],
     collationContractions: [],
+    emojiSequences: [],
   };
 }
 
@@ -109,6 +112,19 @@ export function getUnicodeTableData(): UnicodeTableData {
     collationContractions: [...unicodeTableData.collationContractions].sort((a, b) =>
       a.first_codepoint - b.first_codepoint
     ),
+    emojiSequences: [...unicodeTableData.emojiSequences].sort((a, b) => {
+      const min = Math.min(a.codepoints.length, b.codepoints.length);
+
+      for(let i = 0; i < min; ++i) {
+        const diff = a.codepoints[i] - b.codepoints[i];
+
+        if(diff !== 0) {
+          return diff;
+        }
+      }
+
+      return a.codepoints.length - b.codepoints.length;
+    }),
   };
 }
 
@@ -124,6 +140,7 @@ export function unicodeTableDataSummary() {
     collationEntries: unicodeTableData.collationEntries.length,
     collationContractions: unicodeTableData.collationContractions.length,
     confusables: unicodeTableData.confusables.length,
+    emojiSequences: unicodeTableData.emojiSequences.length,
   };
 }
 
@@ -286,6 +303,17 @@ export function addEmojiProperties(emojiProperties: Emoji[]) {
       emoji_modifier_base: emoji.emoji_modifier_base ? 1 : 0,
       emoji_component: emoji.emoji_component ? 1 : 0,
       extended_pictographic: emoji.extended_pictographic ? 1 : 0,
+    });
+  }
+}
+
+// Add emoji string sequence rows.
+export function addEmojiSequences(sequences: EmojiSequence[]) {
+  for(const sequence of sequences) {
+    unicodeTableData.emojiSequences.push({
+      codepoints: sequence.codepoints,
+      type: sequence.type,
+      qualification: sequence.qualification,
     });
   }
 }

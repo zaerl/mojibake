@@ -34,7 +34,7 @@ export async function generateUnicodeTables(data: UnicodeTableData = getUnicodeT
 
 ${generateBlocks(data.blocks)}
 ${generateNames(data.prefixes, data.names)}
-${generateEmoji(data.emoji)}
+${generateEmoji(data.emoji, data.emojiSequences)}
 ${generateProperties(data.properties)}
 ${generateNCharacters(data.nCharacters)}
 ${generateDecompositionAndCompositionTables(data.decompositions,

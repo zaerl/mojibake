@@ -34,6 +34,12 @@ export type EmojiRow = {
   extended_pictographic: number;
 };
 
+export type EmojiSequenceRow = {
+  codepoints: number[];
+  type: number;
+  qualification: number;
+};
+
 export type PropertyRangeRow = {
   start_codepoint: number;
   end_codepoint: number | null;

@@ -226,6 +226,26 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
         encodings[(variant >> 2) % 6]);
 }
 
+static void fuzz_emoji_string_api_input(const char *buffer, size_t size, mjb_encoding encoding) {
+    mjb_emoji_sequence emoji;
+
+    if(mjb_string_emoji_sequence(buffer, size, encoding, &emoji)) {
+        fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification +
+            emoji.codepoint_count;
+    }
+
+    fuzz_sink += (size_t)mjb_string_is_emoji_sequence(buffer, size, encoding);
+    fuzz_sink += (size_t)mjb_string_is_rgi_emoji(buffer, size, encoding);
+}
+
+static void fuzz_emoji_string_apis(const char *buffer, size_t size, mjb_encoding encoding) {
+    fuzz_emoji_string_api_input(buffer, size, encoding);
+
+    if(size > 0) {
+        fuzz_emoji_string_api_input(buffer, size - 1, encoding);
+    }
+}
+
 // On fast paths the result APIs alias the input buffer instead of allocating, so only free an
 // output that is a distinct heap allocation.
 static void free_result(mjb_result *result, const char *input) {
@@ -268,7 +288,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     mjb_result result = {0};
     mjb_codepoint codepoint = fuzz_codepoint((const uint8_t*)buffer, size, variant);
 
-    switch(selector % 16) {
+    switch(selector % 17) {
         case 0: // Normalization, all four forms
             if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
                 MJB_ENCODING_UTF_8, &result)) {
@@ -386,7 +406,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_codepoint_apis(codepoint, variant);
             break;
 
-        case 15: // Raw boundary iterators and character callback API
+        case 15: // Emoji sequence string APIs
+            fuzz_emoji_string_apis(buffer, size, encoding);
+            break;
+
+        case 16: // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
             mjb_next_character(buffer, size, encoding, fuzz_next_character);
             break;

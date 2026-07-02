@@ -145,6 +145,8 @@ export class CFunction implements MojibakeFunction {
         ret += this.getInput(i);
       } else if(type.startsWith('mjb_emoji_properties *')) {
         ret += this.getInput(i);
+      } else if(type.startsWith('mjb_emoji_sequence *')) {
+        ret += this.getInput(i);
       } else if(type.startsWith('size_t')) {
         ret += this.getInput(i);
       } else if(type.startsWith('unsigned int')) {

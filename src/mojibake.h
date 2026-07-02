@@ -309,6 +309,30 @@ typedef struct mjb_emoji_properties {
     bool extended_pictographic;
 } mjb_emoji_properties;
 
+typedef enum mjb_emoji_sequence_type {
+    MJB_EMOJI_SEQUENCE_NONE,
+    MJB_EMOJI_SEQUENCE_BASIC,
+    MJB_EMOJI_SEQUENCE_KEYCAP,
+    MJB_EMOJI_SEQUENCE_FLAG,
+    MJB_EMOJI_SEQUENCE_TAG,
+    MJB_EMOJI_SEQUENCE_MODIFIER,
+    MJB_EMOJI_SEQUENCE_ZWJ
+} mjb_emoji_sequence_type;
+
+typedef enum mjb_emoji_qualification {
+    MJB_EMOJI_QUALIFICATION_NONE,
+    MJB_EMOJI_QUALIFICATION_COMPONENT,
+    MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED,
+    MJB_EMOJI_QUALIFICATION_MINIMALLY_QUALIFIED,
+    MJB_EMOJI_QUALIFICATION_UNQUALIFIED
+} mjb_emoji_qualification;
+
+typedef struct mjb_emoji_sequence {
+    mjb_emoji_sequence_type type;
+    mjb_emoji_qualification qualification;
+    size_t codepoint_count;
+} mjb_emoji_sequence;
+
 typedef enum mjb_break_type {
     MJB_BT_NOT_SET,   // Not set
     MJB_BT_MANDATORY, // !
@@ -629,6 +653,33 @@ bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, si
 
 // Return the emoji properties
 bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+
+// Return true if the codepoint has the Unicode Emoji property
+bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the Unicode Emoji_Presentation property
+bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the Unicode Emoji_Modifier property
+bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the Unicode Emoji_Modifier_Base property
+bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the Unicode Emoji_Component property
+bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
+
+// Return true if the codepoint has the Unicode Extended_Pictographic property
+bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
+
+// Return emoji sequence metadata for a complete string
+bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+
+// Return true if the complete string is an emoji sequence listed by Unicode
+bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);
+
+// Return true if the complete string is an RGI emoji sequence
+bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);
 
 // Return hangul syllable name
 bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);

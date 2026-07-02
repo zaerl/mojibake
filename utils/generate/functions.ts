@@ -985,6 +985,96 @@ export default [
     wasm: true
   },
   {
+    comment: 'Return true if the codepoint has the Unicode Emoji property',
+    ret: 'bool',
+    name: 'mjb_codepoint_is_emoji',
+    attributes: [],
+    args: [codepoint()],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the codepoint has the Unicode Emoji_Presentation property',
+    ret: 'bool',
+    name: 'mjb_codepoint_is_emoji_presentation',
+    attributes: [],
+    args: [codepoint()],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the codepoint has the Unicode Emoji_Modifier property',
+    ret: 'bool',
+    name: 'mjb_codepoint_is_emoji_modifier',
+    attributes: [],
+    args: [codepoint()],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the codepoint has the Unicode Emoji_Modifier_Base property',
+    ret: 'bool',
+    name: 'mjb_codepoint_is_emoji_modifier_base',
+    attributes: [],
+    args: [codepoint()],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the codepoint has the Unicode Emoji_Component property',
+    ret: 'bool',
+    name: 'mjb_codepoint_is_emoji_component',
+    attributes: [],
+    args: [codepoint()],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the codepoint has the Unicode Extended_Pictographic property',
+    ret: 'bool',
+    name: 'mjb_codepoint_is_extended_pictographic',
+    attributes: [],
+    args: [codepoint()],
+    wasm: true
+  },
+  {
+    comment: 'Return emoji sequence metadata for a complete string',
+    ret: 'bool',
+    name: 'mjb_string_emoji_sequence',
+    attributes: [],
+    args: [
+      buffer('The string to check'),
+      size(),
+      encoding(),
+      {
+        name: 'emoji',
+        type: 'mjb_emoji_sequence *',
+        description: 'The emoji sequence metadata to store the result',
+        wasm_generated: true
+      }
+    ],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the complete string is an emoji sequence listed by Unicode',
+    ret: 'bool',
+    name: 'mjb_string_is_emoji_sequence',
+    attributes: [],
+    args: [
+      buffer('The string to check'),
+      size(),
+      encoding()
+    ],
+    wasm: true
+  },
+  {
+    comment: 'Return true if the complete string is an RGI emoji sequence',
+    ret: 'bool',
+    name: 'mjb_string_is_rgi_emoji',
+    attributes: [],
+    args: [
+      buffer('The string to check'),
+      size(),
+      encoding()
+    ],
+    wasm: true
+  },
+  {
     comment: 'Return hangul syllable name',
     ret: 'bool',
     name: 'mjb_hangul_syllable_name',

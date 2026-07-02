@@ -127,6 +127,24 @@ export type MojibakeWasmModule = {
   _mjb_string_is_confusable: (s1: Pointer, s1_size: number, s2: Pointer, s2_size: number, encoding: number) => boolean;
   // Return the emoji properties
   _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => boolean;
+  // Return true if the codepoint has the Unicode Emoji property
+  _mjb_codepoint_is_emoji: (codepoint: Codepoint) => boolean;
+  // Return true if the codepoint has the Unicode Emoji_Presentation property
+  _mjb_codepoint_is_emoji_presentation: (codepoint: Codepoint) => boolean;
+  // Return true if the codepoint has the Unicode Emoji_Modifier property
+  _mjb_codepoint_is_emoji_modifier: (codepoint: Codepoint) => boolean;
+  // Return true if the codepoint has the Unicode Emoji_Modifier_Base property
+  _mjb_codepoint_is_emoji_modifier_base: (codepoint: Codepoint) => boolean;
+  // Return true if the codepoint has the Unicode Emoji_Component property
+  _mjb_codepoint_is_emoji_component: (codepoint: Codepoint) => boolean;
+  // Return true if the codepoint has the Unicode Extended_Pictographic property
+  _mjb_codepoint_is_extended_pictographic: (codepoint: Codepoint) => boolean;
+  // Return emoji sequence metadata for a complete string
+  _mjb_string_emoji_sequence: (buffer: Pointer, size: number, encoding: number, emoji: Pointer) => boolean;
+  // Return true if the complete string is an emoji sequence listed by Unicode
+  _mjb_string_is_emoji_sequence: (buffer: Pointer, size: number, encoding: number) => boolean;
+  // Return true if the complete string is an RGI emoji sequence
+  _mjb_string_is_rgi_emoji: (buffer: Pointer, size: number, encoding: number) => boolean;
   // Return the east asian width of a codepoint
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => boolean;
   // Return the display width of a string

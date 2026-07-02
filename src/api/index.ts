@@ -135,6 +135,33 @@ export type EmojiProperties = {
   extended_pictographic: boolean;
 }
 
+// mjb_emoji_sequence_type
+export enum EmojiSequenceType {
+  NONE,
+  BASIC,
+  KEYCAP,
+  FLAG,
+  TAG,
+  MODIFIER,
+  ZWJ,
+};
+
+// mjb_emoji_qualification
+export enum EmojiQualification {
+  NONE,
+  COMPONENT,
+  FULLY_QUALIFIED,
+  MINIMALLY_QUALIFIED,
+  UNQUALIFIED,
+};
+
+// mjb_emoji_sequence
+export type EmojiSequence = {
+  type: EmojiSequenceType;
+  qualification: EmojiQualification;
+  codepoint_count: number;
+}
+
 // mjb_break_type
 export enum BreakType {
   NOT_SET,
@@ -989,6 +1016,82 @@ export class Mojibake {
     }
   }
 
+  // bool mjb_codepoint_is_emoji(mjb_codepoint codepoint)
+  codepointIsEmoji(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_emoji(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint)
+  codepointIsEmojiPresentation(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_emoji_presentation(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint)
+  codepointIsEmojiModifier(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_emoji_modifier(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint)
+  codepointIsEmojiModifierBase(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_emoji_modifier_base(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint)
+  codepointIsEmojiComponent(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_emoji_component(codepoint) ? true : false;
+  }
+
+  // bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint)
+  codepointIsExtendedPictographic(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_extended_pictographic(codepoint) ? true : false;
+  }
+
+  // bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_emoji_sequence *emoji)
+  stringEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
+    const structSize = 12;
+    const wasmInput = this.copyInput(input, options);
+    const ptr = this.malloc(structSize);
+
+    try {
+      const ret = this.module._mjb_string_emoji_sequence(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, ptr);
+
+      if(!ret) {
+        return null;
+      }
+
+      return this.pointerToEmojiSequence(ptr);
+    } finally {
+      this.free(wasmInput.ptr);
+      this.free(ptr);
+    }
+  }
+
+  // bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding)
+  stringIsEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_emoji_sequence(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding) ? true : false;
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
+  // bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding)
+  stringIsRgiEmoji(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_rgi_emoji(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding) ? true : false;
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
   // bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size)
   // bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints)
   // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)
@@ -1232,6 +1335,17 @@ export class Mojibake {
       modifier_base: reader.u8() !== 0,
       component: reader.u8() !== 0,
       extended_pictographic: reader.u8() !== 0
+    };
+  }
+
+  // Create a mjb_emoji_sequence structure from a pointer to it in memory
+  private pointerToEmojiSequence(ptr: Pointer): EmojiSequence {
+    const reader = this.struct(ptr);
+
+    return {
+      type: reader.u32(),
+      qualification: reader.u32(),
+      codepoint_count: reader.u32()
     };
   }
 
