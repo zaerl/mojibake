@@ -8,6 +8,7 @@ set(SOURCES
     commands/break.c
     commands/character.c
     commands/codepoint.c
+    commands/emoji.c
     commands/filter.c
     commands/locale.c
     commands/normalize.c

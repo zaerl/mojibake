@@ -105,6 +105,8 @@ int main(int argc, char * const argv[]) {
             mjbsh_break_command, 0 },
         { "char", "Print the characters for the given string", mjbsh_character_command, 0 },
         { "codepoint", "Print the character for the given codepoint", mjbsh_codepoint_command, 0 },
+        { "emoji", "Print emoji sequence and codepoint information for the input",
+            mjbsh_emoji_command, 0 },
         { "filter", "Filter the input", mjbsh_filter_command,
             MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES |
             MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC },

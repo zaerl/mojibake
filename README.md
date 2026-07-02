@@ -190,6 +190,13 @@ mojibake -vv -o json -j 2 char $'\U022A'
 # mojibake -vv -o json -j 2 codepoint 022A
 ```
 
+Emoji sequence analysis:
+
+```sh
+mojibake emoji "☺️"
+mojibake -c emoji 263A FE0F
+```
+
 ### Coverage
 
 Mojibake run a total of **1,455,106** tests including all the official tests included in the standard:
