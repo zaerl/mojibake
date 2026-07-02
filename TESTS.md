@@ -2,7 +2,7 @@
 
 | Test                                   | Coverage    |
 | -------------------------------------- | ----------- |
-| `mjb_bidi_resolve`                     | 582618      |
+| `mjb_bidi_resolve`                     | 582617      |
 | `mjb_string_compare`                   | 437937      |
 | `mjb_normalize`                        | 400691      |
 | `mjb_break_line`                       | 19369       |
@@ -79,4 +79,4 @@
 | `mjb_unicode_version`                  | 1           |
 | `mjb_version`                          | 1           |
 | `mjb_version_number`                   | 1           |
-| **Total**                              | **1448349** |
+| **Total**                              | **1448348** |

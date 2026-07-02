@@ -6,6 +6,7 @@ set(TEST_SOURCES
     attractor/attractor.c
     utils/utils.c
     bidi.c
+    bidi-class.c
     break-line.c
     break-sentence.c
     break-word.c
@@ -87,6 +88,7 @@ endif()
 
 # Add test to CTest
 add_test(NAME "Bidi" COMMAND mojibake-test -f bidi)
+add_test(NAME "Bidi Class" COMMAND mojibake-test -f bidi_class)
 add_test(NAME "Break Line" COMMAND mojibake-test -f break_line)
 add_test(NAME "Break Sentence" COMMAND mojibake-test -f break_sentence)
 add_test(NAME "Break Word" COMMAND mojibake-test -f break_word)
