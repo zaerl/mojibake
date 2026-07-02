@@ -212,7 +212,7 @@ The public API is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html) 
 byte input.
 
 ```sh
-make fuzz               # 60 seconds by default
+make fuzz # 60 seconds by default
 make fuzz FUZZ_TIME=300
 ```
 
