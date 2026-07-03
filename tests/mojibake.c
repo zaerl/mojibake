@@ -104,5 +104,12 @@ void *test_mojibake(void *arg) {
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown failing allocator")
 
+    test_set_failing_allocator(1);
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("ab", 2, MJB_ENCODING_UTF_8,
+        MJB_ENCODING_UTF_16_LE, &result), MJB_STATUS_NO_MEMORY,
+        "Encoding conversion handles reallocation failure")
+
+    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown realloc failing allocator")
+
     return NULL;
 }
