@@ -233,13 +233,14 @@ MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
 }
 
 // Return the numeric value of a codepoint (decimal, digit, numeric string)
-MJB_EXPORT bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value) {
+MJB_EXPORT mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint,
+    mjb_numeric_value *value) {
     if(value == NULL || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(mjb_unicode_numeric_value_lookup(codepoint, value)) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     // Can potentially be a CJK or ancient script character.
@@ -247,7 +248,7 @@ MJB_EXPORT bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric
     value->digit = MJB_NUMBER_NOT_VALID;
     value->numeric[0] = '\0';
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 // Return true if the codepoint is combining

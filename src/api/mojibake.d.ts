@@ -74,7 +74,7 @@ export type MojibakeWasmModule = {
   // Return true if the category is combining
   _mjb_category_is_combining: (category: number) => boolean;
   // Return the numeric value of a codepoint
-  _mjb_codepoint_numeric_value: (codepoint: Codepoint, value: Pointer) => boolean;
+  _mjb_codepoint_numeric_value: (codepoint: Codepoint, value: Pointer) => number;
   // Return the character block
   _mjb_codepoint_block: (codepoint: Codepoint, block: Pointer) => boolean;
   // Return the codepoint lowercase codepoint

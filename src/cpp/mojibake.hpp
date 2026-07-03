@@ -226,7 +226,7 @@ struct NumericValue {
 inline NumericValue codepoint_numeric_value(mjb_codepoint codepoint) {
     NumericValue value;
 
-    if(!mjb_codepoint_numeric_value(codepoint, &value.data)) {
+    if(mjb_codepoint_numeric_value(codepoint, &value.data) != MJB_STATUS_OK) {
         throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));
     }
 

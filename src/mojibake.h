@@ -582,7 +582,7 @@ MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
 // Return the numeric value of a codepoint
-bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
+MJB_NODISCARD mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
 
 // Return the character block
 MJB_CONST bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);

@@ -503,9 +503,9 @@ export default [
   },
   {
     comment: 'Return the numeric value of a codepoint',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_numeric_value',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {

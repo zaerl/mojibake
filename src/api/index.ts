@@ -756,14 +756,14 @@ export class Mojibake {
     return this.module._mjb_category_is_combining(category) ? true : false;
   }
 
-  // bool mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value)
+  // mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value)
   codepointNumericValue(codepoint: Codepoint): NumericValue | null {
     const ptr = this.malloc(24);
 
     try {
-      const ret = this.module._mjb_codepoint_numeric_value(codepoint, ptr);
+      const status = this.module._mjb_codepoint_numeric_value(codepoint, ptr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 
