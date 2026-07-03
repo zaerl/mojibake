@@ -126,7 +126,7 @@ export type MojibakeWasmModule = {
   // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
   _mjb_string_is_confusable: (s1: Pointer, s1_size: number, s2: Pointer, s2_size: number, encoding: number) => boolean;
   // Return the emoji properties
-  _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => boolean;
+  _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property
   _mjb_codepoint_is_emoji: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint has the Unicode Emoji_Presentation property
@@ -140,7 +140,7 @@ export type MojibakeWasmModule = {
   // Return true if the codepoint has the Unicode Extended_Pictographic property
   _mjb_codepoint_is_extended_pictographic: (codepoint: Codepoint) => boolean;
   // Return emoji sequence metadata for a complete string
-  _mjb_string_emoji_sequence: (buffer: Pointer, size: number, encoding: number, emoji: Pointer) => boolean;
+  _mjb_string_emoji_sequence: (buffer: Pointer, size: number, encoding: number, emoji: Pointer) => number;
   // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences
   _mjb_string_is_emoji_sequence: (buffer: Pointer, size: number, encoding: number) => boolean;
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences

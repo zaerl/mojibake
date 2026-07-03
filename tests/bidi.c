@@ -349,21 +349,27 @@ void *test_bidi(void *arg) {
             "line runs reorder ok")
 
         size_t run_count = 0;
-        ATT_ASSERT(mjb_bidi_line_runs(NULL, order, 3, NULL, &run_count), false,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(NULL, order, 3, NULL, &run_count),
+            MJB_STATUS_INVALID_ARGUMENT,
             "line runs rejects NULL paragraph")
-        ATT_ASSERT(mjb_bidi_line_runs(&para, NULL, 3, NULL, &run_count), false,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, NULL, 3, NULL, &run_count),
+            MJB_STATUS_INVALID_ARGUMENT,
             "line runs rejects NULL visual order")
-        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, NULL, NULL), false,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, NULL, NULL),
+            MJB_STATUS_INVALID_ARGUMENT,
             "line runs rejects NULL run count")
-        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count), true,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count),
+            MJB_STATUS_OK,
             "empty line runs ok")
         ATT_ASSERT(run_count, (size_t)0, "empty line runs count")
-        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, NULL, &run_count), true,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, NULL, &run_count),
+            MJB_STATUS_OK,
             "line runs count ok")
         ATT_ASSERT(run_count, (size_t)1, "LTR one run")
 
         mjb_bidi_run runs[4];
-        ATT_ASSERT(mjb_bidi_line_runs(&para, order, 3, runs, &run_count), true,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, runs, &run_count),
+            MJB_STATUS_OK,
             "line runs fill ok")
         ATT_ASSERT((unsigned int)runs[0].direction, (unsigned int)MJB_DIRECTION_LTR,
             "LTR run direction")

@@ -630,7 +630,7 @@ void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 MJB_NODISCARD mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
 
 // Compute visual level runs; pass runs=NULL to count first
-bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
+MJB_NODISCARD mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
 
 // Return the plane of the codepoint
 MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
@@ -669,7 +669,7 @@ MJB_CONST const char *mjb_property_name(mjb_property property);
 bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
 
 // Return the emoji properties
-bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+MJB_NODISCARD mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
 
 // Return true if the codepoint has the Unicode Emoji property
 bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
@@ -690,7 +690,7 @@ bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
 bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 
 // Return emoji sequence metadata for a complete string
-bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+MJB_NODISCARD mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 
 // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences
 bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);

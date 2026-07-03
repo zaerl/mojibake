@@ -241,7 +241,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         }
 
         mjb_emoji_properties emoji_properties;
-        bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji_properties);
+        bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji_properties) ==
+            MJB_STATUS_OK;
         unsigned int ep_nl = has_properties ? 1 : 0;
 
         if(emoji_valid) {

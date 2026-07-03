@@ -1462,17 +1462,17 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
 }
 
 // Compute visual level runs; pass runs=NULL to count first.
-MJB_EXPORT bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph,
+MJB_EXPORT mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph,
     const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count) {
     if(run_count == NULL || paragraph == NULL || (visual_order == NULL && count > 0) ||
         (paragraph->chars == NULL && count > 0)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *run_count = 0;
 
     if(count == 0) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     size_t nruns = 0;
@@ -1500,5 +1500,5 @@ MJB_EXPORT bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph,
 
     *run_count = nruns;
 
-    return true;
+    return MJB_STATUS_OK;
 }

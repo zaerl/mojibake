@@ -285,7 +285,7 @@ mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t lin
 Compute visual level runs; pass runs=NULL to count first
 
 ```c
-bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
+mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
 ```
 
 Return the plane of the codepoint
@@ -363,7 +363,7 @@ bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, si
 Return the emoji properties
 
 ```c
-bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
 ```
 
 Return true if the codepoint has the Unicode Emoji property
@@ -405,7 +405,7 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 Return emoji sequence metadata for a complete string
 
 ```c
-bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 ```
 
 Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences

@@ -923,8 +923,8 @@ export class Mojibake {
   // void mjb_bidi_free(mjb_bidi_paragraph *paragraph)
   // mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t
   // line_end, size_t *visual_order)
-  // bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t
-  // count, mjb_bidi_run *runs, size_t *run_count)
+  // mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order,
+  // size_t count, mjb_bidi_run *runs, size_t *run_count)
 
   // mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint)
   codepointPlane(codepoint: Codepoint): number {
@@ -1017,15 +1017,15 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji)
+  // mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji)
   codepointEmoji(codepoint: Codepoint): EmojiProperties | null {
     const structSize = 16;
     const ptr = this.malloc(structSize);
 
     try {
-      const ret = this.module._mjb_codepoint_emoji(codepoint, ptr);
+      const status = this.module._mjb_codepoint_emoji(codepoint, ptr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 
@@ -1065,7 +1065,7 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_extended_pictographic(codepoint) ? true : false;
   }
 
-  // bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_emoji_sequence *emoji)
   stringEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
     const structSize = 12;
@@ -1073,10 +1073,10 @@ export class Mojibake {
     const ptr = this.malloc(structSize);
 
     try {
-      const ret = this.module._mjb_string_emoji_sequence(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_string_emoji_sequence(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, ptr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 

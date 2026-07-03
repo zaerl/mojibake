@@ -154,8 +154,9 @@ static void run_emoji_test_file(const char *filename) {
         mjb_emoji_qualification qualification = emoji_status_qualification(status);
         bool sequence_encoded = encode_emoji_test_sequence(codepoints, codepoint_count, sequence,
             sizeof(sequence), &sequence_size);
-        bool sequence_found = sequence_encoded && mjb_string_emoji_sequence(sequence, sequence_size,
-            MJB_ENCODING_UTF_8, &emoji_sequence);
+        bool sequence_found = sequence_encoded &&
+            mjb_string_emoji_sequence(sequence, sequence_size, MJB_ENCODING_UTF_8,
+                &emoji_sequence) == MJB_STATUS_OK;
         bool sequence_ok = sequence_found && emoji_sequence.codepoint_count == codepoint_count &&
             emoji_sequence.qualification == qualification;
         bool rgi = sequence_encoded && mjb_string_is_rgi_emoji(sequence, sequence_size,
@@ -186,7 +187,7 @@ static void run_emoji_test_file(const char *filename) {
         }
 
         mjb_emoji_properties emoji;
-        bool found = mjb_codepoint_emoji(codepoints[0], &emoji);
+        bool found = mjb_codepoint_emoji(codepoints[0], &emoji) == MJB_STATUS_OK;
         bool is_component = strcmp(status, "component") == 0;
         bool ok = found && emoji.codepoint == codepoints[0];
 
@@ -228,7 +229,8 @@ static void assert_emoji_sequence(const char *buffer, size_t size, mjb_emoji_seq
     mjb_emoji_qualification qualification, size_t codepoint_count, const char *name) {
     mjb_emoji_sequence emoji;
 
-    ATT_ASSERT(mjb_string_emoji_sequence(buffer, size, MJB_ENCODING_UTF_8, &emoji), true, name)
+    ATT_ASSERT_STATUS(mjb_string_emoji_sequence(buffer, size, MJB_ENCODING_UTF_8, &emoji),
+        MJB_STATUS_OK, name)
     ATT_ASSERT((int)emoji.type, (int)type, name)
     ATT_ASSERT((int)emoji.qualification, (int)qualification, name)
     ATT_ASSERT(emoji.codepoint_count, codepoint_count, name)
@@ -237,12 +239,14 @@ static void assert_emoji_sequence(const char *buffer, size_t size, mjb_emoji_seq
 void *test_emoji(void *arg) {
     mjb_emoji_properties emoji;
 
-    ATT_ASSERT(mjb_codepoint_emoji(MJB_CODEPOINT_MAX + 1, &emoji), false, "Invalid codepoint")
-    ATT_ASSERT(mjb_codepoint_emoji(0x23, NULL), false, "NULL emoji pointer")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji(MJB_CODEPOINT_MAX + 1, &emoji),
+        MJB_STATUS_INVALID_ARGUMENT, "Invalid codepoint")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji(0x23, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "NULL emoji pointer")
 
-    ATT_ASSERT(mjb_codepoint_emoji(0x0, &emoji), false, "NULL")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji(0x0, &emoji), MJB_STATUS_NOT_FOUND, "NULL")
 
-    ATT_ASSERT(mjb_codepoint_emoji(0x23, &emoji), true, "U+23: #")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji(0x23, &emoji), MJB_STATUS_OK, "U+23: #")
     ATT_ASSERT(emoji.codepoint, 0x23, "U+23: codepoint")
     ATT_ASSERT(emoji.emoji, true, "U+23: emoji")
     ATT_ASSERT(emoji.presentation, false, "U+23: presentation")
@@ -251,7 +255,8 @@ void *test_emoji(void *arg) {
     ATT_ASSERT(emoji.component, true, "U+23: component")
     ATT_ASSERT(emoji.extended_pictographic, false, "U+23: extended pictographic")
 
-    ATT_ASSERT(mjb_codepoint_emoji(0x1F600, &emoji), true, "U+1F600: 😀")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji(0x1F600, &emoji), MJB_STATUS_OK,
+        "U+1F600: 😀")
     ATT_ASSERT(emoji.codepoint, 0x1F600, "U+1F600: codepoint")
     ATT_ASSERT(emoji.emoji, true, "U+1F600: emoji")
     ATT_ASSERT(emoji.presentation, true, "U+1F600: presentation")
@@ -318,7 +323,8 @@ void *test_emoji(void *arg) {
         false, "Emoji variation sequence is not RGI by itself")
     ATT_ASSERT(mjb_string_is_emoji_sequence("ABC", 3, MJB_ENCODING_UTF_8), false,
         "ASCII word is not an emoji sequence")
-    ATT_ASSERT(mjb_string_emoji_sequence(NULL, 0, MJB_ENCODING_UTF_8, NULL), false,
+    ATT_ASSERT_STATUS(mjb_string_emoji_sequence(NULL, 0, MJB_ENCODING_UTF_8, NULL),
+        MJB_STATUS_INVALID_ARGUMENT,
         "NULL string emoji sequence")
 
     run_emoji_test_file("./utils/generate/unicode-data/emoji/emoji-test.txt");

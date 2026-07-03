@@ -12,54 +12,61 @@
 
 #define MJB_EMOJI_SEQUENCE_MAX_CODEPOINTS 32
 
-MJB_EXPORT bool mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji) {
+MJB_EXPORT mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint,
+    mjb_emoji_properties *emoji) {
     if(emoji == NULL || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    return mjb_unicode_emoji_lookup(codepoint, emoji);
+    if(!mjb_unicode_emoji_lookup(codepoint, emoji)) {
+        return MJB_STATUS_NOT_FOUND;
+    }
+
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) && emoji.emoji;
+    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.emoji;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) && emoji.presentation;
+    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.presentation;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) && emoji.modifier;
+    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.modifier;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) && emoji.modifier_base;
+    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK &&
+        emoji.modifier_base;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) && emoji.component;
+    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.component;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) && emoji.extended_pictographic;
+    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK &&
+        emoji.extended_pictographic;
 }
 
-static bool mjb_emoji_decode_sequence(const char *buffer, size_t size, mjb_encoding encoding,
+static mjb_status mjb_emoji_decode_sequence(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_codepoint *codepoints, size_t *count) {
     if(buffer == NULL || size == 0 || codepoints == NULL || count == NULL) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *count = 0;
@@ -81,44 +88,53 @@ static bool mjb_emoji_decode_sequence(const char *buffer, size_t size, mjb_encod
         }
 
         if(result == MJB_DECODE_ERROR) {
-            return false;
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
         if(*count >= MJB_EMOJI_SEQUENCE_MAX_CODEPOINTS) {
             // Exceeded maximum number of codepoints for an emoji sequence.
-            return false;
+            return MJB_STATUS_OVERFLOW;
         }
 
         codepoints[(*count)++] = codepoint;
     }
 
-    return *count > 0;
+    return *count > 0 ? MJB_STATUS_OK : MJB_STATUS_MALFORMED_INPUT;
 }
 
-MJB_EXPORT bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding,
-    mjb_emoji_sequence *emoji) {
+MJB_EXPORT mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size,
+    mjb_encoding encoding, mjb_emoji_sequence *emoji) {
     mjb_codepoint codepoints[MJB_EMOJI_SEQUENCE_MAX_CODEPOINTS];
     size_t count = 0;
 
-    if(emoji == NULL ||
-        !mjb_emoji_decode_sequence(buffer, size, encoding, codepoints, &count)) {
-        return false;
+    if(emoji == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    return mjb_unicode_emoji_sequence_lookup(codepoints, count, emoji);
+    mjb_status status = mjb_emoji_decode_sequence(buffer, size, encoding, codepoints, &count);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if(!mjb_unicode_emoji_sequence_lookup(codepoints, count, emoji)) {
+        return MJB_STATUS_NOT_FOUND;
+    }
+
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_string_is_emoji_sequence(const char *buffer, size_t size,
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    return mjb_string_emoji_sequence(buffer, size, encoding, &emoji);
+    return mjb_string_emoji_sequence(buffer, size, encoding, &emoji) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    if(!mjb_string_emoji_sequence(buffer, size, encoding, &emoji)) {
+    if(mjb_string_emoji_sequence(buffer, size, encoding, &emoji) != MJB_STATUS_OK) {
         return false;
     }
 

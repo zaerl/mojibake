@@ -787,9 +787,9 @@ export default [
   },
   {
     comment: 'Compute visual level runs; pass runs=NULL to count first',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_bidi_line_runs',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       {
         name: 'paragraph',
@@ -970,9 +970,9 @@ export default [
   },
   {
     comment: 'Return the emoji properties',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_emoji',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {
@@ -1034,9 +1034,9 @@ export default [
   },
   {
     comment: 'Return emoji sequence metadata for a complete string',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_string_emoji_sequence',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
       size(),
