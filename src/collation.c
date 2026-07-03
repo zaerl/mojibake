@@ -230,11 +230,11 @@ static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
 // Decode UTF-8 to a codepoint array
 
 /**
- * Check whether the bytes at buf[i..i+2] are a CESU-8 encoded surrogate
- * (U+D800–U+DFFF).  Our encoder produces these via mjb_codepoint_encode; we
- * must decode them back so that surrogates get distinct implicit weights.
+ * Check whether the bytes at buf[i..i+2] are a CESU-8 encoded surrogate (U+D800–U+DFFF). The
+ * Unicode collation conformance tests include these codepoints, so decode them back for distinct
+ * implicit weights.
  *
- * Pattern: 0xED [0xA0–0xBF] [0x80–0xBF]  ->  U+D800–U+DFFF
+ * Pattern: 0xED [0xA0–0xBF] [0x80–0xBF] -> U+D800–U+DFFF
  */
 static bool try_cesu8_surrogate(const char *buf, size_t len, size_t i,
     size_t *out_advance, mjb_codepoint *out_cp) {

@@ -13,9 +13,27 @@
 
 #include "test.h"
 
-/* Maximum UTF-8 bytes for a single test line (each codepoint ≤ 4 bytes,
-   the longest test lines have ~6 codepoints = 24 bytes, but we keep slack). */
+// Maximum UTF-8 bytes for a single test line (each codepoint <= 4 bytes, the longest test lines
+// have ~6 codepoints = 24 bytes, but we keep slack).
 #define COLLATION_BUF 256
+
+static size_t encode_collation_codepoint(unsigned long cp, char *buf, size_t buf_size) {
+    // A surrogate.
+    if(cp >= 0xD800 && cp <= 0xDFFF) {
+        if(buf_size < 4) {
+            return 0;
+        }
+
+        buf[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
+        buf[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+        buf[2] = (char)(0x80 | (cp & 0x3F));
+        buf[3] = '\0';
+
+        return 3;
+    }
+
+    return mjb_codepoint_encode((mjb_codepoint)cp, buf, buf_size, MJB_ENCODING_UTF_8);
+}
 
 /**
  * Convert a whitespace-separated list of hex codepoints to UTF-8.
@@ -53,9 +71,7 @@ static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size
 
         if(cp == 0) continue; /* skip U+0000 (embedded NUL) */
 
-        unsigned int enc = mjb_codepoint_encode((mjb_codepoint)cp,
-            buf + out, (unsigned int)(buf_size - out - 1),
-            MJB_ENCODING_UTF_8);
+        size_t enc = encode_collation_codepoint(cp, buf + out, buf_size - out - 1);
 
         out += enc;
     }

@@ -17,8 +17,8 @@
 | `mjb_break_sentence`                     | 458         |
 | `mjb_string_filter`                      | 141         |
 | `mjb_locale_parse`                       | 120         |
+| `mjb_codepoint_encode`                   | 105         |
 | `mjb_string_is_confusable`               | 100         |
-| `mjb_codepoint_encode`                   | 95          |
 | `mjb_string_convert_encoding`            | 88          |
 | `mjb_codepoint_character`                | 81          |
 | `mjb_strnlen`                            | 70          |
@@ -89,7 +89,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560785** |
+| **Total**                                | **1560795** |
 
 ## JavaScript
 

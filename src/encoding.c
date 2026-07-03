@@ -15,6 +15,10 @@
 #define MJB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
 #define MJB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
+static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
+    return codepoint >= 0xD800 && codepoint <= 0xDFFF;
+}
+
 /**
  * Return the encoding from the BOM (if possible).
  */
@@ -182,6 +186,10 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
         return 0;
     }
 
+    if(mjb_codepoint_is_surrogate(codepoint)) {
+        return 0;
+    }
+
     if(encoding == MJB_ENCODING_ASCII) {
         if(codepoint <= 0x7F) {
             buffer[0] = (char)codepoint;
@@ -284,7 +292,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
             return 0;
         }
 
-        if(codepoint <= 0x10FFFF && !(codepoint >= 0xD800 && codepoint <= 0xDFFF)) {
+        if(codepoint <= 0x10FFFF) {
             // UTF-32 uses a single 32-bit code unit for each codepoint
             if(encoding & MJB_ENCODING_UTF_32_LE) {
                 // Little endian: least significant byte first
