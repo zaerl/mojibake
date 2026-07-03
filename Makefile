@@ -146,7 +146,10 @@ wasm: sync-api-wasm generate-site
 
 # Generate TESTS.md file
 coverage:
-	@cd ./utils/generate && npm run coverage
+	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
+	@cd ./utils/generate && npm run coverage -- \
+		--test-executable $(TEST_BUILD_DIR)/tests/mojibake-test
 
 # Generate amalgamation
 amalgamation:

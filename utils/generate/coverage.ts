@@ -4,8 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
-import { join, relative } from 'path';
+import { spawnSync } from 'child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join, resolve } from 'path';
 import functions from './functions';
 import { CFunction } from './html-function';
 import { substituteBlock } from './utils';
@@ -18,10 +20,16 @@ type FuncCoverage = {
 
 type Coverage = { [key: string]: FuncCoverage };
 
-const notAllowedFiles = new Set([
-  'attractor',
-  'utils',
-]);
+type RuntimeCoverageEntry = {
+  name: string;
+  count: number;
+};
+
+type RuntimeCoverage = {
+  coverage: RuntimeCoverageEntry[];
+};
+
+const repoRoot = resolve(__dirname, '../..');
 
 function createCoverage(names: string[]): Coverage {
   const coverage: Coverage = {};
@@ -59,59 +67,14 @@ function findJavaScriptCoverageKey(method: string): string {
   return method === 'create' ? 'Mojibake.create' : `Mojibake.${method}`;
 }
 
-function scanTestFile(filepath: string, coverage: Coverage): void {
-  const content = readFileSync(filepath, 'utf8');
-  const lines = content.split('\n');
+function resolveInputPath(filepath: string): string {
+  const cwdPath = resolve(process.cwd(), filepath);
 
-  let currentResult = '';
-  let currentCount = 1;
-  const prog = /ATT_ASSERT\(.*(mjb_[a-z0-9_.]+).+$/;
-  const attAssertRegex = /ATT_ASSERT\(/;
-
-  for(const line of lines) {
-    const trimmedLine = line.trim();
-    let result = trimmedLine.match(/\/\/ CURRENT_ASSERT (.+)$/);
-
-    if(result) {
-      currentResult = result[1];
-
-      continue;
-    }
-
-    result = trimmedLine.match(/\/\/ CURRENT_COUNT (\d+)$/);
-
-    if(result) {
-      currentCount = parseInt(result[1], 10);
-
-      continue;
-    }
-
-    // Check if this line contains an ATT_ASSERT call
-    if(attAssertRegex.test(trimmedLine)) {
-      result = trimmedLine.match(prog);
-
-      if(result) {
-        const key = result[1].trim();
-
-        if(key in coverage) {
-          coverage[key].u += currentCount;
-          currentResult = key;
-          currentCount = 1;
-        } else if(currentResult) {
-          if(currentResult in coverage) {
-            coverage[currentResult].u += currentCount;
-            currentCount = 1;
-          }
-        }
-      } else if(currentResult) {
-        // ATT_ASSERT found but doesn't match function name pattern. Use currentResult if available.
-        if(currentResult in coverage) {
-          coverage[currentResult].u += currentCount;
-          currentCount = 1;
-        }
-      }
-    }
+  if(existsSync(cwdPath)) {
+    return cwdPath;
   }
+
+  return resolve(repoRoot, filepath);
 }
 
 function scanJavaScriptTestFile(filepath: string, coverage: Coverage): void {
@@ -128,29 +91,6 @@ function scanJavaScriptTestFile(filepath: string, coverage: Coverage): void {
       ++coverage[key].u;
     }
   }
-}
-
-function findTests(directory: string, coverage: Coverage): void {
-  function walkDir(dir: string): void {
-    const items = readdirSync(dir);
-
-    for(const item of items) {
-      const fullPath = join(dir, item);
-      const stat = statSync(fullPath);
-
-      if(stat.isDirectory()) {
-        if(notAllowedFiles.has(relative(directory, fullPath))) {
-          continue;
-        }
-
-        walkDir(fullPath);
-      } else if(item.endsWith('.c')) {
-        scanTestFile(fullPath, coverage);
-      }
-    }
-  }
-
-  walkDir(directory);
 }
 
 function renderCoverageSection(title: string, coverage: Coverage): { output: string; total: number } {
@@ -194,6 +134,87 @@ function renderCoverageSection(title: string, coverage: Coverage): { output: str
   return { output, total };
 }
 
+function findTestExecutable(args: string[]): string {
+  const executableName = process.platform === 'win32' ? 'mojibake-test.exe' : 'mojibake-test';
+
+  for(let i = 0; i < args.length; ++i) {
+    if(args[i] === '--test-executable' && args[i + 1]) {
+      return resolveInputPath(args[i + 1]);
+    }
+
+    const match = args[i].match(/^--test-executable=(.+)$/);
+
+    if(match) {
+      return resolveInputPath(match[1]);
+    }
+  }
+
+  if(process.env.MJB_TEST_EXECUTABLE) {
+    return resolveInputPath(process.env.MJB_TEST_EXECUTABLE);
+  }
+
+  const candidates = [
+    join(repoRoot, 'build-test', 'tests', executableName),
+    join(repoRoot, 'build', 'tests', executableName)
+  ];
+
+  for(const candidate of candidates) {
+    if(existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return candidates[0];
+}
+
+function readRuntimeCoverage(filepath: string, coverage: Coverage): void {
+  const parsed = JSON.parse(readFileSync(filepath, 'utf8')) as RuntimeCoverage;
+
+  if(!Array.isArray(parsed.coverage)) {
+    throw new Error(`Invalid runtime coverage file: ${filepath}`);
+  }
+
+  for(const entry of parsed.coverage) {
+    if(typeof entry.name !== 'string' || typeof entry.count !== 'number') {
+      throw new Error(`Invalid runtime coverage entry in ${filepath}`);
+    }
+
+    if(entry.name in coverage) {
+      coverage[entry.name].u += entry.count;
+    }
+  }
+}
+
+function captureRuntimeCoverage(testExecutable: string, coverage: Coverage): void {
+  if(!existsSync(testExecutable)) {
+    throw new Error(`Test executable not found: ${testExecutable}`);
+  }
+
+  // The attractor test framework will write the coverage to a temporary file, which we will read
+  // after the test executable runs.
+  const tempDir = mkdtempSync(join(tmpdir(), 'mojibake-coverage-'));
+  const coveragePath = join(tempDir, 'coverage.json');
+
+  try {
+    const result = spawnSync(testExecutable, ['--coverage', coveragePath], {
+      cwd: repoRoot,
+      stdio: 'inherit'
+    });
+
+    if(result.error) {
+      throw result.error;
+    }
+
+    if(result.status !== 0) {
+      throw new Error(`Runtime coverage command failed with exit code ${result.status ?? 1}`);
+    }
+
+    readRuntimeCoverage(coveragePath, coverage);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
 function printCoverage(cCoverage: Coverage, javascriptCoverage: Coverage): void {
   const cSection = renderCoverageSection('C', cCoverage);
   const javascriptSection = renderCoverageSection('JavaScript', javascriptCoverage);
@@ -202,10 +223,10 @@ function printCoverage(cCoverage: Coverage, javascriptCoverage: Coverage): void 
   output += `${cSection.output}\n`;
   output += javascriptSection.output;
 
-  writeFileSync('../../TESTS.md', output);
+  writeFileSync(join(repoRoot, 'TESTS.md'), output);
 
   // Update README.md with the total coverage count
-  const readmePath = '../../README.md';
+  const readmePath = join(repoRoot, 'README.md');
   const readmeContent = readFileSync(readmePath, 'utf8');
   const updatedReadmeContent = substituteBlock(readmeContent, 'a total of **', `** tests including`,
     total.toLocaleString('en-US')
@@ -214,15 +235,11 @@ function printCoverage(cCoverage: Coverage, javascriptCoverage: Coverage): void 
 }
 
 function main(): void {
-  const testDir = process.argv.length < 4 ? '../../tests' : process.argv[3];
-  const javascriptTestFile = '../../src/api/tests/index.ts';
+  const args = process.argv.slice(2);
+  const testExecutable = findTestExecutable(args);
+  const javascriptTestFile = join(repoRoot, 'src', 'api', 'tests', 'index.ts');
 
-  if(!existsSync(testDir) || !statSync(testDir).isDirectory()) {
-    console.error(`Error: ${testDir} is not a valid directory`);
-    process.exit(1);
-  }
-
-  if(!existsSync(javascriptTestFile) || !statSync(javascriptTestFile).isFile()) {
+  if(!existsSync(javascriptTestFile)) {
     console.error(`Error: ${javascriptTestFile} is not a valid file`);
     process.exit(1);
   }
@@ -230,7 +247,7 @@ function main(): void {
   const cCoverage = findExports();
   const javascriptCoverage = findJavaScriptExports();
 
-  findTests(testDir, cCoverage);
+  captureRuntimeCoverage(testExecutable, cCoverage);
   scanJavaScriptTestFile(javascriptTestFile, javascriptCoverage);
   printCoverage(cCoverage, javascriptCoverage);
 }
