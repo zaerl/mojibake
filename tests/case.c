@@ -135,6 +135,10 @@ void *test_case(void *arg) {
     ATT_ASSERT(result, (char*)"HÉLLÖ", "UTF-8 uppercase: héllö")
     mjb_free(result);
 
+    result = mjb_case("a𠀀b", 6, MJB_CASE_UPPER, encoding);
+    ATT_ASSERT(result, (char*)"A𠀀B", "UTF-8 uppercase preserves uncased CJK")
+    mjb_free(result);
+
     // Test lowercase conversion
     result = mjb_case("HELLO", 5, MJB_CASE_LOWER, encoding);
     ATT_ASSERT(result, (char*)"hello", "UTF-8 lowercase: HELLO")
@@ -144,6 +148,10 @@ void *test_case(void *arg) {
     ATT_ASSERT(result, (char*)"héllö", "UTF-8 lowercase: HÉLLÖ")
     mjb_free(result);
 
+    result = mjb_case("A𠀀B", 6, MJB_CASE_LOWER, encoding);
+    ATT_ASSERT(result, (char*)"a𠀀b", "UTF-8 lowercase preserves uncased CJK")
+    mjb_free(result);
+
     // Test titlecase conversion
     result = mjb_case("hello world", 11, MJB_CASE_TITLE, encoding);
     ATT_ASSERT(result, (char*)"Hello World", "UTF-8 titlecase: hello world")
@@ -151,6 +159,10 @@ void *test_case(void *arg) {
 
     result = mjb_case("héllö wörld", 14, MJB_CASE_TITLE, encoding);
     ATT_ASSERT(result, (char*)"Héllö Wörld", "UTF-8 titlecase: héllö wörld")
+    mjb_free(result);
+
+    result = mjb_case("a 𠀀 b", 8, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"A 𠀀 B", "UTF-8 titlecase preserves uncased CJK")
     mjb_free(result);
 
     result = mjb_case("hello world", 11, MJB_CASE_TITLE, encoding);

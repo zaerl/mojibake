@@ -30,6 +30,29 @@ static uint8_t mjb_combining_class(mjb_codepoint codepoint) {
     return character.combining;
 }
 
+static void mjb_case_lookup_or_identity(mjb_codepoint codepoint,
+    mjb_unicode_case_mapping *mapping) {
+    if(mjb_unicode_case_lookup(codepoint, mapping)) {
+        return;
+    }
+
+    // Until proven otherwise, treat unknown as non-word.
+    mapping->category = MJB_CATEGORY_CN;
+    mapping->uppercase = 0;
+    mapping->lowercase = 0;
+    mapping->titlecase = 0;
+
+    if(mjb_unicode_category_lookup(codepoint, &mapping->category)) {
+        return;
+    }
+
+    mjb_character character;
+
+    if(mjb_codepoint_character(codepoint, &character) == MJB_STATUS_OK) {
+        mapping->category = character.category;
+    }
+}
+
 // Casing context for the conditional mappings of SpecialCasing.txt. The flags describe the
 // characters already consumed; lookahead conditions are computed on demand.
 typedef struct mjb_case_context {
@@ -315,12 +338,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         }
 
         mjb_unicode_case_mapping mapping;
-
-        if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
-            mjb_free(output);
-
-            return NULL;
-        }
+        mjb_case_lookup_or_identity(codepoint, &mapping);
 
         mjb_codepoint original = codepoint;
         mjb_category category = mapping.category;
@@ -635,27 +653,24 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         }
 
         mjb_unicode_case_mapping mapping;
-
-        if(!mjb_unicode_case_lookup(codepoint, &mapping)) {
-            mjb_free(output);
-
-            return NULL;
-        }
+        bool found_mapping = mjb_unicode_case_lookup(codepoint, &mapping);
 
         mjb_codepoint mapped = 0;
 
-        switch(type) {
-            case MJB_CASE_UPPER:
-                mapped = mapping.uppercase;
-                break;
-            case MJB_CASE_LOWER:
-                mapped = mapping.lowercase;
-                break;
-            case MJB_CASE_TITLE:
-                mapped = mapping.titlecase;
-                break;
-            default:
-                break;
+        if(found_mapping) {
+            switch(type) {
+                case MJB_CASE_UPPER:
+                    mapped = mapping.uppercase;
+                    break;
+                case MJB_CASE_LOWER:
+                    mapped = mapping.lowercase;
+                    break;
+                case MJB_CASE_TITLE:
+                    mapped = mapping.titlecase;
+                    break;
+                default:
+                    break;
+            }
         }
 
         if(mapped != 0) {

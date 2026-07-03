@@ -460,7 +460,6 @@ bool mjb_unicode_category_lookup(mjb_codepoint codepoint, mjb_category *category
     }
 
     uint32_t entry = mjb_unicode_n_character_entries[entry_index];
-
     *category = (mjb_category)((entry >> 9) & 0x1F);
 
     return true;
@@ -550,17 +549,11 @@ bool mjb_unicode_case_lookup(mjb_codepoint codepoint, mjb_unicode_case_mapping *
 
     mapping->category = (mjb_category)((character >> 9) & 0x1F);
     mapping->uppercase = has_case_mapping && (mask & 1) != 0 ?
-        (mjb_codepoint)((int32_t)codepoint +
-            mjb_unicode_simple_case_delta(entry_data, 0)) :
-        0;
+        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 0)) : 0;
     mapping->lowercase = has_case_mapping && (mask & 2) != 0 ?
-        (mjb_codepoint)((int32_t)codepoint +
-            mjb_unicode_simple_case_delta(entry_data, 18)) :
-        0;
+        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 18)) : 0;
     mapping->titlecase = has_case_mapping && (mask & 4) != 0 ?
-        (mjb_codepoint)((int32_t)codepoint +
-            mjb_unicode_simple_case_delta(entry_data, 36)) :
-        0;
+        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 36)) : 0;
 
     return true;
 }
