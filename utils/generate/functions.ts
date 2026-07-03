@@ -1132,9 +1132,9 @@ export default [
   },
   {
     comment: 'Return the east asian width of a codepoint',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_east_asian_width',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {

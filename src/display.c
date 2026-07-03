@@ -77,7 +77,7 @@ MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t size, mjb_enc
         size_t width_increment = 1;
         bool is_visible = true;
 
-        if(mjb_codepoint_east_asian_width(codepoint, &eaw)) {
+        if(mjb_codepoint_east_asian_width(codepoint, &eaw) == MJB_STATUS_OK) {
             if(eaw == MJB_EAW_NEUTRAL || eaw == MJB_EAW_NARROW || eaw == MJB_EAW_HALF_WIDTH) {
                 width_increment = 1;
             } else if(eaw == MJB_EAW_FULL_WIDTH || eaw == MJB_EAW_WIDE) {

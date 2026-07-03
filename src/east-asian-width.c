@@ -10,9 +10,10 @@
 extern mojibake mjb_global;
 
 // Return the east asian width of a codepoint
-MJB_EXPORT bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width) {
+MJB_EXPORT mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
+    mjb_east_asian_width *width) {
     if(width == NULL || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     uint8_t raw = 0;
@@ -25,5 +26,5 @@ MJB_EXPORT bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east
         *width = (mjb_east_asian_width)raw;
     }
 
-    return true;
+    return MJB_STATUS_OK;
 }

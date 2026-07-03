@@ -708,7 +708,7 @@ MJB_NODISCARD bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mj
 size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
 
 // Return the east asian width of a codepoint
-bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
+MJB_NODISCARD mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 
 // Return the display width of a string
 MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);

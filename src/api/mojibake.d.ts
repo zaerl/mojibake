@@ -146,7 +146,7 @@ export type MojibakeWasmModule = {
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences
   _mjb_string_is_rgi_emoji: (buffer: Pointer, size: number, encoding: number) => boolean;
   // Return the east asian width of a codepoint
-  _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => boolean;
+  _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => number;
   // Return the display width of a string
   _mjb_display_width: (buffer: Pointer, size: number, encoding: number, context: number, width: Pointer) => number;
   // Parse a BCP 47 language tag

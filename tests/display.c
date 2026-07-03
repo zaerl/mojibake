@@ -6,9 +6,6 @@
 
 #include "test.h"
 
-#define ATT_ASSERT_STATUS(VALUE, EXPECTED, MESSAGE) \
-    ATT_ASSERT((unsigned int)(VALUE), (unsigned int)(EXPECTED), MESSAGE)
-
 void *test_display(void *arg) {
     size_t sw = 0;
 

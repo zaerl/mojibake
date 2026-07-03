@@ -230,7 +230,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         bool has_properties = last_prop < MJB_PR_COUNT;
 
         mjb_east_asian_width east_asian_width;
-        bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width);
+        bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint,
+            &east_asian_width) == MJB_STATUS_OK;
 
         if(eaw_valid) {
             mjbsh_id_name("East Asian Width", east_asian_width,

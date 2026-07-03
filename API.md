@@ -441,7 +441,7 @@ size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t 
 Return the east asian width of a codepoint
 
 ```c
-bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
+mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 ```
 
 Return the display width of a string

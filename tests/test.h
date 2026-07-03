@@ -68,6 +68,9 @@ void mjb_test_coverage_set(const char *name);
 // Set the coverage for those ATT_ASSERT calls that not directly call a mjb_* function.
 #define MJB_TEST_COVERAGE(NAME) mjb_test_coverage_set(#NAME)
 
+#define ATT_ASSERT_STATUS(VALUE, EXPECTED, MESSAGE) \
+    ATT_ASSERT((unsigned int)(VALUE), (unsigned int)(EXPECTED), MESSAGE)
+
 // Utils
 typedef void (*test_file_callback)(const char *buffer, size_t size, unsigned int current_line, mjb_break_type *expected_types);
 

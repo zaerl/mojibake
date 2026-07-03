@@ -1114,14 +1114,15 @@ export class Mojibake {
   // bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints)
   // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)
 
-  // bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
+  // mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
+  // mjb_east_asian_width *width);
   codepointEastAsianWidth(codepoint: Codepoint): number | null {
     const widthPtr = this.malloc(4);
 
     try {
-      const ret = this.module._mjb_codepoint_east_asian_width(codepoint, widthPtr);
+      const status = this.module._mjb_codepoint_east_asian_width(codepoint, widthPtr);
 
-      if(ret) {
+      if(status === Status.OK) {
         return this.module.HEAP32[widthPtr / 4];
       }
 
