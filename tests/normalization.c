@@ -43,13 +43,14 @@ static bool has_only_latin1(char *source, size_t source_size) {
 
 static int check_normalization(char *source, size_t source_size, char *normalized,
     size_t normalized_size, mjb_normalization form, unsigned int current_line, const char *step) {
-    mjb_result result;
+    mjb_result result = { NULL, 0, false };
     char test_name[128];
 
     MJB_TEST_COVERAGE(mjb_normalize);
-    bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, MJB_ENCODING_UTF_8, &result);
+    mjb_status status = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form,
+        MJB_ENCODING_UTF_8, &result);
 
-    if(!ret) {
+    if(status != MJB_STATUS_OK) {
         snprintf(test_name, 128, "#%u %s", current_line, step);
         ATT_ASSERT(true, false, test_name)
 
@@ -109,13 +110,15 @@ void *test_normalization(void *arg) {
     // unsigned int index = 0;
     mjb_result guard_result;
 
-    ATT_ASSERT(mjb_normalize(NULL, 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENCODING_UTF_8, &guard_result), false, "Normalize rejects NULL buffer")
-    ATT_ASSERT(mjb_normalize("", 0, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENCODING_UTF_8, NULL), false, "Normalize rejects NULL result")
+    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_8, &guard_result), MJB_STATUS_INVALID_ARGUMENT,
+        "Normalize rejects NULL buffer")
+    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_8, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Normalize rejects NULL result")
 
-    ATT_ASSERT(mjb_normalize("A", 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENCODING_UTF_16_LE, &guard_result), true,
+    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENCODING_UTF_16_LE, &guard_result), MJB_STATUS_OK,
         "Normalize converts output encoding for already-normalized input")
     ATT_ASSERT(guard_result.transformed, true,
         "Normalize converted already-normalized input transformed")

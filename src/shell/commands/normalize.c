@@ -16,7 +16,8 @@
 int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int flags) {
     mjb_result result;
 
-    bool ret = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8, (mjb_normalization)flags, MJB_ENCODING_UTF_8, &result);
+    bool ret = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8,
+        (mjb_normalization)flags, MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK;
 
     if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
@@ -62,7 +63,8 @@ int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
     codepoints[++index] = '\0';
 
     mjb_result result;
-    bool ret = mjb_normalize(codepoints, index, MJB_ENCODING_UTF_8, (mjb_normalization)flags, MJB_ENCODING_UTF_8, &result);
+    bool ret = mjb_normalize(codepoints, index, MJB_ENCODING_UTF_8,
+        (mjb_normalization)flags, MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK;
 
     if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");

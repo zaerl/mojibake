@@ -75,9 +75,9 @@ export default [
   },
   {
     comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_normalize',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to normalize'),
       size(),

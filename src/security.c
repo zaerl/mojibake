@@ -56,7 +56,8 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    if(!mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFD, MJB_ENCODING_UTF_8, &nfd)) {
+    if(mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFD, MJB_ENCODING_UTF_8,
+        &nfd) != MJB_STATUS_OK) {
         return false;
     }
 
@@ -139,18 +140,18 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
     }
 
     // Step 3: NFD the intermediate string.
-    bool ok = mjb_normalize(mid, mid_index, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFD,
-        MJB_ENCODING_UTF_8, result);
+    mjb_status status = mjb_normalize(mid, mid_index, MJB_ENCODING_UTF_8,
+        MJB_NORMALIZATION_NFD, MJB_ENCODING_UTF_8, result);
 
     // mjb_normalize may return result->output == mid when the string is already NFD.
     // In that case transfer ownership so the caller can free it via mjb_free(result->output).
-    if(ok && !result->transformed) {
+    if(status == MJB_STATUS_OK && !result->transformed) {
         result->transformed = true;
     } else {
         mjb_free(mid);
     }
 
-    return ok;
+    return status == MJB_STATUS_OK;
 }
 
 // Return true if two strings are visually confusable (UTS#39 §4).

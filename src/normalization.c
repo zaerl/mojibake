@@ -285,19 +285,19 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 /**
  * Normalize a string
  */
-MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_normalization form, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && size > 0)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(!mjb_initialize()) {
-        return false;
+        return MJB_STATUS_UNSUPPORTED;
     }
 
     if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
         form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
-        return false;
+        return MJB_STATUS_INVALID_FORM;
     }
 
     if(size == 0) {
@@ -305,7 +305,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
         result->output_size = 0;
         result->transformed = false;
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
@@ -335,14 +335,18 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
     if(is_normalized == MJB_QC_YES) {
         // No need to normalize.
         if(encoding != output_encoding) {
-            return mjb_string_convert_encoding(buffer, size, encoding, output_encoding, result);
+            if(!mjb_string_convert_encoding(buffer, size, encoding, output_encoding, result)) {
+                return MJB_STATUS_NO_MEMORY;
+            }
+
+            return MJB_STATUS_OK;
         }
 
         result->output = (char*)buffer;
         result->output_size = size;
         result->transformed = false;
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     // Estimate the potential output size.
@@ -362,7 +366,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
                 size_t extra = potential_output_size / 5;
 
                 if(potential_output_size > SIZE_MAX - extra) {
-                    return false;
+                    return MJB_STATUS_OVERFLOW;
                 }
 
                 potential_output_size += extra;
@@ -374,7 +378,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
             case MJB_ENCODING_UTF_16_LE:
                 // Tipically, a UTF-16 character in mainly english text is ~2 bytes.
                 if(potential_output_size > SIZE_MAX / 2) {
-                    return false;
+                    return MJB_STATUS_OVERFLOW;
                 }
 
                 potential_output_size *= 2;
@@ -388,7 +392,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
             case MJB_ENCODING_UTF_32_LE:
                 // Always 4 bytes.
                 if(potential_output_size > SIZE_MAX / 4) {
-                    return false;
+                    return MJB_STATUS_OVERFLOW;
                 }
 
                 potential_output_size *= 4;
@@ -403,20 +407,20 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     if(is_composition) {
         if(potential_output_size > SIZE_MAX / sizeof(mjb_buffer_character)) {
-            return false;
+            return MJB_STATUS_OVERFLOW;
         }
 
         composition_buffer = (mjb_buffer_character*)mjb_alloc(potential_output_size *
             sizeof(mjb_buffer_character));
 
         if(composition_buffer == NULL) {
-            return false;
+            return MJB_STATUS_NO_MEMORY;
         }
     } else {
         result->output = (char*)mjb_alloc(potential_output_size);
 
         if(result->output == NULL) {
-            return false;
+            return MJB_STATUS_NO_MEMORY;
         }
     }
 
@@ -626,7 +630,7 @@ MJB_EXPORT bool mjb_normalize(const char *buffer, size_t size, mjb_encoding enco
 
     #undef MJB_NORMALIZE_FLUSH_BUFFER
 
-    return true;
+    return MJB_STATUS_OK;
 
 fail:
     mjb_free(composition_buffer);
@@ -641,5 +645,5 @@ fail:
 
     #undef MJB_NORMALIZE_FLUSH_BUFFER
 
-    return false;
+    return MJB_STATUS_NO_MEMORY;
 }
