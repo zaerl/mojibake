@@ -4,40 +4,40 @@
 
 | Test                                     | Coverage    |
 | ---------------------------------------- | ----------- |
-| `mjb_bidi_resolve`                       | 582617      |
-| `mjb_string_compare`                     | 437937      |
-| `mjb_normalize`                          | 400691      |
-| `mjb_break_line`                         | 19369       |
-| `mjb_string_emoji_sequence`              | 5263        |
-| `mjb_case`                               | 3549        |
+| `mjb_bidi_resolve`                       | 582572      |
+| `mjb_string_compare`                     | 437933      |
+| `mjb_normalize`                          | 415357      |
+| `mjb_break_line`                         | 18794       |
+| `mjb_string_emoji_sequence`              | 5266        |
+| `mjb_case`                               | 3496        |
 | `mjb_break_word`                         | 1828        |
-| `mjb_codepoint_emoji`                    | 1423        |
-| `mjb_segmentation`                       | 734         |
+| `mjb_codepoint_emoji`                    | 1419        |
+| `mjb_segmentation`                       | 715         |
 | `mjb_break_sentence`                     | 458         |
-| `mjb_string_convert_encoding`            | 147         |
 | `mjb_string_filter`                      | 141         |
 | `mjb_locale_parse`                       | 120         |
 | `mjb_string_is_confusable`               | 100         |
-| `mjb_strnlen`                            | 86          |
+| `mjb_codepoint_encode`                   | 95          |
+| `mjb_string_convert_encoding`            | 88          |
 | `mjb_codepoint_character`                | 81          |
+| `mjb_strnlen`                            | 70          |
 | `mjb_display_width`                      | 48          |
 | `mjb_hangul_syllable_composition`        | 44          |
 | `mjb_codepoint_is_valid`                 | 39          |
-| `mjb_codepoint_encode`                   | 37          |
 | `mjb_codepoint_east_asian_width`         | 32          |
 | `mjb_codepoint_numeric_value`            | 18          |
-| `mjb_string_is_utf8`                     | 18          |
-| `mjb_collation_key`                      | 17          |
+| `mjb_collation_key`                      | 18          |
+| `mjb_string_is_utf8`                     | 17          |
 | `mjb_bidi_reorder_line`                  | 15          |
 | `mjb_codepoint_block`                    | 15          |
 | `mjb_codepoint_is_cjk_ext`               | 15          |
 | `mjb_string_is_utf16`                    | 14          |
 | `mjb_string_is_identifier`               | 12          |
 | `mjb_bidi_line_runs`                     | 11          |
-| `mjb_string_encoding`                    | 11          |
-| `mjb_string_is_ascii`                    | 11          |
 | `mjb_truncate`                           | 11          |
 | `mjb_hangul_syllable_name`               | 10          |
+| `mjb_string_encoding`                    | 10          |
+| `mjb_string_is_ascii`                    | 10          |
 | `mjb_string_is_normalized`               | 10          |
 | `mjb_truncate_width`                     | 10          |
 | `mjb_codepoint_script`                   | 9           |
@@ -90,7 +90,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1455106** |
+| **Total**                                | **1469056** |
 
 ## JavaScript
 
