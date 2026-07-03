@@ -21,8 +21,7 @@ static int check_fold(const char *source, size_t source_size, const char *target
 
     char *result = mjb_case(source, source_size, type, MJB_ENCODING_UTF_8);
 
-    // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 3101
+    MJB_TEST_COVERAGE(mjb_case);
     ATT_ASSERT(result, (char*)target, test_name)
 
     if(result != NULL) {
@@ -119,8 +118,7 @@ void *test_case(void *arg) {
     mjb_encoding encoding = MJB_ENCODING_UTF_8;
 
     // Test case conversion functions
-    // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 32
+    MJB_TEST_COVERAGE(mjb_case);
     char *result = NULL;
 
     ATT_ASSERT(mjb_case(NULL, 1, MJB_CASE_UPPER, encoding), (char*)NULL,

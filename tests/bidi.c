@@ -217,8 +217,7 @@ static void read_bidi_test_file(const char *filename) {
             }
         }
 
-        // CURRENT_ASSERT mjb_bidi_resolve
-        // CURRENT_COUNT 91745
+        MJB_TEST_COVERAGE(mjb_bidi_resolve);
         ATT_ASSERT(total, successful, test_name)
 
         mjb_bidi_free(&para);
@@ -259,7 +258,7 @@ void *test_bidi(void *arg) {
     ATT_ASSERT((mjb_bidi_free(&para), (void *)para.chars), (void *)NULL, "free clears chars")
     ATT_ASSERT((mjb_bidi_free(&para), para.count), (size_t)0, "free clears count")
 
-    // CURRENT_ASSERT mjb_bidi_resolve
+    MJB_TEST_COVERAGE(mjb_bidi_resolve);
     const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; /* مرحبا */
     ok = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT(ok, true, "RTL resolve ok")

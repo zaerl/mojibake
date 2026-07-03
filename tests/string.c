@@ -99,8 +99,7 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 2, enc), 1, "UTF-16BE length: Héllö (1 max value)")
 
     // Test case conversion functions
-    // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 20
+    MJB_TEST_COVERAGE(mjb_case);
     char *result = NULL;
 
     // Test uppercase conversion

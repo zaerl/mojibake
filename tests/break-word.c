@@ -32,8 +32,7 @@ void break_word_callback(const char *buffer, size_t size, unsigned int current_l
         }
     }
 
-    // CURRENT_ASSERT mjb_break_word
-    // CURRENT_COUNT 1826
+    MJB_TEST_COVERAGE(mjb_break_word);
     ATT_ASSERT(index, successful_count, test_name)
 }
 

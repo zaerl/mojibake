@@ -101,6 +101,7 @@ static void run_intentional_confusable_file(const char *filename) {
 
         bool ok = mjb_string_is_confusable(left, left_len, right, right_len,
             MJB_ENCODING_UTF_8);
+        MJB_TEST_COVERAGE(mjb_string_is_confusable);
 
         if(!ok) {
             ++failures;
@@ -112,8 +113,6 @@ static void run_intentional_confusable_file(const char *filename) {
                 break;
             }
         } else {
-            // CURRENT_ASSERT mjb_string_is_confusable
-            // CURRENT_COUNT 77
             ATT_ASSERT(0, 0, "intentional.txt confusable pair")
         }
 

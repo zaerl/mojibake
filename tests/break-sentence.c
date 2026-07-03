@@ -32,8 +32,7 @@ void break_sentence_callback(const char *buffer, size_t size, unsigned int curre
         }
     }
 
-    // CURRENT_ASSERT mjb_break_sentence
-    // CURRENT_COUNT 454
+    MJB_TEST_COVERAGE(mjb_break_sentence);
     ATT_ASSERT(index, successful_count, test_name)
 }
 

@@ -9,7 +9,7 @@
 void *test_hangul(void *arg) {
     mjb_character character;
 
-    // CURRENT_ASSERT mjb_hangul_syllable_name
+    MJB_TEST_COVERAGE(mjb_hangul_syllable_name);
     ATT_ASSERT(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, NULL, 128), false,
         "Hangul syllable name rejects NULL buffer")
     ATT_ASSERT(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, character.name, 0), false,
@@ -61,7 +61,7 @@ void *test_hangul(void *arg) {
     ATT_ASSERT(mjb_hangul_syllable_decomposition(0xAC01, NULL), false,
         "Hangul syllable decomposition rejects NULL buffer")
     ATT_ASSERT(mjb_hangul_syllable_decomposition(0xAC01, codepoints), true, "Hangul syllable decomposition")
-    // CURRENT_ASSERT mjb_hangul_syllable_decomposition
+    MJB_TEST_COVERAGE(mjb_hangul_syllable_decomposition);
     ATT_ASSERT(codepoints[0], (mjb_codepoint)0x1100, "Hangul L - Choseong Kiyeok")
     ATT_ASSERT(codepoints[1], (mjb_codepoint)0x1161, "Hangul V - Jungseong A")
     ATT_ASSERT(codepoints[2], (mjb_codepoint)0x11A8, "Hangul T - Jongseong Kiyeok")

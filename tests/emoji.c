@@ -168,14 +168,14 @@ static void run_emoji_test_file(const char *filename) {
             char test_name[128];
             snprintf(test_name, sizeof(test_name), "emoji-test.txt sequence line %u",
                 current_line);
+            MJB_TEST_COVERAGE(mjb_string_emoji_sequence);
             ATT_ASSERT(0, 1, test_name)
 
             if(is_exit_on_error()) {
                 break;
             }
         } else {
-            // CURRENT_ASSERT mjb_string_emoji_sequence
-            // CURRENT_COUNT 5225
+            MJB_TEST_COVERAGE(mjb_string_emoji_sequence);
             ATT_ASSERT(0, 0, "emoji-test.txt sequence entry")
         }
 
@@ -196,14 +196,14 @@ static void run_emoji_test_file(const char *filename) {
             ++codepoint_failures;
             char test_name[128];
             snprintf(test_name, sizeof(test_name), "emoji-test.txt line %u", current_line);
+            MJB_TEST_COVERAGE(mjb_codepoint_emoji);
             ATT_ASSERT(0, 1, test_name)
 
             if(is_exit_on_error()) {
                 break;
             }
         } else {
-            // CURRENT_ASSERT mjb_codepoint_emoji
-            // CURRENT_COUNT 1400
+            MJB_TEST_COVERAGE(mjb_codepoint_emoji);
             ATT_ASSERT(0, 0, "emoji-test.txt single-codepoint entry")
         }
 
@@ -228,14 +228,9 @@ static void assert_emoji_sequence(const char *buffer, size_t size, mjb_emoji_seq
     mjb_emoji_qualification qualification, size_t codepoint_count, const char *name) {
     mjb_emoji_sequence emoji;
 
-    // CURRENT_ASSERT mjb_string_emoji_sequence
-    // CURRENT_COUNT 9
     ATT_ASSERT(mjb_string_emoji_sequence(buffer, size, MJB_ENCODING_UTF_8, &emoji), true, name)
-    // CURRENT_COUNT 9
     ATT_ASSERT((int)emoji.type, (int)type, name)
-    // CURRENT_COUNT 9
     ATT_ASSERT((int)emoji.qualification, (int)qualification, name)
-    // CURRENT_COUNT 9
     ATT_ASSERT(emoji.codepoint_count, codepoint_count, name)
 }
 
@@ -245,7 +240,6 @@ void *test_emoji(void *arg) {
     ATT_ASSERT(mjb_codepoint_emoji(MJB_CODEPOINT_MAX + 1, &emoji), false, "Invalid codepoint")
     ATT_ASSERT(mjb_codepoint_emoji(0x23, NULL), false, "NULL emoji pointer")
 
-    // CURRENT_ASSERT mjb_codepoint_emoji
     ATT_ASSERT(mjb_codepoint_emoji(0x0, &emoji), false, "NULL")
 
     ATT_ASSERT(mjb_codepoint_emoji(0x23, &emoji), true, "U+23: #")

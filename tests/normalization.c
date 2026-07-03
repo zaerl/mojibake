@@ -41,13 +41,12 @@ static bool has_only_latin1(char *source, size_t source_size) {
     return true;
 }
 
-static int check_normalization(char *source, size_t source_size, char *normalized, size_t normalized_size,
-    mjb_normalization form, unsigned int current_line, const char *step) {
+static int check_normalization(char *source, size_t source_size, char *normalized,
+    size_t normalized_size, mjb_normalization form, unsigned int current_line, const char *step) {
     mjb_result result;
     char test_name[128];
 
-    // CURRENT_ASSERT mjb_normalize
-    // CURRENT_COUNT 400680
+    MJB_TEST_COVERAGE(mjb_normalize);
     bool ret = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form, MJB_ENCODING_UTF_8, &result);
 
     if(!ret) {

@@ -257,8 +257,7 @@ static void read_bidi_class_test_file(const char *filename) {
         char test_name[64];
         snprintf(test_name, sizeof(test_name), "BidiTest #%u", current_line);
 
-        // CURRENT_ASSERT mjb_bidi_resolve
-        // CURRENT_COUNT 490846
+        MJB_TEST_COVERAGE(mjb_bidi_resolve);
         ATT_ASSERT(total, successful, test_name)
     }
 

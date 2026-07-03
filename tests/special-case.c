@@ -23,8 +23,7 @@ static int check_case(char *source, size_t source_size, char *target, size_t tar
 
     char *result = mjb_case(source, source_size, type, encoding);
 
-    // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 309
+    MJB_TEST_COVERAGE(mjb_case);
     ATT_ASSERT(result, target, test_name)
 
     if(result != NULL && result != source) {
@@ -38,8 +37,7 @@ static int check_conditional(const char *source, const char *target, mjb_case_ty
     const char *name) {
     char *result = mjb_case(source, strlen(source), type, MJB_ENCODING_UTF_8);
 
-    // CURRENT_ASSERT mjb_case
-    // CURRENT_COUNT 25
+    MJB_TEST_COVERAGE(mjb_case);
     ATT_ASSERT(result, (char*)target, name)
 
     if(result != NULL) {

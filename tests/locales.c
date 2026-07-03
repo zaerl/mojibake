@@ -163,13 +163,11 @@ void *test_locales(void *arg) {
 
         error = MJB_ERROR_INVALID_ARGUMENT;
         snprintf(description, sizeof(description), "Parse RFC 5646 Appendix A valid tag %s", tag);
-        // CURRENT_COUNT 33
         ATT_ASSERT(mjb_locale_parse(tag, strlen(tag), MJB_ENCODING_UTF_8, &locale, &error), true,
             description)
 
         snprintf(description, sizeof(description), "Parse RFC 5646 Appendix A valid tag %s error",
             tag);
-        // CURRENT_COUNT 33
         ATT_ASSERT((unsigned int)error, (unsigned int)MJB_ERROR_NONE, description)
     }
 
@@ -193,13 +191,11 @@ void *test_locales(void *arg) {
         error = MJB_ERROR_NONE;
         snprintf(description, sizeof(description), "Parse RFC 5646 Appendix A invalid tag %s",
             tag);
-        // CURRENT_COUNT 3
         ATT_ASSERT(mjb_locale_parse(tag, strlen(tag), MJB_ENCODING_UTF_8, &locale, &error), false,
             description)
 
         snprintf(description, sizeof(description), "Parse RFC 5646 Appendix A invalid tag %s error",
             tag);
-        // CURRENT_COUNT 3
         ATT_ASSERT((unsigned int)error, (unsigned int)MJB_ERROR_INVALID_ARGUMENT, description)
     }
 

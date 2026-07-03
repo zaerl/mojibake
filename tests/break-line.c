@@ -32,8 +32,7 @@ void break_line_callback(const char *buffer, size_t size, unsigned int current_l
         }
     }
 
-    // CURRENT_ASSERT mjb_break_line
-    // CURRENT_COUNT 19365
+    MJB_TEST_COVERAGE(mjb_break_line);
     ATT_ASSERT(index, successful_count, test_name)
 }
 

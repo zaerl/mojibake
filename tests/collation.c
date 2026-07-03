@@ -101,6 +101,7 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
         if(prev_len > 0) {
             int cmp = mjb_string_compare(prev_utf8, prev_len, curr_utf8, curr_len,
                 MJB_ENCODING_UTF_8, mode);
+            MJB_TEST_COVERAGE(mjb_string_compare);
 
             /* Must be <= 0 (prev collates before or equal to curr) */
             if(cmp > 0) {
@@ -111,8 +112,6 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
 
                 if(is_exit_on_error()) break;
             } else {
-                // CURRENT_ASSERT mjb_string_compare
-                // CURRENT_COUNT 437932
                 ATT_ASSERT(0, 0, "Collation: prev <= curr")
             }
 
