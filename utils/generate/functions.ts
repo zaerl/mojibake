@@ -1249,17 +1249,9 @@ export default [
     wasm: true
   },
   {
-    comment: 'Initialize the library. Not needed to be called',
+    comment: 'Set the library memory functions',
     ret: 'mjb_status',
-    name: 'mjb_initialize',
-    attributes: ['MJB_NODISCARD'],
-    args: [],
-    wasm: false
-  },
-  {
-    comment: 'Initialize the library with custom values. Not needed to be called',
-    ret: 'mjb_status',
-    name: 'mjb_initialize_v2',
+    name: 'mjb_set_memory_functions',
     attributes: ['MJB_NODISCARD'],
     args: [
       {
@@ -1281,7 +1273,7 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: false
   },
   {
     comment: 'Shutdown the library. Not needed to be called',

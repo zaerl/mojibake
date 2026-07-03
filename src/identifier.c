@@ -14,10 +14,6 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_en
         return false;
     }
 
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return false;
-    }
-
     mjb_property start_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_START : MJB_PR_ID_START;
     mjb_property cont_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_CONTINUE : MJB_PR_ID_CONTINUE;
 

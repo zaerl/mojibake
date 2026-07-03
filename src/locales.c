@@ -595,12 +595,6 @@ MJB_EXPORT mjb_status mjb_locale_set(unsigned int locale) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_status status = mjb_initialize();
-
-    if(status != MJB_STATUS_OK) {
-        return status;
-    }
-
     mjb_global.locale = (mjb_locale)locale;
 
     return MJB_STATUS_OK;

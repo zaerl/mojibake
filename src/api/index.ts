@@ -365,10 +365,8 @@ export class Mojibake {
 
   static async create(options?: MojibakeModuleOptions): Promise<Mojibake> {
     const module = await (mojibakeModule as MojibakeModuleFactory)(options);
-    const mojibake = new Mojibake(module);
-    mojibake.initializeV2();
 
-    return mojibake;
+    return new Mojibake(module);
   }
 
   // mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character)
@@ -1200,21 +1198,11 @@ export class Mojibake {
     return this.decodeString(this.module._mjb_unicode_version(), null, Encoding.UTF_8);
   }
 
-  // mjb_status mjb_initialize(void);
-
-  // mjb_status mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
-  //     mjb_free_fn free_fn);
-  initializeV2(): void {
-    const status = this.module._mjb_initialize_v2(0, 0, 0);
-
-    if(status !== Status.OK) {
-      throw new Error(`Failed to initialize Mojibake: ${status}`);
-    }
-  }
-
+  // mjb_status mjb_set_memory_functions(mjb_alloc_fn, mjb_realloc_fn, mjb_free_fn);
   // void mjb_shutdown(void);
   // void *mjb_alloc(size_t size);
   // void *mjb_realloc(void *ptr, size_t new_size);
+  // void *mjb_free(void *ptr);
 
   private struct(ptr: Pointer, view = new DataView(this.module.HEAPU8.buffer)): StructReader {
     return new StructReader(ptr, this.module.HEAPU8, view, this.utf8Decoder);

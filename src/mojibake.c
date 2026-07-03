@@ -9,21 +9,13 @@
 
 #include "mojibake-internal.h"
 
-MJB_EXPORT mojibake mjb_global;
+// Default allocators are valid before any explicit memory-function override.
+MJB_EXPORT mojibake mjb_global = { false, malloc, realloc, free, MJB_LOCALE_EN };
 
-// Initialize the library
-MJB_EXPORT mjb_status mjb_initialize(void) {
-    if(mjb_global.ok) {
-        return MJB_STATUS_OK;
-    }
-
-    return mjb_initialize_v2(malloc, realloc, free);
-}
-
-// Initialize the library with custom values
-MJB_EXPORT mjb_status mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
+// Set the library memory functions.
+MJB_EXPORT mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
     mjb_free_fn free_fn) {
-    if(mjb_global.ok) {
+    if(mjb_global.memory_functions_locked) {
         return MJB_STATUS_OK;
     }
 
@@ -42,29 +34,22 @@ MJB_EXPORT mjb_status mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn re
     mjb_global.memory_alloc = alloc_fn;
     mjb_global.memory_realloc = realloc_fn;
     mjb_global.memory_free = free_fn;
-    mjb_global.ok = true;
-    mjb_global.locale = MJB_LOCALE_EN;
+    mjb_global.memory_functions_locked = true;
 
     return MJB_STATUS_OK;
 }
 
 MJB_EXPORT void mjb_shutdown(void) {
-    if(!mjb_global.ok) {
-        return;
-    }
-
-    mjb_global.ok = false;
-    mjb_global.memory_free = NULL;
-    mjb_global.memory_realloc = NULL;
-    mjb_global.memory_alloc = NULL;
+    mjb_global.memory_functions_locked = false;
+    mjb_global.memory_free = free;
+    mjb_global.memory_realloc = realloc;
+    mjb_global.memory_alloc = malloc;
+    mjb_global.locale = MJB_LOCALE_EN;
 }
 
 // Allocate and zero memory
 MJB_EXPORT void *mjb_alloc(size_t size) {
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return NULL;
-    }
-
+    mjb_global.memory_functions_locked = true;
     void *allocated = mjb_global.memory_alloc(size);
 
     if(allocated) {
@@ -76,18 +61,13 @@ MJB_EXPORT void *mjb_alloc(size_t size) {
 
 // Reallocate memory
 MJB_EXPORT void *mjb_realloc(void *ptr, size_t new_size) {
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return NULL;
-    }
+    mjb_global.memory_functions_locked = true;
 
     return mjb_global.memory_realloc(ptr, new_size);
 }
 
 // Free memory
 MJB_EXPORT void mjb_free(void *ptr) {
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return;
-    }
-
+    mjb_global.memory_functions_locked = true;
     mjb_global.memory_free(ptr);
 }

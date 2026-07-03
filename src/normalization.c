@@ -291,10 +291,6 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encodin
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return MJB_STATUS_UNSUPPORTED;
-    }
-
     if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
         form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
         return MJB_STATUS_INVALID_FORM;

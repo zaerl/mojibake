@@ -120,7 +120,6 @@ ATT_ASSERT(mojibake.localeSet(Locale.EN), true, 'localeSet');
 ATT_ASSERT(mojibake.version(), '0.2.2-WASM', 'version');
 ATT_ASSERT(mojibake.versionNumber(), 34, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '17.0.0', 'unicodeVersion');
-ATT_ASSERT(mojibake.initializeV2(), undefined, 'initializeV2');
 
 const valid = att_get_valid_tests();
 const total = att_get_total_tests();

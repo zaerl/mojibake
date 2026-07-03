@@ -50,20 +50,22 @@ static void test_set_failing_allocator(size_t fail_after) {
     mjb_shutdown();
     fail_alloc_count = 0;
     fail_alloc_after = fail_after;
-    ATT_ASSERT_STATUS(mjb_initialize_v2(test_fail_malloc, test_fail_realloc, test_free),
-        MJB_STATUS_OK, "Initialize failing allocator")
+    ATT_ASSERT_STATUS(mjb_set_memory_functions(test_fail_malloc, test_fail_realloc, test_free),
+        MJB_STATUS_OK, "Set failing allocator")
 }
 
 void *test_mojibake(void *arg) {
     test_counter = 0;
 
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown before initialization")
-    ATT_ASSERT_STATUS(mjb_initialize(), MJB_STATUS_OK, "Default initialize")
-    ATT_ASSERT_STATUS(mjb_initialize(), MJB_STATUS_OK, "Default initialize idempotent")
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown default initialize")
+    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown before memory functions")
+    void *implicit_buffer = NULL;
+    ATT_ASSERT((implicit_buffer = mjb_alloc(1)) != NULL, true, "Default alloc before set")
+    ATT_ASSERT((mjb_free(implicit_buffer), true), true, "Default free before set")
+    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown implicit default memory functions")
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown idempotent")
 
-    ATT_ASSERT_STATUS(mjb_initialize_v2(NULL, NULL, NULL), MJB_STATUS_OK, "Void memory functions")
+    ATT_ASSERT_STATUS(mjb_set_memory_functions(NULL, NULL, NULL), MJB_STATUS_OK,
+        "Void memory functions")
 
     void *default_buffer = NULL;
     ATT_ASSERT((default_buffer = mjb_alloc(1)) != NULL, true, "Default alloc")
@@ -73,8 +75,8 @@ void *test_mojibake(void *arg) {
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown void memory functions")
 
     test_counter = 0;
-    ATT_ASSERT_STATUS(mjb_initialize_v2(test_malloc, test_realloc, test_free), MJB_STATUS_OK,
-        "Valid initialize")
+    ATT_ASSERT_STATUS(mjb_set_memory_functions(test_malloc, test_realloc, test_free), MJB_STATUS_OK,
+        "Set custom memory functions")
     void *buffer = NULL;
     ATT_ASSERT((buffer = mjb_alloc(1)) != NULL, true, "Custom alloc")
     ATT_ASSERT(test_counter, 1, "Custom alloc function")

@@ -54,9 +54,9 @@
 | `mjb_codepoint_is_graphic`               | 5           |
 | `mjb_codepoint_is_id_continue`           | 5           |
 | `mjb_hangul_syllable_decomposition`      | 5           |
+| `mjb_alloc`                              | 4           |
 | `mjb_codepoint_has_property`             | 4           |
 | `mjb_codepoint_is_hangul_jamo`           | 4           |
-| `mjb_alloc`                              | 3           |
 | `mjb_codepoint_is_hangul_l`              | 3           |
 | `mjb_codepoint_is_hangul_t`              | 3           |
 | `mjb_codepoint_is_hangul_v`              | 3           |
@@ -66,9 +66,10 @@
 | `mjb_codepoint_to_lowercase`             | 3           |
 | `mjb_codepoint_to_titlecase`             | 3           |
 | `mjb_codepoint_to_uppercase`             | 3           |
-| `mjb_initialize_v2`                      | 3           |
+| `mjb_free`                               | 3           |
 | `mjb_plane_is_valid`                     | 3           |
 | `mjb_realloc`                            | 3           |
+| `mjb_set_memory_functions`               | 3           |
 | `mjb_string_is_rgi_emoji`                | 3           |
 | `mjb_bidi_free`                          | 2           |
 | `mjb_category_is_combining`              | 2           |
@@ -77,8 +78,6 @@
 | `mjb_codepoint_is_xid_continue`          | 2           |
 | `mjb_codepoint_is_xid_start`             | 2           |
 | `mjb_codepoint_properties`               | 2           |
-| `mjb_free`                               | 2           |
-| `mjb_initialize`                         | 2           |
 | `mjb_property_name`                      | 2           |
 | `mjb_string_is_emoji_sequence`           | 2           |
 | `mjb_codepoint_is_emoji_component`       | 1           |
@@ -137,7 +136,6 @@
 | `Mojibake.collationKey`                    | 1          |
 | `Mojibake.create`                          | 1          |
 | `Mojibake.displayWidth`                    | 1          |
-| `Mojibake.initializeV2`                    | 1          |
 | `Mojibake.localeParse`                     | 1          |
 | `Mojibake.localeSet`                       | 1          |
 | `Mojibake.nextCharacter`                   | 1          |
@@ -167,4 +165,4 @@
 | `Mojibake.unicodeVersion`                  | 1          |
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
-| **Total**                                  | **71**     |
+| **Total**                                  | **70**     |

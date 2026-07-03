@@ -41,7 +41,7 @@
  * This contains the internal state of the library
  */
 typedef struct mojibake {
-    bool ok;
+    bool memory_functions_locked;
     mjb_alloc_fn memory_alloc;
     mjb_realloc_fn memory_realloc;
     mjb_free_fn memory_free;

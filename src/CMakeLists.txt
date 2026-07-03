@@ -141,7 +141,6 @@ if(BUILD_WASM)
         "\"_mjb_version\""
         "\"_mjb_version_number\""
         "\"_mjb_unicode_version\""
-        "\"_mjb_initialize_v2\""
         # Core memory functions
         "\"_malloc\""
         "\"_realloc\""

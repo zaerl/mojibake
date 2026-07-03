@@ -334,10 +334,6 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
         return 0;
     }
 
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return 0;
-    }
-
     mjb_next_state state;
     state.index = 0;
 

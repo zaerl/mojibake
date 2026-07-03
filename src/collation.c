@@ -883,10 +883,6 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_enc
     result->output_size = 0;
     result->transformed = false;
 
-    if(mjb_initialize() != MJB_STATUS_OK) {
-        return MJB_STATUS_UNSUPPORTED;
-    }
-
     mjb_sort_key sk = { 0, 0, 0 };
 
     if(!compute_sort_key(buffer, size, encoding, mode, &sk)) {
@@ -931,10 +927,6 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_enc
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *s2,
     size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode) {
     if((s1 == NULL && s1_length > 0) || (s2 == NULL && s2_length > 0)) {
-        return -1;
-    }
-
-    if(mjb_initialize() != MJB_STATUS_OK) {
         return -1;
     }
 
