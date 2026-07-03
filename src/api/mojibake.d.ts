@@ -141,9 +141,9 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_is_extended_pictographic: (codepoint: Codepoint) => boolean;
   // Return emoji sequence metadata for a complete string
   _mjb_string_emoji_sequence: (buffer: Pointer, size: number, encoding: number, emoji: Pointer) => boolean;
-  // Return true if the complete string is an emoji sequence listed by Unicode
+  // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences
   _mjb_string_is_emoji_sequence: (buffer: Pointer, size: number, encoding: number) => boolean;
-  // Return true if the complete string is an RGI emoji sequence
+  // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences
   _mjb_string_is_rgi_emoji: (buffer: Pointer, size: number, encoding: number) => boolean;
   // Return the east asian width of a codepoint
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => boolean;

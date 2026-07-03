@@ -10,6 +10,7 @@ import { cfns, CFunction } from './html-function';
 export function generateAPI() {
   let fileContent = "## API\n\n";
   fileContent += cfns().map((value: CFunction) => value.formatMD()).join('\n\n');
+  fileContent += "\n";
 
   writeFileSync('../../API.md', fileContent);
 }

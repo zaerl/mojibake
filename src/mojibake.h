@@ -677,12 +677,10 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 // Return emoji sequence metadata for a complete string
 bool mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 
-// Return true if the complete string is an emoji sequence listed by Unicode,
-// including standardized emoji variation sequences
+// Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences
 bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);
 
-// Return true if the complete string is an RGI emoji sequence, excluding plain
-// standardized variation sequences
+// Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences
 bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);
 
 // Return hangul syllable name
