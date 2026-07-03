@@ -135,16 +135,20 @@ void *test_collation(void *arg) {
     /* mjb_collation_key */
     mjb_result ka, kb, kc, kd;
 
-    ATT_ASSERT(mjb_collation_key(NULL, 1, MJB_ENCODING_UTF_8,
-        MJB_COLLATION_NON_IGNORABLE, &ka), false, "Key rejects NULL buffer")
-    ATT_ASSERT(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8,
-        MJB_COLLATION_NON_IGNORABLE, NULL), false, "Key rejects NULL result")
+    ATT_ASSERT_STATUS(mjb_collation_key(NULL, 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &ka), MJB_STATUS_INVALID_ARGUMENT,
+        "Key rejects NULL buffer")
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Key rejects NULL result")
     ATT_ASSERT(mjb_string_compare(NULL, 1, "a", 1, MJB_ENCODING_UTF_8,
         MJB_COLLATION_NON_IGNORABLE), -1, "Compare rejects NULL left")
 
     // Key generation succeeds
-    ATT_ASSERT(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &ka), true, "Key: 'a' succeeds")
-    ATT_ASSERT(mjb_collation_key("b", 1, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kb), true, "Key: 'b' succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &ka), MJB_STATUS_OK, "Key: 'a' succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("b", 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &kb), MJB_STATUS_OK, "Key: 'b' succeeds")
 
     // key("a") < key("b") byte-for-byte
     ATT_ASSERT((int)(ka.output_size > 0), 1, "Key: 'a' non-empty")
@@ -152,8 +156,11 @@ void *test_collation(void *arg) {
     ATT_ASSERT((int)(memcmp(ka.output, kb.output, ka.output_size < kb.output_size ? ka.output_size : kb.output_size) < 0), 1, "Key: 'a' < 'b'")
 
     // Same string -> identical keys
-    ATT_ASSERT(mjb_collation_key("hello", 5, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kc), true, "Key: 'hello' NI succeeds")
-    ATT_ASSERT(mjb_collation_key("hello", 5, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kd), true, "Key: 'hello' NI second succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &kc), MJB_STATUS_OK, "Key: 'hello' NI succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &kd), MJB_STATUS_OK,
+        "Key: 'hello' NI second succeeds")
     ATT_ASSERT((int)(kc.output_size == kd.output_size), 1, "Key: same size")
     ATT_ASSERT((int)(memcmp(kc.output, kd.output, kc.output_size) == 0), 1, "Key: 'hello' == 'hello'")
 
@@ -161,8 +168,10 @@ void *test_collation(void *arg) {
     mjb_free(kd.output);
 
     // NON_IGNORABLE vs SHIFTED differ for strings with variable-weight punctuation
-    ATT_ASSERT(mjb_collation_key("a-b", 3, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kc), true, "Key: 'a-b' NI succeeds")
-    ATT_ASSERT(mjb_collation_key("a-b", 3, MJB_ENCODING_UTF_8, MJB_COLLATION_SHIFTED, &kd), true, "Key: 'a-b' SHIFTED succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &kc), MJB_STATUS_OK, "Key: 'a-b' NI succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENCODING_UTF_8, MJB_COLLATION_SHIFTED,
+        &kd), MJB_STATUS_OK, "Key: 'a-b' SHIFTED succeeds")
     ATT_ASSERT((int)(kc.output_size != kd.output_size || memcmp(kc.output, kd.output, kc.output_size) != 0), 1, "Key: NI != SHIFTED for 'a-b'")
 
     mjb_free(ka.output);
@@ -171,8 +180,10 @@ void *test_collation(void *arg) {
     mjb_free(kd.output);
 
     // Key ordering matches mjb_string_compare
-    ATT_ASSERT(mjb_collation_key("apple", 5, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &ka), true, "Key: 'apple' succeeds")
-    ATT_ASSERT(mjb_collation_key("banana", 6, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kb), true, "Key: 'banana' succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("apple", 5, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &ka), MJB_STATUS_OK, "Key: 'apple' succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &kb), MJB_STATUS_OK, "Key: 'banana' succeeds")
 
     int cmp_direct = mjb_string_compare("apple", 5, "banana", 6, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE);
     size_t min_size = ka.output_size < kb.output_size ? ka.output_size : kb.output_size;

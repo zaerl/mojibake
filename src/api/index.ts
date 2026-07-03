@@ -651,7 +651,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_collation_mode mode, mjb_result *result)
   collationKey(input: MojibakeInput, mode = CollationMode.NON_IGNORABLE,
     options: TextInputOptions = {}): Uint8Array | null {
@@ -660,10 +660,10 @@ export class Mojibake {
     let result: Result | null = null;
 
     try {
-      const ret = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, mode, resultPtr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 
@@ -885,8 +885,8 @@ export class Mojibake {
     }
   }
 
-  // mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction
-  // direction, mjb_bidi_paragraph *result)
+  // mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_direction direction, mjb_bidi_paragraph *result)
   bidiResolve(input: MojibakeInput, direction = Direction.AUTO,
     options: TextInputOptions = {}): BidiParagraph | null {
     const wasmInput = this.copyInput(input, options);
@@ -894,10 +894,10 @@ export class Mojibake {
     let charsPtr = 0;
 
     try {
-      const ret = this.module._mjb_bidi_resolve(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_bidi_resolve(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, direction, resultPtr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 
@@ -921,7 +921,7 @@ export class Mojibake {
   }
 
   // void mjb_bidi_free(mjb_bidi_paragraph *paragraph)
-  // bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t
+  // mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t
   // line_end, size_t *visual_order)
   // bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t
   // count, mjb_bidi_run *runs, size_t *run_count)

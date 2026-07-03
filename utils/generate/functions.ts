@@ -351,9 +351,9 @@ export default [
   },
   {
     comment: 'Generate a UCA sort key for a string',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_collation_key',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to generate the sort key for'),
       size(),
@@ -715,9 +715,9 @@ export default [
   },
   {
     comment: 'Resolve bidirectional text (TR9) for a paragraph',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_bidi_resolve',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The input string'),
       size(),
@@ -754,9 +754,9 @@ export default [
   },
   {
     comment: 'Reorder a line visually (L1-L4); visual_order is caller-allocated',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_bidi_reorder_line',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       {
         name: 'paragraph',

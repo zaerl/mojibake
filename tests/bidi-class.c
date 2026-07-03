@@ -203,8 +203,8 @@ static void read_bidi_class_test_file(const char *filename) {
 
             ++total;
 
-            if(!mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENCODING_UTF_8, directions[d],
-                &para)) {
+            if(mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENCODING_UTF_8, directions[d],
+                &para) != MJB_STATUS_OK) {
                 continue;
             }
 
@@ -240,7 +240,8 @@ static void read_bidi_class_test_file(const char *filename) {
 
                 size_t visual_order[64];
 
-                if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order)) {
+                if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order) ==
+                    MJB_STATUS_OK) {
                     for(size_t v = 0; v < order_count; ++v) {
                         ++total;
 

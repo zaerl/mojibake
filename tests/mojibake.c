@@ -95,8 +95,9 @@ void *test_mojibake(void *arg) {
         "Normalization handles allocation failure")
     ATT_ASSERT(mjb_case("a", 1, MJB_CASE_UPPER, MJB_ENCODING_UTF_8), (char*)NULL,
         "Case conversion handles allocation failure")
-    ATT_ASSERT(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        &result), false, "Collation key handles allocation failure")
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENCODING_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &result), MJB_STATUS_NO_MEMORY,
+        "Collation key handles allocation failure")
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown failing allocator")
 

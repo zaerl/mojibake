@@ -873,10 +873,10 @@ static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
     return 0;
 }
 
-MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_collation_mode mode, mjb_result *result) {
     if(result == NULL || (buffer == NULL && size > 0)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     result->output = NULL;
@@ -884,19 +884,19 @@ MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding 
     result->transformed = false;
 
     if(!mjb_initialize()) {
-        return false;
+        return MJB_STATUS_UNSUPPORTED;
     }
 
     mjb_sort_key sk = { 0, 0, 0 };
 
     if(!compute_sort_key(buffer, size, encoding, mode, &sk)) {
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     if(sk.count > SIZE_MAX / 2) {
         sk_free(&sk);
 
-        return false;
+        return MJB_STATUS_OVERFLOW;
     }
 
     size_t byte_count = sk.count * 2;
@@ -904,14 +904,14 @@ MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding 
     if(byte_count == 0) {
         result->transformed = true;
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     uint8_t *bytes = (uint8_t*)mjb_alloc(byte_count);
 
     if(!bytes) {
         sk_free(&sk);
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     for(size_t i = 0; i < sk.count; ++i) {
@@ -925,7 +925,7 @@ MJB_EXPORT bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding 
     result->output_size = byte_count;
     result->transformed = true;
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *s2,

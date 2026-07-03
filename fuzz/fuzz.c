@@ -319,11 +319,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             mjb_bidi_paragraph para;
             mjb_direction direction = (mjb_direction)(variant % 3);
 
-            if(mjb_bidi_resolve(buffer, size, encoding, direction, &para)) {
+            if(mjb_bidi_resolve(buffer, size, encoding, direction, &para) == MJB_STATUS_OK) {
                 if(para.count > 0 && para.count <= 4096) {
                     size_t visual_order[4096];
 
-                    if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order)) {
+                    if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order) ==
+                        MJB_STATUS_OK) {
                         size_t run_count = 0;
                         mjb_bidi_line_runs(&para, visual_order, para.count, NULL, &run_count);
                     }
@@ -361,7 +362,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 7: // Collation key
             if(mjb_collation_key(buffer, size, encoding,
                 (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
-                &result)) {
+                &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 

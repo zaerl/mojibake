@@ -35,7 +35,8 @@ static void mjbsh_bidi_revolve(const char *input) {
 
     mjb_bidi_paragraph para;
 
-    if(!mjb_bidi_resolve(input, input_size, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para)) {
+    if(mjb_bidi_resolve(input, input_size, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para) !=
+        MJB_STATUS_OK) {
         fprintf(stderr, "bidi: resolution failed\n");
         return;
     }
@@ -45,7 +46,8 @@ static void mjbsh_bidi_revolve(const char *input) {
         : NULL;
 
     if(visual_order) {
-        mjb_bidi_reorder_line(&para, 0, para.count, visual_order);
+        mjb_status reorder_status = mjb_bidi_reorder_line(&para, 0, para.count, visual_order);
+        (void)reorder_status; // Not used.
     }
 
     if(is_json) {

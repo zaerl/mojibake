@@ -540,7 +540,7 @@ MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding 
 int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
 
 // Generate a UCA sort key for a string
-bool mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
+MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
 
 // Change string case
 char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
@@ -621,13 +621,13 @@ size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size
 size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph
-bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
+MJB_NODISCARD mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
 
 // Free a bidi paragraph allocated by mjb_bidi_resolve
 void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 
 // Reorder a line visually (L1-L4); visual_order is caller-allocated
-bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
+MJB_NODISCARD mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
 
 // Compute visual level runs; pass runs=NULL to count first
 bool mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);

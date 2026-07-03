@@ -300,10 +300,10 @@ inline std::string collation_key(std::string_view input,
     }
 
     mjb_result result{};
-    bool success = mjb_collation_key(input.data(), input.size(), MJB_ENCODING_UTF_8, mode,
+    mjb_status status = mjb_collation_key(input.data(), input.size(), MJB_ENCODING_UTF_8, mode,
         &result);
 
-    if(!success) {
+    if(status != MJB_STATUS_OK) {
         throw LibraryError("Collation key generation failed");
     }
 

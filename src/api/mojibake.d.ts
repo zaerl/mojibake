@@ -54,7 +54,7 @@ export type MojibakeWasmModule = {
   // Compare two strings using UCA
   _mjb_string_compare: (s1: Pointer, s1_length: number, s2: Pointer, s2_length: number, encoding: number, mode: number) => number;
   // Generate a UCA sort key for a string
-  _mjb_collation_key: (buffer: Pointer, size: number, encoding: number, mode: number, result: Pointer) => boolean;
+  _mjb_collation_key: (buffer: Pointer, size: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case
   _mjb_case: (buffer: Pointer, size: number, type: number, encoding: number) => Pointer;
   // Return true if the codepoint is valid
@@ -100,7 +100,7 @@ export type MojibakeWasmModule = {
   // Return the number of bytes whose grapheme clusters fit within max_columns display columns
   _mjb_truncate_width: (buffer: Pointer, size: number, encoding: number, context: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph
-  _mjb_bidi_resolve: (buffer: Pointer, size: number, encoding: number, direction: number, result: Pointer) => boolean;
+  _mjb_bidi_resolve: (buffer: Pointer, size: number, encoding: number, direction: number, result: Pointer) => number;
   // Return the plane of the codepoint
   _mjb_codepoint_plane: (codepoint: Codepoint) => number;
   // Return true if the plane is valid

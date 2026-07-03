@@ -1162,14 +1162,14 @@ static void pass6_implicit(mjb_bidi_work *work, size_t count) {
 }
 
 // Resolve bidirectional text (TR9) for a paragraph.
-MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_direction direction, mjb_bidi_paragraph *result) {
     if(result == NULL || (buffer == NULL && size > 0)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(!mjb_initialize()) {
-        return false;
+        return MJB_STATUS_UNSUPPORTED;
     }
 
     result->chars = NULL;
@@ -1178,18 +1178,18 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
     result->direction = MJB_DIRECTION_LTR;
 
     if(size == 0) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     // Upper bound: size bytes cannot produce more than size codepoints.
     if(size > SIZE_MAX / sizeof(mjb_bidi_work)) {
-        return false;
+        return MJB_STATUS_OVERFLOW;
     }
 
     mjb_bidi_work *work = (mjb_bidi_work *)mjb_alloc(size * sizeof(mjb_bidi_work));
 
     if(!work) {
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     uint8_t para_level = 0;
@@ -1200,7 +1200,7 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
     if(count == 0) {
         mjb_free(work);
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     // Pass 2.
@@ -1302,7 +1302,7 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
         if(out_count > SIZE_MAX / sizeof(mjb_bidi_char)) {
             mjb_free(work);
 
-            return false;
+            return MJB_STATUS_OVERFLOW;
         }
 
         out = (mjb_bidi_char *)mjb_alloc(out_count * sizeof(mjb_bidi_char));
@@ -1310,7 +1310,7 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
         if(!out) {
             mjb_free(work);
 
-            return false;
+            return MJB_STATUS_NO_MEMORY;
         }
 
         size_t k = 0;
@@ -1341,7 +1341,7 @@ MJB_EXPORT bool mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding e
     result->paragraph_level = para_level;
     result->direction = (para_level & 1) ? MJB_DIRECTION_RTL : MJB_DIRECTION_LTR;
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 // Free a bidi paragraph allocated by mjb_bidi_resolve.
@@ -1359,12 +1359,12 @@ MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph) {
 }
 
 // Reorder a line visually (L1-L4); visual_order is caller-allocated.
-MJB_EXPORT bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
+MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
     size_t line_start, size_t line_end, size_t *visual_order) {
     if(paragraph == NULL || visual_order == NULL ||
         (paragraph->chars == NULL && paragraph->count > 0) ||
         line_start >= line_end || line_end > paragraph->count) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     size_t n = line_end - line_start;
@@ -1395,7 +1395,7 @@ MJB_EXPORT bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
     uint8_t *levels = (uint8_t *)mjb_alloc(n * sizeof(uint8_t));
 
     if(!levels) {
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     for(size_t i = 0; i < n; ++i) {
@@ -1421,7 +1421,7 @@ MJB_EXPORT bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
     if(min_odd == 255) {
         mjb_free(levels);
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     for(uint8_t lv = max_level; lv >= min_odd; --lv) {
@@ -1458,7 +1458,7 @@ MJB_EXPORT bool mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
 
     mjb_free(levels);
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 // Compute visual level runs; pass runs=NULL to count first.
