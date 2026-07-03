@@ -24,14 +24,14 @@ static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint8_t unit
             // High surrogate (U+D800 to U+DBFF). Expect low surrogate next
             *cpp = (uint32_t)(unit & 0x3FF) << 10;
 
-            return MJB_UTF_REJECT;
+            return MJB_UTF_PENDING_SURROGATE;
         } else {
             // Low surrogate without high surrogate
             *cpp = MJB_CODEPOINT_REPLACEMENT;
 
-            return 2;
+            return MJB_UTF_REJECT;
         }
-    } else if(state == MJB_UTF_REJECT) {
+    } else if(state == MJB_UTF_PENDING_SURROGATE) {
         // Expecting low surrogate
         if(unit >= 0xDC00 && unit <= 0xDFFF) {
             // Valid low surrogate
@@ -41,12 +41,12 @@ static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint8_t unit
         } else {
             *cpp = MJB_CODEPOINT_REPLACEMENT;
 
-            return 2;
+            return MJB_UTF_REJECT;
         }
     }
 
     // Invalid state
     *cpp = MJB_CODEPOINT_REPLACEMENT;
 
-    return 2;
+    return MJB_UTF_REJECT;
 }

@@ -28,6 +28,10 @@ typedef enum {
     MJB_DECODE_ERROR       // Invalid sequence (codepoint set to MJB_CODEPOINT_REPLACEMENT "�")
 } mjb_decode_result;
 
+static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
+    return state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT;
+}
+
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
     if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENCODING_ASCII) {
@@ -88,7 +92,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
     bool *in_error) {
     if(*index >= size) {
         // Check if we have an incomplete sequence at end of buffer
-        if(*state != MJB_UTF_ACCEPT && *state != MJB_UTF_REJECT) {
+        if(mjb_utf_state_is_incomplete(*state)) {
             *codepoint = MJB_CODEPOINT_REPLACEMENT;
             *state = MJB_UTF_ACCEPT;
 
@@ -102,7 +106,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
 
     if(!mjb_decode_step(buffer, size, state, index, encoding, codepoint)) {
         // Check if we have an incomplete sequence at end
-        if(*state != MJB_UTF_ACCEPT && *state != MJB_UTF_REJECT) {
+        if(mjb_utf_state_is_incomplete(*state)) {
             *codepoint = MJB_CODEPOINT_REPLACEMENT;
             *state = MJB_UTF_ACCEPT;
 

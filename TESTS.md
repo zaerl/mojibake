@@ -10,7 +10,7 @@
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_break_line`                         | 18794       |
 | `mjb_string_emoji_sequence`              | 5266        |
-| `mjb_case`                               | 3489        |
+| `mjb_case`                               | 3492        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
 | `mjb_segmentation`                       | 715         |
@@ -19,7 +19,7 @@
 | `mjb_locale_parse`                       | 120         |
 | `mjb_codepoint_encode`                   | 105         |
 | `mjb_string_is_confusable`               | 100         |
-| `mjb_string_convert_encoding`            | 88          |
+| `mjb_string_convert_encoding`            | 95          |
 | `mjb_codepoint_character`                | 81          |
 | `mjb_strnlen`                            | 70          |
 | `mjb_display_width`                      | 48          |
@@ -46,10 +46,10 @@
 | `mjb_truncate_word`                      | 8           |
 | `mjb_codepoint_is_cjk_ideograph`         | 7           |
 | `mjb_codepoint_property`                 | 7           |
+| `mjb_shutdown`                           | 7           |
 | `mjb_truncate_word_width`                | 7           |
 | `mjb_codepoint_is_id_start`              | 6           |
 | `mjb_next_character`                     | 6           |
-| `mjb_shutdown`                           | 6           |
 | `mjb_codepoint_is_combining`             | 5           |
 | `mjb_codepoint_is_graphic`               | 5           |
 | `mjb_codepoint_is_id_continue`           | 5           |
@@ -57,6 +57,7 @@
 | `mjb_alloc`                              | 4           |
 | `mjb_codepoint_has_property`             | 4           |
 | `mjb_codepoint_is_hangul_jamo`           | 4           |
+| `mjb_set_memory_functions`               | 4           |
 | `mjb_codepoint_is_hangul_l`              | 3           |
 | `mjb_codepoint_is_hangul_t`              | 3           |
 | `mjb_codepoint_is_hangul_v`              | 3           |
@@ -69,7 +70,6 @@
 | `mjb_free`                               | 3           |
 | `mjb_plane_is_valid`                     | 3           |
 | `mjb_realloc`                            | 3           |
-| `mjb_set_memory_functions`               | 3           |
 | `mjb_string_is_rgi_emoji`                | 3           |
 | `mjb_bidi_free`                          | 2           |
 | `mjb_category_is_combining`              | 2           |
@@ -89,7 +89,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560795** |
+| **Total**                                | **1560807** |
 
 ## JavaScript
 

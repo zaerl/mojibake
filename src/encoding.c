@@ -154,7 +154,7 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     for(size_t i = 0; i < size; i += 2) {
         state_be = mjb_utf16_decode_step(state_be, buffer[i], buffer[i + 1], &codepoint, true);
 
-        if(state_be > MJB_UTF_REJECT) {
+        if(state_be == MJB_UTF_REJECT) {
             be_valid = false;  // Error in UTF-16BE
             break;
         }
@@ -171,7 +171,7 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     for(size_t i = 0; i < size; i += 2) {
         state_le = mjb_utf16_decode_step(state_le, buffer[i], buffer[i + 1], &codepoint, false);
 
-        if(state_le > MJB_UTF_REJECT) {
+        if(state_le == MJB_UTF_REJECT) {
             le_valid = false;  // Error in UTF-16LE
             break;
         }

@@ -343,6 +343,27 @@ void *test_encoding(void *arg) {
         MJB_ENCODING_ASCII, &ascii_result), MJB_STATUS_UNSUPPORTED,
         "Convert UTF-8 non-ASCII text to ASCII")
 
+    const char utf16le_smile[] = { '\x3D', '\xD8', '\x42', '\xDE' };
+    const char utf16be_smile[] = { '\xD8', '\x3D', '\xDE', '\x42' };
+
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_smile, sizeof(utf16le_smile),
+        MJB_ENCODING_UTF_16_LE, MJB_ENCODING_UTF_8, &ascii_result), MJB_STATUS_OK,
+        "Convert UTF-16LE surrogate pair to UTF-8")
+    ATT_ASSERT(ascii_result.output_size, (size_t)4,
+        "Convert UTF-16LE surrogate pair to UTF-8 size")
+    ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
+        "Convert UTF-16LE surrogate pair to UTF-8 output")
+    mjb_free(ascii_result.output);
+
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16be_smile, sizeof(utf16be_smile),
+        MJB_ENCODING_UTF_16_BE, MJB_ENCODING_UTF_8, &ascii_result), MJB_STATUS_OK,
+        "Convert UTF-16BE surrogate pair to UTF-8")
+    ATT_ASSERT(ascii_result.output_size, (size_t)4,
+        "Convert UTF-16BE surrogate pair to UTF-8 size")
+    ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
+        "Convert UTF-16BE surrogate pair to UTF-8 output")
+    mjb_free(ascii_result.output);
+
     MJB_TEST_COVERAGE(mjb_string_convert_encoding);
     for(size_t from = 0; from < 5; ++from) {
         for(size_t to = 0; to < 5; ++to) {

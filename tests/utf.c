@@ -80,6 +80,54 @@ void *test_utf(void *arg) {
     ATT_ASSERT((int)state, (int)MJB_UTF_ACCEPT, "UTF-16LE: MJB_UTF_ACCEPT")
     ATT_ASSERT(index, 2, "UTF-16LE: index 2")
 
+    const char *buffer_utf16be_emoji = "\xD8\x3D\xDE\x42";
+    state = MJB_UTF_ACCEPT;
+    index = 0;
+    in_error = false;
+    codepoint = 0;
+
+    result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index,
+        MJB_ENCODING_UTF_16_BE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE,
+        "UTF-16BE surrogate: high surrogate incomplete")
+    ATT_ASSERT((int)state, (int)MJB_UTF_PENDING_SURROGATE,
+        "UTF-16BE surrogate: pending state")
+    ATT_ASSERT(index, 2, "UTF-16BE surrogate: index 2")
+
+    result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index,
+        MJB_ENCODING_UTF_16_BE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16BE surrogate: MJB_DECODE_OK")
+    ATT_ASSERT(codepoint, 0x1F642, "UTF-16BE surrogate: U+1F642")
+    ATT_ASSERT((int)state, (int)MJB_UTF_ACCEPT, "UTF-16BE surrogate: MJB_UTF_ACCEPT")
+    ATT_ASSERT(index, 4, "UTF-16BE surrogate: index 4")
+    ATT_ASSERT(in_error, false, "UTF-16BE surrogate: not error state")
+
+    const char *buffer_utf16le_emoji = "\x3D\xD8\x42\xDE";
+    state = MJB_UTF_ACCEPT;
+    index = 0;
+    in_error = false;
+    codepoint = 0;
+
+    result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index,
+        MJB_ENCODING_UTF_16_LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE,
+        "UTF-16LE surrogate: high surrogate incomplete")
+    ATT_ASSERT((int)state, (int)MJB_UTF_PENDING_SURROGATE,
+        "UTF-16LE surrogate: pending state")
+    ATT_ASSERT(index, 2, "UTF-16LE surrogate: index 2")
+
+    result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index,
+        MJB_ENCODING_UTF_16_LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16LE surrogate: MJB_DECODE_OK")
+    ATT_ASSERT(codepoint, 0x1F642, "UTF-16LE surrogate: U+1F642")
+    ATT_ASSERT((int)state, (int)MJB_UTF_ACCEPT, "UTF-16LE surrogate: MJB_UTF_ACCEPT")
+    ATT_ASSERT(index, 4, "UTF-16LE surrogate: index 4")
+    ATT_ASSERT(in_error, false, "UTF-16LE surrogate: not error state")
+
     // Truncated trailing units must terminate decoding (one replacement, then end), not loop.
     ATT_ASSERT(mjb_strnlen("A\0B", 3, MJB_ENCODING_UTF_16_BE), 2,
         "UTF-16BE: truncated trailing unit ends decoding")

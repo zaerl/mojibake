@@ -169,7 +169,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
         last_was_whitespace = is_whitespace;
     }
 
-    if(state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT) {
+    if(mjb_utf_state_is_incomplete(state)) {
         // Incomplete multibyte sequence at end of string
         if(!in_error) {
             char *new_output = mjb_string_output_codepoint(MJB_CODEPOINT_REPLACEMENT, output,
