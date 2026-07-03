@@ -15,7 +15,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return MJB_STATUS_UNSUPPORTED;
     }
 

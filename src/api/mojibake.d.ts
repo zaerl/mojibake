@@ -150,9 +150,9 @@ export type MojibakeWasmModule = {
   // Return the display width of a string
   _mjb_display_width: (buffer: Pointer, size: number, encoding: number, context: number, width: Pointer) => number;
   // Parse a BCP 47 language tag
-  _mjb_locale_parse: (id: Pointer, size: number, encoding: number, locale: Pointer, error: Pointer) => boolean;
+  _mjb_locale_parse: (id: Pointer, size: number, encoding: number, locale: Pointer, error: Pointer) => number;
   // Set current locale
-  _mjb_locale_set: (locale: number) => boolean;
+  _mjb_locale_set: (locale: number) => number;
   // Output the current library version (MJB_VERSION)
   _mjb_version: () => Pointer;
   // Output the current library version number (MJB_VERSION_NUMBER)

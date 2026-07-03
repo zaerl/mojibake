@@ -1078,9 +1078,9 @@ export default [
   },
   {
     comment: 'Return hangul syllable name',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_hangul_syllable_name',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {
@@ -1095,7 +1095,7 @@ export default [
   },
   {
     comment: 'Hangul syllable decomposition',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_hangul_syllable_decomposition',
     attributes: ['MJB_NODISCARD'],
     args: [
@@ -1172,9 +1172,9 @@ export default [
   },
   {
     comment: 'Parse a BCP 47 language tag',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_locale_parse',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       {
         name: 'id',
@@ -1211,9 +1211,9 @@ export default [
   },
   {
     comment: 'Set current locale',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_locale_set',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       {
         name: 'locale',
@@ -1250,7 +1250,7 @@ export default [
   },
   {
     comment: 'Initialize the library. Not needed to be called',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_initialize',
     attributes: ['MJB_NODISCARD'],
     args: [],

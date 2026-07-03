@@ -27,9 +27,14 @@ static const char* mjb_jongseong_names[] = {
 };
 
 // Return hangul syllable name
-MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size) {
-    if(buffer == NULL || size == 0 || !mjb_codepoint_is_hangul_syllable(codepoint)) {
-        return false;
+MJB_EXPORT mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer,
+    size_t size) {
+    if(buffer == NULL || size == 0) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
+        return MJB_STATUS_NOT_FOUND;
     }
 
     unsigned int s_index = codepoint - MJB_CP_HANGUL_S_BASE;
@@ -41,14 +46,18 @@ MJB_EXPORT bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, 
     snprintf(buffer, size, "HANGUL SYLLABLE %s%s%s", mjb_choseong_names[l_index],
         mjb_jungseong_names[v_index], mjb_jongseong_names[t_index]);
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 // Hangul syllable decomposition
-MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
+MJB_EXPORT mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
     mjb_codepoint *codepoints) {
-    if(codepoints == NULL || !mjb_codepoint_is_hangul_syllable(codepoint)) {
-        return false;
+    if(codepoints == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_codepoint_is_hangul_syllable(codepoint)) {
+        return MJB_STATUS_NOT_FOUND;
     }
 
     unsigned int s_index = codepoint - MJB_CP_HANGUL_S_BASE;
@@ -66,7 +75,7 @@ MJB_EXPORT bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
         codepoints[2] = 0;
     }
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters,

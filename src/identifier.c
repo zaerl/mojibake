@@ -14,7 +14,7 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_en
         return false;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return false;
     }
 

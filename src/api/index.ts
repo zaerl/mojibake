@@ -1111,8 +1111,9 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size)
-  // bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints)
+  // mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size)
+  // mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
+  // mjb_codepoint *codepoints)
   // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)
 
   // mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
@@ -1155,8 +1156,8 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id
-  // *locale, mjb_error *error);
+  // mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
+  // mjb_locale_id *locale, mjb_error *error);
   localeParse(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
     const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
     const wasmInput = this.copyInput(id, options);
@@ -1164,10 +1165,10 @@ export class Mojibake {
     const errorPtr = this.malloc(4);
 
     try {
-      const result = this.module._mjb_locale_parse(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_locale_parse(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, localePtr, errorPtr);
 
-      if(result) {
+      if(status === Status.OK) {
         return this.pointerToLocaleId(localePtr);
       }
 
@@ -1179,9 +1180,9 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_locale_set(unsigned int locale);
+  // mjb_status mjb_locale_set(unsigned int locale);
   localeSet(locale: number): boolean {
-    return this.module._mjb_locale_set(locale) ? true : false;
+    return this.module._mjb_locale_set(locale) === Status.OK;
   }
 
   // const char *mjb_version(void);
@@ -1199,7 +1200,7 @@ export class Mojibake {
     return this.decodeString(this.module._mjb_unicode_version(), null, Encoding.UTF_8);
   }
 
-  // bool mjb_initialize(void);
+  // mjb_status mjb_initialize(void);
 
   // bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
   initializeV2(): void {

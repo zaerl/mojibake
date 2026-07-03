@@ -35,7 +35,8 @@ int mjbsh_locale_command(int argc, char * const argv[], unsigned int flags) {
     mjb_locale_id locale;
     mjb_error error = MJB_ERROR_NONE;
 
-    if(!mjb_locale_parse(input, strlen(input), MJB_ENCODING_UTF_8, &locale, &error)) {
+    if(mjb_locale_parse(input, strlen(input), MJB_ENCODING_UTF_8, &locale, &error) !=
+        MJB_STATUS_OK) {
         fprintf(stderr, "locale: could not parse BCP 47 language tag: %s\n",
             mjbsh_locale_error_name(error));
 

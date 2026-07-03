@@ -883,7 +883,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_enc
     result->output_size = 0;
     result->transformed = false;
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return MJB_STATUS_UNSUPPORTED;
     }
 
@@ -934,7 +934,7 @@ MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *
         return -1;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return -1;
     }
 

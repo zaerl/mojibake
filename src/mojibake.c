@@ -12,16 +12,16 @@
 MJB_EXPORT mojibake mjb_global;
 
 // Initialize the library
-MJB_EXPORT bool mjb_initialize(void) {
+MJB_EXPORT mjb_status mjb_initialize(void) {
     if(mjb_global.ok) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     if(mjb_initialize_v2(malloc, realloc, free)) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
-    return false;
+    return MJB_STATUS_UNSUPPORTED;
 }
 
 // Initialize the library with custom values
@@ -65,7 +65,7 @@ MJB_EXPORT void mjb_shutdown(void) {
 
 // Allocate and zero memory
 MJB_EXPORT void *mjb_alloc(size_t size) {
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return NULL;
     }
 
@@ -80,7 +80,7 @@ MJB_EXPORT void *mjb_alloc(size_t size) {
 
 // Reallocate memory
 MJB_EXPORT void *mjb_realloc(void *ptr, size_t new_size) {
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return NULL;
     }
 
@@ -89,7 +89,7 @@ MJB_EXPORT void *mjb_realloc(void *ptr, size_t new_size) {
 
 // Free memory
 MJB_EXPORT void mjb_free(void *ptr) {
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return;
     }
 

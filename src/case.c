@@ -460,7 +460,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         return (char*)buffer;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return NULL;
     }
 

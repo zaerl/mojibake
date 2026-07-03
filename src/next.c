@@ -23,7 +23,7 @@ MJB_EXPORT mjb_status mjb_next_character(const char *buffer, size_t size, mjb_en
     }
 #endif
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return MJB_STATUS_UNSUPPORTED;
     }
 

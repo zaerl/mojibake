@@ -285,7 +285,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ, MJB_LOCALE_LT
     };
 
-    if(!mjb_locale_set(locales[(variant >> 3) % 4])) {
+    if(mjb_locale_set(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
         return 0;
     }
 
@@ -409,7 +409,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 13: { // BCP 47 locale parsing
             mjb_locale_id locale;
             mjb_error error;
-            mjb_locale_parse(buffer, size, encoding, &locale, &error);
+            mjb_status locale_status = mjb_locale_parse(buffer, size, encoding, &locale,
+                &error);
+            fuzz_sink += (size_t)locale_status;
             break;
         }
 

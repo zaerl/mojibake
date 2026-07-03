@@ -423,13 +423,13 @@ bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encod
 Return hangul syllable name
 
 ```c
-bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
 ```
 
 Hangul syllable decomposition
 
 ```c
-bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 ```
 
 Hangul syllable composition
@@ -453,13 +453,13 @@ mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encod
 Parse a BCP 47 language tag
 
 ```c
-bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
+mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
 ```
 
 Set current locale
 
 ```c
-bool mjb_locale_set(unsigned int locale);
+mjb_status mjb_locale_set(unsigned int locale);
 ```
 
 Output the current library version (MJB_VERSION)
@@ -483,7 +483,7 @@ const char *mjb_unicode_version(void);
 Initialize the library. Not needed to be called
 
 ```c
-bool mjb_initialize(void);
+mjb_status mjb_initialize(void);
 ```
 
 Initialize the library with custom values. Not needed to be called

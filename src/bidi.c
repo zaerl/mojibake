@@ -1168,7 +1168,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_enco
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return MJB_STATUS_UNSUPPORTED;
     }
 

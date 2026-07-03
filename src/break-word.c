@@ -435,7 +435,7 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_e
         return 0;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return 0;
     }
 

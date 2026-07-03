@@ -55,7 +55,9 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 
     if(mjb_codepoint_is_hangul_syllable(codepoint)) {
         // Hangul syllable
-        mjb_hangul_syllable_name(codepoint, character->name, 128);
+        if(mjb_hangul_syllable_name(codepoint, character->name, 128) != MJB_STATUS_OK) {
+            return false;
+        }
     } else if(mjb_codepoint_is_cjk_ideograph(codepoint)) {
         format = "CJK UNIFIED IDEOGRAPH-%X";
     } else if(

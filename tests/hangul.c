@@ -10,32 +10,43 @@ void *test_hangul(void *arg) {
     mjb_character character;
 
     MJB_TEST_COVERAGE(mjb_hangul_syllable_name);
-    ATT_ASSERT(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, NULL, 128), false,
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, NULL, 128),
+        MJB_STATUS_INVALID_ARGUMENT,
         "Hangul syllable name rejects NULL buffer")
-    ATT_ASSERT(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, character.name, 0), false,
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, character.name, 0),
+        MJB_STATUS_INVALID_ARGUMENT,
         "Hangul syllable name rejects zero buffer size")
-    mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE, character.name, 128),
+        MJB_STATUS_OK, "First syllable name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE GA", "First syllable")
 
-    mjb_hangul_syllable_name(0xAC01, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(0xAC01, character.name, 128),
+        MJB_STATUS_OK, "GAG name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE GAG", "GAG")
 
-    mjb_hangul_syllable_name(0xB155, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(0xB155, character.name, 128),
+        MJB_STATUS_OK, "NYEONG name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE NYEONG", "NYEONG")
 
-    mjb_hangul_syllable_name(0xC1A4, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(0xC1A4, character.name, 128),
+        MJB_STATUS_OK, "SOK name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE SOK", "SOK")
 
-    mjb_hangul_syllable_name(0xCE59, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(0xCE59, character.name, 128),
+        MJB_STATUS_OK, "CIG name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE CIG", "CIG")
 
-    mjb_hangul_syllable_name(0xCE58, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(0xCE58, character.name, 128),
+        MJB_STATUS_OK, "CI name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE CI", "CI")
 
-    mjb_hangul_syllable_name(0xD3C9, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(0xD3C9, character.name, 128),
+        MJB_STATUS_OK, "PYEONG name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE PYEONG", "PYEONG")
 
-    mjb_hangul_syllable_name(MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1, character.name, 128);
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_name(
+        MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1, character.name, 128),
+        MJB_STATUS_OK, "Last syllable name")
     ATT_ASSERT((char*)character.name, (char*)"HANGUL SYLLABLE HIH", "Last syllable")
 
     ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CP_HANGUL_S_BASE), true, "Hangul start")
@@ -58,9 +69,11 @@ void *test_hangul(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_hangul_t(0x1100), false, "Not a Hangul T")
 
     mjb_codepoint codepoints[3];
-    ATT_ASSERT(mjb_hangul_syllable_decomposition(0xAC01, NULL), false,
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_decomposition(0xAC01, NULL),
+        MJB_STATUS_INVALID_ARGUMENT,
         "Hangul syllable decomposition rejects NULL buffer")
-    ATT_ASSERT(mjb_hangul_syllable_decomposition(0xAC01, codepoints), true, "Hangul syllable decomposition")
+    ATT_ASSERT_STATUS(mjb_hangul_syllable_decomposition(0xAC01, codepoints),
+        MJB_STATUS_OK, "Hangul syllable decomposition")
     MJB_TEST_COVERAGE(mjb_hangul_syllable_decomposition);
     ATT_ASSERT(codepoints[0], (mjb_codepoint)0x1100, "Hangul L - Choseong Kiyeok")
     ATT_ASSERT(codepoints[1], (mjb_codepoint)0x1161, "Hangul V - Jungseong A")

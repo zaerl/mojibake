@@ -699,10 +699,10 @@ bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding 
 bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);
 
 // Return hangul syllable name
-bool mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+MJB_NODISCARD mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
 
 // Hangul syllable decomposition
-MJB_NODISCARD bool mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+MJB_NODISCARD mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
 // Hangul syllable composition
 size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
@@ -714,10 +714,10 @@ MJB_NODISCARD mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
 MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 
 // Parse a BCP 47 language tag
-bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
+MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
 
 // Set current locale
-bool mjb_locale_set(unsigned int locale);
+MJB_NODISCARD mjb_status mjb_locale_set(unsigned int locale);
 
 // Output the current library version (MJB_VERSION)
 MJB_CONST const char *mjb_version(void);
@@ -729,7 +729,7 @@ MJB_CONST unsigned int mjb_version_number(void);
 MJB_CONST const char *mjb_unicode_version(void);
 
 // Initialize the library. Not needed to be called
-MJB_NODISCARD bool mjb_initialize(void);
+MJB_NODISCARD mjb_status mjb_initialize(void);
 
 // Initialize the library with custom values. Not needed to be called
 MJB_NODISCARD bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);

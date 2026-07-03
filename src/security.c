@@ -49,7 +49,7 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
         return true;
     }
 
-    if(!mjb_initialize()) {
+    if(mjb_initialize() != MJB_STATUS_OK) {
         return false;
     }
 

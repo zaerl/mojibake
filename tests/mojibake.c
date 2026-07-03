@@ -58,8 +58,8 @@ void *test_mojibake(void *arg) {
     test_counter = 0;
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown before initialization")
-    ATT_ASSERT(mjb_initialize(), true, "Default initialize")
-    ATT_ASSERT(mjb_initialize(), true, "Default initialize idempotent")
+    ATT_ASSERT_STATUS(mjb_initialize(), MJB_STATUS_OK, "Default initialize")
+    ATT_ASSERT_STATUS(mjb_initialize(), MJB_STATUS_OK, "Default initialize idempotent")
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown default initialize")
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown idempotent")
 

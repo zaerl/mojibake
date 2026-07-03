@@ -50,7 +50,7 @@ static int check_conditional(const char *source, const char *target, mjb_case_ty
 // Conditional mappings [SpecialCasing.txt, "Conditional Mappings" section]. The data lines are
 // single codepoints, so the context each condition tests is written by hand here.
 static void test_conditional_case(void) {
-    mjb_locale_set(MJB_LOCALE_EN);
+    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
 
     // Final_Sigma, language-insensitive.
     check_conditional("\xCE\xA3", "\xCF\x83", MJB_CASE_LOWER,
@@ -65,7 +65,7 @@ static void test_conditional_case(void) {
         "Final_Sigma: apostrophe is case-ignorable");
 
     // Turkish: İ/i and I/ı case pairs.
-    mjb_locale_set(MJB_LOCALE_TR);
+    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
     check_conditional("ISPARTA", "\xC4\xB1sparta", MJB_CASE_LOWER,
         "tr lower: I -> ı when not before dot above");
     check_conditional("\xC4\xB0STANBUL", "istanbul", MJB_CASE_LOWER, "tr lower: İ -> i");
@@ -80,12 +80,12 @@ static void test_conditional_case(void) {
         "tr title: word-initial I kept, in-word I -> ı");
 
     // Azerbaijani follows the same rules.
-    mjb_locale_set(MJB_LOCALE_AZ);
+    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_AZ), MJB_STATUS_OK, "Set locale az")
     check_conditional("i", "\xC4\xB0", MJB_CASE_UPPER, "az upper: i -> İ");
     check_conditional("\xC4\xB0", "i", MJB_CASE_LOWER, "az lower: İ -> i");
 
     // Lithuanian: retain the dot in a lowercase i/j when followed by accents above.
-    mjb_locale_set(MJB_LOCALE_LT);
+    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_LT), MJB_STATUS_OK, "Set locale lt")
     check_conditional("I\xCC\x80", "i\xCC\x87\xCC\x80", MJB_CASE_LOWER,
         "lt lower: I gains dot above when more accents above");
     check_conditional("J\xCC\x83", "j\xCC\x87\xCC\x83", MJB_CASE_LOWER,
@@ -102,7 +102,7 @@ static void test_conditional_case(void) {
     check_conditional("i\xCC\x87", "I", MJB_CASE_UPPER, "lt upper: i + dot above -> I");
 
     // The language-sensitive rules must not leak into other locales.
-    mjb_locale_set(MJB_LOCALE_EN);
+    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
     check_conditional("I\xCC\x87", "i\xCC\x87", MJB_CASE_LOWER,
         "en lower: dot above kept after I");
     check_conditional("I\xCC\x80", "i\xCC\x80", MJB_CASE_LOWER,

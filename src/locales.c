@@ -513,7 +513,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
 
 // Parses a BCP 47 language tag and returns the corresponding locale ID.
 // language[-script][-region][-variant...][-extension...][-x-private...]
-MJB_EXPORT bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
     mjb_locale_id *locale, mjb_error *error) {
     if(error != NULL) {
         *error = MJB_ERROR_NONE;
@@ -524,7 +524,7 @@ MJB_EXPORT bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encod
             *error = MJB_ERROR_INVALID_ARGUMENT;
         }
 
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     const char *ascii_id = id;
@@ -538,29 +538,43 @@ MJB_EXPORT bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encod
                 *error = MJB_ERROR_INVALID_ARGUMENT;
             }
 
-            return false;
+            return MJB_STATUS_INVALID_ARGUMENT;
         }
     } else if(encoding == MJB_ENCODING_UTF_8 && mjb_string_is_ascii(id, size)) {
         // Already suitable for the byte-oriented locale parser.
-    } else if(mjb_string_convert_encoding(id, size, encoding, MJB_ENCODING_ASCII, &converted) !=
-        MJB_STATUS_OK) {
+    } else {
+        mjb_status status = mjb_string_convert_encoding(id, size, encoding, MJB_ENCODING_ASCII,
+            &converted);
+
+        if(status == MJB_STATUS_OK) {
+            ascii_id = converted.output;
+            ascii_size = converted.output_size;
+        } else {
+            if(error != NULL) {
+                *error = MJB_ERROR_INVALID_ARGUMENT;
+            }
+
+            return status == MJB_STATUS_NO_MEMORY ? status : MJB_STATUS_INVALID_ARGUMENT;
+        }
+    }
+
+    if(!mjb_locale_parse_ascii(ascii_id, ascii_size, locale, error)) {
         if(error != NULL) {
             *error = MJB_ERROR_INVALID_ARGUMENT;
         }
 
-        return false;
-    } else {
-        ascii_id = converted.output;
-        ascii_size = converted.output_size;
-    }
+        if(converted.transformed) {
+            mjb_free(converted.output);
+        }
 
-    bool parsed = mjb_locale_parse_ascii(ascii_id, ascii_size, locale, error);
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
 
     if(converted.transformed) {
         mjb_free(converted.output);
     }
 
-    return parsed;
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result,
@@ -576,16 +590,18 @@ MJB_EXPORT bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result 
     return false;
 }
 
-MJB_EXPORT bool mjb_locale_set(unsigned int locale) {
+MJB_EXPORT mjb_status mjb_locale_set(unsigned int locale) {
     if(locale >= MJB_LOCALE_NUM) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(!mjb_initialize()) {
-        return false;
+    mjb_status status = mjb_initialize();
+
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     mjb_global.locale = (mjb_locale)locale;
 
-    return true;
+    return MJB_STATUS_OK;
 }
