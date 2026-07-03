@@ -39,7 +39,11 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t size, size
 
         if(dr == MJB_DECODE_OK) {
             uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
-            mjb_codepoint_properties(peek_cp, cpb);
+
+            if(mjb_codepoint_properties(peek_cp, cpb) != MJB_STATUS_OK) {
+                return false;
+            }
+
             mjb_sbp sbp = (mjb_sbp)mjb_codepoint_property(cpb, MJB_PR_SENTENCE_BREAK);
 
             if(sbp == MJB_SBP_NOT_SET) {
@@ -130,7 +134,11 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
         // Not needed
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
-        mjb_codepoint_properties(codepoint, cpb);
+
+        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+            continue;
+        }
+
         mjb_sbp wbp = (mjb_sbp)mjb_codepoint_property(cpb, MJB_PR_SENTENCE_BREAK);
 
         if(wbp == MJB_SBP_NOT_SET) {

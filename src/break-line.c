@@ -46,7 +46,11 @@ static inline mjb_lbp mjb_peek_next(const char *buffer, size_t size, size_t peek
 
         if(dr == MJB_DECODE_OK) {
             uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
-            mjb_codepoint_properties(peek_cp, cpb);
+
+            if(mjb_codepoint_properties(peek_cp, cpb) != MJB_STATUS_OK) {
+                return MJB_LBP_NOT_SET;
+            }
+
             mjb_lbp lbp = (mjb_lbp)mjb_codepoint_property(cpb, MJB_PR_LINE_BREAK);
 
             if(lbp == MJB_LBP_NOT_SET) {
@@ -153,7 +157,11 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // Not needed
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
-        mjb_codepoint_properties(codepoint, cpb);
+
+        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+            continue;
+        }
+
         mjb_lbp lbp = (mjb_lbp)mjb_codepoint_property(cpb, MJB_PR_LINE_BREAK);
 
         if(lbp == MJB_LBP_NOT_SET) {
@@ -987,8 +995,11 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             // Check [\p{Extended_Pictographic} & Cn]
             // Cn (unassigned) means the codepoint has no row in unicode_data.
             uint8_t prev_props[MJB_PR_BUFFER_SIZE] = {0};
-            mjb_codepoint_properties(state->previous_codepoint, prev_props);
-            uint8_t ext_pic = mjb_codepoint_property(prev_props, MJB_PR_EXTENDED_PICTOGRAPHIC);
+            uint8_t ext_pic = 0;
+
+            if(mjb_codepoint_properties(state->previous_codepoint, prev_props) == MJB_STATUS_OK) {
+                ext_pic = mjb_codepoint_property(prev_props, MJB_PR_EXTENDED_PICTOGRAPHIC);
+            }
 
             if(ext_pic != 0) {
                 // Preserve the previous value, assignment check.

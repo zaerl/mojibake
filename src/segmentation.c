@@ -109,7 +109,11 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         // Not needed
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
-        mjb_codepoint_properties(codepoint, cpb);
+
+        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+            continue;
+        }
+
         mjb_gcb gcb = (mjb_gcb)mjb_codepoint_property(cpb, MJB_PR_GRAPHEME_CLUSTER_BREAK);
 
         if(gcb == MJB_GBP_NOT_SET) {

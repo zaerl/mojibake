@@ -500,20 +500,21 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value)
+  // mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property,
+  // uint8_t *value)
   codepointHasProperty(codepoint: Codepoint, property: number): boolean {
-    return this.module._mjb_codepoint_has_property(codepoint, property, 0) ? true : false;
+    return this.module._mjb_codepoint_has_property(codepoint, property, 0) === Status.OK;
   }
 
-  // bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer)
+  // mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer)
   codepointProperties(codepoint: Codepoint): Uint8Array | null {
     const bufferSize = 209; // MJB_PR_BUFFER_SIZE
     const ptr = this.malloc(bufferSize);
 
     try {
-      const ret = this.module._mjb_codepoint_properties(codepoint, ptr);
+      const status = this.module._mjb_codepoint_properties(codepoint, ptr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 
@@ -591,7 +592,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_result *result)
   stringConvertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
     options: TextInputOptions = {}): string | null {
@@ -601,10 +602,10 @@ export class Mojibake {
     let result: Result | null = null;
 
     try {
-      const ret = this.module._mjb_string_convert_encoding(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_string_convert_encoding(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, outputEncoding, resultPtr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 

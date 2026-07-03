@@ -335,8 +335,11 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encodin
     if(is_normalized == MJB_QC_YES) {
         // No need to normalize.
         if(encoding != output_encoding) {
-            if(!mjb_string_convert_encoding(buffer, size, encoding, output_encoding, result)) {
-                return MJB_STATUS_NO_MEMORY;
+            mjb_status status = mjb_string_convert_encoding(buffer, size, encoding,
+                output_encoding, result);
+
+            if(status != MJB_STATUS_OK) {
+                return status;
             }
 
             return MJB_STATUS_OK;

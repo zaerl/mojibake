@@ -542,7 +542,8 @@ MJB_EXPORT bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encod
         }
     } else if(encoding == MJB_ENCODING_UTF_8 && mjb_string_is_ascii(id, size)) {
         // Already suitable for the byte-oriented locale parser.
-    } else if(!mjb_string_convert_encoding(id, size, encoding, MJB_ENCODING_ASCII, &converted)) {
+    } else if(mjb_string_convert_encoding(id, size, encoding, MJB_ENCODING_ASCII, &converted) !=
+        MJB_STATUS_OK) {
         if(error != NULL) {
             *error = MJB_ERROR_INVALID_ARGUMENT;
         }

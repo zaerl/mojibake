@@ -43,13 +43,13 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_en
         }
 
         if(first) {
-            if(!mjb_codepoint_has_property(codepoint, start_prop, NULL)) {
+            if(mjb_codepoint_has_property(codepoint, start_prop, NULL) != MJB_STATUS_OK) {
                 return false;
             }
 
             first = false;
         } else {
-            if(!mjb_codepoint_has_property(codepoint, cont_prop, NULL)) {
+            if(mjb_codepoint_has_property(codepoint, cont_prop, NULL) != MJB_STATUS_OK) {
                 return false;
             }
         }

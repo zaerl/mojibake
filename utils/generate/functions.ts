@@ -161,9 +161,9 @@ export default [
   },
   {
     comment: 'Return if a codepoint has a property',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_has_property',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {
@@ -183,9 +183,9 @@ export default [
   },
   {
     comment: 'Return all properties of a codepoint',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_properties',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {
@@ -293,9 +293,9 @@ export default [
   },
   {
     comment: 'Convert from an encoding to another',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_string_convert_encoding',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to convert'),
       size(),

@@ -504,10 +504,10 @@ mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size,
 MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Return if a codepoint has a property
-bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
+MJB_NODISCARD mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 
 // Return all properties of a codepoint
-bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
+MJB_NODISCARD mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 
 // Return a property value
 uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
@@ -531,7 +531,7 @@ MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t size);
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
 
 // Convert from an encoding to another
-bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+MJB_NODISCARD mjb_status mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the length of a string
 MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);

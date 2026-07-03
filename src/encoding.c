@@ -309,10 +309,10 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
     return 0;
 }
 
-MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
-    mjb_encoding output_encoding, mjb_result *result) {
+MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t size,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && size > 0)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(size == 0 || encoding == output_encoding) {
@@ -320,7 +320,7 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
         result->output_size = size;
         result->transformed = false;
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
@@ -331,7 +331,7 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
         result->output_size = 0;
         result->transformed = false;
 
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     result->output_size = size;
@@ -351,8 +351,21 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
             continue;
         }
 
-        char *new_output = mjb_string_output_codepoint(codepoint, result->output, &output_index,
-            &result->output_size, output_encoding);
+        char output_buffer[5];
+        size_t output_size = mjb_codepoint_encode(codepoint, output_buffer,
+            sizeof(output_buffer), output_encoding);
+
+        if(output_size == 0) {
+            mjb_free(result->output);
+            result->output = NULL;
+            result->output_size = 0;
+            result->transformed = false;
+
+            return MJB_STATUS_UNSUPPORTED;
+        }
+
+        char *new_output = mjb_string_output(result->output, output_buffer, output_size,
+            &output_index, &result->output_size);
 
         if(new_output != NULL) {
             result->output = new_output;
@@ -362,11 +375,11 @@ MJB_EXPORT bool mjb_string_convert_encoding(const char *buffer, size_t size, mjb
             result->output_size = 0;
             result->transformed = false;
 
-            return false;
+            return MJB_STATUS_NO_MEMORY;
         }
     }
 
     result->output_size = output_index;
 
-    return true;
+    return MJB_STATUS_OK;
 }

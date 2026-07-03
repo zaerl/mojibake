@@ -214,10 +214,10 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     if(cmd_verbose > 1) {
         // Pre-scan properties to find the last one that will be printed.
         uint8_t properties[MJB_PR_BUFFER_SIZE];
-        bool ret = mjb_codepoint_properties(character->codepoint, properties);
+        mjb_status status = mjb_codepoint_properties(character->codepoint, properties);
         size_t last_prop = MJB_PR_COUNT;
 
-        if(ret) {
+        if(status == MJB_STATUS_OK) {
             for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
                 if(mjbsh_property_is_bool((mjb_property)i)) {
                     if(properties[i]) last_prop = i;

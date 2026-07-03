@@ -12,7 +12,7 @@ void *test_properties(void *arg) {
     // Force the buffer to a known state before testing.
     memset(buffer, 0xFF, sizeof(buffer));
 
-    ATT_ASSERT(mjb_codepoint_properties(0x41, buffer), true, "LCLA pproperties")
+    ATT_ASSERT_STATUS(mjb_codepoint_properties(0x41, buffer), MJB_STATUS_OK, "LCLA pproperties")
     ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CASED), 1, "LCLA cased")
     ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_ALPHABETIC), 1, "LCLA alphabetic")
     ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_LOWERCASE), 0, "LCLA uppercase")
@@ -21,10 +21,15 @@ void *test_properties(void *arg) {
     ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_CASEFOLDED), 1, "LCLA changes when casefolded")
 
     uint8_t value;
-    ATT_ASSERT(mjb_codepoint_has_property(0x41, MJB_PR_CASED, NULL), true, "LCLA cased exists")
-    ATT_ASSERT(mjb_codepoint_has_property(0x20, MJB_PR_EAST_ASIAN_WIDTH, &value), true, "Space East Asian Width exists")
+    ATT_ASSERT_STATUS(mjb_codepoint_has_property(0x41, MJB_PR_CASED, NULL), MJB_STATUS_OK,
+        "LCLA cased exists")
+    ATT_ASSERT_STATUS(mjb_codepoint_has_property(0x20, MJB_PR_EAST_ASIAN_WIDTH, &value),
+        MJB_STATUS_OK, "Space East Asian Width exists")
     ATT_ASSERT(value, MJB_EAW_NARROW, "Space east asian width is Narrow")
-    ATT_ASSERT(mjb_codepoint_properties(0x41, NULL), false, "Properties rejects NULL buffer")
+    ATT_ASSERT_STATUS(mjb_codepoint_has_property(0x20, MJB_PR_CASED, NULL),
+        MJB_STATUS_NOT_FOUND, "Space cased does not exist")
+    ATT_ASSERT_STATUS(mjb_codepoint_properties(0x41, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Properties rejects NULL buffer")
     ATT_ASSERT(mjb_codepoint_property(NULL, MJB_PR_CASED), 0, "Property rejects NULL buffer")
 
     // mjb_codepoint_script

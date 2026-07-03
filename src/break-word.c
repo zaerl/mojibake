@@ -30,7 +30,11 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t size, size_t
 
         if(dr == MJB_DECODE_OK) {
             uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
-            mjb_codepoint_properties(peek_cp, cpb);
+
+            if(mjb_codepoint_properties(peek_cp, cpb) != MJB_STATUS_OK) {
+                return MJB_WBP_NOT_SET;
+            }
+
             mjb_wbp wbp = (mjb_wbp)mjb_codepoint_property(cpb, MJB_PR_WORD_BREAK);
 
             if(wbp == MJB_WBP_NOT_SET) {
@@ -112,7 +116,11 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
         // Not needed
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
-        mjb_codepoint_properties(codepoint, cpb);
+
+        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+            continue;
+        }
+
         mjb_wbp wbp = (mjb_wbp)mjb_codepoint_property(cpb, MJB_PR_WORD_BREAK);
 
         if(wbp == MJB_WBP_NOT_SET) {

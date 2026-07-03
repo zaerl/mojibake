@@ -311,34 +311,37 @@ void *test_encoding(void *arg) {
     char test_description[64];
     mjb_result boundary_result;
 
-    ATT_ASSERT(mjb_string_convert_encoding(NULL, 1, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_16_LE,
-        &boundary_result), false, "Convert encoding rejects NULL buffer")
-    ATT_ASSERT(mjb_string_convert_encoding("", 0, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_16_LE,
-        NULL), false, "Convert encoding rejects NULL result")
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(NULL, 1, MJB_ENCODING_UTF_8,
+        MJB_ENCODING_UTF_16_LE, &boundary_result), MJB_STATUS_INVALID_ARGUMENT,
+        "Convert encoding rejects NULL buffer")
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("", 0, MJB_ENCODING_UTF_8,
+        MJB_ENCODING_UTF_16_LE, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Convert encoding rejects NULL result")
 
     const char utf16le_ascii[] = { 'e', '\0', 'n', '\0' };
     mjb_result ascii_result;
 
-    ATT_ASSERT(mjb_string_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
-        MJB_ENCODING_UTF_16_LE, MJB_ENCODING_ASCII, &ascii_result), true,
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
+        MJB_ENCODING_UTF_16_LE, MJB_ENCODING_ASCII, &ascii_result), MJB_STATUS_OK,
         "Convert UTF-16LE ASCII text to ASCII")
     ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
     ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size")
     ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output")
     mjb_free(ascii_result.output);
 
-    ATT_ASSERT(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENCODING_UTF_8,
-        MJB_ENCODING_ASCII, &ascii_result), false, "Convert UTF-8 non-ASCII text to ASCII")
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENCODING_UTF_8,
+        MJB_ENCODING_ASCII, &ascii_result), MJB_STATUS_UNSUPPORTED,
+        "Convert UTF-8 non-ASCII text to ASCII")
 
     MJB_TEST_COVERAGE(mjb_string_convert_encoding);
     for(size_t from = 0; from < 5; ++from) {
         for(size_t to = 0; to < 5; ++to) {
             mjb_result convert_result;
-            bool ret = mjb_string_convert_encoding(hello_strings[from], hello_strings_sizes[from],
-                encodings[from], encodings[to], &convert_result);
+            mjb_status status = mjb_string_convert_encoding(hello_strings[from],
+                hello_strings_sizes[from], encodings[from], encodings[to], &convert_result);
 
             snprintf(test_description, 64, "%s to %s", output_encodings[from], output_encodings[to]);
-            ATT_ASSERT(ret, true, test_description)
+            ATT_ASSERT_STATUS(status, MJB_STATUS_OK, test_description)
 
             if(from == to) {
                 snprintf(test_description, 64, "%s to %s is not transformed", output_encodings[from], output_encodings[to]);

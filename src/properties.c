@@ -158,24 +158,32 @@ static const char *mjb_property_names[] = {
 };
 
 // Return if a codepoint has a property
-MJB_EXPORT bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property,
+MJB_EXPORT mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property,
     uint8_t *value) {
     if(!mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    return mjb_unicode_has_property(codepoint, property, value);
+    if(!mjb_unicode_has_property(codepoint, property, value)) {
+        return MJB_STATUS_NOT_FOUND;
+    }
+
+    return MJB_STATUS_OK;
 }
 
-MJB_EXPORT bool mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer) {
+MJB_EXPORT mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer) {
     if(buffer == NULL || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     // Reset the buffer to zero before filling it with properties.
     memset(buffer, 0, MJB_PR_BUFFER_SIZE);
 
-    return mjb_unicode_properties(codepoint, buffer);
+    if(!mjb_unicode_properties(codepoint, buffer)) {
+        return MJB_STATUS_NOT_FOUND;
+    }
+
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property) {
@@ -193,7 +201,8 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
 
     uint8_t raw = 0;
 
-    if(!mjb_codepoint_has_property(codepoint, MJB_PR_SCRIPT, &raw) || raw == MJB_SC_NOT_SET) {
+    if(mjb_codepoint_has_property(codepoint, MJB_PR_SCRIPT, &raw) != MJB_STATUS_OK ||
+        raw == MJB_SC_NOT_SET) {
         return MJB_SC_ZZZZ;
     }
 
@@ -201,27 +210,28 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
 }
 
 MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint) {
-    return mjb_codepoint_has_property(codepoint, MJB_PR_ID_START, NULL);
+    return mjb_codepoint_has_property(codepoint, MJB_PR_ID_START, NULL) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint) {
-    return mjb_codepoint_has_property(codepoint, MJB_PR_ID_CONTINUE, NULL);
+    return mjb_codepoint_has_property(codepoint, MJB_PR_ID_CONTINUE, NULL) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint) {
-    return mjb_codepoint_has_property(codepoint, MJB_PR_XID_START, NULL);
+    return mjb_codepoint_has_property(codepoint, MJB_PR_XID_START, NULL) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint) {
-    return mjb_codepoint_has_property(codepoint, MJB_PR_XID_CONTINUE, NULL);
+    return mjb_codepoint_has_property(codepoint, MJB_PR_XID_CONTINUE, NULL) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint) {
-    return mjb_codepoint_has_property(codepoint, MJB_PR_PATTERN_SYNTAX, NULL);
+    return mjb_codepoint_has_property(codepoint, MJB_PR_PATTERN_SYNTAX, NULL) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint) {
-    return mjb_codepoint_has_property(codepoint, MJB_PR_PATTERN_WHITE_SPACE, NULL);
+    return mjb_codepoint_has_property(codepoint, MJB_PR_PATTERN_WHITE_SPACE, NULL) ==
+        MJB_STATUS_OK;
 }
 
 MJB_EXPORT const char *mjb_property_name(mjb_property property) {

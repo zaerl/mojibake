@@ -187,10 +187,14 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_xid_continue(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_syntax(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_white_space(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_has_property(codepoint, property, &property_value);
-    fuzz_sink += property_value;
+    mjb_status property_status = mjb_codepoint_has_property(codepoint, property, &property_value);
+    fuzz_sink += (size_t)property_status;
 
-    if(mjb_codepoint_properties(codepoint, properties)) {
+    if(property_status == MJB_STATUS_OK) {
+        fuzz_sink += property_value;
+    }
+
+    if(mjb_codepoint_properties(codepoint, properties) == MJB_STATUS_OK) {
         fuzz_sink += mjb_codepoint_property(properties, property);
     }
 
@@ -340,7 +344,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 5: // Encoding conversion
             if(mjb_string_convert_encoding(buffer, size, encoding,
-                encodings[(variant >> 1) % 6], &result)) {
+                encodings[(variant >> 1) % 6], &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 

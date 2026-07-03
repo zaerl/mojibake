@@ -32,9 +32,9 @@ export type MojibakeWasmModule = {
   // Filter a string to remove invalid characters
   _mjb_string_filter: (buffer: Pointer, size: number, encoding: number, output_encoding: number, filters: number, result: Pointer) => number;
   // Return if a codepoint has a property
-  _mjb_codepoint_has_property: (codepoint: Codepoint, property: number, value: Pointer) => boolean;
+  _mjb_codepoint_has_property: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return all properties of a codepoint
-  _mjb_codepoint_properties: (codepoint: Codepoint, buffer: Pointer) => boolean;
+  _mjb_codepoint_properties: (codepoint: Codepoint, buffer: Pointer) => number;
   // Return the script of a codepoint
   _mjb_codepoint_script: (codepoint: Codepoint) => number;
   // Return the string encoding (the most probable)
@@ -48,7 +48,7 @@ export type MojibakeWasmModule = {
   // Encode a codepoint to a string
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, size: number, encoding: number) => number;
   // Convert from an encoding to another
-  _mjb_string_convert_encoding: (buffer: Pointer, size: number, encoding: number, output_encoding: number, result: Pointer) => boolean;
+  _mjb_string_convert_encoding: (buffer: Pointer, size: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Return the length of a string
   _mjb_strnlen: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Compare two strings using UCA
