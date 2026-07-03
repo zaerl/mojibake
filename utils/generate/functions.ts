@@ -59,9 +59,9 @@ function codepoint(description = 'The codepoint to check', name = 'codepoint'): 
 export default [
   {
     comment: 'Return the codepoint character',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_character',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {

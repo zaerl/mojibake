@@ -489,7 +489,7 @@ typedef enum mjb_identifier_profile {
 // This functions list is automatically generated. Do not edit.
 
 // Return the codepoint character
-bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
+MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form
 bool mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);

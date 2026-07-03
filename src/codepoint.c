@@ -103,16 +103,20 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 }
 
 // Return the codepoint character
-MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
+MJB_EXPORT mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
     if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     mjb_category category;
 
     if(!mjb_unicode_category_lookup(codepoint, &category)) {
         // Try CJK or ancient scripts characters before returning false
-        return mjb_codepoint_cjk_th_character(codepoint, character);
+        if(mjb_codepoint_cjk_th_character(codepoint, character)) {
+            return MJB_STATUS_OK;
+        }
+
+        return MJB_STATUS_NOT_FOUND;
     }
 
     character->codepoint = codepoint;
@@ -190,7 +194,7 @@ MJB_EXPORT bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *
         character->titlecase = case_mapping.titlecase;
     }
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_category_is_graphic(mjb_category category) {
@@ -229,7 +233,7 @@ MJB_EXPORT mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_inf
 MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(!mjb_codepoint_character(codepoint, &character)) {
+    if(mjb_codepoint_character(codepoint, &character) != MJB_STATUS_OK) {
         return false;
     }
 

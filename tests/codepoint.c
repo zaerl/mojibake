@@ -12,33 +12,39 @@
 void *test_codepoint(void *arg) {
     mjb_character character;
 
-    ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX, &character), false, "Not valid codepoint")
-    ATT_ASSERT(mjb_codepoint_character(0, NULL), false, "NULL character pointer")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(MJB_CODEPOINT_MAX, &character),
+        MJB_STATUS_INVALID_ARGUMENT, "Not valid codepoint")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "NULL character pointer")
 
-    ATT_ASSERT(mjb_codepoint_character(0, &character), true, "Codepoint: 0")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0, &character), MJB_STATUS_OK, "Codepoint: 0")
     ATT_ASSERT((const char*)character.name, "NULL", "Codepoint: 0")
 
-    ATT_ASSERT(mjb_codepoint_character('$', &character), true, "Codepoint: 0")
+    ATT_ASSERT_STATUS(mjb_codepoint_character('$', &character), MJB_STATUS_OK, "Codepoint: 0")
     ATT_ASSERT((const char*)character.name, "DOLLAR SIGN", "Codepoint: $")
 
     // U+E0 = à
-    ATT_ASSERT(mjb_codepoint_character(0xE0, &character), true, "Codepoint: à")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0xE0, &character), MJB_STATUS_OK, "Codepoint: à")
     ATT_ASSERT((const char*)character.name, "LATIN SMALL LETTER A WITH GRAVE", "Codepoint: à")
 
     // U+1F642 = 🙂
-    ATT_ASSERT(mjb_codepoint_character(0x1F642, &character), true, "Codepoint: 🙂")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x1F642, &character), MJB_STATUS_OK,
+        "Codepoint: 🙂")
     ATT_ASSERT((const char*)character.name, "SLIGHTLY SMILING FACE", "Codepoint: 🙂")
 
     // U+0377 = ͷ, U+0377 + 1 is not mapped
-    ATT_ASSERT(mjb_codepoint_character(0x0377 + 1, &character), false, "Codepoint not mapped: ͷ + 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x0377 + 1, &character), MJB_STATUS_NOT_FOUND,
+        "Codepoint not mapped: ͷ + 1")
 
     // U+AC00 = First hangul syllable
-    ATT_ASSERT(mjb_codepoint_character(MJB_CP_HANGUL_S_BASE, &character), true, "First hangul syllable")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(MJB_CP_HANGUL_S_BASE, &character),
+        MJB_STATUS_OK, "First hangul syllable")
     ATT_ASSERT((const char*)character.name, "HANGUL SYLLABLE GA", "First hangul syllable")
 
     // U+D7A3 = Last hangul syllable
     mjb_codepoint last_syllable = MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1;
-    ATT_ASSERT(mjb_codepoint_character(last_syllable, &character), true, "Last hangul syllable")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(last_syllable, &character), MJB_STATUS_OK,
+        "Last hangul syllable")
     ATT_ASSERT((const char*)character.name, "HANGUL SYLLABLE HIH", "Last hangul syllable")
 
     mjb_block_info block;
@@ -72,8 +78,10 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT_STATUS(mjb_codepoint_block(0x10C0, &block), MJB_STATUS_OK, "Georgian block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_GEORGIAN, "Georgian block")
 
-    ATT_ASSERT(mjb_codepoint_character(0xF0000 + 3, &character), false, "Supplementary Private Use Area-A block")
-    ATT_ASSERT(mjb_codepoint_character(MJB_CODEPOINT_MAX - 1, &character), false, "Supplementary Private Use Area-B block")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0xF0000 + 3, &character), MJB_STATUS_NOT_FOUND,
+        "Supplementary Private Use Area-A block")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(MJB_CODEPOINT_MAX - 1, &character),
+        MJB_STATUS_INVALID_ARGUMENT, "Supplementary Private Use Area-B block")
 
     ATT_ASSERT(mjb_codepoint_is_graphic(0), false, "NULL: not graphic")
     ATT_ASSERT(mjb_codepoint_is_graphic('#'), true, "#: graphic")
@@ -114,107 +122,132 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT(mjb_category_is_combining(MJB_CATEGORY_CN), false, "MJB_CATEGORY_CN: not combining")
 
     // U+00BD = ½
-    ATT_ASSERT(mjb_codepoint_character(0x00BD, &character), true, "Codepoint: ½ 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x00BD, &character), MJB_STATUS_OK,
+        "Codepoint: ½ 1")
     ATT_ASSERT(character.decimal == MJB_NUMBER_NOT_VALID, true, "Codepoint: ½ 2")
     ATT_ASSERT(character.digit == MJB_NUMBER_NOT_VALID, true, "Codepoint: ½ 3")
     ATT_ASSERT((const char*)character.numeric, (const char*)"1/2", "Codepoint: ½ 4")
 
     // U+0030 = 1
-    ATT_ASSERT(mjb_codepoint_character(0x0031, &character), true, "Codepoint: 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x0031, &character), MJB_STATUS_OK,
+        "Codepoint: 1")
     ATT_ASSERT(character.decimal == 1, true, "Codepoint: 1 2")
     ATT_ASSERT(character.digit == 1, true, "Codepoint: 1 3")
     ATT_ASSERT((const char*)character.numeric, (const char*)"1", "Codepoint: 1 4")
 
     // EGYPTIAN HIEROGLYPH
-    ATT_ASSERT(mjb_codepoint_character(0x13000, &character), true, "HIEROGLYPH 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13000, &character), MJB_STATUS_OK,
+        "HIEROGLYPH 1")
     ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH A001", "HIEROGLYPH 1")
 
-    ATT_ASSERT(mjb_codepoint_character(0x13455, &character), true, "HIEROGLYPH 2")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13455, &character), MJB_STATUS_OK,
+        "HIEROGLYPH 2")
     ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED", "HIEROGLYPH 2")
 
-    ATT_ASSERT(mjb_codepoint_character(0x13460, &character), true, "EGYPTIAN HIEROGLYPH 3")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13460, &character), MJB_STATUS_OK,
+        "EGYPTIAN HIEROGLYPH 3")
     ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-13460", "HIEROGLYPH 3")
 
-    ATT_ASSERT(mjb_codepoint_character(0x143FA, &character), true, "EGYPTIAN HIEROGLYPH 4")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x143FA, &character), MJB_STATUS_OK,
+        "EGYPTIAN HIEROGLYPH 4")
     ATT_ASSERT((const char*)character.name, "EGYPTIAN HIEROGLYPH-143FA", "HIEROGLYPH 4")
 
-    ATT_ASSERT(mjb_codepoint_character(0x143FF, &character), false, "EGYPTIAN HIEROGLYPH-143FF not exists")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x143FF, &character), MJB_STATUS_NOT_FOUND,
+        "EGYPTIAN HIEROGLYPH-143FF not exists")
 
-    ATT_ASSERT(mjb_codepoint_character(0xF900, &character), true, "CJK CI 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0xF900, &character), MJB_STATUS_OK, "CJK CI 1")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-F900", "CJK CI 1")
 
-    ATT_ASSERT(mjb_codepoint_character(0xFAD9, &character), true, "CJK CI 2")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0xFAD9, &character), MJB_STATUS_OK, "CJK CI 2")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-FAD9", "CJK CI 2")
 
-    ATT_ASSERT(mjb_codepoint_character(0x2F800, &character), true, "CJK CI SUPPLEMENT 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x2F800, &character), MJB_STATUS_OK,
+        "CJK CI SUPPLEMENT 1")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-2F800", "CJK CI SUPPLEMENT 1")
 
-    ATT_ASSERT(mjb_codepoint_character(0x2FA1D, &character), true, "CJK CI SUPPLEMENT 2")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x2FA1D, &character), MJB_STATUS_OK,
+        "CJK CI SUPPLEMENT 2")
     ATT_ASSERT((const char*)character.name, "CJK COMPATIBILITY IDEOGRAPH-2FA1D", "CJK CI SUPPLEMENT 2")
 
     // First tangut
-    ATT_ASSERT(mjb_codepoint_character(0x17000, &character), true, "<Tangut Ideograph, First>")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x17000, &character), MJB_STATUS_OK,
+        "<Tangut Ideograph, First>")
     ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-17000", "TANGUT IDEOGRAPH-17000")
 
-    ATT_ASSERT(mjb_codepoint_character(0x187F7, &character), true, "<Tangut Ideograph, Last>")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x187F7, &character), MJB_STATUS_OK,
+        "<Tangut Ideograph, Last>")
     ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-187F7", "TANGUT IDEOGRAPH-187F7")
 
     // Second tangut
-    ATT_ASSERT(mjb_codepoint_character(0x18D00, &character), true, "<Tangut Ideograph Supplement, First>")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18D00, &character), MJB_STATUS_OK,
+        "<Tangut Ideograph Supplement, First>")
     ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-18D00", "TANGUT IDEOGRAPH-18D00")
 
-    ATT_ASSERT(mjb_codepoint_character(0x18D1E, &character), true, "<Tangut Ideograph Supplement, Last>")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18D1E, &character), MJB_STATUS_OK,
+        "<Tangut Ideograph Supplement, Last>")
     ATT_ASSERT((const char*)character.name, "TANGUT IDEOGRAPH-18D1E", "TANGUT IDEOGRAPH-18D1E")
 
     // First tangut component
-    ATT_ASSERT(mjb_codepoint_character(0x18800, &character), true, "TANGUT COMPONENT-001")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18800, &character), MJB_STATUS_OK,
+        "TANGUT COMPONENT-001")
     ATT_ASSERT(character.codepoint, 0x18800, "TANGUT COMPONENT-001")
     ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-001", "TANGUT COMPONENT-001")
 
-    ATT_ASSERT(mjb_codepoint_character(0x18AFF, &character), true, "TANGUT COMPONENT-768")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18AFF, &character), MJB_STATUS_OK,
+        "TANGUT COMPONENT-768")
     ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-768", "TANGUT COMPONENT-768")
 
     // Second tangut component
-    ATT_ASSERT(mjb_codepoint_character(0x18D80, &character), true, "TANGUT COMPONENT-769")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18D80, &character), MJB_STATUS_OK,
+        "TANGUT COMPONENT-769")
     ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-769", "TANGUT COMPONENT-769")
 
-    ATT_ASSERT(mjb_codepoint_character(0x18DF2, &character), true, "TANGUT COMPONENT-883")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18DF2, &character), MJB_STATUS_OK,
+        "TANGUT COMPONENT-883")
     ATT_ASSERT((const char*)character.name, "TANGUT COMPONENT-883", "TANGUT COMPONENT-883")
 
     // First khitan small script character
-    ATT_ASSERT(mjb_codepoint_character(0x18B00, &character), true, "KHITAN SMALL SCRIPT CHARACTER-18B00")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18B00, &character), MJB_STATUS_OK,
+        "KHITAN SMALL SCRIPT CHARACTER-18B00")
     ATT_ASSERT((const char*)character.name, "KHITAN SMALL SCRIPT CHARACTER-18B00", "KHITAN SMALL SCRIPT CHARACTER-18B00")
 
     // Last khitan small script character
-    ATT_ASSERT(mjb_codepoint_character(0x18CFF, &character), true, "KHITAN SMALL SCRIPT CHARACTER-18CFF")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x18CFF, &character), MJB_STATUS_OK,
+        "KHITAN SMALL SCRIPT CHARACTER-18CFF")
     ATT_ASSERT((const char*)character.name, "KHITAN SMALL SCRIPT CHARACTER-18CFF", "KHITAN SMALL SCRIPT CHARACTER-18CFF")
 
-    ATT_ASSERT(mjb_codepoint_character(0x14400, &character), true, "ANATOLIAN HIEROGLYPH 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x14400, &character), MJB_STATUS_OK,
+        "ANATOLIAN HIEROGLYPH 1")
     ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
 
-    ATT_ASSERT(mjb_codepoint_character(0x14646, &character), true, "ANATOLIAN HIEROGLYPH 2")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x14646, &character), MJB_STATUS_OK,
+        "ANATOLIAN HIEROGLYPH 2")
     ATT_ASSERT((const char*)character.name, "ANATOLIAN HIEROGLYPH A530", "ANATOLIAN HIEROGLYPH 2")
 
-    ATT_ASSERT(mjb_codepoint_character(0x12000, &character), true, "CUNEIFORM SIGN 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x12000, &character), MJB_STATUS_OK,
+        "CUNEIFORM SIGN 1")
     ATT_ASSERT((const char*)character.name, "CUNEIFORM SIGN A", "CUNEIFORM SIGN 1")
 
-    ATT_ASSERT(mjb_codepoint_character(0x12400, &character), true, "CUNEIFORM NUMERIC 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x12400, &character), MJB_STATUS_OK,
+        "CUNEIFORM NUMERIC 1")
     ATT_ASSERT((const char*)character.name, "CUNEIFORM NUMERIC SIGN TWO ASH", "CUNEIFORM NUMERIC 1")
 
-    ATT_ASSERT(mjb_codepoint_character(0x12541, &character), true, "CUNEIFORM SIGN 2")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x12541, &character), MJB_STATUS_OK,
+        "CUNEIFORM SIGN 2")
     ATT_ASSERT((const char*)character.name, "CUNEIFORM SIGN ZA7", "CUNEIFORM SIGN 2")
 
     // Aliases
-    ATT_ASSERT(mjb_codepoint_character(0x0, &character), true, "Alias 0000")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x0, &character), MJB_STATUS_OK, "Alias 0000")
     ATT_ASSERT((const char*)character.name, "NULL", "Alias 0000")
 
-    ATT_ASSERT(mjb_codepoint_character(0x9F, &character), true, "Alias 009F")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x9F, &character), MJB_STATUS_OK, "Alias 009F")
     ATT_ASSERT((const char*)character.name, "APPLICATION PROGRAM COMMAND", "Alias 009F")
 
-    ATT_ASSERT(mjb_codepoint_character(0x1A2, &character), true, "Alias GHA")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x1A2, &character), MJB_STATUS_OK, "Alias GHA")
     ATT_ASSERT((const char*)character.name, "LATIN CAPITAL LETTER GHA", "Alias GHA")
 
-    ATT_ASSERT(mjb_codepoint_character(0xFE18, &character), true, "Alias FE18 BRAKCET")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0xFE18, &character), MJB_STATUS_OK,
+        "Alias FE18 BRAKCET")
     ATT_ASSERT((const char*)character.name, "PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET", "Alias FE18 BRAKCET")
 
     mjb_numeric_value num;

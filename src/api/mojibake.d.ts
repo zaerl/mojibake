@@ -22,7 +22,7 @@ export type MojibakeWasmModule = {
   _malloc: (size: number) => number;
   _free: (ptr: number) => void;
   // Return the codepoint character
-  _mjb_codepoint_character: (codepoint: Codepoint, character: Pointer) => boolean;
+  _mjb_codepoint_character: (codepoint: Codepoint, character: Pointer) => number;
   // Normalize a string to NFC/NFKC/NFD/NFKD form
   _mjb_normalize: (buffer: Pointer, size: number, encoding: number, form: number, output_encoding: number, result: Pointer) => boolean;
   // Return the next character from a string

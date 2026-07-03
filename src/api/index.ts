@@ -371,16 +371,16 @@ export class Mojibake {
     return mojibake;
   }
 
-  // bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character)
+  // mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character)
   codepointCharacter(codepoint: number): Character | null {
     // Allocate memory for mjb_character structure
     const structSize = 512;
     const ptr = this.malloc(structSize);
 
     try {
-      const result = this.module._mjb_codepoint_character(codepoint, ptr);
+      const status = this.module._mjb_codepoint_character(codepoint, ptr);
 
-      if(result) {
+      if(status === Status.OK) {
         return this.pointerToCharacter(ptr);
       }
 

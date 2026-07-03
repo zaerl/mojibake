@@ -44,7 +44,7 @@ public:
     ~Character() = default;
 
     explicit Character(mjb_codepoint codepoint) : data{}, valid(false) {
-        valid = mjb_codepoint_character(codepoint, &data);
+        valid = mjb_codepoint_character(codepoint, &data) == MJB_STATUS_OK;
 
         if(!valid) {
             throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));

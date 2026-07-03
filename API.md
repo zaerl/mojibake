@@ -3,7 +3,7 @@
 Return the codepoint character
 
 ```c
-bool mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
+mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 ```
 
 Normalize a string to NFC/NFKC/NFD/NFKD form
