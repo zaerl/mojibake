@@ -25,8 +25,22 @@
     #define MJB_TEST_SOURCE_DIR "."
 #endif
 
+#define MJB_TEST_COVERAGE_MAX_ENTRIES 256
+#define MJB_TEST_COVERAGE_NAME_SIZE 128
+
 static att_test_callback error_callback = NULL;
 static bool exit_on_error = false;
+static bool coverage_enabled = false;
+static const char *coverage_output = NULL;
+
+typedef struct {
+    char name[MJB_TEST_COVERAGE_NAME_SIZE];
+    unsigned long long count;
+} mjb_test_coverage_entry;
+
+static mjb_test_coverage_entry coverage_entries[MJB_TEST_COVERAGE_MAX_ENTRIES];
+static size_t coverage_entry_count = 0;
+static char coverage_current[MJB_TEST_COVERAGE_NAME_SIZE] = { 0 };
 
 #ifdef _WIN32
 // Windows-compatible strsep implementation
@@ -50,6 +64,146 @@ char *strsep(char **stringp, const char *delim) {
 }
 #endif
 
+static bool coverage_name_char(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+        c == '_';
+}
+
+static bool coverage_name_from_expression(const char *expression, char *name, size_t size) {
+    const char *found = expression;
+
+    if(!expression || size == 0) {
+        return false;
+    }
+
+    // Check if it's a mjb_*( function call.
+    while((found = strstr(found, "mjb_")) != NULL) {
+        size_t length = 0;
+        const char *next;
+
+        while(coverage_name_char(found[length])) {
+            ++length;
+        }
+
+        next = found + length;
+
+        while(*next == ' ' || *next == '\t' || *next == '\n') {
+            ++next;
+        }
+
+        if(*next == '(' && length > 0 && length < size) {
+            memcpy(name, found, length);
+            name[length] = '\0';
+
+            return true;
+        }
+
+        found += 4;
+    }
+
+    return false;
+}
+
+void mjb_test_coverage_clear(void) {
+    coverage_current[0] = '\0';
+}
+
+void mjb_test_coverage_set(const char *name) {
+    if(!name || !name[0]) {
+        coverage_current[0] = '\0';
+
+        return;
+    }
+
+    snprintf(coverage_current, sizeof(coverage_current), "%s", name);
+}
+
+static void coverage_record(const char *name) {
+    if(!coverage_enabled || !name || !name[0]) {
+        return;
+    }
+
+    for(size_t i = 0; i < coverage_entry_count; ++i) {
+        if(strcmp(coverage_entries[i].name, name) == 0) {
+            ++coverage_entries[i].count;
+
+            return;
+        }
+    }
+
+    if(coverage_entry_count >= MJB_TEST_COVERAGE_MAX_ENTRIES) {
+        return;
+    }
+
+    snprintf(coverage_entries[coverage_entry_count].name,
+        sizeof(coverage_entries[coverage_entry_count].name), "%s", name);
+    coverage_entries[coverage_entry_count].count = 1;
+    ++coverage_entry_count;
+}
+
+// Callback for test assertions to record coverage and handle errors
+static int attractor_test_callback(int test, const char *description, const char *expression,
+    const char *file, unsigned int line) {
+    // Exit on error if the flag is set.
+    if(exit_on_error) {
+        if(!test) {
+            if(error_callback) {
+                error_callback(test, description, expression, file, line);
+            }
+
+            exit(1);
+
+            return 1;
+        }
+    }
+
+    // Save coverage for the current assertion if coverage is enabled.
+    if(coverage_enabled) {
+        char name[MJB_TEST_COVERAGE_NAME_SIZE];
+
+        if(coverage_name_from_expression(expression, name, sizeof(name))) {
+            // If it's a read mjb_* function, record it for coverage
+            mjb_test_coverage_set(name);
+        }
+
+        if(coverage_current[0]) {
+            coverage_record(coverage_current);
+        }
+    }
+
+    return 0;
+}
+
+static bool write_coverage_file(void) {
+    FILE *file;
+
+    if(!coverage_output) {
+        return true;
+    }
+
+    file = fopen(coverage_output, "w");
+
+    if(file == NULL) {
+        perror("coverage");
+
+        return false;
+    }
+
+    fputs("{\n  \"coverage\": [\n", file);
+
+    for(size_t i = 0; i < coverage_entry_count; ++i) {
+        fprintf(file, "    { \"name\": \"%s\", \"count\": %llu }%s\n",
+            coverage_entries[i].name,
+            coverage_entries[i].count,
+            i + 1 == coverage_entry_count ? "" : ",");
+    }
+
+    fputs("  ]\n}\n", file);
+    fclose(file);
+
+    return true;
+}
+
 int show_version(void) {
     printf("Mojibake v%s\n", MJB_VERSION);
 
@@ -64,19 +218,6 @@ void set_error_callback(att_test_callback callback) {
     error_callback = callback;
 }
 
-int attractor_test_callback(int test, const char *description) {
-    if(!test) {
-        if(error_callback) {
-            error_callback(test, description);
-        }
-
-        exit(1);
-        return 1;
-    }
-
-    return 0;
-}
-
 void show_help(const char *executable, struct option options[], const char *descriptions[], const char *error) {
     FILE *stream = error ? stderr : stdout;
 
@@ -87,7 +228,7 @@ void show_help(const char *executable, struct option options[], const char *desc
         executable);
     fprintf(stream, "Options:\n");
 
-    for(unsigned long i = 0; i < 5; ++i) {
+    for(unsigned long i = 0; options[i].name != NULL; ++i) {
         fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
             options[i].val,
             options[i].has_arg == no_argument ? "" : " ARG",
@@ -127,6 +268,7 @@ int main(int argc, char * const argv[]) {
     }
 
     struct option long_options[] = {
+        { "coverage", required_argument, NULL, 'C' },
         { "filter", required_argument, NULL, 'f' },
         { "help", no_argument, NULL, 'h' },
         { "verbose", no_argument, NULL, 'v' },
@@ -135,6 +277,7 @@ int main(int argc, char * const argv[]) {
         { NULL, 0, NULL, 0 }
     };
     const char *descriptions[] = {
+        "Write runtime API coverage counts to the given JSON file",
         "Filter tests by name in the form name1,name2,...",
         "Show this help message",
         "Verbose output. -vv for more verbosity",
@@ -152,8 +295,12 @@ int main(int argc, char * const argv[]) {
 
     att_set_verbose(verbosity);
 
-    while((option = getopt_long(argc, argv, "f:ehvV", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "C:f:ehvV", long_options, &option_index)) != -1) {
         switch(option) {
+            case 'C':
+                coverage_enabled = true;
+                coverage_output = optarg;
+                break;
             case 'f':
                 filter = strdup(optarg);
                 break;
@@ -178,7 +325,7 @@ int main(int argc, char * const argv[]) {
 
     att_set_verbose(verbosity);
 
-    if(exit_on_error) {
+    if(exit_on_error || coverage_enabled) {
         att_set_test_callback(attractor_test_callback);
     }
 
@@ -195,6 +342,7 @@ int main(int argc, char * const argv[]) {
 
     #define RUN_TEST(NAME) \
         if(!filter || strstr(#NAME, filter)) { \
+            mjb_test_coverage_clear(); \
             if(!is_ctest) { \
                 printf("%sTest: %s%s%s\n", verbosity && step ? "\n" : "", \
                     show_colors ? "\x1b[1;32m" : "", #NAME, show_colors ? "\x1b[0m" : ""); \
@@ -251,6 +399,10 @@ int main(int argc, char * const argv[]) {
 
     printf("%sTests valid/run: %s%d/%d%s\n", verbosity >= 1 ? "\n" : "", color_code,
         tests_valid, tests_total, show_colors ? "\x1B[0m" : "");
+
+    if(coverage_enabled && !write_coverage_file()) {
+        return 1;
+    }
 
     if(!is_ctest) {
 #ifdef _WIN32

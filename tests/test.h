@@ -62,6 +62,12 @@ void *test_cpp_normalization(void *arg);
 void set_error_callback(att_test_callback callback);
 bool is_exit_on_error(void);
 
+void mjb_test_coverage_clear(void);
+void mjb_test_coverage_set(const char *name);
+
+// Set the coverage for those ATT_ASSERT calls that not directly call a mjb_* function.
+#define MJB_TEST_COVERAGE(NAME) mjb_test_coverage_set(#NAME)
+
 // Utils
 typedef void (*test_file_callback)(const char *buffer, size_t size, unsigned int current_line, mjb_break_type *expected_types);
 
