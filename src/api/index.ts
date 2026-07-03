@@ -1202,9 +1202,14 @@ export class Mojibake {
 
   // mjb_status mjb_initialize(void);
 
-  // bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
+  // mjb_status mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
+  //     mjb_free_fn free_fn);
   initializeV2(): void {
-    this.module._mjb_initialize_v2(0, 0, 0);
+    const status = this.module._mjb_initialize_v2(0, 0, 0);
+
+    if(status !== Status.OK) {
+      throw new Error(`Failed to initialize Mojibake: ${status}`);
+    }
   }
 
   // void mjb_shutdown(void);

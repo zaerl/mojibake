@@ -17,18 +17,14 @@ MJB_EXPORT mjb_status mjb_initialize(void) {
         return MJB_STATUS_OK;
     }
 
-    if(mjb_initialize_v2(malloc, realloc, free)) {
-        return MJB_STATUS_OK;
-    }
-
-    return MJB_STATUS_UNSUPPORTED;
+    return mjb_initialize_v2(malloc, realloc, free);
 }
 
 // Initialize the library with custom values
-MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
+MJB_EXPORT mjb_status mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
     mjb_free_fn free_fn) {
     if(mjb_global.ok) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     if(alloc_fn == NULL) {
@@ -49,7 +45,7 @@ MJB_EXPORT bool mjb_initialize_v2(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_
     mjb_global.ok = true;
     mjb_global.locale = MJB_LOCALE_EN;
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 MJB_EXPORT void mjb_shutdown(void) {

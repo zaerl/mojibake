@@ -1258,7 +1258,7 @@ export default [
   },
   {
     comment: 'Initialize the library with custom values. Not needed to be called',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_initialize_v2',
     attributes: ['MJB_NODISCARD'],
     args: [

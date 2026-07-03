@@ -160,7 +160,7 @@ export type MojibakeWasmModule = {
   // Output the current supported unicode version (MJB_UNICODE_VERSION)
   _mjb_unicode_version: () => Pointer;
   // Initialize the library with custom values. Not needed to be called
-  _mjb_initialize_v2: (alloc_fn: number, realloc_fn: number, free_fn: number) => boolean;
+  _mjb_initialize_v2: (alloc_fn: number, realloc_fn: number, free_fn: number) => number;
 };
 
 export default function mojibakeModule(): Promise<MojibakeWasmModule>;
