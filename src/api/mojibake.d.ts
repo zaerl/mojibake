@@ -76,7 +76,7 @@ export type MojibakeWasmModule = {
   // Return the numeric value of a codepoint
   _mjb_codepoint_numeric_value: (codepoint: Codepoint, value: Pointer) => number;
   // Return the character block
-  _mjb_codepoint_block: (codepoint: Codepoint, block: Pointer) => boolean;
+  _mjb_codepoint_block: (codepoint: Codepoint, block: Pointer) => number;
   // Return the codepoint lowercase codepoint
   _mjb_codepoint_to_lowercase: (codepoint: Codepoint) => Codepoint;
   // Return the codepoint uppercase codepoint

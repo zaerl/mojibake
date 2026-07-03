@@ -195,7 +195,7 @@ mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_valu
 Return the character block
 
 ```c
-bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
+mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
 ```
 
 Return the codepoint lowercase codepoint

@@ -213,12 +213,16 @@ MJB_EXPORT bool mjb_category_is_combining(mjb_category category) {
 }
 
 // Return the character block
-MJB_EXPORT bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block) {
+MJB_EXPORT mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block) {
     if(block == NULL || !mjb_codepoint_is_valid(codepoint)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    return mjb_unicode_block_lookup(codepoint, block);
+    if(!mjb_unicode_block_lookup(codepoint, block)) {
+        return MJB_STATUS_NOT_FOUND;
+    }
+
+    return MJB_STATUS_OK;
 }
 
 // Return true if the codepoint is graphic

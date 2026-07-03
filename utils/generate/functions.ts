@@ -519,9 +519,9 @@ export default [
   },
   {
     comment: 'Return the character block',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_codepoint_block',
-    attributes: ['MJB_CONST'],
+    attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {

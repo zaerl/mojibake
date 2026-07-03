@@ -773,14 +773,14 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block)
+  // mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block)
   codepointBlock(codepoint: Codepoint): BlockInfo | null {
     const ptr = this.malloc(144);
 
     try {
-      const ret = this.module._mjb_codepoint_block(codepoint, ptr);
+      const status = this.module._mjb_codepoint_block(codepoint, ptr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 
