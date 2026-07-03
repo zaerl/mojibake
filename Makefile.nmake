@@ -200,6 +200,10 @@ test-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_CPP_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
+# Run WASM JavaScript API tests
+test-wasm:
+	@cd src\api && npm run test
+
 # Run tests with AddressSanitizer
 test-asan: $(UNICODE_DATA)
 	@cmake -S . -B $(TEST_ASAN_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(ASAN_CMAKE_FLAGS)
@@ -301,6 +305,7 @@ help:
 	@echo   test-docker             - Build and run tests in Docker container
 	@echo   test-null               - Build and run tests with embedded NULL support
 	@echo   test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer
+	@echo   test-wasm               - Run WASM JavaScript API tests
 	@echo   fuzz                    - Fuzz the public API with libFuzzer in Docker
 	@echo   update-version          - Update version in source files
 	@echo   wasm                    - Build the project for WebAssembly
