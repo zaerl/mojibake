@@ -57,7 +57,8 @@ extern "C" {
 #endif
 
 #ifndef __cplusplus
-#define ATT_ASSERT(VALUE, EXPECTED, MESSAGE) _Generic(VALUE, \
+#define ATT_ASSERT(VALUE, EXPECTED, MESSAGE) \
+    (att_set_assert_context(#VALUE, __FILE__, __LINE__), _Generic(VALUE, \
     ATT_CUSTOM_TYPES \
     char: att_assert_c, \
     unsigned char: att_assert_u_c, \
@@ -77,9 +78,11 @@ extern "C" {
     void*: att_assert_p_p, \
     _Bool: att_assert_b, \
     default: att_assert_unknown \
-)(VALUE, EXPECTED, MESSAGE, __FILE__, __LINE__);
+)(VALUE, EXPECTED, MESSAGE, __FILE__, __LINE__));
 #else
-#define ATT_ASSERT(VALUE, EXPECTED, MESSAGE) att_assert_cpp(VALUE, EXPECTED, MESSAGE, __FILE__, __LINE__);
+#define ATT_ASSERT(VALUE, EXPECTED, MESSAGE) \
+    (att_set_assert_context(#VALUE, __FILE__, __LINE__), \
+     att_assert_cpp(VALUE, EXPECTED, MESSAGE, __FILE__, __LINE__));
 #endif
 
 ATT_API unsigned int att_assert_c(char result, char expected, const char *description, const char *file, unsigned int line);
@@ -112,15 +115,19 @@ void att_set_show_error(unsigned int show_error);
 long double att_get_float_epsilon(void);
 void att_set_float_epsilon(long double epsilon);
 
-typedef int (*att_generic_callback)(void*, void*, const char*);
-
 // A callback to be used when the default comparison fails.
+typedef int (*att_generic_callback)(void* result, void* expected, const char *description);
+
 void att_set_generic_callback(att_generic_callback callback);
 
-typedef int (*att_test_callback)(int, const char*);
-
 // A callback to be used when an test occurs.
+typedef int (*att_test_callback)(int test, const char *description, const char *expression,
+    const char *file, unsigned int line);
+
 void att_set_test_callback(att_test_callback callback);
+
+// Stores the expression for the next assertion. Used internally by ATT_ASSERT.
+void att_set_assert_context(const char *expression, const char *file, unsigned int line);
 
 #ifdef __cplusplus
 }

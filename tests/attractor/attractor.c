@@ -55,8 +55,17 @@ static unsigned int att_verbose = ATT_VERBOSE;
 static unsigned int att_show_error = ATT_SHOW_ERROR;
 static int att_show_colors = 0;
 static long double att_float_epsilon = ATT_FLOAT_EPSILON;
-static att_generic_callback att_callback = NULL;
-static att_test_callback att_t_callback = NULL;
+
+// A callback to be used when the default comparison fails.
+static att_generic_callback att_generic_callback_fn = NULL;
+
+// A callback to be used when an test occurs.
+static att_test_callback att_test_callback_fn = NULL;
+
+// Variables stored by each assertion to provide context for the next assertion.
+static const char *att_assert_expression = "";
+static const char *att_assert_file = "";
+static unsigned int att_assert_line = 0;
 
 unsigned int att_get_valid_tests(void) {
     return (unsigned int)att_valid_tests;
@@ -83,11 +92,17 @@ void att_set_float_epsilon(long double epsilon) {
 }
 
 void att_set_generic_callback(att_generic_callback callback) {
-    att_callback = callback;
+    att_generic_callback_fn = callback;
 }
 
 void att_set_test_callback(att_test_callback callback) {
-    att_t_callback = callback;
+    att_test_callback_fn = callback;
+}
+
+void att_set_assert_context(const char *expression, const char *file, unsigned int line) {
+    att_assert_expression = expression ? expression : "";
+    att_assert_file = file ? file : "";
+    att_assert_line = line;
 }
 
 int att_assert(const char *type, int test, const char *description);
@@ -112,10 +127,6 @@ ATT_API unsigned int att_assert_c(char result, char expected, const char *descri
         }
 
         ATT_ERROR_MESSAGE(result, format_1, format_2, expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -143,10 +154,6 @@ ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected
         ATT_ERROR_MESSAGE(result, format_1, format_2, expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -155,10 +162,6 @@ ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *de
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -171,10 +174,6 @@ ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, c
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -183,10 +182,6 @@ ATT_API unsigned int att_assert_hd(short result, short expected, const char *des
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%hd", "%hd", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -199,10 +194,6 @@ ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expec
         ATT_ERROR_MESSAGE(result, "%hu", "%hu", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -211,10 +202,6 @@ ATT_API unsigned int att_assert_d(int result, int expected, const char *descript
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%d", "%d", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -227,10 +214,6 @@ ATT_API unsigned int att_assert_u_u(unsigned int result, unsigned int expected, 
         ATT_ERROR_MESSAGE(result, "%u", "%u", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -239,10 +222,6 @@ ATT_API unsigned int att_assert_ld(long result, long expected, const char *descr
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%ld", "%ld", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -255,10 +234,6 @@ ATT_API unsigned int att_assert_u_lu(unsigned long result, unsigned long expecte
         ATT_ERROR_MESSAGE(result, "%lu", "%lu", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -267,10 +242,6 @@ ATT_API unsigned int att_assert_lld(long long result, long long expected, const 
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%lld", "%lld", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -283,10 +254,6 @@ ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long l
         ATT_ERROR_MESSAGE(result, "%llu", "%llu", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -295,10 +262,6 @@ ATT_API unsigned int att_assert_f(float result, float expected, const char *desc
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%f", "%f", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -311,10 +274,6 @@ ATT_API unsigned int att_assert_lf(double result, double expected, const char *d
         ATT_ERROR_MESSAGE(result, "%lf", "%lf", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -323,10 +282,6 @@ ATT_API unsigned int att_assert_Lf(long double result, long double expected, con
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%Lf", "%Lf", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -339,10 +294,6 @@ ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *de
         ATT_ERROR_MESSAGE(result, "%p", "%p", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
@@ -353,22 +304,18 @@ ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *desc
         ATT_ERROR_MESSAGE(result, "%d", "%d", expected);
     }
 
-    if(att_t_callback) {
-        att_t_callback(test, description);
-    }
-
     return test;
 }
 
 ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description, const char *file, unsigned int line) {
-    int test = att_assert(att_callback ? "callback" : "default", att_callback ? att_callback(result, expected, description) : (result == expected), description);
+    int test = att_assert(
+        att_generic_callback_fn ? "callback" : "default",
+        att_generic_callback_fn ? att_generic_callback_fn(result, expected, description) : (result == expected),
+        description
+    );
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%p", "%p", expected);
-    }
-
-    if(att_t_callback) {
-        att_t_callback(test, description);
     }
 
     return test;
@@ -422,6 +369,10 @@ int att_assert(const char *format, int test, const char *description) {
 
     if(test) {
         ATT_FETCH_INCREMENT(att_valid_tests);
+    }
+
+    if(att_test_callback_fn) {
+        att_test_callback_fn(test, description, att_assert_expression, att_assert_file, att_assert_line);
     }
 
     if(att_verbose == 0) {
