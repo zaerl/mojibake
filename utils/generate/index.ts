@@ -9,7 +9,6 @@ import { Analysis } from './analysis';
 import { Character } from './character';
 import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
 import { generateAPI } from './generate-api';
-import { generateNormalizationCount } from './generate-tests';
 import { generateUnicodeTables } from './generate-unicode-tables';
 import { generateWasmTD } from './generate-wasm-td';
 import { generateHeader } from './header';
@@ -222,7 +221,6 @@ async function generate() {
   // const summary = unicodeTableDataSummary();
   // iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
 
-  generateNormalizationCount();
   generateWasmTD();
 }
 
