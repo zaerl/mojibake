@@ -244,7 +244,13 @@ static void mjbsh_emoji_print_json(const char *buffer, size_t size, bool is_emoj
     printf("\"characters\":%s[", mjbsh_emoji_json_space());
 
     mjbsh_emoji_json_character_count = 0;
-    mjb_next_character(buffer, size, MJB_ENCODING_UTF_8, mjbsh_emoji_next_character);
+    if(mjb_next_character(buffer, size, MJB_ENCODING_UTF_8,
+        mjbsh_emoji_next_character) != MJB_STATUS_OK) {
+        printf("]%s", mjbsh_jnl());
+        printf("}%s", mjbsh_jnl());
+
+        return;
+    }
 
     if(mjbsh_emoji_json_character_count > 0) {
         mjbsh_emoji_json_indent(1);
@@ -265,7 +271,10 @@ static void mjbsh_emoji_print_plain(const char *buffer, size_t size, bool is_emo
         mjbsh_emoji_qualification_name(emoji->qualification), 1);
     mjbsh_numeric("Sequence Codepoints", 1, (unsigned int)emoji->codepoint_count);
 
-    mjb_next_character(buffer, size, MJB_ENCODING_UTF_8, mjbsh_emoji_next_character);
+    if(mjb_next_character(buffer, size, MJB_ENCODING_UTF_8,
+        mjbsh_emoji_next_character) != MJB_STATUS_OK) {
+        return;
+    }
 }
 
 int mjbsh_emoji_command(int argc, char * const argv[], unsigned int flags) {

@@ -65,12 +65,20 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
     if(is_exit_on_error()) {
         if(strcmp(result.output, normalized) != 0) {
+            mjb_status print_status;
+
             printf("\n%s: source:", test_name);
-            mjb_next_character(source, source_size, MJB_ENCODING_UTF_8, next_character);
+            print_status = mjb_next_character(source, source_size, MJB_ENCODING_UTF_8,
+                next_character);
+            (void)print_status; // we can ignore this.
             printf("\nExpected: ");
-            mjb_next_character(normalized, normalized_size, MJB_ENCODING_UTF_8, next_character);
+            print_status = mjb_next_character(normalized, normalized_size, MJB_ENCODING_UTF_8,
+                next_character);
+            (void)print_status; // we can ignore this.
             printf("\nGot: ");
-            mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, next_character);
+            print_status = mjb_next_character(result.output, result.output_size,
+                MJB_ENCODING_UTF_8, next_character);
+            (void)print_status; // we can ignore this.
             puts("");
         }
     }

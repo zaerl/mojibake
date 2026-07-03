@@ -207,7 +207,7 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
             (size_t)emoji.component + (size_t)emoji.extended_pictographic;
     }
 
-    if(mjb_codepoint_east_asian_width(codepoint, &width)) {
+    if(mjb_codepoint_east_asian_width(codepoint, &width) == MJB_STATUS_OK) {
         fuzz_sink += (size_t)width;
     }
 
@@ -291,7 +291,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     switch(selector % 17) {
         case 0: // Normalization, all four forms
             if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
-                MJB_ENCODING_UTF_8, &result)) {
+                MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -380,8 +380,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 10: { // Display width
             size_t width = 0;
-            mjb_display_width(buffer, size, encoding, (mjb_width_context)(variant % 3),
-                &width);
+            mjb_status status = mjb_display_width(buffer, size, encoding,
+                (mjb_width_context)(variant % 3), &width);
+            fuzz_sink += (size_t)status;
+            if(status == MJB_STATUS_OK) {
+                fuzz_sink += width;
+            }
             break;
         }
 
@@ -412,7 +416,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 16: // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
-            mjb_next_character(buffer, size, encoding, fuzz_next_character);
+            fuzz_sink += (size_t)mjb_next_character(buffer, size, encoding, fuzz_next_character);
             break;
     }
 

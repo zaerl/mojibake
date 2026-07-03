@@ -15,7 +15,7 @@ mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
 Return the next character from a string
 
 ```c
-bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 ```
 
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form

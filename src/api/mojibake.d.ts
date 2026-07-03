@@ -26,7 +26,7 @@ export type MojibakeWasmModule = {
   // Normalize a string to NFC/NFKC/NFD/NFKD form
   _mjb_normalize: (buffer: Pointer, size: number, encoding: number, form: number, output_encoding: number, result: Pointer) => number;
   // Return the next character from a string
-  _mjb_next_character: (buffer: Pointer, size: number, encoding: number, fn: number) => boolean;
+  _mjb_next_character: (buffer: Pointer, size: number, encoding: number, fn: number) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
   _mjb_string_is_normalized: (buffer: Pointer, size: number, encoding: number, form: number) => number;
   // Filter a string to remove invalid characters

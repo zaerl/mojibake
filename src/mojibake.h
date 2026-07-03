@@ -495,7 +495,7 @@ MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_ch
 MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the next character from a string
-bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+MJB_NODISCARD mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
 mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);

@@ -308,13 +308,19 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     if(ret) {
         if(is_json) {
             printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
-            mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, mjbsh_next_escaped_character);
+            if(result.output_size > 0 && mjb_next_character(result.output, result.output_size,
+                MJB_ENCODING_UTF_8,
+                mjbsh_next_escaped_character) != MJB_STATUS_OK) {
+                goto cleanup;
+            }
             printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
         } else {
             mjbsh_value(is_json ? name : label, true, "%s", result.output);
         }
     } else {
         mjbsh_null(is_json ? name : label, 1);
+
+        return;
     }
 
     if(is_json) {
@@ -323,7 +329,11 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
         printf("%s normalization: %s", label, mjbsh_green());
     }
 
-    mjb_next_character(result.output, result.output_size, MJB_ENCODING_UTF_8, is_json ? mjbsh_next_array_character : mjbsh_next_character);
+    if(result.output_size > 0 && mjb_next_character(result.output, result.output_size,
+        MJB_ENCODING_UTF_8,
+        is_json ? mjbsh_next_array_character : mjbsh_next_character) != MJB_STATUS_OK) {
+        goto cleanup;
+    }
 
     if(is_json) {
         printf("%s]", mjbsh_reset());
@@ -333,6 +343,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
 
     mjbsh_print_nl(nl);
 
+cleanup:
     if(result.output != NULL && result.output != buffer_utf8) {
         mjb_free(result.output);
     }
@@ -379,7 +390,10 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
 
         return true;
     } else {
-        mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8, mjbsh_next_current_character);
+        if(mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8,
+            mjbsh_next_current_character) != MJB_STATUS_OK) {
+            return false;
+        }
 
         if(current_codepoint == MJB_CODEPOINT_NOT_VALID) {
             return false;

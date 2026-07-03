@@ -419,7 +419,7 @@ export class Mojibake {
       this.free(resultPtr);
     }
   }
-  // bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_next_character_fn fn)
   nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options);
@@ -437,10 +437,10 @@ export class Mojibake {
     };
 
     try {
-      const ret = this.module._mjb_next_character(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_next_character(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, 0);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 

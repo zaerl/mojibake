@@ -10,21 +10,21 @@
 /**
  * Return the next character from the string.
  */
-MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_next_character_fn fn) {
-    if(buffer == NULL || size == 0 || !mjb_initialize()) {
-        return false;
+    if(buffer == NULL || size == 0) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
 #ifndef __EMSCRIPTEN__
     // Emscripten uses _mjbNextCharacterCallback.
     if(fn == NULL) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 #endif
 
     if(!mjb_initialize()) {
-        return false;
+        return MJB_STATUS_UNSUPPORTED;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
@@ -57,12 +57,12 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
             }, &character, first_character ? MJB_NEXT_CHAR_FIRST : MJB_NEXT_CHAR_NONE);
 
             if(!result) {
-                return false;
+                return MJB_STATUS_CALLBACK_STOPPED;
             }
 #else
             // Call the callback function.
             if(!fn(&character, first_character ? MJB_NEXT_CHAR_FIRST : MJB_NEXT_CHAR_NONE)) {
-                return false;
+                return MJB_STATUS_CALLBACK_STOPPED;
             }
 #endif
 
@@ -85,17 +85,17 @@ MJB_EXPORT bool mjb_next_character(const char *buffer, size_t size, mjb_encoding
         }, &character, first_character ? MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST : MJB_NEXT_CHAR_LAST);
 
         if(!result) {
-            return false;
+            return MJB_STATUS_CALLBACK_STOPPED;
         }
 #else
         // Call the callback function.
         if(!fn(&character, first_character ?
             (mjb_next_character_type)(MJB_NEXT_CHAR_FIRST | MJB_NEXT_CHAR_LAST) :
             MJB_NEXT_CHAR_LAST)) {
-            return false;
+            return MJB_STATUS_CALLBACK_STOPPED;
         }
 #endif
     }
 
-    return true;
+    return MJB_STATUS_OK;
 }

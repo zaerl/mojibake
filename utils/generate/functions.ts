@@ -100,9 +100,9 @@ export default [
   },
   {
     comment: 'Return the next character from a string',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_next_character',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
       size(),

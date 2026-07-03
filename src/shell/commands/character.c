@@ -287,7 +287,10 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 }
 
 int mjbsh_character_command(int argc, char * const argv[], unsigned int flags) {
-    mjb_next_character(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8, mjbsh_output_next_character);
+    if(mjb_next_character(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8,
+        mjbsh_output_next_character) != MJB_STATUS_OK) {
+        return 1;
+    }
 
     return 0;
 }
