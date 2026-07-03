@@ -16,10 +16,10 @@ static void mjbsh_print_filter_analysis(const char* input) {
     mjb_result result;
     size_t input_size = strlen(input);
 
-    bool ret = mjb_string_filter(input, input_size, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
+    mjb_status status = mjb_string_filter(input, input_size, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
         (mjb_filter)filter_flags, &result);
 
-    if(!ret) {
+    if(status != MJB_STATUS_OK) {
         puts("Could not filter string");
         fflush(stdout);
         return;

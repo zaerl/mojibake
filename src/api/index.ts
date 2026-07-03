@@ -470,8 +470,8 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding
-  // output_encoding, mjb_filter filters, mjb_result *result)
+  // mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_encoding output_encoding, mjb_filter filters, mjb_result *result)
   stringFilter(input: MojibakeInput, filters = FilterType.NONE,
     options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
@@ -480,10 +480,10 @@ export class Mojibake {
     let result: Result | null = null;
 
     try {
-      const ret = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, outputEncoding, filters, resultPtr);
 
-      if(!ret) {
+      if(status !== Status.OK) {
         return null;
       }
 

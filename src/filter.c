@@ -9,14 +9,14 @@
 
 extern mojibake mjb_global;
 
-MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_encoding output_encoding, mjb_filter filters, mjb_result *result) {
     if(result == NULL || (buffer == NULL && size > 0)) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(!mjb_initialize()) {
-        return false;
+        return MJB_STATUS_UNSUPPORTED;
     }
 
     if(size == 0) {
@@ -24,7 +24,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
         result->output_size = size;
         result->transformed = false;
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     bool is_normalized = false;
@@ -34,9 +34,11 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
         mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ?
             output_encoding : encoding;
 
-        if(mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFC,
-            normalize_output_encoding, result) != MJB_STATUS_OK) {
-            return false;
+        mjb_status status = mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFC,
+            normalize_output_encoding, result);
+
+        if(status != MJB_STATUS_OK) {
+            return status;
         }
 
         is_normalized = result->transformed;
@@ -44,7 +46,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
 
     // Only normalize, no filtering.
     if(filters == MJB_FILTER_NORMALIZE) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     if(is_normalized) {
@@ -68,7 +70,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
             mjb_free(result->output);
         }
 
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     bool in_error = false;
@@ -165,7 +167,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
                 mjb_free(result->output);
             }
 
-            return false;
+            return MJB_STATUS_NO_MEMORY;
         }
 
         last_was_whitespace = is_whitespace;
@@ -186,7 +188,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
                     mjb_free(result->output);
                 }
 
-                return false;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             any_transformation = true;
@@ -200,7 +202,7 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
         result->output = (char*)buffer;
         result->output_size = size;
         result->transformed = false;
-        return true;
+        return MJB_STATUS_OK;
     }
 
     if(is_normalized) {
@@ -211,5 +213,5 @@ MJB_EXPORT bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding 
     result->output_size = output_index;
     result->transformed = true;
 
-    return true;
+    return MJB_STATUS_OK;
 }

@@ -501,7 +501,7 @@ MJB_NODISCARD mjb_status mjb_next_character(const char *buffer, size_t size, mjb
 mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
 // Filter a string to remove invalid characters
-bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Return if a codepoint has a property
 bool mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);

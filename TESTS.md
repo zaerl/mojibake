@@ -47,13 +47,13 @@
 | `mjb_codepoint_property`                 | 7           |
 | `mjb_truncate_word_width`                | 7           |
 | `mjb_codepoint_is_id_start`              | 6           |
+| `mjb_next_character`                     | 6           |
 | `mjb_shutdown`                           | 6           |
 | `mjb_codepoint_is_combining`             | 5           |
 | `mjb_codepoint_is_graphic`               | 5           |
 | `mjb_codepoint_is_id_continue`           | 5           |
 | `mjb_hangul_syllable_decomposition`      | 5           |
 | `mjb_codepoint_is_hangul_jamo`           | 4           |
-| `mjb_next_character`                     | 4           |
 | `mjb_alloc`                              | 3           |
 | `mjb_codepoint_has_property`             | 3           |
 | `mjb_codepoint_is_hangul_l`              | 3           |
@@ -90,7 +90,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1469056** |
+| **Total**                                | **1469058** |
 
 ## JavaScript
 

@@ -199,7 +199,7 @@ mojibake -c emoji 263A FE0F
 
 ### Coverage
 
-Mojibake run a total of **1,469,056** tests including all the official tests included in the standard:
+Mojibake run a total of **1,469,058** tests including all the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
 2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)

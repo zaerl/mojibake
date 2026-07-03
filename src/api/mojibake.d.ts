@@ -30,7 +30,7 @@ export type MojibakeWasmModule = {
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
   _mjb_string_is_normalized: (buffer: Pointer, size: number, encoding: number, form: number) => number;
   // Filter a string to remove invalid characters
-  _mjb_string_filter: (buffer: Pointer, size: number, encoding: number, output_encoding: number, filters: number, result: Pointer) => boolean;
+  _mjb_string_filter: (buffer: Pointer, size: number, encoding: number, output_encoding: number, filters: number, result: Pointer) => number;
   // Return if a codepoint has a property
   _mjb_codepoint_has_property: (codepoint: Codepoint, property: number, value: Pointer) => boolean;
   // Return all properties of a codepoint

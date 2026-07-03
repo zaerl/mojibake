@@ -27,7 +27,7 @@ mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size,
 Filter a string to remove invalid characters
 
 ```c
-bool mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 ```
 
 Return if a codepoint has a property

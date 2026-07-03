@@ -136,9 +136,9 @@ export default [
   },
   {
     comment: 'Filter a string to remove invalid characters',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_string_filter',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to filter'),
       size(),
