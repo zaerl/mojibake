@@ -73,6 +73,22 @@ export enum ErrorType {
   UNSUPPORTED,
 };
 
+// mjb_status
+export enum Status {
+  OK = 0,
+  INVALID_ARGUMENT,
+  INVALID_ENCODING,
+  INVALID_CODEPOINT,
+  INVALID_FORM,
+  UNSUPPORTED,
+  NO_MEMORY,
+  OVERFLOW,
+  MALFORMED_INPUT,
+  OUTPUT_TOO_SMALL,
+  CALLBACK_STOPPED,
+  NOT_FOUND,
+};
+
 // mjb_locale_id
 export type LocaleID = {
   language: string;      // 9
@@ -1115,7 +1131,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_width_context context, size_t *width);
   displayWidth(input: MojibakeInput, context = WidthContext.AUTO,
     options: TextInputOptions = {}): number | null {
@@ -1123,10 +1139,10 @@ export class Mojibake {
     const widthPtr = this.malloc(4);
 
     try {
-      const ret = this.module._mjb_display_width(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_display_width(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, context, widthPtr);
 
-      if(ret) {
+      if(status === Status.OK) {
         return this.module.HEAP32[widthPtr / 4];
       }
 

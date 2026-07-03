@@ -447,7 +447,7 @@ bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_widt
 Return the display width of a string
 
 ```c
-bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
+mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 ```
 
 Parse a BCP 47 language tag

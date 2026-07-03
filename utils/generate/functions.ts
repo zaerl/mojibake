@@ -1148,9 +1148,9 @@ export default [
   },
   {
     comment: 'Return the display width of a string',
-    ret: 'bool',
+    ret: 'mjb_status',
     name: 'mjb_display_width',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to normalize'),
       size(),

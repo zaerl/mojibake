@@ -12,20 +12,25 @@
 /**
  * Return display width of a string.
  */
-MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
     mjb_width_context context, size_t *width) {
     if(width == NULL) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *width = 0;
 
+    if(context != MJB_WIDTH_CONTEXT_WESTERN && context != MJB_WIDTH_CONTEXT_EAST_ASIAN &&
+        context != MJB_WIDTH_CONTEXT_AUTO) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
     if(size == 0) {
-        return true;
+        return MJB_STATUS_OK;
     }
 
     if(buffer == NULL) {
-        return false;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     size_t ambiguous_count = 0;
@@ -93,7 +98,7 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
 
         if(is_visible) {
             if(*width > SIZE_MAX - width_increment) {
-                return false;
+                return MJB_STATUS_OVERFLOW;
             }
 
             ++visible_count;
@@ -115,12 +120,12 @@ MJB_EXPORT bool mjb_display_width(const char *buffer, size_t size, mjb_encoding 
         // If East Asian context, add 1 for each ambiguous character (they were initially counted as 1, need to be 2)
         if(use_east_asian_width) {
             if(*width > SIZE_MAX - ambiguous_count) {
-                return false;
+                return MJB_STATUS_OVERFLOW;
             }
 
             *width += ambiguous_count;
         }
     }
 
-    return true;
+    return MJB_STATUS_OK;
 }

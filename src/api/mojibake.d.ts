@@ -148,7 +148,7 @@ export type MojibakeWasmModule = {
   // Return the east asian width of a codepoint
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => boolean;
   // Return the display width of a string
-  _mjb_display_width: (buffer: Pointer, size: number, encoding: number, context: number, width: Pointer) => boolean;
+  _mjb_display_width: (buffer: Pointer, size: number, encoding: number, context: number, width: Pointer) => number;
   // Parse a BCP 47 language tag
   _mjb_locale_parse: (id: Pointer, size: number, encoding: number, locale: Pointer, error: Pointer) => boolean;
   // Set current locale

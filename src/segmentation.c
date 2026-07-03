@@ -350,8 +350,8 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t cluster_width = 0;
 
-        if(!mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
-            &cluster_width)) {
+        if(mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+            &cluster_width) != MJB_STATUS_OK) {
             return prev_break;
         }
 

@@ -238,6 +238,21 @@ typedef enum mjb_error {
     MJB_ERROR_UNSUPPORTED
 } mjb_error;
 
+typedef enum mjb_status {
+    MJB_STATUS_OK = 0,
+    MJB_STATUS_INVALID_ARGUMENT,
+    MJB_STATUS_INVALID_ENCODING,
+    MJB_STATUS_INVALID_CODEPOINT,
+    MJB_STATUS_INVALID_FORM,
+    MJB_STATUS_UNSUPPORTED,
+    MJB_STATUS_NO_MEMORY,
+    MJB_STATUS_OVERFLOW,
+    MJB_STATUS_MALFORMED_INPUT,
+    MJB_STATUS_OUTPUT_TOO_SMALL,
+    MJB_STATUS_CALLBACK_STOPPED,
+    MJB_STATUS_NOT_FOUND
+} mjb_status;
+
 typedef struct mjb_locale_id {
     char language[9];
     char extlang[12];
@@ -696,7 +711,7 @@ size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t 
 bool mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 
 // Return the display width of a string
-bool mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
+MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
 
 // Parse a BCP 47 language tag
 bool mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);

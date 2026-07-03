@@ -447,8 +447,8 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_e
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t segment_width = 0;
 
-        if(!mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
-            &segment_width)) {
+        if(mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+            &segment_width) != MJB_STATUS_OK) {
             return prev_break;
         }
 

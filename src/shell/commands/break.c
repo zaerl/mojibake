@@ -178,8 +178,10 @@ static void mjbsh_print_break_analysis(const char* input, mjbsh_break_mode mode)
     size_t input_real_size = mjb_strnlen(input, input_size, MJB_ENCODING_UTF_8);
     size_t display_width;
 
-    mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO,
-        &display_width);
+    if(mjb_display_width(input, input_size, MJB_ENCODING_UTF_8, MJB_WIDTH_CONTEXT_AUTO,
+        &display_width) != MJB_STATUS_OK) {
+        display_width = 0;
+    }
     printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
     printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
     printf("Display width: %s%zu%s\n", mjbsh_green(), display_width, mjbsh_reset());
