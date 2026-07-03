@@ -2,7 +2,7 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
-name: Test
+name: CI
 
 on:
   push:
@@ -15,18 +15,21 @@ concurrency:
 
 jobs:
   test:
-    name: Test (${{ matrix.os }}, ${{ matrix.cc }})
+    name: Test (${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - label: Linux / GCC
+            os: ubuntu-latest
             cc: gcc
             cxx: g++
-          - os: ubuntu-latest
+          - label: Linux / Clang
+            os: ubuntu-latest
             cc: clang
             cxx: clang++
-          - os: macos-latest
+          - label: macOS / Clang
+            os: macos-latest
             cc: clang
             cxx: clang++
     runs-on: ${{ matrix.os }}
@@ -76,7 +79,7 @@ jobs:
           ./build-test-ubsan/tests/mojibake-test
 
   test-windows:
-    name: Test (windows, MSVC)
+    name: Test (Windows / MSVC)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
