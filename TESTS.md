@@ -10,7 +10,7 @@
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_break_line`                         | 18794       |
 | `mjb_string_emoji_sequence`              | 5266        |
-| `mjb_case`                               | 3496        |
+| `mjb_case`                               | 3489        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
 | `mjb_segmentation`                       | 715         |
@@ -26,8 +26,10 @@
 | `mjb_hangul_syllable_composition`        | 44          |
 | `mjb_codepoint_is_valid`                 | 39          |
 | `mjb_codepoint_east_asian_width`         | 32          |
+| `mjb_locale_set`                         | 20          |
 | `mjb_codepoint_numeric_value`            | 18          |
 | `mjb_collation_key`                      | 18          |
+| `mjb_hangul_syllable_name`               | 18          |
 | `mjb_string_is_utf8`                     | 17          |
 | `mjb_codepoint_block`                    | 15          |
 | `mjb_codepoint_is_cjk_ext`               | 15          |
@@ -35,7 +37,6 @@
 | `mjb_string_is_identifier`               | 12          |
 | `mjb_bidi_line_runs`                     | 11          |
 | `mjb_truncate`                           | 11          |
-| `mjb_hangul_syllable_name`               | 10          |
 | `mjb_string_encoding`                    | 10          |
 | `mjb_string_is_ascii`                    | 10          |
 | `mjb_string_is_normalized`               | 10          |
@@ -78,7 +79,6 @@
 | `mjb_codepoint_properties`               | 2           |
 | `mjb_free`                               | 2           |
 | `mjb_initialize`                         | 2           |
-| `mjb_locale_set`                         | 2           |
 | `mjb_property_name`                      | 2           |
 | `mjb_string_is_emoji_sequence`           | 2           |
 | `mjb_codepoint_is_emoji_component`       | 1           |
@@ -90,7 +90,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560766** |
+| **Total**                                | **1560785** |
 
 ## JavaScript
 

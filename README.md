@@ -45,7 +45,10 @@ int main(int argc, char * const argv[]) {
     printf("Unicode version: %s\n", mjb_unicode_version());
 
     mjb_character character;
-    mjb_codepoint_character(0x022A, &character);
+
+    if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+        return 1;
+    }
 
     // This will print: "U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON"
     printf("U+%04X: %s\n", character.codepoint, character.name);
@@ -83,6 +86,10 @@ library `string.h` header.
 
 Following an incomplete documentation of current API.
 
+APIs that fill an output struct or allocated `mjb_result` return `mjb_status` and should be checked
+against `MJB_STATUS_OK`. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`,
+return `bool` because the boolean is the result.
+
 ## String normalization
 
 Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
@@ -98,7 +105,10 @@ int main(int argc, char * const argv[]) {
     mjb_encoding encoding = MJB_ENCODING_UTF_8;
     mjb_result result;
 
-    if(!mjb_normalize(hello, strlen(hello), encoding, MJB_NORMALIZATION_NFC, encoding, &result)) {
+    mjb_status status = mjb_normalize(hello, strlen(hello), encoding, MJB_NORMALIZATION_NFC,
+        encoding, &result);
+
+    if(status != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -125,10 +135,15 @@ You can retrieved informations about codepoints. Example for `U+022A LATIN CAPIT
 
 int main(int argc, char * const argv[]) {
     mjb_character character;
-    mjb_codepoint_character(0x022A, &character);
+
+    if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+        return 1;
+    }
 
     printf("U+%04X: %s\n", character.codepoint, character.name);
     // See the `mojibake` struct for other fields
+
+    return 0;
 }
 ```
 
@@ -199,7 +214,8 @@ mojibake -c emoji 263A FE0F
 
 ### Coverage
 
-Mojibake run a total of **1,560,766** tests including all the official tests included in the standard:
+Mojibake run a total of **1,560,785** tests including all the official tests included in the
+standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
 2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)

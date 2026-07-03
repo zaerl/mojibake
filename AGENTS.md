@@ -104,9 +104,22 @@ Core modules in `src/`:
 Key headers:
 
 - `locales.h` - Generated ISO-639-2 locale enum
-- `mojibake.h` - Public API, including `mjb_locale_id`, `mjb_error`, and `mjb_locale_parse`
+- `mojibake.h` - Public API, including `mjb_status`, `mjb_locale_id`, `mjb_error`, and
+  `mjb_locale_parse`
 - `unicode.h` - Unicode constants and enums
 - `utf*.h` UTF encode/decode functions
+
+## Public API Conventions
+
+Result-producing public APIs return `mjb_status`, are declared `MJB_NODISCARD`, and should be
+checked against `MJB_STATUS_OK` by callers. Keep semantic predicates as `bool` only when the boolean
+is the actual answer, such as `mjb_string_is_utf8`, `mjb_codepoint_is_valid`, identifier checks, and
+emoji predicate helpers.
+
+Public API declarations are generated from `utils/generate/functions.ts`. When changing a signature
+or return type, update that generator metadata, run `make generate`, and keep `API.md`,
+`src/mojibake.h`, and `src/api/mojibake.d.ts` in sync. C tests should use `ATT_ASSERT_STATUS` from
+`tests/test.h` for `mjb_status` return values.
 
 Tests in `tests/` mirror the source structure with comprehensive coverage tracking. The
 `tests/attractor/` directory contains the Attractor unit test framework used across all tests.
