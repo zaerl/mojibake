@@ -24,38 +24,35 @@ public:
     explicit LibraryError(std::string_view message) : std::runtime_error(std::string(message)) {}
 };
 
+/**
+ * See mjb_character for details.
+ */
 class Character {
 private:
-    mjb_character data;
-    bool valid;
+    mjb_character data{};
 
-    void ensure_valid() const {
-        if(!valid) {
-            throw LibraryError("Library is not initialized");
-        }
-    }
+    explicit Character(const mjb_character &character) noexcept : data(character) {}
 
 public:
-    Character() = default;
-    Character(const Character&) = default;
-    Character& operator=(const Character&) = default;
-    Character(Character&&) noexcept = default;
-    Character& operator=(Character&&) noexcept = default;
-    ~Character() = default;
-
-    explicit Character(mjb_codepoint codepoint) : data{}, valid(false) {
-        valid = mjb_codepoint_character(codepoint, &data) == MJB_STATUS_OK;
-
-        if(!valid) {
+    explicit Character(mjb_codepoint codepoint) {
+        if(mjb_codepoint_character(codepoint, &data) != MJB_STATUS_OK) {
             throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));
         }
     }
 
     explicit Character(char32_t codepoint) : Character(static_cast<mjb_codepoint>(codepoint)) {}
 
-    bool operator==(const Character& other) const noexcept {
-        if(!valid || !other.valid) return false;
+    [[nodiscard]] static std::optional<Character> from(mjb_codepoint codepoint) noexcept {
+        mjb_character data{};
 
+        if(mjb_codepoint_character(codepoint, &data) != MJB_STATUS_OK) {
+            return std::nullopt;
+        }
+
+        return Character(data);
+    }
+
+    bool operator==(const Character& other) const noexcept {
         return data.codepoint == other.data.codepoint;
     }
 
@@ -63,133 +60,103 @@ public:
         return !(*this == other);
     }
 
-    [[nodiscard]] bool is_valid() const noexcept {
-        return valid;
-    }
-
-    [[nodiscard]] mjb_codepoint codepoint() const {
-        ensure_valid();
+    [[nodiscard]] mjb_codepoint codepoint() const noexcept {
         return data.codepoint;
     }
 
-    [[nodiscard]] std::string_view name() const {
-        ensure_valid();
+    [[nodiscard]] std::string_view name() const noexcept {
         return std::string_view(data.name);
     }
 
-    [[nodiscard]] mjb_category category() const {
-        ensure_valid();
+    [[nodiscard]] mjb_category category() const noexcept {
         return data.category;
     }
 
-    [[nodiscard]] mjb_canonical_combining_class combining_class() const {
-        ensure_valid();
+    [[nodiscard]] mjb_canonical_combining_class combining_class() const noexcept {
         return data.combining;
     }
 
-    [[nodiscard]] unsigned short bidirectional() const {
-        ensure_valid();
+    [[nodiscard]] unsigned short bidirectional() const noexcept {
         return data.bidirectional;
     }
 
-    [[nodiscard]] mjb_decomposition decomposition_type() const {
-        ensure_valid();
+    [[nodiscard]] mjb_decomposition decomposition_type() const noexcept {
         return data.decomposition;
     }
 
-    [[nodiscard]] std::optional<int> decimal_value() const {
-        ensure_valid();
+    [[nodiscard]] std::optional<int> decimal_value() const noexcept {
         return data.decimal == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.decimal};
     }
 
-    [[nodiscard]] std::optional<int> digit_value() const {
-        ensure_valid();
+    [[nodiscard]] std::optional<int> digit_value() const noexcept {
         return data.digit == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.digit};
     }
 
-    [[nodiscard]] std::string_view numeric_value() const {
-        ensure_valid();
+    [[nodiscard]] std::string_view numeric_value() const noexcept {
         return std::string_view(data.numeric);
     }
 
-    [[nodiscard]] bool is_mirrored() const {
-        ensure_valid();
+    [[nodiscard]] bool is_mirrored() const noexcept {
         return data.mirrored;
     }
 
-    [[nodiscard]] std::optional<mjb_codepoint> uppercase() const {
-        ensure_valid();
+    [[nodiscard]] std::optional<mjb_codepoint> uppercase() const noexcept {
         return data.uppercase == 0 ? std::nullopt : std::optional<mjb_codepoint>{data.uppercase};
     }
 
-    [[nodiscard]] std::optional<mjb_codepoint> lowercase() const {
-        ensure_valid();
+    [[nodiscard]] std::optional<mjb_codepoint> lowercase() const noexcept {
         return data.lowercase == 0 ? std::nullopt : std::optional<mjb_codepoint>{data.lowercase};
     }
 
-    [[nodiscard]] std::optional<mjb_codepoint> titlecase() const {
-        ensure_valid();
+    [[nodiscard]] std::optional<mjb_codepoint> titlecase() const noexcept {
         return data.titlecase == 0 ? std::nullopt : std::optional<mjb_codepoint>{data.titlecase};
     }
 
-    [[nodiscard]] bool is_combining() const {
-        ensure_valid();
+    [[nodiscard]] bool is_combining() const noexcept {
         return mjb_category_is_combining(data.category);
     }
 
-    [[nodiscard]] bool is_graphic() const {
-        ensure_valid();
+    [[nodiscard]] bool is_graphic() const noexcept {
         return mjb_category_is_graphic(data.category);
     }
 
-    [[nodiscard]] bool is_hangul_syllable() const {
-        ensure_valid();
+    [[nodiscard]] bool is_hangul_syllable() const noexcept {
         return mjb_codepoint_is_hangul_syllable(data.codepoint);
     }
 
-    [[nodiscard]] bool is_cjk_ideograph() const {
-        ensure_valid();
+    [[nodiscard]] bool is_cjk_ideograph() const noexcept {
         return mjb_codepoint_is_cjk_ideograph(data.codepoint);
     }
 
-    [[nodiscard]] bool is_id_start() const {
-        ensure_valid();
+    [[nodiscard]] bool is_id_start() const noexcept {
         return mjb_codepoint_is_id_start(data.codepoint);
     }
 
-    [[nodiscard]] bool is_id_continue() const {
-        ensure_valid();
+    [[nodiscard]] bool is_id_continue() const noexcept {
         return mjb_codepoint_is_id_continue(data.codepoint);
     }
 
-    [[nodiscard]] bool is_xid_start() const {
-        ensure_valid();
+    [[nodiscard]] bool is_xid_start() const noexcept {
         return mjb_codepoint_is_xid_start(data.codepoint);
     }
 
-    [[nodiscard]] bool is_xid_continue() const {
-        ensure_valid();
+    [[nodiscard]] bool is_xid_continue() const noexcept {
         return mjb_codepoint_is_xid_continue(data.codepoint);
     }
 
-    [[nodiscard]] bool is_pattern_syntax() const {
-        ensure_valid();
+    [[nodiscard]] bool is_pattern_syntax() const noexcept {
         return mjb_codepoint_is_pattern_syntax(data.codepoint);
     }
 
-    [[nodiscard]] bool is_pattern_white_space() const {
-        ensure_valid();
+    [[nodiscard]] bool is_pattern_white_space() const noexcept {
         return mjb_codepoint_is_pattern_white_space(data.codepoint);
     }
 
-    [[nodiscard]] mjb_plane plane() const {
-        ensure_valid();
+    [[nodiscard]] mjb_plane plane() const noexcept {
         return mjb_codepoint_plane(data.codepoint);
     }
 
     [[nodiscard]] std::string to_utf8() const {
-        ensure_valid();
-
         std::array<char, 5> buffer{};
         unsigned int len = mjb_codepoint_encode(data.codepoint, buffer.data(), buffer.size(),
             MJB_ENCODING_UTF_8);
@@ -201,8 +168,7 @@ public:
         return std::string(buffer.data(), len);
     }
 
-    [[nodiscard]] const mjb_character& raw() const {
-        ensure_valid();
+    [[nodiscard]] const mjb_character& raw() const noexcept {
         return data;
     }
 };
@@ -364,12 +330,12 @@ struct BreakResult {
 
 template<typename State, mjb_break_type(*BreakFn)(const char*, size_t, mjb_encoding, State*)>
 class Breaker {
-    std::string buffer;
+    std::string_view buffer;
     State state{};
     bool done = false;
 
 public:
-    explicit Breaker(std::string_view input) : buffer(input) {}
+    explicit Breaker(std::string_view input) noexcept : buffer(input) {}
 
     [[nodiscard]] std::optional<BreakResult> next() {
         if(done) {
