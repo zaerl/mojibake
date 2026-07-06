@@ -10,6 +10,7 @@
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
 
+#if MJB_FEATURE_CHARACTER_NAMES
 static void mjb_codepoint_append_name(char *destination, size_t destination_size,
     size_t *index, const char *source) {
     if(*index >= destination_size) {
@@ -35,6 +36,18 @@ static void mjb_codepoint_set_name(char *destination, size_t destination_size,
     mjb_codepoint_append_name(destination, destination_size, &index, prefix);
     mjb_codepoint_append_name(destination, destination_size, &index, name);
 }
+#endif
+
+#if !MJB_FEATURE_CHARACTER_NAMES
+static void mjb_codepoint_set_default_name(char *destination, size_t destination_size,
+    mjb_codepoint codepoint) {
+    if(destination_size == 0) {
+        return;
+    }
+
+    snprintf(destination, destination_size, "Codepoint U+%04X", (unsigned int)codepoint);
+}
+#endif
 
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
@@ -50,43 +63,65 @@ MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
 
 static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_character *character) {
     character->name[0] = '\0';
+#if MJB_FEATURE_CHARACTER_NAMES
     const char *format = NULL;
     mjb_codepoint format_codepoint = codepoint;
+#endif
 
     if(mjb_codepoint_is_hangul_syllable(codepoint)) {
+#if MJB_FEATURE_CHARACTER_NAMES
         // Hangul syllable
         if(mjb_hangul_syllable_name(codepoint, character->name, 128) != MJB_STATUS_OK) {
             return false;
         }
+#endif
     } else if(mjb_codepoint_is_cjk_ideograph(codepoint)) {
+#if MJB_FEATURE_CHARACTER_NAMES
         format = "CJK UNIFIED IDEOGRAPH-%X";
+#endif
     } else if(
         (codepoint >= MJB_TANGUT_IDEOGRAPH_START && codepoint <= MJB_TANGUT_IDEOGRAPH_END) ||
-        (codepoint >= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START && codepoint <= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END)
-    ) {
+        (codepoint >= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START &&
+            codepoint <= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END)) {
+#if MJB_FEATURE_CHARACTER_NAMES
         format = "TANGUT IDEOGRAPH-%X";
+#endif
     } else if(codepoint >= MJB_TANGUT_COMPONENT_START && codepoint <= MJB_TANGUT_COMPONENT_END) {
+#if MJB_FEATURE_CHARACTER_NAMES
         format_codepoint = codepoint - MJB_TANGUT_COMPONENT_START + 1;
         format = "TANGUT COMPONENT-%03d";
-    } else if(codepoint >= MJB_TANGUT_COMPONENT_SUPPLEMENT_START && codepoint <= MJB_TANGUT_COMPONENT_SUPPLEMENT_END) {
+#endif
+    } else if(codepoint >= MJB_TANGUT_COMPONENT_SUPPLEMENT_START &&
+        codepoint <= MJB_TANGUT_COMPONENT_SUPPLEMENT_END) {
+#if MJB_FEATURE_CHARACTER_NAMES
         format_codepoint = codepoint - MJB_TANGUT_COMPONENT_SUPPLEMENT_START + 769;
         format = "TANGUT COMPONENT-%03d";
-    } else if(codepoint >= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START && codepoint <= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
+#endif
+    } else if(codepoint >= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START &&
+        codepoint <= MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END) {
+#if MJB_FEATURE_CHARACTER_NAMES
         format = "KHITAN SMALL SCRIPT CHARACTER-%X";
+#endif
     } else if(codepoint >= MJB_EGYPTIAN_H_FORMAT_EXT_START && codepoint <= MJB_EGYPTIAN_H_EXT_END) {
         if(codepoint >= 0x143FF) {
             // Last valid is EGYPTIAN HIEROGLYPH-143FA
             return false;
         }
 
+#if MJB_FEATURE_CHARACTER_NAMES
         format = "EGYPTIAN HIEROGLYPH-%X";
+#endif
     } else {
         return false;
     }
 
+#if MJB_FEATURE_CHARACTER_NAMES
     if(format != NULL) {
         snprintf(character->name, 128, format, format_codepoint);
     }
+#else
+    mjb_codepoint_set_default_name(character->name, sizeof(character->name), codepoint);
+#endif
 
     character->codepoint = codepoint;
     character->category = MJB_CATEGORY_LO;
@@ -123,6 +158,7 @@ MJB_EXPORT mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_chara
 
     character->codepoint = codepoint;
 
+#if MJB_FEATURE_CHARACTER_NAMES
     char name[128];
     name[0] = '\0';
 
@@ -152,6 +188,9 @@ MJB_EXPORT mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_chara
     } else {
         snprintf(character->name, 128, "%s", name);
     }
+#else
+    mjb_codepoint_set_default_name(character->name, sizeof(character->name), codepoint);
+#endif
 
     character->category = category;
     character->combining = MJB_CCC_NOT_REORDERED;

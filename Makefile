@@ -14,6 +14,7 @@ TEST_CPP_BUILD_DIR ?= $(BUILD_DIR)-test-cpp
 TEST_ASAN_BUILD_DIR ?= $(BUILD_DIR)-test-asan
 TEST_UBSAN_BUILD_DIR ?= $(BUILD_DIR)-test-ubsan
 TEST_NULL_BUILD_DIR ?= $(BUILD_DIR)-test-null
+TEST_NO_NAMES_BUILD_DIR ?= $(BUILD_DIR)-test-no-names
 
 # WASM and amalgamation build directories
 WASM_BUILD_DIR ?= build-wasm
@@ -22,7 +23,8 @@ AMALGAMATION_BUILD_DIR ?= build-amalgamation
 # CMake build flags
 BUILD_TYPE ?= Release
 TEST_BUILD_TYPE ?= Test
-CMAKE_NATIVE_BASE_FLAGS = -DBUILD_WASM=OFF
+FEATURE_CHARACTER_NAMES ?= ON
+CMAKE_NATIVE_BASE_FLAGS = -DBUILD_WASM=OFF -DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES)
 NATIVE_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DUSE_ASAN=OFF -DUSE_UBSAN=OFF -DALLOW_EMBEDDED_NULLS=OFF
 CPP_CMAKE_FLAGS = -DBUILD_CPP=ON -DBUILD_SHARED=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
@@ -163,7 +165,8 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: test test-all test-cpp test-asan test-ubsan test-null test-wasm ctest ctest-cpp test-docker
+.PHONY: test test-all test-cpp test-asan test-ubsan test-null test-no-names test-wasm ctest \
+	ctest-cpp test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -176,6 +179,10 @@ test-null: $(UNICODE_DATA)
 	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NULL_CMAKE_FLAGS)
 	@cmake --build $(TEST_NULL_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_NULL_BUILD_DIR)/tests/mojibake-test $(ARGS)
+
+# Run tests without Unicode character name tables
+test-no-names:
+	$(MAKE) test TEST_BUILD_DIR=$(TEST_NO_NAMES_BUILD_DIR) FEATURE_CHARACTER_NAMES=OFF ARGS="$(ARGS)"
 
 # Run tests with C++ compiler
 test-cpp: $(UNICODE_DATA)
@@ -202,10 +209,11 @@ test-ubsan: $(UNICODE_DATA)
 # Run all local test configurations
 test-all:
 	$(MAKE) test
-	$(MAKE) test-null
 	$(MAKE) test-cpp
 	$(MAKE) test-asan
 	$(MAKE) test-ubsan
+	$(MAKE) test-null
+	$(MAKE) test-no-names
 
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
@@ -243,7 +251,7 @@ clean-build:
 clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
 		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
-		$(TEST_UBSAN_BUILD_DIR) $(TEST_NULL_BUILD_DIR)
+		$(TEST_UBSAN_BUILD_DIR) $(TEST_NULL_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
@@ -285,6 +293,7 @@ help:
 	@echo "  test-asan               - Build and run tests with AddressSanitizer"
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-docker             - Build and run tests in Docker container"
+	@echo "  test-no-names           - Build and run tests without Unicode character names"
 	@echo "  test-null               - Build and run tests with embedded NULL support"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  test-wasm               - Run WASM JavaScript API tests"

@@ -37,6 +37,7 @@ Example:
 
 ```c
 #include <stdio.h>
+#include <string.h>
 #include "mojibake.h"
 
 // This is a simple example of how to use the Mojibake library.
@@ -44,14 +45,21 @@ int main(int argc, char * const argv[]) {
     printf("This is an example of Mojibake v%s\n", mjb_version());
     printf("Unicode version: %s\n", mjb_unicode_version());
 
-    mjb_character character;
+    const char *input = "Cafe\xCC\x81";
+    mjb_result result;
 
-    if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+    if(mjb_normalize(input, strlen(input), MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+           MJB_ENCODING_UTF_8, &result) != MJB_STATUS_OK) {
         return 1;
     }
 
-    // This will print: "U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON"
-    printf("U+%04X: %s\n", character.codepoint, character.name);
+    // Output NFC: Café
+    // e + ◌́ into é
+    printf("NFC: %.*s\n", (int)result.output_size, result.output);
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
 
     return 0;
 }
@@ -67,6 +75,29 @@ tested on:
 4. OpenBSD
 5. NetBSD
 6. Windows 10/11
+
+### Build-time features
+
+Mojibake can compile out optional feature tables to reduce binary size. Feature macros default to
+enabled.
+
+- `MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
+`mjb_codepoint_character(...)` to fill `mjb_character.name`. When disabled, the tables are not
+compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`.
+
+With CMake:
+
+```sh
+cmake -S . -B build-no-name -DMJB_FEATURE_CHARACTER_NAMES=OFF
+cmake --build build-no-name
+```
+
+With the provided Makefile:
+
+```sh
+make build BUILD_DIR=build-no-name FEATURE_CHARACTER_NAMES=OFF
+make test-no-names
+```
 
 ### Minimal API documentation
 
@@ -125,9 +156,10 @@ int main(int argc, char * const argv[]) {
 }
 ```
 
-## Codepoints informations
+## Codepoint information
 
-You can retrieved informations about codepoints. Example for `U+022A LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON`
+You can retrieve information about codepoints. This example uses fields that are available
+regardless of whether Unicode character names are compiled in.
 
 ```c
 #include <stdio.h>
@@ -140,7 +172,8 @@ int main(int argc, char * const argv[]) {
         return 1;
     }
 
-    printf("U+%04X: %s\n", character.codepoint, character.name);
+    printf("U+%04X lowercase: U+%04X\n", character.codepoint, character.lowercase);
+    printf("Graphic: %s\n", mjb_category_is_graphic(character.category) ? "yes" : "no");
     // See the `mojibake` struct for other fields
 
     return 0;
@@ -150,7 +183,8 @@ int main(int argc, char * const argv[]) {
 Output:
 
 ```
-U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
+U+022A lowercase: U+022B
+Graphic: yes
 ```
 
 ### CLI
@@ -158,51 +192,13 @@ U+022A: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
 The `src/shell` directory builds the `mojibake` CLI used to test the library. Example usage:
 
 ```sh
-mojibake -v char $'\U022A'
-# Similar to
-# mojibake -vv codepoint 022A
+mojibake nfc $'Cafe\u0301'
 ```
 
 Plain text output:
 
 ```
-Codepoint: U+022A
-Name: LATIN CAPITAL LETTER O WITH DIAERESIS AND MACRON
-Character: Ȫ
-Hex UTF-8: C8 AA
-Hex UTF-16BE: 02 2A
-Hex UTF-16LE: 2A 02
-Hex UTF-32BE: 00 00 02 2A
-Hex UTF-32LE: 2A 02 00 00
-NFD: Ȫ
-NFD normalization: U+004F U+0308 U+0304
-NFC: Ȫ
-NFC normalization: U+022A
-NFKD: Ȫ
-NFKD normalization: U+004F U+0308 U+0304
-NFKC: Ȫ
-NFKC normalization: U+004F U+0308 U+0304
-Category: [0] Letter, uppercase
-Combining: [0] Not Reordered
-Bidirectional: [1] Left-to-right
-Plane: [0] Basic Multilingual Plane
-Block: [3] Latin Extended-B
-Decomposition: [1] Canonical
-Decimal: N/A
-Digit: N/A
-Numeric: N/A
-Mirrored: N
-Uppercase: N/A
-Lowercase: U+022B
-Titlecase: N/A
-```
-
-JSON format:
-
-```sh
-mojibake -vv -o json -j 2 char $'\U022A'
-# Similar to
-# mojibake -vv -o json -j 2 codepoint 022A
+Café
 ```
 
 Emoji sequence analysis:

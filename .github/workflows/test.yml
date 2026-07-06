@@ -54,6 +54,12 @@ jobs:
           cmake --build build-test
           ./build-test/tests/mojibake-test
 
+      - name: Test (no character names)
+        run: |
+          cmake -S . -B build-test-no-names -DCMAKE_BUILD_TYPE=Test -DMJB_FEATURE_CHARACTER_NAMES=OFF
+          cmake --build build-test-no-names
+          ./build-test-no-names/tests/mojibake-test
+
       - name: Test (embedded NULLs)
         run: |
           cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DALLOW_EMBEDDED_NULLS=ON
@@ -100,6 +106,13 @@ jobs:
           cmake -S . -B build-test
           cmake --build build-test --config Test
           ./build-test/tests/Test/mojibake-test.exe
+
+      - name: Test (no character names)
+        shell: bash
+        run: |
+          cmake -S . -B build-test-no-names -DMJB_FEATURE_CHARACTER_NAMES=OFF
+          cmake --build build-test-no-names --config Test
+          ./build-test-no-names/tests/Test/mojibake-test.exe
 
   fuzz:
     name: Fuzz (smoke)

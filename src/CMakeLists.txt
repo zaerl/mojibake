@@ -85,6 +85,11 @@ if(ALLOW_EMBEDDED_NULLS)
     target_compile_definitions(mojibake_lib PRIVATE MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS=1)
 endif()
 
+if(NOT MJB_FEATURE_CHARACTER_NAMES)
+    message(STATUS "Building library without Unicode character name tables")
+    target_compile_definitions(mojibake_lib PUBLIC MJB_FEATURE_CHARACTER_NAMES=0)
+endif()
+
 # WASM-specific configuration
 if(BUILD_WASM)
     # Emscripten's EM_ASM_* macros require GNU C mode.

@@ -55,6 +55,10 @@ extern "C" {
 #define MJB_UNICODE_VERSION_MINOR 0
 #define MJB_UNICODE_VERSION_REVISION 0
 
+#ifndef MJB_FEATURE_CHARACTER_NAMES
+    #define MJB_FEATURE_CHARACTER_NAMES 1
+#endif
+
 #ifndef MJB_EXTERN
     #define MJB_EXTERN extern
 #endif

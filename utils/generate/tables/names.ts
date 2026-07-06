@@ -46,6 +46,7 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
     uint16_t count;
 } mjb_unicode_page;
 
+#if MJB_FEATURE_CHARACTER_NAMES
 typedef uint32_t mjb_unicode_prefix_entry;
 
 static const char mjb_unicode_prefix_data[] = {
@@ -75,5 +76,6 @@ ${formatBytes(nameLows)}
 static const uint32_t mjb_unicode_name_entries[] = {
 ${formatWords(nameEntries)}
 };
+#endif
 `;
 }

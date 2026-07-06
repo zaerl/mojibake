@@ -33,6 +33,9 @@ option(USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 # Shared library option
 option(BUILD_SHARED "Build as shared library instead of static" OFF)
 
+# Character name table option
+option(MJB_FEATURE_CHARACTER_NAMES "Compile Unicode character name lookup tables" ON)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()

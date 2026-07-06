@@ -5,6 +5,7 @@
  */
 
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "mojibake-internal.h"
@@ -33,6 +34,7 @@ static void mjb_copy_table_string(char *destination, size_t destination_size, co
     destination[length] = '\0';
 }
 
+#if MJB_FEATURE_CHARACTER_NAMES
 static size_t mjb_append_table_string(char *destination, size_t destination_size,
     size_t destination_index, const char *source) {
     if(destination_size == 0 || source == NULL) {
@@ -68,6 +70,7 @@ static const char *mjb_unicode_prefix_lookup(uint16_t prefix) {
 
     return "";
 }
+#endif
 
 static bool mjb_unicode_page_lookup(const uint16_t *page_index, size_t page_count,
     const mjb_unicode_page *pages, const uint8_t *lows, mjb_codepoint codepoint, size_t *index) {
@@ -110,6 +113,7 @@ static bool mjb_unicode_bitset_get(const uint8_t *data, size_t index) {
 }
 
 bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_size) {
+#if MJB_FEATURE_CHARACTER_NAMES
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_lookup(mjb_unicode_name_page_index,
@@ -134,6 +138,15 @@ bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_si
     mjb_append_table_string(name, name_size, index, &mjb_unicode_name_data[name_offset]);
 
     return true;
+#else
+    if(name_size == 0) {
+        return true;
+    }
+
+    snprintf(name, name_size, "Codepoint U+%04X", (unsigned int)codepoint);
+
+    return true;
+#endif
 }
 
 bool mjb_unicode_block_lookup(mjb_codepoint codepoint, mjb_block_info *block) {
