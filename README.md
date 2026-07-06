@@ -10,30 +10,59 @@ It aims to be:
 3. Fast
 4. Self-contained
 5. Pass all Unicode Standard tests
+6. Run in all modern OSes (Linux, macOS, FreeBSD, OpenBSD, NetBSD, Windows 11)
 
 ## Feature highlights
 
-All the C files, together with the Unicode data tables are concatenaded into a single large file and
-and header:
+All the C files, together with the Unicode data tables, are concatenated into a single large file
+and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
-1. `mojibake.h`
-2. `mojibake.c`
-3. a CLI implementation is provided in `src/shell`
-4. a C++ wrapper is in `src/cpp/mojibake.hpp`.
+**Text transformation**
 
-1. The API accept and/or output UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE encoded strings.
-2. **Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
-3. **Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
-properties found in the Unicode Character Database.
-4. **Case**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
-titlecase. Etc.
-5. **Parsing**: `mjb_next_character`, and other, let you parse string.
-6. **Segmentation and line breaking**: `mjb_break_word`, `mjb_break_line`, `mjb_break_sentence` and
-other, let you break a string by words, lines, and sentences.
-7. **Bidirectional reordering**: `mjb_bidi_resolve`, apply the Unicode Bidirectional Algorithm
-8. **Collation comparing**: `mjb_string_compare`, compare two string using the Unicode Collation Algorithm
-9. **Base string functions**: `mjb_strnlen`, and other, aim to have a full coverage of standard C
-library `string.h` header.
+- **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), plus a fast quick-check
+  (`mjb_string_is_normalized`) ([UAX #15](https://www.unicode.org/reports/tr15/))
+- **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
+  and conditional mappings (`mjb_case`)
+- **Filtering**: strip controls, spaces, or numeric characters while normalizing
+  (`mjb_string_filter`)
+
+**Text analysis**
+
+- **Character database**: every Unicode Character Database property: category, script, block,
+  plane, numeric value, name (`mjb_codepoint_character`)
+- **Segmentation**: grapheme clusters, words, sentences, and line-break opportunities
+  ([UAX #29](https://www.unicode.org/reports/tr29/), [UAX #14](https://www.unicode.org/reports/tr14/))
+- **Bidirectional text**: full Unicode Bidirectional Algorithm: paragraph resolution, line
+  reordering, runs ([UAX #9](https://www.unicode.org/reports/tr9/))
+- **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
+- **Display width**: East Asian width and terminal display width, with width-aware truncation
+  (`mjb_display_width`, `mjb_truncate_width`)
+
+**Sorting and comparison**
+
+- **Collation**: Unicode Collation Algorithm string comparison and sort keys, in shifted and
+  non-ignorable modes (`mjb_string_compare`, `mjb_collation_key`, [UTS #10](https://www.unicode.org/reports/tr10/))
+
+**Security**
+
+- **Confusable detection**: check if a string is visually confusable with another
+  (`mjb_string_is_confusable`, [UTS #39](https://www.unicode.org/reports/tr39/))
+- **Identifier validation**: XID/ID checks for parser and compiler authors
+  (`mjb_string_is_identifier`, [UAX #31](https://www.unicode.org/reports/tr31/))
+
+**Integration**
+
+- **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+  strings, with encoding detection and conversion (`mjb_string_encoding`,
+  `mjb_string_convert_encoding`)
+- **Parsing and string functions**: character-by-character iteration (`mjb_next_character`) and
+  standard C `string.h`-style helpers (`mjb_strnlen`, and others)
+- **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
+- **Embeddable**: custom allocators (`mjb_set_memory_functions`), build-time feature flags to trim
+  table size, a C++17 wrapper (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a
+  WASM + TypeScript API (`src/api`)
+- **Tested**: 1.5M+ assertions including every official Unicode conformance suite; fuzzed with
+  `libFuzzer`; `AddressSanitizer` and `UBSan` clean
 
 ## Usage
 
@@ -112,21 +141,7 @@ make test-no-names
 
 ### Minimal API documentation
 
-1. **Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
-2. **Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
-properties found in the Unicode Character Database.
-3. **Case**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
-titlecase. Etc.
-4. **Parsing**: `mjb_next_character`, and other, let you parse a UTF-8, UTF-16(BE, LE), UTF-32(BE, LE)
-string.
-5. **Segmentation and line breaking**: `mjb_break_line`, and other, let you break a string by line, and
-segment it.
-6. **Bidirectional reordering**: `mjb_bidi_resolve`, apply the Unicode Bidirectional Algorithm
-7. **Collation comparing**: `mjb_string_compare`, compare two string using the Unicode Collation Algorithm
-8. **Base string functions**: `mjb_strnlen`, and other, aim to have a full coverage of standard C
-library `string.h` header.
-
-Following an incomplete documentation of current API.
+Following an incomplete documentation of current API. See [API.md](API.md) for the full list.
 
 APIs that fill an output struct or allocated `mjb_result` return `mjb_status` and should be checked
 against `MJB_STATUS_OK`. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`,
