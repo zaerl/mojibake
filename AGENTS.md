@@ -60,7 +60,7 @@ When changing generated table layout, keep each step measurable and reversible:
   wc -c \
     src/unicode-tables.c \
     build/src/CMakeFiles/mojibake_lib.dir/unicode-tables.c.o \
-    build/src/libmojibake_lib.a
+    build/src/libmojibake.a
   ```
 - run `node_modules/.bin/tsc --noEmit` from `utils/generate/`
 - run `make generate-unicode-tables`, `make build`, focused tests for affected features, and
