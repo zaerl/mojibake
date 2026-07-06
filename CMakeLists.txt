@@ -18,6 +18,9 @@ project(
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+# Used by IDEs and language servers for IntelliSense
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Enable CTest
 enable_testing()
 

@@ -38,3 +38,6 @@ doc/*
 
 # Clang
 .cache/*
+
+# Editors
+.vscode/
