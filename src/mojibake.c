@@ -10,7 +10,7 @@
 #include "mojibake-internal.h"
 
 // Default allocators are valid before any explicit memory-function override.
-MJB_EXPORT mojibake mjb_global = { false, malloc, realloc, free, MJB_LOCALE_EN };
+mojibake mjb_global = { false, malloc, realloc, free, MJB_LOCALE_EN };
 
 // Set the library memory functions.
 MJB_EXPORT mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,

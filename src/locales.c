@@ -577,7 +577,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result,
+bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result,
     mjb_error *error) {
     (void)id;
     (void)size;
