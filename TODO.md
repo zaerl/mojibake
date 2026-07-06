@@ -2,7 +2,7 @@
 
 ## Main
 
-- [ ] Export libmojibake
+- [x] Export libmojibake
 - [ ] Add generic binary search
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`

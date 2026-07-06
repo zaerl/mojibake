@@ -40,6 +40,35 @@ else()
     add_library(mojibake_lib STATIC ${SOURCES})
 endif()
 
+add_library(Mojibake::mojibake ALIAS mojibake_lib)
+
+target_include_directories(
+    mojibake_lib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+set_target_properties(mojibake_lib PROPERTIES
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    EXPORT_NAME mojibake
+    INTERFACE_COMPILE_FEATURES cxx_std_17
+    OUTPUT_NAME mojibake
+    VISIBILITY_INLINES_HIDDEN ON
+)
+
+if(BUILD_SHARED)
+    set_target_properties(mojibake_lib PROPERTIES
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${PROJECT_VERSION}
+    )
+    target_compile_definitions(mojibake_lib
+        PRIVATE MJB_BUILDING_LIBRARY=1
+        PUBLIC MJB_SHARED=1
+    )
+endif()
+
 # Force C++ compilation if BUILD_CPP is enabled
 if(BUILD_CPP)
     set_target_properties(mojibake_lib PROPERTIES
@@ -183,4 +212,23 @@ if(BUILD_WASM)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/site/
          DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+endif()
+
+if(NOT BUILD_WASM)
+    install(
+        TARGETS mojibake_lib
+        EXPORT MojibakeTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
+    install(
+        FILES
+            mojibake.h
+            unicode.h
+            locales.h
+            cpp/mojibake.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
 endif()

@@ -44,8 +44,8 @@ export class CFunction implements MojibakeFunction {
   }
 
   formatC(): string {
-    const attributes = this.attributes.length ? `${this.attributes.join(' ')} ` : '';
-    return `// ${this.comment}\n${attributes}${this.ret}${this.getName()}(${this.getArgs().join(', ')});`;
+    const attributes = ['MJB_EXPORT', ...this.attributes].join(' ');
+    return `// ${this.comment}\n${attributes} ${this.ret}${this.getName()}(${this.getArgs().join(', ')});`;
   }
 
   formatMD(): string {

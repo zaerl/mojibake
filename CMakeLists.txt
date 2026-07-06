@@ -15,6 +15,9 @@ project(
     LANGUAGES C
 )
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 # Enable CTest
 enable_testing()
 
@@ -94,6 +97,38 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Test" CACHE STRING "Configurations"
 
 # Mojibake library
 add_subdirectory(src)
+
+if(NOT BUILD_WASM)
+    set(MOJIBAKE_INSTALL_CMAKEDIR
+        "${CMAKE_INSTALL_LIBDIR}/cmake/Mojibake"
+        CACHE STRING "CMake package configuration install directory"
+    )
+
+    configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MojibakeConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/MojibakeConfig.cmake"
+        INSTALL_DESTINATION "${MOJIBAKE_INSTALL_CMAKEDIR}"
+    )
+
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/MojibakeConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+    )
+
+    install(
+        EXPORT MojibakeTargets
+        NAMESPACE Mojibake::
+        DESTINATION "${MOJIBAKE_INSTALL_CMAKEDIR}"
+    )
+
+    install(
+        FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/MojibakeConfig.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/MojibakeConfigVersion.cmake"
+        DESTINATION "${MOJIBAKE_INSTALL_CMAKEDIR}"
+    )
+endif()
 
 # Tests and shell (only for native builds)
 if(NOT BUILD_WASM)
