@@ -5,6 +5,37 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-07-06
+
+### Added
+- Attractor JS library
+- WASM coverage
+- Support for `emoji-test.txt`
+- Support for `intentional.txt`
+- Emoji sequences
+- Emoji variation sequences
+- CLI "emoji" command
+- `test-wasm` target
+- UTF-16 pending surrogates
+- Support for dynamic library creation
+- `MJB_FEATURE_CHARACTER_NAMES` to strip away names tables
+
+### Changed
+- Updated Attractor and new coverage
+- Split bidi tests in two files
+- Renamed workflows to avoid confusion
+- Removed coverage script
+- Substituted all `bool` statuses to `mjb_status`
+- Removed `mjb_initialize*`
+
+### Fixed
+- Windows: missing `build-api` target
+- Windows: warning C4232 'malloc' is not static
+- Docker: missing artifacts
+- `mjb_codepoint_encode` must not accept surrogates
+- `mjb_case` preserve uncased CJK
+- `mjb_string_output()` crashing on realloc failure
+
 ## [0.2.2] - 2026-07-02
 
 ### Added
@@ -294,7 +325,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/zaerl/mojibake/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/zaerl/mojibake/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/zaerl/mojibake/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/zaerl/mojibake/compare/v0.1.5...v0.2.0

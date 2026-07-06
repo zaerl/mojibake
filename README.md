@@ -69,7 +69,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 You don't need to install anything. Add the C source and header to your build.
 
 1. Download it here
-[mojibake-amalgamation-022.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.2/mojibake-amalgamation-022.zip)
+[mojibake-amalgamation-023.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.2/mojibake-amalgamation-023.zip)
 2. Unzip it
 3. Add `mojibake.c` and `mojibake.h` to your project
 
