@@ -302,8 +302,8 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
     mjb_result result;
-    bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENCODING_UTF_8, form,
-        MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK;
+    bool ret = mjb_normalize(buffer_utf8, utf8_length, form, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
+        &result) == MJB_STATUS_OK;
 
     if(ret) {
         if(is_json) {

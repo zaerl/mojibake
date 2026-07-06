@@ -285,8 +285,8 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 /**
  * Normalize a string
  */
-MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding,
-    mjb_normalization form, mjb_encoding output_encoding, mjb_result *result) {
+MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && size > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }

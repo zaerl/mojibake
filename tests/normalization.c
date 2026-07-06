@@ -47,7 +47,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     char test_name[128];
 
     MJB_TEST_COVERAGE(mjb_normalize);
-    mjb_status status = mjb_normalize(source, source_size, MJB_ENCODING_UTF_8, form,
+    mjb_status status = mjb_normalize(source, source_size, form, MJB_ENCODING_UTF_8,
         MJB_ENCODING_UTF_8, &result);
 
     if(status != MJB_STATUS_OK) {
@@ -118,14 +118,14 @@ void *test_normalization(void *arg) {
     // unsigned int index = 0;
     mjb_result guard_result;
 
-    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_NORMALIZATION_NFC, MJB_ENCODING_UTF_8,
         MJB_ENCODING_UTF_8, &guard_result), MJB_STATUS_INVALID_ARGUMENT,
         "Normalize rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_NORMALIZATION_NFC, MJB_ENCODING_UTF_8,
         MJB_ENCODING_UTF_8, NULL), MJB_STATUS_INVALID_ARGUMENT,
         "Normalize rejects NULL result")
 
-    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
+    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_NORMALIZATION_NFC, MJB_ENCODING_UTF_8,
         MJB_ENCODING_UTF_16_LE, &guard_result), MJB_STATUS_OK,
         "Normalize converts output encoding for already-normalized input")
     ATT_ASSERT(guard_result.transformed, true,

@@ -293,7 +293,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     switch(selector % 17) {
         case 0: // Normalization, all four forms
-            if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
+            if(mjb_normalize(buffer, size, (mjb_normalization)(variant % 4), encoding,
                 MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }

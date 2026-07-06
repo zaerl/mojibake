@@ -798,8 +798,8 @@ static bool compute_sort_key(const char *buffer, size_t size, mjb_encoding encod
     }
 
     mjb_result r;
-    bool ok = mjb_normalize(buffer, size, encoding, MJB_NORMALIZATION_NFD, encoding,
-        &r) == MJB_STATUS_OK;
+    bool ok = mjb_normalize(buffer, size, MJB_NORMALIZATION_NFD, encoding, encoding, &r) ==
+        MJB_STATUS_OK;
 
     if(!ok) {
         return false;

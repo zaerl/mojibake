@@ -9,7 +9,7 @@ mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *chara
 Normalize a string to NFC/NFKC/NFD/NFKD form
 
 ```c
-mjb_status mjb_normalize(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Return the next character from a string

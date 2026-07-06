@@ -162,7 +162,7 @@ int main(int argc, char * const argv[]) {
     mjb_encoding encoding = MJB_ENCODING_UTF_8;
     mjb_result result;
 
-    mjb_status status = mjb_normalize(hello, strlen(hello), encoding, MJB_NORMALIZATION_NFC,
+    mjb_status status = mjb_normalize(hello, strlen(hello), MJB_NORMALIZATION_NFC, encoding,
         encoding, &result);
 
     if(status != MJB_STATUS_OK) {

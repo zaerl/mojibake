@@ -81,13 +81,13 @@ export default [
     args: [
       buffer('The string to normalize'),
       size(),
-      encoding(),
       {
         name: 'form',
         type: 'mjb_normalization',
         description: 'The normalization form to use',
         wasm_generated: false
       },
+      encoding(),
       encoding('The output encoding of the string', 'output_encoding'),
       {
         name: 'result',
