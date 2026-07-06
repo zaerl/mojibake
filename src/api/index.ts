@@ -683,30 +683,32 @@ export class Mojibake {
     }
   }
 
-  // char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding)
+  // mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type,
+  // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
   case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
-    const encoding = wasmInput.encoding;
-    let outputPtr = 0;
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    let result: Result | null = null;
 
     try {
-      if(encoding !== Encoding.ASCII && encoding !== Encoding.UTF_8) {
+      const status = this.module._mjb_case(wasmInput.ptr, wasmInput.size, type,
+        wasmInput.encoding, outputEncoding, resultPtr);
+
+      if(status !== Status.OK) {
         return null;
       }
 
-      outputPtr = this.module._mjb_case(wasmInput.ptr, wasmInput.size, type, encoding);
+      result = this.pointerToResult(resultPtr);
 
-      if(outputPtr === 0) {
-        return null;
-      }
-
-      return this.decodeString(outputPtr, this.nullTerminatedByteLength(outputPtr), encoding);
+      return this.decodeString(result.output, result.output_size, outputEncoding);
     } finally {
-      if(outputPtr !== 0 && outputPtr !== wasmInput.ptr) {
-        this.free(outputPtr);
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
       }
 
       this.free(wasmInput.ptr);
+      this.free(resultPtr);
     }
   }
 

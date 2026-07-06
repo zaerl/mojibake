@@ -10,21 +10,18 @@
 #include "../../mojibake.h"
 #include "commands.h"
 
-static char *mjbsh_get_case_string(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding) {
-    return mjb_case(buffer, size, type, encoding);
-}
-
 int mjbsh_case_command(int argc, char * const argv[], unsigned int flags) {
-    char *output = mjbsh_get_case_string(argv[0], strlen(argv[0]), (mjb_case_type)flags, MJB_ENCODING_UTF_8);
+    mjb_result result = { NULL, 0, false };
 
-    if(output == NULL) {
+    if(mjb_case(argv[0], strlen(argv[0]), (mjb_case_type)flags, MJB_ENCODING_UTF_8,
+        MJB_ENCODING_UTF_8, &result) != MJB_STATUS_OK) {
         return 1;
     }
 
-    puts(output);
+    puts(result.output);
 
-    if(output != argv[0]) {
-        mjb_free(output);
+    if(result.transformed) {
+        mjb_free(result.output);
     }
 
     return 0;

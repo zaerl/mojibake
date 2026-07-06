@@ -10,7 +10,7 @@
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_break_line`                         | 18794       |
 | `mjb_string_emoji_sequence`              | 5266        |
-| `mjb_case`                               | 3492        |
+| `mjb_case`                               | 3481        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
 | `mjb_segmentation`                       | 715         |
@@ -89,7 +89,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560807** |
+| **Total**                                | **1560796** |
 
 ## JavaScript
 

@@ -555,7 +555,7 @@ MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
 
 // Change string case
-MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return true if the codepoint is valid
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);

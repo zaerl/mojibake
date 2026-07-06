@@ -111,7 +111,7 @@ mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encod
 Change string case
 
 ```c
-char *mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
+mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Return true if the codepoint is valid

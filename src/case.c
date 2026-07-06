@@ -122,7 +122,8 @@ static bool mjb_case_output_codepoint(mjb_codepoint codepoint, char **output,
 }
 
 static bool mjb_special_casing_codepoint(mjb_codepoint codepoint, char **output,
-    size_t *output_index, size_t *output_size, mjb_case_type type, bool *found) {
+    size_t *output_index, size_t *output_size, mjb_case_type type, mjb_encoding output_encoding,
+    bool *found) {
     const mjb_codepoint *values = NULL;
     uint8_t length = 0;
     *found = false;
@@ -135,7 +136,7 @@ static bool mjb_special_casing_codepoint(mjb_codepoint codepoint, char **output,
 
     for(uint8_t i = 0; i < length; ++i) {
         if(!mjb_case_output_codepoint(values[i], output, output_index, output_size,
-            MJB_ENCODING_UTF_8)) {
+            output_encoding)) {
             return false;
         }
     }
@@ -232,8 +233,8 @@ static bool mjb_before_dot(const char *buffer, size_t size, size_t i, uint8_t st
 // Sets *handled when a rule matched; a matched rule may emit no output (removed character).
 static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type type,
     const mjb_case_context *context, const char *buffer, size_t size, size_t i, uint8_t state,
-    mjb_encoding encoding, char **output, size_t *output_index, size_t *output_size,
-    bool *handled) {
+    mjb_encoding encoding, mjb_encoding output_encoding, char **output, size_t *output_index,
+    size_t *output_size, bool *handled) {
     mjb_codepoint mapped[3];
     uint8_t length = 0;
     bool turkic = mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ;
@@ -295,7 +296,8 @@ static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type typ
     *handled = true;
 
     for(uint8_t k = 0; k < length; ++k) {
-        if(!mjb_case_output_codepoint(mapped[k], output, output_index, output_size, encoding)) {
+        if(!mjb_case_output_codepoint(mapped[k], output, output_index, output_size,
+            output_encoding)) {
             return false;
         }
     }
@@ -306,17 +308,17 @@ static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type typ
 /**
  * See: https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G34078
  */
-static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encoding) {
+static mjb_status mjb_titlecase(const char *buffer, size_t size, mjb_encoding encoding,
+    mjb_encoding output_encoding, mjb_result *result) {
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint;
     char *output = (char*)mjb_alloc(size);
 
     if(output == NULL) {
-        return NULL;
+        return MJB_STATUS_NO_MEMORY;
     }
 
-    // char *output = mjb_alloc(length);
     size_t output_index = 0;
     size_t output_size = size;
     bool in_word = false;
@@ -396,10 +398,10 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             mjb_case_context_update(&context, original);
 
             if(!mjb_case_output_codepoint(sigma_out, &output, &output_index,
-                &output_size, encoding)) {
+                &output_size, output_encoding)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             continue;
@@ -410,10 +412,11 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             bool handled = false;
 
             if(!mjb_locale_special_casing(original, effective_type, &context, buffer, size,
-                i, state, encoding, &output, &output_index, &output_size, &handled)) {
+                i, state, encoding, output_encoding, &output, &output_index, &output_size,
+                &handled)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             if(handled) {
@@ -431,11 +434,11 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
             bool found_special_casing = false;
 
             if(!mjb_special_casing_codepoint(original, &output, &output_index, &output_size,
-                case_type == MJB_CASE_NONE ? MJB_CASE_TITLE : case_type,
+                case_type == MJB_CASE_NONE ? MJB_CASE_TITLE : case_type, output_encoding,
                 &found_special_casing)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             if(found_special_casing) {
@@ -444,10 +447,10 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         }
 
         if(!mjb_case_output_codepoint(codepoint, &output, &output_index, &output_size,
-            encoding)) {
+            output_encoding)) {
             mjb_free(output);
 
-            return NULL;
+            return MJB_STATUS_NO_MEMORY;
         }
     }
 
@@ -457,7 +460,7 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
         if(new_output == NULL) {
             mjb_free(output);
 
-            return NULL;
+            return MJB_STATUS_NO_MEMORY;
         }
 
         output = new_output;
@@ -465,21 +468,34 @@ static char *mjb_titlecase(const char *buffer, size_t size, mjb_encoding encodin
 
     output[output_index] = '\0';
 
-    return output;
+    result->output = output;
+    result->output_size = output_index;
+    result->transformed = true;
+
+    return MJB_STATUS_OK;
 }
 
-MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
-    mjb_encoding encoding) {
-    if(buffer == NULL && size > 0) {
-        return NULL;
+MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && size > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(type != MJB_CASE_UPPER && type != MJB_CASE_LOWER && type != MJB_CASE_TITLE &&
+        type != MJB_CASE_CASEFOLD && type != MJB_CASE_CASEFOLD_SIMPLE) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(size == 0) {
-        return (char*)buffer;
+        result->output = (char*)buffer;
+        result->output_size = 0;
+        result->transformed = false;
+
+        return MJB_STATUS_OK;
     }
 
     if(type == MJB_CASE_TITLE) {
-        return mjb_titlecase(buffer, size, encoding);
+        return mjb_titlecase(buffer, size, encoding, output_encoding, result);
     }
 
     mjb_codepoint codepoint;
@@ -488,7 +504,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
     char *output = (char*)mjb_alloc(size);
 
     if(output == NULL) {
-        return NULL;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     size_t output_index = 0;
@@ -517,10 +533,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             // both full and simple folding.
             if(turkic && (codepoint == 0x49 || codepoint == 0x130)) {
                 if(!mjb_case_output_codepoint(codepoint == 0x49 ? 0x131 : 0x69, &output,
-                    &output_index, &output_size, encoding)) {
+                    &output_index, &output_size, output_encoding)) {
                     mjb_free(output);
 
-                    return NULL;
+                    return MJB_STATUS_NO_MEMORY;
                 }
 
                 continue;
@@ -532,10 +548,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             if(type == MJB_CASE_CASEFOLD_SIMPLE &&
                 mjb_unicode_case_folding_simple_lookup(codepoint, &simple)) {
                 if(!mjb_case_output_codepoint(simple, &output, &output_index, &output_size,
-                    encoding)) {
+                    output_encoding)) {
                     mjb_free(output);
 
-                    return NULL;
+                    return MJB_STATUS_NO_MEMORY;
                 }
 
                 continue;
@@ -550,10 +566,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
                 // folding maps the character to itself.
                 if(type == MJB_CASE_CASEFOLD_SIMPLE) {
                     if(!mjb_case_output_codepoint(length == 1 ? values[0] : codepoint, &output,
-                        &output_index, &output_size, encoding)) {
+                        &output_index, &output_size, output_encoding)) {
                         mjb_free(output);
 
-                        return NULL;
+                        return MJB_STATUS_NO_MEMORY;
                     }
 
                     continue;
@@ -562,10 +578,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
                 // Emit up to 3 mapped codepoints (F entries have 2-3, C exceptions have 1)
                 for(uint8_t k = 0; k < length; ++k) {
                     if(!mjb_case_output_codepoint(values[k], &output, &output_index,
-                        &output_size, encoding)) {
+                        &output_size, output_encoding)) {
                         mjb_free(output);
 
-                        return NULL;
+                        return MJB_STATUS_NO_MEMORY;
                     }
                 }
 
@@ -581,10 +597,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
             // Identity: codepoint unchanged if no lowercase found
             if(!mjb_case_output_codepoint(codepoint, &output, &output_index,
-                &output_size, encoding)) {
+                &output_size, output_encoding)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             continue;
@@ -595,10 +611,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             bool handled = false;
 
             if(!mjb_locale_special_casing(codepoint, type, &context, buffer, size, i, state,
-                encoding, &output, &output_index, &output_size, &handled)) {
+                encoding, output_encoding, &output, &output_index, &output_size, &handled)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             if(handled) {
@@ -624,10 +640,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             mjb_case_context_update(&context, codepoint);
 
             if(!mjb_case_output_codepoint(sigma_out, &output, &output_index,
-                &output_size, encoding)) {
+                &output_size, output_encoding)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             continue;
@@ -641,10 +657,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
             bool found_special_casing = false;
 
             if(!mjb_special_casing_codepoint(codepoint, &output, &output_index, &output_size,
-                type, &found_special_casing)) {
+                type, output_encoding, &found_special_casing)) {
                 mjb_free(output);
 
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
             if(found_special_casing) {
@@ -678,10 +694,10 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         }
 
         if(!mjb_case_output_codepoint(codepoint, &output, &output_index, &output_size,
-            encoding)) {
+            output_encoding)) {
             mjb_free(output);
 
-            return NULL;
+            return MJB_STATUS_NO_MEMORY;
         }
     }
 
@@ -691,7 +707,7 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
         if(new_output == NULL) {
             mjb_free(output);
 
-            return NULL;
+            return MJB_STATUS_NO_MEMORY;
         }
 
         output = new_output;
@@ -699,7 +715,11 @@ MJB_EXPORT char *mjb_case(const char *buffer, size_t size, mjb_case_type type,
 
     output[output_index] = '\0';
 
-    return output;
+    result->output = output;
+    result->output_size = output_index;
+    result->transformed = true;
+
+    return MJB_STATUS_OK;
 }
 
 // Return the codepoint lowercase codepoint

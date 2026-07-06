@@ -375,9 +375,9 @@ export default [
   },
   {
     comment: 'Change string case',
-    ret: 'char *',
+    ret: 'mjb_status',
     name: 'mjb_case',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to change case'),
       size(),
@@ -387,7 +387,14 @@ export default [
         description: 'The type of case change',
         wasm_generated: false
       },
-      encoding()
+      encoding(),
+      encoding('The output encoding of the string', 'output_encoding'),
+      {
+        name: 'result',
+        type: 'mjb_result *',
+        description: 'The pointer to store the result',
+        wasm_generated: true
+      }
     ],
     wasm: true
   },

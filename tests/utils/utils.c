@@ -42,6 +42,19 @@ size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints) {
     return index;
 }
 
+/**
+ * Call mjb_case and return the output string, or NULL when the call fails.
+ */
+char *run_mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding) {
+    mjb_result result = { NULL, 0, false };
+
+    if(mjb_case(buffer, size, type, encoding, encoding, &result) != MJB_STATUS_OK) {
+        return NULL;
+    }
+
+    return result.output;
+}
+
 void read_test_file(const char *filename, test_file_callback callback) {
     char line[16384];
     char generated_input[1024];

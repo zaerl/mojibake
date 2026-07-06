@@ -250,8 +250,7 @@ static void fuzz_emoji_string_apis(const char *buffer, size_t size, mjb_encoding
     }
 }
 
-// On fast paths the result APIs alias the input buffer instead of allocating, so only free an
-// output that is a distinct heap allocation.
+// Free an output that is a distinct heap allocation.
 static void free_result(mjb_result *result, const char *input) {
     if(result->output != NULL && result->output != input) {
         mjb_free(result->output);
@@ -305,15 +304,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             mjb_string_is_normalized(buffer, size, encoding, (mjb_normalization)(variant % 4));
             break;
 
-        case 2: { // Case conversion and folding, all transforming types
-            char *output = mjb_case(buffer, size, (mjb_case_type)(1 + (variant % 5)), encoding);
-
-            if(output != NULL && output != buffer) {
-                mjb_free(output);
+        case 2: // Case conversion and folding, all transforming types
+            if(mjb_case(buffer, size, (mjb_case_type)(1 + (variant % 5)), encoding,
+                MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK) {
+                free_result(&result, buffer);
             }
 
             break;
-        }
 
         case 3: { // Bidirectional algorithm, all three directions
             mjb_bidi_paragraph para;
