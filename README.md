@@ -2,27 +2,38 @@
 
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 
-**Mojibake** is a low-level Unicode 17 library written in C11. It can be compiled as C++17 as well.
-
-## Introduction
-
-**Mojibake** (Japanese: 文字化け 'character transformation') is the garbled text that is the result
-of text being decoded using an unintended character encoding. I created this library because I don't
-like any of the existing one. It aims to be, in order of importance:
+**Mojibake**[^1] is a low-level Unicode 17 library written in C11. It can be compiled as C++17 as well.
+It aims to be:
 
 1. Small
 2. Easy to use
 3. Fast
-4. Pass all Unicode Standard tests
-5. Self-contained
+4. Self-contained
+5. Pass all Unicode Standard tests
+
+## Feature highlights
 
 All the C files, together with the Unicode data tables are concatenaded into a single large file and
 and header:
 
 1. `mojibake.h`
 2. `mojibake.c`
+3. a CLI implementation is provided in `src/shell`
+4. a C++ wrapper is in `src/cpp/mojibake.hpp`.
 
-A CLI implementation is provided in `src/shell`, and a C++ wrapper is in `src/cpp/mojibake.hpp`.
+1. The API accept and/or output UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE encoded strings.
+2. **Normalization**: `mjb_normalize`, and other, let you normalize a string to `NFC/NFKC/NFD/NFKD` form.
+3. **Full character properties**: `mjb_codepoint_character`, and other, let you obtain all the
+properties found in the Unicode Character Database.
+4. **Case**: `mjb_case`, and other, let you normalize a string to uppercase, lowercase,
+titlecase. Etc.
+5. **Parsing**: `mjb_next_character`, and other, let you parse string.
+6. **Segmentation and line breaking**: `mjb_break_word`, `mjb_break_line`, `mjb_break_sentence` and
+other, let you break a string by words, lines, and sentences.
+7. **Bidirectional reordering**: `mjb_bidi_resolve`, apply the Unicode Bidirectional Algorithm
+8. **Collation comparing**: `mjb_string_compare`, compare two string using the Unicode Collation Algorithm
+9. **Base string functions**: `mjb_strnlen`, and other, aim to have a full coverage of standard C
+library `string.h` header.
 
 ## Usage
 
@@ -253,3 +264,7 @@ Mojibake is built using the work of extraordinary individuals and teams.
 (see [license.txt](https://www.unicode.org/license.txt))
 2. Unicode CLDR Project - Copyright © 2004-2026 Unicode, Inc.
 (see [LICENSE](https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/LICENSE))
+
+[^1]: **Mojibake** (Japanese: 文字化け 'character transformation') is the garbled text that is the
+result of text being decoded using an unintended character encoding. I created this library because
+I don't like any of the existing one. It aims to be, in order of importance:
