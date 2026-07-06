@@ -117,8 +117,8 @@ ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
 ATT_ASSERT(mojibake.displayWidth('Hello'), 5, 'displayWidth');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
 ATT_ASSERT(mojibake.localeSet(Locale.EN), true, 'localeSet');
-ATT_ASSERT(mojibake.version(), '0.2.2-WASM', 'version');
-ATT_ASSERT(mojibake.versionNumber(), 34, 'versionNumber');
+ATT_ASSERT(mojibake.version(), '0.2.3-WASM', 'version');
+ATT_ASSERT(mojibake.versionNumber(), 0x23, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '17.0.0', 'unicodeVersion');
 
 const valid = att_get_valid_tests();
