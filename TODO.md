@@ -2,15 +2,13 @@
 
 ## Main
 
-- [ ] Add generic binary search
 - [ ] Export libmojibake
-- [x] Remove SQLite dependency
-- [ ] Remove TypeScript dependency
-- [ ] Create Cosmpolitan CLI
-- [ ] Add support for NetBSD
+- [ ] Add generic binary search
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
+- [x] Remove SQLite dependency
+- [x] Add support for NetBSD
 - [x] Add Github actions for testing
 
 ## Unicode Conformance Requirements
