@@ -202,7 +202,7 @@ int test_security(void *arg) {
     // "gооgle" (Cyrillic о U+043E, UTF-8: 0xD0 0xBE) confusable with "google"
     // skeleton(Cyrillic о) = Latin o → both strings have skeleton "google"
     ATT_ASSERT(mjb_string_is_confusable("g\xD0\xBE\xD0\xBE" "d", 6, "good", 4, MJB_ENC_UTF_8), true,
-        "g(Cyrillic o)(Cyrillic o)gle confusable with google")
+        "g(Cyrillic o)(Cyrillic o)d confusable with good")
 
     // Confusability is symmetric
     ATT_ASSERT(mjb_string_is_confusable("pal", 3, "\xD1\x80" "al", 4, MJB_ENC_UTF_8), true,
