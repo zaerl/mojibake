@@ -2,7 +2,7 @@
 
 ### `mjb_codepoint_character`
 
-Return the codepoint character
+Return the codepoint character.
 
 ```c
 mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
@@ -36,7 +36,7 @@ See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`
 
 ### `mjb_normalize`
 
-Normalize a string to NFC/NFKC/NFD/NFKD form
+Normalize a string to NFC/NFKC/NFD/NFKD form.
 
 ```c
 mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
@@ -84,7 +84,7 @@ Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/r
 
 ### `mjb_next_character`
 
-Return the next character from a string
+Return the next character from a string.
 
 ```c
 mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
@@ -97,7 +97,7 @@ mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding enco
 
 ### `mjb_string_is_normalized`
 
-Check if a string is normalized to NFC/NFKC/NFD/NFKD form
+Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 
 ```c
 mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
@@ -122,7 +122,7 @@ Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/r
 
 ### `mjb_string_filter`
 
-Filter a string to remove invalid characters
+Filter a string to remove invalid characters.
 
 ```c
 mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
@@ -172,7 +172,7 @@ See also: [`mjb_normalize`](#mjb_normalize).
 
 ### `mjb_codepoint_has_property`
 
-Return if a codepoint has a property
+Return if a codepoint has a property.
 
 ```c
 mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
@@ -184,7 +184,7 @@ mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property prop
 
 ### `mjb_codepoint_properties`
 
-Return all properties of a codepoint
+Return all properties of a codepoint.
 
 ```c
 mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
@@ -195,7 +195,7 @@ mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 
 ### `mjb_codepoint_property`
 
-Return a property value
+Return a property value.
 
 ```c
 uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
@@ -206,7 +206,7 @@ uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
 
 ### `mjb_codepoint_script`
 
-Return the script of a codepoint
+Return the script of a codepoint.
 
 ```c
 mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
@@ -216,7 +216,7 @@ mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 
 ### `mjb_string_encoding`
 
-Return the string encoding (the most probable)
+Return the string encoding (the most probable).
 
 ```c
 mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
@@ -227,7 +227,7 @@ mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
 
 ### `mjb_string_is_utf8`
 
-Return true if the string is encoded in UTF-8
+Return true if the string is encoded in UTF-8.
 
 ```c
 bool mjb_string_is_utf8(const char *buffer, size_t size);
@@ -238,7 +238,7 @@ bool mjb_string_is_utf8(const char *buffer, size_t size);
 
 ### `mjb_string_is_utf16`
 
-Return true if the string is encoded in UTF-16BE or UTF-16LE
+Return true if the string is encoded in UTF-16BE or UTF-16LE.
 
 ```c
 bool mjb_string_is_utf16(const char *buffer, size_t size);
@@ -249,7 +249,7 @@ bool mjb_string_is_utf16(const char *buffer, size_t size);
 
 ### `mjb_string_is_ascii`
 
-Return true if the string is encoded in ASCII
+Return true if the string is encoded in ASCII.
 
 ```c
 bool mjb_string_is_ascii(const char *buffer, size_t size);
@@ -260,7 +260,7 @@ bool mjb_string_is_ascii(const char *buffer, size_t size);
 
 ### `mjb_codepoint_encode`
 
-Encode a codepoint to a string
+Encode a codepoint to a string.
 
 ```c
 unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
@@ -273,7 +273,7 @@ unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t 
 
 ### `mjb_string_convert_encoding`
 
-Convert from an encoding to another
+Convert from an encoding to another.
 
 ```c
 mjb_status mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
@@ -299,7 +299,7 @@ See also: [`mjb_string_encoding`](#mjb_string_encoding), [`mjb_codepoint_encode`
 
 ### `mjb_strnlen`
 
-Return the length of a string
+Return the length of a string.
 
 ```c
 size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
@@ -311,7 +311,7 @@ size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
 
 ### `mjb_string_compare`
 
-Compare two strings using UCA
+Compare two strings using UCA.
 
 ```c
 int mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode);
@@ -338,7 +338,7 @@ Specifications: [UTS #10: Unicode Collation Algorithm](https://www.unicode.org/r
 
 ### `mjb_collation_key`
 
-Generate a UCA sort key for a string
+Generate a UCA sort key for a string.
 
 ```c
 mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
@@ -365,7 +365,7 @@ Specifications: [UTS #10: Unicode Collation Algorithm](https://www.unicode.org/r
 
 ### `mjb_case`
 
-Change string case
+Change string case.
 
 ```c
 mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
@@ -409,7 +409,7 @@ See also: [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase), [`mjb_cod
 
 ### `mjb_codepoint_is_valid`
 
-Return true if the codepoint is valid
+Return true if the codepoint is valid.
 
 ```c
 bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -419,7 +419,7 @@ bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_graphic`
 
-Return true if the codepoint is graphic
+Return true if the codepoint is graphic.
 
 ```c
 bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
@@ -429,7 +429,7 @@ bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_combining`
 
-Return true if the codepoint is combining
+Return true if the codepoint is combining.
 
 ```c
 bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
@@ -439,7 +439,7 @@ bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_hangul_l`
 
-Return if the codepoint is an hangul L
+Return if the codepoint is an hangul L.
 
 ```c
 bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
@@ -449,7 +449,7 @@ bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_hangul_v`
 
-Return if the codepoint is an hangul V
+Return if the codepoint is an hangul V.
 
 ```c
 bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
@@ -459,7 +459,7 @@ bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_hangul_t`
 
-Return if the codepoint is an hangul T
+Return if the codepoint is an hangul T.
 
 ```c
 bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
@@ -469,7 +469,7 @@ bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_hangul_jamo`
 
-Return if the codepoint is an hangul jamo
+Return if the codepoint is an hangul jamo.
 
 ```c
 bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
@@ -479,7 +479,7 @@ bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_hangul_syllable`
 
-Return if the codepoint is an hangul syllable
+Return if the codepoint is an hangul syllable.
 
 ```c
 bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
@@ -489,7 +489,7 @@ bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_cjk_ideograph`
 
-Return if the codepoint is CJK ideograph
+Return if the codepoint is CJK ideograph.
 
 ```c
 bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
@@ -499,7 +499,7 @@ bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_cjk_ext`
 
-Return if the codepoint is CJK extension
+Return if the codepoint is CJK extension.
 
 ```c
 bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint);
@@ -509,7 +509,7 @@ bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint);
 
 ### `mjb_category_is_graphic`
 
-Return true if the category is graphic
+Return true if the category is graphic.
 
 ```c
 bool mjb_category_is_graphic(mjb_category category);
@@ -519,7 +519,7 @@ bool mjb_category_is_graphic(mjb_category category);
 
 ### `mjb_category_is_combining`
 
-Return true if the category is combining
+Return true if the category is combining.
 
 ```c
 bool mjb_category_is_combining(mjb_category category);
@@ -529,7 +529,7 @@ bool mjb_category_is_combining(mjb_category category);
 
 ### `mjb_codepoint_numeric_value`
 
-Return the numeric value of a codepoint
+Return the numeric value of a codepoint.
 
 ```c
 mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
@@ -540,7 +540,7 @@ mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_valu
 
 ### `mjb_codepoint_block`
 
-Return the character block
+Return the character block.
 
 ```c
 mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
@@ -551,7 +551,7 @@ mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
 
 ### `mjb_codepoint_to_lowercase`
 
-Return the codepoint lowercase codepoint
+Return the codepoint lowercase codepoint.
 
 ```c
 mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
@@ -561,7 +561,7 @@ mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_to_uppercase`
 
-Return the codepoint uppercase codepoint
+Return the codepoint uppercase codepoint.
 
 ```c
 mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
@@ -571,7 +571,7 @@ mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_to_titlecase`
 
-Return the codepoint titlecase codepoint
+Return the codepoint titlecase codepoint.
 
 ```c
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
@@ -581,7 +581,7 @@ mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 
 ### `mjb_break_line`
 
-Unicode line break algorithm
+Unicode line break algorithm.
 
 ```c
 mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_line_state *state);
@@ -598,7 +598,7 @@ Specifications: [UAX #14: Unicode Line Breaking Algorithm](https://www.unicode.o
 
 ### `mjb_break_word`
 
-Word cluster breaking
+Word cluster breaking.
 
 ```c
 mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
@@ -615,7 +615,7 @@ Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/rep
 
 ### `mjb_truncate_word`
 
-Return the number of bytes that form the first max_segments word-break segments
+Return the number of bytes that form the first max_segments word-break segments.
 
 ```c
 size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding, size_t max_segments);
@@ -628,7 +628,7 @@ size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
 
 ### `mjb_truncate_word_width`
 
-Return the number of bytes whose word-break segments fit within max_columns display columns
+Return the number of bytes whose word-break segments fit within max_columns display columns.
 
 ```c
 size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
@@ -642,7 +642,7 @@ size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding enc
 
 ### `mjb_break_sentence`
 
-Sentence boundaries breaking
+Sentence boundaries breaking.
 
 ```c
 mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_sentence_state *state);
@@ -659,7 +659,7 @@ Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/rep
 
 ### `mjb_segmentation`
 
-Grapheme cluster breaking
+Grapheme cluster breaking.
 
 ```c
 mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
@@ -678,7 +678,7 @@ Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/rep
 
 ### `mjb_truncate`
 
-Return the number of bytes that form the first `max_graphemes` grapheme cluster segments
+Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
 
 ```c
 size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
@@ -691,7 +691,7 @@ size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size
 
 ### `mjb_truncate_width`
 
-Return the number of bytes whose grapheme clusters fit within max_columns display columns
+Return the number of bytes whose grapheme clusters fit within max_columns display columns.
 
 ```c
 size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
@@ -705,7 +705,7 @@ size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding
 
 ### `mjb_bidi_resolve`
 
-Resolve bidirectional text (TR9) for a paragraph
+Resolve bidirectional text (TR9) for a paragraph.
 
 ```c
 mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
@@ -732,7 +732,7 @@ Specifications: [UAX #9: Unicode Bidirectional Algorithm](https://www.unicode.or
 
 ### `mjb_bidi_free`
 
-Free a bidi paragraph allocated by mjb_bidi_resolve
+Free a bidi paragraph allocated by mjb_bidi_resolve.
 
 ```c
 void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
@@ -744,7 +744,7 @@ See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve).
 
 ### `mjb_bidi_reorder_line`
 
-Reorder a line visually (L1-L4); visual_order is caller-allocated
+Reorder a line visually (L1-L4); visual_order is caller-allocated.
 
 ```c
 mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
@@ -761,7 +761,7 @@ Specifications: [UAX #9: Unicode Bidirectional Algorithm](https://www.unicode.or
 
 ### `mjb_bidi_line_runs`
 
-Compute visual level runs; pass runs=NULL to count first
+Compute visual level runs; pass runs=NULL to count first.
 
 ```c
 mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
@@ -779,7 +779,7 @@ Specifications: [UAX #9: Unicode Bidirectional Algorithm](https://www.unicode.or
 
 ### `mjb_codepoint_plane`
 
-Return the plane of the codepoint
+Return the plane of the codepoint.
 
 ```c
 mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
@@ -789,7 +789,7 @@ mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
 
 ### `mjb_plane_is_valid`
 
-Return true if the plane is valid
+Return true if the plane is valid.
 
 ```c
 bool mjb_plane_is_valid(mjb_plane plane);
@@ -799,7 +799,7 @@ bool mjb_plane_is_valid(mjb_plane plane);
 
 ### `mjb_plane_name`
 
-Return the name of a plane, NULL if the place specified is not valid
+Return the name of a plane, NULL if the plane specified is not valid.
 
 ```c
 const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
@@ -810,7 +810,7 @@ const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 ### `mjb_codepoint_is_id_start`
 
-Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)
+Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).
 
 ```c
 bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
@@ -820,7 +820,7 @@ bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_id_continue`
 
-Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)
+Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).
 
 ```c
 bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
@@ -830,7 +830,7 @@ bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_xid_start`
 
-Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)
+Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).
 
 ```c
 bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
@@ -840,7 +840,7 @@ bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_xid_continue`
 
-Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)
+Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).
 
 ```c
 bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
@@ -850,7 +850,7 @@ bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_pattern_syntax`
 
-Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)
+Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).
 
 ```c
 bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
@@ -860,7 +860,7 @@ bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_pattern_white_space`
 
-Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)
+Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).
 
 ```c
 bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
@@ -870,7 +870,7 @@ bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 
 ### `mjb_string_is_identifier`
 
-Return true if the string is a valid Unicode identifier (UAX#31)
+Return true if the string is a valid Unicode identifier (UAX#31).
 
 ```c
 bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
@@ -889,7 +889,7 @@ Specifications: [UAX #31: Unicode Identifiers and Syntax](https://www.unicode.or
 
 ### `mjb_property_name`
 
-Return the name of a property, NULL if the property specified is not valid
+Return the name of a property, NULL if the property specified is not valid.
 
 ```c
 const char *mjb_property_name(mjb_property property);
@@ -899,7 +899,7 @@ const char *mjb_property_name(mjb_property property);
 
 ### `mjb_string_is_confusable`
 
-Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
+Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
 
 ```c
 bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
@@ -919,7 +919,7 @@ Specifications: [UTS #39: Unicode Security Mechanisms](https://www.unicode.org/r
 
 ### `mjb_codepoint_emoji`
 
-Return the emoji properties
+Return the emoji properties.
 
 ```c
 mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
@@ -934,7 +934,7 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 
 ### `mjb_codepoint_is_emoji`
 
-Return true if the codepoint has the Unicode Emoji property
+Return true if the codepoint has the Unicode Emoji property.
 
 ```c
 bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
@@ -944,7 +944,7 @@ bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_emoji_presentation`
 
-Return true if the codepoint has the Unicode Emoji_Presentation property
+Return true if the codepoint has the Unicode Emoji_Presentation property.
 
 ```c
 bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint);
@@ -954,7 +954,7 @@ bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_emoji_modifier`
 
-Return true if the codepoint has the Unicode Emoji_Modifier property
+Return true if the codepoint has the Unicode Emoji_Modifier property.
 
 ```c
 bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint);
@@ -964,7 +964,7 @@ bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_emoji_modifier_base`
 
-Return true if the codepoint has the Unicode Emoji_Modifier_Base property
+Return true if the codepoint has the Unicode Emoji_Modifier_Base property.
 
 ```c
 bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint);
@@ -974,7 +974,7 @@ bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_emoji_component`
 
-Return true if the codepoint has the Unicode Emoji_Component property
+Return true if the codepoint has the Unicode Emoji_Component property.
 
 ```c
 bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
@@ -984,7 +984,7 @@ bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
 
 ### `mjb_codepoint_is_extended_pictographic`
 
-Return true if the codepoint has the Unicode Extended_Pictographic property
+Return true if the codepoint has the Unicode Extended_Pictographic property.
 
 ```c
 bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
@@ -994,7 +994,7 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 
 ### `mjb_string_emoji_sequence`
 
-Return emoji sequence metadata for a complete string
+Return emoji sequence metadata for a complete string.
 
 ```c
 mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
@@ -1011,7 +1011,7 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 
 ### `mjb_string_is_emoji_sequence`
 
-Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences
+Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
 
 ```c
 bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);
@@ -1027,7 +1027,7 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 
 ### `mjb_string_is_rgi_emoji`
 
-Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences
+Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
 
 ```c
 bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);
@@ -1043,7 +1043,7 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 
 ### `mjb_hangul_syllable_name`
 
-Return hangul syllable name
+Return hangul syllable name.
 
 ```c
 mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
@@ -1055,7 +1055,7 @@ mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_
 
 ### `mjb_hangul_syllable_decomposition`
 
-Hangul syllable decomposition
+Hangul syllable decomposition.
 
 ```c
 mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
@@ -1066,7 +1066,7 @@ mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepo
 
 ### `mjb_hangul_syllable_composition`
 
-Hangul syllable composition
+Hangul syllable composition.
 
 ```c
 size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
@@ -1077,7 +1077,7 @@ size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t 
 
 ### `mjb_codepoint_east_asian_width`
 
-Return the east asian width of a codepoint
+Return the east asian width of a codepoint.
 
 ```c
 mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
@@ -1092,7 +1092,7 @@ Specifications: [UAX #11: East Asian Width](https://www.unicode.org/reports/tr11
 
 ### `mjb_display_width`
 
-Return the display width of a string
+Return the display width of a string.
 
 ```c
 mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
@@ -1118,7 +1118,7 @@ Specifications: [UAX #11: East Asian Width](https://www.unicode.org/reports/tr11
 
 ### `mjb_locale_parse`
 
-Parse a BCP 47 language tag
+Parse a BCP 47 language tag.
 
 ```c
 mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
@@ -1144,7 +1144,7 @@ Specifications: [BCP 47: Tags for Identifying Languages](https://www.rfc-editor.
 
 ### `mjb_locale_set`
 
-Set current locale
+Set current locale.
 
 ```c
 mjb_status mjb_locale_set(unsigned int locale);
@@ -1154,7 +1154,7 @@ mjb_status mjb_locale_set(unsigned int locale);
 
 ### `mjb_version`
 
-Output the current library version (MJB_VERSION)
+Output the current library version (MJB_VERSION).
 
 ```c
 const char *mjb_version(void);
@@ -1162,7 +1162,7 @@ const char *mjb_version(void);
 
 ### `mjb_version_number`
 
-Output the current library version number (MJB_VERSION_NUMBER)
+Output the current library version number (MJB_VERSION_NUMBER).
 
 ```c
 unsigned int mjb_version_number(void);
@@ -1170,7 +1170,7 @@ unsigned int mjb_version_number(void);
 
 ### `mjb_unicode_version`
 
-Output the current supported unicode version (MJB_UNICODE_VERSION)
+Output the current supported unicode version (MJB_UNICODE_VERSION).
 
 ```c
 const char *mjb_unicode_version(void);
@@ -1178,7 +1178,7 @@ const char *mjb_unicode_version(void);
 
 ### `mjb_set_memory_functions`
 
-Set the library memory functions
+Set the library memory functions.
 
 ```c
 mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
@@ -1194,7 +1194,7 @@ See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc), [`mjb_free`]
 
 ### `mjb_shutdown`
 
-Shutdown the library. Not needed to be called
+Shutdown the library. Not needed to be called.
 
 ```c
 void mjb_shutdown(void);
@@ -1202,7 +1202,7 @@ void mjb_shutdown(void);
 
 ### `mjb_alloc`
 
-Allocate and zero memory
+Allocate and zero memory.
 
 ```c
 void *mjb_alloc(size_t size);
@@ -1212,7 +1212,7 @@ void *mjb_alloc(size_t size);
 
 ### `mjb_realloc`
 
-Reallocate memory
+Reallocate memory.
 
 ```c
 void *mjb_realloc(void *ptr, size_t new_size);
@@ -1223,7 +1223,7 @@ void *mjb_realloc(void *ptr, size_t new_size);
 
 ### `mjb_free`
 
-Free memory
+Free memory.
 
 ```c
 void mjb_free(void *ptr);

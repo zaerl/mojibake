@@ -107,7 +107,7 @@ function uts(number: number, title: string): MojibakeSpecRef {
 
 export default [
   {
-    comment: 'Return the codepoint character',
+    comment: 'Return the codepoint character.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_character',
     attributes: ['MJB_NODISCARD'],
@@ -141,7 +141,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_properties']
   },
   {
-    comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form',
+    comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form.',
     ret: 'mjb_status',
     name: 'mjb_normalize',
     attributes: ['MJB_NODISCARD'],
@@ -187,7 +187,7 @@ if(result.transformed) {
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Return the next character from a string',
+    comment: 'Return the next character from a string.',
     ret: 'mjb_status',
     name: 'mjb_next_character',
     attributes: ['MJB_NODISCARD'],
@@ -205,7 +205,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form',
+    comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
     ret: 'mjb_quick_check_result',
     name: 'mjb_string_is_normalized',
     attributes: [],
@@ -233,7 +233,7 @@ if(result.transformed) {
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Filter a string to remove invalid characters',
+    comment: 'Filter a string to remove invalid characters.',
     ret: 'mjb_status',
     name: 'mjb_string_filter',
     attributes: ['MJB_NODISCARD'],
@@ -282,7 +282,7 @@ if(result.transformed) {
 related: ['mjb_normalize']
   },
   {
-    comment: 'Return if a codepoint has a property',
+    comment: 'Return if a codepoint has a property.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_has_property',
     attributes: ['MJB_NODISCARD'],
@@ -304,7 +304,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Return all properties of a codepoint',
+    comment: 'Return all properties of a codepoint.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_properties',
     attributes: ['MJB_NODISCARD'],
@@ -320,7 +320,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Return a property value',
+    comment: 'Return a property value.',
     ret: 'uint8_t',
     name: 'mjb_codepoint_property',
     attributes: [],
@@ -341,7 +341,7 @@ related: ['mjb_normalize']
     wasm: false
   },
   {
-    comment: 'Return the script of a codepoint',
+    comment: 'Return the script of a codepoint.',
     ret: 'mjb_script',
     name: 'mjb_codepoint_script',
     attributes: [],
@@ -349,7 +349,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Return the string encoding (the most probable)',
+    comment: 'Return the string encoding (the most probable).',
     ret: 'mjb_encoding',
     name: 'mjb_string_encoding',
     attributes: [
@@ -362,7 +362,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Return true if the string is encoded in UTF-8',
+    comment: 'Return true if the string is encoded in UTF-8.',
     ret: 'bool',
     name: 'mjb_string_is_utf8',
     attributes: [
@@ -375,7 +375,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE',
+    comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
     ret: 'bool',
     name: 'mjb_string_is_utf16',
     attributes: [
@@ -388,7 +388,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Return true if the string is encoded in ASCII',
+    comment: 'Return true if the string is encoded in ASCII.',
     ret: 'bool',
     name: 'mjb_string_is_ascii',
     attributes: [
@@ -401,7 +401,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Encode a codepoint to a string',
+    comment: 'Encode a codepoint to a string.',
     ret: 'unsigned int',
     name: 'mjb_codepoint_encode',
     attributes: [],
@@ -414,7 +414,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Convert from an encoding to another',
+    comment: 'Convert from an encoding to another.',
     ret: 'mjb_status',
     name: 'mjb_string_convert_encoding',
     attributes: ['MJB_NODISCARD'],
@@ -440,7 +440,7 @@ related: ['mjb_normalize']
     related: ['mjb_string_encoding', 'mjb_codepoint_encode']
   },
   {
-    comment: 'Return the length of a string',
+    comment: 'Return the length of a string.',
     ret: 'size_t',
     name: 'mjb_strnlen',
     attributes: [
@@ -459,7 +459,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Compare two strings using UCA',
+    comment: 'Compare two strings using UCA.',
     ret: 'int',
     name: 'mjb_string_compare',
     attributes: [],
@@ -488,7 +488,7 @@ related: ['mjb_normalize']
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
   {
-    comment: 'Generate a UCA sort key for a string',
+    comment: 'Generate a UCA sort key for a string.',
     ret: 'mjb_status',
     name: 'mjb_collation_key',
     attributes: ['MJB_NODISCARD'],
@@ -519,7 +519,7 @@ related: ['mjb_normalize']
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
   {
-    comment: 'Change string case',
+    comment: 'Change string case.',
     ret: 'mjb_status',
     name: 'mjb_case',
     attributes: ['MJB_NODISCARD'],
@@ -563,7 +563,7 @@ if(result.transformed) {
     related: ['mjb_codepoint_to_uppercase', 'mjb_codepoint_to_lowercase', 'mjb_codepoint_to_titlecase']
   },
   {
-    comment: 'Return true if the codepoint is valid',
+    comment: 'Return true if the codepoint is valid.',
     ret: 'bool',
     name: 'mjb_codepoint_is_valid',
     attributes: ['MJB_CONST'],
@@ -571,7 +571,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is graphic',
+    comment: 'Return true if the codepoint is graphic.',
     ret: 'bool',
     name: 'mjb_codepoint_is_graphic',
     attributes: ['MJB_CONST'],
@@ -579,7 +579,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is combining',
+    comment: 'Return true if the codepoint is combining.',
     ret: 'bool',
     name: 'mjb_codepoint_is_combining',
     attributes: ['MJB_CONST'],
@@ -587,7 +587,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return if the codepoint is an hangul L',
+    comment: 'Return if the codepoint is an hangul L.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_l',
     attributes: ['MJB_CONST'],
@@ -595,7 +595,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul V',
+    comment: 'Return if the codepoint is an hangul V.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_v',
     attributes: ['MJB_CONST'],
@@ -603,7 +603,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul T',
+    comment: 'Return if the codepoint is an hangul T.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_t',
     attributes: ['MJB_CONST'],
@@ -611,7 +611,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul jamo',
+    comment: 'Return if the codepoint is an hangul jamo.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_jamo',
     attributes: ['MJB_CONST'],
@@ -619,7 +619,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul syllable',
+    comment: 'Return if the codepoint is an hangul syllable.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_syllable',
     attributes: ['MJB_CONST'],
@@ -627,7 +627,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return if the codepoint is CJK ideograph',
+    comment: 'Return if the codepoint is CJK ideograph.',
     ret: 'bool',
     name: 'mjb_codepoint_is_cjk_ideograph',
     attributes: ['MJB_CONST'],
@@ -635,7 +635,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return if the codepoint is CJK extension',
+    comment: 'Return if the codepoint is CJK extension.',
     ret: 'bool',
     name: 'mjb_codepoint_is_cjk_ext',
     attributes: ['MJB_CONST'],
@@ -643,7 +643,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the category is graphic',
+    comment: 'Return true if the category is graphic.',
     ret: 'bool',
     name: 'mjb_category_is_graphic',
     attributes: ['MJB_CONST'],
@@ -658,7 +658,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the category is combining',
+    comment: 'Return true if the category is combining.',
     ret: 'bool',
     name: 'mjb_category_is_combining',
     attributes: ['MJB_CONST'],
@@ -673,7 +673,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the numeric value of a codepoint',
+    comment: 'Return the numeric value of a codepoint.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_numeric_value',
     attributes: ['MJB_NODISCARD'],
@@ -689,7 +689,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the character block',
+    comment: 'Return the character block.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_block',
     attributes: ['MJB_NODISCARD'],
@@ -705,7 +705,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the codepoint lowercase codepoint',
+    comment: 'Return the codepoint lowercase codepoint.',
     ret: 'mjb_codepoint',
     name: 'mjb_codepoint_to_lowercase',
     attributes: ['MJB_CONST'],
@@ -713,7 +713,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the codepoint uppercase codepoint',
+    comment: 'Return the codepoint uppercase codepoint.',
     ret: 'mjb_codepoint',
     name: 'mjb_codepoint_to_uppercase',
     attributes: ['MJB_CONST'],
@@ -721,7 +721,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the codepoint titlecase codepoint',
+    comment: 'Return the codepoint titlecase codepoint.',
     ret: 'mjb_codepoint',
     name: 'mjb_codepoint_to_titlecase',
     attributes: ['MJB_CONST'],
@@ -729,7 +729,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Unicode line break algorithm',
+    comment: 'Unicode line break algorithm.',
     ret: 'mjb_break_type',
     name: 'mjb_break_line',
     attributes: [],
@@ -749,7 +749,7 @@ if(result.transformed) {
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
   {
-    comment: 'Word cluster breaking',
+    comment: 'Word cluster breaking.',
     ret: 'mjb_break_type',
     name: 'mjb_break_word',
     attributes: [],
@@ -769,7 +769,7 @@ if(result.transformed) {
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
-    comment: 'Return the number of bytes that form the first max_segments word-break segments',
+    comment: 'Return the number of bytes that form the first max_segments word-break segments.',
     ret: 'size_t',
     name: 'mjb_truncate_word',
     attributes: [],
@@ -787,7 +787,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns',
+    comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
     ret: 'size_t',
     name: 'mjb_truncate_word_width',
     attributes: [],
@@ -811,7 +811,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Sentence boundaries breaking',
+    comment: 'Sentence boundaries breaking.',
     ret: 'mjb_break_type',
     name: 'mjb_break_sentence',
     attributes: [],
@@ -831,7 +831,7 @@ if(result.transformed) {
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
-    comment: 'Grapheme cluster breaking',
+    comment: 'Grapheme cluster breaking.',
     ret: 'mjb_break_type',
     name: 'mjb_segmentation',
     attributes: [],
@@ -853,7 +853,7 @@ if(result.transformed) {
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
-    comment: 'Return the number of bytes that form the first `max_graphemes` grapheme cluster segments',
+    comment: 'Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.',
     ret: 'size_t',
     name: 'mjb_truncate',
     attributes: [],
@@ -871,7 +871,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns',
+    comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
     ret: 'size_t',
     name: 'mjb_truncate_width',
     attributes: [],
@@ -895,7 +895,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Resolve bidirectional text (TR9) for a paragraph',
+    comment: 'Resolve bidirectional text (TR9) for a paragraph.',
     ret: 'mjb_status',
     name: 'mjb_bidi_resolve',
     attributes: ['MJB_NODISCARD'],
@@ -932,7 +932,7 @@ if(result.transformed) {
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
-    comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve',
+    comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve.',
     ret: 'void',
     name: 'mjb_bidi_free',
     attributes: [],
@@ -948,7 +948,7 @@ if(result.transformed) {
     related: ['mjb_bidi_resolve']
   },
   {
-    comment: 'Reorder a line visually (L1-L4); visual_order is caller-allocated',
+    comment: 'Reorder a line visually (L1-L4); visual_order is caller-allocated.',
     ret: 'mjb_status',
     name: 'mjb_bidi_reorder_line',
     attributes: ['MJB_NODISCARD'],
@@ -984,7 +984,7 @@ if(result.transformed) {
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
-    comment: 'Compute visual level runs; pass runs=NULL to count first',
+    comment: 'Compute visual level runs; pass runs=NULL to count first.',
     ret: 'mjb_status',
     name: 'mjb_bidi_line_runs',
     attributes: ['MJB_NODISCARD'],
@@ -1025,7 +1025,7 @@ if(result.transformed) {
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
-    comment: 'Return the plane of the codepoint',
+    comment: 'Return the plane of the codepoint.',
     ret: 'mjb_plane',
     name: 'mjb_codepoint_plane',
     attributes: ['MJB_CONST'],
@@ -1033,7 +1033,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the plane is valid',
+    comment: 'Return true if the plane is valid.',
     ret: 'bool',
     name: 'mjb_plane_is_valid',
     attributes: ['MJB_CONST'],
@@ -1048,7 +1048,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return the name of a plane, NULL if the place specified is not valid',
+    comment: 'Return the name of a plane, NULL if the plane specified is not valid.',
     ret: 'const char *',
     name: 'mjb_plane_name',
     attributes: ['MJB_CONST'],
@@ -1069,7 +1069,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)',
+    comment: 'Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_start',
     attributes: [],
@@ -1077,7 +1077,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)',
+    comment: 'Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_continue',
     attributes: [],
@@ -1085,7 +1085,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)',
+    comment: 'Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_xid_start',
     attributes: [],
@@ -1093,7 +1093,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)',
+    comment: 'Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).',
     ret: 'bool',
     name: 'mjb_codepoint_is_xid_continue',
     attributes: [],
@@ -1101,7 +1101,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)',
+    comment: 'Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).',
     ret: 'bool',
     name: 'mjb_codepoint_is_pattern_syntax',
     attributes: [],
@@ -1109,7 +1109,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)',
+    comment: 'Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).',
     ret: 'bool',
     name: 'mjb_codepoint_is_pattern_white_space',
     attributes: [],
@@ -1117,7 +1117,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the string is a valid Unicode identifier (UAX#31)',
+    comment: 'Return true if the string is a valid Unicode identifier (UAX#31).',
     ret: 'bool',
     name: 'mjb_string_is_identifier',
     attributes: [],
@@ -1141,7 +1141,7 @@ if(result.transformed) {
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return the name of a property, NULL if the property specified is not valid',
+    comment: 'Return the name of a property, NULL if the property specified is not valid.',
     ret: 'const char *',
     name: 'mjb_property_name',
     attributes: ['MJB_CONST'],
@@ -1156,7 +1156,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)',
+    comment: 'Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).',
     ret: 'bool',
     name: 'mjb_string_is_confusable',
     attributes: [],
@@ -1180,7 +1180,7 @@ if(result.transformed) {
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
-    comment: 'Return the emoji properties',
+    comment: 'Return the emoji properties.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_emoji',
     attributes: ['MJB_NODISCARD'],
@@ -1198,7 +1198,7 @@ if(result.transformed) {
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
-    comment: 'Return true if the codepoint has the Unicode Emoji property',
+    comment: 'Return true if the codepoint has the Unicode Emoji property.',
     ret: 'bool',
     name: 'mjb_codepoint_is_emoji',
     attributes: [],
@@ -1206,7 +1206,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint has the Unicode Emoji_Presentation property',
+    comment: 'Return true if the codepoint has the Unicode Emoji_Presentation property.',
     ret: 'bool',
     name: 'mjb_codepoint_is_emoji_presentation',
     attributes: [],
@@ -1214,7 +1214,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint has the Unicode Emoji_Modifier property',
+    comment: 'Return true if the codepoint has the Unicode Emoji_Modifier property.',
     ret: 'bool',
     name: 'mjb_codepoint_is_emoji_modifier',
     attributes: [],
@@ -1222,7 +1222,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint has the Unicode Emoji_Modifier_Base property',
+    comment: 'Return true if the codepoint has the Unicode Emoji_Modifier_Base property.',
     ret: 'bool',
     name: 'mjb_codepoint_is_emoji_modifier_base',
     attributes: [],
@@ -1230,7 +1230,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint has the Unicode Emoji_Component property',
+    comment: 'Return true if the codepoint has the Unicode Emoji_Component property.',
     ret: 'bool',
     name: 'mjb_codepoint_is_emoji_component',
     attributes: [],
@@ -1238,7 +1238,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint has the Unicode Extended_Pictographic property',
+    comment: 'Return true if the codepoint has the Unicode Extended_Pictographic property.',
     ret: 'bool',
     name: 'mjb_codepoint_is_extended_pictographic',
     attributes: [],
@@ -1246,7 +1246,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return emoji sequence metadata for a complete string',
+    comment: 'Return emoji sequence metadata for a complete string.',
     ret: 'mjb_status',
     name: 'mjb_string_emoji_sequence',
     attributes: ['MJB_NODISCARD'],
@@ -1267,7 +1267,7 @@ if(result.transformed) {
   },
   {
     comment: 'Return true if the complete string is an emoji sequence listed by Unicode, ' +
-      'including standardized emoji variation sequences',
+      'including standardized emoji variation sequences.',
     ret: 'bool',
     name: 'mjb_string_is_emoji_sequence',
     attributes: [],
@@ -1282,7 +1282,7 @@ if(result.transformed) {
   },
   {
     comment: 'Return true if the complete string is an RGI emoji sequence, excluding plain ' +
-      'standardized variation sequences',
+      'standardized variation sequences.',
     ret: 'bool',
     name: 'mjb_string_is_rgi_emoji',
     attributes: [],
@@ -1296,7 +1296,7 @@ if(result.transformed) {
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
-    comment: 'Return hangul syllable name',
+    comment: 'Return hangul syllable name.',
     ret: 'mjb_status',
     name: 'mjb_hangul_syllable_name',
     attributes: ['MJB_NODISCARD'],
@@ -1313,7 +1313,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Hangul syllable decomposition',
+    comment: 'Hangul syllable decomposition.',
     ret: 'mjb_status',
     name: 'mjb_hangul_syllable_decomposition',
     attributes: ['MJB_NODISCARD'],
@@ -1329,7 +1329,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Hangul syllable composition',
+    comment: 'Hangul syllable composition.',
     ret: 'size_t',
     name: 'mjb_hangul_syllable_composition',
     attributes: [],
@@ -1350,7 +1350,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return the east asian width of a codepoint',
+    comment: 'Return the east asian width of a codepoint.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_east_asian_width',
     attributes: ['MJB_NODISCARD'],
@@ -1368,7 +1368,7 @@ if(result.transformed) {
     specs: [uax(11, 'East Asian Width')]
   },
   {
-    comment: 'Return the display width of a string',
+    comment: 'Return the display width of a string.',
     ret: 'mjb_status',
     name: 'mjb_display_width',
     attributes: ['MJB_NODISCARD'],
@@ -1402,7 +1402,7 @@ if(result.transformed) {
     specs: [uax(11, 'East Asian Width')]
   },
   {
-    comment: 'Parse a BCP 47 language tag',
+    comment: 'Parse a BCP 47 language tag.',
     ret: 'mjb_status',
     name: 'mjb_locale_parse',
     attributes: ['MJB_NODISCARD'],
@@ -1452,7 +1452,7 @@ if(result.transformed) {
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
   {
-    comment: 'Set current locale',
+    comment: 'Set current locale.',
     ret: 'mjb_status',
     name: 'mjb_locale_set',
     attributes: ['MJB_NODISCARD'],
@@ -1467,7 +1467,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Output the current library version (MJB_VERSION)',
+    comment: 'Output the current library version (MJB_VERSION).',
     ret: 'const char *',
     name: 'mjb_version',
     attributes: ['MJB_CONST'],
@@ -1475,7 +1475,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Output the current library version number (MJB_VERSION_NUMBER)',
+    comment: 'Output the current library version number (MJB_VERSION_NUMBER).',
     ret: 'unsigned int',
     name: 'mjb_version_number',
     attributes: ['MJB_CONST'],
@@ -1483,7 +1483,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Output the current supported unicode version (MJB_UNICODE_VERSION)',
+    comment: 'Output the current supported unicode version (MJB_UNICODE_VERSION).',
     ret: 'const char *',
     name: 'mjb_unicode_version',
     attributes: ['MJB_CONST'],
@@ -1491,7 +1491,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Set the library memory functions',
+    comment: 'Set the library memory functions.',
     ret: 'mjb_status',
     name: 'mjb_set_memory_functions',
     attributes: ['MJB_NODISCARD'],
@@ -1521,7 +1521,7 @@ if(result.transformed) {
     related: ['mjb_alloc', 'mjb_realloc', 'mjb_free']
   },
   {
-    comment: 'Shutdown the library. Not needed to be called',
+    comment: 'Shutdown the library. Not needed to be called.',
     ret: 'void',
     name: 'mjb_shutdown',
     attributes: [],
@@ -1529,7 +1529,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Allocate and zero memory',
+    comment: 'Allocate and zero memory.',
     ret: 'void *',
     name: 'mjb_alloc',
     attributes: ['MJB_NODISCARD'],
@@ -1544,7 +1544,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Reallocate memory',
+    comment: 'Reallocate memory.',
     ret: 'void *',
     name: 'mjb_realloc',
     attributes: ['MJB_NODISCARD'],
@@ -1565,7 +1565,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Free memory',
+    comment: 'Free memory.',
     ret: 'void',
     name: 'mjb_free',
     attributes: [],

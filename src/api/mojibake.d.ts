@@ -21,143 +21,143 @@ export type MojibakeWasmModule = {
   cwrap: (ident: string, returnType?: string | null, argTypes?: string[]) => unknown;
   _malloc: (size: number) => number;
   _free: (ptr: number) => void;
-  // Return the codepoint character
+  // Return the codepoint character.
   _mjb_codepoint_character: (codepoint: Codepoint, character: Pointer) => number;
-  // Normalize a string to NFC/NFKC/NFD/NFKD form
+  // Normalize a string to NFC/NFKC/NFD/NFKD form.
   _mjb_normalize: (buffer: Pointer, size: number, form: number, encoding: number, output_encoding: number, result: Pointer) => number;
-  // Return the next character from a string
+  // Return the next character from a string.
   _mjb_next_character: (buffer: Pointer, size: number, encoding: number, fn: number) => number;
-  // Check if a string is normalized to NFC/NFKC/NFD/NFKD form
+  // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
   _mjb_string_is_normalized: (buffer: Pointer, size: number, encoding: number, form: number) => number;
-  // Filter a string to remove invalid characters
+  // Filter a string to remove invalid characters.
   _mjb_string_filter: (buffer: Pointer, size: number, encoding: number, output_encoding: number, filters: number, result: Pointer) => number;
-  // Return if a codepoint has a property
+  // Return if a codepoint has a property.
   _mjb_codepoint_has_property: (codepoint: Codepoint, property: number, value: Pointer) => number;
-  // Return all properties of a codepoint
+  // Return all properties of a codepoint.
   _mjb_codepoint_properties: (codepoint: Codepoint, buffer: Pointer) => number;
-  // Return the script of a codepoint
+  // Return the script of a codepoint.
   _mjb_codepoint_script: (codepoint: Codepoint) => number;
-  // Return the string encoding (the most probable)
+  // Return the string encoding (the most probable).
   _mjb_string_encoding: (buffer: Pointer, size: number) => number;
-  // Return true if the string is encoded in UTF-8
+  // Return true if the string is encoded in UTF-8.
   _mjb_string_is_utf8: (buffer: Pointer, size: number) => boolean;
-  // Return true if the string is encoded in UTF-16BE or UTF-16LE
+  // Return true if the string is encoded in UTF-16BE or UTF-16LE.
   _mjb_string_is_utf16: (buffer: Pointer, size: number) => boolean;
-  // Return true if the string is encoded in ASCII
+  // Return true if the string is encoded in ASCII.
   _mjb_string_is_ascii: (buffer: Pointer, size: number) => boolean;
-  // Encode a codepoint to a string
+  // Encode a codepoint to a string.
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, size: number, encoding: number) => number;
-  // Convert from an encoding to another
+  // Convert from an encoding to another.
   _mjb_string_convert_encoding: (buffer: Pointer, size: number, encoding: number, output_encoding: number, result: Pointer) => number;
-  // Return the length of a string
+  // Return the length of a string.
   _mjb_strnlen: (buffer: Pointer, max_length: number, encoding: number) => number;
-  // Compare two strings using UCA
+  // Compare two strings using UCA.
   _mjb_string_compare: (s1: Pointer, s1_length: number, s2: Pointer, s2_length: number, encoding: number, mode: number) => number;
-  // Generate a UCA sort key for a string
+  // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, size: number, encoding: number, mode: number, result: Pointer) => number;
-  // Change string case
+  // Change string case.
   _mjb_case: (buffer: Pointer, size: number, type: number, encoding: number, output_encoding: number, result: Pointer) => number;
-  // Return true if the codepoint is valid
+  // Return true if the codepoint is valid.
   _mjb_codepoint_is_valid: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is graphic
+  // Return true if the codepoint is graphic.
   _mjb_codepoint_is_graphic: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is combining
+  // Return true if the codepoint is combining.
   _mjb_codepoint_is_combining: (codepoint: Codepoint) => boolean;
-  // Return if the codepoint is an hangul syllable
+  // Return if the codepoint is an hangul syllable.
   _mjb_codepoint_is_hangul_syllable: (codepoint: Codepoint) => boolean;
-  // Return if the codepoint is CJK ideograph
+  // Return if the codepoint is CJK ideograph.
   _mjb_codepoint_is_cjk_ideograph: (codepoint: Codepoint) => boolean;
-  // Return if the codepoint is CJK extension
+  // Return if the codepoint is CJK extension.
   _mjb_codepoint_is_cjk_ext: (codepoint: Codepoint) => boolean;
-  // Return true if the category is graphic
+  // Return true if the category is graphic.
   _mjb_category_is_graphic: (category: number) => boolean;
-  // Return true if the category is combining
+  // Return true if the category is combining.
   _mjb_category_is_combining: (category: number) => boolean;
-  // Return the numeric value of a codepoint
+  // Return the numeric value of a codepoint.
   _mjb_codepoint_numeric_value: (codepoint: Codepoint, value: Pointer) => number;
-  // Return the character block
+  // Return the character block.
   _mjb_codepoint_block: (codepoint: Codepoint, block: Pointer) => number;
-  // Return the codepoint lowercase codepoint
+  // Return the codepoint lowercase codepoint.
   _mjb_codepoint_to_lowercase: (codepoint: Codepoint) => Codepoint;
-  // Return the codepoint uppercase codepoint
+  // Return the codepoint uppercase codepoint.
   _mjb_codepoint_to_uppercase: (codepoint: Codepoint) => Codepoint;
-  // Return the codepoint titlecase codepoint
+  // Return the codepoint titlecase codepoint.
   _mjb_codepoint_to_titlecase: (codepoint: Codepoint) => Codepoint;
-  // Unicode line break algorithm
+  // Unicode line break algorithm.
   _mjb_break_line: (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
-  // Word cluster breaking
+  // Word cluster breaking.
   _mjb_break_word: (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
-  // Return the number of bytes that form the first max_segments word-break segments
+  // Return the number of bytes that form the first max_segments word-break segments.
   _mjb_truncate_word: (buffer: Pointer, size: number, encoding: number, max_segments: number) => number;
-  // Return the number of bytes whose word-break segments fit within max_columns display columns
+  // Return the number of bytes whose word-break segments fit within max_columns display columns.
   _mjb_truncate_word_width: (buffer: Pointer, size: number, encoding: number, context: number, max_columns: number) => number;
-  // Sentence boundaries breaking
+  // Sentence boundaries breaking.
   _mjb_break_sentence: (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
-  // Grapheme cluster breaking
+  // Grapheme cluster breaking.
   _mjb_segmentation: (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
-  // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments
+  // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
   _mjb_truncate: (buffer: Pointer, size: number, encoding: number, max_graphemes: number) => number;
-  // Return the number of bytes whose grapheme clusters fit within max_columns display columns
+  // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
   _mjb_truncate_width: (buffer: Pointer, size: number, encoding: number, context: number, max_columns: number) => number;
-  // Resolve bidirectional text (TR9) for a paragraph
+  // Resolve bidirectional text (TR9) for a paragraph.
   _mjb_bidi_resolve: (buffer: Pointer, size: number, encoding: number, direction: number, result: Pointer) => number;
-  // Return the plane of the codepoint
+  // Return the plane of the codepoint.
   _mjb_codepoint_plane: (codepoint: Codepoint) => number;
-  // Return true if the plane is valid
+  // Return true if the plane is valid.
   _mjb_plane_is_valid: (plane: number) => boolean;
-  // Return the name of a plane, NULL if the place specified is not valid
+  // Return the name of a plane, NULL if the plane specified is not valid.
   _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
-  // Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start)
+  // Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).
   _mjb_codepoint_is_id_start: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue)
+  // Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).
   _mjb_codepoint_is_id_continue: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start)
+  // Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).
   _mjb_codepoint_is_xid_start: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue)
+  // Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).
   _mjb_codepoint_is_xid_continue: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax)
+  // Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).
   _mjb_codepoint_is_pattern_syntax: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space)
+  // Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).
   _mjb_codepoint_is_pattern_white_space: (codepoint: Codepoint) => boolean;
-  // Return true if the string is a valid Unicode identifier (UAX#31)
+  // Return true if the string is a valid Unicode identifier (UAX#31).
   _mjb_string_is_identifier: (buffer: Pointer, size: number, encoding: number, profile: number) => boolean;
-  // Return the name of a property, NULL if the property specified is not valid
+  // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
-  // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2)
+  // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
   _mjb_string_is_confusable: (s1: Pointer, s1_size: number, s2: Pointer, s2_size: number, encoding: number) => boolean;
-  // Return the emoji properties
+  // Return the emoji properties.
   _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => number;
-  // Return true if the codepoint has the Unicode Emoji property
+  // Return true if the codepoint has the Unicode Emoji property.
   _mjb_codepoint_is_emoji: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint has the Unicode Emoji_Presentation property
+  // Return true if the codepoint has the Unicode Emoji_Presentation property.
   _mjb_codepoint_is_emoji_presentation: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint has the Unicode Emoji_Modifier property
+  // Return true if the codepoint has the Unicode Emoji_Modifier property.
   _mjb_codepoint_is_emoji_modifier: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint has the Unicode Emoji_Modifier_Base property
+  // Return true if the codepoint has the Unicode Emoji_Modifier_Base property.
   _mjb_codepoint_is_emoji_modifier_base: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint has the Unicode Emoji_Component property
+  // Return true if the codepoint has the Unicode Emoji_Component property.
   _mjb_codepoint_is_emoji_component: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint has the Unicode Extended_Pictographic property
+  // Return true if the codepoint has the Unicode Extended_Pictographic property.
   _mjb_codepoint_is_extended_pictographic: (codepoint: Codepoint) => boolean;
-  // Return emoji sequence metadata for a complete string
+  // Return emoji sequence metadata for a complete string.
   _mjb_string_emoji_sequence: (buffer: Pointer, size: number, encoding: number, emoji: Pointer) => number;
-  // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences
+  // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
   _mjb_string_is_emoji_sequence: (buffer: Pointer, size: number, encoding: number) => boolean;
-  // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences
+  // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
   _mjb_string_is_rgi_emoji: (buffer: Pointer, size: number, encoding: number) => boolean;
-  // Return the east asian width of a codepoint
+  // Return the east asian width of a codepoint.
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => number;
-  // Return the display width of a string
+  // Return the display width of a string.
   _mjb_display_width: (buffer: Pointer, size: number, encoding: number, context: number, width: Pointer) => number;
-  // Parse a BCP 47 language tag
+  // Parse a BCP 47 language tag.
   _mjb_locale_parse: (id: Pointer, size: number, encoding: number, locale: Pointer, error: Pointer) => number;
-  // Set current locale
+  // Set current locale.
   _mjb_locale_set: (locale: number) => number;
-  // Output the current library version (MJB_VERSION)
+  // Output the current library version (MJB_VERSION).
   _mjb_version: () => Pointer;
-  // Output the current library version number (MJB_VERSION_NUMBER)
+  // Output the current library version number (MJB_VERSION_NUMBER).
   _mjb_version_number: () => number;
-  // Output the current supported unicode version (MJB_UNICODE_VERSION)
+  // Output the current supported unicode version (MJB_UNICODE_VERSION).
   _mjb_unicode_version: () => Pointer;
 };
 
