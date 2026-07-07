@@ -25,7 +25,7 @@ static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
 static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
     if(size < 2) {
         // BOM are at least 2 characters
-        return MJB_ENCODING_UNKNOWN;
+        return MJB_ENC_UNKNOWN;
     }
 
     if(size >= 3) {
@@ -34,7 +34,7 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
         }
     }
 
-    mjb_encoding bom_encoding = MJB_ENCODING_UNKNOWN;
+    mjb_encoding bom_encoding = MJB_ENC_UNKNOWN;
 
     if(size >= 4) {
         if(memcmp(buffer, MJB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
@@ -61,12 +61,12 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
  */
 MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
     if(buffer == NULL || size == 0) {
-        return MJB_ENCODING_UNKNOWN;
+        return MJB_ENC_UNKNOWN;
     }
 
     mjb_encoding bom_encoding = mjb_encoding_from_bom(buffer, size);
 
-    if(bom_encoding != MJB_ENCODING_UNKNOWN) {
+    if(bom_encoding != MJB_ENC_UNKNOWN) {
         return bom_encoding;
     }
 

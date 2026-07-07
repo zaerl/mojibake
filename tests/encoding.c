@@ -7,10 +7,10 @@
 #include "test.h"
 
 void *test_encoding(void *arg) {
-    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 10), (unsigned int)MJB_ENCODING_UNKNOWN, "Void unknown string")
-    ATT_ASSERT((unsigned int)mjb_string_encoding("", 0), (unsigned int)MJB_ENCODING_UNKNOWN, "Void unknown length")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown string")
+    ATT_ASSERT((unsigned int)mjb_string_encoding("", 0), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown length")
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 0), (unsigned int)MJB_ENCODING_UNKNOWN, "Void unknown string and length")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 0), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown string and length")
     const char *test1 = "The quick brown fox jumps over the lazy dog";
 
     ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43), (unsigned int)(MJB_ENCODING_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)")
@@ -109,7 +109,7 @@ void *test_encoding(void *arg) {
         false,
         "UTF-8 rejects invalid byte after embedded NULL")
     ATT_ASSERT((unsigned int)mjb_string_encoding((const char*)utf8_null_invalid,
-        sizeof(utf8_null_invalid)), (unsigned int)MJB_ENCODING_UNKNOWN,
+        sizeof(utf8_null_invalid)), (unsigned int)MJB_ENC_UNKNOWN,
         "Encoding rejects invalid byte after embedded NULL")
 #else
     ATT_ASSERT(mjb_string_is_utf8((const char*)utf8_null_invalid, sizeof(utf8_null_invalid)),

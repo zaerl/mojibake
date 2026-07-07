@@ -384,7 +384,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
 
                 break;
             case MJB_ENCODING_ASCII:
-            case MJB_ENCODING_UNKNOWN:
+            case MJB_ENC_UNKNOWN:
                 break;
             case MJB_ENCODING_UTF_32:
             case MJB_ENCODING_UTF_32_BE:
