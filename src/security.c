@@ -52,7 +52,7 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    if(mjb_normalize(buffer, size, MJB_NORMALIZATION_NFD, encoding, MJB_ENCODING_UTF_8,
+    if(mjb_normalize(buffer, size, MJB_NORMALIZATION_NFD, encoding, MJB_ENC_UTF_8,
         &nfd) != MJB_STATUS_OK) {
         return false;
     }
@@ -85,7 +85,7 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
 
     for(size_t i = 0; i < nfd.output_size;) {
         mjb_decode_result dr = mjb_next_codepoint(nfd.output, nfd.output_size, &state, &i,
-            MJB_ENCODING_UTF_8, &cp, &in_error);
+            MJB_ENC_UTF_8, &cp, &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;
@@ -115,7 +115,7 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
 
         for(size_t j = 0; j < skel_count; ++j) {
             unsigned int encoded = mjb_codepoint_encode(skeleton[j], mid + mid_index,
-                mid_size - mid_index, MJB_ENCODING_UTF_8);
+                mid_size - mid_index, MJB_ENC_UTF_8);
 
             if(encoded == 0) {
                 if(nfd.transformed) {
@@ -136,8 +136,8 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
     }
 
     // Step 3: NFD the intermediate string.
-    mjb_status status = mjb_normalize(mid, mid_index, MJB_NORMALIZATION_NFD, MJB_ENCODING_UTF_8,
-        MJB_ENCODING_UTF_8, result);
+    mjb_status status = mjb_normalize(mid, mid_index, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8,
+        MJB_ENC_UTF_8, result);
 
     // mjb_normalize may return result->output == mid when the string is already NFD.
     // In that case transfer ownership so the caller can free it via mjb_free(result->output).

@@ -11,7 +11,7 @@
 #include "../src/mojibake-internal.h"
 
 void *test_string(void *arg) {
-    mjb_encoding enc = MJB_ENCODING_UTF_8;
+    mjb_encoding enc = MJB_ENC_UTF_8;
     size_t output_index = 0;
     size_t output_size = 0;
     char output_input[] = "A";
@@ -44,7 +44,7 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen("Hello", 5, MJB_ENC_UNKNOWN), 5,
         "Unknown encoding advances with replacement")
 
-    enc = MJB_ENCODING_UTF_16_LE;
+    enc = MJB_ENC_UTF_16LE;
     const char utf16le_hello[] = "H\0e\0l\0l\0o\0";
     ATT_ASSERT(mjb_strnlen(utf16le_hello, 10, enc), 5, "UTF-16LE length: Hello")
     ATT_ASSERT(mjb_strnlen(utf16le_hello, 8, enc), 4, "UTF-16LE length: Hello")
@@ -71,7 +71,7 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen(utf16le_geia_sou, 16, enc), 8, "UTF-16LE length: Γειά σου")
     ATT_ASSERT(mjb_strnlen(utf16le_hello_accents, 2, enc), 1, "UTF-16LE length: Héllö (1 max value)")
 
-    enc = MJB_ENCODING_UTF_16_BE;
+    enc = MJB_ENC_UTF_16BE;
     const char utf16be_hello[] = "\0H\0e\0l\0l\0o";
     ATT_ASSERT(mjb_strnlen(utf16be_hello, 10, enc), 5, "UTF-16BE length: Hello")
     ATT_ASSERT(mjb_strnlen(utf16be_hello, 8, enc), 4, "UTF-16BE length: Hello")

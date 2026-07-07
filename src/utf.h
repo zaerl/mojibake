@@ -34,7 +34,7 @@ static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
 
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
-    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENC_ASCII) {
+    if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         if(!buffer[*index]) {
             return false;
@@ -43,7 +43,7 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
 
         *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
         ++*index;  // Increment by 1 byte
-    } else if(encoding == MJB_ENCODING_UTF_16_BE || encoding == MJB_ENCODING_UTF_16_LE) {
+    } else if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
         if(*index + 1 >= size) {
             // Truncated trailing unit: consume it, or decoding would never terminate.
             *state = MJB_UTF_REJECT;
@@ -56,7 +56,7 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
 #endif
 
             *state = mjb_utf16_decode_step(*state, buffer[*index], buffer[*index + 1], codepoint,
-                encoding == MJB_ENCODING_UTF_16_BE);
+                encoding == MJB_ENC_UTF_16BE);
             *index += 2;  // Increment by 2 bytes (full code unit)
         }
     } else if(encoding == MJB_ENCODING_UTF_32_BE || encoding == MJB_ENCODING_UTF_32_LE) {
@@ -120,7 +120,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
         // Check if the byte is valid standalone (like ASCII) that caused rejection
         // We need to reprocess it after emitting replacement for previous bytes
         // Note: index has been incremented, so the byte just processed is at [*index - 1]
-        bool should_reprocess = (encoding == MJB_ENCODING_UTF_8 && prev_state != MJB_UTF_ACCEPT &&
+        bool should_reprocess = (encoding == MJB_ENC_UTF_8 && prev_state != MJB_UTF_ACCEPT &&
             *index > 0 && (unsigned char)buffer[*index - 1] < 0x80);
 
         // Emit MJB_CODEPOINT_REPLACEMENT only once per ill-formed subsequence
@@ -168,7 +168,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
  * UTF-32: always 4 bytes.
  */
 static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_encoding encoding) {
-    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENC_ASCII) {
+    if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
         if(cp < 0x80) {
             return 1;
         }
@@ -184,7 +184,7 @@ static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_
         return 4;
     }
 
-    if(encoding == MJB_ENCODING_UTF_16_BE || encoding == MJB_ENCODING_UTF_16_LE) {
+    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
         return cp >= 0x10000 ? 4 : 2;
     }
 

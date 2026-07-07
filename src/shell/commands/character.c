@@ -14,7 +14,7 @@
 
 static bool mjbsh_output_next_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
-    unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+    unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);
 
     if(utf8_length == 0) {
         return false;
@@ -72,8 +72,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
     if(cmd_verbose > 0) {
         mjb_encoding other_encodings[] = {
-            MJB_ENCODING_UTF_16_BE,
-            MJB_ENCODING_UTF_16_LE,
+            MJB_ENC_UTF_16BE,
+            MJB_ENC_UTF_16LE,
             MJB_ENCODING_UTF_32_BE,
             MJB_ENCODING_UTF_32_LE
         };
@@ -288,7 +288,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 }
 
 int mjbsh_character_command(int argc, char * const argv[], unsigned int flags) {
-    if(mjb_next_character(argv[0], strlen(argv[0]), MJB_ENCODING_UTF_8,
+    if(mjb_next_character(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
         mjbsh_output_next_character) != MJB_STATUS_OK) {
         return 1;
     }

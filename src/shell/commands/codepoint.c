@@ -23,7 +23,7 @@ int mjbsh_codepoint_command(int argc, char * const argv[], unsigned int flags) {
     }
 
     mjb_codepoint codepoint = (mjb_codepoint)value;
-    unsigned int length = mjb_codepoint_encode(codepoint, buffer, 5, MJB_ENCODING_UTF_8);
+    unsigned int length = mjb_codepoint_encode(codepoint, buffer, 5, MJB_ENC_UTF_8);
 
     if(length == 0) {
         return 1;

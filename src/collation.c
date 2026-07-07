@@ -293,7 +293,7 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
         }
 
         mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i,
-            MJB_ENCODING_UTF_8, &cp, &in_error);
+            MJB_ENC_UTF_8, &cp, &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;
@@ -338,7 +338,7 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
         }
 
         mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i,
-            MJB_ENCODING_UTF_8, &cp, &in_error);
+            MJB_ENC_UTF_8, &cp, &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;

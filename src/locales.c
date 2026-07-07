@@ -540,7 +540,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
 
             return MJB_STATUS_INVALID_ARGUMENT;
         }
-    } else if(encoding == MJB_ENCODING_UTF_8 && mjb_string_is_ascii(id, size)) {
+    } else if(encoding == MJB_ENC_UTF_8 && mjb_string_is_ascii(id, size)) {
         // Already suitable for the byte-oriented locale parser.
     } else {
         mjb_status status = mjb_string_convert_encoding(id, size, encoding, MJB_ENC_ASCII,

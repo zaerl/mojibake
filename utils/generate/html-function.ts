@@ -159,9 +159,9 @@ export class CFunction implements MojibakeFunction {
         ret += this.getSelectInput(i, categories, null);
       } else if(type.startsWith('mjb_encoding')) {
         const options = [
-          'MJB_ENCODING_UTF_8',
-          'MJB_ENCODING_UTF_16_BE',
-          'MJB_ENCODING_UTF_16_LE',
+          'MJB_ENC_UTF_8',
+          'MJB_ENC_UTF_16BE',
+          'MJB_ENC_UTF_16LE',
           'MJB_ENCODING_UTF_32_BE',
           'MJB_ENCODING_UTF_32_LE',
         ];

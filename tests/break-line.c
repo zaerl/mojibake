@@ -18,7 +18,7 @@ void break_line_callback(const char *buffer, size_t size, unsigned int current_l
     size_t index = 0;
     size_t successful_count = 0;
 
-    while((bt = mjb_break_line(buffer, size, MJB_ENCODING_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_break_line(buffer, size, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         snprintf(test_name, 256, "#%u index %zu", current_line, index);
 
         if(bt == MJB_BT_MANDATORY) {
@@ -40,9 +40,9 @@ void *test_break_line(void *arg) {
     mjb_next_line_state state;
     state.index = 0;
 
-    ATT_ASSERT((uint8_t)mjb_break_line(NULL, 1, MJB_ENCODING_UTF_8, &state),
+    ATT_ASSERT((uint8_t)mjb_break_line(NULL, 1, MJB_ENC_UTF_8, &state),
         (uint8_t)MJB_BT_NOT_SET, "Line break rejects NULL buffer")
-    ATT_ASSERT((uint8_t)mjb_break_line("A", 1, MJB_ENCODING_UTF_8, NULL),
+    ATT_ASSERT((uint8_t)mjb_break_line("A", 1, MJB_ENC_UTF_8, NULL),
         (uint8_t)MJB_BT_NOT_SET, "Line break rejects NULL state")
 
 #if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
@@ -50,10 +50,10 @@ void *test_break_line(void *arg) {
 
     state.index = 0;
     ATT_ASSERT((uint8_t)mjb_break_line(utf16le_null, sizeof(utf16le_null),
-        MJB_ENCODING_UTF_16_LE, &state), (uint8_t)MJB_BT_ALLOWED,
+        MJB_ENC_UTF_16LE, &state), (uint8_t)MJB_BT_ALLOWED,
         "Line break stops at UTF-16LE NULL")
     ATT_ASSERT((uint8_t)mjb_break_line(utf16le_null, sizeof(utf16le_null),
-        MJB_ENCODING_UTF_16_LE, &state), (uint8_t)MJB_BT_NOT_SET,
+        MJB_ENC_UTF_16LE, &state), (uint8_t)MJB_BT_NOT_SET,
         "Line break finishes after UTF-16LE NULL")
 #endif
 

@@ -159,7 +159,7 @@ public:
     [[nodiscard]] std::string to_utf8() const {
         std::array<char, 5> buffer{};
         unsigned int len = mjb_codepoint_encode(data.codepoint, buffer.data(), buffer.size(),
-            MJB_ENCODING_UTF_8);
+            MJB_ENC_UTF_8);
 
         if(len == 0) {
             throw LibraryError("Failed to encode codepoint to UTF-8");
@@ -201,12 +201,12 @@ inline NumericValue codepoint_numeric_value(mjb_codepoint codepoint) {
 
 inline bool is_identifier(std::string_view input,
     mjb_identifier_profile profile = MJB_IDENTIFIER_DEFAULT) {
-    return mjb_string_is_identifier(input.data(), input.size(), MJB_ENCODING_UTF_8, profile);
+    return mjb_string_is_identifier(input.data(), input.size(), MJB_ENC_UTF_8, profile);
 }
 
 inline bool is_confusable(std::string_view s1, std::string_view s2) {
     return mjb_string_is_confusable(s1.data(), s1.size(), s2.data(), s2.size(),
-        MJB_ENCODING_UTF_8);
+        MJB_ENC_UTF_8);
 }
 
 enum class NormalizationForm {
@@ -223,7 +223,7 @@ inline std::string normalize(std::string_view input, NormalizationForm form) {
 
     mjb_result result{};
     bool success = mjb_normalize(input.data(), input.size(), static_cast<mjb_normalization>(form),
-        MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8, &result) == MJB_STATUS_OK;
+        MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
 
     if(!success) {
         throw LibraryError("Normalization failed");
@@ -266,7 +266,7 @@ inline std::string collation_key(std::string_view input,
     }
 
     mjb_result result{};
-    mjb_status status = mjb_collation_key(input.data(), input.size(), MJB_ENCODING_UTF_8, mode,
+    mjb_status status = mjb_collation_key(input.data(), input.size(), MJB_ENC_UTF_8, mode,
         &result);
 
     if(status != MJB_STATUS_OK) {
@@ -283,25 +283,25 @@ inline std::string collation_key(std::string_view input,
 }
 
 inline std::string_view truncate(std::string_view input, size_t max_graphemes) {
-    size_t n = mjb_truncate(input.data(), input.size(), MJB_ENCODING_UTF_8, max_graphemes);
+    size_t n = mjb_truncate(input.data(), input.size(), MJB_ENC_UTF_8, max_graphemes);
     return input.substr(0, n);
 }
 
 inline std::string_view truncate_width(std::string_view input, size_t max_columns,
     mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO) {
-    size_t n = mjb_truncate_width(input.data(), input.size(), MJB_ENCODING_UTF_8, context,
+    size_t n = mjb_truncate_width(input.data(), input.size(), MJB_ENC_UTF_8, context,
         max_columns);
     return input.substr(0, n);
 }
 
 inline std::string_view truncate_word(std::string_view input, size_t max_segments) {
-    size_t n = mjb_truncate_word(input.data(), input.size(), MJB_ENCODING_UTF_8, max_segments);
+    size_t n = mjb_truncate_word(input.data(), input.size(), MJB_ENC_UTF_8, max_segments);
     return input.substr(0, n);
 }
 
 inline std::string_view truncate_word_width(std::string_view input, size_t max_columns,
     mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO) {
-    size_t n = mjb_truncate_word_width(input.data(), input.size(), MJB_ENCODING_UTF_8, context,
+    size_t n = mjb_truncate_word_width(input.data(), input.size(), MJB_ENC_UTF_8, context,
         max_columns);
     return input.substr(0, n);
 }
@@ -342,7 +342,7 @@ public:
             return std::nullopt;
         }
 
-        mjb_break_type type = BreakFn(buffer.data(), buffer.size(), MJB_ENCODING_UTF_8, &state);
+        mjb_break_type type = BreakFn(buffer.data(), buffer.size(), MJB_ENC_UTF_8, &state);
 
         if(type == MJB_BT_NOT_SET) {
             done = true;

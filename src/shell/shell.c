@@ -159,7 +159,7 @@ void mjbsh_print_codepoint(mjb_codepoint codepoint) {
     bool is_control_picture = picture_codepoint != codepoint;
 
     char buffer_utf8[5];
-    mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+    mjb_codepoint_encode(picture_codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);
 
     if(is_control_picture) {
         printf("%s%s%s", mjbsh_yellow(), buffer_utf8, mjbsh_reset());
@@ -302,14 +302,14 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
     mjb_result result;
-    bool ret = mjb_normalize(buffer_utf8, utf8_length, form, MJB_ENCODING_UTF_8, MJB_ENCODING_UTF_8,
+    bool ret = mjb_normalize(buffer_utf8, utf8_length, form, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         &result) == MJB_STATUS_OK;
 
     if(ret) {
         if(is_json) {
             printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
             if(result.output_size > 0 && mjb_next_character(result.output, result.output_size,
-                MJB_ENCODING_UTF_8,
+                MJB_ENC_UTF_8,
                 mjbsh_next_escaped_character) != MJB_STATUS_OK) {
                 goto cleanup;
             }
@@ -330,7 +330,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     }
 
     if(result.output_size > 0 && mjb_next_character(result.output, result.output_size,
-        MJB_ENCODING_UTF_8,
+        MJB_ENC_UTF_8,
         is_json ? mjbsh_next_array_character : mjbsh_next_character) != MJB_STATUS_OK) {
         goto cleanup;
     }
@@ -390,7 +390,7 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
 
         return true;
     } else {
-        if(mjb_next_character(input, strlen(input), MJB_ENCODING_UTF_8,
+        if(mjb_next_character(input, strlen(input), MJB_ENC_UTF_8,
             mjbsh_next_current_character) != MJB_STATUS_OK) {
             return false;
         }

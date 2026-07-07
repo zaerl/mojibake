@@ -359,7 +359,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
         potential_output_size = mjb_strnlen(buffer, size, encoding);
 
         switch(output_encoding) {
-            case MJB_ENCODING_UTF_8:
+            case MJB_ENC_UTF_8:
                 // Tipically, a UTF-8 character in mainly english text is ~1.0-1.2 bytes.
             {
                 size_t extra = potential_output_size / 5;
@@ -372,9 +372,9 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
 
                 break;
             }
-            case MJB_ENCODING_UTF_16:
-            case MJB_ENCODING_UTF_16_BE:
-            case MJB_ENCODING_UTF_16_LE:
+            case MJB_ENC_UTF_16:
+            case MJB_ENC_UTF_16BE:
+            case MJB_ENC_UTF_16LE:
                 // Tipically, a UTF-16 character in mainly english text is ~2 bytes.
                 if(potential_output_size > SIZE_MAX / 2) {
                     return MJB_STATUS_OVERFLOW;

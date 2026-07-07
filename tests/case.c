@@ -19,7 +19,7 @@ static int check_fold(const char *source, size_t source_size, const char *target
         return 0;
     }
 
-    char *result = run_mjb_case(source, source_size, type, MJB_ENCODING_UTF_8);
+    char *result = run_mjb_case(source, source_size, type, MJB_ENC_UTF_8);
 
     MJB_TEST_COVERAGE(mjb_case);
     ATT_ASSERT(result, (char*)target, test_name)
@@ -117,7 +117,7 @@ static void test_case_folding_file(void) {
 }
 
 void *test_case(void *arg) {
-    mjb_encoding encoding = MJB_ENCODING_UTF_8;
+    mjb_encoding encoding = MJB_ENC_UTF_8;
 
     // Test case conversion functions
     MJB_TEST_COVERAGE(mjb_case);
@@ -137,7 +137,7 @@ void *test_case(void *arg) {
     ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed")
     ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size")
 
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, MJB_ENCODING_UTF_16_LE,
+    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, MJB_ENC_UTF_16LE,
         &guard_result), MJB_STATUS_OK, "Case conversion converts output encoding")
     ATT_ASSERT(guard_result.transformed, true,
         "Case conversion converted output encoding transformed")

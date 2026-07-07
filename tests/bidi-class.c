@@ -176,7 +176,7 @@ static void read_bidi_class_test_file(const char *filename) {
             }
 
             unsigned int enc = mjb_codepoint_encode(cp, utf8_buf + utf8_len,
-                sizeof(utf8_buf) - utf8_len - 1, MJB_ENCODING_UTF_8);
+                sizeof(utf8_buf) - utf8_len - 1, MJB_ENC_UTF_8);
 
             if(enc == 0) {
                 skip = true;
@@ -203,7 +203,7 @@ static void read_bidi_class_test_file(const char *filename) {
 
             ++total;
 
-            if(mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENCODING_UTF_8, directions[d],
+            if(mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, directions[d],
                 &para) != MJB_STATUS_OK) {
                 continue;
             }

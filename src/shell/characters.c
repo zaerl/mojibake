@@ -24,7 +24,7 @@ bool mjbsh_next_array_character(mjb_character *character, mjb_next_character_typ
 
 bool mjbsh_next_string_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
-    size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+    size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);
 
     if(!size) {
         return false;
@@ -37,7 +37,7 @@ bool mjbsh_next_string_character(mjb_character *character, mjb_next_character_ty
 
 bool mjbsh_next_escaped_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
-    size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENCODING_UTF_8);
+    size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);
 
     if(!size) {
         return false;

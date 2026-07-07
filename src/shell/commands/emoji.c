@@ -122,7 +122,7 @@ static void mjbsh_emoji_json_id_field(const char *name, unsigned int code, const
 static bool mjbsh_emoji_next_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
     unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8,
-        sizeof(buffer_utf8), MJB_ENCODING_UTF_8);
+        sizeof(buffer_utf8), MJB_ENC_UTF_8);
     mjb_emoji_properties emoji;
     bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji) == MJB_STATUS_OK;
 
@@ -209,7 +209,7 @@ static bool mjbsh_emoji_input_from_codepoints(int argc, char * const argv[], cha
         }
 
         unsigned int written = mjb_codepoint_encode(codepoint, codepoints + index,
-            buffer_size - index, MJB_ENCODING_UTF_8);
+            buffer_size - index, MJB_ENC_UTF_8);
 
         if(written == 0) {
             free(codepoints);
@@ -244,7 +244,7 @@ static void mjbsh_emoji_print_json(const char *buffer, size_t size, bool is_emoj
     printf("\"characters\":%s[", mjbsh_emoji_json_space());
 
     mjbsh_emoji_json_character_count = 0;
-    if(mjb_next_character(buffer, size, MJB_ENCODING_UTF_8,
+    if(mjb_next_character(buffer, size, MJB_ENC_UTF_8,
         mjbsh_emoji_next_character) != MJB_STATUS_OK) {
         printf("]%s", mjbsh_jnl());
         printf("}%s", mjbsh_jnl());
@@ -271,7 +271,7 @@ static void mjbsh_emoji_print_plain(const char *buffer, size_t size, bool is_emo
         mjbsh_emoji_qualification_name(emoji->qualification), 1);
     mjbsh_numeric("Sequence Codepoints", 1, (unsigned int)emoji->codepoint_count);
 
-    if(mjb_next_character(buffer, size, MJB_ENCODING_UTF_8,
+    if(mjb_next_character(buffer, size, MJB_ENC_UTF_8,
         mjbsh_emoji_next_character) != MJB_STATUS_OK) {
         return;
     }
@@ -297,10 +297,10 @@ int mjbsh_emoji_command(int argc, char * const argv[], unsigned int flags) {
     mjb_emoji_sequence emoji;
     memset(&emoji, 0, sizeof(emoji));
 
-    bool is_emoji_sequence = mjb_string_is_emoji_sequence(buffer, size, MJB_ENCODING_UTF_8);
-    bool has_sequence_metadata = mjb_string_emoji_sequence(buffer, size, MJB_ENCODING_UTF_8,
+    bool is_emoji_sequence = mjb_string_is_emoji_sequence(buffer, size, MJB_ENC_UTF_8);
+    bool has_sequence_metadata = mjb_string_emoji_sequence(buffer, size, MJB_ENC_UTF_8,
         &emoji) == MJB_STATUS_OK;
-    bool is_rgi = mjb_string_is_rgi_emoji(buffer, size, MJB_ENCODING_UTF_8);
+    bool is_rgi = mjb_string_is_rgi_emoji(buffer, size, MJB_ENC_UTF_8);
 
     if(!has_sequence_metadata) {
         emoji.type = MJB_EMOJI_SEQUENCE_NONE;

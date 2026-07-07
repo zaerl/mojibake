@@ -17,40 +17,40 @@ void *test_embedded_null(void *arg) {
     // String: "A\0B\0C" (3 visible chars + 2 embedded NULLs = 5 codepoints)
     const char utf8_with_nulls[] = { 'A', '\0', 'B', '\0', 'C' };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_with_nulls, 5, MJB_ENCODING_UTF_8), 5,
+    ATT_ASSERT(mjb_strnlen(utf8_with_nulls, 5, MJB_ENC_UTF_8), 5,
         "UTF-8: A\\0B\\0C = 5 codepoints (NULL as data)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_with_nulls, 5, MJB_ENCODING_UTF_8), 1,
+    ATT_ASSERT(mjb_strnlen(utf8_with_nulls, 5, MJB_ENC_UTF_8), 1,
         "UTF-8: A\\0B\\0C = 1 codepoint (stops at NULL)")
 #endif
 
     // String: "Hello\0World" (5 + 1 + 5 = 11 codepoints)
     const char utf8_hello_null_world[] = { 'H', 'e', 'l', 'l', 'o', '\0', 'W', 'o', 'r', 'l', 'd' };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_hello_null_world, 11, MJB_ENCODING_UTF_8), 11,
+    ATT_ASSERT(mjb_strnlen(utf8_hello_null_world, 11, MJB_ENC_UTF_8), 11,
         "UTF-8: Hello\\0World = 11 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_hello_null_world, 11, MJB_ENCODING_UTF_8), 5,
+    ATT_ASSERT(mjb_strnlen(utf8_hello_null_world, 11, MJB_ENC_UTF_8), 5,
         "UTF-8: Hello\\0World = 5 codepoints (stops at NULL)")
 #endif
 
     // String with only NULLs: "\0\0\0"
     const char utf8_only_nulls[] = { '\0', '\0', '\0' };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_only_nulls, 3, MJB_ENCODING_UTF_8), 3,
+    ATT_ASSERT(mjb_strnlen(utf8_only_nulls, 3, MJB_ENC_UTF_8), 3,
         "UTF-8: \\0\\0\\0 = 3 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_only_nulls, 3, MJB_ENCODING_UTF_8), 0,
+    ATT_ASSERT(mjb_strnlen(utf8_only_nulls, 3, MJB_ENC_UTF_8), 0,
         "UTF-8: \\0\\0\\0 = 0 codepoints (starts with NULL)")
 #endif
 
     // String starting with NULL: "\0ABC"
     const char utf8_null_prefix[] = { '\0', 'A', 'B', 'C' };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_null_prefix, 4, MJB_ENCODING_UTF_8), 4,
+    ATT_ASSERT(mjb_strnlen(utf8_null_prefix, 4, MJB_ENC_UTF_8), 4,
         "UTF-8: \\0ABC = 4 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_null_prefix, 4, MJB_ENCODING_UTF_8), 0,
+    ATT_ASSERT(mjb_strnlen(utf8_null_prefix, 4, MJB_ENC_UTF_8), 0,
         "UTF-8: \\0ABC = 0 codepoints (starts with NULL)")
 #endif
 
@@ -63,10 +63,10 @@ void *test_embedded_null(void *arg) {
         '\0'                    // NULL
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_multibyte_nulls, 7, MJB_ENCODING_UTF_8), 4,
+    ATT_ASSERT(mjb_strnlen(utf8_multibyte_nulls, 7, MJB_ENC_UTF_8), 4,
         "UTF-8: é\\0ツ\\0 = 4 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_multibyte_nulls, 7, MJB_ENCODING_UTF_8), 1,
+    ATT_ASSERT(mjb_strnlen(utf8_multibyte_nulls, 7, MJB_ENC_UTF_8), 1,
         "UTF-8: é\\0ツ\\0 = 1 codepoint (stops after é)")
 #endif
 
@@ -78,10 +78,10 @@ void *test_embedded_null(void *arg) {
         'B', '\0'   // U+0042 'B'
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf16le_with_null, 6, MJB_ENCODING_UTF_16_LE), 3,
+    ATT_ASSERT(mjb_strnlen(utf16le_with_null, 6, MJB_ENC_UTF_16LE), 3,
         "UTF-16LE: A\\0B = 3 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf16le_with_null, 6, MJB_ENCODING_UTF_16_LE), 1,
+    ATT_ASSERT(mjb_strnlen(utf16le_with_null, 6, MJB_ENC_UTF_16LE), 1,
         "UTF-16LE: A\\0B = 1 codepoint (stops at NULL)")
 #endif
 
@@ -92,10 +92,10 @@ void *test_embedded_null(void *arg) {
         '!', '\0'   // !
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf16le_hello_null_exclaim, 14, MJB_ENCODING_UTF_16_LE), 7,
+    ATT_ASSERT(mjb_strnlen(utf16le_hello_null_exclaim, 14, MJB_ENC_UTF_16LE), 7,
         "UTF-16LE: Hello\\0! = 7 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf16le_hello_null_exclaim, 14, MJB_ENCODING_UTF_16_LE), 5,
+    ATT_ASSERT(mjb_strnlen(utf16le_hello_null_exclaim, 14, MJB_ENC_UTF_16LE), 5,
         "UTF-16LE: Hello\\0! = 5 codepoints (stops at NULL)")
 #endif
 
@@ -107,10 +107,10 @@ void *test_embedded_null(void *arg) {
         'Y', '\0'   // U+0059 'Y'
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf16le_multiple_nulls, 8, MJB_ENCODING_UTF_16_LE), 4,
+    ATT_ASSERT(mjb_strnlen(utf16le_multiple_nulls, 8, MJB_ENC_UTF_16LE), 4,
         "UTF-16LE: X\\0\\0Y = 4 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf16le_multiple_nulls, 8, MJB_ENCODING_UTF_16_LE), 1,
+    ATT_ASSERT(mjb_strnlen(utf16le_multiple_nulls, 8, MJB_ENC_UTF_16LE), 1,
         "UTF-16LE: X\\0\\0Y = 1 codepoint (stops at first NULL)")
 #endif
 
@@ -122,10 +122,10 @@ void *test_embedded_null(void *arg) {
         '\0', 'B'   // U+0042 'B'
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf16be_with_null, 6, MJB_ENCODING_UTF_16_BE), 3,
+    ATT_ASSERT(mjb_strnlen(utf16be_with_null, 6, MJB_ENC_UTF_16BE), 3,
         "UTF-16BE: A\\0B = 3 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf16be_with_null, 6, MJB_ENCODING_UTF_16_BE), 1,
+    ATT_ASSERT(mjb_strnlen(utf16be_with_null, 6, MJB_ENC_UTF_16BE), 1,
         "UTF-16BE: A\\0B = 1 codepoint (stops at NULL)")
 #endif
 
@@ -136,10 +136,10 @@ void *test_embedded_null(void *arg) {
         '\0', 'D', '\0', 'a', '\0', 't', '\0', 'a' // Data
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf16be_test_null_data, 18, MJB_ENCODING_UTF_16_BE), 9,
+    ATT_ASSERT(mjb_strnlen(utf16be_test_null_data, 18, MJB_ENC_UTF_16BE), 9,
         "UTF-16BE: Test\\0Data = 9 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf16be_test_null_data, 18, MJB_ENCODING_UTF_16_BE), 4,
+    ATT_ASSERT(mjb_strnlen(utf16be_test_null_data, 18, MJB_ENC_UTF_16BE), 4,
         "UTF-16BE: Test\\0Data = 4 codepoints (stops at NULL)")
 #endif
 
@@ -208,20 +208,20 @@ void *test_embedded_null(void *arg) {
     // Edge case: Buffer size exactly at NULL codepoint boundary
     const char utf8_boundary[] = { 'A', '\0', 'B' };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_boundary, 2, MJB_ENCODING_UTF_8), 2,
+    ATT_ASSERT(mjb_strnlen(utf8_boundary, 2, MJB_ENC_UTF_8), 2,
         "UTF-8: A\\0 = 2 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_boundary, 2, MJB_ENCODING_UTF_8), 1,
+    ATT_ASSERT(mjb_strnlen(utf8_boundary, 2, MJB_ENC_UTF_8), 1,
         "UTF-8: A\\0 = 1 codepoint (stops at NULL)")
 #endif
 
     // Edge case: Empty string followed by data
     const char utf8_empty_then_data[] = { '\0', 'A', 'B', 'C' };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf8_empty_then_data, 4, MJB_ENCODING_UTF_8), 4,
+    ATT_ASSERT(mjb_strnlen(utf8_empty_then_data, 4, MJB_ENC_UTF_8), 4,
         "UTF-8: \\0ABC = 4 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf8_empty_then_data, 4, MJB_ENCODING_UTF_8), 0,
+    ATT_ASSERT(mjb_strnlen(utf8_empty_then_data, 4, MJB_ENC_UTF_8), 0,
         "UTF-8: \\0ABC = 0 codepoints (starts with NULL)")
 #endif
 

@@ -8,7 +8,7 @@
 
  void *test_filter(void *arg) {
     mjb_result result;
-    mjb_encoding enc = MJB_ENCODING_UTF_8;
+    mjb_encoding enc = MJB_ENC_UTF_8;
 
     #define FREE_RESULT if(result.output != NULL && result.transformed) { mjb_free(result.output); }
 
@@ -33,14 +33,14 @@
     ATT_ASSERT(result.output, (char*)"   ", "Filter spaces output")
     FREE_RESULT
 
-    ATT_ASSERT_STATUS(mjb_string_filter("A", 1, enc, MJB_ENCODING_UTF_16_LE, MJB_FILTER_NONE,
+    ATT_ASSERT_STATUS(mjb_string_filter("A", 1, enc, MJB_ENC_UTF_16LE, MJB_FILTER_NONE,
         &result), MJB_STATUS_OK, "Filter converts output encoding without other changes")
     ATT_ASSERT(result.transformed, true, "Filter output encoding conversion transformed")
     ATT_ASSERT(result.output_size, (size_t)2, "Filter output encoding conversion size")
     ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter output encoding conversion bytes")
     FREE_RESULT
 
-    ATT_ASSERT_STATUS(mjb_string_filter("A", 1, enc, MJB_ENCODING_UTF_16_LE, MJB_FILTER_NORMALIZE,
+    ATT_ASSERT_STATUS(mjb_string_filter("A", 1, enc, MJB_ENC_UTF_16LE, MJB_FILTER_NORMALIZE,
         &result), MJB_STATUS_OK, "Filter normalize converts output encoding")
     ATT_ASSERT(result.transformed, true, "Filter normalize output encoding transformed")
     ATT_ASSERT(result.output_size, (size_t)2, "Filter normalize output encoding size")

@@ -9,9 +9,9 @@
 #include "mojibake.h"
 #include "utf.h"
 
-#define MJB_ENCODING_UTF_8_BOM "\xEF\xBB\xBF"
-#define MJB_ENCODING_UTF_16_BE_BOM "\xFE\xFF"
-#define MJB_ENCODING_UTF_16_LE_BOM "\xFF\xFE"
+#define MJB_ENC_UTF_8_BOM "\xEF\xBB\xBF"
+#define MJB_ENC_UTF_16BE_BOM "\xFE\xFF"
+#define MJB_ENC_UTF_16LE_BOM "\xFF\xFE"
 #define MJB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
 #define MJB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
 
@@ -29,8 +29,8 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
     }
 
     if(size >= 3) {
-        if(memcmp(buffer, MJB_ENCODING_UTF_8_BOM, 3) == 0) {
-            return MJB_ENCODING_UTF_8;
+        if(memcmp(buffer, MJB_ENC_UTF_8_BOM, 3) == 0) {
+            return MJB_ENC_UTF_8;
         }
     }
 
@@ -41,15 +41,15 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
             bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_BE);
         } else if(memcmp(buffer, MJB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
             // A UTF-32-LE document is also valid UTF-16-LE
-            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16_LE);
+            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENC_UTF_16LE);
         }
     }
 
     if(size >= 2) {
-        if(memcmp(buffer, MJB_ENCODING_UTF_16_BE_BOM, 2) == 0) {
-            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_BE);
-        } else if(memcmp(buffer, MJB_ENCODING_UTF_16_LE_BOM, 2) == 0) {
-            bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE);
+        if(memcmp(buffer, MJB_ENC_UTF_16BE_BOM, 2) == 0) {
+            bom_encoding = (mjb_encoding)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE);
+        } else if(memcmp(buffer, MJB_ENC_UTF_16LE_BOM, 2) == 0) {
+            bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
         }
     }
 
@@ -72,7 +72,7 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 
     // No BOM, let's try UTF-8
     if(mjb_string_is_utf8(buffer, size)) {
-        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENCODING_UTF_8);
+        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_UTF_8);
     }
 
     // No BOM, let's try ASCII
@@ -197,7 +197,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 1;
         }
-    } else if(encoding == MJB_ENCODING_UTF_8) {
+    } else if(encoding == MJB_ENC_UTF_8) {
         if(codepoint <= 0x7F) {
             // 0b0x|xx|xx|xx, 1 byte sequence (ASCII)
             buffer[0] = (char)codepoint;
@@ -241,7 +241,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 4;
         }
-    } else if(((encoding & MJB_ENCODING_UTF_16_LE) || (encoding & MJB_ENCODING_UTF_16_BE)) &&
+    } else if(((encoding & MJB_ENC_UTF_16LE) || (encoding & MJB_ENC_UTF_16BE)) &&
         !((encoding & MJB_ENCODING_UTF_32_LE) || (encoding & MJB_ENCODING_UTF_32_BE))) {
         if(size < 3) {
             return 0;
@@ -249,7 +249,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
         if(codepoint <= 0xFFFF) {
             // Basic Multilingual Plane - single 16-bit code unit
-            if(encoding & MJB_ENCODING_UTF_16_LE) {
+            if(encoding & MJB_ENC_UTF_16LE) {
                 buffer[0] = (char)(codepoint & 0xFF);
                 buffer[1] = (char)((codepoint >> 8) & 0xFF);
             } else {
@@ -271,7 +271,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
             uint16_t high = 0xD800 | ((adjusted >> 10) & 0x3FF);
             uint16_t low = 0xDC00 | (adjusted & 0x3FF);
 
-            if(encoding & MJB_ENCODING_UTF_16_LE) {
+            if(encoding & MJB_ENC_UTF_16LE) {
                 buffer[0] = (char)(high & 0xFF);
                 buffer[1] = (char)((high >> 8) & 0xFF);
                 buffer[2] = (char)(low & 0xFF);

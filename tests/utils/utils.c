@@ -27,7 +27,7 @@ size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints) {
         }
 
         unsigned int encoded_size = mjb_codepoint_encode(codepoint, codepoints + index,
-            size - index, MJB_ENCODING_UTF_8);
+            size - index, MJB_ENC_UTF_8);
 
         if(encoded_size == 0) {
             break; // Failed to encode
@@ -127,7 +127,7 @@ void read_test_file(const char *filename, test_file_callback callback) {
             }
 #endif
             unsigned int encoded_size = mjb_codepoint_encode(codepoint, generated_input +
-                generated_index, 1024 - generated_index, MJB_ENCODING_UTF_8);
+                generated_index, 1024 - generated_index, MJB_ENC_UTF_8);
 
             generated_index += encoded_size;
         }

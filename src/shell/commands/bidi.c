@@ -35,7 +35,7 @@ static void mjbsh_bidi_revolve(const char *input) {
 
     mjb_bidi_paragraph para;
 
-    if(mjb_bidi_resolve(input, input_size, MJB_ENCODING_UTF_8, MJB_DIRECTION_AUTO, &para) !=
+    if(mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para) !=
         MJB_STATUS_OK) {
         fprintf(stderr, "bidi: resolution failed\n");
         return;

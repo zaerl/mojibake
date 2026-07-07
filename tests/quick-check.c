@@ -10,7 +10,7 @@
  #include "test.h"
 
  void *test_quick_check(void *arg) {
-    mjb_encoding enc = MJB_ENCODING_UTF_8;
+    mjb_encoding enc = MJB_ENC_UTF_8;
 
     ATT_ASSERT((unsigned int)mjb_string_is_normalized(NULL, 1, enc, MJB_NORMALIZATION_NFC),
         (unsigned int)MJB_QC_NO, "NULL string is not normalized")

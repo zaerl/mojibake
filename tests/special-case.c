@@ -12,7 +12,7 @@
 
 static int check_case(char *source, size_t source_size, char *target, size_t target_size,
     mjb_case_type type, unsigned int current_line, const char *step) {
-    mjb_encoding encoding = MJB_ENCODING_UTF_8;
+    mjb_encoding encoding = MJB_ENC_UTF_8;
     char test_name[128];
 
     snprintf(test_name, 128, "#%u %s", current_line, step);
@@ -35,7 +35,7 @@ static int check_case(char *source, size_t source_size, char *target, size_t tar
 
 static int check_conditional(const char *source, const char *target, mjb_case_type type,
     const char *name) {
-    char *result = run_mjb_case(source, strlen(source), type, MJB_ENCODING_UTF_8);
+    char *result = run_mjb_case(source, strlen(source), type, MJB_ENC_UTF_8);
 
     MJB_TEST_COVERAGE(mjb_case);
     ATT_ASSERT(result, (char*)target, name)

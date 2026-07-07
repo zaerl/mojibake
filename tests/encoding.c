@@ -13,22 +13,22 @@ void *test_encoding(void *arg) {
     ATT_ASSERT((unsigned int)mjb_string_encoding(0, 0), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown string and length")
     const char *test1 = "The quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43), (unsigned int)(MJB_ENC_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43), (unsigned int)(MJB_ENC_ASCII | MJB_ENC_UTF_8), "Plain ASCII (and UTF-8)")
     const char *test2 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test2, 43 + 3), (unsigned int)MJB_ENCODING_UTF_8, "UTF-8 BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test2, 43 + 3), (unsigned int)MJB_ENC_UTF_8, "UTF-8 BOM")
     const char *test3 = "\xFE\xFFThe quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test3, 43 + 2), (unsigned int)(MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_BE), "UTF-16-BE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test3, 43 + 2), (unsigned int)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE), "UTF-16-BE BOM")
 
     const char *test4 = "\xFF\xFEThe quick brown fox jumps over the lazy dog";
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test4, 43 + 2), (unsigned int)(MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE), "UTF-16-LE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test4, 43 + 2), (unsigned int)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE), "UTF-16-LE BOM")
 
     const char *test5 = "\x00\x00\xFE\xFFThe quick brown fox jumps over the lazy dog";
     ATT_ASSERT((unsigned int)mjb_string_encoding(test5, 43 + 4), (unsigned int)MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_BE, "UTF-32-BE BOM")
 
     const char *test6 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test6, 43 + 4), (unsigned int)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENCODING_UTF_16 | MJB_ENCODING_UTF_16_LE), "UTF-32-LE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test6, 43 + 4), (unsigned int)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE), "UTF-32-LE BOM")
 
     ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void ASCII string")
     ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void ASCII length")
@@ -117,7 +117,7 @@ void *test_encoding(void *arg) {
         "UTF-8 stops at NULL terminator")
     ATT_ASSERT((unsigned int)mjb_string_encoding((const char*)utf8_null_invalid,
         sizeof(utf8_null_invalid)),
-        (unsigned int)(MJB_ENCODING_UTF_8 | MJB_ENC_ASCII),
+        (unsigned int)(MJB_ENC_UTF_8 | MJB_ENC_ASCII),
         "Encoding stops at NULL terminator")
 #endif
 
@@ -169,32 +169,32 @@ void *test_encoding(void *arg) {
     const char *utf16le_max = "\xFF\xDB\xFF\xDF";  // U+10FFFF in UTF-16LE
     ATT_ASSERT(mjb_string_is_utf16(utf16le_max, 4), true, "UTF-16LE maximum codepoint")
 
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_8), 0, "Void buffer")
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_8), 0, "Wrong size")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENC_UTF_8), 0, "Void buffer")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENC_UTF_8), 0, "Wrong size")
 
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_16_LE), 0, "Void buffer UTF-16LE")
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_16_LE), 0, "Wrong size UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENC_UTF_16LE), 0, "Void buffer UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENC_UTF_16LE), 0, "Wrong size UTF-16LE")
 
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_16_BE), 0, "Void buffer UTF-16BE")
-    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENCODING_UTF_16_BE), 0, "Wrong size UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENC_UTF_16BE), 0, "Void buffer UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 1, MJB_ENC_UTF_16BE), 0, "Wrong size UTF-16BE")
 
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32), 0, "Invalid encoding")
 
     char buffer[5];
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter max")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_8), 0, "Noncharacter min")
-    ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENCODING_UTF_8), 0, "High surrogate UTF-8")
-    ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENCODING_UTF_8), 0, "Low surrogate UTF-8")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENC_UTF_8), 0, "Noncharacter max")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENC_UTF_8), 0, "Noncharacter min")
+    ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENC_UTF_8), 0, "High surrogate UTF-8")
+    ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENC_UTF_8), 0, "Low surrogate UTF-8")
 
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter max UTF-16LE")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 0, "Noncharacter min UTF-16LE")
-    ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 0, "High surrogate UTF-16LE")
-    ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 0, "Low surrogate UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENC_UTF_16LE), 0, "Noncharacter max UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENC_UTF_16LE), 0, "Noncharacter min UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENC_UTF_16LE), 0, "High surrogate UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENC_UTF_16LE), 0, "Low surrogate UTF-16LE")
 
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter max UTF-16BE")
-    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Noncharacter min UTF-16BE")
-    ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "High surrogate UTF-16BE")
-    ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 0, "Low surrogate UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MAX + 1, (char*)buffer, 5, MJB_ENC_UTF_16BE), 0, "Noncharacter max UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(MJB_CODEPOINT_MIN - 1, (char*)buffer, 5, MJB_ENC_UTF_16BE), 0, "Noncharacter min UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENC_UTF_16BE), 0, "High surrogate UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENC_UTF_16BE), 0, "Low surrogate UTF-16BE")
 
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)0, 0, MJB_ENCODING_UTF_32_LE), 0, "Void buffer UTF-32LE")
     ATT_ASSERT(mjb_codepoint_encode(0, (char*)1, 4, MJB_ENCODING_UTF_32_LE), 0, "Wrong size UTF-32LE")
@@ -212,13 +212,13 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(0xD800, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 0, "High surrogate UTF-32BE")
     ATT_ASSERT(mjb_codepoint_encode(0xDFFF, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 0, "Low surrogate UTF-32BE")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_8), 1, "0x0000 UTF-8")
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENC_UTF_8), 1, "0x0000 UTF-8")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-8")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_16_LE), 2, "0x0000 UTF-16LE")
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENC_UTF_16LE), 2, "0x0000 UTF-16LE")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-16LE")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_16_BE), 2, "0x0000 UTF-16BE")
+    ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENC_UTF_16BE), 2, "0x0000 UTF-16BE")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-16BE")
 
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_32_LE), 4, "0x0000 UTF-32LE")
@@ -242,7 +242,7 @@ void *test_encoding(void *arg) {
         ATT_ASSERT(mjb_codepoint_encode(CHAR, (char*)buffer, 5, encoding), RES, COMMENT) \
         ATT_ASSERT((const char*)buffer, STR, COMMENT)
 
-    encoding = MJB_ENCODING_UTF_8;
+    encoding = MJB_ENC_UTF_8;
 
     // UTF-8 tests
     TEST_UTF(0x007F, "\x7F", 1, "ASCII limit");
@@ -252,7 +252,7 @@ void *test_encoding(void *arg) {
     TEST_UTF(0x10FFFE, "\xF4\x8F\xBF\xBE", 4, "4-bytes limit");
     TEST_UTF(0x1F642, "\xF0\x9F\x99\x82", 4, "SLIGHTLY SMILING FACE");
 
-    encoding = MJB_ENCODING_UTF_16_LE;
+    encoding = MJB_ENC_UTF_16LE;
 
     TEST_UTF(0x007F, "\x7F\x00", 2, "ASCII limit UTF-16LE");
     TEST_UTF(0x07FF, "\xFF\x07", 2, "2-bytes limit UTF-16LE");
@@ -261,7 +261,7 @@ void *test_encoding(void *arg) {
     TEST_UTF(0x10FFFE, "\xFF\xDB\xFE\xDF", 4, "4-bytes limit UTF-16LE");
     TEST_UTF(0x1F642, "\x3D\xD8\x42\xDE", 4, "SLIGHTLY SMILING FACE UTF-16LE");
 
-    encoding = MJB_ENCODING_UTF_16_BE;
+    encoding = MJB_ENC_UTF_16BE;
 
     TEST_UTF(0x007F, "\x00\x7F", 2, "ASCII limit UTF-16BE");
     TEST_UTF(0x07FF, "\x07\xFF", 2, "2-bytes limit UTF-16BE");
@@ -305,9 +305,9 @@ void *test_encoding(void *arg) {
         20
     };
     mjb_encoding encodings[] = {
-        MJB_ENCODING_UTF_8,
-        MJB_ENCODING_UTF_16_LE,
-        MJB_ENCODING_UTF_16_BE,
+        MJB_ENC_UTF_8,
+        MJB_ENC_UTF_16LE,
+        MJB_ENC_UTF_16BE,
         MJB_ENCODING_UTF_32_LE,
         MJB_ENCODING_UTF_32_BE
     };
@@ -321,25 +321,25 @@ void *test_encoding(void *arg) {
     char test_description[64];
     mjb_result boundary_result;
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(NULL, 1, MJB_ENCODING_UTF_8,
-        MJB_ENCODING_UTF_16_LE, &boundary_result), MJB_STATUS_INVALID_ARGUMENT,
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(NULL, 1, MJB_ENC_UTF_8,
+        MJB_ENC_UTF_16LE, &boundary_result), MJB_STATUS_INVALID_ARGUMENT,
         "Convert encoding rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("", 0, MJB_ENCODING_UTF_8,
-        MJB_ENCODING_UTF_16_LE, NULL), MJB_STATUS_INVALID_ARGUMENT,
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("", 0, MJB_ENC_UTF_8,
+        MJB_ENC_UTF_16LE, NULL), MJB_STATUS_INVALID_ARGUMENT,
         "Convert encoding rejects NULL result")
 
     const char utf16le_ascii[] = { 'e', '\0', 'n', '\0' };
     mjb_result ascii_result;
 
     ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
-        MJB_ENCODING_UTF_16_LE, MJB_ENC_ASCII, &ascii_result), MJB_STATUS_OK,
+        MJB_ENC_UTF_16LE, MJB_ENC_ASCII, &ascii_result), MJB_STATUS_OK,
         "Convert UTF-16LE ASCII text to ASCII")
     ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
     ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size")
     ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output")
     mjb_free(ascii_result.output);
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENCODING_UTF_8,
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENC_UTF_8,
         MJB_ENC_ASCII, &ascii_result), MJB_STATUS_UNSUPPORTED,
         "Convert UTF-8 non-ASCII text to ASCII")
 
@@ -347,7 +347,7 @@ void *test_encoding(void *arg) {
     const char utf16be_smile[] = { '\xD8', '\x3D', '\xDE', '\x42' };
 
     ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_smile, sizeof(utf16le_smile),
-        MJB_ENCODING_UTF_16_LE, MJB_ENCODING_UTF_8, &ascii_result), MJB_STATUS_OK,
+        MJB_ENC_UTF_16LE, MJB_ENC_UTF_8, &ascii_result), MJB_STATUS_OK,
         "Convert UTF-16LE surrogate pair to UTF-8")
     ATT_ASSERT(ascii_result.output_size, (size_t)4,
         "Convert UTF-16LE surrogate pair to UTF-8 size")
@@ -356,7 +356,7 @@ void *test_encoding(void *arg) {
     mjb_free(ascii_result.output);
 
     ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16be_smile, sizeof(utf16be_smile),
-        MJB_ENCODING_UTF_16_BE, MJB_ENCODING_UTF_8, &ascii_result), MJB_STATUS_OK,
+        MJB_ENC_UTF_16BE, MJB_ENC_UTF_8, &ascii_result), MJB_STATUS_OK,
         "Convert UTF-16BE surrogate pair to UTF-8")
     ATT_ASSERT(ascii_result.output_size, (size_t)4,
         "Convert UTF-16BE surrogate pair to UTF-8 size")

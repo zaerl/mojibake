@@ -212,7 +212,7 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
 
                 if(utf16_state == MJB_UTF_ACCEPT) {
                     char utf8[5] = {0};
-                    unsigned int utf8_len = mjb_codepoint_encode(utf16_cp, utf8, 5, MJB_ENCODING_UTF_8);
+                    unsigned int utf8_len = mjb_codepoint_encode(utf16_cp, utf8, 5, MJB_ENC_UTF_8);
 
                     if(utf8_len > 0 && buffer_pos + utf8_len < sizeof(input_buffer) - 1) {
                         for(unsigned int i = 0; i < utf8_len; i++) {

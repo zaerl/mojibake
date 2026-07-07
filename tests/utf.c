@@ -17,7 +17,7 @@ void *test_utf(void *arg) {
     mjb_codepoint codepoint = 0;
     mjb_decode_result result;
 
-    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENCODING_UTF_8,
+    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENC_UTF_8,
         &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "MJB_DECODE_OK")
@@ -26,7 +26,7 @@ void *test_utf(void *arg) {
     ATT_ASSERT(index, 1, "Index 1")
     ATT_ASSERT(in_error, false, "Should not be in error state")
 
-    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENCODING_UTF_8,
+    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENC_UTF_8,
         &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_END, "MJB_DECODE_END")
@@ -40,7 +40,7 @@ void *test_utf(void *arg) {
     in_error = false;
     codepoint = 0;
 
-    result = mjb_next_codepoint(buffer_utf16be, size_utf16be, &state, &index, MJB_ENCODING_UTF_16_BE,
+    result = mjb_next_codepoint(buffer_utf16be, size_utf16be, &state, &index, MJB_ENC_UTF_16BE,
         &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16BE: MJB_DECODE_OK")
@@ -49,7 +49,7 @@ void *test_utf(void *arg) {
     ATT_ASSERT(index, 2, "UTF-16BE: Index 2")
     ATT_ASSERT(in_error, false, "UTF-16BE: not error state")
 
-    result = mjb_next_codepoint(buffer_utf16be, size_utf16be, &state, &index, MJB_ENCODING_UTF_16_BE,
+    result = mjb_next_codepoint(buffer_utf16be, size_utf16be, &state, &index, MJB_ENC_UTF_16BE,
         &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_END, "UTF-16BE: MJB_DECODE_END")
@@ -63,7 +63,7 @@ void *test_utf(void *arg) {
     in_error = false;
     codepoint = 0;
 
-    result = mjb_next_codepoint(buffer_utf16le, size_utf16le, &state, &index, MJB_ENCODING_UTF_16_LE,
+    result = mjb_next_codepoint(buffer_utf16le, size_utf16le, &state, &index, MJB_ENC_UTF_16LE,
         &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16LE: MJB_DECODE_OK")
@@ -73,7 +73,7 @@ void *test_utf(void *arg) {
     ATT_ASSERT(in_error, false, "UTF-16LE: not error state")
 
     // Second call: Should reach end of string
-    result = mjb_next_codepoint(buffer_utf16le, size_utf16le, &state, &index, MJB_ENCODING_UTF_16_LE,
+    result = mjb_next_codepoint(buffer_utf16le, size_utf16le, &state, &index, MJB_ENC_UTF_16LE,
         &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_END, "UTF-16LE: MJB_DECODE_END")
@@ -87,7 +87,7 @@ void *test_utf(void *arg) {
     codepoint = 0;
 
     result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index,
-        MJB_ENCODING_UTF_16_BE, &codepoint, &in_error);
+        MJB_ENC_UTF_16BE, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE,
         "UTF-16BE surrogate: high surrogate incomplete")
@@ -96,7 +96,7 @@ void *test_utf(void *arg) {
     ATT_ASSERT(index, 2, "UTF-16BE surrogate: index 2")
 
     result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index,
-        MJB_ENCODING_UTF_16_BE, &codepoint, &in_error);
+        MJB_ENC_UTF_16BE, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16BE surrogate: MJB_DECODE_OK")
     ATT_ASSERT(codepoint, 0x1F642, "UTF-16BE surrogate: U+1F642")
@@ -111,7 +111,7 @@ void *test_utf(void *arg) {
     codepoint = 0;
 
     result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index,
-        MJB_ENCODING_UTF_16_LE, &codepoint, &in_error);
+        MJB_ENC_UTF_16LE, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE,
         "UTF-16LE surrogate: high surrogate incomplete")
@@ -120,7 +120,7 @@ void *test_utf(void *arg) {
     ATT_ASSERT(index, 2, "UTF-16LE surrogate: index 2")
 
     result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index,
-        MJB_ENCODING_UTF_16_LE, &codepoint, &in_error);
+        MJB_ENC_UTF_16LE, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16LE surrogate: MJB_DECODE_OK")
     ATT_ASSERT(codepoint, 0x1F642, "UTF-16LE surrogate: U+1F642")
@@ -129,9 +129,9 @@ void *test_utf(void *arg) {
     ATT_ASSERT(in_error, false, "UTF-16LE surrogate: not error state")
 
     // Truncated trailing units must terminate decoding (one replacement, then end), not loop.
-    ATT_ASSERT(mjb_strnlen("A\0B", 3, MJB_ENCODING_UTF_16_BE), 2,
+    ATT_ASSERT(mjb_strnlen("A\0B", 3, MJB_ENC_UTF_16BE), 2,
         "UTF-16BE: truncated trailing unit ends decoding")
-    ATT_ASSERT(mjb_strnlen("A", 1, MJB_ENCODING_UTF_16_LE), 1,
+    ATT_ASSERT(mjb_strnlen("A", 1, MJB_ENC_UTF_16LE), 1,
         "UTF-16LE: lone trailing byte decodes as replacement")
     ATT_ASSERT(mjb_strnlen("\0\0\0A!", 5, MJB_ENCODING_UTF_32_BE), 2,
         "UTF-32BE: truncated trailing unit ends decoding")

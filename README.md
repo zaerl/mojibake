@@ -88,8 +88,8 @@ int main(int argc, char * const argv[]) {
     const char *input = "Cafe\xCC\x81";
     mjb_result result;
 
-    if(mjb_normalize(input, strlen(input), MJB_ENCODING_UTF_8, MJB_NORMALIZATION_NFC,
-           MJB_ENCODING_UTF_8, &result) != MJB_STATUS_OK) {
+    if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
+           MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -159,7 +159,7 @@ Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
 int main(int argc, char * const argv[]) {
     // The string to normalize
     const char *hello = "Hello, World!";
-    mjb_encoding encoding = MJB_ENCODING_UTF_8;
+    mjb_encoding encoding = MJB_ENC_UTF_8;
     mjb_result result;
 
     mjb_status status = mjb_normalize(hello, strlen(hello), MJB_NORMALIZATION_NFC, encoding,
