@@ -1225,7 +1225,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     wasm: true,
     details: 'Compute the confusable skeleton of both strings and return true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
-      '"paypal" and "pаypаl" with Cyrillic а.',
+      '"good" and "gооd" with Cyrillic о.',
     related: ['mjb_string_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },

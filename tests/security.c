@@ -191,17 +191,17 @@ int test_security(void *arg) {
         "mm confusable with rnrn")
 
     // Cyrillic р (U+0440, UTF-8: 0xD1 0x80) maps to Latin p
-    // "рaypal" (with Cyrillic р) is confusable with "paypal"
-    ATT_ASSERT(mjb_string_is_confusable("\xD1\x80" "al", 4, "pal", 3, MJB_ENC_UTF_8), true,
-        "Cyrillic p-aypal confusable with paypal")
+    // "рal" (with Cyrillic р) is confusable with "pal"
+    ATT_ASSERT(mjb_string_is_confusable("рal", 4, "pal", 3, MJB_ENC_UTF_8), true,
+        "Cyrillic рal confusable with pal")
 
     // Cyrillic С (U+0421, UTF-8: 0xD0 0xA1) maps to Latin C
     ATT_ASSERT(mjb_string_is_confusable("\xD0\xA1" "at", 4, "Cat", 3, MJB_ENC_UTF_8), true,
         "Cyrillic С + at confusable with Cat")
 
-    // "gооgle" (Cyrillic о U+043E, UTF-8: 0xD0 0xBE) confusable with "google"
-    // skeleton(Cyrillic о) = Latin o → both strings have skeleton "google"
-    ATT_ASSERT(mjb_string_is_confusable("g\xD0\xBE\xD0\xBE" "d", 6, "good", 4, MJB_ENC_UTF_8), true,
+    // "gооd" (Cyrillic о U+043E, UTF-8: 0xD0 0xBE) confusable with "good"
+    // skeleton(Cyrillic о) = Latin o -> both strings have skeleton "good"
+    ATT_ASSERT(mjb_string_is_confusable("gооd", 6, "good", 4, MJB_ENC_UTF_8), true,
         "g(Cyrillic o)(Cyrillic o)d confusable with good")
 
     // Confusability is symmetric

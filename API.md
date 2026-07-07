@@ -972,7 +972,7 @@ Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) ==
 bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size, mjb_encoding encoding);
 ```
 
-Compute the confusable skeleton of both strings and return true when the skeletons are equal, meaning the two strings are visually confusable, such as "paypal" and "pаypаl" with Cyrillic а.
+Compute the confusable skeleton of both strings and return true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
 
 - `s1` — The first string
 - `s1_size` — The size of the first string, in bytes
