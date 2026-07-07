@@ -95,7 +95,7 @@ export type MojibakeWasmModule = {
   _mjb_break_sentence: (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
   // Grapheme cluster breaking
   _mjb_segmentation: (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
-  // Return the number of bytes that form the first max_graphemes grapheme cluster segments
+  // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments
   _mjb_truncate: (buffer: Pointer, size: number, encoding: number, max_graphemes: number) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns display columns
   _mjb_truncate_width: (buffer: Pointer, size: number, encoding: number, context: number, max_columns: number) => number;
