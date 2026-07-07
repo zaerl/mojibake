@@ -626,7 +626,7 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
 // Grapheme cluster breaking
 MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
 
-// Return the number of bytes that form the first max_graphemes grapheme cluster segments
+// Return the number of bytes that form the first `max_graphemes` grapheme cluster segments
 MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
 
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns
