@@ -535,8 +535,35 @@ Return the numeric value of a codepoint.
 mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
 ```
 
+Return the numeric value of a codepoint, if any. If the codepoint has no numeric value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).
+
 - `codepoint` — The codepoint to check
 - `value` — The numeric value to store the result
+
+**Returns**
+
+- `MJB_STATUS_OK` — The character was found and filled
+- `MJB_STATUS_INVALID_ARGUMENT` — `value` is NULL or the codepoint is not valid
+
+**Example**
+
+```c
+mjb_numeric_value num;
+
+if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
+    return 1;
+}
+
+// decimal=1, digit=1, numeric=1
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
+
+if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
+    return 1;
+}
+
+// decimal=-1, digit=-1, numeric=1/2
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
+```
 
 ### `mjb_codepoint_block`
 

@@ -686,7 +686,28 @@ if(result.transformed) {
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Return the numeric value of a codepoint, if any. If the codepoint has no numeric ' +
+      'value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The character was found and filled' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`value` is NULL or the codepoint is not valid' },
+    ],
+    example: `mjb_numeric_value num;
+
+if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
+    return 1;
+}
+
+// decimal=1, digit=1, numeric=1
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
+
+if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
+    return 1;
+}
+
+// decimal=-1, digit=-1, numeric=1/2
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`,
   },
   {
     comment: 'Return the character block.',
