@@ -350,14 +350,16 @@ int test_case(void *arg) {
     mjb_free(result);
 
     ATT_ASSERT(mjb_codepoint_to_lowercase('#'), '#', "Lowercase #: #")
-    ATT_ASSERT(mjb_codepoint_to_uppercase('#'), '#', "Uppercase #: #")
-    ATT_ASSERT(mjb_codepoint_to_titlecase('#'), '#', "Titlecase #: #")
     ATT_ASSERT(mjb_codepoint_to_lowercase('A'), 'a', "Lowercase: A > a")
     ATT_ASSERT(mjb_codepoint_to_lowercase('a'), 'a', "Lowercase: a > a")
-    ATT_ASSERT(mjb_codepoint_to_uppercase('b'), 'B', "Uppercase: b > B")
-    ATT_ASSERT(mjb_codepoint_to_uppercase('B'), 'B', "Uppercase: B > B")
+
+    ATT_ASSERT(mjb_codepoint_to_titlecase('#'), '#', "Titlecase #: #")
     ATT_ASSERT(mjb_codepoint_to_titlecase('c'), 'C', "Titlecase: c > C")
     ATT_ASSERT(mjb_codepoint_to_titlecase('C'), 'C', "Titlecase: C > C")
+
+    ATT_ASSERT(mjb_codepoint_to_uppercase('#'), '#', "Uppercase #: #")
+    ATT_ASSERT(mjb_codepoint_to_uppercase('b'), 'B', "Uppercase: b > B")
+    ATT_ASSERT(mjb_codepoint_to_uppercase('B'), 'B', "Uppercase: B > B")
 
     test_case_folding_file();
 

@@ -707,7 +707,7 @@ if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½
 }
 
 // decimal=-1, digit=-1, numeric=1/2
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`,
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`
   },
   {
     comment: 'Return the character block.',
@@ -731,7 +731,24 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     name: 'mjb_codepoint_to_lowercase',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    details: 'Return the lowercase codepoint of a codepoint. If the codepoint has no lowercase ' +
+      'equivalent, the original codepoint is returned.',
+    returns: [
+      { value: 'codepoint', description: 'The lowercase codepoint, or the original codepoint' }
+    ],
+    example: `mjb_codepoint codepoint;
+
+codepoint = mjb_codepoint_to_lowercase(0x0041); // U+0041 = 'A'
+
+// A > a
+printf("%c > %c", 'A', codepoint);
+
+codepoint = mjb_codepoint_to_lowercase(0x03A3); // U+03A3 = 'Σ'
+
+// U+03A3 > U+03C3, Σ > σ
+printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
+    related: ['mjb_codepoint_to_uppercase', 'mjb_codepoint_to_titlecase'],
   },
   {
     comment: 'Return the codepoint uppercase codepoint.',
@@ -739,7 +756,13 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     name: 'mjb_codepoint_to_uppercase',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    details: 'Return the uppercase codepoint of a codepoint. If the codepoint has no uppercase ' +
+      'equivalent, the original codepoint is returned.',
+    returns: [
+      { value: 'codepoint', description: 'The uppercase codepoint, or the original codepoint' }
+    ],
+    related: ['mjb_codepoint_to_lowercase', 'mjb_codepoint_to_titlecase'],
   },
   {
     comment: 'Return the codepoint titlecase codepoint.',
@@ -747,7 +770,13 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     name: 'mjb_codepoint_to_titlecase',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    details: 'Return the titlecase codepoint of a codepoint. If the codepoint has no titlecase ' +
+      'equivalent, the original codepoint is returned.',
+    returns: [
+      { value: 'codepoint', description: 'The titlecase codepoint, or the original codepoint' }
+    ],
+    related: ['mjb_codepoint_to_lowercase', 'mjb_codepoint_to_uppercase'],
   },
   {
     comment: 'Unicode line break algorithm.',

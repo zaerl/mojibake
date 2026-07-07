@@ -584,7 +584,31 @@ Return the codepoint lowercase codepoint.
 mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 ```
 
+Return the lowercase codepoint of a codepoint. If the codepoint has no lowercase equivalent, the original codepoint is returned.
+
 - `codepoint` — The codepoint to check
+
+**Returns**
+
+- `codepoint` — The lowercase codepoint, or the original codepoint
+
+**Example**
+
+```c
+mjb_codepoint codepoint;
+
+codepoint = mjb_codepoint_to_lowercase(0x0041); // U+0041 = 'A'
+
+// A > a
+printf("%c > %c", 'A', codepoint);
+
+codepoint = mjb_codepoint_to_lowercase(0x03A3); // U+03A3 = 'Σ'
+
+// U+03A3 > U+03C3, Σ > σ
+printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");
+```
+
+See also: [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
 
 ### `mjb_codepoint_to_uppercase`
 
@@ -594,7 +618,15 @@ Return the codepoint uppercase codepoint.
 mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
 ```
 
+Return the uppercase codepoint of a codepoint. If the codepoint has no uppercase equivalent, the original codepoint is returned.
+
 - `codepoint` — The codepoint to check
+
+**Returns**
+
+- `codepoint` — The uppercase codepoint, or the original codepoint
+
+See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
 
 ### `mjb_codepoint_to_titlecase`
 
@@ -604,7 +636,15 @@ Return the codepoint titlecase codepoint.
 mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
 ```
 
+Return the titlecase codepoint of a codepoint. If the codepoint has no titlecase equivalent, the original codepoint is returned.
+
 - `codepoint` — The codepoint to check
+
+**Returns**
+
+- `codepoint` — The titlecase codepoint, or the original codepoint
+
+See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase).
 
 ### `mjb_break_line`
 

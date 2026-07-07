@@ -134,5 +134,25 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric); // Added by the script
     ATT_ASSERT(test_buffer, "decimal=-1, digit=-1, numeric=1/2", "mjb_codepoint_numeric_value test failed") // Added by the script
 }
+
+{
+    // Example for mjb_codepoint_to_lowercase
+    MJB_TEST_COVERAGE(mjb_codepoint_to_lowercase); // Added by the script
+    mjb_codepoint codepoint;
+
+    codepoint = mjb_codepoint_to_lowercase(0x0041); // U+0041 = 'A'
+
+    // A > a
+    // printf("%c > %c", 'A', codepoint);
+    snprintf(test_buffer, sizeof(test_buffer), "%c > %c", 'A', codepoint); // Added by the script
+    ATT_ASSERT(test_buffer, "A > a", "mjb_codepoint_to_lowercase test failed") // Added by the script
+
+    codepoint = mjb_codepoint_to_lowercase(0x03A3); // U+03A3 = 'Σ'
+
+    // U+03A3 > U+03C3, Σ > σ
+    // printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");
+    snprintf(test_buffer, sizeof(test_buffer), "U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ"); // Added by the script
+    ATT_ASSERT(test_buffer, "U+03A3 > U+03C3, Σ > σ", "mjb_codepoint_to_lowercase test failed") // Added by the script
+}
     return 0;
 }
