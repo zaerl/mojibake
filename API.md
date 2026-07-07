@@ -162,6 +162,10 @@ if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
 
 // Filtered: \t\n\v\f\r
 printf("Filtered: %.*s", (int)result.output_size, result.output);
+
+if(result.transformed) {
+    mjb_free(result.output);
+}
 ```
 
 See also: [`mjb_normalize`](#mjb_normalize).

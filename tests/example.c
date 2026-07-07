@@ -81,6 +81,10 @@ int test_example(void *arg) {
     // printf("Filtered: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_string_filter test failed") // Added by the script
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
 }
 
 {
