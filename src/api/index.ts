@@ -417,6 +417,21 @@ export class Mojibake {
       this.free(resultPtr);
     }
   }
+
+  // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding
+  // encoding, mjb_normalization form)
+  stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,
+    options: TextInputOptions = {}): number {
+    const wasmInput = this.copyInput(input, options);
+
+    try {
+      return this.module._mjb_string_is_normalized(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, form);
+    } finally {
+      this.free(wasmInput.ptr);
+    }
+  }
+
   // mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
   // mjb_next_character_fn fn)
   nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
@@ -450,20 +465,6 @@ export class Mojibake {
         (globalThis as any)._mjbNextCharacterCallback = previousCallback;
       }
 
-      this.free(wasmInput.ptr);
-    }
-  }
-
-  // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding
-  // encoding, mjb_normalization form)
-  stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,
-    options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
-
-    try {
-      return this.module._mjb_string_is_normalized(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, form);
-    } finally {
       this.free(wasmInput.ptr);
     }
   }

@@ -187,24 +187,6 @@ if(result.transformed) {
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Return the next character from a string.',
-    ret: 'mjb_status',
-    name: 'mjb_next_character',
-    attributes: ['MJB_NODISCARD'],
-    args: [
-      buffer('The string to check'),
-      size(),
-      encoding(),
-      {
-        name: 'fn',
-        type: 'mjb_next_character_fn',
-        description: 'The function to call for each character',
-        wasm_generated: true
-      }
-    ],
-    wasm: true
-  },
-  {
     comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
     ret: 'mjb_quick_check_result',
     name: 'mjb_string_is_normalized',
@@ -280,6 +262,24 @@ if(result.transformed) {
     mjb_free(result.output);
 }`,
 related: ['mjb_normalize']
+  },
+  {
+    comment: 'Return the next character from a string.',
+    ret: 'mjb_status',
+    name: 'mjb_next_character',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to check'),
+      size(),
+      encoding(),
+      {
+        name: 'fn',
+        type: 'mjb_next_character_fn',
+        description: 'The function to call for each character',
+        wasm_generated: true
+      }
+    ],
+    wasm: true
   },
   {
     comment: 'Return if a codepoint has a property.',

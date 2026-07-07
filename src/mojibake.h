@@ -506,14 +506,14 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepo
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
-// Return the next character from a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
-
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
 
 // Filter a string to remove invalid characters.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+
+// Return the next character from a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
 
 // Return if a codepoint has a property.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);

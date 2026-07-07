@@ -108,9 +108,9 @@ if(BUILD_WASM)
     set(EXPORTED_FUNCTIONS
         "\"_mjb_codepoint_character\""
         "\"_mjb_normalize\""
-        "\"_mjb_next_character\""
         "\"_mjb_string_is_normalized\""
         "\"_mjb_string_filter\""
+        "\"_mjb_next_character\""
         "\"_mjb_codepoint_has_property\""
         "\"_mjb_codepoint_properties\""
         "\"_mjb_codepoint_script\""

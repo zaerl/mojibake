@@ -82,19 +82,6 @@ See also: [`mjb_string_is_normalized`](#mjb_string_is_normalized), [`mjb_string_
 
 Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/reports/tr15/).
 
-### `mjb_next_character`
-
-Return the next character from a string.
-
-```c
-mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
-```
-
-- `buffer` — The string to check
-- `size` — The size of the string, in bytes
-- `encoding` — The encoding of the string
-- `fn` — The function to call for each character
-
 ### `mjb_string_is_normalized`
 
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
@@ -169,6 +156,19 @@ if(result.transformed) {
 ```
 
 See also: [`mjb_normalize`](#mjb_normalize).
+
+### `mjb_next_character`
+
+Return the next character from a string.
+
+```c
+mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+```
+
+- `buffer` — The string to check
+- `size` — The size of the string, in bytes
+- `encoding` — The encoding of the string
+- `fn` — The function to call for each character
 
 ### `mjb_codepoint_has_property`
 
