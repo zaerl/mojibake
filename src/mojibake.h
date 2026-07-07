@@ -190,7 +190,7 @@ typedef uint32_t mjb_codepoint;
  */
 typedef enum mjb_encoding {
     MJB_ENC_UNKNOWN   = 0x0,
-    MJB_ENCODING_ASCII     = 0x1,
+    MJB_ENC_ASCII     = 0x1,
     MJB_ENCODING_UTF_8     = 0x2,
     MJB_ENCODING_UTF_16    = 0x4,
     MJB_ENCODING_UTF_16_BE = 0x8,

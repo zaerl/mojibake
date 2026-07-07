@@ -532,7 +532,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     mjb_result converted = {NULL, 0, false};
 
     // Parse byte-oriented ASCII after validating or converting the input encoding.
-    if(encoding == MJB_ENCODING_ASCII) {
+    if(encoding == MJB_ENC_ASCII) {
         if(!mjb_string_is_ascii(id, size)) {
             if(error != NULL) {
                 *error = MJB_ERROR_INVALID_ARGUMENT;
@@ -543,7 +543,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     } else if(encoding == MJB_ENCODING_UTF_8 && mjb_string_is_ascii(id, size)) {
         // Already suitable for the byte-oriented locale parser.
     } else {
-        mjb_status status = mjb_string_convert_encoding(id, size, encoding, MJB_ENCODING_ASCII,
+        mjb_status status = mjb_string_convert_encoding(id, size, encoding, MJB_ENC_ASCII,
             &converted);
 
         if(status == MJB_STATUS_OK) {

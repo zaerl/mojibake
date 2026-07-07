@@ -34,7 +34,7 @@ static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
 
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
-    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENCODING_ASCII) {
+    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENC_ASCII) {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         if(!buffer[*index]) {
             return false;
@@ -168,7 +168,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
  * UTF-32: always 4 bytes.
  */
 static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_encoding encoding) {
-    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENCODING_ASCII) {
+    if(encoding == MJB_ENCODING_UTF_8 || encoding == MJB_ENC_ASCII) {
         if(cp < 0x80) {
             return 1;
         }

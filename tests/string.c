@@ -40,7 +40,7 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen("こんにちは", 15, enc), 5, "UTF-8 length: こんにちは")
     ATT_ASSERT(mjb_strnlen("Γειά σου", 15, enc), 8, "UTF-8 length: Γειά σου")
     ATT_ASSERT(mjb_strnlen("Héllö", 1, enc), 1, "UTF-8 length: Héllö (1 max value)")
-    ATT_ASSERT(mjb_strnlen("Hello", 5, MJB_ENCODING_ASCII), 5, "ASCII length: Hello")
+    ATT_ASSERT(mjb_strnlen("Hello", 5, MJB_ENC_ASCII), 5, "ASCII length: Hello")
     ATT_ASSERT(mjb_strnlen("Hello", 5, MJB_ENC_UNKNOWN), 5,
         "Unknown encoding advances with replacement")
 

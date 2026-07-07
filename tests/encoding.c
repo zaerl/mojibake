@@ -13,7 +13,7 @@ void *test_encoding(void *arg) {
     ATT_ASSERT((unsigned int)mjb_string_encoding(0, 0), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown string and length")
     const char *test1 = "The quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43), (unsigned int)(MJB_ENCODING_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43), (unsigned int)(MJB_ENC_ASCII | MJB_ENCODING_UTF_8), "Plain ASCII (and UTF-8)")
     const char *test2 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
 
     ATT_ASSERT((unsigned int)mjb_string_encoding(test2, 43 + 3), (unsigned int)MJB_ENCODING_UTF_8, "UTF-8 BOM")
@@ -117,7 +117,7 @@ void *test_encoding(void *arg) {
         "UTF-8 stops at NULL terminator")
     ATT_ASSERT((unsigned int)mjb_string_encoding((const char*)utf8_null_invalid,
         sizeof(utf8_null_invalid)),
-        (unsigned int)(MJB_ENCODING_UTF_8 | MJB_ENCODING_ASCII),
+        (unsigned int)(MJB_ENCODING_UTF_8 | MJB_ENC_ASCII),
         "Encoding stops at NULL terminator")
 #endif
 
@@ -227,13 +227,13 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_codepoint_encode(0x0000, (char*)buffer, 5, MJB_ENCODING_UTF_32_BE), 4, "0x0000 UTF-32BE")
     ATT_ASSERT(buffer[0], 0, "0x0000 UTF-32BE")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x007F, (char*)buffer, 5, MJB_ENCODING_ASCII), 1,
+    ATT_ASSERT(mjb_codepoint_encode(0x007F, (char*)buffer, 5, MJB_ENC_ASCII), 1,
         "ASCII encode limit")
     ATT_ASSERT(buffer[0], (char)0x7F, "ASCII encode limit value")
 
-    ATT_ASSERT(mjb_codepoint_encode(0x0080, (char*)buffer, 5, MJB_ENCODING_ASCII), 0,
+    ATT_ASSERT(mjb_codepoint_encode(0x0080, (char*)buffer, 5, MJB_ENC_ASCII), 0,
         "ASCII encode rejects non-ASCII")
-    ATT_ASSERT(mjb_codepoint_encode(0x00E9, (char*)buffer, 5, MJB_ENCODING_ASCII), 0,
+    ATT_ASSERT(mjb_codepoint_encode(0x00E9, (char*)buffer, 5, MJB_ENC_ASCII), 0,
         "ASCII encode rejects Latin-1")
 
     mjb_encoding encoding;
@@ -332,7 +332,7 @@ void *test_encoding(void *arg) {
     mjb_result ascii_result;
 
     ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
-        MJB_ENCODING_UTF_16_LE, MJB_ENCODING_ASCII, &ascii_result), MJB_STATUS_OK,
+        MJB_ENCODING_UTF_16_LE, MJB_ENC_ASCII, &ascii_result), MJB_STATUS_OK,
         "Convert UTF-16LE ASCII text to ASCII")
     ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
     ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size")
@@ -340,7 +340,7 @@ void *test_encoding(void *arg) {
     mjb_free(ascii_result.output);
 
     ATT_ASSERT_STATUS(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENCODING_UTF_8,
-        MJB_ENCODING_ASCII, &ascii_result), MJB_STATUS_UNSUPPORTED,
+        MJB_ENC_ASCII, &ascii_result), MJB_STATUS_UNSUPPORTED,
         "Convert UTF-8 non-ASCII text to ASCII")
 
     const char utf16le_smile[] = { '\x3D', '\xD8', '\x42', '\xDE' };

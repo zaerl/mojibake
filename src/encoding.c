@@ -77,7 +77,7 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 
     // No BOM, let's try ASCII
     if(mjb_string_is_ascii(buffer, size)) {
-        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENCODING_ASCII);
+        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_ASCII);
     }
 
     return bom_encoding;
@@ -190,7 +190,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
         return 0;
     }
 
-    if(encoding == MJB_ENCODING_ASCII) {
+    if(encoding == MJB_ENC_ASCII) {
         if(codepoint <= 0x7F) {
             buffer[0] = (char)codepoint;
             buffer[1] = '\0';
