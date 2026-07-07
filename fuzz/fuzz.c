@@ -150,8 +150,8 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     mjb_property property_name = (mjb_property)(variant % (MJB_PR_COUNT + 2));
 
     static const mjb_encoding encodings[] = {
-        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
-        MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII
+        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE, MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE,
+        MJB_ENC_ASCII
     };
 
     fuzz_sink += (size_t)mjb_codepoint_character(codepoint, &character);
@@ -274,8 +274,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     size -= 2;
 
     static const mjb_encoding encodings[] = {
-        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
-        MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII
+        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE, MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE,
+        MJB_ENC_ASCII
     };
     mjb_encoding encoding = encodings[variant % 6];
 
@@ -305,8 +305,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 2: // Case conversion and folding, all transforming types
-            if(mjb_case(buffer, size, (mjb_case_type)(1 + (variant % 5)), encoding,
-                MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+            if(mjb_case(buffer, size, (mjb_case_type)(1 + (variant % 5)), encoding, MJB_ENC_UTF_8,
+                &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 

@@ -7,28 +7,39 @@
 #include "test.h"
 
 void *test_encoding(void *arg) {
-    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown string")
-    ATT_ASSERT((unsigned int)mjb_string_encoding("", 0), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown length")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN,
+        "Void unknown string")
+    ATT_ASSERT((unsigned int)mjb_string_encoding("", 0), (unsigned int)MJB_ENC_UNKNOWN,
+        "Void unknown length")
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 0), (unsigned int)MJB_ENC_UNKNOWN, "Void unknown string and length")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(0, 0), (unsigned int)MJB_ENC_UNKNOWN,
+        "Void unknown string and length")
+
     const char *test1 = "The quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43), (unsigned int)(MJB_ENC_ASCII | MJB_ENC_UTF_8), "Plain ASCII (and UTF-8)")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test1, 43),
+        (unsigned int)(MJB_ENC_ASCII | MJB_ENC_UTF_8), "Plain ASCII (and UTF-8)")
     const char *test2 = "\xEF\xBB\xBFThe quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test2, 43 + 3), (unsigned int)MJB_ENC_UTF_8, "UTF-8 BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test2, 43 + 3), (unsigned int)MJB_ENC_UTF_8,
+        "UTF-8 BOM")
     const char *test3 = "\xFE\xFFThe quick brown fox jumps over the lazy dog";
 
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test3, 43 + 2), (unsigned int)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE), "UTF-16-BE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test3, 43 + 2),
+        (unsigned int)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE), "UTF-16-BE BOM")
 
     const char *test4 = "\xFF\xFEThe quick brown fox jumps over the lazy dog";
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test4, 43 + 2), (unsigned int)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE), "UTF-16-LE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test4, 43 + 2),
+        (unsigned int)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE), "UTF-16-LE BOM")
 
     const char *test5 = "\x00\x00\xFE\xFFThe quick brown fox jumps over the lazy dog";
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test5, 43 + 4), (unsigned int)MJB_ENC_UTF_32 | MJB_ENC_UTF_32BE, "UTF-32-BE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test5, 43 + 4),
+        (unsigned int)MJB_ENC_UTF_32 | MJB_ENC_UTF_32BE, "UTF-32-BE BOM")
 
     const char *test6 = "\xFF\xFE\x00\x00The quick brown fox jumps over the lazy dog";
-    ATT_ASSERT((unsigned int)mjb_string_encoding(test6, 43 + 4), (unsigned int)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32LE | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE), "UTF-32-LE BOM")
+    ATT_ASSERT((unsigned int)mjb_string_encoding(test6, 43 + 4),
+        (unsigned int)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32LE | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE),
+        "UTF-32-LE BOM")
 
     ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void ASCII string")
     ATT_ASSERT(mjb_string_is_ascii("", 0), false, "Void ASCII length")
@@ -83,22 +94,28 @@ void *test_encoding(void *arg) {
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "Hello (world)")
 
     utf8_test = "a\xC2\xA2\xE2\x82\xAC\xF0\x90\x8D\x88";
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "1-byte, 2-byte, 3-byte, and 4-byte characters")
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true,
+        "1-byte, 2-byte, 3-byte, and 4-byte characters")
 
     utf8_test = "\xF4\x8F\xBF\xBF";
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "U+10FFFF, maximum code point")
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true,
+        "U+10FFFF, maximum code point")
 
     utf8_test = "\xEF\xBB\xBF""Hello";
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "BOM (Byte Order Mark) followed by \"Hello\"")
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true,
+        "BOM (Byte Order Mark) followed by \"Hello\"")
 
     utf8_test = "Hello\xC2\xA0World\xE2\x80\x83Test\xE2\x80\x8B";
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "Various Unicode spaces and invisible characters")
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true,
+        "Various Unicode spaces and invisible characters")
 
     utf8_test = "n\xCC\x83";
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "N combined with tilde")
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true,
+        "N combined with tilde")
 
     utf8_test = "A\xCE\x91\xE2\x98\x83\xF0\x9D\x84\x9E";
-    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true, "Characters from various Unicode planes")
+    ATT_ASSERT(mjb_string_is_utf8(utf8_test, strlen(utf8_test)), true,
+        "Characters from various Unicode planes")
 
     utf8_test = "Hello\0World";
     ATT_ASSERT(mjb_string_is_utf8(utf8_test, 11), true, "String with NULL character")

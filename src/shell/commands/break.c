@@ -182,6 +182,7 @@ static void mjbsh_print_break_analysis(const char* input, mjbsh_break_mode mode)
         &display_width) != MJB_STATUS_OK) {
         display_width = 0;
     }
+
     printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
     printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
     printf("Display width: %s%zu%s\n", mjbsh_green(), display_width, mjbsh_reset());

@@ -40,20 +40,20 @@ void *test_break_sentence(void *arg) {
     mjb_next_sentence_state state;
     state.index = 0;
 
-    ATT_ASSERT((uint8_t)mjb_break_sentence(NULL, 1, MJB_ENC_UTF_8, &state),
-        (uint8_t)MJB_BT_NOT_SET, "Sentence break rejects NULL buffer")
-    ATT_ASSERT((uint8_t)mjb_break_sentence("A", 1, MJB_ENC_UTF_8, NULL),
-        (uint8_t)MJB_BT_NOT_SET, "Sentence break rejects NULL state")
+    ATT_ASSERT((uint8_t)mjb_break_sentence(NULL, 1, MJB_ENC_UTF_8, &state), (uint8_t)MJB_BT_NOT_SET,
+        "Sentence break rejects NULL buffer")
+    ATT_ASSERT((uint8_t)mjb_break_sentence("A", 1, MJB_ENC_UTF_8, NULL), (uint8_t)MJB_BT_NOT_SET,
+        "Sentence break rejects NULL state")
 
 #if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
     const char utf16le_null[] = { '\0', '\0', 'A', '\0' };
 
     state.index = 0;
-    ATT_ASSERT((uint8_t)mjb_break_sentence(utf16le_null, sizeof(utf16le_null),
-        MJB_ENC_UTF_16LE, &state), (uint8_t)MJB_BT_ALLOWED,
+    ATT_ASSERT((uint8_t)mjb_break_sentence(utf16le_null, sizeof(utf16le_null), MJB_ENC_UTF_16LE,
+        &state), (uint8_t)MJB_BT_ALLOWED,
         "Sentence break stops at UTF-16LE NULL")
-    ATT_ASSERT((uint8_t)mjb_break_sentence(utf16le_null, sizeof(utf16le_null),
-        MJB_ENC_UTF_16LE, &state), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_break_sentence(utf16le_null, sizeof(utf16le_null), MJB_ENC_UTF_16LE,
+        &state), (uint8_t)MJB_BT_NOT_SET,
         "Sentence break finishes after UTF-16LE NULL")
 #endif
 

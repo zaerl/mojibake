@@ -137,8 +137,8 @@ void *test_case(void *arg) {
     ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed")
     ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size")
 
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, MJB_ENC_UTF_16LE,
-        &guard_result), MJB_STATUS_OK, "Case conversion converts output encoding")
+    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, MJB_ENC_UTF_16LE, &guard_result),
+        MJB_STATUS_OK, "Case conversion converts output encoding")
     ATT_ASSERT(guard_result.transformed, true,
         "Case conversion converted output encoding transformed")
     ATT_ASSERT(guard_result.output_size, (size_t)2,

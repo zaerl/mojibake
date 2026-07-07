@@ -88,8 +88,8 @@ int main(int argc, char * const argv[]) {
     const char *input = "Cafe\xCC\x81";
     mjb_result result;
 
-    if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-           MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+    if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
         return 1;
     }
 

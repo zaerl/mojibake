@@ -14,7 +14,8 @@
 
 static bool mjbsh_output_next_character(mjb_character *character, mjb_next_character_type type) {
     char buffer_utf8[5];
-    unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);
+    unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5,
+        MJB_ENC_UTF_8);
 
     if(utf8_length == 0) {
         return false;
@@ -38,7 +39,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     mjbsh_value("Name", 1, "%s", character->name);
 
     if(is_json) {
-        printf("%s%s\"character\":%s\"%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"character\":%s\"%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ",
+            mjbsh_green());
 
         if(!mjbsh_print_escaped_character(buffer_utf8)) {
             printf("%s", buffer_utf8);
@@ -51,7 +53,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
     // Hex UTF-8
     if(is_json) {
-        printf("%s%s\"hex_utf_8\":%s[%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"hex_utf_8\":%s[%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ",
+            mjbsh_green());
     } else {
         printf("Hex UTF-8: %s", mjbsh_green());
     }
@@ -94,7 +97,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 
         for(size_t i = 0; i < 4; ++i) {
             char buffer[5];
-            unsigned int length = mjb_codepoint_encode(character->codepoint, buffer, 5, other_encodings[i]);
+            unsigned int length = mjb_codepoint_encode(character->codepoint, buffer, 5,
+                other_encodings[i]);
 
             if(is_json) {
                 printf(
@@ -132,7 +136,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD", 1);
         mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkc", "NFKC", 1);
 
-        // Need to flush stdout here to ensure the normalization is printed before the next character
+        // Flush stdout here to ensure the normalization is printed before the next character
         fflush(stdout);
     }
 
@@ -159,7 +163,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         memset(&block, 0, sizeof(block));
         bool valid_block = mjb_codepoint_block(character->codepoint, &block) == MJB_STATUS_OK;
 
-        // Need to flush stdout here to ensure the block is printed before the next character
+        // Flush stdout here to ensure the block is printed before the next character
         fflush(stdout);
 
         if(valid_block) {

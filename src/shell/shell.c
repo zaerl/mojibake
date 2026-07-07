@@ -307,7 +307,8 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
 
     if(ret) {
         if(is_json) {
-            printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+            printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name,
+                cmd_json_indent == 0 ? "" : " ", mjbsh_green());
             if(result.output_size > 0 && mjb_next_character(result.output, result.output_size,
                 MJB_ENC_UTF_8,
                 mjbsh_next_escaped_character) != MJB_STATUS_OK) {
@@ -324,7 +325,8 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     }
 
     if(is_json) {
-        printf("%s%s\"%s_normalization\":%s[%s", mjbsh_ji(), mjbsh_ji(), name, cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+        printf("%s%s\"%s_normalization\":%s[%s", mjbsh_ji(), mjbsh_ji(), name,
+            cmd_json_indent == 0 ? "" : " ", mjbsh_green());
     } else {
         printf("%s normalization: %s", label, mjbsh_green());
     }
