@@ -4,18 +4,37 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import functions, { MojibakeArg, MojibakeFunction } from './functions';
+import functions, {
+  MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef
+} from './functions';
 import { categories } from './types';
 
 export class CFunction implements MojibakeFunction {
-  constructor(
-    public comment: string,
-    public ret: string,
-    public name: string,
-    public attributes: string[] = [],
-    public args: MojibakeArg[] = [],
-    public wasm: boolean = false
-  ) {
+  public comment: string;
+  public ret: string;
+  public name: string;
+  public attributes: string[];
+  public args: MojibakeArg[];
+  public wasm: boolean;
+  public details?: string;
+  public returns?: MojibakeReturnCase[];
+  public example?: string;
+  public related?: string[];
+  public specs?: MojibakeSpecRef[];
+
+  constructor(fn: MojibakeFunction) {
+    this.comment = fn.comment;
+    this.ret = fn.ret;
+    this.name = fn.name;
+    this.attributes = fn.attributes;
+    this.args = fn.args;
+    this.wasm = fn.wasm;
+    this.details = fn.details;
+    this.returns = fn.returns;
+    this.example = fn.example;
+    this.related = fn.related;
+    this.specs = fn.specs;
+
     if(!this.ret.endsWith('*')) {
       this.ret += ' ';
     }
@@ -49,7 +68,48 @@ export class CFunction implements MojibakeFunction {
   }
 
   formatMD(): string {
-    return `${this.comment}\n\n\`\`\`c\n${this.ret}${this.getName()}(${this.getArgs().join(', ')});\n\`\`\``;
+    let ret = `### \`${this.getName()}\`\n\n${this.comment}\n\n`;
+    ret += `\`\`\`c\n${this.ret}${this.getName()}(${this.getArgs().join(', ')});\n\`\`\``;
+
+    if(this.details) {
+      ret += `\n\n${this.details}`;
+    }
+
+    if(this.args.length) {
+      ret += '\n\n' + this.args.map(arg => {
+        let line = `- \`${arg.name}\` — ${arg.description}`;
+
+        if(arg.ownership) {
+          line += `. ${arg.ownership}`;
+        }
+
+        return line;
+      }).join('\n');
+    }
+
+    if(this.returns?.length) {
+      ret += '\n\n**Returns**\n\n' + this.returns.map(
+        value => `- \`${value.value}\` — ${value.description}`
+      ).join('\n');
+    }
+
+    if(this.example) {
+      ret += `\n\n**Example**\n\n\`\`\`c\n${this.example}\n\`\`\``;
+    }
+
+    if(this.related?.length) {
+      ret += '\n\nSee also: ' + this.related.map(
+        name => `[\`${name}\`](#${name})`
+      ).join(', ') + '.';
+    }
+
+    if(this.specs?.length) {
+      ret += '\n\nSpecifications: ' + this.specs.map(
+        spec => `[${spec.name}](${spec.url})`
+      ).join(', ') + '.';
+    }
+
+    return ret;
   }
 
   formatJSON(): string {
@@ -256,6 +316,10 @@ export class CFunction implements MojibakeFunction {
     return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
   }
 
+  public static functionName(cName: string): string {
+    return cName.replace(/^mjb_/, '');
+  }
+
   private methodCall(): string {
     const args = this.args.filter(arg => !arg.wasm_generated);
     const argStrings = args.map(arg => `getArg('${this.getName()}-${arg.name}')`);
@@ -265,12 +329,15 @@ export class CFunction implements MojibakeFunction {
 }
 
 export function cfns(): CFunction[] {
-  return functions.map(item => new CFunction(
-    item.comment,
-    item.ret,
-    item.name,
-    item.attributes,
-    item.args,
-    item.wasm
-  ));
+  const names = new Set(functions.map(item => item.name));
+
+  for(const item of functions) {
+    for(const related of item.related ?? []) {
+      if(!names.has(related)) {
+        throw new Error(`${item.name}: unknown related function "${related}"`);
+      }
+    }
+  }
+
+  return functions.map(item => new CFunction(item));
 }

@@ -136,8 +136,8 @@ if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
     return 1;
 }
 
-printf("U+%04X lowercase: U+%04X\\n", character.codepoint, character.lowercase);
-// U+022A lowercase: U+022B`,
+// U+022A lowercase: U+022B
+printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_properties']
   },
   {
@@ -177,8 +177,8 @@ if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB
     return 1;
 }
 
-printf("NFC: %.*s\\n", (int)result.output_size, result.output);
 // NFC: Café
+printf("NFC: %.*s", (int)result.output_size, result.output);
 
 if(result.transformed) {
     mjb_free(result.output);
@@ -259,8 +259,8 @@ if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8, 
     return 1;
 }
 
-printf("Filtered: %.*s\\n", (int)result.output_size, result.output);
 // Filtered: Hello world
+printf("Filtered: %.*s", (int)result.output_size, result.output);
 
 if(result.transformed) {
     mjb_free(result.output);
@@ -273,9 +273,8 @@ if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
     return 1;
 }
 
-printf("Filtered: %.*s\\n", (int)result.output_size, result.output);
 // Filtered: \\t\\n\\v\\f\\r
-`,
+printf("Filtered: %.*s", (int)result.output_size, result.output);`,
 related: ['mjb_normalize']
   },
   {
@@ -551,8 +550,8 @@ if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
     return 1;
 }
 
-printf("Upper: %.*s\\n", (int)result.output_size, result.output);
 // Upper: STRASSE
+printf("Upper: %.*s", (int)result.output_size, result.output);
 
 if(result.transformed) {
     mjb_free(result.output);

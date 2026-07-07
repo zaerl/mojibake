@@ -51,14 +51,10 @@ function findExports(): Coverage {
   return coverage;
 }
 
-function javascriptName(cName: string): string {
-  return cName.replace(/^mjb_/, '');
-}
-
 function findJavaScriptExports(): Coverage {
   const names = functions
     .filter(item => item.wasm)
-    .map(item => `Mojibake.${CFunction.snakeToCamel(javascriptName(item.name))}`);
+    .map(item => `Mojibake.${CFunction.snakeToCamel(CFunction.functionName(item.name))}`);
 
   return createCoverage(['Mojibake.create', ...names]);
 }
