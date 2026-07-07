@@ -36,7 +36,7 @@ void break_line_callback(const char *buffer, size_t size, unsigned int current_l
     ATT_ASSERT(index, successful_count, test_name)
 }
 
-void *test_break_line(void *arg) {
+int test_break_line(void *arg) {
     mjb_next_line_state state;
     state.index = 0;
 
@@ -62,5 +62,5 @@ void *test_break_line(void *arg) {
         &break_line_callback
     );
 
-    return NULL;
+    return 0;
 }

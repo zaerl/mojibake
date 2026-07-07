@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_display(void *arg) {
+int test_display(void *arg) {
     size_t sw = 0;
 
     ATT_ASSERT_STATUS(mjb_display_width("A", 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_AUTO, NULL),
@@ -124,5 +124,5 @@ void *test_display(void *arg) {
         MJB_WIDTH_CONTEXT_EAST_ASIAN, &sw), MJB_STATUS_OK, "Ambiguous (EAST_ASIAN)")
     ATT_ASSERT(sw, 2, "Ambiguous (EAST_ASIAN) - wide")
 
-    return NULL;
+    return 0;
 }

@@ -7,7 +7,7 @@
 #include "../../test.h"
 #include "../../../src/cpp/mojibake.hpp"
 
-void *test_cpp_normalization(void *arg) {
+int test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::nfc(""), std::string(""), "nfc(\"\")")
     ATT_ASSERT(mjb::nfd(""), std::string(""), "nfd(\"\")")
     ATT_ASSERT(mjb::nfkc(""), std::string(""), "nfkc(\"\")")
@@ -18,5 +18,5 @@ void *test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::nfkc("a"), std::string("a"), "nfkc(\"a\")")
     ATT_ASSERT(mjb::nfkd("a"), std::string("a"), "nfkd(\"a\")")
 
-    return NULL;
+    return 0;
 }

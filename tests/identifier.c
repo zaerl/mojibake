@@ -8,7 +8,7 @@
 
 #include "test.h"
 
-void *test_identifier(void *arg) {
+int test_identifier(void *arg) {
     /* mjb_codepoint_is_id_start */
     ATT_ASSERT(mjb_codepoint_is_id_start(0x41), true, "ID_Start: U+0041 'A'")
     ATT_ASSERT(mjb_codepoint_is_id_start(0x5F), false, "ID_Start: U+005F '_' (continue only)")
@@ -58,5 +58,5 @@ void *test_identifier(void *arg) {
     ATT_ASSERT(mjb_string_is_identifier("hello", 5, MJB_ENC_UTF_8, MJB_IDENTIFIER_NFKC), true, "Identifier NFKC: 'hello'")
     ATT_ASSERT(mjb_string_is_identifier("123", 3, MJB_ENC_UTF_8, MJB_IDENTIFIER_NFKC), false, "Identifier NFKC: '123' (digit start)")
 
-    return NULL;
+    return 0;
 }

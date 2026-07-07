@@ -6,7 +6,7 @@
 
  #include "test.h"
 
-void *test_hangul_composition(void *arg) {
+int test_hangul_composition(void *arg) {
     MJB_TEST_COVERAGE(mjb_hangul_syllable_composition);
     mjb_buffer_character empty_array[1]; // Empty array for testing
     size_t result_len = mjb_hangul_syllable_composition(empty_array, 0);
@@ -124,5 +124,5 @@ void *test_hangul_composition(void *arg) {
     ATT_ASSERT(boundary_input[3].codepoint, MJB_CODEPOINT_NOT_VALID, "Fourth character should be marked as invalid")
     ATT_ASSERT(boundary_input[4].codepoint, MJB_CODEPOINT_NOT_VALID, "Fifth character should be marked as invalid")
 
-    return NULL;
+    return 0;
 }

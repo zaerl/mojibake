@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_cjk(void *arg) {
+int test_cjk(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_cjk_ideograph(MJB_CJK_IDEOGRAPH_START), true, "CJK start")
     ATT_ASSERT(mjb_codepoint_is_cjk_ideograph(MJB_CJK_IDEOGRAPH_END), true, "CJK end")
     ATT_ASSERT(mjb_codepoint_is_cjk_ideograph(MJB_CJK_IDEOGRAPH_START - 1), false, "Before CJK")
@@ -35,5 +35,5 @@ void *test_cjk(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_cjk_ext(MJB_CJK_COMPATIBILITY_IDEOGRAPH_START), false,
         "CJK compatibility is not ext")
 
-    return NULL;
+    return 0;
 }

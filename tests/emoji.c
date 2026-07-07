@@ -236,7 +236,7 @@ static void assert_emoji_sequence(const char *buffer, size_t size, mjb_emoji_seq
     ATT_ASSERT(emoji.codepoint_count, codepoint_count, name)
 }
 
-void *test_emoji(void *arg) {
+int test_emoji(void *arg) {
     mjb_emoji_properties emoji;
 
     ATT_ASSERT_STATUS(mjb_codepoint_emoji(MJB_CODEPOINT_MAX + 1, &emoji),
@@ -329,5 +329,5 @@ void *test_emoji(void *arg) {
 
     run_emoji_test_file("./utils/generate/unicode-data/emoji/emoji-test.txt");
 
-    return NULL;
+    return 0;
 }

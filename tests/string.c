@@ -10,7 +10,7 @@
 #include "test.h"
 #include "../src/mojibake-internal.h"
 
-void *test_string(void *arg) {
+int test_string(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
     size_t output_index = 0;
     size_t output_size = 0;
@@ -98,5 +98,5 @@ void *test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen(utf16be_geia_sou, 16, enc), 8, "UTF-16BE length: Γειά σου")
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 2, enc), 1, "UTF-16BE length: Héllö (1 max value)")
 
-    return NULL;
+    return 0;
  }

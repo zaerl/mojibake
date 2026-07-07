@@ -7,7 +7,7 @@
 #include "test.h"
 #include "../src/utf.h"
 
-void *test_utf(void *arg) {
+int test_utf(void *arg) {
     // Test scanning single ASCII character "A"
     const char *buffer = "A";
     size_t size = 1;
@@ -138,5 +138,5 @@ void *test_utf(void *arg) {
     ATT_ASSERT(mjb_strnlen("A!\0", 3, MJB_ENC_UTF_32LE), 1,
         "UTF-32LE: lone truncated unit decodes as replacement")
 
-    return NULL;
+    return 0;
 }

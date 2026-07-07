@@ -109,7 +109,7 @@ static void test_conditional_case(void) {
         "en lower: no dot above inserted");
 }
 
-void *test_special_case(void *arg) {
+int test_special_case(void *arg) {
     char line[1024];
     unsigned int current_line = 1;
     FILE *file = fopen("./utils/generate/unicode-data/UCD/SpecialCasing.txt", "r");
@@ -128,7 +128,7 @@ void *test_special_case(void *arg) {
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid special casing test file")
 
-        return NULL;
+        return 0;
     }
 
     while(fgets(line, 1024, file)) {
@@ -191,5 +191,5 @@ void *test_special_case(void *arg) {
 
     test_conditional_case();
 
-    return NULL;
+    return 0;
 }

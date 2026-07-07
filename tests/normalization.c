@@ -112,7 +112,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 /**
  * Run utils/generate/unicode-data/UCD/NormalizationTest.txt tests
  */
-void *test_normalization(void *arg) {
+int test_normalization(void *arg) {
     char line[1024];
     unsigned int current_line = 1;
     // unsigned int index = 0;
@@ -156,7 +156,7 @@ void *test_normalization(void *arg) {
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid normalization test file")
 
-        return NULL;
+        return 0;
     }
 
     // Parse the file
@@ -262,5 +262,5 @@ void *test_normalization(void *arg) {
 
     fclose(file);
 
-    return NULL;
+    return 0;
 }

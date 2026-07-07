@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_encoding(void *arg) {
+int test_encoding(void *arg) {
     ATT_ASSERT((unsigned int)mjb_string_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN,
         "Void unknown string")
     ATT_ASSERT((unsigned int)mjb_string_encoding("", 0), (unsigned int)MJB_ENC_UNKNOWN,
@@ -408,5 +408,5 @@ void *test_encoding(void *arg) {
         }
     }
 
-    return NULL;
+    return 0;
 }

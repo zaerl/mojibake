@@ -54,7 +54,7 @@ static void test_set_failing_allocator(size_t fail_after) {
         MJB_STATUS_OK, "Set failing allocator")
 }
 
-void *test_mojibake(void *arg) {
+int test_mojibake(void *arg) {
     test_counter = 0;
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown before memory functions")
@@ -111,5 +111,5 @@ void *test_mojibake(void *arg) {
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown realloc failing allocator")
 
-    return NULL;
+    return 0;
 }

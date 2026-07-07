@@ -165,7 +165,7 @@ static void test_truncate(void) {
         sizeof(malformed_utf8_width), "Truncate width: malformed UTF-8 regression")
 }
 
-void *test_segmentation(void *arg) {
+int test_segmentation(void *arg) {
     test_basic_segmentation();
     test_truncate();
     read_test_file(
@@ -173,5 +173,5 @@ void *test_segmentation(void *arg) {
         &segmentation_callback
     );
 
-    return NULL;
+    return 0;
 }

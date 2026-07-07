@@ -7,7 +7,7 @@
 #include "../../test.h"
 #include "../../../src/cpp/mojibake.hpp"
 
-void *test_cpp_mojibake(void *arg) {
+int test_cpp_mojibake(void *arg) {
     // U+1F642 = 🙂
     auto character = mjb::Character((mjb_codepoint)0x1F642);
     // U+1F643 = 🙃
@@ -77,5 +77,5 @@ void *test_cpp_mojibake(void *arg) {
     ATT_ASSERT(std::string(mjb::truncate("hello", 10)), std::string("hello"), "truncate: beyond length")
     ATT_ASSERT(std::string(mjb::truncate_word("hello world", 1)), std::string("hello"), "truncate_word: 1 segment")
 
-    return NULL;
+    return 0;
 }

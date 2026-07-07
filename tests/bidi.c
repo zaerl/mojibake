@@ -228,7 +228,7 @@ static void read_bidi_test_file(const char *filename) {
     fclose(file);
 }
 
-void *test_bidi(void *arg) {
+int test_bidi(void *arg) {
     mjb_bidi_paragraph para;
     mjb_status status;
 
@@ -381,5 +381,5 @@ void *test_bidi(void *arg) {
 
     read_bidi_test_file("./utils/generate/unicode-data/UCD/BidiCharacterTest.txt");
 
-    return NULL;
+    return 0;
 }

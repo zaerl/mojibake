@@ -116,7 +116,7 @@ static void test_case_folding_file(void) {
     fclose(file);
 }
 
-void *test_case(void *arg) {
+int test_case(void *arg) {
     mjb_encoding encoding = MJB_ENC_UTF_8;
 
     // Test case conversion functions
@@ -361,5 +361,5 @@ void *test_case(void *arg) {
 
     test_case_folding_file();
 
-    return NULL;
+    return 0;
 }

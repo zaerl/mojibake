@@ -20,7 +20,7 @@ static bool stop_next_character(mjb_character *character, mjb_next_character_typ
     return false;
 }
 
-void *test_next(void *arg) {
+int test_next(void *arg) {
     ATT_ASSERT_STATUS(mjb_next_character(NULL, 1, MJB_ENC_UTF_8, next_character),
         MJB_STATUS_INVALID_ARGUMENT,
         "NULL next buffer")
@@ -36,5 +36,5 @@ void *test_next(void *arg) {
         MJB_STATUS_CALLBACK_STOPPED, "Next character callback stopped")
     ATT_ASSERT(mjb_test_count, 1, "mjb_next_character stopped after callback")
 
-    return NULL;
+    return 0;
 }

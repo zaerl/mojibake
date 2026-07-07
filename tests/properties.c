@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_properties(void *arg) {
+int test_properties(void *arg) {
     uint8_t buffer[MJB_PR_BUFFER_SIZE] = { 0 };
 
     // Force the buffer to a known state before testing.
@@ -46,5 +46,5 @@ void *test_properties(void *arg) {
     ATT_ASSERT(mjb_property_name(MJB_PR_CASED), "Cased", "Property name for MJB_PR_CASED is 'Cased'")
     ATT_ASSERT(mjb_property_name((mjb_property)MJB_PR_COUNT), "Unknown", "Property name with invalid number is 'Unknown'")
 
-    return NULL;
+    return 0;
 }

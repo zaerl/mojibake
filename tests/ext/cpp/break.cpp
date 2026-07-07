@@ -7,7 +7,7 @@
 #include "../../test.h"
 #include "../../../src/cpp/mojibake.hpp"
 
-void *test_cpp_break(void *arg) {
+int test_cpp_break(void *arg) {
     mjb::BreakResult r1{1, 0x41, MJB_BT_MANDATORY};
     ATT_ASSERT(r1.is_mandatory(), true, "BreakResult::is_mandatory")
     ATT_ASSERT(r1.is_allowed(), false, "BreakResult::is_mandatory => !is_allowed")
@@ -100,5 +100,5 @@ void *test_cpp_break(void *arg) {
     ATT_ASSERT(wb3.next().has_value(), false, "WordBreaker::next on empty string returns nullopt")
     ATT_ASSERT(wb3.is_done(), true, "WordBreaker::is_done on empty string")
 
-    return NULL;
+    return 0;
 }

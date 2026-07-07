@@ -30,7 +30,7 @@ static const char *expected_character_name(mjb_codepoint codepoint, const char *
         expected_character_name((CODEPOINT), (EXPECTED), expected_name, sizeof(expected_name)), \
         NAME)
 
-void *test_codepoint(void *arg) {
+int test_codepoint(void *arg) {
     mjb_character character;
     char expected_name[128];
 
@@ -319,5 +319,5 @@ void *test_codepoint(void *arg) {
     ATT_ASSERT_STATUS(mjb_codepoint_numeric_value(MJB_CODEPOINT_MAX, &num),
         MJB_STATUS_INVALID_ARGUMENT, "numeric_value: invalid codepoint")
 
-    return NULL;
+    return 0;
 }

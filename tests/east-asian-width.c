@@ -10,7 +10,7 @@
  * East Asian Width (EAW)
  * https://www.unicode.org/reports/tr11/
  */
-void *test_east_asian_width(void *arg) {
+int test_east_asian_width(void *arg) {
     mjb_east_asian_width width = MJB_EAW_NEUTRAL;
 
     ATT_ASSERT_STATUS(mjb_codepoint_east_asian_width(MJB_CODEPOINT_MAX + 1, &width),
@@ -70,5 +70,5 @@ void *test_east_asian_width(void *arg) {
         "Unassigned")
     ATT_ASSERT((int)width, MJB_EAW_NEUTRAL, "ALARM BELL SYMBOL + 1")
 
-    return NULL;
+    return 0;
 }

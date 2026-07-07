@@ -147,7 +147,7 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
     ATT_ASSERT(failures, 0u, summary)
 }
 
-void *test_collation(void *arg) {
+int test_collation(void *arg) {
     /* mjb_collation_key */
     mjb_result ka, kb, kc, kd;
 
@@ -231,5 +231,5 @@ void *test_collation(void *arg) {
         MJB_COLLATION_SHIFTED,
         "SHIFTED");
 
-    return NULL;
+    return 0;
 }

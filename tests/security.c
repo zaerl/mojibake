@@ -128,7 +128,7 @@ static void run_intentional_confusable_file(const char *filename) {
     ATT_ASSERT(failures, 0u, summary)
 }
 
-void *test_security(void *arg) {
+int test_security(void *arg) {
     ATT_ASSERT(mjb_string_is_confusable(NULL, 1, "A", 1, MJB_ENC_UTF_8), false,
         "confusable rejects NULL left string")
 
@@ -210,5 +210,5 @@ void *test_security(void *arg) {
 
     run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
 
-    return NULL;
+    return 0;
 }

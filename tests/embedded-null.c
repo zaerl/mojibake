@@ -12,7 +12,7 @@
 /**
  * Test mjb_strnlen behavior with embedded NULL codepoints (U+0000).
  */
-void *test_embedded_null(void *arg) {
+int test_embedded_null(void *arg) {
     // UTF-8: NULL codepoint is single byte 0x00
     // String: "A\0B\0C" (3 visible chars + 2 embedded NULLs = 5 codepoints)
     const char utf8_with_nulls[] = { 'A', '\0', 'B', '\0', 'C' };
@@ -225,5 +225,5 @@ void *test_embedded_null(void *arg) {
         "UTF-8: \\0ABC = 0 codepoints (starts with NULL)")
 #endif
 
-    return NULL;
+    return 0;
 }

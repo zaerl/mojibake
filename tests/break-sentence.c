@@ -36,7 +36,7 @@ void break_sentence_callback(const char *buffer, size_t size, unsigned int curre
     ATT_ASSERT(index, successful_count, test_name)
 }
 
-void *test_break_sentence(void *arg) {
+int test_break_sentence(void *arg) {
     mjb_next_sentence_state state;
     state.index = 0;
 
@@ -62,5 +62,5 @@ void *test_break_sentence(void *arg) {
         &break_sentence_callback
     );
 
-    return NULL;
+    return 0;
 }

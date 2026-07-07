@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_plane(void *arg) {
+int test_plane(void *arg) {
     ATT_ASSERT(mjb_plane_is_valid(MJB_PLANE_SMP), true, "Valid codespace plane")
     ATT_ASSERT(mjb_plane_is_valid(MJB_PLANE_NOT_VALID), false, "Not valid negative codespace plane")
     ATT_ASSERT(mjb_plane_is_valid((mjb_plane)MJB_PLANE_NUM), false, "Not valid exceed codespace plane")
@@ -23,5 +23,5 @@ void *test_plane(void *arg) {
     ATT_ASSERT((unsigned int)mjb_codepoint_plane(0xFFFF), (unsigned int)MJB_PLANE_NOT_VALID, "Not valid BMP plane")
     ATT_ASSERT((unsigned int)mjb_codepoint_plane(0xFFFF + 1), (unsigned int)MJB_PLANE_SMP, "SMP plane")
 
-    return NULL;
+    return 0;
 }

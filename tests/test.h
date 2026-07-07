@@ -21,42 +21,42 @@ extern "C" {
 #endif
 
 // Start tests declarations.
-void *test_bidi(void *arg);
-void *test_bidi_class(void *arg);
-void *test_break_line(void *arg);
-void *test_break_sentence(void *arg);
-void *test_break_word(void *arg);
-void *test_case(void *arg);
-void *test_cjk(void *arg);
-void *test_codepoint(void *arg);
-void *test_collation(void *arg);
-void *test_display(void *arg);
-void *test_east_asian_width(void *arg);
-void *test_embedded_null(void *arg);
-void *test_emoji(void *arg);
-void *test_encoding(void *arg);
-void *test_filter(void *arg);
-void *test_hangul_composition(void *arg);
-void *test_hangul(void *arg);
-void *test_identifier(void *arg);
-void *test_locales(void *arg);
-void *test_mojibake(void *arg);
-void *test_next(void *arg);
-void *test_normalization(void *arg);
-void *test_plane(void *arg);
-void *test_properties(void *arg);
-void *test_quick_check(void *arg);
-void *test_security(void *arg);
-void *test_segmentation(void *arg);
-void *test_special_case(void *arg);
-void *test_string(void *arg);
-void *test_utf(void *arg);
-void *test_version(void *arg);
+int test_bidi(void *arg);
+int test_bidi_class(void *arg);
+int test_break_line(void *arg);
+int test_break_sentence(void *arg);
+int test_break_word(void *arg);
+int test_case(void *arg);
+int test_cjk(void *arg);
+int test_codepoint(void *arg);
+int test_collation(void *arg);
+int test_display(void *arg);
+int test_east_asian_width(void *arg);
+int test_embedded_null(void *arg);
+int test_emoji(void *arg);
+int test_encoding(void *arg);
+int test_filter(void *arg);
+int test_hangul_composition(void *arg);
+int test_hangul(void *arg);
+int test_identifier(void *arg);
+int test_locales(void *arg);
+int test_mojibake(void *arg);
+int test_next(void *arg);
+int test_normalization(void *arg);
+int test_plane(void *arg);
+int test_properties(void *arg);
+int test_quick_check(void *arg);
+int test_security(void *arg);
+int test_segmentation(void *arg);
+int test_special_case(void *arg);
+int test_string(void *arg);
+int test_utf(void *arg);
+int test_version(void *arg);
 
 #ifdef __cplusplus
-void *test_cpp_break(void *arg);
-void *test_cpp_mojibake(void *arg);
-void *test_cpp_normalization(void *arg);
+int test_cpp_break(void *arg);
+int test_cpp_mojibake(void *arg);
+int test_cpp_normalization(void *arg);
 #endif
 
 void set_error_callback(att_test_callback callback);

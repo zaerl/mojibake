@@ -6,7 +6,7 @@
 
  #include "test.h"
 
- void *test_filter(void *arg) {
+ int test_filter(void *arg) {
     mjb_result result;
     mjb_encoding enc = MJB_ENC_UTF_8;
 
@@ -314,5 +314,5 @@
 
     #undef FREE_RESULT
 
-    return NULL;
+    return 0;
  }

@@ -265,8 +265,8 @@ static void read_bidi_class_test_file(const char *filename) {
     fclose(file);
 }
 
-void *test_bidi_class(void *arg) {
+int test_bidi_class(void *arg) {
     read_bidi_class_test_file("./utils/generate/unicode-data/UCD/BidiTest.txt");
 
-    return NULL;
+    return 0;
 }

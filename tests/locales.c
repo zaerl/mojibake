@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_locales(void *arg) {
+int test_locales(void *arg) {
     mjb_locale_id locale;
     mjb_error error = MJB_ERROR_NONE;
 
@@ -233,5 +233,5 @@ void *test_locales(void *arg) {
     ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_NUM), MJB_STATUS_INVALID_ARGUMENT,
         "Set locale to unknown value")
 
-    return NULL;
+    return 0;
 }

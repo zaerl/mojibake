@@ -6,7 +6,7 @@
 
 #include "test.h"
 
-void *test_hangul(void *arg) {
+int test_hangul(void *arg) {
     mjb_character character;
 
     MJB_TEST_COVERAGE(mjb_hangul_syllable_name);
@@ -79,5 +79,5 @@ void *test_hangul(void *arg) {
     ATT_ASSERT(codepoints[1], (mjb_codepoint)0x1161, "Hangul V - Jungseong A")
     ATT_ASSERT(codepoints[2], (mjb_codepoint)0x11A8, "Hangul T - Jongseong Kiyeok")
 
-    return NULL;
+    return 0;
 }
