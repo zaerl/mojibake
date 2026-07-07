@@ -9,6 +9,20 @@ export type MojibakeArg = {
   type: string;
   description: string;
   wasm_generated: boolean;
+  // Memory-ownership note.
+  ownership?: string;
+};
+
+// Return value.
+export type MojibakeReturnCase = {
+  value: string;
+  description: string;
+};
+
+// Reference to a Unicode specification (UAX/UTS) or other.
+export type MojibakeSpecRef = {
+  name: string;
+  url: string;
 };
 
 export type MojibakeFunction = {
@@ -18,6 +32,16 @@ export type MojibakeFunction = {
   attributes: string[];
   args: MojibakeArg[];
   wasm: boolean;
+  // Long-form description.
+  details?: string;
+  // Documented return values.
+  returns?: MojibakeReturnCase[];
+  // Compilable C example. See utils/generate/generate-examples.ts
+  example?: string;
+  // Names of related public functions.
+  related?: string[];
+  // Unicode specifications implemented or referenced by the function.
+  specs?: MojibakeSpecRef[];
 };
 
 function buffer(description: string, name = 'buffer', isConst = true, wasm_generated = false): MojibakeArg {
@@ -42,7 +66,7 @@ function encoding(description = 'The encoding of the string', name = 'encoding')
   return {
     name,
     type: 'mjb_encoding',
-    description: 'The encoding of the string',
+    description,
     wasm_generated: false
   }
 }
@@ -54,6 +78,31 @@ function codepoint(description = 'The codepoint to check', name = 'codepoint'): 
     description,
     wasm_generated: false
   }
+}
+
+function result(description = 'The pointer to store the result'): MojibakeArg {
+  return {
+    name: 'result',
+    type: 'mjb_result *',
+    description,
+    wasm_generated: true,
+    ownership: 'If `result->transformed` is true, `result->output` is library-allocated and ' +
+      'must be freed with `mjb_free()`'
+  };
+}
+
+function uax(number: number, title: string): MojibakeSpecRef {
+  return {
+    name: `UAX #${number}: ${title}`,
+    url: `https://www.unicode.org/reports/tr${number}/`
+  };
+}
+
+function uts(number: number, title: string): MojibakeSpecRef {
+  return {
+    name: `UTS #${number}: ${title}`,
+    url: `https://www.unicode.org/reports/tr${number}/`
+  };
 }
 
 export default [
@@ -71,7 +120,25 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Fill `character` with the Unicode Character Database record of a codepoint: name, ' +
+      'category, combining class, bidirectional category, decomposition, numeric values, ' +
+      'mirrored flag, and simple case mappings. When the library is compiled with ' +
+      '`MJB_FEATURE_CHARACTER_NAMES=OFF` the name field is reported as `Codepoint U+XXXX`.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The character was found and filled' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`character` is NULL or the codepoint is not valid' },
+      { value: 'MJB_STATUS_NOT_FOUND', description: 'The codepoint is not assigned' }
+    ],
+    example: `mjb_character character;
+
+if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+    return 1;
+}
+
+printf("U+%04X lowercase: U+%04X\\n", character.codepoint, character.lowercase);
+// U+022A lowercase: U+022B`,
+    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_properties']
   },
   {
     comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form',
@@ -89,14 +156,35 @@ export default [
       },
       encoding(),
       encoding('The output encoding of the string', 'output_encoding'),
-      {
-        name: 'result',
-        type: 'mjb_result *',
-        description: 'The pointer to store the result',
-        wasm_generated: true
-      }
+      result()
     ],
-    wasm: true
+    wasm: true,
+    details: 'Normalize a string to the requested Unicode normalization form. If the input is ' +
+      'already normalized and no encoding conversion is needed, the input buffer is returned ' +
+      'as-is in `result->output` with `result->transformed` set to false, without allocating.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The string was normalized (or already normal)' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_FORM', description: '`form` is not NFC, NFD, NFKC, or NFKD' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    example: `const char *input = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+mjb_result result;
+
+if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+printf("NFC: %.*s\\n", (int)result.output_size, result.output);
+// NFC: Café
+
+if(result.transformed) {
+    mjb_free(result.output);
+}`,
+    related: ['mjb_string_is_normalized', 'mjb_string_filter'],
+    specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
     comment: 'Return the next character from a string',
@@ -132,7 +220,17 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` ' +
+      'means the string may still be normalized, and only a full normalization pass with ' +
+      '`mjb_normalize` can decide.',
+    returns: [
+      { value: 'MJB_QC_YES', description: 'The string is normalized to the requested form' },
+      { value: 'MJB_QC_NO', description: 'The string is not normalized' },
+      { value: 'MJB_QC_MAYBE', description: 'Inconclusive: a full normalization is needed to decide' }
+    ],
+    related: ['mjb_normalize'],
+    specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
     comment: 'Filter a string to remove invalid characters',
@@ -150,14 +248,35 @@ export default [
         description: 'The filters to use',
         wasm_generated: false
       },
-      {
-        name: 'result',
-        type: 'mjb_result *',
-        description: 'The pointer to store the result',
-        wasm_generated: true
-      }
+      result()
     ],
-    wasm: true
+    wasm: true,
+    example: `const char *mixed_whitespace = "Hello\\t\\t\\n\\nworld";
+mjb_result result;
+
+if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    MJB_FILTER_COLLAPSE_SPACES, &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+printf("Filtered: %.*s\\n", (int)result.output_size, result.output);
+// Filtered: Hello world
+
+if(result.transformed) {
+    mjb_free(result.output);
+}
+
+const char *controls = "\\x1\\x2\\t\\n\\v\\f\\r\\x1f";
+
+if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    MJB_FILTER_CONTROLS, &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+printf("Filtered: %.*s\\n", (int)result.output_size, result.output);
+// Filtered: \\t\\n\\v\\f\\r
+`,
+related: ['mjb_normalize']
   },
   {
     comment: 'Return if a codepoint has a property',
@@ -301,14 +420,21 @@ export default [
       size(),
       encoding('The input encoding of the string'),
       encoding('The output encoding of the string', 'output_encoding'),
-      {
-        name: 'result',
-        type: 'mjb_result *',
-        description: 'The pointer to store the result',
-        wasm_generated: true
-      }
+      result()
     ],
-    wasm: true
+    wasm: true,
+    details: 'Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, ' +
+      'UTF-32LE/BE). If input and output encodings match, the input buffer is returned as-is ' +
+      'in `result->output` with `result->transformed` set to `false`, without allocating.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The string was converted' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description: 'The requested encoding conversion is not supported' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    related: ['mjb_string_encoding', 'mjb_codepoint_encode']
   },
   {
     comment: 'Return the length of a string',
@@ -347,7 +473,16 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Compare two strings using the Unicode Collation Algorithm and the default ' +
+      'collation element table (DUCET), with `strcmp`-style semantics.',
+    returns: [
+      { value: '< 0', description: 'The first string collates before the second' },
+      { value: '0', description: 'The strings are equal under UCA' },
+      { value: '> 0', description: 'The first string collates after the second' }
+    ],
+    related: ['mjb_collation_key'],
+    specs: [uts(10, 'Unicode Collation Algorithm')]
   },
   {
     comment: 'Generate a UCA sort key for a string',
@@ -364,14 +499,21 @@ export default [
         description: 'The variable weighting strategy',
         wasm_generated: false
       },
-      {
-        name: 'result',
-        type: 'mjb_result *',
-        description: 'The pointer to store the result',
-        wasm_generated: true
-      }
+      result('The pointer to store the binary sort key')
     ],
-    wasm: true
+    wasm: true,
+    details: 'Generate a binary sort key for a string. Sort keys of different strings can be ' +
+      'compared with `memcmp` and yield the same order as `mjb_string_compare`. Useful when ' +
+      'the same strings are compared many times, such as sorting or database indexing.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The sort key was generated' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT',
+        description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The sort key size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    related: ['mjb_string_compare'],
+    specs: [uts(10, 'Unicode Collation Algorithm')]
   },
   {
     comment: 'Change string case',
@@ -389,14 +531,33 @@ export default [
       },
       encoding(),
       encoding('The output encoding of the string', 'output_encoding'),
-      {
-        name: 'result',
-        type: 'mjb_result *',
-        description: 'The pointer to store the result',
-        wasm_generated: true
-      }
+      result()
     ],
-    wasm: true
+    wasm: true,
+    details: 'Convert a string to uppercase, lowercase, titlecase, or its case-folded form. ' +
+      'Full case mappings are applied, including special casing and conditional mappings, so ' +
+      'the output may have a different length than the input.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The case conversion succeeded' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`result` is NULL, `buffer` is NULL with a non-zero size, or `type` is not a valid case type' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
+mjb_result result;
+
+if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+printf("Upper: %.*s\\n", (int)result.output_size, result.output);
+// Upper: STRASSE
+
+if(result.transformed) {
+    mjb_free(result.output);
+}`,
+    related: ['mjb_codepoint_to_uppercase', 'mjb_codepoint_to_lowercase', 'mjb_codepoint_to_titlecase']
   },
   {
     comment: 'Return true if the codepoint is valid',
@@ -580,7 +741,9 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_segmentation', 'mjb_break_word', 'mjb_break_sentence'],
+    specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
   {
     comment: 'Word cluster breaking',
@@ -598,7 +761,9 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_segmentation', 'mjb_break_sentence', 'mjb_truncate_word'],
+    specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments',
@@ -658,7 +823,9 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_segmentation', 'mjb_break_word'],
+    specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Grapheme cluster breaking',
@@ -676,10 +843,14 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
+      'Call repeatedly with the same state until it reports the end of the string.',
+    related: ['mjb_break_word', 'mjb_break_sentence', 'mjb_break_line', 'mjb_truncate'],
+    specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
-    comment: 'Return the number of bytes that form the first max_graphemes grapheme cluster segments',
+    comment: 'Return the number of bytes that form the first `max_graphemes` grapheme cluster segments',
     ret: 'size_t',
     name: 'mjb_truncate',
     attributes: [],
@@ -739,10 +910,23 @@ export default [
         name: 'result',
         type: 'mjb_bidi_paragraph *',
         description: 'Output paragraph; chars is library-allocated',
-        wasm_generated: false
+        wasm_generated: false,
+        ownership: '`result->chars` is library-allocated and must be freed with `mjb_bidi_free()`'
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Resolve the embedding levels of a paragraph following the Unicode Bidirectional ' +
+      'Algorithm. The resolved paragraph can then be split into lines and reordered visually ' +
+      'with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The paragraph was resolved' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT',
+        description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The paragraph size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    related: ['mjb_bidi_free', 'mjb_bidi_reorder_line', 'mjb_bidi_line_runs'],
+    specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
     comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve',
@@ -757,7 +941,8 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: false,
+    related: ['mjb_bidi_resolve']
   },
   {
     comment: 'Reorder a line visually (L1-L4); visual_order is caller-allocated',
@@ -786,11 +971,14 @@ export default [
       {
         name: 'visual_order',
         type: 'size_t *',
-        description: 'Caller-allocated array of size (line_end - line_start)',
-        wasm_generated: false
+        description: 'Caller-allocated array of size (`line_end` - `line_start`)',
+        wasm_generated: false,
+        ownership: 'Caller-allocated; the library does not retain or free it'
       }
     ],
-    wasm: false
+    wasm: false,
+    related: ['mjb_bidi_resolve', 'mjb_bidi_line_runs'],
+    specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
     comment: 'Compute visual level runs; pass runs=NULL to count first',
@@ -807,7 +995,7 @@ export default [
       {
         name: 'visual_order',
         type: 'const size_t *',
-        description: 'Visual order array from mjb_bidi_reorder_line',
+        description: 'Visual order array from `mjb_bidi_reorder_line`',
         wasm_generated: false
       },
       {
@@ -825,11 +1013,13 @@ export default [
       {
         name: 'run_count',
         type: 'size_t *',
-        description: 'On output: number of runs written (or total if runs=NULL)',
+        description: 'On output: number of runs written (or total if `runs` = `NULL`)',
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: false,
+    related: ['mjb_bidi_resolve', 'mjb_bidi_reorder_line'],
+    specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
     comment: 'Return the plane of the codepoint',
@@ -939,7 +1129,13 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Validate a string as a Unicode identifier: the first character must be a valid ' +
+      'identifier start and the following ones valid identifier continuations, using ID_Start/' +
+      'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
+    related: ['mjb_codepoint_is_id_start', 'mjb_codepoint_is_id_continue',
+      'mjb_codepoint_is_xid_start', 'mjb_codepoint_is_xid_continue'],
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
     comment: 'Return the name of a property, NULL if the property specified is not valid',
@@ -973,7 +1169,12 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Compute the confusable skeleton of both strings and return true when the ' +
+      'skeletons are equal, meaning the two strings are visually confusable, such as ' +
+      '"paypal" and "pаypаl" with Cyrillic а.',
+    related: ['mjb_string_is_identifier'],
+    specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
     comment: 'Return the emoji properties',
@@ -989,7 +1190,9 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_string_emoji_sequence', 'mjb_codepoint_is_emoji'],
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the codepoint has the Unicode Emoji property',
@@ -1055,7 +1258,9 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_string_is_emoji_sequence', 'mjb_string_is_rgi_emoji'],
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the complete string is an emoji sequence listed by Unicode, ' +
@@ -1068,7 +1273,9 @@ export default [
       size(),
       encoding()
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_string_is_rgi_emoji', 'mjb_string_emoji_sequence'],
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the complete string is an RGI emoji sequence, excluding plain ' +
@@ -1081,7 +1288,9 @@ export default [
       size(),
       encoding()
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_string_is_emoji_sequence', 'mjb_string_emoji_sequence'],
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return hangul syllable name',
@@ -1151,7 +1360,9 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    related: ['mjb_display_width'],
+    specs: [uax(11, 'East Asian Width')]
   },
   {
     comment: 'Return the display width of a string',
@@ -1175,7 +1386,17 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Compute the number of display columns a string occupies in a terminal, ' +
+      'accounting for wide and ambiguous East Asian characters, combining marks, and emoji ' +
+      'sequences.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The width was computed' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`width` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The width would overflow' }
+    ],
+    related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_width'],
+    specs: [uax(11, 'East Asian Width')]
   },
   {
     comment: 'Parse a BCP 47 language tag',
@@ -1214,7 +1435,18 @@ export default [
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: ' +
+      'language, extended language, script, region, variant, extensions, private use, and ' +
+      'grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is ' +
+      'filled with the failure reason.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The tag was parsed and `locale` filled' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument is NULL or the tag is not a valid BCP 47 language tag' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    related: ['mjb_locale_set'],
+    specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
   {
     comment: 'Set current locale',
@@ -1280,7 +1512,10 @@ export default [
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: false,
+    details: 'Replace the allocator used by the library for all internal allocations and for ' +
+      'the buffers returned in `mjb_result`. Must be called before any other library call.',
+    related: ['mjb_alloc', 'mjb_realloc', 'mjb_free']
   },
   {
     comment: 'Shutdown the library. Not needed to be called',
