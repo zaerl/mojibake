@@ -19,6 +19,7 @@ set(TEST_SOURCES
     encoding.c
     east-asian-width.c
     embedded-null.c
+    example.c
     filter.c
     hangul-composition.c
     hangul.c

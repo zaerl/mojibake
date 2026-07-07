@@ -366,6 +366,7 @@ int main(int argc, char * const argv[]) {
     RUN_TEST(embedded_null)
     RUN_TEST(emoji)
     RUN_TEST(encoding)
+    RUN_TEST(example)
     RUN_TEST(filter)
     RUN_TEST(hangul_composition)
     RUN_TEST(hangul)

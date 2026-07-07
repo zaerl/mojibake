@@ -1,0 +1,108 @@
+/**
+ * The Mojibake library
+ *
+ * This file is distributed under the MIT License. See LICENSE for details.
+ */
+
+#include "test.h"
+
+int test_example(void *arg) {
+    char test_buffer[128];
+
+    // This function is automatically generated. Do not edit.
+{
+    // Example for mjb_codepoint_character
+    MJB_TEST_COVERAGE(mjb_codepoint_character); // Added by the script
+    mjb_character character;
+
+    if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_codepoint_character test failed") // Added by the script
+        return 1;
+    }
+
+    // U+022A lowercase: U+022B
+    // printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
+    snprintf(test_buffer, sizeof(test_buffer), "U+%04X lowercase: U+%04X", character.codepoint, character.lowercase); // Added by the script
+    ATT_ASSERT(test_buffer, "U+022A lowercase: U+022B", "mjb_codepoint_character test failed") // Added by the script
+}
+
+{
+    // Example for mjb_normalize
+    MJB_TEST_COVERAGE(mjb_normalize); // Added by the script
+    const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    mjb_result result;
+
+    if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_normalize test failed") // Added by the script
+        return 1;
+    }
+
+    // NFC: Café
+    // printf("NFC: %.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "NFC: %.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "NFC: Café", "mjb_normalize test failed") // Added by the script
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
+}
+
+{
+    // Example for mjb_string_filter
+    MJB_TEST_COVERAGE(mjb_string_filter); // Added by the script
+    const char *mixed_whitespace = "Hello\t\t\n\nworld";
+    mjb_result result;
+
+    if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        MJB_FILTER_COLLAPSE_SPACES, &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_string_filter test failed") // Added by the script
+        return 1;
+    }
+
+    // Filtered: Hello world
+    // printf("Filtered: %.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered: Hello world", "mjb_string_filter test failed") // Added by the script
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
+
+    const char *controls = "\x1\x2\t\n\v\f\r\x1f";
+
+    if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        MJB_FILTER_CONTROLS, &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_string_filter test failed") // Added by the script
+        return 1;
+    }
+
+    // Filtered: \t\n\v\f\r
+    // printf("Filtered: %.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_string_filter test failed") // Added by the script
+}
+
+{
+    // Example for mjb_case
+    MJB_TEST_COVERAGE(mjb_case); // Added by the script
+    const char *input = "Stra\xC3\x9F""e"; // "Straße"
+    mjb_result result;
+
+    if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_case test failed") // Added by the script
+        return 1;
+    }
+
+    // Upper: STRASSE
+    // printf("Upper: %.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_case test failed") // Added by the script
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
+}
+    return 0;
+}

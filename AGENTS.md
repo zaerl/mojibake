@@ -121,6 +121,9 @@ or return type, update that generator metadata, run `make generate`, and keep `A
 `src/mojibake.h`, and `src/api/mojibake.d.ts` in sync. C tests should use `ATT_ASSERT_STATUS` from
 `tests/test.h` for `mjb_status` return values.
 
+Function metadata can carry optional documentation fields: `details`, `returns`, `example`,
+`related` (validated against the function list), `specs`, and per-argument `ownership` notes.
+
 Tests in `tests/` mirror the source structure with comprehensive coverage tracking. The
 `tests/attractor/` directory contains the Attractor unit test framework used across all tests.
 C++ wrapper tests are in `tests/ext/cpp/`.

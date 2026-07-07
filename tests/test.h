@@ -35,6 +35,7 @@ int test_east_asian_width(void *arg);
 int test_embedded_null(void *arg);
 int test_emoji(void *arg);
 int test_encoding(void *arg);
+int test_example(void *arg);
 int test_filter(void *arg);
 int test_hangul_composition(void *arg);
 int test_hangul(void *arg);
