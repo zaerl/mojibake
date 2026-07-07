@@ -151,10 +151,10 @@ void *test_embedded_null(void *arg) {
         'B', '\0', '\0', '\0'   // U+00000042 'B'
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf32le_with_null, 12, MJB_ENCODING_UTF_32_LE), 3,
+    ATT_ASSERT(mjb_strnlen(utf32le_with_null, 12, MJB_ENC_UTF_32LE), 3,
         "UTF-32LE: A\\0B = 3 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf32le_with_null, 12, MJB_ENCODING_UTF_32_LE), 1,
+    ATT_ASSERT(mjb_strnlen(utf32le_with_null, 12, MJB_ENC_UTF_32LE), 1,
         "UTF-32LE: A\\0B = 1 codepoint (stops at NULL)")
 #endif
 
@@ -169,10 +169,10 @@ void *test_embedded_null(void *arg) {
         '3', '\0', '\0', '\0'   // U+00000033 '3'
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf32le_digits_nulls, 28, MJB_ENCODING_UTF_32_LE), 7,
+    ATT_ASSERT(mjb_strnlen(utf32le_digits_nulls, 28, MJB_ENC_UTF_32LE), 7,
         "UTF-32LE: 1\\0\\02\\0\\03 = 7 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf32le_digits_nulls, 28, MJB_ENCODING_UTF_32_LE), 1,
+    ATT_ASSERT(mjb_strnlen(utf32le_digits_nulls, 28, MJB_ENC_UTF_32LE), 1,
         "UTF-32LE: 1\\0\\02\\0\\03 = 1 codepoint (stops at first NULL)")
 #endif
 
@@ -184,10 +184,10 @@ void *test_embedded_null(void *arg) {
         '\0', '\0', '\0', 'B'   // U+00000042 'B'
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf32be_with_null, 12, MJB_ENCODING_UTF_32_BE), 3,
+    ATT_ASSERT(mjb_strnlen(utf32be_with_null, 12, MJB_ENC_UTF_32BE), 3,
         "UTF-32BE: A\\0B = 3 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf32be_with_null, 12, MJB_ENCODING_UTF_32_BE), 1,
+    ATT_ASSERT(mjb_strnlen(utf32be_with_null, 12, MJB_ENC_UTF_32BE), 1,
         "UTF-32BE: A\\0B = 1 codepoint (stops at NULL)")
 #endif
 
@@ -198,10 +198,10 @@ void *test_embedded_null(void *arg) {
         '\0', '\x01', '\xF3', '\x0D'  // U+0001F30D 🌍 world globe
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    ATT_ASSERT(mjb_strnlen(utf32be_emoji_null, 12, MJB_ENCODING_UTF_32_BE), 3,
+    ATT_ASSERT(mjb_strnlen(utf32be_emoji_null, 12, MJB_ENC_UTF_32BE), 3,
         "UTF-32BE: 🤝\\0🌍 = 3 codepoints (with macro)")
 #else
-    ATT_ASSERT(mjb_strnlen(utf32be_emoji_null, 12, MJB_ENCODING_UTF_32_BE), 1,
+    ATT_ASSERT(mjb_strnlen(utf32be_emoji_null, 12, MJB_ENC_UTF_32BE), 1,
         "UTF-32BE: 🤝\\0🌍 = 1 codepoint (stops at NULL)")
 #endif
 

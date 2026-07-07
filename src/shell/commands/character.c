@@ -74,8 +74,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
         mjb_encoding other_encodings[] = {
             MJB_ENC_UTF_16BE,
             MJB_ENC_UTF_16LE,
-            MJB_ENCODING_UTF_32_BE,
-            MJB_ENCODING_UTF_32_LE
+            MJB_ENC_UTF_32BE,
+            MJB_ENC_UTF_32LE
         };
 
         const char *other_encodings_names[] = {

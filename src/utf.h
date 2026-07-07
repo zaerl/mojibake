@@ -59,7 +59,7 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
                 encoding == MJB_ENC_UTF_16BE);
             *index += 2;  // Increment by 2 bytes (full code unit)
         }
-    } else if(encoding == MJB_ENCODING_UTF_32_BE || encoding == MJB_ENCODING_UTF_32_LE) {
+    } else if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
         if(*index + 3 >= size) {
             // Truncated trailing unit: consume it, or decoding would never terminate.
             *state = MJB_UTF_REJECT;
@@ -72,7 +72,7 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
 #endif
 
             *state = mjb_utf32_decode_step(*state, buffer[*index], buffer[*index + 1], buffer[*index + 2],
-                buffer[*index + 3], codepoint, encoding == MJB_ENCODING_UTF_32_BE);
+                buffer[*index + 3], codepoint, encoding == MJB_ENC_UTF_32BE);
             *index += 4;  // Increment by 4 bytes (full code unit)
         }
     } else {

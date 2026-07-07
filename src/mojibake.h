@@ -189,15 +189,15 @@ typedef uint32_t mjb_codepoint;
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef enum mjb_encoding {
-    MJB_ENC_UNKNOWN   = 0x0,
-    MJB_ENC_ASCII     = 0x1,
-    MJB_ENC_UTF_8     = 0x2,
-    MJB_ENC_UTF_16    = 0x4,
+    MJB_ENC_UNKNOWN  = 0x0,
+    MJB_ENC_ASCII    = 0x1,
+    MJB_ENC_UTF_8    = 0x2,
+    MJB_ENC_UTF_16   = 0x4,
     MJB_ENC_UTF_16BE = 0x8,
     MJB_ENC_UTF_16LE = 0x10,
-    MJB_ENCODING_UTF_32    = 0x20,
-    MJB_ENCODING_UTF_32_BE = 0x40,
-    MJB_ENCODING_UTF_32_LE = 0x80
+    MJB_ENC_UTF_32   = 0x20,
+    MJB_ENC_UTF_32BE = 0x40,
+    MJB_ENC_UTF_32LE = 0x80
 } mjb_encoding;
 
 /**

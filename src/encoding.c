@@ -12,8 +12,8 @@
 #define MJB_ENC_UTF_8_BOM "\xEF\xBB\xBF"
 #define MJB_ENC_UTF_16BE_BOM "\xFE\xFF"
 #define MJB_ENC_UTF_16LE_BOM "\xFF\xFE"
-#define MJB_ENCODING_UTF_32_BE_BOM "\x00\x00\xFE\xFF"
-#define MJB_ENCODING_UTF_32_LE_BOM "\xFF\xFE\x00\x00"
+#define MJB_ENC_UTF_32BE_BOM "\x00\x00\xFE\xFF"
+#define MJB_ENC_UTF_32LE_BOM "\xFF\xFE\x00\x00"
 
 static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
     return codepoint >= 0xD800 && codepoint <= 0xDFFF;
@@ -37,11 +37,11 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
     mjb_encoding bom_encoding = MJB_ENC_UNKNOWN;
 
     if(size >= 4) {
-        if(memcmp(buffer, MJB_ENCODING_UTF_32_BE_BOM, 4) == 0) {
-            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_BE);
-        } else if(memcmp(buffer, MJB_ENCODING_UTF_32_LE_BOM, 4) == 0) {
+        if(memcmp(buffer, MJB_ENC_UTF_32BE_BOM, 4) == 0) {
+            bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32BE);
+        } else if(memcmp(buffer, MJB_ENC_UTF_32LE_BOM, 4) == 0) {
             // A UTF-32-LE document is also valid UTF-16-LE
-            bom_encoding = (mjb_encoding)(MJB_ENCODING_UTF_32 | MJB_ENCODING_UTF_32_LE | MJB_ENC_UTF_16LE);
+            bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32LE | MJB_ENC_UTF_16LE);
         }
     }
 
@@ -242,7 +242,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
             return 4;
         }
     } else if(((encoding & MJB_ENC_UTF_16LE) || (encoding & MJB_ENC_UTF_16BE)) &&
-        !((encoding & MJB_ENCODING_UTF_32_LE) || (encoding & MJB_ENCODING_UTF_32_BE))) {
+        !((encoding & MJB_ENC_UTF_32LE) || (encoding & MJB_ENC_UTF_32BE))) {
         if(size < 3) {
             return 0;
         }
@@ -287,14 +287,14 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 4;
         }
-    } else if((encoding & MJB_ENCODING_UTF_32_LE) || (encoding & MJB_ENCODING_UTF_32_BE)) {
+    } else if((encoding & MJB_ENC_UTF_32LE) || (encoding & MJB_ENC_UTF_32BE)) {
         if(size < 5) {
             return 0;
         }
 
         if(codepoint <= 0x10FFFF) {
             // UTF-32 uses a single 32-bit code unit for each codepoint
-            if(encoding & MJB_ENCODING_UTF_32_LE) {
+            if(encoding & MJB_ENC_UTF_32LE) {
                 // Little endian: least significant byte first
                 buffer[0] = (char)(codepoint & 0xFF);
                 buffer[1] = (char)((codepoint >> 8) & 0xFF);

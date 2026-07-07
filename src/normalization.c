@@ -386,9 +386,9 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
             case MJB_ENC_ASCII:
             case MJB_ENC_UNKNOWN:
                 break;
-            case MJB_ENCODING_UTF_32:
-            case MJB_ENCODING_UTF_32_BE:
-            case MJB_ENCODING_UTF_32_LE:
+            case MJB_ENC_UTF_32:
+            case MJB_ENC_UTF_32BE:
+            case MJB_ENC_UTF_32LE:
                 // Always 4 bytes.
                 if(potential_output_size > SIZE_MAX / 4) {
                     return MJB_STATUS_OVERFLOW;

@@ -162,8 +162,8 @@ export class CFunction implements MojibakeFunction {
           'MJB_ENC_UTF_8',
           'MJB_ENC_UTF_16BE',
           'MJB_ENC_UTF_16LE',
-          'MJB_ENCODING_UTF_32_BE',
-          'MJB_ENCODING_UTF_32_LE',
+          'MJB_ENC_UTF_32BE',
+          'MJB_ENC_UTF_32LE',
         ];
 
         // See mjb_encoding on mojibake.h
