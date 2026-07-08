@@ -119,7 +119,7 @@ static void mjbsh_emoji_json_id_field(const char *name, unsigned int code, const
     printf("}%s%s", comma ? "," : "", mjbsh_jnl());
 }
 
-static bool mjbsh_emoji_next_character(mjb_character *character, mjb_next_character_type type) {
+static bool mjbsh_emoji_next_character(mjb_character *character, mjb_character_position type) {
     char buffer_utf8[5];
     unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8,
         sizeof(buffer_utf8), MJB_ENC_UTF_8);
@@ -134,7 +134,7 @@ static bool mjbsh_emoji_next_character(mjb_character *character, mjb_next_charac
         char codepoint[16];
 
         snprintf(codepoint, sizeof(codepoint), "U+%04X", (unsigned int)character->codepoint);
-        if(type & MJB_NEXT_CHAR_FIRST) {
+        if(type & MJB_POSITION_FIRST) {
             printf("%s", mjbsh_jnl());
         } else {
             printf(",%s", mjbsh_jnl());
@@ -159,7 +159,7 @@ static bool mjbsh_emoji_next_character(mjb_character *character, mjb_next_charac
         mjbsh_emoji_json_indent(2);
         printf("}");
 
-        if(type & MJB_NEXT_CHAR_LAST) {
+        if(type & MJB_POSITION_LAST) {
             printf("%s", mjbsh_jnl());
         }
 
@@ -168,7 +168,7 @@ static bool mjbsh_emoji_next_character(mjb_character *character, mjb_next_charac
         return true;
     }
 
-    if(type & MJB_NEXT_CHAR_FIRST) {
+    if(type & MJB_POSITION_FIRST) {
         puts("");
         puts("Characters:");
     } else {
@@ -245,7 +245,7 @@ static void mjbsh_emoji_print_json(const char *buffer, size_t byte_length, bool 
 
     mjbsh_emoji_json_character_count = 0;
 
-    if(mjb_next_character(buffer, byte_length, MJB_ENC_UTF_8,
+    if(mjb_string_each_character(buffer, byte_length, MJB_ENC_UTF_8,
         mjbsh_emoji_next_character) != MJB_STATUS_OK) {
         printf("]%s", mjbsh_jnl());
         printf("}%s", mjbsh_jnl());
@@ -272,7 +272,7 @@ static void mjbsh_emoji_print_plain(const char *buffer, size_t byte_length, bool
         mjbsh_emoji_qualification_name(emoji->qualification), 1);
     mjbsh_numeric("Sequence Codepoints", 1, (unsigned int)emoji->codepoint_count);
 
-    if(mjb_next_character(buffer, byte_length, MJB_ENC_UTF_8,
+    if(mjb_string_each_character(buffer, byte_length, MJB_ENC_UTF_8,
         mjbsh_emoji_next_character) != MJB_STATUS_OK) {
         return;
     }

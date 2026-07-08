@@ -12,7 +12,7 @@
 #include "../shell.h"
 #include "../maps.h"
 
-static bool mjbsh_output_next_character(mjb_character *character, mjb_next_character_type type) {
+static bool mjbsh_output_next_character(mjb_character *character, mjb_character_position type) {
     char buffer_utf8[5];
     unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5,
         MJB_ENC_UTF_8);
@@ -24,13 +24,13 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
     if(is_json) {
-        if(type & MJB_NEXT_CHAR_FIRST) {
+        if(type & MJB_POSITION_FIRST) {
             printf("[%s%s{%s", mjbsh_jnl(), mjbsh_ji(), mjbsh_jnl());
         } else {
             printf("%s{%s", mjbsh_ji(), mjbsh_jnl());
         }
     } else {
-        if(!(type & MJB_NEXT_CHAR_FIRST)) {
+        if(!(type & MJB_POSITION_FIRST)) {
             puts("");
         }
     }
@@ -281,9 +281,9 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
     }
 
     if(is_json) {
-        printf("%s}%s%s", mjbsh_ji(), (type & MJB_NEXT_CHAR_LAST) ? "" : ",", mjbsh_jnl());
+        printf("%s}%s%s", mjbsh_ji(), (type & MJB_POSITION_LAST) ? "" : ",", mjbsh_jnl());
 
-        if(type & MJB_NEXT_CHAR_LAST) {
+        if(type & MJB_POSITION_LAST) {
             printf("]%s", mjbsh_jnl());
         }
     }
@@ -292,7 +292,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_next_chara
 }
 
 int mjbsh_character_command(int argc, char * const argv[], unsigned int flags) {
-    if(mjb_next_character(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
+    if(mjb_string_each_character(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
         mjbsh_output_next_character) != MJB_STATUS_OK) {
         return 1;
     }

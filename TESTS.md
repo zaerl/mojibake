@@ -19,7 +19,7 @@
 | `mjb_locale_parse`                       | 120         |
 | `mjb_codepoint_encode`                   | 105         |
 | `mjb_strnlen`                            | 102         |
-| `mjb_string_is_confusable`               | 100         |
+| `mjb_string_is_confusable`               | 101         |
 | `mjb_string_convert_encoding`            | 95          |
 | `mjb_codepoint_character`                | 82          |
 | `mjb_display_width`                      | 48          |
@@ -49,7 +49,7 @@
 | `mjb_shutdown`                           | 7           |
 | `mjb_truncate_word_width`                | 7           |
 | `mjb_codepoint_is_id_start`              | 6           |
-| `mjb_next_character`                     | 6           |
+| `mjb_string_each_character`              | 6           |
 | `mjb_codepoint_is_combining`             | 5           |
 | `mjb_codepoint_is_graphic`               | 5           |
 | `mjb_codepoint_is_id_continue`           | 5           |
@@ -89,7 +89,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560839** |
+| **Total**                                | **1560840** |
 
 ## JavaScript
 
@@ -138,7 +138,6 @@
 | `Mojibake.displayWidth`                    | 1          |
 | `Mojibake.localeParse`                     | 1          |
 | `Mojibake.localeSet`                       | 1          |
-| `Mojibake.nextCharacter`                   | 1          |
 | `Mojibake.normalize`                       | 1          |
 | `Mojibake.planeIsValid`                    | 1          |
 | `Mojibake.planeName`                       | 1          |
@@ -165,4 +164,5 @@
 | `Mojibake.unicodeVersion`                  | 1          |
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
-| **Total**                                  | **70**     |
+| `Mojibake.stringEachCharacter`             | 0          |
+| **Total**                                  | **69**     |

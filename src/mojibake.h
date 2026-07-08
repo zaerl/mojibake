@@ -375,12 +375,12 @@ typedef struct mjb_buffer_character {
     uint16_t combining;
 } mjb_buffer_character;
 
-// UTF-8 next character type
-typedef enum mjb_next_character_type {
-    MJB_NEXT_CHAR_NONE,
-    MJB_NEXT_CHAR_FIRST,
-    MJB_NEXT_CHAR_LAST
-} mjb_next_character_type;
+// Position of a character in a string, used for callbacks
+typedef enum mjb_character_position {
+    MJB_POSITION_NONE,
+    MJB_POSITION_FIRST,
+    MJB_POSITION_LAST
+} mjb_character_position;
 
 // Display width context for ambiguous-width characters
 typedef enum mjb_width_context {
@@ -456,7 +456,7 @@ typedef struct mjb_next_sentence_state {
     bool sat_is_aterm;
 } mjb_next_sentence_state;
 
-typedef bool (*mjb_next_character_fn)(mjb_character *character, mjb_next_character_type type);
+typedef bool (*mjb_string_each_character_fn)(mjb_character *character, mjb_character_position type);
 
 typedef enum mjb_direction {
     MJB_DIRECTION_LTR  = 0,
@@ -512,8 +512,8 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
 // Filter a string to remove invalid characters.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
-// Return the next character from a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_character_fn fn);
+// Run a callback for each character of a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
 
 // Return if a codepoint has a property.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);

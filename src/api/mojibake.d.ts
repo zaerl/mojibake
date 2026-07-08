@@ -29,8 +29,8 @@ export type MojibakeWasmModule = {
   _mjb_string_is_normalized: (buffer: Pointer, byte_length: number, encoding: number, form: number) => number;
   // Filter a string to remove invalid characters.
   _mjb_string_filter: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, filters: number, result: Pointer) => number;
-  // Return the next character from a string.
-  _mjb_next_character: (buffer: Pointer, byte_length: number, encoding: number, fn: number) => number;
+  // Run a callback for each character of a string.
+  _mjb_string_each_character: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
   // Return if a codepoint has a property.
   _mjb_codepoint_has_property: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return all properties of a codepoint.

@@ -110,7 +110,7 @@ if(BUILD_WASM)
         "\"_mjb_normalize\""
         "\"_mjb_string_is_normalized\""
         "\"_mjb_string_filter\""
-        "\"_mjb_next_character\""
+        "\"_mjb_string_each_character\""
         "\"_mjb_codepoint_has_property\""
         "\"_mjb_codepoint_properties\""
         "\"_mjb_codepoint_script\""

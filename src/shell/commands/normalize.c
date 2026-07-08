@@ -27,7 +27,7 @@ int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int f
 
     printf("%s", mjbsh_green());
     if(
-        result.output_size > 0 && mjb_next_character(result.output, result.output_size,
+        result.output_size > 0 && mjb_string_each_character(result.output, result.output_size,
         MJB_ENC_UTF_8,
         mjbsh_next_string_character
     ) != MJB_STATUS_OK) {
@@ -87,7 +87,7 @@ int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
         return 1;
     }
 
-    if(result.output_size > 0 && mjb_next_character(result.output, result.output_size,
+    if(result.output_size > 0 && mjb_string_each_character(result.output, result.output_size,
         MJB_ENC_UTF_8,
         mjbsh_next_character) != MJB_STATUS_OK) {
         puts("");

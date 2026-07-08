@@ -283,18 +283,18 @@ if(result.transformed) {
 
 See also: [`mjb_normalize`](#mjb_normalize).
 
-## `mjb_next_character`
+## `mjb_string_each_character`
 
-Return the next character from a string.
+Run a callback for each character of a string.
 
 ```c
-mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_character_fn fn);
+mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
 ```
 
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
-- `fn` — The function to call for each character
+- `callback` — The function to call for each character
 
 ## `mjb_codepoint_has_property`
 

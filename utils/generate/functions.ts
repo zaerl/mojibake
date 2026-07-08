@@ -264,17 +264,17 @@ if(result.transformed) {
 related: ['mjb_normalize']
   },
   {
-    comment: 'Return the next character from a string.',
+    comment: 'Run a callback for each character of a string.',
     ret: 'mjb_status',
-    name: 'mjb_next_character',
+    name: 'mjb_string_each_character',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
       byte_length(),
       encoding(),
       {
-        name: 'fn',
-        type: 'mjb_next_character_fn',
+        name: 'callback',
+        type: 'mjb_string_each_character_fn',
         description: 'The function to call for each character',
         wasm_generated: true
       }

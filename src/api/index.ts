@@ -193,7 +193,7 @@ export type BufferCharacter = {
   combining: number;
 }
 
-// mjb_next_character_type
+// mjb_character_position
 export enum NextCharacterType {
   NONE,
   FIRST,
@@ -211,7 +211,7 @@ export enum WidthContext {
 // mjb_next_line_state
 // mjb_next_word_state
 // mjb_next_sentence_state
-// mjb_next_character_fn
+// mjb_string_each_character_fn
 
 // mjb_direction
 export enum Direction {
@@ -254,7 +254,7 @@ export enum IdentifierProfile {
 // Result of mjb_next_character function
 export type NextCharacter = {
   character: Character;
-  type: NextCharacterType; // mjb_next_character_type
+  type: NextCharacterType; // mjb_character_position
 }
 
 // Generic pointer type for memory management
@@ -433,15 +433,15 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_next_character_fn fn)
+  // mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_string_each_character callback)
   nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options.encoding);
-    const previousCallback = (globalThis as any)._mjbNextCharacterCallback;
+    const previousCallback = (globalThis as any)._mjbEachCharacterCallback;
     const characters: NextCharacter[] = [];
 
     // See mjb_next_character function
-    (globalThis as any)._mjbNextCharacterCallback = (character: Pointer, type: number) => {
+    (globalThis as any)._mjbEachCharacterCallback = (character: Pointer, type: number) => {
       characters.push({
         character: this.pointerToCharacter(character),
         type
@@ -451,7 +451,7 @@ export class Mojibake {
     };
 
     try {
-      const status = this.module._mjb_next_character(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_string_each_character(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, 0);
 
       if(status !== Status.OK) {
@@ -461,9 +461,9 @@ export class Mojibake {
       return characters;
     } finally {
       if(previousCallback === undefined) {
-        delete (globalThis as any)._mjbNextCharacterCallback;
+        delete (globalThis as any)._mjbEachCharacterCallback;
       } else {
-        (globalThis as any)._mjbNextCharacterCallback = previousCallback;
+        (globalThis as any)._mjbEachCharacterCallback = previousCallback;
       }
 
       this.free(wasmInput.ptr);
@@ -1451,6 +1451,10 @@ export class Mojibake {
   }
 
   private copyInput(input: MojibakeInput, encoding: Encoding = Encoding.UTF_8): WasmInput {
+    if(typeof encoding !== 'number') {
+      encoding = Encoding.UTF_8;
+    }
+
     encoding = this.resolveEncoding(encoding);
     let bytes: Uint8Array;
 
