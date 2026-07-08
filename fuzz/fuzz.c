@@ -369,7 +369,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 8: // Collation comparison, input split in two halves
             mjb_string_compare(buffer, size / 2, buffer + size / 2, size - size / 2, encoding,
-                (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE);
+                encoding, (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE);
             break;
 
         case 9: // Segmentation: grapheme, word and width truncation
