@@ -5,7 +5,7 @@
 | Test                                     | Coverage    |
 | ---------------------------------------- | ----------- |
 | `mjb_bidi_resolve`                       | 582572      |
-| `mjb_string_compare`                     | 437933      |
+| `mjb_string_compare`                     | 437935      |
 | `mjb_normalize`                          | 415358      |
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_break_line`                         | 18794       |
@@ -89,7 +89,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560837** |
+| **Total**                                | **1560839** |
 
 ## JavaScript
 

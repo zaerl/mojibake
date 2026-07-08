@@ -440,7 +440,7 @@ size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
 Compare two strings using UCA.
 
 ```c
-int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding encoding, mjb_collation_mode mode);
+int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding, mjb_collation_mode mode);
 ```
 
 Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics.
@@ -449,7 +449,8 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 - `s1_byte_length` — The length of the first string, in bytes
 - `s2` — The second string to compare
 - `s2_byte_length` — The length of the second string, in bytes
-- `encoding` — The encoding of the strings
+- `s1_encoding` — The encoding of the first string
+- `s2_encoding` — The encoding of the second string
 - `mode` — The variable weighting strategy
 
 **Returns**

@@ -52,7 +52,7 @@ export type MojibakeWasmModule = {
   // Return the length of a string.
   _mjb_strnlen: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Compare two strings using UCA.
-  _mjb_string_compare: (s1: Pointer, s1_byte_length: number, s2: Pointer, s2_byte_length: number, encoding: number, mode: number) => number;
+  _mjb_string_compare: (s1: Pointer, s1_byte_length: number, s2: Pointer, s2_byte_length: number, s1_encoding: number, s2_encoding: number, mode: number) => number;
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case.

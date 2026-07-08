@@ -45,7 +45,7 @@ static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size
     char tmp[128];
     size_t out = 0;
 
-    /* Strip trailing comment (anything after '#') */
+    // Strip trailing comment (anything after '#')
     const char *hash = strchr(hex, '#');
     size_t copy_len = hash ? (size_t)(hash - hex) : strlen(hex);
 
@@ -57,7 +57,7 @@ static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size
     char *p = tmp;
 
     while(*p) {
-        /* skip whitespace */
+        // skip whitespace
         while(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
 
         if(*p == '\0') break;
@@ -65,11 +65,11 @@ static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size
         char *end;
         unsigned long cp = strtoul(p, &end, 16);
 
-        if(end == p) break; /* not a hex number */
+        if(end == p) break; // not a hex number
 
         p = end;
 
-        if(cp == 0) continue; /* skip U+0000 (embedded NUL) */
+        if(cp == 0) continue; // skip U+0000 (embedded NUL)
 
         size_t enc = encode_collation_codepoint(cp, buf + out, buf_size - out - 1);
 
@@ -106,7 +106,7 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
     while(fgets(line, sizeof(line), f)) {
         lineno++;
 
-        /* Skip comment lines and empty lines */
+        // Skip comment lines and empty lines
         if(line[0] == '#' || line[0] == '\n' || line[0] == '\r') continue;
 
         char curr_utf8[COLLATION_BUF];
@@ -116,10 +116,10 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
 
         if(prev_len > 0) {
             int cmp = mjb_string_compare(prev_utf8, prev_len, curr_utf8, curr_len,
-                MJB_ENC_UTF_8, mode);
+                MJB_ENC_UTF_8, MJB_ENC_UTF_8, mode);
             MJB_TEST_COVERAGE(mjb_string_compare);
 
-            /* Must be <= 0 (prev collates before or equal to curr) */
+            // Must be <= 0 (prev collates before or equal to curr)
             if(cmp > 0) {
                 ++failures;
                 char msg[512];
@@ -148,7 +148,7 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
 }
 
 int test_collation(void *arg) {
-    /* mjb_collation_key */
+    // mjb_collation_key
     mjb_result ka, kb, kc, kd;
 
     ATT_ASSERT_STATUS(mjb_collation_key(NULL, 1, MJB_ENC_UTF_8,
@@ -157,7 +157,7 @@ int test_collation(void *arg) {
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE, NULL), MJB_STATUS_INVALID_ARGUMENT,
         "Key rejects NULL result")
-    ATT_ASSERT(mjb_string_compare(NULL, 1, "a", 1, MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb_string_compare(NULL, 1, "a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE), -1, "Compare rejects NULL left")
 
     // Key generation succeeds
@@ -201,7 +201,8 @@ int test_collation(void *arg) {
     ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE, &kb), MJB_STATUS_OK, "Key: 'banana' succeeds")
 
-    int cmp_direct = mjb_string_compare("apple", 5, "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
+    int cmp_direct = mjb_string_compare("apple", 5, "banana", 6, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE);
     size_t min_size = ka.output_size < kb.output_size ? ka.output_size : kb.output_size;
     int cmp_keys = memcmp(ka.output, kb.output, min_size);
 
@@ -214,11 +215,29 @@ int test_collation(void *arg) {
     mjb_free(ka.output);
     mjb_free(kb.output);
 
-    /* Sanity checks */
-    ATT_ASSERT(mjb_string_compare("", 0, "", 0, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE), 0, "Collation: '' == ''")
-    ATT_ASSERT(mjb_string_compare("hello", 5, "hello", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE), 0, "Collation: hello == hello")
+    // Sanity checks
+    ATT_ASSERT(mjb_string_compare("", 0, "", 0, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE), 0, "Collation: '' == ''")
+    ATT_ASSERT(mjb_string_compare("hello", 5, "hello", 5, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE), 0, "Collation: hello == hello")
 
-    /* UCA conformance tests */
+    const char hello_utf16le[] = { 'h', '\0', 'e', '\0', 'l', '\0', 'l', '\0', 'o', '\0' };
+    ATT_ASSERT(mjb_string_compare("hello", 5, hello_utf16le, sizeof(hello_utf16le),
+        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_COLLATION_NON_IGNORABLE), 0,
+        "Collation: UTF-8 hello == UTF-16LE hello")
+
+    const char apple_utf32le[] = {
+        'a', '\0', '\0', '\0',
+        'p', '\0', '\0', '\0',
+        'p', '\0', '\0', '\0',
+        'l', '\0', '\0', '\0',
+        'e', '\0', '\0', '\0',
+    };
+    ATT_ASSERT((int)(mjb_string_compare(apple_utf32le, sizeof(apple_utf32le), "banana", 6,
+        MJB_ENC_UTF_32LE, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE) < 0), 1,
+        "Collation: UTF-32LE apple < UTF-8 banana")
+
+    // UCA conformance tests
     run_collation_test_file(
         "./utils/generate/unicode-data/collation/CollationTest/"
         "CollationTest_NON_IGNORABLE.txt",

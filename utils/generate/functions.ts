@@ -468,7 +468,8 @@ related: ['mjb_normalize']
       byte_length('The length of the first string, in bytes', 's1_byte_length'),
       buffer('The second string to compare', 's2'),
       byte_length('The length of the second string, in bytes', 's2_byte_length'),
-      encoding('The encoding of the strings'),
+      encoding('The encoding of the first string', 's1_encoding'),
+      encoding('The encoding of the second string', 's2_encoding'),
       {
         name: 'mode',
         type: 'mjb_collation_mode',

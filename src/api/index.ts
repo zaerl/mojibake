@@ -266,6 +266,7 @@ export type MojibakeInput = string | ArrayBuffer | ArrayBufferView;
 // Used for `buffer, encoding, output_encoding` type of functions
 export type TextInputOptions = {
   encoding?: Encoding;
+  additionalEncoding?: Encoding;
   outputEncoding?: Encoding;
 };
 
@@ -392,7 +393,7 @@ export class Mojibake {
   // encoding, mjb_encoding output_encoding, mjb_result *result)
   normalize(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): string | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
     let result: Result | null = null;
@@ -422,7 +423,7 @@ export class Mojibake {
   // encoding, mjb_normalization form)
   stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_normalized(wasmInput.ptr, wasmInput.size,
@@ -435,7 +436,7 @@ export class Mojibake {
   // mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_character_fn fn)
   nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const previousCallback = (globalThis as any)._mjbNextCharacterCallback;
     const characters: NextCharacter[] = [];
 
@@ -473,7 +474,7 @@ export class Mojibake {
   // mjb_encoding output_encoding, mjb_filter filters, mjb_result *result)
   stringFilter(input: MojibakeInput, filters = FilterType.NONE,
     options: TextInputOptions = {}): string | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
     let result: Result | null = null;
@@ -530,7 +531,7 @@ export class Mojibake {
 
   // mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length)
   stringEncoding(input: MojibakeInput, options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_encoding(wasmInput.ptr, wasmInput.size);
@@ -541,7 +542,7 @@ export class Mojibake {
 
   // bool mjb_string_is_utf8(const char *buffer, size_t byte_length)
   stringIsUtf8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_utf8(wasmInput.ptr, wasmInput.size) ? true : false;
@@ -552,7 +553,7 @@ export class Mojibake {
 
   // bool mjb_string_is_utf16(const char *buffer, size_t byte_length)
   stringIsUtf16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_utf16(wasmInput.ptr, wasmInput.size) ? true : false;
@@ -563,7 +564,7 @@ export class Mojibake {
 
   // bool mjb_string_is_ascii(const char *buffer, size_t byte_length)
   stringIsAscii(input: MojibakeInput, options: TextInputOptions = {}): boolean {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_ascii(wasmInput.ptr, wasmInput.size) ? true : false;
@@ -595,7 +596,7 @@ export class Mojibake {
   // mjb_encoding output_encoding, mjb_result *result)
   stringConvertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
     options: TextInputOptions = {}): string | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     outputEncoding = this.resolveEncoding(outputEncoding);
     const resultPtr = this.malloc(24);
     let result: Result | null = null;
@@ -624,7 +625,7 @@ export class Mojibake {
   // size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
   strnlen(input: MojibakeInput, maxLength = 0x7FFFFFFF,
     options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_strnlen(wasmInput.ptr, Math.min(maxLength, wasmInput.size),
@@ -634,16 +635,17 @@ export class Mojibake {
     }
   }
 
-  // mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length,
-  // mjb_encoding encoding, mjb_collation_mode mode)
+  // int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2,
+  // size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding,
+  //  mjb_collation_mode mode
   stringCompare(first: MojibakeInput, second: MojibakeInput,
     mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number {
-    const firstInput = this.copyInput(first, options);
-    const secondInput = this.copyInput(second, options);
+    const firstInput = this.copyInput(first, options.encoding);
+    const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
 
     try {
       return this.module._mjb_string_compare(firstInput.ptr, firstInput.size,
-        secondInput.ptr, secondInput.size, firstInput.encoding, mode);
+        secondInput.ptr, secondInput.size, firstInput.encoding, secondInput.encoding, mode);
     } finally {
       this.free(firstInput.ptr);
       this.free(secondInput.ptr);
@@ -654,7 +656,7 @@ export class Mojibake {
   // mjb_collation_mode mode, mjb_result *result)
   collationKey(input: MojibakeInput, mode = CollationMode.NON_IGNORABLE,
     options: TextInputOptions = {}): Uint8Array | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const resultPtr = this.malloc(24);
     let result: Result | null = null;
 
@@ -687,7 +689,7 @@ export class Mojibake {
   // mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
   // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
   case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): string | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
     let result: Result | null = null;
@@ -823,7 +825,7 @@ export class Mojibake {
   // size_t max_segments)
   truncateWord(input: MojibakeInput, maxSegments: number,
     options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_truncate_word(wasmInput.ptr, wasmInput.size,
@@ -837,7 +839,7 @@ export class Mojibake {
   // mjb_width_context context, size_t max_columns)
   truncateWordWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
     options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_truncate_word_width(wasmInput.ptr, wasmInput.size,
@@ -862,7 +864,7 @@ export class Mojibake {
   // size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t
   // max_graphemes)
   truncate(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_truncate(wasmInput.ptr, wasmInput.size,
@@ -876,7 +878,7 @@ export class Mojibake {
   // mjb_width_context context, size_t max_columns)
   truncateWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
     options: TextInputOptions = {}): number {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_truncate_width(wasmInput.ptr, wasmInput.size,
@@ -890,7 +892,7 @@ export class Mojibake {
   // mjb_direction direction, mjb_bidi_paragraph *result)
   bidiResolve(input: MojibakeInput, direction = Direction.AUTO,
     options: TextInputOptions = {}): BidiParagraph | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const resultPtr = this.malloc(24);
     let charsPtr = 0;
 
@@ -982,7 +984,7 @@ export class Mojibake {
   // mjb_identifier_profile profile)
   stringIsIdentifier(input: MojibakeInput, profile = IdentifierProfile.DEFAULT,
     options: TextInputOptions = {}): boolean {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_identifier(wasmInput.ptr, wasmInput.size,
@@ -1006,8 +1008,8 @@ export class Mojibake {
   // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length,
   // mjb_encoding encoding)
   stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
-    const wasmInput1 = this.copyInput(s1, options);
-    const wasmInput2 = this.copyInput(s2, options);
+    const wasmInput1 = this.copyInput(s1, options.encoding);
+    const wasmInput2 = this.copyInput(s2, options.encoding);
 
     try {
       return this.module._mjb_string_is_confusable(wasmInput1.ptr, wasmInput1.size,
@@ -1070,7 +1072,7 @@ export class Mojibake {
   // mjb_emoji_sequence *emoji)
   stringEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
     const structSize = 12;
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const ptr = this.malloc(structSize);
 
     try {
@@ -1090,7 +1092,7 @@ export class Mojibake {
 
   // bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding)
   stringIsEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): boolean {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_emoji_sequence(wasmInput.ptr, wasmInput.size,
@@ -1102,7 +1104,7 @@ export class Mojibake {
 
   // bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding)
   stringIsRgiEmoji(input: MojibakeInput, options: TextInputOptions = {}): boolean {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_string_is_rgi_emoji(wasmInput.ptr, wasmInput.size,
@@ -1139,7 +1141,7 @@ export class Mojibake {
   // mjb_width_context context, size_t *width);
   displayWidth(input: MojibakeInput, context = WidthContext.AUTO,
     options: TextInputOptions = {}): number | null {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const widthPtr = this.malloc(4);
 
     try {
@@ -1161,7 +1163,7 @@ export class Mojibake {
   // mjb_locale_id *locale, mjb_error *error);
   localeParse(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
     const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
-    const wasmInput = this.copyInput(id, options);
+    const wasmInput = this.copyInput(id, options.encoding);
     const localePtr = this.malloc(localeStructSize);
     const errorPtr = this.malloc(4);
 
@@ -1427,7 +1429,7 @@ export class Mojibake {
 
   private collectBreaks(input: MojibakeInput, fn: BreakFunction,
     options: TextInputOptions = {}): number[] {
-    const wasmInput = this.copyInput(input, options);
+    const wasmInput = this.copyInput(input, options.encoding);
     const statePtr = this.malloc(256);
     const breaks: number[] = [];
 
@@ -1449,8 +1451,8 @@ export class Mojibake {
     }
   }
 
-  private copyInput(input: MojibakeInput, options: TextInputOptions = {}): WasmInput {
-    const encoding = this.resolveEncoding(options.encoding ?? Encoding.UTF_8);
+  private copyInput(input: MojibakeInput, encoding: Encoding = Encoding.UTF_8): WasmInput {
+    encoding = this.resolveEncoding(encoding);
     let bytes: Uint8Array;
 
     if(typeof input === 'string') {
