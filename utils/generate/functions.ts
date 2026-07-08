@@ -53,7 +53,7 @@ function buffer(description: string, name = 'buffer', isConst = true, wasm_gener
   };
 }
 
-function size(description = 'The size of the string, in bytes', name = 'size'): MojibakeArg {
+function byte_length(description = 'The length of the string, in bytes', name = 'byte_length'): MojibakeArg {
   return {
     name,
     type: 'size_t',
@@ -147,7 +147,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to normalize'),
-      size(),
+      byte_length(),
       {
         name: 'form',
         type: 'mjb_normalization',
@@ -193,7 +193,7 @@ if(result.transformed) {
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'form',
@@ -221,7 +221,7 @@ if(result.transformed) {
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to filter'),
-      size(),
+      byte_length(),
       encoding(),
       encoding('The output encoding of the string', 'output_encoding'),
       {
@@ -270,7 +270,7 @@ related: ['mjb_normalize']
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'fn',
@@ -357,7 +357,7 @@ related: ['mjb_normalize']
     ],
     args: [
       buffer('The string to check'),
-      size()
+      byte_length()
     ],
     wasm: true
   },
@@ -370,7 +370,7 @@ related: ['mjb_normalize']
     ],
     args: [
       buffer('The string to check'),
-      size()
+      byte_length()
     ],
     wasm: true
   },
@@ -383,7 +383,7 @@ related: ['mjb_normalize']
     ],
     args: [
       buffer('The string to check'),
-      size()
+      byte_length()
     ],
     wasm: true
   },
@@ -396,7 +396,7 @@ related: ['mjb_normalize']
     ],
     args: [
       buffer('The string to check'),
-      size()
+      byte_length()
     ],
     wasm: true
   },
@@ -408,7 +408,7 @@ related: ['mjb_normalize']
     args: [
       codepoint('The codepoint to encode'),
       buffer('The buffer to encode the codepoint to', 'buffer', false, true),
-      size('The size of the buffer, in bytes'),
+      byte_length('The length of the buffer, in bytes'),
       encoding('The encoding to use')
     ],
     wasm: true
@@ -420,7 +420,7 @@ related: ['mjb_normalize']
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to convert'),
-      size(),
+      byte_length(),
       encoding('The input encoding of the string'),
       encoding('The output encoding of the string', 'output_encoding'),
       result()
@@ -465,9 +465,9 @@ related: ['mjb_normalize']
     attributes: [],
     args: [
       buffer('The first string to compare', 's1'),
-      size('The length of the first string, in bytes', 's1_length'),
+      byte_length('The length of the first string, in bytes', 's1_length'),
       buffer('The second string to compare', 's2'),
-      size('The length of the second string, in bytes', 's2_length'),
+      byte_length('The length of the second string, in bytes', 's2_length'),
       encoding('The encoding of the strings'),
       {
         name: 'mode',
@@ -494,7 +494,7 @@ related: ['mjb_normalize']
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to generate the sort key for'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'mode',
@@ -525,7 +525,7 @@ related: ['mjb_normalize']
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to change case'),
-      size(),
+      byte_length(),
       {
         name: 'type',
         type: 'mjb_case_type',
@@ -785,7 +785,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'state',
@@ -805,7 +805,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'state',
@@ -825,7 +825,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'max_segments',
@@ -843,7 +843,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'context',
@@ -867,7 +867,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'state',
@@ -887,7 +887,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'state',
@@ -909,7 +909,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'max_graphemes',
@@ -927,7 +927,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'context',
@@ -951,7 +951,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The input string'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'direction',
@@ -1173,7 +1173,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to validate'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'profile',
@@ -1212,9 +1212,9 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The first string', 's1'),
-      size('The size of the first string, in bytes', 's1_size'),
+      byte_length('The length of the first string, in bytes', 's1_size'),
       buffer('The second string', 's2'),
-      size('The size of the second string, in bytes', 's2_size'),
+      byte_length('The length of the second string, in bytes', 's2_size'),
       {
         name: 'encoding',
         type: 'mjb_encoding',
@@ -1302,7 +1302,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'emoji',
@@ -1323,7 +1323,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding()
     ],
     wasm: true,
@@ -1338,7 +1338,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      size(),
+      byte_length(),
       encoding()
     ],
     wasm: true,
@@ -1358,7 +1358,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         description: 'The buffer to store the result',
         wasm_generated: true
       },
-      size()
+      byte_length()
     ],
     wasm: false
   },
@@ -1424,7 +1424,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to normalize'),
-      size(),
+      byte_length(),
       encoding(),
       {
         name: 'context',
@@ -1464,9 +1464,9 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       },
       {
-        name: 'size',
+        name: 'byte_length',
         type: 'size_t',
-        description: 'The size of the locale identifier, in bytes',
+        description: 'The length of the locale identifier, in bytes',
         wasm_generated: true
       },
       {
@@ -1585,9 +1585,9 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: ['MJB_NODISCARD'],
     args: [
       {
-        name: 'size',
+        name: 'byte_length',
         type: 'size_t',
-        description: 'The size of the memory to allocate',
+        description: 'The length of the memory to allocate',
         wasm_generated: false
       }
     ],
