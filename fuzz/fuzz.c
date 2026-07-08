@@ -187,7 +187,7 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_xid_continue(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_syntax(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_white_space(codepoint);
-    mjb_status property_status = mjb_codepoint_has_property(codepoint, property, &property_value);
+    mjb_status property_status = mjb_codepoint_property_value(codepoint, property, &property_value);
     fuzz_sink += (size_t)property_status;
 
     if(property_status == MJB_STATUS_OK) {

@@ -12,21 +12,57 @@ int test_properties(void *arg) {
     // Force the buffer to a known state before testing.
     memset(buffer, 0xFF, sizeof(buffer));
 
-    ATT_ASSERT_STATUS(mjb_codepoint_properties(0x41, buffer), MJB_STATUS_OK, "LCLA pproperties")
-    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CASED), 1, "LCLA cased")
-    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_ALPHABETIC), 1, "LCLA alphabetic")
-    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_LOWERCASE), 0, "LCLA uppercase")
-    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_UPPERCASE), 1, "LCLA uppercase")
-    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_LOWERCASED), 1, "LCLA changes when lowercased")
-    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_CASEFOLDED), 1, "LCLA changes when casefolded")
+    ATT_ASSERT_STATUS(mjb_codepoint_properties(0x41, buffer), MJB_STATUS_OK, "U+0041 sproperties")
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CASED), 1, "U+0041 cased")
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_ALPHABETIC), 1, "U+0041 alphabetic")
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_LOWERCASE), 0, "U+0041 uppercase")
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_UPPERCASE), 1, "U+0041 uppercase")
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_LOWERCASED), 1, "U+0041 changes when lowercased")
+    ATT_ASSERT(mjb_codepoint_property(buffer, MJB_PR_CHANGES_WHEN_CASEFOLDED), 1, "U+0041 changes when casefolded")
 
-    uint8_t value;
-    ATT_ASSERT_STATUS(mjb_codepoint_has_property(0x41, MJB_PR_CASED, NULL), MJB_STATUS_OK,
-        "LCLA cased exists")
-    ATT_ASSERT_STATUS(mjb_codepoint_has_property(0x20, MJB_PR_EAST_ASIAN_WIDTH, &value),
+    uint8_t value = 0xFF;
+    // U+0041 'A'
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_CASED, NULL), MJB_STATUS_OK,
+        "U+0041 is cased")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_ALPHABETIC, NULL),
+        MJB_STATUS_OK, "U+0041 is alphabetic")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_UPPERCASE, NULL),
+        MJB_STATUS_OK, "U+0041 is uppercase")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_CHANGES_WHEN_LOWERCASED, NULL),
+        MJB_STATUS_OK, "U+0041 changes when lowercased exists")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_CHANGES_WHEN_CASEFOLDED, NULL),
+        MJB_STATUS_OK, "U+0041 changes when casefolded exists")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_SCRIPT, &value),
+        MJB_STATUS_OK, "U+0041 script value exists")
+    ATT_ASSERT(value, MJB_SC_LATN, "U+0041 script value is Latin")
+
+    value = 0xFF;
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_WORD_BREAK, &value),
+        MJB_STATUS_OK, "U+0041 word break value exists")
+    ATT_ASSERT(value, MJB_WBP_A_LETTER, "U+0041 word break value is A_Letter")
+
+    value = 0xFF;
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_LINE_BREAK, &value),
+        MJB_STATUS_OK, "U+0041 line break value exists")
+    ATT_ASSERT(value, MJB_LBP_AL, "U+0041 line break value is Alphabetic")
+
+    value = 0xFF;
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_SENTENCE_BREAK, &value),
+        MJB_STATUS_OK, "U+0041 sentence break value exists")
+    ATT_ASSERT(value, MJB_SBP_UPPER, "U+0041 sentence break value is Upper")
+
+    value = 0xFF;
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_LOWERCASE, &value),
+        MJB_STATUS_NOT_FOUND, "U+0041 lowercase value does not exist")
+    ATT_ASSERT(value, 0xFF, "U+0041 lowercase missing value is not written")
+
+    value = 0xFF;
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x20, MJB_PR_EAST_ASIAN_WIDTH, &value),
         MJB_STATUS_OK, "Space East Asian Width exists")
     ATT_ASSERT(value, MJB_EAW_NARROW, "Space east asian width is Narrow")
-    ATT_ASSERT_STATUS(mjb_codepoint_has_property(0x20, MJB_PR_CASED, NULL),
+
+    value = 0xFF;
+    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x20, MJB_PR_CASED, NULL),
         MJB_STATUS_NOT_FOUND, "Space cased does not exist")
     ATT_ASSERT_STATUS(mjb_codepoint_properties(0x41, NULL), MJB_STATUS_INVALID_ARGUMENT,
         "Properties rejects NULL buffer")

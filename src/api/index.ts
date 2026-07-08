@@ -500,10 +500,22 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property,
+  // mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property,
   // uint8_t *value)
-  codepointHasProperty(codepoint: Codepoint, property: number): boolean {
-    return this.module._mjb_codepoint_has_property(codepoint, property, 0) === Status.OK;
+  codepointPropertyValue(codepoint: Codepoint, property: number): number {
+    const valuePtr = this.malloc(1);
+
+    try {
+      const status = this.module._mjb_codepoint_property_value(codepoint, property, valuePtr);
+
+      if(status !== Status.OK) {
+        return -1;
+      }
+
+      return this.module.HEAPU8[valuePtr];
+    } finally {
+      this.free(valuePtr);
+    }
   }
 
   // mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer)

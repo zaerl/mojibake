@@ -284,7 +284,7 @@ related: ['mjb_normalize']
   {
     comment: 'Return if a codepoint has a property.',
     ret: 'mjb_status',
-    name: 'mjb_codepoint_has_property',
+    name: 'mjb_codepoint_property_value',
     attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),

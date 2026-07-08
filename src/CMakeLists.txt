@@ -111,7 +111,7 @@ if(BUILD_WASM)
         "\"_mjb_string_is_normalized\""
         "\"_mjb_string_filter\""
         "\"_mjb_string_each_character\""
-        "\"_mjb_codepoint_has_property\""
+        "\"_mjb_codepoint_property_value\""
         "\"_mjb_codepoint_properties\""
         "\"_mjb_codepoint_script\""
         "\"_mjb_string_encoding\""

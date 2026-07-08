@@ -32,7 +32,7 @@ export type MojibakeWasmModule = {
   // Run a callback for each character of a string.
   _mjb_string_each_character: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
   // Return if a codepoint has a property.
-  _mjb_codepoint_has_property: (codepoint: Codepoint, property: number, value: Pointer) => number;
+  _mjb_codepoint_property_value: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return all properties of a codepoint.
   _mjb_codepoint_properties: (codepoint: Codepoint, buffer: Pointer) => number;
   // Return the script of a codepoint.

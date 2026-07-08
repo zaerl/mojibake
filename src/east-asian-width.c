@@ -17,7 +17,7 @@ MJB_EXPORT mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
     }
 
     uint8_t raw = 0;
-    bool found = mjb_codepoint_has_property(codepoint, MJB_PR_EAST_ASIAN_WIDTH, &raw) ==
+    bool found = mjb_codepoint_property_value(codepoint, MJB_PR_EAST_ASIAN_WIDTH, &raw) ==
         MJB_STATUS_OK;
 
     if(!found) {

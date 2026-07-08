@@ -296,12 +296,12 @@ mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb
 - `encoding` — The encoding of the string
 - `callback` — The function to call for each character
 
-## `mjb_codepoint_has_property`
+## `mjb_codepoint_property_value`
 
 Return if a codepoint has a property.
 
 ```c
-mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
+mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 ```
 
 - `codepoint` — The codepoint to check

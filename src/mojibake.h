@@ -516,7 +516,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
 
 // Return if a codepoint has a property.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 
 // Return all properties of a codepoint.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);

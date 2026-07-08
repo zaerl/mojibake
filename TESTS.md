@@ -13,12 +13,12 @@
 | `mjb_case`                               | 3482        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
-| `mjb_segmentation`                       | 715         |
+| `mjb_break_grapheme_cluster`             | 715         |
 | `mjb_break_sentence`                     | 458         |
 | `mjb_string_filter`                      | 143         |
 | `mjb_locale_parse`                       | 120         |
 | `mjb_codepoint_encode`                   | 105         |
-| `mjb_string_length`                            | 102         |
+| `mjb_string_length`                      | 102         |
 | `mjb_string_is_confusable`               | 101         |
 | `mjb_string_convert_encoding`            | 95          |
 | `mjb_codepoint_character`                | 82          |
@@ -28,6 +28,7 @@
 | `mjb_codepoint_east_asian_width`         | 32          |
 | `mjb_codepoint_numeric_value`            | 20          |
 | `mjb_locale_set`                         | 20          |
+| `mjb_codepoint_property_value`           | 18          |
 | `mjb_collation_key`                      | 18          |
 | `mjb_hangul_syllable_name`               | 18          |
 | `mjb_string_is_utf8`                     | 17          |
@@ -56,7 +57,6 @@
 | `mjb_codepoint_to_lowercase`             | 5           |
 | `mjb_hangul_syllable_decomposition`      | 5           |
 | `mjb_alloc`                              | 4           |
-| `mjb_codepoint_has_property`             | 4           |
 | `mjb_codepoint_is_hangul_jamo`           | 4           |
 | `mjb_set_memory_functions`               | 4           |
 | `mjb_codepoint_is_hangul_l`              | 3           |
@@ -89,13 +89,14 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560840** |
+| **Total**                                | **1560854** |
 
 ## JavaScript
 
 | Test                                       | Coverage   |
 | ------------------------------------------ | ---------- |
 | `Mojibake.bidiResolve`                     | 1          |
+| `Mojibake.breakGraphemeCluster`            | 1          |
 | `Mojibake.breakLine`                       | 1          |
 | `Mojibake.breakSentence`                   | 1          |
 | `Mojibake.breakWord`                       | 1          |
@@ -107,7 +108,6 @@
 | `Mojibake.codepointEastAsianWidth`         | 1          |
 | `Mojibake.codepointEmoji`                  | 1          |
 | `Mojibake.codepointEncode`                 | 1          |
-| `Mojibake.codepointHasProperty`            | 1          |
 | `Mojibake.codepointIsCjkExt`               | 1          |
 | `Mojibake.codepointIsCjkIdeograph`         | 1          |
 | `Mojibake.codepointIsCombining`            | 1          |
@@ -129,6 +129,7 @@
 | `Mojibake.codepointNumericValue`           | 1          |
 | `Mojibake.codepointPlane`                  | 1          |
 | `Mojibake.codepointProperties`             | 1          |
+| `Mojibake.codepointPropertyValue`          | 1          |
 | `Mojibake.codepointScript`                 | 1          |
 | `Mojibake.codepointToLowercase`            | 1          |
 | `Mojibake.codepointToTitlecase`            | 1          |
@@ -142,7 +143,6 @@
 | `Mojibake.planeIsValid`                    | 1          |
 | `Mojibake.planeName`                       | 1          |
 | `Mojibake.propertyName`                    | 1          |
-| `Mojibake.segmentation`                    | 1          |
 | `Mojibake.stringCompare`                   | 1          |
 | `Mojibake.stringConvertEncoding`           | 1          |
 | `Mojibake.stringEmojiSequence`             | 1          |
@@ -156,7 +156,7 @@
 | `Mojibake.stringIsRgiEmoji`                | 1          |
 | `Mojibake.stringIsUtf16`                   | 1          |
 | `Mojibake.stringIsUtf8`                    | 1          |
-| `Mojibake.strnlen`                         | 1          |
+| `Mojibake.stringLength`                    | 1          |
 | `Mojibake.truncate`                        | 1          |
 | `Mojibake.truncateWidth`                   | 1          |
 | `Mojibake.truncateWord`                    | 1          |
