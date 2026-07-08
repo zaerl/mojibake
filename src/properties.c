@@ -171,7 +171,7 @@ MJB_EXPORT mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer) {
+mjb_status mjb_codepoint_properties_lookup(mjb_codepoint codepoint, uint8_t *buffer) {
     if(buffer == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -186,8 +186,8 @@ MJB_EXPORT mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t 
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT uint8_t mjb_codepoint_property(const uint8_t *properties, mjb_property property) {
-    if(properties == NULL) {
+uint8_t mjb_codepoint_properties_get(const uint8_t *properties, mjb_property property) {
+    if(properties == NULL || (unsigned int)property >= MJB_PR_COUNT) {
         return 0;
     }
 

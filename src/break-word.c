@@ -31,11 +31,11 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length,
         if(dr == MJB_DECODE_OK) {
             uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
 
-            if(mjb_codepoint_properties(peek_cp, cpb) != MJB_STATUS_OK) {
+            if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
                 return MJB_WBP_NOT_SET;
             }
 
-            mjb_wbp wbp = (mjb_wbp)mjb_codepoint_property(cpb, MJB_PR_WORD_BREAK);
+            mjb_wbp wbp = (mjb_wbp)mjb_codepoint_properties_get(cpb, MJB_PR_WORD_BREAK);
 
             if(wbp == MJB_WBP_NOT_SET) {
                 wbp = MJB_WBP_OTHER;
@@ -117,11 +117,11 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
 
-        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+        if(mjb_codepoint_properties_lookup(codepoint, cpb) != MJB_STATUS_OK) {
             continue;
         }
 
-        mjb_wbp wbp = (mjb_wbp)mjb_codepoint_property(cpb, MJB_PR_WORD_BREAK);
+        mjb_wbp wbp = (mjb_wbp)mjb_codepoint_properties_get(cpb, MJB_PR_WORD_BREAK);
 
         if(wbp == MJB_WBP_NOT_SET) {
             // # @missing: 0000..10FFFF; Other
@@ -190,7 +190,7 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
         // Do not break within emoji zwj sequences.
         // WB3c ZWJ × \p{Extended_Pictographic}
-        if(state->prev_was_zwj && mjb_codepoint_property(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
+        if(state->prev_was_zwj && mjb_codepoint_properties_get(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
             return MJB_BT_NO_BREAK;
         }
 

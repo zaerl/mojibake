@@ -158,7 +158,7 @@ if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
 printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
 ```
 
-See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_properties`](#mjb_codepoint_properties).
+See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_property_value`](#mjb_codepoint_property_value).
 
 ## `mjb_normalize`
 
@@ -307,28 +307,6 @@ mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property pr
 - `codepoint` — The codepoint to check
 - `property` — The property to check
 - `value` — The property value, if any
-
-## `mjb_codepoint_properties`
-
-Return all properties of a codepoint.
-
-```c
-mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
-```
-
-- `codepoint` — The codepoint to check
-- `buffer` — The buffer to store the properties
-
-## `mjb_codepoint_property`
-
-Return a property value.
-
-```c
-uint8_t mjb_codepoint_property(const uint8_t *properties, mjb_property property);
-```
-
-- `properties` — The buffer to store the properties
-- `property` — The property to check
 
 ## `mjb_codepoint_script`
 

@@ -52,6 +52,7 @@ typedef struct mojibake {
 // Internal functions
 char *mjb_string_output(char *ret, char *input, size_t input_size,
     size_t *output_index, size_t *output_size);
+
 char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t
     *output_index, size_t *output_size, mjb_encoding encoding);
 
@@ -69,5 +70,9 @@ typedef struct mjb_n_character {
  * This is used to avoid the overhead of the full normalization process.
  */
 bool mjb_n_codepoint_character(mjb_codepoint codepoint, mjb_n_character *character);
+
+mjb_status mjb_codepoint_properties_lookup(mjb_codepoint codepoint, uint8_t *buffer);
+
+uint8_t mjb_codepoint_properties_get(const uint8_t *properties, mjb_property property);
 
 #endif // MJB_MOJIBAKE_INTERNAL_H

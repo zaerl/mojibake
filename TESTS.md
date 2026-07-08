@@ -46,7 +46,6 @@
 | `mjb_plane_name`                         | 8           |
 | `mjb_truncate_word`                      | 8           |
 | `mjb_codepoint_is_cjk_ideograph`         | 7           |
-| `mjb_codepoint_property`                 | 7           |
 | `mjb_shutdown`                           | 7           |
 | `mjb_truncate_word_width`                | 7           |
 | `mjb_codepoint_is_id_start`              | 6           |
@@ -77,7 +76,6 @@
 | `mjb_codepoint_is_emoji`                 | 2           |
 | `mjb_codepoint_is_xid_continue`          | 2           |
 | `mjb_codepoint_is_xid_start`             | 2           |
-| `mjb_codepoint_properties`               | 2           |
 | `mjb_property_name`                      | 2           |
 | `mjb_string_is_emoji_sequence`           | 2           |
 | `mjb_codepoint_is_emoji_component`       | 1           |
@@ -89,7 +87,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560854** |
+| **Total**                                | **1560845** |
 
 ## JavaScript
 
@@ -128,7 +126,6 @@
 | `Mojibake.codepointIsXidStart`             | 1          |
 | `Mojibake.codepointNumericValue`           | 1          |
 | `Mojibake.codepointPlane`                  | 1          |
-| `Mojibake.codepointProperties`             | 1          |
 | `Mojibake.codepointPropertyValue`          | 1          |
 | `Mojibake.codepointScript`                 | 1          |
 | `Mojibake.codepointToLowercase`            | 1          |
@@ -165,4 +162,4 @@
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **69**     |
+| **Total**                                  | **68**     |

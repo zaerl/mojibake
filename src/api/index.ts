@@ -518,24 +518,6 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer)
-  codepointProperties(codepoint: Codepoint): Uint8Array | null {
-    const bufferSize = 209; // MJB_PR_BUFFER_SIZE
-    const ptr = this.malloc(bufferSize);
-
-    try {
-      const status = this.module._mjb_codepoint_properties(codepoint, ptr);
-
-      if(status !== Status.OK) {
-        return null;
-      }
-
-      return new Uint8Array(this.module.HEAPU8.subarray(ptr, ptr + bufferSize));
-    } finally {
-      this.free(ptr);
-    }
-  }
-
   // mjb_script mjb_codepoint_script(mjb_codepoint codepoint)
   codepointScript(codepoint: Codepoint): number {
     return this.module._mjb_codepoint_script(codepoint);

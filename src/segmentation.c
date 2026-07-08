@@ -14,7 +14,7 @@ extern mojibake mjb_global;
 
 static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buffer) {
     // Update GB11: Extended_Pictographic + ZWJ sequences
-    if(mjb_codepoint_property(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
+    if(mjb_codepoint_properties_get(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
         // Start of new Extended_Pictographic sequence
         state->ext_pict_seen = true;
         state->zwj_seen = false;
@@ -28,7 +28,7 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
     }
 
     // Update GB9c: Indic Conjunct Break sequences
-    uint8_t incb_value = mjb_codepoint_property(buffer, MJB_PR_INDIC_CONJUNCT_BREAK);
+    uint8_t incb_value = mjb_codepoint_properties_get(buffer, MJB_PR_INDIC_CONJUNCT_BREAK);
 
     if(incb_value == MJB_INCB_CONSONANT) {
         // Start new Consonant sequence
@@ -108,11 +108,11 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
 
-        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+        if(mjb_codepoint_properties_lookup(codepoint, cpb) != MJB_STATUS_OK) {
             continue;
         }
 
-        mjb_gcb gcb = (mjb_gcb)mjb_codepoint_property(cpb, MJB_PR_GRAPHEME_CLUSTER_BREAK);
+        mjb_gcb gcb = (mjb_gcb)mjb_codepoint_properties_get(cpb, MJB_PR_GRAPHEME_CLUSTER_BREAK);
 
         if(gcb == MJB_GBP_NOT_SET) {
             // # @missing: 0000..10FFFF; Other
@@ -247,7 +247,7 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
         // Do not break within certain combinations with Indic_Conjunct_Break (InCB)=Linker.
         // GB9c \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]* \p{InCB=Linker}
         //   [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
-        uint8_t curr_incb = mjb_codepoint_property(cpb, MJB_PR_INDIC_CONJUNCT_BREAK);
+        uint8_t curr_incb = mjb_codepoint_properties_get(cpb, MJB_PR_INDIC_CONJUNCT_BREAK);
 
         if(curr_incb != MJB_INCB_NOT_SET &&
             state->incb_consonant_seen &&
@@ -262,7 +262,7 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
         // GB11 \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
         if(
             prev_ext_pict_zwj &&
-            mjb_codepoint_property(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)
+            mjb_codepoint_properties_get(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)
         ) {
             mjb_update_sequence_flags(state, cpb);
 

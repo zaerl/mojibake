@@ -47,11 +47,11 @@ static inline mjb_lbp mjb_peek_next(const char *buffer, size_t byte_length, size
         if(dr == MJB_DECODE_OK) {
             uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
 
-            if(mjb_codepoint_properties(peek_cp, cpb) != MJB_STATUS_OK) {
+            if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
                 return MJB_LBP_NOT_SET;
             }
 
-            mjb_lbp lbp = (mjb_lbp)mjb_codepoint_property(cpb, MJB_PR_LINE_BREAK);
+            mjb_lbp lbp = (mjb_lbp)mjb_codepoint_properties_get(cpb, MJB_PR_LINE_BREAK);
 
             if(lbp == MJB_LBP_NOT_SET) {
                 lbp = MJB_LBP_XX;
@@ -158,11 +158,11 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         memset(cpb, 0, MJB_PR_BUFFER_SIZE);
 
-        if(mjb_codepoint_properties(codepoint, cpb) != MJB_STATUS_OK) {
+        if(mjb_codepoint_properties_lookup(codepoint, cpb) != MJB_STATUS_OK) {
             continue;
         }
 
-        mjb_lbp lbp = (mjb_lbp)mjb_codepoint_property(cpb, MJB_PR_LINE_BREAK);
+        mjb_lbp lbp = (mjb_lbp)mjb_codepoint_properties_get(cpb, MJB_PR_LINE_BREAK);
 
         if(lbp == MJB_LBP_NOT_SET) {
             // # @missing: 0000..10FFFF; XX
@@ -997,8 +997,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             uint8_t prev_props[MJB_PR_BUFFER_SIZE] = {0};
             uint8_t ext_pic = 0;
 
-            if(mjb_codepoint_properties(state->previous_codepoint, prev_props) == MJB_STATUS_OK) {
-                ext_pic = mjb_codepoint_property(prev_props, MJB_PR_EXTENDED_PICTOGRAPHIC);
+            if(mjb_codepoint_properties_lookup(state->previous_codepoint, prev_props) == MJB_STATUS_OK) {
+                ext_pic = mjb_codepoint_properties_get(prev_props, MJB_PR_EXTENDED_PICTOGRAPHIC);
             }
 
             if(ext_pic != 0) {

@@ -217,17 +217,17 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
 
     if(cmd_verbose > 1) {
         // Pre-scan properties to find the last one that will be printed.
-        uint8_t properties[MJB_PR_BUFFER_SIZE];
-        mjb_status status = mjb_codepoint_properties(character->codepoint, properties);
+        uint8_t properties[MJB_PR_BUFFER_SIZE] = { 0 };
         size_t last_prop = MJB_PR_COUNT;
 
-        if(status == MJB_STATUS_OK) {
-            for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
-                if(mjbsh_property_is_bool((mjb_property)i)) {
-                    if(properties[i]) last_prop = i;
-                } else {
-                    if(properties[i] != 0) last_prop = i;
-                }
+        for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
+            mjb_property property = (mjb_property)i;
+            uint8_t value = 0;
+
+            if(mjb_codepoint_property_value(character->codepoint, property, &value) ==
+                MJB_STATUS_OK) {
+                properties[i] = mjbsh_property_is_bool(property) ? 1 : value;
+                last_prop = i;
             }
         }
 

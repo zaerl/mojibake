@@ -138,7 +138,7 @@ if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
 
 // U+022A lowercase: U+022B
 printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
-    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_properties']
+    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_value']
   },
   {
     comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form.',
@@ -302,43 +302,6 @@ related: ['mjb_normalize']
       }
     ],
     wasm: true
-  },
-  {
-    comment: 'Return all properties of a codepoint.',
-    ret: 'mjb_status',
-    name: 'mjb_codepoint_properties',
-    attributes: ['MJB_NODISCARD'],
-    args: [
-      codepoint(),
-      {
-        name: 'buffer',
-        type: 'uint8_t *',
-        description: 'The buffer to store the properties',
-        wasm_generated: true
-      }
-    ],
-    wasm: true
-  },
-  {
-    comment: 'Return a property value.',
-    ret: 'uint8_t',
-    name: 'mjb_codepoint_property',
-    attributes: [],
-    args: [
-      {
-        name: 'properties',
-        type: 'const uint8_t *',
-        description: 'The buffer to store the properties',
-        wasm_generated: true
-      },
-      {
-        name: 'property',
-        type: 'mjb_property',
-        description: 'The property to check',
-        wasm_generated: false
-      }
-    ],
-    wasm: false
   },
   {
     comment: 'Return the script of a codepoint.',

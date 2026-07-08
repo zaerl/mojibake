@@ -145,7 +145,6 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     char encoded[5];
     char hangul_name[128];
     uint8_t property_value = 0;
-    uint8_t properties[MJB_PR_BUFFER_SIZE];
     mjb_property property = (mjb_property)(variant % MJB_PR_COUNT);
     mjb_property property_name = (mjb_property)(variant % (MJB_PR_COUNT + 2));
 
@@ -192,10 +191,6 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
 
     if(property_status == MJB_STATUS_OK) {
         fuzz_sink += property_value;
-    }
-
-    if(mjb_codepoint_properties(codepoint, properties) == MJB_STATUS_OK) {
-        fuzz_sink += mjb_codepoint_property(properties, property);
     }
 
     fuzz_sink += (size_t)mjb_codepoint_script(codepoint);
