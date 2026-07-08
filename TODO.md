@@ -1,4 +1,4 @@
-## Unicode Conformance Requirements
+# Unicode Conformance Requirements
 
 See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G29705
 
