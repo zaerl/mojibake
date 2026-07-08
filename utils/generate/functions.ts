@@ -466,9 +466,9 @@ related: ['mjb_normalize']
     args: [
       buffer('The first string to compare', 's1'),
       byte_length('The length of the first string, in bytes', 's1_byte_length'),
+      encoding('The encoding of the first string', 's1_encoding'),
       buffer('The second string to compare', 's2'),
       byte_length('The length of the second string, in bytes', 's2_byte_length'),
-      encoding('The encoding of the first string', 's1_encoding'),
       encoding('The encoding of the second string', 's2_encoding'),
       {
         name: 'mode',
@@ -1214,9 +1214,9 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [
       buffer('The first string', 's1'),
       byte_length('The length of the first string, in bytes', 's1_byte_length'),
+      encoding('The encoding of the first string', 's1_encoding'),
       buffer('The second string', 's2'),
       byte_length('The length of the second string, in bytes', 's2_byte_length'),
-      encoding('The encoding of the first string', 's1_encoding'),
       encoding('The encoding of the second string', 's2_encoding')
     ],
     wasm: true,

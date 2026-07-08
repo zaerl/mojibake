@@ -635,9 +635,8 @@ export class Mojibake {
     }
   }
 
-  // int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2,
-  // size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding,
-  //  mjb_collation_mode mode
+  // int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
+  // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode
   stringCompare(first: MojibakeInput, second: MojibakeInput,
     mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number {
     const firstInput = this.copyInput(first, options.encoding);
@@ -1005,8 +1004,8 @@ export class Mojibake {
     return this.decodeString(ptr, null, Encoding.UTF_8);
   }
 
-  // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length,
-  // mjb_encoding s1_encoding, mjb_encoding s2_encoding)
+  // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
+  // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding)
   stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput1 = this.copyInput(s1, options.encoding);
     const wasmInput2 = this.copyInput(s2, options.additionalEncoding ?? options.encoding);

@@ -440,16 +440,16 @@ size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
 Compare two strings using UCA.
 
 ```c
-int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding, mjb_collation_mode mode);
+int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);
 ```
 
 Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics.
 
 - `s1` — The first string to compare
 - `s1_byte_length` — The length of the first string, in bytes
+- `s1_encoding` — The encoding of the first string
 - `s2` — The second string to compare
 - `s2_byte_length` — The length of the second string, in bytes
-- `s1_encoding` — The encoding of the first string
 - `s2_encoding` — The encoding of the second string
 - `mode` — The variable weighting strategy
 
@@ -1096,16 +1096,16 @@ const char *mjb_property_name(mjb_property property);
 Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
 
 ```c
-bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding);
+bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
 ```
 
 Compute the confusable skeleton of both strings and return true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
 
 - `s1` — The first string
 - `s1_byte_length` — The length of the first string, in bytes
+- `s1_encoding` — The encoding of the first string
 - `s2` — The second string
 - `s2_byte_length` — The length of the second string, in bytes
-- `s1_encoding` — The encoding of the first string
 - `s2_encoding` — The encoding of the second string
 
 See also: [`mjb_string_is_identifier`](#mjb_string_is_identifier).

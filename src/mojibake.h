@@ -549,7 +549,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_convert_encoding(const char *buff
 MJB_EXPORT MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Compare two strings using UCA.
-MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding, mjb_collation_mode mode);
+MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);
 
 // Generate a UCA sort key for a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
@@ -678,7 +678,7 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length,
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 
 // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
-MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding);
+MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
 
 // Return the emoji properties.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
