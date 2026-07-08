@@ -229,43 +229,6 @@ static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
 
 // Decode UTF-8 to a codepoint array
 
-/**
- * Check whether the bytes at buf[i..i+2] are a CESU-8 encoded surrogate (U+D800–U+DFFF). The
- * Unicode collation conformance tests include these codepoints, so decode them back for distinct
- * implicit weights.
- *
- * Pattern: 0xED [0xA0–0xBF] [0x80–0xBF] -> U+D800–U+DFFF
- */
-static bool try_cesu8_surrogate(const char *buf, size_t len, size_t i,
-    size_t *out_advance, mjb_codepoint *out_cp) {
-    if(i + 2 >= len) {
-        return false;
-    }
-
-    uint8_t b0 = (uint8_t)buf[i];
-    uint8_t b1 = (uint8_t)buf[i + 1];
-    uint8_t b2 = (uint8_t)buf[i + 2];
-
-    if(b0 != 0xED) {
-        return false;
-    }
-
-    if(b1 < 0xA0 || b1 > 0xBF) {
-        return false;
-    }
-
-    if(b2 < 0x80 || b2 > 0xBF) {
-        return false;
-    }
-
-    *out_cp = (mjb_codepoint)(((uint32_t)(b0 & 0x0F) << 12) |
-        ((uint32_t)(b1 & 0x3F) <<  6) |
-        (uint32_t)(b2 & 0x3F));
-    *out_advance = 3;
-
-    return true;
-}
-
 static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_codepoints,
     size_t *out_count) {
     *out_codepoints = NULL;
@@ -279,19 +242,6 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
     mjb_codepoint cp;
 
     while(i < len) {
-        // Intercept CESU-8 encoded surrogates before the regular decoder. See test 229206.
-        if(state == MJB_UTF_ACCEPT) {
-            size_t adv = 0;
-            mjb_codepoint surr = 0;
-
-            if(try_cesu8_surrogate(buf, len, i, &adv, &surr)) {
-                i += adv;
-                ++count;
-
-                continue;
-            }
-        }
-
         mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i, MJB_ENC_UTF_8, &cp,
             &in_error);
 
@@ -325,18 +275,6 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
     size_t j = 0;
 
     while(i < len && j < count) {
-        if(state == MJB_UTF_ACCEPT) {
-            size_t adv = 0;
-            mjb_codepoint surr = 0;
-
-            if(try_cesu8_surrogate(buf, len, i, &adv, &surr)) {
-                i += adv;
-                arr[j++] = surr;
-
-                continue;
-            }
-        }
-
         mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i, MJB_ENC_UTF_8, &cp,
             &in_error);
 
@@ -353,6 +291,32 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
     *out_codepoints = arr;
 
     return true;
+}
+
+static mjb_status validate_code_unit_sequence(const char *buffer, size_t byte_length,
+    mjb_encoding encoding) {
+    uint8_t state = MJB_UTF_ACCEPT;
+    bool in_error = false;
+    mjb_codepoint codepoint;
+
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(result == MJB_DECODE_END) {
+            break;
+        }
+
+        if(result == MJB_DECODE_ERROR) {
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+    }
+
+    if(mjb_utf_state_is_incomplete(state)) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    return MJB_STATUS_OK;
 }
 
 // Build CEA from NFD codepoint array
@@ -791,22 +755,28 @@ fail:
     return false;
 }
 
-static bool compute_sort_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
+static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_collation_mode mode, mjb_sort_key *sk) {
     sk->data = NULL;
     sk->count = 0;
     sk->cap = 0;
 
     if(byte_length == 0) {
-        return true;
+        return MJB_STATUS_OK;
+    }
+
+    mjb_status status = validate_code_unit_sequence(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     mjb_result r;
-    bool ok = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding,
-        MJB_ENC_UTF_8, &r) == MJB_STATUS_OK;
+    status = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding,
+        MJB_ENC_UTF_8, &r);
 
-    if(!ok) {
-        return false;
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     size_t len = 0;
@@ -818,7 +788,7 @@ static bool compute_sort_key(const char *buffer, size_t byte_length, mjb_encodin
     }
 
     if(!codepoints_ok) {
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     mjb_cea cea = { 0, 0, 0 };
@@ -828,7 +798,7 @@ static bool compute_sort_key(const char *buffer, size_t byte_length, mjb_encodin
             mjb_free(cps);
             cea_free(&cea);
 
-            return false;
+            return MJB_STATUS_NO_MEMORY;
         }
     }
 
@@ -847,10 +817,10 @@ static bool compute_sort_key(const char *buffer, size_t byte_length, mjb_encodin
     if(!key_ok) {
         sk_free(sk);
 
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
-    return true;
+    return MJB_STATUS_OK;
 }
 
 static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
@@ -889,8 +859,10 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length, 
 
     mjb_sort_key sk = { 0, 0, 0 };
 
-    if(!compute_sort_key(buffer, byte_length, encoding, mode, &sk)) {
-        return MJB_STATUS_NO_MEMORY;
+    mjb_status status = compute_sort_key(buffer, byte_length, encoding, mode, &sk);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     if(sk.count > SIZE_MAX / 2) {
@@ -949,11 +921,11 @@ MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_enc
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    if(!compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1)) {
+    if(compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1) != MJB_STATUS_OK) {
         return -1;
     }
 
-    if(!compute_sort_key(s2, s2_byte_length, s2_encoding, mode, &sk2)) {
+    if(compute_sort_key(s2, s2_byte_length, s2_encoding, mode, &sk2) != MJB_STATUS_OK) {
         sk_free(&sk1);
 
         return -1;

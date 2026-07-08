@@ -5,7 +5,7 @@
 | Test                                     | Coverage    |
 | ---------------------------------------- | ----------- |
 | `mjb_bidi_resolve`                       | 582572      |
-| `mjb_string_compare`                     | 437935      |
+| `mjb_string_compare`                     | 437881      |
 | `mjb_normalize`                          | 415358      |
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_break_line`                         | 18794       |
@@ -26,10 +26,10 @@
 | `mjb_hangul_syllable_composition`        | 44          |
 | `mjb_codepoint_is_valid`                 | 39          |
 | `mjb_codepoint_east_asian_width`         | 32          |
+| `mjb_collation_key`                      | 24          |
 | `mjb_codepoint_numeric_value`            | 20          |
 | `mjb_locale_set`                         | 20          |
 | `mjb_codepoint_property_value`           | 18          |
-| `mjb_collation_key`                      | 18          |
 | `mjb_hangul_syllable_name`               | 18          |
 | `mjb_string_is_utf8`                     | 17          |
 | `mjb_codepoint_block`                    | 15          |
@@ -87,7 +87,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560845** |
+| **Total**                                | **1560797** |
 
 ## JavaScript
 

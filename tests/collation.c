@@ -17,33 +17,27 @@
 // have ~6 codepoints = 24 bytes, but we keep slack).
 #define COLLATION_BUF 256
 
+static bool is_surrogate_codepoint(unsigned long cp) {
+    return cp >= 0xD800 && cp <= 0xDFFF;
+}
+
 static size_t encode_collation_codepoint(unsigned long cp, char *buf, size_t buf_size) {
-    // A surrogate.
-    if(cp >= 0xD800 && cp <= 0xDFFF) {
-        if(buf_size < 4) {
-            return 0;
-        }
-
-        buf[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
-        buf[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
-        buf[2] = (char)(0x80 | (cp & 0x3F));
-        buf[3] = '\0';
-
-        return 3;
-    }
-
     return mjb_codepoint_encode((mjb_codepoint)cp, buf, buf_size, MJB_ENC_UTF_8);
 }
 
 /**
  * Convert a whitespace-separated list of hex codepoints to UTF-8.
- * Returns the number of bytes written (excluding NUL terminator).
- * `hex`  : "0041 0042 0043"
- * `buf`  : output buffer (at least COLLATION_BUF bytes)
+ * Returns false for lines containing surrogate code points, because those code points cannot be
+ * represented as well-formed public UTF-8 input. CollationTest.html explicitly allows
+ * implementations that do not weight surrogates like reserved code points to filter those lines.
+ * `hex`: "0041 0042 0043"
+ * `buf`: output buffer (at least COLLATION_BUF bytes)
  */
-static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size) {
+static bool hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size, size_t *out_len) {
     char tmp[128];
     size_t out = 0;
+
+    *out_len = 0;
 
     // Strip trailing comment (anything after '#')
     const char *hash = strchr(hex, '#');
@@ -71,13 +65,33 @@ static size_t hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size
 
         if(cp == 0) continue; // skip U+0000 (embedded NUL)
 
+        if(is_surrogate_codepoint(cp)) {
+            return false;
+        }
+
         size_t enc = encode_collation_codepoint(cp, buf + out, buf_size - out - 1);
+
+        if(enc == 0) {
+            return false;
+        }
 
         out += enc;
     }
 
     buf[out] = '\0';
-    return out;
+    *out_len = out;
+
+    return true;
+}
+
+static void assert_collation_malformed_utf8(const char *buffer, size_t byte_length,
+    const char *message) {
+    mjb_result result;
+
+    ATT_ASSERT_STATUS(mjb_collation_key(buffer, byte_length, MJB_ENC_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, &result), MJB_STATUS_MALFORMED_INPUT, message)
+    ATT_ASSERT(mjb_string_compare(buffer, byte_length, MJB_ENC_UTF_8, buffer, byte_length,
+        MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE), -1, message)
 }
 
 /**
@@ -110,9 +124,12 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
         if(line[0] == '#' || line[0] == '\n' || line[0] == '\r') continue;
 
         char curr_utf8[COLLATION_BUF];
-        size_t curr_len = hex_codepoints_to_utf8(line, curr_utf8, sizeof(curr_utf8));
+        size_t curr_len = 0;
 
-        if(curr_len == 0) continue;
+        if(!hex_codepoints_to_utf8(line, curr_utf8, sizeof(curr_utf8), &curr_len) ||
+            curr_len == 0) {
+            continue;
+        }
 
         if(prev_len > 0) {
             int cmp = mjb_string_compare(prev_utf8, prev_len, MJB_ENC_UTF_8, curr_utf8, curr_len,
@@ -159,6 +176,26 @@ int test_collation(void *arg) {
         "Key rejects NULL result")
     ATT_ASSERT(mjb_string_compare(NULL, 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE), -1, "Compare rejects NULL left")
+
+    const char cesu8_high_surrogate[] = { (char)0xED, (char)0xA0, (char)0x80 };
+    const char cesu8_low_surrogate[] = { (char)0xED, (char)0xBF, (char)0xBF };
+    const char lone_continuation[] = { (char)0x80 };
+    const char overlong_slash[] = { (char)0xC0, (char)0xAF };
+    const char truncated_three_byte[] = { (char)0xE2, (char)0x82 };
+    const char invalid_four_byte[] = { (char)0xF5, (char)0x80, (char)0x80, (char)0x80 };
+
+    assert_collation_malformed_utf8(cesu8_high_surrogate, sizeof(cesu8_high_surrogate),
+        "Collation rejects CESU-8 high surrogate");
+    assert_collation_malformed_utf8(cesu8_low_surrogate, sizeof(cesu8_low_surrogate),
+        "Collation rejects CESU-8 low surrogate");
+    assert_collation_malformed_utf8(lone_continuation, sizeof(lone_continuation),
+        "Collation rejects lone continuation byte");
+    assert_collation_malformed_utf8(overlong_slash, sizeof(overlong_slash),
+        "Collation rejects overlong UTF-8");
+    assert_collation_malformed_utf8(truncated_three_byte, sizeof(truncated_three_byte),
+        "Collation rejects truncated UTF-8");
+    assert_collation_malformed_utf8(invalid_four_byte, sizeof(invalid_four_byte),
+        "Collation rejects invalid four-byte UTF-8");
 
     // Key generation succeeds
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8,
