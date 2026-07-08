@@ -142,7 +142,7 @@ if(BUILD_WASM)
         "\"_mjb_truncate_word\""
         "\"_mjb_truncate_word_width\""
         "\"_mjb_break_sentence\""
-        "\"_mjb_segmentation\""
+        "\"_mjb_break_grapheme_cluster\""
         "\"_mjb_truncate\""
         "\"_mjb_truncate_width\""
         "\"_mjb_bidi_resolve\""

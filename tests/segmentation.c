@@ -17,7 +17,7 @@ void segmentation_callback(const char *buffer, size_t byte_length, unsigned int 
     size_t index = 0;
     size_t successful_count = 0;
 
-    while((bt = mjb_segmentation(buffer, byte_length, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         snprintf(test_name, 256, "Index %zu", index);
 
         if(bt == MJB_BT_MANDATORY) {
@@ -31,7 +31,7 @@ void segmentation_callback(const char *buffer, size_t byte_length, unsigned int 
         }
     }
 
-    MJB_TEST_COVERAGE(mjb_segmentation);
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
     ATT_ASSERT(index, successful_count, test_name)
 }
 
@@ -45,11 +45,11 @@ static void test_basic_segmentation(void) {
         state.index = 0; \
         index = 0; \
 
-    ATT_ASSERT((uint8_t)mjb_segmentation(NULL, 1, MJB_ENC_UTF_8, &state),
+    ATT_ASSERT((uint8_t)mjb_break_grapheme_cluster(NULL, 1, MJB_ENC_UTF_8, &state),
         (uint8_t)MJB_BT_NOT_SET, "Segmentation rejects NULL buffer")
-    ATT_ASSERT((uint8_t)mjb_segmentation("A", 1, MJB_ENC_UTF_8, NULL),
+    ATT_ASSERT((uint8_t)mjb_break_grapheme_cluster("A", 1, MJB_ENC_UTF_8, NULL),
         (uint8_t)MJB_BT_NOT_SET, "Segmentation rejects NULL state")
-    ATT_ASSERT((uint8_t)mjb_segmentation("", 0, MJB_ENC_UTF_8, &state), (uint8_t)MJB_BT_NOT_SET, "Empty string")
+    ATT_ASSERT((uint8_t)mjb_break_grapheme_cluster("", 0, MJB_ENC_UTF_8, &state), (uint8_t)MJB_BT_NOT_SET, "Empty string")
     ATT_ASSERT(mjb_truncate(NULL, 1, MJB_ENC_UTF_8, 1), (size_t)0, "Truncate rejects NULL buffer")
     ATT_ASSERT(mjb_truncate_width(NULL, 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 1),
         (size_t)0, "Truncate width rejects NULL buffer")
@@ -58,10 +58,10 @@ static void test_basic_segmentation(void) {
     const char utf16le_null[] = { '\0', '\0', 'A', '\0' };
 
     MJB_TEST_S
-    ATT_ASSERT((uint8_t)mjb_segmentation(utf16le_null, sizeof(utf16le_null),
+    ATT_ASSERT((uint8_t)mjb_break_grapheme_cluster(utf16le_null, sizeof(utf16le_null),
         MJB_ENC_UTF_16LE, &state), (uint8_t)MJB_BT_ALLOWED,
         "Segmentation stops at UTF-16LE NULL")
-    ATT_ASSERT((uint8_t)mjb_segmentation(utf16le_null, sizeof(utf16le_null),
+    ATT_ASSERT((uint8_t)mjb_break_grapheme_cluster(utf16le_null, sizeof(utf16le_null),
         MJB_ENC_UTF_16LE, &state), (uint8_t)MJB_BT_NOT_SET,
         "Segmentation finishes after UTF-16LE NULL")
 #endif
@@ -69,40 +69,40 @@ static void test_basic_segmentation(void) {
     MJB_TEST_S
     mjb_break_type expected_a[] = { MJB_BT_ALLOWED };
 
-    MJB_TEST_COVERAGE(mjb_segmentation);
-    while((bt = mjb_segmentation("A", 1, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+    while((bt = mjb_break_grapheme_cluster("A", 1, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_a[index++], "A test")
     }
 
     MJB_TEST_S
     mjb_break_type expected_ab[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED };
 
-    MJB_TEST_COVERAGE(mjb_segmentation);
-    while((bt = mjb_segmentation("AB", 2, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+    while((bt = mjb_break_grapheme_cluster("AB", 2, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_ab[index++], "AB test")
     }
     ATT_ASSERT(index, 2, "AB test break index")
 
     MJB_TEST_S
     mjb_break_type expected_abc[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED, MJB_BT_ALLOWED };
-    MJB_TEST_COVERAGE(mjb_segmentation);
-    while((bt = mjb_segmentation("ABC", 3, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+    while((bt = mjb_break_grapheme_cluster("ABC", 3, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_abc[index++], "AB test")
     }
     ATT_ASSERT(index, 3, "ABC test break index")
 
     MJB_TEST_S
     mjb_break_type expected_brnl[] = { MJB_BT_ALLOWED, MJB_BT_NO_BREAK, MJB_BT_ALLOWED, MJB_BT_ALLOWED };
-    MJB_TEST_COVERAGE(mjb_segmentation);
-    while((bt = mjb_segmentation("A\r\nB", 4, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+    while((bt = mjb_break_grapheme_cluster("A\r\nB", 4, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_brnl[index++], "A\\r\\nB test")
     }
     ATT_ASSERT(index, 4, "A\\r\\nB test break index")
 
     MJB_TEST_S
     mjb_break_type expected_itit[] = { MJB_BT_NO_BREAK, MJB_BT_ALLOWED, MJB_BT_NO_BREAK, MJB_BT_ALLOWED };
-    MJB_TEST_COVERAGE(mjb_segmentation);
-    while((bt = mjb_segmentation("🇮🇹🇮🇹", 16, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+    while((bt = mjb_break_grapheme_cluster("🇮🇹🇮🇹", 16, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_itit[index++], "ITIT test")
     }
     ATT_ASSERT(index, 4, "ITIT test break index")

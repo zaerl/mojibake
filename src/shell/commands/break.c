@@ -86,7 +86,7 @@ static void mjbsh_print_grapheme_breaks(const char *input, size_t input_size) {
     mjb_next_state segment_state;
     segment_state.index = 0;
 
-    while((bt = mjb_segmentation(input, input_size, MJB_ENC_UTF_8, &segment_state)) !=
+    while((bt = mjb_break_grapheme_cluster(input, input_size, MJB_ENC_UTF_8, &segment_state)) !=
           MJB_BT_NOT_SET) {
         bool is_eot = (segment_state.index > input_size);
 

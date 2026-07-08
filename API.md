@@ -786,7 +786,7 @@ mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encodi
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
-See also: [`mjb_segmentation`](#mjb_segmentation), [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence).
+See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence).
 
 Specifications: [UAX #14: Unicode Line Breaking Algorithm](https://www.unicode.org/reports/tr14/).
 
@@ -803,7 +803,7 @@ mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encodi
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
-See also: [`mjb_segmentation`](#mjb_segmentation), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_truncate_word`](#mjb_truncate_word).
+See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_truncate_word`](#mjb_truncate_word).
 
 Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
 
@@ -847,16 +847,16 @@ mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_en
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
-See also: [`mjb_segmentation`](#mjb_segmentation), [`mjb_break_word`](#mjb_break_word).
+See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word).
 
 Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
 
-## `mjb_segmentation`
+## `mjb_break_grapheme_cluster`
 
 Grapheme cluster breaking.
 
 ```c
-mjb_break_type mjb_segmentation(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
+mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
 ```
 
 Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string.

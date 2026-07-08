@@ -80,7 +80,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_state grapheme_state = {0};
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_segmentation(buffer, byte_length, encoding, &grapheme_state);
+        mjb_break_type bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &grapheme_state);
         fuzz_sink += (size_t)bt + grapheme_state.index;
 
         if(bt == MJB_BT_NOT_SET) {

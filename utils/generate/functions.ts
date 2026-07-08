@@ -796,7 +796,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    related: ['mjb_segmentation', 'mjb_break_word', 'mjb_break_sentence'],
+    related: ['mjb_break_grapheme_cluster', 'mjb_break_word', 'mjb_break_sentence'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
   {
@@ -816,7 +816,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    related: ['mjb_segmentation', 'mjb_break_sentence', 'mjb_truncate_word'],
+    related: ['mjb_break_grapheme_cluster', 'mjb_break_sentence', 'mjb_truncate_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
@@ -878,13 +878,13 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    related: ['mjb_segmentation', 'mjb_break_word'],
+    related: ['mjb_break_grapheme_cluster', 'mjb_break_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Grapheme cluster breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_segmentation',
+    name: 'mjb_break_grapheme_cluster',
     attributes: [],
     args: [
       buffer('The string to check'),

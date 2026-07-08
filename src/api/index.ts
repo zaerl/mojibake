@@ -854,10 +854,10 @@ export class Mojibake {
     return this.collectBreaks(input, this.module._mjb_break_sentence, options);
   }
 
-  // mjb_break_type mjb_segmentation(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_state *state)
-  segmentation(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_segmentation, options);
+  breakGraphemeCluster(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_break_grapheme_cluster, options);
   }
 
   // size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t

@@ -372,7 +372,7 @@ public:
 using WordBreaker = Breaker<mjb_next_word_state, mjb_break_word>;
 using SentenceBreaker = Breaker<mjb_next_sentence_state, mjb_break_sentence>;
 using LineBreaker = Breaker<mjb_next_line_state, mjb_break_line>;
-using GraphemeBreaker = Breaker<mjb_next_state, mjb_segmentation>;
+using GraphemeBreaker = Breaker<mjb_next_state, mjb_break_grapheme_cluster>;
 
 } // namespace mjb
 
