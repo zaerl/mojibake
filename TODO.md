@@ -1,16 +1,3 @@
-# TODO
-
-## Main
-
-- [x] Export libmojibake
-- [ ] Add generic binary search
-- [ ] Check maximum size of combining characters
-- [ ] Optimize memory allocation in `mjb_normalize`
-- [ ] Optimize memory allocation in `mjb_recompose`
-- [x] Remove SQLite dependency
-- [x] Add support for NetBSD
-- [x] Add Github actions for testing
-
 ## Unicode Conformance Requirements
 
 See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G29705
