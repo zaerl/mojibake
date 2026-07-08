@@ -68,7 +68,7 @@ export class CFunction implements MojibakeFunction {
   }
 
   formatMD(): string {
-    let ret = `### \`${this.getName()}\`\n\n${this.comment}\n\n`;
+    let ret = `## \`${this.getName()}\`\n\n${this.comment}\n\n`;
     ret += `\`\`\`c\n${this.ret}${this.getName()}(${this.getArgs().join(', ')});\n\`\`\``;
 
     if(this.details) {

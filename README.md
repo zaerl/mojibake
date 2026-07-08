@@ -139,79 +139,9 @@ make build BUILD_DIR=build-no-name FEATURE_CHARACTER_NAMES=OFF
 make test-no-names
 ```
 
-### Minimal API documentation
+### API documentation
 
-Following an incomplete documentation of current API. See [API.md](API.md) for the full list.
-
-APIs that fill an output struct or allocated `mjb_result` return `mjb_status` and should be checked
-against `MJB_STATUS_OK`. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`,
-return `bool` because the boolean is the result.
-
-## String normalization
-
-Mojibake let you normalize a string in NFC/NFKC/NFD/NFKD form.
-
-```c
-#include <stdio.h>
-#include <string.h>
-#include "mojibake.h"
-
-int main(int argc, char * const argv[]) {
-    // The string to normalize
-    const char *hello = "Hello, World!";
-    mjb_encoding encoding = MJB_ENC_UTF_8;
-    mjb_result result;
-
-    mjb_status status = mjb_normalize(hello, strlen(hello), MJB_NORMALIZATION_NFC, encoding,
-        encoding, &result);
-
-    if(status != MJB_STATUS_OK) {
-        return 1;
-    }
-
-    printf("Normalized: %s\nSize: %zu\n", result.output, result.output_size);
-    // Normalized: Hello, World!
-    // Size: 13
-
-    // Remember to free() the string if needed
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
-
-    return 0;
-}
-```
-
-## Codepoint information
-
-You can retrieve information about codepoints. This example uses fields that are available
-regardless of whether Unicode character names are compiled in.
-
-```c
-#include <stdio.h>
-#include "mojibake.h"
-
-int main(int argc, char * const argv[]) {
-    mjb_character character;
-
-    if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
-        return 1;
-    }
-
-    printf("U+%04X lowercase: U+%04X\n", character.codepoint, character.lowercase);
-    printf("Graphic: %s\n", mjb_category_is_graphic(character.category) ? "yes" : "no");
-    // See the `mojibake` struct for other fields
-
-    return 0;
-}
-```
-
-Output:
-
-```
-U+022A lowercase: U+022B
-Graphic: yes
-```
+See [API.md](API.md) for the detailed documentation.
 
 ### CLI
 
@@ -236,7 +166,7 @@ mojibake -c emoji 263A FE0F
 
 ### Coverage
 
-Mojibake run a total of **1,560,796** tests including all the official tests included in the
+Mojibake run a total of **1,560,837** tests including all the official tests included in the
 standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
