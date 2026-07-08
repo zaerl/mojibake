@@ -22,7 +22,7 @@ specialized functions you will find in the API list below.
 The functions return a `_mjb_status_` and accept these arguments:
 
 1. The input string
-2. The _length_ of the input
+2. The _length_ of the input (`byte_length`)
 3. The needed _arguments_ of the function, if any
 4. The encoding of the input
 5. The encoding of the output, if the function generate a string
@@ -58,15 +58,14 @@ Mojibake is encoding agnostic. It can accept and output `uint8_t` (ASCII, UTF-8)
 `uint16_t` (UTF-16), `uint32_t` (UTF-32) bytes of memory. The output strings can have different
 encodings of the input strings.
 
-This until you pass the length in **bytes** of the string. For example the
-[`mjb_normalize`](#mjb_normalize) function.
+Example of the [`mjb_normalize`](#mjb_normalize) function.
 
 ```c
 mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 1. `buffer`: a block of memory, `uint8_t` (ASCII, UTF-8), `uint16_t` (UTF-16), `uint32_t` (UTF-32)
-2. `size`: the length in _bytes_ of `buffer`
+2. `byte_length`: the length in _bytes_ of `buffer`
 3. `form`: the normalization
 4. `encoding`: the encoding of `buffer`
 5. `output_encoding`: the encoding of _output_ you want.
