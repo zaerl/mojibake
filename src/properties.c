@@ -186,7 +186,7 @@ MJB_EXPORT mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t 
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property) {
+MJB_EXPORT uint8_t mjb_codepoint_property(const uint8_t *properties, mjb_property property) {
     if(properties == NULL) {
         return 0;
     }

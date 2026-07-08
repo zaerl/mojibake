@@ -324,7 +324,7 @@ mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 Return a property value.
 
 ```c
-uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
+uint8_t mjb_codepoint_property(const uint8_t *properties, mjb_property property);
 ```
 
 - `properties` — The buffer to store the properties

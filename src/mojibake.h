@@ -522,7 +522,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_has_property(mjb_codepoint cod
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_properties(mjb_codepoint codepoint, uint8_t *buffer);
 
 // Return a property value.
-MJB_EXPORT uint8_t mjb_codepoint_property(uint8_t *properties, mjb_property property);
+MJB_EXPORT uint8_t mjb_codepoint_property(const uint8_t *properties, mjb_property property);
 
 // Return the script of a codepoint.
 MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint);

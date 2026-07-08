@@ -327,7 +327,7 @@ related: ['mjb_normalize']
     args: [
       {
         name: 'properties',
-        type: 'uint8_t *',
+        type: 'const uint8_t *',
         description: 'The buffer to store the properties',
         wasm_generated: true
       },
