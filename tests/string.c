@@ -98,5 +98,85 @@ int test_string(void *arg) {
     ATT_ASSERT(mjb_strnlen(utf16be_geia_sou, 16, enc), 8, "UTF-16BE length: Γειά σου")
     ATT_ASSERT(mjb_strnlen(utf16be_hello_accents, 2, enc), 1, "UTF-16BE length: Héllö (1 max value)")
 
+    enc = MJB_ENC_UTF_32LE;
+    const char utf32le_hello[] = "H\0\0\0e\0\0\0l\0\0\0l\0\0\0o\0\0\0";
+    ATT_ASSERT(mjb_strnlen(utf32le_hello, 20, enc), 5, "UTF-32LE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello, 16, enc), 4, "UTF-32LE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello, 12, enc), 3, "UTF-32LE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello, 8, enc), 2, "UTF-32LE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello, 4, enc), 1, "UTF-32LE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello, 0, enc), 0, "UTF-32LE length: Hello")
+    ATT_ASSERT(mjb_strnlen(NULL, 0, enc), 0, "UTF-32LE length: NULL")
+
+    const char utf32le_hello_accents[] =
+        "H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0";
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_accents, 20, enc), 5,
+        "UTF-32LE length: Héllö")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_accents, 16, enc), 4,
+        "UTF-32LE length: Héllö")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_accents, 8, enc), 2,
+        "UTF-32LE length: Héllö")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_accents, 0, enc), 0, "UTF-32LE length: Héllö")
+
+    const char utf32le_hello_katakana[] =
+        "H\0\0\0\xE8\0\0\0l\0\0\0l\0\0\0\xF5\0\0\0 \0\0\0\x30\x30\0\0";
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_katakana, 28, enc), 7,
+        "UTF-32LE length: Hèllõ ツ")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_katakana, 20, enc), 5,
+        "UTF-32LE length: Hèllõ ツ")
+
+    const char utf32le_konnichiwa[] =
+        "\x93\x30\0\0\x93\x30\0\0\x6B\x30\0\0\x61\x30\0\0\x6F\x30\0\0";
+    ATT_ASSERT(mjb_strnlen(utf32le_konnichiwa, 20, enc), 5,
+        "UTF-32LE length: こんにちは")
+
+    const char utf32le_geia_sou[] =
+        "\x93\x03\0\0\x65\x03\0\0\x69\x03\0\0\x3F\x03\0\0 \0\0\0"
+        "\xC3\x03\0\0\x6F\x03\0\0\x75\x03\0\0";
+    ATT_ASSERT(mjb_strnlen(utf32le_geia_sou, 32, enc), 8,
+        "UTF-32LE length: Γειά σου")
+    ATT_ASSERT(mjb_strnlen(utf32le_hello_accents, 4, enc), 1,
+        "UTF-32LE length: Héllö (1 max value)")
+
+    enc = MJB_ENC_UTF_32BE;
+    const char utf32be_hello[] = "\0\0\0H\0\0\0e\0\0\0l\0\0\0l\0\0\0o";
+    ATT_ASSERT(mjb_strnlen(utf32be_hello, 20, enc), 5, "UTF-32BE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello, 16, enc), 4, "UTF-32BE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello, 12, enc), 3, "UTF-32BE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello, 8, enc), 2, "UTF-32BE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello, 4, enc), 1, "UTF-32BE length: Hello")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello, 0, enc), 0, "UTF-32BE length: Hello")
+    ATT_ASSERT(mjb_strnlen(NULL, 0, enc), 0, "UTF-32BE length: NULL")
+
+    const char utf32be_hello_accents[] =
+        "\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6";
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_accents, 20, enc), 5,
+        "UTF-32BE length: Héllö")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_accents, 16, enc), 4,
+        "UTF-32BE length: Héllö")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_accents, 8, enc), 2,
+        "UTF-32BE length: Héllö")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_accents, 0, enc), 0, "UTF-32BE length: Héllö")
+
+    const char utf32be_hello_katakana[] =
+        "\0\0\0H\0\0\0\xE8\0\0\0l\0\0\0l\0\0\0\xF5\0\0\0 \0\0\x30\x30";
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_katakana, 28, enc), 7,
+        "UTF-32BE length: Hèllõ ツ")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_katakana, 20, enc), 5,
+        "UTF-32BE length: Hèllõ ツ")
+
+    const char utf32be_konnichiwa[] =
+        "\0\0\x30\x93\0\0\x30\x93\0\0\x30\x6B\0\0\x30\x61\0\0\x30\x6F";
+    ATT_ASSERT(mjb_strnlen(utf32be_konnichiwa, 20, enc), 5,
+        "UTF-32BE length: こんにちは")
+
+    const char utf32be_geia_sou[] =
+        "\0\0\x03\x93\0\0\x03\x65\0\0\x03\x69\0\0\x03\x3F\0\0\0 "
+        "\0\0\x03\xC3\0\0\x03\x6F\0\0\x03\x75";
+    ATT_ASSERT(mjb_strnlen(utf32be_geia_sou, 32, enc), 8,
+        "UTF-32BE length: Γειά σου")
+    ATT_ASSERT(mjb_strnlen(utf32be_hello_accents, 4, enc), 1,
+        "UTF-32BE length: Héllö (1 max value)")
+
     return 0;
  }
