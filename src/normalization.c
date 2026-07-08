@@ -356,7 +356,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
         // potential output size.
         potential_output_size = byte_length;
     } else {
-        potential_output_size = mjb_strnlen(buffer, byte_length, encoding);
+        potential_output_size = mjb_string_length(buffer, byte_length, encoding);
 
         switch(output_encoding) {
             case MJB_ENC_UTF_8:

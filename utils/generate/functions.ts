@@ -442,7 +442,7 @@ related: ['mjb_normalize']
   {
     comment: 'Return the length of a string.',
     ret: 'size_t',
-    name: 'mjb_strnlen',
+    name: 'mjb_string_length',
     attributes: [
       'MJB_PURE'
     ],

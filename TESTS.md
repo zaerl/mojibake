@@ -18,7 +18,7 @@
 | `mjb_string_filter`                      | 143         |
 | `mjb_locale_parse`                       | 120         |
 | `mjb_codepoint_encode`                   | 105         |
-| `mjb_strnlen`                            | 102         |
+| `mjb_string_length`                            | 102         |
 | `mjb_string_is_confusable`               | 101         |
 | `mjb_string_convert_encoding`            | 95          |
 | `mjb_codepoint_character`                | 82          |

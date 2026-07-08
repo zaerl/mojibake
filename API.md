@@ -114,14 +114,14 @@ A summary for `Héllö`, encoded this way:
 - UTF-32LE: `H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0`, 20 bytes
 - UTF-32BE: `\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6`, 20 bytes
 
-To find the real number of characters you will later use `mjb_strnlen`.
+To find the real number of characters you will later use `mjb_string_length`.
 
 ```c
-mjb_strnlen("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8) // 5 characters
-mjb_strnlen("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE) // 5 characters
-mjb_strnlen("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE) // 5 characters
-mjb_strnlen("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE) // 5 characters
-mjb_strnlen("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE) // 5 characters
+mjb_string_length("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8) // 5 characters
+mjb_string_length("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE) // 5 characters
+mjb_string_length("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE) // 5 characters
+mjb_string_length("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE) // 5 characters
+mjb_string_length("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE) // 5 characters
 ```
 
 # Functions
@@ -423,12 +423,12 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 
 See also: [`mjb_string_encoding`](#mjb_string_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
-## `mjb_strnlen`
+## `mjb_string_length`
 
 Return the length of a string.
 
 ```c
-size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
+size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
 ```
 
 - `buffer` — The string to check

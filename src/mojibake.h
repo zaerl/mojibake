@@ -546,7 +546,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the length of a string.
-MJB_EXPORT MJB_PURE size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding);
+MJB_EXPORT MJB_PURE size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Compare two strings using UCA.
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);

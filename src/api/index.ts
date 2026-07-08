@@ -622,13 +622,12 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_strnlen(const char *buffer, size_t max_length, mjb_encoding encoding)
-  strnlen(input: MojibakeInput, maxLength = 0x7FFFFFFF,
-    options: TextInputOptions = {}): number {
+  // size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding)
+  stringLength(input: MojibakeInput, maxLength = 0x7FFFFFFF, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_strnlen(wasmInput.ptr, Math.min(maxLength, wasmInput.size),
+      return this.module._mjb_string_length(wasmInput.ptr, Math.min(maxLength, wasmInput.size),
         wasmInput.encoding);
     } finally {
       this.free(wasmInput.ptr);

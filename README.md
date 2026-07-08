@@ -56,7 +56,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   strings, with encoding detection and conversion (`mjb_string_encoding`,
   `mjb_string_convert_encoding`)
 - **Parsing and string functions**: character-by-character iteration (`mjb_next_character`) and
-  standard C `string.h`-style helpers (`mjb_strnlen`, and others)
+  standard C `string.h`-style helpers (`mjb_string_length`, and others)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
 - **Embeddable**: custom allocators (`mjb_set_memory_functions`), build-time feature flags to trim
   table size, a C++17 wrapper (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a

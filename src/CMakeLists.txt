@@ -120,7 +120,7 @@ if(BUILD_WASM)
         "\"_mjb_string_is_ascii\""
         "\"_mjb_codepoint_encode\""
         "\"_mjb_string_convert_encoding\""
-        "\"_mjb_strnlen\""
+        "\"_mjb_string_length\""
         "\"_mjb_string_compare\""
         "\"_mjb_collation_key\""
         "\"_mjb_case\""

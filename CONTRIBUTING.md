@@ -139,12 +139,12 @@ We use Attractor to run tests.
 ATT_ASSERT(what_you_are_testing, "must be equal to this value", "Description")
 ```
 
-For example, imagine we have found a bug on the `mjb_strnlen` function that do not correctly count
-the length of the `"Hello, test"` string and we fixed it. On `tests/string.c` function add a new
-assertion:
+For example, imagine we have found a bug on the `mjb_string_length` function that do not correctly
+count the length of the `"Hello, test"` string and we fixed it. On `tests/string.c` function add a
+new assertion:
 
 ```c
-ATT_ASSERT(mjb_strnlen("Hello, test", 11, MJB_ENC_UTF_8), 11, "UTF-8 Hello, test")
+ATT_ASSERT(mjb_string_length("Hello, test", 11, MJB_ENC_UTF_8), 11, "UTF-8 Hello, test")
 ```
 
 Then run `make test` and `make test-cpp` to be sure all tests are working.

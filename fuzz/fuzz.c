@@ -373,7 +373,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 9: // Segmentation: grapheme, word and width truncation
-            fuzz_sink += mjb_strnlen(buffer, size, encoding);
+            fuzz_sink += mjb_string_length(buffer, size, encoding);
             mjb_truncate(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
             mjb_truncate_width(buffer, size, encoding,

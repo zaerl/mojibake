@@ -50,7 +50,7 @@ export type MojibakeWasmModule = {
   // Convert from an encoding to another.
   _mjb_string_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Return the length of a string.
-  _mjb_strnlen: (buffer: Pointer, max_length: number, encoding: number) => number;
+  _mjb_string_length: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Compare two strings using UCA.
   _mjb_string_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number) => number;
   // Generate a UCA sort key for a string.
