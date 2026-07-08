@@ -1375,7 +1375,7 @@ void mjb_shutdown(void);
 
 ## `mjb_alloc`
 
-Allocate and zero memory.
+Allocate memory.
 
 ```c
 void *mjb_alloc(size_t byte_length);

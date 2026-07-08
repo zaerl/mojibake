@@ -72,14 +72,10 @@ MJB_EXPORT void mjb_shutdown(void) {
     mjb_global.locale = MJB_LOCALE_EN;
 }
 
-// Allocate and zero memory
+// Allocate memory
 MJB_EXPORT void *mjb_alloc(size_t size) {
     mjb_global.memory_functions_locked = true;
     void *allocated = mjb_global.memory_alloc(size);
-
-    if(allocated) {
-        memset(allocated, 0, size);
-    }
 
     return allocated;
 }

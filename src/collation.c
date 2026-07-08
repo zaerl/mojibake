@@ -516,6 +516,8 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         return false;
     }
 
+    memset(used, 0, len * sizeof(*used));
+
     size_t i = 0;
 
     while(i < len) {
@@ -605,11 +607,13 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
 
                 if(lookup_sequence(cur_seq, cur_len + 1, tmp_w, &tmp_bytes)) {
                     ++cur_len;
-                    last_pos       = j;
-                    used[j]        = true;
+                    last_pos = j;
+                    used[j] = true;
+
                     memcpy(best_w, tmp_w, (size_t)tmp_bytes);
-                    best_bytes     = tmp_bytes;
-                    have_match     = true;
+
+                    best_bytes = tmp_bytes;
+                    have_match = true;
                     keep_extending = true;
 
                     // Restart S2.1.1 from new last_pos.

@@ -1539,7 +1539,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     wasm: false
   },
   {
-    comment: 'Allocate and zero memory.',
+    comment: 'Allocate memory.',
     ret: 'void *',
     name: 'mjb_alloc',
     attributes: ['MJB_NODISCARD'],

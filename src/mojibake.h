@@ -740,7 +740,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_
 // Shutdown the library. Not needed to be called.
 MJB_EXPORT void mjb_shutdown(void);
 
-// Allocate and zero memory.
+// Allocate memory.
 MJB_EXPORT MJB_NODISCARD void *mjb_alloc(size_t byte_length);
 
 // Reallocate memory.
