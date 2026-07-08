@@ -25,15 +25,15 @@ static inline bool mjb_is_ea(mjb_east_asian_width ea) {
 
 // Peek at the next codepoint and return its LBP (resolved by LB1) and EA width.
 // Returns MJB_LBP_NOT_SET for EOT.
-static inline mjb_lbp mjb_peek_next(const char *buffer, size_t size, size_t peek_index,
+static inline mjb_lbp mjb_peek_next(const char *buffer, size_t byte_length, size_t peek_index,
     mjb_encoding encoding, mjb_east_asian_width *ea_out) {
     uint8_t peek_state = MJB_UTF_ACCEPT;
     mjb_codepoint peek_cp = 0;
     bool peek_error = false;
     size_t i = peek_index;
 
-    for(; i < size;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, size, &peek_state, &peek_index,
+    for(; i < byte_length;) {
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &peek_state, &peek_index,
             encoding, &peek_cp, &peek_error);
 
         if(dr == MJB_DECODE_END) {
@@ -90,9 +90,9 @@ static inline bool mjb_is_lb15b_follower(mjb_lbp lbp) {
 
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
-MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_next_line_state *state) {
-    if(buffer == NULL || state == NULL || size == 0) {
+    if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
 
@@ -121,14 +121,14 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         return MJB_BT_NOT_SET;
     }
 
-    if(state->index == size) {
+    if(state->index == byte_length) {
         // Reached end of string.
         ++state->index;
 
         // Always break at the end of text.
         // LB3 ! eot
         return MJB_BT_MANDATORY;
-    } else if(state->index > size) {
+    } else if(state->index > byte_length) {
         // Last step
         return MJB_BT_NOT_SET;
     }
@@ -137,8 +137,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
     bool first_codepoint = state->index == 0;
     uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
-    for(; state->index < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
+    for(; state->index < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -490,7 +490,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // × [\p{Pf}&QU] ( SP | GL | WJ | CL | QU | CP | EX | IS | SY | BK | CR | LF | NL | ZW | eot)
         // NOTE: This rule must be checked BEFORE LB18 (SP ÷) because it overrides it.
         if(state->current == MJB_LBP_QU && qu_cur_cat == MJB_CATEGORY_PF) {
-            mjb_lbp next_lbp = mjb_peek_next(buffer, size, state->index, encoding, NULL);
+            mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
             if(mjb_is_lb15b_follower(next_lbp)) {
                 return MJB_BT_NO_BREAK;
@@ -501,7 +501,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
         // SP ÷ IS NU
         // (Requires look-ahead: next after IS must be NU. Implemented below before LB15d.)
         if(state->previous == MJB_LBP_SP && state->current == MJB_LBP_IS) {
-            mjb_lbp next_lbp = mjb_peek_next(buffer, size, state->index, encoding, NULL);
+            mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
             if(next_lbp == MJB_LBP_NU) {
                 // SP ÷ IS NU: break between SP and IS
@@ -572,7 +572,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             // Look ahead: check EA of next character (or EOT)
             {
                 mjb_east_asian_width next_ea = MJB_EAW_NOT_SET;
-                mjb_lbp next_lbp = mjb_peek_next(buffer, size, state->index, encoding, &next_ea);
+                mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, &next_ea);
 
                 if(next_lbp == MJB_LBP_NOT_SET || !mjb_is_ea(next_ea)) {
                     // EOT or next char is not East Asian → no break before this Pi-QU
@@ -762,7 +762,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
             state->current == MJB_LBP_OP &&
             (state->previous == MJB_LBP_PO || state->previous == MJB_LBP_PR)
         ) {
-            mjb_lbp next_lbp = mjb_peek_next(buffer, size, state->index, encoding, NULL);
+            mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
             if(next_lbp == MJB_LBP_NU) {
                 return MJB_BT_NO_BREAK;
@@ -929,7 +929,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_en
                 state->current == MJB_LBP_AS
             )
         ) {
-            mjb_lbp next_lbp = mjb_peek_next(buffer, size, state->index, encoding, NULL);
+            mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
             if(next_lbp == MJB_LBP_VF) {
                 return MJB_BT_NO_BREAK;

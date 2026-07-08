@@ -12,7 +12,7 @@
 /**
  * Return display width of a string.
  */
-MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_width_context context, size_t *width) {
     if(width == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -25,7 +25,7 @@ MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t size, mjb_enc
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(size == 0) {
+    if(byte_length == 0) {
         return MJB_STATUS_OK;
     }
 
@@ -40,8 +40,8 @@ MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t size, mjb_enc
     bool in_error = false;
     mjb_codepoint codepoint;
 
-    for(size_t i = 0; i < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i,
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
             encoding, &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {

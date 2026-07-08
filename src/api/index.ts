@@ -388,7 +388,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form, mjb_encoding
+  // mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding
   // encoding, mjb_encoding output_encoding, mjb_result *result)
   normalize(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): string | null {
@@ -418,7 +418,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding
+  // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding
   // encoding, mjb_normalization form)
   stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): number {
@@ -432,7 +432,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_character_fn fn)
   nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options);
@@ -469,7 +469,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_filter filters, mjb_result *result)
   stringFilter(input: MojibakeInput, filters = FilterType.NONE,
     options: TextInputOptions = {}): string | null {
@@ -528,7 +528,7 @@ export class Mojibake {
     return this.module._mjb_codepoint_script(codepoint);
   }
 
-  // mjb_encoding mjb_string_encoding(const char *buffer, size_t size)
+  // mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length)
   stringEncoding(input: MojibakeInput, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options);
 
@@ -539,7 +539,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_utf8(const char *buffer, size_t size)
+  // bool mjb_string_is_utf8(const char *buffer, size_t byte_length)
   stringIsUtf8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -550,7 +550,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_utf16(const char *buffer, size_t size)
+  // bool mjb_string_is_utf16(const char *buffer, size_t byte_length)
   stringIsUtf16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -561,7 +561,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_ascii(const char *buffer, size_t size)
+  // bool mjb_string_is_ascii(const char *buffer, size_t byte_length)
   stringIsAscii(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -572,7 +572,7 @@ export class Mojibake {
     }
   }
 
-  // unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size,
+  // unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length,
   // mjb_encoding encoding)
   codepointEncode(codepoint: Codepoint, encoding = Encoding.UTF_8): string | null {
     encoding = this.resolveEncoding(encoding);
@@ -591,7 +591,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_result *result)
   stringConvertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
     options: TextInputOptions = {}): string | null {
@@ -650,7 +650,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_collation_mode mode, mjb_result *result)
   collationKey(input: MojibakeInput, mode = CollationMode.NON_IGNORABLE,
     options: TextInputOptions = {}): Uint8Array | null {
@@ -684,7 +684,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type,
+  // mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
   // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
   case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): string | null {
     const wasmInput = this.copyInput(input, options);
@@ -807,19 +807,19 @@ export class Mojibake {
     return this.module._mjb_codepoint_to_titlecase(codepoint);
   }
 
-  // mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_line_state *state)
   breakLine(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_break_line, options);
   }
 
-  // mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_word_state *state)
   breakWord(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_break_word, options);
   }
 
-  // size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
+  // size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // size_t max_segments)
   truncateWord(input: MojibakeInput, maxSegments: number,
     options: TextInputOptions = {}): number {
@@ -833,7 +833,7 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_width_context context, size_t max_columns)
   truncateWordWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
     options: TextInputOptions = {}): number {
@@ -847,19 +847,19 @@ export class Mojibake {
     }
   }
 
-  // mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_sentence_state *state)
   breakSentence(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_break_sentence, options);
   }
 
-  // mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_break_type mjb_segmentation(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_state *state)
   segmentation(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_segmentation, options);
   }
 
-  // size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t
+  // size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t
   // max_graphemes)
   truncate(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options);
@@ -872,7 +872,7 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_width_context context, size_t max_columns)
   truncateWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
     options: TextInputOptions = {}): number {
@@ -886,7 +886,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_direction direction, mjb_bidi_paragraph *result)
   bidiResolve(input: MojibakeInput, direction = Direction.AUTO,
     options: TextInputOptions = {}): BidiParagraph | null {
@@ -978,7 +978,7 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_pattern_white_space(codepoint) ? true : false;
   }
 
-  // bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding,
+  // bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_identifier_profile profile)
   stringIsIdentifier(input: MojibakeInput, profile = IdentifierProfile.DEFAULT,
     options: TextInputOptions = {}): boolean {
@@ -1066,7 +1066,7 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_extended_pictographic(codepoint) ? true : false;
   }
 
-  // mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_emoji_sequence *emoji)
   stringEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
     const structSize = 12;
@@ -1088,7 +1088,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding)
+  // bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding)
   stringIsEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -1100,7 +1100,7 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding)
+  // bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding)
   stringIsRgiEmoji(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options);
 
@@ -1112,7 +1112,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size)
+  // mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t byte_length)
   // mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
   // mjb_codepoint *codepoints)
   // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)
@@ -1135,7 +1135,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding,
+  // mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_width_context context, size_t *width);
   displayWidth(input: MojibakeInput, context = WidthContext.AUTO,
     options: TextInputOptions = {}): number | null {

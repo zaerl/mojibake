@@ -62,7 +62,7 @@ This until you pass the length in **bytes** of the string. For example the
 [`mjb_normalize`](#mjb_normalize) function.
 
 ```c
-mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 1. `buffer`: a block of memory, `uint8_t` (ASCII, UTF-8), `uint16_t` (UTF-16), `uint32_t` (UTF-32)
@@ -166,13 +166,13 @@ See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`
 Normalize a string to NFC/NFKC/NFD/NFKD form.
 
 ```c
-mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating.
 
 - `buffer` — The string to normalize
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `form` — The normalization form to use
 - `encoding` — The encoding of the string
 - `output_encoding` — The output encoding of the string
@@ -214,13 +214,13 @@ Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/r
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 
 ```c
-mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size, mjb_encoding encoding, mjb_normalization form);
+mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
 ```
 
 Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `form` — The normalization form to check
 
@@ -239,11 +239,11 @@ Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/r
 Filter a string to remove invalid characters.
 
 ```c
-mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 ```
 
 - `buffer` — The string to filter
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `output_encoding` — The output encoding of the string
 - `filters` — The filters to use
@@ -289,11 +289,11 @@ See also: [`mjb_normalize`](#mjb_normalize).
 Return the next character from a string.
 
 ```c
-mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_character_fn fn);
+mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_character_fn fn);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `fn` — The function to call for each character
 
@@ -346,56 +346,56 @@ mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 Return the string encoding (the most probable).
 
 ```c
-mjb_encoding mjb_string_encoding(const char *buffer, size_t size);
+mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 
 ## `mjb_string_is_utf8`
 
 Return true if the string is encoded in UTF-8.
 
 ```c
-bool mjb_string_is_utf8(const char *buffer, size_t size);
+bool mjb_string_is_utf8(const char *buffer, size_t byte_length);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 
 ## `mjb_string_is_utf16`
 
 Return true if the string is encoded in UTF-16BE or UTF-16LE.
 
 ```c
-bool mjb_string_is_utf16(const char *buffer, size_t size);
+bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 
 ## `mjb_string_is_ascii`
 
 Return true if the string is encoded in ASCII.
 
 ```c
-bool mjb_string_is_ascii(const char *buffer, size_t size);
+bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 
 ## `mjb_codepoint_encode`
 
 Encode a codepoint to a string.
 
 ```c
-unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size, mjb_encoding encoding);
+unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length, mjb_encoding encoding);
 ```
 
 - `codepoint` — The codepoint to encode
 - `buffer` — The buffer to encode the codepoint to
-- `size` — The size of the buffer, in bytes
+- `byte_length` — The length of the buffer, in bytes
 - `encoding` — The encoding to use
 
 ## `mjb_string_convert_encoding`
@@ -403,13 +403,13 @@ unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t 
 Convert from an encoding to another.
 
 ```c
-mjb_status mjb_string_convert_encoding(const char *buffer, size_t size, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). If input and output encodings match, the input buffer is returned as-is in `result->output` with `result->transformed` set to `false`, without allocating.
 
 - `buffer` — The string to convert
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The input encoding of the string
 - `output_encoding` — The output encoding of the string
 - `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
@@ -468,13 +468,13 @@ Specifications: [UTS #10: Unicode Collation Algorithm](https://www.unicode.org/r
 Generate a UCA sort key for a string.
 
 ```c
-mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
+mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
 ```
 
 Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_string_compare`. Useful when the same strings are compared many times, such as sorting or database indexing.
 
 - `buffer` — The string to generate the sort key for
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `mode` — The variable weighting strategy
 - `result` — The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
@@ -495,13 +495,13 @@ Specifications: [UTS #10: Unicode Collation Algorithm](https://www.unicode.org/r
 Change string case.
 
 ```c
-mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input.
 
 - `buffer` — The string to change case
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `type` — The type of case change
 - `encoding` — The encoding of the string
 - `output_encoding` — The output encoding of the string
@@ -778,11 +778,11 @@ See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_cod
 Unicode line break algorithm.
 
 ```c
-mjb_break_type mjb_break_line(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_line_state *state);
+mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_line_state *state);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
@@ -795,11 +795,11 @@ Specifications: [UAX #14: Unicode Line Breaking Algorithm](https://www.unicode.o
 Word cluster breaking.
 
 ```c
-mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_word_state *state);
+mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_word_state *state);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
@@ -812,11 +812,11 @@ Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/rep
 Return the number of bytes that form the first max_segments word-break segments.
 
 ```c
-size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding, size_t max_segments);
+size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `max_segments` — The maximum number of segments to return
 
@@ -825,11 +825,11 @@ size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
 Return the number of bytes whose word-break segments fit within max_columns display columns.
 
 ```c
-size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `context` — The width context
 - `max_columns` — The maximum number of columns to return
@@ -839,11 +839,11 @@ size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding enc
 Sentence boundaries breaking.
 
 ```c
-mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_sentence_state *state);
+mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_sentence_state *state);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
@@ -856,13 +856,13 @@ Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/rep
 Grapheme cluster breaking.
 
 ```c
-mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding, mjb_next_state *state);
+mjb_break_type mjb_segmentation(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
 ```
 
 Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string.
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
@@ -875,11 +875,11 @@ Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/rep
 Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
 
 ```c
-size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size_t max_graphemes);
+size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_graphemes);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `max_graphemes` — The maximum number of graphemes to return
 
@@ -888,11 +888,11 @@ size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding, size
 Return the number of bytes whose grapheme clusters fit within max_columns display columns.
 
 ```c
-size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `context` — The width context
 - `max_columns` — The maximum number of columns to return
@@ -902,13 +902,13 @@ size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding
 Resolve bidirectional text (TR9) for a paragraph.
 
 ```c
-mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
+mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
 ```
 
 Resolve the embedding levels of a paragraph following the Unicode Bidirectional Algorithm. The resolved paragraph can then be split into lines and reordered visually with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.
 
 - `buffer` — The input string
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `direction` — The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
 - `result` — Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_free()`
@@ -1067,13 +1067,13 @@ bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 Return true if the string is a valid Unicode identifier (UAX#31).
 
 ```c
-bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding, mjb_identifier_profile profile);
+bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_identifier_profile profile);
 ```
 
 Validate a string as a Unicode identifier: the first character must be a valid identifier start and the following ones valid identifier continuations, using ID_Start/ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.
 
 - `buffer` — The string to validate
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `profile` — The identifier profile (DEFAULT or NFKC)
 
@@ -1102,9 +1102,9 @@ bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, si
 Compute the confusable skeleton of both strings and return true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
 
 - `s1` — The first string
-- `s1_size` — The size of the first string, in bytes
+- `s1_size` — The length of the first string, in bytes
 - `s2` — The second string
-- `s2_size` — The size of the second string, in bytes
+- `s2_size` — The length of the second string, in bytes
 - `encoding` — The encoding of both strings
 
 See also: [`mjb_string_is_identifier`](#mjb_string_is_identifier).
@@ -1191,11 +1191,11 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 Return emoji sequence metadata for a complete string.
 
 ```c
-mjb_status mjb_string_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `emoji` — The emoji sequence metadata to store the result
 
@@ -1208,11 +1208,11 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
 
 ```c
-bool mjb_string_is_emoji_sequence(const char *buffer, size_t size, mjb_encoding encoding);
+bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 
 See also: [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
@@ -1224,11 +1224,11 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
 
 ```c
-bool mjb_string_is_rgi_emoji(const char *buffer, size_t size, mjb_encoding encoding);
+bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding);
 ```
 
 - `buffer` — The string to check
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 
 See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
@@ -1240,12 +1240,12 @@ Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
 Return hangul syllable name.
 
 ```c
-mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t size);
+mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t byte_length);
 ```
 
 - `codepoint` — The codepoint to check
 - `buffer` — The buffer to store the result
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 
 ## `mjb_hangul_syllable_decomposition`
 
@@ -1289,13 +1289,13 @@ Specifications: [UAX #11: East Asian Width](https://www.unicode.org/reports/tr11
 Return the display width of a string.
 
 ```c
-mjb_status mjb_display_width(const char *buffer, size_t size, mjb_encoding encoding, mjb_width_context context, size_t *width);
+mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t *width);
 ```
 
 Compute the number of display columns a string occupies in a terminal, accounting for wide and ambiguous East Asian characters, combining marks, and emoji sequences.
 
 - `buffer` — The string to normalize
-- `size` — The size of the string, in bytes
+- `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `context` — The width context for ambiguous-width characters
 - `width` — The width to store the result
@@ -1315,13 +1315,13 @@ Specifications: [UAX #11: East Asian Width](https://www.unicode.org/reports/tr11
 Parse a BCP 47 language tag.
 
 ```c
-mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
+mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
 ```
 
 Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is filled with the failure reason.
 
 - `id` — The BCP 47 language tag to parse
-- `size` — The size of the locale identifier, in bytes
+- `byte_length` — The length of the locale identifier, in bytes
 - `encoding` — The encoding of the locale identifier
 - `locale` — The locale structure to store the result
 - `error` — The error to store when parsing fails
@@ -1399,10 +1399,10 @@ void mjb_shutdown(void);
 Allocate and zero memory.
 
 ```c
-void *mjb_alloc(size_t size);
+void *mjb_alloc(size_t byte_length);
 ```
 
-- `size` — The size of the memory to allocate
+- `byte_length` — The length of the memory to allocate
 
 ## `mjb_realloc`
 

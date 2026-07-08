@@ -49,9 +49,9 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
 
 // Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_next_state *state) {
-    if(buffer == NULL || state == NULL || size == 0) {
+    if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
 
@@ -74,13 +74,13 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
         return MJB_BT_NOT_SET;
     }
 
-    if(state->index == size) {
+    if(state->index == byte_length) {
         // Reached end of string.
         ++state->index;
 
         // GB2 Any ÷ eot
         return MJB_BT_ALLOWED;
-    } else if(state->index > size) {
+    } else if(state->index > byte_length) {
         // Last step
         return MJB_BT_NOT_SET;
     }
@@ -89,8 +89,8 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
     bool first_codepoint = state->index == 0;
     uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
-    for(; state->index < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
+    for(; state->index < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -297,9 +297,9 @@ MJB_EXPORT mjb_break_type mjb_segmentation(const char *buffer, size_t size, mjb_
 }
 
 // Return the number of bytes that form the first max_graphemes grapheme clusters.
-MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding,
     size_t max_graphemes) {
-    if(buffer == NULL || size == 0 || max_graphemes == 0) {
+    if(buffer == NULL || byte_length == 0 || max_graphemes == 0) {
         return 0;
     }
 
@@ -310,12 +310,12 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding enc
     size_t cluster_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_segmentation(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_segmentation(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, size,
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
         last_break = break_pos;
 
@@ -324,13 +324,13 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t size, mjb_encoding enc
         }
     }
 
-    return state.state == MJB_UTF_TERMINATED ? last_break : size;
+    return state.state == MJB_UTF_TERMINATED ? last_break : byte_length;
 }
 
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_width_context context, size_t max_columns) {
-    if(buffer == NULL || size == 0 || max_columns == 0) {
+    if(buffer == NULL || byte_length == 0 || max_columns == 0) {
         return 0;
     }
 
@@ -341,12 +341,12 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_segmentation(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_segmentation(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, size,
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t cluster_width = 0;
 
@@ -363,5 +363,5 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t size, mjb_encodi
         prev_break = break_pos;
     }
 
-    return state.state == MJB_UTF_TERMINATED ? prev_break : size;
+    return state.state == MJB_UTF_TERMINATED ? prev_break : byte_length;
 }

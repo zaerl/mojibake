@@ -10,9 +10,9 @@
 /**
  * Return the next character from the string.
  */
-MJB_EXPORT mjb_status mjb_next_character(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_next_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_next_character_fn fn) {
-    if(buffer == NULL || size == 0) {
+    if(buffer == NULL || byte_length == 0) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -31,9 +31,9 @@ MJB_EXPORT mjb_status mjb_next_character(const char *buffer, size_t size, mjb_en
     bool first_character = true;
 
     // Loop through the string.
-    for(size_t i = 0; i < size;) {
+    for(size_t i = 0; i < byte_length;) {
         // Find next codepoint.
-        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(result == MJB_DECODE_END) {

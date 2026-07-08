@@ -22,13 +22,13 @@ static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
 /**
  * Return the encoding from the BOM (if possible).
  */
-static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
-    if(size < 2) {
+static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t byte_length) {
+    if(byte_length < 2) {
         // BOM are at least 2 characters
         return MJB_ENC_UNKNOWN;
     }
 
-    if(size >= 3) {
+    if(byte_length >= 3) {
         if(memcmp(buffer, MJB_ENC_UTF_8_BOM, 3) == 0) {
             return MJB_ENC_UTF_8;
         }
@@ -36,7 +36,7 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
 
     mjb_encoding bom_encoding = MJB_ENC_UNKNOWN;
 
-    if(size >= 4) {
+    if(byte_length >= 4) {
         if(memcmp(buffer, MJB_ENC_UTF_32BE_BOM, 4) == 0) {
             bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32BE);
         } else if(memcmp(buffer, MJB_ENC_UTF_32LE_BOM, 4) == 0) {
@@ -45,7 +45,7 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
         }
     }
 
-    if(size >= 2) {
+    if(byte_length >= 2) {
         if(memcmp(buffer, MJB_ENC_UTF_16BE_BOM, 2) == 0) {
             bom_encoding = (mjb_encoding)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE);
         } else if(memcmp(buffer, MJB_ENC_UTF_16LE_BOM, 2) == 0) {
@@ -59,24 +59,24 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t size) {
 /**
  * Return the string encoding (the most probable).
  */
-MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
-    if(buffer == NULL || size == 0) {
+MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length) {
+    if(buffer == NULL || byte_length == 0) {
         return MJB_ENC_UNKNOWN;
     }
 
-    mjb_encoding bom_encoding = mjb_encoding_from_bom(buffer, size);
+    mjb_encoding bom_encoding = mjb_encoding_from_bom(buffer, byte_length);
 
     if(bom_encoding != MJB_ENC_UNKNOWN) {
         return bom_encoding;
     }
 
     // No BOM, let's try UTF-8
-    if(mjb_string_is_utf8(buffer, size)) {
+    if(mjb_string_is_utf8(buffer, byte_length)) {
         bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_UTF_8);
     }
 
     // No BOM, let's try ASCII
-    if(mjb_string_is_ascii(buffer, size)) {
+    if(mjb_string_is_ascii(buffer, byte_length)) {
         bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_ASCII);
     }
 
@@ -86,8 +86,8 @@ MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t size) {
 /**
  * Return true if the string is encoded in UTF-8.
  */
-MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
-    if(buffer == NULL || size == 0) {
+MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t byte_length) {
+    if(buffer == NULL || byte_length == 0) {
         return false;
     }
 
@@ -95,7 +95,7 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
 
     // Loop through the string.
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < byte_length; ++i) {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         if(!buffer[i]) {
             break;
@@ -117,12 +117,12 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t size) {
 /**
  * Return true if the string is encoded in ASCII.
  */
-MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
-    if(buffer == NULL || size == 0) {
+MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t byte_length) {
+    if(buffer == NULL || byte_length == 0) {
         return false;
     }
 
-    for(size_t i = 0; i < size; ++i) {
+    for(size_t i = 0; i < byte_length; ++i) {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
         if(!buffer[i]) {
             break;
@@ -141,8 +141,8 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t size) {
 /**
  * Return true if the string is encoded in UTF-16BE or UTF-16LE.
  */
-MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
-    if(buffer == NULL || size < 2 || (size % 2) != 0) {
+MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t byte_length) {
+    if(buffer == NULL || byte_length < 2 || (byte_length % 2) != 0) {
         return false;
     }
 
@@ -151,7 +151,7 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
     bool be_valid = true;
 
-    for(size_t i = 0; i < size; i += 2) {
+    for(size_t i = 0; i < byte_length; i += 2) {
         state_be = mjb_utf16_decode_step(state_be, buffer[i], buffer[i + 1], &codepoint, true);
 
         if(state_be == MJB_UTF_REJECT) {
@@ -168,7 +168,7 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     uint8_t state_le = MJB_UTF_ACCEPT;
     bool le_valid = true;
 
-    for(size_t i = 0; i < size; i += 2) {
+    for(size_t i = 0; i < byte_length; i += 2) {
         state_le = mjb_utf16_decode_step(state_le, buffer[i], buffer[i + 1], &codepoint, false);
 
         if(state_le == MJB_UTF_REJECT) {
@@ -180,9 +180,9 @@ MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t size) {
     return le_valid && state_le == MJB_UTF_ACCEPT;  // Valid UTF-16LE
 }
 
-MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t size,
+MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length,
     mjb_encoding encoding) {
-    if(buffer == NULL || size < 2) {
+    if(buffer == NULL || byte_length < 2) {
         return 0;
     }
 
@@ -205,7 +205,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 1;
         } else if(codepoint <= 0x7FF) {
-            if(size < 3) {
+            if(byte_length < 3) {
                 return 0;
             }
 
@@ -216,7 +216,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 2;
         } else if(codepoint <= 0xFFFF) {
-            if(size < 4) {
+            if(byte_length < 4) {
                 return 0;
             }
 
@@ -228,7 +228,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 
             return 3;
         } else if(codepoint <= 0x10FFFF) {
-            if(size < 5) {
+            if(byte_length < 5) {
                 return 0;
             }
 
@@ -243,7 +243,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
         }
     } else if(((encoding & MJB_ENC_UTF_16LE) || (encoding & MJB_ENC_UTF_16BE)) &&
         !((encoding & MJB_ENC_UTF_32LE) || (encoding & MJB_ENC_UTF_32BE))) {
-        if(size < 3) {
+        if(byte_length < 3) {
             return 0;
         }
 
@@ -262,7 +262,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
             return 2;
         } else if(codepoint <= 0x10FFFF) {
             // Supplementary Planes - surrogate pair
-            if(size < 5) {
+            if(byte_length < 5) {
                 return 0;
             }
 
@@ -288,7 +288,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
             return 4;
         }
     } else if((encoding & MJB_ENC_UTF_32LE) || (encoding & MJB_ENC_UTF_32BE)) {
-        if(size < 5) {
+        if(byte_length < 5) {
             return 0;
         }
 
@@ -317,15 +317,15 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
     return 0;
 }
 
-MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t size,
+MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && size > 0)) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(size == 0 || encoding == output_encoding) {
+    if(byte_length == 0 || encoding == output_encoding) {
         result->output = (char*)buffer;
-        result->output_size = size;
+        result->output_size = byte_length;
         result->transformed = false;
 
         return MJB_STATUS_OK;
@@ -333,7 +333,7 @@ MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t siz
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
-    result->output = (char*)mjb_alloc(size);
+    result->output = (char*)mjb_alloc(byte_length);
 
     if(result->output == NULL) {
         result->output_size = 0;
@@ -342,13 +342,13 @@ MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t siz
         return MJB_STATUS_NO_MEMORY;
     }
 
-    result->output_size = size;
+    result->output_size = byte_length;
     result->transformed = true;
     size_t output_index = 0;
     bool in_error = false;
 
-    for(size_t i = 0; i < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {

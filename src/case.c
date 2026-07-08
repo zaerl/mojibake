@@ -145,13 +145,13 @@ static bool mjb_special_casing_codepoint(mjb_codepoint codepoint, char **output,
 }
 
 // Final_Sigma lookahead: a cased letter follows, skipping case-ignorable characters.
-static bool mjb_followed_by_cased(const char *buffer, size_t size, size_t i, uint8_t state,
+static bool mjb_followed_by_cased(const char *buffer, size_t byte_length, size_t i, uint8_t state,
     mjb_encoding encoding) {
     mjb_codepoint codepoint = 0;
     bool in_error = false;
 
     for(;;) {
-        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(result == MJB_DECODE_END) {
@@ -168,13 +168,13 @@ static bool mjb_followed_by_cased(const char *buffer, size_t size, size_t i, uin
 
 // More_Above (lt) lookahead: a character of combining class 230 follows, with no intervening
 // character of combining class 0.
-static bool mjb_more_above(const char *buffer, size_t size, size_t i, uint8_t state,
+static bool mjb_more_above(const char *buffer, size_t byte_length, size_t i, uint8_t state,
     mjb_encoding encoding) {
     mjb_codepoint codepoint = 0;
     bool in_error = false;
 
     for(;;) {
-        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(result == MJB_DECODE_END) {
@@ -199,13 +199,13 @@ static bool mjb_more_above(const char *buffer, size_t size, size_t i, uint8_t st
 
 // Before_Dot (tr/az) lookahead: U+0307 COMBINING DOT ABOVE follows, skipping characters with
 // combining class other than 0 and 230.
-static bool mjb_before_dot(const char *buffer, size_t size, size_t i, uint8_t state,
+static bool mjb_before_dot(const char *buffer, size_t byte_length, size_t i, uint8_t state,
     mjb_encoding encoding) {
     mjb_codepoint codepoint = 0;
     bool in_error = false;
 
     for(;;) {
-        mjb_decode_result result = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(result == MJB_DECODE_END) {
@@ -232,7 +232,7 @@ static bool mjb_before_dot(const char *buffer, size_t size, size_t i, uint8_t st
 // and Azerbaijani (az). Final_Sigma is language-insensitive and handled in the casing loops.
 // Sets *handled when a rule matched; a matched rule may emit no output (removed character).
 static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type type,
-    const mjb_case_context *context, const char *buffer, size_t size, size_t i, uint8_t state,
+    const mjb_case_context *context, const char *buffer, size_t byte_length, size_t i, uint8_t state,
     mjb_encoding encoding, mjb_encoding output_encoding, char **output, size_t *output_index,
     size_t *output_size, bool *handled) {
     mjb_codepoint mapped[3];
@@ -247,7 +247,7 @@ static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type typ
                 mapped[length++] = 0x69;
             } else if(codepoint == 0x307 && context->after_i) {
                 // Remove the dot above of a lowercased I: the pair becomes a plain i.
-            } else if(codepoint == 0x49 && !mjb_before_dot(buffer, size, i, state, encoding)) {
+            } else if(codepoint == 0x49 && !mjb_before_dot(buffer, byte_length, i, state, encoding)) {
                 mapped[length++] = 0x131; // I → ı
             } else {
                 return true;
@@ -264,7 +264,7 @@ static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type typ
                 case 0x49: // I → i + dot above
                 case 0x4A: // J → j + dot above
                 case 0x12E: // Į → į + dot above
-                    if(!mjb_more_above(buffer, size, i, state, encoding)) {
+                    if(!mjb_more_above(buffer, byte_length, i, state, encoding)) {
                         return true;
                     }
 
@@ -308,27 +308,27 @@ static bool mjb_locale_special_casing(mjb_codepoint codepoint, mjb_case_type typ
 /**
  * See: https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G34078
  */
-static mjb_status mjb_titlecase(const char *buffer, size_t size, mjb_encoding encoding,
+static mjb_status mjb_titlecase(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_encoding output_encoding, mjb_result *result) {
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint;
-    char *output = (char*)mjb_alloc(size);
+    char *output = (char*)mjb_alloc(byte_length);
 
     if(output == NULL) {
         return MJB_STATUS_NO_MEMORY;
     }
 
     size_t output_index = 0;
-    size_t output_size = size;
+    size_t output_size = byte_length;
     bool in_word = false;
     bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
         mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
     mjb_case_context context = {false, false, false, locale_sensitive};
 
-    for(size_t i = 0; i < size;) {
+    for(size_t i = 0; i < byte_length;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -391,7 +391,7 @@ static mjb_status mjb_titlecase(const char *buffer, size_t size, mjb_encoding en
         // cased letter, in both cases skipping case-ignorable characters.
         if(original == 0x03A3 && case_type == MJB_CASE_LOWER) {
             mjb_codepoint sigma_out = context.preceded_by_cased &&
-                !mjb_followed_by_cased(buffer, size, i, state, encoding)
+                !mjb_followed_by_cased(buffer, byte_length, i, state, encoding)
                 ? 0x03C2   // ς: word-final sigma
                 : 0x03C3;  // σ: followed by a cased letter, not word-final
 
@@ -411,7 +411,7 @@ static mjb_status mjb_titlecase(const char *buffer, size_t size, mjb_encoding en
         if(locale_sensitive) {
             bool handled = false;
 
-            if(!mjb_locale_special_casing(original, effective_type, &context, buffer, size,
+            if(!mjb_locale_special_casing(original, effective_type, &context, buffer, byte_length,
                 i, state, encoding, output_encoding, &output, &output_index, &output_size,
                 &handled)) {
                 mjb_free(output);
@@ -475,9 +475,9 @@ static mjb_status mjb_titlecase(const char *buffer, size_t size, mjb_encoding en
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type type,
+MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && size > 0)) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -486,7 +486,7 @@ MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type ty
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(size == 0) {
+    if(byte_length == 0) {
         result->output = (char*)buffer;
         result->output_size = 0;
         result->transformed = false;
@@ -495,29 +495,29 @@ MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type ty
     }
 
     if(type == MJB_CASE_TITLE) {
-        return mjb_titlecase(buffer, size, encoding, output_encoding, result);
+        return mjb_titlecase(buffer, byte_length, encoding, output_encoding, result);
     }
 
     mjb_codepoint codepoint;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    char *output = (char*)mjb_alloc(size);
+    char *output = (char*)mjb_alloc(byte_length);
 
     if(output == NULL) {
         return MJB_STATUS_NO_MEMORY;
     }
 
     size_t output_index = 0;
-    size_t output_size = size;
+    size_t output_size = byte_length;
     bool turkic = mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ;
     bool locale_sensitive = turkic || mjb_global.locale == MJB_LOCALE_LT;
     // The context is only needed for Final_Sigma (lowercase) and the language-sensitive rules.
     bool track_context = type == MJB_CASE_LOWER || locale_sensitive;
     mjb_case_context context = {false, false, false, locale_sensitive};
 
-    for(size_t i = 0; i < size;) {
+    for(size_t i = 0; i < byte_length;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -610,7 +610,7 @@ MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type ty
         if(locale_sensitive) {
             bool handled = false;
 
-            if(!mjb_locale_special_casing(codepoint, type, &context, buffer, size, i, state,
+            if(!mjb_locale_special_casing(codepoint, type, &context, buffer, byte_length, i, state,
                 encoding, output_encoding, &output, &output_index, &output_size, &handled)) {
                 mjb_free(output);
 
@@ -631,7 +631,7 @@ MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t size, mjb_case_type ty
             mjb_codepoint sigma_out;
 
             if(context.preceded_by_cased &&
-                !mjb_followed_by_cased(buffer, size, i, state, encoding)) {
+                !mjb_followed_by_cased(buffer, byte_length, i, state, encoding)) {
                 sigma_out = 0x03C2; // ς: word-final sigma
             } else {
                 sigma_out = 0x03C3; // σ: non-final or no preceding cased letter

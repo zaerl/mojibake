@@ -320,7 +320,7 @@ static bool bidi_query(mjb_codepoint cp, mjb_bidi_class *out_class, bool *out_mi
 }
 
 // Pass 1: decode string + build working array + P2/P3 paragraph level.
-static size_t pass1_decode(const char *buffer, size_t size, mjb_encoding encoding,
+static size_t pass1_decode(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_bidi_work *work, size_t capacity, uint8_t *out_level, mjb_direction base_dir) {
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
@@ -328,9 +328,9 @@ static size_t pass1_decode(const char *buffer, size_t size, mjb_encoding encodin
     size_t count = 0;
     size_t i = 0;
 
-    while(i < size && count < capacity) {
+    while(i < byte_length && count < capacity) {
         size_t byte_offset = i;
-        mjb_decode_result dr = mjb_next_codepoint(buffer, size, &state, &i, encoding, &cp, &in_error);
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp, &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;
@@ -1162,9 +1162,9 @@ static void pass6_implicit(mjb_bidi_work *work, size_t count) {
 }
 
 // Resolve bidirectional text (TR9) for a paragraph.
-MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_direction direction, mjb_bidi_paragraph *result) {
-    if(result == NULL || (buffer == NULL && size > 0)) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -1173,16 +1173,16 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_enco
     result->paragraph_level = 0;
     result->direction = MJB_DIRECTION_LTR;
 
-    if(size == 0) {
+    if(byte_length == 0) {
         return MJB_STATUS_OK;
     }
 
     // Upper bound: size bytes cannot produce more than size codepoints.
-    if(size > SIZE_MAX / sizeof(mjb_bidi_work)) {
+    if(byte_length > SIZE_MAX / sizeof(mjb_bidi_work)) {
         return MJB_STATUS_OVERFLOW;
     }
 
-    mjb_bidi_work *work = (mjb_bidi_work *)mjb_alloc(size * sizeof(mjb_bidi_work));
+    mjb_bidi_work *work = (mjb_bidi_work *)mjb_alloc(byte_length * sizeof(mjb_bidi_work));
 
     if(!work) {
         return MJB_STATUS_NO_MEMORY;
@@ -1191,7 +1191,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t size, mjb_enco
     uint8_t para_level = 0;
 
     // Pass 1.
-    size_t count = pass1_decode(buffer, size, encoding, work, size, &para_level, direction);
+    size_t count = pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level, direction);
 
     if(count == 0) {
         mjb_free(work);

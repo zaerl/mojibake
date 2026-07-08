@@ -285,9 +285,9 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 /**
  * Normalize a string
  */
-MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normalization form,
+MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && size > 0)) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -296,7 +296,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
         return MJB_STATUS_INVALID_FORM;
     }
 
-    if(size == 0) {
+    if(byte_length == 0) {
         result->output = (char*)buffer;
         result->output_size = 0;
         result->transformed = false;
@@ -326,12 +326,12 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
 
     bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
-    mjb_quick_check_result is_normalized = mjb_string_is_normalized(buffer, size, encoding, form);
+    mjb_quick_check_result is_normalized = mjb_string_is_normalized(buffer, byte_length, encoding, form);
 
     if(is_normalized == MJB_QC_YES) {
         // No need to normalize.
         if(encoding != output_encoding) {
-            mjb_status status = mjb_string_convert_encoding(buffer, size, encoding,
+            mjb_status status = mjb_string_convert_encoding(buffer, byte_length, encoding,
                 output_encoding, result);
 
             if(status != MJB_STATUS_OK) {
@@ -342,7 +342,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
         }
 
         result->output = (char*)buffer;
-        result->output_size = size;
+        result->output_size = byte_length;
         result->transformed = false;
 
         return MJB_STATUS_OK;
@@ -354,9 +354,9 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
     if(encoding == output_encoding) {
         // The output encoding is the same as the input encoding, we can use the input size as the
         // potential output size.
-        potential_output_size = size;
+        potential_output_size = byte_length;
     } else {
-        potential_output_size = mjb_strnlen(buffer, size, encoding);
+        potential_output_size = mjb_strnlen(buffer, byte_length, encoding);
 
         switch(output_encoding) {
             case MJB_ENC_UTF_8:
@@ -450,9 +450,9 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t size, mjb_normali
     // Loop through the string.
     bool in_error = false;
 
-    for(size_t i = 0; i < size;) {
+    for(size_t i = 0; i < byte_length;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {

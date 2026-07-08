@@ -73,10 +73,10 @@ void mjb_test_coverage_set(const char *name);
     ATT_ASSERT((unsigned int)(VALUE), (unsigned int)(EXPECTED), MESSAGE)
 
 // Utils
-typedef void (*test_file_callback)(const char *buffer, size_t size, unsigned int current_line, mjb_break_type *expected_types);
+typedef void (*test_file_callback)(const char *buffer, size_t byte_length, unsigned int current_line, mjb_break_type *expected_types);
 
-size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints);
-char *run_mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding);
+size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepoints);
+char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding);
 void read_test_file(const char *filename, test_file_callback callback);
 
 #ifdef _WIN32

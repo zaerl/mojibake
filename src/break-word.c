@@ -13,15 +13,15 @@ extern mojibake mjb_global;
 
 // Peek at the next codepoint's WBP (for look-ahead rules WB6, WB7b, WB12).
 // When skip_wb4 is true, Extend/Format/ZWJ characters are skipped (WB4 transparency).
-static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t size, size_t peek_index,
+static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length, size_t peek_index,
     mjb_encoding encoding, bool skip_wb4) {
     uint8_t peek_state = MJB_UTF_ACCEPT;
     mjb_codepoint peek_cp = 0;
     bool peek_error = false;
     size_t i = peek_index;
 
-    for(; i < size;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, size, &peek_state, &peek_index,
+    for(; i < byte_length;) {
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &peek_state, &peek_index,
             encoding, &peek_cp, &peek_error);
 
         if(dr == MJB_DECODE_END) {
@@ -55,9 +55,9 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t size, size_t
 
 // Word cluster breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_next_word_state *state) {
-    if(buffer == NULL || state == NULL || size == 0) {
+    if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
 
@@ -81,13 +81,13 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
         return MJB_BT_NOT_SET;
     }
 
-    if(state->index == size) {
+    if(state->index == byte_length) {
         // Reached end of string.
         ++state->index;
 
         // WB2 Any ÷ eot
         return MJB_BT_ALLOWED;
-    } else if(state->index > size) {
+    } else if(state->index > byte_length) {
         // Last step
         return MJB_BT_NOT_SET;
     }
@@ -96,8 +96,8 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
     bool first_codepoint = state->index == 0;
     uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
-    for(; state->index < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
+    for(; state->index < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -242,7 +242,7 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
                 state->current == MJB_WBP_SINGLE_QUOTE
             )
         ) {
-            mjb_wbp next_wbp = mjb_peek_next_word(buffer, size, state->index, encoding, true);
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
 
             if(next_wbp == MJB_WBP_A_LETTER || next_wbp == MJB_WBP_HEBREW_LETTER) {
                 return MJB_BT_NO_BREAK;
@@ -270,7 +270,7 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
         // WB7b Hebrew_Letter × Double_Quote Hebrew_Letter
         // (look-ahead: next effective char must be Hebrew_Letter)
         if(state->previous == MJB_WBP_HEBREW_LETTER && state->current == MJB_WBP_DOUBLE_QUOTE) {
-            mjb_wbp next_wbp = mjb_peek_next_word(buffer, size, state->index, encoding, true);
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
 
             if(next_wbp == MJB_WBP_HEBREW_LETTER) {
                 return MJB_BT_NO_BREAK;
@@ -335,7 +335,7 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
                 state->current == MJB_WBP_SINGLE_QUOTE
             )
         ) {
-            mjb_wbp next_wbp = mjb_peek_next_word(buffer, size, state->index, encoding, true);
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
 
             if(next_wbp == MJB_WBP_NUMERIC) {
                 return MJB_BT_NO_BREAK;
@@ -398,9 +398,9 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t size, mjb_en
 
 
 // Return the number of bytes that form the first max_segments word-break segments.
-MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
     size_t max_segments) {
-    if(buffer == NULL || size == 0 || max_segments == 0) {
+    if(buffer == NULL || byte_length == 0 || max_segments == 0) {
         return 0;
     }
 
@@ -411,12 +411,12 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encodin
     size_t segment_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_break_word(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_break_word(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, size,
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
         last_break = break_pos;
 
@@ -425,13 +425,13 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t size, mjb_encodin
         }
     }
 
-    return state.state == MJB_UTF_TERMINATED ? last_break : size;
+    return state.state == MJB_UTF_TERMINATED ? last_break : byte_length;
 }
 
 // Return the number of bytes whose word-break segments fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_width_context context, size_t max_columns) {
-    if(buffer == NULL || size == 0 || max_columns == 0) {
+    if(buffer == NULL || byte_length == 0 || max_columns == 0) {
         return 0;
     }
 
@@ -442,12 +442,12 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_e
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_break_word(buffer, size, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_break_word(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, size,
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t segment_width = 0;
 
@@ -464,5 +464,5 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t size, mjb_e
         prev_break = break_pos;
     }
 
-    return state.state == MJB_UTF_TERMINATED ? prev_break : size;
+    return state.state == MJB_UTF_TERMINATED ? prev_break : byte_length;
 }

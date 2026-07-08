@@ -32,7 +32,7 @@ static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
     return state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT;
 }
 
-static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uint8_t *state,
+static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_length, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
     if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
@@ -44,10 +44,10 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
         *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
         ++*index;  // Increment by 1 byte
     } else if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
-        if(*index + 1 >= size) {
+        if(*index + 1 >= byte_length) {
             // Truncated trailing unit: consume it, or decoding would never terminate.
             *state = MJB_UTF_REJECT;
-            *index = size;
+            *index = byte_length;
         } else {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(!buffer[*index] && !buffer[*index + 1]) {
@@ -60,10 +60,10 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
             *index += 2;  // Increment by 2 bytes (full code unit)
         }
     } else if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
-        if(*index + 3 >= size) {
+        if(*index + 3 >= byte_length) {
             // Truncated trailing unit: consume it, or decoding would never terminate.
             *state = MJB_UTF_REJECT;
-            *index = size;
+            *index = byte_length;
         } else {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(!buffer[*index] && !buffer[*index + 1] && !buffer[*index + 2] && !buffer[*index + 3]) {
@@ -87,10 +87,10 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t size, uin
 /**
  * Get the next codepoint from a string.
  */
-static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, size_t size,
+static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, size_t byte_length,
     uint8_t *state, size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint,
     bool *in_error) {
-    if(*index >= size) {
+    if(*index >= byte_length) {
         // Check if we have an incomplete sequence at end of buffer
         if(mjb_utf_state_is_incomplete(*state)) {
             *codepoint = MJB_CODEPOINT_REPLACEMENT;
@@ -104,7 +104,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
 
     uint8_t prev_state = *state;
 
-    if(!mjb_decode_step(buffer, size, state, index, encoding, codepoint)) {
+    if(!mjb_decode_step(buffer, byte_length, state, index, encoding, codepoint)) {
         // Check if we have an incomplete sequence at end
         if(mjb_utf_state_is_incomplete(*state)) {
             *codepoint = MJB_CODEPOINT_REPLACEMENT;

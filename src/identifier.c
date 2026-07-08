@@ -8,9 +8,9 @@
 #include "utf.h"
 
 // Return true if the string is a valid Unicode identifier (UAX#31).
-MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_identifier_profile profile) {
-    if(buffer == NULL || size == 0) {
+    if(buffer == NULL || byte_length == 0) {
         return false;
     }
 
@@ -22,8 +22,8 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t size, mjb_en
     bool in_error = false;
     bool first = true;
 
-    for(size_t i = 0; i < size;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, size, &state, &i, encoding, &codepoint,
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &codepoint,
             &in_error);
 
         if(dr == MJB_DECODE_END) {

@@ -39,9 +39,9 @@ static size_t confusable_lookup(mjb_codepoint codepoint, mjb_codepoint *result,
 
 // Compute the Unicode security skeleton of a string (UTS#39 §4).
 // Algorithm: NFD(input) -> per-codepoint skeleton substitution -> NFD.
-static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding encoding,
+static bool mjb_string_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_result *result) {
-    if(size == 0) {
+    if(byte_length == 0) {
         result->output = (char*)buffer;
         result->output_size = 0;
         result->transformed = false;
@@ -52,7 +52,7 @@ static bool mjb_string_skeleton(const char *buffer, size_t size, mjb_encoding en
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    if(mjb_normalize(buffer, size, MJB_NORMALIZATION_NFD, encoding, MJB_ENC_UTF_8,
+    if(mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding, MJB_ENC_UTF_8,
         &nfd) != MJB_STATUS_OK) {
         return false;
     }

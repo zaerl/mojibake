@@ -23,14 +23,14 @@ static inline bool mjb_sbp_blocks_sb8(mjb_sbp sbp) {
 // Peek ahead from peek_index to check if Lower is reachable through
 // (¬(OLetter | Upper | Lower | ParaSep | SATerm))* — the SB8 look-ahead.
 // Extend and Format are transparent (SB5). Returns true if Lower is found.
-static inline bool mjb_peek_lower_sentence(const char *buffer, size_t size, size_t peek_index,
+static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_length, size_t peek_index,
     mjb_encoding encoding) {
     uint8_t peek_state = MJB_UTF_ACCEPT;
     mjb_codepoint peek_cp = 0;
     bool peek_error = false;
 
-    for(; peek_index < size;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, size, &peek_state, &peek_index,
+    for(; peek_index < byte_length;) {
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &peek_state, &peek_index,
             encoding, &peek_cp, &peek_error);
 
         if(dr == MJB_DECODE_END) {
@@ -74,9 +74,9 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t size, size
 
 // Sentence boundaries breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_next_sentence_state *state) {
-    if(buffer == NULL || state == NULL || size == 0) {
+    if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
 
@@ -99,13 +99,13 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
         return MJB_BT_NOT_SET;
     }
 
-    if(state->index == size) {
+    if(state->index == byte_length) {
         // Reached end of string.
         ++state->index;
 
         // SB2 Any ÷ eot
         return MJB_BT_ALLOWED;
-    } else if(state->index > size) {
+    } else if(state->index > byte_length) {
         // Last step
         return MJB_BT_NOT_SET;
     }
@@ -114,8 +114,8 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
     bool first_codepoint = state->index == 0;
     uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
-    for(; state->index < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state->state,
+    for(; state->index < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -260,7 +260,7 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t size, mj
 
             // Current is in ¬(OLetter|Upper|Lower|ParaSep|SATerm): look ahead for Lower
             if(!mjb_sbp_blocks_sb8(state->current) && state->current != MJB_SBP_LOWER) {
-                if(mjb_peek_lower_sentence(buffer, size, state->index, encoding)) {
+                if(mjb_peek_lower_sentence(buffer, byte_length, state->index, encoding)) {
                     return MJB_BT_NO_BREAK;
                 }
             }

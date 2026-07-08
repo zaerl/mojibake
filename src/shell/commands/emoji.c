@@ -227,7 +227,7 @@ static bool mjbsh_emoji_input_from_codepoints(int argc, char * const argv[], cha
     return true;
 }
 
-static void mjbsh_emoji_print_json(const char *buffer, size_t size, bool is_emoji_sequence,
+static void mjbsh_emoji_print_json(const char *buffer, size_t byte_length, bool is_emoji_sequence,
     bool is_rgi, const mjb_emoji_sequence *emoji) {
     printf("{%s", mjbsh_jnl());
 
@@ -244,7 +244,8 @@ static void mjbsh_emoji_print_json(const char *buffer, size_t size, bool is_emoj
     printf("\"characters\":%s[", mjbsh_emoji_json_space());
 
     mjbsh_emoji_json_character_count = 0;
-    if(mjb_next_character(buffer, size, MJB_ENC_UTF_8,
+
+    if(mjb_next_character(buffer, byte_length, MJB_ENC_UTF_8,
         mjbsh_emoji_next_character) != MJB_STATUS_OK) {
         printf("]%s", mjbsh_jnl());
         printf("}%s", mjbsh_jnl());
@@ -260,7 +261,7 @@ static void mjbsh_emoji_print_json(const char *buffer, size_t size, bool is_emoj
     printf("}%s", mjbsh_jnl());
 }
 
-static void mjbsh_emoji_print_plain(const char *buffer, size_t size, bool is_emoji_sequence,
+static void mjbsh_emoji_print_plain(const char *buffer, size_t byte_length, bool is_emoji_sequence,
     bool is_rgi, const mjb_emoji_sequence *emoji) {
     mjbsh_value("Input", 1, "%s", buffer);
     mjbsh_bool("Emoji Sequence", 1, is_emoji_sequence);
@@ -271,7 +272,7 @@ static void mjbsh_emoji_print_plain(const char *buffer, size_t size, bool is_emo
         mjbsh_emoji_qualification_name(emoji->qualification), 1);
     mjbsh_numeric("Sequence Codepoints", 1, (unsigned int)emoji->codepoint_count);
 
-    if(mjb_next_character(buffer, size, MJB_ENC_UTF_8,
+    if(mjb_next_character(buffer, byte_length, MJB_ENC_UTF_8,
         mjbsh_emoji_next_character) != MJB_STATUS_OK) {
         return;
     }

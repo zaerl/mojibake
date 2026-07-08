@@ -75,12 +75,12 @@ static bool fuzz_next_character(mjb_character *character, mjb_next_character_typ
     return true;
 }
 
-static void fuzz_boundary_iterators(const char *buffer, size_t size, mjb_encoding encoding) {
-    size_t guard_limit = (size + 8) * 4;
+static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_encoding encoding) {
+    size_t guard_limit = (byte_length + 8) * 4;
 
     mjb_next_state grapheme_state = {0};
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_segmentation(buffer, size, encoding, &grapheme_state);
+        mjb_break_type bt = mjb_segmentation(buffer, byte_length, encoding, &grapheme_state);
         fuzz_sink += (size_t)bt + grapheme_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -94,7 +94,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t size, mjb_encodin
 
     mjb_next_word_state word_state = {0};
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_word(buffer, size, encoding, &word_state);
+        mjb_break_type bt = mjb_break_word(buffer, byte_length, encoding, &word_state);
         fuzz_sink += (size_t)bt + word_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -108,7 +108,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t size, mjb_encodin
 
     mjb_next_line_state line_state = {0};
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_line(buffer, size, encoding, &line_state);
+        mjb_break_type bt = mjb_break_line(buffer, byte_length, encoding, &line_state);
         fuzz_sink += (size_t)bt + line_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -122,7 +122,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t size, mjb_encodin
 
     mjb_next_sentence_state sentence_state = {0};
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_sentence(buffer, size, encoding, &sentence_state);
+        mjb_break_type bt = mjb_break_sentence(buffer, byte_length, encoding, &sentence_state);
         fuzz_sink += (size_t)bt + sentence_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -230,23 +230,23 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
         encodings[(variant >> 2) % 6]);
 }
 
-static void fuzz_emoji_string_api_input(const char *buffer, size_t size, mjb_encoding encoding) {
+static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    if(mjb_string_emoji_sequence(buffer, size, encoding, &emoji) == MJB_STATUS_OK) {
+    if(mjb_string_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
         fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification +
             emoji.codepoint_count;
     }
 
-    fuzz_sink += (size_t)mjb_string_is_emoji_sequence(buffer, size, encoding);
-    fuzz_sink += (size_t)mjb_string_is_rgi_emoji(buffer, size, encoding);
+    fuzz_sink += (size_t)mjb_string_is_emoji_sequence(buffer, byte_length, encoding);
+    fuzz_sink += (size_t)mjb_string_is_rgi_emoji(buffer, byte_length, encoding);
 }
 
-static void fuzz_emoji_string_apis(const char *buffer, size_t size, mjb_encoding encoding) {
-    fuzz_emoji_string_api_input(buffer, size, encoding);
+static void fuzz_emoji_string_apis(const char *buffer, size_t byte_length, mjb_encoding encoding) {
+    fuzz_emoji_string_api_input(buffer, byte_length, encoding);
 
-    if(size > 0) {
-        fuzz_emoji_string_api_input(buffer, size - 1, encoding);
+    if(byte_length > 0) {
+        fuzz_emoji_string_api_input(buffer, byte_length - 1, encoding);
     }
 }
 

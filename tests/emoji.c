@@ -225,11 +225,11 @@ static void run_emoji_test_file(const char *filename) {
     ATT_ASSERT(sequence_failures, 0u, summary)
 }
 
-static void assert_emoji_sequence(const char *buffer, size_t size, mjb_emoji_sequence_type type,
+static void assert_emoji_sequence(const char *buffer, size_t byte_length, mjb_emoji_sequence_type type,
     mjb_emoji_qualification qualification, size_t codepoint_count, const char *name) {
     mjb_emoji_sequence emoji;
 
-    ATT_ASSERT_STATUS(mjb_string_emoji_sequence(buffer, size, MJB_ENC_UTF_8, &emoji),
+    ATT_ASSERT_STATUS(mjb_string_emoji_sequence(buffer, byte_length, MJB_ENC_UTF_8, &emoji),
         MJB_STATUS_OK, name)
     ATT_ASSERT((int)emoji.type, (int)type, name)
     ATT_ASSERT((int)emoji.qualification, (int)qualification, name)

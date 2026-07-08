@@ -9,15 +9,15 @@
 
 extern mojibake mjb_global;
 
-MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_encoding output_encoding, mjb_filter filters, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && size > 0)) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(size == 0) {
+    if(byte_length == 0) {
         result->output = (char*)buffer;
-        result->output_size = size;
+        result->output_size = byte_length;
         result->transformed = false;
 
         return MJB_STATUS_OK;
@@ -30,7 +30,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
         mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ?
             output_encoding : encoding;
 
-        mjb_status status = mjb_normalize(buffer, size, MJB_NORMALIZATION_NFC, encoding,
+        mjb_status status = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFC, encoding,
             normalize_output_encoding, result);
 
         if(status != MJB_STATUS_OK) {
@@ -47,7 +47,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
 
     if(is_normalized) {
         buffer = result->output;
-        size = result->output_size;
+        byte_length = result->output_size;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
@@ -55,8 +55,8 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
     mjb_codepoint original_codepoint = 0;
     mjb_character character;
 
-    char *output = (char*)mjb_alloc(size);
-    size_t output_size = size;
+    char *output = (char*)mjb_alloc(byte_length);
+    size_t output_size = byte_length;
     size_t output_index = 0;
     bool last_was_whitespace = false;
     bool any_transformation = false;
@@ -70,8 +70,8 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
     }
 
     bool in_error = false;
-    for(size_t i = 0; i < size;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -196,7 +196,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t size, mjb_enc
     if(!any_transformation && !is_normalized && encoding == output_encoding) {
         mjb_free(output);
         result->output = (char*)buffer;
-        result->output_size = size;
+        result->output_size = byte_length;
         result->transformed = false;
         return MJB_STATUS_OK;
     }

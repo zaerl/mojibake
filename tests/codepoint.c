@@ -10,16 +10,16 @@
 #include "test.h"
 
 static const char *expected_character_name(mjb_codepoint codepoint, const char *name,
-    char *buffer, size_t size) {
+    char *buffer, size_t byte_length) {
 #if MJB_FEATURE_CHARACTER_NAMES
     (void)codepoint;
     (void)buffer;
-    (void)size;
+    (void)byte_length;
 
     return name;
 #else
     // When compiled without character names, return a generic string with the codepoint.
-    snprintf(buffer, size, "Codepoint U+%04X", (unsigned int)codepoint);
+    snprintf(buffer, byte_length, "Codepoint U+%04X", (unsigned int)codepoint);
 
     return buffer;
 #endif

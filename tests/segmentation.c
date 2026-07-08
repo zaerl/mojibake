@@ -9,7 +9,7 @@
 
 #include "test.h"
 
-void segmentation_callback(const char *buffer, size_t size, unsigned int current_line, mjb_break_type *expected_types) {
+void segmentation_callback(const char *buffer, size_t byte_length, unsigned int current_line, mjb_break_type *expected_types) {
     char test_name[256];
     mjb_break_type bt = MJB_BT_NOT_SET;
     mjb_next_state state;
@@ -17,7 +17,7 @@ void segmentation_callback(const char *buffer, size_t size, unsigned int current
     size_t index = 0;
     size_t successful_count = 0;
 
-    while((bt = mjb_segmentation(buffer, size, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_segmentation(buffer, byte_length, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         snprintf(test_name, 256, "Index %zu", index);
 
         if(bt == MJB_BT_MANDATORY) {

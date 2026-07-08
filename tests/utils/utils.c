@@ -10,7 +10,7 @@
  * Get an UTF-8 string from a string of hex-encoded codepoints
  * Example: "0061 0062 0063", gives "abc"
  */
-size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints) {
+size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepoints) {
     char *token, *string, *tofree;
     tofree = string = strdup(buffer != NULL ? (buffer[0] == ' ' ? buffer + 1 : buffer) : "");
     unsigned int index = 0;
@@ -27,7 +27,7 @@ size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints) {
         }
 
         unsigned int encoded_size = mjb_codepoint_encode(codepoint, codepoints + index,
-            size - index, MJB_ENC_UTF_8);
+            byte_length - index, MJB_ENC_UTF_8);
 
         if(encoded_size == 0) {
             break; // Failed to encode
@@ -45,10 +45,10 @@ size_t get_string_from_codepoints(char *buffer, size_t size, char *codepoints) {
 /**
  * Call mjb_case and return the output string, or NULL when the call fails.
  */
-char *run_mjb_case(const char *buffer, size_t size, mjb_case_type type, mjb_encoding encoding) {
+char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
-    if(mjb_case(buffer, size, type, encoding, encoding, &result) != MJB_STATUS_OK) {
+    if(mjb_case(buffer, byte_length, type, encoding, encoding, &result) != MJB_STATUS_OK) {
         return NULL;
     }
 

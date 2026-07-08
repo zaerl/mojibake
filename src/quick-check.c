@@ -13,10 +13,10 @@ extern mojibake mjb_global;
  * Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
  */
-MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t size,
+MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_normalization form) {
     // A NULL string can be considered normalized, but if the size is greater than 0, it is not valid.
-    if(buffer == NULL && size > 0) {
+    if(buffer == NULL && byte_length > 0) {
         return MJB_QC_NO;
     }
 
@@ -25,7 +25,7 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
         return MJB_QC_NO;
     }
 
-    if(size == 0) {
+    if(byte_length == 0) {
         return MJB_QC_YES;
     }
 
@@ -37,9 +37,9 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
     result = MJB_QC_YES;
     bool in_error = false;
 
-    for(size_t i = 0; i < size;) {
+    for(size_t i = 0; i < byte_length;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, size, &state, &i, encoding,
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {

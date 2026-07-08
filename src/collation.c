@@ -787,18 +787,18 @@ fail:
     return false;
 }
 
-static bool compute_sort_key(const char *buffer, size_t size, mjb_encoding encoding,
+static bool compute_sort_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_collation_mode mode, mjb_sort_key *sk) {
     sk->data = NULL;
     sk->count = 0;
     sk->cap = 0;
 
-    if(size == 0) {
+    if(byte_length == 0) {
         return true;
     }
 
     mjb_result r;
-    bool ok = mjb_normalize(buffer, size, MJB_NORMALIZATION_NFD, encoding, encoding, &r) ==
+    bool ok = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding, encoding, &r) ==
         MJB_STATUS_OK;
 
     if(!ok) {
@@ -873,9 +873,9 @@ static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
     return 0;
 }
 
-MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_encoding encoding,
+MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_collation_mode mode, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && size > 0)) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -885,7 +885,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t size, mjb_enc
 
     mjb_sort_key sk = { 0, 0, 0 };
 
-    if(!compute_sort_key(buffer, size, encoding, mode, &sk)) {
+    if(!compute_sort_key(buffer, byte_length, encoding, mode, &sk)) {
         return MJB_STATUS_NO_MEMORY;
     }
 
