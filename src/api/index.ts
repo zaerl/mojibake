@@ -644,7 +644,7 @@ export class Mojibake {
 
     try {
       return this.module._mjb_string_compare(firstInput.ptr, firstInput.size,
-        secondInput.ptr, secondInput.size, firstInput.encoding, secondInput.encoding, mode);
+        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode);
     } finally {
       this.free(firstInput.ptr);
       this.free(secondInput.ptr);
@@ -1012,7 +1012,7 @@ export class Mojibake {
 
     try {
       return this.module._mjb_string_is_confusable(wasmInput1.ptr, wasmInput1.size,
-        wasmInput2.ptr, wasmInput2.size, wasmInput1.encoding, wasmInput2.encoding) ? true : false;
+        wasmInput1.encoding, wasmInput2.ptr, wasmInput2.size, wasmInput2.encoding) ? true : false;
     } finally {
       this.free(wasmInput1.ptr);
       this.free(wasmInput2.ptr);
