@@ -400,7 +400,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 12: // Confusable detection, input split in two halves
             mjb_string_is_confusable(buffer, size / 2, buffer + size / 2, size - size / 2,
-                encoding);
+                encoding, encoding);
             break;
 
         case 13: { // BCP 47 locale parsing

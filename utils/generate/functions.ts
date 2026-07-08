@@ -1216,12 +1216,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       byte_length('The length of the first string, in bytes', 's1_byte_length'),
       buffer('The second string', 's2'),
       byte_length('The length of the second string, in bytes', 's2_byte_length'),
-      {
-        name: 'encoding',
-        type: 'mjb_encoding',
-        description: 'The encoding of both strings',
-        wasm_generated: false
-      }
+      encoding('The encoding of the first string', 's1_encoding'),
+      encoding('The encoding of the second string', 's2_encoding')
     ],
     wasm: true,
     details: 'Compute the confusable skeleton of both strings and return true when the ' +

@@ -206,7 +206,7 @@ inline bool is_identifier(std::string_view input,
 
 inline bool is_confusable(std::string_view s1, std::string_view s2) {
     return mjb_string_is_confusable(s1.data(), s1.size(), s2.data(), s2.size(),
-        MJB_ENC_UTF_8);
+        MJB_ENC_UTF_8, MJB_ENC_UTF_8);
 }
 
 enum class NormalizationForm {

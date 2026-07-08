@@ -1096,7 +1096,7 @@ const char *mjb_property_name(mjb_property property);
 Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
 
 ```c
-bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding encoding);
+bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding);
 ```
 
 Compute the confusable skeleton of both strings and return true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
@@ -1105,7 +1105,8 @@ Compute the confusable skeleton of both strings and return true when the skeleto
 - `s1_byte_length` — The length of the first string, in bytes
 - `s2` — The second string
 - `s2_byte_length` — The length of the second string, in bytes
-- `encoding` — The encoding of both strings
+- `s1_encoding` — The encoding of the first string
+- `s2_encoding` — The encoding of the second string
 
 See also: [`mjb_string_is_identifier`](#mjb_string_is_identifier).
 

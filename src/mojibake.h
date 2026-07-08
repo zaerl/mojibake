@@ -678,7 +678,7 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length,
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 
 // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
-MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding encoding);
+MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length, mjb_encoding s1_encoding, mjb_encoding s2_encoding);
 
 // Return the emoji properties.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);

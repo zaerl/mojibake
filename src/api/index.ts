@@ -1006,14 +1006,14 @@ export class Mojibake {
   }
 
   // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length,
-  // mjb_encoding encoding)
+  // mjb_encoding s1_encoding, mjb_encoding s2_encoding)
   stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput1 = this.copyInput(s1, options.encoding);
-    const wasmInput2 = this.copyInput(s2, options.encoding);
+    const wasmInput2 = this.copyInput(s2, options.additionalEncoding ?? options.encoding);
 
     try {
       return this.module._mjb_string_is_confusable(wasmInput1.ptr, wasmInput1.size,
-        wasmInput2.ptr, wasmInput2.size, wasmInput1.encoding) ? true : false;
+        wasmInput2.ptr, wasmInput2.size, wasmInput1.encoding, wasmInput2.encoding) ? true : false;
     } finally {
       this.free(wasmInput1.ptr);
       this.free(wasmInput2.ptr);
