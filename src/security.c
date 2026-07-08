@@ -152,16 +152,16 @@ static bool mjb_string_skeleton(const char *buffer, size_t byte_length, mjb_enco
 
 // Return true if two strings are visually confusable (UTS#39 §4).
 // Two strings are confusable if their skeletons are byte-identical.
-MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_size,
-    const char *s2, size_t s2_size, mjb_encoding encoding) {
+MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2,
+    size_t s2_byte_length, mjb_encoding encoding) {
     mjb_result skel1;
     mjb_result skel2;
 
-    if(!mjb_string_skeleton(s1, s1_size, encoding, &skel1)) {
+    if(!mjb_string_skeleton(s1, s1_byte_length, encoding, &skel1)) {
         return false;
     }
 
-    if(!mjb_string_skeleton(s2, s2_size, encoding, &skel2)) {
+    if(!mjb_string_skeleton(s2, s2_byte_length, encoding, &skel2)) {
         if(skel1.transformed) {
             mjb_free(skel1.output);
         }

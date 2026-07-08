@@ -924,32 +924,32 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length, 
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_length, const char *s2,
-    size_t s2_length, mjb_encoding encoding, mjb_collation_mode mode) {
-    if((s1 == NULL && s1_length > 0) || (s2 == NULL && s2_length > 0)) {
+MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2,
+    size_t s2_byte_length, mjb_encoding encoding, mjb_collation_mode mode) {
+    if((s1 == NULL && s1_byte_length > 0) || (s2 == NULL && s2_byte_length > 0)) {
         return -1;
     }
 
-    if(s1_length == 0 && s2_length == 0) {
+    if(s1_byte_length == 0 && s2_byte_length == 0) {
         return 0;
     }
 
-    if(s1_length == 0) {
+    if(s1_byte_length == 0) {
         return -1;
     }
 
-    if(s2_length == 0) {
+    if(s2_byte_length == 0) {
         return 1;
     }
 
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    if(!compute_sort_key(s1, s1_length, encoding, mode, &sk1)) {
+    if(!compute_sort_key(s1, s1_byte_length, encoding, mode, &sk1)) {
         return -1;
     }
 
-    if(!compute_sort_key(s2, s2_length, encoding, mode, &sk2)) {
+    if(!compute_sort_key(s2, s2_byte_length, encoding, mode, &sk2)) {
         sk_free(&sk1);
 
         return -1;

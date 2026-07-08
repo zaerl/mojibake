@@ -634,7 +634,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_string_compare(const char *s1, size_t s1_length, const char *s2, size_t s2_length,
+  // mjb_string_compare(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length,
   // mjb_encoding encoding, mjb_collation_mode mode)
   stringCompare(first: MojibakeInput, second: MojibakeInput,
     mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number {
@@ -1003,7 +1003,7 @@ export class Mojibake {
     return this.decodeString(ptr, null, Encoding.UTF_8);
   }
 
-  // bool mjb_string_is_confusable(const char *s1, size_t s1_size, const char *s2, size_t s2_size,
+  // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, const char *s2, size_t s2_byte_length,
   // mjb_encoding encoding)
   stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput1 = this.copyInput(s1, options);

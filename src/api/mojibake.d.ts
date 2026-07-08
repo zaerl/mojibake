@@ -52,7 +52,7 @@ export type MojibakeWasmModule = {
   // Return the length of a string.
   _mjb_strnlen: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Compare two strings using UCA.
-  _mjb_string_compare: (s1: Pointer, s1_length: number, s2: Pointer, s2_length: number, encoding: number, mode: number) => number;
+  _mjb_string_compare: (s1: Pointer, s1_byte_length: number, s2: Pointer, s2_byte_length: number, encoding: number, mode: number) => number;
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case.
@@ -124,7 +124,7 @@ export type MojibakeWasmModule = {
   // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
   // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
-  _mjb_string_is_confusable: (s1: Pointer, s1_size: number, s2: Pointer, s2_size: number, encoding: number) => boolean;
+  _mjb_string_is_confusable: (s1: Pointer, s1_byte_length: number, s2: Pointer, s2_byte_length: number, encoding: number) => boolean;
   // Return the emoji properties.
   _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property.
