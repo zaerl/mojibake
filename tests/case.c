@@ -225,14 +225,18 @@ int test_case(void *arg) {
     ATT_ASSERT(result, (char*)"Ⅲ Times", "UTF-8 titlecase: ⅲ times")
     mjb_free(result);
 
-    // TODO: add support for WordBreakProperty.txt
-    // See: https://www.unicode.org/reports/tr29/#Word_Boundaries
-    // 2019..2019    MidLetter # Po  RIGHT SINGLE QUOTATION MARK
-    // WB6: ALetter × MidLetter ALetter
-    // WB7: ALetter MidLetter × ALetter
-    // result = run_mjb_case("o’connor", 9, MJB_CASE_TITLE, encoding);
-    // ATT_ASSERT(result, "O’Connor", "UTF-8 titlecase: o’connor")
-    // mjb_free(result);
+    // UAX #29 keeps internal apostrophes in the same word segment for default titlecase.
+    result = run_mjb_case("o\xE2\x80\x99""CONNOR", 10, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"O\xE2\x80\x99""connor", "UTF-8 titlecase: o’CONNOR")
+    mjb_free(result);
+
+    result = run_mjb_case("rock'n'ROLL", 11, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"Rock'n'roll", "UTF-8 titlecase: rock'n'ROLL")
+    mjb_free(result);
+
+    result = run_mjb_case("a\xCC\x88""BC", 5, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result, (char*)"A\xCC\x88""bc", "UTF-8 titlecase: a + diaeresis + BC")
+    mjb_free(result);
 
     result = run_mjb_case("İstanbul", 9, MJB_CASE_TITLE, encoding);
     ATT_ASSERT(result, (char*)"İstanbul", "UTF-8 titlecase: İstanbul")

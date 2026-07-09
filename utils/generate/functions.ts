@@ -552,7 +552,9 @@ related: ['mjb_normalize']
     wasm: true,
     details: 'Convert a string to uppercase, lowercase, titlecase, or its case-folded form. ' +
       'Full case mappings are applied, including special casing and conditional mappings, so ' +
-      'the output may have a different length than the input. Casing is tailored by the ' +
+      'the output may have a different length than the input. Titlecase uses UAX #29 word ' +
+      'boundaries: the first cased character in each word segment is titlecased, and ' +
+      'subsequent characters in that segment are lowercased. Casing is tailored by the ' +
       'process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses ' +
       'default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply ' +
       'Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. ' +

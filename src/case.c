@@ -144,6 +144,26 @@ static bool mjb_special_casing_codepoint(mjb_codepoint codepoint, char **output,
     return true;
 }
 
+static size_t mjb_titlecase_next_word_boundary(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_next_word_state *state, size_t previous) {
+    mjb_break_type bt;
+
+    while((bt = mjb_break_word(buffer, byte_length, encoding, state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = mjb_monotonic_boundary_position(state->index, byte_length,
+            state->current_codepoint, encoding, state->state == MJB_UTF_TERMINATED, previous);
+
+        if(break_pos > previous) {
+            return break_pos;
+        }
+    }
+
+    return byte_length;
+}
+
 // Final_Sigma lookahead: a cased letter follows, skipping case-ignorable characters.
 static bool mjb_followed_by_cased(const char *buffer, size_t byte_length, size_t i, uint8_t state,
     mjb_encoding encoding) {
@@ -321,12 +341,18 @@ static mjb_status mjb_titlecase(const char *buffer, size_t byte_length, mjb_enco
 
     size_t output_index = 0;
     size_t output_size = byte_length;
-    bool in_word = false;
     bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
         mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
     mjb_case_context context = {false, false, false, locale_sensitive};
+    mjb_next_word_state word_state;
+    word_state.index = 0;
+    size_t segment_end = mjb_titlecase_next_word_boundary(buffer, byte_length, encoding,
+        &word_state, 0);
+    bool segment_has_cased = false;
 
     for(size_t i = 0; i < byte_length;) {
+        size_t codepoint_start = i;
+
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
             &codepoint, &in_error);
@@ -339,51 +365,39 @@ static mjb_status mjb_titlecase(const char *buffer, size_t byte_length, mjb_enco
             continue;
         }
 
+        while(codepoint_start >= segment_end && segment_end < byte_length) {
+            segment_has_cased = false;
+            segment_end = mjb_titlecase_next_word_boundary(buffer, byte_length, encoding,
+                &word_state, segment_end);
+        }
+
         mjb_unicode_case_mapping mapping;
         mjb_case_lookup_or_identity(codepoint, &mapping);
 
         mjb_codepoint original = codepoint;
-        mjb_category category = mapping.category;
         mjb_case_type case_type = MJB_CASE_NONE;
-        // Position-based type: the word-initial character takes its titlecase mapping, every
-        // other character its lowercase mapping.
-        mjb_case_type effective_type = MJB_CASE_LOWER;
+        mjb_case_type effective_type = MJB_CASE_NONE;
+        bool is_cased = mjb_is_cased(original);
 
-        // Word boundary.
-        if(
-            // Is cased.
-            category == MJB_CATEGORY_LU || category == MJB_CATEGORY_LL ||
-            category == MJB_CATEGORY_LT ||
-            // Is a modifier.
-            category == MJB_CATEGORY_LM ||
-            // Is a number.
-            category == MJB_CATEGORY_LO || category == MJB_CATEGORY_NL
-        ) {
-            if(!in_word) {
-                effective_type = MJB_CASE_TITLE;
+        if(!segment_has_cased && is_cased) {
+            effective_type = MJB_CASE_TITLE;
+            case_type = MJB_CASE_TITLE;
+            segment_has_cased = true;
 
-                // Try titlecase first.
-                if(mapping.titlecase == 0) {
-                    // If titlecase is not available, try uppercase.
-                    if(mapping.uppercase != 0) {
-                        codepoint = mapping.uppercase;
-                        case_type = MJB_CASE_UPPER;
-                    }
-                } else {
-                    codepoint = mapping.titlecase;
-                    case_type = MJB_CASE_TITLE;
-                }
-
-                in_word = true;
-            } else {
-                // Try lowercase.
-                if(mapping.lowercase != 0) {
-                    codepoint = mapping.lowercase;
-                    case_type = MJB_CASE_LOWER;
-                }
+            // Titlecase_Mapping falls back to Uppercase_Mapping when no distinct titlecase
+            // mapping exists.
+            if(mapping.titlecase != 0) {
+                codepoint = mapping.titlecase;
+            } else if(mapping.uppercase != 0) {
+                codepoint = mapping.uppercase;
             }
-        } else {
-            in_word = false;
+        } else if(segment_has_cased) {
+            effective_type = MJB_CASE_LOWER;
+            case_type = MJB_CASE_LOWER;
+
+            if(mapping.lowercase != 0) {
+                codepoint = mapping.lowercase;
+            }
         }
 
         // Final_Sigma (SpecialCasing.txt condition Final_Sigma):
@@ -392,8 +406,8 @@ static mjb_status mjb_titlecase(const char *buffer, size_t byte_length, mjb_enco
         if(original == 0x03A3 && case_type == MJB_CASE_LOWER) {
             mjb_codepoint sigma_out = context.preceded_by_cased &&
                 !mjb_followed_by_cased(buffer, byte_length, i, state, encoding)
-                ? 0x03C2   // ς: word-final sigma
-                : 0x03C3;  // σ: followed by a cased letter, not word-final
+                ? 0x03C2  // ς: word-final sigma
+                : 0x03C3; // σ: followed by a cased letter, not word-final
 
             mjb_case_context_update(&context, original);
 
@@ -430,12 +444,11 @@ static mjb_status mjb_titlecase(const char *buffer, size_t byte_length, mjb_enco
 
         // Check against the original codepoint (before any remapping by the word-boundary
         // block above). The remapped form may not be the source of any special casing rule.
-        if(mjb_maybe_has_special_casing(original)) {
+        if(case_type != MJB_CASE_NONE && mjb_maybe_has_special_casing(original)) {
             bool found_special_casing = false;
 
             if(!mjb_special_casing_codepoint(original, &output, &output_index, &output_size,
-                case_type == MJB_CASE_NONE ? MJB_CASE_TITLE : case_type, output_encoding,
-                &found_special_casing)) {
+                case_type, output_encoding, &found_special_casing)) {
                 mjb_free(output);
 
                 return MJB_STATUS_NO_MEMORY;
