@@ -3,7 +3,7 @@
 ## Reporting a Vulnerability
 
 Report security issues through GitHub. If the issue can be described publicly without exposing
-users to immediate risk, open an issue and link a pull request.
+users to immediate risk, open an issue and link to a pull request.
 
 If the vulnerability is very serious, email `mojibake@zaerl.com` before making the report public.
 
