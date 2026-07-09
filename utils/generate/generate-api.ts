@@ -12,7 +12,7 @@ export function generateAPI() {
   let fileContent = readFileSync('../../API.md', 'utf-8');
 
   const functions = '\n' + cfns().map((value: CFunction) => value.formatMD()).join('\n\n');
-  fileContent = substituteBlock(fileContent, "# Functions\n", null, functions);
+  fileContent = substituteBlock(fileContent, "# Functions\n", "\n\n# Unicode references", functions);
 
   writeFileSync('../../API.md', fileContent);
 }
