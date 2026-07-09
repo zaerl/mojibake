@@ -88,6 +88,27 @@ Unicode 17.0.0 versions of the applicable annexes and synchronized technical sta
 Generic Unicode links, when present, are informational or download links rather than
 normative conformance references.
 
+## Unicode tailoring
+
+Unless listed here, Mojibake applies the referenced Unicode 17.0.0 algorithms without
+higher-level protocol tailoring.
+
+- **Case conversion and case folding**: `mjb_case` is locale-sensitive through the process-global
+  locale set by `mjb_locale_set`. The default locale is `MJB_LOCALE_EN`. `MJB_LOCALE_TR` and
+  `MJB_LOCALE_AZ` apply the Turkish/Azerbaijani dotted-I rules from `SpecialCasing.txt` for
+  uppercase, lowercase, and titlecase, and the Turkic `T` mappings from `CaseFolding.txt` for full
+  and simple case folding. `MJB_LOCALE_LT` applies Lithuanian dot-above rules from
+  `SpecialCasing.txt` for uppercase, lowercase, and titlecase; case folding remains the default
+  non-Turkic mapping.
+- **Collation**: `mjb_string_compare` and `mjb_collation_key` use DUCET without locale collation
+  tailoring. The `mjb_collation_mode` argument only selects the UCA variable weighting strategy.
+- **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
+  Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 17.0.0
+  property value without tailoring.
+- **Other Unicode algorithms**: normalization, bidirectional processing, grapheme/word/sentence/line
+  breaking, identifier validation, confusable skeletons, and emoji sequence checks are not
+  locale-tailored by Mojibake.
+
 ## Usage
 
 You don't need to install anything. Add the C source and header to your build.

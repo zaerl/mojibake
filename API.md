@@ -21,6 +21,23 @@ version of the applicable Unicode Standard Annex or synchronized Unicode Technic
 Standard. Generic Unicode links, when present, are informational or download links rather
 than normative conformance references.
 
+## Unicode tailoring
+
+Unless a function documents a tailoring, it uses the referenced Unicode 17.0.0 algorithm
+without higher-level protocol tailoring.
+
+- `mjb_case` is locale-sensitive through the process-global locale set by `mjb_locale_set`. The
+  default locale is `MJB_LOCALE_EN`. Turkish and Azerbaijani apply dotted-I casing rules and Turkic
+  case-folding mappings. Lithuanian applies dot-above casing rules; case folding remains the default
+  non-Turkic mapping.
+- `mjb_string_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
+  `mjb_collation_mode` only selects the UCA variable weighting strategy.
+- `mjb_display_width` uses its `mjb_width_context` argument to choose how East Asian Width
+  `Ambiguous` characters are counted. `mjb_codepoint_east_asian_width` returns the Unicode 17.0.0
+  property value without tailoring.
+- Normalization, bidirectional processing, grapheme/word/sentence/line breaking, identifier
+  validation, confusable skeletons, and emoji sequence checks are not locale-tailored by Mojibake.
+
 ## API signatures
 
 All functions follow the same signature. And there are a few set of types together with other very
@@ -494,7 +511,7 @@ Change string case.
 mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
-Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input.
+Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Casing is tailored by the process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
 
 - `buffer` — The string to change case
 - `byte_length` — The length of the string, in bytes
@@ -528,7 +545,9 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase), [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
+See also: [`mjb_locale_set`](#mjb_locale_set), [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase), [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
+
+Specifications: [The Unicode Standard, Version 17.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992).
 
 ## `mjb_codepoint_is_valid`
 
@@ -1365,13 +1384,22 @@ Specifications: [BCP 47: Tags for Identifying Languages](https://www.rfc-editor.
 
 ## `mjb_locale_set`
 
-Set current locale.
+Set current locale used by locale-sensitive casing.
 
 ```c
 mjb_status mjb_locale_set(unsigned int locale);
 ```
 
+Set the process-global locale used by `mjb_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
+
 - `locale` — The locale to set
+
+**Returns**
+
+- `MJB_STATUS_OK` — The locale was set
+- `MJB_STATUS_INVALID_ARGUMENT` — `locale` is not a valid `mjb_locale` value
+
+See also: [`mjb_case`](#mjb_case).
 
 ## `mjb_version`
 

@@ -723,7 +723,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t
 // Parse a BCP 47 language tag.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
 
-// Set current locale.
+// Set current locale used by locale-sensitive casing.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_set(unsigned int locale);
 
 // Output the current library version (MJB_VERSION).

@@ -135,6 +135,13 @@ function uts(number: number, title: string): MojibakeSpecRef {
   };
 }
 
+function unicodeCore(section: string, title: string, anchor: string): MojibakeSpecRef {
+  return {
+    name: `The Unicode Standard, Version ${unicodeVersion}, ${section}: ${title}`,
+    url: `https://www.unicode.org/versions/Unicode${unicodeVersion}/core-spec/chapter-3/#${anchor}`
+  };
+}
+
 export default [
   {
     comment: 'Return the codepoint character.',
@@ -545,7 +552,12 @@ related: ['mjb_normalize']
     wasm: true,
     details: 'Convert a string to uppercase, lowercase, titlecase, or its case-folded form. ' +
       'Full case mappings are applied, including special casing and conditional mappings, so ' +
-      'the output may have a different length than the input.',
+      'the output may have a different length than the input. Casing is tailored by the ' +
+      'process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses ' +
+      'default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply ' +
+      'Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. ' +
+      '`MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains ' +
+      'the default non-Turkic mapping.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The case conversion succeeded' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
@@ -566,7 +578,9 @@ printf("Upper: %.*s", (int)result.output_size, result.output);
 if(result.transformed) {
     mjb_free(result.output);
 }`,
-    related: ['mjb_codepoint_to_uppercase', 'mjb_codepoint_to_lowercase', 'mjb_codepoint_to_titlecase']
+    related: ['mjb_locale_set', 'mjb_codepoint_to_uppercase', 'mjb_codepoint_to_lowercase',
+      'mjb_codepoint_to_titlecase'],
+    specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
   {
     comment: 'Return true if the codepoint is valid.',
@@ -1519,7 +1533,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
   {
-    comment: 'Set current locale.',
+    comment: 'Set current locale used by locale-sensitive casing.',
     ret: 'mjb_status',
     name: 'mjb_locale_set',
     attributes: ['MJB_NODISCARD'],
@@ -1531,7 +1545,16 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    details: 'Set the process-global locale used by `mjb_case`. The default locale is ' +
+      '`MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only ' +
+      '`MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other ' +
+      'valid locale values are accepted but do not change Unicode algorithm behavior.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The locale was set' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`locale` is not a valid `mjb_locale` value' }
+    ],
+    related: ['mjb_case']
   },
   {
     comment: 'Output the current library version (MJB_VERSION).',
