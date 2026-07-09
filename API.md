@@ -1,12 +1,11 @@
 # API
 
-Here the basis before using the library
+Here is the basis for using the library
 
-1. Mojibake do not have a default input encoding as well as an output decoding, you must decide what
-to use.
-2. Every string passed is simply a stream of bytes and you must pass how many bytes there are
-3. For safety reason the functions stops when they encounter a `\0` byte in the input strings even
-if the `length` is bigger. This unless you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS`
+1. Mojibake does not have a default input encoding or output decoding; you must decide what to use.
+2. Every string passed is simply a stream of bytes, and you must specify how many bytes there are
+3. For safety reasons, the functions stop when they encounter a `\0` byte in the input strings even
+if the `length` is bigger. This is unless you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS`
 4. The major part of the functions return a `mjb_status` and should be checked against the
 `MJB_STATUS_OK` constant.
 5. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
@@ -14,7 +13,7 @@ the boolean is the result.
 
 ## API signatures
 
-All functions follow the same signature. And there are a few set of types together with other very
+All functions follow the same signature. And there are a few sets of types together with other very
 specialized functions you will find in the API list below.
 
 ### Functions that handle strings
@@ -25,7 +24,7 @@ The functions return a `_mjb_status_` and accept these arguments:
 2. The _length_ of the input (`byte_length`)
 3. The needed _arguments_ of the function, if any
 4. The encoding of the input
-5. The encoding of the output, if the function generate a string
+5. The encoding of the output, if the function generates a string
 6. A `mjb_result` pointer to store the result
 
 See for example the [`mjb_normalize`](#mjb_normalize), [`mjb_string_filter`](#mjb_string_filter)
@@ -44,7 +43,7 @@ See for example [`mjb_codepoint_character`](#mjb_codepoint_character),
 
 ### Predicate functions
 
-Those are the `mjb_something_is_this` kind of functions, returns a `bool`.
+Those are the `mjb_something_is_this` kind of functions, which return a `bool`.
 
 1. The thing to check
 2. The needed _arguments_ of the function, if any
@@ -91,10 +90,10 @@ if(result.transformed) {
 ```
 
 1. The `length` of the input string is **six** because the input buffer is encoded in UTF-8 and so
-`strlen` return six.
-2. The function can potentially return something different from `MJB_STATUS_OK`. In this situations
-you don't need to do anything. If a function fail it will never leave data behind.
-3. If the output string has been `transformed`, it means the function has allocated the result and
+`strlen` returns six.
+2. The function can potentially return something different from `MJB_STATUS_OK`. In this situation,
+you don't need to do anything. If a function fails, it will never leave data behind.
+3. If the output string has been `transformed`, it means the function has allocated the result, and
 you need to `mjb_free` it.
 
 This way the output buffer will be encoded in UTF-16LE.
@@ -114,7 +113,7 @@ A summary for `Héllö`, encoded this way:
 - UTF-32LE: `H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0`, 20 bytes
 - UTF-32BE: `\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6`, 20 bytes
 
-To find the real number of characters you will later use `mjb_string_length`.
+To find the real number of characters, you will later use `mjb_string_length`.
 
 ```c
 mjb_string_length("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8) // 5 characters
