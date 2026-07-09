@@ -32,6 +32,91 @@ static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
     return state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT;
 }
 
+static inline bool MJB_USED mjb_starts_with_utf8_bom(const char *buffer, size_t byte_length) {
+    return byte_length >= 3 && (uint8_t)buffer[0] == 0xEF && (uint8_t)buffer[1] == 0xBB &&
+        (uint8_t)buffer[2] == 0xBF;
+}
+
+static inline bool MJB_USED mjb_starts_with_utf16be_bom(const char *buffer, size_t byte_length) {
+    return byte_length >= 2 && (uint8_t)buffer[0] == 0xFE && (uint8_t)buffer[1] == 0xFF;
+}
+
+static inline bool MJB_USED mjb_starts_with_utf16le_bom(const char *buffer, size_t byte_length) {
+    return byte_length >= 2 &&
+        (uint8_t)buffer[0] == 0xFF && (uint8_t)buffer[1] == 0xFE;
+}
+
+static inline bool MJB_USED mjb_starts_with_utf32be_bom(const char *buffer, size_t byte_length) {
+    return byte_length >= 4 && (uint8_t)buffer[0] == 0x00 && (uint8_t)buffer[1] == 0x00 &&
+        (uint8_t)buffer[2] == 0xFE && (uint8_t)buffer[3] == 0xFF;
+}
+
+static inline bool MJB_USED mjb_starts_with_utf32le_bom(const char *buffer, size_t byte_length) {
+    return byte_length >= 4 && (uint8_t)buffer[0] == 0xFF && (uint8_t)buffer[1] == 0xFE &&
+        (uint8_t)buffer[2] == 0x00 && (uint8_t)buffer[3] == 0x00;
+}
+
+static inline mjb_encoding MJB_USED mjb_resolve_input_encoding(const char *buffer,
+    size_t byte_length, mjb_encoding encoding, size_t *index) {
+    bool at_start = index != NULL && *index == 0;
+
+    // Consume the BOM at the start of a string and determine the real encoding.
+    if(encoding & MJB_ENC_UTF_32) {
+        if(mjb_starts_with_utf32be_bom(buffer, byte_length)) {
+            if(at_start) {
+                *index = 4;
+            }
+
+            return MJB_ENC_UTF_32BE;
+        }
+
+        if(mjb_starts_with_utf32le_bom(buffer, byte_length)) {
+            if(at_start) {
+                *index = 4;
+            }
+
+            return MJB_ENC_UTF_32LE;
+        }
+
+        if((encoding & MJB_ENC_UTF_32BE) && !(encoding & MJB_ENC_UTF_32LE)) {
+            return MJB_ENC_UTF_32BE;
+        }
+
+        if((encoding & MJB_ENC_UTF_32LE) && !(encoding & MJB_ENC_UTF_32BE)) {
+            return MJB_ENC_UTF_32LE;
+        }
+    }
+
+    // Consume the BOM at the start of a string and determine the real encoding.
+    if(encoding & MJB_ENC_UTF_16) {
+        if(mjb_starts_with_utf16be_bom(buffer, byte_length)) {
+            if(at_start) {
+                *index = 2;
+            }
+
+            return MJB_ENC_UTF_16BE;
+        }
+
+        if(mjb_starts_with_utf16le_bom(buffer, byte_length)) {
+            if(at_start) {
+                *index = 2;
+            }
+
+            return MJB_ENC_UTF_16LE;
+        }
+
+        if((encoding & MJB_ENC_UTF_16BE) && !(encoding & MJB_ENC_UTF_16LE)) {
+            return MJB_ENC_UTF_16BE;
+        }
+
+        if((encoding & MJB_ENC_UTF_16LE) && !(encoding & MJB_ENC_UTF_16BE)) {
+            return MJB_ENC_UTF_16LE;
+        }
+    }
+
+    return encoding;
+}
+
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_length, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
     if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
@@ -90,6 +175,9 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_leng
 static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, size_t byte_length,
     uint8_t *state, size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint,
     bool *in_error) {
+    mjb_encoding requested_encoding = encoding;
+    encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding, index);
+
     if(*index >= byte_length) {
         // Check if we have an incomplete sequence at end of buffer
         if(mjb_utf_state_is_incomplete(*state)) {
@@ -100,6 +188,16 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
         }
 
         return MJB_DECODE_END;
+    }
+
+    if((requested_encoding == MJB_ENC_UTF_16 || requested_encoding == MJB_ENC_UTF_32) &&
+        encoding == requested_encoding) {
+        *codepoint = MJB_CODEPOINT_REPLACEMENT;
+        *state = MJB_UTF_ACCEPT;
+        *index = byte_length;
+        *in_error = true;
+
+        return MJB_DECODE_ERROR;
     }
 
     uint8_t prev_state = *state;
@@ -184,7 +282,13 @@ static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_
         return 4;
     }
 
-    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
+    if((encoding & MJB_ENC_UTF_32) || (encoding & MJB_ENC_UTF_32BE) ||
+        (encoding & MJB_ENC_UTF_32LE)) {
+        return 4;
+    }
+
+    if((encoding & MJB_ENC_UTF_16) || (encoding & MJB_ENC_UTF_16BE) ||
+        (encoding & MJB_ENC_UTF_16LE)) {
         return cp >= 0x10000 ? 4 : 2;
     }
 

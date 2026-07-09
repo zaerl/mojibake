@@ -6,6 +6,21 @@
 
 #include "test.h"
 
+static void assert_encoding_conversion(const char *input, size_t input_size,
+    mjb_encoding input_encoding, mjb_encoding output_encoding, const char *expected,
+    size_t expected_size, const char *message) {
+    mjb_result result;
+
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(input, input_size, input_encoding,
+        output_encoding, &result), MJB_STATUS_OK, message)
+    ATT_ASSERT(result.output_size, expected_size, message)
+    ATT_ASSERT(memcmp(result.output, expected, expected_size), 0, message)
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
+}
+
 int test_encoding(void *arg) {
     ATT_ASSERT((unsigned int)mjb_string_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN,
         "Void unknown string")
@@ -380,6 +395,81 @@ int test_encoding(void *arg) {
     ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
         "Convert UTF-16BE surrogate pair to UTF-8 output")
     mjb_free(ascii_result.output);
+
+    const char utf8_bom_a[] = { '\xEF', '\xBB', '\xBF', 'A' };
+    const char utf16be_bom_a[] = { '\xFE', '\xFF', '\x00', 'A' };
+    const char utf16le_bom_a[] = { '\xFF', '\xFE', 'A', '\x00' };
+    const char utf16be_bom_a_inner_bom_b[] = {
+        '\xFE', '\xFF',
+        '\x00', 'A',
+        '\xFE', '\xFF',
+        '\x00', 'B',
+    };
+    const char utf32be_bom_a[] = {
+        '\x00', '\x00', '\xFE', '\xFF',
+        '\x00', '\x00', '\x00', 'A',
+    };
+    const char utf32le_bom_a[] = {
+        '\xFF', '\xFE', '\x00', '\x00',
+        'A', '\x00', '\x00', '\x00',
+    };
+    const char utf16be_plain_a[] = { '\x00', 'A' };
+
+    mjb_encoding detected_utf16be = mjb_string_encoding(utf16be_bom_a, sizeof(utf16be_bom_a));
+    mjb_encoding detected_utf16le = mjb_string_encoding(utf16le_bom_a, sizeof(utf16le_bom_a));
+    mjb_encoding detected_utf32be = mjb_string_encoding(utf32be_bom_a, sizeof(utf32be_bom_a));
+    mjb_encoding detected_utf32le = mjb_string_encoding(utf32le_bom_a, sizeof(utf32le_bom_a));
+
+    assert_encoding_conversion(utf16be_bom_a, sizeof(utf16be_bom_a), detected_utf16be,
+        MJB_ENC_UTF_8, "A", 1, "Convert detected UTF-16BE BOM consumes signature");
+    assert_encoding_conversion(utf16le_bom_a, sizeof(utf16le_bom_a), detected_utf16le,
+        MJB_ENC_UTF_8, "A", 1, "Convert detected UTF-16LE BOM consumes signature");
+    assert_encoding_conversion(utf32be_bom_a, sizeof(utf32be_bom_a), detected_utf32be,
+        MJB_ENC_UTF_8, "A", 1, "Convert detected UTF-32BE BOM consumes signature");
+    assert_encoding_conversion(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le,
+        MJB_ENC_UTF_8, "A", 1, "Convert detected UTF-32LE BOM consumes signature");
+
+    assert_encoding_conversion(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16,
+        MJB_ENC_UTF_8, "A", 1, "Convert generic UTF-16BE BOM consumes signature");
+    assert_encoding_conversion(utf16le_bom_a, sizeof(utf16le_bom_a), MJB_ENC_UTF_16,
+        MJB_ENC_UTF_8, "A", 1, "Convert generic UTF-16LE BOM consumes signature");
+    assert_encoding_conversion(utf16be_bom_a_inner_bom_b, sizeof(utf16be_bom_a_inner_bom_b),
+        MJB_ENC_UTF_16, MJB_ENC_UTF_8, "A\xEF\xBB\xBF""B", 5,
+        "Convert generic UTF-16 preserves inner U+FEFF");
+    assert_encoding_conversion(utf32be_bom_a, sizeof(utf32be_bom_a), MJB_ENC_UTF_32,
+        MJB_ENC_UTF_8, "A", 1, "Convert generic UTF-32BE BOM consumes signature");
+    assert_encoding_conversion(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32,
+        MJB_ENC_UTF_8, "A", 1, "Convert generic UTF-32LE BOM consumes signature");
+
+    assert_encoding_conversion(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16BE,
+        MJB_ENC_UTF_8, utf8_bom_a, sizeof(utf8_bom_a),
+        "Convert explicit UTF-16BE preserves U+FEFF");
+    assert_encoding_conversion(utf16le_bom_a, sizeof(utf16le_bom_a), MJB_ENC_UTF_16LE,
+        MJB_ENC_UTF_8, utf8_bom_a, sizeof(utf8_bom_a),
+        "Convert explicit UTF-16LE preserves U+FEFF");
+    assert_encoding_conversion(utf32be_bom_a, sizeof(utf32be_bom_a), MJB_ENC_UTF_32BE,
+        MJB_ENC_UTF_8, utf8_bom_a, sizeof(utf8_bom_a),
+        "Convert explicit UTF-32BE preserves U+FEFF");
+    assert_encoding_conversion(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE,
+        MJB_ENC_UTF_8, utf8_bom_a, sizeof(utf8_bom_a),
+        "Convert explicit UTF-32LE preserves U+FEFF");
+
+    MJB_TEST_COVERAGE(mjb_string_length);
+    ATT_ASSERT(mjb_string_length(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16),
+        (size_t)1, "Length generic UTF-16BE BOM consumes signature")
+    ATT_ASSERT(mjb_string_length(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16BE),
+        (size_t)2, "Length explicit UTF-16BE preserves U+FEFF")
+    ATT_ASSERT(mjb_string_length(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le),
+        (size_t)1, "Length detected UTF-32LE BOM consumes signature")
+    ATT_ASSERT(mjb_string_length(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE),
+        (size_t)2, "Length explicit UTF-32LE preserves U+FEFF")
+
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16be_plain_a, sizeof(utf16be_plain_a),
+        MJB_ENC_UTF_16, MJB_ENC_UTF_8, &ascii_result), MJB_STATUS_INVALID_ENCODING,
+        "Convert generic UTF-16 without BOM rejects unknown byte order")
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8,
+        MJB_ENC_UTF_16, &ascii_result), MJB_STATUS_INVALID_ENCODING,
+        "Convert generic UTF-16 output rejects unknown byte order")
 
     MJB_TEST_COVERAGE(mjb_string_convert_encoding);
     for(size_t from = 0; from < 5; ++from) {

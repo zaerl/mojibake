@@ -322,7 +322,12 @@ related: ['mjb_normalize']
       buffer('The string to check'),
       byte_length()
     ],
-    wasm: true
+    wasm: true,
+    details: '`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic ' +
+      'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
+      'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
+      'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
+      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.'
   },
   {
     comment: 'Return true if the string is encoded in UTF-8.',
@@ -390,12 +395,16 @@ related: ['mjb_normalize']
     ],
     wasm: true,
     details: 'Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, ' +
-      'UTF-32LE/BE). If input and output encodings match, the input buffer is returned as-is ' +
-      'in `result->output` with `result->transformed` set to `false`, without allocating.',
+      'UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme ' +
+      'signature and uses it to resolve byte order. Explicit-endian input preserves an initial ' +
+      'U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are ' +
+      'rejected because the byte order is not specified.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The string was converted' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
         '`result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'A generic UTF-16/UTF-32 encoding did not provide enough byte order information' },
       { value: 'MJB_STATUS_UNSUPPORTED', description: 'The requested encoding conversion is not supported' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }

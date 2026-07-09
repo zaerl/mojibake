@@ -326,6 +326,8 @@ Return the string encoding (the most probable).
 mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
 ```
 
+`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
+
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
 
@@ -383,7 +385,7 @@ Convert from an encoding to another.
 mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 ```
 
-Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). If input and output encodings match, the input buffer is returned as-is in `result->output` with `result->transformed` set to `false`, without allocating.
+Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified.
 
 - `buffer` — The string to convert
 - `byte_length` — The length of the string, in bytes
@@ -395,6 +397,7 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 
 - `MJB_STATUS_OK` — The string was converted
 - `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding
+- `MJB_STATUS_INVALID_ENCODING` — A generic UTF-16/UTF-32 encoding did not provide enough byte order information
 - `MJB_STATUS_UNSUPPORTED` — The requested encoding conversion is not supported
 - `MJB_STATUS_OVERFLOW` — The output size would overflow
 - `MJB_STATUS_NO_MEMORY` — Allocation failed

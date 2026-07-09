@@ -4,23 +4,16 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <string.h>
-
 #include "mojibake.h"
 #include "utf.h"
-
-#define MJB_ENC_UTF_8_BOM "\xEF\xBB\xBF"
-#define MJB_ENC_UTF_16BE_BOM "\xFE\xFF"
-#define MJB_ENC_UTF_16LE_BOM "\xFF\xFE"
-#define MJB_ENC_UTF_32BE_BOM "\x00\x00\xFE\xFF"
-#define MJB_ENC_UTF_32LE_BOM "\xFF\xFE\x00\x00"
 
 static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
     return codepoint >= 0xD800 && codepoint <= 0xDFFF;
 }
 
 /**
- * Return the encoding from the BOM (if possible).
+ * Return the encoding from the BOM (if possible). mjb_resolve_input_encoding() later chooses one
+ * concrete endian form and consumes the signature when decoding generic UTF-16/UTF-32 input.
  */
 static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t byte_length) {
     if(byte_length < 2) {
@@ -28,29 +21,23 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t byte_length
         return MJB_ENC_UNKNOWN;
     }
 
-    if(byte_length >= 3) {
-        if(memcmp(buffer, MJB_ENC_UTF_8_BOM, 3) == 0) {
-            return MJB_ENC_UTF_8;
-        }
+    if(mjb_starts_with_utf8_bom(buffer, byte_length)) {
+        return MJB_ENC_UTF_8;
     }
 
     mjb_encoding bom_encoding = MJB_ENC_UNKNOWN;
 
-    if(byte_length >= 4) {
-        if(memcmp(buffer, MJB_ENC_UTF_32BE_BOM, 4) == 0) {
-            bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32BE);
-        } else if(memcmp(buffer, MJB_ENC_UTF_32LE_BOM, 4) == 0) {
-            // A UTF-32-LE document is also valid UTF-16-LE
-            bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32LE | MJB_ENC_UTF_16LE);
-        }
+    if(mjb_starts_with_utf32be_bom(buffer, byte_length)) {
+        bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32BE);
+    } else if(mjb_starts_with_utf32le_bom(buffer, byte_length)) {
+        // A UTF-32LE BOM also has the UTF-16LE BOM prefix.
+        bom_encoding = (mjb_encoding)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32LE | MJB_ENC_UTF_16LE);
     }
 
-    if(byte_length >= 2) {
-        if(memcmp(buffer, MJB_ENC_UTF_16BE_BOM, 2) == 0) {
-            bom_encoding = (mjb_encoding)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE);
-        } else if(memcmp(buffer, MJB_ENC_UTF_16LE_BOM, 2) == 0) {
-            bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
-        }
+    if(mjb_starts_with_utf16be_bom(buffer, byte_length)) {
+        bom_encoding = (mjb_encoding)(MJB_ENC_UTF_16 | MJB_ENC_UTF_16BE);
+    } else if(mjb_starts_with_utf16le_bom(buffer, byte_length)) {
+        bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
     }
 
     return bom_encoding;
@@ -323,12 +310,25 @@ MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t byt
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    result->output = NULL;
+    result->output_size = 0;
+    result->transformed = false;
+
     if(byte_length == 0 || encoding == output_encoding) {
         result->output = (char*)buffer;
         result->output_size = byte_length;
         result->transformed = false;
 
         return MJB_STATUS_OK;
+    }
+
+    size_t input_index = 0;
+    mjb_encoding input_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
+        &input_index);
+
+    if(input_encoding == MJB_ENC_UTF_16 || input_encoding == MJB_ENC_UTF_32 ||
+        output_encoding == MJB_ENC_UTF_16 || output_encoding == MJB_ENC_UTF_32) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
@@ -347,9 +347,9 @@ MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t byt
     size_t output_index = 0;
     bool in_error = false;
 
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
+    for(size_t i = input_index; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
+            input_encoding, &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
             break;

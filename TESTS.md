@@ -16,11 +16,11 @@
 | `mjb_break_grapheme_cluster`             | 715         |
 | `mjb_break_sentence`                     | 458         |
 | `mjb_string_filter`                      | 143         |
+| `mjb_string_convert_encoding`            | 136         |
 | `mjb_locale_parse`                       | 120         |
+| `mjb_string_length`                      | 106         |
 | `mjb_codepoint_encode`                   | 105         |
-| `mjb_string_length`                      | 102         |
 | `mjb_string_is_confusable`               | 101         |
-| `mjb_string_convert_encoding`            | 95          |
 | `mjb_codepoint_character`                | 82          |
 | `mjb_display_width`                      | 48          |
 | `mjb_hangul_syllable_composition`        | 44          |
@@ -87,7 +87,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560797** |
+| **Total**                                | **1560842** |
 
 ## JavaScript
 
