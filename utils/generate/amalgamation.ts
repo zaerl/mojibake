@@ -34,11 +34,11 @@ export async function generateAmalgamation() {
   header += '\n\n#pragma once\n';
   header += loadFile('mojibake.h');
 
-  let unicode_file = loadFile('unicode.h');
-  header = header.replace('#include "unicode.h"\n', `// unicode.h\n${unicode_file}`);
+  let unicodeFile = loadFile('unicode.h');
+  header = header.replace('#include "unicode.h"\n', `// unicode.h\n${unicodeFile}`);
 
-  let locales_file = loadFile('locales.h');
-  header = header.replace('#include "locales.h"\n', `\n// locales.h\n${locales_file}`);
+  let localesFile = loadFile('locales.h');
+  header = header.replace('#include "locales.h"\n', `\n// locales.h\n${localesFile}`);
 
   // Generate main header
   writeFileSync(baseFolder + '/mojibake.h', header);
