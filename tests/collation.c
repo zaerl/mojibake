@@ -84,13 +84,14 @@ static bool hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size, 
     return true;
 }
 
-static void assert_collation_malformed_utf8(const char *buffer, size_t byte_length,
+static void assert_collation_malformed_utf8(const unsigned char *buffer, size_t byte_length,
     const char *message) {
     mjb_result result;
+    const char *bytes = (const char*)buffer;
 
-    ATT_ASSERT_STATUS(mjb_collation_key(buffer, byte_length, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_collation_key(bytes, byte_length, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE, &result), MJB_STATUS_MALFORMED_INPUT, message)
-    ATT_ASSERT(mjb_string_compare(buffer, byte_length, MJB_ENC_UTF_8, buffer, byte_length,
+    ATT_ASSERT(mjb_string_compare(bytes, byte_length, MJB_ENC_UTF_8, bytes, byte_length,
         MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE), -1, message)
 }
 
@@ -177,12 +178,12 @@ int test_collation(void *arg) {
     ATT_ASSERT(mjb_string_compare(NULL, 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE), -1, "Compare rejects NULL left")
 
-    const char cesu8_high_surrogate[] = { (char)0xED, (char)0xA0, (char)0x80 };
-    const char cesu8_low_surrogate[] = { (char)0xED, (char)0xBF, (char)0xBF };
-    const char lone_continuation[] = { (char)0x80 };
-    const char overlong_slash[] = { (char)0xC0, (char)0xAF };
-    const char truncated_three_byte[] = { (char)0xE2, (char)0x82 };
-    const char invalid_four_byte[] = { (char)0xF5, (char)0x80, (char)0x80, (char)0x80 };
+    const unsigned char cesu8_high_surrogate[] = { 0xED, 0xA0, 0x80 };
+    const unsigned char cesu8_low_surrogate[] = { 0xED, 0xBF, 0xBF };
+    const unsigned char lone_continuation[] = { 0x80 };
+    const unsigned char overlong_slash[] = { 0xC0, 0xAF };
+    const unsigned char truncated_three_byte[] = { 0xE2, 0x82 };
+    const unsigned char invalid_four_byte[] = { 0xF5, 0x80, 0x80, 0x80 };
 
     assert_collation_malformed_utf8(cesu8_high_surrogate, sizeof(cesu8_high_surrogate),
         "Collation rejects CESU-8 high surrogate");
