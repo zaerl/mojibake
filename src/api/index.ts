@@ -54,7 +54,8 @@ export enum FilterType {
   SPACES          = 0x2,
   COLLAPSE_SPACES = 0x4,
   CONTROLS        = 0x8,
-  NUMERIC         = 0x10
+  NUMERIC         = 0x10,
+  LIMIT_COMBINING = 0x20
 };
 
 // mjb_case_type

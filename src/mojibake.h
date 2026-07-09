@@ -226,13 +226,19 @@ typedef enum mjb_quick_check_result {
     MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
 
+#ifndef MJB_FILTER_MAX_COMBINING_MARKS
+    // Kept by MJB_FILTER_LIMIT_COMBINING
+    #define MJB_FILTER_MAX_COMBINING_MARKS 4
+#endif
+
 typedef enum mjb_filter {
     MJB_FILTER_NONE            = 0x0,
     MJB_FILTER_NORMALIZE       = 0x1,
     MJB_FILTER_SPACES          = 0x2,
     MJB_FILTER_COLLAPSE_SPACES = 0x4,
     MJB_FILTER_CONTROLS        = 0x8,
-    MJB_FILTER_NUMERIC         = 0x10
+    MJB_FILTER_NUMERIC         = 0x10,
+    MJB_FILTER_LIMIT_COMBINING = 0x20
 } mjb_filter;
 
 typedef enum mjb_case_type {
@@ -510,7 +516,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byt
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
 
-// Filter a string to remove invalid characters.
+// Filter a string with the selected mjb_filter flags.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
 // Run a callback for each character of a string.

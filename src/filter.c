@@ -59,6 +59,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length, 
     size_t output_size = byte_length;
     size_t output_index = 0;
     bool last_was_whitespace = false;
+    size_t combining_mark_count = 0;
     bool any_transformation = false;
 
     if(output == NULL) {
@@ -102,6 +103,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length, 
             codepoint == 0x0B || // Vertical tab
             codepoint == 0x0C || // Form feed
             codepoint == 0x0D);  // Carriage return
+        bool is_combining = mjb_category_is_combining(character.category);
 
         if(filters & MJB_FILTER_CONTROLS) {
             if(character.category == MJB_CATEGORY_CC &&
@@ -148,6 +150,19 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length, 
 
             if(original_codepoint != codepoint) {
                 any_transformation = true;
+            }
+        }
+
+        if(filters & MJB_FILTER_LIMIT_COMBINING) {
+            if(is_combining) {
+                if(combining_mark_count >= MJB_FILTER_MAX_COMBINING_MARKS) {
+                    any_transformation = true;
+                    continue;
+                }
+
+                ++combining_mark_count;
+            } else {
+                combining_mark_count = 0;
             }
         }
 

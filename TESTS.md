@@ -10,12 +10,12 @@
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_break_line`                         | 18794       |
 | `mjb_string_emoji_sequence`              | 5266        |
-| `mjb_case`                               | 3482        |
+| `mjb_case`                               | 3485        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
 | `mjb_break_grapheme_cluster`             | 715         |
 | `mjb_break_sentence`                     | 458         |
-| `mjb_string_filter`                      | 143         |
+| `mjb_string_filter`                      | 155         |
 | `mjb_string_convert_encoding`            | 136         |
 | `mjb_locale_parse`                       | 120         |
 | `mjb_string_length`                      | 106         |
@@ -87,12 +87,13 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560842** |
+| **Total**                                | **1560857** |
 
 ## JavaScript
 
 | Test                                       | Coverage   |
 | ------------------------------------------ | ---------- |
+| `Mojibake.stringFilter`                    | 2          |
 | `Mojibake.bidiResolve`                     | 1          |
 | `Mojibake.breakGraphemeCluster`            | 1          |
 | `Mojibake.breakLine`                       | 1          |
@@ -144,7 +145,6 @@
 | `Mojibake.stringConvertEncoding`           | 1          |
 | `Mojibake.stringEmojiSequence`             | 1          |
 | `Mojibake.stringEncoding`                  | 1          |
-| `Mojibake.stringFilter`                    | 1          |
 | `Mojibake.stringIsAscii`                   | 1          |
 | `Mojibake.stringIsConfusable`              | 1          |
 | `Mojibake.stringIsEmojiSequence`           | 1          |
@@ -162,4 +162,4 @@
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **68**     |
+| **Total**                                  | **69**     |

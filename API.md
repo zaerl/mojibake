@@ -285,11 +285,13 @@ Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://w
 
 ## `mjb_string_filter`
 
-Filter a string to remove invalid characters.
+Filter a string with the selected mjb_filter flags.
 
 ```c
 mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 ```
+
+`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks.
 
 - `buffer` — The string to filter
 - `byte_length` — The length of the string, in bytes

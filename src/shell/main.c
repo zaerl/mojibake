@@ -109,7 +109,7 @@ int main(int argc, char * const argv[]) {
             mjbsh_emoji_command, 0 },
         { "filter", "Filter the input", mjbsh_filter_command,
             MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES |
-            MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC },
+            MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC | MJB_FILTER_LIMIT_COMBINING },
         { "locale", "Parse a BCP 47 language tag", mjbsh_locale_command, 0 },
         { "nfd", "Normalize the input to NFD", mjbsh_normalize_command, MJB_NORMALIZATION_NFD },
         { "nfkd", "Normalize the input to NFKD", mjbsh_normalize_command, MJB_NORMALIZATION_NFKD },

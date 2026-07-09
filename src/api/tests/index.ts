@@ -48,6 +48,8 @@ ATT_ASSERT(mojibake.nextCharacter('A')?.[0]?.character.codepoint, 0x41, 'nextCha
 ATT_ASSERT(mojibake.stringIsNormalized('abc'), QuickCheckResult.YES, 'stringIsNormalized');
 ATT_ASSERT(mojibake.stringFilter('hello    world', FilterType.COLLAPSE_SPACES), 'hello world',
   'stringFilter');
+ATT_ASSERT(mojibake.stringFilter('a\u0300\u0301\u0302\u0303\u0304', FilterType.LIMIT_COMBINING),
+  'a\u0300\u0301\u0302\u0303', 'stringFilterLimitCombining');
 ATT_ASSERT(mojibake.codepointPropertyValue(0x41, Property.CASED), 0, 'codepointHasProperty');
 ATT_ASSERT(mojibake.codepointScript(0x41), Script.LATN, 'codepointScript');
 ATT_ASSERT(mojibake.stringEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'stringEncoding');

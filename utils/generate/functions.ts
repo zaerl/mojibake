@@ -253,7 +253,7 @@ if(result.transformed) {
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Filter a string to remove invalid characters.',
+    comment: 'Filter a string with the selected mjb_filter flags.',
     ret: 'mjb_status',
     name: 'mjb_string_filter',
     attributes: ['MJB_NODISCARD'],
@@ -270,6 +270,9 @@ if(result.transformed) {
       },
       result()
     ],
+    details: '`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first ' +
+      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful ' +
+      'for reducing Zalgo-style text while keeping ordinary accents and stacked marks.',
     wasm: true,
     example: `const char *mixed_whitespace = "Hello\\t\\t\\n\\nworld";
 mjb_result result;
