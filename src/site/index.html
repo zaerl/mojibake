@@ -241,6 +241,26 @@
             return ret;
         }
 
+        function readCodepoint(value) {
+            // Handle different codepoint formats: decimal, hex, 0x hex, U+FFFF
+            value = value.trim().toUpperCase();
+            let codepoint = null;
+
+            if(value.startsWith('U+') || value.startsWith('0X')) {
+                // U+FFFF or 0xFFFF format
+                codepoint = parseInt(value.substring(2), 16);
+            } else {
+                // Plain hex format
+                codepoint = parseInt(value, 16);
+            }
+
+            if(isNaN(codepoint) || codepoint < 0) {
+                return -1;
+            }
+
+            return codepoint;
+        }
+
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-form');
@@ -274,6 +294,15 @@
                     value = form.elements[`${func}-${arg.name}`].checked;
                 } else if(arg.type === 'mjb_encoding') {
                     value = encodingToString(value);
+                } else if(arg.type === 'mjb_codepoint') {
+                    value = readCodepoint(value);
+
+                    if(value === -1) {
+                        funcResults.innerHTML = `Invalid codepoint: ${form.elements[`${func}-${arg.name}`].value}`;
+                        funcResults.style.display = 'block';
+
+                        return;
+                    }
                 }
 
                 args.push(value);
