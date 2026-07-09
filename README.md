@@ -2,8 +2,8 @@
 
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 
-**Mojibake**[^1] is a low-level Unicode 17 library written in C11. It can be compiled as C++17 as well.
-It aims to be:
+**Mojibake**[^1] is a low-level Unicode 17 library written in C11. It can be compiled
+as C++17 as well. It aims to be:
 
 1. Small
 2. Easy to use
@@ -20,7 +20,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Text transformation**
 
 - **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), plus a fast quick-check
-  (`mjb_string_is_normalized`) ([UAX #15](https://www.unicode.org/reports/tr15/))
+  (`mjb_string_is_normalized`) ([UAX #15, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
   and conditional mappings (`mjb_case`)
 - **Filtering**: strip controls, spaces, or numeric characters while normalizing
@@ -31,9 +31,10 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Character database**: every Unicode Character Database property: category, script, block,
   plane, numeric value, name (`mjb_codepoint_character`)
 - **Segmentation**: grapheme clusters, words, sentences, and line-break opportunities
-  ([UAX #29](https://www.unicode.org/reports/tr29/), [UAX #14](https://www.unicode.org/reports/tr14/))
+  ([UAX #29, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html),
+  [UAX #14, Unicode 17.0.0](https://www.unicode.org/reports/tr14/tr14-55.html))
 - **Bidirectional text**: full Unicode Bidirectional Algorithm: paragraph resolution, line
-  reordering, runs ([UAX #9](https://www.unicode.org/reports/tr9/))
+  reordering, runs ([UAX #9, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html))
 - **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
 - **Display width**: East Asian width and terminal display width, with width-aware truncation
   (`mjb_display_width`, `mjb_truncate_width`)
@@ -41,14 +42,15 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Sorting and comparison**
 
 - **Collation**: Unicode Collation Algorithm string comparison and sort keys, in shifted and
-  non-ignorable modes (`mjb_string_compare`, `mjb_collation_key`, [UTS #10](https://www.unicode.org/reports/tr10/))
+  non-ignorable modes (`mjb_string_compare`, `mjb_collation_key`,
+  [UTS #10, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html))
 
 **Security**
 
 - **Confusable detection**: check if a string is visually confusable with another
-  (`mjb_string_is_confusable`, [UTS #39](https://www.unicode.org/reports/tr39/))
+  (`mjb_string_is_confusable`, [UTS #39, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
-  (`mjb_string_is_identifier`, [UAX #31](https://www.unicode.org/reports/tr31/))
+  (`mjb_string_is_identifier`, [UAX #31, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html))
 
 **Integration**
 
@@ -63,6 +65,28 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   WASM + TypeScript API (`src/api`)
 - **Tested**: 1.5M+ assertions including every official Unicode conformance suite; fuzzed with
   `libFuzzer`; `AddressSanitizer` and `UBSan` clean
+
+## Unicode references
+
+Mojibake's Unicode data and algorithm references are scoped to
+[The Unicode Standard, Version 17.0.0](https://www.unicode.org/versions/Unicode17.0.0/)
+and the [Unicode Character Database 17.0.0](https://www.unicode.org/Public/17.0.0/).
+Normative algorithm references in this README and in [API.md](API.md) use the archived
+Unicode 17.0.0 versions of the applicable annexes and synchronized technical standards:
+
+- [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html)
+- [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html)
+- [UAX #11: East Asian Width, Unicode 17.0.0](https://www.unicode.org/reports/tr11/tr11-44.html)
+- [UAX #14: Unicode Line Breaking Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr14/tr14-55.html)
+- [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html)
+- [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html)
+- [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html)
+- [UTS #10: Unicode Collation Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html)
+- [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html)
+- [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html)
+
+Generic Unicode links, when present, are informational or download links rather than
+normative conformance references.
 
 ## Usage
 

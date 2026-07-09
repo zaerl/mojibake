@@ -44,6 +44,24 @@ export type MojibakeFunction = {
   specs?: MojibakeSpecRef[];
 };
 
+const unicodeVersion = '17.0.0';
+
+const uaxRevisions: Record<number, number> = {
+  9: 51,
+  11: 44,
+  14: 55,
+  15: 57,
+  29: 47,
+  31: 43,
+  44: 36
+};
+
+const utsRevisions: Record<number, number> = {
+  10: 53,
+  39: 32,
+  51: 29
+};
+
 function buffer(description: string, name = 'buffer', isConst = true, wasm_generated = false): MojibakeArg {
   return {
     name,
@@ -92,16 +110,28 @@ function result(description = 'The pointer to store the result'): MojibakeArg {
 }
 
 function uax(number: number, title: string): MojibakeSpecRef {
+  const revision = uaxRevisions[number];
+
+  if(!revision) {
+    throw new Error(`Missing Unicode ${unicodeVersion} UAX #${number} revision`);
+  }
+
   return {
-    name: `UAX #${number}: ${title}`,
-    url: `https://www.unicode.org/reports/tr${number}/`
+    name: `UAX #${number}: ${title}, Unicode ${unicodeVersion}`,
+    url: `https://www.unicode.org/reports/tr${number}/tr${number}-${revision}.html`
   };
 }
 
 function uts(number: number, title: string): MojibakeSpecRef {
+  const revision = utsRevisions[number];
+
+  if(!revision) {
+    throw new Error(`Missing Unicode ${unicodeVersion} UTS #${number} revision`);
+  }
+
   return {
-    name: `UTS #${number}: ${title}`,
-    url: `https://www.unicode.org/reports/tr${number}/`
+    name: `UTS #${number}: ${title}, Unicode ${unicodeVersion}`,
+    url: `https://www.unicode.org/reports/tr${number}/tr${number}-${revision}.html`
   };
 }
 
@@ -138,7 +168,8 @@ if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
 
 // U+022A lowercase: U+022B
 printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
-    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_value']
+    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_value'],
+    specs: [uax(44, 'Unicode Character Database')]
   },
   {
     comment: 'Normalize a string to NFC/NFKC/NFD/NFKD form.',
@@ -301,7 +332,8 @@ related: ['mjb_normalize']
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    specs: [uax(44, 'Unicode Character Database')]
   },
   {
     comment: 'Return the script of a codepoint.',
@@ -309,7 +341,8 @@ related: ['mjb_normalize']
     name: 'mjb_codepoint_script',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(44, 'Unicode Character Database')]
   },
   {
     comment: 'Return the string encoding (the most probable).',
@@ -680,7 +713,8 @@ if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½
 }
 
 // decimal=-1, digit=-1, numeric=1/2
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`,
+    specs: [uax(44, 'Unicode Character Database')]
   },
   {
     comment: 'Return the character block.',
@@ -696,7 +730,8 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    specs: [uax(44, 'Unicode Character Database')]
   },
   {
     comment: 'Return the codepoint lowercase codepoint.',
@@ -1092,55 +1127,61 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     wasm: true
   },
   {
-    comment: 'Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).',
+    comment: 'Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_start',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).',
+    comment: 'Return true if the codepoint is a valid Unicode identifier continuation (Unicode 17.0.0 UAX #31 ID_Continue).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_continue',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).',
+    comment: 'Return true if the codepoint is a valid NFKC identifier start (Unicode 17.0.0 UAX #31 XID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_xid_start',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).',
+    comment: 'Return true if the codepoint is a valid NFKC identifier continuation (Unicode 17.0.0 UAX #31 XID_Continue).',
     ret: 'bool',
     name: 'mjb_codepoint_is_xid_continue',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).',
+    comment: 'Return true if the codepoint is reserved for use in patterns (Unicode 17.0.0 UAX #31 Pattern_Syntax).',
     ret: 'bool',
     name: 'mjb_codepoint_is_pattern_syntax',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).',
+    comment: 'Return true if the codepoint is pattern whitespace (Unicode 17.0.0 UAX #31 Pattern_White_Space).',
     ret: 'bool',
     name: 'mjb_codepoint_is_pattern_white_space',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the string is a valid Unicode identifier (UAX#31).',
+    comment: 'Return true if the string is a valid Unicode identifier (Unicode 17.0.0 UAX #31).',
     ret: 'bool',
     name: 'mjb_string_is_identifier',
     attributes: [],
@@ -1176,10 +1217,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    specs: [uax(44, 'Unicode Character Database')]
   },
   {
-    comment: 'Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).',
+    comment: 'Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
     ret: 'bool',
     name: 'mjb_string_is_confusable',
     attributes: [],
@@ -1222,7 +1264,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_is_emoji',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the codepoint has the Unicode Emoji_Presentation property.',
@@ -1230,7 +1273,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_is_emoji_presentation',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the codepoint has the Unicode Emoji_Modifier property.',
@@ -1238,7 +1282,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_is_emoji_modifier',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the codepoint has the Unicode Emoji_Modifier_Base property.',
@@ -1246,7 +1291,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_is_emoji_modifier_base',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the codepoint has the Unicode Emoji_Component property.',
@@ -1254,7 +1300,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_is_emoji_component',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the codepoint has the Unicode Extended_Pictographic property.',
@@ -1262,7 +1309,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_is_extended_pictographic',
     attributes: [],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return emoji sequence metadata for a complete string.',

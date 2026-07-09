@@ -324,7 +324,8 @@ typedef struct mjb_numeric_value {
 
 /**
  * Emoji data
- * [see: https://www.unicode.org/reports/tr51]
+ * [see: UTS #51, Unicode 17.0.0:
+ * https://www.unicode.org/reports/tr51/tr51-29.html]
  */
 typedef struct mjb_emoji_properties {
     mjb_codepoint codepoint;
@@ -486,13 +487,13 @@ typedef struct mjb_bidi_run {
     mjb_direction direction;
 } mjb_bidi_run;
 
-// Collation variable-weighting strategy (UTS#10 §3.6)
+// Collation variable-weighting strategy (UTS #10, Unicode 17.0.0, Section 3.6)
 typedef enum mjb_collation_mode {
     MJB_COLLATION_NON_IGNORABLE, // variable elements keep their weights unchanged
     MJB_COLLATION_SHIFTED        // variable elements move primary to level 4
 } mjb_collation_mode;
 
-// UAX#31 identifier profile
+// UAX #31 identifier profile (Unicode 17.0.0)
 typedef enum mjb_identifier_profile {
     MJB_IDENTIFIER_DEFAULT, // NFC + ID_Start / ID_Continue
     MJB_IDENTIFIER_NFKC     // NFKC + XID_Start / XID_Continue
@@ -647,31 +648,31 @@ MJB_EXPORT MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
 // Return the name of a plane, NULL if the plane specified is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
-// Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).
+// Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).
 MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
 
-// Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).
+// Return true if the codepoint is a valid Unicode identifier continuation (Unicode 17.0.0 UAX #31 ID_Continue).
 MJB_EXPORT bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
 
-// Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).
+// Return true if the codepoint is a valid NFKC identifier start (Unicode 17.0.0 UAX #31 XID_Start).
 MJB_EXPORT bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
 
-// Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).
+// Return true if the codepoint is a valid NFKC identifier continuation (Unicode 17.0.0 UAX #31 XID_Continue).
 MJB_EXPORT bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
 
-// Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).
+// Return true if the codepoint is reserved for use in patterns (Unicode 17.0.0 UAX #31 Pattern_Syntax).
 MJB_EXPORT bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
 
-// Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).
+// Return true if the codepoint is pattern whitespace (Unicode 17.0.0 UAX #31 Pattern_White_Space).
 MJB_EXPORT bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 
-// Return true if the string is a valid Unicode identifier (UAX#31).
+// Return true if the string is a valid Unicode identifier (Unicode 17.0.0 UAX #31).
 MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_identifier_profile profile);
 
 // Return the name of a property, NULL if the property specified is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 
-// Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
+// Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
 
 // Return the emoji properties.

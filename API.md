@@ -12,6 +12,15 @@ if the `length` is bigger. This unless you declare `MJB_DANGEROUSLY_ALLOW_EMBEDD
 5. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
 the boolean is the result.
 
+## Unicode references
+
+Mojibake targets [The Unicode Standard, Version 17.0.0](https://www.unicode.org/versions/Unicode17.0.0/)
+and the [Unicode Character Database 17.0.0](https://www.unicode.org/Public/17.0.0/).
+Function-level Unicode specification links below point to the archived Unicode 17.0.0
+version of the applicable Unicode Standard Annex or synchronized Unicode Technical
+Standard. Generic Unicode links, when present, are informational or download links rather
+than normative conformance references.
+
 ## API signatures
 
 All functions follow the same signature. And there are a few set of types together with other very
@@ -160,6 +169,8 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
 
 See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_property_value`](#mjb_codepoint_property_value).
 
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
 ## `mjb_normalize`
 
 Normalize a string to NFC/NFKC/NFD/NFKD form.
@@ -206,7 +217,7 @@ if(result.transformed) {
 
 See also: [`mjb_string_is_normalized`](#mjb_string_is_normalized), [`mjb_string_filter`](#mjb_string_filter).
 
-Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/reports/tr15/).
+Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
 ## `mjb_string_is_normalized`
 
@@ -231,7 +242,7 @@ Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE`
 
 See also: [`mjb_normalize`](#mjb_normalize).
 
-Specifications: [UAX #15: Unicode Normalization Forms](https://www.unicode.org/reports/tr15/).
+Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
 ## `mjb_string_filter`
 
@@ -308,6 +319,8 @@ mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property pr
 - `property` — The property to check
 - `value` — The property value, if any
 
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
 ## `mjb_codepoint_script`
 
 Return the script of a codepoint.
@@ -317,6 +330,8 @@ mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
 ## `mjb_string_encoding`
 
@@ -442,7 +457,7 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 
 See also: [`mjb_collation_key`](#mjb_collation_key).
 
-Specifications: [UTS #10: Unicode Collation Algorithm](https://www.unicode.org/reports/tr10/).
+Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html).
 
 ## `mjb_collation_key`
 
@@ -469,7 +484,7 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 
 See also: [`mjb_string_compare`](#mjb_string_compare).
 
-Specifications: [UTS #10: Unicode Collation Algorithm](https://www.unicode.org/reports/tr10/).
+Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html).
 
 ## `mjb_case`
 
@@ -673,6 +688,8 @@ if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½
 printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
 ```
 
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
 ## `mjb_codepoint_block`
 
 Return the character block.
@@ -683,6 +700,8 @@ mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
 
 - `codepoint` — The codepoint to check
 - `block` — The block to store the result
+
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
 ## `mjb_codepoint_to_lowercase`
 
@@ -769,7 +788,7 @@ mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encodi
 
 See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence).
 
-Specifications: [UAX #14: Unicode Line Breaking Algorithm](https://www.unicode.org/reports/tr14/).
+Specifications: [UAX #14: Unicode Line Breaking Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr14/tr14-55.html).
 
 ## `mjb_break_word`
 
@@ -786,7 +805,7 @@ mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encodi
 
 See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_truncate_word`](#mjb_truncate_word).
 
-Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html).
 
 ## `mjb_truncate_word`
 
@@ -830,7 +849,7 @@ mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_en
 
 See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word).
 
-Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html).
 
 ## `mjb_break_grapheme_cluster`
 
@@ -849,7 +868,7 @@ Iterate the grapheme cluster (user-perceived character) boundaries of a string. 
 
 See also: [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_break_line`](#mjb_break_line), [`mjb_truncate`](#mjb_truncate).
 
-Specifications: [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html).
 
 ## `mjb_truncate`
 
@@ -903,7 +922,7 @@ Resolve the embedding levels of a paragraph following the Unicode Bidirectional 
 
 See also: [`mjb_bidi_free`](#mjb_bidi_free), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
 
-Specifications: [UAX #9: Unicode Bidirectional Algorithm](https://www.unicode.org/reports/tr9/).
+Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
 
 ## `mjb_bidi_free`
 
@@ -932,7 +951,7 @@ mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t lin
 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
 
-Specifications: [UAX #9: Unicode Bidirectional Algorithm](https://www.unicode.org/reports/tr9/).
+Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
 
 ## `mjb_bidi_line_runs`
 
@@ -950,7 +969,7 @@ mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t 
 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line).
 
-Specifications: [UAX #9: Unicode Bidirectional Algorithm](https://www.unicode.org/reports/tr9/).
+Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
 
 ## `mjb_codepoint_plane`
 
@@ -985,7 +1004,7 @@ const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 ## `mjb_codepoint_is_id_start`
 
-Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).
+Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).
 
 ```c
 bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
@@ -993,9 +1012,11 @@ bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
+
 ## `mjb_codepoint_is_id_continue`
 
-Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).
+Return true if the codepoint is a valid Unicode identifier continuation (Unicode 17.0.0 UAX #31 ID_Continue).
 
 ```c
 bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
@@ -1003,9 +1024,11 @@ bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
+
 ## `mjb_codepoint_is_xid_start`
 
-Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).
+Return true if the codepoint is a valid NFKC identifier start (Unicode 17.0.0 UAX #31 XID_Start).
 
 ```c
 bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
@@ -1013,9 +1036,11 @@ bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
+
 ## `mjb_codepoint_is_xid_continue`
 
-Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).
+Return true if the codepoint is a valid NFKC identifier continuation (Unicode 17.0.0 UAX #31 XID_Continue).
 
 ```c
 bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
@@ -1023,9 +1048,11 @@ bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
+
 ## `mjb_codepoint_is_pattern_syntax`
 
-Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).
+Return true if the codepoint is reserved for use in patterns (Unicode 17.0.0 UAX #31 Pattern_Syntax).
 
 ```c
 bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
@@ -1033,9 +1060,11 @@ bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
+
 ## `mjb_codepoint_is_pattern_white_space`
 
-Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).
+Return true if the codepoint is pattern whitespace (Unicode 17.0.0 UAX #31 Pattern_White_Space).
 
 ```c
 bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
@@ -1043,9 +1072,11 @@ bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
+
 ## `mjb_string_is_identifier`
 
-Return true if the string is a valid Unicode identifier (UAX#31).
+Return true if the string is a valid Unicode identifier (Unicode 17.0.0 UAX #31).
 
 ```c
 bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_identifier_profile profile);
@@ -1060,7 +1091,7 @@ Validate a string as a Unicode identifier: the first character must be a valid i
 
 See also: [`mjb_codepoint_is_id_start`](#mjb_codepoint_is_id_start), [`mjb_codepoint_is_id_continue`](#mjb_codepoint_is_id_continue), [`mjb_codepoint_is_xid_start`](#mjb_codepoint_is_xid_start), [`mjb_codepoint_is_xid_continue`](#mjb_codepoint_is_xid_continue).
 
-Specifications: [UAX #31: Unicode Identifiers and Syntax](https://www.unicode.org/reports/tr31/).
+Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
 ## `mjb_property_name`
 
@@ -1072,9 +1103,11 @@ const char *mjb_property_name(mjb_property property);
 
 - `property` — The property to check
 
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
 ## `mjb_string_is_confusable`
 
-Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
+Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 
 ```c
 bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
@@ -1091,7 +1124,7 @@ Compute the confusable skeleton of both strings and return true when the skeleto
 
 See also: [`mjb_string_is_identifier`](#mjb_string_is_identifier).
 
-Specifications: [UTS #39: Unicode Security Mechanisms](https://www.unicode.org/reports/tr39/).
+Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html).
 
 ## `mjb_codepoint_emoji`
 
@@ -1106,7 +1139,7 @@ mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *em
 
 See also: [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
 
-Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_codepoint_is_emoji`
 
@@ -1118,6 +1151,8 @@ bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
+
 ## `mjb_codepoint_is_emoji_presentation`
 
 Return true if the codepoint has the Unicode Emoji_Presentation property.
@@ -1127,6 +1162,8 @@ bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_codepoint_is_emoji_modifier`
 
@@ -1138,6 +1175,8 @@ bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
+
 ## `mjb_codepoint_is_emoji_modifier_base`
 
 Return true if the codepoint has the Unicode Emoji_Modifier_Base property.
@@ -1147,6 +1186,8 @@ bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_codepoint_is_emoji_component`
 
@@ -1158,6 +1199,8 @@ bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
+
 ## `mjb_codepoint_is_extended_pictographic`
 
 Return true if the codepoint has the Unicode Extended_Pictographic property.
@@ -1167,6 +1210,8 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_string_emoji_sequence`
 
@@ -1183,7 +1228,7 @@ mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb
 
 See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji).
 
-Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_string_is_emoji_sequence`
 
@@ -1199,7 +1244,7 @@ bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_en
 
 See also: [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
 
-Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_string_is_rgi_emoji`
 
@@ -1215,7 +1260,7 @@ bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encodin
 
 See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
 
-Specifications: [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/).
+Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_hangul_syllable_name`
 
@@ -1264,7 +1309,7 @@ mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asia
 
 See also: [`mjb_display_width`](#mjb_display_width).
 
-Specifications: [UAX #11: East Asian Width](https://www.unicode.org/reports/tr11/).
+Specifications: [UAX #11: East Asian Width, Unicode 17.0.0](https://www.unicode.org/reports/tr11/tr11-44.html).
 
 ## `mjb_display_width`
 
@@ -1290,7 +1335,7 @@ Compute the number of display columns a string occupies in a terminal, accountin
 
 See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_truncate_width`](#mjb_truncate_width).
 
-Specifications: [UAX #11: East Asian Width](https://www.unicode.org/reports/tr11/).
+Specifications: [UAX #11: East Asian Width, Unicode 17.0.0](https://www.unicode.org/reports/tr11/tr11-44.html).
 
 ## `mjb_locale_parse`
 

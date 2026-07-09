@@ -105,23 +105,23 @@ export type MojibakeWasmModule = {
   _mjb_plane_is_valid: (plane: number) => boolean;
   // Return the name of a plane, NULL if the plane specified is not valid.
   _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
-  // Return true if the codepoint is a valid Unicode identifier start (UAX#31 ID_Start).
+  // Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).
   _mjb_codepoint_is_id_start: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is a valid Unicode identifier continuation (UAX#31 ID_Continue).
+  // Return true if the codepoint is a valid Unicode identifier continuation (Unicode 17.0.0 UAX #31 ID_Continue).
   _mjb_codepoint_is_id_continue: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is a valid NFKC identifier start (UAX#31 XID_Start).
+  // Return true if the codepoint is a valid NFKC identifier start (Unicode 17.0.0 UAX #31 XID_Start).
   _mjb_codepoint_is_xid_start: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is a valid NFKC identifier continuation (UAX#31 XID_Continue).
+  // Return true if the codepoint is a valid NFKC identifier continuation (Unicode 17.0.0 UAX #31 XID_Continue).
   _mjb_codepoint_is_xid_continue: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is reserved for use in patterns (UAX#31 Pattern_Syntax).
+  // Return true if the codepoint is reserved for use in patterns (Unicode 17.0.0 UAX #31 Pattern_Syntax).
   _mjb_codepoint_is_pattern_syntax: (codepoint: Codepoint) => boolean;
-  // Return true if the codepoint is pattern whitespace (UAX#31 Pattern_White_Space).
+  // Return true if the codepoint is pattern whitespace (Unicode 17.0.0 UAX #31 Pattern_White_Space).
   _mjb_codepoint_is_pattern_white_space: (codepoint: Codepoint) => boolean;
-  // Return true if the string is a valid Unicode identifier (UAX#31).
+  // Return true if the string is a valid Unicode identifier (Unicode 17.0.0 UAX #31).
   _mjb_string_is_identifier: (buffer: Pointer, byte_length: number, encoding: number, profile: number) => boolean;
   // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
-  // Return true if two strings are visually confusable (UTS#39 §4): skeleton(s1) == skeleton(s2).
+  // Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
   _mjb_string_is_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number) => boolean;
   // Return the emoji properties.
   _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => number;
