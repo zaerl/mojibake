@@ -62,8 +62,8 @@ ${generated}
 }
 
 export function generateExamples() {
-  const examples = functions.filter(fn => fn.example);
-  let fileContent = readFileSync('../../tests/example.c', 'utf-8');
+  const path = '../../tests/example.c';
+  let fileContent = readFileSync(path, 'utf-8');
 
   // Remove stale artifacts of examples that no longer exist.
   let generated = '';
@@ -82,5 +82,5 @@ export function generateExamples() {
     generated
   );
 
-  writeFileSync('../../tests/example.c', fileContent);
+  writeFileSync(path, fileContent);
 }

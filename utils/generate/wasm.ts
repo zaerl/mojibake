@@ -14,12 +14,13 @@ function getFunctions() {
 }
 
 export function generateWASM() {
-  let fileContent = readFileSync('../../src/CMakeLists.txt', 'utf-8');
+  const path = '../../src/CMakeLists.txt';
+  let fileContent = readFileSync(path, 'utf-8');
 
   fileContent = substituteBlock(fileContent,
     "set(EXPORTED_FUNCTIONS\n",
     "\n        # Core memory functions",
     getFunctions());
 
-  writeFileSync('../../src/CMakeLists.txt', fileContent);
+  writeFileSync(path, fileContent);
 }
