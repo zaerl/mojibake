@@ -20,7 +20,7 @@ export class Character {
     public digit: number | null,
     public numeric: string | null,
     public mirrored: boolean,
-    // unicode 1.0 name
+    // Unicode 1.0 name
     // comment
     public uppercase: number | null,
     public lowercase: number | null,

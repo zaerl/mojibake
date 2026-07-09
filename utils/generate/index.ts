@@ -112,7 +112,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       ucdInt(split[7]), // digit
       ucdString(split[8]), // numeric
       ucdBool(split[9]), // mirrored
-      // unicode 1.0 name
+      // Unicode 1.0 name
       // 10646 comment field
       ucdInt(split[12], 16), // uppercase
       ucdInt(split[13], 16), // lowercase
@@ -126,7 +126,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
     analysis.addCharacter(char, originalName);
   }
 
-  iLog('Build unicode data');
+  iLog('Build Unicode data');
 
   analysis.beforeDB();
   const { propertyRanges, properties } = await buildPropertyRanges();
@@ -175,7 +175,7 @@ for(let i = 2; i < process.argv.length; ++i) {
 }
 
 async function buildUnicodeTableData() {
-  iLog('Build unicode data');
+  iLog('Build Unicode data');
   resetUnicodeTableData();
 
   const blocks = await readBlocks();

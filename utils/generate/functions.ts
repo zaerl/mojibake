@@ -425,7 +425,7 @@ related: ['mjb_normalize']
     wasm: true
   },
   {
-    comment: 'Convert from an encoding to another.',
+    comment: 'Convert from one encoding to another.',
     ret: 'mjb_status',
     name: 'mjb_string_convert_encoding',
     attributes: ['MJB_NODISCARD'],
@@ -612,7 +612,7 @@ if(result.transformed) {
     wasm: true
   },
   {
-    comment: 'Return if the codepoint is an hangul L.',
+    comment: 'Return if the codepoint is a hangul L.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_l',
     attributes: ['MJB_CONST'],
@@ -620,7 +620,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul V.',
+    comment: 'Return if the codepoint is a hangul V.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_v',
     attributes: ['MJB_CONST'],
@@ -628,7 +628,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul T.',
+    comment: 'Return if the codepoint is a hangul T.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_t',
     attributes: ['MJB_CONST'],
@@ -636,7 +636,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul jamo.',
+    comment: 'Return if the codepoint is a hangul jamo.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_jamo',
     attributes: ['MJB_CONST'],
@@ -644,7 +644,7 @@ if(result.transformed) {
     wasm: false
   },
   {
-    comment: 'Return if the codepoint is an hangul syllable.',
+    comment: 'Return if the codepoint is a hangul syllable.',
     ret: 'bool',
     name: 'mjb_codepoint_is_hangul_syllable',
     attributes: ['MJB_CONST'],
@@ -1578,7 +1578,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     wasm: true
   },
   {
-    comment: 'Output the current supported unicode version (MJB_UNICODE_VERSION).',
+    comment: 'Output the current supported Unicode version (MJB_UNICODE_VERSION).',
     ret: 'const char *',
     name: 'mjb_unicode_version',
     attributes: ['MJB_CONST'],

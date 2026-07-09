@@ -386,7 +386,7 @@ unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t 
 
 ## `mjb_string_convert_encoding`
 
-Convert from an encoding to another.
+Convert from one encoding to another.
 
 ```c
 mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
@@ -556,7 +556,7 @@ bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
 ## `mjb_codepoint_is_hangul_l`
 
-Return if the codepoint is an hangul L.
+Return if the codepoint is a hangul L.
 
 ```c
 bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
@@ -566,7 +566,7 @@ bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
 
 ## `mjb_codepoint_is_hangul_v`
 
-Return if the codepoint is an hangul V.
+Return if the codepoint is a hangul V.
 
 ```c
 bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
@@ -576,7 +576,7 @@ bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
 
 ## `mjb_codepoint_is_hangul_t`
 
-Return if the codepoint is an hangul T.
+Return if the codepoint is a hangul T.
 
 ```c
 bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
@@ -586,7 +586,7 @@ bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
 
 ## `mjb_codepoint_is_hangul_jamo`
 
-Return if the codepoint is an hangul jamo.
+Return if the codepoint is a hangul jamo.
 
 ```c
 bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
@@ -596,7 +596,7 @@ bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
 
 ## `mjb_codepoint_is_hangul_syllable`
 
-Return if the codepoint is an hangul syllable.
+Return if the codepoint is a hangul syllable.
 
 ```c
 bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
@@ -1394,7 +1394,7 @@ unsigned int mjb_version_number(void);
 
 ## `mjb_unicode_version`
 
-Output the current supported unicode version (MJB_UNICODE_VERSION).
+Output the current supported Unicode version (MJB_UNICODE_VERSION).
 
 ```c
 const char *mjb_unicode_version(void);

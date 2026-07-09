@@ -16,7 +16,7 @@ MJB_EXPORT unsigned int mjb_version_number(void) {
     return MJB_VERSION_NUMBER;
 }
 
-// Output the current supported unicode version (MJB_UNICODE_VERSION)
+// Output the current supported Unicode version (MJB_UNICODE_VERSION)
 MJB_EXPORT const char *mjb_unicode_version(void) {
     return MJB_UNICODE_VERSION;
 }

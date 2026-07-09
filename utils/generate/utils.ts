@@ -185,7 +185,7 @@ export function compressName(codepoint: number, name: string): string | null {
   return name;
 }
 
-// Used to generate the unicode tables
+// Used to generate the Unicode tables
 
 export function formatHex(value: number, width = 0) {
   const hex = value.toString(16).toUpperCase().padStart(width, '0');

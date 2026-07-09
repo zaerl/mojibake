@@ -105,13 +105,13 @@ typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
 typedef void (*mjb_free_fn)(void *ptr);
 
 /**
- * A unicode codepoint, a value in the range 0 to 0x10FFFF
+ * A Unicode codepoint, a value in the range 0 to 0x10FFFF
  * [see: https://www.unicode.org/glossary/#code_point]
  */
 typedef uint32_t mjb_codepoint;
 
 #define MJB_CODEPOINT_MIN         0x0
-#define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid unicode code point
+#define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid Unicode code point
 #define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data "�"
 #define MJB_PRIVATE_USE_START     0xF0000  // Private use area start
 #define MJB_PRIVATE_USE_END       0x10FFFD // Private use area end
@@ -300,7 +300,7 @@ typedef struct mjb_block_info {
 } mjb_block_info;
 
 /**
- * A unicode character
+ * A Unicode character
  * [see: https://www.unicode.org/glossary/#character]
  */
 typedef struct mjb_character {
@@ -543,7 +543,7 @@ MJB_EXPORT MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t byte_len
 // Encode a codepoint to a string.
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length, mjb_encoding encoding);
 
-// Convert from an encoding to another.
+// Convert from one encoding to another.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return the length of a string.
@@ -567,19 +567,19 @@ MJB_EXPORT MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 // Return true if the codepoint is combining.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
-// Return if the codepoint is an hangul L.
+// Return if the codepoint is a hangul L.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
 
-// Return if the codepoint is an hangul V.
+// Return if the codepoint is a hangul V.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
 
-// Return if the codepoint is an hangul T.
+// Return if the codepoint is a hangul T.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
 
-// Return if the codepoint is an hangul jamo.
+// Return if the codepoint is a hangul jamo.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
 
-// Return if the codepoint is an hangul syllable.
+// Return if the codepoint is a hangul syllable.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK ideograph.
@@ -738,7 +738,7 @@ MJB_EXPORT MJB_CONST const char *mjb_version(void);
 // Output the current library version number (MJB_VERSION_NUMBER).
 MJB_EXPORT MJB_CONST unsigned int mjb_version_number(void);
 
-// Output the current supported unicode version (MJB_UNICODE_VERSION).
+// Output the current supported Unicode version (MJB_UNICODE_VERSION).
 MJB_EXPORT MJB_CONST const char *mjb_unicode_version(void);
 
 // Set the library memory functions.

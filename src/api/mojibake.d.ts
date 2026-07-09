@@ -45,7 +45,7 @@ export type MojibakeWasmModule = {
   _mjb_string_is_ascii: (buffer: Pointer, byte_length: number) => boolean;
   // Encode a codepoint to a string.
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, byte_length: number, encoding: number) => number;
-  // Convert from an encoding to another.
+  // Convert from one encoding to another.
   _mjb_string_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Return the length of a string.
   _mjb_string_length: (buffer: Pointer, max_length: number, encoding: number) => number;
@@ -61,7 +61,7 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_is_graphic: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is combining.
   _mjb_codepoint_is_combining: (codepoint: Codepoint) => boolean;
-  // Return if the codepoint is an hangul syllable.
+  // Return if the codepoint is a hangul syllable.
   _mjb_codepoint_is_hangul_syllable: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is CJK ideograph.
   _mjb_codepoint_is_cjk_ideograph: (codepoint: Codepoint) => boolean;
@@ -155,7 +155,7 @@ export type MojibakeWasmModule = {
   _mjb_version: () => Pointer;
   // Output the current library version number (MJB_VERSION_NUMBER).
   _mjb_version_number: () => number;
-  // Output the current supported unicode version (MJB_UNICODE_VERSION).
+  // Output the current supported Unicode version (MJB_UNICODE_VERSION).
   _mjb_unicode_version: () => Pointer;
 };
 

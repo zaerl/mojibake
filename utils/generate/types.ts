@@ -201,7 +201,7 @@ export type UnicodeDataRow = [
   string, // 7 digit value
   string, // 8 numeric value
   Mirrored, // 9 mirrored
-  string, // 10 unicode 1.0 name (ignored)
+  string, // 10 Unicode 1.0 name (ignored)
   string, // 11 10646 comment field (ignored)
   string, // 12 uppercase mapping
   string, // 13 lowercase mapping
