@@ -92,30 +92,51 @@ summary {
 }
 
 :root {
-	--alert: rgb(218, 30, 40);
-    --warning: rgb(255, 131, 43);
-    --success: rgb(36, 161, 72);
-    --primary: rgb(15, 98, 254);
+    --alert: rgb(220, 38, 38);
+    --alert-hover: rgb(185, 28, 28);
+    --alert-bg: rgb(254, 242, 242);
+    --warning: rgb(217, 119, 6);
+    --warning-bg: rgb(255, 251, 235);
+    --success: rgb(5, 150, 105);
+    --success-hover: rgb(4, 120, 87);
+    --success-bg: rgb(236, 253, 245);
+    --primary: rgb(15, 118, 110);
+    --primary-hover: rgb(17, 94, 89);
+    --primary-bg: rgb(240, 253, 250);
+    --button-text: rgb(255, 255, 255);
     --content-width: 760px;
 
     /* Light mode colors */
-    --bg: rgb(255, 255, 255);
-    --bg-secondary: rgb(248, 249, 250);
-    --text: rgb(33, 37, 41);
-    --text-secondary: rgb(108, 117, 125);
-    --border: rgb(222, 226, 230);
-    --border-hover: rgb(173, 181, 189);
+    --bg: rgb(250, 252, 252);
+    --bg-secondary: rgb(242, 247, 246);
+    --text: rgb(18, 24, 27);
+    --text-secondary: rgb(91, 104, 111);
+    --border: rgb(213, 224, 222);
+    --border-hover: rgb(132, 153, 149);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
+        --alert: rgb(248, 113, 113);
+        --alert-hover: rgb(252, 165, 165);
+        --alert-bg: rgb(69, 20, 28);
+        --warning: rgb(251, 191, 36);
+        --warning-bg: rgb(61, 42, 12);
+        --success: rgb(52, 211, 153);
+        --success-hover: rgb(110, 231, 183);
+        --success-bg: rgb(13, 49, 40);
+        --primary: rgb(45, 212, 191);
+        --primary-hover: rgb(94, 234, 212);
+        --primary-bg: rgb(11, 52, 49);
+        --button-text: rgb(5, 32, 30);
+
         /* Dark mode colors */
-        --bg: rgb(13, 17, 23);
-        --bg-secondary: rgb(22, 27, 34);
-        --text: rgb(240, 246, 252);
-        --text-secondary: rgb(139, 148, 158);
-        --border: rgb(48, 54, 61);
-        --border-hover: rgb(110, 118, 129);
+        --bg: rgb(13, 18, 18);
+        --bg-secondary: rgb(22, 29, 28);
+        --text: rgb(236, 243, 241);
+        --text-secondary: rgb(151, 166, 162);
+        --border: rgb(45, 59, 56);
+        --border-hover: rgb(79, 99, 95);
     }
 }
 
@@ -189,7 +210,7 @@ legend {
 button, .btn {
     background-color: var(--primary);
     border: 1px solid var(--primary);
-    color: white;
+    color: var(--button-text);
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     cursor: pointer;
@@ -199,8 +220,8 @@ button, .btn {
 }
 
 button:hover, .btn:hover {
-    background-color: rgb(13, 82, 214);
-    border-color: rgb(13, 82, 214);
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
 }
 
 button:disabled, .btn:disabled {
@@ -227,8 +248,8 @@ button:disabled, .btn:disabled {
 }
 
 .btn-danger:hover {
-    background-color: rgb(178, 25, 33);
-    border-color: rgb(178, 25, 33);
+    background-color: var(--alert-hover);
+    border-color: var(--alert-hover);
 }
 
 .btn-success {
@@ -237,8 +258,8 @@ button:disabled, .btn:disabled {
 }
 
 .btn-success:hover {
-    background-color: rgb(30, 135, 60);
-    border-color: rgb(30, 135, 60);
+    background-color: var(--success-hover);
+    border-color: var(--success-hover);
 }
 
 .text-primary {
@@ -300,25 +321,25 @@ pre code {
 }
 
 .alert-primary {
-    background-color: rgba(15, 98, 254, 0.1);
+    background-color: var(--primary-bg);
     border-color: var(--primary);
     color: var(--primary);
 }
 
 .alert-success {
-    background-color: rgba(36, 161, 72, 0.1);
+    background-color: var(--success-bg);
     border-color: var(--success);
     color: var(--success);
 }
 
 .alert-warning {
-    background-color: rgba(255, 131, 43, 0.1);
+    background-color: var(--warning-bg);
     border-color: var(--warning);
     color: var(--warning);
 }
 
 .alert-danger {
-    background-color: rgba(218, 30, 40, 0.1);
+    background-color: var(--alert-bg);
     border-color: var(--alert);
     color: var(--alert);
 }
