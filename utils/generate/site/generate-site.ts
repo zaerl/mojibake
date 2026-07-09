@@ -38,6 +38,7 @@ function processIndexHtml() {
 
   let fileContent = readFileSync(`${SOURCE_DIR}/index.html`, 'utf-8');
   const functs = getFunctions();
+  const functionNames = new Set(functs.map(fn => fn.getName()));
 
   fileContent = substituteBlock(fileContent,
     'const functions = {',
@@ -47,7 +48,7 @@ function processIndexHtml() {
   fileContent = substituteBlock(fileContent,
     '<section id="functions">',
     '</section>',
-    functs.map(fn => '    ' + fn.formatHTML()).join('\n'));
+    functs.map(fn => '    ' + fn.formatHTML(functionNames)).join('\n'));
 
   fileContent = substituteBlock(fileContent,
     "// On click events\n",

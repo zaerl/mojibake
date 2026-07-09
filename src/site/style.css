@@ -380,6 +380,30 @@ a:hover {
     display: none;
 }
 
+.function-docs {
+    margin-top: 1rem;
+    text-align: left;
+}
+
+.function-docs h3 {
+    font-size: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.function-docs p {
+    margin-top: 0;
+}
+
+.function-docs ul {
+    margin-top: 0;
+    padding-left: 1.25rem;
+}
+
+.function-docs pre {
+    margin-top: 0;
+}
+
 .loading {
     display: none;
 }

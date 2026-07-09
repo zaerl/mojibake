@@ -119,6 +119,11 @@ export class CFunction implements MojibakeFunction {
       name: this.getName(),
       args: this.args,
       wasm: this.wasm,
+      details: this.details,
+      returns: this.returns,
+      example: this.example,
+      related: this.related,
+      specs: this.specs,
     });
   }
 
@@ -126,17 +131,87 @@ export class CFunction implements MojibakeFunction {
     return `\\"_${this.getName()}\\"`;
   }
 
-  formatHTML(): string {
+  formatHTML(relatedLinkTargets = new Set<string>()): string {
     return `<section id="${this.getName()}">
       <div class="code function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
         <div class="function-call-comment">// ${this.comment}</div>
         <div>${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</div>
       </div>
       <div class="function-card">
-        <div>${this.formInputHTML()}</div>
+        ${this.documentationHTML(relatedLinkTargets)}
+        <div>${this.formInputHTML()}        </div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </section>`;
+  }
+
+  private static escapeHTML(value: string): string {
+    return value.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private static formatInlineText(value: string): string {
+    return CFunction.escapeHTML(value).replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+
+  private documentationHTML(relatedLinkTargets: Set<string>): string {
+    let ret = '';
+
+    if(this.details) {
+      ret += `\n          <p>${CFunction.formatInlineText(this.details)}</p>`;
+    }
+
+    if(this.returns?.length) {
+      ret += '\n          <h3>Returns</h3>\n          <ul>';
+
+      for(const returnCase of this.returns) {
+        ret += `\n            <li><code>${CFunction.escapeHTML(returnCase.value)}</code> — ` +
+          `${CFunction.formatInlineText(returnCase.description)}</li>`;
+      }
+
+      ret += '\n          </ul>';
+    }
+
+    if(this.example) {
+      ret += '\n          <h3>Example</h3>' +
+        `\n          <pre><code>${CFunction.escapeHTML(this.example)}</code></pre>`;
+    }
+
+    if(this.related?.length) {
+      ret += '\n          <h3>Related</h3>\n          <ul>';
+
+      for(const name of this.related) {
+        const escapedName = CFunction.escapeHTML(name);
+
+        if(relatedLinkTargets.has(name)) {
+          ret += `\n            <li><a href="#${escapedName}"><code>${escapedName}</code></a></li>`;
+        } else {
+          ret += `\n            <li><code>${escapedName}</code></li>`;
+        }
+      }
+
+      ret += '\n          </ul>';
+    }
+
+    if(this.specs?.length) {
+      ret += '\n          <h3>Specifications</h3>\n          <ul>';
+
+      for(const spec of this.specs) {
+        ret += `\n            <li><a href="${CFunction.escapeHTML(spec.url)}" ` +
+          `target="_blank" rel="noopener">${CFunction.escapeHTML(spec.name)}</a></li>`;
+      }
+
+      ret += '\n          </ul>';
+    }
+
+    if(!ret) {
+      return '';
+    }
+
+    return `<div class="function-docs">${ret}\n        </div>`;
   }
 
   private getDescription(arg: number): string {
