@@ -5,6 +5,41 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-07-09
+
+### Added
+- Added Unicode Conformance Requirements conformance
+- Added `details`, `returns`, `example`, `related`, `specs`, `ownership` to functions generator
+- New example generator
+- Main documentation and examples
+- `mjb_codepoint_numeric_value` documentation
+- `mjb_codepoint_to_lowercase` documentation
+
+### Changed
+- `mjb_alloc` now don't `memset` the memory to `0`
+- Removed `mjb_codepoint_properties`
+- Removed `mjb_codepoint_property`
+- Renamed `mjb_codepoint_has_property` to `mjb_codepoint_property_value`
+- Renamed `mjb_strnlen` to `mjb_string_length`
+- Renamed `mjb_segmentation` to `mjb_break_grapheme_cluster`
+- Renamed `mjb_next_character` to `mjb_string_each_character`
+- Renamed `_mjbNextCharacterCallback` to `_mjbEachCharacterCallback`
+- Added second encoding to `mjb_string_compare`
+- Added second encoding to `mjb_string_is_confusable`
+- Renamed `size` to `byte_length`
+- Changed tests function return from `void*` to `int`
+- Renamed `MJB_ENCODING_*` to `MJB_ENC_*`
+- Inverted `mjb_normalize` parameters
+- Added `output_encoding` to `mjb_case`
+- Removed all companies names
+- Moved the Unicode Conformance Requirements points to a separate file
+
+### Fixed
+- Removed `mjb_case` redundant tests
+- C++: added `noexcept`
+- Added Intellisense generator
+- Windows: fixed C4310 warning
+
 ## [0.2.3] - 2026-07-06
 
 ### Added
@@ -325,7 +360,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/zaerl/mojibake/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/zaerl/mojibake/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/zaerl/mojibake/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/zaerl/mojibake/compare/v0.2.0...v0.2.1
