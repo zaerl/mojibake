@@ -25,6 +25,14 @@ export type MojibakeSpecRef = {
   url: string;
 };
 
+enum Section {
+  TextTransformation,
+  TextAnalysis,
+  SortingComparison,
+  Security,
+  Utility
+}
+
 export type MojibakeFunction = {
   comment: string;
   ret: string;
@@ -32,6 +40,7 @@ export type MojibakeFunction = {
   attributes: string[];
   args: MojibakeArg[];
   wasm: boolean;
+  section: Section;
   // Long-form description.
   details?: string;
   // Documented return values.
@@ -158,6 +167,7 @@ export default [
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Fill `character` with the Unicode Character Database record of a codepoint: name, ' +
       'category, combining class, bidirectional category, decomposition, numeric values, ' +
       'mirrored flag, and simple case mappings. When the library is compiled with ' +
@@ -197,6 +207,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
       result()
     ],
     wasm: true,
+    section: Section.TextTransformation,
     details: 'Normalize a string to the requested Unicode normalization form. If the input is ' +
       'already normalized and no encoding conversion is needed, the input buffer is returned ' +
       'as-is in `result->output` with `result->transformed` set to false, without allocating.',
@@ -241,6 +252,7 @@ if(result.transformed) {
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` ' +
       'means the string may still be normalized, and only a full normalization pass with ' +
       '`mjb_normalize` can decide.',
@@ -274,6 +286,7 @@ if(result.transformed) {
       '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful ' +
       'for reducing Zalgo-style text while keeping ordinary accents and stacked marks.',
     wasm: true,
+    section: Section.TextTransformation,
     example: `const char *mixed_whitespace = "Hello\\t\\t\\n\\nworld";
 mjb_result result;
 
@@ -320,7 +333,8 @@ related: ['mjb_normalize']
         wasm_generated: true
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if a codepoint has a property.',
@@ -343,6 +357,7 @@ related: ['mjb_normalize']
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -352,6 +367,7 @@ related: ['mjb_normalize']
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -366,6 +382,7 @@ related: ['mjb_normalize']
       byte_length()
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: '`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic ' +
       'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
       'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
@@ -383,7 +400,8 @@ related: ['mjb_normalize']
       buffer('The string to check'),
       byte_length()
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis
   },
   {
     comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
@@ -396,7 +414,8 @@ related: ['mjb_normalize']
       buffer('The string to check'),
       byte_length()
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis
   },
   {
     comment: 'Return true if the string is encoded in ASCII.',
@@ -409,7 +428,8 @@ related: ['mjb_normalize']
       buffer('The string to check'),
       byte_length()
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis
   },
   {
     comment: 'Encode a codepoint to a string.',
@@ -422,7 +442,8 @@ related: ['mjb_normalize']
       byte_length('The length of the buffer, in bytes'),
       encoding('The encoding to use')
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextTransformation
   },
   {
     comment: 'Convert from one encoding to another.',
@@ -437,6 +458,7 @@ related: ['mjb_normalize']
       result()
     ],
     wasm: true,
+    section: Section.TextTransformation,
     details: 'Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, ' +
       'UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme ' +
       'signature and uses it to resolve byte order. Explicit-endian input preserves an initial ' +
@@ -471,7 +493,8 @@ related: ['mjb_normalize']
       },
       encoding()
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Compare two strings using UCA.',
@@ -493,6 +516,7 @@ related: ['mjb_normalize']
       }
     ],
     wasm: true,
+    section: Section.SortingComparison,
     details: 'Compare two strings using the Unicode Collation Algorithm and the default ' +
       'collation element table (DUCET), with `strcmp`-style semantics.',
     returns: [
@@ -521,6 +545,7 @@ related: ['mjb_normalize']
       result('The pointer to store the binary sort key')
     ],
     wasm: true,
+    section: Section.SortingComparison,
     details: 'Generate a binary sort key for a string. Sort keys of different strings can be ' +
       'compared with `memcmp` and yield the same order as `mjb_string_compare`. Useful when ' +
       'the same strings are compared many times, such as sorting or database indexing.',
@@ -553,6 +578,7 @@ related: ['mjb_normalize']
       result()
     ],
     wasm: true,
+    section: Section.TextTransformation,
     details: 'Convert a string to uppercase, lowercase, titlecase, or its case-folded form. ' +
       'Full case mappings are applied, including special casing and conditional mappings, so ' +
       'the output may have a different length than the input. Titlecase uses UAX #29 word ' +
@@ -593,7 +619,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_valid',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return true if the codepoint is graphic.',
@@ -601,7 +628,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_graphic',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return true if the codepoint is combining.',
@@ -609,7 +637,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_combining',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is a hangul L.',
@@ -617,7 +646,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_hangul_l',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false
+    wasm: false,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is a hangul V.',
@@ -625,7 +655,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_hangul_v',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false
+    wasm: false,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is a hangul T.',
@@ -633,7 +664,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_hangul_t',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false
+    wasm: false,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is a hangul jamo.',
@@ -641,7 +673,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_hangul_jamo',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false
+    wasm: false,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is a hangul syllable.',
@@ -649,7 +682,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_hangul_syllable',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is CJK ideograph.',
@@ -657,7 +691,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_cjk_ideograph',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return if the codepoint is CJK extension.',
@@ -665,7 +700,8 @@ if(result.transformed) {
     name: 'mjb_codepoint_is_cjk_ext',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return true if the category is graphic.',
@@ -680,7 +716,8 @@ if(result.transformed) {
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return true if the category is combining.',
@@ -695,7 +732,8 @@ if(result.transformed) {
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return the numeric value of a codepoint.',
@@ -712,6 +750,7 @@ if(result.transformed) {
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Return the numeric value of a codepoint, if any. If the codepoint has no numeric ' +
       'value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).',
     returns: [
@@ -750,6 +789,7 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -759,6 +799,7 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextTransformation,
     details: 'Return the lowercase codepoint of a codepoint. If the codepoint has no lowercase ' +
       'equivalent, the original codepoint is returned.',
     returns: [
@@ -784,6 +825,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextTransformation,
     details: 'Return the uppercase codepoint of a codepoint. If the codepoint has no uppercase ' +
       'equivalent, the original codepoint is returned.',
     returns: [
@@ -798,6 +840,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextTransformation,
     details: 'Return the titlecase codepoint of a codepoint. If the codepoint has no titlecase ' +
       'equivalent, the original codepoint is returned.',
     returns: [
@@ -822,6 +865,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_word', 'mjb_break_sentence'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
@@ -842,6 +886,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_sentence', 'mjb_truncate_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -861,7 +906,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
@@ -885,7 +931,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Sentence boundaries breaking.',
@@ -904,6 +951,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -924,6 +972,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
       'Call repeatedly with the same state until it reports the end of the string.',
     related: ['mjb_break_word', 'mjb_break_sentence', 'mjb_break_line', 'mjb_truncate'],
@@ -945,7 +994,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
@@ -969,7 +1019,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Resolve bidirectional text (TR9) for a paragraph.',
@@ -995,6 +1046,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Resolve the embedding levels of a paragraph following the Unicode Bidirectional ' +
       'Algorithm. The resolved paragraph can then be split into lines and reordered visually ' +
       'with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.',
@@ -1022,6 +1074,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
+    section: Section.Utility,
     related: ['mjb_bidi_resolve']
   },
   {
@@ -1057,6 +1110,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
+    section: Section.TextTransformation,
     related: ['mjb_bidi_resolve', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1098,6 +1152,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
+    section: Section.TextTransformation,
     related: ['mjb_bidi_resolve', 'mjb_bidi_reorder_line'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1107,7 +1162,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_codepoint_plane',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return true if the plane is valid.',
@@ -1122,7 +1178,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return the name of a plane, NULL if the plane specified is not valid.',
@@ -1143,7 +1200,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: true
+    wasm: true,
+    section: Section.TextAnalysis,
   },
   {
     comment: 'Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).',
@@ -1152,6 +1210,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1161,6 +1220,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1170,6 +1230,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1179,6 +1240,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1188,6 +1250,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1197,6 +1260,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1216,6 +1280,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Validate a string as a Unicode identifier: the first character must be a valid ' +
       'identifier start and the following ones valid identifier continuations, using ID_Start/' +
       'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
@@ -1237,6 +1302,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.Utility,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -1253,6 +1319,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       encoding('The encoding of the second string', 's2_encoding')
     ],
     wasm: true,
+    section: Section.Security,
     details: 'Compute the confusable skeleton of both strings and return true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
       '"good" and "gооd" with Cyrillic о.',
@@ -1274,6 +1341,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     related: ['mjb_string_emoji_sequence', 'mjb_codepoint_is_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1284,6 +1352,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1293,6 +1362,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1302,6 +1372,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1311,6 +1382,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1320,6 +1392,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1329,6 +1402,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
+    section: Section.TextAnalysis,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1348,6 +1422,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_is_rgi_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1362,6 +1437,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       byte_length(),
       encoding()
     ],
+    section: Section.TextAnalysis,
     wasm: true,
     related: ['mjb_string_is_rgi_emoji', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
@@ -1377,6 +1453,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       byte_length(),
       encoding()
     ],
+    section: Section.TextAnalysis,
     wasm: true,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
@@ -1396,6 +1473,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       },
       byte_length()
     ],
+    section: Section.TextAnalysis,
     wasm: false
   },
   {
@@ -1412,6 +1490,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: true
       }
     ],
+    section: Section.TextAnalysis,
     wasm: false
   },
   {
@@ -1433,6 +1512,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
+    section: Section.TextAnalysis,
     wasm: false
   },
   {
@@ -1450,6 +1530,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     related: ['mjb_display_width'],
     specs: [uax(11, 'East Asian Width')]
   },
@@ -1476,6 +1557,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.TextAnalysis,
     details: 'Compute the number of display columns a string occupies in a terminal, ' +
       'accounting for wide and ambiguous East Asian characters, combining marks, and emoji ' +
       'sequences.',
@@ -1525,6 +1607,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.Utility,
     details: 'Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: ' +
       'language, extended language, script, region, variant, extensions, private use, and ' +
       'grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is ' +
@@ -1551,6 +1634,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
+    section: Section.Utility,
     details: 'Set the process-global locale used by `mjb_case`. The default locale is ' +
       '`MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only ' +
       '`MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other ' +
@@ -1575,6 +1659,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
+    section: Section.Utility,
     details: 'Free the memory allocated for a `mjb_result`. The `result` pointer is set to NULL.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The result was freed' },
@@ -1587,7 +1672,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_version',
     attributes: ['MJB_CONST'],
     args: [],
-    wasm: true
+    wasm: true,
+    section: Section.Utility,
+    details: 'Output the current library version as a string, such as "1.0.0".',
+    related: ['mjb_version_number', 'mjb_unicode_version']
   },
   {
     comment: 'Output the current library version number (MJB_VERSION_NUMBER).',
@@ -1595,7 +1683,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_version_number',
     attributes: ['MJB_CONST'],
     args: [],
-    wasm: true
+    wasm: true,
+    section: Section.Utility,
+    details: 'Output the current library version number as an unsigned integer.',
+    related: ['mjb_version', 'mjb_unicode_version']
   },
   {
     comment: 'Output the current supported Unicode version (MJB_UNICODE_VERSION).',
@@ -1603,7 +1694,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_unicode_version',
     attributes: ['MJB_CONST'],
     args: [],
-    wasm: true
+    wasm: true,
+    section: Section.Utility,
+    details: 'Output the current supported Unicode version as a string, such as "15.0.0".',
+    related: ['mjb_version', 'mjb_version_number']
   },
   {
     comment: 'Set the library memory functions.',
@@ -1631,6 +1725,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
+    section: Section.Utility,
     details: 'Replace the allocator used by the library for all internal allocations and for ' +
       'the buffers returned in `mjb_result`. Must be called before any other library call.',
     related: ['mjb_alloc', 'mjb_realloc', 'mjb_free']
@@ -1641,7 +1736,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     name: 'mjb_shutdown',
     attributes: [],
     args: [],
-    wasm: false
+    wasm: false,
+    section: Section.Utility,
   },
   {
     comment: 'Allocate memory.',
@@ -1656,7 +1752,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: false,
+    section: Section.Utility,
+    details: 'Allocate memory using the allocator set by `mjb_set_memory_functions`. If no ' +
+      'allocator is set, the default allocator is used.',
+    related: ['mjb_realloc', 'mjb_free']
   },
   {
     comment: 'Reallocate memory.',
@@ -1677,7 +1777,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: false,
+    section: Section.Utility,
+    details: 'Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no ' +
+      'allocator is set, the default allocator is used.',
+    related: ['mjb_alloc', 'mjb_free']
   },
   {
     comment: 'Free memory.',
@@ -1692,6 +1796,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    wasm: false
+    wasm: false,
+    section: Section.Utility,
+    details: 'Free memory using the allocator set by `mjb_set_memory_functions`. If no ' +
+      'allocator is set, the default allocator is used.',
+    related: ['mjb_alloc', 'mjb_realloc']
   }
 ] as MojibakeFunction[];

@@ -1405,6 +1405,10 @@ Output the current library version (MJB_VERSION).
 const char *mjb_version(void);
 ```
 
+Output the current library version as a string, such as "1.0.0".
+
+See also: [`mjb_version_number`](#mjb_version_number), [`mjb_unicode_version`](#mjb_unicode_version).
+
 ## `mjb_version_number`
 
 Output the current library version number (MJB_VERSION_NUMBER).
@@ -1413,6 +1417,10 @@ Output the current library version number (MJB_VERSION_NUMBER).
 unsigned int mjb_version_number(void);
 ```
 
+Output the current library version number as an unsigned integer.
+
+See also: [`mjb_version`](#mjb_version), [`mjb_unicode_version`](#mjb_unicode_version).
+
 ## `mjb_unicode_version`
 
 Output the current supported Unicode version (MJB_UNICODE_VERSION).
@@ -1420,6 +1428,10 @@ Output the current supported Unicode version (MJB_UNICODE_VERSION).
 ```c
 const char *mjb_unicode_version(void);
 ```
+
+Output the current supported Unicode version as a string, such as "15.0.0".
+
+See also: [`mjb_version`](#mjb_version), [`mjb_version_number`](#mjb_version_number).
 
 ## `mjb_set_memory_functions`
 
@@ -1453,7 +1465,11 @@ Allocate memory.
 void *mjb_alloc(size_t byte_length);
 ```
 
+Allocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
+
 - `byte_length` — The length of the memory to allocate
+
+See also: [`mjb_realloc`](#mjb_realloc), [`mjb_free`](#mjb_free).
 
 ## `mjb_realloc`
 
@@ -1463,8 +1479,12 @@ Reallocate memory.
 void *mjb_realloc(void *ptr, size_t new_size);
 ```
 
+Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
+
 - `ptr` — The pointer to reallocate
 - `new_size` — The new size of the memory
+
+See also: [`mjb_alloc`](#mjb_alloc), [`mjb_free`](#mjb_free).
 
 ## `mjb_free`
 
@@ -1474,7 +1494,11 @@ Free memory.
 void mjb_free(void *ptr);
 ```
 
+Free memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
+
 - `ptr` — The pointer to free
+
+See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc).
 
 # Unicode references
 
