@@ -72,7 +72,9 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
-  const readme = readFileSync('../../README.md', 'utf-8');
+  let readme = readFileSync('../../README.md', 'utf-8');
+  readme = substituteBlock(readme, 'CONFORMANCE-REQUIREMENTS.md)\n', '## Feature highlights', '');
+
   const md = markdownit({
     highlight: function (str, lang) {
       console.log(`Highlighting code block with language: ${lang}`);
