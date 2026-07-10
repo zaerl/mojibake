@@ -102,10 +102,17 @@ export type LocaleID = {
   grandfathered: string; // 32
 }
 
-// mjb_result
-type Result = {
+// mjb_result pointer
+type RawResult = {
   output: Pointer;
   output_size: number;
+  transformed: boolean;
+};
+
+// mjb_result
+type Result = {
+  output: string | null;
+  outputSize: number;
   transformed: boolean;
 };
 
@@ -393,11 +400,11 @@ export class Mojibake {
   // mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding
   // encoding, mjb_encoding output_encoding, mjb_result *result)
   normalize(input: MojibakeInput, form = Normalization.NFC,
-    options: TextInputOptions = {}): string | null {
+    options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
-    let result: Result | null = null;
+    let result: RawResult | null = null;
 
     try {
       const status = this.module._mjb_normalize(wasmInput.ptr, wasmInput.size,
@@ -409,7 +416,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.output_size, outputEncoding);
+      return this.rawResultToResult(result, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -474,11 +481,11 @@ export class Mojibake {
   // mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_filter filters, mjb_result *result)
   stringFilter(input: MojibakeInput, filters = FilterType.NONE,
-    options: TextInputOptions = {}): string | null {
+    options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
-    let result: Result | null = null;
+    let result: RawResult | null = null;
 
     try {
       const status = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
@@ -490,7 +497,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.output_size, outputEncoding);
+      return this.rawResultToResult(result, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -590,11 +597,11 @@ export class Mojibake {
   // mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_result *result)
   stringConvertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
-    options: TextInputOptions = {}): string | null {
+    options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     outputEncoding = this.resolveEncoding(outputEncoding);
     const resultPtr = this.malloc(24);
-    let result: Result | null = null;
+    let result: RawResult | null = null;
 
     try {
       const status = this.module._mjb_string_convert_encoding(wasmInput.ptr, wasmInput.size,
@@ -606,7 +613,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.output_size, outputEncoding);
+      return this.rawResultToResult(result, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -651,7 +658,7 @@ export class Mojibake {
     options: TextInputOptions = {}): Uint8Array | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const resultPtr = this.malloc(24);
-    let result: Result | null = null;
+    let result: RawResult | null = null;
 
     try {
       const status = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
@@ -681,11 +688,11 @@ export class Mojibake {
 
   // mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
   // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
-  case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): string | null {
+  case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
-    let result: Result | null = null;
+    let result: RawResult | null = null;
 
     try {
       const status = this.module._mjb_case(wasmInput.ptr, wasmInput.size, type,
@@ -697,7 +704,7 @@ export class Mojibake {
 
       result = this.pointerToResult(resultPtr);
 
-      return this.decodeString(result.output, result.output_size, outputEncoding);
+      return this.rawResultToResult(result, outputEncoding);
     } finally {
       if(result?.transformed && result.output !== 0) {
         this.free(result.output);
@@ -1324,7 +1331,7 @@ export class Mojibake {
   }
 
   // Create a mjb_result structure from a pointer to it in memory
-  private pointerToResult(ptr: Pointer): Result {
+  private pointerToResult(ptr: Pointer): RawResult {
     const reader = this.struct(ptr);
 
     return {
@@ -1332,6 +1339,14 @@ export class Mojibake {
       output_size: reader.u32(),
       transformed: reader.u8() !== 0
     };
+  }
+
+  private rawResultToResult(raw: RawResult, outputEncoding: Encoding): Result {
+    return {
+      output: this.decodeString(raw.output, raw.output_size, outputEncoding),
+      outputSize: raw.output_size,
+      transformed: raw.transformed
+    }
   }
 
   // Create a mjb_emoji_properties structure from a pointer to it in memory

@@ -43,12 +43,12 @@ att_set_show_colors(showColors);
 
 ATT_ASSERT(mojibake instanceof Mojibake, true, 'create');
 ATT_ASSERT(mojibake.codepointCharacter(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
-ATT_ASSERT(mojibake.normalize('e\u0301'), '\u00E9', 'normalize');
+ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
 ATT_ASSERT(mojibake.nextCharacter('A')?.[0]?.character.codepoint, 0x41, 'nextCharacter');
 ATT_ASSERT(mojibake.stringIsNormalized('abc'), QuickCheckResult.YES, 'stringIsNormalized');
-ATT_ASSERT(mojibake.stringFilter('hello    world', FilterType.COLLAPSE_SPACES), 'hello world',
+ATT_ASSERT(mojibake.stringFilter('hello    world', FilterType.COLLAPSE_SPACES)?.output, 'hello world',
   'stringFilter');
-ATT_ASSERT(mojibake.stringFilter('a\u0300\u0301\u0302\u0303\u0304', FilterType.LIMIT_COMBINING),
+ATT_ASSERT(mojibake.stringFilter('a\u0300\u0301\u0302\u0303\u0304', FilterType.LIMIT_COMBINING)?.output,
   'a\u0300\u0301\u0302\u0303', 'stringFilterLimitCombining');
 ATT_ASSERT(mojibake.codepointPropertyValue(0x41, Property.CASED), 0, 'codepointHasProperty');
 ATT_ASSERT(mojibake.codepointScript(0x41), Script.LATN, 'codepointScript');
@@ -57,11 +57,11 @@ ATT_ASSERT(mojibake.stringIsUtf8('Hello'), true, 'stringIsUtf8');
 ATT_ASSERT(mojibake.stringIsUtf16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'stringIsUtf16');
 ATT_ASSERT(mojibake.stringIsAscii('Hello'), true, 'stringIsAscii');
 ATT_ASSERT(mojibake.codepointEncode(0x41), 'A', 'codepointEncode');
-ATT_ASSERT(mojibake.stringConvertEncoding('A', Encoding.UTF_16LE), 'A', 'stringConvertEncoding');
+ATT_ASSERT(mojibake.stringConvertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'stringConvertEncoding');
 ATT_ASSERT(mojibake.stringLength('H\u00E9ll\u00F6'), 5, 'stringLength');
 ATT_ASSERT(mojibake.stringCompare('hello', 'hello'), 0, 'stringCompare');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
-ATT_ASSERT(mojibake.case('hello', CaseType.UPPER), 'HELLO', 'case');
+ATT_ASSERT(mojibake.case('hello', CaseType.UPPER)?.output, 'HELLO', 'case');
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
