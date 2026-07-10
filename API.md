@@ -1,6 +1,9 @@
 # API
 
-Here is the basis for using the library
+You can find a demo site where you can find the API documentation and test the functions by using
+WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+
+Here is the basis for using the library:
 
 1. Mojibake does not have a default input encoding or output decoding; you must decide what to use.
 2. Every string passed is simply a stream of bytes, and you must specify how many bytes there are

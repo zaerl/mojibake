@@ -20,7 +20,8 @@ Mojibake do:
 3. Implement all Unicode standard algorithms
 4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE-REQUIREMENTS.md)
 
-You can find a demo site where you can find the API documentation and test the functions by using WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+You can find a demo site where you can find the API documentation and test the functions by using
+WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
 
 ## Feature highlights
 
