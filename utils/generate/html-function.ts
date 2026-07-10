@@ -11,7 +11,24 @@ import { categories } from './types';
 import hljs from 'highlight.js/lib/core';
 import c from 'highlight.js/lib/languages/c';
 
-hljs.registerLanguage('c', c);
+const mojibakeTypes = new Set<string>();
+
+for(const fn of functions) {
+  for(const type of [fn.ret, ...fn.args.map(arg => arg.type)]) {
+    for(const match of type.matchAll(/\bmjb_[a-z0-9_]+\b/g)) {
+      mojibakeTypes.add(match[0]);
+    }
+  }
+}
+
+hljs.registerLanguage('c', api => {
+  const language = c(api);
+  const keywords = language.keywords as Record<string, string[]>;
+
+  keywords.type.push(...mojibakeTypes);
+
+  return language;
+});
 
 export class CFunction implements MojibakeFunction {
   public comment: string;
@@ -144,10 +161,14 @@ export class CFunction implements MojibakeFunction {
     return `<section id="${this.getName()}">
       <h2 class="function-name">${this.getName()}</h2>
       <p class="function-call-comment">${this.comment}</p>
-      <div class="function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
+      <div class="function-call" id="${this.getName()}-function">
         <pre><code class="hljs language-c">${hljs.highlight(fn, { language: 'c' }).value}</code></pre>
+        <button type="button" class="function-toggle" id="${this.getName()}-toggle"
+          aria-expanded="false" aria-controls="${this.getName()}-card"
+          aria-label="Show details and WASM form for ${this.getName()}"
+          onclick="toggleFunctionCall('${this.getName()}')"></button>
       </div>
-      <div class="function-card">
+      <div class="function-card" id="${this.getName()}-card">
         ${this.documentationHTML(relatedLinkTargets)}
         <div>${this.formInputHTML()}        </div>
         <div id="${this.getName()}-results" class="function-results code"></div>
