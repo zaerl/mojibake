@@ -104,7 +104,7 @@ summary {
     --primary-hover: rgb(17, 94, 89);
     --primary-bg: rgb(240, 253, 250);
     --button-text: rgb(255, 255, 255);
-    --content-width: 760px;
+    --content-width: 50em;
 
     /* Light mode colors */
     --bg: rgb(250, 252, 252);
@@ -297,8 +297,12 @@ tr:hover {
 code, pre {
     background-color: var(--bg-secondary);
     color: var(--text);
-    padding: 0.25rem 0.5rem;
+    padding: 0 0.25rem;
     border: 1px solid var(--border);
+}
+
+code {
+    display: inline-block;
 }
 
 pre {
@@ -309,6 +313,7 @@ pre {
 pre code {
     background: none;
     border: none;
+    display: inline;
     padding: 0;
 }
 
