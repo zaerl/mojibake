@@ -57,6 +57,7 @@
 | `mjb_hangul_syllable_decomposition`      | 5           |
 | `mjb_alloc`                              | 4           |
 | `mjb_codepoint_is_hangul_jamo`           | 4           |
+| `mjb_result_free`                        | 4           |
 | `mjb_set_memory_functions`               | 4           |
 | `mjb_codepoint_is_hangul_l`              | 3           |
 | `mjb_codepoint_is_hangul_t`              | 3           |
@@ -87,7 +88,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560857** |
+| **Total**                                | **1560861** |
 
 ## JavaScript
 

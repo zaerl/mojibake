@@ -105,7 +105,7 @@ function result(description = 'The pointer to store the result'): MojibakeArg {
     description,
     wasm_generated: true,
     ownership: 'If `result->transformed` is true, `result->output` is library-allocated and ' +
-      'must be freed with `mjb_free()`'
+      'must be freed with `mjb_result_free(result)`'
   };
 }
 
@@ -1560,6 +1560,26 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`locale` is not a valid `mjb_locale` value' }
     ],
     related: ['mjb_case']
+  },
+  {
+    comment: 'Free a mjb_result.',
+    ret: 'mjb_status',
+    name: 'mjb_result_free',
+    attributes: [],
+    args: [
+      {
+        name: 'result',
+        type: 'mjb_result *',
+        description: 'The result to free',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    details: 'Free the memory allocated for a `mjb_result`. The `result` pointer is set to NULL.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The result was freed' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL' }
+    ]
   },
   {
     comment: 'Output the current library version (MJB_VERSION).',

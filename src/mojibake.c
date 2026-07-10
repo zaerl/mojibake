@@ -37,6 +37,23 @@ static void mjb_default_free(void *ptr) {
 mojibake mjb_global = { false, MJB_DEFAULT_ALLOC, MJB_DEFAULT_REALLOC, MJB_DEFAULT_FREE,
     MJB_LOCALE_EN };
 
+// Free a mjb_result.
+MJB_EXPORT mjb_status mjb_result_free(mjb_result *result) {
+    if(result == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(result->transformed && result->output != NULL) {
+        mjb_free(result->output);
+        result->output = NULL;
+        result->output_size = 0;
+    }
+
+    result->transformed = false;
+
+    return MJB_STATUS_OK;
+}
+
 // Set the library memory functions.
 MJB_EXPORT mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
     mjb_free_fn free_fn) {

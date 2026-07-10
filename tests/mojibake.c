@@ -56,6 +56,16 @@ static void test_set_failing_allocator(size_t fail_after) {
 
 int test_mojibake(void *arg) {
     test_counter = 0;
+    mjb_result result;
+    ATT_ASSERT_STATUS(mjb_result_free(NULL), MJB_STATUS_INVALID_ARGUMENT, "Free NULL result")
+
+    result.output = (char*)malloc(1);
+    result.output_size = 1;
+    result.transformed = true;
+
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free result with output")
+    ATT_ASSERT(result.output == NULL, true, "Result output NULL after free")
+    ATT_ASSERT(result.output_size, 0, "Result output size 0 after free")
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown before memory functions")
     void *implicit_buffer = NULL;
@@ -87,7 +97,6 @@ int test_mojibake(void *arg) {
 
     test_set_failing_allocator(0);
 
-    mjb_result result;
     ATT_ASSERT_STATUS(mjb_string_convert_encoding("a", 1, MJB_ENC_UTF_8,
         MJB_ENC_UTF_16LE, &result), MJB_STATUS_NO_MEMORY,
         "Encoding conversion handles allocation failure")

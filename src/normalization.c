@@ -633,14 +633,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 
 fail:
     mjb_free(composition_buffer);
-
-    if(!is_composition) {
-        mjb_free(result->output);
-    }
-
-    result->output = NULL;
-    result->output_size = 0;
-    result->transformed = false;
+    mjb_result_free(result);
 
     #undef MJB_NORMALIZE_FLUSH_BUFFER
 

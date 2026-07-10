@@ -732,6 +732,9 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte
 // Set current locale used by locale-sensitive casing.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_set(unsigned int locale);
 
+// Free a mjb_result.
+MJB_EXPORT mjb_status mjb_result_free(mjb_result *result);
+
 // Output the current library version (MJB_VERSION).
 MJB_EXPORT MJB_CONST const char *mjb_version(void);
 

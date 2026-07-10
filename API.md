@@ -8,7 +8,8 @@ Here is the basis for using the library:
 1. Mojibake does not have a default input encoding or output decoding; you must decide what to use.
 2. Every string passed is simply a stream of bytes, and you must specify how many bytes there are
 3. For safety reasons, the functions stop when they encounter a `\0` byte in the input strings even
-if the `length` is bigger. This is unless you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS`
+if the `length` is bigger. This is unless you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` or you
+use UTF-16/UTF-32.
 4. The major part of the functions return a `mjb_status` and should be checked against the
 `MJB_STATUS_OK` constant.
 5. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
@@ -179,7 +180,7 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 - `form` — The normalization form to use
 - `encoding` — The encoding of the string
 - `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
+- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
@@ -252,7 +253,7 @@ mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encodin
 - `encoding` — The encoding of the string
 - `output_encoding` — The output encoding of the string
 - `filters` — The filters to use
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
+- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Example**
 
@@ -401,7 +402,7 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The input encoding of the string
 - `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
+- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
@@ -468,7 +469,7 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `mode` — The variable weighting strategy
-- `result` — The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
+- `result` — The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
@@ -496,7 +497,7 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 - `type` — The type of case change
 - `encoding` — The encoding of the string
 - `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_free()`
+- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
@@ -1378,6 +1379,23 @@ Set the process-global locale used by `mjb_case`. The default locale is `MJB_LOC
 - `MJB_STATUS_INVALID_ARGUMENT` — `locale` is not a valid `mjb_locale` value
 
 See also: [`mjb_case`](#mjb_case).
+
+## `mjb_result_free`
+
+Free a mjb_result.
+
+```c
+mjb_status mjb_result_free(mjb_result *result);
+```
+
+Free the memory allocated for a `mjb_result`. The `result` pointer is set to NULL.
+
+- `result` — The result to free
+
+**Returns**
+
+- `MJB_STATUS_OK` — The result was freed
+- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL
 
 ## `mjb_version`
 

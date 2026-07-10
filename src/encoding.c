@@ -364,10 +364,7 @@ MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t byt
             sizeof(output_buffer), output_encoding);
 
         if(output_size == 0) {
-            mjb_free(result->output);
-            result->output = NULL;
-            result->output_size = 0;
-            result->transformed = false;
+            mjb_result_free(result);
 
             return MJB_STATUS_UNSUPPORTED;
         }
@@ -378,10 +375,7 @@ MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t byt
         if(new_output != NULL) {
             result->output = new_output;
         } else {
-            mjb_free(result->output);
-            result->output = NULL;
-            result->output_size = 0;
-            result->transformed = false;
+            mjb_result_free(result);
 
             return MJB_STATUS_NO_MEMORY;
         }

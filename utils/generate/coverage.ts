@@ -224,7 +224,7 @@ function printCoverage(cCoverage: Coverage, javascriptCoverage: Coverage): void 
   // Update README.md with the total coverage count
   const readmePath = join(repoRoot, 'README.md');
   const readmeContent = readFileSync(readmePath, 'utf8');
-  const updatedReadmeContent = substituteBlock(readmeContent, 'a total of **', `** tests including`,
+  const updatedReadmeContent = substituteBlock(readmeContent, 'a total of **', `** tests, including`,
     total.toLocaleString('en-US')
   );
   writeFileSync(readmePath, updatedReadmeContent);

@@ -213,11 +213,12 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length, 
         result->output = (char*)buffer;
         result->output_size = byte_length;
         result->transformed = false;
+
         return MJB_STATUS_OK;
     }
 
     if(is_normalized) {
-        mjb_free(result->output);
+        mjb_result_free(result);
     }
 
     result->output = output;
