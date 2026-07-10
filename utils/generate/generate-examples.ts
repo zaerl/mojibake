@@ -8,8 +8,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import functions, { MojibakeFunction } from './functions';
 import { substituteBlock } from './utils';
 
-const OUTPUT_DIR = '../../tests/examples';
-
 function exampleSource(fn: MojibakeFunction): string {
   const body = (fn.example as string).split('\n');
   let output: string[] = [];

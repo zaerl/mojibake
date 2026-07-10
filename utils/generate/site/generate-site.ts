@@ -110,7 +110,7 @@ function formatAPISections(
   return API_SECTIONS.map(section => {
     const sectionFunctions = functs.filter(fn => fn.getSection() === section.section);
     const functionsHTML = sectionFunctions.map(fn =>
-      '        ' + fn.formatHTML(functionNames).replace(/\n/g, '\n        ')
+      fn.formatHTML(functionNames)
     ).join('\n');
 
     return `    <section class="api-section" id="api-${section.id}" data-api-section>
