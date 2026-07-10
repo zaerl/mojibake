@@ -12,12 +12,12 @@ It aims to be:
 3. Fast
 4. Self-contained
 
-And also to:
+Mojibake do:
 
 1. Run in all modern OSes (Linux, macOS, FreeBSD, OpenBSD, NetBSD, Windows 10/11)
 2. Pass the official Unicode test suites for supported algorithms
 3. Implement all Unicode standard algorithms
-4. Satisfy all Unicode Conformance Requirements
+4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE-REQUIREMENTS.md)
 
 ## Feature highlights
 
@@ -70,8 +70,11 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Embeddable**: custom allocators (`mjb_set_memory_functions`), build-time feature flags to trim
   table size, a C++17 wrapper (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a
   WASM + TypeScript API (`src/api`)
-- **Tested**: 1.5M+ assertions including the official Unicode conformance suites for
-  supported algorithms; fuzzed with `libFuzzer`; `AddressSanitizer` and `UBSan` clean
+- **Tested**: Mojibake uses [Attractor](https://github.com/zaerl/attractor/) as test suite and run
+  [1.5M+ assertions](https://github.com/zaerl/mojibake/blob/main/TESTS.md) including the
+  official Unicode conformance suites for supported algorithms
+- **Fuzz** It's fuzzed with `libFuzzer`
+- `AddressSanitizer` and `UBSan` clean
 
 ## Usage
 
@@ -150,7 +153,7 @@ make test-no-names
 
 ### API documentation
 
-See [API.md](API.md) for the detailed documentation.
+See [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) for the detailed documentation.
 
 ### CLI
 
@@ -204,19 +207,19 @@ make fuzz FUZZ_TIME=300
 
 ## Building from source
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions.
+See [CONTRIBUTING.md](https://github.com/zaerl/mojibake/blob/main/CONTRIBUTING.md) for instructions.
 
 ## Licenses
 
-Mojibake is released under the MIT License (see [LICENSE](LICENSE) file).
+Mojibake is released under the MIT License (see [LICENSE](https://github.com/zaerl/mojibake/blob/main/LICENSE)).
 
 ## Unicode references
 
 Mojibake's Unicode data and algorithm references are scoped to
 [The Unicode Standard, Version 17.0.0](https://www.unicode.org/versions/Unicode17.0.0/)
 and the [Unicode Character Database 17.0.0](https://www.unicode.org/Public/17.0.0/).
-Normative algorithm references in this README and in [API.md](API.md) use the archived
-Unicode 17.0.0 versions of the applicable annexes and synchronized technical standards:
+Normative algorithm references here and in [https://github.com/zaerl/mojibake/blob/main/API.md](API.md)
+use the archived Unicode 17.0.0 versions of the applicable annexes and synchronized technical standards:
 
 - [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html)
 - [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html)
@@ -229,11 +232,12 @@ Unicode 17.0.0 versions of the applicable annexes and synchronized technical sta
 - [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html)
 - [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html)
 
-Generic Unicode links, when present, are informational or download links rather than
-normative conformance references.
+Generic Unicode links, when present, are informational or download links rather than normative
+conformance references.
 
 ## Unicode Conformance Requirements
-Mojibake satisfy the Unicode Conformance Requirements. See [CONFORMANCE-REQUIREMENTS.md](CONFORMANCE-REQUIREMENTS.md) for details.
+Mojibake satisfy the Unicode Conformance Requirements. See
+[CONFORMANCE-REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE-REQUIREMENTS.md) for details.
 
 ## Unicode tailoring
 

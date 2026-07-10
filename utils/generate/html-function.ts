@@ -133,8 +133,9 @@ export class CFunction implements MojibakeFunction {
 
   formatHTML(relatedLinkTargets = new Set<string>()): string {
     return `<section id="${this.getName()}">
+      <h2 class="function-name">${this.getName()}</h2>
+      <p class="function-call-comment">${this.comment}</p>
       <div class="code function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
-        <div class="function-call-comment">// ${this.comment}</div>
         <div>${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</div>
       </div>
       <div class="function-card">

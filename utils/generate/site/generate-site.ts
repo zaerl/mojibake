@@ -6,6 +6,7 @@
 
 import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'fs';
 import http from 'http';
+import markdownit from 'markdown-it';
 import { basename, extname, join, relative } from 'path';
 import { cfns } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
@@ -65,6 +66,11 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[WASM_HREF]', wasmFileName);
   fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
+
+  const readme = readFileSync('../../README.md', 'utf-8');
+  const md = markdownit();
+  const header = md.render(readme.slice(readme.indexOf('**Mojibake'), readme.indexOf('### Thanks')));
+  fileContent = substituteText(fileContent, '[HEADER_HERE]', header);
 
   writeFileSync(`${BUILD_DIR}/index.html`, fileContent);
   console.log('index.html processed successfully');
