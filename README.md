@@ -3,7 +3,7 @@
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
-**Mojibake**[^1] is a low-level Unicode 17 text-processing library written in C11 and compatible
+**Mojibake** is a low-level Unicode 17 text-processing library written in C11 and compatible
 with C++17. It is released under the MIT License.
 
 It aims to be:
@@ -294,7 +294,3 @@ Mojibake is built using the work of extraordinary individuals and teams.
 (see [license.txt](https://www.unicode.org/license.txt))
 2. Unicode CLDR Project - Copyright © 2004-2026 Unicode, Inc.
 (see [LICENSE](https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/LICENSE))
-
-[^1]: **Mojibake** (Japanese: 文字化け 'character transformation') is the garbled text that is the
-result of text being decoded using an unintended character encoding. I created this library because
-I don't like any of the existing one.
