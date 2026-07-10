@@ -236,35 +236,6 @@ if(result.transformed) {
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
-    ret: 'mjb_quick_check_result',
-    name: 'mjb_string_is_normalized',
-    attributes: [],
-    args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
-      {
-        name: 'form',
-        type: 'mjb_normalization',
-        description: 'The normalization form to check',
-        wasm_generated: false
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-    details: 'Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` ' +
-      'means the string may still be normalized, and only a full normalization pass with ' +
-      '`mjb_normalize` can decide.',
-    returns: [
-      { value: 'MJB_QC_YES', description: 'The string is normalized to the requested form' },
-      { value: 'MJB_QC_NO', description: 'The string is not normalized' },
-      { value: 'MJB_QC_MAYBE', description: 'Inconclusive: a full normalization is needed to decide' }
-    ],
-    related: ['mjb_normalize'],
-    specs: [uax(15, 'Unicode Normalization Forms')]
-  },
-  {
     comment: 'Filter a string with the selected mjb_filter flags.',
     ret: 'mjb_status',
     name: 'mjb_string_filter',
@@ -318,6 +289,116 @@ if(result.transformed) {
 related: ['mjb_normalize']
   },
   {
+    comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
+    ret: 'mjb_quick_check_result',
+    name: 'mjb_string_is_normalized',
+    attributes: [],
+    args: [
+      buffer('The string to check'),
+      byte_length(),
+      encoding(),
+      {
+        name: 'form',
+        type: 'mjb_normalization',
+        description: 'The normalization form to check',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    details: 'Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` ' +
+      'means the string may still be normalized, and only a full normalization pass with ' +
+      '`mjb_normalize` can decide.',
+    returns: [
+      { value: 'MJB_QC_YES', description: 'The string is normalized to the requested form' },
+      { value: 'MJB_QC_NO', description: 'The string is not normalized' },
+      { value: 'MJB_QC_MAYBE', description: 'Inconclusive: a full normalization is needed to decide' }
+    ],
+    related: ['mjb_normalize'],
+    specs: [uax(15, 'Unicode Normalization Forms')]
+  },
+  {
+    comment: 'Return the string encoding (the most probable).',
+    ret: 'mjb_encoding',
+    name: 'mjb_string_encoding',
+    attributes: [
+      'MJB_PURE'
+    ],
+    args: [
+      buffer('The string to check'),
+      byte_length()
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    details: '`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic ' +
+      'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
+      'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
+      'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
+      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.'
+  },
+  {
+    comment: 'Return true if the string is encoded in ASCII.',
+    ret: 'bool',
+    name: 'mjb_string_is_ascii',
+    attributes: [
+      'MJB_PURE'
+    ],
+    args: [
+      buffer('The string to check'),
+      byte_length()
+    ],
+    wasm: true,
+    section: Section.TextAnalysis
+  },
+  {
+    comment: 'Return true if the string is encoded in UTF-8.',
+    ret: 'bool',
+    name: 'mjb_string_is_utf8',
+    attributes: [
+      'MJB_PURE'
+    ],
+    args: [
+      buffer('The string to check'),
+      byte_length()
+    ],
+    wasm: true,
+    section: Section.TextAnalysis
+  },
+  {
+    comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
+    ret: 'bool',
+    name: 'mjb_string_is_utf16',
+    attributes: [
+      'MJB_PURE'
+    ],
+    args: [
+      buffer('The string to check'),
+      byte_length()
+    ],
+    wasm: true,
+    section: Section.TextAnalysis
+  },
+  {
+    comment: 'Return the length of a string.',
+    ret: 'size_t',
+    name: 'mjb_string_length',
+    attributes: [
+      'MJB_PURE'
+    ],
+    args: [
+      buffer('The string to check'),
+      {
+        name: 'max_length',
+        type: 'size_t',
+        description: 'The maximum length of the string, in bytes',
+        wasm_generated: true
+      },
+      encoding()
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+  },
+  {
     comment: 'Run a callback for each character of a string.',
     ret: 'mjb_status',
     name: 'mjb_string_each_character',
@@ -361,6 +442,63 @@ related: ['mjb_normalize']
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
+    comment: 'Return the numeric value of a codepoint.',
+    ret: 'mjb_status',
+    name: 'mjb_codepoint_numeric_value',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      codepoint(),
+      {
+        name: 'value',
+        type: 'mjb_numeric_value *',
+        description: 'The numeric value to store the result',
+        wasm_generated: true
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    details: 'Return the numeric value of a codepoint, if any. If the codepoint has no numeric ' +
+      'value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The character was found and filled' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`value` is NULL or the codepoint is not valid' },
+    ],
+    example: `mjb_numeric_value num;
+
+if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
+    return 1;
+}
+
+// decimal=1, digit=1, numeric=1
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
+
+if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
+    return 1;
+}
+
+// decimal=-1, digit=-1, numeric=1/2
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`,
+    specs: [uax(44, 'Unicode Character Database')]
+  },
+  {
+    comment: 'Return the character block.',
+    ret: 'mjb_status',
+    name: 'mjb_codepoint_block',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      codepoint(),
+      {
+        name: 'block',
+        type: 'mjb_block_info *',
+        description: 'The block to store the result',
+        wasm_generated: true
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    specs: [uax(44, 'Unicode Character Database')]
+  },
+  {
     comment: 'Return the script of a codepoint.',
     ret: 'mjb_script',
     name: 'mjb_codepoint_script',
@@ -369,67 +507,6 @@ related: ['mjb_normalize']
     wasm: true,
     section: Section.TextAnalysis,
     specs: [uax(44, 'Unicode Character Database')]
-  },
-  {
-    comment: 'Return the string encoding (the most probable).',
-    ret: 'mjb_encoding',
-    name: 'mjb_string_encoding',
-    attributes: [
-      'MJB_PURE'
-    ],
-    args: [
-      buffer('The string to check'),
-      byte_length()
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-    details: '`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic ' +
-      'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
-      'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
-      'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
-      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.'
-  },
-  {
-    comment: 'Return true if the string is encoded in UTF-8.',
-    ret: 'bool',
-    name: 'mjb_string_is_utf8',
-    attributes: [
-      'MJB_PURE'
-    ],
-    args: [
-      buffer('The string to check'),
-      byte_length()
-    ],
-    wasm: true,
-    section: Section.TextAnalysis
-  },
-  {
-    comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
-    ret: 'bool',
-    name: 'mjb_string_is_utf16',
-    attributes: [
-      'MJB_PURE'
-    ],
-    args: [
-      buffer('The string to check'),
-      byte_length()
-    ],
-    wasm: true,
-    section: Section.TextAnalysis
-  },
-  {
-    comment: 'Return true if the string is encoded in ASCII.',
-    ret: 'bool',
-    name: 'mjb_string_is_ascii',
-    attributes: [
-      'MJB_PURE'
-    ],
-    args: [
-      buffer('The string to check'),
-      byte_length()
-    ],
-    wasm: true,
-    section: Section.TextAnalysis
   },
   {
     comment: 'Encode a codepoint to a string.',
@@ -475,26 +552,6 @@ related: ['mjb_normalize']
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     related: ['mjb_string_encoding', 'mjb_codepoint_encode']
-  },
-  {
-    comment: 'Return the length of a string.',
-    ret: 'size_t',
-    name: 'mjb_string_length',
-    attributes: [
-      'MJB_PURE'
-    ],
-    args: [
-      buffer('The string to check'),
-      {
-        name: 'max_length',
-        type: 'size_t',
-        description: 'The maximum length of the string, in bytes',
-        wasm_generated: true
-      },
-      encoding()
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
   },
   {
     comment: 'Compare two strings using UCA.',
@@ -736,63 +793,6 @@ if(result.transformed) {
     section: Section.TextAnalysis,
   },
   {
-    comment: 'Return the numeric value of a codepoint.',
-    ret: 'mjb_status',
-    name: 'mjb_codepoint_numeric_value',
-    attributes: ['MJB_NODISCARD'],
-    args: [
-      codepoint(),
-      {
-        name: 'value',
-        type: 'mjb_numeric_value *',
-        description: 'The numeric value to store the result',
-        wasm_generated: true
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-    details: 'Return the numeric value of a codepoint, if any. If the codepoint has no numeric ' +
-      'value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).',
-    returns: [
-      { value: 'MJB_STATUS_OK', description: 'The character was found and filled' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`value` is NULL or the codepoint is not valid' },
-    ],
-    example: `mjb_numeric_value num;
-
-if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
-    return 1;
-}
-
-// decimal=1, digit=1, numeric=1
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
-
-if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
-    return 1;
-}
-
-// decimal=-1, digit=-1, numeric=1/2
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`,
-    specs: [uax(44, 'Unicode Character Database')]
-  },
-  {
-    comment: 'Return the character block.',
-    ret: 'mjb_status',
-    name: 'mjb_codepoint_block',
-    attributes: ['MJB_NODISCARD'],
-    args: [
-      codepoint(),
-      {
-        name: 'block',
-        type: 'mjb_block_info *',
-        description: 'The block to store the result',
-        wasm_generated: true
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-    specs: [uax(44, 'Unicode Character Database')]
-  },
-  {
     comment: 'Return the codepoint lowercase codepoint.',
     ret: 'mjb_codepoint',
     name: 'mjb_codepoint_to_lowercase',
@@ -891,50 +891,6 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
-    comment: 'Return the number of bytes that form the first max_segments word-break segments.',
-    ret: 'size_t',
-    name: 'mjb_truncate_word',
-    attributes: [],
-    args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
-      {
-        name: 'max_segments',
-        type: 'size_t',
-        description: 'The maximum number of segments to return',
-        wasm_generated: false
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-  },
-  {
-    comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
-    ret: 'size_t',
-    name: 'mjb_truncate_word_width',
-    attributes: [],
-    args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
-      {
-        name: 'context',
-        type: 'mjb_width_context',
-        description: 'The width context',
-        wasm_generated: false
-      },
-      {
-        name: 'max_columns',
-        type: 'size_t',
-        description: 'The maximum number of columns to return',
-        wasm_generated: false
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-  },
-  {
     comment: 'Sentence boundaries breaking.',
     ret: 'mjb_break_type',
     name: 'mjb_break_sentence',
@@ -1001,6 +957,50 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
     ret: 'size_t',
     name: 'mjb_truncate_width',
+    attributes: [],
+    args: [
+      buffer('The string to check'),
+      byte_length(),
+      encoding(),
+      {
+        name: 'context',
+        type: 'mjb_width_context',
+        description: 'The width context',
+        wasm_generated: false
+      },
+      {
+        name: 'max_columns',
+        type: 'size_t',
+        description: 'The maximum number of columns to return',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+  },
+  {
+    comment: 'Return the number of bytes that form the first max_segments word-break segments.',
+    ret: 'size_t',
+    name: 'mjb_truncate_word',
+    attributes: [],
+    args: [
+      buffer('The string to check'),
+      byte_length(),
+      encoding(),
+      {
+        name: 'max_segments',
+        type: 'size_t',
+        description: 'The maximum number of segments to return',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+  },
+  {
+    comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
+    ret: 'size_t',
+    name: 'mjb_truncate_word_width',
     attributes: [],
     args: [
       buffer('The string to check'),

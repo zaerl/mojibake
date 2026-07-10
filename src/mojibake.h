@@ -513,23 +513,17 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepo
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
-// Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
-
 // Filter a string with the selected mjb_filter flags.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
 
-// Run a callback for each character of a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
-
-// Return if a codepoint has a property.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
-
-// Return the script of a codepoint.
-MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
+// Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
+MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
 
 // Return the string encoding (the most probable).
 MJB_EXPORT MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
+
+// Return true if the string is encoded in ASCII.
+MJB_EXPORT MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
 
 // Return true if the string is encoded in UTF-8.
 MJB_EXPORT MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t byte_length);
@@ -537,17 +531,29 @@ MJB_EXPORT MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t byte_leng
 // Return true if the string is encoded in UTF-16BE or UTF-16LE.
 MJB_EXPORT MJB_PURE bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
 
-// Return true if the string is encoded in ASCII.
-MJB_EXPORT MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
+// Return the length of a string.
+MJB_EXPORT MJB_PURE size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
+
+// Run a callback for each character of a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
+
+// Return if a codepoint has a property.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
+
+// Return the numeric value of a codepoint.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
+
+// Return the character block.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
+
+// Return the script of a codepoint.
+MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 
 // Encode a codepoint to a string.
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length, mjb_encoding encoding);
 
 // Convert from one encoding to another.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
-
-// Return the length of a string.
-MJB_EXPORT MJB_PURE size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Compare two strings using UCA.
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);
@@ -594,12 +600,6 @@ MJB_EXPORT MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 // Return true if the category is combining.
 MJB_EXPORT MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
-// Return the numeric value of a codepoint.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
-
-// Return the character block.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
-
 // Return the codepoint lowercase codepoint.
 MJB_EXPORT MJB_CONST mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
 
@@ -615,12 +615,6 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 // Word cluster breaking.
 MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_word_state *state);
 
-// Return the number of bytes that form the first max_segments word-break segments.
-MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
-
-// Return the number of bytes whose word-break segments fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
-
 // Sentence boundaries breaking.
 MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_sentence_state *state);
 
@@ -632,6 +626,12 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encod
 
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
 MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+
+// Return the number of bytes that form the first max_segments word-break segments.
+MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
+
+// Return the number of bytes whose word-break segments fit within max_columns display columns.
+MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);

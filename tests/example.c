@@ -88,28 +88,6 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_case
-    MJB_TEST_COVERAGE(mjb_case); // Added by the script
-    const char *input = "Stra\xC3\x9F""e"; // "Straße"
-    mjb_result result;
-
-    if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_case test failed") // Added by the script
-        return 1;
-    }
-
-    // Upper: STRASSE
-    // printf("Upper: %.*s", (int)result.output_size, result.output);
-    snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_case test failed") // Added by the script
-
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
-}
-
-{
     // Example for mjb_codepoint_numeric_value
     MJB_TEST_COVERAGE(mjb_codepoint_numeric_value); // Added by the script
     mjb_numeric_value num;
@@ -133,6 +111,28 @@ int test_example(void *arg) {
     // printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     snprintf(test_buffer, sizeof(test_buffer), "decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric); // Added by the script
     ATT_ASSERT(test_buffer, "decimal=-1, digit=-1, numeric=1/2", "mjb_codepoint_numeric_value test failed") // Added by the script
+}
+
+{
+    // Example for mjb_case
+    MJB_TEST_COVERAGE(mjb_case); // Added by the script
+    const char *input = "Stra\xC3\x9F""e"; // "Straße"
+    mjb_result result;
+
+    if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_case test failed") // Added by the script
+        return 1;
+    }
+
+    // Upper: STRASSE
+    // printf("Upper: %.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_case test failed") // Added by the script
+
+    if(result.transformed) {
+        mjb_free(result.output);
+    }
 }
 
 {

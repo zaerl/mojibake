@@ -213,31 +213,6 @@ See also: [`mjb_string_is_normalized`](#mjb_string_is_normalized), [`mjb_string_
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
-## `mjb_string_is_normalized`
-
-Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-
-```c
-mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
-```
-
-Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `form` — The normalization form to check
-
-**Returns**
-
-- `MJB_QC_YES` — The string is normalized to the requested form
-- `MJB_QC_NO` — The string is not normalized
-- `MJB_QC_MAYBE` — Inconclusive: a full normalization is needed to decide
-
-See also: [`mjb_normalize`](#mjb_normalize).
-
-Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
-
 ## `mjb_string_filter`
 
 Filter a string with the selected mjb_filter flags.
@@ -290,6 +265,89 @@ if(result.transformed) {
 
 See also: [`mjb_normalize`](#mjb_normalize).
 
+## `mjb_string_is_normalized`
+
+Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
+
+```c
+mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
+```
+
+Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+- `encoding` — The encoding of the string
+- `form` — The normalization form to check
+
+**Returns**
+
+- `MJB_QC_YES` — The string is normalized to the requested form
+- `MJB_QC_NO` — The string is not normalized
+- `MJB_QC_MAYBE` — Inconclusive: a full normalization is needed to decide
+
+See also: [`mjb_normalize`](#mjb_normalize).
+
+Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
+
+## `mjb_string_encoding`
+
+Return the string encoding (the most probable).
+
+```c
+mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
+```
+
+`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+
+## `mjb_string_is_ascii`
+
+Return true if the string is encoded in ASCII.
+
+```c
+bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
+```
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+
+## `mjb_string_is_utf8`
+
+Return true if the string is encoded in UTF-8.
+
+```c
+bool mjb_string_is_utf8(const char *buffer, size_t byte_length);
+```
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+
+## `mjb_string_is_utf16`
+
+Return true if the string is encoded in UTF-16BE or UTF-16LE.
+
+```c
+bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
+```
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+
+## `mjb_string_length`
+
+Return the length of a string.
+
+```c
+size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
+```
+
+- `buffer` — The string to check
+- `max_length` — The maximum length of the string, in bytes
+- `encoding` — The encoding of the string
+
 ## `mjb_string_each_character`
 
 Run a callback for each character of a string.
@@ -317,6 +375,59 @@ mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property pr
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
+## `mjb_codepoint_numeric_value`
+
+Return the numeric value of a codepoint.
+
+```c
+mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
+```
+
+Return the numeric value of a codepoint, if any. If the codepoint has no numeric value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).
+
+- `codepoint` — The codepoint to check
+- `value` — The numeric value to store the result
+
+**Returns**
+
+- `MJB_STATUS_OK` — The character was found and filled
+- `MJB_STATUS_INVALID_ARGUMENT` — `value` is NULL or the codepoint is not valid
+
+**Example**
+
+```c
+mjb_numeric_value num;
+
+if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
+    return 1;
+}
+
+// decimal=1, digit=1, numeric=1
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
+
+if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
+    return 1;
+}
+
+// decimal=-1, digit=-1, numeric=1/2
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
+```
+
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
+## `mjb_codepoint_block`
+
+Return the character block.
+
+```c
+mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
+```
+
+- `codepoint` — The codepoint to check
+- `block` — The block to store the result
+
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
 ## `mjb_codepoint_script`
 
 Return the script of a codepoint.
@@ -328,52 +439,6 @@ mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 - `codepoint` — The codepoint to check
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
-
-## `mjb_string_encoding`
-
-Return the string encoding (the most probable).
-
-```c
-mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
-```
-
-`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-
-## `mjb_string_is_utf8`
-
-Return true if the string is encoded in UTF-8.
-
-```c
-bool mjb_string_is_utf8(const char *buffer, size_t byte_length);
-```
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-
-## `mjb_string_is_utf16`
-
-Return true if the string is encoded in UTF-16BE or UTF-16LE.
-
-```c
-bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
-```
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-
-## `mjb_string_is_ascii`
-
-Return true if the string is encoded in ASCII.
-
-```c
-bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
-```
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
 
 ## `mjb_codepoint_encode`
 
@@ -414,18 +479,6 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 - `MJB_STATUS_NO_MEMORY` — Allocation failed
 
 See also: [`mjb_string_encoding`](#mjb_string_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
-
-## `mjb_string_length`
-
-Return the length of a string.
-
-```c
-size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
-```
-
-- `buffer` — The string to check
-- `max_length` — The maximum length of the string, in bytes
-- `encoding` — The encoding of the string
 
 ## `mjb_string_compare`
 
@@ -648,59 +701,6 @@ bool mjb_category_is_combining(mjb_category category);
 
 - `category` — The category to check
 
-## `mjb_codepoint_numeric_value`
-
-Return the numeric value of a codepoint.
-
-```c
-mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);
-```
-
-Return the numeric value of a codepoint, if any. If the codepoint has no numeric value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).
-
-- `codepoint` — The codepoint to check
-- `value` — The numeric value to store the result
-
-**Returns**
-
-- `MJB_STATUS_OK` — The character was found and filled
-- `MJB_STATUS_INVALID_ARGUMENT` — `value` is NULL or the codepoint is not valid
-
-**Example**
-
-```c
-mjb_numeric_value num;
-
-if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
-    return 1;
-}
-
-// decimal=1, digit=1, numeric=1
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
-
-if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
-    return 1;
-}
-
-// decimal=-1, digit=-1, numeric=1/2
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
-```
-
-Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
-
-## `mjb_codepoint_block`
-
-Return the character block.
-
-```c
-mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
-```
-
-- `codepoint` — The codepoint to check
-- `block` — The block to store the result
-
-Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
-
 ## `mjb_codepoint_to_lowercase`
 
 Return the codepoint lowercase codepoint.
@@ -805,33 +805,6 @@ See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_bre
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html).
 
-## `mjb_truncate_word`
-
-Return the number of bytes that form the first max_segments word-break segments.
-
-```c
-size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
-```
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `max_segments` — The maximum number of segments to return
-
-## `mjb_truncate_word_width`
-
-Return the number of bytes whose word-break segments fit within max_columns display columns.
-
-```c
-size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
-```
-
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `context` — The width context
-- `max_columns` — The maximum number of columns to return
-
 ## `mjb_break_sentence`
 
 Sentence boundaries breaking.
@@ -887,6 +860,33 @@ Return the number of bytes whose grapheme clusters fit within max_columns displa
 
 ```c
 size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+```
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+- `encoding` — The encoding of the string
+- `context` — The width context
+- `max_columns` — The maximum number of columns to return
+
+## `mjb_truncate_word`
+
+Return the number of bytes that form the first max_segments word-break segments.
+
+```c
+size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
+```
+
+- `buffer` — The string to check
+- `byte_length` — The length of the string, in bytes
+- `encoding` — The encoding of the string
+- `max_segments` — The maximum number of segments to return
+
+## `mjb_truncate_word_width`
+
+Return the number of bytes whose word-break segments fit within max_columns display columns.
+
+```c
+size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 ```
 
 - `buffer` — The string to check
