@@ -37,6 +37,12 @@ const API_SECTIONS = [
     description: 'Inspect codepoints, properties, boundaries, width, emoji, and bidirectional text.'
   },
   {
+    section: Section.Segmentation,
+    id: 'segmentation',
+    title: 'Segmentation',
+    description: 'Segment text into grapheme clusters, words, and sentences.'
+  },
+  {
     section: Section.SortingComparison,
     id: 'sorting-comparison',
     title: 'Sorting and comparison',
@@ -70,7 +76,7 @@ const MIME_TYPES: Record<string, string> = {
 function getFunctions() {
   const functs = cfns();
 
-  return functs.filter(fn => fn.isWASM() && !fn.isInternal());
+  return functs.filter(fn => /*fn.isWASM() && */!fn.isInternal());
 }
 
 function escapeHTML(value: string): string {
@@ -152,7 +158,7 @@ function processIndexHtml() {
   fileContent = substituteBlock(fileContent,
     "// On click events\n",
     "    </script>",
-    functs.map(fn => '        ' + fn.formatEventListener()).join('\n') + "\n"
+    functs.filter(fn => fn.isWASM()).map(fn => '        ' + fn.formatEventListener()).join('\n') + "\n"
   );
 
   const version = getVersion();

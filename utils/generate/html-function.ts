@@ -181,7 +181,7 @@ export class CFunction implements MojibakeFunction {
       </div>
       <div class="function-card" id="${this.getName()}-card">
         ${this.documentationHTML(relatedLinkTargets)}
-        <div>${this.formInputHTML()}        </div>
+        <div>${this.isWASM() ? this.formInputHTML() : '' }</div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </article>`;

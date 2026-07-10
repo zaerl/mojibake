@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { cfns } from './html-function';
 import { substituteBlock } from './utils';
 
-function getFunctions() {
+function getWASMFunctions() {
   return cfns().filter(value => value.isWASM()).map(
     value => '        "' + value.formatWASM() + '"').join("\n");
 }
@@ -20,7 +20,7 @@ export function generateWASM() {
   fileContent = substituteBlock(fileContent,
     "set(EXPORTED_FUNCTIONS\n",
     "\n        # Core memory functions",
-    getFunctions());
+    getWASMFunctions());
 
   writeFileSync(path, fileContent);
 }

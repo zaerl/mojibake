@@ -30,6 +30,7 @@ export enum Section {
   TextAnalysis,
   SortingComparison,
   Security,
+  Segmentation,
   Utility
 }
 
@@ -865,7 +866,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_word', 'mjb_break_sentence'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
@@ -886,7 +887,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_sentence', 'mjb_truncate_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -907,7 +908,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -928,7 +929,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
     details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
       'Call repeatedly with the same state until it reports the end of the string.',
     related: ['mjb_break_word', 'mjb_break_sentence', 'mjb_break_line', 'mjb_truncate'],
@@ -951,7 +952,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
   },
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
@@ -976,7 +977,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
   },
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments.',
@@ -995,7 +996,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
   },
   {
     comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
@@ -1020,7 +1021,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Segmentation,
   },
   {
     comment: 'Resolve bidirectional text (TR9) for a paragraph.',
@@ -1280,7 +1281,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Security,
     details: 'Validate a string as a Unicode identifier: the first character must be a valid ' +
       'identifier start and the following ones valid identifier continuations, using ID_Start/' +
       'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
