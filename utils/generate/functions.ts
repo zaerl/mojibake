@@ -25,7 +25,7 @@ export type MojibakeSpecRef = {
   url: string;
 };
 
-enum Section {
+export enum Section {
   TextTransformation,
   TextAnalysis,
   SortingComparison,

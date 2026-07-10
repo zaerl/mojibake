@@ -9,6 +9,7 @@ import http from 'http';
 import markdownit from 'markdown-it';
 import { basename, extname, join, relative } from 'path';
 import { cfns } from '../html-function';
+import { Section } from '../functions';
 import { getVersion, substituteBlock, substituteText } from '../utils';
 import hljs from 'highlight.js/lib/core';
 
@@ -21,6 +22,39 @@ const HIGHLIGHT_THEMES = {
   'highlight-light.css': require.resolve('highlight.js/styles/github.css'),
   'highlight-dark.css': require.resolve('highlight.js/styles/github-dark.css'),
 };
+
+const API_SECTIONS = [
+  {
+    section: Section.TextTransformation,
+    id: 'text-transformation',
+    title: 'Text transformation',
+    description: 'Normalize, case-convert, filter, and convert Unicode text.'
+  },
+  {
+    section: Section.TextAnalysis,
+    id: 'text-analysis',
+    title: 'Text analysis',
+    description: 'Inspect codepoints, properties, boundaries, width, emoji, and bidirectional text.'
+  },
+  {
+    section: Section.SortingComparison,
+    id: 'sorting-comparison',
+    title: 'Sorting and comparison',
+    description: 'Compare and sort strings with the Unicode Collation Algorithm.'
+  },
+  {
+    section: Section.Security,
+    id: 'security',
+    title: 'Security',
+    description: 'Detect visually confusable Unicode text.'
+  },
+  {
+    section: Section.Utility,
+    id: 'utility',
+    title: 'Utilities',
+    description: 'Use locales, memory hooks, version details, and low-level string helpers.'
+  }
+] as const;
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -39,6 +73,60 @@ function getFunctions() {
   return functs.filter(fn => fn.isWASM() && !fn.isInternal());
 }
 
+function escapeHTML(value: string): string {
+  return value.replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatAPINavigation(functs: ReturnType<typeof getFunctions>): string {
+  return API_SECTIONS.map(section => {
+    const sectionFunctions = functs.filter(fn => fn.getSection() === section.section);
+    const links = sectionFunctions.map(fn =>
+      `          <li><a href="#${fn.getName()}" data-function-link ` +
+      `data-search="${escapeHTML(`${fn.getName()} ${fn.comment}`.toLowerCase())}">` +
+      `<code>${fn.getName()}</code></a></li>`
+    ).join('\n');
+
+    return `      <details class="sidebar-group" data-section-nav open>
+        <summary>
+          <span>${section.title}</span>
+          <span class="sidebar-count" aria-label="${sectionFunctions.length} functions">` +
+      `${sectionFunctions.length}</span>
+        </summary>
+        <ul>
+${links}
+        </ul>
+      </details>`;
+  }).join('\n');
+}
+
+function formatAPISections(
+  functs: ReturnType<typeof getFunctions>,
+  functionNames: Set<string>
+): string {
+  return API_SECTIONS.map(section => {
+    const sectionFunctions = functs.filter(fn => fn.getSection() === section.section);
+    const functionsHTML = sectionFunctions.map(fn =>
+      '        ' + fn.formatHTML(functionNames).replace(/\n/g, '\n        ')
+    ).join('\n');
+
+    return `    <section class="api-section" id="api-${section.id}" data-api-section>
+      <header class="api-section-header">
+        <div>
+          <p class="eyebrow">API section</p>
+          <h2>${section.title}</h2>
+          <p>${section.description}</p>
+        </div>
+        <span class="api-section-count">${sectionFunctions.length} functions</span>
+      </header>
+${functionsHTML}
+    </section>`;
+  }).join('\n');
+}
+
 function processIndexHtml() {
   console.log('Processing index.html...');
 
@@ -47,14 +135,19 @@ function processIndexHtml() {
   const functionNames = new Set(functs.map(fn => fn.getName()));
 
   fileContent = substituteBlock(fileContent,
+    '<nav id="api-navigation" aria-label="API reference">',
+    '</nav>',
+    '\n' + formatAPINavigation(functs) + '\n    ');
+
+  fileContent = substituteBlock(fileContent,
     'const functions = {',
     '};',
     functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
 
   fileContent = substituteBlock(fileContent,
-    '<section id="functions">',
-    '</section>',
-    functs.map(fn => '    ' + fn.formatHTML(functionNames)).join('\n'));
+    '<div id="functions">',
+    '</div>',
+    '\n' + formatAPISections(functs, functionNames) + '\n        ');
 
   fileContent = substituteBlock(fileContent,
     "// On click events\n",
@@ -65,21 +158,21 @@ function processIndexHtml() {
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
   const wasmFileName = `mojibake-wasm-${version.major}${version.minor}${version.revision}.zip`;
+  const baseURL = `https://github.com/zaerl/mojibake/releases/download/v${version.version}/`;
 
-  fileContent = substituteText(fileContent, '[AM_HREF]', fileName);
+  fileContent = substituteText(fileContent, '[AM_HREF]', baseURL + fileName);
   fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
-  fileContent = substituteText(fileContent, '[WASM_HREF]', wasmFileName);
+  fileContent = substituteText(fileContent, '[WASM_HREF]', baseURL + wasmFileName);
   fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   let readme = readFileSync('../../README.md', 'utf-8');
   readme = substituteBlock(readme, 'CONFORMANCE-REQUIREMENTS.md)\n', '## Feature highlights', '');
+  readme = substituteBlock(readme, 'CONFORMANCE-REQUIREMENTS.md)\n', '## Feature highlights', '');
 
   const md = markdownit({
     highlight: function (str, lang) {
-      console.log(`Highlighting code block with language: ${lang}`);
       if(lang && hljs.getLanguage(lang)) {
-        console.log(`Highlighting code block with language: ${lang}?`);
 
         try {
           return hljs.highlight(str, { language: lang }).value;

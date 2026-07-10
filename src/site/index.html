@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>Mojibake, Unicode 17 library written in C11</title>
+    <meta name="theme-color" content="#0d9488">
+    <meta name="description"
+        content="Mojibake is a fast, self-contained Unicode 17 library for C11 and C++17.">
+    <title>Mojibake — Unicode 17 for C</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -14,21 +17,114 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <div id="main" class="container">
-        <h1 title="文字化け">Mojibake</h1>
-        <section>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a class="brand" href="#top" aria-label="Mojibake home">
+                <span class="brand-mark" aria-hidden="true">文</span>
+                <span>Mojibake</span>
+                <span class="version-badge">v[VERSION]</span>
+            </a>
+            <nav class="global-nav" aria-label="Global navigation">
+                <a href="https://github.com/zaerl/mojibake/blob/main/API.md">API.md</a>
+                <a href="https://github.com/zaerl/mojibake">GitHub</a>
+            </nav>
+            <button class="sidebar-toggle" id="sidebar-toggle" type="button"
+                aria-controls="api-sidebar" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span class="visually-hidden">Open navigation</span>
+            </button>
+        </div>
+    </header>
+    <div class="site-layout" id="top">
+        <aside class="sidebar" id="api-sidebar" aria-label="Documentation navigation">
+            <div class="sidebar-inner">
+                <nav class="page-navigation" aria-label="On this page">
+                    <p class="sidebar-heading">Documentation</p>
+                    <a href="#overview">Overview</a>
+                    <a href="#guide">Guide</a>
+                    <a href="#playground">WASM playground</a>
+                    <a href="#api-reference">API reference</a>
+                </nav>
+                <div class="sidebar-api-heading">
+                    <p class="sidebar-heading">C API</p>
+                    <span>Browse by section</span>
+                </div>
+                <label class="visually-hidden" for="api-filter">Filter API functions</label>
+                <div class="api-filter-wrap">
+                    <span class="search-icon" aria-hidden="true"></span>
+                    <input id="api-filter" class="api-filter" type="search"
+                        placeholder="Filter functions…" autocomplete="off">
+                </div>
+                <p class="filter-status" id="api-filter-status" role="status"
+                    aria-live="polite"></p>
+                <nav id="api-navigation" aria-label="API reference"></nav>
+                <p class="no-results" id="api-no-results" hidden>No matching functions.</p>
+            </div>
+        </aside>
+        <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" tabindex="-1"
+            aria-label="Close navigation"></button>
+        <main id="main">
+            <section class="hero" id="overview">
+                <p class="eyebrow">Unicode 17 · C11 · zero dependencies</p>
+                <h1 title="文字化け">
+                    Unicode text processing,<br><em>without the baggage.</em>
+                </h1>
+                <p class="hero-lede">
+                    Mojibake is a small, fast, self-contained Unicode library for C11 and C++17.
+                    Ship standards-compliant text handling without a runtime or dependency tree.
+                </p>
+                <div class="hero-actions">
+                    <a class="button button-primary" href="[AM_HREF]">Download v[VERSION]</a>
+                    <a class="button button-secondary" href="#api-reference">Explore the API</a>
+                </div>
+                <dl class="hero-facts">
+                    <div><dt>Standard</dt><dd>Unicode 17.0</dd></div>
+                    <div><dt>Runtime</dt><dd>None</dd></div>
+                    <div><dt>License</dt><dd>MIT</dd></div>
+                </dl>
+            </section>
+            <section class="guide-section" id="guide">
+                <header class="content-heading">
+                    <p class="eyebrow">Start here</p>
+                    <h2>A practical Unicode toolkit</h2>
+                </header>
+                <article class="guide-content">
             [HEADER_HERE]
-        </section>
-        <section>
-            <h2>Try it online</h2>
-            <p>
-                You can try the library online by using the WASM-compiled version
-                <a href="[WASM_HREF]" target="_blank">[WASM_NAME]</a>. It is a live demo that
-                you can use to preview the API.
-            </p>
-        </section>
-        <section id="functions"></section>
+                </article>
+            </section>
+            <section class="playground-callout" id="playground">
+                <div>
+                    <p class="eyebrow">No installation required</p>
+                    <h2>Try every function in your browser</h2>
+                </div>
+                <div>
+                    <p>
+                        Each API reference below includes a live form backed by the WASM build.
+                        Expand a function, enter its arguments, and inspect the result immediately.
+                    </p>
+                    <a href="[WASM_HREF]">
+                        Download [WASM_NAME] <span aria-hidden="true">→</span>
+                    </a>
+                </div>
+            </section>
+            <section class="api-reference" id="api-reference">
+                <header class="api-reference-heading">
+                    <p class="eyebrow">Reference</p>
+                    <h2>C API</h2>
+                    <p>
+                        Functions are organized by their metadata section. Select the plus button
+                        to see detailed behavior, examples, specifications, and the live WASM form.
+                    </p>
+                </header>
+                <div id="functions"></div>
+            </section>
+        </main>
     </div>
+    <footer class="site-footer">
+        <p><strong>Mojibake</strong> · Unicode text processing for C.</p>
+        <p><a href="https://github.com/zaerl/mojibake">Source on GitHub</a> - MIT License</p>
+    </footer>
     <!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
     <script type="module">
         // This is used for auto-generated site, do not edit this object.
@@ -145,7 +241,7 @@
             }
 
             if(!selected) {
-                const form = document.getElementById(func + '-form');
+                const form = document.getElementById(func + '-wasm-form');
 
                 if(form) {
                     form.reset();
@@ -171,6 +267,7 @@
         }
 
         function parseNormalize(result) {
+            console.log(result);
             let ret = `Output: <strong>${result.output}</strong><br>`;
             ret += `Hex UTF-8: <strong>${result.utf8}</strong><br>`;
             ret += `Codepoints: <strong>${result.codepoints}</strong><br>`;
@@ -254,7 +351,7 @@
 
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
-            const form = document.getElementById(func + '-form');
+            const form = document.getElementById(func + '-wasm-form');
             const funcResults = document.getElementById(func + '-results');
 
             if(functions[func].args.length === 0 ||
@@ -335,13 +432,115 @@
             funcResults.style.display = 'block';
         }
 
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+        function setNavigationOpen(open) {
+            document.body.classList.toggle('navigation-open', open);
+            sidebarToggle.setAttribute('aria-expanded', open.toString());
+            sidebarToggle.querySelector('.visually-hidden').textContent =
+                open ? 'Close navigation' : 'Open navigation';
+        }
+
+        sidebarToggle.addEventListener('click', () => {
+            setNavigationOpen(!document.body.classList.contains('navigation-open'));
+        });
+        sidebarBackdrop.addEventListener('click', () => setNavigationOpen(false));
+
+        document.querySelectorAll('#api-sidebar a').forEach(link => {
+            link.addEventListener('click', () => setNavigationOpen(false));
+        });
+
+        document.addEventListener('keydown', event => {
+            if(event.key === 'Escape') {
+                setNavigationOpen(false);
+            }
+        });
+
+        const apiFilter = document.getElementById('api-filter');
+        const filterStatus = document.getElementById('api-filter-status');
+        const noResults = document.getElementById('api-no-results');
+        const functionLinks = [...document.querySelectorAll('[data-function-link]')];
+        const functionReferences = [...document.querySelectorAll('[data-function-reference]')];
+
+        function filterAPI() {
+            const query = apiFilter.value.trim().toLowerCase();
+            let matches = 0;
+
+            for(const link of functionLinks) {
+                const match = !query || link.dataset.search.includes(query);
+                link.parentElement.hidden = !match;
+                matches += match ? 1 : 0;
+            }
+
+            for(const reference of functionReferences) {
+                reference.hidden = Boolean(query) && !reference.dataset.search.includes(query);
+            }
+
+            for(const group of document.querySelectorAll('[data-section-nav]')) {
+                const visibleLinks = [...group.querySelectorAll('li')].filter(item => !item.hidden);
+                group.hidden = visibleLinks.length === 0;
+                group.querySelector('.sidebar-count').textContent = visibleLinks.length;
+
+                if(query && visibleLinks.length) {
+                    group.open = true;
+                }
+            }
+
+            for(const section of document.querySelectorAll('[data-api-section]')) {
+                const visibleFunctions = [...section.querySelectorAll('[data-function-reference]')]
+                    .filter(reference => !reference.hidden);
+                section.hidden = visibleFunctions.length === 0;
+                const countLabel = visibleFunctions.length === 1 ? 'function' : 'functions';
+                section.querySelector('.api-section-count').textContent =
+                    `${visibleFunctions.length} ${countLabel}`;
+            }
+
+            filterStatus.textContent = query ? `${matches} of ${functionLinks.length} functions` :
+                `${functionLinks.length} functions`;
+            noResults.hidden = matches !== 0;
+        }
+
+        apiFilter.addEventListener('input', filterAPI);
+        apiFilter.addEventListener('keydown', event => {
+            if(event.key === 'Escape' && apiFilter.value) {
+                apiFilter.value = '';
+                filterAPI();
+                event.stopPropagation();
+            }
+        });
+        filterAPI();
+
+        function setActiveFunction(name) {
+            for(const link of functionLinks) {
+                const active = link.getAttribute('href') === `#${name}`;
+                link.classList.toggle('active', active);
+
+                if(active) {
+                    link.closest('details').open = true;
+                }
+            }
+        }
+
+        if('IntersectionObserver' in window) {
+            const functionObserver = new IntersectionObserver(entries => {
+                for(const entry of entries) {
+                    if(entry.isIntersecting) {
+                        setActiveFunction(entry.target.id);
+                    }
+                }
+            }, { rootMargin: '-15% 0px -75% 0px' });
+
+            functionReferences.forEach(reference => functionObserver.observe(reference));
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const functionParam = urlParams.get('function');
 
         // Use the function parameter if provided
         if(functionParam && functions[functionParam]) {
             const targetDiv = document.getElementById(functionParam);
-            const form = document.getElementById(functionParam + '-form');
+            const form = document.getElementById(functionParam + '-wasm-form');
             let ready = true;
 
             if(form) {

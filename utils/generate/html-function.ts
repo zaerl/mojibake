@@ -5,7 +5,7 @@
  */
 
 import functions, {
-  MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef
+  MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef, Section
 } from './functions';
 import { categories } from './types';
 import hljs from 'highlight.js/lib/core';
@@ -37,6 +37,7 @@ export class CFunction implements MojibakeFunction {
   public attributes: string[];
   public args: MojibakeArg[];
   public wasm: boolean;
+  public section: Section;
   public details?: string;
   public returns?: MojibakeReturnCase[];
   public example?: string;
@@ -50,6 +51,7 @@ export class CFunction implements MojibakeFunction {
     this.attributes = fn.attributes;
     this.args = fn.args;
     this.wasm = fn.wasm;
+    this.section = fn.section;
     this.details = fn.details;
     this.returns = fn.returns;
     this.example = fn.example;
@@ -73,6 +75,10 @@ export class CFunction implements MojibakeFunction {
 
   getName() {
     return this.name;
+  }
+
+  getSection() {
+    return this.section;
   }
 
   getLabelName(arg: number) {
@@ -140,6 +146,7 @@ export class CFunction implements MojibakeFunction {
       name: this.getName(),
       args: this.args,
       wasm: this.wasm,
+      section: this.section,
       details: this.details,
       returns: this.returns,
       example: this.example,
@@ -158,8 +165,12 @@ export class CFunction implements MojibakeFunction {
       `${this.ret}${this.getName()}(void);` :
       `${this.ret}${this.getName()}(\n    ${this.getArgs().join(',\n    ')}\n);`;
 
-    return `<section id="${this.getName()}">
-      <h2 class="function-name">${this.getName()}</h2>
+    const searchText = CFunction.escapeHTML(`${this.getName()} ${this.comment}`.toLowerCase());
+
+    return `<article class="function-reference" id="${this.getName()}" data-function-reference ` +
+      `data-search="${searchText}">
+      <h3 class="function-name"><a href="#${this.getName()}" ` +
+      `aria-label="Link to ${this.getName()}">${this.getName()}</a></h3>
       <p class="function-call-comment">${this.comment}</p>
       <div class="function-call" id="${this.getName()}-function">
         <pre><code class="hljs language-c">${hljs.highlight(fn, { language: 'c' }).value}</code></pre>
@@ -173,7 +184,7 @@ export class CFunction implements MojibakeFunction {
         <div>${this.formInputHTML()}        </div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
-    </section>`;
+    </article>`;
   }
 
   private static escapeHTML(value: string): string {
@@ -285,7 +296,7 @@ export class CFunction implements MojibakeFunction {
     const description = this.getDescription(arg);
 
     let ret = `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
-    ret += `<select id="${name}" name="${name}" placeholder="${description}" ${disabled ? 'disabled' : ''}>`;
+    ret += `<select id="${name}" name="${name}" title="${description}" ${disabled ? 'disabled' : ''}>`;
     let i = 0;
 
     for(const option of options) {
@@ -297,7 +308,8 @@ export class CFunction implements MojibakeFunction {
   }
 
   private formInputHTML(): string {
-    let ret = `\n          <form id="${this.getName()}-form" class="function-form" onsubmit="return false;">`;
+    let ret = `\n          <form id="${this.getName()}-wasm-form" class="function-form" ` +
+      'onsubmit="return false;">';
     let i = 0;
 
     for(const arg of this.args) {
