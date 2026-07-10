@@ -56,7 +56,7 @@ ATT_ASSERT(mojibake.stringEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'strin
 ATT_ASSERT(mojibake.stringIsUtf8('Hello'), true, 'stringIsUtf8');
 ATT_ASSERT(mojibake.stringIsUtf16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'stringIsUtf16');
 ATT_ASSERT(mojibake.stringIsAscii('Hello'), true, 'stringIsAscii');
-ATT_ASSERT(mojibake.codepointEncode(0x41), 'A', 'codepointEncode');
+ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
 ATT_ASSERT(mojibake.stringConvertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'stringConvertEncoding');
 ATT_ASSERT(mojibake.stringLength('H\u00E9ll\u00F6'), 5, 'stringLength');
 ATT_ASSERT(mojibake.stringCompare('hello', 'hello'), 0, 'stringCompare');

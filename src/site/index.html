@@ -266,9 +266,22 @@
             return ret;
         }
 
+        function outputUint8Array(array) {
+            return Array.from(
+                array,
+                byte => byte.toString(16).padStart(2, '0')
+            ).join(' ');
+        }
+
+        function parseComposedString(result) {
+            let ret = `Javascript string: "<strong>${result.output}</strong>"<br>`;
+            ret += `Raw bytes: <strong>${result.bytes === null ? 'N/A' : outputUint8Array(result.bytes)}</strong>`;
+
+            return ret;
+        }
+
         function parseResult(result) {
-            let ret = `Output string: <strong>${result.output}</strong><br>`;
-            ret += `Output bytes: <strong>${result.bytes === null ? 'N/A' : result.bytes.map(b => b.toString(16).padStart(2, '0')).join(' ')}</strong><br>`;
+            let ret = parseComposedString(result) + `<br>`;
             ret += `Output size: <strong>${result.outputSize}</strong><br>`;
             ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
 
@@ -318,13 +331,8 @@
         function callAPI(func, args = []) {
             let name = func.replace(/^mjb_/, '');
             name = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-            console.log(name, args);
 
-            const ret = mojibake[name].apply(mojibake, args);
-
-            console.log(ret);
-
-            return ret;
+            return mojibake[name].apply(mojibake, args);
         }
 
         function readCodepoint(value) {
@@ -379,7 +387,7 @@
                 if(arg.type === 'bool') {
                     value = form.elements[`${func}-${arg.name}`].checked;
                 } else if(arg.type === 'mjb_encoding') {
-                    value = encodingToString(value);
+                    // value = encodingToString(value);
                 } else if(arg.type === 'mjb_codepoint') {
                     value = readCodepoint(value);
 
@@ -418,6 +426,8 @@
                 data = parseNextCharacter(data);
             } else if(func === 'mjb_locale_parse') {
                 data = parseLocale(data);
+            } else if(func === 'mjb_codepoint_encode') {
+                data = parseComposedString(data);
             }
 
             if(functions[func].ret === 'mjb_codepoint') {
