@@ -68,7 +68,7 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   const readme = readFileSync('../../README.md', 'utf-8');
-  const md = markdownit();
+  const md = markdownit().use(require('markdown-it-footnote'));
   const header = md.render(readme.slice(readme.indexOf('**Mojibake'), readme.indexOf('### Thanks')));
   fileContent = substituteText(fileContent, '[HEADER_HERE]', header);
 

@@ -16,6 +16,7 @@
     "@types/node": "^26.0.0",
     "fast-xml-parser": "^5.9.3",
     "markdown-it": "^14.3.0",
+    "markdown-it-footnote": "^4.0.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },
