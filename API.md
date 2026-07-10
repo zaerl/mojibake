@@ -22,8 +22,8 @@ The functions return a `_mjb_status_` and accept these arguments:
 
 1. The input string
 2. The _length_ of the input (`byte_length`)
-3. The needed _arguments_ of the function, if any
-4. The encoding of the input
+3. The encoding of the input (`encoding`)
+4. The needed _arguments_ of the function, if any
 5. The encoding of the output, if the function generates a string
 6. A `mjb_result` pointer to store the result
 
