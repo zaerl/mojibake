@@ -1,6 +1,7 @@
 # Mojibake
 
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
 **Mojibake**[^1] is a low-level Unicode 17 library written in C11. It can be compiled
 as C++17 as well. It is released under the MIT License.
