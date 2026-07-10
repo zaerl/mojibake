@@ -13,10 +13,6 @@ A clear and concise description of what the bug is.
 Provide a minimal assertion `ATT_ASSERT(__VALUE__, __EXPECTED__, "A description")` to reproduce the
 behavior.
 
-Else provide a minimal call to `mojibake __command__ args` CLI.
-
-Else provide a URL to `mojibake.zaerl.com/?function=mjb_*`
-
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
