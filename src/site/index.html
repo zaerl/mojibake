@@ -183,6 +183,54 @@
             return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
         }
 
+        // See Mojibake::encodeString in src/api/index.ts for the TypeScript implementation of this function.
+        function encodeString(str, encoding) {
+            if(encoding == 0x1) { // ASCII
+                const bytes = new Uint8Array(str.length);
+
+                for(let i = 0; i < str.length; ++i) {
+                    const codeUnit = str.charCodeAt(i);
+
+                    if(codeUnit > 0x7F) {
+                        throw new Error('Cannot encode non-ASCII codepoint as ASCII');
+                    }
+
+                    bytes[i] = codeUnit;
+                }
+
+                return bytes;
+            } else if(encoding == 0x2) { // UTF-8
+                const utf8Encoder = new TextEncoder();
+                return utf8Encoder.encode(str);
+            } else if(encoding == 0x8 || encoding == 0x10) { // UTF-16BE or UTF-16LE
+                const bytes = new Uint8Array(str.length * 2);
+                const view = new DataView(bytes.buffer);
+                const littleEndian = encoding == 0x10; // UTF-16LE
+
+                for(let i = 0; i < str.length; ++i) {
+                    view.setUint16(i * 2, str.charCodeAt(i), littleEndian);
+                }
+
+                return bytes;
+            } else if(encoding == 0x40 || encoding == 0x80) { // UTF-32BE or UTF-32LE
+                const bytes = new Uint8Array(str.length * 4);
+                const view = new DataView(bytes.buffer);
+                const littleEndian = encoding == 0x80; // UTF-32LE
+                let offset = 0;
+
+                for(const char of str) {
+                    const codepoint = char.codePointAt(0);
+
+                    view.setUint32(offset, codepoint, littleEndian);
+                    offset += 4;
+                }
+
+                return bytes.subarray(0, offset);
+            }
+
+            throw new Error(`Unsupported text encoding: ${encoding}`);
+        }
+
         function encodingToString(encoding, includeHex = false) {
             const encodings = {
                 0x0: 'Unknown',
@@ -283,7 +331,7 @@
         function parseResult(result) {
             let ret = parseComposedString(result) + `<br>`;
             ret += `Output size: <strong>${result.outputSize}</strong><br>`;
-            ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
+            ret += `Has been transformed: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
 
             return ret;
         }
@@ -331,6 +379,7 @@
         function callAPI(func, args = []) {
             let name = func.replace(/^mjb_/, '');
             name = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+            console.log(`Calling API function: ${name} with arguments:`, args);
 
             return mojibake[name].apply(mojibake, args);
         }
@@ -387,7 +436,7 @@
                 if(arg.type === 'bool') {
                     value = form.elements[`${func}-${arg.name}`].checked;
                 } else if(arg.type === 'mjb_encoding') {
-                    // value = encodingToString(value);
+                    value = parseInt(value, 10);
                 } else if(arg.type === 'mjb_codepoint') {
                     value = readCodepoint(value);
 
