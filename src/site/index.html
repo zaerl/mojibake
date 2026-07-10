@@ -376,12 +376,23 @@
             return ret;
         }
 
+        function parseBlockInfo(result) {
+            let ret = `Block name: <strong>${result.name}</strong><br>`;
+            ret += `Start codepoint: <strong>${codepointToString(result.start)}</strong><br>`;
+            ret += `End codepoint: <strong>${codepointToString(result.end)}</strong><br>`;
+
+            return ret;
+        }
+
         function callAPI(func, args = []) {
             let name = func.replace(/^mjb_/, '');
             name = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
             console.log(`Calling API function: ${name} with arguments:`, args);
 
-            return mojibake[name].apply(mojibake, args);
+            const ret = mojibake[name].apply(mojibake, args);
+            console.log(ret);
+
+            return ret;
         }
 
         function readCodepoint(value) {
@@ -477,6 +488,8 @@
                 data = parseLocale(data);
             } else if(func === 'mjb_codepoint_encode') {
                 data = parseComposedString(data);
+            } else if (func === 'mjb_codepoint_block') {
+                data = parseBlockInfo(data);
             }
 
             if(functions[func].ret === 'mjb_codepoint') {
