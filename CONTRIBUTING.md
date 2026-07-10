@@ -100,13 +100,34 @@ make watch-api
 - Maximum line length is 100 characters
 - See .clang-format for complete style configuration
 
+## Developer Certificate of Origin
+
+By contributing to Mojibake, you certify that your contribution complies with the
+[Developer Certificate of Origin 1.1](DCO).
+
+Sign off every commit with your real name and email address:
+
+```sh
+git commit --signoff
+```
+
+This adds a trailer to the commit message:
+
+```text
+Signed-off-by: Your Name <your.email@example.com>
+```
+
+The sign-off must match the commit author's name and email address. It certifies the contribution;
+it is not the same as cryptographically signing a commit with `git commit -S`.
+
 ## Pull Request Process
 
 1. Fork the repository and create a new branch for your feature/fix
 2. Write clear commit messages explaining your changes
-3. Add/update tests to cover your changes
-4. Ensure all tests pass before submitting
-5. Submit a pull request with a description of your changes
+3. Sign off every commit as described above
+4. Add/update tests to cover your changes
+5. Ensure all tests pass before submitting
+6. Submit a pull request with a description of your changes
 
 ## Testing
 
