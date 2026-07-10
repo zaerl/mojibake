@@ -139,14 +139,14 @@ compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`.
 
 With CMake:
 
-```sh
+```bash
 cmake -S . -B build-no-name -DMJB_FEATURE_CHARACTER_NAMES=OFF
 cmake --build build-no-name
 ```
 
 With the provided Makefile:
 
-```sh
+```bash
 make build BUILD_DIR=build-no-name FEATURE_CHARACTER_NAMES=OFF
 make test-no-names
 ```
@@ -159,19 +159,19 @@ See [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) for the detaile
 
 The `src/shell` directory builds the `mojibake` CLI used to test the library. Example usage:
 
-```sh
+```bash
 mojibake nfc $'Cafe\u0301'
 ```
 
 Plain text output:
 
-```
+```bash
 Café
 ```
 
 Emoji sequence analysis:
 
-```sh
+```bash
 mojibake emoji "☺️"
 mojibake -c emoji 263A FE0F
 ```
@@ -200,7 +200,7 @@ standard:
 The public API is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html) over untrusted
 byte input.
 
-```sh
+```bash
 make fuzz # 60 seconds by default
 make fuzz FUZZ_TIME=300
 ```

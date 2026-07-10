@@ -10,6 +10,7 @@ import markdownit from 'markdown-it';
 import { basename, extname, join, relative } from 'path';
 import { cfns } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
+import hljs from 'highlight.js/lib/core';
 
 const SOURCE_DIR = '../../src/site';
 const BUILD_DIR = '../../build-wasm/src';
@@ -72,7 +73,21 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   const readme = readFileSync('../../README.md', 'utf-8');
-  const md = markdownit().use(require('markdown-it-footnote'));
+  const md = markdownit({
+    highlight: function (str, lang) {
+      console.log(`Highlighting code block with language: ${lang}`);
+      if(lang && hljs.getLanguage(lang)) {
+        console.log(`Highlighting code block with language: ${lang}?`);
+
+        try {
+          return hljs.highlight(str, { language: lang }).value;
+        } catch (__) {}
+      }
+
+      return ''; // use external default escaping
+    }
+  }).use(require('markdown-it-footnote'));
+
   const header = md.render(readme.slice(readme.indexOf('**Mojibake'), readme.indexOf('### Thanks')));
   fileContent = substituteText(fileContent, '[HEADER_HERE]', header);
 
