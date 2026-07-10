@@ -62,7 +62,7 @@ export async function updateVersion() {
   console.log('make amalgamation');
   console.log('Update README.md');
   console.log(`Update CHANGELOG.md: add a [${v.version}] section`);
-  console.log(`git commit -am "Update version to ${v.version}"`);
+  console.log(`git commit --signoff -am "Update version to ${v.version}"`);
   console.log(`git tag v${v.version}`);
   console.log(`git push && git push origin --tags`);
   console.log('Deploy');

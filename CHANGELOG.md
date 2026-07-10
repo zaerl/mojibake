@@ -5,6 +5,33 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2026-07-11
+
+### Added
+- Limit combining characters filter
+- New documentation
+- Added docs to functions list
+- New site from .md files
+- New emojis
+- HTML C code is now highlighted
+- Added governance file
+- Added OpenSSF Best Practices badge
+- New `mjb_result_free` function
+- Added Code of Conduct
+
+### Changed
+- Site is generated from README.md
+- Now WASM return `mjb_result` instead of a string
+- Now WASM strings have also a `Uint8Array`
+- Functions reordered
+- Added Developer Certificate of Origin
+
+### Fixed
+- Minor typos
+- HTML code indenting
+- Missing HTML block parser
+- Not-WASM functions was missing in the site
+
 ## [0.2.4] - 2026-07-09
 
 ### Added
@@ -360,7 +387,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/zaerl/mojibake/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/zaerl/mojibake/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/zaerl/mojibake/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/zaerl/mojibake/compare/v0.2.1...v0.2.2
