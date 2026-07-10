@@ -102,6 +102,11 @@ export type LocaleID = {
   grandfathered: string; // 32
 }
 
+type ComposedString = {
+  bytes: Uint8Array | null;
+  output: string;
+}
+
 // mjb_result pointer
 type RawResult = {
   output: Pointer;
@@ -110,8 +115,7 @@ type RawResult = {
 };
 
 // mjb_result
-type Result = {
-  output: string | null;
+type Result = ComposedString & {
   outputSize: number;
   transformed: boolean;
 };
@@ -588,7 +592,7 @@ export class Mojibake {
         return null;
       }
 
-      return this.decodeString(bufferPtr, size, encoding);
+      return this.decodeString(bufferPtr, size, encoding).output;
     } finally {
       this.free(bufferPtr);
     }
@@ -947,7 +951,7 @@ export class Mojibake {
       return null;
     }
 
-    return this.decodeString(ptr, null, Encoding.UTF_8);
+    return this.decodeString(ptr, null, Encoding.UTF_8).output;
   }
 
   // bool mjb_codepoint_is_id_start(mjb_codepoint codepoint)
@@ -1002,7 +1006,7 @@ export class Mojibake {
       return null;
     }
 
-    return this.decodeString(ptr, null, Encoding.UTF_8);
+    return this.decodeString(ptr, null, Encoding.UTF_8).output;
   }
 
   // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
@@ -1190,7 +1194,7 @@ export class Mojibake {
 
   // const char *mjb_version(void);
   version(): string | null {
-    return this.decodeString(this.module._mjb_version(), null, Encoding.UTF_8);
+    return this.decodeString(this.module._mjb_version(), null, Encoding.UTF_8).output;
   }
 
   // unsigned int mjb_version_number(void);
@@ -1200,7 +1204,7 @@ export class Mojibake {
 
   // const char *mjb_unicode_version(void);
   unicodeVersion(): string | null {
-    return this.decodeString(this.module._mjb_unicode_version(), null, Encoding.UTF_8);
+    return this.decodeString(this.module._mjb_unicode_version(), null, Encoding.UTF_8).output;
   }
 
   // mjb_status mjb_set_memory_functions(mjb_alloc_fn, mjb_realloc_fn, mjb_free_fn);
@@ -1342,8 +1346,11 @@ export class Mojibake {
   }
 
   private rawResultToResult(raw: RawResult, outputEncoding: Encoding): Result {
+    const composed = this.decodeString(raw.output, raw.output_size, outputEncoding);
+
     return {
-      output: this.decodeString(raw.output, raw.output_size, outputEncoding),
+      bytes: composed.bytes,
+      output: composed.output,
       outputSize: raw.output_size,
       transformed: raw.transformed
     }
@@ -1377,28 +1384,30 @@ export class Mojibake {
   }
 
   // Decode a string from a pointer in memory
-  private decodeString(buffer: Pointer, size: number | null, encoding: Encoding): string | null {
+  private decodeString(buffer: Pointer, size: number | null, encoding: Encoding): ComposedString {
     encoding = this.resolveEncoding(encoding);
+    const ret: ComposedString = { bytes: null, output: '' };
 
     if(size === null) {
       size = this.nullTerminatedByteLength(buffer);
 
       if(size === 0) {
-        return '';
+        return ret;
       }
     }
 
     const bytes = this.module.HEAPU8.subarray(buffer, buffer + size);
+    ret.bytes = bytes;
 
     if(encoding == Encoding.ASCII || encoding == Encoding.UTF_8) {
-      return this.utf8Decoder.decode(bytes);
+      ret.output = this.utf8Decoder.decode(bytes);
     } else if(encoding == Encoding.UTF_16BE) {
-      return this.utf16beDecoder.decode(bytes);
+      ret.output = this.utf16beDecoder.decode(bytes);
     } else if(encoding == Encoding.UTF_16LE) {
-      return this.utf16leDecoder.decode(bytes);
+      ret.output = this.utf16leDecoder.decode(bytes);
     } else if(encoding == Encoding.UTF_32BE || encoding == Encoding.UTF_32LE) {
       // Javascript don't have a built-in UTF-32 decoder, so we need to manually decode it.
-      let ret = '';
+      let str = '';
 
       for(let i = 0; i + 3 < size; i += 4) {
         let codepoint = 0;
@@ -1416,13 +1425,13 @@ export class Mojibake {
         }
 
         // Coerce the codepoint into an unsigned 32-bit integer.
-        ret += String.fromCodePoint(codepoint >>> 0);
+        str += String.fromCodePoint(codepoint >>> 0);
       }
 
-      return ret;
+      ret.output = str;
     }
 
-    return null;
+    return ret;
   }
 
   private nullTerminatedByteLength(buffer: Pointer): number {

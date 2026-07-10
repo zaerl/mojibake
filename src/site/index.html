@@ -266,11 +266,10 @@
             return ret;
         }
 
-        function parseNormalize(result) {
-            let ret = `Output: <strong>${result.output}</strong><br>`;
-            ret += `Hex UTF-8: <strong>${result.utf8}</strong><br>`;
-            ret += `Codepoints: <strong>${result.codepoints}</strong><br>`;
-            ret += `Output size: <strong>${result.output_size}</strong><br>`;
+        function parseResult(result) {
+            let ret = `Output string: <strong>${result.output}</strong><br>`;
+            ret += `Output bytes: <strong>${result.bytes === null ? 'N/A' : result.bytes.map(b => b.toString(16).padStart(2, '0')).join(' ')}</strong><br>`;
+            ret += `Output size: <strong>${result.outputSize}</strong><br>`;
             ret += `Has been normalized: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
 
             return ret;
@@ -409,8 +408,10 @@
 
             if(func === 'mjb_codepoint_character') {
                 data = parseCodepointCharacter(data);
-            } else if(func === 'mjb_normalize') {
-                data = parseNormalize(data);
+            } else if(func === 'mjb_normalize' || func === 'mjb_string_filter' ||
+                func === 'mjb_string_convert_encoding' || func === 'mjb_case'
+            ) {
+                data = parseResult(data);
             } else if(func === 'mjb_codepoint_emoji') {
                 data = parseEmoji(data);
             } else if(func === 'mjb_next_character') {
