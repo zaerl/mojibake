@@ -8,6 +8,10 @@ import functions, {
   MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef
 } from './functions';
 import { categories } from './types';
+import hljs from 'highlight.js/lib/core';
+import c from 'highlight.js/lib/languages/c';
+
+hljs.registerLanguage('c', c);
 
 export class CFunction implements MojibakeFunction {
   public comment: string;
@@ -132,11 +136,16 @@ export class CFunction implements MojibakeFunction {
   }
 
   formatHTML(relatedLinkTargets = new Set<string>()): string {
+    const args = this.getArgs();
+    const fn = args.length === 1 && args[0] === 'void' ?
+      `${this.ret}${this.getName()}(void);` :
+      `${this.ret}${this.getName()}(\n    ${this.getArgs().join(',\n    ')}\n);`;
+
     return `<section id="${this.getName()}">
       <h2 class="function-name">${this.getName()}</h2>
       <p class="function-call-comment">${this.comment}</p>
-      <div class="code function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
-        <div>${this.ret}<span class="text-primary">${this.getName()}</span>(${this.getArgs().join(', ')});</div>
+      <div class="function-call" id="${this.getName()}-function" onclick="toggleFunctionCall('${this.getName()}')">
+        <pre><code class="hljs language-c">${hljs.highlight(fn, { language: 'c' }).value}</code></pre>
       </div>
       <div class="function-card">
         ${this.documentationHTML(relatedLinkTargets)}
@@ -178,7 +187,9 @@ export class CFunction implements MojibakeFunction {
 
     if(this.example) {
       ret += '\n          <h3>Example</h3>' +
-        `\n          <pre><code>${CFunction.escapeHTML(this.example)}</code></pre>`;
+        `\n          <pre><code class="hljs language-c">${
+          hljs.highlight(this.example, { language: 'c' }).value
+        }</code></pre>`;
     }
 
     if(this.related?.length) {

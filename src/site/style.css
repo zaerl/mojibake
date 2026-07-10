@@ -312,6 +312,11 @@ pre code {
     padding: 0;
 }
 
+pre code.hljs {
+    background: none;
+    padding: 0;
+}
+
 /* Alerts */
 .alert {
     padding: 1rem;

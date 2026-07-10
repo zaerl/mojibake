@@ -16,6 +16,10 @@ const BUILD_DIR = '../../build-wasm/src';
 const API_DIST_DIR = '../../src/api/dist';
 const API_ROUTE = '/api/';
 const SERVE_PORT = 6251;
+const HIGHLIGHT_THEMES = {
+  'highlight-light.css': require.resolve('highlight.js/styles/github.css'),
+  'highlight-dark.css': require.resolve('highlight.js/styles/github-dark.css'),
+};
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -90,6 +94,13 @@ function copyFile(filePath: string) {
   console.log(`${basename(filePath)} copied successfully`);
 }
 
+function copyHighlightThemes() {
+  for(const [fileName, sourcePath] of Object.entries(HIGHLIGHT_THEMES)) {
+    copyFileSync(sourcePath, join(BUILD_DIR, fileName));
+    console.log(`${fileName} copied successfully`);
+  }
+}
+
 function handleFileChange(filePath: string) {
   const fileName = basename(filePath);
 
@@ -135,6 +146,7 @@ mkdirSync(BUILD_DIR, { recursive: true });
 // Process all files initially
 console.log('Initial build...');
 processIndexHtml();
+copyHighlightThemes();
 
 // Copy all non-index.html files initially
 try {
