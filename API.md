@@ -922,18 +922,6 @@ See also: [`mjb_bidi_free`](#mjb_bidi_free), [`mjb_bidi_reorder_line`](#mjb_bidi
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
 
-## `mjb_bidi_free`
-
-Free a bidi paragraph allocated by mjb_bidi_resolve.
-
-```c
-void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
-```
-
-- `paragraph` — The paragraph to free
-
-See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve).
-
 ## `mjb_bidi_reorder_line`
 
 Reorder a line visually (L1-L4); visual_order is caller-allocated.
@@ -968,6 +956,18 @@ mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
+
+## `mjb_bidi_free`
+
+Free a bidi paragraph allocated by mjb_bidi_resolve.
+
+```c
+void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
+```
+
+- `paragraph` — The paragraph to free
+
+See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve).
 
 ## `mjb_codepoint_plane`
 

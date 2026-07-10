@@ -37,12 +37,6 @@ const API_SECTIONS = [
     description: 'Inspect codepoints, properties, boundaries, width, emoji, and bidirectional text.'
   },
   {
-    section: Section.Segmentation,
-    id: 'segmentation',
-    title: 'Segmentation',
-    description: 'Segment text into grapheme clusters, words, and sentences.'
-  },
-  {
     section: Section.SortingComparison,
     id: 'sorting-comparison',
     title: 'Sorting and comparison',
@@ -53,6 +47,30 @@ const API_SECTIONS = [
     id: 'security',
     title: 'Security',
     description: 'Detect visually confusable Unicode text.'
+  },
+  {
+    section: Section.Segmentation,
+    id: 'segmentation',
+    title: 'Segmentation',
+    description: 'Segment text into grapheme clusters, words, and sentences.'
+  },
+  {
+    section: Section.Bidirectional,
+    id: 'bidirectional',
+    title: 'Bidirectional text',
+    description: 'Resolve embedding levels, reorder lines, and get line runs for bidirectional text.'
+  },
+  {
+    section: Section.Emoji,
+    id: 'emoji',
+    title: 'Emoji',
+    description: 'Inspect emoji sequences and properties.'
+  },
+  {
+    section: Section.DisplayWidth,
+    id: 'display-width',
+    title: 'Display width',
+    description: 'Compute the number of display columns a string occupies in a terminal.'
   },
   {
     section: Section.Utility,

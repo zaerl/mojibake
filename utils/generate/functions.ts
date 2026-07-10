@@ -31,6 +31,9 @@ export enum Section {
   SortingComparison,
   Security,
   Segmentation,
+  Bidirectional,
+  Emoji,
+  DisplayWidth,
   Utility
 }
 
@@ -977,7 +980,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.Segmentation,
+    section: Section.DisplayWidth,
   },
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments.',
@@ -1047,7 +1050,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Bidirectional,
     details: 'Resolve the embedding levels of a paragraph following the Unicode Bidirectional ' +
       'Algorithm. The resolved paragraph can then be split into lines and reordered visually ' +
       'with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.',
@@ -1060,23 +1063,6 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     related: ['mjb_bidi_free', 'mjb_bidi_reorder_line', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
-  },
-  {
-    comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve.',
-    ret: 'void',
-    name: 'mjb_bidi_free',
-    attributes: [],
-    args: [
-      {
-        name: 'paragraph',
-        type: 'mjb_bidi_paragraph *',
-        description: 'The paragraph to free',
-        wasm_generated: false
-      }
-    ],
-    wasm: false,
-    section: Section.Utility,
-    related: ['mjb_bidi_resolve']
   },
   {
     comment: 'Reorder a line visually (L1-L4); visual_order is caller-allocated.',
@@ -1111,7 +1097,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
-    section: Section.TextTransformation,
+    section: Section.Bidirectional,
     related: ['mjb_bidi_resolve', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1153,9 +1139,26 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: false,
-    section: Section.TextTransformation,
+    section: Section.Bidirectional,
     related: ['mjb_bidi_resolve', 'mjb_bidi_reorder_line'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
+  },
+  {
+    comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve.',
+    ret: 'void',
+    name: 'mjb_bidi_free',
+    attributes: [],
+    args: [
+      {
+        name: 'paragraph',
+        type: 'mjb_bidi_paragraph *',
+        description: 'The paragraph to free',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    section: Section.Bidirectional,
+    related: ['mjb_bidi_resolve']
   },
   {
     comment: 'Return the plane of the codepoint.',
@@ -1342,7 +1345,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     related: ['mjb_string_emoji_sequence', 'mjb_codepoint_is_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1353,7 +1356,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1363,7 +1366,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1373,7 +1376,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1383,7 +1386,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1393,7 +1396,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     attributes: [],
     args: [codepoint()],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1423,7 +1426,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_is_rgi_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1438,7 +1441,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       byte_length(),
       encoding()
     ],
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     wasm: true,
     related: ['mjb_string_is_rgi_emoji', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
@@ -1454,7 +1457,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       byte_length(),
       encoding()
     ],
-    section: Section.TextAnalysis,
+    section: Section.Emoji,
     wasm: true,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
@@ -1558,7 +1561,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.DisplayWidth,
     details: 'Compute the number of display columns a string occupies in a terminal, ' +
       'accounting for wide and ambiguous East Asian characters, combining marks, and emoji ' +
       'sequences.',

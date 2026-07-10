@@ -636,14 +636,14 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length
 // Resolve bidirectional text (TR9) for a paragraph.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
 
-// Free a bidi paragraph allocated by mjb_bidi_resolve.
-MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
-
 // Reorder a line visually (L1-L4); visual_order is caller-allocated.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t line_end, size_t *visual_order);
 
 // Compute visual level runs; pass runs=NULL to count first.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
+
+// Free a bidi paragraph allocated by mjb_bidi_resolve.
+MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 
 // Return the plane of the codepoint.
 MJB_EXPORT MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);

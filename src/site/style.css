@@ -20,6 +20,7 @@
     --border-strong: rgb(165, 185, 180);
     --primary: rgb(8, 127, 114);
     --primary-strong: rgb(6, 95, 86);
+    --primary-text: rgb(255, 255, 255);
     --primary-soft: rgb(222, 246, 241);
     --accent: rgb(215, 255, 100);
     --accent-text: rgb(19, 50, 45);
@@ -40,6 +41,7 @@
         --border-strong: rgb(75, 99, 93);
         --primary: rgb(64, 211, 190);
         --primary-strong: rgb(126, 235, 219);
+        --primary-text: rgb(13, 39, 34);
         --primary-soft: rgb(17, 57, 51);
         --accent: rgb(199, 242, 84);
         --accent-text: rgb(13, 39, 34);
@@ -650,14 +652,14 @@ main > section {
 .function-form button {
     border-color: var(--primary);
     background: var(--primary);
-    color: white;
+    color: var(--primary-text);
 }
 
 .button-primary:hover,
 .function-form button:hover {
     border-color: var(--primary-strong);
     background: var(--primary-strong);
-    color: white;
+    color: var(--primary-text);
 }
 
 .button-secondary {
@@ -835,8 +837,7 @@ main > section {
 }
 
 .function-reference {
-    padding: 2rem 0 2.25rem;
-    border-bottom: 1px solid var(--border);
+    padding: 2rem 0 0;
     scroll-margin-top: calc(var(--header-height) + 1.5rem);
 }
 
