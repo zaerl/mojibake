@@ -18,7 +18,7 @@ Mojibake do:
 1. Run in all modern OSes (Linux, macOS, FreeBSD, OpenBSD, NetBSD, Windows 10/11)
 2. Pass the official Unicode test suites for supported algorithms
 3. Implement all Unicode standard algorithms
-4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE-REQUIREMENTS.md)
+4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md)
 
 You can find a demo site where you can find the API documentation and test the functions by using
 WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
@@ -241,7 +241,7 @@ conformance references.
 
 ## Unicode Conformance Requirements
 Mojibake satisfy the Unicode Conformance Requirements. See
-[CONFORMANCE-REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE-REQUIREMENTS.md) for details.
+[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md) for details.
 
 ## Unicode tailoring
 

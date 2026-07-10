@@ -191,8 +191,8 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   let readme = readFileSync('../../README.md', 'utf-8');
-  readme = substituteBlock(readme, 'CONFORMANCE-REQUIREMENTS.md)\n', '## Feature highlights', '');
-  readme = substituteBlock(readme, 'CONFORMANCE-REQUIREMENTS.md)\n', '## Feature highlights', '');
+  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
+  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
 
   const md = markdownit({
     highlight: function (str, lang) {
