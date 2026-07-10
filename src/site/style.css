@@ -386,11 +386,47 @@ a:hover {
 }
 
 .function-call {
-    cursor: pointer;
+    position: relative;
 }
 
-.function-call:hover {
+.function-call pre {
+    padding-right: 3.5rem;
+}
+
+.function-toggle {
+    align-items: center;
+    background-color: var(--bg);
+    border-color: var(--border);
+    color: var(--text-secondary);
+    display: flex;
+    font-size: 1.25rem;
+    height: 2rem;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    width: 2rem;
+}
+
+.function-toggle::before {
+    content: '+';
+}
+
+.function-toggle:hover {
+    background-color: var(--bg-secondary);
     border-color: var(--border-hover);
+    color: var(--text);
+}
+
+.function-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+#functions .selected .function-toggle::before {
+    content: '\2212';
 }
 
 .function-card {

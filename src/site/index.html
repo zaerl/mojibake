@@ -136,6 +136,13 @@
         window.toggleFunctionCall = (func) => {
             const funcDiv = document.getElementById(func);
             const selected = funcDiv.classList.toggle('selected');
+            const toggle = document.getElementById(func + '-toggle');
+
+            if(toggle) {
+                toggle.setAttribute('aria-expanded', selected.toString());
+                toggle.setAttribute('aria-label',
+                    `${selected ? 'Hide' : 'Show'} details and WASM form for ${func}`);
+            }
 
             if(!selected) {
                 const form = document.getElementById(func + '-form');
