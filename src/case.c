@@ -488,8 +488,8 @@ static mjb_status mjb_titlecase(const char *buffer, size_t byte_length, mjb_enco
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_case_type type, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }

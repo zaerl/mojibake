@@ -125,14 +125,14 @@ int test_case(void *arg) {
 
     mjb_result guard_result = { NULL, 0, false };
 
-    ATT_ASSERT_STATUS(mjb_case(NULL, 1, MJB_CASE_UPPER, encoding, encoding, &guard_result),
+    ATT_ASSERT_STATUS(mjb_case(NULL, 1, encoding, MJB_CASE_UPPER, encoding, &guard_result),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, encoding, NULL),
+    ATT_ASSERT_STATUS(mjb_case("a", 1, encoding, MJB_CASE_UPPER, encoding, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL result")
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_NONE, encoding, encoding, &guard_result),
+    ATT_ASSERT_STATUS(mjb_case("a", 1, encoding, MJB_CASE_NONE, encoding, &guard_result),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects MJB_CASE_NONE")
 
-    ATT_ASSERT_STATUS(mjb_case("", 0, MJB_CASE_UPPER, encoding, encoding, &guard_result),
+    ATT_ASSERT_STATUS(mjb_case("", 0, encoding, MJB_CASE_UPPER, encoding, &guard_result),
         MJB_STATUS_OK, "Case conversion accepts empty string")
     ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed")
     ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size")
@@ -145,7 +145,7 @@ int test_case(void *arg) {
     ATT_ASSERT(result, "\xE1\x8E\xA0", "Lowercase Cherokee casefolds to uppercase")
     mjb_free(result);
 
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, MJB_ENC_UTF_16LE, &guard_result),
+    ATT_ASSERT_STATUS(mjb_case("a", 1, encoding, MJB_CASE_UPPER, MJB_ENC_UTF_16LE, &guard_result),
         MJB_STATUS_OK, "Case conversion converts output encoding")
     ATT_ASSERT(guard_result.transformed, true,
         "Case conversion converted output encoding transformed")

@@ -138,7 +138,7 @@ int test_example(void *arg) {
     const char *input = "Stra\xC3\x9F""e"; // "Straße"
     mjb_result result;
 
-    if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    if(mjb_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
         &result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_case test failed") // Added by the script
         return 1;

@@ -48,7 +48,7 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
 char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
-    if(mjb_case(buffer, byte_length, type, encoding, encoding, &result) != MJB_STATUS_OK) {
+    if(mjb_case(buffer, byte_length, encoding, type, encoding, &result) != MJB_STATUS_OK) {
         return NULL;
     }
 

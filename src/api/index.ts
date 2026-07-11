@@ -762,8 +762,8 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
-  // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
+  // mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_case_type type, mjb_encoding output_encoding, mjb_result *result)
   case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
@@ -771,8 +771,8 @@ export class Mojibake {
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_case(wasmInput.ptr, wasmInput.size, type,
-        wasmInput.encoding, outputEncoding, resultPtr);
+      const status = this.module._mjb_case(wasmInput.ptr, wasmInput.size, wasmInput.encoding,
+        type, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {
         return null;

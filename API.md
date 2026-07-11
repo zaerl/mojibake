@@ -623,15 +623,15 @@ Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 17.0.0](https://w
 Change string case.
 
 ```c
-mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_case_type type, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
 
 - `buffer` — The string to change case
 - `byte_length` — The length of the string, in bytes
-- `type` — The type of case change
 - `encoding` — The encoding of the string
+- `type` — The type of case change
 - `output_encoding` — The output encoding of the string
 - `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
@@ -647,7 +647,7 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 const char *input = "Stra\xC3\x9F""e"; // "Straße"
 mjb_result result;
 
-if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+if(mjb_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }

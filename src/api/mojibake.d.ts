@@ -64,7 +64,7 @@ export type MojibakeWasmModule = {
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case.
-  _mjb_case: (buffer: Pointer, byte_length: number, type: number, encoding: number, output_encoding: number, result: Pointer) => number;
+  _mjb_case: (buffer: Pointer, byte_length: number, encoding: number, type: number, output_encoding: number, result: Pointer) => number;
   // Return true if the codepoint is valid.
   _mjb_codepoint_is_valid: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is graphic.

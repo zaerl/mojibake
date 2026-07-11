@@ -312,7 +312,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 2: // Case conversion and folding, all transforming types
-            if(mjb_case(buffer, size, (mjb_case_type)(1 + (variant % 5)), encoding, MJB_ENC_UTF_8,
+            if(mjb_case(buffer, size, encoding, (mjb_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8,
                 &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }

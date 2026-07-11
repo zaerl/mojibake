@@ -733,13 +733,13 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     args: [
       buffer('The string to change case'),
       byte_length(),
+      encoding(),
       {
         name: 'type',
         type: 'mjb_case_type',
         description: 'The type of case change',
         wasm_generated: false
       },
-      encoding(),
       encoding('The output encoding of the string', 'output_encoding'),
       result()
     ],
@@ -764,7 +764,7 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
 mjb_result result;
 
-if(mjb_case(input, strlen(input), MJB_CASE_UPPER, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+if(mjb_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
