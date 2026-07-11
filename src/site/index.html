@@ -455,6 +455,8 @@
                     value = Array.from(form.querySelectorAll(
                         `input[name="${func}-${arg.name}"]:checked`
                     )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
+                } else if(arg.type === 'mjb_plane') {
+                    value = parseInt(value, 10);
                 } else if(arg.type === 'mjb_encoding') {
                     value = parseInt(value, 10);
 
@@ -478,6 +480,8 @@
 
                         return;
                     }
+                } else if(arg.type === 'const char *' || arg.type === 'char *') {
+                    value = encodeString(value, options.encoding);
                 }
 
                 args.push(value);
@@ -502,7 +506,7 @@
                 data = parseCodepointCharacter(data);
             } else if(func === 'mjb_normalize' || func === 'mjb_string_filter' ||
                 func === 'mjb_string_convert_encoding' || func === 'mjb_case' ||
-                func === 'mjb_nfkc_casefold' || 'mjb_confusable_skeleton'
+                func === 'mjb_nfkc_casefold' || func === 'mjb_confusable_skeleton'
             ) {
                 data = parseResult(data);
             } else if(func === 'mjb_codepoint_emoji') {
