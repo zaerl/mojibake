@@ -62,6 +62,8 @@ ATT_ASSERT(mojibake.stringLength('H\u00E9ll\u00F6'), 5, 'stringLength');
 ATT_ASSERT(mojibake.stringCompare('hello', 'hello'), 0, 'stringCompare');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
 ATT_ASSERT(mojibake.case('hello', CaseType.UPPER)?.output, 'HELLO', 'case');
+ATT_ASSERT(mojibake.case('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
+  'casefold uppercase Cherokee');
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
@@ -76,6 +78,7 @@ ATT_ASSERT(mojibake.codepointBlock(0x41)?.id, Block.BASIC_LATIN, 'codepointBlock
 ATT_ASSERT(mojibake.codepointToLowercase(0x41), 0x61, 'codepointToLowercase');
 ATT_ASSERT(mojibake.codepointToUppercase(0x62), 0x42, 'codepointToUppercase');
 ATT_ASSERT(mojibake.codepointToTitlecase(0x63), 0x43, 'codepointToTitlecase');
+ATT_ASSERT(mojibake.nfkcCasefold('Straße\u00AD')?.output, 'strasse', 'nfkcCasefold');
 ATT_ASSERT(mojibake.breakLine('A'), [BreakType.ALLOWED], 'breakLine');
 ATT_ASSERT(mojibake.breakWord('A'), [BreakType.ALLOWED], 'breakWord');
 ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');

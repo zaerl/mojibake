@@ -109,6 +109,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_character\""
         "\"_mjb_normalize\""
         "\"_mjb_string_filter\""
+        "\"_mjb_nfkc_casefold\""
         "\"_mjb_string_is_normalized\""
         "\"_mjb_string_encoding\""
         "\"_mjb_string_is_ascii\""

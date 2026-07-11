@@ -265,6 +265,49 @@ if(result.transformed) {
 
 See also: [`mjb_normalize`](#mjb_normalize).
 
+## `mjb_nfkc_casefold`
+
+Apply the Unicode NFKC_Casefold transform to a string.
+
+```c
+mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+```
+
+Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive.
+
+- `buffer` — The string to transform
+- `byte_length` — The length of the string, in bytes
+- `encoding` — The encoding of the string
+- `output_encoding` — The output encoding of the string
+- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+
+**Returns**
+
+- `MJB_STATUS_OK` — The transformed string was returned
+- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` — The output size would overflow
+- `MJB_STATUS_NO_MEMORY` — Allocation failed
+
+**Example**
+
+```c
+const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
+mjb_result result;
+
+if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// strasse
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);
+```
+
+See also: [`mjb_normalize`](#mjb_normalize), [`mjb_case`](#mjb_case), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+
+Specifications: [The Unicode Standard, Version 17.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html), [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
 ## `mjb_string_is_normalized`
 
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
@@ -1522,8 +1565,9 @@ without higher-level protocol tailoring.
 - `mjb_display_width` uses its `mjb_width_context` argument to choose how East Asian Width
   `Ambiguous` characters are counted. `mjb_codepoint_east_asian_width` returns the Unicode 17.0.0
   property value without tailoring.
-- Normalization, bidirectional processing, grapheme/word/sentence/line breaking, identifier
-  validation, confusable skeletons, and emoji sequence checks are not locale-tailored by Mojibake.
+- Normalization, NFKC case folding, bidirectional processing, grapheme/word/sentence/line breaking,
+  identifier validation, confusable skeletons, and emoji sequence checks are not locale-tailored by
+  Mojibake.
 
 # Unicode conformance inventory
 
@@ -1537,7 +1581,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | ----- | -------------- | ----------------- | -------- |
 | Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_value`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), UCD 17.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; covered by local UCD/property tests. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
-| Default case conversion and caseless matching | `mjb_case`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) for titlecase word boundaries | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, `tests/special-case.c`, `tests/case.c`, and `tests/break-word.c`. |
+| Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
 | Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-55.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |

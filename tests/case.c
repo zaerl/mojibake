@@ -137,6 +137,14 @@ int test_case(void *arg) {
     ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed")
     ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size")
 
+    result = run_mjb_case("\xE1\x8E\xA0", 3, MJB_CASE_CASEFOLD, encoding); // U+13A0
+    ATT_ASSERT(result, "\xE1\x8E\xA0", "Uppercase Cherokee casefolds to itself")
+    mjb_free(result);
+
+    result = run_mjb_case("\xEA\xAD\xB0", 3, MJB_CASE_CASEFOLD, encoding); // U+AB70
+    ATT_ASSERT(result, "\xE1\x8E\xA0", "Lowercase Cherokee casefolds to uppercase")
+    mjb_free(result);
+
     ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_CASE_UPPER, encoding, MJB_ENC_UTF_16LE, &guard_result),
         MJB_STATUS_OK, "Case conversion converts output encoding")
     ATT_ASSERT(guard_result.transformed, true,

@@ -88,6 +88,25 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_nfkc_casefold
+    MJB_TEST_COVERAGE(mjb_nfkc_casefold); // Added by the script
+    const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
+    mjb_result result;
+
+    if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_nfkc_casefold test failed") // Added by the script
+        return 1;
+    }
+
+    // strasse
+    // printf("%.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "strasse", "mjb_nfkc_casefold test failed") // Added by the script
+    mjb_result_free(&result);
+}
+
+{
     // Example for mjb_codepoint_numeric_value
     MJB_TEST_COVERAGE(mjb_codepoint_numeric_value); // Added by the script
     mjb_numeric_value num;

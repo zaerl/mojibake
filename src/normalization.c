@@ -639,3 +639,178 @@ fail:
 
     return MJB_STATUS_NO_MEMORY;
 }
+
+// Apply full default case folding and remove Default_Ignorable_Code_Point characters.
+static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
+    char **output, size_t *output_size) {
+    size_t capacity = byte_length == 0 ? 1 : byte_length;
+    char *folded = (char*)mjb_alloc(capacity);
+
+    if(folded == NULL) {
+        return MJB_STATUS_NO_MEMORY;
+    }
+
+    size_t output_index = 0;
+    uint8_t state = MJB_UTF_ACCEPT;
+    mjb_codepoint codepoint;
+    bool in_error = false;
+
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
+            MJB_ENC_UTF_8, &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
+            break;
+        }
+
+        if(decode_status == MJB_DECODE_INCOMPLETE) {
+            continue;
+        }
+
+        if(mjb_codepoint_property_value(codepoint, MJB_PR_DEFAULT_IGNORABLE_CODE_POINT, NULL) ==
+            MJB_STATUS_OK) {
+            continue;
+        }
+
+        const mjb_codepoint *mapping = NULL;
+        uint8_t mapping_length = 0;
+
+        if(!mjb_unicode_case_folding_lookup(codepoint, &mapping, &mapping_length)) {
+            mjb_unicode_case_mapping simple_mapping;
+
+            if(mjb_codepoint_property_value(codepoint, MJB_PR_CHANGES_WHEN_CASEFOLDED, NULL) ==
+                MJB_STATUS_OK && mjb_unicode_case_lookup(codepoint, &simple_mapping) &&
+                simple_mapping.lowercase != 0) {
+                codepoint = simple_mapping.lowercase;
+            }
+
+            mapping = &codepoint;
+            mapping_length = 1;
+        }
+
+        for(uint8_t j = 0; j < mapping_length; ++j) {
+            char *new_folded = mjb_string_output_codepoint(mapping[j], folded, &output_index,
+                &capacity, MJB_ENC_UTF_8);
+
+            if(new_folded == NULL) {
+                mjb_free(folded);
+
+                return MJB_STATUS_NO_MEMORY;
+            }
+
+            folded = new_folded;
+        }
+    }
+
+    if(output_index >= capacity) {
+        char *new_folded = (char*)mjb_realloc(folded, output_index + 1);
+
+        if(new_folded == NULL) {
+            mjb_free(folded);
+
+            return MJB_STATUS_NO_MEMORY;
+        }
+
+        folded = new_folded;
+    }
+
+    folded[output_index] = '\0';
+    *output = folded;
+    *output_size = output_index;
+
+    return MJB_STATUS_OK;
+}
+
+/**
+ * Apply the Unicode NFKC_Casefold transform without duplicating its derived mapping table.
+ */
+MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(byte_length == 0) {
+        result->output = (char*)buffer;
+        result->output_size = 0;
+        result->transformed = false;
+
+        return MJB_STATUS_OK;
+    }
+
+    const char *current = buffer;
+    size_t current_size = byte_length;
+    mjb_encoding current_encoding = encoding;
+    bool current_owned = false;
+
+    // DerivedNormalizationProps specifies repeating NFKC, full case folding, and removal of
+    // default ignorables until stable.
+    for(unsigned int pass = 0; pass < 8; ++pass) {
+        mjb_result normalized;
+        // We use UTF-8 as the intermediate encoding for the NFKC_Casefold transform.
+        mjb_status status = mjb_normalize(current, current_size, MJB_NORMALIZATION_NFKC,
+            current_encoding, MJB_ENC_UTF_8, &normalized);
+
+        if(status != MJB_STATUS_OK) {
+            if(current_owned) {
+                mjb_free((void*)current);
+            }
+
+            return status;
+        }
+
+        char *folded = NULL;
+        size_t folded_size = 0;
+        status = mjb_nfkc_casefold_pass(normalized.output, normalized.output_size, &folded,
+            &folded_size);
+
+        if(normalized.transformed) {
+            mjb_free(normalized.output);
+        }
+
+        if(status != MJB_STATUS_OK) {
+            if(current_owned) {
+                mjb_free((void*)current);
+            }
+
+            return status;
+        }
+
+        bool stable = current_owned && current_size == folded_size &&
+            memcmp(current, folded, current_size) == 0;
+
+        if(current_owned) {
+            mjb_free((void*)current);
+        }
+
+        current = folded;
+        current_size = folded_size;
+        current_encoding = MJB_ENC_UTF_8;
+        current_owned = true;
+
+        if(stable) {
+            mjb_result normalized_result;
+            status = mjb_normalize(current, current_size, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+                output_encoding, &normalized_result);
+
+            if(status != MJB_STATUS_OK) {
+                mjb_free((void*)current);
+
+                return status;
+            }
+
+            if(normalized_result.output != current) {
+                mjb_free((void*)current);
+            }
+
+            *result = normalized_result;
+            result->transformed = true;
+
+            return MJB_STATUS_OK;
+        }
+    }
+
+    mjb_free((void*)current);
+
+    return MJB_STATUS_UNSUPPORTED;
+}

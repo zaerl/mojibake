@@ -501,7 +501,8 @@
             if(func === 'mjb_codepoint_character') {
                 data = parseCodepointCharacter(data);
             } else if(func === 'mjb_normalize' || func === 'mjb_string_filter' ||
-                func === 'mjb_string_convert_encoding' || func === 'mjb_case'
+                func === 'mjb_string_convert_encoding' || func === 'mjb_case' ||
+                func === 'mjb_nfkc_casefold'
             ) {
                 data = parseResult(data);
             } else if(func === 'mjb_codepoint_emoji') {

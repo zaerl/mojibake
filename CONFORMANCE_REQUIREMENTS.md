@@ -39,9 +39,10 @@ character semantics.
 **C6** A process shall not assume that the interpretations of two canonical-equivalent character
 sequences are distinct.
 
-✅ Satisfied. `mjb_normalize` implements NFC/NFD/NFKC/NFKD, and `mjb_string_compare` normalizes to
-NFD before building UCA collation elements. A direct probe of `U+00E9` versus `U+0065 U+0301`
-compares equal and normalizes to the expected canonical forms.
+✅ Satisfied. `mjb_normalize` implements NFC/NFD/NFKC/NFKD, `mjb_nfkc_casefold` applies the
+mandatory final NFC step, and `mjb_string_compare` normalizes to NFD before building UCA collation
+elements. A direct probe of `U+00E9` versus `U+0065 U+0301` compares equal and normalizes to the
+expected canonical forms.
 
 **C7** When a process purports not to modify the interpretation of a valid coded character sequence,
 it shall make no change to that coded character sequence other than the possible replacement of
@@ -137,8 +138,9 @@ as permitted by the specification.
 ✅ Satisfied. `README.md` and `API.md` include a Unicode conformance inventory that maps every
 advertised Unicode algorithm or data claim to its versioned Unicode 17.0.0 reference and test
 evidence. The inventory distinguishes official Unicode conformance suites from normative data file
-checks and local regression coverage, including the documented collation filtering for
-surrogate-code-point rows.
+checks and local regression coverage. This includes every explicit Unicode 17 `NFKC_CF` mapping
+from `DerivedNormalizationProps.txt` and the documented collation filtering for surrogate-code-point
+rows.
 
 **C19** The specification of an algorithm may prohibit or limit tailoring by a higher-level
 protocol. If a process that purports to implement a Unicode algorithm applies a tailoring, that fact
@@ -159,5 +161,8 @@ Section 3.13, Default Case Algorithms.
 `SpecialCasing.txt`, `CaseFolding.txt`, and locale-sensitive casing is disclosed under C19. Default
 titlecase uses the UAX #29 word-break iterator: the first cased character after each word boundary
 is titlecased, and subsequent characters before the next word boundary are lowercased. Focused tests
-cover internal apostrophes and case-ignorable characters. Mojibake does not expose a separate
-Default Case Detection API.
+cover internal apostrophes, case-ignorable characters, and Cherokee folding stability.
+`mjb_nfkc_casefold` implements Unicode R5 by repeatedly applying NFKC, full default case folding,
+and removal of Default_Ignorable_Code_Point characters until stable, followed by NFC.
+`tests/normalization.c` checks every explicit Unicode 17 `NFKC_CF` mapping from
+`DerivedNormalizationProps.txt`. Mojibake does not expose a separate Default Case Detection API.

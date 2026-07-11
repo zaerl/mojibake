@@ -294,6 +294,48 @@ if(result.transformed) {
 related: ['mjb_normalize']
   },
   {
+    comment: 'Apply the Unicode NFKC_Casefold transform to a string.',
+    ret: 'mjb_status',
+    name: 'mjb_nfkc_casefold',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to transform'),
+      byte_length(),
+      encoding(),
+      encoding('The output encoding of the string', 'output_encoding'),
+      result()
+    ],
+    wasm: true,
+    section: Section.TextTransformation,
+    details: 'Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. ' +
+      'This transform performs compatibility folding, full default case folding, and removal ' +
+      'of default-ignorable codepoints. It is intended for identifier comparison and is not ' +
+      'locale-sensitive.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The transformed string was returned' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    example: `const char *input = "Stra\\xC3\\x9F" "e\\xC2\\xAD";
+mjb_result result;
+
+if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// strasse
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);`,
+    related: ['mjb_normalize', 'mjb_case', 'mjb_string_is_identifier'],
+    specs: [
+      unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992'),
+      uax(31, 'Unicode Identifiers and Syntax'),
+      uax(44, 'Unicode Character Database')
+    ]
+  },
+  {
     comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
     ret: 'mjb_quick_check_result',
     name: 'mjb_string_is_normalized',

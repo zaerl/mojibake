@@ -109,6 +109,134 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     return test_ret;
 }
 
+static void check_nfkc_casefold(const char *source, size_t source_size, const char *expected,
+    size_t expected_size, const char *name) {
+    mjb_result result = { NULL, 0, false };
+
+    MJB_TEST_COVERAGE(mjb_nfkc_casefold);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result), MJB_STATUS_OK, name)
+    ATT_ASSERT(result.output_size, expected_size, name)
+    ATT_ASSERT((int)memcmp(result.output, expected, expected_size), 0, name)
+    ATT_ASSERT(result.transformed, true, name)
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, name)
+}
+
+static void test_nfkc_casefold(void) {
+    mjb_result result = { NULL, 0, false };
+
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result),
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL buffer")
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL result")
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold("", 0, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result),
+        MJB_STATUS_OK, "NFKC casefold accepts empty input")
+    ATT_ASSERT(result.transformed, false, "NFKC casefold empty input is borrowed")
+
+    check_nfkc_casefold("Stra\xC3\x9F" "e\xC2\xAD", 9, "strasse", 7,
+        "NFKC casefold folds sharp s and removes soft hyphen");
+    check_nfkc_casefold("\xEF\xAC\x83", 3, "ffi", 3,
+        "NFKC casefold expands compatibility ligature");
+    check_nfkc_casefold("A\xCC\x8A", 3, "\xC3\xA5", 2,
+        "NFKC casefold composes mappings to NFC");
+    check_nfkc_casefold("\xE2\x84\xAA", 3, "k", 1,
+        "NFKC casefold applies compatibility case mapping");
+
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
+        MJB_STATUS_OK, "NFKC casefold supports UTF-16 output")
+    ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold UTF-16 output size")
+    ATT_ASSERT((int)memcmp(result.output, "a\0", 2), 0, "NFKC casefold UTF-16 output bytes")
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
+        "NFKC casefold frees UTF-16 output")
+}
+
+// Verify Unicode R5 against every explicit NFKC_CF mapping. The normative string transform maps
+// each character and then applies NFC, so expected property values are normalized before comparison.
+static void test_nfkc_casefold_file(void) {
+    FILE *file = fopen("./utils/generate/unicode-data/UCD/DerivedNormalizationProps.txt", "r");
+
+    if(file == NULL) {
+        ATT_ASSERT("Not opened", "Opened file", "Valid NFKC casefold data file")
+        return;
+    }
+
+    char line[2048];
+    unsigned int current_line = 1;
+
+    while(fgets(line, sizeof(line), file) != NULL) {
+        char *first_semicolon = strchr(line, ';');
+
+        if(first_semicolon == NULL) {
+            ++current_line;
+            continue;
+        }
+
+        char *property = first_semicolon + 1;
+        while(*property == ' ') {
+            ++property;
+        }
+
+        if(strncmp(property, "NFKC_CF", 7) != 0) {
+            ++current_line;
+            continue;
+        }
+
+        char *second_semicolon = strchr(property, ';');
+        if(second_semicolon == NULL) {
+            ++current_line;
+            continue;
+        }
+
+        *first_semicolon = '\0';
+        char *comment = strchr(second_semicolon + 1, '#');
+        if(comment != NULL) {
+            *comment = '\0';
+        }
+
+        unsigned int start;
+        unsigned int end;
+        if(sscanf(line, "%X..%X", &start, &end) != 2) {
+            if(sscanf(line, "%X", &start) != 1) {
+                ++current_line;
+                continue;
+            }
+            end = start;
+        }
+
+        char expected_mapping[128];
+        size_t mapping_size = get_string_from_codepoints(second_semicolon + 1,
+            sizeof(expected_mapping), expected_mapping);
+        mjb_result expected;
+        ATT_ASSERT_STATUS(mjb_normalize(expected_mapping, mapping_size, MJB_NORMALIZATION_NFC,
+            MJB_ENC_UTF_8, MJB_ENC_UTF_8, &expected), MJB_STATUS_OK,
+            "Normalize expected NFKC casefold mapping")
+
+        for(unsigned int codepoint = start; codepoint <= end; ++codepoint) {
+            char source[8];
+            unsigned int source_size = mjb_codepoint_encode(codepoint, source, sizeof(source),
+                MJB_ENC_UTF_8);
+            mjb_result actual;
+            char test_name[128];
+            snprintf(test_name, sizeof(test_name), "NFKC_CF #%u U+%04X", current_line,
+                codepoint);
+
+            ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8,
+                MJB_ENC_UTF_8, &actual), MJB_STATUS_OK, test_name)
+            ATT_ASSERT(actual.output_size, expected.output_size, test_name)
+            ATT_ASSERT((int)memcmp(actual.output, expected.output, expected.output_size), 0,
+                test_name)
+            ATT_ASSERT_STATUS(mjb_result_free(&actual), MJB_STATUS_OK, test_name)
+        }
+
+        if(expected.transformed) {
+            mjb_free(expected.output);
+        }
+        ++current_line;
+    }
+
+    fclose(file);
+}
+
 /**
  * Run utils/generate/unicode-data/UCD/NormalizationTest.txt tests
  */
@@ -117,6 +245,9 @@ int test_normalization(void *arg) {
     unsigned int current_line = 1;
     // unsigned int index = 0;
     mjb_result guard_result;
+
+    test_nfkc_casefold();
+    test_nfkc_casefold_file();
 
     ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
         MJB_ENC_UTF_8, &guard_result), MJB_STATUS_INVALID_ARGUMENT,

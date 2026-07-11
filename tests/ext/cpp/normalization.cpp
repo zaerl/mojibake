@@ -17,6 +17,8 @@ int test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::nfd("a"), std::string("a"), "nfd(\"a\")")
     ATT_ASSERT(mjb::nfkc("a"), std::string("a"), "nfkc(\"a\")")
     ATT_ASSERT(mjb::nfkd("a"), std::string("a"), "nfkd(\"a\")")
+    ATT_ASSERT(mjb::nfkc_casefold("Stra\xC3\x9F" "e\xC2\xAD"), std::string("strasse"),
+        "nfkc_casefold")
 
     return 0;
 }

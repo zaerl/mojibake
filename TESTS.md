@@ -6,11 +6,13 @@
 | ---------------------------------------- | ----------- |
 | `mjb_bidi_resolve`                       | 582572      |
 | `mjb_string_compare`                     | 437881      |
-| `mjb_normalize`                          | 415358      |
+| `mjb_normalize`                          | 421541      |
 | `mjb_bidi_reorder_line`                  | 91722       |
+| `mjb_nfkc_casefold`                      | 31773       |
 | `mjb_break_line`                         | 18794       |
+| `mjb_result_free`                        | 10592       |
 | `mjb_string_emoji_sequence`              | 5266        |
-| `mjb_case`                               | 3485        |
+| `mjb_case`                               | 3487        |
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
 | `mjb_break_grapheme_cluster`             | 715         |
@@ -57,7 +59,6 @@
 | `mjb_hangul_syllable_decomposition`      | 5           |
 | `mjb_alloc`                              | 4           |
 | `mjb_codepoint_is_hangul_jamo`           | 4           |
-| `mjb_result_free`                        | 4           |
 | `mjb_set_memory_functions`               | 4           |
 | `mjb_codepoint_is_hangul_l`              | 3           |
 | `mjb_codepoint_is_hangul_t`              | 3           |
@@ -88,19 +89,19 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1560861** |
+| **Total**                                | **1609407** |
 
 ## JavaScript
 
 | Test                                       | Coverage   |
 | ------------------------------------------ | ---------- |
+| `Mojibake.case`                            | 2          |
 | `Mojibake.stringFilter`                    | 2          |
 | `Mojibake.bidiResolve`                     | 1          |
 | `Mojibake.breakGraphemeCluster`            | 1          |
 | `Mojibake.breakLine`                       | 1          |
 | `Mojibake.breakSentence`                   | 1          |
 | `Mojibake.breakWord`                       | 1          |
-| `Mojibake.case`                            | 1          |
 | `Mojibake.categoryIsCombining`             | 1          |
 | `Mojibake.categoryIsGraphic`               | 1          |
 | `Mojibake.codepointBlock`                  | 1          |
@@ -138,6 +139,7 @@
 | `Mojibake.displayWidth`                    | 1          |
 | `Mojibake.localeParse`                     | 1          |
 | `Mojibake.localeSet`                       | 1          |
+| `Mojibake.nfkcCasefold`                    | 1          |
 | `Mojibake.normalize`                       | 1          |
 | `Mojibake.planeIsValid`                    | 1          |
 | `Mojibake.planeName`                       | 1          |
@@ -163,4 +165,4 @@
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **69**     |
+| **Total**                                  | **71**     |

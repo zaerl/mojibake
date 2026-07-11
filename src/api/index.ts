@@ -431,6 +431,35 @@ export class Mojibake {
     }
   }
 
+  // mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_encoding output_encoding, mjb_result *result)
+  nfkcCasefold(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
+    const wasmInput = this.copyInput(input, options.encoding);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    let result: RawResult | null = null;
+
+    try {
+      const status = this.module._mjb_nfkc_casefold(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, outputEncoding, resultPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+
+      return this.rawResultToResult(result, outputEncoding);
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
   // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding
   // encoding, mjb_normalization form)
   stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,

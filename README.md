@@ -30,7 +30,8 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 **Text transformation**
 
-- **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), plus a fast quick-check
+- **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), identifier-oriented NFKC case folding
+  (`mjb_nfkc_casefold`), plus a fast quick-check
   (`mjb_string_is_normalized`) ([UAX #15, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
   and conditional mappings (`mjb_case`)
@@ -181,7 +182,7 @@ mojibake -c emoji 263A FE0F
 
 ### Coverage
 
-Mojibake run a total of **1,560,861** tests, including all the official tests included in the
+Mojibake run a total of **1,609,407** tests, including all the official tests included in the
 standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -259,9 +260,9 @@ higher-level protocol tailoring.
 - **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
   Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 17.0.0
   property value without tailoring.
-- **Other Unicode algorithms**: normalization, bidirectional processing, grapheme/word/sentence/line
-  breaking, identifier validation, confusable skeletons, and emoji sequence checks are not
-  locale-tailored by Mojibake.
+- **Other Unicode algorithms**: normalization, NFKC case folding, bidirectional processing,
+  grapheme/word/sentence/line breaking, identifier validation, confusable skeletons, and emoji
+  sequence checks are not locale-tailored by Mojibake.
 
 ## Unicode conformance inventory
 
@@ -275,7 +276,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | --- | --- | --- | --- |
 | Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_value`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), UCD 17.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; covered by local UCD/property tests. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
-| Default case conversion and caseless matching | `mjb_case`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) for titlecase word boundaries | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, `tests/special-case.c`, `tests/case.c`, and `tests/break-word.c`. |
+| Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
 | Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-55.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |

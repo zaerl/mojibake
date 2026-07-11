@@ -259,6 +259,25 @@ inline std::string nfkd(std::string_view input) {
     return normalize(input, NormalizationForm::NFKD);
 }
 
+inline std::string nfkc_casefold(std::string_view input) {
+    if(input.empty()) {
+        return std::string{};
+    }
+
+    mjb_result result{};
+    mjb_status status = mjb_nfkc_casefold(input.data(), input.size(), MJB_ENC_UTF_8,
+        MJB_ENC_UTF_8, &result);
+
+    if(status != MJB_STATUS_OK || result.output == nullptr) {
+        throw LibraryError("NFKC case folding failed");
+    }
+
+    std::string folded(result.output, result.output_size);
+    mjb_free(result.output);
+
+    return folded;
+}
+
 inline std::string collation_key(std::string_view input,
     mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE) {
     if(input.empty()) {

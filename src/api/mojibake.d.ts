@@ -27,6 +27,8 @@ export type MojibakeWasmModule = {
   _mjb_normalize: (buffer: Pointer, byte_length: number, form: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Filter a string with the selected mjb_filter flags.
   _mjb_string_filter: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, filters: number, result: Pointer) => number;
+  // Apply the Unicode NFKC_Casefold transform to a string.
+  _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
   _mjb_string_is_normalized: (buffer: Pointer, byte_length: number, encoding: number, form: number) => number;
   // Return the string encoding (the most probable).
