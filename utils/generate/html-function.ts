@@ -284,7 +284,7 @@ export class CFunction implements MojibakeFunction {
     const name = `${this.getName()}-${this.args[arg].name}`;
     const description = this.getDescription(arg);
 
-    let ret = `<div><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
+    let ret = `<div class="function-checkbox"><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
       `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
 
     return ret + '</div>';

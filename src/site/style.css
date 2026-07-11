@@ -1045,6 +1045,15 @@ main > section {
     overflow-wrap: anywhere;
 }
 
+.function-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.function-checkbox label {
+    margin-bottom: 0;
+}
+
 .function-form input:disabled,
 .function-form select:disabled {
     cursor: not-allowed;
