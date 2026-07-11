@@ -45,7 +45,8 @@ if [ ! -d "$DATA_DIR/security" ] ; then
     mkdir -p "$DATA_DIR/security"
 
     for file in "confusables.txt" "intentional.txt"; do
-        curl -o "$DATA_DIR/security/$file" "https://www.unicode.org/Public/security/latest/$file"
+        curl -o "$DATA_DIR/security/$file" \
+            "https://www.unicode.org/Public/security/$UNICODE_VERSION/$file"
     done
 fi
 

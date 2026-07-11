@@ -48,8 +48,8 @@ if not exist "%DATA_DIR%\collation" (
 REM Check if security directory exists
 if not exist "%DATA_DIR%\security" (
     mkdir "%DATA_DIR%\security"
-    curl -o "%DATA_DIR%\security\confusables.txt" "https://www.unicode.org/Public/security/latest/confusables.txt"
-    curl -o "%DATA_DIR%\security\intentional.txt" "https://www.unicode.org/Public/security/latest/intentional.txt"
+    curl -o "%DATA_DIR%\security\confusables.txt" "https://www.unicode.org/Public/security/%UNICODE_VERSION%/confusables.txt"
+    curl -o "%DATA_DIR%\security\intentional.txt" "https://www.unicode.org/Public/security/%UNICODE_VERSION%/intentional.txt"
 )
 
 REM Create build directory
