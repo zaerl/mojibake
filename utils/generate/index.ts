@@ -177,7 +177,7 @@ for(let i = 2; i < process.argv.length; ++i) {
 }
 
 async function buildUnicodeTableData() {
-  iLog('Build Unicode data');
+  iLog('Build Unicode table data');
   resetUnicodeTableData();
 
   const blocks = await readBlocks();
