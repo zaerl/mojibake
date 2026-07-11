@@ -653,8 +653,8 @@ export class Mojibake {
 
   // unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length,
   // mjb_encoding encoding)
-  codepointEncode(codepoint: Codepoint, encoding = Encoding.UTF_8): ComposedString | null {
-    encoding = this.resolveEncoding(encoding);
+  codepointEncode(codepoint: Codepoint, options: TextInputOptions = {}): ComposedString | null {
+    const encoding = this.resolveEncoding(options.encoding ?? Encoding.UTF_8);
     const bufferPtr = this.malloc(5);
 
     try {
