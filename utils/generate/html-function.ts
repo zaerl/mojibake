@@ -307,6 +307,24 @@ export class CFunction implements MojibakeFunction {
     return ret + '</select></div>';
   }
 
+  private getBitfieldInput(arg: number, options: string[], values: number[], message = ''): string {
+    const disabled = this.args[arg].wasm_generated;
+    const name = `${this.getName()}-${this.args[arg].name}`;
+    const description = this.getDescription(arg);
+    let ret = `<fieldset class="function-bitfield"><legend${disabled ? ' class="text-secondary"' : ''}>` +
+      `${this.getLabelName(arg)}</legend><span class="function-bitfield-hint">${description}. ` +
+      `${message}</span><div class="function-bitfield-options">`;
+
+    for(let i = 0; i < options.length; ++i) {
+      const id = `${name}-${i}`;
+      ret += `<div><input id="${id}" type="checkbox" name="${name}" value="${values[i]}" ` +
+        `${disabled ? 'disabled' : ''}><label for="${id}"${disabled ? ' class="text-secondary"' : ''}>` +
+        `${options[i]}</label></div>`;
+    }
+
+    return ret + '</div></fieldset>';
+  }
+
   private formInputHTML(): string {
     let ret = `\n          <form id="${this.getName()}-wasm-form" class="function-form" ` +
       'onsubmit="return false;">';
@@ -356,6 +374,25 @@ export class CFunction implements MojibakeFunction {
         ];
 
         ret += this.getSelectInput(i, options, values);
+      } else if(type.startsWith('mjb_filter')) {
+        const options = [
+          'MJB_FILTER_NORMALIZE',
+          'MJB_FILTER_SPACES',
+          'MJB_FILTER_COLLAPSE_SPACES',
+          'MJB_FILTER_CONTROLS',
+          'MJB_FILTER_NUMERIC',
+          'MJB_FILTER_LIMIT_COMBINING',
+        ];
+        const values = [
+          0x1,
+          0x2,
+          0x4,
+          0x8,
+          0x10,
+          0x20,
+        ];
+
+        ret += this.getBitfieldInput(i, options, values, 'Leave all unchecked for MJB_FILTER_NONE.');
       } else if(type.startsWith('mjb_case_type')) {
         // See mjb_case_type on mojibake.h
         const options = [

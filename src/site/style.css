@@ -967,6 +967,38 @@ main > section {
     min-width: 0;
 }
 
+.function-form .function-bitfield {
+    grid-column: 1 / -1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.function-bitfield legend {
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 720;
+    text-transform: capitalize;
+}
+
+.function-bitfield-hint {
+    display: block;
+    margin-bottom: 0.55rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.function-bitfield-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem 1rem;
+}
+
+.function-bitfield-options > div {
+    min-width: 0;
+}
+
 .function-form label {
     display: block;
     margin-bottom: 0.35rem;
@@ -1010,6 +1042,7 @@ main > section {
 
 .function-form input[type="checkbox"] + label {
     display: inline;
+    overflow-wrap: anywhere;
 }
 
 .function-form input:disabled,
@@ -1182,6 +1215,10 @@ main > section {
     }
 
     .function-form {
+        grid-template-columns: 1fr;
+    }
+
+    .function-bitfield-options {
         grid-template-columns: 1fr;
     }
 

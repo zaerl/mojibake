@@ -434,8 +434,13 @@
                 return;
             }
 
-            let i = 0;
+            let gotOptions = false;
             let args = [];
+            let options = {
+                encoding: 0x2, // Default to UTF-8
+                additionalEncoding: 0x2, // Default to UTF-8
+                outputEncoding: 0x2, // Default to UTF-8
+            };
 
             for(const arg of functions[func].args) {
                 if(arg.wasm_generated) {
@@ -446,8 +451,24 @@
 
                 if(arg.type === 'bool') {
                     value = form.elements[`${func}-${arg.name}`].checked;
+                } else if(arg.type === 'mjb_filter') {
+                    value = Array.from(form.querySelectorAll(
+                        `input[name="${func}-${arg.name}"]:checked`
+                    )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
                 } else if(arg.type === 'mjb_encoding') {
                     value = parseInt(value, 10);
+
+                    if(arg.name === 'encoding' || arg.name === 's1_encoding') {
+                        options.encoding = value;
+                    } else if(arg.name === 'output_encoding') {
+                        options.outputEncoding = value;
+                    } else if(arg.name === 's2_encoding') {
+                        options.additionalEncoding = value;
+                    }
+
+                    gotOptions = true;
+
+                    continue;
                 } else if(arg.type === 'mjb_codepoint') {
                     value = readCodepoint(value);
 
@@ -460,7 +481,10 @@
                 }
 
                 args.push(value);
-                ++i;
+            }
+
+            if(gotOptions) {
+                args.push(options);
             }
 
             let data = null;
