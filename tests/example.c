@@ -107,6 +107,39 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_string_length
+    MJB_TEST_COVERAGE(mjb_string_length); // Added by the script
+    // The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
+
+    const char *utf8 = "H\xC3\xA9ll\xC3\xB6"; // 7 bytes
+    const char utf16le[] = "H\0\xE9\0l\0l\0\xF6\0"; // 10 bytes
+    const char utf16be[] = "\0H\0\xE9\0l\0l\0\xF6"; // 10 bytes
+    const char utf32le[] = "H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0"; // 20 bytes
+    const char utf32be[] = "\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6"; // 20 bytes
+
+    // 5 UTF-8 characters
+    // printf("%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_string_length test failed") // Added by the script
+    // 5 UTF-16LE characters
+    // printf("%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-16LE characters", "mjb_string_length test failed") // Added by the script
+    // 5 UTF-16BE characters
+    // printf("%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-16BE characters", "mjb_string_length test failed") // Added by the script
+    // 5 UTF-32LE characters
+    // printf("%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-32LE characters", "mjb_string_length test failed") // Added by the script
+    // 5 UTF-32BE characters
+    // printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-32BE characters", "mjb_string_length test failed") // Added by the script
+}
+
+{
     // Example for mjb_codepoint_numeric_value
     MJB_TEST_COVERAGE(mjb_codepoint_numeric_value); // Added by the script
     mjb_numeric_value num;

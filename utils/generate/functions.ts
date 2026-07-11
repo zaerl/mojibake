@@ -446,6 +446,25 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    details: 'Return the number of Unicode codepoints in a string, up to `max_length` bytes. ',
+    example: `// The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
+
+const char *utf8 = "H\\xC3\\xA9ll\\xC3\\xB6"; // 7 bytes
+const char utf16le[] = "H\\0\\xE9\\0l\\0l\\0\\xF6\\0"; // 10 bytes
+const char utf16be[] = "\\0H\\0\\xE9\\0l\\0l\\0\\xF6"; // 10 bytes
+const char utf32le[] = "H\\0\\0\\0\\xE9\\0\\0\\0l\\0\\0\\0l\\0\\0\\0\\xF6\\0\\0\\0"; // 20 bytes
+const char utf32be[] = "\\0\\0\\0H\\0\\0\\0\\xE9\\0\\0\\0l\\0\\0\\0l\\0\\0\\0\\xF6"; // 20 bytes
+
+// 5 UTF-8 characters
+printf("%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8));
+// 5 UTF-16LE characters
+printf("%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE));
+// 5 UTF-16BE characters
+printf("%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE));
+// 5 UTF-32LE characters
+printf("%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE));
+// 5 UTF-32BE characters
+printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE));`
   },
   {
     comment: 'Run a callback for each character of a string.',
