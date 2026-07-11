@@ -19,6 +19,24 @@
 
 namespace mjb {
 
+[[nodiscard]] inline std::optional<bool> property_binary(mjb_codepoint codepoint,
+    mjb_property property) noexcept {
+    bool value = false;
+    if(mjb_codepoint_property_binary(codepoint, property, &value) != MJB_STATUS_OK) {
+        return std::nullopt;
+    }
+    return value;
+}
+
+[[nodiscard]] inline std::optional<int32_t> property_int(mjb_codepoint codepoint,
+    mjb_property property) noexcept {
+    int32_t value = 0;
+    if(mjb_codepoint_property_int(codepoint, property, &value) != MJB_STATUS_OK) {
+        return std::nullopt;
+    }
+    return value;
+}
+
 class LibraryError : public std::runtime_error {
 public:
     explicit LibraryError(std::string_view message) : std::runtime_error(std::string(message)) {}

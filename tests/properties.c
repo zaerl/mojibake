@@ -7,51 +7,31 @@
 #include "test.h"
 
 int test_properties(void *arg) {
-    uint8_t value = 0xFF;
+    bool binary = false;
+    int32_t enumerated = -1;
 
-    // U+0041 'A'
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_CASED, NULL), MJB_STATUS_OK,
-        "U+0041 is cased")
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_ALPHABETIC, NULL),
-        MJB_STATUS_OK, "U+0041 is alphabetic")
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_UPPERCASE, NULL),
-        MJB_STATUS_OK, "U+0041 is uppercase")
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_CHANGES_WHEN_LOWERCASED, NULL),
-        MJB_STATUS_OK, "U+0041 changes when lowercased exists")
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_CHANGES_WHEN_CASEFOLDED, NULL),
-        MJB_STATUS_OK, "U+0041 changes when casefolded exists")
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_SCRIPT, &value),
-        MJB_STATUS_OK, "U+0041 script value exists")
-    ATT_ASSERT(value, MJB_SC_LATN, "U+0041 script value is Latin")
+    MJB_TEST_COVERAGE(mjb_codepoint_property_binary);
+    ATT_ASSERT_STATUS(mjb_codepoint_property_binary(0x41, MJB_PR_ALPHABETIC, &binary),
+        MJB_STATUS_OK, "Typed binary property present")
+    ATT_ASSERT(binary, true, "U+0041 Alphabetic is true")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_binary(0x20, MJB_PR_ALPHABETIC, &binary),
+        MJB_STATUS_OK, "Typed binary property absent")
+    ATT_ASSERT(binary, false, "U+0020 Alphabetic is false")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_binary(0x41, MJB_PR_SCRIPT, &binary),
+        MJB_STATUS_INVALID_ARGUMENT, "Binary getter rejects enumerated property")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_binary(0x41, MJB_PR_ALPHABETIC, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Binary getter rejects NULL output")
 
-    value = 0xFF;
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_WORD_BREAK, &value),
-        MJB_STATUS_OK, "U+0041 word break value exists")
-    ATT_ASSERT(value, MJB_WBP_A_LETTER, "U+0041 word break value is A_Letter")
-
-    value = 0xFF;
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_LINE_BREAK, &value),
-        MJB_STATUS_OK, "U+0041 line break value exists")
-    ATT_ASSERT(value, MJB_LBP_AL, "U+0041 line break value is Alphabetic")
-
-    value = 0xFF;
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_SENTENCE_BREAK, &value),
-        MJB_STATUS_OK, "U+0041 sentence break value exists")
-    ATT_ASSERT(value, MJB_SBP_UPPER, "U+0041 sentence break value is Upper")
-
-    value = 0xFF;
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x41, MJB_PR_LOWERCASE, &value),
-        MJB_STATUS_NOT_FOUND, "U+0041 lowercase value does not exist")
-    ATT_ASSERT(value, 0xFF, "U+0041 lowercase missing value is not written")
-
-    value = 0xFF;
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x20, MJB_PR_EAST_ASIAN_WIDTH, &value),
-        MJB_STATUS_OK, "Space East Asian Width exists")
-    ATT_ASSERT(value, MJB_EAW_NARROW, "Space east asian width is Narrow")
-
-    value = 0xFF;
-    ATT_ASSERT_STATUS(mjb_codepoint_property_value(0x20, MJB_PR_CASED, NULL),
-        MJB_STATUS_NOT_FOUND, "Space cased does not exist")
+    MJB_TEST_COVERAGE(mjb_codepoint_property_int);
+    ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_SCRIPT, &enumerated),
+        MJB_STATUS_OK, "Typed enumerated property present")
+    ATT_ASSERT(enumerated, MJB_SC_LATN, "U+0041 Script is Latin")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_ALPHABETIC, &enumerated),
+        MJB_STATUS_INVALID_ARGUMENT, "Enumerated getter rejects binary property")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_SCRIPT, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Enumerated getter rejects NULL output")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_int(MJB_CODEPOINT_MAX + 1, MJB_PR_SCRIPT,
+        &enumerated), MJB_STATUS_INVALID_ARGUMENT, "Typed getter rejects invalid codepoint")
 
     // mjb_codepoint_script
     ATT_ASSERT((int)mjb_codepoint_script(MJB_CODEPOINT_MAX + 1), MJB_SC_ZZZZ, "Invalid codepoint script is Unknown")

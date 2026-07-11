@@ -8,6 +8,10 @@
 #include "../../../src/cpp/mojibake.hpp"
 
 int test_cpp_mojibake(void *arg) {
+    ATT_ASSERT(mjb::property_binary(U'A', MJB_PR_ALPHABETIC).value_or(false), true,
+        "C++ typed binary property")
+    ATT_ASSERT(mjb::property_int(U'A', MJB_PR_SCRIPT).value_or(0), MJB_SC_LATN,
+        "C++ typed enumerated property")
     // U+1F642 = 🙂
     auto character = mjb::Character((mjb_codepoint)0x1F642);
     // U+1F643 = 🙃

@@ -49,6 +49,13 @@ function getPropertyNames(properties: Property[]) {
   }).join('\n');
 }
 
+function getPropertyTypes(properties: Property[]) {
+  return properties.map((value: Property, index: number) => {
+    const name = value.name.toUpperCase().replace(/[<>]/g, '');
+    return `    ${value.bool ? 'true' : 'false'}${index === properties.length - 1 ? ' ' : ','} // MJB_PR_${name}`;
+  }).join('\n');
+}
+
 function getScriptEnumNames(properties: { [key: string]: number }, wasm = false) {
   const propertyEnums: string[] = [];
 
@@ -174,6 +181,8 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   // Add list of property names to shell maps.c
   fileContent = substituteBlock(fileContent, "static const char *mjb_property_names[] = {\n", "\n};", getPropertyNames(properties));
+  fileContent = substituteBlock(fileContent, "static const bool mjb_property_is_binary[] = {\n",
+    "\n};\n// End generated property types.", getPropertyTypes(properties));
 
   writeFileSync('../../src/properties.c', fileContent);
 

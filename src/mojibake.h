@@ -540,8 +540,11 @@ MJB_EXPORT MJB_PURE size_t mjb_string_length(const char *buffer, size_t max_leng
 // Run a callback for each character of a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
 
-// Return if a codepoint has a property.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
+// Return the value of a binary Unicode property.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property, bool *value);
+
+// Return the value of an enumerated or integer Unicode property.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_int(mjb_codepoint codepoint, mjb_property property, int32_t *value);
 
 // Return the numeric value of a codepoint.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint, mjb_numeric_value *value);

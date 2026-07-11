@@ -190,7 +190,8 @@ if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
 
 // U+022A lowercase: U+022B
 printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
-    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_value'],
+    related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_binary',
+      'mjb_codepoint_property_int'],
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -465,27 +466,59 @@ mjb_result_free(&result);`,
     section: Section.TextAnalysis,
   },
   {
-    comment: 'Return if a codepoint has a property.',
+    comment: 'Return the value of a binary Unicode property.',
     ret: 'mjb_status',
-    name: 'mjb_codepoint_property_value',
+    name: 'mjb_codepoint_property_binary',
     attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {
         name: 'property',
         type: 'mjb_property',
-        description: 'The property to check',
+        description: 'The binary property to query',
         wasm_generated: false
       },
       {
         name: 'value',
-        type: 'uint8_t *',
-        description: 'The property value, if any',
+        type: 'bool *',
+        description: 'Where to store the binary property value',
         wasm_generated: true
       }
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    details: 'Return `true` when the codepoint has the binary property and `false` when it does ' +
+      'not. Passing an enumerated property is a type mismatch and returns ' +
+      '`MJB_STATUS_INVALID_ARGUMENT`.',
+    related: ['mjb_codepoint_property_int'],
+    specs: [uax(44, 'Unicode Character Database')]
+  },
+  {
+    comment: 'Return the value of an enumerated or integer Unicode property.',
+    ret: 'mjb_status',
+    name: 'mjb_codepoint_property_int',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      codepoint(),
+      {
+        name: 'property',
+        type: 'mjb_property',
+        description: 'The enumerated or integer property to query',
+        wasm_generated: false
+      },
+      {
+        name: 'value',
+        type: 'int32_t *',
+        description: 'Where to store the property value',
+        wasm_generated: true
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    details: 'Passing a binary property is a type mismatch and returns ' +
+      '`MJB_STATUS_INVALID_ARGUMENT`. `MJB_STATUS_NOT_FOUND` means that the codepoint has no ' +
+      'stored value for the requested property.',
+    related: ['mjb_codepoint_property_binary'],
     specs: [uax(44, 'Unicode Character Database')]
   },
   {

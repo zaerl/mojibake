@@ -667,8 +667,8 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
             continue;
         }
 
-        if(mjb_codepoint_property_value(codepoint, MJB_PR_DEFAULT_IGNORABLE_CODE_POINT, NULL) ==
-            MJB_STATUS_OK) {
+        if(mjb_codepoint_has_binary_property(codepoint,
+            MJB_PR_DEFAULT_IGNORABLE_CODE_POINT)) {
             continue;
         }
 
@@ -678,8 +678,8 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
         if(!mjb_unicode_case_folding_lookup(codepoint, &mapping, &mapping_length)) {
             mjb_unicode_case_mapping simple_mapping;
 
-            if(mjb_codepoint_property_value(codepoint, MJB_PR_CHANGES_WHEN_CASEFOLDED, NULL) ==
-                MJB_STATUS_OK && mjb_unicode_case_lookup(codepoint, &simple_mapping) &&
+            if(mjb_codepoint_has_binary_property(codepoint, MJB_PR_CHANGES_WHEN_CASEFOLDED) &&
+                mjb_unicode_case_lookup(codepoint, &simple_mapping) &&
                 simple_mapping.lowercase != 0) {
                 codepoint = simple_mapping.lowercase;
             }

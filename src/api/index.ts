@@ -541,19 +541,29 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property,
-  // uint8_t *value)
-  codepointPropertyValue(codepoint: Codepoint, property: number): number {
+  // mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property,
+  // bool *value)
+  codepointPropertyBinary(codepoint: Codepoint, property: number): boolean | null {
     const valuePtr = this.malloc(1);
 
     try {
-      const status = this.module._mjb_codepoint_property_value(codepoint, property, valuePtr);
+      const status = this.module._mjb_codepoint_property_binary(codepoint, property, valuePtr);
 
-      if(status !== Status.OK) {
-        return -1;
-      }
+      return status === Status.OK ? this.module.HEAPU8[valuePtr] !== 0 : null;
+    } finally {
+      this.free(valuePtr);
+    }
+  }
 
-      return this.module.HEAPU8[valuePtr];
+  // mjb_status mjb_codepoint_property_int(mjb_codepoint codepoint, mjb_property property,
+  // int32_t *value)
+  codepointPropertyInt(codepoint: Codepoint, property: number): number | null {
+    const valuePtr = this.malloc(4);
+
+    try {
+      const status = this.module._mjb_codepoint_property_int(codepoint, property, valuePtr);
+
+      return status === Status.OK ? this.module.HEAP32[valuePtr / 4] : null;
     } finally {
       this.free(valuePtr);
     }

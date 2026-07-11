@@ -222,11 +222,15 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
 
         for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
             mjb_property property = (mjb_property)i;
-            uint8_t value = 0;
+            bool is_bool = mjbsh_property_is_bool(property);
+            bool binary_value = false;
+            int32_t integer_value = 0;
+            mjb_status status = is_bool ?
+                mjb_codepoint_property_binary(character->codepoint, property, &binary_value) :
+                mjb_codepoint_property_int(character->codepoint, property, &integer_value);
 
-            if(mjb_codepoint_property_value(character->codepoint, property, &value) ==
-                MJB_STATUS_OK) {
-                properties[i] = mjbsh_property_is_bool(property) ? 1 : value;
+            if(status == MJB_STATUS_OK && (!is_bool || binary_value)) {
+                properties[i] = is_bool ? 1 : (uint8_t)integer_value;
                 last_prop = i;
             }
         }

@@ -144,7 +144,8 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     mjb_codepoint decomposition[3];
     char encoded[5];
     char hangul_name[128];
-    uint8_t property_value = 0;
+    bool binary_property_value = false;
+    int32_t integer_property_value = 0;
     mjb_property property = (mjb_property)(variant % MJB_PR_COUNT);
     mjb_property property_name = (mjb_property)(variant % (MJB_PR_COUNT + 2));
 
@@ -167,6 +168,12 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_category_is_graphic((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_category_is_combining((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_codepoint_numeric_value(codepoint, &numeric);
+    fuzz_sink += (size_t)mjb_codepoint_property_binary(codepoint, property,
+        &binary_property_value);
+    fuzz_sink += (size_t)binary_property_value;
+    fuzz_sink += (size_t)mjb_codepoint_property_int(codepoint, property,
+        &integer_property_value);
+    fuzz_sink += (size_t)integer_property_value;
     fuzz_sink += (size_t)mjb_codepoint_block(codepoint, &block);
     fuzz_sink += (size_t)mjb_codepoint_to_lowercase(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_to_uppercase(codepoint);
@@ -186,13 +193,6 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_xid_continue(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_syntax(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_white_space(codepoint);
-    mjb_status property_status = mjb_codepoint_property_value(codepoint, property, &property_value);
-    fuzz_sink += (size_t)property_status;
-
-    if(property_status == MJB_STATUS_OK) {
-        fuzz_sink += property_value;
-    }
-
     fuzz_sink += (size_t)mjb_codepoint_script(codepoint);
 
     const char *name = mjb_property_name(property_name);

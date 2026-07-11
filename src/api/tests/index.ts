@@ -50,7 +50,16 @@ ATT_ASSERT(mojibake.stringFilter('hello    world', FilterType.COLLAPSE_SPACES)?.
   'stringFilter');
 ATT_ASSERT(mojibake.stringFilter('a\u0300\u0301\u0302\u0303\u0304', FilterType.LIMIT_COMBINING)?.output,
   'a\u0300\u0301\u0302\u0303', 'stringFilterLimitCombining');
-ATT_ASSERT(mojibake.codepointPropertyValue(0x41, Property.CASED), 0, 'codepointHasProperty');
+ATT_ASSERT(mojibake.codepointPropertyBinary(0x41, Property.ALPHABETIC), true,
+  'codepointPropertyBinary true');
+ATT_ASSERT(mojibake.codepointPropertyBinary(0x20, Property.ALPHABETIC), false,
+  'codepointPropertyBinary false');
+ATT_ASSERT(mojibake.codepointPropertyBinary(0x41, Property.SCRIPT), null,
+  'codepointPropertyBinary type mismatch');
+ATT_ASSERT(mojibake.codepointPropertyInt(0x41, Property.SCRIPT), Script.LATN,
+  'codepointPropertyInt');
+ATT_ASSERT(mojibake.codepointPropertyInt(0x41, Property.ALPHABETIC), null,
+  'codepointPropertyInt type mismatch');
 ATT_ASSERT(mojibake.codepointScript(0x41), Script.LATN, 'codepointScript');
 ATT_ASSERT(mojibake.stringEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'stringEncoding');
 ATT_ASSERT(mojibake.stringIsUtf8('Hello'), true, 'stringIsUtf8');

@@ -607,8 +607,8 @@ MJB_EXPORT mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_case_
             // uppercase Cherokee.
             mjb_unicode_case_mapping mapping;
 
-            if(mjb_codepoint_property_value(codepoint, MJB_PR_CHANGES_WHEN_CASEFOLDED, NULL) ==
-                MJB_STATUS_OK && mjb_unicode_case_lookup(codepoint, &mapping) &&
+            if(mjb_codepoint_has_binary_property(codepoint, MJB_PR_CHANGES_WHEN_CASEFOLDED) &&
+                mjb_unicode_case_lookup(codepoint, &mapping) &&
                 mapping.lowercase != 0) {
                 codepoint = mapping.lowercase;
             }

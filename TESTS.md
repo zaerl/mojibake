@@ -31,7 +31,6 @@
 | `mjb_collation_key`                      | 24          |
 | `mjb_codepoint_numeric_value`            | 20          |
 | `mjb_locale_set`                         | 20          |
-| `mjb_codepoint_property_value`           | 18          |
 | `mjb_confusable_skeleton`                | 18          |
 | `mjb_hangul_syllable_name`               | 18          |
 | `mjb_string_is_utf8`                     | 17          |
@@ -52,10 +51,12 @@
 | `mjb_shutdown`                           | 7           |
 | `mjb_truncate_word_width`                | 7           |
 | `mjb_codepoint_is_id_start`              | 6           |
+| `mjb_codepoint_property_binary`          | 6           |
 | `mjb_string_each_character`              | 6           |
 | `mjb_codepoint_is_combining`             | 5           |
 | `mjb_codepoint_is_graphic`               | 5           |
 | `mjb_codepoint_is_id_continue`           | 5           |
+| `mjb_codepoint_property_int`             | 5           |
 | `mjb_codepoint_to_lowercase`             | 5           |
 | `mjb_hangul_syllable_decomposition`      | 5           |
 | `mjb_alloc`                              | 4           |
@@ -90,13 +91,15 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1609430** |
+| **Total**                                | **1609423** |
 
 ## JavaScript
 
 | Test                                       | Coverage   |
 | ------------------------------------------ | ---------- |
+| `Mojibake.codepointPropertyBinary`         | 3          |
 | `Mojibake.case`                            | 2          |
+| `Mojibake.codepointPropertyInt`            | 2          |
 | `Mojibake.stringFilter`                    | 2          |
 | `Mojibake.bidiResolve`                     | 1          |
 | `Mojibake.breakGraphemeCluster`            | 1          |
@@ -130,7 +133,6 @@
 | `Mojibake.codepointIsXidStart`             | 1          |
 | `Mojibake.codepointNumericValue`           | 1          |
 | `Mojibake.codepointPlane`                  | 1          |
-| `Mojibake.codepointPropertyValue`          | 1          |
 | `Mojibake.codepointScript`                 | 1          |
 | `Mojibake.codepointToLowercase`            | 1          |
 | `Mojibake.codepointToTitlecase`            | 1          |
@@ -167,4 +169,4 @@
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **72**     |
+| **Total**                                  | **76**     |

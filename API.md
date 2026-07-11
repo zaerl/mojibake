@@ -161,7 +161,7 @@ if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
 printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
 ```
 
-See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_property_value`](#mjb_codepoint_property_value).
+See also: [`mjb_codepoint_block`](#mjb_codepoint_block), [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_property_binary`](#mjb_codepoint_property_binary), [`mjb_codepoint_property_int`](#mjb_codepoint_property_int).
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -404,17 +404,39 @@ mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb
 - `encoding` — The encoding of the string
 - `callback` — The function to call for each character
 
-## `mjb_codepoint_property_value`
+## `mjb_codepoint_property_binary`
 
-Return if a codepoint has a property.
+Return the value of a binary Unicode property.
 
 ```c
-mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
+mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property, bool *value);
 ```
 
+Return `true` when the codepoint has the binary property and `false` when it does not. Passing an enumerated property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`.
+
 - `codepoint` — The codepoint to check
-- `property` — The property to check
-- `value` — The property value, if any
+- `property` — The binary property to query
+- `value` — Where to store the binary property value
+
+See also: [`mjb_codepoint_property_int`](#mjb_codepoint_property_int).
+
+Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
+## `mjb_codepoint_property_int`
+
+Return the value of an enumerated or integer Unicode property.
+
+```c
+mjb_status mjb_codepoint_property_int(mjb_codepoint codepoint, mjb_property property, int32_t *value);
+```
+
+Passing a binary property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`. `MJB_STATUS_NOT_FOUND` means that the codepoint has no stored value for the requested property.
+
+- `codepoint` — The codepoint to check
+- `property` — The enumerated or integer property to query
+- `value` — Where to store the property value
+
+See also: [`mjb_codepoint_property_binary`](#mjb_codepoint_property_binary).
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -1622,7 +1644,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 
 | Claim | Public surface | Unicode reference | Evidence |
 | ----- | -------------- | ----------------- | -------- |
-| Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_value`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), UCD 17.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; covered by local UCD/property tests. |
+| Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), UCD 17.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; covered by local UCD/property tests. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
 | Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |

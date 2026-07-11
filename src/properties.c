@@ -11,6 +11,7 @@
 
 /**
  * See mjb_property enum in unicode.h for the list of properties.
+ * This array is automatically generated. Do not edit.
  */
 static const char *mjb_property_names[] = {
     "kAccountingNumeric", // enumerated
@@ -157,16 +158,194 @@ static const char *mjb_property_names[] = {
     "Expands_On_NFKD"
 };
 
-// Return if a codepoint has a property
-MJB_EXPORT mjb_status mjb_codepoint_property_value(mjb_codepoint codepoint, mjb_property property,
-    uint8_t *value) {
-    if(!mjb_codepoint_is_valid(codepoint)) {
+// See PropertyAliases.txt / PropertyValueAliases.txt.
+// This array is automatically generated. Do not edit.
+static const bool mjb_property_is_binary[] = {
+    false, // MJB_PR_KACCOUNTINGNUMERIC
+    false, // MJB_PR_KOTHERNUMERIC
+    false, // MJB_PR_KPRIMARYNUMERIC
+    false, // MJB_PR_NUMERIC_VALUE
+    false, // MJB_PR_BIDI_MIRRORING_GLYPH
+    false, // MJB_PR_BIDI_PAIRED_BRACKET
+    false, // MJB_PR_CASE_FOLDING
+    false, // MJB_PR_KCOMPATIBILITYVARIANT
+    false, // MJB_PR_DECOMPOSITION_MAPPING
+    false, // MJB_PR_EQUIVALENT_UNIFIED_IDEOGRAPH
+    false, // MJB_PR_FC_NFKC_CLOSURE
+    false, // MJB_PR_LOWERCASE_MAPPING
+    false, // MJB_PR_NFKC_CASEFOLD
+    false, // MJB_PR_NFKC_SIMPLE_CASEFOLD
+    false, // MJB_PR_SIMPLE_CASE_FOLDING
+    false, // MJB_PR_SIMPLE_LOWERCASE_MAPPING
+    false, // MJB_PR_SIMPLE_TITLECASE_MAPPING
+    false, // MJB_PR_SIMPLE_UPPERCASE_MAPPING
+    false, // MJB_PR_TITLECASE_MAPPING
+    false, // MJB_PR_UPPERCASE_MAPPING
+    false, // MJB_PR_KIICORE
+    false, // MJB_PR_KIRG_GSOURCE
+    false, // MJB_PR_KIRG_HSOURCE
+    false, // MJB_PR_KIRG_JSOURCE
+    false, // MJB_PR_KIRG_KPSOURCE
+    false, // MJB_PR_KIRG_KSOURCE
+    false, // MJB_PR_KIRG_MSOURCE
+    false, // MJB_PR_KIRG_SSOURCE
+    false, // MJB_PR_KIRG_TSOURCE
+    false, // MJB_PR_KIRG_UKSOURCE
+    false, // MJB_PR_KIRG_USOURCE
+    false, // MJB_PR_KIRG_VSOURCE
+    false, // MJB_PR_KMANDARIN
+    false, // MJB_PR_KRSUNICODE
+    false, // MJB_PR_KTOTALSTROKES
+    false, // MJB_PR_KUNIHANCORE2020
+    false, // MJB_PR_ISO_COMMENT
+    false, // MJB_PR_JAMO_SHORT_NAME
+    false, // MJB_PR_KEH_CAT
+    false, // MJB_PR_KEH_DESC
+    false, // MJB_PR_KEH_HG
+    false, // MJB_PR_KEH_IFAO
+    false, // MJB_PR_KEH_JSESH
+    false, // MJB_PR_NAME
+    false, // MJB_PR_NAME_ALIAS
+    false, // MJB_PR_SCRIPT_EXTENSIONS
+    false, // MJB_PR_AGE
+    false, // MJB_PR_SCRIPT
+    false, // MJB_PR_BIDI_PAIRED_BRACKET_TYPE
+    false, // MJB_PR_CANONICAL_COMBINING_CLASS
+    false, // MJB_PR_DECOMPOSITION_TYPE
+    false, // MJB_PR_EAST_ASIAN_WIDTH
+    false, // MJB_PR_GENERAL_CATEGORY
+    false, // MJB_PR_GRAPHEME_CLUSTER_BREAK
+    false, // MJB_PR_HANGUL_SYLLABLE_TYPE
+    false, // MJB_PR_INDIC_CONJUNCT_BREAK
+    false, // MJB_PR_INDIC_POSITIONAL_CATEGORY
+    false, // MJB_PR_INDIC_SYLLABIC_CATEGORY
+    false, // MJB_PR_JOINING_GROUP
+    false, // MJB_PR_JOINING_TYPE
+    false, // MJB_PR_LINE_BREAK
+    false, // MJB_PR_NFC_QUICK_CHECK
+    true, // MJB_PR_NFD_QUICK_CHECK
+    false, // MJB_PR_NFKC_QUICK_CHECK
+    true, // MJB_PR_NFKD_QUICK_CHECK
+    false, // MJB_PR_NUMERIC_TYPE
+    false, // MJB_PR_SENTENCE_BREAK
+    false, // MJB_PR_VERTICAL_ORIENTATION
+    false, // MJB_PR_WORD_BREAK
+    true, // MJB_PR_ASCII_HEX_DIGIT
+    true, // MJB_PR_ALPHABETIC
+    true, // MJB_PR_BIDI_CONTROL
+    true, // MJB_PR_BIDI_MIRRORED
+    true, // MJB_PR_CASED
+    true, // MJB_PR_COMPOSITION_EXCLUSION
+    true, // MJB_PR_CASE_IGNORABLE
+    true, // MJB_PR_FULL_COMPOSITION_EXCLUSION
+    true, // MJB_PR_CHANGES_WHEN_CASEFOLDED
+    true, // MJB_PR_CHANGES_WHEN_CASEMAPPED
+    true, // MJB_PR_CHANGES_WHEN_NFKC_CASEFOLDED
+    true, // MJB_PR_CHANGES_WHEN_LOWERCASED
+    true, // MJB_PR_CHANGES_WHEN_TITLECASED
+    true, // MJB_PR_CHANGES_WHEN_UPPERCASED
+    true, // MJB_PR_DASH
+    true, // MJB_PR_DEPRECATED
+    true, // MJB_PR_DEFAULT_IGNORABLE_CODE_POINT
+    true, // MJB_PR_DIACRITIC
+    true, // MJB_PR_EMOJI_MODIFIER_BASE
+    true, // MJB_PR_EMOJI_COMPONENT
+    true, // MJB_PR_EMOJI_MODIFIER
+    true, // MJB_PR_EMOJI
+    true, // MJB_PR_EMOJI_PRESENTATION
+    true, // MJB_PR_EXTENDER
+    true, // MJB_PR_EXTENDED_PICTOGRAPHIC
+    true, // MJB_PR_GRAPHEME_BASE
+    true, // MJB_PR_GRAPHEME_EXTEND
+    true, // MJB_PR_GRAPHEME_LINK
+    true, // MJB_PR_HEX_DIGIT
+    true, // MJB_PR_HYPHEN
+    true, // MJB_PR_ID_COMPAT_MATH_CONTINUE
+    true, // MJB_PR_ID_COMPAT_MATH_START
+    true, // MJB_PR_ID_CONTINUE
+    true, // MJB_PR_IDEOGRAPHIC
+    true, // MJB_PR_ID_START
+    true, // MJB_PR_IDS_BINARY_OPERATOR
+    true, // MJB_PR_IDS_TRINARY_OPERATOR
+    true, // MJB_PR_IDS_UNARY_OPERATOR
+    true, // MJB_PR_JOIN_CONTROL
+    true, // MJB_PR_KEH_NOMIRROR
+    true, // MJB_PR_KEH_NOROTATE
+    true, // MJB_PR_LOGICAL_ORDER_EXCEPTION
+    true, // MJB_PR_LOWERCASE
+    true, // MJB_PR_MATH
+    true, // MJB_PR_MODIFIER_COMBINING_MARK
+    true, // MJB_PR_NONCHARACTER_CODE_POINT
+    true, // MJB_PR_OTHER_ALPHABETIC
+    true, // MJB_PR_OTHER_DEFAULT_IGNORABLE_CODE_POINT
+    true, // MJB_PR_OTHER_GRAPHEME_EXTEND
+    true, // MJB_PR_OTHER_ID_CONTINUE
+    true, // MJB_PR_OTHER_ID_START
+    true, // MJB_PR_OTHER_LOWERCASE
+    true, // MJB_PR_OTHER_MATH
+    true, // MJB_PR_OTHER_UPPERCASE
+    true, // MJB_PR_PATTERN_SYNTAX
+    true, // MJB_PR_PATTERN_WHITE_SPACE
+    true, // MJB_PR_PREPENDED_CONCATENATION_MARK
+    true, // MJB_PR_QUOTATION_MARK
+    true, // MJB_PR_RADICAL
+    true, // MJB_PR_REGIONAL_INDICATOR
+    true, // MJB_PR_SOFT_DOTTED
+    true, // MJB_PR_SENTENCE_TERMINAL
+    true, // MJB_PR_TERMINAL_PUNCTUATION
+    true, // MJB_PR_UNIFIED_IDEOGRAPH
+    true, // MJB_PR_UPPERCASE
+    true, // MJB_PR_VARIATION_SELECTOR
+    true, // MJB_PR_WHITE_SPACE
+    true, // MJB_PR_XID_CONTINUE
+    true, // MJB_PR_XID_START
+    true, // MJB_PR_EXPANDS_ON_NFC
+    true, // MJB_PR_EXPANDS_ON_NFD
+    true, // MJB_PR_EXPANDS_ON_NFKC
+    true  // MJB_PR_EXPANDS_ON_NFKD
+};
+// End generated property types.
+
+static bool mjb_property_valid(mjb_property property) {
+    return (unsigned int)property < MJB_PR_COUNT;
+}
+
+static bool mjb_property_binary(mjb_property property) {
+    return mjb_property_valid(property) && mjb_property_is_binary[property];
+}
+
+// Return a binary property value. A missing binary property has the Unicode default value false.
+MJB_EXPORT mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property,
+    bool *value) {
+    if(value == NULL || !mjb_codepoint_is_valid(codepoint) || !mjb_property_binary(property)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(!mjb_unicode_has_property(codepoint, property, value)) {
+    *value = mjb_unicode_has_property(codepoint, property, NULL);
+    return MJB_STATUS_OK;
+}
+
+bool mjb_codepoint_has_binary_property(mjb_codepoint codepoint, mjb_property property) {
+    bool value = false;
+
+    return mjb_codepoint_property_binary(codepoint, property, &value) == MJB_STATUS_OK && value;
+}
+
+// Return an enumerated or integer property value.
+MJB_EXPORT mjb_status mjb_codepoint_property_int(mjb_codepoint codepoint, mjb_property property,
+    int32_t *value) {
+    if(value == NULL || !mjb_codepoint_is_valid(codepoint) || !mjb_property_valid(property) ||
+        mjb_property_binary(property)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    uint8_t raw = 0;
+
+    if(!mjb_unicode_has_property(codepoint, property, &raw)) {
         return MJB_STATUS_NOT_FOUND;
     }
+
+    *value = (int32_t)raw;
 
     return MJB_STATUS_OK;
 }
@@ -176,7 +355,6 @@ mjb_status mjb_codepoint_properties_lookup(mjb_codepoint codepoint, uint8_t *buf
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    // Reset the buffer to zero before filling it with properties.
     memset(buffer, 0, MJB_PR_BUFFER_SIZE);
 
     if(!mjb_unicode_properties(codepoint, buffer)) {
@@ -199,9 +377,9 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
         return MJB_SC_ZZZZ;
     }
 
-    uint8_t raw = 0;
+    int32_t raw = 0;
 
-    if(mjb_codepoint_property_value(codepoint, MJB_PR_SCRIPT, &raw) != MJB_STATUS_OK ||
+    if(mjb_codepoint_property_int(codepoint, MJB_PR_SCRIPT, &raw) != MJB_STATUS_OK ||
         raw == MJB_SC_NOT_SET) {
         return MJB_SC_ZZZZ;
     }
@@ -210,32 +388,31 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
 }
 
 MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint) {
-    return mjb_codepoint_property_value(codepoint, MJB_PR_ID_START, NULL) == MJB_STATUS_OK;
+    return mjb_codepoint_has_binary_property(codepoint, MJB_PR_ID_START);
 }
 
 MJB_EXPORT bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint) {
-    return mjb_codepoint_property_value(codepoint, MJB_PR_ID_CONTINUE, NULL) == MJB_STATUS_OK;
+    return mjb_codepoint_has_binary_property(codepoint, MJB_PR_ID_CONTINUE);
 }
 
 MJB_EXPORT bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint) {
-    return mjb_codepoint_property_value(codepoint, MJB_PR_XID_START, NULL) == MJB_STATUS_OK;
+    return mjb_codepoint_has_binary_property(codepoint, MJB_PR_XID_START);
 }
 
 MJB_EXPORT bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint) {
-    return mjb_codepoint_property_value(codepoint, MJB_PR_XID_CONTINUE, NULL) == MJB_STATUS_OK;
+    return mjb_codepoint_has_binary_property(codepoint, MJB_PR_XID_CONTINUE);
 }
 
 MJB_EXPORT bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint) {
-    return mjb_codepoint_property_value(codepoint, MJB_PR_PATTERN_SYNTAX, NULL) == MJB_STATUS_OK;
+    return mjb_codepoint_has_binary_property(codepoint, MJB_PR_PATTERN_SYNTAX);
 }
 
 MJB_EXPORT bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint) {
-    return mjb_codepoint_property_value(codepoint, MJB_PR_PATTERN_WHITE_SPACE, NULL) ==
-        MJB_STATUS_OK;
+    return mjb_codepoint_has_binary_property(codepoint, MJB_PR_PATTERN_WHITE_SPACE);
 }
 
 MJB_EXPORT const char *mjb_property_name(mjb_property property) {
-    if(property >= MJB_PR_COUNT) {
+    if((unsigned int)property >= MJB_PR_COUNT) {
         return "Unknown";
     }
 

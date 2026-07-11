@@ -75,4 +75,6 @@ mjb_status mjb_codepoint_properties_lookup(mjb_codepoint codepoint, uint8_t *buf
 
 uint8_t mjb_codepoint_properties_get(const uint8_t *properties, mjb_property property);
 
+bool mjb_codepoint_has_binary_property(mjb_codepoint codepoint, mjb_property property);
+
 #endif // MJB_MOJIBAKE_INTERNAL_H

@@ -71,8 +71,7 @@ static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_l
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
-        if(mjb_codepoint_property_value(cp, MJB_PR_DEFAULT_IGNORABLE_CODE_POINT, NULL) ==
-            MJB_STATUS_OK) {
+        if(mjb_codepoint_has_binary_property(cp, MJB_PR_DEFAULT_IGNORABLE_CODE_POINT)) {
             continue;
         }
 
