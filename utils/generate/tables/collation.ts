@@ -28,35 +28,124 @@ function byteSuffixPrefixOverlap(data: number[], bytes: number[]) {
   return 0;
 }
 
+type ByteSuffixState = {
+  length: number;
+  link: number;
+  transitions: Map<number, number>;
+  earliestEnd: number;
+};
+
+// Incrementally indexes every substring in a byte stream. Keeping the earliest end position on
+// each state makes find() match Buffer.indexOf() semantics without rescanning the packed data.
+class ByteSuffixAutomaton {
+  private states: ByteSuffixState[] = [{
+    length: 0,
+    link: -1,
+    transitions: new Map(),
+    earliestEnd: -1,
+  }];
+  private last = 0;
+  private dataLength = 0;
+
+  find(bytes: number[]) {
+    let state = 0;
+
+    for(const byte of bytes) {
+      const next = this.states[state].transitions.get(byte);
+
+      if(next === undefined) {
+        return -1;
+      }
+
+      state = next;
+    }
+
+    return this.states[state].earliestEnd - bytes.length + 1;
+  }
+
+  append(bytes: number[]) {
+    for(const byte of bytes) {
+      this.appendByte(byte);
+    }
+  }
+
+  private appendByte(byte: number) {
+    const end = this.dataLength++;
+    const current = this.states.length;
+    this.states.push({
+      length: this.states[this.last].length + 1,
+      link: 0,
+      transitions: new Map(),
+      earliestEnd: end,
+    });
+
+    let state = this.last;
+
+    while(state >= 0 && !this.states[state].transitions.has(byte)) {
+      this.states[state].transitions.set(byte, current);
+      state = this.states[state].link;
+    }
+
+    if(state < 0) {
+      this.states[current].link = 0;
+    } else {
+      const next = this.states[state].transitions.get(byte)!;
+
+      if(this.states[state].length + 1 === this.states[next].length) {
+        this.states[current].link = next;
+      } else {
+        const clone = this.states.length;
+        this.states.push({
+          length: this.states[state].length + 1,
+          link: this.states[next].link,
+          transitions: new Map(this.states[next].transitions),
+          earliestEnd: this.states[next].earliestEnd,
+        });
+
+        while(state >= 0 && this.states[state].transitions.get(byte) === next) {
+          this.states[state].transitions.set(byte, clone);
+          state = this.states[state].link;
+        }
+
+        this.states[next].link = clone;
+        this.states[current].link = clone;
+      }
+    }
+
+    this.last = current;
+  }
+}
+
 // Packs byte sequences by reusing duplicate, substring, and suffix-prefix overlaps.
 export function packByteSequences(sequences: number[][]) {
-  const unique = new Map<string, { bytes: number[]; buffer: Buffer }>();
+  const unique = new Map<string, number[]>();
   const offsets = new Array<number>(sequences.length);
   const data: number[] = [];
-  let dataBuffer = Buffer.alloc(0);
+  const substringIndex = new ByteSuffixAutomaton();
 
   for(const bytes of sequences) {
     const buffer = Buffer.from(bytes);
     const key = buffer.toString('hex');
 
     if(!unique.has(key)) {
-      unique.set(key, { bytes, buffer });
+      unique.set(key, bytes);
     }
   }
 
   const packedOffsets = new Map<string, number>();
   const sorted = [...unique.entries()].sort(([, a], [, b]) =>
-    b.bytes.length - a.bytes.length || compareBytes(a.bytes, b.bytes)
+    b.length - a.length || compareBytes(a, b)
   );
 
-  for(const [key, sequence] of sorted) {
-    let offset = dataBuffer.indexOf(sequence.buffer);
+  for(const [key, bytes] of sorted) {
+    let offset = substringIndex.find(bytes);
 
     if(offset < 0) {
-      const overlap = byteSuffixPrefixOverlap(data, sequence.bytes);
+      const overlap = byteSuffixPrefixOverlap(data, bytes);
       offset = data.length - overlap;
-      data.push(...sequence.bytes.slice(overlap));
-      dataBuffer = Buffer.from(data);
+      const appended = bytes.slice(overlap);
+      data.push(...appended);
+      substringIndex.append(appended);
     }
 
     packedOffsets.set(key, offset);
