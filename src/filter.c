@@ -30,7 +30,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length, 
         mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ?
             output_encoding : encoding;
 
-        mjb_status status = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFC, encoding,
+        mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC,
             normalize_output_encoding, result);
 
         if(status != MJB_STATUS_OK) {

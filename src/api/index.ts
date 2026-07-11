@@ -401,8 +401,8 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding
-  // encoding, mjb_encoding output_encoding, mjb_result *result)
+  // mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_normalization form, mjb_encoding output_encoding, mjb_result *result)
   normalize(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -412,7 +412,7 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_normalize(wasmInput.ptr, wasmInput.size,
-        form, wasmInput.encoding, outputEncoding, resultPtr);
+        wasmInput.encoding, form, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {
         return null;

@@ -285,8 +285,8 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
 /**
  * Normalize a string
  */
-MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_normalization form, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -748,8 +748,8 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
     for(unsigned int pass = 0; pass < 8; ++pass) {
         mjb_result normalized;
         // We use UTF-8 as the intermediate encoding for the NFKC_Casefold transform.
-        mjb_status status = mjb_normalize(current, current_size, MJB_NORMALIZATION_NFKC,
-            current_encoding, MJB_ENC_UTF_8, &normalized);
+        mjb_status status = mjb_normalize(current, current_size, current_encoding,
+            MJB_NORMALIZATION_NFKC, MJB_ENC_UTF_8, &normalized);
 
         if(status != MJB_STATUS_OK) {
             if(current_owned) {
@@ -790,7 +790,7 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
 
         if(stable) {
             mjb_result normalized_result;
-            status = mjb_normalize(current, current_size, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+            status = mjb_normalize(current, current_size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
                 output_encoding, &normalized_result);
 
             if(status != MJB_STATUS_OK) {

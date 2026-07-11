@@ -64,7 +64,7 @@ encodings of the input strings.
 Example of the [`mjb_normalize`](#mjb_normalize) function.
 
 ```c
-mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 1. `buffer`: a block of memory, `uint8_t` (ASCII, UTF-8), `uint16_t` (UTF-16), `uint32_t` (UTF-32)
@@ -82,7 +82,7 @@ const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 
 mjb_result result;
 
-if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -103,7 +103,7 @@ you need to `mjb_free` it.
 This way the output buffer will be encoded in UTF-16LE.
 
 ```c
-if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -170,15 +170,15 @@ Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://ww
 Normalize a string to NFC/NFKC/NFD/NFKD form.
 
 ```c
-mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating.
 
 - `buffer` — The string to normalize
 - `byte_length` — The length of the string, in bytes
-- `form` — The normalization form to use
 - `encoding` — The encoding of the string
+- `form` — The normalization form to use
 - `output_encoding` — The output encoding of the string
 - `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
@@ -196,7 +196,7 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_result result;
 
-if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }

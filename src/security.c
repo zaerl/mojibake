@@ -25,7 +25,7 @@ static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_l
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    mjb_status status = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding,
+    mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFD,
         MJB_ENC_UTF_8, &nfd);
 
     if(status != MJB_STATUS_OK) {
@@ -106,7 +106,7 @@ static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_l
     }
 
     // Step 3: NFD the intermediate string.
-    status = mjb_normalize(mid, mid_index, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8,
+    status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD,
         MJB_ENC_UTF_8, result);
 
     // mjb_normalize may return result->output == mid when the string is already NFD.

@@ -511,7 +511,7 @@ typedef enum mjb_identifier_profile {
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_normalization form, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 
 // Filter a string with the selected mjb_filter flags.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);

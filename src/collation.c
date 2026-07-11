@@ -772,7 +772,7 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     }
 
     mjb_result r;
-    status = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding,
+    status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFD,
         MJB_ENC_UTF_8, &r);
 
     if(status != MJB_STATUS_OK) {

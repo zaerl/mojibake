@@ -47,7 +47,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     char test_name[128];
 
     MJB_TEST_COVERAGE(mjb_normalize);
-    mjb_status status = mjb_normalize(source, source_size, form, MJB_ENC_UTF_8,
+    mjb_status status = mjb_normalize(source, source_size, MJB_ENC_UTF_8, form,
         MJB_ENC_UTF_8, &result);
 
     if(status != MJB_STATUS_OK) {
@@ -207,8 +207,8 @@ static void test_nfkc_casefold_file(void) {
         size_t mapping_size = get_string_from_codepoints(second_semicolon + 1,
             sizeof(expected_mapping), expected_mapping);
         mjb_result expected;
-        ATT_ASSERT_STATUS(mjb_normalize(expected_mapping, mapping_size, MJB_NORMALIZATION_NFC,
-            MJB_ENC_UTF_8, MJB_ENC_UTF_8, &expected), MJB_STATUS_OK,
+        ATT_ASSERT_STATUS(mjb_normalize(expected_mapping, mapping_size, MJB_ENC_UTF_8,
+            MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &expected), MJB_STATUS_OK,
             "Normalize expected NFKC casefold mapping")
 
         for(unsigned int codepoint = start; codepoint <= end; ++codepoint) {
@@ -249,14 +249,14 @@ int test_normalization(void *arg) {
     test_nfkc_casefold();
     test_nfkc_casefold_file();
 
-    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
         MJB_ENC_UTF_8, &guard_result), MJB_STATUS_INVALID_ARGUMENT,
         "Normalize rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
         MJB_ENC_UTF_8, NULL), MJB_STATUS_INVALID_ARGUMENT,
         "Normalize rejects NULL result")
 
-    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
         MJB_ENC_UTF_16LE, &guard_result), MJB_STATUS_OK,
         "Normalize converts output encoding for already-normalized input")
     ATT_ASSERT(guard_result.transformed, true,

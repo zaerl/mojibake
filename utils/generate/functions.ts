@@ -203,13 +203,13 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     args: [
       buffer('The string to normalize'),
       byte_length(),
+      encoding(),
       {
         name: 'form',
         type: 'mjb_normalization',
         description: 'The normalization form to use',
         wasm_generated: false
       },
-      encoding(),
       encoding('The output encoding of the string', 'output_encoding'),
       result()
     ],
@@ -228,7 +228,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     example: `const char *input = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_result result;
 
-if(mjb_normalize(input, strlen(input), MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
