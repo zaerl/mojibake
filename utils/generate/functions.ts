@@ -251,13 +251,13 @@ if(result.transformed) {
       buffer('The string to filter'),
       byte_length(),
       encoding(),
-      encoding('The output encoding of the string', 'output_encoding'),
       {
         name: 'filters',
         type: 'mjb_filter',
         description: 'The filters to use',
         wasm_generated: false
       },
+      encoding('The output encoding of the string', 'output_encoding'),
       result()
     ],
     details: '`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first ' +
@@ -268,8 +268,8 @@ if(result.transformed) {
     example: `const char *mixed_whitespace = "Hello\\t\\t\\n\\nworld";
 mjb_result result;
 
-if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    MJB_FILTER_COLLAPSE_SPACES, &result) != MJB_STATUS_OK) {
+if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
+    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -282,8 +282,8 @@ if(result.transformed) {
 
 const char *controls = "\\x1\\x2\\t\\n\\v\\f\\r\\x1f";
 
-if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    MJB_FILTER_CONTROLS, &result) != MJB_STATUS_OK) {
+if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
+    MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
 

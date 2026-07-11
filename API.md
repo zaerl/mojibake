@@ -218,7 +218,7 @@ Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://w
 Filter a string with the selected mjb_filter flags.
 
 ```c
-mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_filter filters, mjb_result *result);
+mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter filters, mjb_encoding output_encoding, mjb_result *result);
 ```
 
 `MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks.
@@ -226,8 +226,8 @@ mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encodin
 - `buffer` — The string to filter
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
-- `output_encoding` — The output encoding of the string
 - `filters` — The filters to use
+- `output_encoding` — The output encoding of the string
 - `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Example**
@@ -236,8 +236,8 @@ mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encodin
 const char *mixed_whitespace = "Hello\t\t\n\nworld";
 mjb_result result;
 
-if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    MJB_FILTER_COLLAPSE_SPACES, &result) != MJB_STATUS_OK) {
+if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
+    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -250,8 +250,8 @@ if(result.transformed) {
 
 const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
-if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    MJB_FILTER_CONTROLS, &result) != MJB_STATUS_OK) {
+if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
+    MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
 

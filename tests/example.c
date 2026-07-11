@@ -54,8 +54,8 @@ int test_example(void *arg) {
     const char *mixed_whitespace = "Hello\t\t\n\nworld";
     mjb_result result;
 
-    if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        MJB_FILTER_COLLAPSE_SPACES, &result) != MJB_STATUS_OK) {
+    if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
+        MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_string_filter test failed") // Added by the script
         return 1;
     }
@@ -71,8 +71,8 @@ int test_example(void *arg) {
 
     const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
-    if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        MJB_FILTER_CONTROLS, &result) != MJB_STATUS_OK) {
+    if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
+        MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_string_filter test failed") // Added by the script
         return 1;
     }

@@ -512,7 +512,7 @@ export class Mojibake {
   }
 
   // mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_encoding output_encoding, mjb_filter filters, mjb_result *result)
+  // mjb_filter filters, mjb_encoding output_encoding, mjb_result *result)
   stringFilter(input: MojibakeInput, filters = FilterType.NONE,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -522,7 +522,7 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, outputEncoding, filters, resultPtr);
+        wasmInput.encoding, filters, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {
         return null;
