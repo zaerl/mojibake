@@ -286,7 +286,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     mjb_result result = {0};
     mjb_codepoint codepoint = fuzz_codepoint((const uint8_t*)buffer, size, variant);
 
-    switch(selector % 17) {
+    switch(selector % 18) {
         case 0: // Normalization, all four forms
             if(mjb_normalize(buffer, size, (mjb_normalization)(variant % 4), encoding,
                 MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
@@ -297,6 +297,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 1: // Normalization quick check
             mjb_string_is_normalized(buffer, size, encoding, (mjb_normalization)(variant % 4));
+            break;
+
+        case 17: // Identifier-oriented NFKC case folding
+            if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==
+                MJB_STATUS_OK) {
+                free_result(&result, buffer);
+            }
+
             break;
 
         case 2: // Case conversion and folding, all transforming types
