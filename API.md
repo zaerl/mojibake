@@ -969,37 +969,6 @@ void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve).
 
-## `mjb_codepoint_plane`
-
-Return the plane of the codepoint.
-
-```c
-mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
-```
-
-- `codepoint` — The codepoint to check
-
-## `mjb_plane_is_valid`
-
-Return true if the plane is valid.
-
-```c
-bool mjb_plane_is_valid(mjb_plane plane);
-```
-
-- `plane` — The plane to check
-
-## `mjb_plane_name`
-
-Return the name of a plane, NULL if the plane specified is not valid.
-
-```c
-const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
-```
-
-- `plane` — The plane to check
-- `abbreviation` — Whether to use an abbreviation
-
 ## `mjb_codepoint_is_id_start`
 
 Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).
@@ -1210,6 +1179,37 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 - `codepoint` — The codepoint to check
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
+
+## `mjb_codepoint_plane`
+
+Return the plane of the codepoint.
+
+```c
+mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
+```
+
+- `codepoint` — The codepoint to check
+
+## `mjb_plane_is_valid`
+
+Return true if the plane is valid.
+
+```c
+bool mjb_plane_is_valid(mjb_plane plane);
+```
+
+- `plane` — The plane to check
+
+## `mjb_plane_name`
+
+Return the name of a plane, NULL if the plane specified is not valid.
+
+```c
+const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
+```
+
+- `plane` — The plane to check
+- `abbreviation` — Whether to use an abbreviation
 
 ## `mjb_string_emoji_sequence`
 

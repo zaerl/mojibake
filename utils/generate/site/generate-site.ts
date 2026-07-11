@@ -73,6 +73,12 @@ const API_SECTIONS = [
     description: 'Compute the number of display columns a string occupies in a terminal.'
   },
   {
+    section: Section.HangulLanguage,
+    id: 'hangul-language',
+    title: 'Hangul language',
+    description: 'Inspect Hangul syllables and perform Hangul syllable decomposition and composition.'
+  },
+  {
     section: Section.Utility,
     id: 'utility',
     title: 'Utilities',

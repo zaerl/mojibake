@@ -645,15 +645,6 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph 
 // Free a bidi paragraph allocated by mjb_bidi_resolve.
 MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 
-// Return the plane of the codepoint.
-MJB_EXPORT MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
-
-// Return true if the plane is valid.
-MJB_EXPORT MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
-
-// Return the name of a plane, NULL if the plane specified is not valid.
-MJB_EXPORT MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
-
 // Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).
 MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
 
@@ -701,6 +692,15 @@ MJB_EXPORT bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
 
 // Return true if the codepoint has the Unicode Extended_Pictographic property.
 MJB_EXPORT bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
+
+// Return the plane of the codepoint.
+MJB_EXPORT MJB_CONST mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
+
+// Return true if the plane is valid.
+MJB_EXPORT MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
+
+// Return the name of a plane, NULL if the plane specified is not valid.
+MJB_EXPORT MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 // Return emoji sequence metadata for a complete string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);

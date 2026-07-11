@@ -99,12 +99,6 @@ export type MojibakeWasmModule = {
   _mjb_truncate_word_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.
   _mjb_bidi_resolve: (buffer: Pointer, byte_length: number, encoding: number, direction: number, result: Pointer) => number;
-  // Return the plane of the codepoint.
-  _mjb_codepoint_plane: (codepoint: Codepoint) => number;
-  // Return true if the plane is valid.
-  _mjb_plane_is_valid: (plane: number) => boolean;
-  // Return the name of a plane, NULL if the plane specified is not valid.
-  _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
   // Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).
   _mjb_codepoint_is_id_start: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is a valid Unicode identifier continuation (Unicode 17.0.0 UAX #31 ID_Continue).
@@ -137,6 +131,12 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_is_emoji_component: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint has the Unicode Extended_Pictographic property.
   _mjb_codepoint_is_extended_pictographic: (codepoint: Codepoint) => boolean;
+  // Return the plane of the codepoint.
+  _mjb_codepoint_plane: (codepoint: Codepoint) => number;
+  // Return true if the plane is valid.
+  _mjb_plane_is_valid: (plane: number) => boolean;
+  // Return the name of a plane, NULL if the plane specified is not valid.
+  _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
   // Return emoji sequence metadata for a complete string.
   _mjb_string_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
   // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.

@@ -34,6 +34,7 @@ export enum Section {
   Bidirectional,
   Emoji,
   DisplayWidth,
+  HangulLanguage,
   Utility
 }
 
@@ -708,7 +709,7 @@ if(result.transformed) {
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false,
-    section: Section.TextAnalysis,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Return if the codepoint is a hangul V.',
@@ -717,7 +718,7 @@ if(result.transformed) {
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false,
-    section: Section.TextAnalysis,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Return if the codepoint is a hangul T.',
@@ -726,7 +727,7 @@ if(result.transformed) {
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false,
-    section: Section.TextAnalysis,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Return if the codepoint is a hangul jamo.',
@@ -735,7 +736,7 @@ if(result.transformed) {
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: false,
-    section: Section.TextAnalysis,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Return if the codepoint is a hangul syllable.',
@@ -744,7 +745,7 @@ if(result.transformed) {
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Return if the codepoint is CJK ideograph.',
@@ -1161,53 +1162,6 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     related: ['mjb_bidi_resolve']
   },
   {
-    comment: 'Return the plane of the codepoint.',
-    ret: 'mjb_plane',
-    name: 'mjb_codepoint_plane',
-    attributes: ['MJB_CONST'],
-    args: [codepoint()],
-    wasm: true,
-    section: Section.TextAnalysis,
-  },
-  {
-    comment: 'Return true if the plane is valid.',
-    ret: 'bool',
-    name: 'mjb_plane_is_valid',
-    attributes: ['MJB_CONST'],
-    args: [
-      {
-        name: 'plane',
-        type: 'mjb_plane',
-        description: 'The plane to check',
-        wasm_generated: false
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-  },
-  {
-    comment: 'Return the name of a plane, NULL if the plane specified is not valid.',
-    ret: 'const char *',
-    name: 'mjb_plane_name',
-    attributes: ['MJB_CONST'],
-    args: [
-      {
-        name: 'plane',
-        type: 'mjb_plane',
-        description: 'The plane to check',
-        wasm_generated: false
-      },
-      {
-        name: 'abbreviation',
-        type: 'bool',
-        description: 'Whether to use an abbreviation',
-        wasm_generated: false
-      }
-    ],
-    wasm: true,
-    section: Section.TextAnalysis,
-  },
-  {
     comment: 'Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_start',
@@ -1410,6 +1364,53 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
+    comment: 'Return the plane of the codepoint.',
+    ret: 'mjb_plane',
+    name: 'mjb_codepoint_plane',
+    attributes: ['MJB_CONST'],
+    args: [codepoint()],
+    wasm: true,
+    section: Section.TextAnalysis,
+  },
+  {
+    comment: 'Return true if the plane is valid.',
+    ret: 'bool',
+    name: 'mjb_plane_is_valid',
+    attributes: ['MJB_CONST'],
+    args: [
+      {
+        name: 'plane',
+        type: 'mjb_plane',
+        description: 'The plane to check',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+  },
+  {
+    comment: 'Return the name of a plane, NULL if the plane specified is not valid.',
+    ret: 'const char *',
+    name: 'mjb_plane_name',
+    attributes: ['MJB_CONST'],
+    args: [
+      {
+        name: 'plane',
+        type: 'mjb_plane',
+        description: 'The plane to check',
+        wasm_generated: false
+      },
+      {
+        name: 'abbreviation',
+        type: 'bool',
+        description: 'Whether to use an abbreviation',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+  },
+  {
     comment: 'Return emoji sequence metadata for a complete string.',
     ret: 'mjb_status',
     name: 'mjb_string_emoji_sequence',
@@ -1457,8 +1458,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       byte_length(),
       encoding()
     ],
-    section: Section.Emoji,
     wasm: true,
+    section: Section.Emoji,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1477,8 +1478,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       },
       byte_length()
     ],
-    section: Section.TextAnalysis,
-    wasm: false
+    wasm: false,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Hangul syllable decomposition.',
@@ -1494,8 +1495,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: true
       }
     ],
-    section: Section.TextAnalysis,
-    wasm: false
+    wasm: false,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Hangul syllable composition.',
@@ -1516,8 +1517,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
         wasm_generated: false
       }
     ],
-    section: Section.TextAnalysis,
-    wasm: false
+    wasm: false,
+    section: Section.HangulLanguage,
   },
   {
     comment: 'Return the east asian width of a codepoint.',
@@ -1534,7 +1535,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       }
     ],
     wasm: true,
-    section: Section.TextAnalysis,
+    section: Section.DisplayWidth,
     related: ['mjb_display_width'],
     specs: [uax(11, 'East Asian Width')]
   },
