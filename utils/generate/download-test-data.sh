@@ -21,8 +21,8 @@ fetch() {
     fi
 }
 
-for file in "BidiCharacterTest.txt" "BidiTest.txt" "CaseFolding.txt" "NormalizationTest.txt" \
-    "SpecialCasing.txt"; do
+for file in "BidiCharacterTest.txt" "BidiTest.txt" "CaseFolding.txt" \
+    "DerivedNormalizationProps.txt" "NormalizationTest.txt" "SpecialCasing.txt"; do
     fetch "https://www.unicode.org/Public/$UNICODE_VERSION/ucd/$file" "$DATA_DIR/UCD/$file"
 done
 
