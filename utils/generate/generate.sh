@@ -46,9 +46,16 @@ if [ ! -d "$DATA_DIR/security" ] ; then
 
     for file in "confusables.txt" "intentional.txt"; do
         curl -o "$DATA_DIR/security/$file" \
-            "https://www.unicode.org/Public/security/$UNICODE_VERSION/$file"
+            "https://www.unicode.org/Public/security/latest/$file"
     done
 fi
+
+for file in "confusables.txt" "intentional.txt"; do
+    if ! grep -q "^# Version: $UNICODE_VERSION$" "$DATA_DIR/security/$file"; then
+        echo "Security data version mismatch in $file; expected $UNICODE_VERSION" >&2
+        exit 1
+    fi
+done
 
 mkdir -p ../../build
 npm run generate -- "$@"

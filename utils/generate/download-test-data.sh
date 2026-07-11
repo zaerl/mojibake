@@ -34,10 +34,17 @@ done
 
 fetch "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/emoji-test.txt" \
     "$DATA_DIR/emoji/emoji-test.txt"
-fetch "https://www.unicode.org/Public/security/$UNICODE_VERSION/intentional.txt" \
+fetch "https://www.unicode.org/Public/security/latest/intentional.txt" \
     "$DATA_DIR/security/intentional.txt"
-fetch "https://www.unicode.org/Public/security/$UNICODE_VERSION/confusables.txt" \
+fetch "https://www.unicode.org/Public/security/latest/confusables.txt" \
     "$DATA_DIR/security/confusables.txt"
+
+for file in "intentional.txt" "confusables.txt"; do
+    if ! grep -q "^# Version: $UNICODE_VERSION$" "$DATA_DIR/security/$file"; then
+        echo "Security data version mismatch in $file; expected $UNICODE_VERSION" >&2
+        exit 1
+    fi
+done
 
 # The collation test files are only distributed inside CollationTest.zip.
 if [ ! -f "$DATA_DIR/collation/CollationTest/CollationTest_NON_IGNORABLE.txt" ] || \
