@@ -1115,6 +1115,49 @@ const char *mjb_property_name(mjb_property property);
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
+## `mjb_confusable_skeleton`
+
+Compute a Unicode confusable skeleton (Unicode 17.0.0 UTS #39 Section 4).
+
+```c
+mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+```
+
+Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly.
+
+- `buffer` — The string to transform
+- `byte_length` — The length of the string, in bytes
+- `encoding` — The encoding of the string
+- `output_encoding` — The output encoding of the skeleton
+- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+
+**Returns**
+
+- `MJB_STATUS_OK` — The confusable skeleton was returned
+- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` — The output size would overflow
+- `MJB_STATUS_NO_MEMORY` — Allocation failed
+
+**Example**
+
+```c
+const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
+mjb_result result;
+
+if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// hello
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);
+```
+
+See also: [`mjb_string_is_confusable`](#mjb_string_is_confusable), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+
+Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html).
+
 ## `mjb_string_is_confusable`
 
 Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
@@ -1132,7 +1175,7 @@ Compute the confusable skeleton of both strings and return true when the skeleto
 - `s2_byte_length` — The length of the second string, in bytes
 - `s2_encoding` — The encoding of the second string
 
-See also: [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html).
 
@@ -1587,6 +1630,6 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_string_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-53.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
-| Confusable skeleton matching | `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-32.html) | `confusables.txt`, `intentional.txt`, and `tests/security.c`. |
+| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-32.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-29.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-44.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

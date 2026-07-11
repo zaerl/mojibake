@@ -1306,6 +1306,44 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
+    comment: 'Compute a Unicode confusable skeleton (Unicode 17.0.0 UTS #39 Section 4).',
+    ret: 'mjb_status',
+    name: 'mjb_confusable_skeleton',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to transform'),
+      byte_length(),
+      encoding(),
+      encoding('The output encoding of the skeleton', 'output_encoding'),
+      result()
+    ],
+    wasm: true,
+    section: Section.Security,
+    details: 'Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional ' +
+      'Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from ' +
+      '`confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future ' +
+      'confusable checks can compare them directly.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The confusable skeleton was returned' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    example: `const char *input = "h\\xD0\\xB5llo"; // Cyrillic U+0435 in place of e
+mjb_result result;
+
+if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// hello
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);`,
+    related: ['mjb_string_is_confusable', 'mjb_string_is_identifier'],
+    specs: [uts(39, 'Unicode Security Mechanisms')]
+  },
+  {
     comment: 'Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
     ret: 'bool',
     name: 'mjb_string_is_confusable',
@@ -1323,7 +1361,7 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     details: 'Compute the confusable skeleton of both strings and return true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
       '"good" and "gооd" with Cyrillic о.',
-    related: ['mjb_string_is_identifier'],
+    related: ['mjb_confusable_skeleton', 'mjb_string_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {

@@ -10,72 +10,38 @@
 #include "unicode-tables.h"
 #include "utf.h"
 
-// Maximum number of codepoints a single codepoint's skeleton can expand to.
-#define MJB_SKELETON_MAX_EXPAND 8
-
-// Look up the confusable skeleton for a codepoint.
-// Returns the number of skeleton codepoints written to result (0 if no mapping exists).
-static size_t confusable_lookup(mjb_codepoint codepoint, mjb_codepoint *result,
-    size_t result_size) {
-    const mjb_codepoint *values = NULL;
-    uint8_t length = 0;
-
-    if(!mjb_unicode_confusable_lookup(codepoint, &values, &length)) {
-        return 0;
-    }
-
-    size_t count = length;
-
-    if(count > result_size) {
-        count = result_size;
-    }
-
-    for(size_t i = 0; i < count; ++i) {
-        result[i] = values[i];
-    }
-
-    return count;
-}
-
 // Compute the Unicode security skeleton of a string (UTS#39 §4).
-// Algorithm: NFD(input) -> per-codepoint skeleton substitution -> NFD.
-static bool mjb_string_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_result *result) {
+// Algorithm: NFD(input) -> remove default-ignorables -> per-codepoint substitution -> NFD.
+static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_result *result) {
     if(byte_length == 0) {
         result->output = (char*)buffer;
         result->output_size = 0;
         result->transformed = false;
 
-        return true;
+        return MJB_STATUS_OK;
     }
 
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    if(mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding, MJB_ENC_UTF_8,
-        &nfd) != MJB_STATUS_OK) {
-        return false;
+    mjb_status status = mjb_normalize(buffer, byte_length, MJB_NORMALIZATION_NFD, encoding,
+        MJB_ENC_UTF_8, &nfd);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     // Step 2: Replace each codepoint with its skeleton mapping.
-    // Worst case: each byte expands to MJB_SKELETON_MAX_EXPAND codepoints of 4 UTF-8 bytes each.
-    if(nfd.output_size > (SIZE_MAX - 4) / (MJB_SKELETON_MAX_EXPAND * 4)) {
-        if(nfd.transformed) {
-            mjb_free(nfd.output);
-        }
-
-        return false;
-    }
-
-    size_t mid_size = nfd.output_size * MJB_SKELETON_MAX_EXPAND * 4 + 4;
-    char *mid = (char *)mjb_alloc(mid_size);
+    size_t mid_size = nfd.output_size == 0 ? 1 : nfd.output_size;
+    char *mid = (char*)mjb_alloc(mid_size);
 
     if(!mid) {
         if(nfd.transformed) {
             mjb_free(nfd.output);
         }
 
-        return false;
+        return MJB_STATUS_NO_MEMORY;
     }
 
     size_t mid_index = 0;
@@ -102,32 +68,37 @@ static bool mjb_string_skeleton(const char *buffer, size_t byte_length, mjb_enco
 
             mjb_free(mid);
 
-            return false;
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
-        mjb_codepoint skeleton[MJB_SKELETON_MAX_EXPAND];
-        size_t skel_count = confusable_lookup(cp, skeleton, MJB_SKELETON_MAX_EXPAND);
+        if(mjb_codepoint_property_value(cp, MJB_PR_DEFAULT_IGNORABLE_CODE_POINT, NULL) ==
+            MJB_STATUS_OK) {
+            continue;
+        }
 
-        if(skel_count == 0) {
-            skeleton[0] = cp;
+        const mjb_codepoint *skeleton = NULL;
+        uint8_t skel_count = 0;
+
+        if(!mjb_unicode_confusable_lookup(cp, &skeleton, &skel_count)) {
+            skeleton = &cp;
             skel_count = 1;
         }
 
-        for(size_t j = 0; j < skel_count; ++j) {
-            unsigned int encoded = mjb_codepoint_encode(skeleton[j], mid + mid_index,
-                mid_size - mid_index, MJB_ENC_UTF_8);
+        for(uint8_t j = 0; j < skel_count; ++j) {
+            char *new_mid = mjb_string_output_codepoint(skeleton[j], mid, &mid_index, &mid_size,
+                MJB_ENC_UTF_8);
 
-            if(encoded == 0) {
+            if(new_mid == NULL) {
                 if(nfd.transformed) {
                     mjb_free(nfd.output);
                 }
 
                 mjb_free(mid);
 
-                return false;
+                return MJB_STATUS_NO_MEMORY;
             }
 
-            mid_index += encoded;
+            mid = new_mid;
         }
     }
 
@@ -136,7 +107,7 @@ static bool mjb_string_skeleton(const char *buffer, size_t byte_length, mjb_enco
     }
 
     // Step 3: NFD the intermediate string.
-    mjb_status status = mjb_normalize(mid, mid_index, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8,
+    status = mjb_normalize(mid, mid_index, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8,
         MJB_ENC_UTF_8, result);
 
     // mjb_normalize may return result->output == mid when the string is already NFD.
@@ -147,21 +118,158 @@ static bool mjb_string_skeleton(const char *buffer, size_t byte_length, mjb_enco
         mjb_free(mid);
     }
 
-    return status == MJB_STATUS_OK;
+    return status;
 }
 
-// Return true if two strings are visually confusable (UTS#39 §4).
-// Two strings are confusable if their skeletons are byte-identical.
-MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
-    const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding) {
+// Compute the Unicode security skeleton of a string (UTS #39 Section 4).
+MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_bidi_paragraph paragraph;
+    mjb_status status = mjb_bidi_resolve(buffer, byte_length, encoding, MJB_DIRECTION_LTR,
+        &paragraph);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    size_t reordered_capacity = byte_length == 0 ? 1 : byte_length;
+    char *reordered = (char*)mjb_alloc(reordered_capacity);
+
+    if(reordered == NULL) {
+        mjb_bidi_free(&paragraph);
+        return MJB_STATUS_NO_MEMORY;
+    }
+
+    size_t reordered_size = 0;
+    size_t *visual_order = NULL;
+
+    if(paragraph.count > 0) {
+        visual_order = (size_t*)mjb_alloc(paragraph.count * sizeof(size_t));
+
+        if(visual_order == NULL) {
+            mjb_free(reordered);
+            mjb_bidi_free(&paragraph);
+
+            return MJB_STATUS_NO_MEMORY;
+        }
+
+        status = mjb_bidi_reorder_line(&paragraph, 0, paragraph.count, visual_order);
+
+        if(status != MJB_STATUS_OK) {
+            mjb_free(visual_order);
+            mjb_free(reordered);
+            mjb_bidi_free(&paragraph);
+
+            return status;
+        }
+
+        // UAX #9 L3: when L2 reversal placed nonspacing marks before their base,
+        // move the base back in front of the mark sequence.
+        for(size_t i = 0; i < paragraph.count;) {
+            mjb_bidi_class bidi_class;
+            bool mirrored;
+            (void)mjb_unicode_bidi_lookup(paragraph.chars[visual_order[i]].codepoint,
+                &bidi_class, &mirrored);
+
+            if(bidi_class != MJB_PR_BIDI_CLASS_NSM) {
+                ++i;
+                continue;
+            }
+
+            size_t end = i;
+            while(end < paragraph.count) {
+                mjb_unicode_bidi_lookup(paragraph.chars[visual_order[end]].codepoint, &bidi_class,
+                    &mirrored);
+
+                if(bidi_class != MJB_PR_BIDI_CLASS_NSM) {
+                    break;
+                }
+
+                ++end;
+            }
+
+            if(end < paragraph.count) {
+                size_t base = visual_order[end];
+                memmove(visual_order + i + 1, visual_order + i, (end - i) * sizeof(size_t));
+                visual_order[i] = base;
+            }
+
+            i = end + 1;
+        }
+
+        for(size_t i = 0; i < paragraph.count; ++i) {
+            const mjb_bidi_char *ch = &paragraph.chars[visual_order[i]];
+            mjb_codepoint cp = ch->mirroring_glyph == 0 ? ch->codepoint : ch->mirroring_glyph;
+            char *new_reordered = mjb_string_output_codepoint(cp, reordered, &reordered_size,
+                &reordered_capacity, MJB_ENC_UTF_8);
+
+            if(new_reordered == NULL) {
+                mjb_free(visual_order);
+                mjb_free(reordered);
+                mjb_bidi_free(&paragraph);
+
+                return MJB_STATUS_NO_MEMORY;
+            }
+
+            reordered = new_reordered;
+        }
+    }
+
+    mjb_free(visual_order);
+    mjb_bidi_free(&paragraph);
+
+    mjb_result utf8_skeleton;
+    status = mjb_confusable_skeleton_utf8(reordered, reordered_size, MJB_ENC_UTF_8,
+        &utf8_skeleton);
+
+    if(status == MJB_STATUS_OK && utf8_skeleton.output == reordered) {
+        utf8_skeleton.transformed = true;
+    } else {
+        mjb_free(reordered);
+    }
+
+    if(status != MJB_STATUS_OK || output_encoding == MJB_ENC_UTF_8) {
+        if(status == MJB_STATUS_OK) {
+            *result = utf8_skeleton;
+        }
+
+        return status;
+    }
+
+    mjb_result converted;
+    status = mjb_string_convert_encoding(utf8_skeleton.output, utf8_skeleton.output_size,
+        MJB_ENC_UTF_8, output_encoding, &converted);
+
+    if(utf8_skeleton.transformed) {
+        mjb_free(utf8_skeleton.output);
+    }
+
+    if(status == MJB_STATUS_OK) {
+        *result = converted;
+    }
+
+    return status;
+}
+
+// Return true if two strings are visually confusable (UTS#39 §4). They are confusable if their
+// skeletons are identical.
+MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length,
+    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding) {
     mjb_result skel1;
     mjb_result skel2;
 
-    if(!mjb_string_skeleton(s1, s1_byte_length, s1_encoding, &skel1)) {
+    if(mjb_confusable_skeleton(s1, s1_byte_length, s1_encoding, MJB_ENC_UTF_8, &skel1) !=
+        MJB_STATUS_OK) {
+
         return false;
     }
 
-    if(!mjb_string_skeleton(s2, s2_byte_length, s2_encoding, &skel2)) {
+    if(mjb_confusable_skeleton(s2, s2_byte_length, s2_encoding, MJB_ENC_UTF_8, &skel2) !=
+        MJB_STATUS_OK) {
         if(skel1.transformed) {
             mjb_free(skel1.output);
         }

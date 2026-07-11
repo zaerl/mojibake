@@ -59,8 +59,9 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 **Security**
 
-- **Confusable detection**: check if a string is visually confusable with another
-  (`mjb_string_is_confusable`, [UTS #39, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html))
+- **Confusable detection**: generate reusable skeletons and check if strings are visually
+  confusable (`mjb_confusable_skeleton`, `mjb_string_is_confusable`,
+  [UTS #39, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
   (`mjb_string_is_identifier`, [UAX #31, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html))
 
@@ -182,7 +183,7 @@ mojibake -c emoji 263A FE0F
 
 ### Coverage
 
-Mojibake run a total of **1,609,407** tests, including all the official tests included in the
+Mojibake run a total of **1,609,430** tests, including all the official tests included in the
 standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -282,7 +283,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_string_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-53.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
-| Confusable skeleton matching | `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-32.html) | `confusables.txt`, `intentional.txt`, and `tests/security.c`. |
+| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-32.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-29.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-44.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |
 

@@ -10,7 +10,7 @@
 | `mjb_bidi_reorder_line`                  | 91722       |
 | `mjb_nfkc_casefold`                      | 31773       |
 | `mjb_break_line`                         | 18794       |
-| `mjb_result_free`                        | 10592       |
+| `mjb_result_free`                        | 10597       |
 | `mjb_string_emoji_sequence`              | 5266        |
 | `mjb_case`                               | 3487        |
 | `mjb_break_word`                         | 1828        |
@@ -32,6 +32,7 @@
 | `mjb_codepoint_numeric_value`            | 20          |
 | `mjb_locale_set`                         | 20          |
 | `mjb_codepoint_property_value`           | 18          |
+| `mjb_confusable_skeleton`                | 18          |
 | `mjb_hangul_syllable_name`               | 18          |
 | `mjb_string_is_utf8`                     | 17          |
 | `mjb_codepoint_block`                    | 15          |
@@ -89,7 +90,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1609407** |
+| **Total**                                | **1609430** |
 
 ## JavaScript
 
@@ -135,6 +136,7 @@
 | `Mojibake.codepointToTitlecase`            | 1          |
 | `Mojibake.codepointToUppercase`            | 1          |
 | `Mojibake.collationKey`                    | 1          |
+| `Mojibake.confusableSkeleton`              | 1          |
 | `Mojibake.create`                          | 1          |
 | `Mojibake.displayWidth`                    | 1          |
 | `Mojibake.localeParse`                     | 1          |
@@ -165,4 +167,4 @@
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **71**     |
+| **Total**                                  | **72**     |

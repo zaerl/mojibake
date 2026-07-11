@@ -401,7 +401,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 (variant & 0x10) ? MJB_IDENTIFIER_NFKC : MJB_IDENTIFIER_DEFAULT);
             break;
 
-        case 12: // Confusable detection, input split in two halves
+        case 12: // Confusable skeleton and pairwise detection
+            if(mjb_confusable_skeleton(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==
+                MJB_STATUS_OK) {
+                free_result(&result, buffer);
+            }
             mjb_string_is_confusable(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
                 encoding);
             break;

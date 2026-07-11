@@ -672,6 +672,9 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length,
 // Return the name of a property, NULL if the property specified is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 
+// Compute a Unicode confusable skeleton (Unicode 17.0.0 UTS #39 Section 4).
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+
 // Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
 

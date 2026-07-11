@@ -34,8 +34,10 @@ done
 
 fetch "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/emoji-test.txt" \
     "$DATA_DIR/emoji/emoji-test.txt"
-fetch "https://www.unicode.org/Public/security/latest/intentional.txt" \
+fetch "https://www.unicode.org/Public/security/$UNICODE_VERSION/intentional.txt" \
     "$DATA_DIR/security/intentional.txt"
+fetch "https://www.unicode.org/Public/security/$UNICODE_VERSION/confusables.txt" \
+    "$DATA_DIR/security/confusables.txt"
 
 # The collation test files are only distributed inside CollationTest.zip.
 if [ ! -f "$DATA_DIR/collation/CollationTest/CollationTest_NON_IGNORABLE.txt" ] || \

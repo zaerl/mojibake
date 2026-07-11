@@ -117,6 +117,8 @@ export type MojibakeWasmModule = {
   _mjb_string_is_identifier: (buffer: Pointer, byte_length: number, encoding: number, profile: number) => boolean;
   // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
+  // Compute a Unicode confusable skeleton (Unicode 17.0.0 UTS #39 Section 4).
+  _mjb_confusable_skeleton: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
   _mjb_string_is_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number) => boolean;
   // Return the emoji properties.

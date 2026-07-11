@@ -1038,6 +1038,34 @@ export class Mojibake {
     return this.decodeString(ptr, null, Encoding.UTF_8).output;
   }
 
+  // mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
+  // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
+  confusableSkeleton(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
+    const wasmInput = this.copyInput(input, options.encoding);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const resultPtr = this.malloc(12);
+    let result: RawResult | null = null;
+
+    try {
+      const status = this.module._mjb_confusable_skeleton(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, outputEncoding, resultPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+      return this.rawResultToResult(result, outputEncoding);
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
   // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
   // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding)
   stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {

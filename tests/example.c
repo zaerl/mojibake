@@ -173,5 +173,24 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ"); // Added by the script
     ATT_ASSERT(test_buffer, "U+03A3 > U+03C3, Σ > σ", "mjb_codepoint_to_lowercase test failed") // Added by the script
 }
+
+{
+    // Example for mjb_confusable_skeleton
+    MJB_TEST_COVERAGE(mjb_confusable_skeleton); // Added by the script
+    const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
+    mjb_result result;
+
+    if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton test failed") // Added by the script
+        return 1;
+    }
+
+    // hello
+    // printf("%.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "hello", "mjb_confusable_skeleton test failed") // Added by the script
+    mjb_result_free(&result);
+}
     return 0;
 }

@@ -139,8 +139,8 @@ as permitted by the specification.
 advertised Unicode algorithm or data claim to its versioned Unicode 17.0.0 reference and test
 evidence. The inventory distinguishes official Unicode conformance suites from normative data file
 checks and local regression coverage. This includes every explicit Unicode 17 `NFKC_CF` mapping
-from `DerivedNormalizationProps.txt` and the documented collation filtering for surrogate-code-point
-rows.
+from `DerivedNormalizationProps.txt`, every UTS #39 skeleton mapping from `confusables.txt`, and the
+documented collation filtering for surrogate-code-point rows.
 
 **C19** The specification of an algorithm may prohibit or limit tailoring by a higher-level
 protocol. If a process that purports to implement a Unicode algorithm applies a tailoring, that fact

@@ -209,6 +209,25 @@ inline bool is_confusable(std::string_view s1, std::string_view s2) {
         MJB_ENC_UTF_8);
 }
 
+inline std::string confusable_skeleton(std::string_view input) {
+    if(input.empty()) {
+        return std::string{};
+    }
+
+    mjb_result result{};
+    mjb_status status = mjb_confusable_skeleton(input.data(), input.size(), MJB_ENC_UTF_8,
+        MJB_ENC_UTF_8, &result);
+
+    if(status != MJB_STATUS_OK || result.output == nullptr) {
+        throw LibraryError("Confusable skeleton generation failed");
+    }
+
+    std::string skeleton(result.output, result.output_size);
+    mjb_free(result.output);
+
+    return skeleton;
+}
+
 enum class NormalizationForm {
     NFC = MJB_NORMALIZATION_NFC,
     NFD = MJB_NORMALIZATION_NFD,

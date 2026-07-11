@@ -101,6 +101,8 @@ ATT_ASSERT(mojibake.codepointIsPatternWhiteSpace(0x20), true, 'codepointIsPatter
 ATT_ASSERT(mojibake.stringIsIdentifier('hello'), true, 'stringIsIdentifier');
 ATT_ASSERT(mojibake.propertyName(Property.CASED), 'Cased', 'propertyName');
 ATT_ASSERT(mojibake.stringIsConfusable('\u0410', 'A'), true, 'stringIsConfusable');
+ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
+  'confusableSkeleton');
 ATT_ASSERT(mojibake.codepointEmoji(0x23)?.component, true, 'codepointEmoji');
 ATT_ASSERT(mojibake.codepointIsEmoji(0x23), true, 'codepointIsEmoji');
 ATT_ASSERT(mojibake.codepointIsEmojiPresentation(0x23), false, 'codepointIsEmojiPresentation');

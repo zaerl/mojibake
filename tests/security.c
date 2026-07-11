@@ -7,6 +7,8 @@
  */
 
 #include "test.h"
+#include "../src/mojibake-internal.h"
+#include "../src/unicode-tables.h"
 
 static char *trim_ascii(char *text) {
     while(*text == ' ' || *text == '\t' || *text == '\r' || *text == '\n') {
@@ -128,8 +130,114 @@ static void run_intentional_confusable_file(const char *filename) {
     ATT_ASSERT(failures, 0u, summary)
 }
 
+static void check_skeleton(const char *input, size_t input_size, const char *expected,
+    size_t expected_size, const char *name) {
+    mjb_result skeleton;
+
+    MJB_TEST_COVERAGE(mjb_confusable_skeleton);
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton(input, input_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &skeleton), MJB_STATUS_OK, name)
+    ATT_ASSERT(skeleton.output_size, expected_size, name)
+    ATT_ASSERT((int)memcmp(skeleton.output, expected, expected_size), 0, name)
+    ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, name)
+}
+
+static void run_confusables_file(const char *filename) {
+    FILE *file = fopen(filename, "r");
+
+    if(file == NULL) {
+        ATT_ASSERT("Not opened", "Opened file", "confusables.txt")
+        return;
+    }
+
+    char line[2048];
+    unsigned int current_line = 0;
+    unsigned int tested = 0;
+
+    while(fgets(line, sizeof(line), file) != NULL) {
+        ++current_line;
+        char *comment = strchr(line, '#');
+
+        if(comment != NULL) {
+            *comment = '\0';
+        }
+
+        char *first_semicolon = strchr(line, ';');
+
+        if(first_semicolon == NULL) {
+            continue;
+        }
+
+        *first_semicolon = '\0';
+
+        char *second_semicolon = strchr(first_semicolon + 1, ';');
+
+        if(second_semicolon == NULL) {
+            continue;
+        }
+
+        *second_semicolon = '\0';
+
+        char source[128];
+        char target[128];
+        size_t source_size = codepoint_field_to_utf8(line, source, sizeof(source));
+        size_t target_size = codepoint_field_to_utf8(first_semicolon + 1, target, sizeof(target));
+
+        if(source_size == 0 || target_size == 0) {
+            continue;
+        }
+
+        char test_name[128];
+        snprintf(test_name, sizeof(test_name), "confusables.txt line %u", current_line);
+        mjb_codepoint source_cp = (mjb_codepoint)strtoul(trim_ascii(line), NULL, 16);
+
+        const mjb_codepoint *mapping = NULL;
+        uint8_t mapping_length = 0;
+        ATT_ASSERT(mjb_unicode_confusable_lookup(source_cp, &mapping, &mapping_length), true,
+            test_name)
+
+        char actual[128];
+        size_t actual_size = 0;
+
+        for(uint8_t i = 0; i < mapping_length; ++i) {
+            actual_size += mjb_codepoint_encode(mapping[i], actual + actual_size,
+                sizeof(actual) - actual_size, MJB_ENC_UTF_8);
+        }
+
+        ATT_ASSERT(actual_size, target_size, test_name)
+        ATT_ASSERT((int)memcmp(actual, target, target_size), 0, test_name)
+        ++tested;
+    }
+
+    fclose(file);
+
+    ATT_ASSERT(tested > 0, true, "confusables.txt has skeleton mappings")
+}
+
 int test_security(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
+
+    mjb_result skeleton;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton(NULL, 1, enc, enc, &skeleton),
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL input")
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, enc, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL result")
+
+    check_skeleton("h\xD0\xB5llo", 6, "hello", 5, "Skeleton maps Cyrillic e");
+    check_skeleton("a\xE2\x80\x8D" "b", 5, "ab", 2,
+        "Skeleton removes default-ignorables");
+    check_skeleton("A1<\xD7\xA9\xD7\x82", 7,
+        "Al<\xD7\xA9\xCC\x87", 7, "Skeleton applies LTR bidi processing");
+    check_skeleton("\xEF\xB7\xBA", 3,
+        "\xD8\xB5\xD9\x84\xD9\x89 l\xD9\x84\xD9\x84o \xD8\xB9\xD9\x84\xD9\x89o "
+        "\xD9\x88\xD8\xB3\xD9\x84\xD9\x85", 30,
+        "Skeleton preserves full 18-codepoint expansion");
+
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, MJB_ENC_UTF_16LE, &skeleton),
+        MJB_STATUS_OK, "Skeleton supports UTF-16 output")
+    ATT_ASSERT(skeleton.output_size, (size_t)2, "Skeleton UTF-16 output size")
+    ATT_ASSERT((int)memcmp(skeleton.output, "A\0", 2), 0, "Skeleton UTF-16 output")
+    ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, "Free UTF-16 skeleton")
 
     ATT_ASSERT(mjb_string_is_confusable(NULL, 1, enc, "A", 1, enc), false,
         "confusable rejects NULL left string")
@@ -214,6 +322,7 @@ int test_security(void *arg) {
         "confusability is symmetric")
 
     run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
+    run_confusables_file("./utils/generate/unicode-data/security/confusables.txt");
 
     return 0;
 }

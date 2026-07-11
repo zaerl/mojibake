@@ -51,6 +51,8 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::is_confusable("\xD0\x90", "A"), true, "is_confusable: Cyrillic A / Latin A")
     ATT_ASSERT(mjb::is_confusable("hello", "hello"), true, "is_confusable: same string")
     ATT_ASSERT(mjb::is_confusable("a", "b"), false, "is_confusable: a / b")
+    ATT_ASSERT(mjb::confusable_skeleton("h\xD0\xB5llo"), std::string("hello"),
+        "confusable_skeleton")
 
     // NumericValue and codepoint_numeric_value
     // U+0031 = '1'
