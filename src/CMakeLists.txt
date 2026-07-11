@@ -122,6 +122,7 @@ if(BUILD_WASM)
         "\"_mjb_codepoint_numeric_value\""
         "\"_mjb_codepoint_block\""
         "\"_mjb_codepoint_script\""
+        "\"_mjb_codepoint_script_extensions\""
         "\"_mjb_codepoint_encode\""
         "\"_mjb_string_convert_encoding\""
         "\"_mjb_string_compare\""

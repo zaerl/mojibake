@@ -17,6 +17,7 @@ import {
   BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow, CompositionRow,
   ConfusableRow, DecompositionRow, EmojiRow, EmojiSequenceRow, NameRow, NCharacterRow, NumericRow,
   PrefixRow, PropertyRangeRow, SimpleCaseRow, SpecialCaseRow,
+  ScriptExtensionRow,
 } from './tables/types';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
@@ -26,6 +27,7 @@ export type UnicodeTableData = {
   names: NameRow[];
   emoji: EmojiRow[];
   properties: PropertyRangeRow[];
+  scriptExtensions: ScriptExtensionRow[];
   nCharacters: NCharacterRow[];
   decompositions: DecompositionRow[];
   compatibilityDecompositions: DecompositionRow[];
@@ -48,6 +50,7 @@ function emptyUnicodeTableData(): UnicodeTableData {
     names: [],
     emoji: [],
     properties: [],
+    scriptExtensions: [],
     nCharacters: [],
     decompositions: [],
     compatibilityDecompositions: [],
@@ -92,6 +95,7 @@ export function getUnicodeTableData(): UnicodeTableData {
     names: [...unicodeTableData.names].sort(byCodepoint),
     emoji: [...unicodeTableData.emoji].sort(byCodepoint),
     properties: sortPropertyRanges(unicodeTableData.properties),
+    scriptExtensions: [...unicodeTableData.scriptExtensions].sort((a, b) => a.start - b.start),
     nCharacters: [...unicodeTableData.nCharacters].sort(byCodepoint),
     decompositions: sortDecompositions(unicodeTableData.decompositions),
     compatibilityDecompositions:
@@ -327,6 +331,10 @@ export function addPropertyRanges(propertyRanges: PropertyRange[]) {
       properties: Buffer.from(pr.properties),
     });
   }
+}
+
+export function addScriptExtensions(rows: ScriptExtensionRow[]) {
+  unicodeTableData.scriptExtensions.push(...rows);
 }
 
 // Add DUCET collation entries and contractions.

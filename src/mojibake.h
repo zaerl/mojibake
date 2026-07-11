@@ -555,6 +555,9 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_block(mjb_codepoint codepoint,
 // Return the script of a codepoint.
 MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 
+// Return the Script_Extensions set of a codepoint.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_script_extensions(mjb_codepoint codepoint, mjb_script *scripts, size_t *count);
+
 // Encode a codepoint to a string.
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length, mjb_encoding encoding);
 

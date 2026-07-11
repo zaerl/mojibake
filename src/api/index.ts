@@ -569,6 +569,39 @@ export class Mojibake {
     }
   }
 
+  // mjb_status mjb_codepoint_script_extensions(mjb_codepoint codepoint, mjb_script *scripts,
+  // size_t *count);
+  codepointScriptExtensions(codepoint: Codepoint): number[] | null {
+    const countPtr = this.malloc(4);
+    let scriptsPtr = 0;
+
+    try {
+      this.module.HEAP32[countPtr / 4] = 0;
+      let status = this.module._mjb_codepoint_script_extensions(codepoint, 0, countPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      const count = this.module.HEAP32[countPtr / 4];
+      scriptsPtr = this.malloc(count * 4);
+      this.module.HEAP32[countPtr / 4] = count;
+      status = this.module._mjb_codepoint_script_extensions(codepoint, scriptsPtr, countPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      return Array.from(this.module.HEAP32.subarray(scriptsPtr / 4, scriptsPtr / 4 + count));
+    } finally {
+      if(scriptsPtr !== 0) {
+        this.free(scriptsPtr);
+      }
+
+      this.free(countPtr);
+    }
+  }
+
   // mjb_script mjb_codepoint_script(mjb_codepoint codepoint)
   codepointScript(codepoint: Codepoint): number {
     return this.module._mjb_codepoint_script(codepoint);

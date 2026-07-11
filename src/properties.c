@@ -387,6 +387,40 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
     return (mjb_script)raw;
 }
 
+MJB_EXPORT mjb_status mjb_codepoint_script_extensions(mjb_codepoint codepoint,
+    mjb_script *scripts, size_t *count) {
+    if(count == NULL || !mjb_codepoint_is_valid(codepoint)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    const uint8_t *values = NULL;
+    uint8_t value_count = 0;
+    uint8_t fallback = (uint8_t)MJB_SC_ZZZZ;
+
+    if(!mjb_unicode_script_extensions_lookup(codepoint, &values, &value_count)) {
+        fallback = (uint8_t)mjb_codepoint_script(codepoint);
+        values = &fallback;
+        value_count = 1;
+    }
+
+    size_t capacity = *count;
+    *count = value_count;
+
+    if(scripts == NULL) {
+        return MJB_STATUS_OK;
+    }
+
+    if(capacity < value_count) {
+        return MJB_STATUS_OUTPUT_TOO_SMALL;
+    }
+
+    for(uint8_t i = 0; i < value_count; ++i) {
+        scripts[i] = (mjb_script)values[i];
+    }
+
+    return MJB_STATUS_OK;
+}
+
 MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint) {
     return mjb_codepoint_has_binary_property(codepoint, MJB_PR_ID_START);
 }

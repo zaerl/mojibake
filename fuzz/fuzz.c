@@ -141,6 +141,8 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     mjb_block_info block;
     mjb_emoji_properties emoji;
     mjb_east_asian_width width;
+    mjb_script scripts[8];
+    size_t script_count = variant % 9;
     mjb_codepoint decomposition[3];
     char encoded[5];
     char hangul_name[128];
@@ -194,6 +196,8 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_syntax(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_pattern_white_space(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_script(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_script_extensions(codepoint, scripts, &script_count);
+    fuzz_sink += script_count;
 
     const char *name = mjb_property_name(property_name);
     if(name != NULL) {

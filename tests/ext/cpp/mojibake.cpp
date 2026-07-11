@@ -12,6 +12,13 @@ int test_cpp_mojibake(void *arg) {
         "C++ typed binary property")
     ATT_ASSERT(mjb::property_int(U'A', MJB_PR_SCRIPT).value_or(0), MJB_SC_LATN,
         "C++ typed enumerated property")
+
+    const auto script_extensions = mjb::script_extensions(U'ー');
+
+    ATT_ASSERT(script_extensions.size(), 2u, "C++ Script_Extensions count")
+    ATT_ASSERT((int)script_extensions[0], MJB_SC_HIRA, "C++ Script_Extensions Hiragana")
+    ATT_ASSERT((int)script_extensions[1], MJB_SC_KANA, "C++ Script_Extensions Katakana")
+
     // U+1F642 = 🙂
     auto character = mjb::Character((mjb_codepoint)0x1F642);
     // U+1F643 = 🙃

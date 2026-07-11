@@ -11,11 +11,12 @@
 
 #include "mojibake.h"
 
-#include <string>
-#include <string_view>
+#include <array>
 #include <optional>
 #include <stdexcept>
-#include <array>
+#include <string_view>
+#include <string>
+#include <vector>
 
 namespace mjb {
 
@@ -41,6 +42,23 @@ class LibraryError : public std::runtime_error {
 public:
     explicit LibraryError(std::string_view message) : std::runtime_error(std::string(message)) {}
 };
+
+[[nodiscard]] inline std::vector<mjb_script> script_extensions(mjb_codepoint codepoint) {
+    size_t count = 0;
+    if(mjb_codepoint_script_extensions(codepoint, nullptr, &count) != MJB_STATUS_OK) {
+        throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));
+    }
+
+    std::vector<mjb_script> scripts(count);
+
+    if(mjb_codepoint_script_extensions(codepoint, scripts.data(), &count) != MJB_STATUS_OK) {
+        throw LibraryError("Unable to read Script_Extensions");
+    }
+
+    scripts.resize(count);
+
+    return scripts;
+}
 
 /**
  * See mjb_character for details.

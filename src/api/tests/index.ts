@@ -60,6 +60,8 @@ ATT_ASSERT(mojibake.codepointPropertyInt(0x41, Property.SCRIPT), Script.LATN,
   'codepointPropertyInt');
 ATT_ASSERT(mojibake.codepointPropertyInt(0x41, Property.ALPHABETIC), null,
   'codepointPropertyInt type mismatch');
+ATT_ASSERT(mojibake.codepointScriptExtensions(0x30FC), [Script.HIRA, Script.KANA],
+  'codepointScriptExtensions');
 ATT_ASSERT(mojibake.codepointScript(0x41), Script.LATN, 'codepointScript');
 ATT_ASSERT(mojibake.stringEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'stringEncoding');
 ATT_ASSERT(mojibake.stringIsUtf8('Hello'), true, 'stringIsUtf8');

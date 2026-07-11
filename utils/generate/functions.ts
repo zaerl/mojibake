@@ -65,6 +65,7 @@ const uaxRevisions: Record<number, number> = {
   11: 44,
   14: 55,
   15: 57,
+  24: 39,
   29: 47,
   31: 43,
   44: 36
@@ -587,6 +588,34 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     wasm: true,
     section: Section.TextAnalysis,
     specs: [uax(44, 'Unicode Character Database')]
+  },
+  {
+    comment: 'Return the Script_Extensions set of a codepoint.',
+    ret: 'mjb_status',
+    name: 'mjb_codepoint_script_extensions',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      codepoint(),
+      {
+        name: 'scripts',
+        type: 'mjb_script *',
+        description: 'The caller-provided script buffer, or NULL to query the required count',
+        wasm_generated: true
+      },
+      {
+        name: 'count',
+        type: 'size_t *',
+        description: 'The input capacity and output script count',
+        wasm_generated: true
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    details: 'Return the explicit Script_Extensions set, or the ordinary Script value when the ' +
+      'codepoint has no explicit Script_Extensions entry. Call first with `scripts` set to NULL ' +
+      'to obtain the required count.',
+    related: ['mjb_codepoint_script'],
+    specs: [uax(24, 'Unicode Script Property')]
   },
   {
     comment: 'Encode a codepoint to a string.',

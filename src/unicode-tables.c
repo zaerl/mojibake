@@ -412,6 +412,31 @@ bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer) {
     return true;
 }
 
+bool mjb_unicode_script_extensions_lookup(mjb_codepoint codepoint, const uint8_t **scripts,
+    uint8_t *count) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_script_extensions);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_script_extensions[mid];
+        mjb_codepoint start = (mjb_codepoint)(entry & 0x1FFFFF);
+        mjb_codepoint end = start + (mjb_codepoint)((entry >> 21) & 0x1FFFFF);
+
+        if(codepoint < start) {
+            high = mid;
+        } else if(codepoint > end) {
+            low = mid + 1;
+        } else {
+            uint16_t offset = (uint16_t)((entry >> 42) & 0xFFFF);
+            *scripts = &mjb_unicode_script_extension_data[offset];
+            *count = (uint8_t)(((entry >> 58) & 0x3F) + 1);
+            return true;
+        }
+    }
+    return false;
+}
+
 static bool mjb_unicode_n_character_entry_lookup(mjb_codepoint codepoint, size_t *index) {
     size_t page = codepoint >> 8;
 

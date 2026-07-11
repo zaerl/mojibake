@@ -18,6 +18,7 @@ import { generateNCharacters } from './tables/n-characters';
 import { generateNames } from './tables/names';
 import { generateNumericValues } from './tables/numeric';
 import { generateProperties } from './tables/properties';
+import { generateScriptExtensions } from './tables/script-extensions';
 import { getUnicodeTableData, UnicodeTableData } from './unicode-data-store';
 
 // Writes the generated Unicode C tables from the in-memory generation data.
@@ -36,6 +37,7 @@ ${generateBlocks(data.blocks)}
 ${generateNames(data.prefixes, data.names)}
 ${generateEmoji(data.emoji, data.emojiSequences)}
 ${generateProperties(data.properties)}
+${generateScriptExtensions(data.scriptExtensions)}
 ${generateNCharacters(data.nCharacters)}
 ${generateDecompositionAndCompositionTables(data.decompositions,
   data.compatibilityDecompositions, data.compositions)}

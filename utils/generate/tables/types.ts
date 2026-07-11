@@ -46,6 +46,12 @@ export type PropertyRangeRow = {
   properties: Buffer;
 };
 
+export type ScriptExtensionRow = {
+  start: number;
+  end: number;
+  scripts: number[];
+};
+
 export type NCharacterRow = {
   codepoint: number;
   category: number;

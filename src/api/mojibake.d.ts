@@ -53,6 +53,8 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_block: (codepoint: Codepoint, block: Pointer) => number;
   // Return the script of a codepoint.
   _mjb_codepoint_script: (codepoint: Codepoint) => number;
+  // Return the Script_Extensions set of a codepoint.
+  _mjb_codepoint_script_extensions: (codepoint: Codepoint, scripts: Pointer, count: Pointer) => number;
   // Encode a codepoint to a string.
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, byte_length: number, encoding: number) => number;
   // Convert from one encoding to another.

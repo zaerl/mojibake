@@ -16,6 +16,7 @@
 | `mjb_break_word`                         | 1828        |
 | `mjb_codepoint_emoji`                    | 1419        |
 | `mjb_break_grapheme_cluster`             | 715         |
+| `mjb_codepoint_script_extensions`        | 629         |
 | `mjb_break_sentence`                     | 458         |
 | `mjb_string_filter`                      | 155         |
 | `mjb_string_convert_encoding`            | 136         |
@@ -91,7 +92,7 @@
 | `mjb_unicode_version`                    | 1           |
 | `mjb_version`                            | 1           |
 | `mjb_version_number`                     | 1           |
-| **Total**                                | **1609423** |
+| **Total**                                | **1610052** |
 
 ## JavaScript
 
@@ -134,6 +135,7 @@
 | `Mojibake.codepointNumericValue`           | 1          |
 | `Mojibake.codepointPlane`                  | 1          |
 | `Mojibake.codepointScript`                 | 1          |
+| `Mojibake.codepointScriptExtensions`       | 1          |
 | `Mojibake.codepointToLowercase`            | 1          |
 | `Mojibake.codepointToTitlecase`            | 1          |
 | `Mojibake.codepointToUppercase`            | 1          |
@@ -169,4 +171,4 @@
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **76**     |
+| **Total**                                  | **77**     |

@@ -31,6 +31,8 @@ bool mjb_unicode_emoji_sequence_lookup(const mjb_codepoint *codepoints, size_t c
     mjb_emoji_sequence *emoji);
 bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value);
 bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer);
+bool mjb_unicode_script_extensions_lookup(mjb_codepoint codepoint, const uint8_t **scripts,
+    uint8_t *count);
 bool mjb_unicode_n_character_lookup(mjb_codepoint codepoint, mjb_n_character *character);
 bool mjb_unicode_category_lookup(mjb_codepoint codepoint, mjb_category *category);
 bool mjb_unicode_codepoint_assigned(mjb_codepoint codepoint);

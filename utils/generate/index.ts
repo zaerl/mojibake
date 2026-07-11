@@ -28,6 +28,7 @@ import { generateEmojiSequences } from './parse-ucd/emoji-sequences';
 import { buildPropertyRanges, Property } from './parse-ucd/properties';
 import { readNormalizationProps } from './parse-ucd/quick-check';
 import { readSpecialCasingProps } from './parse-ucd/special-casing';
+import { readScriptExtensions } from './parse-ucd/script-extensions';
 import { parsePropertyFile, ucdBool, ucdInt, ucdString } from './parse-ucd/utils';
 import { PrefixCompressor } from './prefix-compressor';
 import {
@@ -37,7 +38,7 @@ import {
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
   addDecompositions, addEmojiProperties, addEmojiSequences, addPropertyRanges, addSimpleCaseFolding,
-  addSpecialCasing, resetUnicodeTableData
+  addSpecialCasing, addScriptExtensions, resetUnicodeTableData
 } from './unicode-data-store';
 import { updateVersion } from './update-version';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
@@ -147,6 +148,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   addEmojiSequences(emojiSequences);
   addSpecialCasing(newCases);
   addPropertyRanges(propertyRanges);
+  addScriptExtensions(await readScriptExtensions(properties));
 
   const caseFolds = await generateCasefold(characters);
   addCaseFolding(caseFolds.full);
