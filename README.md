@@ -109,8 +109,7 @@ int main(int argc, char * const argv[]) {
         return 1;
     }
 
-    // Output NFC: Café
-    // e + ◌́ into é
+    // This outputs "NFC: Café", e + ◌́ -> é
     printf("NFC: %.*s\n", (int)result.output_size, result.output);
 
     if(result.transformed) {
