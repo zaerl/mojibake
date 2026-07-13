@@ -225,8 +225,8 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
         if((state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
             (state->current == MJB_WBP_MID_LETTER || state->current == MJB_WBP_MID_NUM_LET ||
                 state->current == MJB_WBP_SINGLE_QUOTE)) {
-            mjb_wbp next_wbp =
-                mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding,
+                true);
 
             if(next_wbp == MJB_WBP_A_LETTER || next_wbp == MJB_WBP_HEBREW_LETTER) {
                 return MJB_BT_NO_BREAK;
@@ -250,8 +250,8 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
         // WB7b Hebrew_Letter × Double_Quote Hebrew_Letter
         // (look-ahead: next effective char must be Hebrew_Letter)
         if(state->previous == MJB_WBP_HEBREW_LETTER && state->current == MJB_WBP_DOUBLE_QUOTE) {
-            mjb_wbp next_wbp =
-                mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding,
+                true);
 
             if(next_wbp == MJB_WBP_HEBREW_LETTER) {
                 return MJB_BT_NO_BREAK;
@@ -296,8 +296,8 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
         if(state->previous == MJB_WBP_NUMERIC &&
             (state->current == MJB_WBP_MID_NUM || state->current == MJB_WBP_MID_NUM_LET ||
                 state->current == MJB_WBP_SINGLE_QUOTE)) {
-            mjb_wbp next_wbp =
-                mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
+            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding,
+                true);
 
             if(next_wbp == MJB_WBP_NUMERIC) {
                 return MJB_BT_NO_BREAK;
