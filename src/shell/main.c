@@ -9,9 +9,9 @@
 #include <string.h>
 
 #ifdef _WIN32
-    #include <windows.h>
-    #include <io.h>
     #include "getopt/getopt.h"
+    #include <io.h>
+    #include <windows.h>
     #define isatty _isatty
     #define STDOUT_FILENO _fileno(stdout)
 #else
@@ -29,27 +29,25 @@ static int mjbsh_show_version(void) {
     mjb_character character;
     bool valid = mjb_codepoint_character(MJB_VERSION_NUMBER, &character) == MJB_STATUS_OK;
 
-    printf("Mojibake %sv%s [%s]%s\n", mjbsh_green(), mjb_version(), valid ? character.name : "UNKNOWN", mjbsh_reset());
+    printf("Mojibake %sv%s [%s]%s\n", mjbsh_green(), mjb_version(),
+        valid ? character.name : "UNKNOWN", mjbsh_reset());
 
     return 0;
 }
 
-static void mjbsh_show_help(struct option options[], const char *descriptions[], mjbsh_command commands[], const char *error) {
+static void mjbsh_show_help(struct option options[], const char *descriptions[],
+    mjbsh_command commands[], const char *error) {
     FILE *stream = error ? stderr : stdout;
 
-    fprintf(stream, "%s%sUsage: mojibake [options...] <command> [<args>]\n\nMojibake client [v%s]\n\n",
-        error ? error : "",
-        error ? "\n\n" : "",
-        MJB_VERSION);
+    fprintf(stream,
+        "%s%sUsage: mojibake [options...] <command> [<args>]\n\nMojibake client [v%s]\n\n",
+        error ? error : "", error ? "\n\n" : "", MJB_VERSION);
     fprintf(stream, "Options:\n");
 
     for(unsigned long i = 0; options[i].val != 0; ++i) {
-        fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
-            options[i].val,
-            options[i].has_arg == no_argument ? "" : " <arg>",
-            options[i].name,
-            options[i].has_arg == no_argument ? "" : "=<arg>",
-            descriptions[i]);
+        fprintf(stream, "  -%c%s, --%s%s\n\t%s\n", options[i].val,
+            options[i].has_arg == no_argument ? "" : " <arg>", options[i].name,
+            options[i].has_arg == no_argument ? "" : "=<arg>", descriptions[i]);
     }
 
     fprintf(stream, "\nCommands:\n");
@@ -64,7 +62,7 @@ static void mjbsh_show_help(struct option options[], const char *descriptions[],
  *
  * EX SIGNIS ORDO
  */
-int main(int argc, char * const argv[]) {
+int main(int argc, char *const argv[]) {
     int option = 0;
     int option_index = 0;
 
@@ -75,32 +73,21 @@ int main(int argc, char * const argv[]) {
 
     // unsigned int columns = 80;
 
-    struct option long_options[] = {
-        { "codepoint", no_argument, NULL, 'c' },
-        { "help", no_argument, NULL, 'h' },
-        { "json-indent", required_argument, NULL, 'j' },
+    struct option long_options[] = { { "codepoint", no_argument, NULL, 'c' },
+        { "help", no_argument, NULL, 'h' }, { "json-indent", required_argument, NULL, 'j' },
         { "output", required_argument, NULL, 'o' },
-        { "show-allowed-symbols", no_argument, NULL, 's' },
-        { "verbose", no_argument, NULL, 'v' },
-        { "version", no_argument, NULL, 'V' },
-        { NULL, 0, NULL, 0 }
-    };
+        { "show-allowed-symbols", no_argument, NULL, 's' }, { "verbose", no_argument, NULL, 'v' },
+        { "version", no_argument, NULL, 'V' }, { NULL, 0, NULL, 0 } };
 
-    const char *descriptions[] = {
-        "Interpret input as a list of codepoints",
-        "Print help",
+    const char *descriptions[] = { "Interpret input as a list of codepoints", "Print help",
         "JSON indent level (0-10). Default: 0",
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",
-        "Show allowed symbols",
-        "Verbose output",
-        "Print version",
-        "Width of output"
-    };
+        "Show allowed symbols", "Verbose output", "Print version", "Width of output" };
 
-    mjbsh_command commands[] = {
-        { "bidi", "Resolve the bidirectional algorithm for the input", mjbsh_bidi_command, 0 },
+    mjbsh_command commands[] = { { "bidi", "Resolve the bidirectional algorithm for the input",
+                                     mjbsh_bidi_command, 0 },
         { "break", "Break the input into grapheme, word, line, and sentence breaks",
             mjbsh_break_command, 0 },
         { "char", "Print the characters for the given string", mjbsh_character_command, 0 },
@@ -109,7 +96,7 @@ int main(int argc, char * const argv[]) {
             mjbsh_emoji_command, 0 },
         { "filter", "Filter the input", mjbsh_filter_command,
             MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES |
-            MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC | MJB_FILTER_LIMIT_COMBINING },
+                MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC | MJB_FILTER_LIMIT_COMBINING },
         { "locale", "Parse a BCP 47 language tag", mjbsh_locale_command, 0 },
         { "nfd", "Normalize the input to NFD", mjbsh_normalize_command, MJB_NORMALIZATION_NFD },
         { "nfkd", "Normalize the input to NFKD", mjbsh_normalize_command, MJB_NORMALIZATION_NFKD },
@@ -121,8 +108,7 @@ int main(int argc, char * const argv[]) {
         { "casefold", "Convert the input to case fold", mjbsh_case_command, MJB_CASE_CASEFOLD },
         { "casefold-simple", "Convert the input to simple case fold", mjbsh_case_command,
             MJB_CASE_CASEFOLD_SIMPLE },
-        { NULL, NULL, NULL, 0 }
-    };
+        { NULL, NULL, NULL, 0 } };
 
     if(isatty(STDOUT_FILENO)) {
         /*struct winsize w;
@@ -234,10 +220,7 @@ int main(int argc, char * const argv[]) {
 
     if(argc - optind == 1) {
         // Break command has a realtime mode
-        if(!(
-            strcmp(argv[optind], "break") == 0 ||
-            strcmp(argv[optind], "filter") == 0
-        )) {
+        if(!(strcmp(argv[optind], "break") == 0 || strcmp(argv[optind], "filter") == 0)) {
             fprintf(stderr, "No command value specified.\n");
             mjbsh_show_help(long_options, descriptions, commands, NULL);
 

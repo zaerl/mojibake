@@ -50,10 +50,12 @@ bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint8_t *
     uint8_t *length);
 bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
     const mjb_unicode_collation_contraction_entry **entries, size_t *count);
-const mjb_codepoint *mjb_unicode_collation_contraction_sequence(
-    const mjb_unicode_collation_contraction_entry *entry, uint8_t *length);
-const uint8_t *mjb_unicode_collation_contraction_weights(
-    const mjb_unicode_collation_contraction_entry *entry, uint8_t *length);
+const mjb_codepoint *
+mjb_unicode_collation_contraction_sequence(const mjb_unicode_collation_contraction_entry *entry,
+    uint8_t *length);
+const uint8_t *
+mjb_unicode_collation_contraction_weights(const mjb_unicode_collation_contraction_entry *entry,
+    uint8_t *length);
 bool mjb_unicode_decomposition_lookup(mjb_codepoint codepoint, bool compatibility,
     const mjb_codepoint **values, uint8_t *length);
 mjb_codepoint mjb_unicode_compose_pair(mjb_codepoint starter, mjb_codepoint combining);

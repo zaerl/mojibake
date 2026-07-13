@@ -20,29 +20,29 @@ typedef struct mjbt_bidi_class_example {
 } mjbt_bidi_class_example;
 
 static const mjbt_bidi_class_example bidi_class_examples[] = {
-    { "AL",  0x0627 }, // ARABIC LETTER ALEF
-    { "AN",  0x0660 }, // ARABIC-INDIC DIGIT ZERO
-    { "B",   0x2029 }, // PARAGRAPH SEPARATOR
-    { "BN",  0x00AD }, // SOFT HYPHEN
-    { "CS",  0x002C }, // COMMA
-    { "EN",  0x0030 }, // DIGIT ZERO
-    { "ES",  0x002B }, // PLUS SIGN
-    { "ET",  0x0024 }, // DOLLAR SIGN
+    { "AL", 0x0627 },  // ARABIC LETTER ALEF
+    { "AN", 0x0660 },  // ARABIC-INDIC DIGIT ZERO
+    { "B", 0x2029 },   // PARAGRAPH SEPARATOR
+    { "BN", 0x00AD },  // SOFT HYPHEN
+    { "CS", 0x002C },  // COMMA
+    { "EN", 0x0030 },  // DIGIT ZERO
+    { "ES", 0x002B },  // PLUS SIGN
+    { "ET", 0x0024 },  // DOLLAR SIGN
     { "FSI", 0x2068 }, // FIRST STRONG ISOLATE
-    { "L",   0x0041 }, // LATIN CAPITAL LETTER A
+    { "L", 0x0041 },   // LATIN CAPITAL LETTER A
     { "LRE", 0x202A }, // LEFT-TO-RIGHT EMBEDDING
     { "LRI", 0x2066 }, // LEFT-TO-RIGHT ISOLATE
     { "LRO", 0x202D }, // LEFT-TO-RIGHT OVERRIDE
     { "NSM", 0x0300 }, // COMBINING GRAVE ACCENT
-    { "ON",  0x0021 }, // EXCLAMATION MARK
+    { "ON", 0x0021 },  // EXCLAMATION MARK
     { "PDF", 0x202C }, // POP DIRECTIONAL FORMATTING
     { "PDI", 0x2069 }, // POP DIRECTIONAL ISOLATE
-    { "R",   0x05D0 }, // HEBREW LETTER ALEF
+    { "R", 0x05D0 },   // HEBREW LETTER ALEF
     { "RLE", 0x202B }, // RIGHT-TO-LEFT EMBEDDING
     { "RLI", 0x2067 }, // RIGHT-TO-LEFT ISOLATE
     { "RLO", 0x202E }, // RIGHT-TO-LEFT OVERRIDE
-    { "S",   0x0009 }, // CHARACTER TABULATION
-    { "WS",  0x0020 }, // SPACE
+    { "S", 0x0009 },   // CHARACTER TABULATION
+    { "WS", 0x0020 },  // SPACE
 };
 
 static mjb_codepoint bidi_class_codepoint(const char *name) {
@@ -79,9 +79,8 @@ static void read_bidi_class_test_file(const char *filename) {
     size_t expected_order[64];
     size_t order_count = 0;
 
-    static const mjb_direction directions[3] = {
-        MJB_DIRECTION_AUTO, MJB_DIRECTION_LTR, MJB_DIRECTION_RTL
-    };
+    static const mjb_direction directions[3] = { MJB_DIRECTION_AUTO, MJB_DIRECTION_LTR,
+        MJB_DIRECTION_RTL };
 
     while(fgets(line, (int)sizeof(line), file)) {
         ++current_line;
@@ -203,8 +202,8 @@ static void read_bidi_class_test_file(const char *filename) {
 
             ++total;
 
-            if(mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, directions[d],
-                &para) != MJB_STATUS_OK) {
+            if(mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, directions[d], &para) !=
+                MJB_STATUS_OK) {
                 continue;
             }
 
@@ -240,8 +239,7 @@ static void read_bidi_class_test_file(const char *filename) {
 
                 size_t visual_order[64];
 
-                if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order) ==
-                    MJB_STATUS_OK) {
+                if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order) == MJB_STATUS_OK) {
                     for(size_t v = 0; v < order_count; ++v) {
                         ++total;
 

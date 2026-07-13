@@ -15,17 +15,23 @@
 
 static const char *bidi_dir_name(mjb_direction dir) {
     switch(dir) {
-        case MJB_DIRECTION_LTR: return "Left-to-right";
-        case MJB_DIRECTION_RTL: return "Right-to-left";
-        default: return "Auto";
+        case MJB_DIRECTION_LTR:
+            return "Left-to-right";
+        case MJB_DIRECTION_RTL:
+            return "Right-to-left";
+        default:
+            return "Auto";
     }
 }
 
 static const char *bidi_dir_json(mjb_direction dir) {
     switch(dir) {
-        case MJB_DIRECTION_LTR: return "ltr";
-        case MJB_DIRECTION_RTL: return "rtl";
-        default: return "auto";
+        case MJB_DIRECTION_LTR:
+            return "ltr";
+        case MJB_DIRECTION_RTL:
+            return "rtl";
+        default:
+            return "auto";
     }
 }
 
@@ -41,9 +47,7 @@ static void mjbsh_bidi_revolve(const char *input) {
         return;
     }
 
-    size_t *visual_order = para.count > 0
-        ? (size_t *)malloc(para.count * sizeof(size_t))
-        : NULL;
+    size_t *visual_order = para.count > 0 ? (size_t *)malloc(para.count * sizeof(size_t)) : NULL;
 
     if(visual_order) {
         mjb_status reorder_status = mjb_bidi_reorder_line(&para, 0, para.count, visual_order);
@@ -55,7 +59,8 @@ static void mjbsh_bidi_revolve(const char *input) {
     }
 
     mjbsh_numeric("Paragraph level", 1, para.paragraph_level);
-    mjbsh_value("Direction", 1, "%s", is_json ? bidi_dir_json(para.direction) : bidi_dir_name(para.direction));
+    mjbsh_value("Direction", 1, "%s",
+        is_json ? bidi_dir_json(para.direction) : bidi_dir_name(para.direction));
 
     if(is_json) {
         printf("%s%s\"chars\":%s[%s", mjbsh_ji(), mjbsh_ji(), cmd_json_indent == 0 ? "" : " ",
@@ -84,7 +89,8 @@ static void mjbsh_bidi_revolve(const char *input) {
         cmd_json_indent = previous_indent;
 
         if(is_json) {
-            printf("%s%s}%s%s", mjbsh_ji(), mjbsh_ji(), para.count > 1 && i != para.count - 1 ? "," : "", mjbsh_jnl());
+            printf("%s%s}%s%s", mjbsh_ji(), mjbsh_ji(),
+                para.count > 1 && i != para.count - 1 ? "," : "", mjbsh_jnl());
         }
     }
 
@@ -93,9 +99,7 @@ static void mjbsh_bidi_revolve(const char *input) {
     }
 
     if(is_json) {
-        printf(
-            "%s%s\"visual_order\":%s[%s",
-            mjbsh_ji(), mjbsh_ji(),
+        printf("%s%s\"visual_order\":%s[%s", mjbsh_ji(), mjbsh_ji(),
             cmd_json_indent == 0 ? "" : " ", mjbsh_green());
     } else {
         printf("\nVisual order: %s", mjbsh_green());
@@ -119,7 +123,7 @@ static void mjbsh_bidi_revolve(const char *input) {
     mjb_bidi_free(&para);
 }
 
-int mjbsh_bidi_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_bidi_command(int argc, char *const argv[], unsigned int flags) {
     mjbsh_bidi_revolve(argv[0]);
 
     return 0;

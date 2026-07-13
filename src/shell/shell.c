@@ -26,7 +26,7 @@ unsigned int cmd_json_indent = 0;
 static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
 
 // JSON indent levels. Having such an array speeds up the code.
-static const char* indents[11] = {
+static const char *indents[11] = {
     "",
     " ",
     "  ",
@@ -48,16 +48,14 @@ typedef enum {
     MJBSH_COLOR_RESET
 } mjbsh_color_id;
 
-static const char* mjbsh_color_table[2][4] = {
-    {"", "", "", ""},
-    {"\x1B[32m", "\x1B[31m", "\x1B[33m", "\x1B[0m"}
-};
+static const char *mjbsh_color_table[2][4] = { { "", "", "", "" },
+    { "\x1B[32m", "\x1B[31m", "\x1B[33m", "\x1B[0m" } };
 
-static inline const char* mjbsh_color(mjbsh_color_id id) {
+static inline const char *mjbsh_color(mjbsh_color_id id) {
     return mjbsh_color_table[cmd_show_colors != 0][(int)id];
 }
 
-static void mjbsh_to_json_key(const char* label, char* buf, size_t bufsize) {
+static void mjbsh_to_json_key(const char *label, char *buf, size_t bufsize) {
     size_t i = 0;
     while(i < bufsize - 1 && label[i] != '\0') {
         char c = label[i];
@@ -72,16 +70,17 @@ static void mjbsh_to_json_key(const char* label, char* buf, size_t bufsize) {
     buf[i] = '\0';
 }
 
-static void mjbsh_json_field(const char* label) {
+static void mjbsh_json_field(const char *label) {
     char key[256];
     mjbsh_to_json_key(label, key, sizeof(key));
     printf("%s%s\"%s\":%s", mjbsh_ji(), mjbsh_ji(), key, cmd_json_indent > 0 ? " " : "");
 }
 
-static void mjbsh_json_nested_field(const char* label) {
+static void mjbsh_json_nested_field(const char *label) {
     char key[256];
     mjbsh_to_json_key(label, key, sizeof(key));
-    printf("%s%s%s\"%s\":%s", mjbsh_ji(), mjbsh_ji(), mjbsh_ji(), key, cmd_json_indent > 0 ? " " : "");
+    printf("%s%s%s\"%s\":%s", mjbsh_ji(), mjbsh_ji(), mjbsh_ji(), key,
+        cmd_json_indent > 0 ? " " : "");
 }
 
 static void mjbsh_print_nl(unsigned int nl) {
@@ -181,19 +180,19 @@ void mjbsh_print_break_symbol(mjb_break_type bt) {
 }
 
 // Color formatting helper functions
-const char* mjbsh_green(void) {
+const char *mjbsh_green(void) {
     return mjbsh_color(MJBSH_COLOR_GREEN);
 }
 
-const char* mjbsh_red(void) {
+const char *mjbsh_red(void) {
     return mjbsh_color(MJBSH_COLOR_RED);
 }
 
-const char* mjbsh_yellow(void) {
+const char *mjbsh_yellow(void) {
     return mjbsh_color(MJBSH_COLOR_YELLOW);
 }
 
-const char* mjbsh_reset(void) {
+const char *mjbsh_reset(void) {
     return mjbsh_color(MJBSH_COLOR_RESET);
 }
 
@@ -205,7 +204,7 @@ void mjbsh_show_cursor(bool show) {
     printf("\x1B[?25%s", show ? "h" : "l");
 }
 
-void mjbsh_value(const char* label, unsigned int nl, const char* format, ...) {
+void mjbsh_value(const char *label, unsigned int nl, const char *format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -219,7 +218,7 @@ void mjbsh_value(const char* label, unsigned int nl, const char* format, ...) {
         va_end(args_copy);
 
         if(length >= 0) {
-            char *value = (char*)malloc((size_t)length + 1);
+            char *value = (char *)malloc((size_t)length + 1);
 
             if(value != NULL) {
                 vsnprintf(value, (size_t)length + 1, format, args);
@@ -238,7 +237,7 @@ void mjbsh_value(const char* label, unsigned int nl, const char* format, ...) {
     va_end(args);
 }
 
-static void mjbsh_print_generic_value(const char* label, unsigned int nl, const char* value) {
+static void mjbsh_print_generic_value(const char *label, unsigned int nl, const char *value) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_json_field(label);
         printf("%s%s%s", mjbsh_green(), value, mjbsh_reset());
@@ -249,7 +248,7 @@ static void mjbsh_print_generic_value(const char* label, unsigned int nl, const 
     mjbsh_print_nl(nl);
 }
 
-void mjbsh_null(const char* label, unsigned int nl) {
+void mjbsh_null(const char *label, unsigned int nl) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_print_generic_value(label, nl, "null");
     } else {
@@ -257,7 +256,7 @@ void mjbsh_null(const char* label, unsigned int nl) {
     }
 }
 
-void mjbsh_bool(const char* label, unsigned int nl, bool value) {
+void mjbsh_bool(const char *label, unsigned int nl, bool value) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_print_generic_value(label, nl, value ? "true" : "false");
     } else {
@@ -265,14 +264,14 @@ void mjbsh_bool(const char* label, unsigned int nl, bool value) {
     }
 }
 
-void mjbsh_numeric(const char* label, unsigned int nl, unsigned int value) {
+void mjbsh_numeric(const char *label, unsigned int nl, unsigned int value) {
     char num_str[32];
     snprintf(num_str, sizeof(num_str), "%u", value);
 
     mjbsh_print_generic_value(label, nl, num_str);
 }
 
-void mjbsh_id_name(const char* label, unsigned int id, const char* name, unsigned int nl) {
+void mjbsh_id_name(const char *label, unsigned int id, const char *name, unsigned int nl) {
     if(name == NULL) {
         name = "Unknown";
     }
@@ -303,15 +302,15 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
 
     mjb_result result;
     bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENC_UTF_8, form, MJB_ENC_UTF_8,
-        &result) == MJB_STATUS_OK;
+                   &result) == MJB_STATUS_OK;
 
     if(ret) {
         if(is_json) {
             printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name,
                 cmd_json_indent == 0 ? "" : " ", mjbsh_green());
-            if(result.output_size > 0 && mjb_string_each_character(result.output, result.output_size,
-                MJB_ENC_UTF_8,
-                mjbsh_next_escaped_character) != MJB_STATUS_OK) {
+            if(result.output_size > 0 &&
+                mjb_string_each_character(result.output, result.output_size, MJB_ENC_UTF_8,
+                    mjbsh_next_escaped_character) != MJB_STATUS_OK) {
                 goto cleanup;
             }
             printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
@@ -331,9 +330,9 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
         printf("%s normalization: %s", label, mjbsh_green());
     }
 
-    if(result.output_size > 0 && mjb_string_each_character(result.output, result.output_size,
-        MJB_ENC_UTF_8,
-        is_json ? mjbsh_next_array_character : mjbsh_next_character) != MJB_STATUS_OK) {
+    if(result.output_size > 0 &&
+        mjb_string_each_character(result.output, result.output_size, MJB_ENC_UTF_8,
+            is_json ? mjbsh_next_array_character : mjbsh_next_character) != MJB_STATUS_OK) {
         goto cleanup;
     }
 
@@ -351,7 +350,7 @@ cleanup:
     }
 }
 
-void mjbsh_codepoint(const char* label, unsigned int nl, mjb_codepoint codepoint) {
+void mjbsh_codepoint(const char *label, unsigned int nl, mjb_codepoint codepoint) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_json_field(label);
         printf("%s%u%s", mjbsh_green(), (unsigned int)codepoint, mjbsh_reset());
@@ -383,8 +382,7 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
             value = strtoul(start, &endptr, 16);
         }
 
-        if(endptr == start || *endptr != '\0' || errno == ERANGE ||
-            value > MJB_CODEPOINT_MAX) {
+        if(endptr == start || *endptr != '\0' || errno == ERANGE || value > MJB_CODEPOINT_MAX) {
             return false;
         }
 
@@ -393,7 +391,7 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
         return true;
     } else {
         if(mjb_string_each_character(input, strlen(input), MJB_ENC_UTF_8,
-            mjbsh_next_current_character) != MJB_STATUS_OK) {
+               mjbsh_next_current_character) != MJB_STATUS_OK) {
             return false;
         }
 
@@ -408,7 +406,7 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
     }
 }
 
-const char* mjbsh_ji(void) {
+const char *mjbsh_ji(void) {
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         return "";
     }
@@ -416,7 +414,7 @@ const char* mjbsh_ji(void) {
     return indents[cmd_json_indent];
 }
 
-const char* mjbsh_jnl(void) {
+const char *mjbsh_jnl(void) {
     if(cmd_output_mode != OUTPUT_MODE_JSON) {
         return "";
     }

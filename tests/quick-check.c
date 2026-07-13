@@ -9,7 +9,7 @@
 
  #include "test.h"
 
- int test_quick_check(void *arg) {
+int test_quick_check(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
 
     ATT_ASSERT((unsigned int)mjb_string_is_normalized(NULL, 1, enc, MJB_NORMALIZATION_NFC),
@@ -36,4 +36,4 @@
         (unsigned int)MJB_QC_YES, "Latin-1 string is NFC normalized")
 
     return 0;
- }
+}

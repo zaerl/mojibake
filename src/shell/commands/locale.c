@@ -13,10 +13,14 @@
 
 static const char *mjbsh_locale_error_name(mjb_error error) {
     switch(error) {
-        case MJB_ERROR_NONE: return "none";
-        case MJB_ERROR_INVALID_ARGUMENT: return "invalid argument";
-        case MJB_ERROR_UNSUPPORTED: return "unsupported";
-        default: return "unknown";
+        case MJB_ERROR_NONE:
+            return "none";
+        case MJB_ERROR_INVALID_ARGUMENT:
+            return "invalid argument";
+        case MJB_ERROR_UNSUPPORTED:
+            return "unsupported";
+        default:
+            return "unknown";
     }
 }
 
@@ -30,7 +34,7 @@ static void mjbsh_locale_field(const char *label, unsigned int nl, const char *v
     mjbsh_value(label, nl, "%s", value);
 }
 
-int mjbsh_locale_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags) {
     const char *input = argv[0];
     mjb_locale_id locale;
     mjb_error error = MJB_ERROR_NONE;

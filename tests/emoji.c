@@ -15,8 +15,7 @@ static char *trim_ascii(char *text) {
 
     char *end = text + strlen(text);
 
-    while(end > text &&
-        (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
+    while(end > text && (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
         *--end = '\0';
     }
 
@@ -155,20 +154,19 @@ static void run_emoji_test_file(const char *filename) {
         bool sequence_encoded = encode_emoji_test_sequence(codepoints, codepoint_count, sequence,
             sizeof(sequence), &sequence_size);
         bool sequence_found = sequence_encoded &&
-            mjb_string_emoji_sequence(sequence, sequence_size, MJB_ENC_UTF_8,
-                &emoji_sequence) == MJB_STATUS_OK;
+            mjb_string_emoji_sequence(sequence, sequence_size, MJB_ENC_UTF_8, &emoji_sequence) ==
+                MJB_STATUS_OK;
         bool sequence_ok = sequence_found && emoji_sequence.codepoint_count == codepoint_count &&
             emoji_sequence.qualification == qualification;
-        bool rgi = sequence_encoded && mjb_string_is_rgi_emoji(sequence, sequence_size,
-            MJB_ENC_UTF_8);
+        bool rgi = sequence_encoded &&
+            mjb_string_is_rgi_emoji(sequence, sequence_size, MJB_ENC_UTF_8);
         bool should_be_rgi = qualification == MJB_EMOJI_QUALIFICATION_COMPONENT ||
             qualification == MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED;
 
         if(!sequence_ok || rgi != should_be_rgi) {
             ++sequence_failures;
             char test_name[128];
-            snprintf(test_name, sizeof(test_name), "emoji-test.txt sequence line %u",
-                current_line);
+            snprintf(test_name, sizeof(test_name), "emoji-test.txt sequence line %u", current_line);
             MJB_TEST_COVERAGE(mjb_string_emoji_sequence);
             ATT_ASSERT(0, 1, test_name)
 
@@ -225,8 +223,9 @@ static void run_emoji_test_file(const char *filename) {
     ATT_ASSERT(sequence_failures, 0u, summary)
 }
 
-static void assert_emoji_sequence(const char *buffer, size_t byte_length, mjb_emoji_sequence_type type,
-    mjb_emoji_qualification qualification, size_t codepoint_count, const char *name) {
+static void assert_emoji_sequence(const char *buffer, size_t byte_length,
+    mjb_emoji_sequence_type type, mjb_emoji_qualification qualification, size_t codepoint_count,
+    const char *name) {
     mjb_emoji_sequence emoji;
 
     ATT_ASSERT_STATUS(mjb_string_emoji_sequence(buffer, byte_length, MJB_ENC_UTF_8, &emoji),
@@ -255,8 +254,7 @@ int test_emoji(void *arg) {
     ATT_ASSERT(emoji.component, true, "U+23: component")
     ATT_ASSERT(emoji.extended_pictographic, false, "U+23: extended pictographic")
 
-    ATT_ASSERT_STATUS(mjb_codepoint_emoji(0x1F600, &emoji), MJB_STATUS_OK,
-        "U+1F600: 😀")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji(0x1F600, &emoji), MJB_STATUS_OK, "U+1F600: 😀")
     ATT_ASSERT(emoji.codepoint, 0x1F600, "U+1F600: codepoint")
     ATT_ASSERT(emoji.emoji, true, "U+1F600: emoji")
     ATT_ASSERT(emoji.presentation, true, "U+1F600: presentation")
@@ -289,23 +287,20 @@ int test_emoji(void *arg) {
     assert_emoji_sequence("\x23\xEF\xB8\x8F\xE2\x83\xA3", 7, MJB_EMOJI_SEQUENCE_KEYCAP,
         MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 3, "Keycap emoji sequence");
     // ⌚︎
-    assert_emoji_sequence("\xE2\x8C\x9A\xEF\xB8\x8E", 6,
-        MJB_EMOJI_SEQUENCE_TEXT_VARIATION, MJB_EMOJI_QUALIFICATION_NONE, 2,
-        "Text variation emoji sequence");
+    assert_emoji_sequence("\xE2\x8C\x9A\xEF\xB8\x8E", 6, MJB_EMOJI_SEQUENCE_TEXT_VARIATION,
+        MJB_EMOJI_QUALIFICATION_NONE, 2, "Text variation emoji sequence");
     // ⌚️
-    assert_emoji_sequence("\xE2\x8C\x9A\xEF\xB8\x8F", 6,
-        MJB_EMOJI_SEQUENCE_EMOJI_VARIATION, MJB_EMOJI_QUALIFICATION_NONE, 2,
-        "Emoji variation emoji sequence");
+    assert_emoji_sequence("\xE2\x8C\x9A\xEF\xB8\x8F", 6, MJB_EMOJI_SEQUENCE_EMOJI_VARIATION,
+        MJB_EMOJI_QUALIFICATION_NONE, 2, "Emoji variation emoji sequence");
     // 🇺🇸
     assert_emoji_sequence("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_EMOJI_SEQUENCE_FLAG,
         MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 2, "Flag emoji sequence");
     // 👋🏻
-    assert_emoji_sequence("\xF0\x9F\x91\x8B\xF0\x9F\x8F\xBB", 8,
-        MJB_EMOJI_SEQUENCE_MODIFIER, MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 2,
-        "Modifier emoji sequence");
+    assert_emoji_sequence("\xF0\x9F\x91\x8B\xF0\x9F\x8F\xBB", 8, MJB_EMOJI_SEQUENCE_MODIFIER,
+        MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 2, "Modifier emoji sequence");
     // 👨‍👩‍👧
-    assert_emoji_sequence(
-        "\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7",
+    assert_emoji_sequence("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                          "\xA7",
         18, MJB_EMOJI_SEQUENCE_ZWJ, MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED, 5,
         "ZWJ emoji sequence");
 
@@ -316,16 +311,15 @@ int test_emoji(void *arg) {
     ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x98\xBA", 3, MJB_ENC_UTF_8), false,
         "Unqualified emoji is not RGI")
     // ☺️
-    ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x98\xBA\xEF\xB8\x8F", 6, MJB_ENC_UTF_8),
-        true, "Fully-qualified emoji is RGI")
+    ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x98\xBA\xEF\xB8\x8F", 6, MJB_ENC_UTF_8), true,
+        "Fully-qualified emoji is RGI")
     // ⌚️
-    ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x8C\x9A\xEF\xB8\x8F", 6, MJB_ENC_UTF_8),
-        false, "Emoji variation sequence is not RGI by itself")
+    ATT_ASSERT(mjb_string_is_rgi_emoji("\xE2\x8C\x9A\xEF\xB8\x8F", 6, MJB_ENC_UTF_8), false,
+        "Emoji variation sequence is not RGI by itself")
     ATT_ASSERT(mjb_string_is_emoji_sequence("ABC", 3, MJB_ENC_UTF_8), false,
         "ASCII word is not an emoji sequence")
     ATT_ASSERT_STATUS(mjb_string_emoji_sequence(NULL, 0, MJB_ENC_UTF_8, NULL),
-        MJB_STATUS_INVALID_ARGUMENT,
-        "NULL string emoji sequence")
+        MJB_STATUS_INVALID_ARGUMENT, "NULL string emoji sequence")
 
     run_emoji_test_file("./utils/generate/unicode-data/emoji/emoji-test.txt");
 

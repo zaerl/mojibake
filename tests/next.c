@@ -22,11 +22,9 @@ static bool stop_next_character(mjb_character *character, mjb_character_position
 
 int test_next(void *arg) {
     ATT_ASSERT_STATUS(mjb_string_each_character(NULL, 1, MJB_ENC_UTF_8, next_character),
-        MJB_STATUS_INVALID_ARGUMENT,
-        "NULL next buffer")
+        MJB_STATUS_INVALID_ARGUMENT, "NULL next buffer")
     ATT_ASSERT_STATUS(mjb_string_each_character("A", 1, MJB_ENC_UTF_8, NULL),
-        MJB_STATUS_INVALID_ARGUMENT,
-        "NULL next callback")
+        MJB_STATUS_INVALID_ARGUMENT, "NULL next callback")
     ATT_ASSERT_STATUS(mjb_string_each_character("Hèllò", 7, MJB_ENC_UTF_8, next_character),
         MJB_STATUS_OK, "Next character")
     ATT_ASSERT(mjb_test_count, 5, "mjb_next_character")

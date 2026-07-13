@@ -7,10 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "test.h"
 #include "../src/mojibake-internal.h"
+#include "test.h"
 
-void break_line_callback(const char *buffer, size_t byte_length, unsigned int current_line, mjb_break_type *expected_types) {
+void break_line_callback(const char *buffer, size_t byte_length, unsigned int current_line,
+    mjb_break_type *expected_types) {
     char test_name[256];
     mjb_break_type bt = MJB_BT_NOT_SET;
     mjb_next_line_state state;
@@ -27,7 +28,7 @@ void break_line_callback(const char *buffer, size_t byte_length, unsigned int cu
 
         if((uint8_t)bt == (uint8_t)expected_types[index++]) {
             ++successful_count;
-        } else  {
+        } else {
             break;
         }
     }
@@ -50,17 +51,15 @@ int test_break_line(void *arg) {
 
     state.index = 0;
     ATT_ASSERT((uint8_t)mjb_break_line(utf16le_null, sizeof(utf16le_null), MJB_ENC_UTF_16LE,
-        &state), (uint8_t)MJB_BT_ALLOWED,
-        "Line break stops at UTF-16LE NULL")
+                   &state),
+        (uint8_t)MJB_BT_ALLOWED, "Line break stops at UTF-16LE NULL")
     ATT_ASSERT((uint8_t)mjb_break_line(utf16le_null, sizeof(utf16le_null), MJB_ENC_UTF_16LE,
-        &state), (uint8_t)MJB_BT_NOT_SET,
-        "Line break finishes after UTF-16LE NULL")
+                   &state),
+        (uint8_t)MJB_BT_NOT_SET, "Line break finishes after UTF-16LE NULL")
 #endif
 
-    read_test_file(
-        "./utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt",
-        &break_line_callback
-    );
+    read_test_file("./utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt",
+        &break_line_callback);
 
     return 0;
 }

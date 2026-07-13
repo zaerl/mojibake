@@ -9,7 +9,7 @@
 #ifndef MJB_SCREEN_H
 #define MJB_SCREEN_H
 
-typedef void (*mjbsh_screen_fn)(const char* input);
+typedef void (*mjbsh_screen_fn)(const char *input);
 
 typedef enum {
     MJBSH_KEY_UP,

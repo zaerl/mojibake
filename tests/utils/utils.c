@@ -20,7 +20,7 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
             continue; // Skip empty tokens
         }
 
-        mjb_codepoint codepoint = strtoul((const char*)token, NULL, 16);
+        mjb_codepoint codepoint = strtoul((const char *)token, NULL, 16);
 
         if(codepoint == 0) {
             continue; // Skip invalid codepoints
@@ -45,7 +45,8 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
 /**
  * Call mjb_case and return the output string, or NULL when the call fails.
  */
-char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type, mjb_encoding encoding) {
+char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
+    mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
     if(mjb_case(buffer, byte_length, encoding, type, encoding, &result) != MJB_STATUS_OK) {
@@ -115,7 +116,7 @@ void read_test_file(const char *filename, test_file_callback callback) {
                 }
             }
 
-            mjb_codepoint codepoint = strtoul((const char*)(token), NULL, 16);
+            mjb_codepoint codepoint = strtoul((const char *)(token), NULL, 16);
 
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
             if(codepoint == 0) {
@@ -126,8 +127,8 @@ void read_test_file(const char *filename, test_file_callback callback) {
                 break;
             }
 #endif
-            unsigned int encoded_size = mjb_codepoint_encode(codepoint, generated_input +
-                generated_index, 1024 - generated_index, MJB_ENC_UTF_8);
+            unsigned int encoded_size = mjb_codepoint_encode(codepoint,
+                generated_input + generated_index, 1024 - generated_index, MJB_ENC_UTF_8);
 
             generated_index += encoded_size;
         }

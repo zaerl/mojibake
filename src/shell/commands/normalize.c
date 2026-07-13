@@ -9,15 +9,15 @@
 #include <string.h>
 
 #include "../../mojibake.h"
-#include "../shell.h"
 #include "../characters.h"
+#include "../shell.h"
 #include "commands.h"
 
-int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int flags) {
     mjb_result result;
 
     bool ret = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENC_UTF_8, (mjb_normalization)flags,
-        MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
+                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
 
     if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
@@ -26,11 +26,9 @@ int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int f
     }
 
     printf("%s", mjbsh_green());
-    if(
-        result.output_size > 0 && mjb_string_each_character(result.output, result.output_size,
-        MJB_ENC_UTF_8,
-        mjbsh_next_string_character
-    ) != MJB_STATUS_OK) {
+    if(result.output_size > 0 &&
+        mjb_string_each_character(result.output, result.output_size, MJB_ENC_UTF_8,
+            mjbsh_next_string_character) != MJB_STATUS_OK) {
         printf("%s", mjbsh_reset());
         puts("");
 
@@ -50,14 +48,14 @@ int mjbsh_normalize_string_command(int argc, char * const argv[], unsigned int f
     return 0;
 }
 
-int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
     if(cmd_interpret_mode == INTERPRET_MODE_CHARACTER) {
         return mjbsh_normalize_string_command(argc, argv, flags);
     }
 
     unsigned int index = 0;
     // 5 bytes per codepoint is more than enough.
-    char* codepoints = (char*)malloc(argc * 5);
+    char *codepoints = (char *)malloc(argc * 5);
 
     for(int i = 0; i < argc; ++i) {
         mjb_codepoint codepoint = 0;
@@ -70,14 +68,15 @@ int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
             return 1;
         }
 
-        index += mjb_codepoint_encode(codepoint, codepoints + index, (argc * 5) - index, MJB_ENC_UTF_8);
+        index += mjb_codepoint_encode(codepoint, codepoints + index, (argc * 5) - index,
+            MJB_ENC_UTF_8);
     }
 
     codepoints[++index] = '\0';
 
     mjb_result result;
     bool ret = mjb_normalize(codepoints, index, MJB_ENC_UTF_8, (mjb_normalization)flags,
-        MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
+                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
 
     if(!ret) {
         fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
@@ -87,9 +86,9 @@ int mjbsh_normalize_command(int argc, char * const argv[], unsigned int flags) {
         return 1;
     }
 
-    if(result.output_size > 0 && mjb_string_each_character(result.output, result.output_size,
-        MJB_ENC_UTF_8,
-        mjbsh_next_character) != MJB_STATUS_OK) {
+    if(result.output_size > 0 &&
+        mjb_string_each_character(result.output, result.output_size, MJB_ENC_UTF_8,
+            mjbsh_next_character) != MJB_STATUS_OK) {
         puts("");
 
         if(result.output != NULL && result.output != codepoints) {

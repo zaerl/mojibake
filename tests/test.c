@@ -7,10 +7,10 @@
 #include <time.h>
 
 #ifdef _WIN32
-    #include <io.h>
-    #include <direct.h>
-    #include <windows.h>
     #include "../src/shell/getopt/getopt.h"
+    #include <direct.h>
+    #include <io.h>
+    #include <windows.h>
     #define isatty _isatty
     #define STDOUT_FILENO _fileno(stdout)
     #define chdir _chdir
@@ -65,8 +65,7 @@ char *strsep(char **stringp, const char *delim) {
 #endif
 
 static bool coverage_name_char(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
-        c == '_';
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
 }
 
 static bool coverage_name_from_expression(const char *expression, char *name, size_t size) {
@@ -192,10 +191,8 @@ static bool write_coverage_file(void) {
     fputs("{\n  \"coverage\": [\n", file);
 
     for(size_t i = 0; i < coverage_entry_count; ++i) {
-        fprintf(file, "    { \"name\": \"%s\", \"count\": %llu }%s\n",
-            coverage_entries[i].name,
-            coverage_entries[i].count,
-            i + 1 == coverage_entry_count ? "" : ",");
+        fprintf(file, "    { \"name\": \"%s\", \"count\": %llu }%s\n", coverage_entries[i].name,
+            coverage_entries[i].count, i + 1 == coverage_entry_count ? "" : ",");
     }
 
     fputs("  ]\n}\n", file);
@@ -218,27 +215,22 @@ void set_error_callback(att_test_callback callback) {
     error_callback = callback;
 }
 
-void show_help(const char *executable, struct option options[], const char *descriptions[], const char *error) {
+void show_help(const char *executable, struct option options[], const char *descriptions[],
+    const char *error) {
     FILE *stream = error ? stderr : stdout;
 
     fprintf(stream, "%s%smojibake - Mojibake test client [v%s]\n\nUsage: %s [OPTIONS]\n",
-        error ? error : "",
-        error ? "\n\n" : "",
-        MJB_VERSION,
-        executable);
+        error ? error : "", error ? "\n\n" : "", MJB_VERSION, executable);
     fprintf(stream, "Options:\n");
 
     for(unsigned long i = 0; options[i].name != NULL; ++i) {
-        fprintf(stream, "  -%c%s, --%s%s\n\t%s\n",
-            options[i].val,
-            options[i].has_arg == no_argument ? "" : " ARG",
-            options[i].name,
-            options[i].has_arg == no_argument ? "" : "=ARG",
-            descriptions[i]);
+        fprintf(stream, "  -%c%s, --%s%s\n\t%s\n", options[i].val,
+            options[i].has_arg == no_argument ? "" : " ARG", options[i].name,
+            options[i].has_arg == no_argument ? "" : "=ARG", descriptions[i]);
     }
 }
 
-int main(int argc, char * const argv[]) {
+int main(int argc, char *const argv[]) {
 #ifdef _WIN32
     LARGE_INTEGER frequency, start, end;
     QueryPerformanceFrequency(&frequency);
@@ -267,23 +259,14 @@ int main(int argc, char * const argv[]) {
 #endif
     }
 
-    struct option long_options[] = {
-        { "coverage", required_argument, NULL, 'C' },
-        { "filter", required_argument, NULL, 'f' },
-        { "help", no_argument, NULL, 'h' },
-        { "verbose", no_argument, NULL, 'v' },
-        { "version", no_argument, NULL, 'V' },
-        { "exit-on-error", no_argument, NULL, 'e' },
-        { NULL, 0, NULL, 0 }
-    };
-    const char *descriptions[] = {
-        "Write runtime API coverage counts to the given JSON file",
-        "Filter tests by name in the form name1,name2,...",
-        "Show this help message",
-        "Verbose output. -vv for more verbosity",
-        "Print version",
-        "Exit immediately on first test failure"
-    };
+    struct option long_options[] = { { "coverage", required_argument, NULL, 'C' },
+        { "filter", required_argument, NULL, 'f' }, { "help", no_argument, NULL, 'h' },
+        { "verbose", no_argument, NULL, 'v' }, { "version", no_argument, NULL, 'V' },
+        { "exit-on-error", no_argument, NULL, 'e' }, { NULL, 0, NULL, 0 } };
+    const char *descriptions[] = { "Write runtime API coverage counts to the given JSON file",
+        "Filter tests by name in the form name1,name2,...", "Show this help message",
+        "Verbose output. -vv for more verbosity", "Print version",
+        "Exit immediately on first test failure" };
 
     if(!is_ctest) {
 #ifdef _WIN32
@@ -341,15 +324,15 @@ int main(int argc, char * const argv[]) {
     unsigned int step = 0;
 
     #define RUN_TEST(NAME) \
-        if(!filter || strstr(#NAME, filter)) { \
-            mjb_test_coverage_clear(); \
-            if(!is_ctest) { \
-                printf("%sTest: %s%s%s\n", verbosity && step ? "\n" : "", \
-                    show_colors ? "\x1b[1;32m" : "", #NAME, show_colors ? "\x1b[0m" : ""); \
-            } \
-            test_##NAME(NULL); \
-            ++step; \
-        }
+    if(!filter || strstr(#NAME, filter)) { \
+        mjb_test_coverage_clear(); \
+        if(!is_ctest) { \
+            printf("%sTest: %s%s%s\n", verbosity && step ? "\n" : "", \
+                show_colors ? "\x1b[1;32m" : "", #NAME, show_colors ? "\x1b[0m" : ""); \
+        } \
+        test_##NAME(NULL); \
+        ++step; \
+    }
 
     // Start tests declarations.
     RUN_TEST(bidi)
@@ -398,8 +381,8 @@ int main(int argc, char * const argv[]) {
     // Green if valid and red if not
     const char *color_code = show_colors ? (valid ? "\x1B[32m" : "\x1B[31m") : "";
 
-    printf("%sTests valid/run: %s%d/%d%s\n", verbosity >= 1 ? "\n" : "", color_code,
-        tests_valid, tests_total, show_colors ? "\x1B[0m" : "");
+    printf("%sTests valid/run: %s%d/%d%s\n", verbosity >= 1 ? "\n" : "", color_code, tests_valid,
+        tests_total, show_colors ? "\x1B[0m" : "");
 
     if(coverage_enabled && !write_coverage_file()) {
         return 1;

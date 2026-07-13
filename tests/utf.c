@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "test.h"
 #include "../src/utf.h"
+#include "test.h"
 
 int test_utf(void *arg) {
     // Test scanning single ASCII character "A"
@@ -17,8 +17,7 @@ int test_utf(void *arg) {
     mjb_codepoint codepoint = 0;
     mjb_decode_result result;
 
-    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENC_UTF_8,
-        &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENC_UTF_8, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "MJB_DECODE_OK")
     ATT_ASSERT(codepoint, 0x41, "0x41 (A)")
@@ -26,8 +25,7 @@ int test_utf(void *arg) {
     ATT_ASSERT(index, 1, "Index 1")
     ATT_ASSERT(in_error, false, "Should not be in error state")
 
-    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENC_UTF_8,
-        &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer, size, &state, &index, MJB_ENC_UTF_8, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_END, "MJB_DECODE_END")
     ATT_ASSERT((int)state, (int)MJB_UTF_ACCEPT, "MJB_UTF_ACCEPT")
@@ -96,30 +94,34 @@ int test_utf(void *arg) {
 
     // Test that inner BOMs are preserved as U+FEFF codepoints, not consumed as signatures.
     const char buffer_utf16be_inner_bom[] = {
-        '\xFE', '\xFF',
-        '\x00', 'A',
-        '\xFE', '\xFF',
-        '\x00', 'B',
+        '\xFE',
+        '\xFF',
+        '\x00',
+        'A',
+        '\xFE',
+        '\xFF',
+        '\x00',
+        'B',
     };
 
     RESET_STATE()
 
-    result = mjb_next_codepoint(buffer_utf16be_inner_bom, sizeof(buffer_utf16be_inner_bom),
-        &state, &index, MJB_ENC_UTF_16, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16be_inner_bom, sizeof(buffer_utf16be_inner_bom), &state,
+        &index, MJB_ENC_UTF_16, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16 generic inner BOM: first codepoint")
     ATT_ASSERT(codepoint, 0x41, "UTF-16 generic inner BOM: U+0041")
     ATT_ASSERT(index, (size_t)4, "UTF-16 generic inner BOM: consumed initial signature only")
 
-    result = mjb_next_codepoint(buffer_utf16be_inner_bom, sizeof(buffer_utf16be_inner_bom),
-        &state, &index, MJB_ENC_UTF_16, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16be_inner_bom, sizeof(buffer_utf16be_inner_bom), &state,
+        &index, MJB_ENC_UTF_16, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16 generic inner BOM: second codepoint")
     ATT_ASSERT(codepoint, 0xFEFF, "UTF-16 generic inner BOM: preserves inner U+FEFF")
     ATT_ASSERT(index, (size_t)6, "UTF-16 generic inner BOM: index 6")
 
-    result = mjb_next_codepoint(buffer_utf16be_inner_bom, sizeof(buffer_utf16be_inner_bom),
-        &state, &index, MJB_ENC_UTF_16, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16be_inner_bom, sizeof(buffer_utf16be_inner_bom), &state,
+        &index, MJB_ENC_UTF_16, &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16 generic inner BOM: third codepoint")
     ATT_ASSERT(codepoint, 0x42, "UTF-16 generic inner BOM: U+0042")
@@ -148,8 +150,14 @@ int test_utf(void *arg) {
     ATT_ASSERT(in_error, true, "UTF-16 generic no BOM: error state")
 
     const char buffer_utf32le_bom[] = {
-        '\xFF', '\xFE', '\x00', '\x00',
-        'A', '\x00', '\x00', '\x00',
+        '\xFF',
+        '\xFE',
+        '\x00',
+        '\x00',
+        'A',
+        '\x00',
+        '\x00',
+        '\x00',
     };
 
     RESET_STATE()
@@ -166,17 +174,16 @@ int test_utf(void *arg) {
 
     RESET_STATE()
 
-    result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index,
-        MJB_ENC_UTF_16BE, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index, MJB_ENC_UTF_16BE,
+        &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE,
         "UTF-16BE surrogate: high surrogate incomplete")
-    ATT_ASSERT((int)state, (int)MJB_UTF_PENDING_SURROGATE,
-        "UTF-16BE surrogate: pending state")
+    ATT_ASSERT((int)state, (int)MJB_UTF_PENDING_SURROGATE, "UTF-16BE surrogate: pending state")
     ATT_ASSERT(index, 2, "UTF-16BE surrogate: index 2")
 
-    result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index,
-        MJB_ENC_UTF_16BE, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16be_emoji, 4, &state, &index, MJB_ENC_UTF_16BE,
+        &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16BE surrogate: MJB_DECODE_OK")
     ATT_ASSERT(codepoint, 0x1F642, "UTF-16BE surrogate: U+1F642")
@@ -188,17 +195,16 @@ int test_utf(void *arg) {
 
     RESET_STATE()
 
-    result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index,
-        MJB_ENC_UTF_16LE, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index, MJB_ENC_UTF_16LE,
+        &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE,
         "UTF-16LE surrogate: high surrogate incomplete")
-    ATT_ASSERT((int)state, (int)MJB_UTF_PENDING_SURROGATE,
-        "UTF-16LE surrogate: pending state")
+    ATT_ASSERT((int)state, (int)MJB_UTF_PENDING_SURROGATE, "UTF-16LE surrogate: pending state")
     ATT_ASSERT(index, 2, "UTF-16LE surrogate: index 2")
 
-    result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index,
-        MJB_ENC_UTF_16LE, &codepoint, &in_error);
+    result = mjb_next_codepoint(buffer_utf16le_emoji, 4, &state, &index, MJB_ENC_UTF_16LE,
+        &codepoint, &in_error);
 
     ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16LE surrogate: MJB_DECODE_OK")
     ATT_ASSERT(codepoint, 0x1F642, "UTF-16LE surrogate: U+1F642")

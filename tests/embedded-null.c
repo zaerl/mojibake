@@ -88,8 +88,8 @@ int test_embedded_null(void *arg) {
     // String: "Hello\0!" in UTF-16LE
     const char utf16le_hello_null_exclaim[] = {
         'H', '\0', 'e', '\0', 'l', '\0', 'l', '\0', 'o', '\0', // Hello
-        '\0', '\0', // NULL
-        '!', '\0'   // !
+        '\0', '\0',                                            // NULL
+        '!', '\0'                                              // !
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
     ATT_ASSERT(mjb_string_length(utf16le_hello_null_exclaim, 14, MJB_ENC_UTF_16LE), 7,
@@ -132,8 +132,8 @@ int test_embedded_null(void *arg) {
     // String: "Test\0Data" in UTF-16BE
     const char utf16be_test_null_data[] = {
         '\0', 'T', '\0', 'e', '\0', 's', '\0', 't', // Test
-        '\0', '\0', // NULL
-        '\0', 'D', '\0', 'a', '\0', 't', '\0', 'a' // Data
+        '\0', '\0',                                 // NULL
+        '\0', 'D', '\0', 'a', '\0', 't', '\0', 'a'  // Data
     };
 #ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
     ATT_ASSERT(mjb_string_length(utf16be_test_null_data, 18, MJB_ENC_UTF_16BE), 9,

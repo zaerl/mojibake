@@ -78,9 +78,10 @@ static bool fuzz_next_character(mjb_character *character, mjb_character_position
 static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t guard_limit = (byte_length + 8) * 4;
 
-    mjb_next_state grapheme_state = {0};
+    mjb_next_state grapheme_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &grapheme_state);
+        mjb_break_type bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding,
+            &grapheme_state);
         fuzz_sink += (size_t)bt + grapheme_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -107,7 +108,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
         }
     }
 
-    mjb_next_line_state line_state = {0};
+    mjb_next_line_state line_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_break_type bt = mjb_break_line(buffer, byte_length, encoding, &line_state);
         fuzz_sink += (size_t)bt + line_state.index;
@@ -121,7 +122,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
         }
     }
 
-    mjb_next_sentence_state sentence_state = {0};
+    mjb_next_sentence_state sentence_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_break_type bt = mjb_break_sentence(buffer, byte_length, encoding, &sentence_state);
         fuzz_sink += (size_t)bt + sentence_state.index;
@@ -152,10 +153,8 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     mjb_property property = (mjb_property)(variant % MJB_PR_COUNT);
     mjb_property property_name = (mjb_property)(variant % (MJB_PR_COUNT + 2));
 
-    static const mjb_encoding encodings[] = {
-        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE, MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE,
-        MJB_ENC_ASCII
-    };
+    static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
+        MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
 
     fuzz_sink += (size_t)mjb_codepoint_character(codepoint, &character);
     fuzz_sink += (size_t)mjb_codepoint_is_valid(codepoint);
@@ -171,11 +170,9 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_category_is_graphic((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_category_is_combining((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_codepoint_numeric_value(codepoint, &numeric);
-    fuzz_sink += (size_t)mjb_codepoint_property_binary(codepoint, property,
-        &binary_property_value);
+    fuzz_sink += (size_t)mjb_codepoint_property_binary(codepoint, property, &binary_property_value);
     fuzz_sink += (size_t)binary_property_value;
-    fuzz_sink += (size_t)mjb_codepoint_property_int(codepoint, property,
-        &integer_property_value);
+    fuzz_sink += (size_t)mjb_codepoint_property_int(codepoint, property, &integer_property_value);
     fuzz_sink += (size_t)integer_property_value;
     fuzz_sink += (size_t)mjb_codepoint_block(codepoint, &block);
     fuzz_sink += (size_t)mjb_codepoint_to_lowercase(codepoint);
@@ -206,9 +203,9 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     }
 
     if(mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK) {
-        fuzz_sink += (size_t)emoji.emoji + (size_t)emoji.presentation +
-            (size_t)emoji.modifier + (size_t)emoji.modifier_base +
-            (size_t)emoji.component + (size_t)emoji.extended_pictographic;
+        fuzz_sink += (size_t)emoji.emoji + (size_t)emoji.presentation + (size_t)emoji.modifier +
+            (size_t)emoji.modifier_base + (size_t)emoji.component +
+            (size_t)emoji.extended_pictographic;
     }
 
     if(mjb_codepoint_east_asian_width(codepoint, &width) == MJB_STATUS_OK) {
@@ -218,24 +215,22 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_hangul_syllable_name(codepoint, hangul_name, sizeof(hangul_name));
     fuzz_sink += (size_t)mjb_hangul_syllable_decomposition(codepoint, decomposition);
 
-    mjb_buffer_character composition[] = {
-        {codepoint, 0},
-        {MJB_CP_HANGUL_L_BASE + (variant % MJB_CP_HANGUL_L_COUNT), 0},
-        {MJB_CP_HANGUL_V_BASE + (variant % MJB_CP_HANGUL_V_COUNT), 0},
-        {MJB_CP_HANGUL_T_BASE + (variant % MJB_CP_HANGUL_T_COUNT), 0}
-    };
+    mjb_buffer_character composition[] = { { codepoint, 0 },
+        { MJB_CP_HANGUL_L_BASE + (variant % MJB_CP_HANGUL_L_COUNT), 0 },
+        { MJB_CP_HANGUL_V_BASE + (variant % MJB_CP_HANGUL_V_COUNT), 0 },
+        { MJB_CP_HANGUL_T_BASE + (variant % MJB_CP_HANGUL_T_COUNT), 0 } };
     fuzz_sink += mjb_hangul_syllable_composition(composition,
         sizeof(composition) / sizeof(composition[0]));
     fuzz_sink += mjb_codepoint_encode(codepoint, encoded, sizeof(encoded),
         encodings[(variant >> 2) % 6]);
 }
 
-static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length, mjb_encoding encoding) {
+static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length,
+    mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
     if(mjb_string_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
-        fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification +
-            emoji.codepoint_count;
+        fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification + emoji.codepoint_count;
     }
 
     fuzz_sink += (size_t)mjb_string_is_emoji_sequence(buffer, byte_length, encoding);
@@ -270,31 +265,28 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     uint8_t selector = data[0];
     uint8_t variant = data[1];
-    const char *buffer = (const char*)data + 2;
+    const char *buffer = (const char *)data + 2;
     size -= 2;
 
-    static const mjb_encoding encodings[] = {
-        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE, MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE,
-        MJB_ENC_ASCII
-    };
+    static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
+        MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
     mjb_encoding encoding = encodings[variant % 6];
 
     // Exercise the language-sensitive casing and folding paths too.
-    static const unsigned int locales[] = {
-        MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ, MJB_LOCALE_LT
-    };
+    static const unsigned int locales[] = { MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ,
+        MJB_LOCALE_LT };
 
     if(mjb_locale_set(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
         return 0;
     }
 
-    mjb_result result = {0};
-    mjb_codepoint codepoint = fuzz_codepoint((const uint8_t*)buffer, size, variant);
+    mjb_result result = { 0 };
+    mjb_codepoint codepoint = fuzz_codepoint((const uint8_t *)buffer, size, variant);
 
     switch(selector % 18) {
         case 0: // Normalization, all four forms
             if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
-                MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -305,8 +297,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 17: // Identifier-oriented NFKC case folding
-            if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==
-                MJB_STATUS_OK) {
+            if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -314,7 +305,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 2: // Case conversion and folding, all transforming types
             if(mjb_case(buffer, size, encoding, (mjb_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8,
-                &result) == MJB_STATUS_OK) {
+                   &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -328,11 +319,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 if(para.count > 0 && para.count <= 4096) {
                     size_t visual_order[4096];
 
-                    if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order) ==
-                        MJB_STATUS_OK) {
+                    if(mjb_bidi_reorder_line(&para, 0, para.count, visual_order) == MJB_STATUS_OK) {
                         size_t run_count = 0;
-                        mjb_status runs_status = mjb_bidi_line_runs(&para, visual_order,
-                            para.count, NULL, &run_count);
+                        mjb_status runs_status = mjb_bidi_line_runs(&para, visual_order, para.count,
+                            NULL, &run_count);
                         fuzz_sink += (size_t)runs_status;
                     }
                 }
@@ -351,8 +341,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 5: // Encoding conversion
-            if(mjb_string_convert_encoding(buffer, size, encoding,
-                encodings[(variant >> 1) % 6], &result) == MJB_STATUS_OK) {
+            if(mjb_string_convert_encoding(buffer, size, encoding, encodings[(variant >> 1) % 6],
+                   &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -360,7 +350,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 6: // String filtering, all filter combinations
             if(mjb_string_filter(buffer, size, encoding, (mjb_filter)(variant & 0x1F),
-                MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -368,8 +358,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 7: // Collation key
             if(mjb_collation_key(buffer, size, encoding,
-                (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
-                &result) == MJB_STATUS_OK) {
+                   (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
+                   &result) == MJB_STATUS_OK) {
                 free_result(&result, buffer);
             }
 
@@ -384,10 +374,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_sink += mjb_string_length(buffer, size, encoding);
             mjb_truncate(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
-            mjb_truncate_width(buffer, size, encoding,
-                (mjb_width_context)(variant % 3), variant);
-            mjb_truncate_word_width(buffer, size, encoding,
-                (mjb_width_context)(variant % 3), variant);
+            mjb_truncate_width(buffer, size, encoding, (mjb_width_context)(variant % 3), variant);
+            mjb_truncate_word_width(buffer, size, encoding, (mjb_width_context)(variant % 3),
+                variant);
             break;
 
         case 10: { // Display width
@@ -418,8 +407,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 13: { // BCP 47 locale parsing
             mjb_locale_id locale;
             mjb_error error;
-            mjb_status locale_status = mjb_locale_parse(buffer, size, encoding, &locale,
-                &error);
+            mjb_status locale_status = mjb_locale_parse(buffer, size, encoding, &locale, &error);
             fuzz_sink += (size_t)locale_status;
             break;
         }
@@ -434,7 +422,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 16: // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
-            fuzz_sink += (size_t)mjb_string_each_character(buffer, size, encoding, fuzz_next_character);
+            fuzz_sink += (size_t)mjb_string_each_character(buffer, size, encoding,
+                fuzz_next_character);
             break;
     }
 

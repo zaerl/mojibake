@@ -9,8 +9,8 @@
 #include <string.h>
 
 #include "mojibake-internal.h"
-#include "unicode-tables.h"
 #include "unicode-data.h"
+#include "unicode-tables.h"
 
 #define MJB_COUNT_OF(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -117,8 +117,8 @@ bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_si
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_lookup(mjb_unicode_name_page_index,
-        MJB_COUNT_OF(mjb_unicode_name_page_index), mjb_unicode_name_pages,
-        mjb_unicode_name_lows, codepoint, &entry_index)) {
+           MJB_COUNT_OF(mjb_unicode_name_page_index), mjb_unicode_name_pages, mjb_unicode_name_lows,
+           codepoint, &entry_index)) {
         return false;
     }
 
@@ -202,8 +202,8 @@ bool mjb_unicode_emoji_lookup(mjb_codepoint codepoint, mjb_emoji_properties *emo
             emoji->modifier = (flags & MJB_UNICODE_EMOJI_FLAG_MODIFIER) != 0;
             emoji->modifier_base = (flags & MJB_UNICODE_EMOJI_FLAG_MODIFIER_BASE) != 0;
             emoji->component = (flags & MJB_UNICODE_EMOJI_FLAG_COMPONENT) != 0;
-            emoji->extended_pictographic =
-                (flags & MJB_UNICODE_EMOJI_FLAG_EXTENDED_PICTOGRAPHIC) != 0;
+            emoji->extended_pictographic = (flags & MJB_UNICODE_EMOJI_FLAG_EXTENDED_PICTOGRAPHIC) !=
+                0;
 
             return true;
         }
@@ -251,11 +251,12 @@ bool mjb_unicode_emoji_sequence_lookup(const mjb_codepoint *codepoints, size_t c
     }
 
     mjb_unicode_emoji_sequence_node entry = mjb_unicode_emoji_sequence_nodes[node];
-    mjb_emoji_sequence_type type = (mjb_emoji_sequence_type)((entry >>
-        MJB_UNICODE_EMOJI_SEQUENCE_TYPE_SHIFT) & MJB_UNICODE_EMOJI_SEQUENCE_TYPE_MASK);
-    mjb_emoji_qualification qualification = (mjb_emoji_qualification)((entry >>
-        MJB_UNICODE_EMOJI_SEQUENCE_QUALIFICATION_SHIFT) &
-        MJB_UNICODE_EMOJI_SEQUENCE_QUALIFICATION_MASK);
+    mjb_emoji_sequence_type
+        type = (mjb_emoji_sequence_type)((entry >> MJB_UNICODE_EMOJI_SEQUENCE_TYPE_SHIFT) &
+            MJB_UNICODE_EMOJI_SEQUENCE_TYPE_MASK);
+    mjb_emoji_qualification qualification =
+        (mjb_emoji_qualification)((entry >> MJB_UNICODE_EMOJI_SEQUENCE_QUALIFICATION_SHIFT) &
+            MJB_UNICODE_EMOJI_SEQUENCE_QUALIFICATION_MASK);
 
     if(type == MJB_EMOJI_SEQUENCE_NONE && qualification == MJB_EMOJI_QUALIFICATION_NONE) {
         return false;
@@ -371,8 +372,8 @@ bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, ui
             continue;
         }
 
-        if(mjb_unicode_blob_has_property(&mjb_unicode_property_data[offset + 1], length,
-            property, value)) {
+        if(mjb_unicode_blob_has_property(&mjb_unicode_property_data[offset + 1], length, property,
+               value)) {
             return true;
         }
     }
@@ -405,8 +406,7 @@ bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer) {
             continue;
         }
 
-        mjb_unicode_decode_properties(&mjb_unicode_property_data[offset + 1], length,
-            buffer);
+        mjb_unicode_decode_properties(&mjb_unicode_property_data[offset + 1], length, buffer);
     }
 
     return true;
@@ -509,8 +509,7 @@ bool mjb_unicode_codepoint_assigned(mjb_codepoint codepoint) {
     return mjb_unicode_n_character_entry_lookup(codepoint, &entry_index);
 }
 
-bool mjb_unicode_bidi_lookup(mjb_codepoint codepoint, mjb_bidi_class *bidi,
-    bool *mirrored) {
+bool mjb_unicode_bidi_lookup(mjb_codepoint codepoint, mjb_bidi_class *bidi, bool *mirrored) {
     size_t entry_index = 0;
 
     if(!mjb_unicode_n_character_entry_lookup(codepoint, &entry_index)) {
@@ -535,8 +534,8 @@ bool mjb_unicode_numeric_value_lookup(mjb_codepoint codepoint, mjb_numeric_value
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_lookup(mjb_unicode_numeric_page_index,
-        MJB_COUNT_OF(mjb_unicode_numeric_page_index), mjb_unicode_numeric_pages,
-        mjb_unicode_numeric_lows, codepoint, &entry_index)) {
+           MJB_COUNT_OF(mjb_unicode_numeric_page_index), mjb_unicode_numeric_pages,
+           mjb_unicode_numeric_lows, codepoint, &entry_index)) {
         return false;
     }
 
@@ -556,8 +555,8 @@ static bool mjb_unicode_simple_case_entry_lookup(mjb_codepoint codepoint, const 
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_lookup(mjb_unicode_simple_case_page_index,
-        MJB_COUNT_OF(mjb_unicode_simple_case_page_index), mjb_unicode_simple_case_pages,
-        mjb_unicode_simple_case_lows, codepoint, &entry_index)) {
+           MJB_COUNT_OF(mjb_unicode_simple_case_page_index), mjb_unicode_simple_case_pages,
+           mjb_unicode_simple_case_lows, codepoint, &entry_index)) {
         return false;
     }
 
@@ -587,11 +586,14 @@ bool mjb_unicode_case_lookup(mjb_codepoint codepoint, mjb_unicode_case_mapping *
 
     mapping->category = (mjb_category)((character >> 9) & 0x1F);
     mapping->uppercase = has_case_mapping && (mask & 1) != 0 ?
-        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 0)) : 0;
+        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 0)) :
+        0;
     mapping->lowercase = has_case_mapping && (mask & 2) != 0 ?
-        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 18)) : 0;
+        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 18)) :
+        0;
     mapping->titlecase = has_case_mapping && (mask & 4) != 0 ?
-        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 36)) : 0;
+        (mjb_codepoint)((int32_t)codepoint + mjb_unicode_simple_case_delta(entry_data, 36)) :
+        0;
 
     return true;
 }
@@ -678,8 +680,8 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_lookup(mjb_unicode_confusable_page_index,
-        MJB_COUNT_OF(mjb_unicode_confusable_page_index), mjb_unicode_confusable_pages,
-        mjb_unicode_confusable_lows, codepoint, &entry_index)) {
+           MJB_COUNT_OF(mjb_unicode_confusable_page_index), mjb_unicode_confusable_pages,
+           mjb_unicode_confusable_lows, codepoint, &entry_index)) {
         return false;
     }
 
@@ -697,8 +699,8 @@ bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint8_t *
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_lookup(mjb_unicode_collation_page_index,
-        MJB_COUNT_OF(mjb_unicode_collation_page_index), mjb_unicode_collation_pages,
-        mjb_unicode_collation_lows, codepoint, &entry_index)) {
+           MJB_COUNT_OF(mjb_unicode_collation_page_index), mjb_unicode_collation_pages,
+           mjb_unicode_collation_lows, codepoint, &entry_index)) {
         return false;
     }
 
@@ -729,8 +731,7 @@ bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
     }
 
     if(low >= MJB_COUNT_OF(mjb_unicode_collation_contractions) ||
-        (mjb_codepoint)(mjb_unicode_collation_contractions[low] & 0x1FFFFF) !=
-            first_codepoint) {
+        (mjb_codepoint)(mjb_unicode_collation_contractions[low] & 0x1FFFFF) != first_codepoint) {
         *entries = NULL;
         *count = 0;
 
@@ -740,8 +741,7 @@ bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
     size_t end = low + 1;
 
     while(end < MJB_COUNT_OF(mjb_unicode_collation_contractions) &&
-        (mjb_codepoint)(mjb_unicode_collation_contractions[end] & 0x1FFFFF) ==
-            first_codepoint) {
+        (mjb_codepoint)(mjb_unicode_collation_contractions[end] & 0x1FFFFF) == first_codepoint) {
         ++end;
     }
 
@@ -751,8 +751,9 @@ bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
     return true;
 }
 
-const mjb_codepoint *mjb_unicode_collation_contraction_sequence(
-    const mjb_unicode_collation_contraction_entry *entry, uint8_t *length) {
+const mjb_codepoint *
+mjb_unicode_collation_contraction_sequence(const mjb_unicode_collation_contraction_entry *entry,
+    uint8_t *length) {
     uint64_t entry_data = *entry;
     size_t offset = (size_t)((entry_data >> 21) & 0xFFFF);
 
@@ -761,8 +762,9 @@ const mjb_codepoint *mjb_unicode_collation_contraction_sequence(
     return &mjb_unicode_collation_contraction_sequence_data[offset];
 }
 
-const uint8_t *mjb_unicode_collation_contraction_weights(
-    const mjb_unicode_collation_contraction_entry *entry, uint8_t *length) {
+const uint8_t *
+mjb_unicode_collation_contraction_weights(const mjb_unicode_collation_contraction_entry *entry,
+    uint8_t *length) {
     uint64_t entry_data = *entry;
     size_t offset = (size_t)((entry_data >> 37) & 0xFFFF);
 
@@ -771,9 +773,8 @@ const uint8_t *mjb_unicode_collation_contraction_weights(
     return &mjb_unicode_collation_contraction_weight_data[offset];
 }
 
-static bool mjb_unicode_decomposition_table_lookup(
-    const mjb_unicode_decomposition_entry *table, size_t table_count, mjb_codepoint codepoint,
-    const mjb_codepoint **values, uint8_t *length) {
+static bool mjb_unicode_decomposition_table_lookup(const mjb_unicode_decomposition_entry *table,
+    size_t table_count, mjb_codepoint codepoint, const mjb_codepoint **values, uint8_t *length) {
     size_t low = 0;
     size_t high = table_count;
 
@@ -821,8 +822,7 @@ mjb_codepoint mjb_unicode_compose_pair(mjb_codepoint starter, mjb_codepoint comb
         mjb_codepoint entry_combining = (mjb_codepoint)((entry >> 21) & 0x1FFFFF);
         mjb_codepoint entry_composite = (mjb_codepoint)((entry >> 42) & 0x1FFFFF);
 
-        if(starter < entry_starter ||
-            (starter == entry_starter && combining < entry_combining)) {
+        if(starter < entry_starter || (starter == entry_starter && combining < entry_combining)) {
             high = mid;
         } else if(starter > entry_starter ||
             (starter == entry_starter && combining > entry_combining)) {

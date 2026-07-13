@@ -12,7 +12,7 @@
 
 static mjb_filter filter_flags = MJB_FILTER_NONE;
 
-static void mjbsh_print_filter_analysis(const char* input) {
+static void mjbsh_print_filter_analysis(const char *input) {
     mjb_result result;
     size_t input_size = strlen(input);
 
@@ -32,7 +32,7 @@ static void mjbsh_print_filter_analysis(const char* input) {
     }
 }
 
-static void mjbsh_display_filter_output(const char* input) {
+static void mjbsh_display_filter_output(const char *input) {
     mjbsh_clear_screen();
     printf("Filter the input\n");
     printf("Ctrl+C to exit\n");
@@ -48,7 +48,7 @@ static void mjbsh_display_filter_output(const char* input) {
     fflush(stdout);
 }
 
-int mjbsh_filter_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_filter_command(int argc, char *const argv[], unsigned int flags) {
     filter_flags = (mjb_filter)flags;
 
     if(argc != 0) {

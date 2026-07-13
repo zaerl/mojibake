@@ -9,7 +9,7 @@
 #include "../build-amalgamation/mojibake.h"
 
 // This is a simple example of how to use the Mojibake library.
-int main(int argc, char * const argv[]) {
+int main(int argc, char *const argv[]) {
     printf("This is an example of Mojibake v%s\n", mjb_version());
     printf("Unicode version: %s\n", mjb_unicode_version());
 

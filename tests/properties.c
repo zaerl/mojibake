@@ -18,7 +18,8 @@ static char *property_field_trim(char *field) {
 
     char *end = field + strlen(field);
 
-    while(end > field && (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
+    while(end > field &&
+        (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
         *--end = '\0';
     }
 
@@ -27,7 +28,8 @@ static char *property_field_trim(char *field) {
 
 static size_t property_split(char *line, char **fields, size_t capacity) {
     char *comment = strchr(line, '#');
-    if(comment != NULL) *comment = '\0';
+    if(comment != NULL)
+        *comment = '\0';
     size_t count = 0;
     char *field = line;
 
@@ -52,7 +54,8 @@ static size_t property_split(char *line, char **fields, size_t capacity) {
 static size_t load_script_aliases(const char *filename, test_script_alias *aliases,
     size_t capacity) {
     FILE *file = fopen(filename, "r");
-    if(file == NULL) return 0;
+    if(file == NULL)
+        return 0;
     char line[1024];
     size_t count = 0;
 
@@ -144,8 +147,8 @@ int test_properties(void *arg) {
 
     size_t script_count = 0;
 
-    ATT_ASSERT_STATUS(mjb_codepoint_script_extensions(0x30FC, NULL, &script_count),
-        MJB_STATUS_OK, "Query Script_Extensions count")
+    ATT_ASSERT_STATUS(mjb_codepoint_script_extensions(0x30FC, NULL, &script_count), MJB_STATUS_OK,
+        "Query Script_Extensions count")
     ATT_ASSERT(script_count, 2u, "U+30FC has two script extensions")
 
     mjb_script scripts[8];
@@ -192,18 +195,19 @@ int test_properties(void *arg) {
         MJB_STATUS_INVALID_ARGUMENT, "Binary getter rejects NULL output")
 
     MJB_TEST_COVERAGE(mjb_codepoint_property_int);
-    ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_SCRIPT, &enumerated),
-        MJB_STATUS_OK, "Typed enumerated property present")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_SCRIPT, &enumerated), MJB_STATUS_OK,
+        "Typed enumerated property present")
     ATT_ASSERT(enumerated, MJB_SC_LATN, "U+0041 Script is Latin")
     ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_ALPHABETIC, &enumerated),
         MJB_STATUS_INVALID_ARGUMENT, "Enumerated getter rejects binary property")
     ATT_ASSERT_STATUS(mjb_codepoint_property_int(0x41, MJB_PR_SCRIPT, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Enumerated getter rejects NULL output")
-    ATT_ASSERT_STATUS(mjb_codepoint_property_int(MJB_CODEPOINT_MAX + 1, MJB_PR_SCRIPT,
-        &enumerated), MJB_STATUS_INVALID_ARGUMENT, "Typed getter rejects invalid codepoint")
+    ATT_ASSERT_STATUS(mjb_codepoint_property_int(MJB_CODEPOINT_MAX + 1, MJB_PR_SCRIPT, &enumerated),
+        MJB_STATUS_INVALID_ARGUMENT, "Typed getter rejects invalid codepoint")
 
     // mjb_codepoint_script
-    ATT_ASSERT((int)mjb_codepoint_script(MJB_CODEPOINT_MAX + 1), MJB_SC_ZZZZ, "Invalid codepoint script is Unknown")
+    ATT_ASSERT((int)mjb_codepoint_script(MJB_CODEPOINT_MAX + 1), MJB_SC_ZZZZ,
+        "Invalid codepoint script is Unknown")
     ATT_ASSERT((int)mjb_codepoint_script(0x41), MJB_SC_LATN, "U+0041 'A' is Latin")
     ATT_ASSERT((int)mjb_codepoint_script(0x0391), MJB_SC_GREK, "U+0391 'A' is Greek")
     ATT_ASSERT((int)mjb_codepoint_script(0x0410), MJB_SC_CYRL, "U+0410 'A' is Cyrillic")
@@ -213,8 +217,10 @@ int test_properties(void *arg) {
     ATT_ASSERT((int)mjb_codepoint_script(0xAC00), MJB_SC_HANG, "U+AC00 is Hangul")
     ATT_ASSERT((int)mjb_codepoint_script(0x0030), MJB_SC_ZYYY, "U+0030 '0' is Common")
 
-    ATT_ASSERT(mjb_property_name(MJB_PR_CASED), "Cased", "Property name for MJB_PR_CASED is 'Cased'")
-    ATT_ASSERT(mjb_property_name((mjb_property)MJB_PR_COUNT), "Unknown", "Property name with invalid number is 'Unknown'")
+    ATT_ASSERT(mjb_property_name(MJB_PR_CASED), "Cased",
+        "Property name for MJB_PR_CASED is 'Cased'")
+    ATT_ASSERT(mjb_property_name((mjb_property)MJB_PR_COUNT), "Unknown",
+        "Property name with invalid number is 'Unknown'")
 
     return 0;
 }

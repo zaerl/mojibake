@@ -58,8 +58,8 @@ static void mjbsh_print_first_iteration(mjb_break_type first_bt, mjb_break_type 
     mjbsh_print_break_symbol(first_bt);
 
     // First iteration: print the starting codepoint
-    mjbsh_print_codepoint(previous_codepoint != MJB_CODEPOINT_NOT_VALID
-        ? previous_codepoint : current_codepoint);
+    mjbsh_print_codepoint(previous_codepoint != MJB_CODEPOINT_NOT_VALID ? previous_codepoint :
+                                                                          current_codepoint);
 
     mjbsh_print_break_symbol(bt);
 
@@ -87,7 +87,7 @@ static void mjbsh_print_grapheme_breaks(const char *input, size_t input_size) {
     segment_state.index = 0;
 
     while((bt = mjb_break_grapheme_cluster(input, input_size, MJB_ENC_UTF_8, &segment_state)) !=
-          MJB_BT_NOT_SET) {
+        MJB_BT_NOT_SET) {
         bool is_eot = (segment_state.index > input_size);
 
         if(first) {
@@ -110,8 +110,7 @@ static void mjbsh_print_word_breaks(const char *input, size_t input_size) {
     mjb_next_word_state word_state;
     word_state.index = 0;
 
-    while((bt = mjb_break_word(input, input_size, MJB_ENC_UTF_8, &word_state)) !=
-          MJB_BT_NOT_SET) {
+    while((bt = mjb_break_word(input, input_size, MJB_ENC_UTF_8, &word_state)) != MJB_BT_NOT_SET) {
         bool is_eot = (word_state.index > input_size);
 
         if(first) {
@@ -134,8 +133,7 @@ static void mjbsh_print_line_breaks(const char *input, size_t input_size) {
     mjb_next_line_state line_state;
     line_state.index = 0;
 
-    while((bt = mjb_break_line(input, input_size, MJB_ENC_UTF_8, &line_state)) !=
-          MJB_BT_NOT_SET) {
+    while((bt = mjb_break_line(input, input_size, MJB_ENC_UTF_8, &line_state)) != MJB_BT_NOT_SET) {
         bool is_eot = (line_state.index > input_size);
 
         if(first) {
@@ -159,7 +157,7 @@ static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
     sentence_state.index = 0;
 
     while((bt = mjb_break_sentence(input, input_size, MJB_ENC_UTF_8, &sentence_state)) !=
-          MJB_BT_NOT_SET) {
+        MJB_BT_NOT_SET) {
         bool is_eot = (sentence_state.index > input_size);
 
         if(first) {
@@ -173,13 +171,13 @@ static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
     }
 }
 
-static void mjbsh_print_break_analysis(const char* input, mjbsh_break_mode mode) {
+static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode) {
     size_t input_size = strlen(input);
     size_t input_real_size = mjb_string_length(input, input_size, MJB_ENC_UTF_8);
     size_t display_width;
 
     if(mjb_display_width(input, input_size, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_AUTO,
-        &display_width) != MJB_STATUS_OK) {
+           &display_width) != MJB_STATUS_OK) {
         display_width = 0;
     }
 
@@ -218,7 +216,7 @@ static void mjbsh_print_break_analysis(const char* input, mjbsh_break_mode mode)
     }
 }
 
-static void mjbsh_display_break_output(const char* input) {
+static void mjbsh_display_break_output(const char *input) {
     mjbsh_clear_screen();
     printf("Break the input\n");
     printf("Ctrl+C to exit\n");
@@ -246,7 +244,7 @@ static void mjbsh_handle_key(mjbsh_key key) {
     }
 }
 
-int mjbsh_break_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_break_command(int argc, char *const argv[], unsigned int flags) {
     if(argc != 0) {
         mjbsh_break_mode mode = MJBSH_BREAK_MODE_ALL;
         const char *input = argv[0];

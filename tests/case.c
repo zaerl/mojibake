@@ -22,7 +22,7 @@ static int check_fold(const char *source, size_t source_size, const char *target
     char *result = run_mjb_case(source, source_size, type, MJB_ENC_UTF_8);
 
     MJB_TEST_COVERAGE(mjb_case);
-    ATT_ASSERT(result, (char*)target, test_name)
+    ATT_ASSERT(result, (char *)target, test_name)
 
     if(result != NULL) {
         mjb_free(result);
@@ -99,14 +99,12 @@ static void test_case_folding_file(void) {
                 break;
 
             case 'T': // Turkic: applies to both folding types when the locale is tr or az.
-                ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_TR), MJB_STATUS_OK,
-                    "Set locale tr")
+                ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
                 check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD,
                     current_line, "T full");
                 check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD_SIMPLE,
                     current_line, "T simple");
-                ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK,
-                    "Set locale en")
+                ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
                 break;
         }
 
@@ -160,204 +158,218 @@ int test_case(void *arg) {
 
     // Test uppercase conversion
     result = run_mjb_case("hello", 5, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char*)"HELLO", "UTF-8 uppercase: hello")
+    ATT_ASSERT(result, (char *)"HELLO", "UTF-8 uppercase: hello")
     mjb_free(result);
 
     result = run_mjb_case("héllö", 7, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char*)"HÉLLÖ", "UTF-8 uppercase: héllö")
+    ATT_ASSERT(result, (char *)"HÉLLÖ", "UTF-8 uppercase: héllö")
     mjb_free(result);
 
     result = run_mjb_case("a𠀀b", 6, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char*)"A𠀀B", "UTF-8 uppercase preserves uncased CJK")
+    ATT_ASSERT(result, (char *)"A𠀀B", "UTF-8 uppercase preserves uncased CJK")
     mjb_free(result);
 
     // Test lowercase conversion
     result = run_mjb_case("HELLO", 5, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char*)"hello", "UTF-8 lowercase: HELLO")
+    ATT_ASSERT(result, (char *)"hello", "UTF-8 lowercase: HELLO")
     mjb_free(result);
 
     result = run_mjb_case("HÉLLÖ", 7, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char*)"héllö", "UTF-8 lowercase: HÉLLÖ")
+    ATT_ASSERT(result, (char *)"héllö", "UTF-8 lowercase: HÉLLÖ")
     mjb_free(result);
 
     result = run_mjb_case("A𠀀B", 6, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char*)"a𠀀b", "UTF-8 lowercase preserves uncased CJK")
+    ATT_ASSERT(result, (char *)"a𠀀b", "UTF-8 lowercase preserves uncased CJK")
     mjb_free(result);
 
     // Test titlecase conversion
     result = run_mjb_case("hello world", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Hello World", "UTF-8 titlecase: hello world")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: hello world")
     mjb_free(result);
 
     result = run_mjb_case("héllö wörld", 14, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Héllö Wörld", "UTF-8 titlecase: héllö wörld")
+    ATT_ASSERT(result, (char *)"Héllö Wörld", "UTF-8 titlecase: héllö wörld")
     mjb_free(result);
 
     result = run_mjb_case("a 𠀀 b", 8, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"A 𠀀 B", "UTF-8 titlecase preserves uncased CJK")
+    ATT_ASSERT(result, (char *)"A 𠀀 B", "UTF-8 titlecase preserves uncased CJK")
     mjb_free(result);
 
     result = run_mjb_case("hello world", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Hello World", "UTF-8 titlecase: hello world")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: hello world")
     mjb_free(result);
 
     result = run_mjb_case("HELLO WORLD", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Hello World", "UTF-8 titlecase: HELLO WORLD")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: HELLO WORLD")
     mjb_free(result);
 
     result = run_mjb_case("HELLO WORLD", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Hello World", "UTF-8 titlecase: HELLO WORLD")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: HELLO WORLD")
     mjb_free(result);
 
     result = run_mjb_case("mixed CASE words", 17, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Mixed Case Words", "UTF-8 titlecase: mixed CASE words")
+    ATT_ASSERT(result, (char *)"Mixed Case Words", "UTF-8 titlecase: mixed CASE words")
     mjb_free(result);
 
     result = run_mjb_case("  leading space", 15, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"  Leading Space", "UTF-8 titlecase:   leading space")
+    ATT_ASSERT(result, (char *)"  Leading Space", "UTF-8 titlecase:   leading space")
     mjb_free(result);
 
     result = run_mjb_case("élan vital", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Élan Vital", "UTF-8 titlecase: élan vital")
+    ATT_ASSERT(result, (char *)"Élan Vital", "UTF-8 titlecase: élan vital")
     mjb_free(result);
 
     result = run_mjb_case("straße", 7, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Straße", "UTF-8 titlecase: straße")
+    ATT_ASSERT(result, (char *)"Straße", "UTF-8 titlecase: straße")
     mjb_free(result);
 
     result = run_mjb_case("παράδειγμα", 20, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Παράδειγμα", "UTF-8 titlecase: παράδειγμα")
+    ATT_ASSERT(result, (char *)"Παράδειγμα", "UTF-8 titlecase: παράδειγμα")
     mjb_free(result);
 
     result = run_mjb_case("ⅲ times", 10, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Ⅲ Times", "UTF-8 titlecase: ⅲ times")
+    ATT_ASSERT(result, (char *)"Ⅲ Times", "UTF-8 titlecase: ⅲ times")
     mjb_free(result);
 
     // UAX #29 keeps internal apostrophes in the same word segment for default titlecase.
-    result = run_mjb_case("o\xE2\x80\x99""CONNOR", 10, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"O\xE2\x80\x99""connor", "UTF-8 titlecase: o’CONNOR")
+    result = run_mjb_case("o\xE2\x80\x99"
+                          "CONNOR",
+        10, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result,
+        (char *)"O\xE2\x80\x99"
+                "connor",
+        "UTF-8 titlecase: o’CONNOR")
     mjb_free(result);
 
     result = run_mjb_case("rock'n'ROLL", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Rock'n'roll", "UTF-8 titlecase: rock'n'ROLL")
+    ATT_ASSERT(result, (char *)"Rock'n'roll", "UTF-8 titlecase: rock'n'ROLL")
     mjb_free(result);
 
-    result = run_mjb_case("a\xCC\x88""BC", 5, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"A\xCC\x88""bc", "UTF-8 titlecase: a + diaeresis + BC")
+    result = run_mjb_case("a\xCC\x88"
+                          "BC",
+        5, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result,
+        (char *)"A\xCC\x88"
+                "bc",
+        "UTF-8 titlecase: a + diaeresis + BC")
     mjb_free(result);
 
     result = run_mjb_case("İstanbul", 9, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"İstanbul", "UTF-8 titlecase: İstanbul")
+    ATT_ASSERT(result, (char *)"İstanbul", "UTF-8 titlecase: İstanbul")
     mjb_free(result);
 
     // Modern German orthography sometimes prefers the uppercase form ẞ (U+1E9E) in all-caps or
     // titlecase contexts. Unicode's default case folding still maps ß to SS in titlecase unless
     // locale-specific tailoring is applied.
     result = run_mjb_case("ßeta", 5, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char*)"SSETA", "UTF-8 titlecase: ßeta")
+    ATT_ASSERT(result, (char *)"SSETA", "UTF-8 titlecase: ßeta")
     mjb_free(result);
 
     result = run_mjb_case("coöperate", 10, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Coöperate", "UTF-8 titlecase: Český Krumlov")
+    ATT_ASSERT(result, (char *)"Coöperate", "UTF-8 titlecase: Český Krumlov")
     mjb_free(result);
 
     result = run_mjb_case("😀grinning", 12, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"😀Grinning", "UTF-8 titlecase: 😀grinning")
+    ATT_ASSERT(result, (char *)"😀Grinning", "UTF-8 titlecase: 😀grinning")
     mjb_free(result);
 
     result = run_mjb_case("123abc", 8, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"123Abc", "UTF-8 titlecase: 123abc")
+    ATT_ASSERT(result, (char *)"123Abc", "UTF-8 titlecase: 123abc")
     mjb_free(result);
 
     // Test casefold: ASCII uppercase via unicode_data.lowercase fallback
     result = run_mjb_case("ABC", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"abc", "Casefold: ABC -> abc")
+    ATT_ASSERT(result, (char *)"abc", "Casefold: ABC -> abc")
     mjb_free(result);
 
     result = run_mjb_case("Hello World", 11, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"hello world", "Casefold: Hello World -> hello world")
+    ATT_ASSERT(result, (char *)"hello world", "Casefold: Hello World -> hello world")
     mjb_free(result);
 
     // Test casefold: ß (U+00DF) -> ss, F entry (multi-char expansion)
     result = run_mjb_case("ß", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"ss", "Casefold: ß -> ss")
+    ATT_ASSERT(result, (char *)"ss", "Casefold: ß -> ss")
     mjb_free(result);
 
     result = run_mjb_case("straße", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"strasse", "Casefold: straße -> strasse")
+    ATT_ASSERT(result, (char *)"strasse", "Casefold: straße -> strasse")
     mjb_free(result);
 
     // Test casefold: µ (U+00B5 MICRO SIGN) -> μ (U+03BC), C exception entry
     result = run_mjb_case("µ", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"μ", "Casefold: µ (U+00B5) -> μ (U+03BC)")
+    ATT_ASSERT(result, (char *)"μ", "Casefold: µ (U+00B5) -> μ (U+03BC)")
     mjb_free(result);
 
     // Test casefold: ﬃ (U+FB03) -> ffi, F entry with 3-codepoint expansion
     result = run_mjb_case("ﬃ", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"ffi", "Casefold: ﬃ -> ffi")
+    ATT_ASSERT(result, (char *)"ffi", "Casefold: ﬃ -> ffi")
     mjb_free(result);
 
     // Test casefold: Greek uppercase via unicode_data.lowercase fallback
     result = run_mjb_case("Σ", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"σ", "Casefold: Σ -> σ")
+    ATT_ASSERT(result, (char *)"σ", "Casefold: Σ -> σ")
     mjb_free(result);
 
     // Test casefold: digits/symbols pass through unchanged (identity path)
     result = run_mjb_case("123", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"123", "Casefold: 123 -> 123")
+    ATT_ASSERT(result, (char *)"123", "Casefold: 123 -> 123")
     mjb_free(result);
 
     // Simple case folding (C + S statuses): multi-char full folds are not applied.
     result = run_mjb_case("straße", 7, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char*)"straße", "Simple casefold: ß folds to itself")
+    ATT_ASSERT(result, (char *)"straße", "Simple casefold: ß folds to itself")
     mjb_free(result);
 
     result = run_mjb_case("ẞ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char*)"ß", "Simple casefold: ẞ -> ß")
+    ATT_ASSERT(result, (char *)"ß", "Simple casefold: ẞ -> ß")
     mjb_free(result);
 
     result = run_mjb_case("ﬃ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char*)"ﬃ", "Simple casefold: ﬃ folds to itself")
+    ATT_ASSERT(result, (char *)"ﬃ", "Simple casefold: ﬃ folds to itself")
     mjb_free(result);
 
     result = run_mjb_case("İ", 2, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char*)"İ", "Simple casefold: İ folds to itself")
+    ATT_ASSERT(result, (char *)"İ", "Simple casefold: İ folds to itself")
     mjb_free(result);
 
     // Turkic (T) case folding, active for the tr and az locales.
     ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
 
     result = run_mjb_case("KIRMIZI", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"kırmızı", "Turkic casefold: KIRMIZI -> kırmızı")
+    ATT_ASSERT(result, (char *)"kırmızı", "Turkic casefold: KIRMIZI -> kırmızı")
     mjb_free(result);
 
     result = run_mjb_case("İZMİR", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char*)"izmir", "Turkic casefold: İZMİR -> izmir")
+    ATT_ASSERT(result, (char *)"izmir", "Turkic casefold: İZMİR -> izmir")
     mjb_free(result);
 
     result = run_mjb_case("I", 1, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char*)"ı", "Turkic simple casefold: I -> ı")
+    ATT_ASSERT(result, (char *)"ı", "Turkic simple casefold: I -> ı")
     mjb_free(result);
 
     ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
 
     // Test Final_Sigma rule: word-final Σ → ς, non-final Σ → σ
     result = run_mjb_case("ΣΕΙΣ", 8, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char*)"σεις", "UTF-8 lowercase Final_Sigma: ΣΕΙΣ -> σεις")
+    ATT_ASSERT(result, (char *)"σεις", "UTF-8 lowercase Final_Sigma: ΣΕΙΣ -> σεις")
     mjb_free(result);
 
     result = run_mjb_case("ΑΣΑ", 6, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char*)"ασα", "UTF-8 lowercase non-final sigma: ΑΣΑ -> ασα")
+    ATT_ASSERT(result, (char *)"ασα", "UTF-8 lowercase non-final sigma: ΑΣΑ -> ασα")
     mjb_free(result);
 
     result = run_mjb_case("ΣΕΙΣ", 8, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Σεις", "UTF-8 titlecase Final_Sigma: ΣΕΙΣ -> Σεις")
+    ATT_ASSERT(result, (char *)"Σεις", "UTF-8 titlecase Final_Sigma: ΣΕΙΣ -> Σεις")
     mjb_free(result);
 
     // Test that titlecase uses original codepoint for special-casing lookup (Fix 2):
     // In-word İ (U+0130) must lower to "i + U+0307 (combining dot above)", not bare "i".
-    result = run_mjb_case("A\xC4\xB0""B", 4, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char*)"Ai\xCC\x87""b",
+    result = run_mjb_case("A\xC4\xB0"
+                          "B",
+        4, MJB_CASE_TITLE, encoding);
+    ATT_ASSERT(result,
+        (char *)"Ai\xCC\x87"
+                "b",
         "UTF-8 titlecase special casing: A\\xC4\\xB0B -> Ai\\xCC\\x87b")
     mjb_free(result);
 

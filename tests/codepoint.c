@@ -9,8 +9,8 @@
 
 #include "test.h"
 
-static const char *expected_character_name(mjb_codepoint codepoint, const char *name,
-    char *buffer, size_t byte_length) {
+static const char *expected_character_name(mjb_codepoint codepoint, const char *name, char *buffer,
+    size_t byte_length) {
 #if MJB_FEATURE_CHARACTER_NAMES
     (void)codepoint;
     (void)buffer;
@@ -26,7 +26,7 @@ static const char *expected_character_name(mjb_codepoint codepoint, const char *
 }
 
 #define ATT_ASSERT_CHARACTER_NAME(CODEPOINT, EXPECTED, NAME) \
-    ATT_ASSERT((const char*)character.name, \
+    ATT_ASSERT((const char *)character.name, \
         expected_character_name((CODEPOINT), (EXPECTED), expected_name, sizeof(expected_name)), \
         NAME)
 
@@ -50,8 +50,7 @@ int test_codepoint(void *arg) {
     ATT_ASSERT_CHARACTER_NAME(0xE0, "LATIN SMALL LETTER A WITH GRAVE", "Codepoint: à")
 
     // U+1F642 = 🙂
-    ATT_ASSERT_STATUS(mjb_codepoint_character(0x1F642, &character), MJB_STATUS_OK,
-        "Codepoint: 🙂")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x1F642, &character), MJB_STATUS_OK, "Codepoint: 🙂")
     ATT_ASSERT_CHARACTER_NAME(0x1F642, "SLIGHTLY SMILING FACE", "Codepoint: 🙂")
 
     // U+0377 = ͷ, U+0377 + 1 is not mapped
@@ -59,10 +58,9 @@ int test_codepoint(void *arg) {
         "Codepoint not mapped: ͷ + 1")
 
     // U+AC00 = First hangul syllable
-    ATT_ASSERT_STATUS(mjb_codepoint_character(MJB_CP_HANGUL_S_BASE, &character),
-        MJB_STATUS_OK, "First hangul syllable")
-    ATT_ASSERT_CHARACTER_NAME(MJB_CP_HANGUL_S_BASE, "HANGUL SYLLABLE GA",
+    ATT_ASSERT_STATUS(mjb_codepoint_character(MJB_CP_HANGUL_S_BASE, &character), MJB_STATUS_OK,
         "First hangul syllable")
+    ATT_ASSERT_CHARACTER_NAME(MJB_CP_HANGUL_S_BASE, "HANGUL SYLLABLE GA", "First hangul syllable")
 
     // U+D7A3 = Last hangul syllable
     mjb_codepoint last_syllable = MJB_CP_HANGUL_S_BASE + MJB_CP_HANGUL_S_COUNT - 1;
@@ -88,14 +86,13 @@ int test_codepoint(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_codepoint_block(0x80 + 1, &block), MJB_STATUS_OK,
         "Valid latin-1 Supplement block")
-    ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_LATIN_1_SUPPLEMENT, "Latin-1 Supplement block")
+    ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_LATIN_1_SUPPLEMENT,
+        "Latin-1 Supplement block")
 
-    ATT_ASSERT_STATUS(mjb_codepoint_block(0xE0000 + 1, &block), MJB_STATUS_OK,
-        "Valid tags block")
+    ATT_ASSERT_STATUS(mjb_codepoint_block(0xE0000 + 1, &block), MJB_STATUS_OK, "Valid tags block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_TAGS, "Tags block")
 
-    ATT_ASSERT_STATUS(mjb_codepoint_block(0xC0C0, &block), MJB_STATUS_OK,
-        "Hangul Syllables block")
+    ATT_ASSERT_STATUS(mjb_codepoint_block(0xC0C0, &block), MJB_STATUS_OK, "Hangul Syllables block")
     ATT_ASSERT((unsigned int)block.id, (unsigned int)MJB_BLOCK_HANGUL_SYLLABLES, "Hangul block")
 
     ATT_ASSERT_STATUS(mjb_codepoint_block(0x10C0, &block), MJB_STATUS_OK, "Georgian block")
@@ -145,28 +142,23 @@ int test_codepoint(void *arg) {
     ATT_ASSERT(mjb_category_is_combining(MJB_CATEGORY_CN), false, "MJB_CATEGORY_CN: not combining")
 
     // U+00BD = ½
-    ATT_ASSERT_STATUS(mjb_codepoint_character(0x00BD, &character), MJB_STATUS_OK,
-        "Codepoint: ½ 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x00BD, &character), MJB_STATUS_OK, "Codepoint: ½ 1")
     ATT_ASSERT(character.decimal == MJB_NUMBER_NOT_VALID, true, "Codepoint: ½ 2")
     ATT_ASSERT(character.digit == MJB_NUMBER_NOT_VALID, true, "Codepoint: ½ 3")
-    ATT_ASSERT((const char*)character.numeric, (const char*)"1/2", "Codepoint: ½ 4")
+    ATT_ASSERT((const char *)character.numeric, (const char *)"1/2", "Codepoint: ½ 4")
 
     // U+0030 = 1
-    ATT_ASSERT_STATUS(mjb_codepoint_character(0x0031, &character), MJB_STATUS_OK,
-        "Codepoint: 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x0031, &character), MJB_STATUS_OK, "Codepoint: 1")
     ATT_ASSERT(character.decimal == 1, true, "Codepoint: 1 2")
     ATT_ASSERT(character.digit == 1, true, "Codepoint: 1 3")
-    ATT_ASSERT((const char*)character.numeric, (const char*)"1", "Codepoint: 1 4")
+    ATT_ASSERT((const char *)character.numeric, (const char *)"1", "Codepoint: 1 4")
 
     // EGYPTIAN HIEROGLYPH
-    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13000, &character), MJB_STATUS_OK,
-        "HIEROGLYPH 1")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13000, &character), MJB_STATUS_OK, "HIEROGLYPH 1")
     ATT_ASSERT_CHARACTER_NAME(0x13000, "EGYPTIAN HIEROGLYPH A001", "HIEROGLYPH 1")
 
-    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13455, &character), MJB_STATUS_OK,
-        "HIEROGLYPH 2")
-    ATT_ASSERT_CHARACTER_NAME(0x13455, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED",
-        "HIEROGLYPH 2")
+    ATT_ASSERT_STATUS(mjb_codepoint_character(0x13455, &character), MJB_STATUS_OK, "HIEROGLYPH 2")
+    ATT_ASSERT_CHARACTER_NAME(0x13455, "EGYPTIAN HIEROGLYPH MODIFIER DAMAGED", "HIEROGLYPH 2")
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x13460, &character), MJB_STATUS_OK,
         "EGYPTIAN HIEROGLYPH 3")
@@ -187,13 +179,11 @@ int test_codepoint(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x2F800, &character), MJB_STATUS_OK,
         "CJK CI SUPPLEMENT 1")
-    ATT_ASSERT_CHARACTER_NAME(0x2F800, "CJK COMPATIBILITY IDEOGRAPH-2F800",
-        "CJK CI SUPPLEMENT 1")
+    ATT_ASSERT_CHARACTER_NAME(0x2F800, "CJK COMPATIBILITY IDEOGRAPH-2F800", "CJK CI SUPPLEMENT 1")
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x2FA1D, &character), MJB_STATUS_OK,
         "CJK CI SUPPLEMENT 2")
-    ATT_ASSERT_CHARACTER_NAME(0x2FA1D, "CJK COMPATIBILITY IDEOGRAPH-2FA1D",
-        "CJK CI SUPPLEMENT 2")
+    ATT_ASSERT_CHARACTER_NAME(0x2FA1D, "CJK COMPATIBILITY IDEOGRAPH-2FA1D", "CJK CI SUPPLEMENT 2")
 
     // First tangut
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x17000, &character), MJB_STATUS_OK,
@@ -246,13 +236,11 @@ int test_codepoint(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x14400, &character), MJB_STATUS_OK,
         "ANATOLIAN HIEROGLYPH 1")
-    ATT_ASSERT_CHARACTER_NAME(0x14400, "ANATOLIAN HIEROGLYPH A001",
-        "ANATOLIAN HIEROGLYPH 1")
+    ATT_ASSERT_CHARACTER_NAME(0x14400, "ANATOLIAN HIEROGLYPH A001", "ANATOLIAN HIEROGLYPH 1")
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x14646, &character), MJB_STATUS_OK,
         "ANATOLIAN HIEROGLYPH 2")
-    ATT_ASSERT_CHARACTER_NAME(0x14646, "ANATOLIAN HIEROGLYPH A530",
-        "ANATOLIAN HIEROGLYPH 2")
+    ATT_ASSERT_CHARACTER_NAME(0x14646, "ANATOLIAN HIEROGLYPH A530", "ANATOLIAN HIEROGLYPH 2")
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x12000, &character), MJB_STATUS_OK,
         "CUNEIFORM SIGN 1")
@@ -260,8 +248,7 @@ int test_codepoint(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x12400, &character), MJB_STATUS_OK,
         "CUNEIFORM NUMERIC 1")
-    ATT_ASSERT_CHARACTER_NAME(0x12400, "CUNEIFORM NUMERIC SIGN TWO ASH",
-        "CUNEIFORM NUMERIC 1")
+    ATT_ASSERT_CHARACTER_NAME(0x12400, "CUNEIFORM NUMERIC SIGN TWO ASH", "CUNEIFORM NUMERIC 1")
 
     ATT_ASSERT_STATUS(mjb_codepoint_character(0x12541, &character), MJB_STATUS_OK,
         "CUNEIFORM SIGN 2")
@@ -292,28 +279,28 @@ int test_codepoint(void *arg) {
         "numeric_value: '1' returns OK")
     ATT_ASSERT(num.decimal, 1, "numeric_value: '1' decimal")
     ATT_ASSERT(num.digit, 1, "numeric_value: '1' digit")
-    ATT_ASSERT((const char*)num.numeric, "1", "numeric_value: '1' numeric string")
+    ATT_ASSERT((const char *)num.numeric, "1", "numeric_value: '1' numeric string")
 
     // U+00BD = '½': no decimal, no digit, numeric="1/2"
     ATT_ASSERT_STATUS(mjb_codepoint_numeric_value(0x00BD, &num), MJB_STATUS_OK,
         "numeric_value: ½ returns OK")
     ATT_ASSERT(num.decimal, MJB_NUMBER_NOT_VALID, "numeric_value: ½ decimal not valid")
     ATT_ASSERT(num.digit, MJB_NUMBER_NOT_VALID, "numeric_value: ½ digit not valid")
-    ATT_ASSERT((const char*)num.numeric, "1/2", "numeric_value: ½ numeric string")
+    ATT_ASSERT((const char *)num.numeric, "1/2", "numeric_value: ½ numeric string")
 
     // U+0041 = 'A': no numeric value at all
     ATT_ASSERT_STATUS(mjb_codepoint_numeric_value(0x0041, &num), MJB_STATUS_OK,
         "numeric_value: 'A' returns OK")
     ATT_ASSERT(num.decimal, MJB_NUMBER_NOT_VALID, "numeric_value: 'A' decimal not valid")
     ATT_ASSERT(num.digit, MJB_NUMBER_NOT_VALID, "numeric_value: 'A' digit not valid")
-    ATT_ASSERT((const char*)num.numeric, "", "numeric_value: 'A' numeric string empty")
+    ATT_ASSERT((const char *)num.numeric, "", "numeric_value: 'A' numeric string empty")
 
     // U+0039 = '9': decimal=9, digit=9, numeric="9"
     ATT_ASSERT_STATUS(mjb_codepoint_numeric_value(0x0039, &num), MJB_STATUS_OK,
         "numeric_value: '9' returns OK")
     ATT_ASSERT(num.decimal, 9, "numeric_value: '9' decimal")
     ATT_ASSERT(num.digit, 9, "numeric_value: '9' digit")
-    ATT_ASSERT((const char*)num.numeric, "9", "numeric_value: '9' numeric string")
+    ATT_ASSERT((const char *)num.numeric, "9", "numeric_value: '9' numeric string")
 
     // Invalid codepoint returns invalid argument
     ATT_ASSERT_STATUS(mjb_codepoint_numeric_value(MJB_CODEPOINT_MAX, &num),

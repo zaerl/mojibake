@@ -9,8 +9,8 @@
 #include <string.h>
 
 #include "../../mojibake.h"
-#include "../shell.h"
 #include "../maps.h"
+#include "../shell.h"
 
 static bool mjbsh_output_next_character(mjb_character *character, mjb_character_position type) {
     char buffer_utf8[5];
@@ -74,26 +74,12 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
     }
 
     if(cmd_verbose > 0) {
-        mjb_encoding other_encodings[] = {
-            MJB_ENC_UTF_16BE,
-            MJB_ENC_UTF_16LE,
-            MJB_ENC_UTF_32BE,
-            MJB_ENC_UTF_32LE
-        };
+        mjb_encoding other_encodings[] = { MJB_ENC_UTF_16BE, MJB_ENC_UTF_16LE, MJB_ENC_UTF_32BE,
+            MJB_ENC_UTF_32LE };
 
-        const char *other_encodings_names[] = {
-            "16BE",
-            "16LE",
-            "32BE",
-            "32LE"
-        };
+        const char *other_encodings_names[] = { "16BE", "16LE", "32BE", "32LE" };
 
-        const char *other_encodings_labels[] = {
-            "16be",
-            "16le",
-            "32be",
-            "32le"
-        };
+        const char *other_encodings_labels[] = { "16be", "16le", "32be", "32le" };
 
         for(size_t i = 0; i < 4; ++i) {
             char buffer[5];
@@ -101,11 +87,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
                 other_encodings[i]);
 
             if(is_json) {
-                printf(
-                    "%s%s\"hex_utf_%s\":%s[%s",
-                    mjbsh_ji(), mjbsh_ji(),
-                    other_encodings_labels[i],
-                    cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+                printf("%s%s\"hex_utf_%s\":%s[%s", mjbsh_ji(), mjbsh_ji(),
+                    other_encodings_labels[i], cmd_json_indent == 0 ? "" : " ", mjbsh_green());
             } else {
                 printf("\nHex UTF-%s: %s", other_encodings_names[i], mjbsh_green());
             }
@@ -238,8 +221,8 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
         bool has_properties = last_prop < MJB_PR_COUNT;
 
         mjb_east_asian_width east_asian_width;
-        bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint,
-            &east_asian_width) == MJB_STATUS_OK;
+        bool eaw_valid = mjb_codepoint_east_asian_width(character->codepoint, &east_asian_width) ==
+            MJB_STATUS_OK;
 
         if(eaw_valid) {
             mjbsh_id_name("East Asian Width", east_asian_width,
@@ -273,11 +256,13 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
             for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
                 if(mjbsh_property_is_bool((mjb_property)i)) {
                     if(properties[i]) {
-                        mjbsh_bool(mjb_property_name((mjb_property)i), i == last_prop ? 0 : 1, true);
+                        mjbsh_bool(mjb_property_name((mjb_property)i), i == last_prop ? 0 : 1,
+                            true);
                     }
                 } else {
                     if(properties[i] != 0) {
-                        mjbsh_numeric(mjb_property_name((mjb_property)i), i == last_prop ? 0 : 1, properties[i]);
+                        mjbsh_numeric(mjb_property_name((mjb_property)i), i == last_prop ? 0 : 1,
+                            properties[i]);
                     }
                 }
             }
@@ -295,9 +280,9 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
     return true;
 }
 
-int mjbsh_character_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_character_command(int argc, char *const argv[], unsigned int flags) {
     if(mjb_string_each_character(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
-        mjbsh_output_next_character) != MJB_STATUS_OK) {
+           mjbsh_output_next_character) != MJB_STATUS_OK) {
         return 1;
     }
 

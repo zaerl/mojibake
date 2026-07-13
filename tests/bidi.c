@@ -101,8 +101,9 @@ static void read_bidi_test_file(const char *filename) {
 
         // Field 1: paragraph direction
         int dir_v = atoi(fields[1]);
-        mjb_direction dir = (dir_v == 1) ? MJB_DIRECTION_RTL : (dir_v == 2) ? MJB_DIRECTION_AUTO :
-            MJB_DIRECTION_LTR;
+        mjb_direction dir = (dir_v == 1) ? MJB_DIRECTION_RTL :
+            (dir_v == 2)                 ? MJB_DIRECTION_AUTO :
+                                           MJB_DIRECTION_LTR;
 
         // Field 2: expected paragraph level
         uint8_t expected_para_level = (uint8_t)atoi(fields[2]);
@@ -122,10 +123,10 @@ static void read_bidi_test_file(const char *filename) {
             }
 
             if(lvl_tok[0] == 'x') {
-                is_removed[total_cp]     = true;
+                is_removed[total_cp] = true;
                 expected_levels[total_cp] = 0xFF;
             } else {
-                is_removed[total_cp]     = false;
+                is_removed[total_cp] = false;
                 expected_levels[total_cp] = (uint8_t)atoi(lvl_tok);
                 ++non_removed;
             }
@@ -150,14 +151,13 @@ static void read_bidi_test_file(const char *filename) {
 
         // Run algorithm
         mjb_bidi_paragraph para;
-        mjb_status status = mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, dir,
-            &para);
+        mjb_status status = mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, dir, &para);
 
         char test_name[64];
         snprintf(test_name, sizeof(test_name), "#%u", current_line);
 
         size_t successful = 0;
-        size_t total      = 0;
+        size_t total = 0;
 
         if(status != MJB_STATUS_OK) {
             ATT_ASSERT(total, successful, test_name)
@@ -305,28 +305,27 @@ int test_bidi(void *arg) {
 
     if(para.count == 3) {
         size_t order[3];
-        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(NULL, 0, 3, order),
-            MJB_STATUS_INVALID_ARGUMENT, "reorder rejects NULL paragraph")
-        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 3, NULL),
-            MJB_STATUS_INVALID_ARGUMENT, "reorder rejects NULL visual order")
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(NULL, 0, 3, order), MJB_STATUS_INVALID_ARGUMENT,
+            "reorder rejects NULL paragraph")
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 3, NULL), MJB_STATUS_INVALID_ARGUMENT,
+            "reorder rejects NULL visual order")
         ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 3, order), MJB_STATUS_OK,
             "reorder ltr ok")
         ATT_ASSERT(order[0], (size_t)0, "LTR visual[0] = 0")
         ATT_ASSERT(order[1], (size_t)1, "LTR visual[1] = 1")
         ATT_ASSERT(order[2], (size_t)2, "LTR visual[2] = 2")
-        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 1, 1, order),
-            MJB_STATUS_INVALID_ARGUMENT, "reorder empty range")
-        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 2, 1, order),
-            MJB_STATUS_INVALID_ARGUMENT, "reorder reversed range")
-        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 4, order),
-            MJB_STATUS_INVALID_ARGUMENT, "reorder beyond paragraph")
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 1, 1, order), MJB_STATUS_INVALID_ARGUMENT,
+            "reorder empty range")
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 2, 1, order), MJB_STATUS_INVALID_ARGUMENT,
+            "reorder reversed range")
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 4, order), MJB_STATUS_INVALID_ARGUMENT,
+            "reorder beyond paragraph")
     }
 
     mjb_bidi_free(&para);
 
     const char *rtl3 = "\xD9\x85\xD8\xB1\xD8\xAD"; // مرح (3 Arabic chars)
-    status = mjb_bidi_resolve(rtl3, strlen(rtl3), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-        &para);
+    status = mjb_bidi_resolve(rtl3, strlen(rtl3), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "reorder rtl resolve")
 
     if(para.count == 3) {
@@ -350,26 +349,20 @@ int test_bidi(void *arg) {
 
         size_t run_count = 0;
         ATT_ASSERT_STATUS(mjb_bidi_line_runs(NULL, order, 3, NULL, &run_count),
-            MJB_STATUS_INVALID_ARGUMENT,
-            "line runs rejects NULL paragraph")
+            MJB_STATUS_INVALID_ARGUMENT, "line runs rejects NULL paragraph")
         ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, NULL, 3, NULL, &run_count),
-            MJB_STATUS_INVALID_ARGUMENT,
-            "line runs rejects NULL visual order")
+            MJB_STATUS_INVALID_ARGUMENT, "line runs rejects NULL visual order")
         ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, NULL, NULL),
-            MJB_STATUS_INVALID_ARGUMENT,
-            "line runs rejects NULL run count")
-        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count),
-            MJB_STATUS_OK,
+            MJB_STATUS_INVALID_ARGUMENT, "line runs rejects NULL run count")
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 0, NULL, &run_count), MJB_STATUS_OK,
             "empty line runs ok")
         ATT_ASSERT(run_count, (size_t)0, "empty line runs count")
-        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, NULL, &run_count),
-            MJB_STATUS_OK,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, NULL, &run_count), MJB_STATUS_OK,
             "line runs count ok")
         ATT_ASSERT(run_count, (size_t)1, "LTR one run")
 
         mjb_bidi_run runs[4];
-        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, runs, &run_count),
-            MJB_STATUS_OK,
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 3, runs, &run_count), MJB_STATUS_OK,
             "line runs fill ok")
         ATT_ASSERT((unsigned int)runs[0].direction, (unsigned int)MJB_DIRECTION_LTR,
             "LTR run direction")

@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "maps.h"
 
@@ -60,37 +60,10 @@ static const char *mjbsh_ccc_names_200_to_240[] = {
     "Attached Below Left", // MJB_CCC_ATTACHED_BELOW_LEFT
     NULL,
     "Attached Below", // MJB_CCC_ATTACHED_BELOW
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     "Attached Above", // MJB_CCC_ATTACHED_ABOVE
-    NULL,
-    "Attached Above Right",
-    NULL,
-    "Below Left",
-    NULL,
-    "Below",
-    NULL,
-    "Below Right",
-    NULL,
-    "Left",
-    NULL,
-    "Right",
-    NULL,
-    "Above Left",
-    NULL,
-    "Above",
-    NULL,
-    "Above Right",
-    "Double Below",
+    NULL, "Attached Above Right", NULL, "Below Left", NULL, "Below", NULL, "Below Right", NULL,
+    "Left", NULL, "Right", NULL, "Above Left", NULL, "Above", NULL, "Above Right", "Double Below",
     "Double Above"
 };
 
@@ -184,11 +157,10 @@ char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
     }
 
     if(ccc_index <= MJB_CCC_36 || ccc_index == MJB_CCC_84 || ccc_index == MJB_CCC_91 ||
-        ccc_index == MJB_CCC_103 || ccc_index == MJB_CCC_107 ||
-        ccc_index == MJB_CCC_118 || ccc_index == MJB_CCC_122 ||
-        ccc_index == MJB_CCC_129 || ccc_index == MJB_CCC_130 ||
+        ccc_index == MJB_CCC_103 || ccc_index == MJB_CCC_107 || ccc_index == MJB_CCC_118 ||
+        ccc_index == MJB_CCC_122 || ccc_index == MJB_CCC_129 || ccc_index == MJB_CCC_130 ||
         ccc_index == MJB_CCC_132) {
-        char *str = (char*)malloc(8);
+        char *str = (char *)malloc(8);
 
         if(str) {
             snprintf(str, 8, "CCC%zu", ccc_index);
@@ -200,8 +172,8 @@ char *mjbsh_ccc_name(mjb_canonical_combining_class ccc) {
     if(ccc_index >= MJB_CCC_ATTACHED_BELOW_LEFT && ccc_index <= MJB_CCC_DOUBLE_ABOVE) {
         size_t index = ccc_index - MJB_CCC_ATTACHED_BELOW_LEFT;
 
-        return strdup(mjbsh_ccc_names_200_to_240[index] ?
-            mjbsh_ccc_names_200_to_240[index] : "Unknown");
+        return strdup(mjbsh_ccc_names_200_to_240[index] ? mjbsh_ccc_names_200_to_240[index] :
+                                                          "Unknown");
     }
 
     if(ccc_index == MJB_CCC_BELOW_IOTA) {

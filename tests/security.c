@@ -6,9 +6,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "test.h"
 #include "../src/mojibake-internal.h"
 #include "../src/unicode-tables.h"
+#include "test.h"
 
 static char *trim_ascii(char *text) {
     while(*text == ' ' || *text == '\t' || *text == '\r' || *text == '\n') {
@@ -17,8 +17,7 @@ static char *trim_ascii(char *text) {
 
     char *end = text + strlen(text);
 
-    while(end > text &&
-        (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
+    while(end > text && (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n')) {
         *--end = '\0';
     }
 
@@ -124,8 +123,8 @@ static void run_intentional_confusable_file(const char *filename) {
     fclose(file);
 
     char summary[128];
-    snprintf(summary, sizeof(summary), "intentional.txt: %u/%u pairs passed",
-        tested - failures, tested);
+    snprintf(summary, sizeof(summary), "intentional.txt: %u/%u pairs passed", tested - failures,
+        tested);
     ATT_ASSERT(tested > 0, true, "intentional.txt has confusable pairs")
     ATT_ASSERT(failures, 0u, summary)
 }
@@ -136,7 +135,8 @@ static void check_skeleton(const char *input, size_t input_size, const char *exp
 
     MJB_TEST_COVERAGE(mjb_confusable_skeleton);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(input, input_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &skeleton), MJB_STATUS_OK, name)
+                          &skeleton),
+        MJB_STATUS_OK, name)
     ATT_ASSERT(skeleton.output_size, expected_size, name)
     ATT_ASSERT((int)memcmp(skeleton.output, expected, expected_size), 0, name)
     ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, name)
@@ -220,18 +220,19 @@ int test_security(void *arg) {
     mjb_result skeleton;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(NULL, 1, enc, enc, &skeleton),
         MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL input")
-    ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, enc, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL result")
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, enc, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Skeleton rejects NULL result")
 
     check_skeleton("h\xD0\xB5llo", 6, "hello", 5, "Skeleton maps Cyrillic e");
-    check_skeleton("a\xE2\x80\x8D" "b", 5, "ab", 2,
-        "Skeleton removes default-ignorables");
-    check_skeleton("A1<\xD7\xA9\xD7\x82", 7,
-        "Al<\xD7\xA9\xCC\x87", 7, "Skeleton applies LTR bidi processing");
+    check_skeleton("a\xE2\x80\x8D"
+                   "b",
+        5, "ab", 2, "Skeleton removes default-ignorables");
+    check_skeleton("A1<\xD7\xA9\xD7\x82", 7, "Al<\xD7\xA9\xCC\x87", 7,
+        "Skeleton applies LTR bidi processing");
     check_skeleton("\xEF\xB7\xBA", 3,
         "\xD8\xB5\xD9\x84\xD9\x89 l\xD9\x84\xD9\x84o \xD8\xB9\xD9\x84\xD9\x89o "
-        "\xD9\x88\xD8\xB3\xD9\x84\xD9\x85", 30,
-        "Skeleton preserves full 18-codepoint expansion");
+        "\xD9\x88\xD8\xB3\xD9\x84\xD9\x85",
+        30, "Skeleton preserves full 18-codepoint expansion");
 
     ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, MJB_ENC_UTF_16LE, &skeleton),
         MJB_STATUS_OK, "Skeleton supports UTF-16 output")
@@ -254,12 +255,10 @@ int test_security(void *arg) {
 
     // "A" (Latin capital) is NOT confusable with "a" (Latin lowercase)
     // skeleton("A")="A", skeleton("a")="a" → different
-    ATT_ASSERT(mjb_string_is_confusable("A", 1, enc, "a", 1, enc), false,
-        "A not confusable with a")
+    ATT_ASSERT(mjb_string_is_confusable("A", 1, enc, "a", 1, enc), false, "A not confusable with a")
 
     // "a" is not confusable with "b"
-    ATT_ASSERT(mjb_string_is_confusable("a", 1, enc, "b", 1, enc), false,
-        "a not confusable with b")
+    ATT_ASSERT(mjb_string_is_confusable("a", 1, enc, "b", 1, enc), false, "a not confusable with b")
 
     // A string is confusable with itself
     ATT_ASSERT(mjb_string_is_confusable("hello", 5, enc, "hello", 5, enc), true,
@@ -279,18 +278,13 @@ int test_security(void *arg) {
         "a not confusable with ab")
 
     // Digit '1', capital 'I', and pipe '|' all map to skeleton 'l'
-    ATT_ASSERT(mjb_string_is_confusable("1", 1, enc, "l", 1, enc), true,
-        "1 confusable with l")
-    ATT_ASSERT(mjb_string_is_confusable("I", 1, enc, "l", 1, enc), true,
-        "I confusable with l")
-    ATT_ASSERT(mjb_string_is_confusable("|", 1, enc, "l", 1, enc), true,
-        "| confusable with l")
-    ATT_ASSERT(mjb_string_is_confusable("1", 1, enc, "I", 1, enc), true,
-        "1 confusable with I")
+    ATT_ASSERT(mjb_string_is_confusable("1", 1, enc, "l", 1, enc), true, "1 confusable with l")
+    ATT_ASSERT(mjb_string_is_confusable("I", 1, enc, "l", 1, enc), true, "I confusable with l")
+    ATT_ASSERT(mjb_string_is_confusable("|", 1, enc, "l", 1, enc), true, "| confusable with l")
+    ATT_ASSERT(mjb_string_is_confusable("1", 1, enc, "I", 1, enc), true, "1 confusable with I")
 
     // Digit '0' maps to skeleton 'O' (letter)
-    ATT_ASSERT(mjb_string_is_confusable("0", 1, enc, "O", 1, enc), true,
-        "0 confusable with O")
+    ATT_ASSERT(mjb_string_is_confusable("0", 1, enc, "O", 1, enc), true, "0 confusable with O")
     ATT_ASSERT(mjb_string_is_confusable("0", 1, enc, "o", 1, enc), false,
         "0 not confusable with o (O != o)")
 
@@ -306,8 +300,10 @@ int test_security(void *arg) {
         "Cyrillic рal confusable with pal")
 
     // Cyrillic С (U+0421, UTF-8: 0xD0 0xA1) maps to Latin C
-    ATT_ASSERT(mjb_string_is_confusable("\xD0\xA1" "at", 4, enc, "Cat", 3, enc), true,
-        "Cyrillic С + at confusable with Cat")
+    ATT_ASSERT(mjb_string_is_confusable("\xD0\xA1"
+                                        "at",
+                   4, enc, "Cat", 3, enc),
+        true, "Cyrillic С + at confusable with Cat")
 
     // "gооd" (Cyrillic о U+043E, UTF-8: 0xD0 0xBE) confusable with "good"
     // skeleton(Cyrillic о) = Latin o -> both strings have skeleton "good"
@@ -318,8 +314,11 @@ int test_security(void *arg) {
         "Confusable with different encodings")
 
     // Confusability is symmetric
-    ATT_ASSERT(mjb_string_is_confusable("pal", 3, enc, "\xD1\x80" "al", 4, enc), true,
-        "confusability is symmetric")
+    ATT_ASSERT(mjb_string_is_confusable("pal", 3, enc,
+                   "\xD1\x80"
+                   "al",
+                   4, enc),
+        true, "confusability is symmetric")
 
     run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
     run_confusables_file("./utils/generate/unicode-data/security/confusables.txt");

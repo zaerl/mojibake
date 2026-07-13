@@ -59,7 +59,7 @@ int test_mojibake(void *arg) {
     mjb_result result;
     ATT_ASSERT_STATUS(mjb_result_free(NULL), MJB_STATUS_INVALID_ARGUMENT, "Free NULL result")
 
-    result.output = (char*)malloc(1);
+    result.output = (char *)malloc(1);
     result.output_size = 1;
     result.transformed = true;
 
@@ -79,8 +79,7 @@ int test_mojibake(void *arg) {
 
     void *default_buffer = NULL;
     ATT_ASSERT((default_buffer = mjb_alloc(1)) != NULL, true, "Default alloc")
-    ATT_ASSERT((default_buffer = mjb_realloc(default_buffer, 2)) != NULL, true,
-        "Default realloc")
+    ATT_ASSERT((default_buffer = mjb_realloc(default_buffer, 2)) != NULL, true, "Default realloc")
     ATT_ASSERT((mjb_free(default_buffer), true), true, "Default free")
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown void memory functions")
 
@@ -97,26 +96,26 @@ int test_mojibake(void *arg) {
 
     test_set_failing_allocator(0);
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("a", 1, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_16LE, &result), MJB_STATUS_NO_MEMORY,
-        "Encoding conversion handles allocation failure")
-    ATT_ASSERT_STATUS(mjb_string_filter("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE,
-        MJB_ENC_UTF_8, &result), MJB_STATUS_NO_MEMORY, "Filter handles allocation failure")
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
+        MJB_STATUS_NO_MEMORY, "Encoding conversion handles allocation failure")
+    ATT_ASSERT_STATUS(mjb_string_filter("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE, MJB_ENC_UTF_8,
+                          &result),
+        MJB_STATUS_NO_MEMORY, "Filter handles allocation failure")
     ATT_ASSERT_STATUS(mjb_normalize("e\xCC\x81", 3, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, &result), MJB_STATUS_NO_MEMORY,
-        "Normalization handles allocation failure")
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-        &result), MJB_STATUS_NO_MEMORY, "Case conversion handles allocation failure")
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8,
-        MJB_COLLATION_NON_IGNORABLE, &result), MJB_STATUS_NO_MEMORY,
-        "Collation key handles allocation failure")
+                          MJB_ENC_UTF_8, &result),
+        MJB_STATUS_NO_MEMORY, "Normalization handles allocation failure")
+    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result),
+        MJB_STATUS_NO_MEMORY, "Case conversion handles allocation failure")
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+                          &result),
+        MJB_STATUS_NO_MEMORY, "Collation key handles allocation failure")
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown failing allocator")
 
     test_set_failing_allocator(1);
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("ab", 2, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_16LE, &result), MJB_STATUS_NO_MEMORY,
-        "Encoding conversion handles reallocation failure")
+    ATT_ASSERT_STATUS(mjb_string_convert_encoding("ab", 2, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+                          &result),
+        MJB_STATUS_NO_MEMORY, "Encoding conversion handles reallocation failure")
 
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown realloc failing allocator")
 

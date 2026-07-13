@@ -20,7 +20,7 @@ int optopt = 0;
 
 static char *nextchar = NULL;
 
-int getopt(int argc, char * const argv[], const char *optstring) {
+int getopt(int argc, char *const argv[], const char *optstring) {
     if(optind == 0) {
         optind = 1;
     }
@@ -76,7 +76,7 @@ int getopt(int argc, char * const argv[], const char *optstring) {
     return c;
 }
 
-int getopt_long(int argc, char * const argv[], const char *optstring, const struct option *longopts,
+int getopt_long(int argc, char *const argv[], const char *optstring, const struct option *longopts,
     int *longindex) {
     if(optind == 0) {
         optind = 1;

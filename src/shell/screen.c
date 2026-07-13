@@ -4,29 +4,29 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-    #include <io.h>
     #include "../utf16.h"
+    #include <io.h>
+    #include <windows.h>
     #define STDIN_FILENO _fileno(stdin)
 
-    // Windows terminal state structure
-    typedef struct mjb_terminal_state {
-        HANDLE h_stdin;
-        DWORD orig_mode;
-    } terminal_state;
+// Windows terminal state structure
+typedef struct mjb_terminal_state {
+    HANDLE h_stdin;
+    DWORD orig_mode;
+} terminal_state;
 #else
     #include <signal.h>
     #include <sys/select.h>
     #include <termios.h>
     #include <unistd.h>
 
-    // Unix terminal state structure
-    typedef struct termios terminal_state;
+// Unix terminal state structure
+typedef struct termios terminal_state;
 #endif
 
 #include "screen.h"
@@ -64,7 +64,7 @@ static BOOL WINAPI mjbsh_console_ctrl_handler(DWORD ctrl_type) {
         case CTRL_SHUTDOWN_EVENT:
             mjbsh_cleanup_terminal();
 
-            return FALSE;  // Let default handler terminate
+            return FALSE; // Let default handler terminate
         default:
             return FALSE;
     }
@@ -136,7 +136,7 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
     signal(SIGHUP, mjbsh_signal_handler);
 #endif
 
-    char input_buffer[1024] = {0};
+    char input_buffer[1024] = { 0 };
     size_t buffer_pos = 0;
     if(fn != NULL) {
         fn("");
@@ -159,13 +159,9 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
         DWORD events_read;
         DWORD wait_result = WaitForSingleObject(term_state.h_stdin, 10);
 
-        if(
-            wait_result == WAIT_OBJECT_0 &&
-            ReadConsoleInput(term_state.h_stdin, &ir, 1, &events_read) &&
-            events_read > 0 &&
-            ir.EventType == KEY_EVENT &&
-            ir.Event.KeyEvent.bKeyDown
-        ) {
+        if(wait_result == WAIT_OBJECT_0 &&
+            ReadConsoleInput(term_state.h_stdin, &ir, 1, &events_read) && events_read > 0 &&
+            ir.EventType == KEY_EVENT && ir.Event.KeyEvent.bKeyDown) {
             WCHAR wc = ir.Event.KeyEvent.uChar.UnicodeChar;
             WORD vk = ir.Event.KeyEvent.wVirtualKeyCode;
 
@@ -195,7 +191,8 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
                     --buffer_pos;
 
                     // Walk back over UTF-8 continuation bytes
-                    while(buffer_pos > 0 && ((unsigned char)input_buffer[buffer_pos] & 0xC0) == 0x80) {
+                    while(buffer_pos > 0 &&
+                        ((unsigned char)input_buffer[buffer_pos] & 0xC0) == 0x80) {
                         --buffer_pos;
                     }
 
@@ -207,11 +204,11 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
                 }
             } else {
                 // Decode UTF-16 unit to codepoint; handles surrogate pairs across events
-                utf16_state = mjb_utf16_decode_step(utf16_state,
-                    (uint8_t)(wc & 0xFF), (uint8_t)((wc >> 8) & 0xFF), &utf16_cp, false);
+                utf16_state = mjb_utf16_decode_step(utf16_state, (uint8_t)(wc & 0xFF),
+                    (uint8_t)((wc >> 8) & 0xFF), &utf16_cp, false);
 
                 if(utf16_state == MJB_UTF_ACCEPT) {
-                    char utf8[5] = {0};
+                    char utf8[5] = { 0 };
                     unsigned int utf8_len = mjb_codepoint_encode(utf16_cp, utf8, 5, MJB_ENC_UTF_8);
 
                     if(utf8_len > 0 && buffer_pos + utf8_len < sizeof(input_buffer) - 1) {

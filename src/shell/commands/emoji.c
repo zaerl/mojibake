@@ -84,8 +84,8 @@ static void mjbsh_emoji_json_string(const char *value) {
     putchar('"');
 }
 
-static void mjbsh_emoji_json_string_field(const char *name, const char *value,
-    unsigned int level, bool comma) {
+static void mjbsh_emoji_json_string_field(const char *name, const char *value, unsigned int level,
+    bool comma) {
     mjbsh_emoji_json_indent(level);
     printf("\"%s\":%s", name, mjbsh_emoji_json_space());
     mjbsh_emoji_json_string(value);
@@ -189,11 +189,11 @@ static bool mjbsh_emoji_next_character(mjb_character *character, mjb_character_p
     return true;
 }
 
-static bool mjbsh_emoji_input_from_codepoints(int argc, char * const argv[], char **buffer,
+static bool mjbsh_emoji_input_from_codepoints(int argc, char *const argv[], char **buffer,
     size_t *size) {
     size_t buffer_size = ((size_t)argc * 4) + 1;
     size_t index = 0;
-    char *codepoints = (char*)malloc(buffer_size);
+    char *codepoints = (char *)malloc(buffer_size);
 
     if(codepoints == NULL) {
         return false;
@@ -245,8 +245,8 @@ static void mjbsh_emoji_print_json(const char *buffer, size_t byte_length, bool 
 
     mjbsh_emoji_json_character_count = 0;
 
-    if(mjb_string_each_character(buffer, byte_length, MJB_ENC_UTF_8,
-        mjbsh_emoji_next_character) != MJB_STATUS_OK) {
+    if(mjb_string_each_character(buffer, byte_length, MJB_ENC_UTF_8, mjbsh_emoji_next_character) !=
+        MJB_STATUS_OK) {
         printf("]%s", mjbsh_jnl());
         printf("}%s", mjbsh_jnl());
 
@@ -272,13 +272,13 @@ static void mjbsh_emoji_print_plain(const char *buffer, size_t byte_length, bool
         mjbsh_emoji_qualification_name(emoji->qualification), 1);
     mjbsh_numeric("Sequence Codepoints", 1, (unsigned int)emoji->codepoint_count);
 
-    if(mjb_string_each_character(buffer, byte_length, MJB_ENC_UTF_8,
-        mjbsh_emoji_next_character) != MJB_STATUS_OK) {
+    if(mjb_string_each_character(buffer, byte_length, MJB_ENC_UTF_8, mjbsh_emoji_next_character) !=
+        MJB_STATUS_OK) {
         return;
     }
 }
 
-int mjbsh_emoji_command(int argc, char * const argv[], unsigned int flags) {
+int mjbsh_emoji_command(int argc, char *const argv[], unsigned int flags) {
     char *buffer = argv[0];
     size_t size = strlen(buffer);
     bool should_free = false;
@@ -299,8 +299,8 @@ int mjbsh_emoji_command(int argc, char * const argv[], unsigned int flags) {
     memset(&emoji, 0, sizeof(emoji));
 
     bool is_emoji_sequence = mjb_string_is_emoji_sequence(buffer, size, MJB_ENC_UTF_8);
-    bool has_sequence_metadata = mjb_string_emoji_sequence(buffer, size, MJB_ENC_UTF_8,
-        &emoji) == MJB_STATUS_OK;
+    bool has_sequence_metadata = mjb_string_emoji_sequence(buffer, size, MJB_ENC_UTF_8, &emoji) ==
+        MJB_STATUS_OK;
     bool is_rgi = mjb_string_is_rgi_emoji(buffer, size, MJB_ENC_UTF_8);
 
     if(!has_sequence_metadata) {

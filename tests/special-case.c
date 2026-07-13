@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "test.h"
 #include "../src/utf8.h"
+#include "test.h"
 
 static int check_case(char *source, size_t source_size, char *target, size_t target_size,
     mjb_case_type type, unsigned int current_line, const char *step) {
@@ -38,7 +38,7 @@ static int check_conditional(const char *source, const char *target, mjb_case_ty
     char *result = run_mjb_case(source, strlen(source), type, MJB_ENC_UTF_8);
 
     MJB_TEST_COVERAGE(mjb_case);
-    ATT_ASSERT(result, (char*)target, name)
+    ATT_ASSERT(result, (char *)target, name)
 
     if(result != NULL) {
         mjb_free(result);
@@ -69,8 +69,7 @@ static void test_conditional_case(void) {
     check_conditional("ISPARTA", "\xC4\xB1sparta", MJB_CASE_LOWER,
         "tr lower: I -> ı when not before dot above");
     check_conditional("\xC4\xB0STANBUL", "istanbul", MJB_CASE_LOWER, "tr lower: İ -> i");
-    check_conditional("I\xCC\x87", "i", MJB_CASE_LOWER,
-        "tr lower: dot above removed after I");
+    check_conditional("I\xCC\x87", "i", MJB_CASE_LOWER, "tr lower: dot above removed after I");
     check_conditional("I\xCC\xA3\xCC\x87", "i\xCC\xA3", MJB_CASE_LOWER,
         "tr lower: ccc 220 mark may intervene between I and dot above");
     check_conditional("diyarbak\xC4\xB1r", "D\xC4\xB0YARBAKIR", MJB_CASE_UPPER,
@@ -92,8 +91,7 @@ static void test_conditional_case(void) {
         "lt lower: J gains dot above when more accents above");
     check_conditional("\xC4\xAE\xCC\x83", "\xC4\xAF\xCC\x87\xCC\x83", MJB_CASE_LOWER,
         "lt lower: Į gains dot above when more accents above");
-    check_conditional("IS", "is", MJB_CASE_LOWER,
-        "lt lower: no dot above without accents above");
+    check_conditional("IS", "is", MJB_CASE_LOWER, "lt lower: no dot above without accents above");
     check_conditional("\xC3\x8C", "i\xCC\x87\xCC\x80", MJB_CASE_LOWER, "lt lower: Ì -> i̇̀");
     check_conditional("\xC3\x8D", "i\xCC\x87\xCC\x81", MJB_CASE_LOWER, "lt lower: Í -> i̇́");
     check_conditional("\xC4\xA8", "i\xCC\x87\xCC\x83", MJB_CASE_LOWER, "lt lower: Ĩ -> i̇̃");
@@ -103,10 +101,8 @@ static void test_conditional_case(void) {
 
     // The language-sensitive rules must not leak into other locales.
     ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
-    check_conditional("I\xCC\x87", "i\xCC\x87", MJB_CASE_LOWER,
-        "en lower: dot above kept after I");
-    check_conditional("I\xCC\x80", "i\xCC\x80", MJB_CASE_LOWER,
-        "en lower: no dot above inserted");
+    check_conditional("I\xCC\x87", "i\xCC\x87", MJB_CASE_LOWER, "en lower: dot above kept after I");
+    check_conditional("I\xCC\x80", "i\xCC\x80", MJB_CASE_LOWER, "en lower: no dot above inserted");
 }
 
 int test_special_case(void *arg) {
@@ -151,19 +147,19 @@ int test_special_case(void *arg) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_string_from_codepoints(token, 256, (char*)source);
+                    source_size = get_string_from_codepoints(token, 256, (char *)source);
                     break;
 
                 case 1: // Lower
-                    lower_size = get_string_from_codepoints(token, 256, (char*)lower);
+                    lower_size = get_string_from_codepoints(token, 256, (char *)lower);
                     break;
 
                 case 2: // Title
-                    title_size = get_string_from_codepoints(token, 256, (char*)title);
+                    title_size = get_string_from_codepoints(token, 256, (char *)title);
                     break;
 
                 case 3: // Upper
-                    upper_size = get_string_from_codepoints(token, 256, (char*)upper);
+                    upper_size = get_string_from_codepoints(token, 256, (char *)upper);
                     break;
             }
 
@@ -175,14 +171,17 @@ int test_special_case(void *arg) {
 
         free(tofree);
 
-        check_case((char*)source, source_size, (char*)lower, lower_size, MJB_CASE_LOWER, current_line, "lower");
-        check_case((char*)source, source_size, (char*)title, title_size, MJB_CASE_TITLE, current_line, "title");
-        check_case((char*)source, source_size, (char*)upper, upper_size, MJB_CASE_UPPER, current_line, "upper");
+        check_case((char *)source, source_size, (char *)lower, lower_size, MJB_CASE_LOWER,
+            current_line, "lower");
+        check_case((char *)source, source_size, (char *)title, title_size, MJB_CASE_TITLE,
+            current_line, "title");
+        check_case((char *)source, source_size, (char *)upper, upper_size, MJB_CASE_UPPER,
+            current_line, "upper");
 
-        memset((void*)source, 0, 256);
-        memset((void*)lower, 0, 256);
-        memset((void*)title, 0, 256);
-        memset((void*)upper, 0, 256);
+        memset((void *)source, 0, 256);
+        memset((void *)lower, 0, 256);
+        memset((void *)title, 0, 256);
+        memset((void *)upper, 0, 256);
 
         ++current_line;
     }

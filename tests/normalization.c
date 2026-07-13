@@ -5,11 +5,11 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "test.h"
 #include "../src/utf8.h"
+#include "test.h"
 
 static bool next_character(mjb_character *character, mjb_character_position type) {
     printf(" \x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);
@@ -47,8 +47,8 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     char test_name[128];
 
     MJB_TEST_COVERAGE(mjb_normalize);
-    mjb_status status = mjb_normalize(source, source_size, MJB_ENC_UTF_8, form,
-        MJB_ENC_UTF_8, &result);
+    mjb_status status = mjb_normalize(source, source_size, MJB_ENC_UTF_8, form, MJB_ENC_UTF_8,
+        &result);
 
     if(status != MJB_STATUS_OK) {
         snprintf(test_name, 128, "#%u %s", current_line, step);
@@ -85,7 +85,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
     int test_ret = ATT_ASSERT(result.output, normalized, test_name)
 
-    if(result.output != NULL && result.output != source) {
+        if(result.output != NULL && result.output != source) {
         mjb_free(result.output);
     }
 
@@ -102,7 +102,8 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     }
 
     if(form == MJB_NORMALIZATION_NFC && has_only_latin1(source, source_size)) {
-        snprintf(test_name, 128, "#%u %s \"%s\" is Latin-1 and not normalized", current_line, step, source);
+        snprintf(test_name, 128, "#%u %s \"%s\" is Latin-1 and not normalized", current_line, step,
+            source);
         test_ret = ATT_ASSERT(result.transformed, false, test_name)
     }
 
@@ -114,8 +115,8 @@ static void check_nfkc_casefold(const char *source, size_t source_size, const ch
     mjb_result result = { NULL, 0, false };
 
     MJB_TEST_COVERAGE(mjb_nfkc_casefold);
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &result), MJB_STATUS_OK, name)
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result),
+        MJB_STATUS_OK, name)
     ATT_ASSERT(result.output_size, expected_size, name)
     ATT_ASSERT((int)memcmp(result.output, expected, expected_size), 0, name)
     ATT_ASSERT(result.transformed, true, name)
@@ -133,12 +134,12 @@ static void test_nfkc_casefold(void) {
         MJB_STATUS_OK, "NFKC casefold accepts empty input")
     ATT_ASSERT(result.transformed, false, "NFKC casefold empty input is borrowed")
 
-    check_nfkc_casefold("Stra\xC3\x9F" "e\xC2\xAD", 9, "strasse", 7,
-        "NFKC casefold folds sharp s and removes soft hyphen");
+    check_nfkc_casefold("Stra\xC3\x9F"
+                        "e\xC2\xAD",
+        9, "strasse", 7, "NFKC casefold folds sharp s and removes soft hyphen");
     check_nfkc_casefold("\xEF\xAC\x83", 3, "ffi", 3,
         "NFKC casefold expands compatibility ligature");
-    check_nfkc_casefold("A\xCC\x8A", 3, "\xC3\xA5", 2,
-        "NFKC casefold composes mappings to NFC");
+    check_nfkc_casefold("A\xCC\x8A", 3, "\xC3\xA5", 2, "NFKC casefold composes mappings to NFC");
     check_nfkc_casefold("\xE2\x84\xAA", 3, "k", 1,
         "NFKC casefold applies compatibility case mapping");
 
@@ -146,12 +147,12 @@ static void test_nfkc_casefold(void) {
         MJB_STATUS_OK, "NFKC casefold supports UTF-16 output")
     ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold UTF-16 output size")
     ATT_ASSERT((int)memcmp(result.output, "a\0", 2), 0, "NFKC casefold UTF-16 output bytes")
-    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
-        "NFKC casefold frees UTF-16 output")
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "NFKC casefold frees UTF-16 output")
 }
 
 // Verify Unicode R5 against every explicit NFKC_CF mapping. The normative string transform maps
-// each character and then applies NFC, so expected property values are normalized before comparison.
+// each character and then applies NFC, so expected property values are normalized before
+// comparison.
 static void test_nfkc_casefold_file(void) {
     FILE *file = fopen("./utils/generate/unicode-data/UCD/DerivedNormalizationProps.txt", "r");
 
@@ -208,8 +209,8 @@ static void test_nfkc_casefold_file(void) {
             sizeof(expected_mapping), expected_mapping);
         mjb_result expected;
         ATT_ASSERT_STATUS(mjb_normalize(expected_mapping, mapping_size, MJB_ENC_UTF_8,
-            MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &expected), MJB_STATUS_OK,
-            "Normalize expected NFKC casefold mapping")
+                              MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &expected),
+            MJB_STATUS_OK, "Normalize expected NFKC casefold mapping")
 
         for(unsigned int codepoint = start; codepoint <= end; ++codepoint) {
             char source[8];
@@ -217,11 +218,11 @@ static void test_nfkc_casefold_file(void) {
                 MJB_ENC_UTF_8);
             mjb_result actual;
             char test_name[128];
-            snprintf(test_name, sizeof(test_name), "NFKC_CF #%u U+%04X", current_line,
-                codepoint);
+            snprintf(test_name, sizeof(test_name), "NFKC_CF #%u U+%04X", current_line, codepoint);
 
-            ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8,
-                MJB_ENC_UTF_8, &actual), MJB_STATUS_OK, test_name)
+            ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                                  &actual),
+                MJB_STATUS_OK, test_name)
             ATT_ASSERT(actual.output_size, expected.output_size, test_name)
             ATT_ASSERT((int)memcmp(actual.output, expected.output, expected.output_size), 0,
                 test_name)
@@ -249,16 +250,16 @@ int test_normalization(void *arg) {
     test_nfkc_casefold();
     test_nfkc_casefold_file();
 
-    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, &guard_result), MJB_STATUS_INVALID_ARGUMENT,
-        "Normalize rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, NULL), MJB_STATUS_INVALID_ARGUMENT,
-        "Normalize rejects NULL result")
+    ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+                          &guard_result),
+        MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL buffer")
+    ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+                          NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL result")
 
-    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_16LE, &guard_result), MJB_STATUS_OK,
-        "Normalize converts output encoding for already-normalized input")
+    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE,
+                          &guard_result),
+        MJB_STATUS_OK, "Normalize converts output encoding for already-normalized input")
     ATT_ASSERT(guard_result.transformed, true,
         "Normalize converted already-normalized input transformed")
     ATT_ASSERT(guard_result.output_size, (size_t)2,
@@ -312,23 +313,23 @@ int test_normalization(void *arg) {
         while((token = strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
-                    source_size = get_string_from_codepoints(token, 256, (char*)source);
+                    source_size = get_string_from_codepoints(token, 256, (char *)source);
                     break;
 
                 case 1: // NFC
-                    nfc_size = get_string_from_codepoints(token, 256, (char*)nfc);
+                    nfc_size = get_string_from_codepoints(token, 256, (char *)nfc);
                     break;
 
                 case 2: // NFD
-                    nfd_size = get_string_from_codepoints(token, 256, (char*)nfd);
+                    nfd_size = get_string_from_codepoints(token, 256, (char *)nfd);
                     break;
 
                 case 3: // NFKC
-                    nfkc_size = get_string_from_codepoints(token, 256, (char*)nfkc);
+                    nfkc_size = get_string_from_codepoints(token, 256, (char *)nfkc);
                     break;
 
                 case 4: // NFKD
-                    nfkd_size = get_string_from_codepoints(token, 256, (char*)nfkd);
+                    nfkd_size = get_string_from_codepoints(token, 256, (char *)nfkd);
                     break;
             }
 
@@ -345,48 +346,68 @@ int test_normalization(void *arg) {
          * nfd == toNFD(source) == toNFD(nfc) == toNFD(nfd)
          * nfkd == toNFD(nfkc) == toNFD(nfkd)
          */
-        check_normalization((char*)source, source_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line, "nfd == toNFD(source)");
-        check_normalization((char*)nfc, nfc_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line, "nfd == toNFD(nfc)");
-        check_normalization((char*)nfd, nfd_size, (char*)nfd, nfd_size, MJB_NORMALIZATION_NFD, current_line, "nfd == toNFD(nfd)");
-        check_normalization((char*)nfkc, nfkc_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line, "nfd == toNFD(nfkc)");
-        check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFD, current_line, "nfd == toNFD(nfkd)");
+        check_normalization((char *)source, source_size, (char *)nfd, nfd_size,
+            MJB_NORMALIZATION_NFD, current_line, "nfd == toNFD(source)");
+        check_normalization((char *)nfc, nfc_size, (char *)nfd, nfd_size, MJB_NORMALIZATION_NFD,
+            current_line, "nfd == toNFD(nfc)");
+        check_normalization((char *)nfd, nfd_size, (char *)nfd, nfd_size, MJB_NORMALIZATION_NFD,
+            current_line, "nfd == toNFD(nfd)");
+        check_normalization((char *)nfkc, nfkc_size, (char *)nfkd, nfkd_size, MJB_NORMALIZATION_NFD,
+            current_line, "nfd == toNFD(nfkc)");
+        check_normalization((char *)nfkd, nfkd_size, (char *)nfkd, nfkd_size, MJB_NORMALIZATION_NFD,
+            current_line, "nfd == toNFD(nfkd)");
 
         /**
          * NFKD
          * nfkd == toNFKD(source) == toNFKD(nfc) == toNFKD(nfd) == toNFKD(nfkc) == toNFKD(nfkd)
          */
-        check_normalization((char*)source, source_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(source)");
-        check_normalization((char*)nfc, nfc_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(nfc)");
-        check_normalization((char*)nfd, nfd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(nfd)");
-        check_normalization((char*)nfkc, nfkc_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(nfkc)");
-        check_normalization((char*)nfkd, nfkd_size, (char*)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(nfkd)");
+        check_normalization((char *)source, source_size, (char *)nfkd, nfkd_size,
+            MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(source)");
+        check_normalization((char *)nfc, nfc_size, (char *)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD,
+            current_line, "nfkd == toNFKD(nfc)");
+        check_normalization((char *)nfd, nfd_size, (char *)nfkd, nfkd_size, MJB_NORMALIZATION_NFKD,
+            current_line, "nfkd == toNFKD(nfd)");
+        check_normalization((char *)nfkc, nfkc_size, (char *)nfkd, nfkd_size,
+            MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(nfkc)");
+        check_normalization((char *)nfkd, nfkd_size, (char *)nfkd, nfkd_size,
+            MJB_NORMALIZATION_NFKD, current_line, "nfkd == toNFKD(nfkd)");
 
         /**
          * NFC
          * nfc == toNFC(source) == toNFC(nfc) == toNFC(nfd)
          * nfkc == toNFC(nfkc) == toNFC(nfkd)
          */
-        check_normalization((char*)source, source_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line, "nfc == toNFC(source)");
-        check_normalization((char*)nfc, nfc_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line, "nfc == toNFC(nfc)");
-        check_normalization((char*)nfd, nfd_size, (char*)nfc, nfc_size, MJB_NORMALIZATION_NFC, current_line, "nfc == toNFC(nfd)");
-        check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line, "nfc == toNFC(nfkc)");
-        check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFC, current_line, "nfc == toNFC(nfkd)");
+        check_normalization((char *)source, source_size, (char *)nfc, nfc_size,
+            MJB_NORMALIZATION_NFC, current_line, "nfc == toNFC(source)");
+        check_normalization((char *)nfc, nfc_size, (char *)nfc, nfc_size, MJB_NORMALIZATION_NFC,
+            current_line, "nfc == toNFC(nfc)");
+        check_normalization((char *)nfd, nfd_size, (char *)nfc, nfc_size, MJB_NORMALIZATION_NFC,
+            current_line, "nfc == toNFC(nfd)");
+        check_normalization((char *)nfkc, nfkc_size, (char *)nfkc, nfkc_size, MJB_NORMALIZATION_NFC,
+            current_line, "nfc == toNFC(nfkc)");
+        check_normalization((char *)nfkd, nfkd_size, (char *)nfkc, nfkc_size, MJB_NORMALIZATION_NFC,
+            current_line, "nfc == toNFC(nfkd)");
 
         /**
          * NFKC
          * nfkc == toNFKC(source) == toNFKC(nfc) == toNFKC(nfd) == toNFKC(nfkc) == toNFKC(nfkd)
          */
-        check_normalization((char*)source, source_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(source)");
-        check_normalization((char*)nfc, nfc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(nfc)");
-        check_normalization((char*)nfd, nfd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(nfd)");
-        check_normalization((char*)nfkc, nfkc_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(nfkc)");
-        check_normalization((char*)nfkd, nfkd_size, (char*)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(nfkd)");
+        check_normalization((char *)source, source_size, (char *)nfkc, nfkc_size,
+            MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(source)");
+        check_normalization((char *)nfc, nfc_size, (char *)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC,
+            current_line, "nfkc == toNFKC(nfc)");
+        check_normalization((char *)nfd, nfd_size, (char *)nfkc, nfkc_size, MJB_NORMALIZATION_NFKC,
+            current_line, "nfkc == toNFKC(nfd)");
+        check_normalization((char *)nfkc, nfkc_size, (char *)nfkc, nfkc_size,
+            MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(nfkc)");
+        check_normalization((char *)nfkd, nfkd_size, (char *)nfkc, nfkc_size,
+            MJB_NORMALIZATION_NFKC, current_line, "nfkc == toNFKC(nfkd)");
 
-        memset((void*)source, 0, 256);
-        memset((void*)nfc, 0, 256);
-        memset((void*)nfd, 0, 256);
-        memset((void*)nfkc, 0, 256);
-        memset((void*)nfkd, 0, 256);
+        memset((void *)source, 0, 256);
+        memset((void *)nfc, 0, 256);
+        memset((void *)nfd, 0, 256);
+        memset((void *)nfkc, 0, 256);
+        memset((void *)nfkd, 0, 256);
 
         ++current_line;
     }
