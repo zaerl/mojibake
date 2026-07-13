@@ -6,9 +6,13 @@ AlignAfterOpenBracket: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: DontAlign
+AlignOperands: DontAlign
+BreakBeforeTernaryOperators: false
 ColumnLimit: 100
 Cpp11BracedListStyle: false
+IndentCaseLabels: true
 IndentWidth: 4
 PenaltyBreakOpenParenthesis: 1000000
+PenaltyBreakAssignment: 1000000
 SpaceBeforeParens: Never
 UseTab: Never

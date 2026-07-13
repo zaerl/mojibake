@@ -16,15 +16,15 @@ extern mojibake mjb_global;
 // (Lower is NOT blocked here — it's the target; handled separately.)
 static inline bool mjb_sbp_blocks_sb8(mjb_sbp sbp) {
     return sbp == MJB_SBP_OLETTER || sbp == MJB_SBP_UPPER || sbp == MJB_SBP_SEP ||
-        sbp == MJB_SBP_CR || sbp == MJB_SBP_LF || sbp == MJB_SBP_LOWER || sbp == MJB_SBP_STERM ||
-        sbp == MJB_SBP_ATERM;
+           sbp == MJB_SBP_CR || sbp == MJB_SBP_LF || sbp == MJB_SBP_LOWER || sbp == MJB_SBP_STERM ||
+           sbp == MJB_SBP_ATERM;
 }
 
 // Peek ahead from peek_index to check if Lower is reachable through
 // (¬(OLetter | Upper | Lower | ParaSep | SATerm))* — the SB8 look-ahead.
 // Extend and Format are transparent (SB5). Returns true if Lower is found.
-static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_length, size_t peek_index,
-    mjb_encoding encoding) {
+static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_length,
+    size_t peek_index, mjb_encoding encoding) {
     uint8_t peek_state = MJB_UTF_ACCEPT;
     mjb_codepoint peek_cp = 0;
     bool peek_error = false;
@@ -38,7 +38,7 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_lengt
         }
 
         if(dr == MJB_DECODE_OK) {
-            uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
+            uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
             if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
                 return false;
@@ -74,8 +74,8 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_lengt
 
 // Sentence boundaries breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_next_sentence_state *state) {
+MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_next_sentence_state *state) {
     if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
@@ -189,8 +189,7 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
 
         // Break after paragraph separators.
         // SB4 ParaSep ÷
-        if(state->previous == MJB_SBP_SEP ||
-            state->previous == MJB_SBP_CR ||
+        if(state->previous == MJB_SBP_SEP || state->previous == MJB_SBP_CR ||
             state->previous == MJB_SBP_LF) {
             state->in_sat = false;
             state->sat_has_sp = false;
@@ -202,10 +201,8 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
         // Ignore Format and Extend characters, except after sot, ParaSep, and within CRLF.
         // SB5 X (Extend | Format)* -> X
         if((state->current == MJB_SBP_EXTEND || state->current == MJB_SBP_FORMAT) &&
-           state->previous != MJB_SBP_NOT_SET &&
-           state->previous != MJB_SBP_CR &&
-           state->previous != MJB_SBP_LF &&
-           state->previous != MJB_SBP_SEP) {
+            state->previous != MJB_SBP_NOT_SET && state->previous != MJB_SBP_CR &&
+            state->previous != MJB_SBP_LF && state->previous != MJB_SBP_SEP) {
             // Absorb: remap to the base class so subsequent calls see X as previous.
             state->current = state->previous;
             state->current_codepoint = state->previous_codepoint;
@@ -246,8 +243,7 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
 
         // SB7 (Upper | Lower) ATerm × Upper
         if((state->prev_prev == MJB_SBP_UPPER || state->prev_prev == MJB_SBP_LOWER) &&
-           state->previous == MJB_SBP_ATERM &&
-           state->current == MJB_SBP_UPPER) {
+            state->previous == MJB_SBP_ATERM && state->current == MJB_SBP_UPPER) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -267,29 +263,22 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
         }
 
         // SB8a SATerm Close* Sp* × (SContinue | SATerm)
-        if(prev_in_sat &&
-           (state->current == MJB_SBP_SCONTINUE ||
-            state->current == MJB_SBP_STERM ||
-            state->current == MJB_SBP_ATERM)) {
+        if(prev_in_sat && (state->current == MJB_SBP_SCONTINUE || state->current == MJB_SBP_STERM ||
+                              state->current == MJB_SBP_ATERM)) {
             return MJB_BT_NO_BREAK;
         }
 
         // SB9 SATerm Close* × (Close | Sp | ParaSep)
         if(prev_in_sat && !prev_sat_has_sp &&
-           (state->current == MJB_SBP_CLOSE ||
-            state->current == MJB_SBP_SP ||
-            state->current == MJB_SBP_SEP ||
-            state->current == MJB_SBP_CR ||
-            state->current == MJB_SBP_LF)) {
+            (state->current == MJB_SBP_CLOSE || state->current == MJB_SBP_SP ||
+                state->current == MJB_SBP_SEP || state->current == MJB_SBP_CR ||
+                state->current == MJB_SBP_LF)) {
             return MJB_BT_NO_BREAK;
         }
 
         // SB10 SATerm Close* Sp* × (Sp | ParaSep)
-        if(prev_in_sat &&
-           (state->current == MJB_SBP_SP ||
-            state->current == MJB_SBP_SEP ||
-            state->current == MJB_SBP_CR ||
-            state->current == MJB_SBP_LF)) {
+        if(prev_in_sat && (state->current == MJB_SBP_SP || state->current == MJB_SBP_SEP ||
+                              state->current == MJB_SBP_CR || state->current == MJB_SBP_LF)) {
             return MJB_BT_NO_BREAK;
         }
 

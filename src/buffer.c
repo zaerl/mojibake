@@ -7,7 +7,7 @@
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
 
- /**
+/**
  * A smaller version of mjb_codepoint_character() that only returns the character information.
  * This is used to avoid the overhead of the full normalization process.
  */
@@ -16,7 +16,8 @@ bool mjb_n_codepoint_character(mjb_codepoint codepoint, mjb_n_character *charact
         return false;
     }
 
-    // Check for Hangul syllables and CJK ideographs first, as they are common and can be handled quickly.
+    // Check for Hangul syllables and CJK ideographs first, as they are common and can be handled
+    // quickly.
     if(mjb_codepoint_is_hangul_syllable(codepoint) || mjb_codepoint_is_cjk_ideograph(codepoint)) {
         character->codepoint = codepoint;
         character->combining = MJB_CCC_NOT_REORDERED;

@@ -236,13 +236,16 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             mjb_category pq_cat = mjb_lbp_category(state->previous_codepoint);
 
             if(pq_cat == MJB_CATEGORY_PI) {
-                bool in_ctx =
-                    (state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
-                        state->prev_prev_lbp == MJB_LBP_BK || state->prev_prev_lbp == MJB_LBP_CR ||
-                        state->prev_prev_lbp == MJB_LBP_LF || state->prev_prev_lbp == MJB_LBP_NL ||
-                        state->prev_prev_lbp == MJB_LBP_OP || state->prev_prev_lbp == MJB_LBP_QU ||
-                        state->prev_prev_lbp == MJB_LBP_GL || state->prev_prev_lbp == MJB_LBP_SP ||
-                        state->prev_prev_lbp == MJB_LBP_ZW);
+                bool in_ctx = (state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
+                               state->prev_prev_lbp == MJB_LBP_BK ||
+                               state->prev_prev_lbp == MJB_LBP_CR ||
+                               state->prev_prev_lbp == MJB_LBP_LF ||
+                               state->prev_prev_lbp == MJB_LBP_NL ||
+                               state->prev_prev_lbp == MJB_LBP_OP ||
+                               state->prev_prev_lbp == MJB_LBP_QU ||
+                               state->prev_prev_lbp == MJB_LBP_GL ||
+                               state->prev_prev_lbp == MJB_LBP_SP ||
+                               state->prev_prev_lbp == MJB_LBP_ZW);
 
                 // Also propagate through SP* chain
                 if(!in_ctx) {
@@ -545,8 +548,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             // Look ahead: check EA of next character (or EOT)
             {
                 mjb_east_asian_width next_ea = MJB_EAW_NOT_SET;
-                mjb_lbp next_lbp =
-                    mjb_peek_next(buffer, byte_length, state->index, encoding, &next_ea);
+                mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding,
+                    &next_ea);
 
                 if(next_lbp == MJB_LBP_NOT_SET || !mjb_is_ea(next_ea)) {
                     // EOT or next char is not East Asian → no break before this Pi-QU
