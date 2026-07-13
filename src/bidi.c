@@ -22,12 +22,12 @@
 typedef struct {
     uint8_t level;
     uint8_t override; // 0: neutral, 1: force-L, 2: force-R.
-    bool isolate; // true = pushed by an isolate initiator.
+    bool isolate;     // true = pushed by an isolate initiator.
 } mjb_bidi_stack_entry;
 
 typedef struct {
     mjb_codepoint open_codepoint;
-    size_t position; // Index into working array.
+    size_t position;     // Index into working array.
     size_t irs_position; // Index into irs_idx[] for context lookup.
 } mjb_bidi_bracket_entry;
 
@@ -50,6 +50,7 @@ typedef struct {
 
 // From BidiBrackets.txt, Unicode 17.0.0)
 // This array is automatically generated. Do not edit.
+// clang-format off
 static const mjb_bidi_bracket_info mjb_bidi_brackets[] = {
     { 0x0028, 0x0029, true }, { 0x0029, 0x0028, false }, { 0x005B, 0x005D, true },
     { 0x005D, 0x005B, false }, { 0x007B, 0x007D, true }, { 0x007D, 0x007B, false },
@@ -97,6 +98,7 @@ static const mjb_bidi_bracket_info mjb_bidi_brackets[] = {
 };
 
 #define MJB_BIDI_BRACKET_COUNT 128
+// clang-format on
 
 static bool bidi_bracket_info(mjb_codepoint cp, mjb_codepoint *pair, bool *is_open) {
     for(int i = 0; i < MJB_BIDI_BRACKET_COUNT; ++i) {
@@ -118,6 +120,7 @@ typedef struct {
 
 // From BidiMirroring.txt, Unicode 17.0.0
 // This array is automatically generated. Do not edit.
+// clang-format off
 static const mjb_bidi_mirroring_pair mjb_bidi_mirroring[] = {
     { 0x0028, 0x0029 }, { 0x0029, 0x0028 }, { 0x003C, 0x003E },
     { 0x003E, 0x003C }, { 0x005B, 0x005D }, { 0x005D, 0x005B },
@@ -265,6 +268,7 @@ static const mjb_bidi_mirroring_pair mjb_bidi_mirroring[] = {
 };
 
 #define MJB_BIDI_MIRRORING_COUNT 428
+// clang-format on
 
 static mjb_codepoint bidi_mirroring_glyph(mjb_codepoint cp) {
     int lo = 0, hi = MJB_BIDI_MIRRORING_COUNT - 1;
@@ -289,7 +293,7 @@ static mjb_codepoint bidi_mirroring_glyph(mjb_codepoint cp) {
 // UAX#9 6.3: U+2329≡U+3008 (open), U+232A≡U+3009 (close) are canonical equivalents.
 static inline bool bracket_canon_eq(mjb_codepoint a, mjb_codepoint b) {
     return (a == 0x2329 && b == 0x3008) || (a == 0x3008 && b == 0x2329) ||
-        (a == 0x232A && b == 0x3009) || (a == 0x3009 && b == 0x232A);
+           (a == 0x232A && b == 0x3009) || (a == 0x3009 && b == 0x232A);
 }
 
 static inline bool is_strong_type(mjb_bidi_class c) {
@@ -302,7 +306,7 @@ static inline bool is_rtl_strong(mjb_bidi_class c) {
 
 static inline bool is_neutral(mjb_bidi_class c) {
     return c == MJB_PR_BIDI_CLASS_B || c == MJB_PR_BIDI_CLASS_S || c == MJB_PR_BIDI_CLASS_WS ||
-        c == MJB_PR_BIDI_CLASS_ON;
+           c == MJB_PR_BIDI_CLASS_ON;
 }
 
 static inline bool is_isolate_initiator(mjb_bidi_class c) {
@@ -330,7 +334,8 @@ static size_t pass1_decode(const char *buffer, size_t byte_length, mjb_encoding 
 
     while(i < byte_length && count < capacity) {
         size_t byte_offset = i;
-        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp, &in_error);
+        mjb_decode_result dr =
+            mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp, &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;
@@ -403,7 +408,7 @@ static void pass2_explicit(mjb_bidi_work *work, size_t count, uint8_t para_level
         mjb_bidi_class bc = work[i].bidi;
         uint8_t cur_level = stack[top].level;
         uint8_t next_even = (uint8_t)(((cur_level + 2) & ~1)); // Next even >= cur + 1.
-        uint8_t next_odd = (uint8_t)(((cur_level + 1) | 1)); // Next odd >= cur + 1.
+        uint8_t next_odd = (uint8_t)(((cur_level + 1) | 1));   // Next odd >= cur + 1.
 
         if(bc == MJB_PR_BIDI_CLASS_RLE || bc == MJB_PR_BIDI_CLASS_RLO) {
             uint8_t new_level = next_odd;
@@ -475,8 +480,8 @@ static void pass2_explicit(mjb_bidi_work *work, size_t count, uint8_t para_level
             }
 
             // Treat FSI as LRI or RLI based on found direction.
-            mjb_bidi_class effective = is_rtl_strong(fsi_dir_class) ? MJB_PR_BIDI_CLASS_RLI
-                : MJB_PR_BIDI_CLASS_LRI;
+            mjb_bidi_class effective =
+                is_rtl_strong(fsi_dir_class) ? MJB_PR_BIDI_CLASS_RLI : MJB_PR_BIDI_CLASS_LRI;
             work[i].level = stack[top].level;
 
             if(stack[top].override == 1) {
@@ -713,7 +718,7 @@ static void pass3_weak(mjb_bidi_work *work, size_t count, uint8_t para_level) {
             mjb_bidi_class bc = work[idx].bidi;
 
             if(bc == MJB_PR_BIDI_CLASS_L || bc == MJB_PR_BIDI_CLASS_R ||
-               bc == MJB_PR_BIDI_CLASS_AL) {
+                bc == MJB_PR_BIDI_CLASS_AL) {
                 last_strong = bc;
             } else if(bc == MJB_PR_BIDI_CLASS_EN && last_strong == MJB_PR_BIDI_CLASS_AL) {
                 work[idx].bidi = MJB_PR_BIDI_CLASS_AN;
@@ -782,7 +787,7 @@ static void pass3_weak(mjb_bidi_work *work, size_t count, uint8_t para_level) {
             mjb_bidi_class bc = work[irs_idx[j]].bidi;
 
             if(bc == MJB_PR_BIDI_CLASS_ES || bc == MJB_PR_BIDI_CLASS_ET ||
-               bc == MJB_PR_BIDI_CLASS_CS) {
+                bc == MJB_PR_BIDI_CLASS_CS) {
                 work[irs_idx[j]].bidi = MJB_PR_BIDI_CLASS_ON;
             }
         }
@@ -811,15 +816,15 @@ static void pass3_weak(mjb_bidi_work *work, size_t count, uint8_t para_level) {
 // Pass 4: N0, bracket pairs (per Isolating Run Sequence).
 // Bracket pair collected during phase 1 of N0
 typedef struct {
-    size_t open_idx; // Work array index of open bracket
+    size_t open_idx;  // Work array index of open bracket
     size_t close_idx; // Work array index of close bracket
-    size_t open_irs; // IRS index of open bracket
+    size_t open_irs;  // IRS index of open bracket
     size_t close_irs; // IRS index of close bracket
 } mjb_bracket_pair;
 
 static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level) {
     size_t *irs_idx = (size_t *)mjb_alloc(count * sizeof(size_t));
-    bool *done = (bool*)mjb_alloc(count * sizeof(bool));
+    bool *done = (bool *)mjb_alloc(count * sizeof(bool));
 
     if(!irs_idx || !done) {
         mjb_free(irs_idx);
@@ -850,8 +855,8 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level
         }
 
         mjb_bidi_class embed_dir = level_to_dir(level);
-        mjb_bidi_class opp_dir = (embed_dir == MJB_PR_BIDI_CLASS_L) ? MJB_PR_BIDI_CLASS_R :
-            MJB_PR_BIDI_CLASS_L;
+        mjb_bidi_class opp_dir =
+            (embed_dir == MJB_PR_BIDI_CLASS_L) ? MJB_PR_BIDI_CLASS_R : MJB_PR_BIDI_CLASS_L;
 
         // Phase 1: collect all bracket pairs for this IRS.
         mjb_bidi_bracket_entry bstack[MJB_BIDI_BRACKET_STACK];
@@ -901,9 +906,9 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level
                 }
 
                 if(found >= 0 && pair_count < MJB_BIDI_BRACKET_STACK) {
-                    pairs[pair_count].open_idx  = bstack[found].position;
+                    pairs[pair_count].open_idx = bstack[found].position;
                     pairs[pair_count].close_idx = idx;
-                    pairs[pair_count].open_irs  = bstack[found].irs_position;
+                    pairs[pair_count].open_irs = bstack[found].irs_position;
                     pairs[pair_count].close_irs = j;
                     ++pair_count;
                     bstop = found; // Pop stack to just below the matched entry.
@@ -939,7 +944,7 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level
 
             // Scan only IRS chars strictly between the brackets.
             bool found_embed = false;
-            bool found_opp   = false;
+            bool found_opp = false;
 
             for(size_t kk = open_irs + 1; kk < close_irs; ++kk) {
                 mjb_bidi_class kbc = work[irs_idx[kk]].bidi;
@@ -1028,7 +1033,7 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level
  */
 static void pass5_neutrals(mjb_bidi_work *work, size_t count, uint8_t para_level) {
     size_t *irs_idx = (size_t *)mjb_alloc(count * sizeof(size_t));
-    bool *done = (bool*)mjb_alloc(count * sizeof(bool));
+    bool *done = (bool *)mjb_alloc(count * sizeof(bool));
 
     if(!irs_idx || !done) {
         mjb_free(irs_idx);
@@ -1114,7 +1119,7 @@ static void pass5_neutrals(mjb_bidi_work *work, size_t count, uint8_t para_level
             mjb_bidi_class resolved;
 
             if(before == after &&
-               (before == MJB_PR_BIDI_CLASS_L || before == MJB_PR_BIDI_CLASS_R)) {
+                (before == MJB_PR_BIDI_CLASS_L || before == MJB_PR_BIDI_CLASS_R)) {
                 resolved = before; // N1.
             } else {
                 resolved = embed_dir; // N2.
@@ -1154,7 +1159,7 @@ static void pass6_implicit(mjb_bidi_work *work, size_t count) {
         } else {
             // Odd level: I2
             if(bc == MJB_PR_BIDI_CLASS_L || bc == MJB_PR_BIDI_CLASS_AN ||
-               bc == MJB_PR_BIDI_CLASS_EN) {
+                bc == MJB_PR_BIDI_CLASS_EN) {
                 work[i].level = (uint8_t)(level + 1);
             }
         }
@@ -1162,8 +1167,8 @@ static void pass6_implicit(mjb_bidi_work *work, size_t count) {
 }
 
 // Resolve bidirectional text (TR9) for a paragraph.
-MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_direction direction, mjb_bidi_paragraph *result) {
+MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -1191,7 +1196,8 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, m
     uint8_t para_level = 0;
 
     // Pass 1.
-    size_t count = pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level, direction);
+    size_t count =
+        pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level, direction);
 
     if(count == 0) {
         mjb_free(work);
@@ -1253,8 +1259,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, m
 
                 mjb_bidi_class koc = work[k].orig;
 
-                if(koc == MJB_PR_BIDI_CLASS_WS ||
-                    is_isolate_initiator(koc) ||
+                if(koc == MJB_PR_BIDI_CLASS_WS || is_isolate_initiator(koc) ||
                     koc == MJB_PR_BIDI_CLASS_PDI) {
                     work[k].level = para_level;
                 } else {
@@ -1274,9 +1279,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, m
 
         mjb_bidi_class oc = work[i].orig;
 
-        if(oc == MJB_PR_BIDI_CLASS_WS ||
-            is_isolate_initiator(oc) ||
-            oc == MJB_PR_BIDI_CLASS_PDI) {
+        if(oc == MJB_PR_BIDI_CLASS_WS || is_isolate_initiator(oc) || oc == MJB_PR_BIDI_CLASS_PDI) {
             work[i].level = para_level;
         } else {
             break;
@@ -1355,11 +1358,11 @@ MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph) {
 }
 
 // Reorder a line visually (L1-L4); visual_order is caller-allocated.
-MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
-    size_t line_start, size_t line_end, size_t *visual_order) {
+MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start,
+    size_t line_end, size_t *visual_order) {
     if(paragraph == NULL || visual_order == NULL ||
-        (paragraph->chars == NULL && paragraph->count > 0) ||
-        line_start >= line_end || line_end > paragraph->count) {
+        (paragraph->chars == NULL && paragraph->count > 0) || line_start >= line_end ||
+        line_end > paragraph->count) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -1376,9 +1379,8 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
         size_t idx = visual_order[i];
         mjb_bidi_class rc = paragraph->chars[idx].resolved_class;
 
-        if(rc == MJB_PR_BIDI_CLASS_WS || rc == MJB_PR_BIDI_CLASS_B ||
-           rc == MJB_PR_BIDI_CLASS_S || is_isolate_initiator(rc) ||
-           rc == MJB_PR_BIDI_CLASS_PDI) {
+        if(rc == MJB_PR_BIDI_CLASS_WS || rc == MJB_PR_BIDI_CLASS_B || rc == MJB_PR_BIDI_CLASS_S ||
+            is_isolate_initiator(rc) || rc == MJB_PR_BIDI_CLASS_PDI) {
             (void)para_level;
             // Simplified: stop at first non-whitespace from end
             break;
