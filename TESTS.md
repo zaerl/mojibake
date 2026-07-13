@@ -1,98 +1,115 @@
 # Test coverage
 
+Mojibake run a total of **1,610,136** C assertions and **77** JavaScript assertions, including all
+the official tests included in the standard:
+
+1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
+2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
+3. [auxiliary/SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
+4. [auxiliary/WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
+5. [BidiCharacterTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiCharacterTest.txt)
+6. [BidiTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiTest.txt)
+7. [CaseFolding.txt](https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt)
+8. [CollationTest/CollationTest_NON_IGNORABLE.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
+9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
+10. [emoji-test.txt](https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt)
+11. [intentional.txt](https://www.unicode.org/Public/security/latest/intentional.txt)
+12. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
+13. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
+
 ## C
 
 | Test                                     | Coverage    |
 | ---------------------------------------- | ----------- |
-| `mjb_bidi_resolve`                       | 582572      |
-| `mjb_string_compare`                     | 437881      |
+| `mjb_bidi_resolve`                       | 582573      |
+| `mjb_string_compare`                     | 437882      |
 | `mjb_normalize`                          | 421541      |
-| `mjb_bidi_reorder_line`                  | 91722       |
+| `mjb_bidi_reorder_line`                  | 91723       |
 | `mjb_nfkc_casefold`                      | 31773       |
-| `mjb_break_line`                         | 18794       |
-| `mjb_result_free`                        | 10597       |
-| `mjb_string_emoji_sequence`              | 5266        |
+| `mjb_break_line`                         | 18795       |
+| `mjb_result_free`                        | 10598       |
+| `mjb_string_emoji_sequence`              | 5267        |
 | `mjb_case`                               | 3487        |
-| `mjb_break_word`                         | 1828        |
-| `mjb_codepoint_emoji`                    | 1419        |
-| `mjb_break_grapheme_cluster`             | 715         |
-| `mjb_codepoint_script_extensions`        | 629         |
-| `mjb_break_sentence`                     | 458         |
+| `mjb_break_word`                         | 1829        |
+| `mjb_codepoint_emoji`                    | 1420        |
+| `mjb_break_grapheme_cluster`             | 716         |
+| `mjb_codepoint_script_extensions`        | 630         |
+| `mjb_break_sentence`                     | 459         |
 | `mjb_string_filter`                      | 155         |
-| `mjb_string_convert_encoding`            | 136         |
-| `mjb_locale_parse`                       | 120         |
-| `mjb_string_length`                      | 106         |
-| `mjb_codepoint_encode`                   | 105         |
-| `mjb_string_is_confusable`               | 101         |
+| `mjb_string_convert_encoding`            | 137         |
+| `mjb_locale_parse`                       | 121         |
+| `mjb_string_length`                      | 111         |
+| `mjb_codepoint_encode`                   | 106         |
+| `mjb_string_is_confusable`               | 102         |
 | `mjb_codepoint_character`                | 82          |
-| `mjb_display_width`                      | 48          |
-| `mjb_hangul_syllable_composition`        | 44          |
-| `mjb_codepoint_is_valid`                 | 39          |
-| `mjb_codepoint_east_asian_width`         | 32          |
-| `mjb_collation_key`                      | 24          |
+| `mjb_display_width`                      | 49          |
+| `mjb_hangul_syllable_composition`        | 45          |
+| `mjb_codepoint_is_valid`                 | 40          |
+| `mjb_codepoint_east_asian_width`         | 33          |
+| `mjb_collation_key`                      | 25          |
+| `mjb_locale_set`                         | 21          |
 | `mjb_codepoint_numeric_value`            | 20          |
-| `mjb_locale_set`                         | 20          |
+| `mjb_hangul_syllable_name`               | 19          |
 | `mjb_confusable_skeleton`                | 18          |
-| `mjb_hangul_syllable_name`               | 18          |
-| `mjb_string_is_utf8`                     | 17          |
-| `mjb_codepoint_block`                    | 15          |
-| `mjb_codepoint_is_cjk_ext`               | 15          |
-| `mjb_string_is_utf16`                    | 14          |
-| `mjb_string_is_identifier`               | 12          |
-| `mjb_bidi_line_runs`                     | 11          |
-| `mjb_truncate`                           | 11          |
-| `mjb_string_encoding`                    | 10          |
-| `mjb_string_is_ascii`                    | 10          |
-| `mjb_string_is_normalized`               | 10          |
-| `mjb_truncate_width`                     | 10          |
-| `mjb_codepoint_script`                   | 9           |
-| `mjb_plane_name`                         | 8           |
-| `mjb_truncate_word`                      | 8           |
-| `mjb_codepoint_is_cjk_ideograph`         | 7           |
-| `mjb_shutdown`                           | 7           |
-| `mjb_truncate_word_width`                | 7           |
-| `mjb_codepoint_is_id_start`              | 6           |
-| `mjb_codepoint_property_binary`          | 6           |
-| `mjb_string_each_character`              | 6           |
-| `mjb_codepoint_is_combining`             | 5           |
-| `mjb_codepoint_is_graphic`               | 5           |
-| `mjb_codepoint_is_id_continue`           | 5           |
-| `mjb_codepoint_property_int`             | 5           |
+| `mjb_string_is_utf8`                     | 18          |
+| `mjb_codepoint_block`                    | 16          |
+| `mjb_codepoint_is_cjk_ext`               | 16          |
+| `mjb_string_is_utf16`                    | 15          |
+| `mjb_string_is_identifier`               | 13          |
+| `mjb_bidi_line_runs`                     | 12          |
+| `mjb_truncate`                           | 12          |
+| `mjb_string_encoding`                    | 11          |
+| `mjb_string_is_ascii`                    | 11          |
+| `mjb_string_is_normalized`               | 11          |
+| `mjb_truncate_width`                     | 11          |
+| `mjb_codepoint_script`                   | 10          |
+| `mjb_plane_name`                         | 9           |
+| `mjb_truncate_word`                      | 9           |
+| `mjb_codepoint_is_cjk_ideograph`         | 8           |
+| `mjb_shutdown`                           | 8           |
+| `mjb_truncate_word_width`                | 8           |
+| `mjb_codepoint_is_id_start`              | 7           |
+| `mjb_codepoint_property_binary`          | 7           |
+| `mjb_string_each_character`              | 7           |
+| `mjb_codepoint_is_combining`             | 6           |
+| `mjb_codepoint_is_graphic`               | 6           |
+| `mjb_codepoint_is_id_continue`           | 6           |
+| `mjb_codepoint_property_int`             | 6           |
+| `mjb_hangul_syllable_decomposition`      | 6           |
+| `mjb_alloc`                              | 5           |
+| `mjb_codepoint_is_hangul_jamo`           | 5           |
 | `mjb_codepoint_to_lowercase`             | 5           |
-| `mjb_hangul_syllable_decomposition`      | 5           |
-| `mjb_alloc`                              | 4           |
-| `mjb_codepoint_is_hangul_jamo`           | 4           |
-| `mjb_set_memory_functions`               | 4           |
-| `mjb_codepoint_is_hangul_l`              | 3           |
-| `mjb_codepoint_is_hangul_t`              | 3           |
-| `mjb_codepoint_is_hangul_v`              | 3           |
-| `mjb_codepoint_is_pattern_syntax`        | 3           |
-| `mjb_codepoint_is_pattern_white_space`   | 3           |
-| `mjb_codepoint_plane`                    | 3           |
-| `mjb_codepoint_to_titlecase`             | 3           |
-| `mjb_codepoint_to_uppercase`             | 3           |
-| `mjb_free`                               | 3           |
-| `mjb_plane_is_valid`                     | 3           |
-| `mjb_realloc`                            | 3           |
-| `mjb_string_is_rgi_emoji`                | 3           |
-| `mjb_bidi_free`                          | 2           |
-| `mjb_category_is_combining`              | 2           |
-| `mjb_category_is_graphic`                | 2           |
-| `mjb_codepoint_is_emoji`                 | 2           |
-| `mjb_codepoint_is_xid_continue`          | 2           |
-| `mjb_codepoint_is_xid_start`             | 2           |
-| `mjb_property_name`                      | 2           |
-| `mjb_string_is_emoji_sequence`           | 2           |
-| `mjb_codepoint_is_emoji_component`       | 1           |
-| `mjb_codepoint_is_emoji_modifier`        | 1           |
-| `mjb_codepoint_is_emoji_modifier_base`   | 1           |
-| `mjb_codepoint_is_emoji_presentation`    | 1           |
-| `mjb_codepoint_is_extended_pictographic` | 1           |
-| `mjb_codepoint_is_hangul_syllable`       | 1           |
-| `mjb_unicode_version`                    | 1           |
-| `mjb_version`                            | 1           |
-| `mjb_version_number`                     | 1           |
-| **Total**                                | **1610052** |
+| `mjb_set_memory_functions`               | 5           |
+| `mjb_codepoint_is_hangul_l`              | 4           |
+| `mjb_codepoint_is_hangul_t`              | 4           |
+| `mjb_codepoint_is_hangul_v`              | 4           |
+| `mjb_codepoint_is_pattern_syntax`        | 4           |
+| `mjb_codepoint_is_pattern_white_space`   | 4           |
+| `mjb_codepoint_plane`                    | 4           |
+| `mjb_codepoint_to_titlecase`             | 4           |
+| `mjb_codepoint_to_uppercase`             | 4           |
+| `mjb_free`                               | 4           |
+| `mjb_plane_is_valid`                     | 4           |
+| `mjb_realloc`                            | 4           |
+| `mjb_string_is_rgi_emoji`                | 4           |
+| `mjb_bidi_free`                          | 3           |
+| `mjb_category_is_combining`              | 3           |
+| `mjb_category_is_graphic`                | 3           |
+| `mjb_codepoint_is_emoji`                 | 3           |
+| `mjb_codepoint_is_xid_continue`          | 3           |
+| `mjb_codepoint_is_xid_start`             | 3           |
+| `mjb_property_name`                      | 3           |
+| `mjb_string_is_emoji_sequence`           | 3           |
+| `mjb_codepoint_is_emoji_component`       | 2           |
+| `mjb_codepoint_is_emoji_modifier`        | 2           |
+| `mjb_codepoint_is_emoji_modifier_base`   | 2           |
+| `mjb_codepoint_is_emoji_presentation`    | 2           |
+| `mjb_codepoint_is_extended_pictographic` | 2           |
+| `mjb_codepoint_is_hangul_syllable`       | 2           |
+| `mjb_unicode_version`                    | 2           |
+| `mjb_version`                            | 2           |
+| `mjb_version_number`                     | 2           |
+| **Total**                                | **1610136** |
 
 ## JavaScript
 

@@ -129,9 +129,10 @@ int main(int argc, char * const argv[]) {
 Mojibake can compile out optional feature tables to reduce binary size. Feature macros default to
 enabled.
 
-- `MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
+- `#define MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
 `mjb_codepoint_character(...)` to fill `mjb_character.name`. When disabled, the tables are not
-compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`.
+compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will redude the output
+of **~30%**.
 
 With CMake:
 
@@ -149,49 +150,22 @@ make test-no-names
 
 ### API documentation
 
-See [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) for the detailed documentation.
+See [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) or the site for the detailed
+documentation.
 
 ### CLI
 
 The `src/shell` directory builds the `mojibake` CLI used to test the library. Example usage:
 
 ```bash
+# This outputs "NFC: Café", e + ◌́ -> é
 mojibake nfc $'Cafe\u0301'
-```
 
-Plain text output:
-
-```bash
-Café
-```
-
-Emoji sequence analysis:
-
-```bash
+# The output an emoji sequence [1] Basic, [2] Fully-qualified of two characters U+263A U+FE0F
 mojibake emoji "☺️"
-mojibake -c emoji 263A FE0F
 ```
 
-### Coverage
-
-Mojibake run a total of **1,610,136** tests, including all the official tests included in the
-standard:
-
-1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
-2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
-3. [auxiliary/SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
-4. [auxiliary/WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
-5. [BidiCharacterTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiCharacterTest.txt)
-6. [BidiTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiTest.txt)
-7. [CaseFolding.txt](https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt)
-8. [CollationTest/CollationTest_NON_IGNORABLE.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
-9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
-10. [emoji-test.txt](https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt)
-11. [intentional.txt](https://www.unicode.org/Public/security/latest/intentional.txt)
-12. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
-13. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
-
-## Building from source
+## Building from source and contributing
 
 See [CONTRIBUTING.md](https://github.com/zaerl/mojibake/blob/main/CONTRIBUTING.md) for instructions.
 

@@ -214,20 +214,31 @@ function captureRuntimeCoverage(testExecutable: string, coverage: Coverage): voi
 function printCoverage(cCoverage: Coverage, javascriptCoverage: Coverage): void {
   const cSection = renderCoverageSection('C', cCoverage);
   const javascriptSection = renderCoverageSection('JavaScript', javascriptCoverage);
-  const total = cSection.total; // + javascriptSection.total;
-  let output = '# Test coverage\n\n';
+  const total = cSection.total.toLocaleString('en-US');
+  const totalJS = javascriptSection.total.toLocaleString('en-US');
+  let output = `# Test coverage
+
+Mojibake run a total of **${total}** C assertions and **${totalJS}** JavaScript assertions, including all
+the official tests included in the standard:
+
+1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
+2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
+3. [auxiliary/SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
+4. [auxiliary/WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
+5. [BidiCharacterTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiCharacterTest.txt)
+6. [BidiTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiTest.txt)
+7. [CaseFolding.txt](https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt)
+8. [CollationTest/CollationTest_NON_IGNORABLE.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
+9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
+10. [emoji-test.txt](https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt)
+11. [intentional.txt](https://www.unicode.org/Public/security/latest/intentional.txt)
+12. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
+13. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)\n
+`;
   output += `${cSection.output}\n`;
   output += javascriptSection.output;
 
   writeFileSync(join(repoRoot, 'TESTS.md'), output);
-
-  // Update README.md with the total coverage count
-  const readmePath = join(repoRoot, 'README.md');
-  const readmeContent = readFileSync(readmePath, 'utf8');
-  const updatedReadmeContent = substituteBlock(readmeContent, 'a total of **', `** tests, including`,
-    total.toLocaleString('en-US')
-  );
-  writeFileSync(readmePath, updatedReadmeContent);
 }
 
 function main(): void {
