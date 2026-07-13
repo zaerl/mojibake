@@ -114,6 +114,20 @@ jobs:
           cmake --build build-test-no-names --config Test
           ./build-test-no-names/tests/Test/mojibake-test.exe
 
+      - name: Test (embedded NULLs)
+        shell: bash
+        run: |
+          cmake -S . -B build-test-null -DALLOW_EMBEDDED_NULLS=ON
+          cmake --build build-test-null --config Test
+          ./build-test-null/tests/Test/mojibake-test.exe
+
+      - name: Test (C++)
+        shell: bash
+        run: |
+          cmake -S . -B build-test-cpp -DBUILD_CPP=ON
+          cmake --build build-test-cpp --config Test
+          ./build-test-cpp/tests/Test/mojibake-test.exe
+
   fuzz:
     name: Fuzz (smoke)
     runs-on: ubuntu-latest
