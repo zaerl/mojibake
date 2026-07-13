@@ -293,7 +293,7 @@ static mjb_codepoint bidi_mirroring_glyph(mjb_codepoint cp) {
 // UAX#9 6.3: U+2329≡U+3008 (open), U+232A≡U+3009 (close) are canonical equivalents.
 static inline bool bracket_canon_eq(mjb_codepoint a, mjb_codepoint b) {
     return (a == 0x2329 && b == 0x3008) || (a == 0x3008 && b == 0x2329) ||
-           (a == 0x232A && b == 0x3009) || (a == 0x3009 && b == 0x232A);
+        (a == 0x232A && b == 0x3009) || (a == 0x3009 && b == 0x232A);
 }
 
 static inline bool is_strong_type(mjb_bidi_class c) {
@@ -306,7 +306,7 @@ static inline bool is_rtl_strong(mjb_bidi_class c) {
 
 static inline bool is_neutral(mjb_bidi_class c) {
     return c == MJB_PR_BIDI_CLASS_B || c == MJB_PR_BIDI_CLASS_S || c == MJB_PR_BIDI_CLASS_WS ||
-           c == MJB_PR_BIDI_CLASS_ON;
+        c == MJB_PR_BIDI_CLASS_ON;
 }
 
 static inline bool is_isolate_initiator(mjb_bidi_class c) {
@@ -334,8 +334,8 @@ static size_t pass1_decode(const char *buffer, size_t byte_length, mjb_encoding 
 
     while(i < byte_length && count < capacity) {
         size_t byte_offset = i;
-        mjb_decode_result dr =
-            mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp, &in_error);
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp,
+            &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;
@@ -480,8 +480,10 @@ static void pass2_explicit(mjb_bidi_work *work, size_t count, uint8_t para_level
             }
 
             // Treat FSI as LRI or RLI based on found direction.
-            mjb_bidi_class effective =
-                is_rtl_strong(fsi_dir_class) ? MJB_PR_BIDI_CLASS_RLI : MJB_PR_BIDI_CLASS_LRI;
+            // clang-format off
+            mjb_bidi_class effective = is_rtl_strong(fsi_dir_class) ? MJB_PR_BIDI_CLASS_RLI :
+                MJB_PR_BIDI_CLASS_LRI;
+            // clang-format on
             work[i].level = stack[top].level;
 
             if(stack[top].override == 1) {
@@ -855,8 +857,10 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level
         }
 
         mjb_bidi_class embed_dir = level_to_dir(level);
-        mjb_bidi_class opp_dir =
-            (embed_dir == MJB_PR_BIDI_CLASS_L) ? MJB_PR_BIDI_CLASS_R : MJB_PR_BIDI_CLASS_L;
+        // clang-format off
+        mjb_bidi_class opp_dir = (embed_dir == MJB_PR_BIDI_CLASS_L) ? MJB_PR_BIDI_CLASS_R :
+            MJB_PR_BIDI_CLASS_L;
+        // clang-format on
 
         // Phase 1: collect all bracket pairs for this IRS.
         mjb_bidi_bracket_entry bstack[MJB_BIDI_BRACKET_STACK];
@@ -1196,8 +1200,8 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
     uint8_t para_level = 0;
 
     // Pass 1.
-    size_t count =
-        pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level, direction);
+    size_t count = pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level,
+        direction);
 
     if(count == 0) {
         mjb_free(work);

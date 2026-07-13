@@ -81,9 +81,9 @@ static inline mjb_lbp mjb_peek_next(const char *buffer, size_t byte_length, size
 // Return true if lbp is in the LB15b follower set
 static inline bool mjb_is_lb15b_follower(mjb_lbp lbp) {
     return lbp == MJB_LBP_NOT_SET || lbp == MJB_LBP_SP || lbp == MJB_LBP_GL || lbp == MJB_LBP_WJ ||
-           lbp == MJB_LBP_CL || lbp == MJB_LBP_QU || lbp == MJB_LBP_CP || lbp == MJB_LBP_EX ||
-           lbp == MJB_LBP_IS || lbp == MJB_LBP_SY || lbp == MJB_LBP_BK || lbp == MJB_LBP_CR ||
-           lbp == MJB_LBP_LF || lbp == MJB_LBP_NL || lbp == MJB_LBP_ZW;
+        lbp == MJB_LBP_CL || lbp == MJB_LBP_QU || lbp == MJB_LBP_CP || lbp == MJB_LBP_EX ||
+        lbp == MJB_LBP_IS || lbp == MJB_LBP_SY || lbp == MJB_LBP_BK || lbp == MJB_LBP_CR ||
+        lbp == MJB_LBP_LF || lbp == MJB_LBP_NL || lbp == MJB_LBP_ZW;
 }
 
 // Line breaking algorithm
@@ -237,15 +237,11 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
             if(pq_cat == MJB_CATEGORY_PI) {
                 bool in_ctx = (state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
-                               state->prev_prev_lbp == MJB_LBP_BK ||
-                               state->prev_prev_lbp == MJB_LBP_CR ||
-                               state->prev_prev_lbp == MJB_LBP_LF ||
-                               state->prev_prev_lbp == MJB_LBP_NL ||
-                               state->prev_prev_lbp == MJB_LBP_OP ||
-                               state->prev_prev_lbp == MJB_LBP_QU ||
-                               state->prev_prev_lbp == MJB_LBP_GL ||
-                               state->prev_prev_lbp == MJB_LBP_SP ||
-                               state->prev_prev_lbp == MJB_LBP_ZW);
+                    state->prev_prev_lbp == MJB_LBP_BK || state->prev_prev_lbp == MJB_LBP_CR ||
+                    state->prev_prev_lbp == MJB_LBP_LF || state->prev_prev_lbp == MJB_LBP_NL ||
+                    state->prev_prev_lbp == MJB_LBP_OP || state->prev_prev_lbp == MJB_LBP_QU ||
+                    state->prev_prev_lbp == MJB_LBP_GL || state->prev_prev_lbp == MJB_LBP_SP ||
+                    state->prev_prev_lbp == MJB_LBP_ZW);
 
                 // Also propagate through SP* chain
                 if(!in_ctx) {
@@ -435,11 +431,11 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             if(qu_cur_cat == MJB_CATEGORY_PI) {
                 // Check if previous is in the LB15a context set
                 bool in_ctx = (state->previous == MJB_LBP_NOT_SET || // sot
-                               state->previous == MJB_LBP_BK || state->previous == MJB_LBP_CR ||
-                               state->previous == MJB_LBP_LF || state->previous == MJB_LBP_NL ||
-                               state->previous == MJB_LBP_OP || state->previous == MJB_LBP_QU ||
-                               state->previous == MJB_LBP_GL || state->previous == MJB_LBP_SP ||
-                               state->previous == MJB_LBP_ZW);
+                    state->previous == MJB_LBP_BK || state->previous == MJB_LBP_CR ||
+                    state->previous == MJB_LBP_LF || state->previous == MJB_LBP_NL ||
+                    state->previous == MJB_LBP_OP || state->previous == MJB_LBP_QU ||
+                    state->previous == MJB_LBP_GL || state->previous == MJB_LBP_SP ||
+                    state->previous == MJB_LBP_ZW);
 
                 if(!in_ctx) {
                     // Also check via pi_qu_context (SP* continuation after Pi-QU)
