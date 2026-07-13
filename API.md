@@ -329,6 +329,17 @@ Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE`
 - `MJB_QC_NO` — The string is not normalized
 - `MJB_QC_MAYBE` — Inconclusive: a full normalization is needed to decide
 
+**Example**
+
+```c
+const char *input = "caf\xC3\xA9";
+mjb_quick_check_result check = mjb_string_is_normalized(input, strlen(input),
+    MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
+
+// NFC normalized: yes
+printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");
+```
+
 See also: [`mjb_normalize`](#mjb_normalize).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
@@ -346,6 +357,17 @@ mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
 
+**Example**
+
+```c
+const char utf16le[] = "\xFF\xFEH\0i\0";
+mjb_encoding detected = mjb_string_encoding(utf16le, sizeof(utf16le) - 1);
+bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
+
+// UTF-16LE detected: yes
+printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");
+```
+
 ## `mjb_string_is_ascii`
 
 Return true if the string is encoded in ASCII.
@@ -356,6 +378,15 @@ bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
 
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
+
+**Example**
+
+```c
+const char *input = "Plain ASCII";
+
+// ASCII: yes
+printf("ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no");
+```
 
 ## `mjb_string_is_utf8`
 
@@ -368,6 +399,15 @@ bool mjb_string_is_utf8(const char *buffer, size_t byte_length);
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
 
+**Example**
+
+```c
+const char *input = "caf\xC3\xA9";
+
+// Valid UTF-8: yes
+printf("Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no");
+```
+
 ## `mjb_string_is_utf16`
 
 Return true if the string is encoded in UTF-16BE or UTF-16LE.
@@ -378,6 +418,15 @@ bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
 
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
+
+**Example**
+
+```c
+const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
+
+// UTF-16: yes
+printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
+```
 
 ## `mjb_string_length`
 
@@ -429,6 +478,18 @@ mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb
 - `encoding` — The encoding of the string
 - `callback` — The function to call for each character
 
+**Example**
+
+```c
+mjb_status status = mjb_string_each_character("ABC", 3, MJB_ENC_UTF_8, NULL);
+
+// A callback is required: yes
+bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
+
+// A callback is required: yes
+printf("A callback is required: %s", callback_required ? "yes" : "no");
+```
+
 ## `mjb_codepoint_property_binary`
 
 Return the value of a binary Unicode property.
@@ -442,6 +503,20 @@ Return `true` when the codepoint has the binary property and `false` when it doe
 - `codepoint` — The codepoint to check
 - `property` — The binary property to query
 - `value` — Where to store the binary property value
+
+**Example**
+
+```c
+bool is_alphabetic;
+
+if(mjb_codepoint_property_binary('A', MJB_PR_ALPHABETIC,
+    &is_alphabetic) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+0041 is alphabetic: yes
+printf("U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no");
+```
 
 See also: [`mjb_codepoint_property_int`](#mjb_codepoint_property_int).
 
@@ -460,6 +535,19 @@ Passing a binary property is a type mismatch and returns `MJB_STATUS_INVALID_ARG
 - `codepoint` — The codepoint to check
 - `property` — The enumerated or integer property to query
 - `value` — Where to store the property value
+
+**Example**
+
+```c
+int32_t script;
+
+if(mjb_codepoint_property_int('A', MJB_PR_SCRIPT, &script) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+0041 uses the Latin script: yes
+printf("U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no");
+```
 
 See also: [`mjb_codepoint_property_binary`](#mjb_codepoint_property_binary).
 
@@ -516,6 +604,19 @@ mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_info *block);
 - `codepoint` — The codepoint to check
 - `block` — The block to store the result
 
+**Example**
+
+```c
+mjb_block_info block;
+
+if(mjb_codepoint_block('A', &block) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Block: Basic Latin
+printf("Block: %s", block.name);
+```
+
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
 ## `mjb_codepoint_script`
@@ -527,6 +628,15 @@ mjb_script mjb_codepoint_script(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+mjb_script script = mjb_codepoint_script(0x03A9); // Greek capital omega
+
+// Greek script: yes
+printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");
+```
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -544,6 +654,26 @@ Return the explicit Script_Extensions set, or the ordinary Script value when the
 - `scripts` — The caller-provided script buffer, or NULL to query the required count
 - `count` — The input capacity and output script count
 
+**Example**
+
+```c
+size_t count = 0;
+
+if(mjb_codepoint_script_extensions(0x30FC, NULL, &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+mjb_script scripts[3];
+
+if(count > 3 || mjb_codepoint_script_extensions(0x30FC, scripts,
+    &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+30FC has 2 Script_Extensions
+printf("U+30FC has %zu Script_Extensions", count);
+```
+
 See also: [`mjb_codepoint_script`](#mjb_codepoint_script).
 
 Specifications: [UAX #24: Unicode Script Property, Unicode 17.0.0](https://www.unicode.org/reports/tr24/tr24-39.html).
@@ -560,6 +690,16 @@ unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t 
 - `buffer` — The buffer to encode the codepoint to
 - `byte_length` — The length of the buffer, in bytes
 - `encoding` — The encoding to use
+
+**Example**
+
+```c
+char encoded[4];
+unsigned int size = mjb_codepoint_encode(0x20AC, encoded, sizeof(encoded), MJB_ENC_UTF_8);
+
+// € sign uses 3 UTF-8 bytes
+printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);
+```
 
 ## `mjb_string_convert_encoding`
 
@@ -585,6 +725,22 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 - `MJB_STATUS_UNSUPPORTED` — The requested encoding conversion is not supported
 - `MJB_STATUS_OVERFLOW` — The output size would overflow
 - `MJB_STATUS_NO_MEMORY` — Allocation failed
+
+**Example**
+
+```c
+const char *input = "caf\xC3\xA9";
+mjb_result result;
+
+if(mjb_string_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// UTF-16LE bytes: 8
+printf("UTF-16LE bytes: %zu", result.output_size);
+mjb_result_free(&result);
+```
 
 See also: [`mjb_string_encoding`](#mjb_string_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
@@ -612,6 +768,16 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 - `0` — The strings are equal under UCA
 - `> 0` — The first string collates after the second
 
+**Example**
+
+```c
+int order = mjb_string_compare("apple", 5, MJB_ENC_UTF_8,
+    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
+
+// apple sorts before banana: yes
+printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
+```
+
 See also: [`mjb_collation_key`](#mjb_collation_key).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html).
@@ -638,6 +804,21 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 - `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
 - `MJB_STATUS_OVERFLOW` — The sort key size would overflow
 - `MJB_STATUS_NO_MEMORY` — Allocation failed
+
+**Example**
+
+```c
+mjb_result key;
+
+if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
+    MJB_COLLATION_NON_IGNORABLE, &key) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Sort key is non-empty: yes
+printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
+mjb_result_free(&key);
+```
 
 See also: [`mjb_string_compare`](#mjb_string_compare).
 
@@ -699,6 +880,13 @@ bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// U+10FFFD valid: yes
+printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");
+```
+
 ## `mjb_codepoint_is_graphic`
 
 Return true if the codepoint is graphic.
@@ -708,6 +896,13 @@ bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Letter A is graphic: yes
+printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");
+```
 
 ## `mjb_codepoint_is_combining`
 
@@ -719,6 +914,13 @@ bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// U+0301 is combining: yes
+printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");
+```
+
 ## `mjb_codepoint_is_hangul_l`
 
 Return if the codepoint is a hangul L.
@@ -728,6 +930,13 @@ bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// U+1100 is a leading Jamo: yes
+printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes" : "no");
+```
 
 ## `mjb_codepoint_is_hangul_v`
 
@@ -739,6 +948,13 @@ bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// U+1161 is a vowel Jamo: yes
+printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" : "no");
+```
+
 ## `mjb_codepoint_is_hangul_t`
 
 Return if the codepoint is a hangul T.
@@ -748,6 +964,13 @@ bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// U+11A8 is a trailing Jamo: yes
+printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes" : "no");
+```
 
 ## `mjb_codepoint_is_hangul_jamo`
 
@@ -759,6 +982,13 @@ bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// U+1100 is Hangul Jamo: yes
+printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");
+```
+
 ## `mjb_codepoint_is_hangul_syllable`
 
 Return if the codepoint is a hangul syllable.
@@ -768,6 +998,13 @@ bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// U+AC00 is a Hangul syllable: yes
+printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no");
+```
 
 ## `mjb_codepoint_is_cjk_ideograph`
 
@@ -779,6 +1016,13 @@ bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// U+4E00 is a CJK ideograph: yes
+printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");
+```
+
 ## `mjb_codepoint_is_cjk_ext`
 
 Return if the codepoint is CJK extension.
@@ -788,6 +1032,13 @@ bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// U+20000 is a CJK extension ideograph: yes
+printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_ext(0x20000) ? "yes" : "no");
+```
 
 ## `mjb_category_is_graphic`
 
@@ -799,6 +1050,16 @@ bool mjb_category_is_graphic(mjb_category category);
 
 - `category` — The category to check
 
+**Example**
+
+```c
+// Uppercase letters are graphic: yes
+bool graphic = mjb_category_is_graphic(MJB_CATEGORY_LU);
+
+// Uppercase letters are graphic: yes
+printf("Uppercase letters are graphic: %s", graphic ? "yes" : "no");
+```
+
 ## `mjb_category_is_combining`
 
 Return true if the category is combining.
@@ -808,6 +1069,16 @@ bool mjb_category_is_combining(mjb_category category);
 ```
 
 - `category` — The category to check
+
+**Example**
+
+```c
+// Nonspacing marks are combining: yes
+bool combining = mjb_category_is_combining(MJB_CATEGORY_MN);
+
+// Nonspacing marks are combining: yes
+printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");
+```
 
 ## `mjb_codepoint_to_lowercase`
 
@@ -859,6 +1130,15 @@ Return the uppercase codepoint of a codepoint. If the codepoint has no uppercase
 
 - `codepoint` — The uppercase codepoint, or the original codepoint
 
+**Example**
+
+```c
+mjb_codepoint uppercase = mjb_codepoint_to_uppercase(0x00E9); // é
+
+// Uppercase: U+00C9
+printf("Uppercase: U+%04X", uppercase);
+```
+
 See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
 
 ## `mjb_codepoint_to_titlecase`
@@ -877,6 +1157,15 @@ Return the titlecase codepoint of a codepoint. If the codepoint has no titlecase
 
 - `codepoint` — The titlecase codepoint, or the original codepoint
 
+**Example**
+
+```c
+mjb_codepoint titlecase = mjb_codepoint_to_titlecase(0x01F3); // dz
+
+// Titlecase: U+01F2
+printf("Titlecase: U+%04X", titlecase);
+```
+
 See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase).
 
 ## `mjb_break_line`
@@ -891,6 +1180,16 @@ mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encodi
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
+
+**Example**
+
+```c
+mjb_next_line_state state = {0};
+mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
+
+// First line-break result is set: yes
+printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
+```
 
 See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence).
 
@@ -909,6 +1208,20 @@ mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encodi
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
+**Example**
+
+```c
+mjb_next_word_state state = {0};
+size_t boundaries = 0;
+
+while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    ++boundaries;
+}
+
+// Word-break positions: 11
+printf("Word-break positions: %zu", boundaries);
+```
+
 See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_truncate_word`](#mjb_truncate_word).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html).
@@ -925,6 +1238,21 @@ mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_en
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
+
+**Example**
+
+```c
+mjb_next_sentence_state state = {0};
+size_t boundaries = 0;
+const char *input = "Hello. Goodbye.";
+
+while(mjb_break_sentence(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    ++boundaries;
+}
+
+// Sentence-break positions: 15
+printf("Sentence-break positions: %zu", boundaries);
+```
 
 See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word).
 
@@ -945,6 +1273,22 @@ Iterate the grapheme cluster (user-perceived character) boundaries of a string. 
 - `encoding` — The encoding of the string
 - `state` — The state to store the result
 
+**Example**
+
+```c
+const char *input = "e\xCC\x81"; // e + combining acute accent
+mjb_next_state state = {0};
+size_t codepoints = 0;
+
+while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
+    &state) != MJB_BT_NOT_SET) {
+    ++codepoints;
+}
+
+// Codepoints examined: 2
+printf("Codepoints examined: %zu", codepoints);
+```
+
 See also: [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_break_line`](#mjb_break_line), [`mjb_truncate`](#mjb_truncate).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html).
@@ -962,6 +1306,16 @@ size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encodin
 - `encoding` — The encoding of the string
 - `max_graphemes` — The maximum number of graphemes to return
 
+**Example**
+
+```c
+const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z"; // A🇮🇹Z
+size_t bytes = mjb_truncate(input, strlen(input), MJB_ENC_UTF_8, 2);
+
+// First two graphemes use 9 bytes
+printf("First two graphemes use %zu bytes", bytes);
+```
+
 ## `mjb_truncate_width`
 
 Return the number of bytes whose grapheme clusters fit within max_columns display columns.
@@ -976,6 +1330,17 @@ size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding e
 - `context` — The width context
 - `max_columns` — The maximum number of columns to return
 
+**Example**
+
+```c
+const char *input = "A\xE7\x95\x8C"; // A界
+size_t bytes = mjb_truncate_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_WIDTH_CONTEXT_WESTERN, 2);
+
+// Two columns include 1 byte
+printf("Two columns include %zu byte", bytes);
+```
+
 ## `mjb_truncate_word`
 
 Return the number of bytes that form the first max_segments word-break segments.
@@ -988,6 +1353,16 @@ size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding en
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `max_segments` — The maximum number of segments to return
+
+**Example**
+
+```c
+const char *input = "Hello world";
+size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
+
+// First word segment uses 5 bytes
+printf("First word segment uses %zu bytes", bytes);
+```
 
 ## `mjb_truncate_word_width`
 
@@ -1002,6 +1377,17 @@ size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encod
 - `encoding` — The encoding of the string
 - `context` — The width context
 - `max_columns` — The maximum number of columns to return
+
+**Example**
+
+```c
+const char *input = "Hello world";
+size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_WIDTH_CONTEXT_WESTERN, 6);
+
+// Six columns include 6 bytes
+printf("Six columns include %zu bytes", bytes);
+```
 
 ## `mjb_bidi_resolve`
 
@@ -1026,6 +1412,22 @@ Resolve the embedding levels of a paragraph following the Unicode Bidirectional 
 - `MJB_STATUS_OVERFLOW` — The paragraph size would overflow
 - `MJB_STATUS_NO_MEMORY` — Allocation failed
 
+**Example**
+
+```c
+const char *input = "abc \xD7\x90\xD7\x91\xD7\x92"; // abc אבג
+mjb_bidi_paragraph paragraph;
+
+if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
+    &paragraph) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Paragraph codepoints: 7
+printf("Paragraph codepoints: %zu", paragraph.count);
+mjb_bidi_free(&paragraph);
+```
+
 See also: [`mjb_bidi_free`](#mjb_bidi_free), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
@@ -1042,6 +1444,25 @@ mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t lin
 - `line_start` — Start index into paragraph->chars
 - `line_end` — End index (exclusive) into paragraph->chars
 - `visual_order` — Caller-allocated array of size (`line_end` - `line_start`). Caller-allocated; the library does not retain or free it
+
+**Example**
+
+```c
+const char *input = "\xD7\x90\xD7\x91\xD7\x92"; // אבג
+mjb_bidi_paragraph paragraph;
+size_t visual_order[3];
+
+if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
+    &paragraph) != MJB_STATUS_OK ||
+    mjb_bidi_reorder_line(&paragraph, 0, paragraph.count,
+        visual_order) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// First visual index: 2
+printf("First visual index: %zu", visual_order[0]);
+mjb_bidi_free(&paragraph);
+```
 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
 
@@ -1061,6 +1482,26 @@ mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t 
 - `runs` — Caller-allocated array, or NULL to only count
 - `run_count` — On output: number of runs written (or total if `runs` = `NULL`)
 
+**Example**
+
+```c
+mjb_bidi_paragraph paragraph;
+size_t visual_order[3];
+size_t run_count = 0;
+
+if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
+    &paragraph) != MJB_STATUS_OK ||
+    mjb_bidi_reorder_line(&paragraph, 0, 3, visual_order) != MJB_STATUS_OK ||
+    mjb_bidi_line_runs(&paragraph, visual_order, 3, NULL,
+        &run_count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Visual runs: 1
+printf("Visual runs: %zu", run_count);
+mjb_bidi_free(&paragraph);
+```
+
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
@@ -1075,6 +1516,22 @@ void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
 
 - `paragraph` — The paragraph to free
 
+**Example**
+
+```c
+mjb_bidi_paragraph paragraph;
+
+if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
+    &paragraph) != MJB_STATUS_OK) {
+    return 1;
+}
+
+mjb_bidi_free(&paragraph);
+
+// Paragraph released: yes
+printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");
+```
+
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve).
 
 ## `mjb_codepoint_is_id_start`
@@ -1086,6 +1543,16 @@ bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Greek alpha starts an identifier: yes
+bool starts = mjb_codepoint_is_id_start(0x03B1);
+
+// Greek alpha starts an identifier: yes
+printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");
+```
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
@@ -1099,6 +1566,16 @@ bool mjb_codepoint_is_id_continue(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// Digit 7 continues an identifier: yes
+bool continues = mjb_codepoint_is_id_continue('7');
+
+// Digit 7 continues an identifier: yes
+printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");
+```
+
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
 ## `mjb_codepoint_is_xid_start`
@@ -1110,6 +1587,13 @@ bool mjb_codepoint_is_xid_start(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Letter A is XID_Start: yes
+printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");
+```
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
@@ -1123,6 +1607,16 @@ bool mjb_codepoint_is_xid_continue(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// Underscore is XID_Continue: yes
+bool continues = mjb_codepoint_is_xid_continue('_');
+
+// Underscore is XID_Continue: yes
+printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");
+```
+
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
 ## `mjb_codepoint_is_pattern_syntax`
@@ -1135,6 +1629,16 @@ bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// Plus sign is Pattern_Syntax: yes
+bool syntax = mjb_codepoint_is_pattern_syntax('+');
+
+// Plus sign is Pattern_Syntax: yes
+printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");
+```
+
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
 ## `mjb_codepoint_is_pattern_white_space`
@@ -1146,6 +1650,16 @@ bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Space is Pattern_White_Space: yes
+bool whitespace = mjb_codepoint_is_pattern_white_space(' ');
+
+// Space is Pattern_White_Space: yes
+printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");
+```
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
 
@@ -1164,6 +1678,18 @@ Validate a string as a Unicode identifier: the first character must be a valid i
 - `encoding` — The encoding of the string
 - `profile` — The identifier profile (DEFAULT or NFKC)
 
+**Example**
+
+```c
+const char *identifier = "delta_2";
+
+bool valid = mjb_string_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
+    MJB_IDENTIFIER_NFKC);
+
+// Valid identifier: yes
+printf("Valid identifier: %s", valid ? "yes" : "no");
+```
+
 See also: [`mjb_codepoint_is_id_start`](#mjb_codepoint_is_id_start), [`mjb_codepoint_is_id_continue`](#mjb_codepoint_is_id_continue), [`mjb_codepoint_is_xid_start`](#mjb_codepoint_is_xid_start), [`mjb_codepoint_is_xid_continue`](#mjb_codepoint_is_xid_continue).
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html).
@@ -1177,6 +1703,15 @@ const char *mjb_property_name(mjb_property property);
 ```
 
 - `property` — The property to check
+
+**Example**
+
+```c
+const char *name = mjb_property_name(MJB_PR_ALPHABETIC);
+
+// Property: Alphabetic
+printf("Property: %s", name);
+```
 
 Specifications: [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -1240,6 +1775,19 @@ Compute the confusable skeleton of both strings and return true when the skeleto
 - `s2_byte_length` — The length of the second string, in bytes
 - `s2_encoding` — The encoding of the second string
 
+**Example**
+
+```c
+const char *latin = "hello";
+const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
+
+bool confusable = mjb_string_is_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+    mixed, strlen(mixed), MJB_ENC_UTF_8);
+
+// Visually confusable: yes
+printf("Visually confusable: %s", confusable ? "yes" : "no");
+```
+
 See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html).
@@ -1255,6 +1803,19 @@ mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *em
 - `codepoint` — The codepoint to check
 - `emoji` — The emoji properties to store the result
 
+**Example**
+
+```c
+mjb_emoji_properties emoji;
+
+if(mjb_codepoint_emoji(0x1F600, &emoji) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+1F600 has Emoji_Presentation: yes
+printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
+```
+
 See also: [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
@@ -1269,6 +1830,16 @@ bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// Number sign has the Emoji property: yes
+bool emoji = mjb_codepoint_is_emoji('#');
+
+// Number sign has the Emoji property: yes
+printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");
+```
+
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_codepoint_is_emoji_presentation`
@@ -1280,6 +1851,16 @@ bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Grinning face defaults to emoji presentation: yes
+bool presentation = mjb_codepoint_is_emoji_presentation(0x1F600);
+
+// Grinning face defaults to emoji presentation: yes
+printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");
+```
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
@@ -1293,6 +1874,16 @@ bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// Medium skin tone is an emoji modifier: yes
+bool modifier = mjb_codepoint_is_emoji_modifier(0x1F3FD);
+
+// Medium skin tone is an emoji modifier: yes
+printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");
+```
+
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_codepoint_is_emoji_modifier_base`
@@ -1304,6 +1895,16 @@ bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Waving hand accepts an emoji modifier: yes
+bool modifier_base = mjb_codepoint_is_emoji_modifier_base(0x1F44B);
+
+// Waving hand accepts an emoji modifier: yes
+printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");
+```
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
@@ -1317,6 +1918,16 @@ bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+// Zero-width joiner is an emoji component: yes
+bool component = mjb_codepoint_is_emoji_component(0x200D);
+
+// Zero-width joiner is an emoji component: yes
+printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");
+```
+
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 ## `mjb_codepoint_is_extended_pictographic`
@@ -1328,6 +1939,16 @@ bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint);
 ```
 
 - `codepoint` — The codepoint to check
+
+**Example**
+
+```c
+// Red heart is Extended_Pictographic: yes
+bool pictographic = mjb_codepoint_is_extended_pictographic(0x2764);
+
+// Red heart is Extended_Pictographic: yes
+printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");
+```
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
@@ -1341,6 +1962,15 @@ mjb_plane mjb_codepoint_plane(mjb_codepoint codepoint);
 
 - `codepoint` — The codepoint to check
 
+**Example**
+
+```c
+mjb_plane plane = mjb_codepoint_plane(0x1F600);
+
+// U+1F600 is in the SMP: yes
+printf("U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no");
+```
+
 ## `mjb_plane_is_valid`
 
 Return true if the plane is valid.
@@ -1350,6 +1980,13 @@ bool mjb_plane_is_valid(mjb_plane plane);
 ```
 
 - `plane` — The plane to check
+
+**Example**
+
+```c
+// Plane 16 is valid: yes
+printf("Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "no");
+```
 
 ## `mjb_plane_name`
 
@@ -1361,6 +1998,13 @@ const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 - `plane` — The plane to check
 - `abbreviation` — Whether to use an abbreviation
+
+**Example**
+
+```c
+// Plane: Basic Multilingual Plane
+printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));
+```
 
 ## `mjb_string_emoji_sequence`
 
@@ -1374,6 +2018,21 @@ mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 - `emoji` — The emoji sequence metadata to store the result
+
+**Example**
+
+```c
+const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
+mjb_emoji_sequence emoji;
+
+if(mjb_string_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+    &emoji) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Sequence codepoints: 2
+printf("Sequence codepoints: %zu", emoji.codepoint_count);
+```
 
 See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji).
 
@@ -1391,6 +2050,17 @@ bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_en
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
 
+**Example**
+
+```c
+const char *keycap = "1\xEF\xB8\x8F\xE2\x83\xA3"; // 1️⃣
+
+bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+
+// Listed emoji sequence: yes
+printf("Listed emoji sequence: %s", listed ? "yes" : "no");
+```
+
 See also: [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
@@ -1406,6 +2076,17 @@ bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encodin
 - `buffer` — The string to check
 - `byte_length` — The length of the string, in bytes
 - `encoding` — The encoding of the string
+
+**Example**
+
+```c
+const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
+
+bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+
+// RGI emoji: yes
+printf("RGI emoji: %s", rgi ? "yes" : "no");
+```
 
 See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
 
@@ -1423,6 +2104,19 @@ mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_
 - `buffer` — The buffer to store the result
 - `byte_length` — The length of the string, in bytes
 
+**Example**
+
+```c
+char name[32];
+
+if(mjb_hangul_syllable_name(0xAC01, name, sizeof(name)) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Name: HANGUL SYLLABLE GAG
+printf("Name: %s", name);
+```
+
 ## `mjb_hangul_syllable_decomposition`
 
 Hangul syllable decomposition.
@@ -1433,6 +2127,20 @@ mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepo
 
 - `codepoint` — The codepoint to check
 - `codepoints` — The codepoints to store the result
+
+**Example**
+
+```c
+mjb_codepoint decomposition[3];
+
+if(mjb_hangul_syllable_decomposition(0xAC01,
+    decomposition) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Decomposition starts with: U+1100
+printf("Decomposition starts with: U+%04X", decomposition[0]);
+```
 
 ## `mjb_hangul_syllable_composition`
 
@@ -1445,6 +2153,20 @@ size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t 
 - `characters` — The characters to compose
 - `characters_len` — The length of the characters
 
+**Example**
+
+```c
+mjb_buffer_character characters[] = {
+    { 0x1100, 0 }, // choseong kiyeok
+    { 0x1161, 0 }, // jungseong a
+    { 0x11A8, 0 }  // jongseong kiyeok
+};
+size_t length = mjb_hangul_syllable_composition(characters, 3);
+
+// Composition: U+AC01
+printf("Composition: U+%04X", length == 1 ? characters[0].codepoint : 0);
+```
+
 ## `mjb_codepoint_east_asian_width`
 
 Return the east asian width of a codepoint.
@@ -1455,6 +2177,19 @@ mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asia
 
 - `codepoint` — The codepoint to check
 - `width` — The width to store the result
+
+**Example**
+
+```c
+mjb_east_asian_width width;
+
+if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
+    return 1;
+}
+
+// U+754C is wide: yes
+printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");
+```
 
 See also: [`mjb_display_width`](#mjb_display_width).
 
@@ -1482,6 +2217,21 @@ Compute the number of display columns a string occupies in a terminal, accountin
 - `MJB_STATUS_INVALID_ARGUMENT` — `width` is NULL, or `buffer` is NULL with a non-zero size
 - `MJB_STATUS_OVERFLOW` — The width would overflow
 
+**Example**
+
+```c
+const char *input = "A\xE7\x95\x8C"; // A界
+size_t width;
+
+if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_WIDTH_CONTEXT_WESTERN, &width) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Display columns: 3
+printf("Display columns: %zu", width);
+```
+
 See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_truncate_width`](#mjb_truncate_width).
 
 Specifications: [UAX #11: East Asian Width, Unicode 17.0.0](https://www.unicode.org/reports/tr11/tr11-44.html).
@@ -1508,6 +2258,21 @@ Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language
 - `MJB_STATUS_INVALID_ARGUMENT` — An argument is NULL or the tag is not a valid BCP 47 language tag
 - `MJB_STATUS_NO_MEMORY` — Allocation failed
 
+**Example**
+
+```c
+mjb_locale_id locale;
+mjb_error error;
+
+if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
+    &error) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Locale: sr Latn RS
+printf("Locale: %s %s %s", locale.language, locale.script, locale.region);
+```
+
 See also: [`mjb_locale_set`](#mjb_locale_set).
 
 Specifications: [BCP 47: Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646).
@@ -1529,6 +2294,20 @@ Set the process-global locale used by `mjb_case`. The default locale is `MJB_LOC
 - `MJB_STATUS_OK` — The locale was set
 - `MJB_STATUS_INVALID_ARGUMENT` — `locale` is not a valid `mjb_locale` value
 
+**Example**
+
+```c
+if(mjb_locale_set(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Turkish locale selected: yes
+printf("Turkish locale selected: yes");
+if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
+    return 1;
+}
+```
+
 See also: [`mjb_case`](#mjb_case).
 
 ## `mjb_result_free`
@@ -1548,6 +2327,20 @@ Free the memory allocated for a `mjb_result`. The `result` pointer is set to NUL
 - `MJB_STATUS_OK` — The result was freed
 - `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL
 
+**Example**
+
+```c
+mjb_result result;
+
+if(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+    &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Result released: yes
+printf("Result released: %s", result.output == NULL ? "yes" : "no");
+```
+
 ## `mjb_version`
 
 Output the current library version (MJB_VERSION).
@@ -1557,6 +2350,15 @@ const char *mjb_version(void);
 ```
 
 Output the current library version as a string, such as "1.0.0".
+
+**Example**
+
+```c
+const char *version = mjb_version();
+
+// Version is available: yes
+printf("Version is available: %s", version[0] != '\0' ? "yes" : "no");
+```
 
 See also: [`mjb_version_number`](#mjb_version_number), [`mjb_unicode_version`](#mjb_unicode_version).
 
@@ -1570,6 +2372,15 @@ unsigned int mjb_version_number(void);
 
 Output the current library version number as an unsigned integer.
 
+**Example**
+
+```c
+unsigned int version = mjb_version_number();
+
+// Version number is positive: yes
+printf("Version number is positive: %s", version > 0 ? "yes" : "no");
+```
+
 See also: [`mjb_version`](#mjb_version), [`mjb_unicode_version`](#mjb_unicode_version).
 
 ## `mjb_unicode_version`
@@ -1581,6 +2392,15 @@ const char *mjb_unicode_version(void);
 ```
 
 Output the current supported Unicode version as a string, such as "15.0.0".
+
+**Example**
+
+```c
+const char *version = mjb_unicode_version();
+
+// Unicode version: 17.0.0
+printf("Unicode version: %s", version);
+```
 
 See also: [`mjb_version`](#mjb_version), [`mjb_version_number`](#mjb_version_number).
 
@@ -1598,6 +2418,20 @@ Replace the allocator used by the library for all internal allocations and for t
 - `realloc_fn` — The function to reallocate memory
 - `free_fn` — The function to free memory
 
+**Example**
+
+```c
+mjb_shutdown(); // Ensure no allocator is currently locked in.
+
+if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Standard allocator installed: yes
+printf("Standard allocator installed: yes");
+mjb_shutdown();
+```
+
 See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc), [`mjb_free`](#mjb_free).
 
 ## `mjb_shutdown`
@@ -1606,6 +2440,15 @@ Shutdown the library. Not needed to be called.
 
 ```c
 void mjb_shutdown(void);
+```
+
+**Example**
+
+```c
+mjb_shutdown();
+
+// Library state reset: yes
+printf("Library state reset: yes");
 ```
 
 ## `mjb_alloc`
@@ -1619,6 +2462,22 @@ void *mjb_alloc(size_t byte_length);
 Allocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
 
 - `byte_length` — The length of the memory to allocate
+
+**Example**
+
+```c
+char *buffer = mjb_alloc(32);
+
+if(buffer == NULL) {
+    return 1;
+}
+
+strcpy(buffer, "allocated");
+
+// Buffer: allocated
+printf("Buffer: %s", buffer);
+mjb_free(buffer);
+```
 
 See also: [`mjb_realloc`](#mjb_realloc), [`mjb_free`](#mjb_free).
 
@@ -1635,6 +2494,27 @@ Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no a
 - `ptr` — The pointer to reallocate
 - `new_size` — The new size of the memory
 
+**Example**
+
+```c
+char *buffer = mjb_alloc(8);
+
+if(buffer == NULL) {
+    return 1;
+}
+
+char *larger = mjb_realloc(buffer, 32);
+
+if(larger == NULL) {
+    mjb_free(buffer);
+    return 1;
+}
+
+// Reallocation succeeded: yes
+printf("Reallocation succeeded: yes");
+mjb_free(larger);
+```
+
 See also: [`mjb_alloc`](#mjb_alloc), [`mjb_free`](#mjb_free).
 
 ## `mjb_free`
@@ -1648,6 +2528,21 @@ void mjb_free(void *ptr);
 Free memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
 
 - `ptr` — The pointer to free
+
+**Example**
+
+```c
+void *memory = mjb_alloc(16);
+
+if(memory == NULL) {
+    return 1;
+}
+
+mjb_free(memory);
+
+// Memory freed: yes
+printf("Memory freed: yes");
+```
 
 See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc).
 

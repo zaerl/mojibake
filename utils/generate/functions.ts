@@ -363,6 +363,12 @@ mjb_result_free(&result);`,
       { value: 'MJB_QC_NO', description: 'The string is not normalized' },
       { value: 'MJB_QC_MAYBE', description: 'Inconclusive: a full normalization is needed to decide' }
     ],
+    example: `const char *input = "caf\\xC3\\xA9";
+mjb_quick_check_result check = mjb_string_is_normalized(input, strlen(input),
+    MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
+
+// NFC normalized: yes
+printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
     related: ['mjb_normalize'],
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
@@ -383,7 +389,13 @@ mjb_result_free(&result);`,
       'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
       'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
       'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
-      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.'
+      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.',
+    example: `const char utf16le[] = "\\xFF\\xFEH\\0i\\0";
+mjb_encoding detected = mjb_string_encoding(utf16le, sizeof(utf16le) - 1);
+bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
+
+// UTF-16LE detected: yes
+printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");`
   },
   {
     comment: 'Return true if the string is encoded in ASCII.',
@@ -397,7 +409,11 @@ mjb_result_free(&result);`,
       byte_length()
     ],
     wasm: true,
-    section: Section.TextAnalysis
+    section: Section.TextAnalysis,
+    example: `const char *input = "Plain ASCII";
+
+// ASCII: yes
+printf("ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the string is encoded in UTF-8.',
@@ -411,7 +427,11 @@ mjb_result_free(&result);`,
       byte_length()
     ],
     wasm: true,
-    section: Section.TextAnalysis
+    section: Section.TextAnalysis,
+    example: `const char *input = "caf\\xC3\\xA9";
+
+// Valid UTF-8: yes
+printf("Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
@@ -425,7 +445,11 @@ mjb_result_free(&result);`,
       byte_length()
     ],
     wasm: true,
-    section: Section.TextAnalysis
+    section: Section.TextAnalysis,
+    example: `const char utf16be[] = "\\xFE\\xFF\\0H\\0i"; // BOM + "Hi" in UTF-16BE
+
+// UTF-16: yes
+printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`
   },
   {
     comment: 'Return the length of a string.',
@@ -484,6 +508,13 @@ printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32B
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `mjb_status status = mjb_string_each_character("ABC", 3, MJB_ENC_UTF_8, NULL);
+
+// A callback is required: yes
+bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
+
+// A callback is required: yes
+printf("A callback is required: %s", callback_required ? "yes" : "no");`
   },
   {
     comment: 'Return the value of a binary Unicode property.',
@@ -510,6 +541,15 @@ printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32B
     details: 'Return `true` when the codepoint has the binary property and `false` when it does ' +
       'not. Passing an enumerated property is a type mismatch and returns ' +
       '`MJB_STATUS_INVALID_ARGUMENT`.',
+    example: `bool is_alphabetic;
+
+if(mjb_codepoint_property_binary('A', MJB_PR_ALPHABETIC,
+    &is_alphabetic) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+0041 is alphabetic: yes
+printf("U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no");`,
     related: ['mjb_codepoint_property_int'],
     specs: [uax(44, 'Unicode Character Database')]
   },
@@ -538,6 +578,14 @@ printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32B
     details: 'Passing a binary property is a type mismatch and returns ' +
       '`MJB_STATUS_INVALID_ARGUMENT`. `MJB_STATUS_NOT_FOUND` means that the codepoint has no ' +
       'stored value for the requested property.',
+    example: `int32_t script;
+
+if(mjb_codepoint_property_int('A', MJB_PR_SCRIPT, &script) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+0041 uses the Latin script: yes
+printf("U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no");`,
     related: ['mjb_codepoint_property_binary'],
     specs: [uax(44, 'Unicode Character Database')]
   },
@@ -596,6 +644,14 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `mjb_block_info block;
+
+if(mjb_codepoint_block('A', &block) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Block: Basic Latin
+printf("Block: %s", block.name);`,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -606,6 +662,10 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `mjb_script script = mjb_codepoint_script(0x03A9); // Greek capital omega
+
+// Greek script: yes
+printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");`,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -633,6 +693,21 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     details: 'Return the explicit Script_Extensions set, or the ordinary Script value when the ' +
       'codepoint has no explicit Script_Extensions entry. Call first with `scripts` set to NULL ' +
       'to obtain the required count.',
+    example: `size_t count = 0;
+
+if(mjb_codepoint_script_extensions(0x30FC, NULL, &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+mjb_script scripts[3];
+
+if(count > 3 || mjb_codepoint_script_extensions(0x30FC, scripts,
+    &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+30FC has 2 Script_Extensions
+printf("U+30FC has %zu Script_Extensions", count);`,
     related: ['mjb_codepoint_script'],
     specs: [uax(24, 'Unicode Script Property')]
   },
@@ -648,7 +723,12 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
       encoding('The encoding to use')
     ],
     wasm: true,
-    section: Section.TextTransformation
+    section: Section.TextTransformation,
+    example: `char encoded[4];
+unsigned int size = mjb_codepoint_encode(0x20AC, encoded, sizeof(encoded), MJB_ENC_UTF_8);
+
+// € sign uses 3 UTF-8 bytes
+printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
   },
   {
     comment: 'Convert from one encoding to another.',
@@ -679,6 +759,17 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
+    example: `const char *input = "caf\\xC3\\xA9";
+mjb_result result;
+
+if(mjb_string_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// UTF-16LE bytes: 8
+printf("UTF-16LE bytes: %zu", result.output_size);
+mjb_result_free(&result);`,
     related: ['mjb_string_encoding', 'mjb_codepoint_encode']
   },
   {
@@ -709,6 +800,11 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
       { value: '0', description: 'The strings are equal under UCA' },
       { value: '> 0', description: 'The first string collates after the second' }
     ],
+    example: `int order = mjb_string_compare("apple", 5, MJB_ENC_UTF_8,
+    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
+
+// apple sorts before banana: yes
+printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
     related: ['mjb_collation_key'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
@@ -741,6 +837,16 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
       { value: 'MJB_STATUS_OVERFLOW', description: 'The sort key size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
+    example: `mjb_result key;
+
+if(mjb_collation_key("r\\xC3\\xA9sum\\xC3\\xA9", 8, MJB_ENC_UTF_8,
+    MJB_COLLATION_NON_IGNORABLE, &key) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Sort key is non-empty: yes
+printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
+mjb_result_free(&key);`,
     related: ['mjb_string_compare'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
@@ -806,6 +912,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// U+10FFFD valid: yes
+printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the codepoint is graphic.',
@@ -815,6 +923,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Letter A is graphic: yes
+printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");`
   },
   {
     comment: 'Return true if the codepoint is combining.',
@@ -824,6 +934,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// U+0301 is combining: yes
+printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is a hangul L.',
@@ -833,6 +945,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `// U+1100 is a leading Jamo: yes
+printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is a hangul V.',
@@ -842,6 +956,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `// U+1161 is a vowel Jamo: yes
+printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is a hangul T.',
@@ -851,6 +967,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `// U+11A8 is a trailing Jamo: yes
+printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is a hangul jamo.',
@@ -860,6 +978,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `// U+1100 is Hangul Jamo: yes
+printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is a hangul syllable.',
@@ -869,6 +989,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: true,
     section: Section.HangulLanguage,
+    example: `// U+AC00 is a Hangul syllable: yes
+printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is CJK ideograph.',
@@ -878,6 +1000,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// U+4E00 is a CJK ideograph: yes
+printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");`
   },
   {
     comment: 'Return if the codepoint is CJK extension.',
@@ -887,6 +1011,8 @@ if(result.transformed) {
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// U+20000 is a CJK extension ideograph: yes
+printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_ext(0x20000) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the category is graphic.',
@@ -903,6 +1029,11 @@ if(result.transformed) {
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Uppercase letters are graphic: yes
+bool graphic = mjb_category_is_graphic(MJB_CATEGORY_LU);
+
+// Uppercase letters are graphic: yes
+printf("Uppercase letters are graphic: %s", graphic ? "yes" : "no");`
   },
   {
     comment: 'Return true if the category is combining.',
@@ -919,6 +1050,11 @@ if(result.transformed) {
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Nonspacing marks are combining: yes
+bool combining = mjb_category_is_combining(MJB_CATEGORY_MN);
+
+// Nonspacing marks are combining: yes
+printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
   },
   {
     comment: 'Return the codepoint lowercase codepoint.',
@@ -959,6 +1095,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     returns: [
       { value: 'codepoint', description: 'The uppercase codepoint, or the original codepoint' }
     ],
+    example: `mjb_codepoint uppercase = mjb_codepoint_to_uppercase(0x00E9); // é
+
+// Uppercase: U+00C9
+printf("Uppercase: U+%04X", uppercase);`,
     related: ['mjb_codepoint_to_lowercase', 'mjb_codepoint_to_titlecase'],
   },
   {
@@ -974,6 +1114,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     returns: [
       { value: 'codepoint', description: 'The titlecase codepoint, or the original codepoint' }
     ],
+    example: `mjb_codepoint titlecase = mjb_codepoint_to_titlecase(0x01F3); // dz
+
+// Titlecase: U+01F2
+printf("Titlecase: U+%04X", titlecase);`,
     related: ['mjb_codepoint_to_lowercase', 'mjb_codepoint_to_uppercase'],
   },
   {
@@ -994,6 +1138,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    example: `mjb_next_line_state state = {0};
+mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
+
+// First line-break result is set: yes
+printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");`,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_word', 'mjb_break_sentence'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
@@ -1015,6 +1164,15 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    example: `mjb_next_word_state state = {0};
+size_t boundaries = 0;
+
+while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    ++boundaries;
+}
+
+// Word-break positions: 11
+printf("Word-break positions: %zu", boundaries);`,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_sentence', 'mjb_truncate_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -1036,6 +1194,16 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    example: `mjb_next_sentence_state state = {0};
+size_t boundaries = 0;
+const char *input = "Hello. Goodbye.";
+
+while(mjb_break_sentence(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    ++boundaries;
+}
+
+// Sentence-break positions: 15
+printf("Sentence-break positions: %zu", boundaries);`,
     related: ['mjb_break_grapheme_cluster', 'mjb_break_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -1059,6 +1227,17 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     section: Section.Segmentation,
     details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
       'Call repeatedly with the same state until it reports the end of the string.',
+    example: `const char *input = "e\\xCC\\x81"; // e + combining acute accent
+mjb_next_state state = {0};
+size_t codepoints = 0;
+
+while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
+    &state) != MJB_BT_NOT_SET) {
+    ++codepoints;
+}
+
+// Codepoints examined: 2
+printf("Codepoints examined: %zu", codepoints);`,
     related: ['mjb_break_word', 'mjb_break_sentence', 'mjb_break_line', 'mjb_truncate'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -1080,6 +1259,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    example: `const char *input = "A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z"; // A🇮🇹Z
+size_t bytes = mjb_truncate(input, strlen(input), MJB_ENC_UTF_8, 2);
+
+// First two graphemes use 9 bytes
+printf("First two graphemes use %zu bytes", bytes);`
   },
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
@@ -1105,6 +1289,12 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.DisplayWidth,
+    example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
+size_t bytes = mjb_truncate_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_WIDTH_CONTEXT_WESTERN, 2);
+
+// Two columns include 1 byte
+printf("Two columns include %zu byte", bytes);`
   },
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments.',
@@ -1124,6 +1314,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    example: `const char *input = "Hello world";
+size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
+
+// First word segment uses 5 bytes
+printf("First word segment uses %zu bytes", bytes);`
   },
   {
     comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
@@ -1149,6 +1344,12 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    example: `const char *input = "Hello world";
+size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_WIDTH_CONTEXT_WESTERN, 6);
+
+// Six columns include 6 bytes
+printf("Six columns include %zu bytes", bytes);`
   },
   {
     comment: 'Resolve bidirectional text (TR9) for a paragraph.',
@@ -1185,6 +1386,17 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
       { value: 'MJB_STATUS_OVERFLOW', description: 'The paragraph size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
+    example: `const char *input = "abc \\xD7\\x90\\xD7\\x91\\xD7\\x92"; // abc אבג
+mjb_bidi_paragraph paragraph;
+
+if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
+    &paragraph) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Paragraph codepoints: 7
+printf("Paragraph codepoints: %zu", paragraph.count);
+mjb_bidi_free(&paragraph);`,
     related: ['mjb_bidi_free', 'mjb_bidi_reorder_line', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1222,6 +1434,20 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: false,
     section: Section.Bidirectional,
+    example: `const char *input = "\\xD7\\x90\\xD7\\x91\\xD7\\x92"; // אבג
+mjb_bidi_paragraph paragraph;
+size_t visual_order[3];
+
+if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
+    &paragraph) != MJB_STATUS_OK ||
+    mjb_bidi_reorder_line(&paragraph, 0, paragraph.count,
+        visual_order) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// First visual index: 2
+printf("First visual index: %zu", visual_order[0]);
+mjb_bidi_free(&paragraph);`,
     related: ['mjb_bidi_resolve', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1264,6 +1490,21 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: false,
     section: Section.Bidirectional,
+    example: `mjb_bidi_paragraph paragraph;
+size_t visual_order[3];
+size_t run_count = 0;
+
+if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
+    &paragraph) != MJB_STATUS_OK ||
+    mjb_bidi_reorder_line(&paragraph, 0, 3, visual_order) != MJB_STATUS_OK ||
+    mjb_bidi_line_runs(&paragraph, visual_order, 3, NULL,
+        &run_count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Visual runs: 1
+printf("Visual runs: %zu", run_count);
+mjb_bidi_free(&paragraph);`,
     related: ['mjb_bidi_resolve', 'mjb_bidi_reorder_line'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1282,6 +1523,17 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: false,
     section: Section.Bidirectional,
+    example: `mjb_bidi_paragraph paragraph;
+
+if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
+    &paragraph) != MJB_STATUS_OK) {
+    return 1;
+}
+
+mjb_bidi_free(&paragraph);
+
+// Paragraph released: yes
+printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`,
     related: ['mjb_bidi_resolve']
   },
   {
@@ -1292,6 +1544,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Greek alpha starts an identifier: yes
+bool starts = mjb_codepoint_is_id_start(0x03B1);
+
+// Greek alpha starts an identifier: yes
+printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1302,6 +1559,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Digit 7 continues an identifier: yes
+bool continues = mjb_codepoint_is_id_continue('7');
+
+// Digit 7 continues an identifier: yes
+printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1312,6 +1574,8 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Letter A is XID_Start: yes
+printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1322,6 +1586,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Underscore is XID_Continue: yes
+bool continues = mjb_codepoint_is_xid_continue('_');
+
+// Underscore is XID_Continue: yes
+printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1332,6 +1601,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Plus sign is Pattern_Syntax: yes
+bool syntax = mjb_codepoint_is_pattern_syntax('+');
+
+// Plus sign is Pattern_Syntax: yes
+printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1342,6 +1616,11 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Space is Pattern_White_Space: yes
+bool whitespace = mjb_codepoint_is_pattern_white_space(' ');
+
+// Space is Pattern_White_Space: yes
+printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -1365,6 +1644,13 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     details: 'Validate a string as a Unicode identifier: the first character must be a valid ' +
       'identifier start and the following ones valid identifier continuations, using ID_Start/' +
       'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
+    example: `const char *identifier = "delta_2";
+
+bool valid = mjb_string_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
+    MJB_IDENTIFIER_NFKC);
+
+// Valid identifier: yes
+printf("Valid identifier: %s", valid ? "yes" : "no");`,
     related: ['mjb_codepoint_is_id_start', 'mjb_codepoint_is_id_continue',
       'mjb_codepoint_is_xid_start', 'mjb_codepoint_is_xid_continue'],
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
@@ -1384,6 +1670,10 @@ printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
     ],
     wasm: true,
     section: Section.Utility,
+    example: `const char *name = mjb_property_name(MJB_PR_ALPHABETIC);
+
+// Property: Alphabetic
+printf("Property: %s", name);`,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -1442,6 +1732,14 @@ mjb_result_free(&result);`,
     details: 'Compute the confusable skeleton of both strings and return true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
       '"good" and "gооd" with Cyrillic о.',
+    example: `const char *latin = "hello";
+const char *mixed = "h\\xD0\\xB5llo"; // Cyrillic е
+
+bool confusable = mjb_string_is_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+    mixed, strlen(mixed), MJB_ENC_UTF_8);
+
+// Visually confusable: yes
+printf("Visually confusable: %s", confusable ? "yes" : "no");`,
     related: ['mjb_confusable_skeleton', 'mjb_string_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
@@ -1461,6 +1759,14 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.Emoji,
+    example: `mjb_emoji_properties emoji;
+
+if(mjb_codepoint_emoji(0x1F600, &emoji) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// U+1F600 has Emoji_Presentation: yes
+printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");`,
     related: ['mjb_string_emoji_sequence', 'mjb_codepoint_is_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1472,6 +1778,11 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
+    example: `// Number sign has the Emoji property: yes
+bool emoji = mjb_codepoint_is_emoji('#');
+
+// Number sign has the Emoji property: yes
+printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1482,6 +1793,11 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
+    example: `// Grinning face defaults to emoji presentation: yes
+bool presentation = mjb_codepoint_is_emoji_presentation(0x1F600);
+
+// Grinning face defaults to emoji presentation: yes
+printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1492,6 +1808,11 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
+    example: `// Medium skin tone is an emoji modifier: yes
+bool modifier = mjb_codepoint_is_emoji_modifier(0x1F3FD);
+
+// Medium skin tone is an emoji modifier: yes
+printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1502,6 +1823,11 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
+    example: `// Waving hand accepts an emoji modifier: yes
+bool modifier_base = mjb_codepoint_is_emoji_modifier_base(0x1F44B);
+
+// Waving hand accepts an emoji modifier: yes
+printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1512,6 +1838,11 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
+    example: `// Zero-width joiner is an emoji component: yes
+bool component = mjb_codepoint_is_emoji_component(0x200D);
+
+// Zero-width joiner is an emoji component: yes
+printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1522,6 +1853,11 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Red heart is Extended_Pictographic: yes
+bool pictographic = mjb_codepoint_is_extended_pictographic(0x2764);
+
+// Red heart is Extended_Pictographic: yes
+printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");`,
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1532,6 +1868,10 @@ mjb_result_free(&result);`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `mjb_plane plane = mjb_codepoint_plane(0x1F600);
+
+// U+1F600 is in the SMP: yes
+printf("U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no");`
   },
   {
     comment: 'Return true if the plane is valid.',
@@ -1548,6 +1888,8 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Plane 16 is valid: yes
+printf("Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "no");`
   },
   {
     comment: 'Return the name of a plane, NULL if the plane specified is not valid.',
@@ -1570,6 +1912,8 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.TextAnalysis,
+    example: `// Plane: Basic Multilingual Plane
+printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
   },
   {
     comment: 'Return emoji sequence metadata for a complete string.',
@@ -1589,6 +1933,16 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.Emoji,
+    example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
+mjb_emoji_sequence emoji;
+
+if(mjb_string_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+    &emoji) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Sequence codepoints: 2
+printf("Sequence codepoints: %zu", emoji.codepoint_count);`,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_is_rgi_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1605,6 +1959,12 @@ mjb_result_free(&result);`,
     ],
     section: Section.Emoji,
     wasm: true,
+    example: `const char *keycap = "1\\xEF\\xB8\\x8F\\xE2\\x83\\xA3"; // 1️⃣
+
+bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+
+// Listed emoji sequence: yes
+printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
     related: ['mjb_string_is_rgi_emoji', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1621,6 +1981,12 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.Emoji,
+    example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
+
+bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+
+// RGI emoji: yes
+printf("RGI emoji: %s", rgi ? "yes" : "no");`,
     related: ['mjb_string_is_emoji_sequence', 'mjb_string_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -1641,6 +2007,14 @@ mjb_result_free(&result);`,
     ],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `char name[32];
+
+if(mjb_hangul_syllable_name(0xAC01, name, sizeof(name)) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Name: HANGUL SYLLABLE GAG
+printf("Name: %s", name);`
   },
   {
     comment: 'Hangul syllable decomposition.',
@@ -1658,6 +2032,15 @@ mjb_result_free(&result);`,
     ],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `mjb_codepoint decomposition[3];
+
+if(mjb_hangul_syllable_decomposition(0xAC01,
+    decomposition) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Decomposition starts with: U+1100
+printf("Decomposition starts with: U+%04X", decomposition[0]);`
   },
   {
     comment: 'Hangul syllable composition.',
@@ -1680,6 +2063,15 @@ mjb_result_free(&result);`,
     ],
     wasm: false,
     section: Section.HangulLanguage,
+    example: `mjb_buffer_character characters[] = {
+    { 0x1100, 0 }, // choseong kiyeok
+    { 0x1161, 0 }, // jungseong a
+    { 0x11A8, 0 }  // jongseong kiyeok
+};
+size_t length = mjb_hangul_syllable_composition(characters, 3);
+
+// Composition: U+AC01
+printf("Composition: U+%04X", length == 1 ? characters[0].codepoint : 0);`
   },
   {
     comment: 'Return the east asian width of a codepoint.',
@@ -1697,6 +2089,14 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.DisplayWidth,
+    example: `mjb_east_asian_width width;
+
+if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
+    return 1;
+}
+
+// U+754C is wide: yes
+printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
     related: ['mjb_display_width'],
     specs: [uax(11, 'East Asian Width')]
   },
@@ -1732,6 +2132,16 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`width` is NULL, or `buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The width would overflow' }
     ],
+    example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
+size_t width;
+
+if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_WIDTH_CONTEXT_WESTERN, &width) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Display columns: 3
+printf("Display columns: %zu", width);`,
     related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_width'],
     specs: [uax(11, 'East Asian Width')]
   },
@@ -1783,6 +2193,16 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument is NULL or the tag is not a valid BCP 47 language tag' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
+    example: `mjb_locale_id locale;
+mjb_error error;
+
+if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
+    &error) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Locale: sr Latn RS
+printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
     related: ['mjb_locale_set'],
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
@@ -1809,6 +2229,15 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description: 'The locale was set' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`locale` is not a valid `mjb_locale` value' }
     ],
+    example: `if(mjb_locale_set(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Turkish locale selected: yes
+printf("Turkish locale selected: yes");
+if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
+    return 1;
+}`,
     related: ['mjb_case']
   },
   {
@@ -1830,7 +2259,16 @@ mjb_result_free(&result);`,
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The result was freed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL' }
-    ]
+    ],
+    example: `mjb_result result;
+
+if(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+    &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Result released: yes
+printf("Result released: %s", result.output == NULL ? "yes" : "no");`
   },
   {
     comment: 'Output the current library version (MJB_VERSION).',
@@ -1841,6 +2279,10 @@ mjb_result_free(&result);`,
     wasm: true,
     section: Section.Utility,
     details: 'Output the current library version as a string, such as "1.0.0".',
+    example: `const char *version = mjb_version();
+
+// Version is available: yes
+printf("Version is available: %s", version[0] != '\\0' ? "yes" : "no");`,
     related: ['mjb_version_number', 'mjb_unicode_version']
   },
   {
@@ -1852,6 +2294,10 @@ mjb_result_free(&result);`,
     wasm: true,
     section: Section.Utility,
     details: 'Output the current library version number as an unsigned integer.',
+    example: `unsigned int version = mjb_version_number();
+
+// Version number is positive: yes
+printf("Version number is positive: %s", version > 0 ? "yes" : "no");`,
     related: ['mjb_version', 'mjb_unicode_version']
   },
   {
@@ -1863,6 +2309,10 @@ mjb_result_free(&result);`,
     wasm: true,
     section: Section.Utility,
     details: 'Output the current supported Unicode version as a string, such as "15.0.0".',
+    example: `const char *version = mjb_unicode_version();
+
+// Unicode version: 17.0.0
+printf("Unicode version: %s", version);`,
     related: ['mjb_version', 'mjb_version_number']
   },
   {
@@ -1894,6 +2344,15 @@ mjb_result_free(&result);`,
     section: Section.Utility,
     details: 'Replace the allocator used by the library for all internal allocations and for ' +
       'the buffers returned in `mjb_result`. Must be called before any other library call.',
+    example: `mjb_shutdown(); // Ensure no allocator is currently locked in.
+
+if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Standard allocator installed: yes
+printf("Standard allocator installed: yes");
+mjb_shutdown();`,
     related: ['mjb_alloc', 'mjb_realloc', 'mjb_free']
   },
   {
@@ -1904,6 +2363,10 @@ mjb_result_free(&result);`,
     args: [],
     wasm: false,
     section: Section.Utility,
+    example: `mjb_shutdown();
+
+// Library state reset: yes
+printf("Library state reset: yes");`
   },
   {
     comment: 'Allocate memory.',
@@ -1922,6 +2385,17 @@ mjb_result_free(&result);`,
     section: Section.Utility,
     details: 'Allocate memory using the allocator set by `mjb_set_memory_functions`. If no ' +
       'allocator is set, the default allocator is used.',
+    example: `char *buffer = mjb_alloc(32);
+
+if(buffer == NULL) {
+    return 1;
+}
+
+strcpy(buffer, "allocated");
+
+// Buffer: allocated
+printf("Buffer: %s", buffer);
+mjb_free(buffer);`,
     related: ['mjb_realloc', 'mjb_free']
   },
   {
@@ -1947,6 +2421,22 @@ mjb_result_free(&result);`,
     section: Section.Utility,
     details: 'Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no ' +
       'allocator is set, the default allocator is used.',
+    example: `char *buffer = mjb_alloc(8);
+
+if(buffer == NULL) {
+    return 1;
+}
+
+char *larger = mjb_realloc(buffer, 32);
+
+if(larger == NULL) {
+    mjb_free(buffer);
+    return 1;
+}
+
+// Reallocation succeeded: yes
+printf("Reallocation succeeded: yes");
+mjb_free(larger);`,
     related: ['mjb_alloc', 'mjb_free']
   },
   {
@@ -1966,6 +2456,16 @@ mjb_result_free(&result);`,
     section: Section.Utility,
     details: 'Free memory using the allocator set by `mjb_set_memory_functions`. If no ' +
       'allocator is set, the default allocator is used.',
+    example: `void *memory = mjb_alloc(16);
+
+if(memory == NULL) {
+    return 1;
+}
+
+mjb_free(memory);
+
+// Memory freed: yes
+printf("Memory freed: yes");`,
     related: ['mjb_alloc', 'mjb_realloc']
   }
 ] as MojibakeFunction[];
