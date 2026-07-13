@@ -16,8 +16,8 @@ extern mojibake mjb_global;
 // (Lower is NOT blocked here — it's the target; handled separately.)
 static inline bool mjb_sbp_blocks_sb8(mjb_sbp sbp) {
     return sbp == MJB_SBP_OLETTER || sbp == MJB_SBP_UPPER || sbp == MJB_SBP_SEP ||
-           sbp == MJB_SBP_CR || sbp == MJB_SBP_LF || sbp == MJB_SBP_LOWER || sbp == MJB_SBP_STERM ||
-           sbp == MJB_SBP_ATERM;
+        sbp == MJB_SBP_CR || sbp == MJB_SBP_LF || sbp == MJB_SBP_LOWER || sbp == MJB_SBP_STERM ||
+        sbp == MJB_SBP_ATERM;
 }
 
 // Peek ahead from peek_index to check if Lower is reachable through
@@ -263,8 +263,9 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
         }
 
         // SB8a SATerm Close* Sp* × (SContinue | SATerm)
-        if(prev_in_sat && (state->current == MJB_SBP_SCONTINUE || state->current == MJB_SBP_STERM ||
-                              state->current == MJB_SBP_ATERM)) {
+        if(prev_in_sat &&
+            (state->current == MJB_SBP_SCONTINUE || state->current == MJB_SBP_STERM ||
+                state->current == MJB_SBP_ATERM)) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -277,8 +278,9 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
         }
 
         // SB10 SATerm Close* Sp* × (Sp | ParaSep)
-        if(prev_in_sat && (state->current == MJB_SBP_SP || state->current == MJB_SBP_SEP ||
-                              state->current == MJB_SBP_CR || state->current == MJB_SBP_LF)) {
+        if(prev_in_sat &&
+            (state->current == MJB_SBP_SP || state->current == MJB_SBP_SEP ||
+                state->current == MJB_SBP_CR || state->current == MJB_SBP_LF)) {
             return MJB_BT_NO_BREAK;
         }
 
