@@ -37,7 +37,8 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
     } else if(incb_value == MJB_INCB_LINKER && state->incb_consonant_seen) {
         // Mark that we've seen a Linker in this sequence
         state->incb_linker_seen = true;
-    } else if(incb_value == MJB_INCB_NOT_SET || (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
+    } else if(incb_value == MJB_INCB_NOT_SET ||
+        (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
         // Break in sequence: character is not InCB-relevant, or is None
         // Reset unless it's Extend or Linker (which continue the sequence)
         state->incb_consonant_seen = false;
@@ -47,8 +48,8 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
 
 // Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_next_state *state) {
+MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_next_state *state) {
     if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
@@ -92,8 +93,8 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
-            mjb_mark_decode_terminated(&state->state, &state->index,
-                &state->current_codepoint, encoding);
+            mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
+                encoding);
 
             return MJB_BT_ALLOWED;
         }
@@ -146,22 +147,16 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
         }
 
         // GB4 (Control | CR | LF) ÷
-        if(
-            state->previous == MJB_GBP_CONTROL ||
-            state->previous == MJB_GBP_CR ||
-            state->previous == MJB_GBP_LF
-        ) {
+        if(state->previous == MJB_GBP_CONTROL || state->previous == MJB_GBP_CR ||
+            state->previous == MJB_GBP_LF) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_ALLOWED;
         }
 
         // GB5 ÷ (Control | CR | LF)
-        if(
-            state->current == MJB_GBP_CONTROL ||
-            state->current == MJB_GBP_CR ||
-            state->current == MJB_GBP_LF
-        ) {
+        if(state->current == MJB_GBP_CONTROL || state->current == MJB_GBP_CR ||
+            state->current == MJB_GBP_LF) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_ALLOWED;
@@ -169,44 +164,25 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
 
         // Do not break Hangul syllable or other conjoining sequences.
         // GB6 L × (L | V | LV | LVT)
-        if(
-            state->previous == MJB_GBP_L &&
-            (
-                state->current == MJB_GBP_L ||
-                state->current == MJB_GBP_V ||
-                state->current == MJB_GBP_LV ||
-                state->current == MJB_GBP_LVT
-            )
-        ) {
+        if(state->previous == MJB_GBP_L &&
+            (state->current == MJB_GBP_L || state->current == MJB_GBP_V ||
+                state->current == MJB_GBP_LV || state->current == MJB_GBP_LVT)) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
 
         // GB7 (LV | V) × (V | T)
-        if(
-            (
-                state->previous == MJB_GBP_LV ||
-                state->previous == MJB_GBP_V
-            ) &&
-            (
-                state->current == MJB_GBP_V ||
-                state->current == MJB_GBP_T
-            )
-        ) {
+        if((state->previous == MJB_GBP_LV || state->previous == MJB_GBP_V) &&
+            (state->current == MJB_GBP_V || state->current == MJB_GBP_T)) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
 
         // GB8 (LVT | T) × T
-        if(
-            (
-                state->previous == MJB_GBP_LVT ||
-                state->previous == MJB_GBP_T
-            ) &&
-            state->current == MJB_GBP_T
-        ) {
+        if((state->previous == MJB_GBP_LVT || state->previous == MJB_GBP_T) &&
+            state->current == MJB_GBP_T) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
@@ -214,10 +190,7 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
 
         // Do not break before extending characters or ZWJ.
         // GB9 × (Extend | ZWJ)
-        if(
-            state->current == MJB_GBP_EXTEND ||
-            state->current == MJB_GBP_ZWJ
-        ) {
+        if(state->current == MJB_GBP_EXTEND || state->current == MJB_GBP_ZWJ) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
@@ -226,18 +199,14 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
         // The GB9a and GB9b rules only apply to extended grapheme clusters:
         // Do not break before SpacingMarks, or after Prepend characters.
         // GB9a × SpacingMark
-        if(
-            state->current == MJB_GBP_SPACING_MARK
-        ) {
+        if(state->current == MJB_GBP_SPACING_MARK) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
         }
 
         // GB9b Prepend ×
-        if(
-            state->previous == MJB_GBP_PREPEND
-        ) {
+        if(state->previous == MJB_GBP_PREPEND) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
@@ -249,9 +218,7 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
         //   [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
         uint8_t curr_incb = mjb_codepoint_properties_get(cpb, MJB_PR_INDIC_CONJUNCT_BREAK);
 
-        if(curr_incb != MJB_INCB_NOT_SET &&
-            state->incb_consonant_seen &&
-            state->incb_linker_seen &&
+        if(curr_incb != MJB_INCB_NOT_SET && state->incb_consonant_seen && state->incb_linker_seen &&
             curr_incb == MJB_INCB_CONSONANT) {
             mjb_update_sequence_flags(state, cpb);
 
@@ -260,10 +227,7 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
 
         // Do not break within emoji modifier sequences or emoji zwj sequences.
         // GB11 \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
-        if(
-            prev_ext_pict_zwj &&
-            mjb_codepoint_properties_get(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)
-        ) {
+        if(prev_ext_pict_zwj && mjb_codepoint_properties_get(cpb, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
@@ -273,7 +237,8 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
         // indicator (RI) symbols if there is an odd number of RI characters before the break point.
         // GB12 sot (RI RI)* RI × RI
         // GB13 [^RI] (RI RI)* RI × RI
-        if(state->previous == MJB_GBP_REGIONAL_INDICATOR && state->current == MJB_GBP_REGIONAL_INDICATOR) {
+        if(state->previous == MJB_GBP_REGIONAL_INDICATOR &&
+            state->current == MJB_GBP_REGIONAL_INDICATOR) {
             mjb_break_type result = (state->ri_count++ % 2) == 0 ? MJB_BT_NO_BREAK : MJB_BT_ALLOWED;
             mjb_update_sequence_flags(state, cpb);
 
@@ -308,7 +273,8 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encod
     size_t cluster_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &state)) !=
+        MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -339,7 +305,8 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &state)) !=
+        MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -349,7 +316,7 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb
         size_t cluster_width = 0;
 
         if(mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
-            &cluster_width) != MJB_STATUS_OK) {
+               &cluster_width) != MJB_STATUS_OK) {
             return prev_break;
         }
 

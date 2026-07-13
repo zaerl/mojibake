@@ -15,7 +15,8 @@ extern mojibake mjb_global;
 // Internal function.
 MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
     size_t *output_size) {
-    if(ret == NULL || (input == NULL && input_size > 0) || output_index == NULL || output_size == NULL) {
+    if(ret == NULL || (input == NULL && input_size > 0) || output_index == NULL ||
+        output_size == NULL) {
         return NULL;
     }
 
@@ -27,7 +28,7 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
         size_t required = *output_index + input_size + 1;
         size_t doubled = *output_size * 2;
         size_t new_output_size = (doubled > required) ? doubled : required;
-        char *new_ret = (char*)mjb_realloc(ret, new_output_size);
+        char *new_ret = (char *)mjb_realloc(ret, new_output_size);
 
         if(new_ret == NULL) {
             return NULL;
@@ -37,7 +38,7 @@ MJB_EXPORT char *mjb_string_output(char *ret, char *input, size_t input_size, si
         *output_size = new_output_size;
     }
 
-    memcpy((char*)ret + *output_index, input, input_size);
+    memcpy((char *)ret + *output_index, input, input_size);
     *output_index += input_size;
 
     // Null-terminate the string. jemalloc reuses freed heap blocks without clearing them.
@@ -51,7 +52,7 @@ MJB_EXPORT char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *outp
     size_t *output_index, size_t *output_size, mjb_encoding encoding) {
     // Shortcut for mjb_codepoint_encode + mjb_string_output
     char buffer[5];
-    size_t utf_size = mjb_codepoint_encode(codepoint, (char*)buffer, 5, encoding);
+    size_t utf_size = mjb_codepoint_encode(codepoint, (char *)buffer, 5, encoding);
 
     return mjb_string_output(output, buffer, utf_size, output_index, output_size);
 }
@@ -69,7 +70,7 @@ MJB_EXPORT size_t mjb_string_length(const char *buffer, size_t max_length, mjb_e
     mjb_codepoint codepoint;
     size_t count = 0;
 
-    for(size_t i = 0; i < max_length; ) {
+    for(size_t i = 0; i < max_length;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, max_length, &state, &i,
             encoding, &codepoint, &in_error);
 
