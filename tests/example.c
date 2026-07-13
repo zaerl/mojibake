@@ -1272,7 +1272,7 @@ int test_example(void *arg) {
         return 1;
     }
 
-    char *larger = mjb_realloc(buffer, 32);
+    char *larger = (char*)mjb_realloc(buffer, 32);
 
     if(larger == NULL) {
         mjb_free(buffer);
