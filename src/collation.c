@@ -53,14 +53,14 @@ static bool cea_grow(mjb_cea *a, size_t need) {
         return false;
     }
 
-    mjb_ce *p = (mjb_ce*)mjb_realloc(a->data, new_cap * sizeof(mjb_ce));
+    mjb_ce *p = (mjb_ce *)mjb_realloc(a->data, new_cap * sizeof(mjb_ce));
 
     if(!p) {
         return false;
     }
 
     a->data = p;
-    a->cap  = new_cap;
+    a->cap = new_cap;
 
     return true;
 }
@@ -83,16 +83,16 @@ static bool cea_push(mjb_cea *a, uint16_t p, uint16_t s, uint16_t t, bool var) {
 
 static void cea_free(mjb_cea *a) {
     mjb_free(a->data);
-    a->data  = NULL;
+    a->data = NULL;
     a->count = 0;
-    a->cap   = 0;
+    a->cap = 0;
 }
 
 // Dynamic sort-key array (uint16_t)
 typedef struct {
     uint16_t *data;
-    size_t    count;
-    size_t    cap;
+    size_t count;
+    size_t cap;
 } mjb_sort_key;
 
 static bool sk_push(mjb_sort_key *sk, uint16_t w) {
@@ -107,14 +107,14 @@ static bool sk_push(mjb_sort_key *sk, uint16_t w) {
             return false;
         }
 
-        uint16_t *p = (uint16_t*)mjb_realloc(sk->data, new_cap * sizeof(uint16_t));
+        uint16_t *p = (uint16_t *)mjb_realloc(sk->data, new_cap * sizeof(uint16_t));
 
         if(!p) {
             return false;
         }
 
         sk->data = p;
-        sk->cap  = new_cap;
+        sk->cap = new_cap;
     }
 
     sk->data[sk->count++] = w;
@@ -125,9 +125,9 @@ static bool sk_push(mjb_sort_key *sk, uint16_t w) {
 static void sk_free(mjb_sort_key *sk) {
     mjb_free(sk->data);
 
-    sk->data  = NULL;
+    sk->data = NULL;
     sk->count = 0;
-    sk->cap   = 0;
+    sk->cap = 0;
 }
 
 // @implicitweights ranges from allkeys.txt
@@ -149,7 +149,8 @@ static const struct {
 /**
  * Append implicit-weight CEs for a codepoint not in the DUCET (UTS#10 §10.1.3).
  *
- * The formula is the same for all implicit types: AAAA = base + (cp >> 15) BBBB = (cp & 0x7FFF) | 0x8000
+ * The formula is the same for all implicit types: AAAA = base + (cp >> 15) BBBB = (cp & 0x7FFF) |
+ * 0x8000
  *
  * Where `base` is (UTS#10 Table 16):
  *   @implicitweights ranges -> specified base value (FB00, FB01, ...)
@@ -163,7 +164,7 @@ static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
 
     for(int i = 0; i < IMPLICIT_RANGES_COUNT; ++i) {
         if(cp >= implicit_ranges[i].start && cp <= implicit_ranges[i].end) {
-            base  = implicit_ranges[i].base;
+            base = implicit_ranges[i].base;
             found = true;
             break;
         }
@@ -174,7 +175,8 @@ static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
         // UTS#10 Table 16: only the 4E00-9FFF block uses base FB40.
         if(cp >= MJB_CJK_IDEOGRAPH_START && cp <= MJB_CJK_IDEOGRAPH_END) {
             base = 0xFB40;
-        } else if(mjb_codepoint_is_cjk_ext(cp)) { // UTS#10 Table 16: all extensions use base FB80 (NOT FB40).
+        } else if(mjb_codepoint_is_cjk_ext(cp)) { // UTS#10 Table 16: all extensions use base FB80
+                                                  // (NOT FB40).
             base = 0xFB80;
         } else {
             base = 0xFBC0;
@@ -206,7 +208,7 @@ static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
     }
 
     for(int i = 0; i < n; ++i) {
-        uint16_t p = (uint16_t)(((uint16_t)blob[i * 6]     << 8) | blob[i * 6 + 1]);
+        uint16_t p = (uint16_t)(((uint16_t)blob[i * 6] << 8) | blob[i * 6 + 1]);
         uint16_t s = (uint16_t)(((uint16_t)blob[i * 6 + 2] << 8) | blob[i * 6 + 3]);
         uint16_t t = (uint16_t)(((uint16_t)blob[i * 6 + 4] << 8) | blob[i * 6 + 5]);
         bool var = (t & 0x8000) != 0;
@@ -262,7 +264,7 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
         return false;
     }
 
-    mjb_codepoint *arr = (mjb_codepoint*)mjb_alloc(count * sizeof(mjb_codepoint));
+    mjb_codepoint *arr = (mjb_codepoint *)mjb_alloc(count * sizeof(mjb_codepoint));
 
     if(!arr) {
         return false;
@@ -362,8 +364,8 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
 
     for(size_t entry_index = 0; entry_index < entry_count; ++entry_index) {
         uint8_t sl = 0;
-        const mjb_codepoint *seq =
-            mjb_unicode_collation_contraction_sequence(&entries[entry_index], &sl);
+        const mjb_codepoint *seq = mjb_unicode_collation_contraction_sequence(&entries[entry_index],
+            &sl);
 
         if(sl < 2 || pos + (size_t)sl > total) {
             continue;
@@ -381,8 +383,8 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
         if(match && (size_t)sl > *out_advance) {
             *out_advance = (size_t)sl;
             uint8_t weights_length = 0;
-            const uint8_t *weights =
-            mjb_unicode_collation_contraction_weights(&entries[entry_index],
+            const uint8_t
+                *weights = mjb_unicode_collation_contraction_weights(&entries[entry_index],
                     &weights_length);
 
             *out_bytes = weights_length;
@@ -402,8 +404,8 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
  * UTS#10 S2.1.1-S2.1.3 – check if the exact sequence `seq[0..seq_len-1]`
  * has an entry in the DB.  seq_len >= 2 (caller guarantees).
  */
-static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
-    uint8_t *out_weights, int *out_bytes) {
+static bool lookup_sequence(const mjb_codepoint *seq, int seq_len, uint8_t *out_weights,
+    int *out_bytes) {
     const mjb_unicode_collation_contraction_entry *entries = NULL;
     size_t entry_count = 0;
 
@@ -413,8 +415,8 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
 
     for(size_t entry_index = 0; entry_index < entry_count; ++entry_index) {
         uint8_t db_len = 0;
-        const mjb_codepoint *db_seq =
-            mjb_unicode_collation_contraction_sequence(&entries[entry_index], &db_len);
+        const mjb_codepoint
+            *db_seq = mjb_unicode_collation_contraction_sequence(&entries[entry_index], &db_len);
 
         if(db_len != seq_len) {
             continue;
@@ -431,8 +433,8 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len,
 
         if(match) {
             uint8_t weights_length = 0;
-            const uint8_t *weights =
-                mjb_unicode_collation_contraction_weights(&entries[entry_index],
+            const uint8_t
+                *weights = mjb_unicode_collation_contraction_weights(&entries[entry_index],
                     &weights_length);
 
             *out_bytes = weights_length;
@@ -474,7 +476,7 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         return true;
     }
 
-    bool *used = (bool*)mjb_alloc(len * sizeof(bool));
+    bool *used = (bool *)mjb_alloc(len * sizeof(bool));
 
     if(!used) {
         return false;
@@ -495,7 +497,7 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         mjb_codepoint cur_seq[18];
         cur_seq[0] = cps[i];
         int cur_len = 1;
-        size_t last_pos = i; // Position of last char in S
+        size_t last_pos = i;     // Position of last char in S
         size_t cons_advance = 1; // Positions to skip after the consecutive part
 
         uint8_t best_w[18 * 6];
@@ -653,10 +655,10 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
 
     // We need adjusted weights; avoid dynamic allocation by iterating twice. Compute L1/L2/L3 and
     // L4 in three passes: first collect into a scratch array (malloc), then emit.
-    uint16_t *l1 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l2 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l3 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l4 = (uint16_t*)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l1 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l2 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l3 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
+    uint16_t *l4 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
 
     if(!l1 || !l2 || !l3 || !l4) {
         mjb_free(l1);
@@ -675,11 +677,16 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
         if(ce->variable) {
             // Original primary -> L4
             l4[i] = ce->primary;
-            l1[i] = 0; l2[i] = 0; l3[i] = 0;
+            l1[i] = 0;
+            l2[i] = 0;
+            l3[i] = 0;
             after_variable = true;
         } else if(ce->primary == 0 && after_variable) {
             // Completely ignorable following a variable: all levels zero
-            l1[i] = 0; l2[i] = 0; l3[i] = 0; l4[i] = 0;
+            l1[i] = 0;
+            l2[i] = 0;
+            l3[i] = 0;
+            l4[i] = 0;
         } else {
             l1[i] = ce->primary;
             l2[i] = ce->secondary;
@@ -687,7 +694,8 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
             // UTS#10 §4 SHIFTED: non-variable primary≠0 -> L4=FFFF; primary=0 -> L4=0
             l4[i] = (ce->primary != 0) ? 0xFFFF : 0x0000;
 
-            if(ce->primary != 0) after_variable = false;
+            if(ce->primary != 0)
+                after_variable = false;
         }
     }
 
@@ -772,8 +780,7 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     }
 
     mjb_result r;
-    status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFD,
-        MJB_ENC_UTF_8, &r);
+    status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, &r);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -784,7 +791,7 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     bool codepoints_ok = utf8_to_codepoints(r.output, r.output_size, &cps, &len);
 
     if(r.output && r.output != buffer) {
-        mjb_free((void*)r.output);
+        mjb_free((void *)r.output);
     }
 
     if(!codepoints_ok) {
@@ -847,8 +854,8 @@ static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
     return 0;
 }
 
-MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_collation_mode mode, mjb_result *result) {
+MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -879,7 +886,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length, 
         return MJB_STATUS_OK;
     }
 
-    uint8_t *bytes = (uint8_t*)mjb_alloc(byte_count);
+    uint8_t *bytes = (uint8_t *)mjb_alloc(byte_count);
 
     if(!bytes) {
         sk_free(&sk);
@@ -893,7 +900,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length, 
 
     sk_free(&sk);
 
-    result->output = (char*)bytes;
+    result->output = (char *)bytes;
     result->output_size = byte_count;
     result->transformed = true;
 
