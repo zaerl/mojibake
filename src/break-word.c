@@ -29,7 +29,7 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length,
         }
 
         if(dr == MJB_DECODE_OK) {
-            uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
+            uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
             if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
                 return MJB_WBP_NOT_SET;
@@ -55,8 +55,8 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length,
 
 // Word cluster breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_next_word_state *state) {
+MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_next_word_state *state) {
     if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
@@ -101,8 +101,8 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
             &state->index, encoding, &codepoint, &state->in_error);
 
         if(decode_status == MJB_DECODE_END) {
-            mjb_mark_decode_terminated(&state->state, &state->index,
-                &state->current_codepoint, encoding);
+            mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
+                encoding);
 
             return MJB_BT_ALLOWED;
         }
@@ -171,20 +171,14 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
         // Otherwise break before and after Newlines (including CR and LF)
         // (Newline | CR | LF) ÷
-        if(
-            state->previous == MJB_WBP_NEWLINE ||
-            state->previous == MJB_WBP_CR ||
-            state->previous == MJB_WBP_LF
-        ) {
+        if(state->previous == MJB_WBP_NEWLINE || state->previous == MJB_WBP_CR ||
+            state->previous == MJB_WBP_LF) {
             return MJB_BT_ALLOWED;
         }
 
         // ÷ (Newline | CR | LF)
-        if(
-            state->current == MJB_WBP_NEWLINE ||
-            state->current == MJB_WBP_CR ||
-            state->current == MJB_WBP_LF
-        ) {
+        if(state->current == MJB_WBP_NEWLINE || state->current == MJB_WBP_CR ||
+            state->current == MJB_WBP_LF) {
             return MJB_BT_ALLOWED;
         }
 
@@ -196,25 +190,21 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
         // Keep horizontal whitespace together.
         // WB3d WSegSpace × WSegSpace
-        if(
-            !prev_was_remapped &&
-            state->previous == MJB_WBP_W_SEG_SPACE &&
-            state->current == MJB_WBP_W_SEG_SPACE
-        ) {
+        if(!prev_was_remapped && state->previous == MJB_WBP_W_SEG_SPACE &&
+            state->current == MJB_WBP_W_SEG_SPACE) {
             return MJB_BT_NO_BREAK;
         }
 
         // Ignore Format and Extend characters, except after sot, CR, LF, and Newline. (See Section
         // 6.2, Replacing Ignore Rules.) This also has the effect of: Any × (Format | Extend | ZWJ)
         // WB4 X (Extend | Format | ZWJ)* -> X
-        if(
-            (state->current == MJB_WBP_EXTEND || state->current == MJB_WBP_FORMAT || state->current == MJB_WBP_ZWJ) &&
+        if((state->current == MJB_WBP_EXTEND || state->current == MJB_WBP_FORMAT ||
+               state->current == MJB_WBP_ZWJ) &&
             state->previous != MJB_WBP_NOT_SET && // SOT exception
-            state->previous != MJB_WBP_CR &&
-            state->previous != MJB_WBP_LF &&
-            state->previous != MJB_WBP_NEWLINE
-        ) {
-            // Re-map to the base class so subsequent calls see X as previous, not Extend/Format/ZWJ.
+            state->previous != MJB_WBP_CR && state->previous != MJB_WBP_LF &&
+            state->previous != MJB_WBP_NEWLINE) {
+            // Re-map to the base class so subsequent calls see X as previous, not
+            // Extend/Format/ZWJ.
             state->current = state->previous;
             state->current_codepoint = state->previous_codepoint;
             state->wb4_merged = true;
@@ -224,25 +214,19 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
         // Do not break between most letters
         // WB5 AHLetter × AHLetter
-        if(
-            (state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
-            (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)
-        ) {
+        if((state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
+            (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)) {
             return MJB_BT_NO_BREAK;
         }
 
         // Do not break letters across certain punctuation, such as within "e.g." or "example.com".
         // WB6 AHLetter × (MidLetter | MidNumLetQ) AHLetter
         // (look-ahead: next effective char after skipping WB4-transparent chars must be AHLetter)
-        if(
-            (state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
-            (
-                state->current == MJB_WBP_MID_LETTER ||
-                state->current == MJB_WBP_MID_NUM_LET ||
-                state->current == MJB_WBP_SINGLE_QUOTE
-            )
-        ) {
-            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
+        if((state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
+            (state->current == MJB_WBP_MID_LETTER || state->current == MJB_WBP_MID_NUM_LET ||
+                state->current == MJB_WBP_SINGLE_QUOTE)) {
+            mjb_wbp next_wbp =
+                mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
 
             if(next_wbp == MJB_WBP_A_LETTER || next_wbp == MJB_WBP_HEBREW_LETTER) {
                 return MJB_BT_NO_BREAK;
@@ -250,15 +234,11 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
         }
 
         // WB7 AHLetter (MidLetter | MidNumLetQ) × AHLetter
-        if(
-            (state->prev_prev_wbp == MJB_WBP_A_LETTER || state->prev_prev_wbp == MJB_WBP_HEBREW_LETTER) &&
-            (
-                state->previous == MJB_WBP_MID_LETTER ||
-                state->previous == MJB_WBP_MID_NUM_LET ||
-                state->previous == MJB_WBP_SINGLE_QUOTE
-            ) &&
-            (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)
-        ) {
+        if((state->prev_prev_wbp == MJB_WBP_A_LETTER ||
+               state->prev_prev_wbp == MJB_WBP_HEBREW_LETTER) &&
+            (state->previous == MJB_WBP_MID_LETTER || state->previous == MJB_WBP_MID_NUM_LET ||
+                state->previous == MJB_WBP_SINGLE_QUOTE) &&
+            (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -270,7 +250,8 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
         // WB7b Hebrew_Letter × Double_Quote Hebrew_Letter
         // (look-ahead: next effective char must be Hebrew_Letter)
         if(state->previous == MJB_WBP_HEBREW_LETTER && state->current == MJB_WBP_DOUBLE_QUOTE) {
-            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
+            mjb_wbp next_wbp =
+                mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
 
             if(next_wbp == MJB_WBP_HEBREW_LETTER) {
                 return MJB_BT_NO_BREAK;
@@ -278,64 +259,45 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
         }
 
         // WB7c Hebrew_Letter Double_Quote × Hebrew_Letter
-        if(
-            state->prev_prev_wbp == MJB_WBP_HEBREW_LETTER &&
-            state->previous == MJB_WBP_DOUBLE_QUOTE &&
-            state->current == MJB_WBP_HEBREW_LETTER
-        ) {
+        if(state->prev_prev_wbp == MJB_WBP_HEBREW_LETTER &&
+            state->previous == MJB_WBP_DOUBLE_QUOTE && state->current == MJB_WBP_HEBREW_LETTER) {
             return MJB_BT_NO_BREAK;
         }
 
         // Do not break within sequences of digits, or digits adjacent to letters ("3a", or "A3").
         // WB8 Numeric × Numeric
-        if(
-            state->previous == MJB_WBP_NUMERIC &&
-            state->current == MJB_WBP_NUMERIC
-        ) {
+        if(state->previous == MJB_WBP_NUMERIC && state->current == MJB_WBP_NUMERIC) {
             return MJB_BT_NO_BREAK;
         }
 
         // WB9 AHLetter × Numeric
-        if(
-            (state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
-            state->current == MJB_WBP_NUMERIC
-        ) {
+        if((state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) &&
+            state->current == MJB_WBP_NUMERIC) {
             return MJB_BT_NO_BREAK;
         }
 
         // WB10 Numeric × AHLetter
-        if(
-            state->previous == MJB_WBP_NUMERIC &&
-            (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)
-        ) {
+        if(state->previous == MJB_WBP_NUMERIC &&
+            (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER)) {
             return MJB_BT_NO_BREAK;
         }
 
         // Do not break within sequences, such as "3.2" or "3,456.789".
         // WB11 Numeric (MidNum | MidNumLetQ) × Numeric
-        if(
-            state->prev_prev_wbp == MJB_WBP_NUMERIC &&
-            (
-                state->previous == MJB_WBP_MID_NUM ||
-                state->previous == MJB_WBP_MID_NUM_LET ||
-                state->previous == MJB_WBP_SINGLE_QUOTE
-            ) &&
-            state->current == MJB_WBP_NUMERIC
-        ) {
+        if(state->prev_prev_wbp == MJB_WBP_NUMERIC &&
+            (state->previous == MJB_WBP_MID_NUM || state->previous == MJB_WBP_MID_NUM_LET ||
+                state->previous == MJB_WBP_SINGLE_QUOTE) &&
+            state->current == MJB_WBP_NUMERIC) {
             return MJB_BT_NO_BREAK;
         }
 
         // WB12 Numeric × (MidNum | MidNumLetQ) Numeric
         // (look-ahead: next effective char must be Numeric)
-        if(
-            state->previous == MJB_WBP_NUMERIC &&
-            (
-                state->current == MJB_WBP_MID_NUM ||
-                state->current == MJB_WBP_MID_NUM_LET ||
-                state->current == MJB_WBP_SINGLE_QUOTE
-            )
-        ) {
-            mjb_wbp next_wbp = mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
+        if(state->previous == MJB_WBP_NUMERIC &&
+            (state->current == MJB_WBP_MID_NUM || state->current == MJB_WBP_MID_NUM_LET ||
+                state->current == MJB_WBP_SINGLE_QUOTE)) {
+            mjb_wbp next_wbp =
+                mjb_peek_next_word(buffer, byte_length, state->index, encoding, true);
 
             if(next_wbp == MJB_WBP_NUMERIC) {
                 return MJB_BT_NO_BREAK;
@@ -350,35 +312,26 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
         // Do not break from extenders.
         // WB13a (AHLetter | Numeric | Katakana | ExtendNumLet) × ExtendNumLet
-        if(
-            (
-                (state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) ||
-                state->previous == MJB_WBP_NUMERIC ||
-                state->previous == MJB_WBP_KATAKANA ||
-                state->previous == MJB_WBP_EXTEND_NUM_LET
-            ) &&
-            state->current == MJB_WBP_EXTEND_NUM_LET
-        ) {
+        if(((state->previous == MJB_WBP_A_LETTER || state->previous == MJB_WBP_HEBREW_LETTER) ||
+               state->previous == MJB_WBP_NUMERIC || state->previous == MJB_WBP_KATAKANA ||
+               state->previous == MJB_WBP_EXTEND_NUM_LET) &&
+            state->current == MJB_WBP_EXTEND_NUM_LET) {
             return MJB_BT_NO_BREAK;
         }
 
         // WB13b ExtendNumLet × (AHLetter | Numeric | Katakana)
-        if(
-            state->previous == MJB_WBP_EXTEND_NUM_LET &&
-            (
-                (state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER) ||
-                state->current == MJB_WBP_NUMERIC ||
-                state->current == MJB_WBP_KATAKANA
-            )
-        ) {
+        if(state->previous == MJB_WBP_EXTEND_NUM_LET &&
+            ((state->current == MJB_WBP_A_LETTER || state->current == MJB_WBP_HEBREW_LETTER) ||
+                state->current == MJB_WBP_NUMERIC || state->current == MJB_WBP_KATAKANA)) {
             return MJB_BT_NO_BREAK;
         }
 
-        // Do not break within emoji flag sequences. That is, do not break between regional indicator
-        // (RI) symbols if there is an odd number of RI characters before the break point.
+        // Do not break within emoji flag sequences. That is, do not break between regional
+        // indicator (RI) symbols if there is an odd number of RI characters before the break point.
         // WB15 sot (RI RI)* RI × RI
         // WB16 [^RI] (RI RI)* RI × RI
-        if(state->previous == MJB_WBP_REGIONAL_INDICATOR && state->current == MJB_WBP_REGIONAL_INDICATOR) {
+        if(state->previous == MJB_WBP_REGIONAL_INDICATOR &&
+            state->current == MJB_WBP_REGIONAL_INDICATOR) {
             mjb_break_type result = (state->ri_count++ % 2) == 0 ? MJB_BT_NO_BREAK : MJB_BT_ALLOWED;
 
             return result;
@@ -395,7 +348,6 @@ MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
 
     return MJB_BT_ALLOWED;
 }
-
 
 // Return the number of bytes that form the first max_segments word-break segments.
 MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
@@ -429,8 +381,8 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_
 }
 
 // Return the number of bytes whose word-break segments fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_width_context context, size_t max_columns) {
+MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_width_context context, size_t max_columns) {
     if(buffer == NULL || byte_length == 0 || max_columns == 0) {
         return 0;
     }
@@ -452,7 +404,7 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length
         size_t segment_width = 0;
 
         if(mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
-            &segment_width) != MJB_STATUS_OK) {
+               &segment_width) != MJB_STATUS_OK) {
             return prev_break;
         }
 
