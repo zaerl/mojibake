@@ -977,76 +977,77 @@ typedef enum mjb_script {
  * Property (pr)
  * This enum is automatically generated. Do not edit.
  */
+// clang-format off
 typedef enum mjb_property {
-    MJB_PR_KACCOUNTINGNUMERIC,           // enumerated
-    MJB_PR_KOTHERNUMERIC,                // enumerated
-    MJB_PR_KPRIMARYNUMERIC,              // enumerated
-    MJB_PR_NUMERIC_VALUE,                // enumerated
-    MJB_PR_BIDI_MIRRORING_GLYPH,         // enumerated
-    MJB_PR_BIDI_PAIRED_BRACKET,          // enumerated
-    MJB_PR_CASE_FOLDING,                 // enumerated
-    MJB_PR_KCOMPATIBILITYVARIANT,        // enumerated
-    MJB_PR_DECOMPOSITION_MAPPING,        // enumerated
+    MJB_PR_KACCOUNTINGNUMERIC, // enumerated
+    MJB_PR_KOTHERNUMERIC, // enumerated
+    MJB_PR_KPRIMARYNUMERIC, // enumerated
+    MJB_PR_NUMERIC_VALUE, // enumerated
+    MJB_PR_BIDI_MIRRORING_GLYPH, // enumerated
+    MJB_PR_BIDI_PAIRED_BRACKET, // enumerated
+    MJB_PR_CASE_FOLDING, // enumerated
+    MJB_PR_KCOMPATIBILITYVARIANT, // enumerated
+    MJB_PR_DECOMPOSITION_MAPPING, // enumerated
     MJB_PR_EQUIVALENT_UNIFIED_IDEOGRAPH, // enumerated
-    MJB_PR_FC_NFKC_CLOSURE,              // enumerated
-    MJB_PR_LOWERCASE_MAPPING,            // enumerated
-    MJB_PR_NFKC_CASEFOLD,                // enumerated
-    MJB_PR_NFKC_SIMPLE_CASEFOLD,         // enumerated
-    MJB_PR_SIMPLE_CASE_FOLDING,          // enumerated
-    MJB_PR_SIMPLE_LOWERCASE_MAPPING,     // enumerated
-    MJB_PR_SIMPLE_TITLECASE_MAPPING,     // enumerated
-    MJB_PR_SIMPLE_UPPERCASE_MAPPING,     // enumerated
-    MJB_PR_TITLECASE_MAPPING,            // enumerated
-    MJB_PR_UPPERCASE_MAPPING,            // enumerated
-    MJB_PR_KIICORE,                      // enumerated
-    MJB_PR_KIRG_GSOURCE,                 // enumerated
-    MJB_PR_KIRG_HSOURCE,                 // enumerated
-    MJB_PR_KIRG_JSOURCE,                 // enumerated
-    MJB_PR_KIRG_KPSOURCE,                // enumerated
-    MJB_PR_KIRG_KSOURCE,                 // enumerated
-    MJB_PR_KIRG_MSOURCE,                 // enumerated
-    MJB_PR_KIRG_SSOURCE,                 // enumerated
-    MJB_PR_KIRG_TSOURCE,                 // enumerated
-    MJB_PR_KIRG_UKSOURCE,                // enumerated
-    MJB_PR_KIRG_USOURCE,                 // enumerated
-    MJB_PR_KIRG_VSOURCE,                 // enumerated
-    MJB_PR_KMANDARIN,                    // enumerated
-    MJB_PR_KRSUNICODE,                   // enumerated
-    MJB_PR_KTOTALSTROKES,                // enumerated
-    MJB_PR_KUNIHANCORE2020,              // enumerated
-    MJB_PR_ISO_COMMENT,                  // enumerated
-    MJB_PR_JAMO_SHORT_NAME,              // enumerated
-    MJB_PR_KEH_CAT,                      // enumerated
-    MJB_PR_KEH_DESC,                     // enumerated
-    MJB_PR_KEH_HG,                       // enumerated
-    MJB_PR_KEH_IFAO,                     // enumerated
-    MJB_PR_KEH_JSESH,                    // enumerated
-    MJB_PR_NAME,                         // enumerated
-    MJB_PR_NAME_ALIAS,                   // enumerated
-    MJB_PR_SCRIPT_EXTENSIONS,            // enumerated
-    MJB_PR_AGE,                          // enumerated
-    MJB_PR_SCRIPT,                       // enumerated
-    MJB_PR_BIDI_PAIRED_BRACKET_TYPE,     // enumerated
-    MJB_PR_CANONICAL_COMBINING_CLASS,    // enumerated
-    MJB_PR_DECOMPOSITION_TYPE,           // enumerated
-    MJB_PR_EAST_ASIAN_WIDTH,             // enumerated
-    MJB_PR_GENERAL_CATEGORY,             // enumerated
-    MJB_PR_GRAPHEME_CLUSTER_BREAK,       // enumerated
-    MJB_PR_HANGUL_SYLLABLE_TYPE,         // enumerated
-    MJB_PR_INDIC_CONJUNCT_BREAK,         // enumerated
-    MJB_PR_INDIC_POSITIONAL_CATEGORY,    // enumerated
-    MJB_PR_INDIC_SYLLABIC_CATEGORY,      // enumerated
-    MJB_PR_JOINING_GROUP,                // enumerated
-    MJB_PR_JOINING_TYPE,                 // enumerated
-    MJB_PR_LINE_BREAK,                   // enumerated
-    MJB_PR_NFC_QUICK_CHECK,              // enumerated
+    MJB_PR_FC_NFKC_CLOSURE, // enumerated
+    MJB_PR_LOWERCASE_MAPPING, // enumerated
+    MJB_PR_NFKC_CASEFOLD, // enumerated
+    MJB_PR_NFKC_SIMPLE_CASEFOLD, // enumerated
+    MJB_PR_SIMPLE_CASE_FOLDING, // enumerated
+    MJB_PR_SIMPLE_LOWERCASE_MAPPING, // enumerated
+    MJB_PR_SIMPLE_TITLECASE_MAPPING, // enumerated
+    MJB_PR_SIMPLE_UPPERCASE_MAPPING, // enumerated
+    MJB_PR_TITLECASE_MAPPING, // enumerated
+    MJB_PR_UPPERCASE_MAPPING, // enumerated
+    MJB_PR_KIICORE, // enumerated
+    MJB_PR_KIRG_GSOURCE, // enumerated
+    MJB_PR_KIRG_HSOURCE, // enumerated
+    MJB_PR_KIRG_JSOURCE, // enumerated
+    MJB_PR_KIRG_KPSOURCE, // enumerated
+    MJB_PR_KIRG_KSOURCE, // enumerated
+    MJB_PR_KIRG_MSOURCE, // enumerated
+    MJB_PR_KIRG_SSOURCE, // enumerated
+    MJB_PR_KIRG_TSOURCE, // enumerated
+    MJB_PR_KIRG_UKSOURCE, // enumerated
+    MJB_PR_KIRG_USOURCE, // enumerated
+    MJB_PR_KIRG_VSOURCE, // enumerated
+    MJB_PR_KMANDARIN, // enumerated
+    MJB_PR_KRSUNICODE, // enumerated
+    MJB_PR_KTOTALSTROKES, // enumerated
+    MJB_PR_KUNIHANCORE2020, // enumerated
+    MJB_PR_ISO_COMMENT, // enumerated
+    MJB_PR_JAMO_SHORT_NAME, // enumerated
+    MJB_PR_KEH_CAT, // enumerated
+    MJB_PR_KEH_DESC, // enumerated
+    MJB_PR_KEH_HG, // enumerated
+    MJB_PR_KEH_IFAO, // enumerated
+    MJB_PR_KEH_JSESH, // enumerated
+    MJB_PR_NAME, // enumerated
+    MJB_PR_NAME_ALIAS, // enumerated
+    MJB_PR_SCRIPT_EXTENSIONS, // enumerated
+    MJB_PR_AGE, // enumerated
+    MJB_PR_SCRIPT, // enumerated
+    MJB_PR_BIDI_PAIRED_BRACKET_TYPE, // enumerated
+    MJB_PR_CANONICAL_COMBINING_CLASS, // enumerated
+    MJB_PR_DECOMPOSITION_TYPE, // enumerated
+    MJB_PR_EAST_ASIAN_WIDTH, // enumerated
+    MJB_PR_GENERAL_CATEGORY, // enumerated
+    MJB_PR_GRAPHEME_CLUSTER_BREAK, // enumerated
+    MJB_PR_HANGUL_SYLLABLE_TYPE, // enumerated
+    MJB_PR_INDIC_CONJUNCT_BREAK, // enumerated
+    MJB_PR_INDIC_POSITIONAL_CATEGORY, // enumerated
+    MJB_PR_INDIC_SYLLABIC_CATEGORY, // enumerated
+    MJB_PR_JOINING_GROUP, // enumerated
+    MJB_PR_JOINING_TYPE, // enumerated
+    MJB_PR_LINE_BREAK, // enumerated
+    MJB_PR_NFC_QUICK_CHECK, // enumerated
     MJB_PR_NFD_QUICK_CHECK,
     MJB_PR_NFKC_QUICK_CHECK, // enumerated
     MJB_PR_NFKD_QUICK_CHECK,
-    MJB_PR_NUMERIC_TYPE,         // enumerated
-    MJB_PR_SENTENCE_BREAK,       // enumerated
+    MJB_PR_NUMERIC_TYPE, // enumerated
+    MJB_PR_SENTENCE_BREAK, // enumerated
     MJB_PR_VERTICAL_ORIENTATION, // enumerated
-    MJB_PR_WORD_BREAK,           // enumerated
+    MJB_PR_WORD_BREAK, // enumerated
     MJB_PR_ASCII_HEX_DIGIT,
     MJB_PR_ALPHABETIC,
     MJB_PR_BIDI_CONTROL,
@@ -1121,6 +1122,7 @@ typedef enum mjb_property {
     MJB_PR_EXPANDS_ON_NFKC,
     MJB_PR_EXPANDS_ON_NFKD
 } mjb_property;
+// clang-format on
 
 // This value is automatically generated. Do not edit.
 #define MJB_PR_COUNT 142

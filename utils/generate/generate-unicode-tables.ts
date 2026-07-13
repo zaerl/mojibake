@@ -34,6 +34,8 @@ export async function generateUnicodeTables(data: UnicodeTableData = getUnicodeT
 #include <stddef.h>
 #include <string.h>
 
+#include "unicode-tables.h"
+
 ${generateBlocks(data.blocks)}
 ${generateNames(data.prefixes, data.names)}
 ${generateEmoji(data.emoji, data.emojiSequences)}
