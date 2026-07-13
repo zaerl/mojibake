@@ -296,5 +296,6 @@ MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_len
 
     ++state->index;
 
-    return MJB_BT_NO_BREAK;
+    // SB2 Any ÷ eot.
+    return MJB_BT_ALLOWED;
 }
