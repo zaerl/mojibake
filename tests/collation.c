@@ -222,11 +222,9 @@ int test_collation(void *arg) {
 
     // Same string -> identical keys
     ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          &kc),
-        MJB_STATUS_OK, "Key: 'hello' NI succeeds")
+        &kc), MJB_STATUS_OK, "Key: 'hello' NI succeeds")
     ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          &kd),
-        MJB_STATUS_OK, "Key: 'hello' NI second succeeds")
+        &kd), MJB_STATUS_OK, "Key: 'hello' NI second succeeds")
     ATT_ASSERT((int)(kc.output_size == kd.output_size), 1, "Key: same size")
     ATT_ASSERT((int)(memcmp(kc.output, kd.output, kc.output_size) == 0), 1,
         "Key: 'hello' == 'hello'")
@@ -240,8 +238,7 @@ int test_collation(void *arg) {
     ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENC_UTF_8, MJB_COLLATION_SHIFTED, &kd),
         MJB_STATUS_OK, "Key: 'a-b' SHIFTED succeeds")
     ATT_ASSERT((int)(kc.output_size != kd.output_size ||
-                   memcmp(kc.output, kd.output, kc.output_size) != 0),
-        1, "Key: NI != SHIFTED for 'a-b'")
+        memcmp(kc.output, kd.output, kc.output_size) != 0), 1, "Key: NI != SHIFTED for 'a-b'")
 
     mjb_free(ka.output);
     mjb_free(kb.output);
@@ -250,11 +247,9 @@ int test_collation(void *arg) {
 
     // Key ordering matches mjb_string_compare
     ATT_ASSERT_STATUS(mjb_collation_key("apple", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          &ka),
-        MJB_STATUS_OK, "Key: 'apple' succeeds")
+        &ka), MJB_STATUS_OK, "Key: 'apple' succeeds")
     ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          &kb),
-        MJB_STATUS_OK, "Key: 'banana' succeeds")
+        &kb), MJB_STATUS_OK, "Key: 'banana' succeeds")
 
     int cmp_direct = mjb_string_compare("apple", 5, MJB_ENC_UTF_8, "banana", 6, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE);
@@ -307,8 +302,8 @@ int test_collation(void *arg) {
         '\0',
     };
     ATT_ASSERT((int)(mjb_string_compare(apple_utf32le, sizeof(apple_utf32le), MJB_ENC_UTF_32LE,
-                         "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE) < 0),
-        1, "Collation: UTF-32LE apple < UTF-8 banana")
+        "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE) < 0), 1,
+        "Collation: UTF-32LE apple < UTF-8 banana")
 
     // UCA conformance tests
     run_collation_test_file("./utils/generate/unicode-data/collation/CollationTest/"

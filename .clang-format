@@ -2,6 +2,8 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
+BasedOnStyle: LLVM
+
 AlignAfterOpenBracket: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
@@ -12,10 +14,15 @@ AllowShortFunctionsOnASingleLine: None
 BreakBeforeTernaryOperators: false
 ColumnLimit: 100
 Cpp11BracedListStyle: false
+ContinuationIndentWidth: 4
 IndentCaseLabels: true
-IndentPPDirectives: Leave
+IndentPPDirectives: None
 IndentWidth: 4
+AllowAllArgumentsOnNextLine: false
 PenaltyBreakOpenParenthesis: 1000000
 PenaltyBreakAssignment: 1000000
 SpaceBeforeParens: Never
 UseTab: Never
+WhitespaceSensitiveMacros:
+  - ATT_ASSERT
+  - ATT_ASSERT_STATUS
