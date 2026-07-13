@@ -15,7 +15,7 @@
 static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_result *result) {
     if(byte_length == 0) {
-        result->output = (char*)buffer;
+        result->output = (char *)buffer;
         result->output_size = 0;
         result->transformed = false;
 
@@ -34,7 +34,7 @@ static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_l
 
     // Step 2: Replace each codepoint with its skeleton mapping.
     size_t mid_size = nfd.output_size == 0 ? 1 : nfd.output_size;
-    char *mid = (char*)mjb_alloc(mid_size);
+    char *mid = (char *)mjb_alloc(mid_size);
 
     if(!mid) {
         if(nfd.transformed) {
@@ -106,8 +106,8 @@ static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_l
     }
 
     // Step 3: NFD the intermediate string.
-    status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD,
-        MJB_ENC_UTF_8, result);
+    status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8,
+        result);
 
     // mjb_normalize may return result->output == mid when the string is already NFD.
     // In that case transfer ownership so the caller can free it via mjb_free(result->output).
@@ -136,7 +136,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     }
 
     size_t reordered_capacity = byte_length == 0 ? 1 : byte_length;
-    char *reordered = (char*)mjb_alloc(reordered_capacity);
+    char *reordered = (char *)mjb_alloc(reordered_capacity);
 
     if(reordered == NULL) {
         mjb_bidi_free(&paragraph);
@@ -147,7 +147,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     size_t *visual_order = NULL;
 
     if(paragraph.count > 0) {
-        visual_order = (size_t*)mjb_alloc(paragraph.count * sizeof(size_t));
+        visual_order = (size_t *)mjb_alloc(paragraph.count * sizeof(size_t));
 
         if(visual_order == NULL) {
             mjb_free(reordered);
@@ -171,8 +171,8 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
         for(size_t i = 0; i < paragraph.count;) {
             mjb_bidi_class bidi_class;
             bool mirrored;
-            (void)mjb_unicode_bidi_lookup(paragraph.chars[visual_order[i]].codepoint,
-                &bidi_class, &mirrored);
+            (void)mjb_unicode_bidi_lookup(paragraph.chars[visual_order[i]].codepoint, &bidi_class,
+                &mirrored);
 
             if(bidi_class != MJB_PR_BIDI_CLASS_NSM) {
                 ++i;
@@ -222,8 +222,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     mjb_bidi_free(&paragraph);
 
     mjb_result utf8_skeleton;
-    status = mjb_confusable_skeleton_utf8(reordered, reordered_size, MJB_ENC_UTF_8,
-        &utf8_skeleton);
+    status = mjb_confusable_skeleton_utf8(reordered, reordered_size, MJB_ENC_UTF_8, &utf8_skeleton);
 
     if(status == MJB_STATUS_OK && utf8_skeleton.output == reordered) {
         utf8_skeleton.transformed = true;

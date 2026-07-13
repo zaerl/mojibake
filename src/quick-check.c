@@ -15,7 +15,8 @@ extern mojibake mjb_global;
  */
 MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_normalization form) {
-    // A NULL string can be considered normalized, but if the size is greater than 0, it is not valid.
+    // A NULL string can be considered normalized, but if the size is greater than 0, it is not
+    // valid.
     if(buffer == NULL && byte_length > 0) {
         return MJB_QC_NO;
     }
@@ -39,8 +40,8 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
 
     for(size_t i = 0; i < byte_length;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
+            encoding, &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
             break;
@@ -66,8 +67,8 @@ MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, s
             continue;
         }
 
-        if(last_canonical_class > current_character.combining && current_character.combining !=
-            MJB_CCC_NOT_REORDERED) {
+        if(last_canonical_class > current_character.combining &&
+            current_character.combining != MJB_CCC_NOT_REORDERED) {
             return MJB_QC_NO;
         }
 

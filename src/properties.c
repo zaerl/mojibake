@@ -9,6 +9,7 @@
 #include "mojibake-internal.h"
 #include "unicode-tables.h"
 
+// clang-format off
 /**
  * See mjb_property enum in unicode.h for the list of properties.
  * This array is automatically generated. Do not edit.
@@ -305,6 +306,7 @@ static const bool mjb_property_is_binary[] = {
     true  // MJB_PR_EXPANDS_ON_NFKD
 };
 // End generated property types.
+// clang-format on
 
 static bool mjb_property_valid(mjb_property property) {
     return (unsigned int)property < MJB_PR_COUNT;
@@ -387,8 +389,8 @@ MJB_EXPORT mjb_script mjb_codepoint_script(mjb_codepoint codepoint) {
     return (mjb_script)raw;
 }
 
-MJB_EXPORT mjb_status mjb_codepoint_script_extensions(mjb_codepoint codepoint,
-    mjb_script *scripts, size_t *count) {
+MJB_EXPORT mjb_status mjb_codepoint_script_extensions(mjb_codepoint codepoint, mjb_script *scripts,
+    size_t *count) {
     if(count == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }

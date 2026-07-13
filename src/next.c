@@ -48,9 +48,9 @@ MJB_EXPORT mjb_status mjb_string_each_character(const char *buffer, size_t byte_
 
         if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
-            bool result = EM_ASM_INT({
-                return _mjbEachCharacterCallback($0, $1);
-            }, &character, first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE);
+            bool result = EM_ASM_INT(
+                { return _mjbEachCharacterCallback($0, $1); }, &character,
+                first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE);
 
             if(!result) {
                 return MJB_STATUS_CALLBACK_STOPPED;
@@ -76,18 +76,18 @@ MJB_EXPORT mjb_status mjb_string_each_character(const char *buffer, size_t byte_
 
     if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
-        bool result = EM_ASM_INT({
-            return _mjbEachCharacterCallback($0, $1);
-        }, &character, first_character ? MJB_POSITION_FIRST | MJB_POSITION_LAST : MJB_POSITION_LAST);
+        bool result = EM_ASM_INT(
+            { return _mjbEachCharacterCallback($0, $1); }, &character,
+            first_character ? MJB_POSITION_FIRST | MJB_POSITION_LAST : MJB_POSITION_LAST);
 
         if(!result) {
             return MJB_STATUS_CALLBACK_STOPPED;
         }
 #else
         // Call the callback function.
-        if(!callback(&character, first_character ?
-            (mjb_character_position)(MJB_POSITION_FIRST | MJB_POSITION_LAST) :
-            MJB_POSITION_LAST)) {
+        if(!callback(&character,
+               first_character ? (mjb_character_position)(MJB_POSITION_FIRST | MJB_POSITION_LAST) :
+                                 MJB_POSITION_LAST)) {
             return MJB_STATUS_CALLBACK_STOPPED;
         }
 #endif
