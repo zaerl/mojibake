@@ -80,7 +80,8 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Tested**: Mojibake uses [Attractor](https://github.com/zaerl/attractor/) as test suite and run
   [1.5M+ assertions](https://github.com/zaerl/mojibake/blob/main/TESTS.md) including the
   official Unicode conformance suites for supported algorithms
-- **Fuzz** It's fuzzed with `libFuzzer`
+- **Fuzz** Mojibake is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html) over untrusted
+byte input
 - `AddressSanitizer` and `UBSan` clean
 
 ## Usage
@@ -189,16 +190,6 @@ standard:
 11. [intentional.txt](https://www.unicode.org/Public/security/latest/intentional.txt)
 12. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
 13. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
-
-### Fuzzing
-
-The public API is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html) over untrusted
-byte input.
-
-```bash
-make fuzz # 60 seconds by default
-make fuzz FUZZ_TIME=300
-```
 
 ## Building from source
 
