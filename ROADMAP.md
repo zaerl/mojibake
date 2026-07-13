@@ -42,4 +42,11 @@ This is the Mojibake roadmap. For great justice.
 
 ## Non-goals
 
-All the other things found on +10MB libraries?
+All the other things found on +10MB libraries.
+
+# TODO
+
+- [ ] Add generic binary search
+- [ ] Check maximum size of combining characters
+- [ ] Optimize memory allocation in `mjb_normalize`
+- [ ] Optimize memory allocation in `mjb_recompose`
