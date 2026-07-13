@@ -5,8 +5,10 @@
 AlignAfterOpenBracket: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-AlignEscapedNewlines: ENAS_DontAlign
+AlignEscapedNewlines: DontAlign
 ColumnLimit: 100
+Cpp11BracedListStyle: false
 IndentWidth: 4
-Language: C
+PenaltyBreakOpenParenthesis: 1000000
+SpaceBeforeParens: Never
 UseTab: Never
