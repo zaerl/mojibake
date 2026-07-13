@@ -1196,7 +1196,8 @@ printf("Word-break positions: %zu", boundaries);`,
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_next_sentence_state state = {0};
+    example: `mjb_next_sentence_state state;
+state.index = 0;
 size_t boundaries = 0;
 const char *input = "Hello. Goodbye.";
 
@@ -1230,7 +1231,8 @@ printf("Sentence-break positions: %zu", boundaries);`,
     details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
       'Call repeatedly with the same state until it reports the end of the string.',
     example: `const char *input = "e\\xCC\\x81"; // e + combining acute accent
-mjb_next_state state = {0};
+mjb_next_state state;
+state.index = 0;
 size_t codepoints = 0;
 
 while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,

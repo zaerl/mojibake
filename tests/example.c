@@ -594,7 +594,8 @@ int test_example(void *arg) {
 {
     // Example for mjb_break_sentence
     MJB_TEST_COVERAGE(mjb_break_sentence); // Added by the script
-    mjb_next_sentence_state state = {0};
+    mjb_next_sentence_state state;
+    state.index = 0;
     size_t boundaries = 0;
     const char *input = "Hello. Goodbye.";
 
@@ -612,7 +613,8 @@ int test_example(void *arg) {
     // Example for mjb_break_grapheme_cluster
     MJB_TEST_COVERAGE(mjb_break_grapheme_cluster); // Added by the script
     const char *input = "e\xCC\x81"; // e + combining acute accent
-    mjb_next_state state = {0};
+    mjb_next_state state;
+    state.index = 0;
     size_t codepoints = 0;
 
     while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
