@@ -1138,7 +1138,8 @@ printf("Titlecase: U+%04X", titlecase);`,
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_next_line_state state = {0};
+    example: `mjb_next_line_state state;
+state.index = 0;
 mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
 
 // First line-break result is set: yes
