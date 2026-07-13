@@ -45,7 +45,7 @@ static inline mjb_lbp mjb_peek_next(const char *buffer, size_t byte_length, size
         }
 
         if(dr == MJB_DECODE_OK) {
-            uint8_t cpb[MJB_PR_BUFFER_SIZE] = {0};
+            uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
             if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
                 return MJB_LBP_NOT_SET;
@@ -80,18 +80,16 @@ static inline mjb_lbp mjb_peek_next(const char *buffer, size_t byte_length, size
 
 // Return true if lbp is in the LB15b follower set
 static inline bool mjb_is_lb15b_follower(mjb_lbp lbp) {
-    return lbp == MJB_LBP_NOT_SET ||
-        lbp == MJB_LBP_SP || lbp == MJB_LBP_GL || lbp == MJB_LBP_WJ ||
-        lbp == MJB_LBP_CL || lbp == MJB_LBP_QU || lbp == MJB_LBP_CP ||
-        lbp == MJB_LBP_EX || lbp == MJB_LBP_IS || lbp == MJB_LBP_SY ||
-        lbp == MJB_LBP_BK || lbp == MJB_LBP_CR || lbp == MJB_LBP_LF ||
-        lbp == MJB_LBP_NL || lbp == MJB_LBP_ZW;
+    return lbp == MJB_LBP_NOT_SET || lbp == MJB_LBP_SP || lbp == MJB_LBP_GL || lbp == MJB_LBP_WJ ||
+           lbp == MJB_LBP_CL || lbp == MJB_LBP_QU || lbp == MJB_LBP_CP || lbp == MJB_LBP_EX ||
+           lbp == MJB_LBP_IS || lbp == MJB_LBP_SY || lbp == MJB_LBP_BK || lbp == MJB_LBP_CR ||
+           lbp == MJB_LBP_LF || lbp == MJB_LBP_NL || lbp == MJB_LBP_ZW;
 }
 
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
-MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_next_line_state *state) {
+MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_next_line_state *state) {
     if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
     }
@@ -238,14 +236,13 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             mjb_category pq_cat = mjb_lbp_category(state->previous_codepoint);
 
             if(pq_cat == MJB_CATEGORY_PI) {
-                bool in_ctx = (
-                    state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
-                    state->prev_prev_lbp == MJB_LBP_BK  || state->prev_prev_lbp == MJB_LBP_CR ||
-                    state->prev_prev_lbp == MJB_LBP_LF  || state->prev_prev_lbp == MJB_LBP_NL ||
-                    state->prev_prev_lbp == MJB_LBP_OP  || state->prev_prev_lbp == MJB_LBP_QU ||
-                    state->prev_prev_lbp == MJB_LBP_GL  || state->prev_prev_lbp == MJB_LBP_SP ||
-                    state->prev_prev_lbp == MJB_LBP_ZW
-                );
+                bool in_ctx =
+                    (state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
+                        state->prev_prev_lbp == MJB_LBP_BK || state->prev_prev_lbp == MJB_LBP_CR ||
+                        state->prev_prev_lbp == MJB_LBP_LF || state->prev_prev_lbp == MJB_LBP_NL ||
+                        state->prev_prev_lbp == MJB_LBP_OP || state->prev_prev_lbp == MJB_LBP_QU ||
+                        state->prev_prev_lbp == MJB_LBP_GL || state->prev_prev_lbp == MJB_LBP_SP ||
+                        state->prev_prev_lbp == MJB_LBP_ZW);
 
                 // Also propagate through SP* chain
                 if(!in_ctx) {
@@ -297,11 +294,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // CR !
         // LF !
         // NL !
-        if(
-            state->previous == MJB_LBP_CR ||
-            state->previous == MJB_LBP_LF ||
-            state->previous == MJB_LBP_NL
-        ) {
+        if(state->previous == MJB_LBP_CR || state->previous == MJB_LBP_LF ||
+            state->previous == MJB_LBP_NL) {
             state->pi_qu_context = false;
 
             return MJB_BT_MANDATORY;
@@ -309,12 +303,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // Do not break before hard line breaks.
         // LB6 × ( BK | CR | LF | NL )
-        if(
-            state->current == MJB_LBP_BK ||
-            state->current == MJB_LBP_CR ||
-            state->current == MJB_LBP_LF ||
-            state->current == MJB_LBP_NL
-        ) {
+        if(state->current == MJB_LBP_BK || state->current == MJB_LBP_CR ||
+            state->current == MJB_LBP_LF || state->current == MJB_LBP_NL) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -347,15 +337,10 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // class of the base character in all of the following rules. Treat ZWJ as if it were CM.
         // Treat X (CM | ZWJ)* as if it were X.
         // X is any class except BK, CR, LF, NL, SP, ZW.
-        if(
-            (state->current == MJB_LBP_CM || state->current == MJB_LBP_ZWJ) &&
-            state->previous != MJB_LBP_BK &&
-            state->previous != MJB_LBP_CR &&
-            state->previous != MJB_LBP_LF &&
-            state->previous != MJB_LBP_NL &&
-            state->previous != MJB_LBP_SP &&
-            state->previous != MJB_LBP_ZW
-        ) {
+        if((state->current == MJB_LBP_CM || state->current == MJB_LBP_ZWJ) &&
+            state->previous != MJB_LBP_BK && state->previous != MJB_LBP_CR &&
+            state->previous != MJB_LBP_LF && state->previous != MJB_LBP_NL &&
+            state->previous != MJB_LBP_SP && state->previous != MJB_LBP_ZW) {
             // Re-map to the base class so subsequent calls see X as previous, not CM/ZWJ.
             // Also remap current_codepoint so that state->previous_codepoint in the
             // next pair reflects the true base codepoint (needed for e.g. LB28a [◌]).
@@ -401,13 +386,9 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // LB12a Do not break before NBSP and related characters, except after spaces and hyphens.
         // [^SP BA HY HH] × GL
-        if(
-            state->current == MJB_LBP_GL &&
-            state->previous != MJB_LBP_SP &&
-            state->previous != MJB_LBP_BA &&
-            state->previous != MJB_LBP_HY &&
-            state->previous != MJB_LBP_HH
-        ) {
+        if(state->current == MJB_LBP_GL && state->previous != MJB_LBP_SP &&
+            state->previous != MJB_LBP_BA && state->previous != MJB_LBP_HY &&
+            state->previous != MJB_LBP_HH) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -416,12 +397,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // × CP
         // × EX
         // × SY
-        if(
-            state->current == MJB_LBP_CL ||
-            state->current == MJB_LBP_CP ||
-            state->current == MJB_LBP_EX ||
-            state->current == MJB_LBP_SY
-        ) {
+        if(state->current == MJB_LBP_CL || state->current == MJB_LBP_CP ||
+            state->current == MJB_LBP_EX || state->current == MJB_LBP_SY) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -454,14 +431,12 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         if(state->current == MJB_LBP_QU) {
             if(qu_cur_cat == MJB_CATEGORY_PI) {
                 // Check if previous is in the LB15a context set
-                bool in_ctx = (
-                    state->previous == MJB_LBP_NOT_SET || // sot
-                    state->previous == MJB_LBP_BK  || state->previous == MJB_LBP_CR ||
-                    state->previous == MJB_LBP_LF  || state->previous == MJB_LBP_NL ||
-                    state->previous == MJB_LBP_OP  || state->previous == MJB_LBP_QU ||
-                    state->previous == MJB_LBP_GL  || state->previous == MJB_LBP_SP ||
-                    state->previous == MJB_LBP_ZW
-                );
+                bool in_ctx = (state->previous == MJB_LBP_NOT_SET || // sot
+                               state->previous == MJB_LBP_BK || state->previous == MJB_LBP_CR ||
+                               state->previous == MJB_LBP_LF || state->previous == MJB_LBP_NL ||
+                               state->previous == MJB_LBP_OP || state->previous == MJB_LBP_QU ||
+                               state->previous == MJB_LBP_GL || state->previous == MJB_LBP_SP ||
+                               state->previous == MJB_LBP_ZW);
 
                 if(!in_ctx) {
                     // Also check via pi_qu_context (SP* continuation after Pi-QU)
@@ -487,8 +462,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // LB15b Do not break before an unresolved final punctuation that lies at the end of
         // the line, before a space, before a prohibited break, or before an unresolved quotation
         // mark, even after spaces.
-        // × [\p{Pf}&QU] ( SP | GL | WJ | CL | QU | CP | EX | IS | SY | BK | CR | LF | NL | ZW | eot)
-        // NOTE: This rule must be checked BEFORE LB18 (SP ÷) because it overrides it.
+        // × [\p{Pf}&QU] ( SP | GL | WJ | CL | QU | CP | EX | IS | SY | BK | CR | LF | NL | ZW |
+        // eot) NOTE: This rule must be checked BEFORE LB18 (SP ÷) because it overrides it.
         if(state->current == MJB_LBP_QU && qu_cur_cat == MJB_CATEGORY_PF) {
             mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
@@ -518,10 +493,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // LB16 Do not break between closing punctuation and a nonstarter (lb=NS), even with
         // intervening spaces.
         // (CL | CP) SP* × NS
-        if(
-            state->current == MJB_LBP_NS &&
-            (state->prev_resolved == MJB_LBP_CL || state->prev_resolved == MJB_LBP_CP)
-        ) {
+        if(state->current == MJB_LBP_NS &&
+            (state->prev_resolved == MJB_LBP_CL || state->prev_resolved == MJB_LBP_CP)) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -572,7 +545,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             // Look ahead: check EA of next character (or EOT)
             {
                 mjb_east_asian_width next_ea = MJB_EAW_NOT_SET;
-                mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, &next_ea);
+                mjb_lbp next_lbp =
+                    mjb_peek_next(buffer, byte_length, state->index, encoding, &next_ea);
 
                 if(next_lbp == MJB_LBP_NOT_SET || !mjb_is_ea(next_ea)) {
                     // EOT or next char is not East Asian → no break before this Pi-QU
@@ -615,21 +589,13 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // LB20a Do not break after a word-initial hyphen.
         // ( sot | BK | CR | LF | NL | SP | ZW | CB | GL ) ( HY | HH ) × ( AL | HL )
-        if(
-            (state->previous == MJB_LBP_HY || state->previous == MJB_LBP_HH) &&
+        if((state->previous == MJB_LBP_HY || state->previous == MJB_LBP_HH) &&
             (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL) &&
-            (
-                state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
-                state->prev_prev_lbp == MJB_LBP_BK  ||
-                state->prev_prev_lbp == MJB_LBP_CR  ||
-                state->prev_prev_lbp == MJB_LBP_LF  ||
-                state->prev_prev_lbp == MJB_LBP_NL  ||
-                state->prev_prev_lbp == MJB_LBP_SP  ||
-                state->prev_prev_lbp == MJB_LBP_ZW  ||
-                state->prev_prev_lbp == MJB_LBP_CB  ||
-                state->prev_prev_lbp == MJB_LBP_GL
-            )
-        ) {
+            (state->prev_prev_lbp == MJB_LBP_NOT_SET || // sot
+                state->prev_prev_lbp == MJB_LBP_BK || state->prev_prev_lbp == MJB_LBP_CR ||
+                state->prev_prev_lbp == MJB_LBP_LF || state->prev_prev_lbp == MJB_LBP_NL ||
+                state->prev_prev_lbp == MJB_LBP_SP || state->prev_prev_lbp == MJB_LBP_ZW ||
+                state->prev_prev_lbp == MJB_LBP_CB || state->prev_prev_lbp == MJB_LBP_GL)) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -639,12 +605,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // × HH
         // × HY
         // × NS
-        if(
-            state->current == MJB_LBP_BA ||
-            state->current == MJB_LBP_HH ||
-            state->current == MJB_LBP_HY ||
-            state->current == MJB_LBP_NS
-        ) {
+        if(state->current == MJB_LBP_BA || state->current == MJB_LBP_HH ||
+            state->current == MJB_LBP_HY || state->current == MJB_LBP_NS) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -655,11 +617,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // LB21a Do not break after the hyphen in Hebrew + Hyphen + non-Hebrew.
         // HL (HY | HH) × [^HL]
-        if(
-            (state->previous == MJB_LBP_HY || state->previous == MJB_LBP_HH) &&
-            state->current != MJB_LBP_HL &&
-            state->prev_prev_lbp == MJB_LBP_HL
-        ) {
+        if((state->previous == MJB_LBP_HY || state->previous == MJB_LBP_HH) &&
+            state->current != MJB_LBP_HL && state->prev_prev_lbp == MJB_LBP_HL) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -678,16 +637,10 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // LB23 Do not break between digits and letters.
         // (AL | HL) × NU
         // NU × (AL | HL)
-        if(
-            (
-                (state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
-                state->current == MJB_LBP_NU
-            ) ||
-            (
-                state->previous == MJB_LBP_NU &&
-                (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)
-            )
-        ) {
+        if(((state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
+               state->current == MJB_LBP_NU) ||
+            (state->previous == MJB_LBP_NU &&
+                (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL))) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -695,25 +648,15 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // numeric postfixes.
         // PR × (ID | EB | EM)
         // (ID | EB | EM) × PO
-        if(
-            state->previous == MJB_LBP_PR &&
-            (
-                state->current == MJB_LBP_ID ||
-                state->current == MJB_LBP_EB ||
-                state->current == MJB_LBP_EM
-            )
-        ) {
+        if(state->previous == MJB_LBP_PR &&
+            (state->current == MJB_LBP_ID || state->current == MJB_LBP_EB ||
+                state->current == MJB_LBP_EM)) {
             return MJB_BT_NO_BREAK;
         }
 
-        if(
-            (
-                state->previous == MJB_LBP_ID ||
-                state->previous == MJB_LBP_EB ||
-                state->previous == MJB_LBP_EM
-            ) &&
-            state->current == MJB_LBP_PO
-        ) {
+        if((state->previous == MJB_LBP_ID || state->previous == MJB_LBP_EB ||
+               state->previous == MJB_LBP_EM) &&
+            state->current == MJB_LBP_PO) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -721,36 +664,28 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // prefix / postfix.
         // (PR | PO) × (AL | HL)
         // (AL | HL) × (PR | PO)
-        if(
-            (state->previous == MJB_LBP_PR || state->previous == MJB_LBP_PO) &&
-            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)
-        ) {
+        if((state->previous == MJB_LBP_PR || state->previous == MJB_LBP_PO) &&
+            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)) {
             return MJB_BT_NO_BREAK;
         }
 
-        if(
-            (state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
-            (state->current == MJB_LBP_PR || state->current == MJB_LBP_PO)
-        ) {
+        if((state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
+            (state->current == MJB_LBP_PR || state->current == MJB_LBP_PO)) {
             return MJB_BT_NO_BREAK;
         }
 
         // LB25 Do not break numbers:
         // HY × NU
         // IS × NU
-        if(
-            (state->previous == MJB_LBP_HY || state->previous == MJB_LBP_IS) &&
-            state->current == MJB_LBP_NU
-        ) {
+        if((state->previous == MJB_LBP_HY || state->previous == MJB_LBP_IS) &&
+            state->current == MJB_LBP_NU) {
             return MJB_BT_NO_BREAK;
         }
 
         // PO × NU
         // PR × NU
-        if(
-            (state->previous == MJB_LBP_PO || state->previous == MJB_LBP_PR) &&
-            state->current == MJB_LBP_NU
-        ) {
+        if((state->previous == MJB_LBP_PO || state->previous == MJB_LBP_PR) &&
+            state->current == MJB_LBP_NU) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -758,10 +693,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // Two checks:
         // (a) At the (PO|PR) × OP position: look ahead to see if NU follows OP.
         // (b) At the OP × NU position: confirm prev_prev was PO|PR (redundant safety net).
-        if(
-            state->current == MJB_LBP_OP &&
-            (state->previous == MJB_LBP_PO || state->previous == MJB_LBP_PR)
-        ) {
+        if(state->current == MJB_LBP_OP &&
+            (state->previous == MJB_LBP_PO || state->previous == MJB_LBP_PR)) {
             mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
             if(next_lbp == MJB_LBP_NU) {
@@ -769,30 +702,22 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             }
         }
 
-        if(
-            state->current == MJB_LBP_NU &&
-            state->previous == MJB_LBP_OP &&
-            (state->prev_prev_lbp == MJB_LBP_PO || state->prev_prev_lbp == MJB_LBP_PR)
-        ) {
+        if(state->current == MJB_LBP_NU && state->previous == MJB_LBP_OP &&
+            (state->prev_prev_lbp == MJB_LBP_PO || state->prev_prev_lbp == MJB_LBP_PR)) {
             return MJB_BT_NO_BREAK;
         }
 
         // NU (SY | IS)* × NU
         // NU (SY | IS)* × PO
         // NU (SY | IS)* × PR
-        if(
-            state->current == MJB_LBP_NU ||
-            state->current == MJB_LBP_PO ||
-            state->current == MJB_LBP_PR
-        ) {
+        if(state->current == MJB_LBP_NU || state->current == MJB_LBP_PO ||
+            state->current == MJB_LBP_PR) {
             if(state->previous == MJB_LBP_NU) {
                 return MJB_BT_NO_BREAK;
             }
 
-            if(
-                (state->previous == MJB_LBP_IS || state->previous == MJB_LBP_SY) &&
-                snap_num_lbp == MJB_LBP_NU
-            ) {
+            if((state->previous == MJB_LBP_IS || state->previous == MJB_LBP_SY) &&
+                snap_num_lbp == MJB_LBP_NU) {
                 return MJB_BT_NO_BREAK;
             }
         }
@@ -801,134 +726,85 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // NU (SY | IS)* CP × PO
         // NU (SY | IS)* CL × PR
         // NU (SY | IS)* CP × PR
-        if(
-            (state->current == MJB_LBP_PO || state->current == MJB_LBP_PR) &&
+        if((state->current == MJB_LBP_PO || state->current == MJB_LBP_PR) &&
             (state->previous == MJB_LBP_CL || state->previous == MJB_LBP_CP) &&
-            snap_num_lbp == MJB_LBP_NU
-        ) {
+            snap_num_lbp == MJB_LBP_NU) {
             return MJB_BT_NO_BREAK;
         }
 
         // LB26 Do not break a Korean syllable.
         // JL × (JL | JV | H2 | H3)
-        if(
-            state->previous == MJB_LBP_JL &&
-            (
-                state->current == MJB_LBP_JL ||
-                state->current == MJB_LBP_JV ||
-                state->current == MJB_LBP_H2 ||
-                state->current == MJB_LBP_H3
-            )
-        ) {
+        if(state->previous == MJB_LBP_JL &&
+            (state->current == MJB_LBP_JL || state->current == MJB_LBP_JV ||
+                state->current == MJB_LBP_H2 || state->current == MJB_LBP_H3)) {
             return MJB_BT_NO_BREAK;
         }
 
         // (JV | H2) × (JV | JT)
-        if(
-            (state->previous == MJB_LBP_JV || state->previous == MJB_LBP_H2) &&
-            (state->current == MJB_LBP_JV || state->current == MJB_LBP_JT)
-        ) {
+        if((state->previous == MJB_LBP_JV || state->previous == MJB_LBP_H2) &&
+            (state->current == MJB_LBP_JV || state->current == MJB_LBP_JT)) {
             return MJB_BT_NO_BREAK;
         }
 
         // (JT | H3) × JT
-        if(
-            (state->previous == MJB_LBP_JT || state->previous == MJB_LBP_H3) &&
-            state->current == MJB_LBP_JT
-        ) {
+        if((state->previous == MJB_LBP_JT || state->previous == MJB_LBP_H3) &&
+            state->current == MJB_LBP_JT) {
             return MJB_BT_NO_BREAK;
         }
 
         // LB27 Treat a Korean Syllable Block the same as ID.
         // (JL | JV | JT | H2 | H3) × PO
-        if(
-            (
-                state->previous == MJB_LBP_JL ||
-                state->previous == MJB_LBP_JV ||
-                state->previous == MJB_LBP_JT ||
-                state->previous == MJB_LBP_H2 ||
-                state->previous == MJB_LBP_H3
-            ) &&
-            state->current == MJB_LBP_PO
-        ) {
+        if((state->previous == MJB_LBP_JL || state->previous == MJB_LBP_JV ||
+               state->previous == MJB_LBP_JT || state->previous == MJB_LBP_H2 ||
+               state->previous == MJB_LBP_H3) &&
+            state->current == MJB_LBP_PO) {
             return MJB_BT_NO_BREAK;
         }
 
         // PR × (JL | JV | JT | H2 | H3)
-        if(
-            state->previous == MJB_LBP_PR &&
-            (
-                state->current == MJB_LBP_JL ||
-                state->current == MJB_LBP_JV ||
-                state->current == MJB_LBP_JT ||
-                state->current == MJB_LBP_H2 ||
-                state->current == MJB_LBP_H3
-            )
-        ) {
+        if(state->previous == MJB_LBP_PR &&
+            (state->current == MJB_LBP_JL || state->current == MJB_LBP_JV ||
+                state->current == MJB_LBP_JT || state->current == MJB_LBP_H2 ||
+                state->current == MJB_LBP_H3)) {
             return MJB_BT_NO_BREAK;
         }
 
         // LB28 Do not break between alphabetics ("at").
         // (AL | HL) × (AL | HL)
-        if(
-            (state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
-            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)
-        ) {
+        if((state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL) &&
+            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)) {
             return MJB_BT_NO_BREAK;
         }
 
         // LB28a Do not break inside the orthographic syllables of Brahmic scripts.
         // AP × (AK | [◌] | AS)
         // where [◌] = U+25CC DOTTED CIRCLE (has LBP=AL but treated specially here)
-        if(
-            state->previous == MJB_LBP_AP &&
-            (
-                state->current == MJB_LBP_AK ||
-                state->current_codepoint == 0x25CC ||
-                state->current == MJB_LBP_AS
-            )
-        ) {
+        if(state->previous == MJB_LBP_AP &&
+            (state->current == MJB_LBP_AK || state->current_codepoint == 0x25CC ||
+                state->current == MJB_LBP_AS)) {
             return MJB_BT_NO_BREAK;
         }
 
         // (AK | [◌] | AS) × (VF | VI)
-        if(
-            (
-                state->previous == MJB_LBP_AK ||
-                state->previous_codepoint == 0x25CC ||
-                state->previous == MJB_LBP_AS
-            ) &&
-            (state->current == MJB_LBP_VF || state->current == MJB_LBP_VI)
-        ) {
+        if((state->previous == MJB_LBP_AK || state->previous_codepoint == 0x25CC ||
+               state->previous == MJB_LBP_AS) &&
+            (state->current == MJB_LBP_VF || state->current == MJB_LBP_VI)) {
             return MJB_BT_NO_BREAK;
         }
 
         // (AK | [◌] | AS) VI × (AK | [◌])
-        if(
-            state->previous == MJB_LBP_VI &&
+        if(state->previous == MJB_LBP_VI &&
             (state->current == MJB_LBP_AK || state->current_codepoint == 0x25CC) &&
-            (
-                state->prev_prev_lbp == MJB_LBP_AK ||
-                state->prev_prev_lbp == MJB_LBP_AS ||
-                state->prev_prev_codepoint == 0x25CC
-            )
-        ) {
+            (state->prev_prev_lbp == MJB_LBP_AK || state->prev_prev_lbp == MJB_LBP_AS ||
+                state->prev_prev_codepoint == 0x25CC)) {
             return MJB_BT_NO_BREAK;
         }
 
         // (AK | [◌] | AS) × (AK | [◌] | AS) VF
-        if(
-            (
-                state->previous == MJB_LBP_AK ||
-                state->previous_codepoint == 0x25CC ||
-                state->previous == MJB_LBP_AS
-            ) &&
-            (
-                state->current == MJB_LBP_AK ||
-                state->current_codepoint == 0x25CC ||
-                state->current == MJB_LBP_AS
-            )
-        ) {
+        if((state->previous == MJB_LBP_AK || state->previous_codepoint == 0x25CC ||
+               state->previous == MJB_LBP_AS) &&
+            (state->current == MJB_LBP_AK || state->current_codepoint == 0x25CC ||
+                state->current == MJB_LBP_AS)) {
             mjb_lbp next_lbp = mjb_peek_next(buffer, byte_length, state->index, encoding, NULL);
 
             if(next_lbp == MJB_LBP_VF) {
@@ -938,10 +814,8 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // LB29 Do not break between numeric punctuation and alphabetics ("e.g.").
         // IS × (AL | HL)
-        if(
-            state->previous == MJB_LBP_IS &&
-            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)
-        ) {
+        if(state->previous == MJB_LBP_IS &&
+            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL)) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -949,26 +823,18 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // parentheses. $EastAsian = [\p{ea=F}\p{ea=W}\p{ea=H}]
         // (AL | HL | NU) × [OP-$EastAsian]
         // [CP-$EastAsian] × (AL | HL | NU)
-        if(
-            (
-                state->previous == MJB_LBP_AL ||
-                state->previous == MJB_LBP_HL ||
-                state->previous == MJB_LBP_NU
-            ) && state->current == MJB_LBP_OP && ea != MJB_EAW_FULL_WIDTH && ea != MJB_EAW_WIDE &&
-                ea != MJB_EAW_HALF_WIDTH
-        ) {
+        if((state->previous == MJB_LBP_AL || state->previous == MJB_LBP_HL ||
+               state->previous == MJB_LBP_NU) &&
+            state->current == MJB_LBP_OP && ea != MJB_EAW_FULL_WIDTH && ea != MJB_EAW_WIDE &&
+            ea != MJB_EAW_HALF_WIDTH) {
             return MJB_BT_NO_BREAK;
         }
 
-        if(
-            state->previous == MJB_LBP_CP &&
-            (
-                state->current == MJB_LBP_AL ||
-                state->current == MJB_LBP_HL ||
-                state->current == MJB_LBP_NU
-            ) &&
-            prev_ea != MJB_EAW_FULL_WIDTH && prev_ea != MJB_EAW_WIDE && prev_ea != MJB_EAW_HALF_WIDTH
-        ) {
+        if(state->previous == MJB_LBP_CP &&
+            (state->current == MJB_LBP_AL || state->current == MJB_LBP_HL ||
+                state->current == MJB_LBP_NU) &&
+            prev_ea != MJB_EAW_FULL_WIDTH && prev_ea != MJB_EAW_WIDE &&
+            prev_ea != MJB_EAW_HALF_WIDTH) {
             return MJB_BT_NO_BREAK;
         }
 
@@ -994,10 +860,11 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
             // Check [\p{Extended_Pictographic} & Cn]
             // Cn (unassigned) means the codepoint has no row in unicode_data.
-            uint8_t prev_props[MJB_PR_BUFFER_SIZE] = {0};
+            uint8_t prev_props[MJB_PR_BUFFER_SIZE] = { 0 };
             uint8_t ext_pic = 0;
 
-            if(mjb_codepoint_properties_lookup(state->previous_codepoint, prev_props) == MJB_STATUS_OK) {
+            if(mjb_codepoint_properties_lookup(state->previous_codepoint, prev_props) ==
+                MJB_STATUS_OK) {
                 ext_pic = mjb_codepoint_properties_get(prev_props, MJB_PR_EXTENDED_PICTOGRAPHIC);
             }
 
