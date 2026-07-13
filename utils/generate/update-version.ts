@@ -14,9 +14,9 @@ export async function updateVersion() {
   const versionNumber = v.major << 8 | v.minor << 4 | v.revision;
 
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_NUMBER', '\n',
-    `   0x${versionNumber.toString(16)} // MAJOR << 8 | MINOR << 4 | REVISION`);
-  fileContent = substituteBlock(fileContent, '#define MJB_VERSION_MAJOR', '\n', '    ' + v.major.toString());
-  fileContent = substituteBlock(fileContent, '#define MJB_VERSION_MINOR', '\n', '    ' + v.minor.toString());
+    ` 0x${versionNumber.toString(16)} // MAJOR << 8 | MINOR << 4 | REVISION`);
+  fileContent = substituteBlock(fileContent, '#define MJB_VERSION_MAJOR', '\n', ' ' + v.major.toString());
+  fileContent = substituteBlock(fileContent, '#define MJB_VERSION_MINOR', '\n', ' ' + v.minor.toString());
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_REVISION', '\n', ' ' + v.revision.toString());
 
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION "', '-WASM"\n', v.version);

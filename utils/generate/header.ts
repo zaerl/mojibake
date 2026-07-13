@@ -173,7 +173,7 @@ export function generateHeader(blocks: Block[], categories: string[], properties
   fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
 
   // Add list of functions to mojibake.h
-  fileContent = substituteBlock(fileContent, "// This functions list is automatically generated. Do not edit.\n\n", "\n#ifdef __cplusplus", getFunctions());
+  fileContent = substituteBlock(fileContent, "Do not edit.\n// clang-format off\n\n", "\n// clang-format on\n", getFunctions());
 
   writeFileSync('../../src/mojibake.h', fileContent);
 

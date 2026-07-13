@@ -23,14 +23,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "unicode.h"
 #include "locales.h"
+#include "unicode.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Static assertions for important constants
+// clang-format off
 #if defined(__cplusplus)
     static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
     static_assert(sizeof(char) == 1, "char must be 1 byte");
@@ -38,10 +39,11 @@ extern "C" {
     _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
     _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #endif
+// clang-format on
 
-#define MJB_VERSION_NUMBER   0x25 // MAJOR << 8 | MINOR << 4 | REVISION
-#define MJB_VERSION_MAJOR    0
-#define MJB_VERSION_MINOR    2
+#define MJB_VERSION_NUMBER 0x25 // MAJOR << 8 | MINOR << 4 | REVISION
+#define MJB_VERSION_MAJOR 0
+#define MJB_VERSION_MINOR 2
 #define MJB_VERSION_REVISION 5
 
 #ifdef __EMSCRIPTEN__
@@ -50,7 +52,7 @@ extern "C" {
     #define MJB_VERSION "0.2.5"
 #endif
 
-#define MJB_UNICODE_VERSION       "17.0.0"
+#define MJB_UNICODE_VERSION "17.0.0"
 #define MJB_UNICODE_VERSION_MAJOR 17
 #define MJB_UNICODE_VERSION_MINOR 0
 #define MJB_UNICODE_VERSION_REVISION 0
@@ -110,19 +112,19 @@ typedef void (*mjb_free_fn)(void *ptr);
  */
 typedef uint32_t mjb_codepoint;
 
-#define MJB_CODEPOINT_MIN         0x0
-#define MJB_CODEPOINT_MAX         0x10FFFF // Maximum valid Unicode code point
-#define MJB_CODEPOINT_REPLACEMENT 0xFFFD   // The character used when there is invalid data "�"
-#define MJB_PRIVATE_USE_START     0xF0000  // Private use area start
-#define MJB_PRIVATE_USE_END       0x10FFFD // Private use area end
-#define MJB_CODEPOINT_NOT_VALID   0x110000 // Not a valid codepoint
+#define MJB_CODEPOINT_MIN 0x0
+#define MJB_CODEPOINT_MAX 0x10FFFF       // Maximum valid Unicode code point
+#define MJB_CODEPOINT_REPLACEMENT 0xFFFD // The character used when there is invalid data "�"
+#define MJB_PRIVATE_USE_START 0xF0000    // Private use area start
+#define MJB_PRIVATE_USE_END 0x10FFFD     // Private use area end
+#define MJB_CODEPOINT_NOT_VALID 0x110000 // Not a valid codepoint
 
 // Hangul Syllables constants
 // See: https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G61399
-#define MJB_CP_HANGUL_S_BASE  0xAC00
-#define MJB_CP_HANGUL_L_BASE  0x1100
-#define MJB_CP_HANGUL_V_BASE  0x1161
-#define MJB_CP_HANGUL_T_BASE  0x11A7
+#define MJB_CP_HANGUL_S_BASE 0xAC00
+#define MJB_CP_HANGUL_L_BASE 0x1100
+#define MJB_CP_HANGUL_V_BASE 0x1161
+#define MJB_CP_HANGUL_T_BASE 0x11A7
 #define MJB_CP_HANGUL_L_COUNT 19
 #define MJB_CP_HANGUL_V_COUNT 21
 #define MJB_CP_HANGUL_T_COUNT 28
@@ -130,56 +132,56 @@ typedef uint32_t mjb_codepoint;
 #define MJB_CP_HANGUL_S_COUNT 11172 // L_COUNT * N_COUNT
 
 // CJK Ideographs
-#define MJB_CJK_IDEOGRAPH_START   0x4E00
-#define MJB_CJK_IDEOGRAPH_END     0x9FFF
+#define MJB_CJK_IDEOGRAPH_START 0x4E00
+#define MJB_CJK_IDEOGRAPH_END 0x9FFF
 #define MJB_CJK_EXTENSION_A_START 0x3400
-#define MJB_CJK_EXTENSION_A_END   0x4DBF
+#define MJB_CJK_EXTENSION_A_END 0x4DBF
 #define MJB_CJK_EXTENSION_B_START 0x20000
-#define MJB_CJK_EXTENSION_B_END   0x2A6DF
+#define MJB_CJK_EXTENSION_B_END 0x2A6DF
 #define MJB_CJK_EXTENSION_C_START 0x2A700
-#define MJB_CJK_EXTENSION_C_END   0x2B73F
+#define MJB_CJK_EXTENSION_C_END 0x2B73F
 #define MJB_CJK_EXTENSION_D_START 0x2B740
-#define MJB_CJK_EXTENSION_D_END   0x2B81D
+#define MJB_CJK_EXTENSION_D_END 0x2B81D
 #define MJB_CJK_EXTENSION_E_START 0x2B820
-#define MJB_CJK_EXTENSION_E_END   0x2CEAD
+#define MJB_CJK_EXTENSION_E_END 0x2CEAD
 #define MJB_CJK_EXTENSION_F_START 0x2CEB0
-#define MJB_CJK_EXTENSION_F_END   0x2EBE0
+#define MJB_CJK_EXTENSION_F_END 0x2EBE0
 #define MJB_CJK_EXTENSION_G_START 0x30000
-#define MJB_CJK_EXTENSION_G_END   0x3134A
+#define MJB_CJK_EXTENSION_G_END 0x3134A
 #define MJB_CJK_EXTENSION_H_START 0x31350
-#define MJB_CJK_EXTENSION_H_END   0x323AF
+#define MJB_CJK_EXTENSION_H_END 0x323AF
 #define MJB_CJK_EXTENSION_I_START 0x2EBF0
-#define MJB_CJK_EXTENSION_I_END   0x2EE5D
+#define MJB_CJK_EXTENSION_I_END 0x2EE5D
 #define MJB_CJK_EXTENSION_J_START 0x323B0
-#define MJB_CJK_EXTENSION_J_END   0x33479
+#define MJB_CJK_EXTENSION_J_END 0x33479
 
 #define MJB_CJK_COMPATIBILITY_IDEOGRAPH_START 0xF900
-#define MJB_CJK_COMPATIBILITY_IDEOGRAPH_END   0xFAD9
+#define MJB_CJK_COMPATIBILITY_IDEOGRAPH_END 0xFAD9
 
 #define MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_START 0x2F800
-#define MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_END   0x2FA1D
+#define MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_END 0x2FA1D
 
-#define MJB_EGYPTIAN_H_START            0x13000
+#define MJB_EGYPTIAN_H_START 0x13000
 #define MJB_EGYPTIAN_H_FORMAT_EXT_START 0x13460
-#define MJB_EGYPTIAN_H_EXT_END          0x143FF
+#define MJB_EGYPTIAN_H_EXT_END 0x143FF
 
 // Tangut Ideographs
 #define MJB_TANGUT_IDEOGRAPH_START 0x17000
-#define MJB_TANGUT_IDEOGRAPH_END   0x187F7
+#define MJB_TANGUT_IDEOGRAPH_END 0x187F7
 
 #define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START 0x18D00
-#define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END   0x18D1E
+#define MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END 0x18D1E
 
 // Tangut components
 #define MJB_TANGUT_COMPONENT_START 0x18800
-#define MJB_TANGUT_COMPONENT_END   0x18AFF
+#define MJB_TANGUT_COMPONENT_END 0x18AFF
 
 #define MJB_TANGUT_COMPONENT_SUPPLEMENT_START 0x18D80
-#define MJB_TANGUT_COMPONENT_SUPPLEMENT_END   0x18DF2
+#define MJB_TANGUT_COMPONENT_SUPPLEMENT_END 0x18DF2
 
 // Khitan Small Script Characters
 #define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_START 0x18B00
-#define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END   0x18CFF
+#define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END 0x18CFF
 
 // Numeric values, to be used when the decimal and digit mjb_character fields are not valid
 #define MJB_NUMBER_NOT_VALID -1
@@ -189,13 +191,13 @@ typedef uint32_t mjb_codepoint;
  * [see: https://www.unicode.org/glossary/#character_encoding_scheme]
  */
 typedef enum mjb_encoding {
-    MJB_ENC_UNKNOWN  = 0x0,
-    MJB_ENC_ASCII    = 0x1,
-    MJB_ENC_UTF_8    = 0x2,
-    MJB_ENC_UTF_16   = 0x4,
+    MJB_ENC_UNKNOWN = 0x0,
+    MJB_ENC_ASCII = 0x1,
+    MJB_ENC_UTF_8 = 0x2,
+    MJB_ENC_UTF_16 = 0x4,
     MJB_ENC_UTF_16BE = 0x8,
     MJB_ENC_UTF_16LE = 0x10,
-    MJB_ENC_UTF_32   = 0x20,
+    MJB_ENC_UTF_32 = 0x20,
     MJB_ENC_UTF_32BE = 0x40,
     MJB_ENC_UTF_32LE = 0x80
 } mjb_encoding;
@@ -212,17 +214,17 @@ typedef enum mjb_normalization {
 } mjb_normalization;
 
 typedef enum mjb_quick_check_result {
-    MJB_QC_YES        = 0x0,
-    MJB_QC_NO         = 0x1,
-    MJB_QC_MAYBE      = 0x2,
+    MJB_QC_YES = 0x0,
+    MJB_QC_NO = 0x1,
+    MJB_QC_MAYBE = 0x2,
     // See: DerivedNormalizationProps.txt
-    MJB_QC_NFD_NO     = 0x4,
-    MJB_QC_NFD_MAYBE  = 0x8, // Impossible to happen
-    MJB_QC_NFC_NO     = 0x10,
-    MJB_QC_NFC_MAYBE  = 0x20,
-    MJB_QC_NFKC_NO    = 0x40,
+    MJB_QC_NFD_NO = 0x4,
+    MJB_QC_NFD_MAYBE = 0x8, // Impossible to happen
+    MJB_QC_NFC_NO = 0x10,
+    MJB_QC_NFC_MAYBE = 0x20,
+    MJB_QC_NFKC_NO = 0x40,
     MJB_QC_NFKC_MAYBE = 0x80,
-    MJB_QC_NFKD_NO    = 0x100,
+    MJB_QC_NFKD_NO = 0x100,
     MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
 
@@ -232,12 +234,12 @@ typedef enum mjb_quick_check_result {
 #endif
 
 typedef enum mjb_filter {
-    MJB_FILTER_NONE            = 0x0,
-    MJB_FILTER_NORMALIZE       = 0x1,
-    MJB_FILTER_SPACES          = 0x2,
+    MJB_FILTER_NONE = 0x0,
+    MJB_FILTER_NORMALIZE = 0x1,
+    MJB_FILTER_SPACES = 0x2,
     MJB_FILTER_COLLAPSE_SPACES = 0x4,
-    MJB_FILTER_CONTROLS        = 0x8,
-    MJB_FILTER_NUMERIC         = 0x10,
+    MJB_FILTER_CONTROLS = 0x8,
+    MJB_FILTER_NUMERIC = 0x10,
     MJB_FILTER_LIMIT_COMBINING = 0x20
 } mjb_filter;
 
@@ -466,8 +468,8 @@ typedef struct mjb_next_sentence_state {
 typedef bool (*mjb_string_each_character_fn)(mjb_character *character, mjb_character_position type);
 
 typedef enum mjb_direction {
-    MJB_DIRECTION_LTR  = 0,
-    MJB_DIRECTION_RTL  = 1,
+    MJB_DIRECTION_LTR = 0,
+    MJB_DIRECTION_RTL = 1,
     MJB_DIRECTION_AUTO = 2,
 } mjb_direction;
 
@@ -506,6 +508,7 @@ typedef enum mjb_identifier_profile {
 } mjb_identifier_profile;
 
 // This functions list is automatically generated. Do not edit.
+// clang-format off
 
 // Return the codepoint character.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
@@ -771,6 +774,7 @@ MJB_EXPORT MJB_NODISCARD void *mjb_realloc(void *ptr, size_t new_size);
 // Free memory.
 MJB_EXPORT void mjb_free(void *ptr);
 
+// clang-format on
 #ifdef __cplusplus
 }
 #endif

@@ -12,6 +12,7 @@ BreakBeforeTernaryOperators: false
 ColumnLimit: 100
 Cpp11BracedListStyle: false
 IndentCaseLabels: true
+IndentPPDirectives: Leave
 IndentWidth: 4
 PenaltyBreakOpenParenthesis: 1000000
 PenaltyBreakAssignment: 1000000
