@@ -7,7 +7,7 @@
 #include "test.h"
 
 int test_example(void *arg) {
-    char test_buffer[128];
+    char test_buffer[256];
 
     // This function is automatically generated. Do not edit.
 {
