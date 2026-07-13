@@ -1165,7 +1165,8 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_next_word_state state = {0};
+    example: `mjb_next_word_state state;
+state.index = 0;
 size_t boundaries = 0;
 
 while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {

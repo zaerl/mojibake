@@ -1184,7 +1184,8 @@ mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encodi
 **Example**
 
 ```c
-mjb_next_line_state state = {0};
+mjb_next_line_state state;
+state.index = 0;
 mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
 
 // First line-break result is set: yes
@@ -1211,7 +1212,8 @@ mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encodi
 **Example**
 
 ```c
-mjb_next_word_state state = {0};
+mjb_next_word_state state;
+state.index = 0;
 size_t boundaries = 0;
 
 while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {

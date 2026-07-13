@@ -92,7 +92,8 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
         }
     }
 
-    mjb_next_word_state word_state = {0};
+    mjb_next_word_state word_state;
+    word_state.index = 0;
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_break_type bt = mjb_break_word(buffer, byte_length, encoding, &word_state);
         fuzz_sink += (size_t)bt + word_state.index;
