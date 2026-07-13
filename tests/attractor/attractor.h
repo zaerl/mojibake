@@ -19,6 +19,8 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
+#include <cstddef>
+#include <cstdint>
 #include <type_traits>
 #include <string>
 
@@ -207,17 +209,37 @@ inline unsigned int att_assert_cpp(void* result, void* expected, const char *des
     return att_assert_p_p(result, expected, description, file, line);
 }
 
-// Special overloads for NULL pointer comparisons
+// Convert the int form of NULL through a pointer-sized integer. On LLP64 platforms (64-bit Windows),
+// long is narrower than a pointer.
+template<typename T>
+inline T* att_pointer_from_long(long value) {
+    return value == 0 ? nullptr : reinterpret_cast<T*>(static_cast<std::intptr_t>(value));
+}
+
+// Special overloads for legacy NULL pointer comparisons
 inline unsigned int att_assert_cpp(const char* result, long expected, const char *description, const char *file, unsigned int line) {
-    return att_assert_cp_c(result, (const char*)expected, description, file, line);
+    return att_assert_cp_c(result, att_pointer_from_long<const char>(expected), description, file, line);
 }
 
 inline unsigned int att_assert_cpp(char* result, long expected, const char *description, const char *file, unsigned int line) {
-    return att_assert_p_c(result, (char*)expected, description, file, line);
+    return att_assert_p_c(result, att_pointer_from_long<char>(expected), description, file, line);
 }
 
 inline unsigned int att_assert_cpp(void* result, long expected, const char *description, const char *file, unsigned int line) {
-    return att_assert_p_p(result, (void*)expected, description, file, line);
+    return att_assert_p_p(result, att_pointer_from_long<void>(expected), description, file, line);
+}
+
+// Modern C++ null pointer comparisons
+inline unsigned int att_assert_cpp(const char* result, std::nullptr_t, const char *description, const char *file, unsigned int line) {
+    return att_assert_cp_c(result, nullptr, description, file, line);
+}
+
+inline unsigned int att_assert_cpp(char* result, std::nullptr_t, const char *description, const char *file, unsigned int line) {
+    return att_assert_p_c(result, nullptr, description, file, line);
+}
+
+inline unsigned int att_assert_cpp(void* result, std::nullptr_t, const char *description, const char *file, unsigned int line) {
+    return att_assert_p_p(result, nullptr, description, file, line);
 }
 
 // Mixed char pointer types (char* vs const char*)
