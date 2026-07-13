@@ -5,7 +5,7 @@ This is the Mojibake roadmap. For great justice.
 ## Next steps
 
 1. **Resolved script sets**
-   Add `mjb_string_script_set` by combining the Script_Extensions sets of every code point. See
+   Add `mjb_string_script_set` by combining the `Script_Extensions` sets of every code point. See
    UTS #39 restriction levels.
 
 2. **Complete UTS #39 identifier checks**
