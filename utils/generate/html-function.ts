@@ -94,9 +94,18 @@ export class CFunction implements MojibakeFunction {
     return `// ${this.comment}\n${attributes} ${this.ret}${this.getName()}(${this.getArgs().join(', ')});`;
   }
 
+  formatSignature(): string {
+    const args = this.getArgs();
+    const fn = args.length === 1 && args[0] === 'void' ?
+      `${this.ret}${this.getName()}(void);` :
+      `${this.ret}${this.getName()}(\n    ${this.getArgs().join(',\n    ')}\n);`;
+
+    return fn;
+  }
+
   formatMD(): string {
     let ret = `## \`${this.getName()}\`\n\n${this.comment}\n\n`;
-    ret += `\`\`\`c\n${this.ret}${this.getName()}(${this.getArgs().join(', ')});\n\`\`\``;
+    ret += `\`\`\`c\n${this.formatSignature()}\n\`\`\``;
 
     if(this.details) {
       ret += `\n\n${this.details}`;
@@ -160,10 +169,7 @@ export class CFunction implements MojibakeFunction {
   }
 
   formatHTML(relatedLinkTargets = new Set<string>()): string {
-    const args = this.getArgs();
-    const fn = args.length === 1 && args[0] === 'void' ?
-      `${this.ret}${this.getName()}(void);` :
-      `${this.ret}${this.getName()}(\n    ${this.getArgs().join(',\n    ')}\n);`;
+    const fn = this.formatSignature();
 
     const searchText = CFunction.escapeHTML(`${this.getName()} ${this.comment}`.toLowerCase());
 
