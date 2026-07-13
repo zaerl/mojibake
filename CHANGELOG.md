@@ -5,6 +5,40 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-07-13
+
+### Added
+- Forced from now on clang-format rules
+- Reformatted all files
+- Windows: added "Test (embedded NULLs)" flow
+- Windows: added "Test (C++)" flow
+- Changed site color tone map to something more modern
+- Added small examples for all functions
+- Added `ROADMAP.md`
+- Added `mjb_codepoint_script_extensions` algorithm
+- Added `mjb_confusable_skeleton` algorithm
+- Added `mjb_nfkc_casefold` algorithm
+- HTML: added bitfield for `mjb_case`
+
+### Changed
+- Renamed `doc/` to `example/`
+- Move legalese to conformance file
+- Removed fuzz paragraph
+- Fix: `Mojibake.codepointEncode` wrong signature
+- Fix: `Mojibake.stringLength` wrong signature
+- Inverted `mjb_normalize`, `mjb_case` and `mjb_string_filter` parameters
+- Split `mjb_codepoint_property_value` in `mjb_codepoint_property_binary`,
+  `mjb_codepoint_property_int`
+- Minor functions reordering
+
+### Fixed
+- Windows C++: MSVC wrong default code page
+- Windows/Attractor: missing `reinterpret_cast`
+- C++/Linux: fixed `missing-field-initializer`
+- Linux: fix format-truncation warning
+- OpenBSD: fixed "collation entries" algorithm (+10 minutes)
+- Missing include in `unicode-tables.h`
+
 ## [0.2.5] - 2026-07-11
 
 ### Added
@@ -387,7 +421,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/zaerl/mojibake/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/zaerl/mojibake/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/zaerl/mojibake/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/zaerl/mojibake/compare/v0.2.2...v0.2.3

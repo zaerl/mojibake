@@ -89,7 +89,7 @@ byte input
 You don't need to install anything. Add the C source and header to your build.
 
 1. Download it here
-[mojibake-amalgamation-025.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.5/mojibake-amalgamation-025.zip)
+[mojibake-amalgamation-026.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.6/mojibake-amalgamation-026.zip)
 2. Unzip it
 3. Add `mojibake.c` and `mojibake.h` to your project
 

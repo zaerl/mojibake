@@ -41,15 +41,15 @@ extern "C" {
 #endif
 // clang-format on
 
-#define MJB_VERSION_NUMBER 0x25 // MAJOR << 8 | MINOR << 4 | REVISION
+#define MJB_VERSION_NUMBER 0x26 // MAJOR << 8 | MINOR << 4 | REVISION
 #define MJB_VERSION_MAJOR 0
 #define MJB_VERSION_MINOR 2
-#define MJB_VERSION_REVISION 5
+#define MJB_VERSION_REVISION 6
 
 #ifdef __EMSCRIPTEN__
-    #define MJB_VERSION "0.2.5-WASM"
+    #define MJB_VERSION "0.2.6-WASM"
 #else
-    #define MJB_VERSION "0.2.5"
+    #define MJB_VERSION "0.2.6"
 #endif
 
 #define MJB_UNICODE_VERSION "17.0.0"
