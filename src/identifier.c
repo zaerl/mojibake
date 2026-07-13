@@ -8,14 +8,17 @@
 #include "utf.h"
 
 // Return true if the string is a valid Unicode identifier (UAX#31).
-MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_identifier_profile profile) {
+MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_identifier_profile profile) {
     if(buffer == NULL || byte_length == 0) {
         return false;
     }
 
     mjb_property start_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_START : MJB_PR_ID_START;
-    mjb_property cont_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_CONTINUE : MJB_PR_ID_CONTINUE;
+    // clang-format off
+    mjb_property cont_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_CONTINUE :
+        MJB_PR_ID_CONTINUE;
+    // clang-format on
 
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
@@ -23,8 +26,8 @@ MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length,
     bool first = true;
 
     for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &codepoint,
-            &in_error);
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
+            &codepoint, &in_error);
 
         if(dr == MJB_DECODE_END) {
             break;

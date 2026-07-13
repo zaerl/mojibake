@@ -196,78 +196,48 @@ static bool mjb_locale_copy_subtags(char *output, size_t output_size,
 static bool mjb_locale_is_grandfathered(const mjb_locale_subtag *subtags, size_t count) {
     if(count == 2) {
         // See https://datatracker.ietf.org/doc/html/rfc5646 "grandfathered" section.
-        return (
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "i") &&
-                (
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "ami") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "bnn") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "default") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "enochian") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "hak") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "klingon") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "lux") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "mingo") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "navajo") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "pwn") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "tao") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "tay") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "tsu")
-                )
-            ) ||
-            (
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "art") &&
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "lojban")
-            ) ||
-            (
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "cel") &&
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "gaulish")
-            ) ||
-            (
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "no") &&
-                (
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "bok") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "nyn")
-                )
-            ) ||
-            (
-                MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "zh") &&
-                (
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "guoyu") ||
+        return (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "i") &&
+                   (MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "ami") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "bnn") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "default") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "enochian") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "hak") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "klingon") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "lux") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "mingo") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "navajo") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "pwn") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "tao") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "tay") ||
+                       MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "tsu"))) ||
+            (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "art") &&
+                MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "lojban")) ||
+            (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "cel") &&
+                MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "gaulish")) ||
+            (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "no") &&
+                (MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "bok") ||
+                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "nyn"))) ||
+            (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "zh") &&
+                (MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "guoyu") ||
                     MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "hakka") ||
                     MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "min") ||
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "xiang")
-                )
-            );
+                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "xiang")));
     }
 
     if(count == 3) {
         // Match grandfathered tags that require all three subtags.
-        return (
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "en") &&
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "gb") &&
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "oed")
-        ) ||
-        (
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "sgn") &&
-            (
-                (
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "be") &&
-                    (
-                        MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "fr") ||
-                        MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "nl")
-                    )
-                ) ||
-                (
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "ch") &&
-                    MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "de")
-                )
-            )
-        ) ||
-        (
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "zh") &&
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "min") &&
-            MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "nan")
-        );
+        return (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "en") &&
+                   MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "gb") &&
+                   MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "oed")) ||
+            (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "sgn") &&
+                ((MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "be") &&
+                     (MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "fr") ||
+                         MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "nl"))) ||
+                    (MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "ch") &&
+                        MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "de")))) ||
+            (MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "zh") &&
+                MJB_LOCALE_SUBTAG_MATCHES(&subtags[1], "min") &&
+                MJB_LOCALE_SUBTAG_MATCHES(&subtags[2], "nan"));
     }
 
     return false;
@@ -293,7 +263,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     }
 
     size_t subtag_capacity = ascii_size / 2 + 1;
-    subtags = (mjb_locale_subtag*)mjb_alloc(subtag_capacity * sizeof(*subtags));
+    subtags = (mjb_locale_subtag *)mjb_alloc(subtag_capacity * sizeof(*subtags));
 
     if(subtags == NULL) {
         MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
@@ -351,8 +321,8 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     // i-klingon
     // ^ grandfathered tag
     if(mjb_locale_is_grandfathered(subtags, subtag_count)) {
-        if(!mjb_locale_copy_subtags(locale->grandfathered, sizeof(locale->grandfathered),
-            subtags, 0, subtag_count, MJB_LOCALE_CASE_LOWER)) {
+        if(!mjb_locale_copy_subtags(locale->grandfathered, sizeof(locale->grandfathered), subtags,
+               0, subtag_count, MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -363,8 +333,9 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     // ^ private-use-only tag
     if(MJB_LOCALE_SUBTAG_MATCHES(&subtags[0], "x")) {
         // See https://datatracker.ietf.org/doc/html/rfc5646 "privateuse" section.
-        if(subtag_count < 2 || !mjb_locale_copy_subtags(locale->private_use,
-            sizeof(locale->private_use), subtags, 0, subtag_count, MJB_LOCALE_CASE_LOWER)) {
+        if(subtag_count < 2 ||
+            !mjb_locale_copy_subtags(locale->private_use, sizeof(locale->private_use), subtags, 0,
+                subtag_count, MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -382,27 +353,24 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     // ^ primary language, with up to three optional extlang subtags
     if(language->length >= 2 && language->length <= 3) {
         if(!mjb_locale_copy_subtag(locale->language, sizeof(locale->language), language,
-            MJB_LOCALE_CASE_LOWER)) {
+               MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
         ++index;
 
         // See https://datatracker.ietf.org/doc/html/rfc5646 "extlang" section.
-        for(
-            size_t extlang_count = 0;
-            extlang_count < 3 && index < subtag_count && subtags[index].length == 3 &&
-            mjb_locale_subtag_is_alpha(&subtags[index]);
-            ++extlang_count, ++index
-        ) {
-            if(!mjb_locale_append_subtag(locale->extlang, sizeof(locale->extlang),
-                &subtags[index], MJB_LOCALE_CASE_LOWER)) {
+        for(size_t extlang_count = 0; extlang_count < 3 && index < subtag_count &&
+            subtags[index].length == 3 && mjb_locale_subtag_is_alpha(&subtags[index]);
+            ++extlang_count, ++index) {
+            if(!mjb_locale_append_subtag(locale->extlang, sizeof(locale->extlang), &subtags[index],
+                   MJB_LOCALE_CASE_LOWER)) {
                 MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
             }
         }
     } else if(language->length >= 4 && language->length <= 8) {
         if(!mjb_locale_copy_subtag(locale->language, sizeof(locale->language), language,
-            MJB_LOCALE_CASE_LOWER)) {
+               MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -416,7 +384,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     if(index < subtag_count && subtags[index].length == 4 &&
         mjb_locale_subtag_is_alpha(&subtags[index])) {
         if(!mjb_locale_copy_subtag(locale->script, sizeof(locale->script), &subtags[index],
-            MJB_LOCALE_CASE_TITLE)) {
+               MJB_LOCALE_CASE_TITLE)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -427,10 +395,10 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     //                   ^ optional region
     if(index < subtag_count &&
         ((subtags[index].length == 2 && mjb_locale_subtag_is_alpha(&subtags[index])) ||
-         (subtags[index].length == 3 && mjb_locale_subtag_is_digit(&subtags[index])))) {
+            (subtags[index].length == 3 && mjb_locale_subtag_is_digit(&subtags[index])))) {
         // See https://datatracker.ietf.org/doc/html/rfc5646 "region" section.
         if(!mjb_locale_copy_subtag(locale->region, sizeof(locale->region), &subtags[index],
-            MJB_LOCALE_CASE_UPPER)) {
+               MJB_LOCALE_CASE_UPPER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -449,14 +417,14 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         }
 
         if(!mjb_locale_append_subtag(locale->variant, sizeof(locale->variant), &subtags[index],
-            MJB_LOCALE_CASE_LOWER)) {
+               MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
         ++index;
     }
 
-    bool seen_singletons[36] = {false};
+    bool seen_singletons[36] = { false };
 
     // language[-script][-region][-variant...][-extension...][-x-private...]
     //                                         ^ optional extensions
@@ -470,7 +438,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         seen_singletons[singleton] = true;
 
         if(!mjb_locale_append_subtag(locale->extensions, sizeof(locale->extensions),
-            &subtags[index], MJB_LOCALE_CASE_LOWER)) {
+               &subtags[index], MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
         }
 
@@ -482,7 +450,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
 
         while(index < subtag_count && subtags[index].length >= 2) {
             if(!mjb_locale_append_subtag(locale->extensions, sizeof(locale->extensions),
-                &subtags[index], MJB_LOCALE_CASE_LOWER)) {
+                   &subtags[index], MJB_LOCALE_CASE_LOWER)) {
                 MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
             }
 
@@ -529,7 +497,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
 
     const char *ascii_id = id;
     size_t ascii_size = size;
-    mjb_result converted = {NULL, 0, false};
+    mjb_result converted = { NULL, 0, false };
 
     // Parse byte-oriented ASCII after validating or converting the input encoding.
     if(encoding == MJB_ENC_ASCII) {
@@ -577,8 +545,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     return MJB_STATUS_OK;
 }
 
-bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result,
-    mjb_error *error) {
+bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result, mjb_error *error) {
     (void)id;
     (void)size;
     (void)result;
