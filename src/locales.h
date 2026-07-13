@@ -44,7 +44,8 @@ typedef enum mjb_locale {
     MJB_LOCALE_CH, // Chamorro
     MJB_LOCALE_CE, // Chechen
     MJB_LOCALE_ZH, // Chinese
-    MJB_LOCALE_CU, // Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic
+    MJB_LOCALE_CU, // Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church
+                   // Slavonic
     MJB_LOCALE_CV, // Chuvash
     MJB_LOCALE_KW, // Cornish
     MJB_LOCALE_CO, // Corsican

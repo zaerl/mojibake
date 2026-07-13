@@ -10,12 +10,12 @@
 #define MJB_MOJIBAKE_INTERNAL_H
 
 #ifdef __EMSCRIPTEN__
-    #include <emscripten.h>
-    #define MJB_LOG(msg) emscripten_log(EM_LOG_CONSOLE, msg)
-    #define MJB_LOG_VA(msg, ...) emscripten_log(EM_LOG_CONSOLE, msg, __VA_ARGS__)
+#include <emscripten.h>
+#define MJB_LOG(msg) emscripten_log(EM_LOG_CONSOLE, msg)
+#define MJB_LOG_VA(msg, ...) emscripten_log(EM_LOG_CONSOLE, msg, __VA_ARGS__)
 #else
-    #define MJB_LOG(msg) ((void)0)
-    #define MJB_LOG_VA(msg, ...) ((void)0)
+#define MJB_LOG(msg) ((void)0)
+#define MJB_LOG_VA(msg, ...) ((void)0)
 #endif
 
 #include <stdbool.h>
@@ -27,15 +27,15 @@
 #include "mojibake.h"
 
 #if defined(_MSC_VER)
-    #define MJB_USED
+#define MJB_USED
 #else
-    #define MJB_USED __attribute__((used))
+#define MJB_USED __attribute__((used))
 #endif
 
-#define	MJB_UTF_ACCEPT 0
+#define MJB_UTF_ACCEPT 0
 #define MJB_UTF_PENDING_SURROGATE 0xD
 #define MJB_UTF_TERMINATED 0xE
-#define	MJB_UTF_REJECT 0xF
+#define MJB_UTF_REJECT 0xF
 
 /**
  * Internal mojibake structure
@@ -50,11 +50,11 @@ typedef struct mojibake {
 } mojibake;
 
 // Internal functions
-char *mjb_string_output(char *ret, char *input, size_t input_size,
-    size_t *output_index, size_t *output_size);
+char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
+    size_t *output_size);
 
-char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t
-    *output_index, size_t *output_size, mjb_encoding encoding);
+char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t *output_index,
+    size_t *output_size, mjb_encoding encoding);
 
 // A smaller version of mjb_character that only contains the information needed for the
 // normalization process.
