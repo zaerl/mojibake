@@ -12,8 +12,8 @@
 /**
  * Return display width of a string.
  */
-MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_width_context context, size_t *width) {
+MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_width_context context, size_t *width) {
     if(width == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -117,7 +117,8 @@ MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t byte_length, 
             use_east_asian_width = (context == MJB_WIDTH_CONTEXT_EAST_ASIAN);
         }
 
-        // If East Asian context, add 1 for each ambiguous character (they were initially counted as 1, need to be 2)
+        // If East Asian context, add 1 for each ambiguous character (they were initially counted as
+        // 1, need to be 2)
         if(use_east_asian_width) {
             if(*width > SIZE_MAX - ambiguous_count) {
                 return MJB_STATUS_OVERFLOW;
