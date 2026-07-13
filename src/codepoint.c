@@ -11,8 +11,8 @@
 #include "unicode-tables.h"
 
 #if MJB_FEATURE_CHARACTER_NAMES
-static void mjb_codepoint_append_name(char *destination, size_t destination_size,
-    size_t *index, const char *source) {
+static void mjb_codepoint_append_name(char *destination, size_t destination_size, size_t *index,
+    const char *source) {
     if(*index >= destination_size) {
         return;
     }
@@ -24,8 +24,8 @@ static void mjb_codepoint_append_name(char *destination, size_t destination_size
     destination[*index] = '\0';
 }
 
-static void mjb_codepoint_set_name(char *destination, size_t destination_size,
-    const char *prefix, const char *name) {
+static void mjb_codepoint_set_name(char *destination, size_t destination_size, const char *prefix,
+    const char *name) {
     size_t index = 0;
 
     if(destination_size == 0) {
@@ -52,14 +52,13 @@ static void mjb_codepoint_set_default_name(char *destination, size_t destination
 // Return true if the codepoint is valid
 MJB_EXPORT bool mjb_codepoint_is_valid(mjb_codepoint codepoint) {
     if(codepoint > MJB_CODEPOINT_MAX ||
-        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) || // Noncharacter
+        (codepoint >= 0xFDD0 && codepoint <= 0xFDEF) ||                     // Noncharacter
         (codepoint & 0xFFFE) == 0xFFFE || (codepoint & 0xFFFF) == 0xFFFF) { // Noncharacter
         return false;
     }
 
     return true;
 }
-
 
 static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_character *character) {
     character->name[0] = '\0';
@@ -79,8 +78,7 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 #if MJB_FEATURE_CHARACTER_NAMES
         format = "CJK UNIFIED IDEOGRAPH-%X";
 #endif
-    } else if(
-        (codepoint >= MJB_TANGUT_IDEOGRAPH_START && codepoint <= MJB_TANGUT_IDEOGRAPH_END) ||
+    } else if((codepoint >= MJB_TANGUT_IDEOGRAPH_START && codepoint <= MJB_TANGUT_IDEOGRAPH_END) ||
         (codepoint >= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_START &&
             codepoint <= MJB_TANGUT_IDEOGRAPH_SUPPLEMENT_END)) {
 #if MJB_FEATURE_CHARACTER_NAMES
@@ -167,24 +165,22 @@ MJB_EXPORT mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_chara
     // Egyptian Hieroglyphs
     // Egyptian Hieroglyph Format Controls
     if(codepoint >= MJB_EGYPTIAN_H_START && codepoint < MJB_EGYPTIAN_H_FORMAT_EXT_START) {
-        mjb_codepoint_set_name(character->name, sizeof(character->name),
-            "EGYPTIAN HIEROGLYPH ", name);
-    } else if(
-        (codepoint >= MJB_CJK_COMPATIBILITY_IDEOGRAPH_START &&
-        codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_END) ||
+        mjb_codepoint_set_name(character->name, sizeof(character->name), "EGYPTIAN HIEROGLYPH ",
+            name);
+    } else if((codepoint >= MJB_CJK_COMPATIBILITY_IDEOGRAPH_START &&
+                  codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_END) ||
         (codepoint >= MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_START &&
-        codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_END)) {
+            codepoint <= MJB_CJK_COMPATIBILITY_IDEOGRAPH_SUPPLEMENT_END)) {
         // CJK Compatibility Ideographs or CJK Compatibility Ideographs Supplement
         snprintf(character->name, 128, "CJK COMPATIBILITY IDEOGRAPH-%X", codepoint);
     } else if(codepoint >= 0x14400 && codepoint <= 0x1467F) {
         // Anatolian Hieroglyphs
-        mjb_codepoint_set_name(character->name, sizeof(character->name),
-            "ANATOLIAN HIEROGLYPH A", name);
+        mjb_codepoint_set_name(character->name, sizeof(character->name), "ANATOLIAN HIEROGLYPH A",
+            name);
     } else if((codepoint >= 0x12000 && codepoint <= 0x12399) ||
         (codepoint >= 0x12480 && codepoint <= 0x12543)) {
         // Cuneiform signs
-        mjb_codepoint_set_name(character->name, sizeof(character->name),
-            "CUNEIFORM SIGN ", name);
+        mjb_codepoint_set_name(character->name, sizeof(character->name), "CUNEIFORM SIGN ", name);
     } else {
         snprintf(character->name, 128, "%s", name);
     }
@@ -304,8 +300,7 @@ MJB_EXPORT mjb_status mjb_codepoint_numeric_value(mjb_codepoint codepoint,
 MJB_EXPORT bool mjb_codepoint_is_combining(mjb_codepoint codepoint) {
     mjb_category category;
 
-    if(!mjb_codepoint_is_valid(codepoint) ||
-        !mjb_unicode_category_lookup(codepoint, &category)) {
+    if(!mjb_codepoint_is_valid(codepoint) || !mjb_unicode_category_lookup(codepoint, &category)) {
         return false;
     }
 
