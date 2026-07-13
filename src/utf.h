@@ -338,3 +338,15 @@ static inline size_t MJB_USED mjb_monotonic_boundary_position(size_t index, size
 
     return position < previous ? previous : position;
 }
+
+static inline bool MJB_USED mjb_encoding_is_valid_input(mjb_encoding encoding) {
+    return encoding == MJB_ENC_ASCII || encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_UTF_16 ||
+        encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE ||
+        encoding == MJB_ENC_UTF_32 || encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE;
+}
+
+static inline bool MJB_USED mjb_encoding_is_valid_output(mjb_encoding encoding) {
+    return encoding == MJB_ENC_ASCII || encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_UTF_16BE ||
+        encoding == MJB_ENC_UTF_16LE || encoding == MJB_ENC_UTF_32BE ||
+        encoding == MJB_ENC_UTF_32LE;
+}
