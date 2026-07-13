@@ -2385,7 +2385,7 @@ printf("Library state reset: yes");`
     section: Section.Utility,
     details: 'Allocate memory using the allocator set by `mjb_set_memory_functions`. If no ' +
       'allocator is set, the default allocator is used.',
-    example: `char *buffer = mjb_alloc(32);
+    example: `char *buffer = (char*)mjb_alloc(32);
 
 if(buffer == NULL) {
     return 1;
@@ -2421,7 +2421,7 @@ mjb_free(buffer);`,
     section: Section.Utility,
     details: 'Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no ' +
       'allocator is set, the default allocator is used.',
-    example: `char *buffer = mjb_alloc(8);
+    example: `char *buffer = (char*)mjb_alloc(8);
 
 if(buffer == NULL) {
     return 1;

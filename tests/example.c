@@ -1246,7 +1246,7 @@ int test_example(void *arg) {
 {
     // Example for mjb_alloc
     MJB_TEST_COVERAGE(mjb_alloc); // Added by the script
-    char *buffer = mjb_alloc(32);
+    char *buffer = (char*)mjb_alloc(32);
 
     if(buffer == NULL) {
         ATT_ASSERT(0, 1, "mjb_alloc test failed") // Added by the script
@@ -1265,7 +1265,7 @@ int test_example(void *arg) {
 {
     // Example for mjb_realloc
     MJB_TEST_COVERAGE(mjb_realloc); // Added by the script
-    char *buffer = mjb_alloc(8);
+    char *buffer = (char*)mjb_alloc(8);
 
     if(buffer == NULL) {
         ATT_ASSERT(0, 1, "mjb_realloc test failed") // Added by the script

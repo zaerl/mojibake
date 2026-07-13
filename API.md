@@ -2466,7 +2466,7 @@ Allocate memory using the allocator set by `mjb_set_memory_functions`. If no all
 **Example**
 
 ```c
-char *buffer = mjb_alloc(32);
+char *buffer = (char*)mjb_alloc(32);
 
 if(buffer == NULL) {
     return 1;
@@ -2497,7 +2497,7 @@ Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no a
 **Example**
 
 ```c
-char *buffer = mjb_alloc(8);
+char *buffer = (char*)mjb_alloc(8);
 
 if(buffer == NULL) {
     return 1;
