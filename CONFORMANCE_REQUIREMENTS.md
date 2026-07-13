@@ -27,8 +27,8 @@ conformance references.
 
 See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G29705
 
-**C1** A process shall not interpret a high-surrogate code point or a low-surrogate code point
-as an abstract character.
+**C1** A process shall not interpret a high-surrogate code point or a low-surrogate code point as an
+abstract character.
 
 ✅ Satisfied. The common UTF encoders/decoders reject surrogate code points,
 `mjb_codepoint_character` does not return a character for `U+D800`/`U+DFFF`, and public collation
@@ -36,10 +36,10 @@ input rejects surrogate-shaped CESU-8 byte sequences.
 
 **C2** A process shall not interpret a noncharacter code point as an abstract character.
 
-✅ Satisfied. `mjb_codepoint_is_valid` rejects `U+FDD0..U+FDEF` and `U+nFFFE/U+nFFFF`,
-and `mjb_codepoint_character` returns `MJB_STATUS_INVALID_ARGUMENT` for noncharacters. Encoding
-helpers may serialize noncharacters as code points, but the character metadata APIs do not treat
-them as abstract characters.
+✅ Satisfied. `mjb_codepoint_is_valid` rejects `U+FDD0..U+FDEF` and `U+nFFFE/U+nFFFF`, and
+`mjb_codepoint_character` returns `MJB_STATUS_INVALID_ARGUMENT` for noncharacters. Encoding helpers
+may serialize noncharacters as code points, but the character metadata APIs do not treat them as
+abstract characters.
 
 **C3** A process shall not interpret an unassigned code point as an abstract character.
 
