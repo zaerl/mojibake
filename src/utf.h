@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "utf8.h"
 #include "utf16.h"
 #include "utf32.h"
+#include "utf8.h"
 
 /**
  * WARNING: Setting this macro to 1 disables NULL termination checks. This allows processing strings
@@ -42,8 +42,7 @@ static inline bool MJB_USED mjb_starts_with_utf16be_bom(const char *buffer, size
 }
 
 static inline bool MJB_USED mjb_starts_with_utf16le_bom(const char *buffer, size_t byte_length) {
-    return byte_length >= 2 &&
-        (uint8_t)buffer[0] == 0xFF && (uint8_t)buffer[1] == 0xFE;
+    return byte_length >= 2 && (uint8_t)buffer[0] == 0xFF && (uint8_t)buffer[1] == 0xFE;
 }
 
 static inline bool MJB_USED mjb_starts_with_utf32be_bom(const char *buffer, size_t byte_length) {
@@ -127,7 +126,7 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_leng
 #endif
 
         *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
-        ++*index;  // Increment by 1 byte
+        ++*index; // Increment by 1 byte
     } else if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
         if(*index + 1 >= byte_length) {
             // Truncated trailing unit: consume it, or decoding would never terminate.
@@ -142,7 +141,7 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_leng
 
             *state = mjb_utf16_decode_step(*state, buffer[*index], buffer[*index + 1], codepoint,
                 encoding == MJB_ENC_UTF_16BE);
-            *index += 2;  // Increment by 2 bytes (full code unit)
+            *index += 2; // Increment by 2 bytes (full code unit)
         }
     } else if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
         if(*index + 3 >= byte_length) {
@@ -151,14 +150,15 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_leng
             *index = byte_length;
         } else {
 #if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-            if(!buffer[*index] && !buffer[*index + 1] && !buffer[*index + 2] && !buffer[*index + 3]) {
+            if(!buffer[*index] && !buffer[*index + 1] && !buffer[*index + 2] &&
+                !buffer[*index + 3]) {
                 return false;
             }
 #endif
 
-            *state = mjb_utf32_decode_step(*state, buffer[*index], buffer[*index + 1], buffer[*index + 2],
-                buffer[*index + 3], codepoint, encoding == MJB_ENC_UTF_32BE);
-            *index += 4;  // Increment by 4 bytes (full code unit)
+            *state = mjb_utf32_decode_step(*state, buffer[*index], buffer[*index + 1],
+                buffer[*index + 2], buffer[*index + 3], codepoint, encoding == MJB_ENC_UTF_32BE);
+            *index += 4; // Increment by 4 bytes (full code unit)
         }
     } else {
         *codepoint = MJB_CODEPOINT_REPLACEMENT;
