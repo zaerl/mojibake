@@ -21,8 +21,8 @@
 #ifdef __cplusplus
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 #include <string>
+#include <type_traits>
 
 // In C++, _Bool doesn't exist, so map it to bool
 #ifndef _Bool
@@ -58,14 +58,15 @@ extern "C" {
 #define ATT_CUSTOM_TYPES
 #endif
 
+// clang-format off
 #ifndef __cplusplus
 #define ATT_ASSERT(VALUE, EXPECTED, MESSAGE) \
     (att_set_assert_context(#VALUE, __FILE__, __LINE__), _Generic(VALUE, \
     ATT_CUSTOM_TYPES \
     char: att_assert_c, \
     unsigned char: att_assert_u_c, \
-    char*: att_assert_p_c, \
-    const char*: att_assert_cp_c, \
+    char *: att_assert_p_c, \
+    const char *: att_assert_cp_c, \
     short: att_assert_hd, \
     unsigned short: att_assert_u_hu, \
     int: att_assert_d, \
@@ -77,7 +78,7 @@ extern "C" {
     float: att_assert_f, \
     double: att_assert_lf, \
     long double: att_assert_Lf, \
-    void*: att_assert_p_p, \
+    void *: att_assert_p_p, \
     _Bool: att_assert_b, \
     default: att_assert_unknown \
 )(VALUE, EXPECTED, MESSAGE, __FILE__, __LINE__));
@@ -89,8 +90,8 @@ extern "C" {
 
 ATT_API unsigned int att_assert_c(char result, char expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected, const char *description, const char *file, unsigned int line);
-ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *description, const char *file, unsigned int line);
-ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, const char *description, const char *file, unsigned int line);
+ATT_API unsigned int att_assert_p_c(char *result, char *expected, const char *description, const char *file, unsigned int line);
+ATT_API unsigned int att_assert_cp_c(const char *result, const char *expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_hd(short result, short expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_u_hu(unsigned short result, unsigned short expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_d(int result, int expected, const char *description, const char *file, unsigned int line);
@@ -102,9 +103,9 @@ ATT_API unsigned int att_assert_u_llu(unsigned long long result, unsigned long l
 ATT_API unsigned int att_assert_f(float result, float expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_lf(double result, double expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_Lf(long double result, long double expected, const char *description, const char *file, unsigned int line);
-ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *description, const char *file, unsigned int line);
+ATT_API unsigned int att_assert_p_p(void *result, void *expected, const char *description, const char *file, unsigned int line);
 ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *description, const char *file, unsigned int line);
-ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description, const char *file, unsigned int line);
+ATT_API unsigned int att_assert_unknown(void * result, void * expected, const char *description, const char *file, unsigned int line);
 
 unsigned int att_get_valid_tests(void);
 unsigned int att_get_total_tests(void);
@@ -118,7 +119,7 @@ long double att_get_float_epsilon(void);
 void att_set_float_epsilon(long double epsilon);
 
 // A callback to be used when the default comparison fails.
-typedef int (*att_generic_callback)(void* result, void* expected, const char *description);
+typedef int (*att_generic_callback)(void *result, void *expected, const char *description);
 
 void att_set_generic_callback(att_generic_callback callback);
 
@@ -135,126 +136,145 @@ void att_set_assert_context(const char *expression, const char *file, unsigned i
 }
 #endif
 
+// clang-format on
+
 #ifdef __cplusplus
 // Helper to check if common_type exists
-template<typename T1, typename T2, typename = void>
-struct has_common_type : std::false_type {};
+template <typename T1, typename T2, typename = void> struct has_common_type : std::false_type {};
 
-template<typename T1, typename T2>
-struct has_common_type<T1, T2, std::void_t<typename std::common_type<T1, T2>::type>> : std::true_type {};
+template <typename T1, typename T2>
+struct has_common_type<T1, T2, std::void_t<typename std::common_type<T1, T2>::type>>
+    : std::true_type {};
 
 // C++ template function for att_assert to handle type deduction properly
-template<typename T1, typename T2>
-inline unsigned int att_assert_cpp(T1 result, T2 expected, const char *description, const char *file, unsigned int line) {
+template <typename T1, typename T2>
+inline unsigned int att_assert_cpp(T1 result, T2 expected, const char *description,
+    const char *file, unsigned int line) {
     // Check if we can find a common type
-    if constexpr (has_common_type<T1, T2>::value) {
+    if constexpr(has_common_type<T1, T2>::value) {
         // Convert both to a common type for comparison
         using common_type = std::common_type_t<T1, T2>;
         common_type converted_result = static_cast<common_type>(result);
         common_type converted_expected = static_cast<common_type>(expected);
 
         // Handle different common types
-        if constexpr (std::is_same_v<common_type, char>) {
+        if constexpr(std::is_same_v<common_type, char>) {
             return att_assert_c(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, unsigned char>) {
+        } else if constexpr(std::is_same_v<common_type, unsigned char>) {
             return att_assert_u_c(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, short>) {
+        } else if constexpr(std::is_same_v<common_type, short>) {
             return att_assert_hd(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, unsigned short>) {
+        } else if constexpr(std::is_same_v<common_type, unsigned short>) {
             return att_assert_u_hu(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, int>) {
+        } else if constexpr(std::is_same_v<common_type, int>) {
             return att_assert_d(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, unsigned int>) {
+        } else if constexpr(std::is_same_v<common_type, unsigned int>) {
             return att_assert_u_u(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, long>) {
+        } else if constexpr(std::is_same_v<common_type, long>) {
             return att_assert_ld(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, unsigned long>) {
+        } else if constexpr(std::is_same_v<common_type, unsigned long>) {
             return att_assert_u_lu(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, long long>) {
+        } else if constexpr(std::is_same_v<common_type, long long>) {
             return att_assert_lld(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, unsigned long long>) {
+        } else if constexpr(std::is_same_v<common_type, unsigned long long>) {
             return att_assert_u_llu(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, float>) {
+        } else if constexpr(std::is_same_v<common_type, float>) {
             return att_assert_f(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, double>) {
+        } else if constexpr(std::is_same_v<common_type, double>) {
             return att_assert_lf(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, long double>) {
+        } else if constexpr(std::is_same_v<common_type, long double>) {
             return att_assert_Lf(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, bool>) {
+        } else if constexpr(std::is_same_v<common_type, bool>) {
             return att_assert_b(converted_result, converted_expected, description, file, line);
-        } else if constexpr (std::is_same_v<common_type, std::string>) {
+        } else if constexpr(std::is_same_v<common_type, std::string>) {
             return att_assert_cp_c(result.c_str(), expected.c_str(), description, file, line);
         } else {
             // Unsupported type with common_type - compile error
-            static_assert(sizeof(T1) == 0, "ATT_ASSERT: Unsupported type. Supported types are: char, short, int, long, long long (signed/unsigned), float, double, long double, bool, std::string, and pointer types.");
+            static_assert(sizeof(T1) == 0,
+                "ATT_ASSERT: Unsupported type. Supported types are: char, short, int, long, long "
+                "long (signed/unsigned), float, double, long double, bool, std::string, and "
+                "pointer types.");
             return 0;
         }
     } else {
         // No common type - compile error
-        static_assert(sizeof(T1) == 0, "ATT_ASSERT: Cannot compare incompatible types with no common type.");
+        static_assert(sizeof(T1) == 0,
+            "ATT_ASSERT: Cannot compare incompatible types with no common type.");
         return 0;
     }
 }
 
 // Overloads for pointer types (can't use template easily for these)
-inline unsigned int att_assert_cpp(char* result, char* expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(char *result, char *expected, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_p_c(result, expected, description, file, line);
 }
 
-inline unsigned int att_assert_cpp(const char* result, const char* expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(const char *result, const char *expected,
+    const char *description, const char *file, unsigned int line) {
     return att_assert_cp_c(result, expected, description, file, line);
 }
 
-inline unsigned int att_assert_cpp(void* result, void* expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(void *result, void *expected, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_p_p(result, expected, description, file, line);
 }
 
-// Convert the int form of NULL through a pointer-sized integer. On LLP64 platforms (64-bit Windows),
-// long is narrower than a pointer.
-template<typename T>
-inline T* att_pointer_from_long(long value) {
-    return value == 0 ? nullptr : reinterpret_cast<T*>(static_cast<std::intptr_t>(value));
+// Convert the int form of NULL through a pointer-sized integer. On LLP64 platforms (64-bit
+// Windows), long is narrower than a pointer.
+template <typename T> inline T *att_pointer_from_long(long value) {
+    return value == 0 ? nullptr : reinterpret_cast<T *>(static_cast<std::intptr_t>(value));
 }
 
 // Special overloads for legacy NULL pointer comparisons
-inline unsigned int att_assert_cpp(const char* result, long expected, const char *description, const char *file, unsigned int line) {
-    return att_assert_cp_c(result, att_pointer_from_long<const char>(expected), description, file, line);
+inline unsigned int att_assert_cpp(const char *result, long expected, const char *description,
+    const char *file, unsigned int line) {
+    return att_assert_cp_c(result, att_pointer_from_long<const char>(expected), description, file,
+        line);
 }
 
-inline unsigned int att_assert_cpp(char* result, long expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(char *result, long expected, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_p_c(result, att_pointer_from_long<char>(expected), description, file, line);
 }
 
-inline unsigned int att_assert_cpp(void* result, long expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(void *result, long expected, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_p_p(result, att_pointer_from_long<void>(expected), description, file, line);
 }
 
 // Modern C++ null pointer comparisons
-inline unsigned int att_assert_cpp(const char* result, std::nullptr_t, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(const char *result, std::nullptr_t, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_cp_c(result, nullptr, description, file, line);
 }
 
-inline unsigned int att_assert_cpp(char* result, std::nullptr_t, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(char *result, std::nullptr_t, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_p_c(result, nullptr, description, file, line);
 }
 
-inline unsigned int att_assert_cpp(void* result, std::nullptr_t, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(void *result, std::nullptr_t, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_p_p(result, nullptr, description, file, line);
 }
 
 // Mixed char pointer types (char* vs const char*)
-inline unsigned int att_assert_cpp(char* result, const char* expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(char *result, const char *expected, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_cp_c(result, expected, description, file, line);
 }
 
-inline unsigned int att_assert_cpp(const char* result, char* expected, const char *description, const char *file, unsigned int line) {
+inline unsigned int att_assert_cpp(const char *result, char *expected, const char *description,
+    const char *file, unsigned int line) {
     return att_assert_cp_c(result, expected, description, file, line);
 }
 
 // Generic pointer type catch-all (for any pointer types not covered by specific overloads)
-template<typename T>
-inline unsigned int att_assert_cpp(T* result, T* expected, const char *description, const char *file, unsigned int line) {
-    return att_assert_unknown((void*)result, (void*)expected, description, file, line);
+template <typename T>
+inline unsigned int att_assert_cpp(T *result, T *expected, const char *description,
+    const char *file, unsigned int line) {
+    return att_assert_unknown((void *)result, (void *)expected, description, file, line);
 }
 #endif
 

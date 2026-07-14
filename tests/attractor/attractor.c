@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// clang-format off
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
@@ -35,19 +36,20 @@
     typedef atomic_uint att_atomic_uint;
     #define ATT_FETCH_INCREMENT(value) ((value)++)
 #endif
+// clang-format on
 
 #define ATT_ERROR_MESSAGE(RESULT, FORMAT_1, FORMAT_2, EXPECTED) \
-if(att_show_error) { \
-    printf(att_show_colors ? "\x1B[90m%s:%u:\x1B[0m " : "%s:%u: ", file, line); \
-    if(att_verbose < 2) { \
-        printf("%s: ", description); \
-    } \
-    fputs(att_show_colors ? "Expected \x1B[32m" : "Expected ", stdout); \
-    printf(FORMAT_1, EXPECTED); \
-    fputs(att_show_colors ? "\x1B[0m, got \x1B[31m" : ", got ", stdout); \
-    printf(FORMAT_2, RESULT); \
-    fputs(att_show_colors ? "\x1B[0m\n\n" : "\n\n", stdout); \
-}
+    if(att_show_error) { \
+        printf(att_show_colors ? "\x1B[90m%s:%u:\x1B[0m " : "%s:%u: ", file, line); \
+        if(att_verbose < 2) { \
+            printf("%s: ", description); \
+        } \
+        fputs(att_show_colors ? "Expected \x1B[32m" : "Expected ", stdout); \
+        printf(FORMAT_1, EXPECTED); \
+        fputs(att_show_colors ? "\x1B[0m, got \x1B[31m" : ", got ", stdout); \
+        printf(FORMAT_2, RESULT); \
+        fputs(att_show_colors ? "\x1B[0m\n\n" : "\n\n", stdout); \
+    }
 
 static att_atomic_uint att_valid_tests = 0;
 static att_atomic_uint att_total_tests = 0;
@@ -105,6 +107,8 @@ void att_set_assert_context(const char *expression, const char *file, unsigned i
     att_assert_line = line;
 }
 
+// These functions are automatically generated. Do not edit.
+// clang-format off
 int att_assert(const char *type, int test, const char *description);
 
 ATT_API unsigned int att_assert_c(char result, char expected, const char *description, const char *file, unsigned int line) {
@@ -157,8 +161,8 @@ ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected
     return test;
 }
 
-ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *description, const char *file, unsigned int line) {
-    int test = att_assert("char*", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
+ATT_API unsigned int att_assert_p_c(char *result, char *expected, const char *description, const char *file, unsigned int line) {
+    int test = att_assert("char *", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
@@ -167,8 +171,8 @@ ATT_API unsigned int att_assert_p_c(char* result, char* expected, const char *de
     return test;
 }
 
-ATT_API unsigned int att_assert_cp_c(const char* result, const char* expected, const char *description, const char *file, unsigned int line) {
-    int test = att_assert("const char*", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
+ATT_API unsigned int att_assert_cp_c(const char *result, const char *expected, const char *description, const char *file, unsigned int line) {
+    int test = att_assert("const char *", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
@@ -287,8 +291,8 @@ ATT_API unsigned int att_assert_Lf(long double result, long double expected, con
     return test;
 }
 
-ATT_API unsigned int att_assert_p_p(void* result, void* expected, const char *description, const char *file, unsigned int line) {
-    int test = att_assert("void*", result == expected, description);
+ATT_API unsigned int att_assert_p_p(void *result, void *expected, const char *description, const char *file, unsigned int line) {
+    int test = att_assert("void *", result == expected, description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, "%p", "%p", expected);
@@ -307,7 +311,7 @@ ATT_API unsigned int att_assert_b(_Bool result, _Bool expected, const char *desc
     return test;
 }
 
-ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char *description, const char *file, unsigned int line) {
+ATT_API unsigned int att_assert_unknown(void * result, void * expected, const char *description, const char *file, unsigned int line) {
     int test = att_assert(
         att_generic_callback_fn ? "callback" : "default",
         att_generic_callback_fn ? att_generic_callback_fn(result, expected, description) : (result == expected),
@@ -321,6 +325,7 @@ ATT_API unsigned int att_assert_unknown(void* result, void* expected, const char
     return test;
 }
 
+// clang-format on
 int att_assert(const char *format, int test, const char *description) {
     // Initialize the library on the first assertion. The fetch-increment returns the
     // previous value atomically, so exactly one thread observes zero here.
@@ -329,7 +334,8 @@ int att_assert(const char *format, int test, const char *description) {
             const char *no_color = getenv("NO_COLOR");
 
 #ifdef _WIN32
-            // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
+            // On Windows, the TERM env is usually not set, so enable colors by default if NO_COLOR
+            // is not set
             att_show_colors = no_color == NULL;
 #else
             // On Unix, check TERM environment variable
@@ -359,7 +365,8 @@ int att_assert(const char *format, int test, const char *description) {
             }
 
             // Enable ANSI escape codes for stderr
-            if(att_show_colors && h_err != INVALID_HANDLE_VALUE && GetConsoleMode(h_err, &mode_err)) {
+            if(att_show_colors && h_err != INVALID_HANDLE_VALUE &&
+                GetConsoleMode(h_err, &mode_err)) {
                 mode_err |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
                 SetConsoleMode(h_err, mode_err);
             }
@@ -372,7 +379,8 @@ int att_assert(const char *format, int test, const char *description) {
     }
 
     if(att_test_callback_fn) {
-        att_test_callback_fn(test, description, att_assert_expression, att_assert_file, att_assert_line);
+        att_test_callback_fn(test, description, att_assert_expression, att_assert_file,
+            att_assert_line);
     }
 
     if(att_verbose == 0) {
@@ -387,8 +395,8 @@ int att_assert(const char *format, int test, const char *description) {
         const char *ok = att_show_colors ? "\x1B[32mOK\x1B[0m" : "OK";
         const char *fail = att_show_colors ? "\x1B[31mNO\x1B[0m" : "NO";
 
-        printf(att_show_colors ? "%s [\x1b[36m%s\x1b[0m] %s\n" : "%s [%s] %s\n",
-            test ? ok : fail, format, description);
+        printf(att_show_colors ? "%s [\x1b[36m%s\x1b[0m] %s\n" : "%s [%s] %s\n", test ? ok : fail,
+            format, description);
     }
 
     return test;
