@@ -8,7 +8,7 @@ import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 
 export interface CollationElement {
-  primary: number;   // 0x0000–0x73C2
+  primary: number;   // 0x0000–0xFFFF
   secondary: number; // 0x0000–0x0127
   tertiary: number;  // 0x0000–0x001F
   variable: boolean; // true if marked with * in DUCET
@@ -109,23 +109,30 @@ export async function parseCollationAllKeys(path: string): Promise<{
 }
 
 /**
- * Encode CollationElement array as a BLOB.
- * Each element = 6 bytes: [P_hi P_lo S_hi S_lo T_hi T_lo]
- * Bit 15 of TERTIARY is set if the element is variable.
- * (Primary can reach 0xFBC2 for CJK implicit ranges, so bit 15 of primary
- *  cannot safely be used as a flag. Tertiary max is 0x001F, leaving bits 5–15 free.)
+ * Encode CollationElement array as a four-byte BLOB.
+ *
+ * Bytes 0–1 contain the little-endian primary weight
+ * Byte 2 contains secondary bits 0–7
+ * Byte 3 contains secondary bit 8, five tertiary bits, and the variable flag.
+ * The DUCET field limits therefore fit in 31 bits without changing their values.
  */
 export function encodeCollationWeights(elements: CollationElement[]): Buffer {
-  const buf = Buffer.allocUnsafe(elements.length * 6);
+  const buf = Buffer.allocUnsafe(elements.length * 4);
 
   for(let i = 0; i < elements.length; i++) {
-    let tertiary = elements[i].tertiary;
+    const element = elements[i];
 
-    if(elements[i].variable) tertiary |= 0x8000;
+    if(element.primary > 0xFFFF || element.secondary > 0x1FF || element.tertiary > 0x1F) {
+      throw new Error(
+        `Collation element is too large to pack: ${element.primary}.` +
+        `${element.secondary}.${element.tertiary}`
+      );
+    }
 
-    buf.writeUInt16BE(elements[i].primary,   i * 6);
-    buf.writeUInt16BE(elements[i].secondary, i * 6 + 2);
-    buf.writeUInt16BE(tertiary,              i * 6 + 4);
+    buf.writeUInt16LE(element.primary, i * 4);
+    buf[i * 4 + 2] = element.secondary & 0xFF;
+    buf[i * 4 + 3] = (element.secondary >> 8) | (element.tertiary << 1) |
+      (element.variable ? 0x40 : 0);
   }
 
   return buf;

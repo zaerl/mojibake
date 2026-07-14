@@ -5,7 +5,10 @@
  */
 
 import { iLog } from '../log';
-import { codepointPages, compareBytes, formatBytes, formatCodepoints, formatHalfwords, formatLongWords, formatPages, formatWords, indexedPages } from '../utils';
+import {
+  codepointPages, compareBytes, formatBytes, formatCodepoints, formatHalfwords,
+  formatLongWords, formatPages, formatWords, indexedPages
+} from '../utils';
 import { CollationContractionRow, CollationEntryRow } from './types';
 
 // Finds how many bytes at the end of data overlap the start of bytes.
@@ -241,10 +244,17 @@ export function generateCollationContractions(rows: CollationContractionRow[]) {
   rows.forEach((row, index) => {
     const sequenceOffset = sequenceData.length;
     const sequence = codepointsFromBlob(row.sequence);
+    const sequenceTail = sequence.slice(1);
     const weights = weightsByRow[index];
     const weightsOffset = packedWeights.offsets[index];
 
-    sequenceData.push(...sequence);
+    if(sequence[0] !== row.first_codepoint) {
+      throw new Error(
+        `Collation contraction sequence starts with ${sequence[0]}, expected ${row.first_codepoint}`
+      );
+    }
+
+    sequenceData.push(...sequenceTail);
 
     if(row.first_codepoint > 0x1FFFFF) {
       throw new Error(
@@ -253,25 +263,31 @@ export function generateCollationContractions(rows: CollationContractionRow[]) {
     }
 
     if(sequenceOffset > 0xFFFF) {
-      throw new Error(`Collation contraction sequence offset is too large to pack: ${sequenceOffset}`);
+      throw new Error(
+        `Collation contraction sequence offset is too large to pack: ${sequenceOffset}`
+      );
     }
 
     if(weightsOffset > 0xFFFF) {
       throw new Error(`Collation contraction weight offset is too large to pack: ${weightsOffset}`);
     }
 
-    if(sequence.length > 0x7) {
-      throw new Error(`Collation contraction sequence length is too large to pack: ${sequence.length}`);
+    if(sequenceTail.length > 0x7) {
+      throw new Error(
+        `Collation contraction sequence tail is too large to pack: ${sequenceTail.length}`
+      );
     }
 
     if(weights.length > 0x3F) {
-      throw new Error(`Collation contraction weight length is too large to pack: ${weights.length}`);
+      throw new Error(
+        `Collation contraction weight length is too large to pack: ${weights.length}`
+      );
     }
 
     entries.push(BigInt(row.first_codepoint) |
       (BigInt(sequenceOffset) << 21n) |
       (BigInt(weightsOffset) << 37n) |
-      (BigInt(sequence.length) << 53n) |
+      (BigInt(sequenceTail.length) << 53n) |
       (BigInt(weights.length) << 56n));
   });
 

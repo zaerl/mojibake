@@ -14,7 +14,7 @@
 
 // Collation element
 typedef struct {
-    uint16_t primary;    // 0x0000–0x73C2; 0 = ignorable at L1
+    uint16_t primary;    // 0x0000–0xFFFF; 0 = ignorable at L1
     uint16_t secondary;  // 0x0000–0x0127; 0 = ignorable at L2
     uint16_t tertiary;   // 0x0000–0x001F; 0 = ignorable at L3
     uint16_t quaternary; // Filled only in SHIFTED mode
@@ -197,25 +197,23 @@ static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
 
 /**
  * Decode a weight BLOB and append CEs to cea.
- * Format: 6 bytes/element [P_hi P_lo S_hi S_lo T_hi T_lo]
- * Bit 15 of TERTIARY holds the variable flag (primary can reach 0xFBC2).
+ * Format: 4 bytes/element [P_low P_hi S_low (variable | tertiary | S_high)].
  */
 static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
-    int n = blob_bytes / 6;
+    int n = blob_bytes / 4;
 
     if(n <= 0 || !cea_grow(cea, (size_t)n)) {
         return n <= 0;
     }
 
     for(int i = 0; i < n; ++i) {
-        uint16_t p = (uint16_t)(((uint16_t)blob[i * 6] << 8) | blob[i * 6 + 1]);
-        uint16_t s = (uint16_t)(((uint16_t)blob[i * 6 + 2] << 8) | blob[i * 6 + 3]);
-        uint16_t t = (uint16_t)(((uint16_t)blob[i * 6 + 4] << 8) | blob[i * 6 + 5]);
-        bool var = (t & 0x8000) != 0;
-
-        if(var) {
-            t &= 0x7FFF;
-        }
+        const uint8_t *element = &blob[i * 4];
+        uint32_t packed = (uint32_t)element[0] | ((uint32_t)element[1] << 8) |
+            ((uint32_t)element[2] << 16) | ((uint32_t)element[3] << 24);
+        uint16_t p = (uint16_t)(packed & 0xFFFF);
+        uint16_t s = (uint16_t)((packed >> 16) & 0x1FF);
+        uint16_t t = (uint16_t)((packed >> 25) & 0x1F);
+        bool var = (packed & (1u << 30)) != 0;
 
         cea->data[cea->count].primary = p;
         cea->data[cea->count].secondary = s;
@@ -367,21 +365,21 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
         const mjb_codepoint *seq = mjb_unicode_collation_contraction_sequence(&entries[entry_index],
             &sl);
 
-        if(sl < 2 || pos + (size_t)sl > total) {
+        if(sl < 1 || pos + (size_t)sl + 1 > total) {
             continue;
         }
 
         bool match = true;
 
         for(int k = 0; k < sl; ++k) {
-            if(cps[pos + k] != seq[k]) {
+            if(cps[pos + (size_t)k + 1] != seq[k]) {
                 match = false;
                 break;
             }
         }
 
-        if(match && (size_t)sl > *out_advance) {
-            *out_advance = (size_t)sl;
+        if(match && (size_t)sl + 1 > *out_advance) {
+            *out_advance = (size_t)sl + 1;
             uint8_t weights_length = 0;
             const uint8_t
                 *weights = mjb_unicode_collation_contraction_weights(&entries[entry_index],
@@ -389,7 +387,7 @@ static bool consecutive_contraction(const mjb_codepoint *cps, size_t pos, size_t
 
             *out_bytes = weights_length;
 
-            if(*out_bytes <= 18 * 6) {
+            if(*out_bytes <= 18 * 4) {
                 memcpy(out_weights, weights, (size_t)*out_bytes);
             } else {
                 *out_bytes = 0;
@@ -418,14 +416,14 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len, uint8_t *out_
         const mjb_codepoint
             *db_seq = mjb_unicode_collation_contraction_sequence(&entries[entry_index], &db_len);
 
-        if(db_len != seq_len) {
+        if((int)db_len + 1 != seq_len) {
             continue;
         }
 
         bool match = true;
 
-        for(int k = 0; k < seq_len; ++k) {
-            if(seq[k] != db_seq[k]) {
+        for(int k = 0; k < db_len; ++k) {
+            if(seq[k + 1] != db_seq[k]) {
                 match = false;
                 break;
             }
@@ -439,7 +437,7 @@ static bool lookup_sequence(const mjb_codepoint *seq, int seq_len, uint8_t *out_
 
             *out_bytes = weights_length;
 
-            if(*out_bytes <= 18 * 6) {
+            if(*out_bytes <= 18 * 4) {
                 memcpy(out_weights, weights, (size_t)*out_bytes);
             } else {
                 *out_bytes = 0;
@@ -500,13 +498,13 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         size_t last_pos = i;     // Position of last char in S
         size_t cons_advance = 1; // Positions to skip after the consecutive part
 
-        uint8_t best_w[18 * 6];
+        uint8_t best_w[18 * 4];
         int best_bytes = 0;
         bool have_match = false;
 
         // S2.1: find longest consecutive contraction starting at i
         if(i + 1 < len) {
-            uint8_t cons_w[18 * 6];
+            uint8_t cons_w[18 * 4];
             int cons_bytes = 0;
             size_t ca = 0;
 
@@ -568,7 +566,7 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
 
                 cur_seq[cur_len] = cps[j];
 
-                uint8_t tmp_w[18 * 6];
+                uint8_t tmp_w[18 * 4];
                 int tmp_bytes = 0;
 
                 if(lookup_sequence(cur_seq, cur_len + 1, tmp_w, &tmp_bytes)) {
