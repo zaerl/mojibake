@@ -1,0 +1,75 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check clang-format
+        run: |
+          git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' |
+            xargs -0 clang-format --dry-run --Werror
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install generator dependencies
+        working-directory: utils/generate
+        run: npm ci
+
+      - name: Typecheck generator
+        working-directory: utils/generate
+        run: npm exec -- tsc --noEmit
+
+      - name: Install API dependencies
+        working-directory: src/api
+        run: npm ci
+
+      - name: Typecheck API
+        working-directory: src/api
+        run: npm run typecheck
+
+  generated:
+    name: Generated files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cache Unicode generator data
+        uses: actions/cache@v5
+        with:
+          path: utils/generate/unicode-data
+          key: generator-data-17.0.0-v1
+
+      - name: Install generator dependencies
+        working-directory: utils/generate
+        run: npm ci
+
+      - name: Regenerate files
+        run: make generate
+
+      - name: Check generated files are current
+        run: |
+          git status --short
+          git diff --exit-code
