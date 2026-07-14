@@ -14,8 +14,8 @@
 #include <array>
 #include <optional>
 #include <stdexcept>
-#include <string_view>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace mjb {
@@ -39,8 +39,9 @@ namespace mjb {
 }
 
 class LibraryError : public std::runtime_error {
-public:
-    explicit LibraryError(std::string_view message) : std::runtime_error(std::string(message)) {}
+  public:
+    explicit LibraryError(std::string_view message) : std::runtime_error(std::string(message)) {
+    }
 };
 
 [[nodiscard]] inline std::vector<mjb_script> script_extensions(mjb_codepoint codepoint) {
@@ -64,19 +65,21 @@ public:
  * See mjb_character for details.
  */
 class Character {
-private:
+  private:
     mjb_character data{};
 
-    explicit Character(const mjb_character &character) noexcept : data(character) {}
+    explicit Character(const mjb_character &character) noexcept : data(character) {
+    }
 
-public:
+  public:
     explicit Character(mjb_codepoint codepoint) {
         if(mjb_codepoint_character(codepoint, &data) != MJB_STATUS_OK) {
             throw LibraryError("Invalid codepoint: " + std::to_string(codepoint));
         }
     }
 
-    explicit Character(char32_t codepoint) : Character(static_cast<mjb_codepoint>(codepoint)) {}
+    explicit Character(char32_t codepoint) : Character(static_cast<mjb_codepoint>(codepoint)) {
+    }
 
     [[nodiscard]] static std::optional<Character> from(mjb_codepoint codepoint) noexcept {
         mjb_character data{};
@@ -88,11 +91,11 @@ public:
         return Character(data);
     }
 
-    bool operator==(const Character& other) const noexcept {
+    bool operator==(const Character &other) const noexcept {
         return data.codepoint == other.data.codepoint;
     }
 
-    bool operator!=(const Character& other) const noexcept {
+    bool operator!=(const Character &other) const noexcept {
         return !(*this == other);
     }
 
@@ -121,11 +124,12 @@ public:
     }
 
     [[nodiscard]] std::optional<int> decimal_value() const noexcept {
-        return data.decimal == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.decimal};
+        return data.decimal == MJB_NUMBER_NOT_VALID ? std::nullopt :
+                                                      std::optional<int>{ data.decimal };
     }
 
     [[nodiscard]] std::optional<int> digit_value() const noexcept {
-        return data.digit == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.digit};
+        return data.digit == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{ data.digit };
     }
 
     [[nodiscard]] std::string_view numeric_value() const noexcept {
@@ -137,15 +141,15 @@ public:
     }
 
     [[nodiscard]] std::optional<mjb_codepoint> uppercase() const noexcept {
-        return data.uppercase == 0 ? std::nullopt : std::optional<mjb_codepoint>{data.uppercase};
+        return data.uppercase == 0 ? std::nullopt : std::optional<mjb_codepoint>{ data.uppercase };
     }
 
     [[nodiscard]] std::optional<mjb_codepoint> lowercase() const noexcept {
-        return data.lowercase == 0 ? std::nullopt : std::optional<mjb_codepoint>{data.lowercase};
+        return data.lowercase == 0 ? std::nullopt : std::optional<mjb_codepoint>{ data.lowercase };
     }
 
     [[nodiscard]] std::optional<mjb_codepoint> titlecase() const noexcept {
-        return data.titlecase == 0 ? std::nullopt : std::optional<mjb_codepoint>{data.titlecase};
+        return data.titlecase == 0 ? std::nullopt : std::optional<mjb_codepoint>{ data.titlecase };
     }
 
     [[nodiscard]] bool is_combining() const noexcept {
@@ -204,7 +208,7 @@ public:
         return std::string(buffer.data(), len);
     }
 
-    [[nodiscard]] const mjb_character& raw() const noexcept {
+    [[nodiscard]] const mjb_character &raw() const noexcept {
         return data;
     }
 };
@@ -213,11 +217,12 @@ struct NumericValue {
     mjb_numeric_value data{};
 
     [[nodiscard]] std::optional<int> decimal() const noexcept {
-        return data.decimal == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.decimal};
+        return data.decimal == MJB_NUMBER_NOT_VALID ? std::nullopt :
+                                                      std::optional<int>{ data.decimal };
     }
 
     [[nodiscard]] std::optional<int> digit() const noexcept {
-        return data.digit == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{data.digit};
+        return data.digit == MJB_NUMBER_NOT_VALID ? std::nullopt : std::optional<int>{ data.digit };
     }
 
     [[nodiscard]] std::string_view numeric() const noexcept {
@@ -278,7 +283,8 @@ inline std::string normalize(std::string_view input, NormalizationForm form) {
 
     mjb_result result{};
     bool success = mjb_normalize(input.data(), input.size(), MJB_ENC_UTF_8,
-        static_cast<mjb_normalization>(form), MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
+                       static_cast<mjb_normalization>(form), MJB_ENC_UTF_8,
+                       &result) == MJB_STATUS_OK;
 
     if(!success) {
         throw LibraryError("Normalization failed");
@@ -320,8 +326,8 @@ inline std::string nfkc_casefold(std::string_view input) {
     }
 
     mjb_result result{};
-    mjb_status status = mjb_nfkc_casefold(input.data(), input.size(), MJB_ENC_UTF_8,
-        MJB_ENC_UTF_8, &result);
+    mjb_status status = mjb_nfkc_casefold(input.data(), input.size(), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result);
 
     if(status != MJB_STATUS_OK || result.output == nullptr) {
         throw LibraryError("NFKC case folding failed");
@@ -340,8 +346,7 @@ inline std::string collation_key(std::string_view input,
     }
 
     mjb_result result{};
-    mjb_status status = mjb_collation_key(input.data(), input.size(), MJB_ENC_UTF_8, mode,
-        &result);
+    mjb_status status = mjb_collation_key(input.data(), input.size(), MJB_ENC_UTF_8, mode, &result);
 
     if(status != MJB_STATUS_OK) {
         throw LibraryError("Collation key generation failed");
@@ -363,8 +368,7 @@ inline std::string_view truncate(std::string_view input, size_t max_graphemes) {
 
 inline std::string_view truncate_width(std::string_view input, size_t max_columns,
     mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO) {
-    size_t n = mjb_truncate_width(input.data(), input.size(), MJB_ENC_UTF_8, context,
-        max_columns);
+    size_t n = mjb_truncate_width(input.data(), input.size(), MJB_ENC_UTF_8, context, max_columns);
     return input.substr(0, n);
 }
 
@@ -402,14 +406,15 @@ struct BreakResult {
     }
 };
 
-template<typename State, mjb_break_type(*BreakFn)(const char*, size_t, mjb_encoding, State*)>
+template <typename State, mjb_break_type (*BreakFn)(const char *, size_t, mjb_encoding, State *)>
 class Breaker {
     std::string_view buffer;
     State state{};
     bool done = false;
 
-public:
-    explicit Breaker(std::string_view input) noexcept : buffer(input) {}
+  public:
+    explicit Breaker(std::string_view input) noexcept : buffer(input) {
+    }
 
     [[nodiscard]] std::optional<BreakResult> next() {
         if(done) {
@@ -423,7 +428,7 @@ public:
             return std::nullopt;
         }
 
-        return BreakResult{state.index, state.current_codepoint, type};
+        return BreakResult{ state.index, state.current_codepoint, type };
     }
 
     void reset() noexcept {
@@ -435,8 +440,7 @@ public:
         return done;
     }
 
-    template<typename Fn>
-    void for_each(Fn&& fn) {
+    template <typename Fn> void for_each(Fn &&fn) {
         while(auto result = next()) {
             fn(*result);
         }
