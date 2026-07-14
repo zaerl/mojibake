@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// clang-format off
 #ifdef _WIN32
     #include "getopt/getopt.h"
     #include <io.h>
@@ -18,6 +19,7 @@
     #include <getopt.h>
     #include <unistd.h>
 #endif
+// clang-format on
 
 #include "../mojibake.h"
 #include "characters.h"

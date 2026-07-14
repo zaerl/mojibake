@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+// clang-format off
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include "../utf16.h"
@@ -28,6 +29,7 @@ typedef struct mjb_terminal_state {
 // Unix terminal state structure
 typedef struct termios terminal_state;
 #endif
+// clang-format on
 
 #include "screen.h"
 #include "shell.h"
