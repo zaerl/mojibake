@@ -4,11 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
- #include <stdio.h>
- #include <string.h>
+#include <stdio.h>
+#include <string.h>
 
- #include "../src/mojibake-internal.h"
- #include "test.h"
+#include "../src/mojibake-internal.h"
+#include "test.h"
 
 void break_word_callback(const char *buffer, size_t byte_length, unsigned int current_line,
     mjb_break_type *expected_types) {

@@ -4,12 +4,13 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
- #include "test.h"
+#include "test.h"
 
 int test_hangul_composition(void *arg) {
     MJB_TEST_COVERAGE(mjb_hangul_syllable_composition);
     mjb_buffer_character empty_array[1]; // Empty array for testing
     size_t result_len = mjb_hangul_syllable_composition(empty_array, 0);
+
     ATT_ASSERT(result_len, 0, "Empty input should have length 0")
     ATT_ASSERT(mjb_hangul_syllable_composition(NULL, 1), 0, "NULL input should have length 0")
 
@@ -18,6 +19,7 @@ int test_hangul_composition(void *arg) {
     not_hangul[0].codepoint = 0x41; // LATIN CAPITAL LETTER A
     not_hangul[1].codepoint = 0x42; // LATIN CAPITAL LETTER B
     result_len = mjb_hangul_syllable_composition(not_hangul, 2);
+
     ATT_ASSERT(result_len, 2, "ASCII characters should have length 2")
     ATT_ASSERT(not_hangul[0].codepoint, 0x41,
         "Single not hangul character should return the same codepoint")
@@ -28,6 +30,7 @@ int test_hangul_composition(void *arg) {
     mjb_buffer_character single_hangul_char[1];
     single_hangul_char[0].codepoint = 0x1100; // HANGUL CHOSEONG KIYEOK
     result_len = mjb_hangul_syllable_composition(single_hangul_char, 1);
+
     ATT_ASSERT(result_len, 1, "Single character should have length 1")
     ATT_ASSERT(single_hangul_char[0].codepoint, 0x1100, "Single character should remain unchanged")
 
@@ -36,6 +39,7 @@ int test_hangul_composition(void *arg) {
     lv_input[0].codepoint = 0x1100; // KIYEOK
     lv_input[1].codepoint = 0x1161; // A
     result_len = mjb_hangul_syllable_composition(lv_input, 2);
+
     ATT_ASSERT(result_len, 1, "LV composition should produce 1 syllable")
     ATT_ASSERT(lv_input[0].codepoint, 0xAC00, "LV composition should produce GA (가)")
     ATT_ASSERT(lv_input[1].codepoint, MJB_CODEPOINT_NOT_VALID,
@@ -46,6 +50,7 @@ int test_hangul_composition(void *arg) {
     lvt_input[0].codepoint = 0x1100; // KIYEOK
     lvt_input[1].codepoint = 0x1161; // A
     lvt_input[2].codepoint = 0x11A8; // KIYEOK
+
     result_len = mjb_hangul_syllable_composition(lvt_input, 3);
     ATT_ASSERT(result_len, 1, "LVT composition should produce 1 syllable")
     ATT_ASSERT(lvt_input[0].codepoint, 0xAC01, "LVT composition should produce GAG (각)")
@@ -61,6 +66,7 @@ int test_hangul_composition(void *arg) {
     multi_input[2].codepoint = 0x11A8; // KIYEOK
     multi_input[3].codepoint = 0x1102; // NIEUN
     multi_input[4].codepoint = 0x1161; // A
+
     result_len = mjb_hangul_syllable_composition(multi_input, 5);
     ATT_ASSERT(result_len, 2, "Multiple syllables should produce 2 syllables")
     ATT_ASSERT(multi_input[0].codepoint, 0xAC01, "First syllable should be GAG (각)")
@@ -78,6 +84,7 @@ int test_hangul_composition(void *arg) {
     non_composable[1].codepoint = 0x1101; // SSANGKIYEOK
     non_composable[2].codepoint = 0x1102; // NIEUN (all L)
     result_len = mjb_hangul_syllable_composition(non_composable, 3);
+
     ATT_ASSERT(result_len, 3, "Non-composable should remain separate")
     ATT_ASSERT(non_composable[0].codepoint, 0x1100, "First character should remain unchanged")
     ATT_ASSERT(non_composable[1].codepoint, 0x1101, "Second character should remain unchanged")
@@ -95,6 +102,7 @@ int test_hangul_composition(void *arg) {
     complex_input[7].codepoint = 0x1161; // A
     complex_input[8].codepoint = 0x11A8; // KIYEOK
     result_len = mjb_hangul_syllable_composition(complex_input, 9);
+
     ATT_ASSERT(result_len, 3, "Complex sequence should produce 3 syllables")
     ATT_ASSERT(complex_input[0].codepoint, 0xAC01, "First syllable should be GAG (각)")
     ATT_ASSERT(complex_input[1].codepoint, 0xB099, "Second syllable should be NAG (낙)")
@@ -118,6 +126,7 @@ int test_hangul_composition(void *arg) {
     invalid_t[1].codepoint = 0x1161; // A
     invalid_t[2].codepoint = 0x11C3; // invalid T (out of range)
     result_len = mjb_hangul_syllable_composition(invalid_t, 3);
+
     ATT_ASSERT(result_len, 2, "Invalid T should not compose, LV should compose")
     ATT_ASSERT(invalid_t[0].codepoint, 0xAC00, "LV should compose to GA")
     ATT_ASSERT(invalid_t[1].codepoint, 0x11C3, "Invalid T should remain unchanged")
@@ -132,6 +141,7 @@ int test_hangul_composition(void *arg) {
     boundary_input[3].codepoint = 0x1100; // First valid L
     boundary_input[4].codepoint = 0x1161; // First valid V
     result_len = mjb_hangul_syllable_composition(boundary_input, 5);
+
     ATT_ASSERT(result_len, 2, "Boundary test should produce 2 syllables")
     ATT_ASSERT(boundary_input[0].codepoint, 0xD7A3,
         "First syllable should be last valid Hangul syllable")
