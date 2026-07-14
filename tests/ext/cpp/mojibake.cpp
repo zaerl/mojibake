@@ -4,8 +4,8 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include "../../test.h"
 #include "../../../src/cpp/mojibake.hpp"
+#include "../../test.h"
 
 int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::property_binary(U'A', MJB_PR_ALPHABETIC).value_or(false), true,

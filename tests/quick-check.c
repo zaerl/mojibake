@@ -4,10 +4,10 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
- #include <stdio.h>
- #include <string.h>
+#include <stdio.h>
+#include <string.h>
 
- #include "test.h"
+#include "test.h"
 
 int test_quick_check(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;

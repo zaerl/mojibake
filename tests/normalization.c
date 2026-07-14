@@ -83,11 +83,14 @@ static int check_normalization(char *source, size_t source_size, char *normalize
         }
     }
 
+    // clang-format off
     int test_ret = ATT_ASSERT(result.output, normalized, test_name)
 
-        if(result.output != NULL && result.output != source) {
+    // (strange reformatting of the ATT_ASSERT macro)
+    if(result.output != NULL && result.output != source) {
         mjb_free(result.output);
     }
+    // clang-format on
 
     if(!test_ret) {
         return test_ret;

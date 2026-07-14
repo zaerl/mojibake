@@ -43,7 +43,7 @@ static void test_basic_segmentation(void) {
     state.index = 0;
     size_t index = 0;
 
-    #define MJB_TEST_S \
+#define MJB_TEST_S \
     state.index = 0; \
     index = 0;
 
@@ -73,6 +73,7 @@ static void test_basic_segmentation(void) {
     mjb_break_type expected_a[] = { MJB_BT_ALLOWED };
 
     MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+
     while((bt = mjb_break_grapheme_cluster("A", 1, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_a[index++], "A test")
     }
@@ -81,38 +82,46 @@ static void test_basic_segmentation(void) {
     mjb_break_type expected_ab[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED };
 
     MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+
     while((bt = mjb_break_grapheme_cluster("AB", 2, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_ab[index++], "AB test")
     }
+
     ATT_ASSERT(index, 2, "AB test break index")
 
     MJB_TEST_S
     mjb_break_type expected_abc[] = { MJB_BT_ALLOWED, MJB_BT_ALLOWED, MJB_BT_ALLOWED };
     MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+
     while((bt = mjb_break_grapheme_cluster("ABC", 3, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_abc[index++], "AB test")
     }
+
     ATT_ASSERT(index, 3, "ABC test break index")
 
     MJB_TEST_S
     mjb_break_type expected_brnl[] = { MJB_BT_ALLOWED, MJB_BT_NO_BREAK, MJB_BT_ALLOWED,
         MJB_BT_ALLOWED };
     MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+
     while((bt = mjb_break_grapheme_cluster("A\r\nB", 4, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_brnl[index++], "A\\r\\nB test")
     }
+
     ATT_ASSERT(index, 4, "A\\r\\nB test break index")
 
     MJB_TEST_S
     mjb_break_type expected_itit[] = { MJB_BT_NO_BREAK, MJB_BT_ALLOWED, MJB_BT_NO_BREAK,
         MJB_BT_ALLOWED };
     MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+
     while((bt = mjb_break_grapheme_cluster("🇮🇹🇮🇹", 16, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
         ATT_ASSERT((uint8_t)bt, (uint8_t)expected_itit[index++], "ITIT test")
     }
+
     ATT_ASSERT(index, 4, "ITIT test break index")
 
-    #undef MJB_TEST_S
+#undef MJB_TEST_S
 }
 
 static void test_truncate(void) {
@@ -157,21 +166,18 @@ static void test_truncate(void) {
     ATT_ASSERT(mjb_truncate(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE, 5),
         (size_t)2, "Truncate: UTF-16LE stops at NULL")
     ATT_ASSERT(mjb_truncate_width(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE,
-                   MJB_WIDTH_CONTEXT_WESTERN, 10),
-        (size_t)2, "Truncate width: UTF-16LE stops at NULL")
+        MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)2, "Truncate width: UTF-16LE stops at NULL")
     ATT_ASSERT(mjb_truncate_width(utf16le_null_start, sizeof(utf16le_null_start), MJB_ENC_UTF_16LE,
-                   MJB_WIDTH_CONTEXT_WESTERN, 1),
-        (size_t)0, "Truncate width: UTF-16LE NULL start")
+        MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0, "Truncate width: UTF-16LE NULL start")
     ATT_ASSERT(mjb_truncate_width(timeout_repro, sizeof(timeout_repro), MJB_ENC_UTF_16LE,
-                   MJB_WIDTH_CONTEXT_WESTERN, 1),
-        (size_t)0, "Truncate width: fuzzer timeout regression")
+        MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0, "Truncate width: fuzzer timeout regression")
 #endif
 
     const char malformed_utf8_width[] = { 'a', '\x17', '\xCE', '\x08', 's', 't' };
 
     ATT_ASSERT(mjb_truncate_width(malformed_utf8_width, sizeof(malformed_utf8_width), MJB_ENC_UTF_8,
-                   MJB_WIDTH_CONTEXT_WESTERN, 114),
-        sizeof(malformed_utf8_width), "Truncate width: malformed UTF-8 regression")
+        MJB_WIDTH_CONTEXT_WESTERN, 114), sizeof(malformed_utf8_width),
+        "Truncate width: malformed UTF-8 regression")
 }
 
 int test_segmentation(void *arg) {

@@ -6,6 +6,7 @@
 
 #include <time.h>
 
+// clang-format off
 #ifdef _WIN32
     #include "../src/shell/getopt/getopt.h"
     #include <direct.h>
@@ -24,6 +25,7 @@
 #ifndef MJB_TEST_SOURCE_DIR
     #define MJB_TEST_SOURCE_DIR "."
 #endif
+// clang-format on
 
 #define MJB_TEST_COVERAGE_MAX_ENTRIES 256
 #define MJB_TEST_COVERAGE_NAME_SIZE 128
@@ -323,7 +325,7 @@ int main(int argc, char *const argv[]) {
 
     unsigned int step = 0;
 
-    #define RUN_TEST(NAME) \
+#define RUN_TEST(NAME) \
     if(!filter || strstr(#NAME, filter)) { \
         mjb_test_coverage_clear(); \
         if(!is_ctest) { \
