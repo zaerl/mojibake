@@ -5,7 +5,10 @@
  */
 
 import { iLog } from '../log';
-import { codepointPages, formatBytes, formatCodepoints, formatHalfwords, formatLongWords, formatPages, formatWords, indexedPages, packCodepointSequences } from '../utils';
+import {
+  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatHalfwords,
+  formatLongWords, formatWords, indexedPages, packCodepointSequences,
+} from '../utils';
 import { CaseFoldRow, CaseFoldSimpleRow, SimpleCaseRow, SpecialCaseRow } from './types';
 
 // Returns the non-null codepoint sequence for special casing or case folding.
@@ -28,7 +31,7 @@ export function generateSimpleCaseMappings(rows: SimpleCaseRow[]) {
   iLog('Simple case mappings');
 
   const pages = indexedPages(codepointPages(rows));
-  const lows = rows.map((row) => row.codepoint & 0xFF);
+  const pageBitsets = codepointPageBitsets(rows, pages.pages);
   const data: bigint[] = [];
   const dataOffsets = new Map<string, number>();
   const entries: number[] = [];
@@ -68,16 +71,20 @@ export function generateSimpleCaseMappings(rows: SimpleCaseRow[]) {
     entries.push(offset);
   }
 
-  return `static const uint16_t mjb_unicode_simple_case_page_index[] = {
-${formatHalfwords(pages.index)}
+  return `static const uint8_t mjb_unicode_simple_case_page_index[] = {
+${formatBytes(pages.index)}
 };
 
-static const mjb_unicode_page mjb_unicode_simple_case_pages[] = {
-${formatPages(pages.pages)}
+static const uint16_t mjb_unicode_simple_case_page_starts[] = {
+${formatHalfwords(pages.pages.starts)}
 };
 
-static const uint8_t mjb_unicode_simple_case_lows[] = {
-${formatBytes(lows)}
+static const uint64_t mjb_unicode_simple_case_page_bits[] = {
+${formatLongWords(pageBitsets.data, 16)}
+};
+
+static const uint32_t mjb_unicode_simple_case_page_ranks[] = {
+${formatWords(pageBitsets.ranks)}
 };
 
 static const uint64_t mjb_unicode_simple_case_mapping_data[] = {

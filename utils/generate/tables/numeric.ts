@@ -5,7 +5,7 @@
  */
 
 import { iLog } from '../log';
-import { codepointPages, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
+import { codepointPages, formatBytes, formatPages, formatWords, indexedPages } from '../utils';
 import { NumericRow } from './types';
 
 // Emits packed numeric value lookups and shared numeric string data.
@@ -48,8 +48,8 @@ export function generateNumericValues(rows: NumericRow[]) {
       (encodeNumber(row.digit) << 14));
   }
 
-  return `static const uint16_t mjb_unicode_numeric_page_index[] = {
-${formatHalfwords(pages.index)}
+  return `static const uint8_t mjb_unicode_numeric_page_index[] = {
+${formatBytes(pages.index)}
 };
 
 static const mjb_unicode_page mjb_unicode_numeric_pages[] = {

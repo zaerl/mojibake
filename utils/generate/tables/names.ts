@@ -5,7 +5,10 @@
  */
 
 import { iLog } from '../log';
-import { codepointPages, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
+import {
+  codepointPageBitsets, codepointPages, formatBytes, formatHalfwords, formatLongWords, formatWords,
+  indexedPages,
+} from '../utils';
 import { NameRow, PrefixRow } from './types';
 
 // Packs NUL-terminated strings while allowing a string to share the suffix of a longer string.
@@ -65,6 +68,7 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
   const prefixData = packedPrefixes.data;
   const nameData = packedNames.data;
   const pages = indexedPages(codepointPages(rows));
+  const pageBitsets = codepointPageBitsets(rows, pages.pages);
 
   const prefixEntries = prefixes.map((row) => {
     const offset = packedPrefixes.offsets.get(row.name);
@@ -80,7 +84,6 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
     return ((offset << 16) | row.id) >>> 0;
   });
 
-  const nameLows = rows.map((row) => row.codepoint & 0xFF);
   const nameEntries = rows.map((row) => {
     const name = row.name ?? '';
     const offset = packedNames.offsets.get(name);
@@ -118,16 +121,20 @@ static const char mjb_unicode_name_data[] = {
 ${formatBytes(nameData)}
 };
 
-static const uint16_t mjb_unicode_name_page_index[] = {
-${formatHalfwords(pages.index)}
+static const uint8_t mjb_unicode_name_page_index[] = {
+${formatBytes(pages.index)}
 };
 
-static const mjb_unicode_page mjb_unicode_name_pages[] = {
-${formatPages(pages.pages)}
+static const uint16_t mjb_unicode_name_page_starts[] = {
+${formatHalfwords(pages.pages.starts)}
 };
 
-static const uint8_t mjb_unicode_name_lows[] = {
-${formatBytes(nameLows)}
+static const uint64_t mjb_unicode_name_page_bits[] = {
+${formatLongWords(pageBitsets.data, 16)}
+};
+
+static const uint32_t mjb_unicode_name_page_ranks[] = {
+${formatWords(pageBitsets.ranks)}
 };
 
 static const uint32_t mjb_unicode_name_entries[] = {

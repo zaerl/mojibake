@@ -5,7 +5,7 @@
  */
 
 import { iLog } from '../log';
-import { bitset, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
+import { bitset, formatBytes, formatPages, formatWords, indexedPages } from '../utils';
 import { NCharacterRow } from './types';
 
 // Builds per-256-codepoint page start/count metadata for codepoint ranges.
@@ -106,8 +106,8 @@ export function generateNCharacters(rows: NCharacterRow[]) {
     return packed >>> 0;
   });
 
-  return `static const uint16_t mjb_unicode_n_character_page_index[] = {
-${formatHalfwords(pages.index)}
+  return `static const uint8_t mjb_unicode_n_character_page_index[] = {
+${formatBytes(pages.index)}
 };
 
 static const mjb_unicode_page mjb_unicode_n_character_pages[] = {

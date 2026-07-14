@@ -5,7 +5,10 @@
  */
 
 import { iLog } from '../log';
-import { codepointPages, formatBytes, formatCodepoints, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
+import {
+  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatHalfwords,
+  formatLongWords, formatWords, indexedPages,
+} from '../utils';
 import { ConfusableRow } from './types';
 
 // Emits indexed confusable skeleton mappings with shared skeleton payloads.
@@ -15,7 +18,7 @@ export function generateConfusables(rows: ConfusableRow[]) {
   const data: number[] = [];
   const dataOffsets = new Map<string, { offset: number; length: number }>();
   const pages = indexedPages(codepointPages(rows));
-  const lows = rows.map((row) => row.codepoint & 0xFF);
+  const pageBitsets = codepointPageBitsets(rows, pages.pages);
   const skeletons = rows.map((row) => {
     const values: number[] = [];
 
@@ -87,16 +90,20 @@ export function generateConfusables(rows: ConfusableRow[]) {
 ${formatCodepoints(data)}
 };
 
-static const uint16_t mjb_unicode_confusable_page_index[] = {
-${formatHalfwords(pages.index)}
+static const uint8_t mjb_unicode_confusable_page_index[] = {
+${formatBytes(pages.index)}
 };
 
-static const mjb_unicode_page mjb_unicode_confusable_pages[] = {
-${formatPages(pages.pages)}
+static const uint16_t mjb_unicode_confusable_page_starts[] = {
+${formatHalfwords(pages.pages.starts)}
 };
 
-static const uint8_t mjb_unicode_confusable_lows[] = {
-${formatBytes(lows)}
+static const uint64_t mjb_unicode_confusable_page_bits[] = {
+${formatLongWords(pageBitsets.data, 16)}
+};
+
+static const uint32_t mjb_unicode_confusable_page_ranks[] = {
+${formatWords(pageBitsets.ranks)}
 };
 
 static const uint32_t mjb_unicode_confusables[] = {

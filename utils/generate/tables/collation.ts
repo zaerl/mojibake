@@ -6,8 +6,8 @@
 
 import { iLog } from '../log';
 import {
-  codepointPages, compareBytes, formatBytes, formatCodepoints, formatHalfwords,
-  formatLongWords, formatPages, formatWords, indexedPages
+  codepointPageBitsets, codepointPages, compareBytes, formatBytes, formatCodepoints,
+  formatHalfwords, formatLongWords, formatWords, indexedPages
 } from '../utils';
 import { CollationContractionRow, CollationEntryRow } from './types';
 
@@ -191,7 +191,7 @@ export function generateCollationEntries(rows: CollationEntryRow[]) {
   const weightsByRow = rows.map((row) => [...row.weights]);
   const packedWeights = packByteSequences(weightsByRow);
   const pages = indexedPages(codepointPages(rows));
-  const lows = rows.map((row) => row.codepoint & 0xFF);
+  const pageBitsets = codepointPageBitsets(rows, pages.pages);
   const entries: number[] = [];
 
   weightsByRow.forEach((weights, index) => {
@@ -214,16 +214,20 @@ export function generateCollationEntries(rows: CollationEntryRow[]) {
 ${formatBytes(packedWeights.data)}
 };
 
-static const uint16_t mjb_unicode_collation_page_index[] = {
-${formatHalfwords(pages.index)}
+static const uint8_t mjb_unicode_collation_page_index[] = {
+${formatBytes(pages.index)}
 };
 
-static const mjb_unicode_page mjb_unicode_collation_pages[] = {
-${formatPages(pages.pages)}
+static const uint16_t mjb_unicode_collation_page_starts[] = {
+${formatHalfwords(pages.pages.starts)}
 };
 
-static const uint8_t mjb_unicode_collation_lows[] = {
-${formatBytes(lows)}
+static const uint64_t mjb_unicode_collation_page_bits[] = {
+${formatLongWords(pageBitsets.data, 16)}
+};
+
+static const uint32_t mjb_unicode_collation_page_ranks[] = {
+${formatWords(pageBitsets.ranks)}
 };
 
 static const uint32_t mjb_unicode_collation_entries[] = {

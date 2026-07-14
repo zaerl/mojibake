@@ -281,7 +281,7 @@ export function cStringData(values: string[]) {
 
 // Converts sparse page metadata into a compact page table plus page index.
 export function indexedPages(pages: { starts: number[]; counts: number[] }) {
-  const index = new Array(pages.starts.length).fill(0xFFFF);
+  const index = new Array(pages.starts.length).fill(0xFF);
   const starts: number[] = [];
   const counts: number[] = [];
 
@@ -290,7 +290,7 @@ export function indexedPages(pages: { starts: number[]; counts: number[] }) {
       continue;
     }
 
-    if(starts.length >= 0xFFFF) {
+    if(starts.length >= 0xFF) {
       throw new Error('Indexed page table is too large to pack');
     }
 
@@ -300,6 +300,41 @@ export function indexedPages(pages: { starts: number[]; counts: number[] }) {
   }
 
   return { index, pages: { starts, counts } };
+}
+
+// Builds four 64-bit presence words and four packed prefix ranks for each populated page.
+export function codepointPageBitsets(rows: { codepoint: number }[],
+  pages: { starts: number[]; counts: number[] }) {
+  const data: bigint[] = [];
+  const ranks: number[] = [];
+
+  for(let page = 0; page < pages.starts.length; ++page) {
+    const words = [0n, 0n, 0n, 0n];
+    const counts = [0, 0, 0, 0];
+    const start = pages.starts[page];
+    const end = start + pages.counts[page];
+
+    for(let index = start; index < end; ++index) {
+      const low = rows[index].codepoint & 0xFF;
+      const word = low >> 6;
+
+      words[word] |= 1n << BigInt(low & 0x3F);
+      ++counts[word];
+    }
+
+    let rank = 0;
+    let packedRanks = 0;
+
+    for(let word = 0; word < words.length; ++word) {
+      packedRanks |= rank << (word * 8);
+      rank += counts[word];
+    }
+
+    data.push(...words);
+    ranks.push(packedRanks >>> 0);
+  }
+
+  return { data, ranks };
 }
 
 // Packs boolean values into little-endian bitset bytes.
