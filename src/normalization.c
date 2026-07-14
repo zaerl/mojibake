@@ -307,10 +307,10 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint;
     mjb_n_character current_character;
-    // size_t codepoints_count = 0;
+// size_t codepoints_count = 0;
 
-    // Combining characters buffer.
-    #define MJB_MAX_COMBINING_CHARACTERS 32
+// Combining characters buffer.
+#define MJB_MAX_COMBINING_CHARACTERS 32
     mjb_n_character characters_buffer[MJB_MAX_COMBINING_CHARACTERS];
     size_t buffer_index = 0;
 
@@ -426,8 +426,8 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 
     result->output_size = potential_output_size;
 
-    // The flush buffer is called multiple times, let's make a macro to avoid code duplication.
-    #define MJB_NORMALIZE_FLUSH_BUFFER() \
+// The flush buffer is called multiple times, let's make a macro to avoid code duplication.
+#define MJB_NORMALIZE_FLUSH_BUFFER() \
     do { \
         if(is_composition) { \
             mjb_buffer_character *new_composition_buffer = mjb_flush_c_buffer(characters_buffer, \
@@ -628,7 +628,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 
     result->transformed = true;
 
-    #undef MJB_NORMALIZE_FLUSH_BUFFER
+#undef MJB_NORMALIZE_FLUSH_BUFFER
 
     return MJB_STATUS_OK;
 
@@ -636,7 +636,7 @@ fail:
     mjb_free(composition_buffer);
     mjb_result_free(result);
 
-    #undef MJB_NORMALIZE_FLUSH_BUFFER
+#undef MJB_NORMALIZE_FLUSH_BUFFER
 
     return MJB_STATUS_NO_MEMORY;
 }
