@@ -9,6 +9,7 @@
 #ifndef MJB_MOJIBAKE_H
 #define MJB_MOJIBAKE_H
 
+// clang-format off
 #if defined(__cplusplus)
     #if __cplusplus < 201703L
         #error "C++17 or a later version is required"
@@ -39,7 +40,6 @@ extern "C" {
     _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
     _Static_assert(sizeof(char) == 1, "char must be 1 byte");
 #endif
-// clang-format on
 
 #define MJB_VERSION_NUMBER 0x26 // MAJOR << 8 | MINOR << 4 | REVISION
 #define MJB_VERSION_MAJOR 0
@@ -100,6 +100,14 @@ extern "C" {
     #define MJB_PURE
     #define MJB_CONST
 #endif
+
+// Compiler features
+#ifndef MJB_FILTER_MAX_COMBINING_MARKS
+    // Kept by MJB_FILTER_LIMIT_COMBINING
+    #define MJB_FILTER_MAX_COMBINING_MARKS 4
+#endif
+
+// clang-format on
 
 // See c standard memory allocation functions
 typedef void *(*mjb_alloc_fn)(size_t size);
@@ -227,11 +235,6 @@ typedef enum mjb_quick_check_result {
     MJB_QC_NFKD_NO = 0x100,
     MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
-
-#ifndef MJB_FILTER_MAX_COMBINING_MARKS
-    // Kept by MJB_FILTER_LIMIT_COMBINING
-    #define MJB_FILTER_MAX_COMBINING_MARKS 4
-#endif
 
 typedef enum mjb_filter {
     MJB_FILTER_NONE = 0x0,
