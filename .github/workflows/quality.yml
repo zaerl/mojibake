@@ -23,6 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Install clang-format
+        run: |
+          pipx install clang-format==21.1.8
+          pipx_bin_dir=$(pipx environment --value PIPX_BIN_DIR)
+          echo "$pipx_bin_dir" >> "$GITHUB_PATH"
+          "$pipx_bin_dir/clang-format" --version
+
       - name: Check clang-format
         run: |
           git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' |
