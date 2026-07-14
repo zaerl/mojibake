@@ -7,7 +7,9 @@
  */
 
 #include "../src/mojibake-internal.h"
+#if !defined(MJB_SHARED)
 #include "../src/unicode-tables.h"
+#endif
 #include "test.h"
 
 static char *trim_ascii(char *text) {
@@ -135,13 +137,13 @@ static void check_skeleton(const char *input, size_t input_size, const char *exp
 
     MJB_TEST_COVERAGE(mjb_confusable_skeleton);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(input, input_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          &skeleton),
-        MJB_STATUS_OK, name)
+        &skeleton), MJB_STATUS_OK, name)
     ATT_ASSERT(skeleton.output_size, expected_size, name)
     ATT_ASSERT((int)memcmp(skeleton.output, expected, expected_size), 0, name)
     ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, name)
 }
 
+#if !defined(MJB_SHARED)
 static void run_confusables_file(const char *filename) {
     FILE *file = fopen(filename, "r");
 
@@ -206,6 +208,7 @@ static void run_confusables_file(const char *filename) {
 
         ATT_ASSERT(actual_size, target_size, test_name)
         ATT_ASSERT((int)memcmp(actual, target, target_size), 0, test_name)
+
         ++tested;
     }
 
@@ -213,6 +216,7 @@ static void run_confusables_file(const char *filename) {
 
     ATT_ASSERT(tested > 0, true, "confusables.txt has skeleton mappings")
 }
+#endif
 
 int test_security(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
@@ -300,10 +304,8 @@ int test_security(void *arg) {
         "Cyrillic рal confusable with pal")
 
     // Cyrillic С (U+0421, UTF-8: 0xD0 0xA1) maps to Latin C
-    ATT_ASSERT(mjb_string_is_confusable("\xD0\xA1"
-                                        "at",
-                   4, enc, "Cat", 3, enc),
-        true, "Cyrillic С + at confusable with Cat")
+    ATT_ASSERT(mjb_string_is_confusable("\xD0\xA1" "at", 4, enc, "Cat", 3, enc), true,
+        "Cyrillic С + at confusable with Cat")
 
     // "gооd" (Cyrillic о U+043E, UTF-8: 0xD0 0xBE) confusable with "good"
     // skeleton(Cyrillic о) = Latin o -> both strings have skeleton "good"
@@ -314,14 +316,13 @@ int test_security(void *arg) {
         "Confusable with different encodings")
 
     // Confusability is symmetric
-    ATT_ASSERT(mjb_string_is_confusable("pal", 3, enc,
-                   "\xD1\x80"
-                   "al",
-                   4, enc),
-        true, "confusability is symmetric")
+    ATT_ASSERT(mjb_string_is_confusable("pal", 3, enc, "\xD1\x80" "al", 4, enc), true,
+        "confusability is symmetric")
 
     run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
+#if !defined(MJB_SHARED)
     run_confusables_file("./utils/generate/unicode-data/security/confusables.txt");
+#endif
 
     return 0;
 }
