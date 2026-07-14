@@ -294,7 +294,7 @@ int test_encoding(void *arg) {
 
     mjb_encoding encoding;
 
-    #define TEST_UTF(CHAR, STR, RES, COMMENT) \
+#define TEST_UTF(CHAR, STR, RES, COMMENT) \
     ATT_ASSERT(mjb_codepoint_encode(CHAR, (char *)buffer, 5, encoding), RES, COMMENT) \
     ATT_ASSERT((const char *)buffer, STR, COMMENT)
 
@@ -344,20 +344,17 @@ int test_encoding(void *arg) {
     TEST_UTF(0x10FFFE, "\x00\x10\xFF\xFE", 4, "4-bytes limit UTF-32BE");
     TEST_UTF(0x1F642, "\x00\x01\xF6\x42", 4, "SLIGHTLY SMILING FACE UTF-32BE");
 
-    #undef TEST_UTF
+#undef TEST_UTF
 
-    const char
-        *
-            hello_strings
-                [] = {
-                    "Hello",                                    // UTF-8
-                    "\x48\x00\x65\x00\x6C\x00\x6C\x00\x6F\x00", // UTF-16LE
-                    "\x00\x48\x00\x65\x00\x6C\x00\x6C\x00\x6F", // UTF-16BE
-                    "\x48\x00\x00\x00\x65\x00\x00\x00\x6C\x00\x00\x00\x6C\x00\x00\x00\x6F\x00\x00"
-                    "\x00", // UTF-32LE
-                    "\x00\x00\x00\x48\x00\x00\x00\x65\x00\x00\x00\x6C\x00\x00\x00\x6C\x00\x00\x00"
-                    "\x6F" // UTF-32BE
-                };
+    const char *hello_strings[] = {
+        "Hello",                                    // UTF-8
+        "\x48\x00\x65\x00\x6C\x00\x6C\x00\x6F\x00", // UTF-16LE
+        "\x00\x48\x00\x65\x00\x6C\x00\x6C\x00\x6F", // UTF-16BE
+        "\x48\x00\x00\x00\x65\x00\x00\x00\x6C\x00\x00\x00\x6C\x00\x00\x00\x6F\x00\x00"
+        "\x00", // UTF-32LE
+        "\x00\x00\x00\x48\x00\x00\x00\x65\x00\x00\x00\x6C\x00\x00\x00\x6C\x00\x00\x00"
+        "\x6F" // UTF-32BE
+    };
     size_t hello_strings_sizes[] = { 5, 10, 10, 20, 20 };
     mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
         MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE };
