@@ -162,7 +162,7 @@ ATT_API unsigned int att_assert_u_c(unsigned char result, unsigned char expected
 }
 
 ATT_API unsigned int att_assert_p_c(char *result, char *expected, const char *description, const char *file, unsigned int line) {
-    int test = att_assert("char *", result == expected, description);
+    int test = att_assert("char *", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
@@ -172,7 +172,7 @@ ATT_API unsigned int att_assert_p_c(char *result, char *expected, const char *de
 }
 
 ATT_API unsigned int att_assert_cp_c(const char *result, const char *expected, const char *description, const char *file, unsigned int line) {
-    int test = att_assert("const char *", result == expected, description);
+    int test = att_assert("const char *", ((result == expected) || ((result && expected) ? strcmp(result, expected) == 0 : 0)), description);
 
     if(!test) {
         ATT_ERROR_MESSAGE(result, ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", ATT_STRING_AS_POINTERS == 1 ? "%p" : "\"%s\"", expected);
