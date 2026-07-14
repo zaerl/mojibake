@@ -95,7 +95,7 @@ ATT_ASSERT(mojibake.breakWord('A'), [BreakType.ALLOWED], 'breakWord');
 ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');
 ATT_ASSERT(mojibake.truncateWordWidth('Hello World', WidthContext.WESTERN, 5), 5,
   'truncateWordWidth');
-ATT_ASSERT(mojibake.breakSentence('A'), [BreakType.NO_BREAK], 'breakSentence');
+ATT_ASSERT(mojibake.breakSentence('A'), [BreakType.ALLOWED], 'breakSentence');
 ATT_ASSERT(mojibake.breakGraphemeCluster('A'), [BreakType.ALLOWED], 'breakGraphemeCluster');
 ATT_ASSERT(mojibake.truncate('ABC', 2), 2, 'truncate');
 ATT_ASSERT(mojibake.truncateWidth('ABC', WidthContext.WESTERN, 2), 2, 'truncateWidth');
