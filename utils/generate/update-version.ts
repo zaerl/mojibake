@@ -12,9 +12,10 @@ export async function updateVersion() {
   let fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
   const v = getVersion();
   const versionNumber = v.major << 8 | v.minor << 4 | v.revision;
+  const hexNumber = '0x' + versionNumber.toString(16).toUpperCase();
 
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_NUMBER', '\n',
-    ` 0x${versionNumber.toString(16)} // MAJOR << 8 | MINOR << 4 | REVISION`);
+    ` ${hexNumber} // MAJOR << 8 | MINOR << 4 | REVISION`);
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_MAJOR', '\n', ' ' + v.major.toString());
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_MINOR', '\n', ' ' + v.minor.toString());
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_REVISION', '\n', ' ' + v.revision.toString());
@@ -35,6 +36,18 @@ export async function updateVersion() {
   fileContent = readFileSync('../../src/api/package.json', 'utf-8');
   fileContent = substituteBlock(fileContent, '"version": "', '",\n', v.version);
   writeFileSync('../../src/api/package.json', fileContent);
+
+  fileContent = readFileSync('../../src/api/tests/index.ts', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'mojibake.version(), \'', '-WASM', v.version);
+  fileContent = substituteBlock(fileContent, 'versionNumber(), ', ',', hexNumber);
+  writeFileSync('../../src/api/tests/index.ts', fileContent);
+
+  const zip = `mojibake-amalgamation-${v.major}${v.minor}${v.revision}`;
+  fileContent = readFileSync('../../README.md', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'Download it here\n[', '.zip)',
+    `${zip}.zip](https://github.com/zaerl/mojibake/releases/download/v${v.version}/${zip}`);
+
+  writeFileSync('../../README.md', fileContent);
 
   // Find all SKILL.md files recursively under a directory
   function updateSkillMdFiles(dir: string) {
@@ -60,7 +73,8 @@ export async function updateVersion() {
   console.log(`\nVersion updated to ${v.version}`);
   console.log('make wasm');
   console.log('make amalgamation');
-  console.log('Update README.md');
+  console.log('npm i in utils/generate');
+  console.log('npm i in src/api');
   console.log(`Update CHANGELOG.md: add a [${v.version}] section`);
   console.log(`git commit --signoff -am "Update version to ${v.version}"`);
   console.log(`git tag v${v.version}`);
