@@ -5,21 +5,73 @@
  */
 
 import { iLog } from '../log';
-import { addStringData, codepointPages, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
+import { codepointPages, formatBytes, formatHalfwords, formatPages, formatWords, indexedPages } from '../utils';
 import { NameRow, PrefixRow } from './types';
+
+// Packs NUL-terminated strings while allowing a string to share the suffix of a longer string.
+function packStringData(values: string[]) {
+  const data: number[] = [0];
+  const offsets = new Map<string, number>([['', 0]]);
+  const unique = [...new Set(values)];
+  const roots = new Set<string>();
+  const coveredSuffixes = new Set<string>(['']);
+  const longestFirst = [...unique].sort((a, b) =>
+    b.length - a.length || (a < b ? -1 : a > b ? 1 : 0)
+  );
+
+  for(const value of longestFirst) {
+    if(coveredSuffixes.has(value)) {
+      continue;
+    }
+
+    roots.add(value);
+
+    for(let i = 0; i < value.length; ++i) {
+      coveredSuffixes.add(value.slice(i));
+    }
+  }
+
+  for(const value of unique) {
+    if(!roots.has(value)) {
+      continue;
+    }
+
+    const offset = data.length;
+
+    for(let i = 0; i < value.length; ++i) {
+      data.push(value.charCodeAt(i));
+    }
+
+    data.push(0);
+
+    for(let i = 0; i < value.length; ++i) {
+      const suffix = value.slice(i);
+
+      if(!offsets.has(suffix)) {
+        offsets.set(suffix, offset + i);
+      }
+    }
+  }
+
+  return { data, offsets };
+}
 
 // Emits packed character name and prefix lookup tables.
 export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
   iLog('Names');
 
-  const prefixData: number[] = [0];
-  const nameData: number[] = [0];
-  const prefixOffsets = new Map<string, number>([['', 0]]);
-  const nameOffsets = new Map<string, number>([['', 0]]);
+  const packedPrefixes = packStringData(prefixes.map((row) => row.name));
+  const packedNames = packStringData(rows.map((row) => row.name ?? ''));
+  const prefixData = packedPrefixes.data;
+  const nameData = packedNames.data;
   const pages = indexedPages(codepointPages(rows));
 
   const prefixEntries = prefixes.map((row) => {
-    const offset = addStringData(prefixData, prefixOffsets, row.name);
+    const offset = packedPrefixes.offsets.get(row.name);
+
+    if(offset === undefined) {
+      throw new Error(`Packed prefix is missing: ${row.name}`);
+    }
 
     if(row.id > 0xFFFF || offset > 0xFFFF) {
       throw new Error(`Prefix entry out of bounds: id=${row.id}, offset=${offset}`);
@@ -30,7 +82,12 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
 
   const nameLows = rows.map((row) => row.codepoint & 0xFF);
   const nameEntries = rows.map((row) => {
-    const offset = addStringData(nameData, nameOffsets, row.name ?? '');
+    const name = row.name ?? '';
+    const offset = packedNames.offsets.get(name);
+
+    if(offset === undefined) {
+      throw new Error(`Packed name is missing: ${name}`);
+    }
 
     if(offset >= (1 << 20)) {
       throw new Error(`Name data offset is too large to pack: ${offset}`);
