@@ -18,7 +18,11 @@ export class PrefixCompressor {
     this.characters = characters;
   }
 
-  public compress(minPrefixLength: number = 4, minCount: number = 2, maxPrefixes: number = 1000): Prefix[] {
+  public compress(
+    minPrefixLength: number = 4,
+    minCount: number = 2,
+    maxPrefixes: number = 4095,
+  ): Prefix[] {
     // Step 1: Build candidate prefix list with usage information
     const prefixCounts = new Map<string, number>();
     const prefixStrings = new Map<string, Set<number>>(); // prefix -> set of string indices
@@ -40,11 +44,18 @@ export class PrefixCompressor {
     // Step 2: Sort candidates by initial savings (greedy starting point)
     const candidates = [...prefixCounts.entries()]
       .filter(([p, count]) => count >= minCount)
-      .map(([prefix, count]) => ({
-        prefix,
-        count,
-        savings: (count - 1) * prefix.length - (prefix.length + 1) // Net savings including dict cost
-      }))
+      .map(([prefix, count]) => {
+        const pageCount = new Set([...prefixStrings.get(prefix)!].map(
+          (index) => this.characters[index].codepoint >> 8
+        )).size;
+
+        return {
+          prefix,
+          count,
+          // Each page that uses the prefix stores a uint16_t pool offset.
+          savings: (count - 1) * prefix.length - (prefix.length + 1 + pageCount * 2),
+        };
+      })
       .sort((a, b) => b.savings - a.savings);
 
     // Step 3: Greedily select prefixes, but allow overlaps and recalculate per string
@@ -69,7 +80,10 @@ export class PrefixCompressor {
       }
 
       // Account for dictionary cost
-      const dictCost = prefix.length + 1;
+      const pageCount = new Set([...affectedStrings].map(
+        (index) => this.characters[index].codepoint >> 8
+      )).size;
+      const dictCost = prefix.length + 1 + pageCount * 2;
       const netSavings = additionalSavings - dictCost;
 
       // Only add prefix if it provides net positive savings
@@ -88,31 +102,48 @@ export class PrefixCompressor {
     }
 
     // Step 4: Final encoding. Assign strings to their best prefix
-    const prefixes = [];
-
-    // Add empty prefix for strings with no match
-    prefixes.push({ id: 0, prefix: '' });
-
-    for(const [prefix, id] of selectedPrefixes) {
-      prefixes.push({ id, prefix });
-    }
-
     // Sort prefixes by length descending for greedy matching (longest first)
     const sortedPrefixes = [...selectedPrefixes.entries()]
       .sort((a, b) => b[0].length - a[0].length);
+    const matchedPrefixes: (string | null)[] = new Array(this.characters.length).fill(null);
+    const usedPrefixes = new Set<string>();
 
     for(let i = 0; i < this.characters.length; ++i) {
       const str = this.characters[i].name ?? '';
 
-      // Find the longest matching prefix and update the character if needed
-      for(const [prefix, prefixIdValue] of sortedPrefixes) {
+      // Find the longest matching prefix.
+      for(const [prefix] of sortedPrefixes) {
         if(str.startsWith(prefix)) {
-          this.characters[i].prefix = prefixIdValue;
-          this.characters[i].name = str.substring(prefix.length);
+          matchedPrefixes[i] = prefix;
+          usedPrefixes.add(prefix);
 
           break;
         }
       }
+    }
+
+    const prefixes: Prefix[] = [{ id: 0, prefix: '' }];
+    const prefixIds = new Map<string, number>();
+
+    for(const [prefix] of selectedPrefixes) {
+      if(!usedPrefixes.has(prefix)) {
+        continue;
+      }
+
+      const id = prefixes.length;
+      prefixIds.set(prefix, id);
+      prefixes.push({ id, prefix });
+    }
+
+    for(let i = 0; i < this.characters.length; ++i) {
+      const prefix = matchedPrefixes[i];
+
+      if(prefix === null) {
+        continue;
+      }
+
+      this.characters[i].prefix = prefixIds.get(prefix)!;
+      this.characters[i].name = (this.characters[i].name ?? '').substring(prefix.length);
     }
 
     return prefixes;

@@ -6,8 +6,7 @@
 
 import { iLog } from '../log';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatHalfwords, formatLongWords, formatWords,
-  indexedPages,
+  codepointPageBitsets, codepointPages, formatBytes, formatLongWords, formatWords, indexedPages,
 } from '../utils';
 import { NameRow, PrefixRow } from './types';
 
@@ -59,6 +58,17 @@ function packStringData(values: string[]) {
   return { data, offsets };
 }
 
+// Dense decimal initializers keep the generated source small while preserving typed C arrays.
+function formatCompactIntegers(values: number[], columns: number) {
+  const lines = [];
+
+  for(let index = 0; index < values.length; index += columns) {
+    lines.push(`    ${values.slice(index, index + columns).join(',')},`);
+  }
+
+  return lines.join('\n');
+}
+
 // Emits packed character name and prefix lookup tables.
 export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
   iLog('Names');
@@ -70,35 +80,91 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
   const pages = indexedPages(codepointPages(rows));
   const pageBitsets = codepointPageBitsets(rows, pages.pages);
 
-  const prefixEntries = prefixes.map((row) => {
+  const prefixOffsets = [0, ...prefixes.map((row, index) => {
     const offset = packedPrefixes.offsets.get(row.name);
 
     if(offset === undefined) {
       throw new Error(`Packed prefix is missing: ${row.name}`);
     }
 
-    if(row.id > 0xFFFF || offset > 0xFFFF) {
+    if(row.id !== index + 1 || offset > 0xFFFF) {
       throw new Error(`Prefix entry out of bounds: id=${row.id}, offset=${offset}`);
     }
 
-    return ((offset << 16) | row.id) >>> 0;
+    return offset;
+  })];
+
+  const pagePrefixStarts: number[] = [];
+  const pagePrefixOffsets: number[] = [];
+  const nameTags: number[] = [];
+  const nameOffsets: number[] = [];
+
+  pages.pages.starts.forEach((start, page) => {
+    const prefixIds = new Map<number, number>();
+    const end = start + pages.pages.counts[page];
+
+    pagePrefixStarts.push(pagePrefixOffsets.length);
+
+    for(let index = start; index < end; ++index) {
+      const row = rows[index];
+      const name = row.name ?? '';
+      const prefix = row.prefix ?? 0;
+      const offset = packedNames.offsets.get(name);
+      const prefixName = prefix === 0 ? '' : prefixes[prefix - 1]?.name;
+
+      if(prefixName === undefined) {
+        throw new Error(`Unknown name prefix ID: ${prefix}`);
+      }
+
+      if(name.length + prefixName.length >= 128) {
+        throw new Error(`Character name is too long for the runtime buffer: ${name}`);
+      }
+
+      if(offset === undefined) {
+        throw new Error(`Packed name is missing: ${name}`);
+      }
+
+      if(offset >= (1 << 17)) {
+        throw new Error(`Name data offset is too large to pack: ${offset} ` +
+          `(data=${packedNames.data.length}, prefixes=${prefixes.length})`);
+      }
+
+      let localPrefix = prefixIds.get(prefix);
+
+      if(localPrefix === undefined) {
+        localPrefix = prefixIds.size;
+
+        if(localPrefix >= (1 << 7)) {
+          throw new Error(`Page ${page} has too many name prefixes: ${localPrefix + 1}`);
+        }
+
+        const prefixValue = prefixOffsets[prefix];
+
+        if(prefixValue === undefined) {
+          throw new Error(`Unknown name prefix ID: ${prefix}`);
+        }
+
+        prefixIds.set(prefix, localPrefix);
+        pagePrefixOffsets.push(prefixValue);
+      }
+
+      nameTags.push((localPrefix << 1) | (offset >> 16));
+      nameOffsets.push(offset & 0xFFFF);
+    }
   });
 
-  const nameEntries = rows.map((row) => {
-    const name = row.name ?? '';
-    const offset = packedNames.offsets.get(name);
+  if(pagePrefixOffsets.length > 0xFFFF) {
+    throw new Error(`Name page-prefix table is too large: ${pagePrefixOffsets.length}`);
+  }
 
-    if(offset === undefined) {
-      throw new Error(`Packed name is missing: ${name}`);
+  const pageStarts = pages.pages.starts.map((start, page) => {
+    const prefixStart = pagePrefixStarts[page];
+
+    if(start > 0xFFFF || prefixStart > 0xFFFF) {
+      throw new Error(`Name page starts are too large: names=${start}, prefixes=${prefixStart}`);
     }
 
-    if(offset >= (1 << 20)) {
-      throw new Error(`Name data offset is too large to pack: ${offset}`);
-    }
-
-    const data = ((row.prefix ?? 0) << 20) | offset;
-
-    return data;
+    return ((prefixStart << 16) | start) >>> 0;
   });
 
   return `typedef struct mjb_unicode_page {
@@ -107,14 +173,12 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
 } mjb_unicode_page;
 
 #if MJB_FEATURE_CHARACTER_NAMES
-typedef uint32_t mjb_unicode_prefix_entry;
-
 static const char mjb_unicode_prefix_data[] = {
 ${formatBytes(prefixData)}
 };
 
-static const mjb_unicode_prefix_entry mjb_unicode_prefixes[] = {
-${formatWords(prefixEntries)}
+static const uint16_t mjb_unicode_name_page_prefix_offsets[] = {
+${formatCompactIntegers(pagePrefixOffsets, 16)}
 };
 
 static const char mjb_unicode_name_data[] = {
@@ -125,8 +189,8 @@ static const uint8_t mjb_unicode_name_page_index[] = {
 ${formatBytes(pages.index)}
 };
 
-static const uint16_t mjb_unicode_name_page_starts[] = {
-${formatHalfwords(pages.pages.starts)}
+static const uint32_t mjb_unicode_name_page_starts[] = {
+${formatWords(pageStarts)}
 };
 
 static const uint64_t mjb_unicode_name_page_bits[] = {
@@ -137,8 +201,12 @@ static const uint32_t mjb_unicode_name_page_ranks[] = {
 ${formatWords(pageBitsets.ranks)}
 };
 
-static const uint32_t mjb_unicode_name_entries[] = {
-${formatWords(nameEntries)}
+static const uint8_t mjb_unicode_name_tags[] = {
+${formatCompactIntegers(nameTags, 24)}
+};
+
+static const uint16_t mjb_unicode_name_offsets[] = {
+${formatCompactIntegers(nameOffsets, 16)}
 };
 #endif
 `;

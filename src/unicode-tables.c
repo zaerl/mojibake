@@ -50,25 +50,21 @@ static size_t mjb_append_table_string(char *destination, size_t destination_size
     return destination_index;
 }
 
-static const char *mjb_unicode_prefix_lookup(uint16_t prefix) {
-    size_t low = 0;
-    size_t high = MJB_COUNT_OF(mjb_unicode_prefixes);
-
-    while(low < high) {
-        size_t mid = low + (high - low) / 2;
-        uint32_t entry = mjb_unicode_prefixes[mid];
-        uint16_t entry_id = (uint16_t)(entry & 0xFFFF);
-
-        if(prefix < entry_id) {
-            high = mid;
-        } else if(prefix > entry_id) {
-            low = mid + 1;
-        } else {
-            return &mjb_unicode_prefix_data[entry >> 16];
-        }
+static size_t mjb_append_table_string_unchecked(char *destination, size_t destination_index,
+    const char *source) {
+    while(*source != '\0') {
+        destination[destination_index++] = *source++;
     }
 
-    return "";
+    destination[destination_index] = '\0';
+
+    return destination_index;
+}
+
+static const char *mjb_unicode_prefix_lookup(uint16_t prefix_start, uint8_t prefix) {
+    uint16_t offset = mjb_unicode_name_page_prefix_offsets[prefix_start + prefix];
+
+    return &mjb_unicode_prefix_data[offset];
 }
 #endif
 
@@ -147,6 +143,40 @@ static bool mjb_unicode_page_bitset_lookup(const uint8_t *page_index, size_t pag
     return true;
 }
 
+#if MJB_FEATURE_CHARACTER_NAMES
+static bool mjb_unicode_name_entry_lookup(mjb_codepoint codepoint, size_t *index,
+    uint16_t *prefix_start) {
+    size_t page = codepoint >> 8;
+
+    if(page >= MJB_COUNT_OF(mjb_unicode_name_page_index)) {
+        return false;
+    }
+
+    uint8_t compact_page = mjb_unicode_name_page_index[page];
+
+    if(compact_page == 0xFF) {
+        return false;
+    }
+
+    uint8_t codepoint_low = (uint8_t)codepoint;
+    uint8_t word = codepoint_low >> 6;
+    uint8_t bit = codepoint_low & 0x3F;
+    uint64_t bits = mjb_unicode_name_page_bits[(size_t)compact_page * 4 + word];
+    uint64_t mask = (uint64_t)1 << bit;
+
+    if((bits & mask) == 0) {
+        return false;
+    }
+
+    uint8_t rank = (uint8_t)(mjb_unicode_name_page_ranks[compact_page] >> (word * 8));
+    uint32_t starts = mjb_unicode_name_page_starts[compact_page];
+    *index = (starts & 0xFFFF) + rank + mjb_unicode_popcount64(bits & (mask - 1));
+    *prefix_start = (uint16_t)(starts >> 16);
+
+    return true;
+}
+#endif
+
 static bool mjb_unicode_bitset_get(const uint8_t *data, size_t index) {
     return (data[index >> 3] & (uint8_t)(1u << (index & 7))) != 0;
 }
@@ -154,10 +184,9 @@ static bool mjb_unicode_bitset_get(const uint8_t *data, size_t index) {
 bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_size) {
 #if MJB_FEATURE_CHARACTER_NAMES
     size_t entry_index = 0;
+    uint16_t prefix_start = 0;
 
-    if(!mjb_unicode_page_bitset_lookup(mjb_unicode_name_page_index,
-           MJB_COUNT_OF(mjb_unicode_name_page_index), mjb_unicode_name_page_starts,
-           mjb_unicode_name_page_bits, mjb_unicode_name_page_ranks, codepoint, &entry_index)) {
+    if(!mjb_unicode_name_entry_lookup(codepoint, &entry_index, &prefix_start)) {
         return false;
     }
 
@@ -168,13 +197,21 @@ bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_si
     name[0] = '\0';
 
     size_t index = 0;
-    uint32_t entry = mjb_unicode_name_entries[entry_index];
+    uint8_t tag = mjb_unicode_name_tags[entry_index];
+    uint32_t name_offset = mjb_unicode_name_offsets[entry_index] |
+        ((uint32_t)(tag & 1) << 16);
+    uint8_t prefix = tag >> 1;
 
-    uint32_t name_offset = entry & 0x000FFFFF;
-    uint16_t prefix = (uint16_t)(entry >> 20);
+    const char *prefix_data = mjb_unicode_prefix_lookup(prefix_start, prefix);
+    const char *name_data = &mjb_unicode_name_data[name_offset];
 
-    index = mjb_append_table_string(name, name_size, index, mjb_unicode_prefix_lookup(prefix));
-    mjb_append_table_string(name, name_size, index, &mjb_unicode_name_data[name_offset]);
+    if(name_size >= 128) {
+        index = mjb_append_table_string_unchecked(name, index, prefix_data);
+        mjb_append_table_string_unchecked(name, index, name_data);
+    } else {
+        index = mjb_append_table_string(name, name_size, index, prefix_data);
+        mjb_append_table_string(name, name_size, index, name_data);
+    }
 
     return true;
 #else
