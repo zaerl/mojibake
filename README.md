@@ -19,8 +19,8 @@ Examples of normalization, characters count and NFKC casefold.
     mjb_result result;
 
     // Normalize example: in NFC e + ◌́ -> é (U+00E9)
-    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result) !=
-        MJB_STATUS_OK) {
+    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -33,9 +33,9 @@ Examples of normalization, characters count and NFKC casefold.
     const char *mojibake = "文字化け";
     length = strlen(mojibake);
 
-    // String length example: mjb_string_length counts the number of characters in a string, not the
-    // number of bytes.
-    printf("\"%s\" encoded in UTF-8 is %zu bytes long, but instead is %zu characters long\n",
+    // String length example: mjb_string_length counts the number of characters in a
+    // string, not the number of bytes.
+    printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu characters long\n",
         mojibake, length, mjb_string_length(mojibake, length, MJB_ENC_UTF_8));
 
     mjb_result_free(&result);
@@ -43,8 +43,8 @@ Examples of normalization, characters count and NFKC casefold.
     const char *case_input = "Straße";
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
-    if(mjb_nfkc_casefold(case_input, strlen(case_input), MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result) !=
-        MJB_STATUS_OK) {
+    if(mjb_nfkc_casefold(case_input, strlen(case_input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &result) != MJB_STATUS_OK) {
         return 1;
     }
 
