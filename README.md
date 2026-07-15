@@ -14,6 +14,7 @@ C/C++ project. Download it here [mojibake-amalgamation-026.zip](https://github.c
 Examples of normalization, characters count and NFKC casefold.
 
 ```c
+int main(int argc, char *const argv[]) {
     const char *input = "Cafe\xCC\x81";
     size_t length = strlen(input);
     mjb_result result;
@@ -52,6 +53,7 @@ Examples of normalization, characters count and NFKC casefold.
     mjb_result_free(&result);
 
     return 0;
+}
 ```
 
 This output:
