@@ -6,7 +6,64 @@
 **Mojibake** is a low-level Unicode 17 text-processing library written in C11 and compatible
 with C++17. It is released under the MIT License.
 
-It aims to be:
+## Usage
+
+You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
+C/C++ project. Download it here [mojibake-amalgamation-026.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.6/mojibake-amalgamation-026.zip)
+
+Examples of normalization, characters count and NFKC casefold.
+
+```c
+    const char *input = "Cafe\xCC\x81";
+    size_t length = strlen(input);
+    mjb_result result;
+
+    // Normalize example: in NFC e + ◌́ -> é (U+00E9)
+    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result) !=
+        MJB_STATUS_OK) {
+        return 1;
+    }
+
+    // Cafe + ◌́ (U+0301, COMBINING ACUTE ACCENT) -> Café
+    print_string(input, length);
+
+    // Caf + é (U+00E9, LATIN SMALL LETTER E WITH ACUTE) -> Café
+    print_string(result.output, result.output_size);
+
+    const char *mojibake = "文字化け";
+    length = strlen(mojibake);
+
+    // String length example: mjb_string_length counts the number of characters in a string, not the
+    // number of bytes.
+    printf("\"%s\" encoded in UTF-8 is %zu bytes long, but instead is %zu characters long\n",
+        mojibake, length, mjb_string_length(mojibake, length, MJB_ENC_UTF_8));
+
+    mjb_result_free(&result);
+
+    const char *case_input = "Straße";
+
+    // NFKC casefold example: in NFKC casefold, ß -> ss
+    if(mjb_nfkc_casefold(case_input, strlen(case_input), MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result) !=
+        MJB_STATUS_OK) {
+        return 1;
+    }
+
+    printf("%s -> %.*s\n", case_input, (int)result.output_size, result.output);
+    mjb_result_free(&result);
+
+    return 0;
+```
+
+This output:
+
+```
+Cafe<CC><81>
+Caf<C3><A9>
+"文字化け" encoded in UTF-8 is 12 bytes long, but instead is 4 characters long
+Straße -> strasse
+```
+
+Mojibake aims to be:
 
 1. Small
 2. Easy to use
@@ -84,45 +141,6 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 byte input
 - `AddressSanitizer` and `UBSan` clean
 
-## Usage
-
-You don't need to install anything. Add the C source and header to your build.
-
-1. Download it here
-[mojibake-amalgamation-026.zip](https://github.com/zaerl/mojibake/releases/download/v0.2.6/mojibake-amalgamation-026.zip)
-2. Unzip it
-3. Add `mojibake.c` and `mojibake.h` to your project
-
-Example:
-
-```c
-#include <stdio.h>
-#include <string.h>
-#include "mojibake.h"
-
-// This is a simple example of how to use the Mojibake library.
-int main(int argc, char * const argv[]) {
-    printf("This is an example of Mojibake v%s\n", mjb_version());
-    printf("Unicode version: %s\n", mjb_unicode_version());
-
-    const char *input = "Cafe\xCC\x81";
-    mjb_result result;
-
-    if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
-        return 1;
-    }
-
-    // This outputs "NFC: Café", e + ◌́ -> é
-    printf("NFC: %.*s\n", (int)result.output_size, result.output);
-
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
-
-    return 0;
-}
-```
 
 ### Build-time features
 
