@@ -32,10 +32,10 @@ int main(int argc, char *const argv[]) {
     const char *mojibake = "文字化け";
     length = strlen(mojibake);
 
-    // String length example: mjb_string_length counts the number of characters in a string, not the
-    // number of bytes.
-    printf("\"%s\" encoded in UTF-8 is %zu bytes long, but instead is %zu characters long\n",
-        mojibake, length, mjb_string_length(mojibake, length, MJB_ENC_UTF_8));
+    // String length example: mjb_string_length counts the number of characters in a
+    // string, not the number of bytes.
+    printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu characters long\n", mojibake, length,
+        mjb_string_length(mojibake, length, MJB_ENC_UTF_8));
 
     mjb_result_free(&result);
 

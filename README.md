@@ -61,7 +61,7 @@ This output:
 ```
 Cafe<CC><81>
 Caf<C3><A9>
-"文字化け" encoded in UTF-8 is 12 bytes long, but instead is 4 characters long
+"文字化け" encoded in UTF-8 is 12 bytes long, and 4 characters long
 Straße -> strasse
 ```
 
