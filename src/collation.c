@@ -227,6 +227,33 @@ static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
     return true;
 }
 
+/**
+ * Append directly loadable collation elements. Bit 31 marks the final element; the remaining bits
+ * have the same layout as the four-byte contraction BLOB decoded above.
+ */
+static bool cea_append_packed(mjb_cea *cea, const uint32_t *weights) {
+    bool last;
+
+    do {
+        uint32_t packed = *weights++;
+        last = (packed & UINT32_C(0x80000000)) != 0;
+
+        if(!cea_grow(cea, 1)) {
+            return false;
+        }
+
+        cea->data[cea->count].primary = (uint16_t)(packed & 0xFFFF);
+        cea->data[cea->count].secondary = (uint16_t)((packed >> 16) & 0x1FF);
+        cea->data[cea->count].tertiary = (uint16_t)((packed >> 25) & 0x1F);
+        cea->data[cea->count].quaternary = 0;
+        cea->data[cea->count].variable = (packed & (1u << 30)) != 0;
+
+        ++cea->count;
+    } while(!last);
+
+    return true;
+}
+
 // Decode UTF-8 to a codepoint array
 
 static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_codepoints,
@@ -334,11 +361,10 @@ static uint8_t ccc_of(mjb_codepoint cp) {
 
 // Look up or synthesize CEs for a single codepoint and append to cea.
 static bool cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
-    const uint8_t *weights = NULL;
-    uint8_t length = 0;
+    const uint32_t *weights = NULL;
 
-    if(mjb_unicode_collation_entry_lookup(cp, &weights, &length)) {
-        return cea_append_blob(cea, weights, length);
+    if(mjb_unicode_collation_entry_lookup(cp, &weights)) {
+        return cea_append_packed(cea, weights);
     } else {
         return cea_append_implicit(cea, cp);
     }

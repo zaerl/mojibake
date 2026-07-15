@@ -6,8 +6,8 @@
 
 import { iLog } from '../log';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatHalfwords,
-  formatLongWords, formatWords, indexedPages,
+  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
+  formatHalfwords, formatLongWords, formatWords, indexedPages,
 } from '../utils';
 import { ConfusableRow } from './types';
 
@@ -33,8 +33,25 @@ export function generateConfusables(rows: ConfusableRow[]) {
 
     return values;
   });
+
   const uniqueSkeletons = [...new Map(skeletons.map((values) => [values.join(','), values])).values()]
     .sort((a, b) => b.length - a.length);
+
+  const encodeLength = (length: number) => {
+    if(length >= 1 && length <= 6) {
+      return length - 1;
+    }
+
+    if(length === 8) {
+      return 6;
+    }
+
+    if(length === 18) {
+      return 7;
+    }
+
+    throw new Error(`Confusable mapping length cannot be packed: ${length}`);
+  };
 
   // Finds an existing payload offset for a confusable skeleton.
   const findDataOffset = (values: number[]) => {
@@ -65,7 +82,7 @@ export function generateConfusables(rows: ConfusableRow[]) {
       data.push(...values);
     }
 
-    if(offset > 0xFFFFFF) {
+    if(offset > 0x1FFF) {
       throw new Error(`Confusable data offset is too large to pack: ${offset}`);
     }
 
@@ -83,7 +100,7 @@ export function generateConfusables(rows: ConfusableRow[]) {
       throw new Error('Missing confusable skeleton entry');
     }
 
-    return ((entry.length << 24) | entry.offset) >>> 0;
+    return entry.offset | (encodeLength(values.length) << 13);
   });
 
   return `static const mjb_codepoint mjb_unicode_confusable_data[] = {
@@ -106,8 +123,8 @@ static const uint32_t mjb_unicode_confusable_page_ranks[] = {
 ${formatWords(pageBitsets.ranks)}
 };
 
-static const uint32_t mjb_unicode_confusables[] = {
-${formatWords(entries)}
+static const uint16_t mjb_unicode_confusables[] = {
+${formatCompactIntegers(entries, 16)}
 };
 `;
 }

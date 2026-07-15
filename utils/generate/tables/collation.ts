@@ -7,7 +7,8 @@
 import { iLog } from '../log';
 import {
   codepointPageBitsets, codepointPages, compareBytes, formatBytes, formatCodepoints,
-  formatHalfwords, formatLongWords, formatWords, indexedPages
+  formatCompactIntegers, formatHalfwords, formatLongWords, formatWords, indexedPages,
+  packCodepointSequences,
 } from '../utils';
 import { CollationContractionRow, CollationEntryRow } from './types';
 
@@ -188,30 +189,51 @@ function codepointsFromBlob(blob: Buffer) {
 export function generateCollationEntries(rows: CollationEntryRow[]) {
   iLog('Collation entries');
 
-  const weightsByRow = rows.map((row) => [...row.weights]);
-  const packedWeights = packByteSequences(weightsByRow);
+  const weightsByRow = rows.map((row) => {
+    const bytes = [...row.weights];
+    const elements: number[] = [];
+
+    if(bytes.length === 0 || bytes.length % 4 !== 0) {
+      throw new Error(`Invalid collation weight length: ${bytes.length}`);
+    }
+
+    for(let offset = 0; offset < bytes.length; offset += 4) {
+      let element = (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) |
+        (bytes[offset + 3] << 24)) >>> 0;
+
+      // Bit 31 is unused by DUCET. Marking the last element makes sequence length implicit while
+      // keeping each element directly loadable as one aligned uint32_t at runtime.
+      if((element & 0x80000000) !== 0) {
+        throw new Error(`Collation element uses the reserved final marker bit: ${element}`);
+      }
+
+      if(offset + 4 === bytes.length) {
+        element = (element | 0x80000000) >>> 0;
+      }
+
+      elements.push(element);
+    }
+
+    return elements;
+  });
+
+  const packedWeights = packCodepointSequences(weightsByRow);
   const pages = indexedPages(codepointPages(rows));
   const pageBitsets = codepointPageBitsets(rows, pages.pages);
-  const entries: number[] = [];
+  const entryOffsets: number[] = [];
 
   weightsByRow.forEach((weights, index) => {
-    const offset = packedWeights.offsets[index];
+    const offset = packedWeights.entries[index].offset;
 
-    if(offset > 0xFFFFFF) {
+    if(offset > 0xFFFF) {
       throw new Error(`Collation weight offset is too large to pack: ${offset}`);
     }
 
-    if(weights.length > 0xFF) {
-      throw new Error(`Collation weight length is too large to pack: ${weights.length}`);
-    }
-
-    const packed = (weights.length << 24) | offset;
-
-    entries.push(packed >>> 0);
+    entryOffsets.push(offset);
   });
 
-  return `static const uint8_t mjb_unicode_collation_weight_data[] = {
-${formatBytes(packedWeights.data)}
+  return `static const uint32_t mjb_unicode_collation_weight_data[] = {
+${formatWords(packedWeights.data)}
 };
 
 static const uint8_t mjb_unicode_collation_page_index[] = {
@@ -230,8 +252,8 @@ static const uint32_t mjb_unicode_collation_page_ranks[] = {
 ${formatWords(pageBitsets.ranks)}
 };
 
-static const uint32_t mjb_unicode_collation_entries[] = {
-${formatWords(entries)}
+static const uint16_t mjb_unicode_collation_entry_offsets[] = {
+${formatCompactIntegers(entryOffsets, 16)}
 };
 `;
 }
@@ -240,17 +262,49 @@ ${formatWords(entries)}
 export function generateCollationContractions(rows: CollationContractionRow[]) {
   iLog('Collation contractions');
 
-  const sequenceData: number[] = [];
+  const sequences = rows.map((row) => codepointsFromBlob(row.sequence));
+  const sequenceTails = sequences.map((sequence) => sequence.slice(1));
+  const packedSequences = packCodepointSequences(sequenceTails);
   const weightsByRow = rows.map((row) => [...row.weights]);
   const packedWeights = packByteSequences(weightsByRow);
-  const entries: bigint[] = [];
+  const weightLengths = [...new Set(weightsByRow.map((weights) => weights.length))]
+    .sort((a, b) => a - b);
+  const entries: number[] = [];
+  const firstCodepoints: number[] = [];
+  const ranges: number[] = [];
+
+  if(weightLengths.length > 4) {
+    throw new Error(`Collation contractions have too many weight lengths: ${weightLengths.length}`);
+  }
+
+  for(let start = 0; start < rows.length;) {
+    const firstCodepoint = rows[start].first_codepoint;
+    let end = start + 1;
+
+    while(end < rows.length && rows[end].first_codepoint === firstCodepoint) {
+      ++end;
+    }
+
+    const count = end - start;
+
+    if(firstCodepoint > 0x1FFFFF || start >= (1 << 10) || count > (1 << 6)) {
+      throw new Error(
+        `Collation contraction range is too large to pack: ` +
+        `first=${firstCodepoint}, start=${start}, count=${count}`
+      );
+    }
+
+    firstCodepoints.push(firstCodepoint);
+    ranges.push(start | ((count - 1) << 10));
+    start = end;
+  }
 
   rows.forEach((row, index) => {
-    const sequenceOffset = sequenceData.length;
-    const sequence = codepointsFromBlob(row.sequence);
-    const sequenceTail = sequence.slice(1);
+    const sequence = sequences[index];
+    const packedSequence = packedSequences.entries[index];
     const weights = weightsByRow[index];
     const weightsOffset = packedWeights.offsets[index];
+    const weightLength = weightLengths.indexOf(weights.length);
 
     if(sequence[0] !== row.first_codepoint) {
       throw new Error(
@@ -258,53 +312,56 @@ export function generateCollationContractions(rows: CollationContractionRow[]) {
       );
     }
 
-    sequenceData.push(...sequenceTail);
-
-    if(row.first_codepoint > 0x1FFFFF) {
+    if(packedSequence.offset > 0xFF) {
       throw new Error(
-        `Collation contraction first codepoint is too large to pack: ${row.first_codepoint}`
+        `Collation contraction sequence offset is too large to pack: ${packedSequence.offset}`
       );
     }
 
-    if(sequenceOffset > 0xFFFF) {
-      throw new Error(
-        `Collation contraction sequence offset is too large to pack: ${sequenceOffset}`
-      );
-    }
-
-    if(weightsOffset > 0xFFFF) {
+    if(weightsOffset > 0x1FFF) {
       throw new Error(`Collation contraction weight offset is too large to pack: ${weightsOffset}`);
     }
 
-    if(sequenceTail.length > 0x7) {
+    if(packedSequence.length < 1 || packedSequence.length > 2) {
       throw new Error(
-        `Collation contraction sequence tail is too large to pack: ${sequenceTail.length}`
+        `Collation contraction sequence tail is too large to pack: ${packedSequence.length}`
       );
     }
 
-    if(weights.length > 0x3F) {
+    if(weightLength < 0 || weightLength > 0x3) {
       throw new Error(
-        `Collation contraction weight length is too large to pack: ${weights.length}`
+        `Unknown collation contraction weight length: ${weights.length}`
       );
     }
 
-    entries.push(BigInt(row.first_codepoint) |
-      (BigInt(sequenceOffset) << 21n) |
-      (BigInt(weightsOffset) << 37n) |
-      (BigInt(sequenceTail.length) << 53n) |
-      (BigInt(weights.length) << 56n));
+    entries.push(packedSequence.offset |
+      (weightsOffset << 8) |
+      ((packedSequence.length - 1) << 21) |
+      (weightLength << 22));
   });
 
-  return `static const mjb_codepoint mjb_unicode_collation_contraction_sequence_data[] = {
-${formatCodepoints(sequenceData)}
+  return `static const mjb_codepoint mjb_unicode_collation_contraction_first_codepoints[] = {
+${formatCodepoints(firstCodepoints)}
+};
+
+static const uint16_t mjb_unicode_collation_contraction_ranges[] = {
+${formatHalfwords(ranges)}
+};
+
+static const mjb_codepoint mjb_unicode_collation_contraction_sequence_data[] = {
+${formatCodepoints(packedSequences.data)}
 };
 
 static const uint8_t mjb_unicode_collation_contraction_weight_data[] = {
 ${formatBytes(packedWeights.data)}
 };
 
+static const uint8_t mjb_unicode_collation_contraction_weight_lengths[] = {
+${formatBytes(weightLengths)}
+};
+
 static const mjb_unicode_collation_contraction_entry mjb_unicode_collation_contractions[] = {
-${formatLongWords(entries)}
+${formatWords(entries)}
 };
 `;
 }

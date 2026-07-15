@@ -30,6 +30,7 @@ const enum EmojiSequenceEntry {
 type EmojiTrieNode = {
   children: Map<number, EmojiTrieNode>;
   index: number;
+  canonicalId: number;
   edgeStart: number;
   type: number;
   qualification: number;
@@ -69,7 +70,8 @@ function emojiFlags(row: EmojiRow) {
 function generateEmojiSequenceData(rows: EmojiSequenceRow[]) {
   const root: EmojiTrieNode = {
     children: new Map(),
-    index: 0,
+    index: -1,
+    canonicalId: -1,
     edgeStart: 0,
     type: 0,
     qualification: 0,
@@ -84,7 +86,8 @@ function generateEmojiSequenceData(rows: EmojiSequenceRow[]) {
       if(child === undefined) {
         child = {
           children: new Map(),
-          index: 0,
+          index: -1,
+          canonicalId: -1,
           edgeStart: 0,
           type: 0,
           qualification: 0,
@@ -99,11 +102,50 @@ function generateEmojiSequenceData(rows: EmojiSequenceRow[]) {
     node.qualification = row.qualification;
   }
 
+  const canonicalNodes: EmojiTrieNode[] = [];
+  const canonicalByKey = new Map<string, EmojiTrieNode>();
+
+  function canonicalize(node: EmojiTrieNode): EmojiTrieNode {
+    const children = [...node.children.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([codepoint, child]) => [codepoint, canonicalize(child)] as const);
+    const key = JSON.stringify([
+      node.type,
+      node.qualification,
+      children.map(([codepoint, child]) => [codepoint, child.canonicalId]),
+    ]);
+    const existing = canonicalByKey.get(key);
+
+    if(existing !== undefined) {
+      return existing;
+    }
+
+    const canonical: EmojiTrieNode = {
+      children: new Map(children),
+      index: -1,
+      canonicalId: canonicalNodes.length,
+      edgeStart: 0,
+      type: node.type,
+      qualification: node.qualification,
+    };
+
+    canonicalNodes.push(canonical);
+    canonicalByKey.set(key, canonical);
+
+    return canonical;
+  }
+
+  const canonicalRoot = canonicalize(root);
+
   const nodes: EmojiTrieNode[] = [];
   const edgeCodepoints: number[] = [];
   const edgeChildren: number[] = [];
 
   function addNode(node: EmojiTrieNode) {
+    if(node.index >= 0) {
+      return;
+    }
+
     node.index = nodes.length;
     nodes.push(node);
 
@@ -123,7 +165,7 @@ function generateEmojiSequenceData(rows: EmojiSequenceRow[]) {
     }
   }
 
-  addNode(root);
+  addNode(canonicalRoot);
 
   const entries = nodes.map((node) => {
     const edgeCount = node.children.size;

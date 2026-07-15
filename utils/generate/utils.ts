@@ -247,6 +247,16 @@ export function formatLongWords(values: bigint[], width = 14) {
   return lines.join('\n');
 }
 
+export function formatCompactIntegers(values: number[], columns: number) {
+  const lines = [];
+
+  for(let index = 0; index < values.length; index += columns) {
+    lines.push(`    ${values.slice(index, index + columns).join(',')},`);
+  }
+
+  return lines.join('\n');
+}
+
 // Appends a NUL-terminated string to a shared byte table and returns its offset.
 export function addStringData(data: number[], offsets: Map<string, number>, value: string) {
   const existing = offsets.get(value);

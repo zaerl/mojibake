@@ -6,8 +6,8 @@
 
 import { iLog } from '../log';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatHalfwords,
-  formatLongWords, formatWords, indexedPages, packCodepointSequences,
+  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
+  formatHalfwords, formatLongWords, formatWords, indexedPages, packCodepointSequences,
 } from '../utils';
 import { CaseFoldRow, CaseFoldSimpleRow, SimpleCaseRow, SpecialCaseRow } from './types';
 
@@ -102,28 +102,30 @@ export function generateSpecialCaseMappings(rows: SpecialCaseRow[]) {
   iLog('Special case mappings');
 
   const sequences = packCodepointSequences(rows.map((row) => caseSequenceValues(row)));
+  const offsets: number[] = [];
   const entries = rows.map((row, index) => {
     const sequence = sequences.entries[index];
 
     if(row.codepoint > 0x1FFFFF || row.case_type > 0x7 || sequence.length > 0x3 ||
-      sequence.offset > 0xFFFFFFFF) {
+      sequence.offset > 0xFF) {
       throw new Error(`Special case mapping is too large to pack: ${row.codepoint}`);
     }
 
-    return BigInt(row.codepoint) |
-      (BigInt(row.case_type) << 21n) |
-      (BigInt(sequence.length) << 24n) |
-      (BigInt(sequence.offset) << 26n);
+    offsets.push(sequence.offset);
+
+    return (row.codepoint | (row.case_type << 21) | (sequence.length << 24)) >>> 0;
   });
 
-  return `typedef uint64_t mjb_unicode_special_case_entry;
-
-static const mjb_codepoint mjb_unicode_special_case_data[] = {
+  return `static const mjb_codepoint mjb_unicode_special_case_data[] = {
 ${formatCodepoints(sequences.data)}
 };
 
-static const mjb_unicode_special_case_entry mjb_unicode_special_case_mappings[] = {
-${formatLongWords(entries)}
+static const uint32_t mjb_unicode_special_case_mappings[] = {
+${formatWords(entries)}
+};
+
+static const uint8_t mjb_unicode_special_case_offsets[] = {
+${formatCompactIntegers(offsets, 24)}
 };
 `;
 }
@@ -136,23 +138,19 @@ export function generateCaseFoldMappings(rows: CaseFoldRow[]) {
   const entries = rows.map((row, index) => {
     const sequence = sequences.entries[index];
 
-    if(row.codepoint > 0x1FFFFF || sequence.length > 0x3 || sequence.offset > 0xFFFFFFFF) {
+    if(row.codepoint > 0x1FFFFF || sequence.length > 0x3 || sequence.offset > 0xFF) {
       throw new Error(`Case folding mapping is too large to pack: ${row.codepoint}`);
     }
 
-    return BigInt(row.codepoint) |
-      (BigInt(sequence.length) << 21n) |
-      (BigInt(sequence.offset) << 23n);
+    return (row.codepoint | (sequence.length << 21) | (sequence.offset << 23)) >>> 0;
   });
 
-  return `typedef uint64_t mjb_unicode_case_fold_entry;
-
-static const mjb_codepoint mjb_unicode_case_fold_data[] = {
+  return `static const mjb_codepoint mjb_unicode_case_fold_data[] = {
 ${formatCodepoints(sequences.data)}
 };
 
-static const mjb_unicode_case_fold_entry mjb_unicode_case_fold_mappings[] = {
-${formatLongWords(entries)}
+static const uint32_t mjb_unicode_case_fold_mappings[] = {
+${formatWords(entries)}
 };
 `;
 }

@@ -6,12 +6,15 @@
 
 import { iLog } from '../log';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatLongWords, formatWords, indexedPages,
+  codepointPageBitsets, codepointPages, formatBytes, formatCompactIntegers, formatLongWords,
+  formatWords, indexedPages,
 } from '../utils';
 import { NameRow, PrefixRow } from './types';
 
-// Packs NUL-terminated strings while allowing a string to share the suffix of a longer string.
+// Packs 7-bit strings with the high bit marking the final byte. A string can share the suffix of a
+// longer string, but each stored root no longer needs a trailing NUL byte.
 function packStringData(values: string[]) {
+  // Offset zero represents the empty string.
   const data: number[] = [0];
   const offsets = new Map<string, number>([['', 0]]);
   const unique = [...new Set(values)];
@@ -41,10 +44,15 @@ function packStringData(values: string[]) {
     const offset = data.length;
 
     for(let i = 0; i < value.length; ++i) {
-      data.push(value.charCodeAt(i));
-    }
+      const code = value.charCodeAt(i);
 
-    data.push(0);
+      if(code >= 0x80) {
+        // Impossible.
+        throw new Error(`Name data is not 7-bit: ${value}`);
+      }
+
+      data.push(code | (i + 1 === value.length ? 0x80 : 0));
+    }
 
     for(let i = 0; i < value.length; ++i) {
       const suffix = value.slice(i);
@@ -56,17 +64,6 @@ function packStringData(values: string[]) {
   }
 
   return { data, offsets };
-}
-
-// Dense decimal initializers keep the generated source small while preserving typed C arrays.
-function formatCompactIntegers(values: number[], columns: number) {
-  const lines = [];
-
-  for(let index = 0; index < values.length; index += columns) {
-    lines.push(`    ${values.slice(index, index + columns).join(',')},`);
-  }
-
-  return lines.join('\n');
 }
 
 // Emits packed character name and prefix lookup tables.
@@ -173,7 +170,7 @@ export function generateNames(prefixes: PrefixRow[], rows: NameRow[]) {
 } mjb_unicode_page;
 
 #if MJB_FEATURE_CHARACTER_NAMES
-static const char mjb_unicode_prefix_data[] = {
+static const uint8_t mjb_unicode_prefix_data[] = {
 ${formatBytes(prefixData)}
 };
 
@@ -181,7 +178,7 @@ static const uint16_t mjb_unicode_name_page_prefix_offsets[] = {
 ${formatCompactIntegers(pagePrefixOffsets, 16)}
 };
 
-static const char mjb_unicode_name_data[] = {
+static const uint8_t mjb_unicode_name_data[] = {
 ${formatBytes(nameData)}
 };
 

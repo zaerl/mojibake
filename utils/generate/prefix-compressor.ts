@@ -53,7 +53,7 @@ export class PrefixCompressor {
           prefix,
           count,
           // Each page that uses the prefix stores a uint16_t pool offset.
-          savings: (count - 1) * prefix.length - (prefix.length + 1 + pageCount * 2),
+          savings: (count - 1) * prefix.length - pageCount * 2,
         };
       })
       .sort((a, b) => b.savings - a.savings);
@@ -83,7 +83,10 @@ export class PrefixCompressor {
       const pageCount = new Set([...affectedStrings].map(
         (index) => this.characters[index].codepoint >> 8
       )).size;
-      const dictCost = prefix.length + 1 + pageCount * 2;
+
+      // Prefix strings use an in-band final-byte marker, so the dictionary pays exactly the
+      // prefix bytes rather than an additional terminator.
+      const dictCost = prefix.length + pageCount * 2;
       const netSavings = additionalSavings - dictCost;
 
       // Only add prefix if it provides net positive savings
@@ -97,6 +100,73 @@ export class PrefixCompressor {
           if(prefix.length > currentBest.length) {
             stringBestPrefix.set(strIdx, prefix);
           }
+        }
+      }
+    }
+
+    // Longer prefixes selected later can displace most of an earlier prefix's users. Remove any
+    // prefix whose remaining byte savings no longer pay for its string and page-local offsets.
+    while(true) {
+      const assignedPages = new Map<string, Set<number>>();
+      const assignedCounts = new Map<string, number>();
+
+      for(const [index, prefix] of stringBestPrefix) {
+        assignedCounts.set(prefix, (assignedCounts.get(prefix) ?? 0) + 1);
+
+        let pages = assignedPages.get(prefix);
+
+        if(pages === undefined) {
+          pages = new Set();
+          assignedPages.set(prefix, pages);
+        }
+
+        pages.add(this.characters[index].codepoint >> 8);
+      }
+
+      let removePrefix = '';
+      let removeFallback = '';
+      let worstNetSavings: number | null = null;
+
+      for(const [prefix] of selectedPrefixes) {
+        let fallback = '';
+
+        for(let length = prefix.length - 1; length >= minPrefixLength; --length) {
+          const candidate = prefix.substring(0, length);
+
+          if(selectedPrefixes.has(candidate)) {
+            fallback = candidate;
+            break;
+          }
+        }
+
+        const count = assignedCounts.get(prefix) ?? 0;
+        const pageCount = assignedPages.get(prefix)?.size ?? 0;
+        const netSavings = count * (prefix.length - fallback.length) -
+          prefix.length - pageCount * 2;
+
+        if(netSavings <= 0 && (worstNetSavings === null || netSavings < worstNetSavings ||
+          (netSavings === worstNetSavings && prefix < removePrefix))) {
+          removePrefix = prefix;
+          removeFallback = fallback;
+          worstNetSavings = netSavings;
+        }
+      }
+
+      if(removePrefix === '') {
+        break;
+      }
+
+      selectedPrefixes.delete(removePrefix);
+
+      for(const index of prefixStrings.get(removePrefix) ?? []) {
+        if(stringBestPrefix.get(index) !== removePrefix) {
+          continue;
+        }
+
+        if(removeFallback === '') {
+          stringBestPrefix.delete(index);
+        } else {
+          stringBestPrefix.set(index, removeFallback);
         }
       }
     }

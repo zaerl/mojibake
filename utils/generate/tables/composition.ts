@@ -5,7 +5,10 @@
  */
 
 import { iLog } from '../log';
-import { formatCodepoints, formatLongWords } from '../utils';
+import {
+  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
+  formatHalfwords, formatLongWords, formatWords, indexedPages,
+} from '../utils';
 import { CompositionRow, DecompositionRow } from './types';
 
 // Groups ordered decomposition rows into one sequence per source codepoint.
@@ -71,26 +74,76 @@ export function generateDecompositionAndCompositionTables(
 
   // Emits one packed decomposition table for canonical or compatibility mappings.
   const emitTable = (name: string, groups: typeof canonicalGroups) => {
-    const entries: bigint[] = [];
+    const pages = indexedPages(codepointPages(groups));
+    const pageBitsets = codepointPageBitsets(groups, pages.pages);
+    const mappings: number[] = [];
+    const exceptionIndices: number[] = [];
+    const exceptionLengths: number[] = [];
 
-    for(const group of groups) {
+    groups.forEach((group, index) => {
       if(group.codepoint > 0x1FFFFF) {
         throw new Error(`${name} decomposition codepoint is too large to pack: ${group.codepoint}`);
       }
 
       if(group.values.length > 0x1F) {
-        throw new Error(`${name} decomposition length is too large to pack: ${group.values.length}`);
+        throw new Error(
+          `${name} decomposition length is too large to pack: ${group.values.length}`
+        );
       }
 
       const offset = addSequence(group.values);
 
-      entries.push(BigInt(group.codepoint) |
-        (BigInt(group.values.length) << 21n) |
-        (BigInt(offset) << 26n));
-    }
+      if(offset > 0x1FFF) {
+        throw new Error(`${name} decomposition data offset is too large to pack: ${offset}`);
+      }
 
-    return `static const mjb_unicode_decomposition_entry mjb_unicode_${name}_decompositions[] = {
-${formatLongWords(entries)}
+      // Lengths 1..8 fit in the upper three bits. Longer mappings are extremely rare and use a
+      // tiny exception table, keeping every hot-path mapping at two bytes.
+      const encodedLength = Math.min(group.values.length, 8) - 1;
+      mappings.push(offset | (encodedLength << 13));
+
+      if(group.values.length > 8) {
+        if(index > 0xFFFF || group.values.length > 0xFF) {
+          throw new Error(`${name} decomposition exception is too large to pack: ${index}`);
+        }
+
+        exceptionIndices.push(index);
+        exceptionLengths.push(group.values.length);
+      }
+    });
+
+    const emittedExceptionIndices = exceptionIndices.length === 0 ? [0] : exceptionIndices;
+    const emittedExceptionLengths = exceptionLengths.length === 0 ? [0] : exceptionLengths;
+    const exceptionCountName = `MJB_UNICODE_${name.toUpperCase()}_DECOMPOSITION_EXCEPTION_COUNT`;
+
+    return `enum { ${exceptionCountName} = ${exceptionIndices.length} };
+
+static const uint8_t mjb_unicode_${name}_decomposition_page_index[] = {
+${formatBytes(pages.index)}
+};
+
+static const uint16_t mjb_unicode_${name}_decomposition_page_starts[] = {
+${formatHalfwords(pages.pages.starts)}
+};
+
+static const uint64_t mjb_unicode_${name}_decomposition_page_bits[] = {
+${formatLongWords(pageBitsets.data, 16)}
+};
+
+static const uint32_t mjb_unicode_${name}_decomposition_page_ranks[] = {
+${formatWords(pageBitsets.ranks)}
+};
+
+static const uint16_t mjb_unicode_${name}_decompositions[] = {
+${formatCompactIntegers(mappings, 16)}
+};
+
+static const uint16_t mjb_unicode_${name}_decomposition_exception_indices[] = {
+${formatHalfwords(emittedExceptionIndices)}
+};
+
+static const uint8_t mjb_unicode_${name}_decomposition_exception_lengths[] = {
+${formatBytes(emittedExceptionLengths)}
 };
 `;
   };
@@ -110,8 +163,7 @@ ${formatLongWords(entries)}
   const canonicalTable = emitTable('canonical', canonicalGroups);
   const compatibilityTable = emitTable('compatibility', compatibilityGroups);
 
-  return `typedef uint64_t mjb_unicode_decomposition_entry;
-typedef uint64_t mjb_unicode_composition_entry;
+  return `typedef uint64_t mjb_unicode_composition_entry;
 
 static const mjb_codepoint mjb_unicode_decomposition_data[] = {
 ${formatCodepoints(data)}
