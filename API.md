@@ -1,7 +1,55 @@
 # API
 
-You can find a demo site where you can find the API documentation and test the functions by using
-WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+Welcome to the Unicode world. Before starting, you can find a demo site where you can find the API
+documentation and test the functions by using WASM here:
+[https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+
+## Unicode glossary
+
+You will need to have a basic glossary to understand the terminology.
+
+A **Code Point** (`typedef uint32_t mjb_codepoint` in the code) in Unicode is an integer from 0 to
+0x10FFFF. It's used to identify a **Character** in the list. For example `U+20A0`, the € currency.
+
+A **Character** (`typedef struct mjb_character`) is the "smallest component of written language that
+has semantic value". In Mojibake an `mjb_character` is a struct with all the values associated.
+For example `U+00BD` (**½**):
+
+```
+Codepoint: U+U+00BD
+Name: VULGAR FRACTION ONE HALF
+Category: [11] Number, other
+Combining: [0] Not Reordered
+Bidirectional: [14] Other neutrals
+Decomposition: [6] Fraction
+Decimal: N/A
+Digit: N/A
+Numeric: 1/2
+Mirrored: N
+Uppercase: N/A
+Lowercase: N/A
+Titlecase: N/A
+```
+
+An **encoding** is how a list of codepoints is saved in memory. Nowadays, the UTF-8 encoding is by
+far the most used one when we are talking about moving data around, but there are important contexts
+where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, JavaScript, and others.
+
+> [!NOTE]
+> In Mojibake `MJB_ENC_UTF_16` doesn't mean `MJB_ENC_UTF_16LE` (Little Endian, used by all modern
+> CPUs) by default. To follow the [C8 requirement](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md#c8),
+> if you declare a generic `UTF-16` this means that the algorithm will check if there is a BOM at
+> the start of the string and decide whether to use Little Endian or Big Endian. Usually it's not a
+> good idea; use the generic `MJB_ENC_UTF_16` only if you are reading a file that you know has a
+> BOM. Otherwise use `MJB_ENC_UTF_8` or `MJB_ENC_UTF_16LE`.
+
+A **normalization** is the "process of removing alternate representations of equivalent sequences
+from textual data". This means to transform a string to another one called its normalized form by
+replacing parts to other one. For example `U+00C0` (LATIN CAPITAL LETTER A WITH GRAVE) is normalized
+in NFD as a list of two characters: `U+0041` (LATIN CAPITAL LETTER A) + `U+0300` (COMBINING GRAVE
+ACCENT).
+
+## Basis
 
 Here is the basis for using the library:
 
@@ -9,8 +57,8 @@ Here is the basis for using the library:
 2. Input and output encodings can be different
 3. Every string passed is simply a stream of bytes, and you must specify how many bytes there are
 4. For safety reasons, the functions stop when they encounter a `\0` byte in the input strings even
-if the `length` is bigger. This is _unless_ you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` or
-you use UTF-16/UTF-32 that can have `\0` bytes
+if the `byte_length` is bigger. This is _unless_ you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS`
+or you use UTF-16/UTF-32 that can have `\0` bytes
 5. The major part of the functions return a `mjb_status` and should be checked against the
 `MJB_STATUS_OK` constant. The `MJB_STATUS_OK` enum value is `0 (zero)` so don't check for truthy
 6. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
@@ -68,6 +116,13 @@ Mojibake is encoding agnostic. It can accept and output `uint8_t` (ASCII, UTF-8)
 `uint16_t` (UTF-16), `uint32_t` (UTF-32) bytes of memory. The output strings can have different
 encodings of the input strings.
 
+> [!IMPORTANT]
+> The _length_ of the input string (`byte_length`) **must** be "the length in bytes". So calling a
+> `strlen(...)` on an UTF-8 string is enough, as well of a `sizeof(input)` if `input` is a constant
+> array of `uint16_t` or `uint32_t`. But keep attention! If an array _decay_ to a pointer (for
+> example if passed to a function), calling `sizeof(...)` of that pointer will return `8` (on a
+> 64-bit system), the size of a pointer.
+
 Example of the [`mjb_normalize`](#mjb_normalize) function.
 
 ```c
@@ -82,7 +137,7 @@ mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 5. `output_encoding`: the encoding of _output_ you want.
 6. `results`: a pointer to a struct the function will fill
 
-If you want to normalize the UTF-8 encoded `Cafe\xCC\x81` string to `NFC` this is what you need to
+If you want to normalize the UTF-8 encoded `Cafe\xCC\x81` string to `NFC`, this is what you need to
 do:
 
 ```c
