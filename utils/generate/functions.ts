@@ -470,7 +470,7 @@ printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" :
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    details: 'Return the number of Unicode codepoints in a string, up to `max_length` bytes. ',
+    details: 'Return the number of Unicode codepoints in a string, up to `max_length` bytes.',
     example: `// The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
 
 const char *utf8 = "H\\xC3\\xA9ll\\xC3\\xB6"; // 7 bytes
