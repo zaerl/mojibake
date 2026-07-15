@@ -3,6 +3,7 @@
 This will be very boring if you, or your LLM, will dare to read it.
 
 ## Unicode References
+
 Mojibake's Unicode data and algorithm references are scoped to
 [The Unicode Standard, Version 17.0.0](https://www.unicode.org/versions/Unicode17.0.0/)
 and the [Unicode Character Database 17.0.0](https://www.unicode.org/Public/17.0.0/).
