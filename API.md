@@ -5,15 +5,22 @@ WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
 
 Here is the basis for using the library:
 
-1. Mojibake does not have a default input encoding or output decoding; you must decide what to use.
-2. Every string passed is simply a stream of bytes, and you must specify how many bytes there are
-3. For safety reasons, the functions stop when they encounter a `\0` byte in the input strings even
-if the `length` is bigger. This is unless you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` or you
-use UTF-16/UTF-32.
-4. The major part of the functions return a `mjb_status` and should be checked against the
-`MJB_STATUS_OK` constant.
-5. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
-the boolean is the result.
+1. Mojibake does not have a default input encoding or output decoding; you must decide what to use
+2. Input and output encodings can be different
+3. Every string passed is simply a stream of bytes, and you must specify how many bytes there are
+4. For safety reasons, the functions stop when they encounter a `\0` byte in the input strings even
+if the `length` is bigger. This is _unless_ you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` or
+you use UTF-16/UTF-32 that can have `\0` bytes
+5. The major part of the functions return a `mjb_status` and should be checked against the
+`MJB_STATUS_OK` constant. The `MJB_STATUS_OK` enum value is `0 (zero)` so don't check for truthy
+6. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
+the boolean is the result
+
+> [!IMPORTANT]
+> `mjb_status` is an enum and if a function **succeeds** returns
+> [MJB_STATUS_OK](https://github.com/zaerl/mojibake/blob/main/src/mojibake.h#L265) that is _zero_,
+> so _false_. Always check for that value `if(mjb_normalize(...) == MJB_STATUS_OK)`. I've chosen
+> this to follow other libraries' de facto standards.
 
 ## API signatures
 
@@ -25,10 +32,10 @@ specialized functions you will find in the API list below.
 The functions return a `_mjb_status_` and accept these arguments:
 
 1. The input string
-2. The _length_ of the input (`byte_length`)
-3. The encoding of the input (`encoding`)
+2. The _length_ of the input string (`byte_length`)
+3. The encoding of the input string (`encoding`)
 4. The needed _arguments_ of the function, if any
-5. The encoding of the output, if the function generates a string
+5. The encoding you want to be used for the output string
 6. A `mjb_result` pointer to store the result
 
 See for example the [`mjb_normalize`](#mjb_normalize), [`mjb_string_filter`](#mjb_string_filter)
@@ -47,7 +54,7 @@ See for example [`mjb_codepoint_character`](#mjb_codepoint_character),
 
 ### Predicate functions
 
-Those are the `mjb_something_is_this` kind of functions, which return a `bool`.
+Those are the `mjb_(something)_is_(this)` kind of functions, which return a `bool`.
 
 1. The thing to check
 2. The needed _arguments_ of the function, if any
@@ -88,18 +95,17 @@ if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB
     return 1;
 }
 
-if(result.transformed) {
-    // result.output is Caf\xCE\xA9 (Café, with LATIN SMALL LETTER E WITH ACUTE), four bytes
-    mjb_free(result.output);
-}
+printf("%s -> %.*s\n", (int)result.output_size, result.output);
+
+mjb_result_free(&result);
 ```
 
 1. The `length` of the input string is **six** because the input buffer is encoded in UTF-8 and so
 `strlen` returns six.
 2. The function can potentially return something different from `MJB_STATUS_OK`. In this situation,
 you don't need to do anything. If a function fails, it will never leave data behind.
-3. If the output string has been `transformed`, it means the function has allocated the result, and
-you need to `mjb_free` it.
+3. If the output string has been `transformed`, it means the function has allocated a result, and
+you need to `mjb_result_free` it.
 
 This way the output buffer will be encoded in UTF-16LE.
 
@@ -481,7 +487,7 @@ size_t mjb_string_length(
 );
 ```
 
-Return the number of Unicode codepoints in a string, up to `max_length` bytes. 
+Return the number of Unicode codepoints in a string, up to `max_length` bytes.
 
 - `buffer` — The string to check
 - `max_length` — The maximum length of the string, in bytes
