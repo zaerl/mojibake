@@ -245,13 +245,6 @@ static void fuzz_emoji_string_apis(const char *buffer, size_t byte_length, mjb_e
     }
 }
 
-// Free an output that is a distinct heap allocation.
-static void free_result(mjb_result *result, const char *input) {
-    if(result->output != NULL && result->output != input) {
-        mjb_free(result->output);
-    }
-}
-
 /**
  * The libFuzzer harness. The first byte selects the API under test and some of its parameters,
  * the second byte selects the input encoding and locale, the rest is the input buffer.
@@ -287,7 +280,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 0: // Normalization, all four forms
             if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
                    MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
 
             break;
@@ -298,7 +291,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 17: // Identifier-oriented NFKC case folding
             if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
 
             break;
@@ -306,7 +299,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 2: // Case conversion and folding, all transforming types
             if(mjb_case(buffer, size, encoding, (mjb_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8,
                    &result) == MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
 
             break;
@@ -343,7 +336,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 5: // Encoding conversion
             if(mjb_string_convert_encoding(buffer, size, encoding, encodings[(variant >> 1) % 6],
                    &result) == MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
 
             break;
@@ -351,7 +344,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 6: // String filtering, all filter combinations
             if(mjb_string_filter(buffer, size, encoding, (mjb_filter)(variant & 0x1F),
                    MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
 
             break;
@@ -360,7 +353,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             if(mjb_collation_key(buffer, size, encoding,
                    (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
                    &result) == MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
 
             break;
@@ -398,7 +391,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 12: // Confusable skeleton and pairwise detection
             if(mjb_confusable_skeleton(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==
                 MJB_STATUS_OK) {
-                free_result(&result, buffer);
+                mjb_result_free(&result);
             }
             mjb_string_is_confusable(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
                 encoding);
