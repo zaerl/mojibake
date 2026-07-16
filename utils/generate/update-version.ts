@@ -44,7 +44,7 @@ export async function updateVersion() {
 
   const zip = `mojibake-amalgamation-${v.major}${v.minor}${v.revision}`;
   fileContent = readFileSync('../../README.md', 'utf-8');
-  fileContent = substituteBlock(fileContent, 'Download it here\n[', '.zip)',
+  fileContent = substituteBlock(fileContent, 'Download it here [', '.zip)',
     `${zip}.zip](https://github.com/zaerl/mojibake/releases/download/v${v.version}/${zip}`);
 
   writeFileSync('../../README.md', fileContent);

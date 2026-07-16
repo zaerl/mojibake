@@ -5,6 +5,34 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2026-07-16
+
+### Added
+- Add break algorithms HTML output
+- Added custom dependabot
+- Added dependency review Github workflow
+- Added "Quality" Github workflow, that runs `clang-format`
+- Added `mjb_encoding_is_valid_input`
+- Added `mjb_encoding_is_valid_output`
+
+### Changed
+- UCD names data tables new schema
+- Converted 6 sparse page indexes from 16-bit to 8-bit entries
+- Packed collation elements into 4 bytes instead of 6
+- Packed NUL-terminated strings on names table
+- Updated version script
+- Added function signatures to `API.md`
+- Moved TODO.md to the more serious `ROADMAP.md`
+- Applied Clang format to all source files
+- Minor documentation refactoring
+
+### Fixed
+- Removed obsolete `free_result` function
+- Removed obsolete `FREE_RESULT` macro
+- Removed `examples/example` binary
+- Run confusable tests only on static builds
+- On break sentence SB2 Any ÷ eot
+
 ## [0.2.6] - 2026-07-13
 
 ### Added
@@ -421,7 +449,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/zaerl/mojibake/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/zaerl/mojibake/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/zaerl/mojibake/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/zaerl/mojibake/compare/v0.2.3...v0.2.4
