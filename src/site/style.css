@@ -1108,6 +1108,14 @@ main > section {
     margin: 0;
 }
 
+.break-symbol-allowed, .break-symbol-mandatory {
+    color: var(--primary);
+}
+
+.break-symbol-no-break {
+    color: var(--danger);
+}
+
 @media (max-width: 70rem) {
     .sidebar-toggle {
         display: block;
