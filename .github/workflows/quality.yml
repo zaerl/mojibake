@@ -21,7 +21,7 @@ jobs:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install clang-format
         run: |
@@ -39,7 +39,7 @@ jobs:
     name: TypeScript
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install generator dependencies
         working-directory: utils/generate
@@ -61,7 +61,7 @@ jobs:
     name: Generated files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Cache Unicode generator data
         uses: actions/cache@v6
