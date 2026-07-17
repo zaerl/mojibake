@@ -806,9 +806,24 @@ export class Mojibake {
   }
 
   // bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint)
+  codepointIsHangulL(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_l(codepoint) ? true : false;
+  }
+
   // bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint)
+  codepointIsHangulV(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_v(codepoint) ? true : false;
+  }
+
   // bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint)
+  codepointIsHangulT(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_t(codepoint) ? true : false;
+  }
+
   // bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint)
+  codepointIsHangulJamo(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_jamo(codepoint) ? true : false;
+  }
 
   // bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoint)
   codepointIsHangulSyllable(codepoint: Codepoint): boolean {
@@ -1218,6 +1233,20 @@ export class Mojibake {
   }
 
   // mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t byte_length)
+  hangulSyllableName(codepoint: Codepoint): string | null {
+    const bufferSize = 32;
+    const bufferPtr = this.malloc(bufferSize);
+
+    try {
+      const status = this.module._mjb_hangul_syllable_name(codepoint, bufferPtr, bufferSize);
+
+      return status === Status.OK ?
+        this.decodeString(bufferPtr, null, Encoding.ASCII).output : null;
+    } finally {
+      this.free(bufferPtr);
+    }
+  }
+
   // mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
   // mjb_codepoint *codepoints)
   // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)

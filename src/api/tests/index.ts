@@ -78,6 +78,10 @@ ATT_ASSERT(mojibake.case('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
+ATT_ASSERT(mojibake.codepointIsHangulL(0x1100), true, 'codepointIsHangulL');
+ATT_ASSERT(mojibake.codepointIsHangulV(0x1161), true, 'codepointIsHangulV');
+ATT_ASSERT(mojibake.codepointIsHangulT(0x11A8), true, 'codepointIsHangulT');
+ATT_ASSERT(mojibake.codepointIsHangulJamo(0x1100), true, 'codepointIsHangulJamo');
 ATT_ASSERT(mojibake.codepointIsHangulSyllable(0xAC00), true, 'codepointIsHangulSyllable');
 ATT_ASSERT(mojibake.codepointIsCjkIdeograph(0x4E00), true, 'codepointIsCjkIdeograph');
 ATT_ASSERT(mojibake.codepointIsCjkExt(0x3400), true, 'codepointIsCjkExt');
@@ -129,6 +133,7 @@ ATT_ASSERT(mojibake.stringEmojiSequence('\u263A\uFE0F'), {
 }, 'stringEmojiSequence');
 ATT_ASSERT(mojibake.stringIsEmojiSequence('\u263A'), true, 'stringIsEmojiSequence');
 ATT_ASSERT(mojibake.stringIsRgiEmoji('\u263A\uFE0F'), true, 'stringIsRgiEmoji');
+ATT_ASSERT(mojibake.hangulSyllableName(0xAC01), 'HANGUL SYLLABLE GAG', 'hangulSyllableName');
 ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
   'codepointEastAsianWidth');
 ATT_ASSERT(mojibake.displayWidth('Hello'), 5, 'displayWidth');
