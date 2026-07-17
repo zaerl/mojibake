@@ -106,6 +106,9 @@ jobs:
           - label: DragonFly BSD 6.4.2
             os: dragonflybsd
             version: '6.4.2'
+          - label: Haiku R1/beta5
+            os: haiku
+            version: 'r1beta5'
     steps:
       - uses: actions/checkout@v7
 
@@ -134,6 +137,7 @@ jobs:
             OpenBSD) (command -v doas >/dev/null 2>&1 && doas pkg_add cmake) || (command -v sudo >/dev/null 2>&1 && sudo pkg_add cmake) || pkg_add cmake ;;
             NetBSD) (command -v sudo >/dev/null 2>&1 && sudo pkgin -y install cmake) || pkgin -y install cmake ;;
             DragonFly) (command -v sudo >/dev/null 2>&1 && sudo pkg install -y cmake) || pkg install -y cmake ;;
+            Haiku) pkgman install -y cmake ;;
           esac
 
       - name: Test
