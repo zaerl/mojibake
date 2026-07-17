@@ -262,7 +262,7 @@ int test_case(void *arg) {
     // titlecase contexts. Unicode's default case folding still maps ß to SS in titlecase unless
     // locale-specific tailoring is applied.
     result = run_mjb_case("ßeta", 5, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char *)"SSETA", "UTF-8 titlecase: ßeta")
+    ATT_ASSERT(result, (char *)"SSETA", "UTF-8 uppercase: ßeta")
     mjb_free(result);
 
     result = run_mjb_case("coöperate", 10, MJB_CASE_TITLE, encoding);
@@ -279,57 +279,57 @@ int test_case(void *arg) {
 
     // Test casefold: ASCII uppercase via unicode_data.lowercase fallback
     result = run_mjb_case("ABC", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"abc", "Casefold: ABC -> abc")
+    ATT_ASSERT(result, (char *)"abc", "UTF-8 casefold: ABC -> abc")
     mjb_free(result);
 
     result = run_mjb_case("Hello World", 11, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"hello world", "Casefold: Hello World -> hello world")
+    ATT_ASSERT(result, (char *)"hello world", "UTF-8 casefold: Hello World -> hello world")
     mjb_free(result);
 
     // Test casefold: ß (U+00DF) -> ss, F entry (multi-char expansion)
     result = run_mjb_case("ß", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"ss", "Casefold: ß -> ss")
+    ATT_ASSERT(result, (char *)"ss", "UTF-8 casefold: ß -> ss")
     mjb_free(result);
 
     result = run_mjb_case("straße", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"strasse", "Casefold: straße -> strasse")
+    ATT_ASSERT(result, (char *)"strasse", "UTF-8 casefold: straße -> strasse")
     mjb_free(result);
 
     // Test casefold: µ (U+00B5 MICRO SIGN) -> μ (U+03BC), C exception entry
     result = run_mjb_case("µ", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"μ", "Casefold: µ (U+00B5) -> μ (U+03BC)")
+    ATT_ASSERT(result, (char *)"μ", "UTF-8 casefold: µ (U+00B5) -> μ (U+03BC)")
     mjb_free(result);
 
     // Test casefold: ﬃ (U+FB03) -> ffi, F entry with 3-codepoint expansion
     result = run_mjb_case("ﬃ", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"ffi", "Casefold: ﬃ -> ffi")
+    ATT_ASSERT(result, (char *)"ffi", "UTF-8 casefold: ﬃ -> ffi")
     mjb_free(result);
 
     // Test casefold: Greek uppercase via unicode_data.lowercase fallback
     result = run_mjb_case("Σ", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"σ", "Casefold: Σ -> σ")
+    ATT_ASSERT(result, (char *)"σ", "UTF-8 casefold: Σ -> σ")
     mjb_free(result);
 
     // Test casefold: digits/symbols pass through unchanged (identity path)
     result = run_mjb_case("123", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"123", "Casefold: 123 -> 123")
+    ATT_ASSERT(result, (char *)"123", "UTF-8 casefold: 123 -> 123")
     mjb_free(result);
 
     // Simple case folding (C + S statuses): multi-char full folds are not applied.
     result = run_mjb_case("straße", 7, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"straße", "Simple casefold: ß folds to itself")
+    ATT_ASSERT(result, (char *)"straße", "UTF-8 simple casefold: ß folds to itself")
     mjb_free(result);
 
     result = run_mjb_case("ẞ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"ß", "Simple casefold: ẞ -> ß")
+    ATT_ASSERT(result, (char *)"ß", "UTF-8 simple casefold: ẞ -> ß")
     mjb_free(result);
 
     result = run_mjb_case("ﬃ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"ﬃ", "Simple casefold: ﬃ folds to itself")
+    ATT_ASSERT(result, (char *)"ﬃ", "UTF-8 simple casefold: ﬃ folds to itself")
     mjb_free(result);
 
     result = run_mjb_case("İ", 2, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"İ", "Simple casefold: İ folds to itself")
+    ATT_ASSERT(result, (char *)"İ", "UTF-8 simple casefold: İ folds to itself")
     mjb_free(result);
 
     // Turkic (T) case folding, active for the tr and az locales.
