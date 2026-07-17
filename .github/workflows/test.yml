@@ -103,9 +103,6 @@ jobs:
           - label: NetBSD 10.1
             os: netbsd
             version: '10.1'
-          - label: DragonFly BSD 6.4.2
-            os: dragonflybsd
-            version: '6.4.2'
           - label: Haiku R1/beta5
             os: haiku
             version: 'r1beta5'
@@ -136,45 +133,6 @@ jobs:
             FreeBSD) (command -v sudo >/dev/null 2>&1 && sudo pkg install -y cmake) || pkg install -y cmake ;;
             OpenBSD) (command -v doas >/dev/null 2>&1 && doas pkg_add cmake) || (command -v sudo >/dev/null 2>&1 && sudo pkg_add cmake) || pkg_add cmake ;;
             NetBSD) (command -v sudo >/dev/null 2>&1 && sudo pkgin -y install cmake) || pkgin -y install cmake ;;
-            DragonFly)
-              run_as_root() {
-                if [ "$(id -u)" -eq 0 ]; then
-                  "$@"
-                elif command -v sudo >/dev/null 2>&1; then
-                  sudo -n "$@"
-                elif command -v doas >/dev/null 2>&1; then
-                  doas "$@"
-                else
-                  echo "Root privileges are required to install CMake" >&2
-                  return 1
-                fi
-              }
-
-              retry() {
-                attempt=1
-                until "$@"; do
-                  if [ "$attempt" -ge 3 ]; then
-                    return 1
-                  fi
-                  delay=$((attempt * 10))
-                  echo "Package command failed; retrying in ${delay}s" >&2
-                  sleep "$delay"
-                  attempt=$((attempt + 1))
-                done
-              }
-
-              run_as_root mkdir -p /usr/local/etc/pkg/repos
-              {
-                echo 'Avalon: { enabled: no }'
-                echo 'AUTO: {'
-                echo "  url: \"https://pkg.dragonflybsd.org/pkg/\${ABI}/LATEST\""
-                echo '  mirror_type: HTTP'
-                echo '  enabled: yes'
-                echo '}'
-              } | run_as_root tee /usr/local/etc/pkg/repos/zz-mojibake-ci.conf >/dev/null
-              retry run_as_root pkg update -f
-              retry run_as_root pkg install -Uy cmake
-              ;;
             Haiku) pkgman install -y cmake ;;
           esac
 
