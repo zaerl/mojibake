@@ -21,8 +21,8 @@ include(CMakePackageConfigHelpers)
 # Used by IDEs and language servers for IntelliSense
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Enable CTest
-enable_testing()
+# Enable CTest and provide the standard BUILD_TESTING option
+include(CTest)
 
 # WASM build option
 option(BUILD_WASM "Build for WebAssembly" OFF)
@@ -35,6 +35,9 @@ option(USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 
 # Shared library option
 option(BUILD_SHARED "Build as shared library instead of static" OFF)
+
+# CLI option
+option(MJB_BUILD_CLI "Build the Mojibake command-line interface" ON)
 
 # Character name table option
 option(MJB_FEATURE_CHARACTER_NAMES "Compile Unicode character name lookup tables" ON)
@@ -136,8 +139,12 @@ if(NOT BUILD_WASM)
     )
 endif()
 
-# Tests and shell (only for native builds)
-if(NOT BUILD_WASM)
+# Tests (only for native builds when requested)
+if(NOT BUILD_WASM AND BUILD_TESTING)
     add_subdirectory(tests)
+endif()
+
+# Shell (only for native builds when requested)
+if(NOT BUILD_WASM AND MJB_BUILD_CLI)
     add_subdirectory(src/shell)
 endif()
