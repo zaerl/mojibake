@@ -170,6 +170,11 @@ export class CFunction implements MojibakeFunction {
 
   formatHTML(relatedLinkTargets = new Set<string>()): string {
     const fn = this.formatSignature();
+    const hasWASMForm = this.isWASM();
+    const toggleLabel = hasWASMForm ? 'Try it' : 'Details';
+    const toggleAriaLabel = hasWASMForm ?
+      `Try ${this.getName()} in your browser` :
+      `Show details for ${this.getName()}`;
 
     const searchText = CFunction.escapeHTML(`${this.getName()} ${this.comment}`.toLowerCase());
 
@@ -182,12 +187,12 @@ export class CFunction implements MojibakeFunction {
         <pre><code class="hljs language-c">${hljs.highlight(fn, { language: 'c' }).value}</code></pre>
         <button type="button" class="function-toggle" id="${this.getName()}-toggle"
           aria-expanded="false" aria-controls="${this.getName()}-card"
-          aria-label="Show details and WASM form for ${this.getName()}"
-          onclick="toggleFunctionCall('${this.getName()}')"></button>
+          aria-label="${toggleAriaLabel}" data-wasm="${hasWASMForm}"
+          onclick="toggleFunctionCall('${this.getName()}')">${toggleLabel}</button>
       </div>
       <div class="function-card" id="${this.getName()}-card">
         ${this.documentationHTML(relatedLinkTargets)}
-        <div>${this.isWASM() ? this.formInputHTML() : '' }</div>
+        <div>${hasWASMForm ? this.formInputHTML() : '' }</div>
         <div id="${this.getName()}-results" class="function-results code"></div>
       </div>
     </article>`;

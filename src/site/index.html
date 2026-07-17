@@ -43,7 +43,6 @@
                     <p class="sidebar-heading">Documentation</p>
                     <a href="#overview">Overview</a>
                     <a href="#guide">Guide</a>
-                    <a href="#playground">WASM playground</a>
                     <a href="#api-reference">API reference</a>
                 </nav>
                 <div class="sidebar-api-heading">
@@ -93,30 +92,29 @@
             [HEADER_HERE]
                 </article>
             </section>
-            <section class="playground-callout" id="playground">
-                <div>
-                    <p class="eyebrow">No installation required</p>
-                    <h2>Try every function in your browser</h2>
-                </div>
-                <div>
-                    <p>
-                        Each API reference below includes a live form backed by the WASM build.
-                        Expand a function, enter its arguments, and inspect the result immediately.
-                    </p>
-                    <a href="[WASM_HREF]">
-                        Download [WASM_NAME] <span aria-hidden="true">→</span>
-                    </a>
-                </div>
-            </section>
             <section class="api-reference" id="api-reference">
                 <header class="api-reference-heading">
-                    <p class="eyebrow">Reference</p>
-                    <h2>C API</h2>
+                    <p class="eyebrow">C API</p>
+                    <h2>API reference</h2>
                     <p>
-                        Functions are organized by their metadata section. Select the plus button
-                        to see detailed behavior, examples, specifications, and the live WASM form.
+                        Functions are organized by their metadata section. Choose
+                        <strong>Try it</strong> to see detailed behavior and use the live WASM form,
+                        or <strong>Details</strong> for C-only functions.
                     </p>
                 </header>
+                <section class="playground-callout" id="playground">
+                    <div>
+                        <p class="eyebrow">No installation required</p>
+                        <h2>Try every function in your browser</h2>
+                    </div>
+                    <div>
+                        <p>
+                            Each runnable function below includes a live form backed by the WASM
+                            build. Choose <strong>Try it</strong>, enter its arguments, and inspect
+                            the result immediately.
+                        </p>
+                    </div>
+                </section>
                 <div id="functions"></div>
             </section>
         </main>
@@ -283,9 +281,15 @@
             const toggle = document.getElementById(func + '-toggle');
 
             if(toggle) {
+                const hasWASMForm = toggle.dataset.wasm === 'true';
+                const contentDescription = hasWASMForm ? 'details and WASM form' : 'details';
+
                 toggle.setAttribute('aria-expanded', selected.toString());
                 toggle.setAttribute('aria-label',
-                    `${selected ? 'Hide' : 'Show'} details and WASM form for ${func}`);
+                    selected ? `Hide ${contentDescription} for ${func}` :
+                        hasWASMForm ? `Try ${func} in your browser` :
+                            `Show details for ${func}`);
+                toggle.textContent = selected ? 'Close' : hasWASMForm ? 'Try it' : 'Details';
             }
 
             if(!selected) {

@@ -187,13 +187,10 @@ function processIndexHtml() {
 
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
-  const wasmFileName = `mojibake-wasm-${version.major}${version.minor}${version.revision}.zip`;
   const baseURL = `https://github.com/zaerl/mojibake/releases/download/v${version.version}/`;
 
   fileContent = substituteText(fileContent, '[AM_HREF]', baseURL + fileName);
   fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
-  fileContent = substituteText(fileContent, '[WASM_HREF]', baseURL + wasmFileName);
-  fileContent = substituteText(fileContent, '[WASM_NAME]', wasmFileName);
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   let readme = readFileSync('../../README.md', 'utf-8');
