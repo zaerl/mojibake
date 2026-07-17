@@ -721,7 +721,6 @@ main > section {
 }
 
 .api-reference-heading > p:last-child {
-    max-width: 44rem;
     margin-top: 1rem;
     color: var(--text-muted);
 }
