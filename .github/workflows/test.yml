@@ -140,6 +140,27 @@ jobs:
           cmake --build build-test
           ./build-test/tests/mojibake-test
 
+      - name: Test (no character names)
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          cmake -S . -B build-test-no-names -DCMAKE_BUILD_TYPE=Test -DMJB_FEATURE_CHARACTER_NAMES=OFF
+          cmake --build build-test-no-names
+          ./build-test-no-names/tests/mojibake-test
+
+      - name: Test (embedded NULLs)
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DALLOW_EMBEDDED_NULLS=ON
+          cmake --build build-test-null
+          ./build-test-null/tests/mojibake-test
+
+      - name: Test (C++)
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
+          cmake --build build-test-cpp
+          ./build-test-cpp/tests/mojibake-test
+
   test-windows:
     name: Test (Windows / MSVC)
     runs-on: windows-latest
