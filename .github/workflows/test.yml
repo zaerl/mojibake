@@ -84,6 +84,59 @@ jobs:
           cmake --build build-test-ubsan
           ./build-test-ubsan/tests/mojibake-test
 
+  test-bsd:
+    name: Test (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: FreeBSD 15.1
+            os: freebsd
+            version: '15.1'
+          - label: OpenBSD 7.9
+            os: openbsd
+            version: '7.9'
+          - label: NetBSD 10.1
+            os: netbsd
+            version: '10.1'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Unicode test data
+        uses: actions/cache@v6
+        with:
+          path: utils/generate/unicode-data
+          key: test-data-17.0.0
+
+      - name: Download Unicode test data
+        run: ./utils/generate/download-test-data.sh
+
+      - name: Start ${{ matrix.label }} VM
+        uses: cross-platform-actions/action@v1.3.0
+        with:
+          operating_system: ${{ matrix.os }}
+          version: ${{ matrix.version }}
+          shell: sh
+          sync_files: runner-to-vm
+
+      - name: Install CMake
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          case "$(uname -s)" in
+            FreeBSD) sudo pkg install -y cmake ;;
+            OpenBSD) sudo pkg_add cmake ;;
+            NetBSD) sudo pkgin -y install cmake ;;
+          esac
+
+      - name: Test
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          uname -a
+          cmake -S . -B build-test -DCMAKE_BUILD_TYPE=Test
+          cmake --build build-test
+          ./build-test/tests/mojibake-test
+
   test-windows:
     name: Test (Windows / MSVC)
     runs-on: windows-latest
