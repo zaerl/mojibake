@@ -50,3 +50,4 @@ All the other things found on +10MB libraries.
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
+- [ ] Add more runtime options. See [HN:48945337](https://news.ycombinator.com/item?id=48945337)
