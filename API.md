@@ -36,7 +36,7 @@ Titlecase: N/A
 > in the `mjb_character` struct are not the real uppercase version of the codepoint you passed to
 > the function but its "simple case uppercase", a 1-to-1 character transformation. To have the real
 > case version of a string, use `mjb_case` function. Codepoint as `ß` transforms to a `SS` in
-> uppercase
+> uppercase.
 
 An **encoding** is a way a list of codepoints is stored in memory. Nowadays, the UTF-8 encoding is
 by far the most used one when we are talking about moving data around, but there are important
