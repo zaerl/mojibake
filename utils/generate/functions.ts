@@ -943,7 +943,7 @@ printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "
     name: 'mjb_codepoint_is_hangul_l',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false,
+    wasm: true,
     section: Section.HangulLanguage,
     example: `// U+1100 is a leading Jamo: yes
 printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes" : "no");`
@@ -954,7 +954,7 @@ printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes"
     name: 'mjb_codepoint_is_hangul_v',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false,
+    wasm: true,
     section: Section.HangulLanguage,
     example: `// U+1161 is a vowel Jamo: yes
 printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" : "no");`
@@ -965,7 +965,7 @@ printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" :
     name: 'mjb_codepoint_is_hangul_t',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false,
+    wasm: true,
     section: Section.HangulLanguage,
     example: `// U+11A8 is a trailing Jamo: yes
 printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes" : "no");`
@@ -976,7 +976,7 @@ printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes
     name: 'mjb_codepoint_is_hangul_jamo',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
-    wasm: false,
+    wasm: true,
     section: Section.HangulLanguage,
     example: `// U+1100 is Hangul Jamo: yes
 printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");`
@@ -2009,7 +2009,7 @@ printf("RGI emoji: %s", rgi ? "yes" : "no");`,
       },
       byte_length()
     ],
-    wasm: false,
+    wasm: true,
     section: Section.HangulLanguage,
     example: `char name[32];
 

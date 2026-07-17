@@ -71,6 +71,14 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_is_graphic: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is combining.
   _mjb_codepoint_is_combining: (codepoint: Codepoint) => boolean;
+  // Return if the codepoint is a hangul L.
+  _mjb_codepoint_is_hangul_l: (codepoint: Codepoint) => boolean;
+  // Return if the codepoint is a hangul V.
+  _mjb_codepoint_is_hangul_v: (codepoint: Codepoint) => boolean;
+  // Return if the codepoint is a hangul T.
+  _mjb_codepoint_is_hangul_t: (codepoint: Codepoint) => boolean;
+  // Return if the codepoint is a hangul jamo.
+  _mjb_codepoint_is_hangul_jamo: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is a hangul syllable.
   _mjb_codepoint_is_hangul_syllable: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is CJK ideograph.
@@ -151,6 +159,8 @@ export type MojibakeWasmModule = {
   _mjb_string_is_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
   _mjb_string_is_rgi_emoji: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
+  // Return hangul syllable name.
+  _mjb_hangul_syllable_name: (codepoint: Codepoint, buffer: Pointer, byte_length: number) => number;
   // Return the east asian width of a codepoint.
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => number;
   // Return the display width of a string.
