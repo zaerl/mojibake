@@ -31,9 +31,17 @@ Lowercase: N/A
 Titlecase: N/A
 ```
 
-An **encoding** is how a list of codepoints is saved in memory. Nowadays, the UTF-8 encoding is by
-far the most used one when we are talking about moving data around, but there are important contexts
-where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, JavaScript, and others.
+> [!NOTE]
+> The Uppercase, Lowercase, Titlecase fields [you find](https://github.com/zaerl/mojibake/blob/main/src/mojibake.h#L322-L324)
+> in the `mjb_character` struct are not the real uppercase version of the codepoint you passed to
+> the function but its "simple case uppercase", a 1-to-1 character transformation. To have the real
+> case version of a string, use `mjb_case` function. Codepoint as `ß` transforms to a `SS` in
+> uppercase
+
+An **encoding** is a way a list of codepoints is stored in memory. Nowadays, the UTF-8 encoding is
+by far the most used one when we are talking about moving data around, but there are important
+contexts where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, JavaScript, and
+others.
 
 > [!NOTE]
 > In Mojibake `MJB_ENC_UTF_16` doesn't mean `MJB_ENC_UTF_16LE` (Little Endian, used by all modern
@@ -44,8 +52,8 @@ where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, JavaScrip
 > BOM. Otherwise use `MJB_ENC_UTF_8` or `MJB_ENC_UTF_16LE`.
 
 A **normalization** is the "process of removing alternate representations of equivalent sequences
-from textual data". This means to transform a string to another one called its normalized form by
-replacing parts to other one. For example `U+00C0` (LATIN CAPITAL LETTER A WITH GRAVE) is normalized
+from textual data". This means transforming a string to another one called its normalized form by
+replacing parts with others. For example, `U+00C0` (LATIN CAPITAL LETTER A WITH GRAVE) is normalized
 in NFD as a list of two characters: `U+0041` (LATIN CAPITAL LETTER A) + `U+0300` (COMBINING GRAVE
 ACCENT).
 
@@ -1029,7 +1037,7 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_locale_set`](#mjb_locale_set), [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase), [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
+See also: [`mjb_locale_set`](#mjb_locale_set).
 
 Specifications: [The Unicode Standard, Version 17.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992).
 
@@ -1266,100 +1274,6 @@ bool combining = mjb_category_is_combining(MJB_CATEGORY_MN);
 // Nonspacing marks are combining: yes
 printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");
 ```
-
-## `mjb_codepoint_to_lowercase`
-
-Return the codepoint lowercase codepoint.
-
-```c
-mjb_codepoint mjb_codepoint_to_lowercase(
-    mjb_codepoint codepoint
-);
-```
-
-Return the lowercase codepoint of a codepoint. If the codepoint has no lowercase equivalent, the original codepoint is returned.
-
-- `codepoint` — The codepoint to check
-
-**Returns**
-
-- `codepoint` — The lowercase codepoint, or the original codepoint
-
-**Example**
-
-```c
-mjb_codepoint codepoint;
-
-codepoint = mjb_codepoint_to_lowercase(0x0041); // U+0041 = 'A'
-
-// A > a
-printf("%c > %c", 'A', codepoint);
-
-codepoint = mjb_codepoint_to_lowercase(0x03A3); // U+03A3 = 'Σ'
-
-// U+03A3 > U+03C3, Σ > σ
-printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");
-```
-
-See also: [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
-
-## `mjb_codepoint_to_uppercase`
-
-Return the codepoint uppercase codepoint.
-
-```c
-mjb_codepoint mjb_codepoint_to_uppercase(
-    mjb_codepoint codepoint
-);
-```
-
-Return the uppercase codepoint of a codepoint. If the codepoint has no uppercase equivalent, the original codepoint is returned.
-
-- `codepoint` — The codepoint to check
-
-**Returns**
-
-- `codepoint` — The uppercase codepoint, or the original codepoint
-
-**Example**
-
-```c
-mjb_codepoint uppercase = mjb_codepoint_to_uppercase(0x00E9); // é
-
-// Uppercase: U+00C9
-printf("Uppercase: U+%04X", uppercase);
-```
-
-See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_titlecase`](#mjb_codepoint_to_titlecase).
-
-## `mjb_codepoint_to_titlecase`
-
-Return the codepoint titlecase codepoint.
-
-```c
-mjb_codepoint mjb_codepoint_to_titlecase(
-    mjb_codepoint codepoint
-);
-```
-
-Return the titlecase codepoint of a codepoint. If the codepoint has no titlecase equivalent, the original codepoint is returned.
-
-- `codepoint` — The codepoint to check
-
-**Returns**
-
-- `codepoint` — The titlecase codepoint, or the original codepoint
-
-**Example**
-
-```c
-mjb_codepoint titlecase = mjb_codepoint_to_titlecase(0x01F3); // dz
-
-// Titlecase: U+01F2
-printf("Titlecase: U+%04X", titlecase);
-```
-
-See also: [`mjb_codepoint_to_lowercase`](#mjb_codepoint_to_lowercase), [`mjb_codepoint_to_uppercase`](#mjb_codepoint_to_uppercase).
 
 ## `mjb_break_line`
 

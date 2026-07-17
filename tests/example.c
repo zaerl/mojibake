@@ -521,48 +521,6 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_codepoint_to_lowercase
-    MJB_TEST_COVERAGE(mjb_codepoint_to_lowercase); // Added by the script
-    mjb_codepoint codepoint;
-
-    codepoint = mjb_codepoint_to_lowercase(0x0041); // U+0041 = 'A'
-
-    // A > a
-    // printf("%c > %c", 'A', codepoint);
-    snprintf(test_buffer, sizeof(test_buffer), "%c > %c", 'A', codepoint); // Added by the script
-    ATT_ASSERT(test_buffer, "A > a", "mjb_codepoint_to_lowercase test failed") // Added by the script
-
-    codepoint = mjb_codepoint_to_lowercase(0x03A3); // U+03A3 = 'Σ'
-
-    // U+03A3 > U+03C3, Σ > σ
-    // printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");
-    snprintf(test_buffer, sizeof(test_buffer), "U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+03A3 > U+03C3, Σ > σ", "mjb_codepoint_to_lowercase test failed") // Added by the script
-}
-
-{
-    // Example for mjb_codepoint_to_uppercase
-    MJB_TEST_COVERAGE(mjb_codepoint_to_uppercase); // Added by the script
-    mjb_codepoint uppercase = mjb_codepoint_to_uppercase(0x00E9); // é
-
-    // Uppercase: U+00C9
-    // printf("Uppercase: U+%04X", uppercase);
-    snprintf(test_buffer, sizeof(test_buffer), "Uppercase: U+%04X", uppercase); // Added by the script
-    ATT_ASSERT(test_buffer, "Uppercase: U+00C9", "mjb_codepoint_to_uppercase test failed") // Added by the script
-}
-
-{
-    // Example for mjb_codepoint_to_titlecase
-    MJB_TEST_COVERAGE(mjb_codepoint_to_titlecase); // Added by the script
-    mjb_codepoint titlecase = mjb_codepoint_to_titlecase(0x01F3); // dz
-
-    // Titlecase: U+01F2
-    // printf("Titlecase: U+%04X", titlecase);
-    snprintf(test_buffer, sizeof(test_buffer), "Titlecase: U+%04X", titlecase); // Added by the script
-    ATT_ASSERT(test_buffer, "Titlecase: U+01F2", "mjb_codepoint_to_titlecase test failed") // Added by the script
-}
-
-{
     // Example for mjb_break_line
     MJB_TEST_COVERAGE(mjb_break_line); // Added by the script
     mjb_next_line_state state;

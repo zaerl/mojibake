@@ -884,21 +884,6 @@ export class Mojibake {
     }
   }
 
-  // mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint)
-  codepointToLowercase(codepoint: Codepoint): Codepoint {
-    return this.module._mjb_codepoint_to_lowercase(codepoint);
-  }
-
-  // mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint)
-  codepointToUppercase(codepoint: Codepoint): Codepoint {
-    return this.module._mjb_codepoint_to_uppercase(codepoint);
-  }
-
-  // mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint)
-  codepointToTitlecase(codepoint: Codepoint): Codepoint {
-    return this.module._mjb_codepoint_to_titlecase(codepoint);
-  }
-
   // mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_line_state *state)
   breakLine(input: MojibakeInput, options: TextInputOptions = {}): number[] {

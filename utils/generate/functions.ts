@@ -900,8 +900,7 @@ printf("Upper: %.*s", (int)result.output_size, result.output);
 if(result.transformed) {
     mjb_free(result.output);
 }`,
-    related: ['mjb_locale_set', 'mjb_codepoint_to_uppercase', 'mjb_codepoint_to_lowercase',
-      'mjb_codepoint_to_titlecase'],
+    related: ['mjb_locale_set'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
   {
@@ -1055,70 +1054,6 @@ bool combining = mjb_category_is_combining(MJB_CATEGORY_MN);
 
 // Nonspacing marks are combining: yes
 printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
-  },
-  {
-    comment: 'Return the codepoint lowercase codepoint.',
-    ret: 'mjb_codepoint',
-    name: 'mjb_codepoint_to_lowercase',
-    attributes: ['MJB_CONST'],
-    args: [codepoint()],
-    wasm: true,
-    section: Section.TextTransformation,
-    details: 'Return the lowercase codepoint of a codepoint. If the codepoint has no lowercase ' +
-      'equivalent, the original codepoint is returned.',
-    returns: [
-      { value: 'codepoint', description: 'The lowercase codepoint, or the original codepoint' }
-    ],
-    example: `mjb_codepoint codepoint;
-
-codepoint = mjb_codepoint_to_lowercase(0x0041); // U+0041 = 'A'
-
-// A > a
-printf("%c > %c", 'A', codepoint);
-
-codepoint = mjb_codepoint_to_lowercase(0x03A3); // U+03A3 = 'Σ'
-
-// U+03A3 > U+03C3, Σ > σ
-printf("U+%04X > U+%04X, %s > %s",  0x03A3, codepoint, "Σ", "σ");`,
-    related: ['mjb_codepoint_to_uppercase', 'mjb_codepoint_to_titlecase'],
-  },
-  {
-    comment: 'Return the codepoint uppercase codepoint.',
-    ret: 'mjb_codepoint',
-    name: 'mjb_codepoint_to_uppercase',
-    attributes: ['MJB_CONST'],
-    args: [codepoint()],
-    wasm: true,
-    section: Section.TextTransformation,
-    details: 'Return the uppercase codepoint of a codepoint. If the codepoint has no uppercase ' +
-      'equivalent, the original codepoint is returned.',
-    returns: [
-      { value: 'codepoint', description: 'The uppercase codepoint, or the original codepoint' }
-    ],
-    example: `mjb_codepoint uppercase = mjb_codepoint_to_uppercase(0x00E9); // é
-
-// Uppercase: U+00C9
-printf("Uppercase: U+%04X", uppercase);`,
-    related: ['mjb_codepoint_to_lowercase', 'mjb_codepoint_to_titlecase'],
-  },
-  {
-    comment: 'Return the codepoint titlecase codepoint.',
-    ret: 'mjb_codepoint',
-    name: 'mjb_codepoint_to_titlecase',
-    attributes: ['MJB_CONST'],
-    args: [codepoint()],
-    wasm: true,
-    section: Section.TextTransformation,
-    details: 'Return the titlecase codepoint of a codepoint. If the codepoint has no titlecase ' +
-      'equivalent, the original codepoint is returned.',
-    returns: [
-      { value: 'codepoint', description: 'The titlecase codepoint, or the original codepoint' }
-    ],
-    example: `mjb_codepoint titlecase = mjb_codepoint_to_titlecase(0x01F3); // dz
-
-// Titlecase: U+01F2
-printf("Titlecase: U+%04X", titlecase);`,
-    related: ['mjb_codepoint_to_lowercase', 'mjb_codepoint_to_uppercase'],
   },
   {
     comment: 'Unicode line break algorithm.',

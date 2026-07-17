@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake run a total of **1,610,136** C assertions and **77** JavaScript assertions, including all
+Mojibake run a total of **1,610,123** C assertions and **79** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -78,7 +78,6 @@ the official tests included in the standard:
 | `mjb_hangul_syllable_decomposition`      | 6           |
 | `mjb_alloc`                              | 5           |
 | `mjb_codepoint_is_hangul_jamo`           | 5           |
-| `mjb_codepoint_to_lowercase`             | 5           |
 | `mjb_set_memory_functions`               | 5           |
 | `mjb_codepoint_is_hangul_l`              | 4           |
 | `mjb_codepoint_is_hangul_t`              | 4           |
@@ -86,8 +85,6 @@ the official tests included in the standard:
 | `mjb_codepoint_is_pattern_syntax`        | 4           |
 | `mjb_codepoint_is_pattern_white_space`   | 4           |
 | `mjb_codepoint_plane`                    | 4           |
-| `mjb_codepoint_to_titlecase`             | 4           |
-| `mjb_codepoint_to_uppercase`             | 4           |
 | `mjb_free`                               | 4           |
 | `mjb_plane_is_valid`                     | 4           |
 | `mjb_realloc`                            | 4           |
@@ -109,7 +106,7 @@ the official tests included in the standard:
 | `mjb_unicode_version`                    | 2           |
 | `mjb_version`                            | 2           |
 | `mjb_version_number`                     | 2           |
-| **Total**                                | **1610136** |
+| **Total**                                | **1610123** |
 
 ## JavaScript
 
@@ -141,7 +138,11 @@ the official tests included in the standard:
 | `Mojibake.codepointIsEmojiPresentation`    | 1          |
 | `Mojibake.codepointIsExtendedPictographic` | 1          |
 | `Mojibake.codepointIsGraphic`              | 1          |
+| `Mojibake.codepointIsHangulJamo`           | 1          |
+| `Mojibake.codepointIsHangulL`              | 1          |
 | `Mojibake.codepointIsHangulSyllable`       | 1          |
+| `Mojibake.codepointIsHangulT`              | 1          |
+| `Mojibake.codepointIsHangulV`              | 1          |
 | `Mojibake.codepointIsIdContinue`           | 1          |
 | `Mojibake.codepointIsIdStart`              | 1          |
 | `Mojibake.codepointIsPatternSyntax`        | 1          |
@@ -153,13 +154,11 @@ the official tests included in the standard:
 | `Mojibake.codepointPlane`                  | 1          |
 | `Mojibake.codepointScript`                 | 1          |
 | `Mojibake.codepointScriptExtensions`       | 1          |
-| `Mojibake.codepointToLowercase`            | 1          |
-| `Mojibake.codepointToTitlecase`            | 1          |
-| `Mojibake.codepointToUppercase`            | 1          |
 | `Mojibake.collationKey`                    | 1          |
 | `Mojibake.confusableSkeleton`              | 1          |
 | `Mojibake.create`                          | 1          |
 | `Mojibake.displayWidth`                    | 1          |
+| `Mojibake.hangulSyllableName`              | 1          |
 | `Mojibake.localeParse`                     | 1          |
 | `Mojibake.localeSet`                       | 1          |
 | `Mojibake.nfkcCasefold`                    | 1          |
@@ -188,4 +187,4 @@ the official tests included in the standard:
 | `Mojibake.version`                         | 1          |
 | `Mojibake.versionNumber`                   | 1          |
 | `Mojibake.stringEachCharacter`             | 0          |
-| **Total**                                  | **77**     |
+| **Total**                                  | **79**     |
