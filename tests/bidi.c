@@ -70,7 +70,7 @@ static void read_bidi_test_file(const char *filename) {
         char *cp_ptr = fields[0];
         char *cp_tok;
 
-        while((cp_tok = strsep(&cp_ptr, " ")) != NULL) {
+        while((cp_tok = mjb_test_strsep(&cp_ptr, " ")) != NULL) {
             if(!cp_tok[0]) {
                 continue;
             }
@@ -117,7 +117,7 @@ static void read_bidi_test_file(const char *filename) {
         char *lvl_ptr = fields[3];
         char *lvl_tok;
 
-        while((lvl_tok = strsep(&lvl_ptr, " ")) != NULL && total_cp < 256) {
+        while((lvl_tok = mjb_test_strsep(&lvl_ptr, " ")) != NULL && total_cp < 256) {
             if(!lvl_tok[0]) {
                 continue;
             }
@@ -141,7 +141,7 @@ static void read_bidi_test_file(const char *filename) {
         char *ord_ptr = fields[4];
         char *ord_tok;
 
-        while((ord_tok = strsep(&ord_ptr, " ")) != NULL && order_count < 256) {
+        while((ord_tok = mjb_test_strsep(&ord_ptr, " ")) != NULL && order_count < 256) {
             if(!ord_tok[0]) {
                 continue;
             }

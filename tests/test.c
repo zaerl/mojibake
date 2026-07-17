@@ -44,9 +44,7 @@ static mjb_test_coverage_entry coverage_entries[MJB_TEST_COVERAGE_MAX_ENTRIES];
 static size_t coverage_entry_count = 0;
 static char coverage_current[MJB_TEST_COVERAGE_NAME_SIZE] = { 0 };
 
-#ifdef _WIN32
-// Windows-compatible strsep implementation
-char *strsep(char **stringp, const char *delim) {
+char *mjb_test_strsep(char **stringp, const char *delim) {
     char *start = *stringp;
     char *p;
 
@@ -64,7 +62,6 @@ char *strsep(char **stringp, const char *delim) {
 
     return start;
 }
-#endif
 
 static bool coverage_name_char(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';

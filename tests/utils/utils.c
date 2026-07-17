@@ -15,7 +15,7 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
     tofree = string = strdup(buffer != NULL ? (buffer[0] == ' ' ? buffer + 1 : buffer) : "");
     unsigned int index = 0;
 
-    while((token = strsep(&string, " ")) != NULL) {
+    while((token = mjb_test_strsep(&string, " ")) != NULL) {
         if(strlen(token) == 0) {
             continue; // Skip empty tokens
         }
@@ -92,7 +92,7 @@ void read_test_file(const char *filename, test_file_callback callback) {
 
         // × (U+00D7) = 0xC3 0x97
         // ÷ (U+00F7) = 0xC3 0xB7
-        while((token = strsep(&string, " ")) != NULL) {
+        while((token = mjb_test_strsep(&string, " ")) != NULL) {
             if(token == NULL || token[0] == '\0') {
                 i = 0;
 

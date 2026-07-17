@@ -81,10 +81,7 @@ char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
     mjb_encoding encoding);
 void read_test_file(const char *filename, test_file_callback callback);
 
-#ifdef _WIN32
-// Windows-compatible strsep declaration
-char *strsep(char **stringp, const char *delim);
-#endif
+char *mjb_test_strsep(char **stringp, const char *delim);
 
 #ifdef __cplusplus
 }

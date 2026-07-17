@@ -102,7 +102,7 @@ static void read_bidi_class_test_file(const char *filename) {
             char *p = line + 8;
             char *tok;
 
-            while((tok = strsep(&p, " \t")) != NULL && levels_count < 64) {
+            while((tok = mjb_test_strsep(&p, " \t")) != NULL && levels_count < 64) {
                 if(!tok[0]) {
                     continue;
                 }
@@ -128,7 +128,7 @@ static void read_bidi_class_test_file(const char *filename) {
             char *p = line + 9;
             char *tok;
 
-            while((tok = strsep(&p, " \t")) != NULL && order_count < 64) {
+            while((tok = mjb_test_strsep(&p, " \t")) != NULL && order_count < 64) {
                 if(!tok[0]) {
                     continue;
                 }
@@ -162,7 +162,7 @@ static void read_bidi_class_test_file(const char *filename) {
         char *p = line;
         char *tok;
 
-        while((tok = strsep(&p, " \t")) != NULL) {
+        while((tok = mjb_test_strsep(&p, " \t")) != NULL) {
             if(!tok[0]) {
                 continue;
             }

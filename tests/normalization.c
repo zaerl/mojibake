@@ -313,7 +313,7 @@ int test_normalization(void *arg) {
         tofree = string = strdup(line);
         unsigned int field = 0;
 
-        while((token = strsep(&string, ";")) != NULL) {
+        while((token = mjb_test_strsep(&string, ";")) != NULL) {
             switch(field) {
                 case 0: // Source
                     source_size = get_string_from_codepoints(token, 256, (char *)source);
