@@ -1251,14 +1251,14 @@ int test_example(void *arg) {
 {
     // Example for mjb_alloc
     MJB_TEST_COVERAGE(mjb_alloc); // Added by the script
-    char *buffer = (char*)mjb_alloc(32);
+    char *buffer = (char*)mjb_alloc(sizeof("allocated"));
 
     if(buffer == NULL) {
         ATT_ASSERT(0, 1, "mjb_alloc test failed") // Added by the script
         return 1;
     }
 
-    strcpy(buffer, "allocated");
+    memcpy(buffer, "allocated", sizeof("allocated"));
 
     // Buffer: allocated
     // printf("Buffer: %s", buffer);
