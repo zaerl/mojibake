@@ -60,7 +60,7 @@ static void test_case_folding_file(void) {
         size_t source_size = 0;
         size_t target_size = 0;
 
-        while((token = strsep(&string, ";")) != NULL) {
+        while((token = mjb_test_strsep(&string, ";")) != NULL) {
             if(field == 0) {
                 source_size = get_string_from_codepoints(token, 64, source);
             } else if(field == 1) {
