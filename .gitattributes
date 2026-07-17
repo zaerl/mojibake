@@ -29,6 +29,7 @@
 *.jpg  binary
 *.gif  binary
 *.ico  binary
+fuzz/corpus/** binary
 
 # Export ignore
 .gitattributes export-ignore
@@ -36,4 +37,3 @@
 .clang-format  export-ignore
 .editorconfig  export-ignore
 CLAUDE.md      export-ignore
-utils/         export-ignore
