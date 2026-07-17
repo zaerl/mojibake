@@ -124,9 +124,9 @@ jobs:
         shell: cpa.sh {0} --sync-files none
         run: |
           case "$(uname -s)" in
-            FreeBSD) sudo pkg install -y cmake ;;
-            OpenBSD) sudo pkg_add cmake ;;
-            NetBSD) sudo pkgin -y install cmake ;;
+            FreeBSD) (command -v sudo >/dev/null 2>&1 && sudo pkg install -y cmake) || pkg install -y cmake ;;
+            OpenBSD) (command -v doas >/dev/null 2>&1 && doas pkg_add cmake) || (command -v sudo >/dev/null 2>&1 && sudo pkg_add cmake) || pkg_add cmake ;;
+            NetBSD) (command -v sudo >/dev/null 2>&1 && sudo pkgin -y install cmake) || pkgin -y install cmake ;;
           esac
 
       - name: Test
