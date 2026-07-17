@@ -2826,13 +2826,13 @@ Allocate memory using the allocator set by `mjb_set_memory_functions`. If no all
 **Example**
 
 ```c
-char *buffer = (char*)mjb_alloc(32);
+char *buffer = (char*)mjb_alloc(sizeof("allocated"));
 
 if(buffer == NULL) {
     return 1;
 }
 
-strcpy(buffer, "allocated");
+memcpy(buffer, "allocated", sizeof("allocated"));
 
 // Buffer: allocated
 printf("Buffer: %s", buffer);
