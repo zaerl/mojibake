@@ -615,15 +615,6 @@ MJB_EXPORT MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 // Return true if the category is combining.
 MJB_EXPORT MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
-// Return the codepoint lowercase codepoint.
-MJB_EXPORT MJB_CONST mjb_codepoint mjb_codepoint_to_lowercase(mjb_codepoint codepoint);
-
-// Return the codepoint uppercase codepoint.
-MJB_EXPORT MJB_CONST mjb_codepoint mjb_codepoint_to_uppercase(mjb_codepoint codepoint);
-
-// Return the codepoint titlecase codepoint.
-MJB_EXPORT MJB_CONST mjb_codepoint mjb_codepoint_to_titlecase(mjb_codepoint codepoint);
-
 // Unicode line break algorithm.
 MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_line_state *state);
 

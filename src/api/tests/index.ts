@@ -90,9 +90,6 @@ ATT_ASSERT(mojibake.categoryIsCombining(Category.MN), true, 'categoryIsCombining
 ATT_ASSERT(mojibake.codepointNumericValue(0x31), { decimal: 1, digit: 1, numeric: '1' },
   'codepointNumericValue');
 ATT_ASSERT(mojibake.codepointBlock(0x41)?.id, Block.BASIC_LATIN, 'codepointBlock');
-ATT_ASSERT(mojibake.codepointToLowercase(0x41), 0x61, 'codepointToLowercase');
-ATT_ASSERT(mojibake.codepointToUppercase(0x62), 0x42, 'codepointToUppercase');
-ATT_ASSERT(mojibake.codepointToTitlecase(0x63), 0x43, 'codepointToTitlecase');
 ATT_ASSERT(mojibake.nfkcCasefold('Straße\u00AD')?.output, 'strasse', 'nfkcCasefold');
 ATT_ASSERT(mojibake.breakLine('A'), [BreakType.ALLOWED], 'breakLine');
 ATT_ASSERT(mojibake.breakWord('A'), [BreakType.ALLOWED], 'breakWord');

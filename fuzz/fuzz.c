@@ -175,9 +175,6 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_property_int(codepoint, property, &integer_property_value);
     fuzz_sink += (size_t)integer_property_value;
     fuzz_sink += (size_t)mjb_codepoint_block(codepoint, &block);
-    fuzz_sink += (size_t)mjb_codepoint_to_lowercase(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_to_uppercase(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_to_titlecase(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_plane(codepoint);
     fuzz_sink += (size_t)mjb_plane_is_valid((mjb_plane)((int)(variant % (MJB_PLANE_NUM + 2)) - 1));
 

@@ -89,12 +89,6 @@ export type MojibakeWasmModule = {
   _mjb_category_is_graphic: (category: number) => boolean;
   // Return true if the category is combining.
   _mjb_category_is_combining: (category: number) => boolean;
-  // Return the codepoint lowercase codepoint.
-  _mjb_codepoint_to_lowercase: (codepoint: Codepoint) => Codepoint;
-  // Return the codepoint uppercase codepoint.
-  _mjb_codepoint_to_uppercase: (codepoint: Codepoint) => Codepoint;
-  // Return the codepoint titlecase codepoint.
-  _mjb_codepoint_to_titlecase: (codepoint: Codepoint) => Codepoint;
   // Unicode line break algorithm.
   _mjb_break_line: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Word cluster breaking.
