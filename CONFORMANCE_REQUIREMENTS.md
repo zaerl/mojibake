@@ -61,7 +61,11 @@ established by this standard, if that process does interpret that coded characte
 
 ✅ Satisfied. `README.md` and `API.md` scope Mojibake's Unicode interpretation surface to the
 documented public APIs and supported UTF encodings. The conformance inventory maps each advertised
-Unicode algorithm or data claim to its Unicode 18.0.0 reference and test evidence.
+Unicode algorithm or data claim to its Unicode 18.0.0 reference and test evidence. Mojibake does not
+render text or interpret standardized or ideographic variation sequences as glyph-selection
+requests. `mjb_string_emoji_sequence` recognizes assigned emoji variation sequences from
+`emoji-variation-sequences.txt`. Misplaced variation selectors and unsupported variation sequences
+are not interpreted as requests to modify the glyph of a preceding character.
 
 ### C5
 
