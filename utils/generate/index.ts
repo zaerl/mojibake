@@ -184,9 +184,9 @@ async function buildUnicodeTableData() {
   const { properties } = await readUnicodeData(blocks, await readCompositionExclusions());
 
   iLog('Parse collation data');
-  const { entries: collationEntries } =
+  const { entries: collationEntries, implicitRanges: collationImplicitRanges } =
     await parseCollationAllKeys('./unicode-data/collation/allkeys.txt');
-  addCollation(collationEntries);
+  addCollation(collationEntries, collationImplicitRanges);
 
   iLog('Parse confusables data');
   const confusableEntries = await parseConfusables('./unicode-data/security/confusables.txt');

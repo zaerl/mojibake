@@ -1172,10 +1172,10 @@ int test_example(void *arg) {
     MJB_TEST_COVERAGE(mjb_unicode_version); // Added by the script
     const char *version = mjb_unicode_version();
 
-    // Unicode version: 17.0.0
+    // Unicode version: 18.0.0
     // printf("Unicode version: %s", version);
     snprintf(test_buffer, sizeof(test_buffer), "Unicode version: %s", version); // Added by the script
-    ATT_ASSERT(test_buffer, "Unicode version: 17.0.0", "mjb_unicode_version test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Unicode version: 18.0.0", "mjb_unicode_version test failed") // Added by the script
 }
 
 {

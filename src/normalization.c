@@ -541,7 +541,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
                      * combining characters in the buffer to ensure proper ordering.
                      *
                      * See
-                     * https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G49579
+                     * https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G49579
                      */
                     if(buffer_index && current_character.combining == MJB_CCC_NOT_REORDERED) {
                         MJB_NORMALIZE_FLUSH_BUFFER();

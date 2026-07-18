@@ -10,7 +10,8 @@
 
 set -e
 
-UNICODE_VERSION="17.0.0"
+UNICODE_VERSION="draft"
+SECURITY_VERSION="18.0.0"
 DATA_DIR="$(dirname "$0")/unicode-data"
 
 fetch() {
@@ -35,14 +36,24 @@ done
 
 fetch "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/emoji-test.txt" \
     "$DATA_DIR/emoji/emoji-test.txt"
-fetch "https://www.unicode.org/Public/security/latest/intentional.txt" \
-    "$DATA_DIR/security/intentional.txt"
-fetch "https://www.unicode.org/Public/security/latest/confusables.txt" \
-    "$DATA_DIR/security/confusables.txt"
+if [ ! -f "$DATA_DIR/security/intentional.txt" ] || \
+    [ ! -f "$DATA_DIR/security/confusables.txt" ]; then
+    mkdir -p "$DATA_DIR/security"
+    fetch "https://www.unicode.org/Public/$UNICODE_VERSION/security/uts39-data-$SECURITY_VERSION.zip" \
+        "$DATA_DIR/uts39-data.zip"
+
+    if command -v unzip >/dev/null 2>&1; then
+        unzip -o -q "$DATA_DIR/uts39-data.zip" -d "$DATA_DIR/security"
+    else
+        tar -xf "$DATA_DIR/uts39-data.zip" -C "$DATA_DIR/security"
+    fi
+
+    rm "$DATA_DIR/uts39-data.zip"
+fi
 
 for file in "intentional.txt" "confusables.txt"; do
-    if ! grep -q "^# Version: $UNICODE_VERSION$" "$DATA_DIR/security/$file"; then
-        echo "Security data version mismatch in $file; expected $UNICODE_VERSION" >&2
+    if ! grep -q "^# Version: $SECURITY_VERSION$" "$DATA_DIR/security/$file"; then
+        echo "Security data version mismatch in $file; expected $SECURITY_VERSION" >&2
         exit 1
     fi
 done

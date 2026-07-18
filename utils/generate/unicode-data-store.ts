@@ -7,16 +7,19 @@
 import { Character } from './character';
 import { Emoji } from './emoji';
 import { CaseFoldEntry, SimpleCaseFoldEntry } from './parse-ucd/casefold';
-import { CollationEntry, encodeCodepointSequence, encodeCollationWeights } from './parse-ucd/collation';
+import {
+  CollationEntry, encodeCodepointSequence, encodeCollationWeights, ImplicitWeightRange,
+} from './parse-ucd/collation';
 import { ConfusableEntry } from './parse-ucd/confusables';
 import { EmojiSequence } from './parse-ucd/emoji-sequences';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
 import { Prefix } from './prefix-compressor';
 import {
-  BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow, CompositionRow,
-  ConfusableRow, DecompositionRow, EmojiRow, EmojiSequenceRow, NameRow, NCharacterRow, NumericRow,
-  PrefixRow, PropertyRangeRow, SimpleCaseRow, SpecialCaseRow,
+  BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow,
+  CollationImplicitRangeRow, CompositionRow, ConfusableRow, DecompositionRow, EmojiRow,
+  EmojiSequenceRow, NameRow, NCharacterRow, NumericRow, PrefixRow, PropertyRangeRow, SimpleCaseRow,
+  SpecialCaseRow,
   ScriptExtensionRow,
 } from './tables/types';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
@@ -39,6 +42,7 @@ export type UnicodeTableData = {
   caseFoldSimpleMappings: CaseFoldSimpleRow[];
   confusables: ConfusableRow[];
   collationEntries: CollationEntryRow[];
+  collationImplicitRanges: CollationImplicitRangeRow[];
   collationContractions: CollationContractionRow[];
   emojiSequences: EmojiSequenceRow[];
 };
@@ -62,6 +66,7 @@ function emptyUnicodeTableData(): UnicodeTableData {
     caseFoldSimpleMappings: [],
     confusables: [],
     collationEntries: [],
+    collationImplicitRanges: [],
     collationContractions: [],
     emojiSequences: [],
   };
@@ -113,6 +118,9 @@ export function getUnicodeTableData(): UnicodeTableData {
     caseFoldSimpleMappings: [...unicodeTableData.caseFoldSimpleMappings].sort(byCodepoint),
     confusables: [...unicodeTableData.confusables].sort(byCodepoint),
     collationEntries: [...unicodeTableData.collationEntries].sort(byCodepoint),
+    collationImplicitRanges: [...unicodeTableData.collationImplicitRanges].sort((a, b) =>
+      a.start - b.start
+    ),
     collationContractions: [...unicodeTableData.collationContractions].sort((a, b) =>
       a.first_codepoint - b.first_codepoint
     ),
@@ -142,6 +150,7 @@ export function unicodeTableDataSummary() {
     compositions: unicodeTableData.compositions.length,
     propertyRanges: unicodeTableData.properties.length,
     collationEntries: unicodeTableData.collationEntries.length,
+    collationImplicitRanges: unicodeTableData.collationImplicitRanges.length,
     collationContractions: unicodeTableData.collationContractions.length,
     confusables: unicodeTableData.confusables.length,
     emojiSequences: unicodeTableData.emojiSequences.length,
@@ -338,7 +347,7 @@ export function addScriptExtensions(rows: ScriptExtensionRow[]) {
 }
 
 // Add DUCET collation entries and contractions.
-export function addCollation(entries: CollationEntry[]) {
+export function addCollation(entries: CollationEntry[], implicitRanges: ImplicitWeightRange[]) {
   for(const entry of entries) {
     const weights = encodeCollationWeights(entry.elements);
 
@@ -354,6 +363,19 @@ export function addCollation(entries: CollationEntry[]) {
         weights,
       });
     }
+  }
+
+  const offsets = new Map<number, number>();
+
+  for(const range of implicitRanges) {
+    offsets.set(range.base, Math.min(offsets.get(range.base) ?? range.start, range.start));
+  }
+
+  for(const range of implicitRanges) {
+    unicodeTableData.collationImplicitRanges.push({
+      ...range,
+      offset: offsets.get(range.base)!,
+    });
   }
 }
 

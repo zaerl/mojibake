@@ -10,7 +10,9 @@ import { getFileLicense } from './license';
 import { iLog } from './log';
 import { generateBlocks } from './tables/blocks';
 import { generateCaseFoldMappings, generateCaseFoldSimpleMappings, generateSimpleCaseMappings, generateSpecialCaseMappings } from './tables/case';
-import { generateCollationContractions, generateCollationEntries } from './tables/collation';
+import {
+  generateCollationContractions, generateCollationEntries, generateCollationImplicitRanges,
+} from './tables/collation';
 import { generateDecompositionAndCompositionTables } from './tables/composition';
 import { generateConfusables } from './tables/confusable';
 import { generateEmoji } from './tables/emoji';
@@ -50,6 +52,7 @@ ${generateSpecialCaseMappings(data.specialCaseMappings)}
 ${generateCaseFoldMappings(data.caseFoldMappings)}
 ${generateCaseFoldSimpleMappings(data.caseFoldSimpleMappings)}
 ${generateConfusables(data.confusables)}
+${generateCollationImplicitRanges(data.collationImplicitRanges)}
 ${generateCollationEntries(data.collationEntries)}
 ${generateCollationContractions(data.collationContractions)}// clang-format on
 `;

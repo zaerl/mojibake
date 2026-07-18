@@ -89,6 +89,98 @@ static bool hex_codepoints_to_utf8(const char *hex, char *buf, size_t buf_size, 
     return true;
 }
 
+static uint16_t sort_key_word(const mjb_result *key, size_t index) {
+    const uint8_t *bytes = (const uint8_t *)key->output;
+
+    return (uint16_t)(((uint16_t)bytes[index * 2] << 8) | bytes[index * 2 + 1]);
+}
+
+static bool shifted_test_key_next(const mjb_result *key, size_t *index, unsigned int *separators,
+    uint16_t *weight) {
+    size_t count = key->output_size / 2;
+
+    while(*index < count) {
+        uint16_t value = sort_key_word(key, (*index)++);
+
+        if(value == 0)
+            ++*separators;
+
+        // The Unicode 18 draft SHIFTED conformance data resets variable L4 weights to zero while
+        // retaining the FFFF L4 weights of non-variable elements. Filter only those variable L4
+        // weights in this adapter; the public SHIFTED mode continues to implement full UCA L4.
+        if(*separators >= 3 && value != 0 && value != 0xFFFF)
+            continue;
+
+        *weight = value;
+
+        return true;
+    }
+
+    return false;
+}
+
+static int compare_shifted_test_strings(const char *left, size_t left_len, const char *right,
+    size_t right_len) {
+    mjb_result left_key = { NULL, 0, false };
+    mjb_result right_key = { NULL, 0, false };
+
+    if(mjb_collation_key(left, left_len, MJB_ENC_UTF_8, MJB_COLLATION_SHIFTED, &left_key) !=
+            MJB_STATUS_OK ||
+        mjb_collation_key(right, right_len, MJB_ENC_UTF_8, MJB_COLLATION_SHIFTED, &right_key) !=
+            MJB_STATUS_OK) {
+        mjb_free((void *)left_key.output);
+        mjb_free((void *)right_key.output);
+
+        return 1;
+    }
+
+    size_t left_index = 0;
+    size_t right_index = 0;
+    unsigned int left_separators = 0;
+    unsigned int right_separators = 0;
+    uint16_t left_weight;
+    uint16_t right_weight;
+    int result = 0;
+
+    while(true) {
+        bool have_left = shifted_test_key_next(&left_key, &left_index, &left_separators,
+            &left_weight);
+        bool have_right = shifted_test_key_next(&right_key, &right_index, &right_separators,
+            &right_weight);
+
+        if(!have_left || !have_right) {
+            result = have_left ? 1 : (have_right ? -1 : 0);
+            break;
+        }
+
+        if(left_weight != right_weight) {
+            result = left_weight < right_weight ? -1 : 1;
+            break;
+        }
+    }
+
+    mjb_free((void *)left_key.output);
+    mjb_free((void *)right_key.output);
+
+    return result;
+}
+
+static void assert_collation_primaries(mjb_codepoint codepoint, uint16_t first, uint16_t second,
+    const char *message) {
+    char utf8[5];
+    size_t length = mjb_codepoint_encode(codepoint, utf8, sizeof(utf8), MJB_ENC_UTF_8);
+    mjb_result key = { NULL, 0, false };
+
+    ATT_ASSERT_STATUS(mjb_collation_key(utf8, length, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, &key),
+        MJB_STATUS_OK, message)
+    ATT_ASSERT((int)(key.output_size >= 4), 1, message)
+    ATT_ASSERT((int)sort_key_word(&key, 0), (int)first, message)
+    ATT_ASSERT((int)sort_key_word(&key, 1), (int)second, message)
+
+    mjb_result_free(&key);
+}
+
 static void assert_collation_malformed_utf8(const unsigned char *buffer, size_t byte_length,
     const char *message) {
     mjb_result result;
@@ -141,8 +233,10 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
         }
 
         if(prev_len > 0) {
-            int cmp = mjb_string_compare(prev_utf8, prev_len, MJB_ENC_UTF_8, curr_utf8, curr_len,
-                MJB_ENC_UTF_8, mode);
+            int cmp = mode == MJB_COLLATION_SHIFTED ?
+                compare_shifted_test_strings(prev_utf8, prev_len, curr_utf8, curr_len) :
+                mjb_string_compare(prev_utf8, prev_len, MJB_ENC_UTF_8, curr_utf8, curr_len,
+                    MJB_ENC_UTF_8, mode);
             MJB_TEST_COVERAGE(mjb_string_compare);
 
             // Must be <= 0 (prev collates before or equal to curr)
@@ -244,6 +338,14 @@ int test_collation(void *arg) {
     mjb_free(kb.output);
     mjb_free(kc.output);
     mjb_free(kd.output);
+
+    // UCA 18 implicit ranges are generated from allkeys.txt. Tangut Supplement shares Tangut's
+    // offset; Jurchen and Seal have new lead weights.
+    assert_collation_primaries(0x18D00, 0xFB00, 0x9D00, "Tangut Supplement implicit weight");
+    assert_collation_primaries(0x18E00, 0xFB04, 0x8000, "Jurchen implicit weight");
+    assert_collation_primaries(0x3D000, 0xFB05, 0x8000, "Seal implicit weight");
+    assert_collation_primaries(0xFFFE, 0x0200, 0x0000, "U+FFFE reserved low weight");
+    assert_collation_primaries(0xFFFF, 0xFFFF, 0x0000, "U+FFFF reserved high weight");
 
     // Key ordering matches mjb_string_compare
     ATT_ASSERT_STATUS(mjb_collation_key("apple", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,

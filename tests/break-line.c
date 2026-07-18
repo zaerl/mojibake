@@ -58,6 +58,20 @@ int test_break_line(void *arg) {
         (uint8_t)MJB_BT_NOT_SET, "Line break finishes after UTF-16LE NULL")
 #endif
 
+    // Unicode 18 LB12a disallows BA × GL; U+2012 changed from HH to BA.
+    const char ba_gl[] = "\xE2\x80\x92\xC2\xA0"; // FIGURE DASH, NO-BREAK SPACE
+    state.index = 0;
+    ATT_ASSERT((uint8_t)mjb_break_line(ba_gl, sizeof(ba_gl) - 1, MJB_ENC_UTF_8, &state),
+        (uint8_t)MJB_BT_NO_BREAK, "Unicode 18 LB12a BA x GL")
+    ATT_ASSERT((uint8_t)mjb_break_line(ba_gl, sizeof(ba_gl) - 1, MJB_ENC_UTF_8, &state),
+        (uint8_t)MJB_BT_MANDATORY, "Unicode 18 LB12a end")
+
+    // U+00AD changed from BA to HH and remains an LB12a exception before GL.
+    const char hh_gl[] = "\xC2\xAD\xC2\xA0"; // SOFT HYPHEN, NO-BREAK SPACE
+    state.index = 0;
+    ATT_ASSERT((uint8_t)mjb_break_line(hh_gl, sizeof(hh_gl) - 1, MJB_ENC_UTF_8, &state),
+        (uint8_t)MJB_BT_ALLOWED, "Unicode 18 LB12a HH before GL")
+
     read_test_file("./utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt",
         &break_line_callback);
 

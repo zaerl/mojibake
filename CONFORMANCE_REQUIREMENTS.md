@@ -5,28 +5,28 @@ This will be very boring if you, or your LLM, will dare to read it.
 ## Unicode References
 
 Mojibake's Unicode data and algorithm references are scoped to
-[The Unicode Standard, Version 17.0.0](https://www.unicode.org/versions/Unicode17.0.0/)
-and the [Unicode Character Database 17.0.0](https://www.unicode.org/Public/17.0.0/).
+[The Unicode Standard, Version 18.0.0](https://www.unicode.org/versions/Unicode18.0.0/)
+and the [Unicode Character Database 18.0.0](https://www.unicode.org/Public/18.0.0/).
 Normative algorithm references here and in [https://github.com/zaerl/mojibake/blob/main/API.md](API.md)
-use the archived Unicode 17.0.0 versions of the applicable annexes and synchronized technical standards:
+use the archived Unicode 18.0.0 versions of the applicable annexes and synchronized technical standards:
 
-- [UAX #44: Unicode Character Database, Unicode 17.0.0](https://www.unicode.org/reports/tr44/tr44-36.html)
-- [UAX #9: Unicode Bidirectional Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html)
-- [UAX #11: East Asian Width, Unicode 17.0.0](https://www.unicode.org/reports/tr11/tr11-44.html)
-- [UAX #14: Unicode Line Breaking Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr14/tr14-55.html)
-- [UAX #15: Unicode Normalization Forms, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html)
-- [UAX #29: Unicode Text Segmentation, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html)
-- [UAX #31: Unicode Identifiers and Syntax, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html)
-- [UTS #10: Unicode Collation Algorithm, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html)
-- [UTS #39: Unicode Security Mechanisms, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html)
-- [UTS #51: Unicode Emoji, Unicode 17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html)
+- [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html)
+- [UAX #9: Unicode Bidirectional Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html)
+- [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-45.html)
+- [UAX #14: Unicode Line Breaking Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr14/tr14-56.html)
+- [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html)
+- [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html)
+- [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html)
+- [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html)
+- [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html)
+- [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html)
 
 Generic Unicode links, when present, are informational or download links rather than normative
 conformance references.
 
 ## Unicode Conformance Requirements
 
-See https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G29705
+See https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G29705
 
 ### C1
 
@@ -61,7 +61,7 @@ established by this standard, if that process does interpret that coded characte
 
 ✅ Satisfied. `README.md` and `API.md` scope Mojibake's Unicode interpretation surface to the
 documented public APIs and supported UTF encodings. The conformance inventory maps each advertised
-Unicode algorithm or data claim to its Unicode 17.0.0 reference and test evidence.
+Unicode algorithm or data claim to its Unicode 18.0.0 reference and test evidence.
 
 ### C5
 
@@ -179,9 +179,9 @@ aliases, or to Unicode algorithms shall follow the formats specified in Section 
 Unicode Standard.
 
 ✅ Satisfied. `README.md`, `API.md` and `CONFORMANCE_REQUIREMENTS.md` state that normative Unicode
-references are scoped to the Unicode Standard, Version 17.0.0 and UCD 17.0.0. Generated API metadata
-emits archived Unicode 17.0.0 UAX/UTS links for algorithm and property references, and public header
-comments name Unicode 17.0.0 where they reference UAX/UTS material.
+references are scoped to the Unicode Standard, Version 18.0.0 and UCD 18.0.0. Generated API metadata
+emits archived Unicode 18.0.0 UAX/UTS links for algorithm and property references, and public header
+comments name Unicode 18.0.0 where they reference UAX/UTS material.
 
 ### C17
 
@@ -198,9 +198,9 @@ specification of that algorithm in the standard, including any tailoring by a hi
 as permitted by the specification.
 
 ✅ Satisfied. `README.md`, `API.md` and `CONFORMANCE_REQUIREMENTS.md` include a Unicode conformance
-inventory that maps every advertised Unicode algorithm or data claim to its versioned Unicode 17.0.0
+inventory that maps every advertised Unicode algorithm or data claim to its versioned Unicode 18.0.0
 reference and test evidence. The inventory distinguishes official Unicode conformance suites from
-normative data file checks and local regression coverage. This includes every explicit Unicode 17
+normative data file checks and local regression coverage. This includes every explicit Unicode 18
 `NFKC_CF` mapping from `DerivedNormalizationProps.txt`, every UTS #39 skeleton mapping from
 `confusables.txt`, and the documented collation filtering for surrogate-code-point rows.
 
@@ -230,12 +230,12 @@ subsequent characters before the next word boundary are lowercased. Focused test
 apostrophes, case-ignorable characters, and Cherokee folding stability. `mjb_nfkc_casefold`
 implements Unicode R5 by repeatedly applying NFKC, full default case folding, and removal of
 `Default_Ignorable_Code_Point` characters until stable, followed by NFC. `tests/normalization.c`
-checks every explicit Unicode 17 `NFKC_CF` mapping from `DerivedNormalizationProps.txt`. Mojibake
+checks every explicit Unicode 18 `NFKC_CF` mapping from `DerivedNormalizationProps.txt`. Mojibake
 does not expose a separate *Default Case Detection* API.
 
 ## Unicode Tailoring
 
-Unless listed here, Mojibake applies the referenced Unicode 17.0.0 algorithms *without*
+Unless listed here, Mojibake applies the referenced Unicode 18.0.0 algorithms *without*
 higher-level protocol tailoring.
 
 - **Case conversion and case folding**: `mjb_case` is locale-sensitive through the process-global
@@ -248,7 +248,7 @@ higher-level protocol tailoring.
 - **Collation**: `mjb_string_compare` and `mjb_collation_key` use DUCET without locale collation
   tailoring. The `mjb_collation_mode` argument only selects the UCA variable weighting strategy.
 - **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
-  Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 17.0.0
+  Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 18.0.0
   property value without tailoring.
 - **Other Unicode algorithms**: normalization, NFKC case folding, bidirectional processing,
   grapheme/word/sentence/line breaking, identifier validation, confusable skeletons, and emoji
@@ -260,18 +260,18 @@ Mojibake interprets Unicode text only through the public APIs and supported UTF 
 this documentation. It does not implement *rendering*, *font shaping*, *locale collation tailoring*,
 or *higher-level protocol* behavior beyond the documented locale-sensitive casing and display-width
 policy. The table below maps the advertised Unicode algorithm and data claims to their Unicode
-17.0.0 reference and test evidence.
+18.0.0 reference and test evidence.
 
 | Claim | Public surface | Unicode reference | Evidence |
 | --- | --- | --- | --- |
-| Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-39.html), UCD 17.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
+| Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
-| Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
-| Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-47.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
-| Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-55.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
+| Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
+| Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
+| Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
-| Unicode Collation Algorithm, DUCET | `mjb_string_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-53.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
-| Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-43.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
-| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-32.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
-| Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-29.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
-| East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-44.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |
+| Unicode Collation Algorithm, DUCET | `mjb_string_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
+| Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
+| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
+| Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
+| East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

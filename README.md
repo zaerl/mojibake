@@ -3,7 +3,7 @@
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
-**Mojibake** is a low-level Unicode 17 text-processing library written in C11 and compatible
+**Mojibake** is a low-level Unicode 18 text-processing library written in C11 and compatible
 with C++17. It is released under the MIT License.
 
 ## Usage
@@ -112,7 +112,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 - **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), identifier-oriented NFKC case folding
   (`mjb_nfkc_casefold`), plus a fast quick-check
-  (`mjb_string_is_normalized`) ([UAX #15, Unicode 17.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
+  (`mjb_string_is_normalized`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
   and conditional mappings (`mjb_case`)
 - **Filtering**: strip controls, spaces, or numeric characters while normalizing
@@ -124,10 +124,10 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   Script_Extensions, block, plane, numeric value, name (`mjb_codepoint_character`,
   `mjb_codepoint_script_extensions`)
 - **Segmentation**: grapheme clusters, words, sentences, and line-break opportunities
-  ([UAX #29, Unicode 17.0.0](https://www.unicode.org/reports/tr29/tr29-47.html),
-  [UAX #14, Unicode 17.0.0](https://www.unicode.org/reports/tr14/tr14-55.html))
+  ([UAX #29, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html),
+  [UAX #14, Unicode 18.0.0](https://www.unicode.org/reports/tr14/tr14-56.html))
 - **Bidirectional text**: full Unicode Bidirectional Algorithm: paragraph resolution, line
-  reordering, runs ([UAX #9, Unicode 17.0.0](https://www.unicode.org/reports/tr9/tr9-51.html))
+  reordering, runs ([UAX #9, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html))
 - **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
 - **Display width**: East Asian width and terminal display width, with width-aware truncation
   (`mjb_display_width`, `mjb_truncate_width`)
@@ -136,15 +136,15 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 - **Collation**: Unicode Collation Algorithm string comparison and sort keys, in shifted and
   non-ignorable modes (`mjb_string_compare`, `mjb_collation_key`,
-  [UTS #10, Unicode 17.0.0](https://www.unicode.org/reports/tr10/tr10-53.html))
+  [UTS #10, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html))
 
 **Security**
 
 - **Confusable detection**: generate reusable skeletons and check if strings are visually
   confusable (`mjb_confusable_skeleton`, `mjb_string_is_confusable`,
-  [UTS #39, Unicode 17.0.0](https://www.unicode.org/reports/tr39/tr39-32.html))
+  [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
-  (`mjb_string_is_identifier`, [UAX #31, Unicode 17.0.0](https://www.unicode.org/reports/tr31/tr31-43.html))
+  (`mjb_string_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))
 
 **Integration**
 

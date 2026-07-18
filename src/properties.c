@@ -58,6 +58,13 @@ static const char *mjb_property_names[] = {
     "kEH_HG", // enumerated
     "kEH_IFAO", // enumerated
     "kEH_JSesh", // enumerated
+    "kJURC_Src", // enumerated
+    "kNSHU_DubenSrc", // enumerated
+    "kSEAL_CCZSrc", // enumerated
+    "kSEAL_DYCSrc", // enumerated
+    "kSEAL_QJZSrc", // enumerated
+    "kSEAL_THXSrc", // enumerated
+    "kTGT_MergedSrc", // enumerated
     "Name", // enumerated
     "Name_Alias", // enumerated
     "Script_Extensions", // enumerated
@@ -205,6 +212,13 @@ static const bool mjb_property_is_binary[] = {
     false, // MJB_PR_KEH_HG
     false, // MJB_PR_KEH_IFAO
     false, // MJB_PR_KEH_JSESH
+    false, // MJB_PR_KJURC_SRC
+    false, // MJB_PR_KNSHU_DUBENSRC
+    false, // MJB_PR_KSEAL_CCZSRC
+    false, // MJB_PR_KSEAL_DYCSRC
+    false, // MJB_PR_KSEAL_QJZSRC
+    false, // MJB_PR_KSEAL_THXSRC
+    false, // MJB_PR_KTGT_MERGEDSRC
     false, // MJB_PR_NAME
     false, // MJB_PR_NAME_ALIAS
     false, // MJB_PR_SCRIPT_EXTENSIONS

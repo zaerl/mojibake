@@ -37,16 +37,14 @@ export function generateConfusables(rows: ConfusableRow[]) {
   const uniqueSkeletons = [...new Map(skeletons.map((values) => [values.join(','), values])).values()]
     .sort((a, b) => b.length - a.length);
 
-  const encodeLength = (length: number) => {
-    if(length >= 1 && length <= 6) {
+  // Lengths 1-8 fit directly in three bits. The longest skeleton is stored first at offset zero,
+  // allowing that one entry to share the length-8 encoding without widening every mapping.
+  const encodeLength = (offset: number, length: number) => {
+    if(length >= 1 && length <= 8) {
       return length - 1;
     }
 
-    if(length === 8) {
-      return 6;
-    }
-
-    if(length === 18) {
+    if(offset === 0) {
       return 7;
     }
 
@@ -100,10 +98,12 @@ export function generateConfusables(rows: ConfusableRow[]) {
       throw new Error('Missing confusable skeleton entry');
     }
 
-    return entry.offset | (encodeLength(values.length) << 13);
+    return entry.offset | (encodeLength(entry.offset, values.length) << 13);
   });
 
-  return `static const mjb_codepoint mjb_unicode_confusable_data[] = {
+  return `#define MJB_UNICODE_CONFUSABLE_LONG_LENGTH ${uniqueSkeletons[0]?.length ?? 0}
+
+static const mjb_codepoint mjb_unicode_confusable_data[] = {
 ${formatCodepoints(data)}
 };
 

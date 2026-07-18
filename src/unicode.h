@@ -316,6 +316,7 @@ typedef enum mjb_block {
     MJB_BLOCK_MASARAM_GONDI,
     MJB_BLOCK_GUNJALA_GONDI,
     MJB_BLOCK_TOLONG_SIKI,
+    MJB_BLOCK_BENGALI_SUPPLEMENT,
     MJB_BLOCK_MAKASAR,
     MJB_BLOCK_KAWI,
     MJB_BLOCK_LISU_SUPPLEMENT,
@@ -323,6 +324,7 @@ typedef enum mjb_block {
     MJB_BLOCK_CUNEIFORM,
     MJB_BLOCK_CUNEIFORM_NUMBERS_AND_PUNCTUATION,
     MJB_BLOCK_EARLY_DYNASTIC_CUNEIFORM,
+    MJB_BLOCK_ARCHAIC_CUNEIFORM_NUMERALS,
     MJB_BLOCK_CYPRO_MINOAN,
     MJB_BLOCK_EGYPTIAN_HIEROGLYPHS,
     MJB_BLOCK_EGYPTIAN_HIEROGLYPH_FORMAT_CONTROLS,
@@ -335,6 +337,7 @@ typedef enum mjb_block {
     MJB_BLOCK_BASSA_VAH,
     MJB_BLOCK_PAHAWH_HMONG,
     MJB_BLOCK_KIRAT_RAI,
+    MJB_BLOCK_CHISOI,
     MJB_BLOCK_MEDEFAIDRIN,
     MJB_BLOCK_BERIA_ERFE,
     MJB_BLOCK_MIAO,
@@ -344,6 +347,8 @@ typedef enum mjb_block {
     MJB_BLOCK_KHITAN_SMALL_SCRIPT,
     MJB_BLOCK_TANGUT_SUPPLEMENT,
     MJB_BLOCK_TANGUT_COMPONENTS_SUPPLEMENT,
+    MJB_BLOCK_JURCHEN,
+    MJB_BLOCK_JURCHEN_RADICALS,
     MJB_BLOCK_KANA_EXTENDED_B,
     MJB_BLOCK_KANA_SUPPLEMENT,
     MJB_BLOCK_KANA_EXTENDED_A,
@@ -357,12 +362,14 @@ typedef enum mjb_block {
     MJB_BLOCK_BYZANTINE_MUSICAL_SYMBOLS,
     MJB_BLOCK_MUSICAL_SYMBOLS,
     MJB_BLOCK_ANCIENT_GREEK_MUSICAL_NOTATION,
+    MJB_BLOCK_MUSICAL_SYMBOLS_SUPPLEMENT,
     MJB_BLOCK_KAKTOVIK_NUMERALS,
     MJB_BLOCK_MAYAN_NUMERALS,
     MJB_BLOCK_TAI_XUAN_JING_SYMBOLS,
     MJB_BLOCK_COUNTING_ROD_NUMERALS,
     MJB_BLOCK_MATHEMATICAL_ALPHANUMERIC_SYMBOLS,
     MJB_BLOCK_SUTTON_SIGNWRITING,
+    MJB_BLOCK_MISCELLANEOUS_SYMBOLS_AND_ARROWS_EXTENDED,
     MJB_BLOCK_LATIN_EXTENDED_G,
     MJB_BLOCK_GLAGOLITIC_SUPPLEMENT,
     MJB_BLOCK_CYRILLIC_EXTENDED_D,
@@ -404,13 +411,14 @@ typedef enum mjb_block {
     MJB_BLOCK_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_G,
     MJB_BLOCK_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_H,
     MJB_BLOCK_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_J,
+    MJB_BLOCK_SEAL,
     MJB_BLOCK_TAGS,
     MJB_BLOCK_VARIATION_SELECTORS_SUPPLEMENT,
     MJB_BLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_A,
     MJB_BLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_B
 } mjb_block;
 
-#define MJB_BLOCK_NUM 346
+#define MJB_BLOCK_NUM 354
 
 /**
  * Unicode codepoint general category
@@ -679,8 +687,8 @@ typedef enum mjb_plane {
 
 /**
  * Word_Break Property Values
- * UAX #29, Unicode 17.0.0:
- * https://www.unicode.org/reports/tr29/tr29-47.html#Table_Word_Break_Property_Values
+ * UAX #29, Unicode 18.0.0:
+ * https://www.unicode.org/reports/tr29/tr29-48.html#Table_Word_Break_Property_Values
  */
 typedef enum mjb_wbp {
     MJB_WBP_NOT_SET, // 0 is "no value"
@@ -817,6 +825,7 @@ typedef enum mjb_script {
     MJB_SC_CARI,
     MJB_SC_CHAM,
     MJB_SC_CHER,
+    MJB_SC_CHIS,
     MJB_SC_CHRS,
     MJB_SC_COPT,
     MJB_SC_CPMN,
@@ -855,6 +864,7 @@ typedef enum mjb_script {
     MJB_SC_HUNG,
     MJB_SC_ITAL,
     MJB_SC_JAVA,
+    MJB_SC_JURC,
     MJB_SC_KALI,
     MJB_SC_KANA,
     MJB_SC_KAWI,
@@ -908,6 +918,7 @@ typedef enum mjb_script {
     MJB_SC_OUGR,
     MJB_SC_PALM,
     MJB_SC_PAUC,
+    MJB_SC_PCUN,
     MJB_SC_PERM,
     MJB_SC_PHAG,
     MJB_SC_PHLI,
@@ -921,6 +932,7 @@ typedef enum mjb_script {
     MJB_SC_SAMR,
     MJB_SC_SARB,
     MJB_SC_SAUR,
+    MJB_SC_SEAL,
     MJB_SC_SGNW,
     MJB_SC_SHAW,
     MJB_SC_SHRD,
@@ -971,7 +983,7 @@ typedef enum mjb_script {
     MJB_SC_ZZZZ
 } mjb_script;
 
-#define MJB_SC_COUNT 177
+#define MJB_SC_COUNT 181
 
 /**
  * Property (pr)
@@ -1022,6 +1034,13 @@ typedef enum mjb_property {
     MJB_PR_KEH_HG, // enumerated
     MJB_PR_KEH_IFAO, // enumerated
     MJB_PR_KEH_JSESH, // enumerated
+    MJB_PR_KJURC_SRC, // enumerated
+    MJB_PR_KNSHU_DUBENSRC, // enumerated
+    MJB_PR_KSEAL_CCZSRC, // enumerated
+    MJB_PR_KSEAL_DYCSRC, // enumerated
+    MJB_PR_KSEAL_QJZSRC, // enumerated
+    MJB_PR_KSEAL_THXSRC, // enumerated
+    MJB_PR_KTGT_MERGEDSRC, // enumerated
     MJB_PR_NAME, // enumerated
     MJB_PR_NAME_ALIAS, // enumerated
     MJB_PR_SCRIPT_EXTENSIONS, // enumerated
@@ -1125,15 +1144,15 @@ typedef enum mjb_property {
 // clang-format on
 
 // This value is automatically generated. Do not edit.
-#define MJB_PR_COUNT 142
+#define MJB_PR_COUNT 149
 
 // This value is automatically generated. Do not edit.
-#define MJB_PR_ENUM_COUNT 67
+#define MJB_PR_ENUM_COUNT 74
 
 // This value is automatically generated. Do not edit.
 #define MJB_PR_BOOL_COUNT 75
 
 // This value is automatically generated. Do not edit.
-#define MJB_PR_BUFFER_SIZE 209
+#define MJB_PR_BUFFER_SIZE 223
 
 #endif // MJB_UNICODE_H

@@ -47,6 +47,8 @@ bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoi
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
 bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights);
+bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
+    mjb_codepoint *offset);
 bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
     const mjb_unicode_collation_contraction_entry **entries, size_t *count);
 const mjb_codepoint *

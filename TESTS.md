@@ -1,59 +1,59 @@
 # Test coverage
 
-Mojibake run a total of **1,610,123** C assertions and **79** JavaScript assertions, including all
+Mojibake run a total of **1,600,176** C assertions and **79** JavaScript assertions, including all
 the official tests included in the standard:
 
-1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
-2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt)
-3. [auxiliary/SentenceBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/SentenceBreakTest.txt)
-4. [auxiliary/WordBreakTest.txt](https://www.unicode.org/Public/17.0.0/ucd/auxiliary/WordBreakTest.txt)
-5. [BidiCharacterTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiCharacterTest.txt)
-6. [BidiTest.txt](https://www.unicode.org/Public/17.0.0/ucd/BidiTest.txt)
-7. [CaseFolding.txt](https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt)
-8. [CollationTest/CollationTest_NON_IGNORABLE.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
-9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/17.0.0/uca/CollationTest.zip)
-10. [emoji-test.txt](https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt)
-11. [intentional.txt](https://www.unicode.org/Public/security/latest/intentional.txt)
-12. [NormalizationTest.txt](https://www.unicode.org/Public/17.0.0/ucd/NormalizationTest.txt)
-13. [SpecialCasing.txt](https://www.unicode.org/Public/17.0.0/ucd/SpecialCasing.txt)
+1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
+2. [auxiliary/LineBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/LineBreakTest.txt)
+3. [auxiliary/SentenceBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/SentenceBreakTest.txt)
+4. [auxiliary/WordBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/WordBreakTest.txt)
+5. [BidiCharacterTest.txt](https://www.unicode.org/Public/18.0.0/ucd/BidiCharacterTest.txt)
+6. [BidiTest.txt](https://www.unicode.org/Public/18.0.0/ucd/BidiTest.txt)
+7. [CaseFolding.txt](https://www.unicode.org/Public/18.0.0/ucd/CaseFolding.txt)
+8. [CollationTest/CollationTest_NON_IGNORABLE.txt](https://www.unicode.org/Public/18.0.0/uca/CollationTest.zip)
+9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/18.0.0/uca/CollationTest.zip)
+10. [emoji-test.txt](https://www.unicode.org/Public/18.0.0/emoji/emoji-test.txt)
+11. [UTS #39 data (confusables.txt and intentional.txt)](https://www.unicode.org/Public/draft/security/uts39-data-18.0.0.zip)
+12. [NormalizationTest.txt](https://www.unicode.org/Public/18.0.0/ucd/NormalizationTest.txt)
+13. [SpecialCasing.txt](https://www.unicode.org/Public/18.0.0/ucd/SpecialCasing.txt)
 
 ## C
 
 | Test                                     | Coverage    |
 | ---------------------------------------- | ----------- |
 | `mjb_bidi_resolve`                       | 582573      |
-| `mjb_string_compare`                     | 437882      |
-| `mjb_normalize`                          | 421541      |
+| `mjb_string_compare`                     | 424486      |
+| `mjb_normalize`                          | 424423      |
 | `mjb_bidi_reorder_line`                  | 91723       |
-| `mjb_nfkc_casefold`                      | 31773       |
-| `mjb_break_line`                         | 18795       |
-| `mjb_result_free`                        | 10598       |
-| `mjb_string_emoji_sequence`              | 5267        |
-| `mjb_case`                               | 3487        |
+| `mjb_nfkc_casefold`                      | 32037       |
+| `mjb_break_line`                         | 18800       |
+| `mjb_result_free`                        | 10686       |
+| `mjb_string_emoji_sequence`              | 5286        |
+| `mjb_case`                               | 3532        |
 | `mjb_break_word`                         | 1829        |
-| `mjb_codepoint_emoji`                    | 1420        |
-| `mjb_break_grapheme_cluster`             | 716         |
-| `mjb_codepoint_script_extensions`        | 630         |
+| `mjb_codepoint_emoji`                    | 1429        |
+| `mjb_break_grapheme_cluster`             | 803         |
+| `mjb_codepoint_script_extensions`        | 639         |
 | `mjb_break_sentence`                     | 459         |
 | `mjb_string_filter`                      | 155         |
 | `mjb_string_convert_encoding`            | 137         |
 | `mjb_locale_parse`                       | 121         |
+| `mjb_string_is_confusable`               | 120         |
 | `mjb_string_length`                      | 111         |
 | `mjb_codepoint_encode`                   | 106         |
-| `mjb_string_is_confusable`               | 102         |
 | `mjb_codepoint_character`                | 82          |
 | `mjb_display_width`                      | 49          |
+| `mjb_collation_key`                      | 45          |
 | `mjb_hangul_syllable_composition`        | 45          |
 | `mjb_codepoint_is_valid`                 | 40          |
-| `mjb_codepoint_east_asian_width`         | 33          |
-| `mjb_collation_key`                      | 25          |
+| `mjb_codepoint_east_asian_width`         | 35          |
 | `mjb_locale_set`                         | 21          |
 | `mjb_codepoint_numeric_value`            | 20          |
 | `mjb_hangul_syllable_name`               | 19          |
 | `mjb_confusable_skeleton`                | 18          |
 | `mjb_string_is_utf8`                     | 18          |
+| `mjb_codepoint_is_cjk_ext`               | 17          |
 | `mjb_codepoint_block`                    | 16          |
-| `mjb_codepoint_is_cjk_ext`               | 16          |
 | `mjb_string_is_utf16`                    | 15          |
 | `mjb_string_is_identifier`               | 13          |
 | `mjb_bidi_line_runs`                     | 12          |
@@ -106,7 +106,7 @@ the official tests included in the standard:
 | `mjb_unicode_version`                    | 2           |
 | `mjb_version`                            | 2           |
 | `mjb_version_number`                     | 2           |
-| **Total**                                | **1610123** |
+| **Total**                                | **1600176** |
 
 ## JavaScript
 

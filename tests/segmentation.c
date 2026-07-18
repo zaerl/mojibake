@@ -121,6 +121,21 @@ static void test_basic_segmentation(void) {
 
     ATT_ASSERT(index, 4, "ITIT test break index")
 
+    // Unicode 18 GB9c no longer requires a preceding InCB=Consonant. A Linker followed by zero or
+    // more InCB=Extend characters joins directly to the following InCB=Consonant.
+    const char gb9c[] = "\xE0\xA5\x8D\xCC\x80\xE0\xA4\x95"; // 094D 0300 0915
+    mjb_break_type expected_gb9c[] = { MJB_BT_NO_BREAK, MJB_BT_NO_BREAK, MJB_BT_ALLOWED };
+
+    MJB_TEST_S
+    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster);
+
+    while((bt = mjb_break_grapheme_cluster(gb9c, sizeof(gb9c) - 1, MJB_ENC_UTF_8, &state)) !=
+        MJB_BT_NOT_SET) {
+        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_gb9c[index++], "Unicode 18 GB9c")
+    }
+
+    ATT_ASSERT(index, 3, "Unicode 18 GB9c break index")
+
 #undef MJB_TEST_S
 }
 
