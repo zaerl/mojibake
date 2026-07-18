@@ -9,7 +9,7 @@ option(BUILD_CPP "Build with C++ instead of C" OFF)
 
 project(
     Mojibake
-    VERSION 0.2.8
+    VERSION 0.3.0
     DESCRIPTION "Mojibake"
     HOMEPAGE_URL "https://mojibake.zaerl.com"
     LANGUAGES C

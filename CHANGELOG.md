@@ -5,7 +5,24 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-##[0.2.8] - 2026-07-16
+## [0.3.0] - 2026-07-18
+
+### Added
+- Moved to Unicode 18
+- Added Haiku test action
+- Added `MJB_BUILD_CLI` option
+- Cmake changes now added `BUILD_TESTING` option
+
+### Changed
+- Now the generation script download the entire security zip
+- Removed `enable_testing()` and added `include(CTest)`
+- Added a supplementary 64-bit table for case entries outside BMP
+
+### Fixed
+- Critical: removed `utils/` from Git export-ignore
+- Changed fuzz/corpus/** files to "binary"
+
+## [0.2.8] - 2026-07-16
 
 ### Added
 - Added FreeBSD, OpenBSD, NetBSD test flows
@@ -468,7 +485,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/zaerl/mojibake/compare/v0.2.8...v0.3.0
 [0.2.8]: https://github.com/zaerl/mojibake/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/zaerl/mojibake/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/zaerl/mojibake/compare/v0.2.5...v0.2.6
