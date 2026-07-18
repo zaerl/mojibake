@@ -27,21 +27,12 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
         state->zwj_seen = false;
     }
 
-    // Update GB9c: Indic Conjunct Break sequences
+    // Update GB9c: remember whether the consumed suffix is Linker Extend*.
     uint8_t incb_value = mjb_codepoint_properties_get(buffer, MJB_PR_INDIC_CONJUNCT_BREAK);
 
-    if(incb_value == MJB_INCB_CONSONANT) {
-        // Start new Consonant sequence
-        state->incb_consonant_seen = true;
-        state->incb_linker_seen = false;
-    } else if(incb_value == MJB_INCB_LINKER && state->incb_consonant_seen) {
-        // Mark that we've seen a Linker in this sequence
+    if(incb_value == MJB_INCB_LINKER) {
         state->incb_linker_seen = true;
-    } else if(incb_value == MJB_INCB_NOT_SET ||
-        (incb_value != MJB_INCB_EXTEND && incb_value != MJB_INCB_LINKER)) {
-        // Break in sequence: character is not InCB-relevant, or is None
-        // Reset unless it's Extend or Linker (which continue the sequence)
-        state->incb_consonant_seen = false;
+    } else if(incb_value != MJB_INCB_EXTEND) {
         state->incb_linker_seen = false;
     }
 }
@@ -214,12 +205,10 @@ MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t 
 
         // The GB9c rule only applies to extended grapheme clusters:
         // Do not break within certain combinations with Indic_Conjunct_Break (InCB)=Linker.
-        // GB9c \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]* \p{InCB=Linker}
-        //   [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
+        // GB9c \p{InCB=Linker} \p{InCB=Extend}* × \p{InCB=Consonant}
         uint8_t curr_incb = mjb_codepoint_properties_get(cpb, MJB_PR_INDIC_CONJUNCT_BREAK);
 
-        if(curr_incb != MJB_INCB_NOT_SET && state->incb_consonant_seen && state->incb_linker_seen &&
-            curr_incb == MJB_INCB_CONSONANT) {
+        if(state->incb_linker_seen && curr_incb == MJB_INCB_CONSONANT) {
             mjb_update_sequence_flags(state, cpb);
 
             return MJB_BT_NO_BREAK;
