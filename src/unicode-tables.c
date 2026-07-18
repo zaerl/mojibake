@@ -817,7 +817,7 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
 
     *values = &mjb_unicode_confusable_data[offset];
     *length = encoded_length == 7 && offset == 0 ? MJB_UNICODE_CONFUSABLE_LONG_LENGTH :
-        encoded_length + 1;
+                                                   encoded_length + 1;
 
     return true;
 }
@@ -825,8 +825,8 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset) {
     for(size_t i = 0; i < MJB_UNICODE_COLLATION_IMPLICIT_RANGE_COUNT; ++i) {
-        const mjb_unicode_collation_implicit_range *range =
-            &mjb_unicode_collation_implicit_ranges[i];
+        const mjb_unicode_collation_implicit_range
+            *range = &mjb_unicode_collation_implicit_ranges[i];
 
         if(codepoint >= range->start && codepoint <= range->end) {
             *base = range->base;

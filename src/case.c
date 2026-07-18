@@ -91,13 +91,13 @@ static void mjb_case_context_update(mjb_case_context *context, mjb_codepoint cod
 static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
     // Codepoints with unconditional multi-char entries in SpecialCasing.txt.
     switch(codepoint) {
-        case 223:  // U+00DF ß LATIN SMALL LETTER SHARP S
-        case 304:  // U+0130 İ LATIN CAPITAL LETTER I WITH DOT ABOVE
-        case 329:  // U+0149 ŉ LATIN SMALL LETTER N PRECEDED BY APOSTROPHE
-        case 496:  // U+01F0 ǰ LATIN SMALL LETTER J WITH CARON
-        case 912:  // U+0390 ΐ GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS
-        case 944:  // U+03B0 ΰ GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS
-        case 1415: // U+0587 եւ ARMENIAN SMALL LIGATURE ECH YIWN
+        case 223:    // U+00DF ß LATIN SMALL LETTER SHARP S
+        case 304:    // U+0130 İ LATIN CAPITAL LETTER I WITH DOT ABOVE
+        case 329:    // U+0149 ŉ LATIN SMALL LETTER N PRECEDED BY APOSTROPHE
+        case 496:    // U+01F0 ǰ LATIN SMALL LETTER J WITH CARON
+        case 912:    // U+0390 ΐ GREEK SMALL LETTER IOTA WITH DIALYTIKA AND TONOS
+        case 944:    // U+03B0 ΰ GREEK SMALL LETTER UPSILON WITH DIALYTIKA AND TONOS
+        case 1415:   // U+0587 եւ ARMENIAN SMALL LIGATURE ECH YIWN
         case 122773: // U+1DF95 LATIN SMALL LIGATURE LONG S WITH DESCENDER S
             return true;
     }
