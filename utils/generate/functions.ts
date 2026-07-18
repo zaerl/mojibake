@@ -58,23 +58,23 @@ export type MojibakeFunction = {
   specs?: MojibakeSpecRef[];
 };
 
-const unicodeVersion = '17.0.0';
+const unicodeVersion = '18.0.0';
 
 const uaxRevisions: Record<number, number> = {
   9: 51,
-  11: 44,
-  14: 55,
+  11: 45,
+  14: 56,
   15: 57,
-  24: 39,
-  29: 47,
-  31: 43,
+  24: 40,
+  29: 48,
+  31: 44,
   44: 36
 };
 
 const utsRevisions: Record<number, number> = {
-  10: 53,
-  39: 32,
-  51: 29
+  10: 54,
+  39: 33,
+  51: 30
 };
 
 function buffer(description: string, name = 'buffer', isConst = true, wasm_generated = false): MojibakeArg {
@@ -1476,7 +1476,7 @@ printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`,
     related: ['mjb_bidi_resolve']
   },
   {
-    comment: 'Return true if the codepoint is a valid Unicode identifier start (Unicode 17.0.0 UAX #31 ID_Start).',
+    comment: 'Return true if the codepoint is a valid Unicode identifier start (Unicode 18.0.0 UAX #31 ID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_start',
     attributes: [],
@@ -1491,7 +1491,7 @@ printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is a valid Unicode identifier continuation (Unicode 17.0.0 UAX #31 ID_Continue).',
+    comment: 'Return true if the codepoint is a valid Unicode identifier continuation (Unicode 18.0.0 UAX #31 ID_Continue).',
     ret: 'bool',
     name: 'mjb_codepoint_is_id_continue',
     attributes: [],
@@ -1506,7 +1506,7 @@ printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is a valid NFKC identifier start (Unicode 17.0.0 UAX #31 XID_Start).',
+    comment: 'Return true if the codepoint is a valid NFKC identifier start (Unicode 18.0.0 UAX #31 XID_Start).',
     ret: 'bool',
     name: 'mjb_codepoint_is_xid_start',
     attributes: [],
@@ -1518,7 +1518,7 @@ printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "n
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is a valid NFKC identifier continuation (Unicode 17.0.0 UAX #31 XID_Continue).',
+    comment: 'Return true if the codepoint is a valid NFKC identifier continuation (Unicode 18.0.0 UAX #31 XID_Continue).',
     ret: 'bool',
     name: 'mjb_codepoint_is_xid_continue',
     attributes: [],
@@ -1533,7 +1533,7 @@ printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is reserved for use in patterns (Unicode 17.0.0 UAX #31 Pattern_Syntax).',
+    comment: 'Return true if the codepoint is reserved for use in patterns (Unicode 18.0.0 UAX #31 Pattern_Syntax).',
     ret: 'bool',
     name: 'mjb_codepoint_is_pattern_syntax',
     attributes: [],
@@ -1548,7 +1548,7 @@ printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the codepoint is pattern whitespace (Unicode 17.0.0 UAX #31 Pattern_White_Space).',
+    comment: 'Return true if the codepoint is pattern whitespace (Unicode 18.0.0 UAX #31 Pattern_White_Space).',
     ret: 'bool',
     name: 'mjb_codepoint_is_pattern_white_space',
     attributes: [],
@@ -1563,7 +1563,7 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
-    comment: 'Return true if the string is a valid Unicode identifier (Unicode 17.0.0 UAX #31).',
+    comment: 'Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).',
     ret: 'bool',
     name: 'mjb_string_is_identifier',
     attributes: [],
@@ -1616,7 +1616,7 @@ printf("Property: %s", name);`,
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
-    comment: 'Compute a Unicode confusable skeleton (Unicode 17.0.0 UTS #39 Section 4).',
+    comment: 'Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).',
     ret: 'mjb_status',
     name: 'mjb_confusable_skeleton',
     attributes: ['MJB_NODISCARD'],
@@ -1654,7 +1654,7 @@ mjb_result_free(&result);`,
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
-    comment: 'Return true if two strings are visually confusable (Unicode 17.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
+    comment: 'Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
     ret: 'bool',
     name: 'mjb_string_is_confusable',
     attributes: [],
@@ -2250,7 +2250,7 @@ printf("Version number is positive: %s", version > 0 ? "yes" : "no");`,
     details: 'Output the current supported Unicode version as a string, such as "15.0.0".',
     example: `const char *version = mjb_unicode_version();
 
-// Unicode version: 17.0.0
+// Unicode version: 18.0.0
 printf("Unicode version: %s", version);`,
     related: ['mjb_version', 'mjb_version_number']
   },
