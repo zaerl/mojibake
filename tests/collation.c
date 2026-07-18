@@ -131,7 +131,7 @@ static int compare_shifted_test_strings(const char *left, size_t left_len, const
         mjb_free((void *)left_key.output);
         mjb_free((void *)right_key.output);
 
-        return -1;
+        return 1;
     }
 
     size_t left_index = 0;
