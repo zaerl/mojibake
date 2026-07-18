@@ -4,7 +4,9 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
-UNICODE_VERSION="17.0.0"
+# TODO: change "draft" to 18.0.0 when the draft version is released.
+UNICODE_VERSION="draft"
+SECURITY_VERSION="18.0.0"
 DATA_DIR="./unicode-data"
 
 mkdir -p "$DATA_DIR"
@@ -43,16 +45,15 @@ fi
 
 if [ ! -d "$DATA_DIR/security" ] ; then
     mkdir -p "$DATA_DIR/security"
-
-    for file in "confusables.txt" "intentional.txt"; do
-        curl -o "$DATA_DIR/security/$file" \
-            "https://www.unicode.org/Public/security/latest/$file"
-    done
+    curl -o "$DATA_DIR/uts39-data.zip" \
+        "https://www.unicode.org/Public/$UNICODE_VERSION/security/uts39-data-$SECURITY_VERSION.zip"
+    unzip "$DATA_DIR/uts39-data.zip" -d "$DATA_DIR/security"
+    rm "$DATA_DIR/uts39-data.zip"
 fi
 
 for file in "confusables.txt" "intentional.txt"; do
-    if ! grep -q "^# Version: $UNICODE_VERSION$" "$DATA_DIR/security/$file"; then
-        echo "Security data version mismatch in $file; expected $UNICODE_VERSION" >&2
+    if ! grep -q "^# Version: $SECURITY_VERSION$" "$DATA_DIR/security/$file"; then
+        echo "Security data version mismatch in $file; expected $SECURITY_VERSION" >&2
         exit 1
     fi
 done
