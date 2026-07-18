@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: utils/generate/unicode-data
-          key: test-data-17.0.0
+          key: test-data-18.0.0
 
       - name: Download Unicode test data
         run: ./utils/generate/download-test-data.sh
@@ -113,7 +113,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: utils/generate/unicode-data
-          key: test-data-17.0.0
+          key: test-data-18.0.0
 
       - name: Download Unicode test data
         run: ./utils/generate/download-test-data.sh
@@ -175,7 +175,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: utils/generate/unicode-data
-          key: test-data-17.0.0
+          key: test-data-18.0.0
 
       - name: Download Unicode test data
         shell: bash

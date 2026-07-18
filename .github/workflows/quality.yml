@@ -67,7 +67,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: utils/generate/unicode-data
-          key: generator-data-17.0.0-v1
+          key: generator-data-18.0.0-v1
 
       - name: Install generator dependencies
         working-directory: utils/generate
