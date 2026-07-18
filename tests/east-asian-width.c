@@ -70,5 +70,9 @@ int test_east_asian_width(void *arg) {
         "Unassigned")
     ATT_ASSERT((int)width, MJB_EAW_NEUTRAL, "ALARM BELL SYMBOL + 1")
 
+    ATT_ASSERT_STATUS(mjb_codepoint_east_asian_width(0x3FC40, &width), MJB_STATUS_OK,
+        "Unicode 18 reserved CJK range")
+    ATT_ASSERT((int)width, MJB_EAW_WIDE, "Reserved codepoint after Seal")
+
     return 0;
 }
