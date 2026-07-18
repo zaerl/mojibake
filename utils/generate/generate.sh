@@ -4,7 +4,7 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
-# TODO: change "draft" to 18.0.0 when the draft version is released.
+# TODO: change "draft" to 18.0.0 when the final version is released.
 UNICODE_VERSION="draft"
 SECURITY_VERSION="18.0.0"
 DATA_DIR="./unicode-data"

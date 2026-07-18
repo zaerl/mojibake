@@ -5,7 +5,7 @@ REM This file is distributed under the MIT License. See LICENSE for details.
 
 setlocal enabledelayedexpansion
 
-REM TODO: change "draft" to 18.0.0 when the draft version is released.
+REM TODO: change "draft" to 18.0.0 when the final version is released.
 set UNICODE_VERSION=draft
 set SECURITY_VERSION=18.0.0
 set DATA_DIR=unicode-data
