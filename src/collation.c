@@ -130,47 +130,27 @@ static void sk_free(mjb_sort_key *sk) {
     sk->cap = 0;
 }
 
-// @implicitweights ranges from allkeys.txt
-static const struct {
-    uint32_t start;
-    uint32_t end;
-    uint16_t base;
-} implicit_ranges[] = {
-    { 0x17000, 0x187FF, 0xFB00 }, // Tangut
-    { 0x18800, 0x18AFF, 0xFB01 }, // Tangut Components
-    { 0x18D00, 0x18D7F, 0xFB00 }, // Tangut Supplement
-    { 0x18D80, 0x18DFF, 0xFB01 }, // Tangut Components Supplement
-    { 0x1B170, 0x1B2FF, 0xFB02 }, // Nushu
-    { 0x18B00, 0x18CFF, 0xFB03 }, // Khitan Small Script
-};
-
-#define IMPLICIT_RANGES_COUNT ((int)(sizeof(implicit_ranges) / sizeof(implicit_ranges[0])))
-
 /**
  * Append implicit-weight CEs for a codepoint not in the DUCET (UTS#10 §10.1.3).
  *
- * The formula is the same for all implicit types: AAAA = base + (cp >> 15) BBBB = (cp & 0x7FFF) |
- * 0x8000
- *
- * Where `base` is (UTS#10 Table 16):
- *   @implicitweights ranges -> specified base value (FB00, FB01, ...)
+ * The siniform ranges listed by @implicitweights in allkeys.txt use a fixed lead weight and an
+ * offset from the first range sharing that lead weight. Other implicit types use the generic
+ * high/low 15-bit formula from UTS#10 Table 16:
  *   CJK Unified Main (4E00-9FFF) -> 0xFB40
  *   CJK Extensions A-J -> 0xFB80  (NOTE: different from main!)
  *   Everything else -> 0xFBC0
  */
 static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
     uint16_t base = 0xFBC0;
-    bool found = false;
+    mjb_codepoint offset = 0;
+    bool found = mjb_unicode_collation_implicit_lookup(cp, &base, &offset);
+    uint16_t aaaa;
+    uint16_t bbbb;
 
-    for(int i = 0; i < IMPLICIT_RANGES_COUNT; ++i) {
-        if(cp >= implicit_ranges[i].start && cp <= implicit_ranges[i].end) {
-            base = implicit_ranges[i].base;
-            found = true;
-            break;
-        }
-    }
-
-    if(!found) {
+    if(found) {
+        aaaa = base;
+        bbbb = (uint16_t)((cp - offset) | 0x8000);
+    } else {
         // CJK Unified Ideographs main block only -> AAAA = 0xFB40 + (cp >> 15)
         // UTS#10 Table 16: only the 4E00-9FFF block uses base FB40.
         if(cp >= MJB_CJK_IDEOGRAPH_START && cp <= MJB_CJK_IDEOGRAPH_END) {
@@ -181,10 +161,10 @@ static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
         } else {
             base = 0xFBC0;
         }
-    }
 
-    uint16_t aaaa = (uint16_t)(base + (cp >> 15));
-    uint16_t bbbb = (uint16_t)((cp & 0x7FFF) | 0x8000);
+        aaaa = (uint16_t)(base + (cp >> 15));
+        bbbb = (uint16_t)((cp & 0x7FFF) | 0x8000);
+    }
 
     // CE1: [AAAA.0020.0002] non-variable
     if(!cea_push(cea, aaaa, 0x0020, 0x0002, false)) {

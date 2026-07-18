@@ -10,7 +10,34 @@ import {
   formatCompactIntegers, formatHalfwords, formatLongWords, formatWords, indexedPages,
   packCodepointSequences,
 } from '../utils';
-import { CollationContractionRow, CollationEntryRow } from './types';
+import { CollationContractionRow, CollationEntryRow, CollationImplicitRangeRow } from './types';
+
+export function generateCollationImplicitRanges(rows: CollationImplicitRangeRow[]) {
+  iLog('Collation implicit ranges');
+
+  if(rows.length === 0) {
+    throw new Error('Missing collation implicit ranges');
+  }
+
+  const values = rows.map((row) =>
+    `    { 0x${row.start.toString(16).toUpperCase()}, 0x${row.end.toString(16).toUpperCase()}, ` +
+    `0x${row.offset.toString(16).toUpperCase()}, 0x${row.base.toString(16).toUpperCase()} }`
+  );
+
+  return `typedef struct mjb_unicode_collation_implicit_range {
+    uint32_t start;
+    uint32_t end;
+    uint32_t offset;
+    uint16_t base;
+} mjb_unicode_collation_implicit_range;
+
+static const mjb_unicode_collation_implicit_range mjb_unicode_collation_implicit_ranges[] = {
+${values.join(',\n')}
+};
+
+#define MJB_UNICODE_COLLATION_IMPLICIT_RANGE_COUNT ${rows.length}
+`;
+}
 
 // Finds how many bytes at the end of data overlap the start of bytes.
 function byteSuffixPrefixOverlap(data: number[], bytes: number[]) {

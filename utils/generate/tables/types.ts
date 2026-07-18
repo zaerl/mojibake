@@ -117,6 +117,13 @@ export type CollationEntryRow = {
   weights: Buffer;
 };
 
+export type CollationImplicitRangeRow = {
+  start: number;
+  end: number;
+  base: number;
+  offset: number;
+};
+
 export type CollationContractionRow = {
   first_codepoint: number;
   sequence: Buffer;
