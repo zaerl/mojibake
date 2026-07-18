@@ -756,19 +756,42 @@ bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoin
 // Simple (S) case folds: single-char alternatives for codepoints whose full fold is multi-char.
 bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value) {
     size_t low = 0;
-    size_t high = MJB_COUNT_OF(mjb_unicode_case_fold_simple_mappings);
+
+    if(codepoint <= 0xFFFF) {
+        size_t high = MJB_COUNT_OF(mjb_unicode_case_fold_simple_mappings);
+
+        while(low < high) {
+            size_t mid = low + (high - low) / 2;
+            uint32_t entry = mjb_unicode_case_fold_simple_mappings[mid];
+            mjb_codepoint entry_codepoint = (mjb_codepoint)(entry >> 16);
+
+            if(codepoint < entry_codepoint) {
+                high = mid;
+            } else if(codepoint > entry_codepoint) {
+                low = mid + 1;
+            } else {
+                *value = (mjb_codepoint)(entry & 0xFFFF);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    size_t high = MJB_COUNT_OF(mjb_unicode_case_fold_simple_supplementary_mappings);
 
     while(low < high) {
         size_t mid = low + (high - low) / 2;
-        uint32_t entry = mjb_unicode_case_fold_simple_mappings[mid];
-        mjb_codepoint entry_codepoint = (mjb_codepoint)(entry >> 16);
+        uint64_t entry = mjb_unicode_case_fold_simple_supplementary_mappings[mid];
+        mjb_codepoint entry_codepoint = (mjb_codepoint)(entry >> 21);
 
         if(codepoint < entry_codepoint) {
             high = mid;
         } else if(codepoint > entry_codepoint) {
             low = mid + 1;
         } else {
-            *value = (mjb_codepoint)(entry & 0xFFFF);
+            *value = (mjb_codepoint)(entry & 0x1FFFFF);
 
             return true;
         }
@@ -793,9 +816,27 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
     uint8_t encoded_length = (uint8_t)(entry >> 13);
 
     *values = &mjb_unicode_confusable_data[offset];
-    *length = encoded_length < 6 ? encoded_length + 1 : (encoded_length == 6 ? 8 : 18);
+    *length = encoded_length == 7 && offset == 0 ? MJB_UNICODE_CONFUSABLE_LONG_LENGTH :
+        encoded_length + 1;
 
     return true;
+}
+
+bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
+    mjb_codepoint *offset) {
+    for(size_t i = 0; i < MJB_UNICODE_COLLATION_IMPLICIT_RANGE_COUNT; ++i) {
+        const mjb_unicode_collation_implicit_range *range =
+            &mjb_unicode_collation_implicit_ranges[i];
+
+        if(codepoint >= range->start && codepoint <= range->end) {
+            *base = range->base;
+            *offset = range->offset;
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights) {

@@ -155,20 +155,36 @@ ${formatWords(entries)}
 `;
 }
 
-// Emits packed simple (S) case-fold mappings: codepoint in the high halfword, mapping in the low.
+// Emits packed simple (S) case-fold mappings. BMP source codepoints keep the compact two-halfword
+// layout; supplementary source codepoints use two 21-bit fields in a 64-bit entry.
 export function generateCaseFoldSimpleMappings(rows: CaseFoldSimpleRow[]) {
   iLog('Simple case fold mappings');
 
-  const entries = rows.map((row) => {
-    if(row.codepoint > 0xFFFF || row.mapping > 0xFFFF) {
+  const bmpEntries: number[] = [];
+  const supplementaryEntries: bigint[] = [];
+
+  for(const row of rows) {
+    if(row.codepoint > 0x1FFFFF || row.mapping > 0x1FFFFF) {
       throw new Error(`Simple case folding mapping is too large to pack: ${row.codepoint}`);
     }
 
-    return ((row.codepoint << 16) | row.mapping) >>> 0;
-  });
+    if(row.codepoint <= 0xFFFF) {
+      if(row.mapping > 0xFFFF) {
+        throw new Error(`BMP simple case folding mapping is too large to pack: ${row.codepoint}`);
+      }
+
+      bmpEntries.push(((row.codepoint << 16) | row.mapping) >>> 0);
+    } else {
+      supplementaryEntries.push((BigInt(row.codepoint) << 21n) | BigInt(row.mapping));
+    }
+  }
 
   return `static const uint32_t mjb_unicode_case_fold_simple_mappings[] = {
-${formatWords(entries)}
+${formatWords(bmpEntries)}
+};
+
+static const uint64_t mjb_unicode_case_fold_simple_supplementary_mappings[] = {
+${formatLongWords(supplementaryEntries, 11)}
 };
 `;
 }
