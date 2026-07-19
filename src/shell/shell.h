@@ -4,6 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#pragma once
+
+#ifndef MJB_SHELL_H
+#define MJB_SHELL_H
+
 #include <stdbool.h>
 
 #include "../mojibake.h"
@@ -53,3 +58,5 @@ const char *mjbsh_jnl(void);
 // Utils
 mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint);
 bool mjbsh_property_is_bool(mjb_property property);
+
+#endif // MJB_SHELL_H
