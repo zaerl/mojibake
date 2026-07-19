@@ -9,6 +9,8 @@
  * Based on public domain implementations.
  */
 
+#ifdef _WIN32
+
 #include <stdio.h>
 #include <string.h>
 
@@ -150,3 +152,5 @@ int getopt_long(int argc, char *const argv[], const char *optstring, const struc
     // Handle short options (fallback to getopt())
     return getopt(argc, argv, optstring);
 }
+
+#endif // _WIN32

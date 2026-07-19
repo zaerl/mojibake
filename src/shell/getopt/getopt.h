@@ -9,6 +9,8 @@
  * Based on public domain implementations.
  */
 
+#ifdef _WIN32
+
 #pragma once
 
 #ifndef MJB_GETOPT_H
@@ -47,3 +49,5 @@ int getopt_long(int argc, char *const argv[], const char *optstring, const struc
 #endif
 
 #endif // MJB_GETOPT_H
+
+#endif // _WIN32
