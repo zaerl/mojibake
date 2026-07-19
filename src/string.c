@@ -48,8 +48,8 @@ char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *outpu
 }
 
 // Internal function.
-char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output,
-    size_t *output_index, size_t *output_size, mjb_encoding encoding) {
+char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index,
+    size_t *output_size, mjb_encoding encoding) {
     // Shortcut for mjb_codepoint_encode + mjb_string_output
     char buffer[5];
     size_t utf_size = mjb_codepoint_encode(codepoint, (char *)buffer, 5, encoding);
