@@ -415,12 +415,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: src/api/package-lock.json
+          cache-dependency-path: |
+            src/api/package-lock.json
+            utils/generate/package-lock.json
 
       - uses: emscripten-core/setup-emsdk@667eb33f24e84e7f362c16d8d7fff0629a73e15e # v15
         with:
           version: 5.0.1
           actions-cache-folder: emsdk-cache
+
+      - name: Install generator dependencies
+        working-directory: utils/generate
+        run: npm ci
 
       - name: Install API dependencies
         working-directory: src/api
