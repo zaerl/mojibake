@@ -8,10 +8,10 @@ import { generateAmalgamation } from '../amalgamation';
 import { Analysis } from '../analysis';
 import { Character } from '../character';
 import { characterDecomposition, generateComposition, generateDecomposition } from '../decomposition';
-import { generateAPI } from '../generate-api';
-import { generateExamples } from '../generate-examples';
-import { generateUnicodeTables } from '../generate-unicode-tables';
-import { generateWasmTD } from '../generate-wasm-td';
+import { generateAPI } from '../file-generators/api-md';
+import { generateExampleC } from '../file-generators/example-c';
+import { generateUnicodeDataHeader } from '../file-generators/unicode-data-h';
+import { generateWasmDTS } from '../file-generators/wasm-d-ts';
 import { generateHeader } from '../header';
 import { generateLocale } from '../locales/generate-locale';
 import { iLog, setVerbose } from '../log';
@@ -27,8 +27,8 @@ import { generateEmojiProperties } from '../parse-ucd/emoji-properties';
 import { generateEmojiSequences } from '../parse-ucd/emoji-sequences';
 import { buildPropertyRanges, Property } from '../parse-ucd/properties';
 import { readNormalizationProps } from '../parse-ucd/quick-check';
-import { readSpecialCasingProps } from '../parse-ucd/special-casing';
 import { readScriptExtensions } from '../parse-ucd/script-extensions';
+import { readSpecialCasingProps } from '../parse-ucd/special-casing';
 import { parsePropertyFile, ucdBool, ucdInt, ucdString } from '../parse-ucd/utils';
 import { PrefixCompressor } from '../prefix-compressor';
 import {
@@ -37,12 +37,15 @@ import {
 } from '../types';
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
-  addDecompositions, addEmojiProperties, addEmojiSequences, addPropertyRanges, addSimpleCaseFolding,
-  addSpecialCasing, addScriptExtensions, resetUnicodeTableData
+  addDecompositions, addEmojiProperties, addEmojiSequences, addPropertyRanges,
+  addScriptExtensions,
+  addSimpleCaseFolding,
+  addSpecialCasing,
+  resetUnicodeTableData
 } from '../unicode-data-store';
-import { updateVersion } from './update-version';
 import { CodepointsRangeMap, compressName, isCodepointOnRanges } from '../utils';
 import { generateWASM } from '../wasm';
+import { updateVersion } from './update-version';
 
 async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true):
   Promise<{ characters: Character[], properties: Property[] }> {
@@ -204,7 +207,7 @@ async function generate() {
     return;
   } else if(generateTarget === 'unicode-tables') {
     await buildUnicodeTableData();
-    await generateUnicodeTables();
+    await generateUnicodeDataHeader();
     return;
   } else if(generateTarget === 'update-version') {
     await updateVersion();
@@ -215,17 +218,17 @@ async function generate() {
   const bidiBrackets = await readBidiBrackets();
   const bidiMirroring = await readBidiMirroring();
 
-  await generateUnicodeTables();
+  await generateUnicodeDataHeader();
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);
   generateWASM();
   // generateData(characters);
   generateAPI();
-  generateExamples();
+  generateExampleC();
 
   // const summary = unicodeTableDataSummary();
   // iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
 
-  generateWasmTD();
+  generateWasmDTS();
 }
 
 generate();

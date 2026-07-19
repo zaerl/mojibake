@@ -21,7 +21,7 @@ import {
   EmojiSequenceRow, NameRow, NCharacterRow, NumericRow, PrefixRow, PropertyRangeRow, SimpleCaseRow,
   SpecialCaseRow,
   ScriptExtensionRow,
-} from './tables/types';
+} from './file-generators/types';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
 export type UnicodeTableData = {

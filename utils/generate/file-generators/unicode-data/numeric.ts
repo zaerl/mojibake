@@ -4,11 +4,11 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
+import { iLog } from '../../log';
 import {
   codepointPages, formatBytes, formatCompactIntegers, formatPages, formatWords, indexedPages,
-} from '../utils';
-import { NumericRow } from './types';
+} from '../../utils';
+import { NumericRow } from '../types';
 
 // Emits packed numeric value lookups and shared numeric string data.
 export function generateNumericValues(rows: NumericRow[]) {

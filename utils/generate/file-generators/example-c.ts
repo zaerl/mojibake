@@ -5,8 +5,8 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import functions, { MojibakeFunction } from './functions';
-import { substituteBlock } from './utils';
+import functions, { MojibakeFunction } from '../functions';
+import { substituteBlock } from '../utils';
 
 function exampleSource(fn: MojibakeFunction): string {
   const body = (fn.example as string).split('\n');
@@ -59,7 +59,7 @@ ${generated}
 `;
 }
 
-export function generateExamples() {
+export function generateExampleC() {
   const path = '../../tests/example.c';
   let fileContent = readFileSync(path, 'utf-8');
 

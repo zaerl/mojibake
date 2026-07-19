@@ -4,13 +4,13 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
+import { iLog } from '../../log';
 import {
   codepointPageBitsets, codepointPages, compareBytes, formatBytes, formatCodepoints,
   formatCompactIntegers, formatHalfwords, formatLongWords, formatWords, indexedPages,
   packCodepointSequences,
-} from '../utils';
-import { CollationContractionRow, CollationEntryRow, CollationImplicitRangeRow } from './types';
+} from '../../utils';
+import { CollationContractionRow, CollationEntryRow, CollationImplicitRangeRow } from '../types';
 
 export function generateCollationImplicitRanges(rows: CollationImplicitRangeRow[]) {
   iLog('Collation implicit ranges');

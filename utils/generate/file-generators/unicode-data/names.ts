@@ -4,12 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
+import { iLog } from '../../log';
 import {
   codepointPageBitsets, codepointPages, formatBytes, formatCompactIntegers, formatLongWords,
   formatWords, indexedPages,
-} from '../utils';
-import { NameRow, PrefixRow } from './types';
+} from '../../utils';
+import { NameRow, PrefixRow } from '../types';
 
 // Packs 7-bit strings with the high bit marking the final byte. A string can share the suffix of a
 // longer string, but each stored root no longer needs a trailing NUL byte.

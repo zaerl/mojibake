@@ -4,12 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
+import { iLog } from '../../log';
 import {
   codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
   formatHalfwords, formatLongWords, formatWords, indexedPages,
-} from '../utils';
-import { CompositionRow, DecompositionRow } from './types';
+} from '../../utils';
+import { CompositionRow, DecompositionRow } from '../types';
 
 // Groups ordered decomposition rows into one sequence per source codepoint.
 function collectDecompositionGroups(rows: DecompositionRow[]) {

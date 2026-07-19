@@ -4,9 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
-import { formatBytes, formatLongWords } from '../utils';
-import { ScriptExtensionRow } from './types';
+import { iLog } from '../../log';
+import { formatBytes, formatLongWords } from '../../utils';
+import { ScriptExtensionRow } from '../types';
 
 export function generateScriptExtensions(rows: ScriptExtensionRow[]) {
   iLog('Script extensions');

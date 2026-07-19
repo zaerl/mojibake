@@ -4,9 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
-import { formatCodepoints, formatHalfwords, formatLongWords, formatWords } from '../utils';
-import { EmojiRow, EmojiSequenceRow } from './types';
+import { iLog } from '../../log';
+import { formatCodepoints, formatHalfwords, formatLongWords, formatWords } from '../../utils';
+import { EmojiRow, EmojiSequenceRow } from '../types';
 
 const enum EmojiFlag {
   Emoji = 1 << 0,

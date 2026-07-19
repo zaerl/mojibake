@@ -5,8 +5,8 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { parsePropertyFile } from './parse-ucd/utils';
-import { substituteBlock } from './utils';
+import { parsePropertyFile } from '../parse-ucd/utils';
+import { substituteBlock } from '../utils';
 
 export async function generateLocales() {
   const locales = [];

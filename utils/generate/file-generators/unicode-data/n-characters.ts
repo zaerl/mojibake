@@ -4,9 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
-import { bitset, formatBytes, formatPages, formatWords, indexedPages } from '../utils';
-import { NCharacterRow } from './types';
+import { iLog } from '../../log';
+import { bitset, formatBytes, formatPages, formatWords, indexedPages } from '../../utils';
+import { NCharacterRow } from '../types';
 
 // Builds per-256-codepoint page start/count metadata for codepoint ranges.
 function codepointRangePages(rows: { start: number; end: number }[]) {

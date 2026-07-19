@@ -4,9 +4,9 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
-import { cStringData, formatLongWords } from '../utils';
-import { BlockRow } from './types';
+import { iLog } from '../../log';
+import { cStringData, formatLongWords } from '../../utils';
+import { BlockRow } from '../types';
 
 // Emits packed Unicode block tables and shared block-name chunks.
 export function generateBlocks(rows: BlockRow[]) {
