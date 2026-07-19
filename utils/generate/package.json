@@ -8,7 +8,7 @@
   "scripts": {
     "generate": "tsx index.ts",
     "generate-site": "tsx site/generate-site.ts",
-    "generate-locales": "tsx locales/generate-locales.ts",
+    "generate-locales": "tsx index.ts generate-locale",
     "watch-site": "tsx site/generate-site.ts --watch",
     "coverage": "tsx coverage.ts"
   },

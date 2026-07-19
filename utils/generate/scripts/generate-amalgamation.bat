@@ -5,6 +5,8 @@ REM This file is distributed under the MIT License. See LICENSE for details.
 
 setlocal enabledelayedexpansion
 
+pushd "%~dp0.." || exit /b 1
+
 if not exist "..\..\build-amalgamation" mkdir "..\..\build-amalgamation"
 
 call npm run generate -- amalgamation
@@ -32,5 +34,6 @@ echo Creating WASM zip file...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -LiteralPath 'mojibake.js','mojibake.wasm' -DestinationPath '..\build-wasm\src\mojibake-wasm-!VERSION!.zip' -Force"
 set "GENERATE_AMALGAMATION_STATUS=%ERRORLEVEL%"
 
+popd
 popd
 endlocal & exit /b %GENERATE_AMALGAMATION_STATUS%

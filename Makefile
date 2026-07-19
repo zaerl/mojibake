@@ -42,7 +42,7 @@ WASM_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=ON -DUSE_ASAN
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
-	utils/generate/generate.sh \
+	utils/generate/scripts/* \
 	utils/generate/*.json \
 	utils/generate/*.ts \
 	utils/generate/locales/*.ts \
@@ -115,7 +115,7 @@ build-wasm: configure-wasm
 
 # Generate source files
 generate: $(GENERATE_SOURCES)
-	@cd ./utils/generate && ./generate.sh $(ARGS)
+	@cd ./utils/generate && ./scripts/generate.sh $(ARGS)
 
 # Generate locale files
 generate-locale:
@@ -155,11 +155,11 @@ coverage:
 
 # Generate amalgamation
 amalgamation:
-	@cd ./utils/generate && ./generate-amalgamation.sh
+	@cd ./utils/generate && ./scripts/generate-amalgamation.sh
 
 # Rule for generated Unicode data
 $(UNICODE_DATA): $(GENERATE_SOURCES)
-	@cd ./utils/generate && ./generate.sh $(ARGS)
+	@cd ./utils/generate && ./scripts/generate.sh $(ARGS)
 
 # Update version in source files
 update-version:

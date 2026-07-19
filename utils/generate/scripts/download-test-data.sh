@@ -12,7 +12,8 @@ set -e
 
 UNICODE_VERSION="draft"
 SECURITY_VERSION="18.0.0"
-DATA_DIR="$(dirname "$0")/unicode-data"
+GENERATOR_DIR=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
+DATA_DIR="$GENERATOR_DIR/unicode-data"
 
 fetch() {
     if [ ! -f "$2" ]; then
