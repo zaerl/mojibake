@@ -61,13 +61,13 @@ if not exist "%DATA_DIR%\security" (
     del "%DATA_DIR%\uts39-data.zip" || goto :fail
 )
 
-findstr /l /x /c:"# Version: %SECURITY_VERSION%" "%DATA_DIR%\security\confusables.txt" >nul
+node -e "const fs = require('fs'); const expected = '# Version: ' + process.argv[2]; const lines = fs.readFileSync(process.argv[1], 'utf8').split(/\r?\n/u); process.exit(lines.includes(expected) ? 0 : 1)" "%DATA_DIR%\security\confusables.txt" "%SECURITY_VERSION%"
 if errorlevel 1 (
     echo Security data version mismatch in confusables.txt; expected %SECURITY_VERSION% 1>&2
     goto :fail
 )
 
-findstr /l /x /c:"# Version: %SECURITY_VERSION%" "%DATA_DIR%\security\intentional.txt" >nul
+node -e "const fs = require('fs'); const expected = '# Version: ' + process.argv[2]; const lines = fs.readFileSync(process.argv[1], 'utf8').split(/\r?\n/u); process.exit(lines.includes(expected) ? 0 : 1)" "%DATA_DIR%\security\intentional.txt" "%SECURITY_VERSION%"
 if errorlevel 1 (
     echo Security data version mismatch in intentional.txt; expected %SECURITY_VERSION% 1>&2
     goto :fail
