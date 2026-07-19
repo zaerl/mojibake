@@ -19,7 +19,7 @@ you see "This file/enum/function is automatically generated. Do not edit", don't
 
 ### Requirements
 
-On POSIX systems: Linux, macOS, FreeBSD, OpenBSD, NetBSD:
+On POSIX systems: Linux, macOS, FreeBSD, OpenBSD, NetBSD, Haiku:
 
 - `CMake`
 - `Node.js` and `npm`

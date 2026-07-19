@@ -95,7 +95,7 @@ Mojibake aims to be:
 
 Mojibake do:
 
-1. Run in all modern OSes (Linux, macOS, FreeBSD, OpenBSD, NetBSD, Windows 10/11)
+1. Run in all modern OSes (Linux, macOS, FreeBSD, OpenBSD, NetBSD, Haiku, Windows 10/11)
 2. Pass the official Unicode test suites for supported algorithms
 3. Implement all Unicode standard algorithms
 4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md)
