@@ -4,11 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#pragma once
-
 #ifndef MJB_SHELL_H
 #define MJB_SHELL_H
 
+#include <ctype.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

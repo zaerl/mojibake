@@ -4,10 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <ctype.h>
-#include <errno.h>
-#include <stdarg.h>
-
 #include "shell.h"
 
 // Global command-line option variables
