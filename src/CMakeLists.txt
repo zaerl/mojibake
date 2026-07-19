@@ -33,14 +33,15 @@ set(SOURCES
     version.c
 )
 
-# Build as shared or static library based on BUILD_SHARED option
-if(BUILD_SHARED)
-    add_library(mojibake_lib SHARED ${SOURCES})
-else()
-    add_library(mojibake_lib STATIC ${SOURCES})
-endif()
+# The standard BUILD_SHARED_LIBS variable selects the library type.
+add_library(mojibake_lib ${SOURCES})
 
 add_library(Mojibake::mojibake ALIAS mojibake_lib)
+
+mjb_configure_target(mojibake_lib)
+
+# Consumers need a C11-capable compiler for the public C API.
+target_compile_features(mojibake_lib PUBLIC c_std_11)
 
 target_include_directories(
     mojibake_lib
@@ -53,12 +54,11 @@ set_target_properties(mojibake_lib PROPERTIES
     C_VISIBILITY_PRESET hidden
     CXX_VISIBILITY_PRESET hidden
     EXPORT_NAME mojibake
-    INTERFACE_COMPILE_FEATURES cxx_std_17
     OUTPUT_NAME mojibake
     VISIBILITY_INLINES_HIDDEN ON
 )
 
-if(BUILD_SHARED)
+if(BUILD_SHARED_LIBS)
     set_target_properties(mojibake_lib PROPERTIES
         SOVERSION ${PROJECT_VERSION_MAJOR}
         VERSION ${PROJECT_VERSION}
@@ -69,8 +69,8 @@ if(BUILD_SHARED)
     )
 endif()
 
-# Force C++ compilation if BUILD_CPP is enabled
-if(BUILD_CPP)
+# Force C++ compilation if MJB_BUILD_CPP is enabled
+if(MJB_BUILD_CPP)
     set_target_properties(mojibake_lib PROPERTIES
         LINKER_LANGUAGE CXX
         CXX_STANDARD 17
@@ -80,7 +80,7 @@ if(BUILD_CPP)
 endif()
 
 # Enable embedded NULL support for library if requested
-if(ALLOW_EMBEDDED_NULLS)
+if(MJB_ALLOW_EMBEDDED_NULLS)
     message(STATUS "Building library with embedded NULL support enabled")
     target_compile_definitions(mojibake_lib PRIVATE MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS=1)
 endif()
@@ -91,7 +91,7 @@ if(NOT MJB_FEATURE_CHARACTER_NAMES)
 endif()
 
 # WASM-specific configuration
-if(BUILD_WASM)
+if(MJB_BUILD_WASM)
     # Emscripten's EM_ASM_* macros require GNU C mode.
     set_target_properties(mojibake_lib PROPERTIES C_EXTENSIONS ON)
 
@@ -202,6 +202,7 @@ if(BUILD_WASM)
     # Create WASM module executable
     add_executable(mojibake mojibake.c)
     target_link_libraries(mojibake mojibake_lib)
+    mjb_configure_target(mojibake)
 
     # Set Emscripten-specific flags for the WASM executable
     target_link_options(mojibake PRIVATE
@@ -224,7 +225,7 @@ if(BUILD_WASM)
 
 endif()
 
-if(NOT BUILD_WASM)
+if(MJB_INSTALL AND NOT MJB_BUILD_WASM)
     install(
         TARGETS mojibake_lib
         EXPORT MojibakeTargets

@@ -26,12 +26,13 @@ endif()
 
 add_executable(mojibake ${SOURCES})
 target_link_libraries(mojibake PRIVATE mojibake_lib)
+mjb_configure_target(mojibake)
 
 # The shell uses strdup and strsep, which strict C11 hides on glibc/musl.
 target_compile_definitions(mojibake PRIVATE _DEFAULT_SOURCE)
 
-# Force C++ compilation if BUILD_CPP is enabled
-if(BUILD_CPP)
+# Force C++ compilation if MJB_BUILD_CPP is enabled
+if(MJB_BUILD_CPP)
     set_target_properties(mojibake PROPERTIES LINKER_LANGUAGE CXX)
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()

@@ -164,6 +164,31 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 byte input
 - `AddressSanitizer` and `UBSan` clean
 
+### CMake dependency
+
+Mojibake can be embedded with either `add_subdirectory` or `FetchContent` and exposes the
+`Mojibake::mojibake` target:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    Mojibake
+    GIT_REPOSITORY https://github.com/zaerl/mojibake.git
+    GIT_TAG main
+)
+FetchContent_MakeAvailable(Mojibake)
+
+target_link_libraries(your-target PRIVATE Mojibake::mojibake)
+```
+
+Tests, the CLI, and installation rules default to enabled for a standalone build and disabled when
+Mojibake is embedded. They can be controlled with `MJB_BUILD_TESTS`, `MJB_BUILD_CLI`, and
+`MJB_INSTALL`. Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`,
+`MJB_USE_ASAN`, `MJB_USE_UBSAN`, `MJB_ALLOW_EMBEDDED_NULLS`, and
+`MJB_FEATURE_CHARACTER_NAMES`.
+
+Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 
 ### Build-time features
 

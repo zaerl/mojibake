@@ -59,31 +59,32 @@ jobs:
 
       - name: Test (no character names)
         run: |
-          cmake -S . -B build-test-no-names -DCMAKE_BUILD_TYPE=Test -DMJB_FEATURE_CHARACTER_NAMES=OFF
+          cmake -S . -B build-test-no-names -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_CHARACTER_NAMES=OFF
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
       - name: Test (embedded NULLs)
         run: |
-          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DALLOW_EMBEDDED_NULLS=ON
+          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DMJB_ALLOW_EMBEDDED_NULLS=ON
           cmake --build build-test-null
           ./build-test-null/tests/mojibake-test
 
       - name: Test (C++)
         run: |
-          cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
+          cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DMJB_BUILD_CPP=ON
           cmake --build build-test-cpp
           ./build-test-cpp/tests/mojibake-test
 
       - name: Test (AddressSanitizer)
         run: |
-          cmake -S . -B build-test-asan -DCMAKE_BUILD_TYPE=Test -DUSE_ASAN=ON
+          cmake -S . -B build-test-asan -DCMAKE_BUILD_TYPE=Test -DMJB_USE_ASAN=ON
           cmake --build build-test-asan
           ./build-test-asan/tests/mojibake-test
 
       - name: Test (UndefinedBehaviorSanitizer)
         run: |
-          cmake -S . -B build-test-ubsan -DCMAKE_BUILD_TYPE=Test -DUSE_UBSAN=ON
+          cmake -S . -B build-test-ubsan -DCMAKE_BUILD_TYPE=Test -DMJB_USE_UBSAN=ON
           cmake --build build-test-ubsan
           ./build-test-ubsan/tests/mojibake-test
 
@@ -147,21 +148,22 @@ jobs:
       - name: Test (no character names)
         shell: cpa.sh {0} --sync-files none
         run: |
-          cmake -S . -B build-test-no-names -DCMAKE_BUILD_TYPE=Test -DMJB_FEATURE_CHARACTER_NAMES=OFF
+          cmake -S . -B build-test-no-names -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_CHARACTER_NAMES=OFF
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
       - name: Test (embedded NULLs)
         shell: cpa.sh {0} --sync-files none
         run: |
-          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DALLOW_EMBEDDED_NULLS=ON
+          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DMJB_ALLOW_EMBEDDED_NULLS=ON
           cmake --build build-test-null
           ./build-test-null/tests/mojibake-test
 
       - name: Test (C++)
         shell: cpa.sh {0} --sync-files none
         run: |
-          cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DBUILD_CPP=ON
+          cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DMJB_BUILD_CPP=ON
           cmake --build build-test-cpp
           ./build-test-cpp/tests/mojibake-test
 
@@ -184,28 +186,34 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          cmake -S . -B build-test
+          cmake -S . -B build-test "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test"
           cmake --build build-test --config Test
           ./build-test/tests/Test/mojibake-test.exe
 
       - name: Test (no character names)
         shell: bash
         run: |
-          cmake -S . -B build-test-no-names -DMJB_FEATURE_CHARACTER_NAMES=OFF
+          cmake -S . -B build-test-no-names \
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+            -DMJB_FEATURE_CHARACTER_NAMES=OFF
           cmake --build build-test-no-names --config Test
           ./build-test-no-names/tests/Test/mojibake-test.exe
 
       - name: Test (embedded NULLs)
         shell: bash
         run: |
-          cmake -S . -B build-test-null -DALLOW_EMBEDDED_NULLS=ON
+          cmake -S . -B build-test-null \
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+            -DMJB_ALLOW_EMBEDDED_NULLS=ON
           cmake --build build-test-null --config Test
           ./build-test-null/tests/Test/mojibake-test.exe
 
       - name: Test (C++)
         shell: bash
         run: |
-          cmake -S . -B build-test-cpp -DBUILD_CPP=ON
+          cmake -S . -B build-test-cpp \
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+            -DMJB_BUILD_CPP=ON
           cmake --build build-test-cpp --config Test
           ./build-test-cpp/tests/Test/mojibake-test.exe
 
