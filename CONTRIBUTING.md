@@ -19,6 +19,21 @@ you see "This file/enum/function is automatically generated. Do not edit", don't
 
 ### Requirements
 
+Mojibake requires a C11 compiler. Building the C sources as C++, including the header-only C++
+wrapper, requires C++17. The minimum supported compiler versions are:
+
+| Toolchain | Minimum version | Language modes |
+| --- | --- | --- |
+| GCC | 9 | C11 and C++17 |
+| LLVM Clang | 10 | C11 and C++17 |
+| Apple Clang | 16 | C11 and C++17 |
+| MSVC | 19.30 (Visual Studio 2022) | C11 and C++17 |
+
+CI builds and smoke-tests both language modes with the exact GCC 9 and LLVM Clang 10 baselines.
+The macOS and Windows jobs continuously test the supported Apple Clang and MSVC families using the
+hosted platform toolchains. MinGW-w64 and Emscripten are also tested as rolling compatibility
+targets.
+
 On POSIX systems: Linux, macOS, FreeBSD, OpenBSD, NetBSD, Haiku:
 
 - `CMake`
@@ -140,6 +155,8 @@ You can run tests in multiple ways. On POSIX platforms:
 5. `make test-null` run tests with embedded NULL support
 6. `make ctest` run tests using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html)
 7. `make ctest-cpp` run C and C++ tests using `ctest`
+8. `make test-wasm` build the TypeScript package and test the WASM API in Node and a local
+   Chromium-based browser (set `MJB_BROWSER` if it is not on the default search path)
 
 Windows 10/11:
 

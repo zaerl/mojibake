@@ -23,7 +23,9 @@
     "typecheck": "npx --yes --package typescript tsc --noEmit",
     "dev": "npx --yes tsx --watch tests/index.ts",
     "prepack": "npm run build",
-    "test": "npm run build && npx --yes tsx tests/index.ts"
+    "test": "npm run build && npm run test:node && npm run test:browser",
+    "test:browser": "node scripts/test-browser.mjs",
+    "test:node": "npx --yes tsx tests/index.ts"
   },
   "engines": {
     "node": ">=20"

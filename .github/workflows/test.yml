@@ -31,6 +31,10 @@ jobs:
             os: ubuntu-latest
             cc: clang
             cxx: clang++
+          - label: Linux ARM64 / GCC
+            os: ubuntu-24.04-arm
+            cc: gcc
+            cxx: g++
           - label: macOS / Clang
             os: macos-latest
             cc: clang
@@ -216,6 +220,220 @@ jobs:
             -DMJB_BUILD_CPP=ON
           cmake --build build-test-cpp --config Test
           ./build-test-cpp/tests/Test/mojibake-test.exe
+
+  strict-c11:
+    name: Strict C11 (source and amalgamation)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install amalgamation generator dependencies
+        working-directory: utils/generate
+        run: npm ci
+
+      - name: Compile source with -std=c11 -Werror
+        run: |
+          mkdir -p build-strict/source
+          for source in src/*.c; do
+            object="build-strict/source/$(basename "${source%.c}").o"
+            cc -std=c11 -Werror -Wall -Wextra -pedantic \
+              -Wno-unused-parameter -Wtype-limits -Isrc -c "$source" -o "$object"
+          done
+          ar rcs build-strict/libmojibake.a build-strict/source/*.o
+
+      - name: Generate amalgamation
+        working-directory: utils/generate
+        run: |
+          mkdir -p ../../build-amalgamation
+          npm run generate -- amalgamation
+
+      - name: Compile and run amalgamation with -std=c11 -Werror
+        run: |
+          cc -std=c11 -Werror -Wall -Wextra -pedantic \
+            -Wno-unused-parameter -Wtype-limits -Ibuild-amalgamation \
+            examples/example.c build-amalgamation/mojibake.c \
+            -o build-strict/amalgamation-example
+          ./build-strict/amalgamation-example
+
+  minimum-compilers:
+    name: Minimum compiler (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: GCC 9
+            packages: gcc-9 g++-9
+            cc: gcc-9
+            cxx: g++-9
+            major: '9'
+          - label: Clang 10
+            packages: clang-10
+            cc: clang-10
+            cxx: clang++-10
+            major: '10'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build and smoke-test C11 and C++17 modes
+        run: |
+          docker run --rm -v "$PWD:/src:ro" ubuntu:20.04 sh -ec '
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y cmake make ${{ matrix.packages }}
+
+            version="$(${{ matrix.cc }} -dumpversion)"
+            case "$version" in
+              ${{ matrix.major }}.*) ;;
+              *) echo "Expected compiler major ${{ matrix.major }}, got $version"; exit 1 ;;
+            esac
+
+            cmake -S /src -B /tmp/build-c -DCMAKE_BUILD_TYPE=Test \
+              -DCMAKE_C_COMPILER=${{ matrix.cc }}
+            cmake --build /tmp/build-c --parallel 2
+            cd /tmp/build-c
+            ctest --output-on-failure -R "^Version$"
+
+            cmake -S /src -B /tmp/build-cpp -DCMAKE_BUILD_TYPE=Test \
+              -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+              -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DMJB_BUILD_CPP=ON
+            cmake --build /tmp/build-cpp --parallel 2
+            cd /tmp/build-cpp
+            ctest --output-on-failure -R "^(C\\+\\+ Mojibake|Version)$"
+          '
+
+  mingw:
+    name: MinGW-w64 (UCRT64)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-ninja
+
+      - name: Build and smoke-test
+        run: |
+          gcc --version
+          cmake -S . -B build-mingw -G Ninja -DCMAKE_BUILD_TYPE=Test
+          cmake --build build-mingw
+          cd build-mingw
+          ctest --output-on-failure -R '^(Encoding|Version)$'
+
+  portable-linux:
+    name: Platform (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Alpine / musl x86_64
+            platform: linux/amd64
+            machine: x86_64
+            qemu: false
+          - label: Alpine / musl i386
+            platform: linux/386
+            machine: i686
+            qemu: true
+          - label: Alpine / musl s390x (big-endian)
+            platform: linux/s390x
+            machine: s390x
+            qemu: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        if: matrix.qemu
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: 386,s390x
+
+      - name: Build and smoke-test
+        run: |
+          docker run --rm --platform '${{ matrix.platform }}' \
+            -v "$PWD:/src:ro" alpine:3.23 sh -ec '
+              apk add --no-cache build-base cmake
+              test "$(uname -m)" = "${{ matrix.machine }}"
+              cmake -S /src -B /tmp/build -DCMAKE_BUILD_TYPE=Test
+              cmake --build /tmp/build --parallel 2
+              cd /tmp/build
+              ctest --output-on-failure -R "^(Encoding|Version)$"
+            '
+
+  cross-android:
+    name: Cross-compile (Android NDK / ARM64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure and build
+        run: |
+          "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version
+          cmake -S . -B build-android -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21 \
+            -DMJB_BUILD_TESTS=OFF -DMJB_BUILD_CLI=OFF -DMJB_INSTALL=OFF
+          cmake --build build-android --parallel 2
+          "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            -h build-android/src/CMakeFiles/mojibake_lib.dir/mojibake.c.o | \
+            grep -E 'Machine:.*AArch64'
+
+  cross-ios:
+    name: Cross-compile (iOS / ARM64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure and build
+        run: |
+          xcodebuild -version
+          cmake -S . -B build-ios -G Xcode -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+            -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
+            -DMJB_BUILD_TESTS=OFF -DMJB_BUILD_CLI=OFF -DMJB_INSTALL=OFF
+          cmake --build build-ios --config Release --parallel 2 -- \
+            -sdk iphoneos CODE_SIGNING_ALLOWED=NO
+          find build-ios -name libmojibake.a -exec lipo -info {} \; | grep arm64
+
+  wasm:
+    name: WASM (Node and browser)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/api/package-lock.json
+
+      - uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.1
+          actions-cache-folder: emsdk-cache
+
+      - name: Install API dependencies
+        working-directory: src/api
+        run: npm ci
+
+      - name: Build WASM
+        run: make sync-api-wasm
+
+      - name: Test Node and browser runtimes
+        working-directory: src/api
+        env:
+          MJB_BROWSER: google-chrome
+        run: npm test
 
   fuzz:
     name: Fuzz (smoke)

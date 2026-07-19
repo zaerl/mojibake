@@ -150,3 +150,7 @@ console.log(
   `${verbosity >= 1 ? "\n" : ""}Tests valid/run: ${colorCode}${valid}/${total}` +
     `${showColors ? "\x1B[0m" : ""}`
 );
+
+if(!isValid) {
+  process.exitCode = 1;
+}

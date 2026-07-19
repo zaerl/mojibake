@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mojibake browser runtime test</title>
+</head>
+<body>
+  <p id="result">PENDING</p>
+  <script type="module">
+    const result = document.getElementById('result');
+
+    function assert(actual, expected, description) {
+      if(actual !== expected) {
+        throw new Error(`${description}: expected ${JSON.stringify(expected)}, ` +
+          `got ${JSON.stringify(actual)}`);
+      }
+    }
+
+    try {
+      const { Mojibake } = await import('../dist/index.js');
+      const mojibake = await Mojibake.create();
+
+      assert(mojibake.version(), '0.3.0-WASM', 'version');
+      assert(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
+      assert(mojibake.stringIsIdentifier('hello'), true, 'stringIsIdentifier');
+
+      result.textContent = 'PASS';
+    } catch(error) {
+      result.textContent = `FAIL: ${error instanceof Error ? error.message : String(error)}`;
+      console.error(error);
+    }
+  </script>
+</body>
+</html>
