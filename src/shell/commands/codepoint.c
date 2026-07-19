@@ -5,11 +5,8 @@
  */
 
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-#include "../../mojibake.h"
-#include "commands.h"
+#include "../shell.h"
 
 int mjbsh_codepoint_command(int argc, char *const argv[], unsigned int flags) {
     char buffer[5];

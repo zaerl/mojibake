@@ -4,11 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <string.h>
-
-#include "../../mojibake.h"
-#include "commands.h"
+#include "../shell.h"
 
 int mjbsh_case_command(int argc, char *const argv[], unsigned int flags) {
     mjb_result result = { NULL, 0, false };

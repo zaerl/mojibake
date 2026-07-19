@@ -4,11 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <string.h>
-
-#include "../../mojibake.h"
-#include "../screen.h"
+#include "../shell.h"
 
 static mjb_filter filter_flags = MJB_FILTER_NONE;
 

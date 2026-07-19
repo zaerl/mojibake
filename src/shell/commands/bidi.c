@@ -4,14 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../../mojibake.h"
-#include "../maps.h"
 #include "../shell.h"
-#include "commands.h"
 
 static const char *bidi_dir_name(mjb_direction dir) {
     switch(dir) {

@@ -4,12 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../../mojibake.h"
-#include "../maps.h"
 #include "../shell.h"
 
 static bool mjbsh_output_next_character(mjb_character *character, mjb_character_position type) {

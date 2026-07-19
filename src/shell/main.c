@@ -4,29 +4,6 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-// clang-format off
-#ifdef _WIN32
-    #include "getopt/getopt.h"
-    #include <io.h>
-    #include <windows.h>
-    #define isatty _isatty
-    #ifndef STDOUT_FILENO
-        #define STDOUT_FILENO _fileno(stdout)
-    #endif
-#else
-    #include <getopt.h>
-    #include <unistd.h>
-#endif
-// clang-format on
-
-#include "../mojibake.h"
-#include "characters.h"
-#include "commands/commands.h"
-#include "maps.h"
 #include "shell.h"
 
 static int mjbsh_show_version(void) {

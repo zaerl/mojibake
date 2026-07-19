@@ -4,12 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <string.h>
-
-#include "../../mojibake.h"
 #include "../shell.h"
-#include "commands.h"
 
 static const char *mjbsh_locale_error_name(mjb_error error) {
     switch(error) {

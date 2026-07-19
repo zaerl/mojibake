@@ -4,13 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <string.h>
-
-#include "../../mojibake.h"
-#include "../screen.h"
 #include "../shell.h"
-#include "commands.h"
 
 typedef enum {
     MJBSH_BREAK_MODE_ALL,

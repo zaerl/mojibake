@@ -3,11 +3,8 @@
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "maps.h"
+#include "shell.h"
 
 // # @missing: 0000..10FFFF; General_Category; Unassigned
 static const char *mjbsh_category_names[] = {

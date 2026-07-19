@@ -10,8 +10,42 @@
 #define MJB_SHELL_H
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// clang-format off
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include "../utf16.h"
+    #include "getopt/getopt.h"
+    #include <io.h>
+    #include <windows.h>
+    #define isatty _isatty
+    #ifndef STDOUT_FILENO
+        #define STDOUT_FILENO _fileno(stdout)
+    #endif
+#else
+    #include <getopt.h>
+    #include <signal.h>
+    #include <sys/select.h>
+    #include <termios.h>
+    #include <unistd.h>
+#endif
+// clang-format on
 
 #include "../mojibake.h"
+
+typedef void (*mjbsh_screen_fn)(const char *input);
+
+typedef enum {
+    MJBSH_KEY_UP,
+    MJBSH_KEY_DOWN,
+    MJBSH_KEY_LEFT,
+    MJBSH_KEY_RIGHT
+} mjbsh_key;
+
+typedef void (*mjbsh_key_fn)(mjbsh_key key);
 
 typedef enum {
     INTERPRET_MODE_CODEPOINT,
@@ -22,6 +56,15 @@ typedef enum {
     OUTPUT_MODE_PLAIN,
     OUTPUT_MODE_JSON
 } mjbsh_output_mode;
+
+typedef int (*mjbsh_command_function)(int argc, char *const argv[], unsigned int flags);
+
+typedef struct mjb_command {
+    const char *name;
+    const char *description;
+    mjbsh_command_function function;
+    unsigned int flags;
+} mjbsh_command;
 
 extern int cmd_show_colors;
 extern bool cmd_show_allowed_symbols;
@@ -58,5 +101,35 @@ const char *mjbsh_jnl(void);
 // Utils
 mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint);
 bool mjbsh_property_is_bool(mjb_property property);
+
+// Maps
+const char *mjbsh_category_name(mjb_category category);
+char *mjbsh_ccc_name(mjb_canonical_combining_class ccc);
+const char *mjbsh_bidi_name(mjb_bidi_class bidi);
+const char *mjbsh_decomposition_name(mjb_decomposition decomposition);
+// const char *mjbsh_line_breaking_class_name(mjb_line_breaking_class line_breaking_class);
+const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width);
+
+// Characters
+bool mjbsh_next_character(mjb_character *character, mjb_character_position type);
+bool mjbsh_next_array_character(mjb_character *character, mjb_character_position type);
+bool mjbsh_next_string_character(mjb_character *character, mjb_character_position type);
+bool mjbsh_next_escaped_character(mjb_character *character, mjb_character_position type);
+
+// Screen
+void mjbsh_clear_screen(void);
+void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn);
+
+// Commands
+int mjbsh_bidi_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_break_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_case_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_character_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_codepoint_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_emoji_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_filter_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags);
+int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int flags);
 
 #endif // MJB_SHELL_H

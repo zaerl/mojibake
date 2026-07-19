@@ -4,37 +4,20 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdbool.h>
-#include <stdio.h>
+#include "shell.h"
 
 // clang-format off
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #include "../utf16.h"
-    #include <io.h>
-    #include <windows.h>
-    #ifndef STDIN_FILENO
-        #define STDIN_FILENO _fileno(stdin)
-    #endif
-
 // Windows terminal state structure
 typedef struct mjb_terminal_state {
     HANDLE h_stdin;
     DWORD orig_mode;
 } terminal_state;
 #else
-    #include <signal.h>
-    #include <sys/select.h>
-    #include <termios.h>
-    #include <unistd.h>
-
 // Unix terminal state structure
 typedef struct termios terminal_state;
 #endif
 // clang-format on
-
-#include "screen.h"
-#include "shell.h"
 
 // Global state for signal handling
 static bool in_raw_mode = false;

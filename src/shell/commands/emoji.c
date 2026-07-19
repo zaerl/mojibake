@@ -4,13 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../../mojibake.h"
 #include "../shell.h"
-#include "commands.h"
 
 static unsigned int mjbsh_emoji_json_character_count = 0;
 

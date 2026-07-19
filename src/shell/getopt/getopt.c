@@ -2,6 +2,7 @@
  * The Mojibake library
  *
  * This file is distributed under the MIT License. See LICENSE for details.
+ *
  * getopt.h - Windows compatibility layer for getopt
  *
  * This is a minimal implementation of getopt/getopt_long for Windows.

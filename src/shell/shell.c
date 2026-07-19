@@ -7,12 +7,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "../mojibake.h"
-#include "characters.h"
 #include "shell.h"
 
 // Global command-line option variables
