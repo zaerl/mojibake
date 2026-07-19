@@ -7,11 +7,17 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(MJB_SHARED)
+#include "../src/mojibake.h"
+#else
 #include "../src/mojibake-internal.h"
+#endif
 #include "test.h"
 
 int test_string(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
+
+#if !defined(MJB_SHARED)
     size_t output_index = 0;
     size_t output_size = 0;
     char output_input[] = "A";
@@ -22,6 +28,7 @@ int test_string(void *arg) {
         "String output rejects NULL output index")
     ATT_ASSERT(mjb_string_output(NULL, output_input, 1, &output_index, NULL), (char *)NULL,
         "String output rejects NULL output size")
+#endif
 
     ATT_ASSERT(mjb_string_length("Hello", 5, enc), 5, "UTF-8 length: Hello")
     ATT_ASSERT(mjb_string_length("Hello", 4, enc), 4, "UTF-8 length: Hello")
