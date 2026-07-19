@@ -22,16 +22,23 @@ function loadFile(file: string) {
 export async function generateAmalgamation() {
   console.log('Generating amalgamation...');
   const baseFolder = '../../build-amalgamation';
+  const licenseContent = readFileSync('../../LICENSE', 'utf-8');
 
-  const description = [
-    'This file is an amalgamation of all Mojibake source files. It is automatically generated. Do not',
-    'edit. If you want to generate it, run the following command:',
-    '',
-    'make amalgamation'
-  ];
-  let header = getFileLicense(description);
+  const license = `/**
+ * ${ new Date().toISOString().slice(0, 10) }
+ *
+ * The Mojibake library
+ *
+ * https://mojibake.zaerl.com
+ * https://github.com/zaerl/mojibake
+ *
+ * This file is an amalgamation of all Mojibake source files. It is automatically
+ * generated. Do not edit. If you want to generate it, run \`make amalgamation\`
+ *
+ * ${ licenseContent.split('\n').join('\n * ') }
+ */`;
 
-  header += '\n\n#pragma once\n';
+  let header = license + '\n\n#pragma once\n';
   header += loadFile('mojibake.h');
 
   let unicodeFile = loadFile('unicode.h');
@@ -43,7 +50,7 @@ export async function generateAmalgamation() {
   // Generate main header
   writeFileSync(baseFolder + '/mojibake.h', header);
 
-  let source = getFileLicense(description);
+  let source = license;
   source += `\n\n#include "mojibake.h"\n`;
 
   source += `\n// ----------\n// Start of sources\n// ----------\n

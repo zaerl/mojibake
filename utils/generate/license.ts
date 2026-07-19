@@ -12,7 +12,7 @@ const mojibakeFileLicense = `/**
 
 export function getFileLicense(description: string[] = []) {
   if(description.length) {
-    return mojibakeFileLicense.replace('*/', `\n * ${description.join('\n * ')}\n */`);
+    return mojibakeFileLicense.replace('*/', `*\n * ${description.join('\n * ')}\n */`);
   }
 
   return mojibakeFileLicense;
