@@ -6,7 +6,7 @@
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
 import path from 'path';
-import { getVersion, substituteBlock } from './utils';
+import { getVersion, substituteBlock } from '../utils';
 
 export async function updateVersion() {
   let fileContent = readFileSync('../../src/mojibake.h', 'utf-8');

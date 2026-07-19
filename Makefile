@@ -47,7 +47,6 @@ GENERATE_SOURCES = \
 	utils/generate/*.ts \
 	utils/generate/locales/*.ts \
 	utils/generate/parse-ucd/*.ts \
-	utils/generate/site/*.ts \
 	utils/generate/tables/*.ts
 
 UNICODE_DATA = src/unicode-data.h
