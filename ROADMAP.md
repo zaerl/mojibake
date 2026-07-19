@@ -52,3 +52,5 @@ All the other things found on +10MB libraries.
 - [ ] Optimize memory allocation in `mjb_recompose`
 - [ ] Add more runtime options. See [HN:48945337](https://news.ycombinator.com/item?id=48945337)
 - [ ] Add `vcpkg` support
+- [ ] Check all the links such as https://www.unicode.org/reports/tr15/tr15-57.html if they will
+have a new Unicode 18 version, that right now they don't have
