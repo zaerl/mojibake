@@ -311,7 +311,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: msys2/setup-msys2@v2
+      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2
         with:
           msystem: UCRT64
           update: true
@@ -352,7 +352,7 @@ jobs:
 
       - name: Set up QEMU
         if: matrix.qemu
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
         with:
           platforms: 386,s390x
 
@@ -417,7 +417,7 @@ jobs:
           cache: npm
           cache-dependency-path: src/api/package-lock.json
 
-      - uses: emscripten-core/setup-emsdk@v15
+      - uses: emscripten-core/setup-emsdk@667eb33f24e84e7f362c16d8d7fff0629a73e15e # v15
         with:
           version: 5.0.1
           actions-cache-folder: emsdk-cache
