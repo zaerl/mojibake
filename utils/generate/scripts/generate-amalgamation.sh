@@ -26,7 +26,7 @@ cd ../../build-amalgamation
 rm -f ../build-wasm/src/mojibake-amalgamation-"${VERSION}".zip
 
 echo "Creating amalgamation zip file..."
-zip ../build-wasm/src/mojibake-amalgamation-"${VERSION}".zip mojibake.h mojibake.c
+zip ../build-wasm/src/mojibake-amalgamation-"${VERSION}".zip mojibake.h mojibake.c shell.c
 
 echo "Creating WASM zip file..."
 zip ../build-wasm/src/mojibake-wasm-"${VERSION}".zip mojibake.js mojibake.wasm

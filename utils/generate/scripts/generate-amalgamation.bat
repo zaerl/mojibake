@@ -28,7 +28,7 @@ if exist "..\build-wasm\src\mojibake-amalgamation-!VERSION!.zip" (
 )
 
 echo Creating amalgamation zip file...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -LiteralPath 'mojibake.h','mojibake.c' -DestinationPath '..\build-wasm\src\mojibake-amalgamation-!VERSION!.zip' -Force"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -LiteralPath 'mojibake.h','mojibake.c','shell.c' -DestinationPath '..\build-wasm\src\mojibake-amalgamation-!VERSION!.zip' -Force"
 
 echo Creating WASM zip file...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -LiteralPath 'mojibake.js','mojibake.wasm' -DestinationPath '..\build-wasm\src\mojibake-wasm-!VERSION!.zip' -Force"

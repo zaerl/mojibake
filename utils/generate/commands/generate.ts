@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { generateAmalgamation } from '../amalgamation';
+import { generateAmalgamation, generateShellAmalgamation } from '../amalgamation';
 import { Analysis } from '../analysis';
 import { Character } from '../character';
 import { characterDecomposition, generateComposition, generateDecomposition } from '../decomposition';
@@ -204,6 +204,7 @@ async function generate() {
     return;
   } else if(generateTarget === 'amalgamation') {
     await generateAmalgamation();
+    await generateShellAmalgamation();
     return;
   } else if(generateTarget === 'unicode-tables') {
     await buildUnicodeTableData();

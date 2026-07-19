@@ -8,8 +8,9 @@ import { readFileSync, readdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import { getFileLicense } from './license';
 
-function loadFile(file: string) {
-  const srcDir = '../../src';
+const baseFolder = '../../build-amalgamation';
+
+function loadFile(file: string, srcDir = '../../src') {
   let fileContent = readFileSync(path.join(srcDir, file), 'utf-8');
   console.log(`Loading ${file}`);
 
@@ -21,7 +22,6 @@ function loadFile(file: string) {
 
 export async function generateAmalgamation() {
   console.log('Generating amalgamation...');
-  const baseFolder = '../../build-amalgamation';
   const licenseContent = readFileSync('../../LICENSE', 'utf-8');
 
   const license = `/**
@@ -50,16 +50,21 @@ export async function generateAmalgamation() {
   // Generate main header
   writeFileSync(baseFolder + '/mojibake.h', header);
 
-  let source = license;
-  source += `\n\n#include "mojibake.h"\n`;
+  let source = `${license}
 
-  source += `\n// ----------\n// Start of sources\n// ----------\n
+#include "mojibake.h"
+
+// ----------
+// Start of sources
+// ----------
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>\n`;
+#include <stdint.h>
+`;
 
   const srcDir = '../../src';
   const cFiles = readdirSync(srcDir, { withFileTypes: true })
@@ -80,7 +85,7 @@ export async function generateAmalgamation() {
   ];
 
   for(const file of sources) {
-    let content = `\n// ----------\n// ${file}\n// ----------\n` + loadFile(file);
+    let content = `\n// ----------\n// ${file}\n// ----------\n\n` + loadFile(file);
     content = content.replace(/#include .+/g, match => `// ${match}`);
     content = content.replace(/extern mojibake mjb_global;/g, match => `// ${match}`);
 
@@ -88,4 +93,63 @@ export async function generateAmalgamation() {
   }
 
   writeFileSync(baseFolder + '/mojibake.c', source);
+}
+
+export async function generateShellAmalgamation() {
+  console.log('Generating shell amalgamation...');
+
+  const licenseContent = readFileSync('../../LICENSE', 'utf-8');
+  const shellHeader = loadFile('shell.h', '../../src/shell');
+
+  let source = `/**
+ * ${ new Date().toISOString().slice(0, 10) }
+ *
+ * The Mojibake shell
+ *
+ * https://mojibake.zaerl.com
+ * https://github.com/zaerl/mojibake
+ *
+ * This file is an amalgamation of all Mojibake shell source files. It is
+ * automatically generated. Do not edit. If you want to generate it, run
+ * \`make amalgamation\`
+ *
+ * ${ licenseContent.split('\n').join('\n * ') }
+ */
+
+#include "mojibake.h"
+
+${shellHeader.replace('#include "../mojibake.h"\n', '#include "mojibake.h"\n')}
+#include <errno.h>
+
+// ----------
+// Start of sources
+// ----------
+`;
+
+  const srcDir = '../../src/shell/commands';
+  const commands = readdirSync(srcDir, { withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.c'))
+    .map(entry => 'commands/' + entry.name)
+    .sort();
+
+  const sources = [
+    'getopt/getopt.h',
+    'getopt/getopt.c',
+    'characters.c',
+    'maps.c',
+    'screen.c',
+    'shell.c',
+    ...commands,
+    'main.c',
+  ];
+
+  for(const file of sources) {
+    let content = `\n// ----------\n// ${file}\n// ----------\n\n` +
+      loadFile(file, '../../src/shell');
+    content = content.replace(/#include .+/g, match => `// ${match}`);
+    content = content.replace(/#pragma once/g, match => `// ${match}`);
+    source += content;
+  }
+
+  writeFileSync(baseFolder + '/shell.c', source);
 }
