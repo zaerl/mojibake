@@ -13,7 +13,9 @@
     #include <io.h>
     #include <windows.h>
     #define isatty _isatty
-    #define STDOUT_FILENO _fileno(stdout)
+    #ifndef STDOUT_FILENO
+        #define STDOUT_FILENO _fileno(stdout)
+    #endif
     #define chdir _chdir
 #else
     #include <getopt.h>

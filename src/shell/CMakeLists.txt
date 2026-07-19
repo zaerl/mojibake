@@ -37,8 +37,8 @@ if(MJB_BUILD_CPP)
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()
 
-if(WIN32)
-    # Suppress warnings for Windows
+if(MSVC)
+    # Suppress warnings from the Microsoft compiler
     target_compile_options(mojibake
         PRIVATE
         /wd4996 # Suppress 'the POSIX name for this item is deprecated'

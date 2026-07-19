@@ -191,7 +191,7 @@ test-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_CPP_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
-# Run WASM JavaScript API tests
+# Build the API and run its Node and browser WASM tests
 test-wasm:
 	@cd ./src/api && npm run test
 
@@ -297,7 +297,7 @@ help:
 	@echo "  test-no-names           - Build and run tests without Unicode character names"
 	@echo "  test-null               - Build and run tests with embedded NULL support"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
-	@echo "  test-wasm               - Run WASM JavaScript API tests"
+	@echo "  test-wasm               - Run WASM Node and browser API tests"
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"
 	@echo "  update-version          - Update version in source files"
 	@echo "  wasm                    - Build the project for WebAssembly"

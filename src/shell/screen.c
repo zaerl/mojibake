@@ -13,7 +13,9 @@
     #include "../utf16.h"
     #include <io.h>
     #include <windows.h>
-    #define STDIN_FILENO _fileno(stdin)
+    #ifndef STDIN_FILENO
+        #define STDIN_FILENO _fileno(stdin)
+    #endif
 
 // Windows terminal state structure
 typedef struct mjb_terminal_state {

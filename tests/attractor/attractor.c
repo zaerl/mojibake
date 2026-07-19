@@ -16,7 +16,9 @@
     #include <windows.h>
     #include <io.h>
     #define isatty _isatty
-    #define STDOUT_FILENO _fileno(stdout)
+    #ifndef STDOUT_FILENO
+        #define STDOUT_FILENO _fileno(stdout)
+    #endif
 #else
     #include <unistd.h>
 #endif
