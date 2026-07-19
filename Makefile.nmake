@@ -80,7 +80,7 @@ GENERATE_SOURCES = \
 	utils\generate\commands\* \
 	utils\generate\file-generators\* \
 	utils\generate\locales\*.ts \
-	utils\generate\parse-ucd\*.ts
+	utils\generate\parse-ucd\*.ts \
 	utils\generate\scripts\* \
 	utils\generate\*.json \
 	utils\generate\*.ts
