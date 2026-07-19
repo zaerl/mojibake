@@ -4,45 +4,45 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { generateAmalgamation } from './amalgamation';
-import { Analysis } from './analysis';
-import { Character } from './character';
-import { characterDecomposition, generateComposition, generateDecomposition } from './decomposition';
-import { generateAPI } from './generate-api';
-import { generateExamples } from './generate-examples';
-import { generateUnicodeTables } from './generate-unicode-tables';
-import { generateWasmTD } from './generate-wasm-td';
-import { generateHeader } from './header';
-import { generateLocale } from './locales/generate-locale';
-import { iLog, setVerbose } from './log';
-import { readAliases } from './parse-ucd/aliases';
-import { readBidiBrackets } from './parse-ucd/bidi-brackets';
-import { readBidiMirroring } from './parse-ucd/bidi-mirroring';
-import { readBlocks } from './parse-ucd/blocks';
-import { generateCasefold } from './parse-ucd/casefold';
-import { parseCollationAllKeys } from './parse-ucd/collation';
-import { readCompositionExclusions } from './parse-ucd/compositition-exclusion';
-import { parseConfusables } from './parse-ucd/confusables';
-import { generateEmojiProperties } from './parse-ucd/emoji-properties';
-import { generateEmojiSequences } from './parse-ucd/emoji-sequences';
-import { buildPropertyRanges, Property } from './parse-ucd/properties';
-import { readNormalizationProps } from './parse-ucd/quick-check';
-import { readSpecialCasingProps } from './parse-ucd/special-casing';
-import { readScriptExtensions } from './parse-ucd/script-extensions';
-import { parsePropertyFile, ucdBool, ucdInt, ucdString } from './parse-ucd/utils';
-import { PrefixCompressor } from './prefix-compressor';
+import { generateAmalgamation } from '../amalgamation';
+import { Analysis } from '../analysis';
+import { Character } from '../character';
+import { characterDecomposition, generateComposition, generateDecomposition } from '../decomposition';
+import { generateAPI } from '../generate-api';
+import { generateExamples } from '../generate-examples';
+import { generateUnicodeTables } from '../generate-unicode-tables';
+import { generateWasmTD } from '../generate-wasm-td';
+import { generateHeader } from '../header';
+import { generateLocale } from '../locales/generate-locale';
+import { iLog, setVerbose } from '../log';
+import { readAliases } from '../parse-ucd/aliases';
+import { readBidiBrackets } from '../parse-ucd/bidi-brackets';
+import { readBidiMirroring } from '../parse-ucd/bidi-mirroring';
+import { readBlocks } from '../parse-ucd/blocks';
+import { generateCasefold } from '../parse-ucd/casefold';
+import { parseCollationAllKeys } from '../parse-ucd/collation';
+import { readCompositionExclusions } from '../parse-ucd/compositition-exclusion';
+import { parseConfusables } from '../parse-ucd/confusables';
+import { generateEmojiProperties } from '../parse-ucd/emoji-properties';
+import { generateEmojiSequences } from '../parse-ucd/emoji-sequences';
+import { buildPropertyRanges, Property } from '../parse-ucd/properties';
+import { readNormalizationProps } from '../parse-ucd/quick-check';
+import { readSpecialCasingProps } from '../parse-ucd/special-casing';
+import { readScriptExtensions } from '../parse-ucd/script-extensions';
+import { parsePropertyFile, ucdBool, ucdInt, ucdString } from '../parse-ucd/utils';
+import { PrefixCompressor } from '../prefix-compressor';
 import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
-} from './types';
+} from '../types';
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
   addDecompositions, addEmojiProperties, addEmojiSequences, addPropertyRanges, addSimpleCaseFolding,
   addSpecialCasing, addScriptExtensions, resetUnicodeTableData
-} from './unicode-data-store';
+} from '../unicode-data-store';
 import { updateVersion } from './update-version';
-import { CodepointsRangeMap, compressName, isCodepointOnRanges } from './utils';
-import { generateWASM } from './wasm';
+import { CodepointsRangeMap, compressName, isCodepointOnRanges } from '../utils';
+import { generateWASM } from '../wasm';
 
 async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns = true):
   Promise<{ characters: Character[], properties: Property[] }> {

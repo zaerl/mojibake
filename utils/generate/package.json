@@ -6,11 +6,11 @@
   "description": "Mojibake Unicode data generator",
   "license": "MIT",
   "scripts": {
-    "generate": "tsx index.ts",
-    "generate-site": "tsx site/generate-site.ts",
+    "generate": "tsx commands/generate.ts",
+    "generate-site": "tsx commands/generate-site.ts",
     "generate-locales": "tsx index.ts generate-locale",
-    "watch-site": "tsx site/generate-site.ts --watch",
-    "coverage": "tsx coverage.ts"
+    "watch-site": "tsx commands/generate-site.ts --watch",
+    "coverage": "tsx commands/coverage.ts"
   },
   "dependencies": {
     "@types/node": "^26.1.1",

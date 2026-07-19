@@ -8,9 +8,8 @@ import { spawnSync } from 'child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
-import functions from './functions';
-import { CFunction } from './html-function';
-import { substituteBlock } from './utils';
+import functions from '../functions';
+import { CFunction } from '../html-function';
 
 // Types
 type FuncCoverage = {
@@ -29,7 +28,7 @@ type RuntimeCoverage = {
   coverage: RuntimeCoverageEntry[];
 };
 
-const repoRoot = resolve(__dirname, '../..');
+const repoRoot = resolve(__dirname, '../../..');
 
 function createCoverage(names: string[]): Coverage {
   const coverage: Coverage = {};
