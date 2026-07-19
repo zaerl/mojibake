@@ -4,6 +4,11 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
+set -e
+
+GENERATOR_DIR=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
+cd "$GENERATOR_DIR"
+
 # TODO: change "draft" to 18.0.0 when the final version is released.
 UNICODE_VERSION="draft"
 SECURITY_VERSION="18.0.0"

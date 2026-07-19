@@ -49,7 +49,7 @@ jobs:
           key: test-data-draft-18.0.0
 
       - name: Download Unicode test data
-        run: ./utils/generate/download-test-data.sh
+        run: ./utils/generate/scripts/download-test-data.sh
 
       - name: Test
         run: |
@@ -116,7 +116,7 @@ jobs:
           key: test-data-18.0.0
 
       - name: Download Unicode test data
-        run: ./utils/generate/download-test-data.sh
+        run: ./utils/generate/scripts/download-test-data.sh
 
       - name: Start ${{ matrix.label }} VM
         uses: cross-platform-actions/action@5ea7e8e4677bd726033a10b094ba1c5762b15dee # v1.3.0
@@ -179,7 +179,7 @@ jobs:
 
       - name: Download Unicode test data
         shell: bash
-        run: ./utils/generate/download-test-data.sh
+        run: ./utils/generate/scripts/download-test-data.sh
 
       - name: Test
         shell: bash

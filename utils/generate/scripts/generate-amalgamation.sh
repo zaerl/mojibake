@@ -4,6 +4,11 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
+set -e
+
+GENERATOR_DIR=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
+cd "$GENERATOR_DIR"
+
 mkdir -p ../../build-amalgamation
 
 npm run generate -- amalgamation
@@ -15,13 +20,13 @@ cp ../../build-wasm/src/mojibake.wasm ../../build-amalgamation/mojibake.wasm
 cp ../../build-wasm/src/mojibake.js ../../src/api/mojibake.js
 cp ../../build-wasm/src/mojibake.wasm ../../src/api/mojibake.wasm
 
-VERSION=$(cat ../../VERSION | tr -d ' \n.' )
+VERSION=$(tr -d ' \n.' < ../../VERSION)
 
 cd ../../build-amalgamation
-rm -f ../build-wasm/src/mojibake-amalgamation-${VERSION}.zip
+rm -f ../build-wasm/src/mojibake-amalgamation-"${VERSION}".zip
 
 echo "Creating amalgamation zip file..."
-zip ../build-wasm/src/mojibake-amalgamation-${VERSION}.zip mojibake.h mojibake.c
+zip ../build-wasm/src/mojibake-amalgamation-"${VERSION}".zip mojibake.h mojibake.c
 
 echo "Creating WASM zip file..."
-zip ../build-wasm/src/mojibake-wasm-${VERSION}.zip mojibake.js mojibake.wasm
+zip ../build-wasm/src/mojibake-wasm-"${VERSION}".zip mojibake.js mojibake.wasm

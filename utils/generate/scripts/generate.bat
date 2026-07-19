@@ -5,6 +5,8 @@ REM This file is distributed under the MIT License. See LICENSE for details.
 
 setlocal enabledelayedexpansion
 
+pushd "%~dp0.." || exit /b 1
+
 REM TODO: change "draft" to 18.0.0 when the final version is released.
 set UNICODE_VERSION=draft
 set SECURITY_VERSION=18.0.0
@@ -65,4 +67,5 @@ REM Run npm generate
 call npm run generate -- %*
 set "GENERATE_STATUS=%ERRORLEVEL%"
 
+popd
 endlocal & exit /b %GENERATE_STATUS%
