@@ -4,12 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
+import { iLog } from '../../log';
 import {
   codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
-  formatHalfwords, formatLongWords, formatWords, indexedPages, packCodepointSequences,
-} from '../utils';
-import { CaseFoldRow, CaseFoldSimpleRow, SimpleCaseRow, SpecialCaseRow } from './types';
+  formatHalfwords, formatLongWords, formatWords, indexedPages, packCodepointSequences
+} from '../../utils';
+import { CaseFoldRow, CaseFoldSimpleRow, SimpleCaseRow, SpecialCaseRow } from '../types';
 
 // Returns the non-null codepoint sequence for special casing or case folding.
 function caseSequenceValues(row: SpecialCaseRow | CaseFoldRow) {

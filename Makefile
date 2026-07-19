@@ -42,12 +42,13 @@ WASM_CMAKE_FLAGS = -DBUILD_CPP=OFF -DBUILD_SHARED=OFF -DBUILD_WASM=ON -DUSE_ASAN
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
+	utils/generate/commands/* \
+	utils/generate/file-generators/* \
+	utils/generate/locales/*.ts \
+	utils/generate/parse-ucd/*.ts \
 	utils/generate/scripts/* \
 	utils/generate/*.json \
 	utils/generate/*.ts \
-	utils/generate/locales/*.ts \
-	utils/generate/parse-ucd/*.ts \
-	utils/generate/tables/*.ts
 
 UNICODE_DATA = src/unicode-data.h
 

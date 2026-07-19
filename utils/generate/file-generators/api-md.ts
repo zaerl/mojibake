@@ -5,8 +5,8 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { cfns, CFunction } from './html-function';
-import { substituteBlock } from './utils';
+import { cfns, CFunction } from '../html-function';
+import { substituteBlock } from '../utils';
 
 export function generateAPI() {
   const path = '../../API.md';

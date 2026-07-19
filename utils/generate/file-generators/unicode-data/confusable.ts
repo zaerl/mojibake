@@ -4,12 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { iLog } from '../log';
+import { iLog } from '../../log';
 import {
   codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
   formatHalfwords, formatLongWords, formatWords, indexedPages,
-} from '../utils';
-import { ConfusableRow } from './types';
+} from '../../utils';
+import { ConfusableRow } from '../types';
 
 // Emits indexed confusable skeleton mappings with shared skeleton payloads.
 export function generateConfusables(rows: ConfusableRow[]) {
