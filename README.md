@@ -220,6 +220,11 @@ Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WA
 
 Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 
+### C++17 wrapper
+
+Mojibake also has a tiny C++ wrapper. Check here for details:
+[src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/mojibake.hpp)
+
 ### Build-time features
 
 Mojibake can compile out optional feature tables to reduce binary size. Feature macros default to

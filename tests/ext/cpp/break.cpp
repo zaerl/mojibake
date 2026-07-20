@@ -7,6 +7,8 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
+#include <utility>
+
 int test_cpp_break(void *arg) {
     mjb::BreakResult r1{ 1, 0x41, MJB_BT_MANDATORY };
     ATT_ASSERT(r1.is_mandatory(), true, "BreakResult::is_mandatory")
@@ -111,6 +113,34 @@ int test_cpp_break(void *arg) {
     mjb::WordBreaker wb3("");
     ATT_ASSERT(wb3.next().has_value(), false, "WordBreaker::next on empty string returns nullopt")
     ATT_ASSERT(wb3.is_done(), true, "WordBreaker::is_done on empty string")
+
+    ATT_ASSERT(std::string(wb.input()), std::string("Hello world"), "Breaker::input")
+    ATT_ASSERT((int)wb.input_encoding(), MJB_ENC_UTF_8, "Breaker::input_encoding")
+
+    mjb::BidiParagraph paragraph("abc");
+    ATT_ASSERT(paragraph.empty(), false, "BidiParagraph::empty")
+    ATT_ASSERT(paragraph.size(), 3u, "BidiParagraph::size")
+    ATT_ASSERT((int)paragraph.direction(), MJB_DIRECTION_LTR, "BidiParagraph::direction")
+    ATT_ASSERT(paragraph[0].codepoint, (mjb_codepoint)'a', "BidiParagraph::operator[]")
+    ATT_ASSERT(paragraph.at(2).codepoint, (mjb_codepoint)'c', "BidiParagraph::at")
+
+    const auto order = paragraph.visual_order();
+    ATT_ASSERT(order.size(), 3u, "BidiParagraph::visual_order size")
+    ATT_ASSERT(order[0], 0u, "BidiParagraph::visual_order first")
+
+    const auto runs = paragraph.line_runs(order);
+    ATT_ASSERT(runs.size(), 1u, "BidiParagraph::line_runs size")
+    ATT_ASSERT((int)runs[0].direction, MJB_DIRECTION_LTR, "BidiParagraph::line_runs direction")
+
+    mjb::BidiParagraph moved(std::move(paragraph));
+    ATT_ASSERT(paragraph.empty(), true, "BidiParagraph moved-from state")
+    ATT_ASSERT(moved.size(), 3u, "BidiParagraph move constructor")
+
+    const std::string hebrew("\xD7\x90\xD7\x91\xD7\x92");
+    mjb::BidiParagraph rtl(hebrew);
+    const auto rtl_order = rtl.visual_order();
+    ATT_ASSERT((int)rtl.direction(), MJB_DIRECTION_RTL, "BidiParagraph RTL direction")
+    ATT_ASSERT(rtl_order[0], 2u, "BidiParagraph RTL visual order")
 
     return 0;
 }

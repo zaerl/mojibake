@@ -7,6 +7,18 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
+static size_t cpp_each_character_count = 0;
+
+static bool cpp_each_character(mjb_character *character, mjb_character_position position) {
+    (void)position;
+
+    if(character != nullptr) {
+        ++cpp_each_character_count;
+    }
+
+    return true;
+}
+
 int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::property_binary(U'A', MJB_PR_ALPHABETIC).value_or(false), true,
         "C++ typed binary property")
@@ -30,8 +42,10 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(character2.to_utf8(), std::string("\xF0\x9F\x99\x83"), "Character::to_utf8")
 
     ATT_ASSERT(mjb::Character::from(0x1F642).has_value(), true, "Character::from valid codepoint")
-    ATT_ASSERT(mjb::Character::from(MJB_CODEPOINT_NOT_VALID).has_value(), false, "Character::from invalid codepoint")
-    ATT_ASSERT(mjb::Character::from(0x1F642)->codepoint(), (mjb_codepoint)0x1F642, "Character::from codepoint accessor")
+    ATT_ASSERT(mjb::Character::from(MJB_CODEPOINT_NOT_VALID).has_value(), false,
+        "Character::from invalid codepoint")
+    ATT_ASSERT(mjb::Character::from(0x1F642)->codepoint(), (mjb_codepoint)0x1F642,
+        "Character::from codepoint accessor")
 
     ATT_ASSERT(character == character2, false, "Character::operator==")
     ATT_ASSERT(character == character3, true, "Character::operator==")
@@ -87,8 +101,88 @@ int test_cpp_mojibake(void *arg) {
 
     // truncate
     ATT_ASSERT(std::string(mjb::truncate("hello", 3)), std::string("hel"), "truncate: 3 graphemes")
-    ATT_ASSERT(std::string(mjb::truncate("hello", 10)), std::string("hello"), "truncate: beyond length")
-    ATT_ASSERT(std::string(mjb::truncate_word("hello world", 1)), std::string("hello"), "truncate_word: 1 segment")
+    ATT_ASSERT(std::string(mjb::truncate("hello", 10)), std::string("hello"),
+        "truncate: beyond length")
+    ATT_ASSERT(std::string(mjb::truncate_word("hello world", 1)), std::string("hello"),
+        "truncate_word: 1 segment")
+
+    ATT_ASSERT(std::string(mjb::property_name(MJB_PR_ALPHABETIC)), std::string("Alphabetic"),
+        "property_name")
+    ATT_ASSERT((int)mjb::script('A'), MJB_SC_LATN, "script")
+
+    const auto block = mjb::block_info('A');
+    ATT_ASSERT(block.has_value(), true, "block_info has value")
+    ATT_ASSERT(std::string(block->name()), std::string("Basic Latin"), "block_info name")
+    ATT_ASSERT(block->contains('Z'), true, "block_info contains")
+
+    const auto emoji = mjb::emoji_properties(0x1F642);
+    ATT_ASSERT(emoji.has_value(), true, "emoji_properties has value")
+    ATT_ASSERT(emoji->is_emoji(), true, "emoji_properties is_emoji")
+    ATT_ASSERT(emoji->is_extended_pictographic(), true,
+        "emoji_properties is_extended_pictographic")
+
+    ATT_ASSERT(mjb::is_valid('A'), true, "is_valid codepoint")
+    ATT_ASSERT(mjb::is_graphic('A'), true, "is_graphic")
+    ATT_ASSERT(mjb::is_combining(0x0301), true, "is_combining")
+    ATT_ASSERT(mjb::category_is_graphic(MJB_CATEGORY_LL), true, "category_is_graphic")
+    ATT_ASSERT(mjb::category_is_combining(MJB_CATEGORY_MN), true, "category_is_combining")
+    ATT_ASSERT(mjb::is_hangul_l(0x1100), true, "is_hangul_l")
+    ATT_ASSERT(mjb::is_hangul_v(0x1161), true, "is_hangul_v")
+    ATT_ASSERT(mjb::is_hangul_t(0x11A8), true, "is_hangul_t")
+    ATT_ASSERT(mjb::is_hangul_jamo(0x1100), true, "is_hangul_jamo")
+    ATT_ASSERT(mjb::is_hangul_syllable(0xAC00), true, "is_hangul_syllable")
+    ATT_ASSERT(mjb::is_cjk_ideograph(0x4E00), true, "is_cjk_ideograph")
+    ATT_ASSERT(mjb::is_cjk_extension(0x3400), true, "is_cjk_extension")
+    ATT_ASSERT(mjb::is_emoji(0x1F642), true, "is_emoji codepoint")
+    ATT_ASSERT(mjb::is_emoji_presentation(0x1F642), true, "is_emoji_presentation")
+    ATT_ASSERT(mjb::is_extended_pictographic(0x1F642), true,
+        "is_extended_pictographic")
+    ATT_ASSERT(mjb::is_id_start('A'), true, "is_id_start codepoint")
+    ATT_ASSERT(mjb::is_id_continue('1'), true, "is_id_continue codepoint")
+    ATT_ASSERT(mjb::is_pattern_syntax('!'), true, "is_pattern_syntax codepoint")
+
+    ATT_ASSERT((int)mjb::plane('A'), MJB_PLANE_BMP, "plane")
+    ATT_ASSERT(mjb::is_valid(MJB_PLANE_BMP), true, "is_valid plane")
+    ATT_ASSERT(std::string(mjb::plane_name(MJB_PLANE_BMP, true)), std::string("BMP"),
+        "plane_name")
+    ATT_ASSERT((int)mjb::east_asian_width('A'), MJB_EAW_NARROW, "east_asian_width")
+    ATT_ASSERT(mjb::encode(0x1F642), std::string("\xF0\x9F\x99\x82"), "encode")
+
+    cpp_each_character_count = 0;
+    ATT_ASSERT_STATUS(mjb::each_character("ABC", cpp_each_character), MJB_STATUS_OK,
+        "each_character")
+    ATT_ASSERT(cpp_each_character_count, 3u, "each_character count")
+
+    const auto sequence = mjb::emoji_sequence("\xF0\x9F\x99\x82");
+    ATT_ASSERT(sequence.has_value(), true, "emoji_sequence has value")
+    ATT_ASSERT(sequence->size(), 1u, "emoji_sequence size")
+    ATT_ASSERT(mjb::is_emoji_sequence("\xF0\x9F\x99\x82"), true, "is_emoji_sequence")
+    ATT_ASSERT(mjb::is_rgi_emoji("\xF0\x9F\x99\x82"), true, "is_rgi_emoji")
+    ATT_ASSERT(mjb::display_width("abc"), 3u, "display_width")
+
+    ATT_ASSERT(mjb::hangul_syllable_name(0xAC00), std::string("HANGUL SYLLABLE GA"),
+        "hangul_syllable_name")
+    const auto decomposition = mjb::hangul_syllable_decomposition(0xAC00);
+    ATT_ASSERT(decomposition[0], (mjb_codepoint)0x1100, "hangul decomposition L")
+    ATT_ASSERT(decomposition[1], (mjb_codepoint)0x1161, "hangul decomposition V")
+    ATT_ASSERT(decomposition[2], (mjb_codepoint)0, "hangul decomposition T")
+
+    const auto composition = mjb::hangul_syllable_composition(std::vector<mjb_buffer_character>{
+        { 0x1100, 0 }, { 0x1161, 0 } });
+    ATT_ASSERT(composition.size(), 1u, "hangul composition size")
+    ATT_ASSERT(composition[0].codepoint, (mjb_codepoint)0xAC00, "hangul composition codepoint")
+
+    ATT_ASSERT(std::string(mjb::version()), std::string(MJB_VERSION), "version")
+    ATT_ASSERT(mjb::version_number(), (unsigned int)MJB_VERSION_NUMBER, "version_number")
+    ATT_ASSERT(std::string(mjb::unicode_version()), std::string(MJB_UNICODE_VERSION),
+        "unicode_version")
+
+    mjb::set_memory_functions(nullptr, nullptr, nullptr);
+    void *memory = mjb::allocate(8);
+    ATT_ASSERT(memory != nullptr, true, "allocate")
+    memory = mjb::reallocate(memory, 16);
+    ATT_ASSERT(memory != nullptr, true, "reallocate")
+    mjb::deallocate(memory);
 
     return 0;
 }

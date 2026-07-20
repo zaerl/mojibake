@@ -371,6 +371,7 @@ int main(int argc, char *const argv[]) {
 
 #ifdef __cplusplus
     RUN_TEST(cpp_break)
+    RUN_TEST(cpp_locales)
     RUN_TEST(cpp_mojibake)
     RUN_TEST(cpp_normalization)
 #endif

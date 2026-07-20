@@ -43,6 +43,7 @@ set(TEST_SOURCES
 if(MJB_BUILD_CPP)
     # Add C++ test sources
     list(APPEND TEST_SOURCES ext/cpp/break.cpp)
+    list(APPEND TEST_SOURCES ext/cpp/locales.cpp)
     list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)
     list(APPEND TEST_SOURCES ext/cpp/normalization.cpp)
 endif()

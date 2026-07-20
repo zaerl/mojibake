@@ -56,6 +56,7 @@ int test_version(void *arg);
 
 #ifdef __cplusplus
 int test_cpp_break(void *arg);
+int test_cpp_locales(void *arg);
 int test_cpp_mojibake(void *arg);
 int test_cpp_normalization(void *arg);
 #endif
