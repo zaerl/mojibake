@@ -19,21 +19,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Forced `_WIN32` in the shell `getoptc.h/c` declarations
-- Removed all shell headers and keep only `shell.h`
+- Removed all shell headers and kept only `shell.h`
 - Replaced `BUILD_SHARED` with CMake's standard `BUILD_SHARED_LIBS` option
 - Now the LICENSE file is embedded in the amalgamation files
 - Minor reorganization of utils/generate folder
 - Fixed C4 statement
 
 ### Fixed
-- Windows: `findstr` wasn't working in the `generate.bat`. I tried multiple times to make it works
-  but then I gave up and changed it to a node script
+- Windows: `findstr` wasn't working in the `generate.bat`. I tried multiple times to make it work
+  but then I gave up and changed it to a Node script
 - Windows: Makefile.nmake syntax error on `GENERATE_SOURCES` declaration
 - Changed check from `WIN32` to `MSVC` to identify the Microsoft compiler
-- MingW: now we check if `STDOUT_FILENO` is declared before set it
+- MingW: now we check if `STDOUT_FILENO` is declared before setting it
 - Set exit code on WASM test to 1 after failure
 - Removed the MJB_EXPORT from `mjb_string_output` and `mjb_string_output_codepoint`
-- Missing Haiku on OSes list
+- Missing Haiku on the OSes list
 
 ## [0.3.0] - 2026-07-18
 
@@ -41,10 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved to Unicode 18
 - Added Haiku test action
 - Added `MJB_BUILD_CLI` option
-- Cmake changes now added `BUILD_TESTING` option
+- CMake changes now added `BUILD_TESTING` option
 
 ### Changed
-- Now the generation script download the entire security zip
+- Now the generation script downloads the entire security zip
 - Removed `enable_testing()` and added `include(CTest)`
 - Added a supplementary 64-bit table for case entries outside BMP
 
@@ -76,13 +76,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add break algorithms HTML output
 - Added custom dependabot
-- Added dependency review Github workflow
-- Added "Quality" Github workflow, that runs `clang-format`
+- Added dependency review GitHub workflow
+- Added "Quality" GitHub workflow, that runs `clang-format`
 - Added `mjb_encoding_is_valid_input`
 - Added `mjb_encoding_is_valid_output`
 
 ### Changed
-- UCD names data tables new schema
+- UCD names data tables to a new schema
 - Converted 6 sparse page indexes from 16-bit to 8-bit entries
 - Packed collation elements into 4 bytes instead of 6
 - Packed NUL-terminated strings on names table
@@ -116,7 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Renamed `doc/` to `example/`
-- Move legalese to conformance file
+- Moved legalese to conformance file
 - Removed fuzz paragraph
 - Fix: `Mojibake.codepointEncode` wrong signature
 - Fix: `Mojibake.stringLength` wrong signature
@@ -149,8 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Site is generated from README.md
-- Now WASM return `mjb_result` instead of a string
-- Now WASM strings have also a `Uint8Array`
+- Now WASM returns `mjb_result` instead of a string
+- Now WASM strings also have a `Uint8Array`
 - Functions reordered
 - Added Developer Certificate of Origin
 
@@ -158,7 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor typos
 - HTML code indenting
 - Missing HTML block parser
-- Not-WASM functions was missing in the site
+- Not-WASM functions were missing in the site
 
 ## [0.2.4] - 2026-07-09
 
@@ -171,7 +171,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mjb_codepoint_to_lowercase` documentation
 
 ### Changed
-- `mjb_alloc` now don't `memset` the memory to `0`
+- `mjb_alloc` no longer `memset` the memory to `0`
 - Removed `mjb_codepoint_properties`
 - Removed `mjb_codepoint_property`
 - Renamed `mjb_codepoint_has_property` to `mjb_codepoint_property_value`
@@ -182,11 +182,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added second encoding to `mjb_string_compare`
 - Added second encoding to `mjb_string_is_confusable`
 - Renamed `size` to `byte_length`
-- Changed tests function return from `void*` to `int`
+- Changed test function return from `void*` to `int`
 - Renamed `MJB_ENCODING_*` to `MJB_ENC_*`
 - Inverted `mjb_normalize` parameters
 - Added `output_encoding` to `mjb_case`
-- Removed all companies names
+- Removed all company names
 - Moved the Unicode Conformance Requirements points to a separate file
 
 ### Fixed
@@ -208,11 +208,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `test-wasm` target
 - UTF-16 pending surrogates
 - Support for dynamic library creation
-- `MJB_FEATURE_CHARACTER_NAMES` to strip away names tables
+- `MJB_FEATURE_CHARACTER_NAMES` to strip away name tables
 
 ### Changed
 - Updated Attractor and new coverage
-- Split bidi tests in two files
+- Split bidi tests into two files
 - Renamed workflows to avoid confusion
 - Removed coverage script
 - Substituted all `bool` statuses to `mjb_status`
@@ -248,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Missing `ctest-cpp` target
-- Moved `mjb_size` to WASM generated
+- Moved `mjb_size` to WASM-generated
 - Added missing license headers
 - Added missing `mjb_string_is_confusable` to WASM
 - Fixed missing file imports in Dockerfile
@@ -277,7 +277,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unused WASM exported functions
 - Added `NULL` checks to all functions that had `MJB_NONNULL` before
 - Added memory allocation safety checks
-- Cleaned amalgamation generated code
+- Cleaned amalgamation-generated code
 - Removed `width` CLI parameter
 - `\r` and `\n` are now displayed as special characters on CLI
 
@@ -304,7 +304,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Removed SQLite usage
 - Removed usage of `mojibake.db` in the generator
-- Removed harcoded .c amalgamation arrays
+- Removed hardcoded .c amalgamation arrays
 - Updated Node
 - Removed the embedded database mode
 - Moved C++ API to src folder
@@ -313,8 +313,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Set default CN category to zero
-- The online demo is temporarly offline
-- Remove usage of `strncpy`
+- The online demo is temporarily offline
+- Removed usage of `strncpy`
 
 ## [0.1.5] - 2026-03-06
 
@@ -329,8 +329,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scripts detection
 
 ### Changed
-- Normalization function now accept an output encoding
-- CJK ideograph now intercept all Unicode 17 extension ranges
+- Normalization function now accepts an output encoding
+- CJK ideograph now intercepts all Unicode 17 extension ranges
 
 ### Fixed
 - Wrong enum counts
@@ -397,7 +397,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Refactored segmentation algorithm
-- Moved East Asian Width (EAW) and Line Break (LB) to the properties table
+- Moved East `Asian Width (EAW)` and `Line Break (LB)` to the properties table
 - Segmentation state now returns `mjb_break_type`
 
 ### Fixed
