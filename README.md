@@ -3,13 +3,13 @@
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
-**Mojibake** is a low-level Unicode 18 text-processing library written in C11 and compatible
-with C++17. It is released under the MIT License.
+**Mojibake** is a small, fast, self-contained Unicode library written in C11. It is released under
+the MIT License.
 
 ## Usage
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
-C/C++ project. Download it here [mojibake-amalgamation-031.zip](https://github.com/zaerl/mojibake/releases/download/v0.3.1/mojibake-amalgamation-031.zip)
+C/C++ project. Download it here [mojibake-amalgamation-031.zip](https://github.com/zaerl/mojibake/releases/download/v0.3.1/mojibake-amalgamation-031.zip).
 
 Examples of normalization, characters count and NFKC casefold.
 
@@ -95,13 +95,13 @@ Mojibake aims to be:
 
 Mojibake do:
 
-1. Run in all modern OSes (Linux, macOS, FreeBSD, OpenBSD, NetBSD, Haiku, Windows 10/11)
+1. Run in all modern OSes
 2. Pass the official Unicode test suites for supported algorithms
 3. Implement all Unicode standard algorithms
 4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md)
 
 You can find a demo site where you can find the API documentation and test the functions by using
-WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com).
 
 ## Feature highlights
 
@@ -164,6 +164,33 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 byte input
 - `AddressSanitizer` and `UBSan` clean
 
+## Minimum requirements
+
+Mojibake requires a C11 compiler. Building the sources as C++, including the header-only C++
+wrapper, requires C++17. The minimum supported compiler versions are:
+
+| Toolchain   | Minimum version            |
+| ----------- | -------------------------- |
+| GCC         | 9                          |
+| LLVM Clang  | 10                         |
+| Apple Clang | 10                         |
+| MSVC        | 19.30 (Visual Studio 2022) |
+
+MinGW-w64 and Emscripten (WASM) are also tested as rolling compatibility targets.
+
+Mojibake is tested on:
+
+1. Ubuntu Linux (gcc, g++, clang, clang++)
+2. Ubuntu Linux ARM64 (gcc, g++)
+3. Ubuntu Linux (Android NDK / ARM64)
+4. Alpine Linux (musl x86_64, musl i386, musl s390x)
+5. macOS (clang, clang++)
+6. FreeBSD 15.1 (clang, clang++)
+7. OpenBSD 7.9 (clang, clang++)
+8. NetBSD 10.1 (clang, clang++)
+9. Haiku R1/beta5 (clang, clang++)
+10. Windows 11 (MSVC, MinGW-w64)
+
 ### CMake dependency
 
 Mojibake can be embedded with either `add_subdirectory` or `FetchContent` and exposes the
@@ -183,10 +210,13 @@ target_link_libraries(your-target PRIVATE Mojibake::mojibake)
 ```
 
 Tests, the CLI, and installation rules default to enabled for a standalone build and disabled when
-Mojibake is embedded. They can be controlled with `MJB_BUILD_TESTS`, `MJB_BUILD_CLI`, and
-`MJB_INSTALL`. Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`,
-`MJB_USE_ASAN`, `MJB_USE_UBSAN`, `MJB_ALLOW_EMBEDDED_NULLS`, and
-`MJB_FEATURE_CHARACTER_NAMES`.
+Mojibake is embedded. They can be controlled with:
+
+1. `MJB_BUILD_TESTS`
+2. `MJB_BUILD_CLI`
+3. `MJB_INSTALL`
+
+Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_USE_ASAN`, `MJB_USE_UBSAN`, `MJB_ALLOW_EMBEDDED_NULLS`, and `MJB_FEATURE_CHARACTER_NAMES`.
 
 Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 
