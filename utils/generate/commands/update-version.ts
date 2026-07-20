@@ -42,6 +42,10 @@ export async function updateVersion() {
   fileContent = substituteBlock(fileContent, 'versionNumber(), ', ',', hexNumber);
   writeFileSync('../../src/api/tests/index.ts', fileContent);
 
+  fileContent = readFileSync('../../src/api/tests/browser.html', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'mojibake.version(), \'', '-WASM', v.version);
+  writeFileSync('../../src/api/tests/browser.html', fileContent);
+
   const zip = `mojibake-amalgamation-${v.major}${v.minor}${v.revision}`;
   fileContent = readFileSync('../../README.md', 'utf-8');
   fileContent = substituteBlock(fileContent, 'Download it here [', '.zip)',
@@ -68,7 +72,7 @@ export async function updateVersion() {
   }
 
   // Update .claude/skills/*/SKILL.md version fields
-  updateSkillMdFiles(path.resolve(__dirname, '../../.claude/skills'));
+  updateSkillMdFiles(path.resolve(__dirname, '../../../.claude/skills'));
 
   console.log(`\nVersion updated to ${v.version}`);
   console.log('make wasm');

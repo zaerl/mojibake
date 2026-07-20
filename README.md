@@ -9,7 +9,7 @@ with C++17. It is released under the MIT License.
 ## Usage
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
-C/C++ project. Download it here [mojibake-amalgamation-030.zip](https://github.com/zaerl/mojibake/releases/download/v0.3.0/mojibake-amalgamation-030.zip)
+C/C++ project. Download it here [mojibake-amalgamation-031.zip](https://github.com/zaerl/mojibake/releases/download/v0.3.1/mojibake-amalgamation-031.zip)
 
 Examples of normalization, characters count and NFKC casefold.
 
@@ -230,6 +230,8 @@ mojibake nfc $'Cafe\u0301'
 # The output an emoji sequence [1] Basic, [2] Fully-qualified of two characters U+263A U+FE0F
 mojibake emoji "☺️"
 ```
+
+The amalgamation .zip also contains an amalgamation of the shell called `shell.c`.
 
 ## Building from source and contributing
 

@@ -5,15 +5,35 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.1] - 2026-07-20
+
+- Added a `shell.c` amalgamation to the main amalgamation. Now there are three files
+- Added node smoke test to test targets
+- Added HTML smoke test to test targets
+- Added minimum supported compilers to test targets
+- Added Linux ARM64 / GCC to test targets
+- Made CMake embedding dependency-safe by using namespaced options, target-scoped build flags, and
+  top-level-only defaults for tests, the CLI, and installation rules
+- Monday Dependabot cleanup
 
 ### Changed
 
-- Made CMake embedding dependency-safe by using namespaced options, target-scoped build flags, and
-  top-level-only defaults for tests, the CLI, and installation rules
+- Forced `_WIN32` in the shell `getoptc.h/c` declarations
+- Removed all shell headers and keep only `shell.h`
 - Replaced `BUILD_SHARED` with CMake's standard `BUILD_SHARED_LIBS` option
-- Minor reorganization of utils/generate folder
 - Now the LICENSE file is embedded in the amalgamation files
+- Minor reorganization of utils/generate folder
+- Fixed C4 statement
+
+### Fixed
+- Windows: `findstr` wasn't working in the `generate.bat`. I tried multiple times to make it works
+  but then I gave up and changed it to a node script
+- Windows: Makefile.nmake syntax error on `GENERATE_SOURCES` declaration
+- Changed check from `WIN32` to `MSVC` to identify the Microsoft compiler
+- MingW: now we check if `STDOUT_FILENO` is declared before set it
+- Set exit code on WASM test to 1 after failure
+- Removed the MJB_EXPORT from `mjb_string_output` and `mjb_string_output_codepoint`
+- Missing Haiku on OSes list
 
 ## [0.3.0] - 2026-07-18
 
@@ -495,7 +515,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/zaerl/mojibake/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/zaerl/mojibake/compare/v0.2.8...v0.3.0
 [0.2.8]: https://github.com/zaerl/mojibake/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/zaerl/mojibake/compare/v0.2.6...v0.2.7
