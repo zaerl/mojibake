@@ -223,7 +223,7 @@ Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static lib
 ### C++17 wrapper
 
 Mojibake also has a tiny C++ wrapper. Check here for details:
-[src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/mojibake.hpp)
+[src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md)
 
 ### Build-time features
 
