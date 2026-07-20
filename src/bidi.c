@@ -1,7 +1,7 @@
 /**
  * The Mojibake library
  *
- * Bidirectional text algorithm — Unicode Standard Annex #9 (TR9)
+ * Bidirectional text algorithm - Unicode Standard Annex #9 (TR9)
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  */
@@ -1038,7 +1038,7 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level
 }
 
 /**
- * Pass 5: N1/N2 — other neutrals (per Isolating Run Sequence)
+ * Pass 5: N1/N2 - other neutrals (per Isolating Run Sequence)
  */
 static void pass5_neutrals(mjb_bidi_work *work, size_t count, uint8_t para_level) {
     size_t *irs_idx = (size_t *)mjb_alloc(count * sizeof(size_t));

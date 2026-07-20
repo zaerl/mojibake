@@ -729,11 +729,6 @@ main > section {
     color: var(--text-muted);
 }
 
-.guide-content > p:first-child {
-    color: var(--text);
-    font-size: 1.25rem;
-}
-
 .guide-content h2 {
     margin-top: 4.5rem;
     margin-bottom: 1rem;

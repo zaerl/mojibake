@@ -9,7 +9,7 @@
 #include "test.h"
 
 int test_identifier(void *arg) {
-    /* mjb_codepoint_is_id_start */
+    // mjb_codepoint_is_id_start
     ATT_ASSERT(mjb_codepoint_is_id_start(0x41), true, "ID_Start: U+0041 'A'")
     ATT_ASSERT(mjb_codepoint_is_id_start(0x5F), false, "ID_Start: U+005F '_' (continue only)")
     ATT_ASSERT(mjb_codepoint_is_id_start(0x00E9), true, "ID_Start: U+00E9 'é'")
@@ -17,7 +17,7 @@ int test_identifier(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_id_start(0x20), false, "ID_Start: U+0020 space (not start)")
     ATT_ASSERT(mjb_codepoint_is_id_start(0x21), false, "ID_Start: U+0021 '!' (not start)")
 
-    /* mjb_codepoint_is_id_continue */
+    // mjb_codepoint_is_id_continue
     ATT_ASSERT(mjb_codepoint_is_id_continue(0x41), true, "ID_Continue: U+0041 'A'")
     ATT_ASSERT(mjb_codepoint_is_id_continue(0x30), true, "ID_Continue: U+0030 '0'")
     ATT_ASSERT(mjb_codepoint_is_id_continue(0x5F), true, "ID_Continue: U+005F '_'")
@@ -25,25 +25,25 @@ int test_identifier(void *arg) {
         "ID_Continue: U+0020 space (not continue)")
     ATT_ASSERT(mjb_codepoint_is_id_continue(0x21), false, "ID_Continue: U+0021 '!' (not continue)")
 
-    /* mjb_codepoint_is_xid_start / xid_continue */
+    // mjb_codepoint_is_xid_start / xid_continue
     ATT_ASSERT(mjb_codepoint_is_xid_start(0x41), true, "XID_Start: U+0041 'A'")
     ATT_ASSERT(mjb_codepoint_is_xid_start(0x30), false, "XID_Start: U+0030 '0' (not start)")
     ATT_ASSERT(mjb_codepoint_is_xid_continue(0x30), true, "XID_Continue: U+0030 '0'")
     ATT_ASSERT(mjb_codepoint_is_xid_continue(0x20), false, "XID_Continue: U+0020 space")
 
-    /* mjb_codepoint_is_pattern_syntax */
+    // mjb_codepoint_is_pattern_syntax
     ATT_ASSERT(mjb_codepoint_is_pattern_syntax(0x21), true, "Pattern_Syntax: U+0021 '!'")
     ATT_ASSERT(mjb_codepoint_is_pattern_syntax(0x2B), true, "Pattern_Syntax: U+002B '+'")
     ATT_ASSERT(mjb_codepoint_is_pattern_syntax(0x41), false,
         "Pattern_Syntax: U+0041 'A' (not syntax)")
 
-    /* mjb_codepoint_is_pattern_white_space */
+    // mjb_codepoint_is_pattern_white_space
     ATT_ASSERT(mjb_codepoint_is_pattern_white_space(0x20), true,
         "Pattern_White_Space: U+0020 space")
     ATT_ASSERT(mjb_codepoint_is_pattern_white_space(0x09), true, "Pattern_White_Space: U+0009 tab")
     ATT_ASSERT(mjb_codepoint_is_pattern_white_space(0x41), false, "Pattern_White_Space: U+0041 'A'")
 
-    /* mjb_string_is_identifier — DEFAULT profile */
+    // mjb_string_is_identifier - DEFAULT profile
     ATT_ASSERT(mjb_string_is_identifier("", 0, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: empty string")
     ATT_ASSERT(mjb_string_is_identifier(NULL, 1, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
@@ -63,11 +63,11 @@ int test_identifier(void *arg) {
     ATT_ASSERT(mjb_string_is_identifier("a+b", 3, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: 'a+b' (syntax char)")
 
-    /* Multi-byte UTF-8: "café" = c a f U+00E9 (4 codepoints, 5 bytes) */
+    // Multi-byte UTF-8: "café" = c a f U+00E9 (4 codepoints, 5 bytes)
     ATT_ASSERT(mjb_string_is_identifier("caf\xC3\xA9", 5, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT),
         true, "Identifier: 'café'")
 
-    /* mjb_string_is_identifier — NFKC profile */
+    // mjb_string_is_identifier - NFKC profile
     ATT_ASSERT(mjb_string_is_identifier("hello", 5, MJB_ENC_UTF_8, MJB_IDENTIFIER_NFKC), true,
         "Identifier NFKC: 'hello'")
     ATT_ASSERT(mjb_string_is_identifier("123", 3, MJB_ENC_UTF_8, MJB_IDENTIFIER_NFKC), false,

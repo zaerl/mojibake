@@ -13,7 +13,7 @@ extern mojibake mjb_global;
 
 // Check if an SBP value blocks SB8 look-ahead.
 // The blocked set is: OLetter | Upper | ParaSep | SATerm
-// (Lower is NOT blocked here — it's the target; handled separately.)
+// (Lower is NOT blocked here - it's the target; handled separately.)
 static inline bool mjb_sbp_blocks_sb8(mjb_sbp sbp) {
     return sbp == MJB_SBP_OLETTER || sbp == MJB_SBP_UPPER || sbp == MJB_SBP_SEP ||
         sbp == MJB_SBP_CR || sbp == MJB_SBP_LF || sbp == MJB_SBP_LOWER || sbp == MJB_SBP_STERM ||
@@ -21,7 +21,7 @@ static inline bool mjb_sbp_blocks_sb8(mjb_sbp sbp) {
 }
 
 // Peek ahead from peek_index to check if Lower is reachable through
-// (¬(OLetter | Upper | Lower | ParaSep | SATerm))* — the SB8 look-ahead.
+// (¬(OLetter | Upper | Lower | ParaSep | SATerm))* - the SB8 look-ahead.
 // Extend and Format are transparent (SB5). Returns true if Lower is found.
 static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_length,
     size_t peek_index, mjb_encoding encoding) {
@@ -55,7 +55,7 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_lengt
                 continue;
             }
 
-            // Found Lower — SB8 applies
+            // Found Lower - SB8 applies
             if(sbp == MJB_SBP_LOWER) {
                 return true;
             }

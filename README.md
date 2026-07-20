@@ -245,7 +245,7 @@ Mojibake is released under the MIT License (see [LICENSE](https://github.com/zae
 
 Here you can find the very detailed and boring informations needed to have this library conformant
 to the Unicode standard, or at least what I got, at
-[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md)
+[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md).
 
 ## Thanks
 

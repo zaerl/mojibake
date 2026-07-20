@@ -4,6 +4,9 @@ Welcome to the Unicode world. Before starting, you can find a demo site where yo
 documentation and test the functions by using WASM here:
 [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
 
+> [!NOTE]
+> When we refer to "Unicode" or "Unicode 18" we refer to Unicode 18 **beta**
+
 ## Unicode glossary
 
 You will need to have a basic glossary to understand the terminology.
@@ -12,7 +15,7 @@ A **Code Point** (`typedef uint32_t mjb_codepoint` in the code) in Unicode is an
 0x10FFFF. It's used to identify a **Character** in the list. For example `U+20A0`, the € currency.
 
 A **Character** (`typedef struct mjb_character`) is the "smallest component of written language that
-has semantic value". In Mojibake an `mjb_character` is a struct with all the values associated.
+has semantic value". In Mojibake, an `mjb_character` is a struct with all the associated values.
 For example `U+00BD` (**½**):
 
 ```
@@ -38,7 +41,7 @@ Titlecase: N/A
 > case version of a string, use `mjb_case` function. Codepoint as `ß` transforms to a `SS` in
 > uppercase.
 
-An **encoding** is a way a list of codepoints is stored in memory. Nowadays, the UTF-8 encoding is
+An **encoding** is a way of storing a list of codepoints in memory. Nowadays, the UTF-8 encoding is
 by far the most used one when we are talking about moving data around, but there are important
 contexts where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, JavaScript, and
 others.
@@ -212,14 +215,14 @@ mjb_status mjb_codepoint_character(
 
 Fill `character` with the Unicode Character Database record of a codepoint: name, category, combining class, bidirectional category, decomposition, numeric values, mirrored flag, and simple case mappings. When the library is compiled with `MJB_FEATURE_CHARACTER_NAMES=OFF` the name field is reported as `Codepoint U+XXXX`.
 
-- `codepoint` — The codepoint to check
-- `character` — The character to store the result
+- `codepoint` - The codepoint to check
+- `character` - The character to store the result
 
 **Returns**
 
-- `MJB_STATUS_OK` — The character was found and filled
-- `MJB_STATUS_INVALID_ARGUMENT` — `character` is NULL or the codepoint is not valid
-- `MJB_STATUS_NOT_FOUND` — The codepoint is not assigned
+- `MJB_STATUS_OK` - The character was found and filled
+- `MJB_STATUS_INVALID_ARGUMENT` - `character` is NULL or the codepoint is not valid
+- `MJB_STATUS_NOT_FOUND` - The codepoint is not assigned
 
 **Example**
 
@@ -255,20 +258,20 @@ mjb_status mjb_normalize(
 
 Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating.
 
-- `buffer` — The string to normalize
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `form` — The normalization form to use
-- `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to normalize
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `form` - The normalization form to use
+- `output_encoding` - The output encoding of the string
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The string was normalized (or already normal)
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_FORM` — `form` is not NFC, NFD, NFKC, or NFKD
-- `MJB_STATUS_OVERFLOW` — The output size would overflow
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The string was normalized (or already normal)
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
+- `MJB_STATUS_OVERFLOW` - The output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -310,12 +313,12 @@ mjb_status mjb_string_filter(
 
 `MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks.
 
-- `buffer` — The string to filter
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `filters` — The filters to use
-- `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to filter
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `filters` - The filters to use
+- `output_encoding` - The output encoding of the string
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Example**
 
@@ -368,18 +371,18 @@ mjb_status mjb_nfkc_casefold(
 
 Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive.
 
-- `buffer` — The string to transform
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to transform
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the string
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The transformed string was returned
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_OVERFLOW` — The output size would overflow
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The transformed string was returned
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` - The output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -416,16 +419,16 @@ mjb_quick_check_result mjb_string_is_normalized(
 
 Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `form` — The normalization form to check
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `form` - The normalization form to check
 
 **Returns**
 
-- `MJB_QC_YES` — The string is normalized to the requested form
-- `MJB_QC_NO` — The string is not normalized
-- `MJB_QC_MAYBE` — Inconclusive: a full normalization is needed to decide
+- `MJB_QC_YES` - The string is normalized to the requested form
+- `MJB_QC_NO` - The string is not normalized
+- `MJB_QC_MAYBE` - Inconclusive: a full normalization is needed to decide
 
 **Example**
 
@@ -455,8 +458,8 @@ mjb_encoding mjb_string_encoding(
 
 `mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
 
 **Example**
 
@@ -480,8 +483,8 @@ bool mjb_string_is_ascii(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
 
 **Example**
 
@@ -503,8 +506,8 @@ bool mjb_string_is_utf8(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
 
 **Example**
 
@@ -526,8 +529,8 @@ bool mjb_string_is_utf16(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
 
 **Example**
 
@@ -552,9 +555,9 @@ size_t mjb_string_length(
 
 Return the number of Unicode codepoints in a string, up to `max_length` bytes.
 
-- `buffer` — The string to check
-- `max_length` — The maximum length of the string, in bytes
-- `encoding` — The encoding of the string
+- `buffer` - The string to check
+- `max_length` - The maximum length of the string, in bytes
+- `encoding` - The encoding of the string
 
 **Example**
 
@@ -592,10 +595,10 @@ mjb_status mjb_string_each_character(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `callback` — The function to call for each character
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `callback` - The function to call for each character
 
 **Example**
 
@@ -623,9 +626,9 @@ mjb_status mjb_codepoint_property_binary(
 
 Return `true` when the codepoint has the binary property and `false` when it does not. Passing an enumerated property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`.
 
-- `codepoint` — The codepoint to check
-- `property` — The binary property to query
-- `value` — Where to store the binary property value
+- `codepoint` - The codepoint to check
+- `property` - The binary property to query
+- `value` - Where to store the binary property value
 
 **Example**
 
@@ -659,9 +662,9 @@ mjb_status mjb_codepoint_property_int(
 
 Passing a binary property is a type mismatch and returns `MJB_STATUS_INVALID_ARGUMENT`. `MJB_STATUS_NOT_FOUND` means that the codepoint has no stored value for the requested property.
 
-- `codepoint` — The codepoint to check
-- `property` — The enumerated or integer property to query
-- `value` — Where to store the property value
+- `codepoint` - The codepoint to check
+- `property` - The enumerated or integer property to query
+- `value` - Where to store the property value
 
 **Example**
 
@@ -693,13 +696,13 @@ mjb_status mjb_codepoint_numeric_value(
 
 Return the numeric value of a codepoint, if any. If the codepoint has no numeric value, `value->decimal` and `value->digit` are set to `MJB_NUMBER_NOT_VALID` (-1).
 
-- `codepoint` — The codepoint to check
-- `value` — The numeric value to store the result
+- `codepoint` - The codepoint to check
+- `value` - The numeric value to store the result
 
 **Returns**
 
-- `MJB_STATUS_OK` — The character was found and filled
-- `MJB_STATUS_INVALID_ARGUMENT` — `value` is NULL or the codepoint is not valid
+- `MJB_STATUS_OK` - The character was found and filled
+- `MJB_STATUS_INVALID_ARGUMENT` - `value` is NULL or the codepoint is not valid
 
 **Example**
 
@@ -734,8 +737,8 @@ mjb_status mjb_codepoint_block(
 );
 ```
 
-- `codepoint` — The codepoint to check
-- `block` — The block to store the result
+- `codepoint` - The codepoint to check
+- `block` - The block to store the result
 
 **Example**
 
@@ -762,7 +765,7 @@ mjb_script mjb_codepoint_script(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -789,9 +792,9 @@ mjb_status mjb_codepoint_script_extensions(
 
 Return the explicit Script_Extensions set, or the ordinary Script value when the codepoint has no explicit Script_Extensions entry. Call first with `scripts` set to NULL to obtain the required count.
 
-- `codepoint` — The codepoint to check
-- `scripts` — The caller-provided script buffer, or NULL to query the required count
-- `count` — The input capacity and output script count
+- `codepoint` - The codepoint to check
+- `scripts` - The caller-provided script buffer, or NULL to query the required count
+- `count` - The input capacity and output script count
 
 **Example**
 
@@ -830,10 +833,10 @@ unsigned int mjb_codepoint_encode(
 );
 ```
 
-- `codepoint` — The codepoint to encode
-- `buffer` — The buffer to encode the codepoint to
-- `byte_length` — The length of the buffer, in bytes
-- `encoding` — The encoding to use
+- `codepoint` - The codepoint to encode
+- `buffer` - The buffer to encode the codepoint to
+- `byte_length` - The length of the buffer, in bytes
+- `encoding` - The encoding to use
 
 **Example**
 
@@ -861,20 +864,20 @@ mjb_status mjb_string_convert_encoding(
 
 Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified.
 
-- `buffer` — The string to convert
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The input encoding of the string
-- `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to convert
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The input encoding of the string
+- `output_encoding` - The output encoding of the string
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The string was converted
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding
-- `MJB_STATUS_INVALID_ENCODING` — A generic UTF-16/UTF-32 encoding did not provide enough byte order information
-- `MJB_STATUS_UNSUPPORTED` — The requested encoding conversion is not supported
-- `MJB_STATUS_OVERFLOW` — The output size would overflow
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The string was converted
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding
+- `MJB_STATUS_INVALID_ENCODING` - A generic UTF-16/UTF-32 encoding did not provide enough byte order information
+- `MJB_STATUS_UNSUPPORTED` - The requested encoding conversion is not supported
+- `MJB_STATUS_OVERFLOW` - The output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -912,19 +915,19 @@ int mjb_string_compare(
 
 Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics.
 
-- `s1` — The first string to compare
-- `s1_byte_length` — The length of the first string, in bytes
-- `s1_encoding` — The encoding of the first string
-- `s2` — The second string to compare
-- `s2_byte_length` — The length of the second string, in bytes
-- `s2_encoding` — The encoding of the second string
-- `mode` — The variable weighting strategy
+- `s1` - The first string to compare
+- `s1_byte_length` - The length of the first string, in bytes
+- `s1_encoding` - The encoding of the first string
+- `s2` - The second string to compare
+- `s2_byte_length` - The length of the second string, in bytes
+- `s2_encoding` - The encoding of the second string
+- `mode` - The variable weighting strategy
 
 **Returns**
 
-- `< 0` — The first string collates before the second
-- `0` — The strings are equal under UCA
-- `> 0` — The first string collates after the second
+- `< 0` - The first string collates before the second
+- `0` - The strings are equal under UCA
+- `> 0` - The first string collates after the second
 
 **Example**
 
@@ -956,18 +959,18 @@ mjb_status mjb_collation_key(
 
 Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_string_compare`. Useful when the same strings are compared many times, such as sorting or database indexing.
 
-- `buffer` — The string to generate the sort key for
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `mode` — The variable weighting strategy
-- `result` — The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to generate the sort key for
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `mode` - The variable weighting strategy
+- `result` - The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The sort key was generated
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_OVERFLOW` — The sort key size would overflow
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The sort key was generated
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` - The sort key size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -1005,18 +1008,18 @@ mjb_status mjb_case(
 
 Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
 
-- `buffer` — The string to change case
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `type` — The type of case change
-- `output_encoding` — The output encoding of the string
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to change case
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `type` - The type of case change
+- `output_encoding` - The output encoding of the string
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The case conversion succeeded
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, `buffer` is NULL with a non-zero size, or `type` is not a valid case type
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The case conversion succeeded
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or `type` is not a valid case type
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -1051,7 +1054,7 @@ bool mjb_codepoint_is_valid(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1070,7 +1073,7 @@ bool mjb_codepoint_is_graphic(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1089,7 +1092,7 @@ bool mjb_codepoint_is_combining(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1108,7 +1111,7 @@ bool mjb_codepoint_is_hangul_l(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1127,7 +1130,7 @@ bool mjb_codepoint_is_hangul_v(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1146,7 +1149,7 @@ bool mjb_codepoint_is_hangul_t(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1165,7 +1168,7 @@ bool mjb_codepoint_is_hangul_jamo(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1184,7 +1187,7 @@ bool mjb_codepoint_is_hangul_syllable(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1203,7 +1206,7 @@ bool mjb_codepoint_is_cjk_ideograph(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1222,7 +1225,7 @@ bool mjb_codepoint_is_cjk_ext(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1241,7 +1244,7 @@ bool mjb_category_is_graphic(
 );
 ```
 
-- `category` — The category to check
+- `category` - The category to check
 
 **Example**
 
@@ -1263,7 +1266,7 @@ bool mjb_category_is_combining(
 );
 ```
 
-- `category` — The category to check
+- `category` - The category to check
 
 **Example**
 
@@ -1288,10 +1291,10 @@ mjb_break_type mjb_break_line(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `state` — The state to store the result
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `state` - The state to store the result
 
 **Example**
 
@@ -1321,10 +1324,10 @@ mjb_break_type mjb_break_word(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `state` — The state to store the result
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `state` - The state to store the result
 
 **Example**
 
@@ -1358,10 +1361,10 @@ mjb_break_type mjb_break_sentence(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `state` — The state to store the result
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `state` - The state to store the result
 
 **Example**
 
@@ -1398,10 +1401,10 @@ mjb_break_type mjb_break_grapheme_cluster(
 
 Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string.
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `state` — The state to store the result
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `state` - The state to store the result
 
 **Example**
 
@@ -1437,10 +1440,10 @@ size_t mjb_truncate(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `max_graphemes` — The maximum number of graphemes to return
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `max_graphemes` - The maximum number of graphemes to return
 
 **Example**
 
@@ -1466,11 +1469,11 @@ size_t mjb_truncate_width(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `context` — The width context
-- `max_columns` — The maximum number of columns to return
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `context` - The width context
+- `max_columns` - The maximum number of columns to return
 
 **Example**
 
@@ -1496,10 +1499,10 @@ size_t mjb_truncate_word(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `max_segments` — The maximum number of segments to return
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `max_segments` - The maximum number of segments to return
 
 **Example**
 
@@ -1525,11 +1528,11 @@ size_t mjb_truncate_word_width(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `context` — The width context
-- `max_columns` — The maximum number of columns to return
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `context` - The width context
+- `max_columns` - The maximum number of columns to return
 
 **Example**
 
@@ -1558,18 +1561,18 @@ mjb_status mjb_bidi_resolve(
 
 Resolve the embedding levels of a paragraph following the Unicode Bidirectional Algorithm. The resolved paragraph can then be split into lines and reordered visually with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.
 
-- `buffer` — The input string
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `direction` — The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
-- `result` — Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_free()`
+- `buffer` - The input string
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `direction` - The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
+- `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_free()`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The paragraph was resolved
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_OVERFLOW` — The paragraph size would overflow
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The paragraph was resolved
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` - The paragraph size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -1604,10 +1607,10 @@ mjb_status mjb_bidi_reorder_line(
 );
 ```
 
-- `paragraph` — The resolved paragraph
-- `line_start` — Start index into paragraph->chars
-- `line_end` — End index (exclusive) into paragraph->chars
-- `visual_order` — Caller-allocated array of size (`line_end` - `line_start`). Caller-allocated; the library does not retain or free it
+- `paragraph` - The resolved paragraph
+- `line_start` - Start index into paragraph->chars
+- `line_end` - End index (exclusive) into paragraph->chars
+- `visual_order` - Caller-allocated array of size (`line_end` - `line_start`). Caller-allocated; the library does not retain or free it
 
 **Example**
 
@@ -1646,11 +1649,11 @@ mjb_status mjb_bidi_line_runs(
 );
 ```
 
-- `paragraph` — The resolved paragraph
-- `visual_order` — Visual order array from `mjb_bidi_reorder_line`
-- `count` — Length of visual_order
-- `runs` — Caller-allocated array, or NULL to only count
-- `run_count` — On output: number of runs written (or total if `runs` = `NULL`)
+- `paragraph` - The resolved paragraph
+- `visual_order` - Visual order array from `mjb_bidi_reorder_line`
+- `count` - Length of visual_order
+- `runs` - Caller-allocated array, or NULL to only count
+- `run_count` - On output: number of runs written (or total if `runs` = `NULL`)
 
 **Example**
 
@@ -1686,7 +1689,7 @@ void mjb_bidi_free(
 );
 ```
 
-- `paragraph` — The paragraph to free
+- `paragraph` - The paragraph to free
 
 **Example**
 
@@ -1716,7 +1719,7 @@ bool mjb_codepoint_is_id_start(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1740,7 +1743,7 @@ bool mjb_codepoint_is_id_continue(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1764,7 +1767,7 @@ bool mjb_codepoint_is_xid_start(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1785,7 +1788,7 @@ bool mjb_codepoint_is_xid_continue(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1809,7 +1812,7 @@ bool mjb_codepoint_is_pattern_syntax(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1833,7 +1836,7 @@ bool mjb_codepoint_is_pattern_white_space(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -1862,10 +1865,10 @@ bool mjb_string_is_identifier(
 
 Validate a string as a Unicode identifier: the first character must be a valid identifier start and the following ones valid identifier continuations, using ID_Start/ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.
 
-- `buffer` — The string to validate
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `profile` — The identifier profile (DEFAULT or NFKC)
+- `buffer` - The string to validate
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `profile` - The identifier profile (DEFAULT or NFKC)
 
 **Example**
 
@@ -1893,7 +1896,7 @@ const char *mjb_property_name(
 );
 ```
 
-- `property` — The property to check
+- `property` - The property to check
 
 **Example**
 
@@ -1922,18 +1925,18 @@ mjb_status mjb_confusable_skeleton(
 
 Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly.
 
-- `buffer` — The string to transform
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `output_encoding` — The output encoding of the skeleton
-- `result` — The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `buffer` - The string to transform
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the skeleton
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
-- `MJB_STATUS_OK` — The confusable skeleton was returned
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_OVERFLOW` — The output size would overflow
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The confusable skeleton was returned
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` - The output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -1972,12 +1975,12 @@ bool mjb_string_is_confusable(
 
 Compute the confusable skeleton of both strings and return true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
 
-- `s1` — The first string
-- `s1_byte_length` — The length of the first string, in bytes
-- `s1_encoding` — The encoding of the first string
-- `s2` — The second string
-- `s2_byte_length` — The length of the second string, in bytes
-- `s2_encoding` — The encoding of the second string
+- `s1` - The first string
+- `s1_byte_length` - The length of the first string, in bytes
+- `s1_encoding` - The encoding of the first string
+- `s2` - The second string
+- `s2_byte_length` - The length of the second string, in bytes
+- `s2_encoding` - The encoding of the second string
 
 **Example**
 
@@ -2007,8 +2010,8 @@ mjb_status mjb_codepoint_emoji(
 );
 ```
 
-- `codepoint` — The codepoint to check
-- `emoji` — The emoji properties to store the result
+- `codepoint` - The codepoint to check
+- `emoji` - The emoji properties to store the result
 
 **Example**
 
@@ -2037,7 +2040,7 @@ bool mjb_codepoint_is_emoji(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2061,7 +2064,7 @@ bool mjb_codepoint_is_emoji_presentation(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2085,7 +2088,7 @@ bool mjb_codepoint_is_emoji_modifier(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2109,7 +2112,7 @@ bool mjb_codepoint_is_emoji_modifier_base(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2133,7 +2136,7 @@ bool mjb_codepoint_is_emoji_component(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2157,7 +2160,7 @@ bool mjb_codepoint_is_extended_pictographic(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2181,7 +2184,7 @@ mjb_plane mjb_codepoint_plane(
 );
 ```
 
-- `codepoint` — The codepoint to check
+- `codepoint` - The codepoint to check
 
 **Example**
 
@@ -2202,7 +2205,7 @@ bool mjb_plane_is_valid(
 );
 ```
 
-- `plane` — The plane to check
+- `plane` - The plane to check
 
 **Example**
 
@@ -2222,8 +2225,8 @@ const char *mjb_plane_name(
 );
 ```
 
-- `plane` — The plane to check
-- `abbreviation` — Whether to use an abbreviation
+- `plane` - The plane to check
+- `abbreviation` - Whether to use an abbreviation
 
 **Example**
 
@@ -2245,10 +2248,10 @@ mjb_status mjb_string_emoji_sequence(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `emoji` — The emoji sequence metadata to store the result
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `emoji` - The emoji sequence metadata to store the result
 
 **Example**
 
@@ -2281,9 +2284,9 @@ bool mjb_string_is_emoji_sequence(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
 
 **Example**
 
@@ -2312,9 +2315,9 @@ bool mjb_string_is_rgi_emoji(
 );
 ```
 
-- `buffer` — The string to check
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
+- `buffer` - The string to check
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
 
 **Example**
 
@@ -2343,9 +2346,9 @@ mjb_status mjb_hangul_syllable_name(
 );
 ```
 
-- `codepoint` — The codepoint to check
-- `buffer` — The buffer to store the result
-- `byte_length` — The length of the string, in bytes
+- `codepoint` - The codepoint to check
+- `buffer` - The buffer to store the result
+- `byte_length` - The length of the string, in bytes
 
 **Example**
 
@@ -2371,8 +2374,8 @@ mjb_status mjb_hangul_syllable_decomposition(
 );
 ```
 
-- `codepoint` — The codepoint to check
-- `codepoints` — The codepoints to store the result
+- `codepoint` - The codepoint to check
+- `codepoints` - The codepoints to store the result
 
 **Example**
 
@@ -2399,8 +2402,8 @@ size_t mjb_hangul_syllable_composition(
 );
 ```
 
-- `characters` — The characters to compose
-- `characters_len` — The length of the characters
+- `characters` - The characters to compose
+- `characters_len` - The length of the characters
 
 **Example**
 
@@ -2427,8 +2430,8 @@ mjb_status mjb_codepoint_east_asian_width(
 );
 ```
 
-- `codepoint` — The codepoint to check
-- `width` — The width to store the result
+- `codepoint` - The codepoint to check
+- `width` - The width to store the result
 
 **Example**
 
@@ -2463,17 +2466,17 @@ mjb_status mjb_display_width(
 
 Compute the number of display columns a string occupies in a terminal, accounting for wide and ambiguous East Asian characters, combining marks, and emoji sequences.
 
-- `buffer` — The string to normalize
-- `byte_length` — The length of the string, in bytes
-- `encoding` — The encoding of the string
-- `context` — The width context for ambiguous-width characters
-- `width` — The width to store the result
+- `buffer` - The string to normalize
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `context` - The width context for ambiguous-width characters
+- `width` - The width to store the result
 
 **Returns**
 
-- `MJB_STATUS_OK` — The width was computed
-- `MJB_STATUS_INVALID_ARGUMENT` — `width` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_OVERFLOW` — The width would overflow
+- `MJB_STATUS_OK` - The width was computed
+- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` - The width would overflow
 
 **Example**
 
@@ -2510,17 +2513,17 @@ mjb_status mjb_locale_parse(
 
 Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is filled with the failure reason.
 
-- `id` — The BCP 47 language tag to parse
-- `byte_length` — The length of the locale identifier, in bytes
-- `encoding` — The encoding of the locale identifier
-- `locale` — The locale structure to store the result
-- `error` — The error to store when parsing fails
+- `id` - The BCP 47 language tag to parse
+- `byte_length` - The length of the locale identifier, in bytes
+- `encoding` - The encoding of the locale identifier
+- `locale` - The locale structure to store the result
+- `error` - The error to store when parsing fails
 
 **Returns**
 
-- `MJB_STATUS_OK` — The tag was parsed and `locale` filled
-- `MJB_STATUS_INVALID_ARGUMENT` — An argument is NULL or the tag is not a valid BCP 47 language tag
-- `MJB_STATUS_NO_MEMORY` — Allocation failed
+- `MJB_STATUS_OK` - The tag was parsed and `locale` filled
+- `MJB_STATUS_INVALID_ARGUMENT` - An argument is NULL or the tag is not a valid BCP 47 language tag
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -2553,12 +2556,12 @@ mjb_status mjb_locale_set(
 
 Set the process-global locale used by `mjb_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
 
-- `locale` — The locale to set
+- `locale` - The locale to set
 
 **Returns**
 
-- `MJB_STATUS_OK` — The locale was set
-- `MJB_STATUS_INVALID_ARGUMENT` — `locale` is not a valid `mjb_locale` value
+- `MJB_STATUS_OK` - The locale was set
+- `MJB_STATUS_INVALID_ARGUMENT` - `locale` is not a valid `mjb_locale` value
 
 **Example**
 
@@ -2588,12 +2591,12 @@ mjb_status mjb_result_free(
 
 Free the memory allocated for a `mjb_result`. The `result` pointer is set to NULL.
 
-- `result` — The result to free
+- `result` - The result to free
 
 **Returns**
 
-- `MJB_STATUS_OK` — The result was freed
-- `MJB_STATUS_INVALID_ARGUMENT` — `result` is NULL
+- `MJB_STATUS_OK` - The result was freed
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL
 
 **Example**
 
@@ -2686,9 +2689,9 @@ mjb_status mjb_set_memory_functions(
 
 Replace the allocator used by the library for all internal allocations and for the buffers returned in `mjb_result`. Must be called before any other library call.
 
-- `alloc_fn` — The function to allocate memory
-- `realloc_fn` — The function to reallocate memory
-- `free_fn` — The function to free memory
+- `alloc_fn` - The function to allocate memory
+- `realloc_fn` - The function to reallocate memory
+- `free_fn` - The function to free memory
 
 **Example**
 
@@ -2735,7 +2738,7 @@ void *mjb_alloc(
 
 Allocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
 
-- `byte_length` — The length of the memory to allocate
+- `byte_length` - The length of the memory to allocate
 
 **Example**
 
@@ -2768,8 +2771,8 @@ void *mjb_realloc(
 
 Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
 
-- `ptr` — The pointer to reallocate
-- `new_size` — The new size of the memory
+- `ptr` - The pointer to reallocate
+- `new_size` - The new size of the memory
 
 **Example**
 
@@ -2806,7 +2809,7 @@ void mjb_free(
 
 Free memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
 
-- `ptr` — The pointer to free
+- `ptr` - The pointer to free
 
 **Example**
 

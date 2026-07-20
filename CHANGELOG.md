@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.1] - 2026-07-20
 
+### Added
 - Added a `shell.c` amalgamation to the main amalgamation. Now there are three files
 - Added node smoke test to test targets
 - Added HTML smoke test to test targets
@@ -17,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Monday Dependabot cleanup
 
 ### Changed
-
 - Forced `_WIN32` in the shell `getoptc.h/c` declarations
 - Removed all shell headers and kept only `shell.h`
 - Replaced `BUILD_SHARED` with CMake's standard `BUILD_SHARED_LIBS` option
@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2026-07-18
 
 ### Added
-- Moved to Unicode 18
+- Moved to Unicode 18 beta
 - Added Haiku test action
 - Added `MJB_BUILD_CLI` option
 - CMake changes now added `BUILD_TESTING` option
@@ -74,10 +74,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.7] - 2026-07-16
 
 ### Added
-- Add break algorithms HTML output
-- Added custom dependabot
+- Added break algorithms HTML output
+- Added custom Dependabot
 - Added dependency review GitHub workflow
-- Added "Quality" GitHub workflow, that runs `clang-format`
+- Added "Quality" GitHub workflow that runs `clang-format`
 - Added `mjb_encoding_is_valid_input`
 - Added `mjb_encoding_is_valid_output`
 
@@ -102,7 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.6] - 2026-07-13
 
 ### Added
-- Forced from now on clang-format rules
+- Forced clang-format rules from now on
 - Reformatted all files
 - Windows: added "Test (embedded NULLs)" flow
 - Windows: added "Test (C++)" flow
@@ -158,20 +158,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor typos
 - HTML code indenting
 - Missing HTML block parser
-- Not-WASM functions were missing in the site
+- Not-WASM functions were missing on the site
 
 ## [0.2.4] - 2026-07-09
 
 ### Added
 - Added Unicode Conformance Requirements conformance
-- Added `details`, `returns`, `example`, `related`, `specs`, `ownership` to functions generator
+- Added `details`, `returns`, `example`, `related`, `specs`, `ownership` to the functions generator
 - New example generator
 - Main documentation and examples
 - `mjb_codepoint_numeric_value` documentation
 - `mjb_codepoint_to_lowercase` documentation
 
 ### Changed
-- `mjb_alloc` no longer `memset` the memory to `0`
+- `mjb_alloc` no longer `memset()` the memory to `0`
 - Removed `mjb_codepoint_properties`
 - Removed `mjb_codepoint_property`
 - Renamed `mjb_codepoint_has_property` to `mjb_codepoint_property_value`
@@ -381,7 +381,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Word Break Properties (WBP) in the properties table
 
 ### Changed
-- Completed Line Breaking (LB) algorithm — Unicode TR14
+- Completed Line Breaking (LB) algorithm - Unicode TR14
 - Properties available in the CLI shell
 
 ### Fixed

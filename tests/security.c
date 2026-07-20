@@ -1,7 +1,7 @@
 /**
  * The Mojibake library
  *
- * UTS#39 Unicode Security Mechanisms — confusable detection tests.
+ * UTS#39 Unicode Security Mechanisms - confusable detection tests.
  *
  * This file is distributed under the MIT License. See LICENSE for details.
  */

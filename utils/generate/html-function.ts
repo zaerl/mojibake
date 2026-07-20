@@ -113,7 +113,7 @@ export class CFunction implements MojibakeFunction {
 
     if(this.args.length) {
       ret += '\n\n' + this.args.map(arg => {
-        let line = `- \`${arg.name}\` — ${arg.description}`;
+        let line = `- \`${arg.name}\` - ${arg.description}`;
 
         if(arg.ownership) {
           line += `. ${arg.ownership}`;
@@ -125,7 +125,7 @@ export class CFunction implements MojibakeFunction {
 
     if(this.returns?.length) {
       ret += '\n\n**Returns**\n\n' + this.returns.map(
-        value => `- \`${value.value}\` — ${value.description}`
+        value => `- \`${value.value}\` - ${value.description}`
       ).join('\n');
     }
 
@@ -221,7 +221,7 @@ export class CFunction implements MojibakeFunction {
       ret += '\n          <h3>Returns</h3>\n          <ul>';
 
       for(const returnCase of this.returns) {
-        ret += `\n            <li><code>${CFunction.escapeHTML(returnCase.value)}</code> — ` +
+        ret += `\n            <li><code>${CFunction.escapeHTML(returnCase.value)}</code> - ` +
           `${CFunction.formatInlineText(returnCase.description)}</li>`;
       }
 

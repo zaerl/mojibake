@@ -194,7 +194,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // Save prev_prev_lbp BEFORE the swap (captures the char that was "previous" last time).
         // Exception: when LB9 merged a CM in the previous call, prev_prev_lbp was already
-        // set to reflect the pre-base context (e.g. sot) — preserve it instead of overwriting.
+        // set to reflect the pre-base context (e.g. sot) - preserve it instead of overwriting.
         if(!state->cm_merged) {
             state->prev_prev_lbp = state->previous;
             state->prev_prev_codepoint = state->previous_codepoint;
@@ -213,7 +213,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
         // LB10 retroactive: if previous is CM that wasn't absorbed by LB9 in the prior call
         // (because the base was BK/CR/LF/NL and LB4/LB5 returned early before LB9 ran),
         // treat it as AL now so subsequent rules see AL as previous.
-        // NOTE: ZWJ is intentionally excluded — ZWJ as previous is handled by LB8a (ZWJ ×)
+        // NOTE: ZWJ is intentionally excluded - ZWJ as previous is handled by LB8a (ZWJ ×)
         // which takes priority. Retroactively reclassifying ZWJ→AL would prevent LB8a
         // from firing (e.g. ZWJ as the first codepoint, or ZWJ after a non-excluded base).
         if(state->previous == MJB_LBP_CM) {
@@ -222,7 +222,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
 
         // LB30a early RI count reset: reset ri_count when previous is not RI.
         // This must happen before early returns (LB6, LB7, LB8) which prevent the
-        // LB30a else-branch from firing. For example: RI RI ZW RI RI — the ZW→RI pair
+        // LB30a else-branch from firing. For example: RI RI ZW RI RI - the ZW→RI pair
         // triggers LB8 before LB30a, leaving ri_count non-zero and breaking the next RI×RI.
         if(state->previous != MJB_LBP_RI) {
             state->ri_count = 0;
@@ -356,7 +356,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             if(lbp == MJB_LBP_ZWJ) {
                 // The LineBreakTest.txt v17 tests that cover 200D × (LB8a) are all at the start of
                 // the string (lines 18795–18890+). ZWJ is the first codepoint, so previous is
-                // literally ZWJ when the next character is processed — LB8a fires correctly.
+                // literally ZWJ when the next character is processed - LB8a fires correctly.
                 state->zwj_absorbed = true;
             }
 
@@ -496,7 +496,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
             return MJB_BT_NO_BREAK;
         }
 
-        // LB17 Do not break within '——', even with intervening spaces.
+        // LB17 Do not break within '--', even with intervening spaces.
         // B2 SP* × B2
         if(state->current == MJB_LBP_B2 && state->prev_resolved == MJB_LBP_B2) {
             return MJB_BT_NO_BREAK;
@@ -533,7 +533,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
                 return MJB_BT_NO_BREAK;
             }
 
-            // QU is Pi — check LB19a rules 1 and 2
+            // QU is Pi - check LB19a rules 1 and 2
             // LB19a rule 1: [^$EastAsian] × QU
             if(!mjb_is_ea(prev_ea)) {
                 return MJB_BT_NO_BREAK;
@@ -563,7 +563,7 @@ MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length,
                 return MJB_BT_NO_BREAK;
             }
 
-            // QU is Pf — check LB19a rules 3 and 4
+            // QU is Pf - check LB19a rules 3 and 4
             // LB19a rule 3: QU × [^$EastAsian]
             if(!mjb_is_ea(ea)) {
                 return MJB_BT_NO_BREAK;

@@ -261,7 +261,7 @@ int test_bidi(void *arg) {
     ATT_ASSERT((mjb_bidi_free(&para), para.count), (size_t)0, "free clears count")
 
     MJB_TEST_COVERAGE(mjb_bidi_resolve);
-    const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; /* مرحبا */
+    const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; // مرحبا
     status = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "RTL resolve ok")
     ATT_ASSERT(para.paragraph_level, (uint8_t)1, "RTL paragraph level")

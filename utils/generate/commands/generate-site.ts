@@ -210,7 +210,7 @@ function processIndexHtml() {
     }
   }).use(require('markdown-it-footnote'));
 
-  const header = md.render(readme.slice(readme.indexOf('**Mojibake'), readme.indexOf('### Thanks')));
+  const header = md.render(readme.slice(readme.indexOf("You don't need"), readme.indexOf('## Thanks')));
   fileContent = substituteText(fileContent, '[HEADER_HERE]', header);
 
   writeFileSync(`${BUILD_DIR}/index.html`, fileContent);
