@@ -80,8 +80,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_state grapheme_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding,
-            &grapheme_state);
+        mjb_break_type bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &grapheme_state);
         fuzz_sink += (size_t)bt + grapheme_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -96,7 +95,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
     mjb_next_word_state word_state;
     word_state.index = 0;
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_word(buffer, byte_length, encoding, &word_state);
+        mjb_break_type bt = mjb_next_word_break(buffer, byte_length, encoding, &word_state);
         fuzz_sink += (size_t)bt + word_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -110,7 +109,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_line_state line_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_line(buffer, byte_length, encoding, &line_state);
+        mjb_break_type bt = mjb_next_line_break(buffer, byte_length, encoding, &line_state);
         fuzz_sink += (size_t)bt + line_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -124,7 +123,7 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_sentence_state sentence_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_break_sentence(buffer, byte_length, encoding, &sentence_state);
+        mjb_break_type bt = mjb_next_sentence_break(buffer, byte_length, encoding, &sentence_state);
         fuzz_sink += (size_t)bt + sentence_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -294,8 +293,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 2: // Case conversion and folding, all transforming types
-            if(mjb_case(buffer, size, encoding, (mjb_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8,
-                   &result) == MJB_STATUS_OK) {
+            if(mjb_map_case(buffer, size, encoding, (mjb_map_case_type)(1 + (variant % 5)),
+                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 

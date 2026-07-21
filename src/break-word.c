@@ -55,7 +55,7 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length,
 
 // Word cluster breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length,
+MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_next_word_state *state) {
     if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
@@ -363,7 +363,7 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_
     size_t segment_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_break_word(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_word_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -394,7 +394,7 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_break_word(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_word_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }

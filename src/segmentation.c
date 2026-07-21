@@ -39,7 +39,7 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
 
 // Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length,
+MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_next_state *state) {
     if(buffer == NULL || state == NULL || byte_length == 0) {
         return MJB_BT_NOT_SET;
@@ -262,8 +262,7 @@ MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encod
     size_t cluster_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &state)) !=
-        MJB_BT_NOT_SET) {
+    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -294,8 +293,7 @@ MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_break_grapheme_cluster(buffer, byte_length, encoding, &state)) !=
-        MJB_BT_NOT_SET) {
+    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }

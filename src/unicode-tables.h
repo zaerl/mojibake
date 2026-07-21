@@ -39,7 +39,7 @@ bool mjb_unicode_codepoint_assigned(mjb_codepoint codepoint);
 bool mjb_unicode_bidi_lookup(mjb_codepoint codepoint, mjb_bidi_class *bidi, bool *mirrored);
 bool mjb_unicode_numeric_value_lookup(mjb_codepoint codepoint, mjb_numeric_value *value);
 bool mjb_unicode_case_lookup(mjb_codepoint codepoint, mjb_unicode_case_mapping *mapping);
-bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_case_type case_type,
+bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_map_case_type case_type,
     const mjb_codepoint **values, uint8_t *length);
 bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);

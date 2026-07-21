@@ -112,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `mjb_codepoint_script_extensions` algorithm
 - Added `mjb_confusable_skeleton` algorithm
 - Added `mjb_nfkc_casefold` algorithm
-- HTML: added bitfield for `mjb_case`
+- HTML: added bitfield for `mjb_map_case`
 
 ### Changed
 - Renamed `doc/` to `example/`
@@ -120,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed fuzz paragraph
 - Fix: `Mojibake.codepointEncode` wrong signature
 - Fix: `Mojibake.countCodepoints` wrong signature
-- Inverted `mjb_normalize`, `mjb_case` and `mjb_string_filter` parameters
+- Inverted `mjb_normalize`, `mjb_map_case` and `mjb_string_filter` parameters
 - Split `mjb_codepoint_property_value` in `mjb_codepoint_property_binary`,
   `mjb_codepoint_property_int`
 - Minor functions reordering
@@ -176,7 +176,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `mjb_codepoint_property`
 - Renamed `mjb_codepoint_has_property` to `mjb_codepoint_property_value`
 - Renamed `mjb_strnlen` to `mjb_string_length`
-- Renamed `mjb_segmentation` to `mjb_break_grapheme_cluster`
+- Renamed `mjb_segmentation` to `mjb_next_grapheme_break`
 - Renamed `mjb_next_character` to `mjb_string_each_character`
 - Renamed `_mjbNextCharacterCallback` to `_mjbEachCharacterCallback`
 - Added second encoding to `mjb_collation_compare`
@@ -185,12 +185,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed test function return from `void*` to `int`
 - Renamed `MJB_ENCODING_*` to `MJB_ENC_*`
 - Inverted `mjb_normalize` parameters
-- Added `output_encoding` to `mjb_case`
+- Added `output_encoding` to `mjb_map_case`
 - Removed all company names
 - Moved the Unicode Conformance Requirements points to a separate file
 
 ### Fixed
-- Removed `mjb_case` redundant tests
+- Removed `mjb_map_case` redundant tests
 - C++: added `noexcept`
 - Added Intellisense generator
 - Windows: fixed C4310 warning
@@ -223,7 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows: warning C4232 'malloc' is not static
 - Docker: missing artifacts
 - `mjb_codepoint_encode` must not accept surrogates
-- `mjb_case` preserve uncased CJK
+- `mjb_map_case` preserve uncased CJK
 - `mjb_string_output()` crashing on realloc failure
 
 ## [0.2.2] - 2026-07-02
@@ -261,7 +261,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tests for main allocation functions
 - Added tests for `mjb_category_is_*` functions
 - Added `UndefinedBehaviorSanitizer` (`UBSan`) build and test targets
-- Added missing `mjb_break_word` tests
+- Added missing `mjb_next_word_break` tests
 - Added `test-all` target
 - Download of `CLDR` artifacts
 - Added `BCP 47` language tag parser

@@ -548,7 +548,7 @@
                 case 'mjb_normalize':
                 case 'mjb_string_filter':
                 case 'mjb_convert_encoding':
-                case 'mjb_case':
+                case 'mjb_map_case':
                 case 'mjb_nfkc_casefold':
                 case 'mjb_confusable_skeleton':
                     data = parseResult(data);
@@ -568,12 +568,12 @@
                 case 'mjb_codepoint_block':
                     data = parseBlockInfo(data);
                     break;
-                case 'mjb_break_line':
-                case 'mjb_break_word':
-                case 'mjb_break_sentence':
-                case 'mjb_break_grapheme_cluster':
-                    // mjb_break_line has a MJB_BT_NO_BREAK type as first break, by standard.
-                    data = parseBreakResult(data, args[0], func === 'mjb_break_line' ? 2 : 3);
+                case 'mjb_next_line_break':
+                case 'mjb_next_word_break':
+                case 'mjb_next_sentence_break':
+                case 'mjb_next_grapheme_break':
+                    // mjb_next_line_break has a MJB_BT_NO_BREAK type as first break, by standard.
+                    data = parseBreakResult(data, args[0], func === 'mjb_next_line_break' ? 2 : 3);
                     break;
             }
 

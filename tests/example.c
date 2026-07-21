@@ -385,21 +385,21 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_case
-    MJB_TEST_COVERAGE(mjb_case); // Added by the script
+    // Example for mjb_map_case
+    MJB_TEST_COVERAGE(mjb_map_case); // Added by the script
     const char *input = "Stra\xC3\x9F""e"; // "Straße"
     mjb_result result;
 
-    if(mjb_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+    if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
         &result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_case test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_map_case test failed") // Added by the script
         return 1;
     }
 
     // Upper: STRASSE
     // printf("Upper: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_case test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_map_case test failed") // Added by the script
 
     if(result.transformed) {
         mjb_free(result.output);
@@ -521,62 +521,62 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_break_line
-    MJB_TEST_COVERAGE(mjb_break_line); // Added by the script
+    // Example for mjb_next_line_break
+    MJB_TEST_COVERAGE(mjb_next_line_break); // Added by the script
     mjb_next_line_state state;
     state.index = 0;
-    mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
+    mjb_break_type type = mjb_next_line_break("Hello world", 11, MJB_ENC_UTF_8, &state);
 
     // First line-break result is set: yes
     // printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "First line-break result is set: yes", "mjb_break_line test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "First line-break result is set: yes", "mjb_next_line_break test failed") // Added by the script
 }
 
 {
-    // Example for mjb_break_word
-    MJB_TEST_COVERAGE(mjb_break_word); // Added by the script
+    // Example for mjb_next_word_break
+    MJB_TEST_COVERAGE(mjb_next_word_break); // Added by the script
     mjb_next_word_state state;
     state.index = 0;
     size_t boundaries = 0;
 
-    while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    while(mjb_next_word_break("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
         ++boundaries;
     }
 
     // Word-break positions: 11
     // printf("Word-break positions: %zu", boundaries);
     snprintf(test_buffer, sizeof(test_buffer), "Word-break positions: %zu", boundaries); // Added by the script
-    ATT_ASSERT(test_buffer, "Word-break positions: 11", "mjb_break_word test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Word-break positions: 11", "mjb_next_word_break test failed") // Added by the script
 }
 
 {
-    // Example for mjb_break_sentence
-    MJB_TEST_COVERAGE(mjb_break_sentence); // Added by the script
+    // Example for mjb_next_sentence_break
+    MJB_TEST_COVERAGE(mjb_next_sentence_break); // Added by the script
     mjb_next_sentence_state state;
     state.index = 0;
     size_t boundaries = 0;
     const char *input = "Hello. Goodbye.";
 
-    while(mjb_break_sentence(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    while(mjb_next_sentence_break(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
         ++boundaries;
     }
 
     // Sentence-break positions: 15
     // printf("Sentence-break positions: %zu", boundaries);
     snprintf(test_buffer, sizeof(test_buffer), "Sentence-break positions: %zu", boundaries); // Added by the script
-    ATT_ASSERT(test_buffer, "Sentence-break positions: 15", "mjb_break_sentence test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sentence-break positions: 15", "mjb_next_sentence_break test failed") // Added by the script
 }
 
 {
-    // Example for mjb_break_grapheme_cluster
-    MJB_TEST_COVERAGE(mjb_break_grapheme_cluster); // Added by the script
+    // Example for mjb_next_grapheme_break
+    MJB_TEST_COVERAGE(mjb_next_grapheme_break); // Added by the script
     const char *input = "e\xCC\x81"; // e + combining acute accent
     mjb_next_state state;
     state.index = 0;
     size_t codepoints = 0;
 
-    while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
+    while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
         &state) != MJB_BT_NOT_SET) {
         ++codepoints;
     }
@@ -584,7 +584,7 @@ int test_example(void *arg) {
     // Codepoints examined: 2
     // printf("Codepoints examined: %zu", codepoints);
     snprintf(test_buffer, sizeof(test_buffer), "Codepoints examined: %zu", codepoints); // Added by the script
-    ATT_ASSERT(test_buffer, "Codepoints examined: 2", "mjb_break_grapheme_cluster test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Codepoints examined: 2", "mjb_next_grapheme_break test failed") // Added by the script
 }
 
 {

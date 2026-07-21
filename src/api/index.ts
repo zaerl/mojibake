@@ -58,7 +58,7 @@ export enum FilterType {
   LIMIT_COMBINING = 0x20
 };
 
-// mjb_case_type
+// mjb_map_case_type
 export enum CaseType {
   NONE,
   UPPER,
@@ -761,16 +761,16 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_case_type type, mjb_encoding output_encoding, mjb_result *result)
-  case(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
+  // mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result)
+  mapCase(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_case(wasmInput.ptr, wasmInput.size, wasmInput.encoding,
+      const status = this.module._mjb_map_case(wasmInput.ptr, wasmInput.size, wasmInput.encoding,
         type, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {
@@ -884,16 +884,16 @@ export class Mojibake {
     }
   }
 
-  // mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_line_state *state)
-  breakLine(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_break_line, options);
+  nextLineBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_next_line_break, options);
   }
 
-  // mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_word_state *state)
-  breakWord(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_break_word, options);
+  nextWordBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_next_word_break, options);
   }
 
   // size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
@@ -924,16 +924,16 @@ export class Mojibake {
     }
   }
 
-  // mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_sentence_state *state)
-  breakSentence(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_break_sentence, options);
+  nextSentenceBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_next_sentence_break, options);
   }
 
-  // mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_next_state *state)
-  breakGraphemeCluster(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_break_grapheme_cluster, options);
+  nextGraphemeBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_next_grapheme_break, options);
   }
 
   // size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t

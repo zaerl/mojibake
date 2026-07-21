@@ -64,7 +64,7 @@ export type MojibakeWasmModule = {
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case.
-  _mjb_case: (buffer: Pointer, byte_length: number, encoding: number, type: number, output_encoding: number, result: Pointer) => number;
+  _mjb_map_case: (buffer: Pointer, byte_length: number, encoding: number, type: number, output_encoding: number, result: Pointer) => number;
   // Return true if the codepoint is valid.
   _mjb_codepoint_is_valid: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is graphic.
@@ -90,13 +90,13 @@ export type MojibakeWasmModule = {
   // Return true if the category is combining.
   _mjb_category_is_combining: (category: number) => boolean;
   // Unicode line break algorithm.
-  _mjb_break_line: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_line_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Word cluster breaking.
-  _mjb_break_word: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_word_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Sentence boundaries breaking.
-  _mjb_break_sentence: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_sentence_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Grapheme cluster breaking.
-  _mjb_break_grapheme_cluster: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_grapheme_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
   _mjb_truncate: (buffer: Pointer, byte_length: number, encoding: number, max_graphemes: number) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns display columns.

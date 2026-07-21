@@ -19,7 +19,8 @@ void break_word_callback(const char *buffer, size_t byte_length, unsigned int cu
     size_t index = 0;
     size_t successful_count = 0;
 
-    while((bt = mjb_break_word(buffer, byte_length, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_word_break(buffer, byte_length, MJB_ENC_UTF_8, &state)) !=
+        MJB_BT_NOT_SET) {
         snprintf(test_name, 256, "#%u index %zu", current_line, index);
 
         if(bt == MJB_BT_MANDATORY) {
@@ -33,7 +34,7 @@ void break_word_callback(const char *buffer, size_t byte_length, unsigned int cu
         }
     }
 
-    MJB_TEST_COVERAGE(mjb_break_word);
+    MJB_TEST_COVERAGE(mjb_next_word_break);
     ATT_ASSERT(index, successful_count, test_name)
 }
 
@@ -41,9 +42,9 @@ static void test_truncate_word(void) {
     mjb_next_word_state state;
     state.index = 0;
 
-    ATT_ASSERT((uint8_t)mjb_break_word(NULL, 1, MJB_ENC_UTF_8, &state), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_next_word_break(NULL, 1, MJB_ENC_UTF_8, &state), (uint8_t)MJB_BT_NOT_SET,
         "Word break rejects NULL buffer")
-    ATT_ASSERT((uint8_t)mjb_break_word("A", 1, MJB_ENC_UTF_8, NULL), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_next_word_break("A", 1, MJB_ENC_UTF_8, NULL), (uint8_t)MJB_BT_NOT_SET,
         "Word break rejects NULL state")
 
     // Edge cases
