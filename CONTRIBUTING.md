@@ -187,8 +187,9 @@ We use Attractor to run tests.
 ATT_ASSERT(what_you_are_testing, "must be equal to this value", "Description")
 ```
 
-For example, imagine we have found a bug in the `mjb_string_length` function that does not correctly
-count the length of the `"Hello, test"` string and we fixed it. In `tests/string.c`, add a
+For example, imagine we have found a bug in the `mjb_count_codepoints` function that does not
+correctly count the codepoints in the `"Hello, test"` string and we fixed it. In
+`tests/encoding.c`, add a
 new assertion:
 
 ```c

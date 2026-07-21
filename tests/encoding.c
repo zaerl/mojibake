@@ -478,7 +478,7 @@ int test_encoding(void *arg) {
         MJB_ENC_UTF_8, utf8_bom_a, sizeof(utf8_bom_a),
         "Convert explicit UTF-32LE preserves U+FEFF");
 
-    MJB_TEST_COVERAGE(mjb_string_length);
+    MJB_TEST_COVERAGE(mjb_count_codepoints);
     ATT_ASSERT(mjb_count_codepoints(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16), (size_t)1,
         "Length generic UTF-16BE BOM consumes signature")
     ATT_ASSERT(mjb_count_codepoints(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16BE), (size_t)2,

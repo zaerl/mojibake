@@ -263,7 +263,7 @@ export enum IdentifierProfile {
   NFKC,
 };
 
-// Result of mjb_next_character function
+// Result of mjb_string_each_character function
 export type NextCharacter = {
   character: Character;
   type: NextCharacterType; // mjb_character_position
@@ -481,7 +481,7 @@ export class Mojibake {
     const previousCallback = (globalThis as any)._mjbEachCharacterCallback;
     const characters: NextCharacter[] = [];
 
-    // See mjb_next_character function
+    // See mjb_string_each_character function
     (globalThis as any)._mjbEachCharacterCallback = (character: Pointer, type: number) => {
       characters.push({
         character: this.pointerToCharacter(character),

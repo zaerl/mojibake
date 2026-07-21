@@ -190,7 +190,7 @@ A summary for `Héllö`, encoded this way:
 - UTF-32LE: `H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0`, 20 bytes
 - UTF-32BE: `\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6`, 20 bytes
 
-To find the real number of characters, you will later use `mjb_string_length`.
+To count the Unicode codepoints, use `mjb_count_codepoints`.
 
 ```c
 mjb_count_codepoints("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8); // 5 characters

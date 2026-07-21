@@ -10,7 +10,7 @@
 #include "test.h"
 
 /**
- * Test mjb_string_length behavior with embedded NULL codepoints (U+0000).
+ * Test mjb_count_codepoints behavior with embedded NULL codepoints (U+0000).
  */
 int test_embedded_null(void *arg) {
     // UTF-8: NULL codepoint is single byte 0x00

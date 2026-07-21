@@ -140,7 +140,7 @@ static void test_basic_segmentation(void) {
 }
 
 static void test_truncate(void) {
-    // mjb_truncate: empty / zero
+    // mjb_truncate_grapheme: empty / zero
     ATT_ASSERT(mjb_truncate_grapheme("", 0, MJB_ENC_UTF_8, 3), (size_t)0, "Truncate: empty string")
     ATT_ASSERT(mjb_truncate_grapheme("ABC", 3, MJB_ENC_UTF_8, 0), (size_t)0, "Truncate: 0 graphemes")
 

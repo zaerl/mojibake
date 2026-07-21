@@ -27,12 +27,12 @@ int test_next(void *arg) {
         MJB_STATUS_INVALID_ARGUMENT, "NULL next callback")
     ATT_ASSERT_STATUS(mjb_string_each_character("Hèllò", 7, MJB_ENC_UTF_8, next_character),
         MJB_STATUS_OK, "Next character")
-    ATT_ASSERT(mjb_test_count, 5, "mjb_next_character")
+    ATT_ASSERT(mjb_test_count, 5, "mjb_string_each_character")
 
     mjb_test_count = 0;
     ATT_ASSERT_STATUS(mjb_string_each_character("A", 1, MJB_ENC_UTF_8, stop_next_character),
         MJB_STATUS_CALLBACK_STOPPED, "Next character callback stopped")
-    ATT_ASSERT(mjb_test_count, 1, "mjb_next_character stopped after callback")
+    ATT_ASSERT(mjb_test_count, 1, "mjb_string_each_character stopped after callback")
 
     return 0;
 }
