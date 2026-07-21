@@ -568,6 +568,9 @@
                 case 'mjb_codepoint_block':
                     data = parseBlockInfo(data);
                     break;
+                case 'mjb_normalization_quick_check':
+                    data = quickCheckResultToString(data);
+                    break;
                 case 'mjb_next_line_break':
                 case 'mjb_next_word_break':
                 case 'mjb_next_sentence_break':
@@ -581,8 +584,6 @@
                 data = codepointToString(data);
             } else if(functions[func].ret === 'mjb_encoding') {
                 data = encodingToString(data, true);
-            } else if(functions[func].ret === 'mjb_quick_check_result') {
-                data = quickCheckResultToString(data);
             }
 
             funcResults.innerHTML = data;

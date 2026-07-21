@@ -9,7 +9,7 @@ the MIT License.
 ## Usage
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
-C/C++ project. Download it here [mojibake-amalgamation-031.zip](https://github.com/zaerl/mojibake/releases/download/v0.3.1/mojibake-amalgamation-031.zip).
+C/C++ project. Download it here [mojibake-amalgamation-032.zip](https://github.com/zaerl/mojibake/releases/download/v0.3.2/mojibake-amalgamation-032.zip).
 
 Examples of normalization, characters count and NFKC casefold.
 

@@ -5,6 +5,32 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-07-21
+
+### Added
+- Added to the C++ wrapper the missing C API
+- Added C++ README
+
+### Changed
+- Functions like `mjb_normalization_quick_check` that can generate an error now return a
+  `mjb_status` and accept a pointer to save the result
+- Renamed `mjb_filter` enum to `mjb_filter_flags` to avoid confusion
+- `mjb_shutdown` is now `mjb_reset`
+- New locale functions `mjb_set_locale` and `mjb_get_locale`
+- `mjb_string_is_confusable` is now `mjb_are_confusable`
+- `mjb_break_*` functions are now `mjb_next_*_break`
+- `mjb_string_length` is now `mjb_count_codepoints` to avoid confusion, and other functions
+- `mjb_string_is_normalized` is now `mjb_normalization_quick_check` to avoid confusion
+- Added to the C++ wrapper the missing C API
+- Removed the `string_` from `mjb_string_*` kind of functions. Such as `mjb_string_is_identifier`
+  that now is `mjb_is_identifier`
+
+### Fixed
+- Windows: fix MSVC C4310 warnings
+- `mjb_set_locale` now accepts an enum, and not an integer
+- Fix favicons main color
+- Minor doc typos
+
 ## [0.3.1] - 2026-07-20
 
 ### Added
@@ -112,15 +138,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `mjb_codepoint_script_extensions` algorithm
 - Added `mjb_confusable_skeleton` algorithm
 - Added `mjb_nfkc_casefold` algorithm
-- HTML: added bitfield for `mjb_map_case`
+- HTML: added bitfield for `mjb_case`
 
 ### Changed
 - Renamed `doc/` to `example/`
 - Moved legalese to conformance file
 - Removed fuzz paragraph
 - Fix: `Mojibake.codepointEncode` wrong signature
-- Fix: `Mojibake.countCodepoints` wrong signature
-- Inverted `mjb_normalize`, `mjb_map_case` and `mjb_filter` parameters
+- Fix: `Mojibake.stringLength` wrong signature
+- Inverted `mjb_normalize`, `mjb_map_case` and `mjb_string_filter` parameters
 - Split `mjb_codepoint_property_value` in `mjb_codepoint_property_binary`,
   `mjb_codepoint_property_int`
 - Minor functions reordering
@@ -176,11 +202,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `mjb_codepoint_property`
 - Renamed `mjb_codepoint_has_property` to `mjb_codepoint_property_value`
 - Renamed `mjb_strnlen` to `mjb_string_length`
-- Renamed `mjb_segmentation` to `mjb_next_grapheme_break`
+- Renamed `mjb_segmentation` to `mjb_break_grapheme_cluster`
 - Renamed `mjb_next_character` to `mjb_string_each_character`
 - Renamed `_mjbNextCharacterCallback` to `_mjbEachCharacterCallback`
 - Added second encoding to `mjb_collation_compare`
-- Added second encoding to `mjb_are_confusable`
+- Added second encoding to `mjb_string_is_confusable`
 - Renamed `size` to `byte_length`
 - Changed test function return from `void*` to `int`
 - Renamed `MJB_ENCODING_*` to `MJB_ENC_*`
@@ -190,7 +216,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved the Unicode Conformance Requirements points to a separate file
 
 ### Fixed
-- Removed `mjb_map_case` redundant tests
+- Removed `mjb_case` redundant tests
 - C++: added `noexcept`
 - Added Intellisense generator
 - Windows: fixed C4310 warning
@@ -223,7 +249,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows: warning C4232 'malloc' is not static
 - Docker: missing artifacts
 - `mjb_codepoint_encode` must not accept surrogates
-- `mjb_map_case` preserve uncased CJK
+- `mjb_case` preserve uncased CJK
 - `mjb_string_output()` crashing on realloc failure
 
 ## [0.2.2] - 2026-07-02
@@ -250,7 +276,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing `ctest-cpp` target
 - Moved `mjb_size` to WASM-generated
 - Added missing license headers
-- Added missing `mjb_are_confusable` to WASM
+- Added missing `mjb_string_is_confusable` to WASM
 - Fixed missing file imports in Dockerfile
 - Windows: fixed `C1189`, `C4267` warnings
 - `UBSan`: fixed multiple security problems
@@ -261,7 +287,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tests for main allocation functions
 - Added tests for `mjb_category_is_*` functions
 - Added `UndefinedBehaviorSanitizer` (`UBSan`) build and test targets
-- Added missing `mjb_next_word_break` tests
+- Added missing `mjb_break_word` tests
 - Added `test-all` target
 - Download of `CLDR` artifacts
 - Added `BCP 47` language tag parser
@@ -287,8 +313,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed all `MJB_NONNULL` declarations
 - Added missing ASCII check to `mjb_decode_step`
 - Added missing ASCII check to `mjb_codepoint_encode`
-- Fixed output encoding on `mjb_filter` normalized strings
-- Added support for `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` to `mjb_is_utf8`
+- Fixed output encoding on `mjb_string_filter` normalized strings
+- Added support for `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` to `mjb_string_is_utf8`
 - Set `width` CLI argument as required
 - FreeBSD: removed `gmake` specific syntax
 - Windows: fixed `C4310`, `C4456`, `C4566`, `C4701`, `C4702` warnings
