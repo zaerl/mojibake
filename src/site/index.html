@@ -490,7 +490,7 @@
 
                 if(arg.type === 'bool') {
                     value = form.elements[`${func}-${arg.name}`].checked;
-                } else if(arg.type === 'mjb_filter') {
+                } else if(arg.type === 'mjb_filter_type') {
                     value = Array.from(form.querySelectorAll(
                         `input[name="${func}-${arg.name}"]:checked`
                     )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
@@ -546,7 +546,7 @@
                     data = parseCodepointCharacter(data);
                     break;
                 case 'mjb_normalize':
-                case 'mjb_string_filter':
+                case 'mjb_filter':
                 case 'mjb_convert_encoding':
                 case 'mjb_map_case':
                 case 'mjb_nfkc_casefold':
@@ -556,7 +556,7 @@
                 case 'mjb_codepoint_emoji_properties':
                     data = parseEmojiProperties(data);
                     break;
-                case 'mjb_next_character':
+                case 'mjb_string_each_character':
                     data = parseNextCharacter(data);
                     break;
                 case 'mjb_locale_parse':

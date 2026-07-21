@@ -72,7 +72,7 @@ if the `byte_length` is bigger. This is _unless_ you declare `MJB_DANGEROUSLY_AL
 or you use UTF-16/UTF-32 that can have `\0` bytes
 5. The major part of the functions return a `mjb_status` and should be checked against the
 `MJB_STATUS_OK` constant. The `MJB_STATUS_OK` enum value is `0 (zero)` so don't check for truthy
-6. Predicate APIs, such as `mjb_string_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
+6. Predicate APIs, such as `mjb_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
 the boolean is the result
 
 > [!IMPORTANT]
@@ -97,7 +97,7 @@ The functions return a `_mjb_status_` and accept these arguments:
 5. The encoding you want to be used for the output string
 6. A `mjb_result` pointer to store the result
 
-See for example the [`mjb_normalize`](#mjb_normalize), [`mjb_string_filter`](#mjb_string_filter)
+See for example the [`mjb_normalize`](#mjb_normalize), [`mjb_filter`](#mjb_filter)
 functions.
 
 ### Functions that handle a codepoint
@@ -118,7 +118,7 @@ Those are the `mjb_(something)_is_(this)` kind of functions, which return a `boo
 1. The thing to check
 2. The needed _arguments_ of the function, if any
 
-See for example [`mjb_string_is_utf8`](#mjb_string_is_utf8),
+See for example [`mjb_is_utf8`](#mjb_is_utf8),
 [`mjb_codepoint_is_valid`](#mjb_codepoint_is_valid).
 
 ## Strings encoding and generation
@@ -292,20 +292,20 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_string_filter`](#mjb_string_filter).
+See also: [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter`](#mjb_filter).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
-## `mjb_string_filter`
+## `mjb_filter`
 
-Filter a string with the selected mjb_filter flags.
+Filter a string with the selected mjb_filter_type flags.
 
 ```c
-mjb_status mjb_string_filter(
+mjb_status mjb_filter(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_filter filters,
+    mjb_filter_type filters,
     mjb_encoding output_encoding,
     mjb_result *result
 );
@@ -326,7 +326,7 @@ mjb_status mjb_string_filter(
 const char *mixed_whitespace = "Hello\t\t\n\nworld";
 mjb_result result;
 
-if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
+if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
     MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -340,7 +340,7 @@ if(result.transformed) {
 
 const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
-if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
+if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
     MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -472,12 +472,12 @@ bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
 printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");
 ```
 
-## `mjb_string_is_ascii`
+## `mjb_is_ascii`
 
 Return true if the string is encoded in ASCII.
 
 ```c
-bool mjb_string_is_ascii(
+bool mjb_is_ascii(
     const char *buffer,
     size_t byte_length
 );
@@ -492,15 +492,15 @@ bool mjb_string_is_ascii(
 const char *input = "Plain ASCII";
 
 // ASCII: yes
-printf("ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no");
+printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");
 ```
 
-## `mjb_string_is_utf8`
+## `mjb_is_utf8`
 
 Return true if the string is encoded in UTF-8.
 
 ```c
-bool mjb_string_is_utf8(
+bool mjb_is_utf8(
     const char *buffer,
     size_t byte_length
 );
@@ -515,15 +515,15 @@ bool mjb_string_is_utf8(
 const char *input = "caf\xC3\xA9";
 
 // Valid UTF-8: yes
-printf("Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no");
+printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");
 ```
 
-## `mjb_string_is_utf16`
+## `mjb_is_utf16`
 
 Return true if the string is encoded in UTF-16BE or UTF-16LE.
 
 ```c
-bool mjb_string_is_utf16(
+bool mjb_is_utf16(
     const char *buffer,
     size_t byte_length
 );
@@ -538,7 +538,7 @@ bool mjb_string_is_utf16(
 const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
 
 // UTF-16: yes
-printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
+printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
 ```
 
 ## `mjb_count_codepoints`

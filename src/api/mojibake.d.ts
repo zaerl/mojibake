@@ -25,8 +25,8 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_info: (codepoint: Codepoint, character: Pointer) => number;
   // Normalize a string to NFC/NFKC/NFD/NFKD form.
   _mjb_normalize: (buffer: Pointer, byte_length: number, encoding: number, form: number, output_encoding: number, result: Pointer) => number;
-  // Filter a string with the selected mjb_filter flags.
-  _mjb_string_filter: (buffer: Pointer, byte_length: number, encoding: number, filters: number, output_encoding: number, result: Pointer) => number;
+  // Filter a string with the selected mjb_filter_type flags.
+  _mjb_filter: (buffer: Pointer, byte_length: number, encoding: number, filters: number, output_encoding: number, result: Pointer) => number;
   // Apply the Unicode NFKC_Casefold transform to a string.
   _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
@@ -34,11 +34,11 @@ export type MojibakeWasmModule = {
   // Return the string encoding (the most probable).
   _mjb_detect_encoding: (buffer: Pointer, byte_length: number) => number;
   // Return true if the string is encoded in ASCII.
-  _mjb_string_is_ascii: (buffer: Pointer, byte_length: number) => boolean;
+  _mjb_is_ascii: (buffer: Pointer, byte_length: number) => boolean;
   // Return true if the string is encoded in UTF-8.
-  _mjb_string_is_utf8: (buffer: Pointer, byte_length: number) => boolean;
+  _mjb_is_utf8: (buffer: Pointer, byte_length: number) => boolean;
   // Return true if the string is encoded in UTF-16BE or UTF-16LE.
-  _mjb_string_is_utf16: (buffer: Pointer, byte_length: number) => boolean;
+  _mjb_is_utf16: (buffer: Pointer, byte_length: number) => boolean;
   // Return the length of a string.
   _mjb_count_codepoints: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Run a callback for each character of a string.

@@ -96,7 +96,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
         return test_ret;
     }
 
-    bool is_ascii = mjb_string_is_ascii(source, source_size);
+    bool is_ascii = mjb_is_ascii(source, source_size);
 
     // An ASCII string should not be normalized.
     if(is_ascii) {

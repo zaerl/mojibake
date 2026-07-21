@@ -85,7 +85,7 @@ Core modules in `src/`:
 - `east-asian-width.c` - East Asian width property (`mjb_codepoint_east_asian_width`)
 - `emoji.c` - Emoji property detection (`mjb_codepoint_emoji_properties`)
 - `encoding.c` - String encoding detection, codepoint encoding, and encoding conversion
-- `filter.c` - String filtering (`mjb_string_filter`)
+- `filter.c` - String filtering (`mjb_filter`)
 - `hangul.c` - Hangul syllable handling
 - `locales.c` - Locale APIs, including strict BCP 47 parsing (`mjb_locale_parse`)
 - `mojibake.c/.h` - Main API and library initialization
@@ -113,7 +113,7 @@ Key headers:
 
 Result-producing public APIs return `mjb_status`, are declared `MJB_NODISCARD`, and should be
 checked against `MJB_STATUS_OK` by callers. Keep semantic predicates as `bool` only when the boolean
-is the actual answer, such as `mjb_string_is_utf8`, `mjb_codepoint_is_valid`, identifier checks, and
+is the actual answer, such as `mjb_is_utf8`, `mjb_codepoint_is_valid`, identifier checks, and
 emoji predicate helpers.
 
 Public API declarations are generated from `utils/generate/functions.ts`. When changing a signature

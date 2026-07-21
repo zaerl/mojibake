@@ -45,6 +45,7 @@ export type MojibakeFunction = {
   attributes: string[];
   args: MojibakeArg[];
   wasm: boolean;
+  wasmName?: string;
   section: Section;
   // Long-form description.
   details?: string;
@@ -239,13 +240,13 @@ printf("NFC: %.*s", (int)result.output_size, result.output);
 if(result.transformed) {
     mjb_free(result.output);
 }`,
-    related: ['mjb_normalization_quick_check', 'mjb_string_filter'],
+    related: ['mjb_normalization_quick_check', 'mjb_filter'],
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Filter a string with the selected mjb_filter flags.',
+    comment: 'Filter a string with the selected mjb_filter_type flags.',
     ret: 'mjb_status',
-    name: 'mjb_string_filter',
+    name: 'mjb_filter',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to filter'),
@@ -253,7 +254,7 @@ if(result.transformed) {
       encoding(),
       {
         name: 'filters',
-        type: 'mjb_filter',
+        type: 'mjb_filter_type',
         description: 'The filters to use',
         wasm_generated: false
       },
@@ -268,7 +269,7 @@ if(result.transformed) {
     example: `const char *mixed_whitespace = "Hello\\t\\t\\n\\nworld";
 mjb_result result;
 
-if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
+if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
     MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -282,7 +283,7 @@ if(result.transformed) {
 
 const char *controls = "\\x1\\x2\\t\\n\\v\\f\\r\\x1f";
 
-if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
+if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
     MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -400,7 +401,7 @@ printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");`
   {
     comment: 'Return true if the string is encoded in ASCII.',
     ret: 'bool',
-    name: 'mjb_string_is_ascii',
+    name: 'mjb_is_ascii',
     attributes: [
       'MJB_PURE'
     ],
@@ -409,16 +410,17 @@ printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");`
       byte_length()
     ],
     wasm: true,
+    wasmName: 'isASCII',
     section: Section.TextAnalysis,
     example: `const char *input = "Plain ASCII";
 
 // ASCII: yes
-printf("ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no");`
+printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the string is encoded in UTF-8.',
     ret: 'bool',
-    name: 'mjb_string_is_utf8',
+    name: 'mjb_is_utf8',
     attributes: [
       'MJB_PURE'
     ],
@@ -427,16 +429,17 @@ printf("ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no");`
       byte_length()
     ],
     wasm: true,
+    wasmName: 'isUTF8',
     section: Section.TextAnalysis,
     example: `const char *input = "caf\\xC3\\xA9";
 
 // Valid UTF-8: yes
-printf("Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no");`
+printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
     ret: 'bool',
-    name: 'mjb_string_is_utf16',
+    name: 'mjb_is_utf16',
     attributes: [
       'MJB_PURE'
     ],
@@ -445,11 +448,12 @@ printf("Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no
       byte_length()
     ],
     wasm: true,
+    wasmName: 'isUTF16',
     section: Section.TextAnalysis,
     example: `const char utf16be[] = "\\xFE\\xFF\\0H\\0i"; // BOM + "Hi" in UTF-16BE
 
 // UTF-16: yes
-printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`
+printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`
   },
   {
     comment: 'Return the length of a string.',
@@ -1009,6 +1013,7 @@ printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ?
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true,
+    wasmName: 'codepointIsCJKExtensionIdeograph',
     section: Section.TextAnalysis,
     example: `// U+20000 is a CJK extension ideograph: yes
 printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");`
