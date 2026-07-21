@@ -95,9 +95,8 @@ static uint16_t sort_key_word(const mjb_result *key, size_t index) {
     return (uint16_t)(((uint16_t)bytes[index * 2] << 8) | bytes[index * 2 + 1]);
 }
 
-static int test_collation_compare(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-    mjb_collation_mode mode) {
+static int test_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
+    const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode) {
     int order = 0;
     mjb_status status = mjb_collation_compare(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
         s2_encoding, mode, &order);
@@ -387,8 +386,8 @@ int test_collation(void *arg) {
     ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
         &kb), MJB_STATUS_OK, "Key: 'banana' succeeds")
 
-    int cmp_direct = test_collation_compare("apple", 5, MJB_ENC_UTF_8, "banana", 6,
-        MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
+    int cmp_direct = test_collation_compare("apple", 5, MJB_ENC_UTF_8, "banana", 6, MJB_ENC_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE);
     size_t min_size = ka.output_size < kb.output_size ? ka.output_size : kb.output_size;
     int cmp_keys = memcmp(ka.output, kb.output, min_size);
 

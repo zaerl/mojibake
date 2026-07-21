@@ -31,14 +31,14 @@ int test_quick_check(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_normalization_quick_check("a", 1, enc, MJB_NORMALIZATION_NFC, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NULL quick-check output")
-    assert_quick_check(NULL, 1, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ARGUMENT,
-        MJB_QC_NO, "NULL quick-check input");
+    assert_quick_check(NULL, 1, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ARGUMENT, MJB_QC_NO,
+        "NULL quick-check input");
     assert_quick_check("a", 1, enc, (mjb_normalization)99, MJB_STATUS_INVALID_FORM, MJB_QC_NO,
         "Invalid normalization form");
-    assert_quick_check("a", 1, MJB_ENC_UNKNOWN, MJB_NORMALIZATION_NFC,
-        MJB_STATUS_INVALID_ENCODING, MJB_QC_NO, "Invalid quick-check encoding");
-    assert_quick_check("a", 1, MJB_ENC_UTF_16, MJB_NORMALIZATION_NFC,
-        MJB_STATUS_INVALID_ENCODING, MJB_QC_NO, "Generic UTF-16 requires byte order");
+    assert_quick_check("a", 1, MJB_ENC_UNKNOWN, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ENCODING,
+        MJB_QC_NO, "Invalid quick-check encoding");
+    assert_quick_check("a", 1, MJB_ENC_UTF_16, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ENCODING,
+        MJB_QC_NO, "Generic UTF-16 requires byte order");
 
     const char malformed_utf8[] = { (char)0xE2, (char)0x82 };
     assert_quick_check(malformed_utf8, sizeof(malformed_utf8), enc, MJB_NORMALIZATION_NFC,

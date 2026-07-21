@@ -12,8 +12,8 @@ static void mjbsh_print_filter_analysis(const char *input) {
     mjb_result result;
     size_t input_size = strlen(input);
 
-    mjb_status status = mjb_filter(input, input_size, MJB_ENC_UTF_8, filter_flags,
-        MJB_ENC_UTF_8, &result);
+    mjb_status status = mjb_filter(input, input_size, MJB_ENC_UTF_8, filter_flags, MJB_ENC_UTF_8,
+        &result);
 
     if(status != MJB_STATUS_OK) {
         puts("Could not filter string");

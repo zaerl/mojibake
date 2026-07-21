@@ -76,8 +76,8 @@ static int check_normalization(char *source, size_t source_size, char *normalize
                 next_character);
             (void)print_status; // we can ignore this.
             printf("\nGot: ");
-            print_status = mjb_for_each_character(result.output, result.output_size,
-                MJB_ENC_UTF_8, next_character);
+            print_status = mjb_for_each_character(result.output, result.output_size, MJB_ENC_UTF_8,
+                next_character);
             (void)print_status; // we can ignore this.
             puts("");
         }
