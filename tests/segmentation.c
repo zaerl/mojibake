@@ -53,8 +53,8 @@ static void test_basic_segmentation(void) {
         (uint8_t)MJB_BT_NOT_SET, "Segmentation rejects NULL state")
     ATT_ASSERT((uint8_t)mjb_next_grapheme_break("", 0, MJB_ENC_UTF_8, &state),
         (uint8_t)MJB_BT_NOT_SET, "Empty string")
-    ATT_ASSERT(mjb_truncate(NULL, 1, MJB_ENC_UTF_8, 1), (size_t)0, "Truncate rejects NULL buffer")
-    ATT_ASSERT(mjb_truncate_width(NULL, 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0,
+    ATT_ASSERT(mjb_truncate_grapheme(NULL, 1, MJB_ENC_UTF_8, 1), (size_t)0, "Truncate rejects NULL buffer")
+    ATT_ASSERT(mjb_truncate_grapheme_width(NULL, 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0,
         "Truncate width rejects NULL buffer")
 
 #if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
@@ -141,35 +141,35 @@ static void test_basic_segmentation(void) {
 
 static void test_truncate(void) {
     // mjb_truncate: empty / zero
-    ATT_ASSERT(mjb_truncate("", 0, MJB_ENC_UTF_8, 3), (size_t)0, "Truncate: empty string")
-    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENC_UTF_8, 0), (size_t)0, "Truncate: 0 graphemes")
+    ATT_ASSERT(mjb_truncate_grapheme("", 0, MJB_ENC_UTF_8, 3), (size_t)0, "Truncate: empty string")
+    ATT_ASSERT(mjb_truncate_grapheme("ABC", 3, MJB_ENC_UTF_8, 0), (size_t)0, "Truncate: 0 graphemes")
 
     // ASCII: each byte is one grapheme cluster
-    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENC_UTF_8, 1), (size_t)1, "Truncate: ABC to 1")
-    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENC_UTF_8, 2), (size_t)2, "Truncate: ABC to 2")
-    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENC_UTF_8, 3), (size_t)3, "Truncate: ABC to 3 (no-op)")
-    ATT_ASSERT(mjb_truncate("ABC", 3, MJB_ENC_UTF_8, 5), (size_t)3, "Truncate: ABC to 5 (no-op)")
+    ATT_ASSERT(mjb_truncate_grapheme("ABC", 3, MJB_ENC_UTF_8, 1), (size_t)1, "Truncate: ABC to 1")
+    ATT_ASSERT(mjb_truncate_grapheme("ABC", 3, MJB_ENC_UTF_8, 2), (size_t)2, "Truncate: ABC to 2")
+    ATT_ASSERT(mjb_truncate_grapheme("ABC", 3, MJB_ENC_UTF_8, 3), (size_t)3, "Truncate: ABC to 3 (no-op)")
+    ATT_ASSERT(mjb_truncate_grapheme("ABC", 3, MJB_ENC_UTF_8, 5), (size_t)3, "Truncate: ABC to 5 (no-op)")
 
     // Multi-byte: "aé" = 0x61 0xC3 0xA9 = 3 bytes, 2 grapheme clusters
-    ATT_ASSERT(mjb_truncate("a\xC3\xA9", 3, MJB_ENC_UTF_8, 1), (size_t)1,
+    ATT_ASSERT(mjb_truncate_grapheme("a\xC3\xA9", 3, MJB_ENC_UTF_8, 1), (size_t)1,
         "Truncate: aé to 1 grapheme")
-    ATT_ASSERT(mjb_truncate("a\xC3\xA9", 3, MJB_ENC_UTF_8, 2), (size_t)3,
+    ATT_ASSERT(mjb_truncate_grapheme("a\xC3\xA9", 3, MJB_ENC_UTF_8, 2), (size_t)3,
         "Truncate: aé to 2 graphemes (no-op)")
 
     // Flag emoji 🇺🇸 = two RI codepoints (4+4=8 bytes), one grapheme cluster
-    ATT_ASSERT(mjb_truncate("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_ENC_UTF_8, 1), (size_t)8,
+    ATT_ASSERT(mjb_truncate_grapheme("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_ENC_UTF_8, 1), (size_t)8,
         "Truncate: flag emoji to 1 grapheme (no-op)")
 
-    // mjb_truncate_width
-    ATT_ASSERT(mjb_truncate_width("", 0, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 5), (size_t)0,
+    // mjb_truncate_grapheme_width
+    ATT_ASSERT(mjb_truncate_grapheme_width("", 0, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 5), (size_t)0,
         "Truncate width: empty string")
-    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 0), (size_t)0,
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 0), (size_t)0,
         "Truncate width: 0 columns")
-    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 2), (size_t)2,
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 2), (size_t)2,
         "Truncate width: ABC to 2 columns")
-    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 3), (size_t)3,
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 3), (size_t)3,
         "Truncate width: ABC to 3 columns (no-op)")
-    ATT_ASSERT(mjb_truncate_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10),
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10),
         (size_t)3, "Truncate width: ABC to 10 columns (no-op)")
 
 #if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
@@ -178,19 +178,19 @@ static void test_truncate(void) {
     const char timeout_repro[] = { '\0', '\0', '\x10', '\xDF', '\x03', '\x1F', '\x01', '\0', '\0',
         '\0', '\0', '\0', '\0', '\0', '\xFF', '\xDC', '\xFF', '\0', '\xF3', '\xA1', ' ', 'S' };
 
-    ATT_ASSERT(mjb_truncate(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE, 5),
+    ATT_ASSERT(mjb_truncate_grapheme(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE, 5),
         (size_t)2, "Truncate: UTF-16LE stops at NULL")
-    ATT_ASSERT(mjb_truncate_width(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE,
+    ATT_ASSERT(mjb_truncate_grapheme_width(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE,
         MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)2, "Truncate width: UTF-16LE stops at NULL")
-    ATT_ASSERT(mjb_truncate_width(utf16le_null_start, sizeof(utf16le_null_start), MJB_ENC_UTF_16LE,
+    ATT_ASSERT(mjb_truncate_grapheme_width(utf16le_null_start, sizeof(utf16le_null_start), MJB_ENC_UTF_16LE,
         MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0, "Truncate width: UTF-16LE NULL start")
-    ATT_ASSERT(mjb_truncate_width(timeout_repro, sizeof(timeout_repro), MJB_ENC_UTF_16LE,
+    ATT_ASSERT(mjb_truncate_grapheme_width(timeout_repro, sizeof(timeout_repro), MJB_ENC_UTF_16LE,
         MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0, "Truncate width: fuzzer timeout regression")
 #endif
 
     const char malformed_utf8_width[] = { 'a', '\x17', '\xCE', '\x08', 's', 't' };
 
-    ATT_ASSERT(mjb_truncate_width(malformed_utf8_width, sizeof(malformed_utf8_width), MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb_truncate_grapheme_width(malformed_utf8_width, sizeof(malformed_utf8_width), MJB_ENC_UTF_8,
         MJB_WIDTH_CONTEXT_WESTERN, 114), sizeof(malformed_utf8_width),
         "Truncate width: malformed UTF-8 regression")
 }

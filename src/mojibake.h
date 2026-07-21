@@ -607,7 +607,7 @@ MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_syllable(mjb_codepoint codepoi
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint codepoint);
 
 // Return if the codepoint is CJK extension.
-MJB_EXPORT MJB_CONST bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint);
+MJB_EXPORT MJB_CONST bool mjb_codepoint_is_cjk_extension_ideograph(mjb_codepoint codepoint);
 
 // Return true if the category is graphic.
 MJB_EXPORT MJB_CONST bool mjb_category_is_graphic(mjb_category category);
@@ -628,10 +628,10 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
 MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
 
 // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_graphemes);
+MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_graphemes);
 
 // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
 
 // Return the number of bytes that form the first max_segments word-break segments.
 MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
@@ -649,7 +649,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragra
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order, size_t count, mjb_bidi_run *runs, size_t *run_count);
 
 // Free a bidi paragraph allocated by mjb_bidi_resolve.
-MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph);
+MJB_EXPORT void mjb_bidi_paragraph_free(mjb_bidi_paragraph *paragraph);
 
 // Return true if the codepoint is a valid Unicode identifier start (Unicode 18.0.0 UAX #31 ID_Start).
 MJB_EXPORT bool mjb_codepoint_is_id_start(mjb_codepoint codepoint);
@@ -679,7 +679,7 @@ MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
+MJB_EXPORT bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
 
 // Return the emoji properties.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);

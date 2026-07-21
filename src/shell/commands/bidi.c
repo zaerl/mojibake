@@ -113,7 +113,7 @@ static void mjbsh_bidi_revolve(const char *input) {
     }
 
     free(visual_order);
-    mjb_bidi_free(&para);
+    mjb_bidi_paragraph_free(&para);
 }
 
 int mjbsh_bidi_command(int argc, char *const argv[], unsigned int flags) {

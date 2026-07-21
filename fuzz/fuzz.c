@@ -165,7 +165,7 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_hangul_jamo(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_hangul_syllable(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_cjk_ideograph(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_is_cjk_ext(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_cjk_extension_ideograph(codepoint);
     fuzz_sink += (size_t)mjb_category_is_graphic((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_category_is_combining((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_codepoint_numeric_value(codepoint, &numeric);
@@ -316,7 +316,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                     }
                 }
 
-                mjb_bidi_free(&para);
+                mjb_bidi_paragraph_free(&para);
             }
 
             break;
@@ -361,9 +361,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 9: // Segmentation: grapheme, word and width truncation
             fuzz_sink += mjb_count_codepoints(buffer, size, encoding);
-            mjb_truncate(buffer, size, encoding, variant);
+            mjb_truncate_grapheme(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
-            mjb_truncate_width(buffer, size, encoding, (mjb_width_context)(variant % 3), variant);
+            mjb_truncate_grapheme_width(buffer, size, encoding, (mjb_width_context)(variant % 3),
+                variant);
             mjb_truncate_word_width(buffer, size, encoding, (mjb_width_context)(variant % 3),
                 variant);
             break;
@@ -389,7 +390,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
-            mjb_string_is_confusable(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
+            mjb_are_confusable(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
                 encoding);
             break;
 

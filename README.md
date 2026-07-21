@@ -130,7 +130,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   reordering, runs ([UAX #9, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html))
 - **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
 - **Display width**: East Asian width and terminal display width, with width-aware truncation
-  (`mjb_display_width`, `mjb_truncate_width`)
+  (`mjb_display_width`, `mjb_truncate_grapheme_width`)
 
 **Sorting and comparison**
 
@@ -141,7 +141,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Security**
 
 - **Confusable detection**: generate reusable skeletons and check if strings are visually
-  confusable (`mjb_confusable_skeleton`, `mjb_string_is_confusable`,
+  confusable (`mjb_confusable_skeleton`, `mjb_are_confusable`,
   [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
   (`mjb_string_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))

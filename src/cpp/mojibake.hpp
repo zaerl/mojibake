@@ -329,7 +329,7 @@ class Character {
     }
 
     [[nodiscard]] bool is_cjk_extension() const noexcept {
-        return mjb_codepoint_is_cjk_ext(data.codepoint);
+        return mjb_codepoint_is_cjk_extension_ideograph(data.codepoint);
     }
 
     [[nodiscard]] bool is_emoji() const noexcept {
@@ -528,7 +528,7 @@ struct EmojiProperties {
 }
 
 [[nodiscard]] inline bool is_cjk_extension(mjb_codepoint codepoint) noexcept {
-    return mjb_codepoint_is_cjk_ext(codepoint);
+    return mjb_codepoint_is_cjk_extension_ideograph(codepoint);
 }
 
 [[nodiscard]] inline bool is_emoji(mjb_codepoint codepoint) noexcept {
@@ -690,8 +690,7 @@ struct NumericValue {
 
 [[nodiscard]] inline bool is_confusable(std::string_view s1, std::string_view s2,
     mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_is_confusable(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(),
-        s2_encoding);
+    return mjb_are_confusable(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(), s2_encoding);
 }
 
 [[nodiscard]] inline TextResult confusable_skeleton_result(std::string_view input,
@@ -1044,7 +1043,7 @@ inline void deallocate(void *pointer) noexcept {
 
 [[nodiscard]] inline std::string_view truncate(std::string_view input, size_t max_graphemes,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate(input.data(), input.size(), encoding, max_graphemes);
+    const size_t n = mjb_truncate_grapheme(input.data(), input.size(), encoding, max_graphemes);
 
     return input.substr(0, n);
 }
@@ -1052,7 +1051,8 @@ inline void deallocate(void *pointer) noexcept {
 [[nodiscard]] inline std::string_view truncate_width(std::string_view input, size_t max_columns,
     mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_width(input.data(), input.size(), encoding, context, max_columns);
+    const size_t n = mjb_truncate_grapheme_width(input.data(), input.size(), encoding, context,
+        max_columns);
 
     return input.substr(0, n);
 }
@@ -1093,7 +1093,7 @@ class BidiParagraph {
 
     BidiParagraph &operator=(BidiParagraph &&other) noexcept {
         if(this != &other) {
-            mjb_bidi_free(&data);
+            mjb_bidi_paragraph_free(&data);
             data = other.data;
             other.data = {};
         }
@@ -1102,7 +1102,7 @@ class BidiParagraph {
     }
 
     ~BidiParagraph() {
-        mjb_bidi_free(&data);
+        mjb_bidi_paragraph_free(&data);
     }
 
     [[nodiscard]] bool empty() const noexcept {

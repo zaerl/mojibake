@@ -488,12 +488,12 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_codepoint_is_cjk_ext
-    MJB_TEST_COVERAGE(mjb_codepoint_is_cjk_ext); // Added by the script
+    // Example for mjb_codepoint_is_cjk_extension_ideograph
+    MJB_TEST_COVERAGE(mjb_codepoint_is_cjk_extension_ideograph); // Added by the script
     // U+20000 is a CJK extension ideograph: yes
-    // printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_ext(0x20000) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_ext(0x20000) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+20000 is a CJK extension ideograph: yes", "mjb_codepoint_is_cjk_ext test failed") // Added by the script
+    // printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "U+20000 is a CJK extension ideograph: yes", "mjb_codepoint_is_cjk_extension_ideograph test failed") // Added by the script
 }
 
 {
@@ -588,28 +588,28 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_truncate
-    MJB_TEST_COVERAGE(mjb_truncate); // Added by the script
+    // Example for mjb_truncate_grapheme
+    MJB_TEST_COVERAGE(mjb_truncate_grapheme); // Added by the script
     const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z"; // A🇮🇹Z
-    size_t bytes = mjb_truncate(input, strlen(input), MJB_ENC_UTF_8, 2);
+    size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
 
     // First two graphemes use 9 bytes
     // printf("First two graphemes use %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First two graphemes use %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_truncate test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_truncate_grapheme test failed") // Added by the script
 }
 
 {
-    // Example for mjb_truncate_width
-    MJB_TEST_COVERAGE(mjb_truncate_width); // Added by the script
+    // Example for mjb_truncate_grapheme_width
+    MJB_TEST_COVERAGE(mjb_truncate_grapheme_width); // Added by the script
     const char *input = "A\xE7\x95\x8C"; // A界
-    size_t bytes = mjb_truncate_width(input, strlen(input), MJB_ENC_UTF_8,
+    size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
         MJB_WIDTH_CONTEXT_WESTERN, 2);
 
     // Two columns include 1 byte
     // printf("Two columns include %zu byte", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Two columns include %zu byte", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_truncate_width test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_truncate_grapheme_width test failed") // Added by the script
 }
 
 {
@@ -653,7 +653,7 @@ int test_example(void *arg) {
     // printf("Paragraph codepoints: %zu", paragraph.count);
     snprintf(test_buffer, sizeof(test_buffer), "Paragraph codepoints: %zu", paragraph.count); // Added by the script
     ATT_ASSERT(test_buffer, "Paragraph codepoints: 7", "mjb_bidi_resolve test failed") // Added by the script
-    mjb_bidi_free(&paragraph);
+    mjb_bidi_paragraph_free(&paragraph);
 }
 
 {
@@ -675,7 +675,7 @@ int test_example(void *arg) {
     // printf("First visual index: %zu", visual_order[0]);
     snprintf(test_buffer, sizeof(test_buffer), "First visual index: %zu", visual_order[0]); // Added by the script
     ATT_ASSERT(test_buffer, "First visual index: 2", "mjb_bidi_reorder_line test failed") // Added by the script
-    mjb_bidi_free(&paragraph);
+    mjb_bidi_paragraph_free(&paragraph);
 }
 
 {
@@ -698,26 +698,26 @@ int test_example(void *arg) {
     // printf("Visual runs: %zu", run_count);
     snprintf(test_buffer, sizeof(test_buffer), "Visual runs: %zu", run_count); // Added by the script
     ATT_ASSERT(test_buffer, "Visual runs: 1", "mjb_bidi_line_runs test failed") // Added by the script
-    mjb_bidi_free(&paragraph);
+    mjb_bidi_paragraph_free(&paragraph);
 }
 
 {
-    // Example for mjb_bidi_free
-    MJB_TEST_COVERAGE(mjb_bidi_free); // Added by the script
+    // Example for mjb_bidi_paragraph_free
+    MJB_TEST_COVERAGE(mjb_bidi_paragraph_free); // Added by the script
     mjb_bidi_paragraph paragraph;
 
     if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
         &paragraph) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_bidi_free test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_bidi_paragraph_free test failed") // Added by the script
         return 1;
     }
 
-    mjb_bidi_free(&paragraph);
+    mjb_bidi_paragraph_free(&paragraph);
 
     // Paragraph released: yes
     // printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Paragraph released: yes", "mjb_bidi_free test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Paragraph released: yes", "mjb_bidi_paragraph_free test failed") // Added by the script
 }
 
 {
@@ -834,18 +834,18 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_is_confusable
-    MJB_TEST_COVERAGE(mjb_string_is_confusable); // Added by the script
+    // Example for mjb_are_confusable
+    MJB_TEST_COVERAGE(mjb_are_confusable); // Added by the script
     const char *latin = "hello";
     const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
 
-    bool confusable = mjb_string_is_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+    bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
         mixed, strlen(mixed), MJB_ENC_UTF_8);
 
     // Visually confusable: yes
     // printf("Visually confusable: %s", confusable ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Visually confusable: %s", confusable ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_string_is_confusable test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_are_confusable test failed") // Added by the script
 }
 
 {
