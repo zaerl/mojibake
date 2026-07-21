@@ -14,6 +14,26 @@
 #endif
 #include "test.h"
 
+#if !defined(MJB_SHARED)
+static mjb_status test_output_writer(mjb_output *output, const void *context) {
+    (void)context;
+    mjb_status status = mjb_output_write(output, "abc", 3);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    return mjb_output_codepoint(output, 0xE9, MJB_ENC_UTF_8);
+}
+
+static mjb_status test_output_failure_writer(mjb_output *output, const void *context) {
+    (void)output;
+    (void)context;
+
+    return MJB_STATUS_INVALID_ENCODING;
+}
+#endif
+
 int test_string(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
 
@@ -28,6 +48,43 @@ int test_string(void *arg) {
         "String output rejects NULL output index")
     ATT_ASSERT(mjb_string_output(NULL, output_input, 1, &output_index, NULL), (char *)NULL,
         "String output rejects NULL output size")
+
+    size_t into_size = 0;
+    ATT_ASSERT_STATUS(mjb_output_into(NULL, &into_size, test_output_writer, NULL), MJB_STATUS_OK,
+        "Output sink measures a transformation")
+    ATT_ASSERT(into_size, (size_t)5, "Output sink reports the required size")
+
+    char into_output[6] = { '#', '#', '#', '#', '#', '#' };
+    into_size = 4;
+    ATT_ASSERT_STATUS(mjb_output_into(into_output, &into_size, test_output_writer, NULL),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Output sink rejects insufficient capacity")
+    ATT_ASSERT(into_size, (size_t)5, "Output sink preserves the required size")
+    ATT_ASSERT(memcmp(into_output, "######", sizeof(into_output)), 0,
+        "Output sink leaves a small buffer untouched")
+
+    into_size = 5;
+    ATT_ASSERT_STATUS(mjb_output_into(into_output, &into_size, test_output_writer, NULL),
+        MJB_STATUS_OK, "Output sink writes into exact capacity")
+    ATT_ASSERT(into_size, (size_t)5, "Output sink reports the written size")
+    ATT_ASSERT(memcmp(into_output, "abc\xC3\xA9", into_size), 0,
+        "Output sink writes bytes and encoded codepoints")
+    ATT_ASSERT(into_output[5], '#', "Output sink does not write a terminator")
+
+    into_size = sizeof(into_output);
+    ATT_ASSERT_STATUS(mjb_output_into(into_output, &into_size, test_output_failure_writer, NULL),
+        MJB_STATUS_INVALID_ENCODING, "Output sink propagates writer errors")
+    ATT_ASSERT(into_size, (size_t)0, "Output sink clears the size after a writer error")
+    ATT_ASSERT_STATUS(mjb_output_into(NULL, NULL, test_output_writer, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Output sink rejects a NULL size")
+    ATT_ASSERT_STATUS(mjb_output_into(NULL, &into_size, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Output sink rejects a NULL writer")
+
+    mjb_output measured = { NULL, SIZE_MAX, 0, MJB_OUTPUT_MEASURE };
+    ATT_ASSERT_STATUS(mjb_output_write(&measured, "a", 1), MJB_STATUS_OVERFLOW,
+        "Output sink detects size overflow")
+    measured.size = 0;
+    ATT_ASSERT_STATUS(mjb_output_codepoint(&measured, 0xE9, MJB_ENC_ASCII),
+        MJB_STATUS_UNSUPPORTED, "Output sink rejects an unrepresentable codepoint")
 #endif
 
     ATT_ASSERT(mjb_count_codepoints("Hello", 5, enc), 5, "UTF-8 length: Hello")

@@ -6,9 +6,100 @@
 
 #include "test.h"
 
+static void assert_filter_into_matches(const char *input, size_t input_size, mjb_encoding encoding,
+    mjb_filter_flags filters, mjb_encoding output_encoding, const char *message) {
+    mjb_result allocated;
+
+    ATT_ASSERT_STATUS(mjb_filter(input, input_size, encoding, filters, output_encoding, &allocated),
+        MJB_STATUS_OK, message)
+
+    size_t required = 0;
+    ATT_ASSERT_STATUS(mjb_filter_into(input, input_size, encoding, filters, output_encoding, NULL,
+                          &required),
+        MJB_STATUS_OK, message)
+    ATT_ASSERT(required, allocated.output_size, message)
+
+    unsigned char output[256];
+    size_t capacity = sizeof(output);
+    ATT_ASSERT(required <= capacity, true, message)
+    ATT_ASSERT_STATUS(mjb_filter_into(input, input_size, encoding, filters, output_encoding, output,
+                          &capacity),
+        MJB_STATUS_OK, message)
+    ATT_ASSERT(capacity, allocated.output_size, message)
+    ATT_ASSERT(memcmp(output, allocated.output, capacity), 0, message)
+
+    mjb_result_free(&allocated);
+}
+
 int test_filter(void *arg) {
     mjb_result result;
     mjb_encoding enc = MJB_ENC_UTF_8;
+
+    MJB_TEST_COVERAGE(mjb_filter_into);
+
+    size_t into_size = 9;
+
+    ATT_ASSERT_STATUS(mjb_filter_into(NULL, 1, enc, MJB_FILTER_NONE, enc, NULL, &into_size),
+        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects NULL buffer")
+    ATT_ASSERT(into_size, (size_t)0, "Filter into resets size for invalid input")
+    ATT_ASSERT_STATUS(mjb_filter_into("A", 1, enc, MJB_FILTER_NONE, enc, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects NULL output size")
+
+    const char *into_input = "Hello\t\t\nworld";
+    const char *into_expected = "Hello world";
+    into_size = 0;
+
+    ATT_ASSERT_STATUS(mjb_filter_into(into_input, strlen(into_input), enc,
+                          MJB_FILTER_COLLAPSE_SPACES, enc, NULL, &into_size),
+        MJB_STATUS_OK, "Query filtered output size")
+    ATT_ASSERT(into_size, strlen(into_expected), "Filtered output required payload size")
+
+    unsigned char into_output[12];
+    unsigned char untouched_output[sizeof(into_output)];
+    memset(into_output, 0xA5, sizeof(into_output));
+    memset(untouched_output, 0xA5, sizeof(untouched_output));
+    into_size = strlen(into_expected) - 1;
+
+    ATT_ASSERT_STATUS(mjb_filter_into(into_input, strlen(into_input), enc,
+                          MJB_FILTER_COLLAPSE_SPACES, enc, into_output, &into_size),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Filter into reports a small output buffer")
+    ATT_ASSERT(into_size, strlen(into_expected), "Small filter output reports required size")
+    ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
+        "Small filter output buffer is not modified")
+
+    into_size = strlen(into_expected);
+    ATT_ASSERT_STATUS(mjb_filter_into(into_input, strlen(into_input), enc,
+                          MJB_FILTER_COLLAPSE_SPACES, enc, into_output, &into_size),
+        MJB_STATUS_OK, "Filter into exact-size output buffer")
+    ATT_ASSERT(into_size, strlen(into_expected), "Filter into written payload size")
+    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Filter into output bytes")
+    ATT_ASSERT((unsigned int)into_output[into_size], 0xA5u,
+        "Filter into does not write a terminator")
+
+    const char *normalize_input = "Cafe\xCC\x81";
+    const char *normalize_expected = "Caf\xC3\xA9";
+    into_size = sizeof(into_output);
+
+    ATT_ASSERT_STATUS(mjb_filter_into(normalize_input, strlen(normalize_input), enc,
+                          (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), enc,
+                          into_output, &into_size),
+        MJB_STATUS_OK, "Filter into normalizes before filtering")
+    ATT_ASSERT(into_size, strlen(normalize_expected), "Normalized filter into size")
+    ATT_ASSERT(memcmp(into_output, normalize_expected, into_size), 0,
+        "Normalized filter into output")
+
+    assert_filter_into_matches("\x1\x2\tA\x1F", 5, enc, MJB_FILTER_CONTROLS, enc,
+        "Filter into controls matches allocating filter");
+    assert_filter_into_matches("\xD9\xA1\xD9\xA2", 4, enc, MJB_FILTER_NUMERIC, enc,
+        "Filter into numeric mapping matches allocating filter");
+    assert_filter_into_matches("a\xCC\x80\xCC\x81\xCC\x82\xCC\x83\xCC\x84", 11, enc,
+        MJB_FILTER_LIMIT_COMBINING, enc, "Filter into combining limit matches allocating filter");
+    assert_filter_into_matches("A\xC0" "B", 3, enc, MJB_FILTER_NONE, enc,
+        "Filter into malformed replacement matches allocating filter");
+    assert_filter_into_matches("A", 1, enc, MJB_FILTER_NONE, MJB_ENC_UTF_16LE,
+        "Filter into encoding conversion matches allocating filter");
+    assert_filter_into_matches(normalize_input, strlen(normalize_input), enc,
+        MJB_FILTER_NORMALIZE, enc, "Filter into normalization matches allocating filter");
 
     ATT_ASSERT_STATUS(mjb_filter(NULL, 1, enc, MJB_FILTER_NONE, enc, &result),
         MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL buffer")

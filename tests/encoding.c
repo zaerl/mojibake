@@ -368,6 +368,61 @@ int test_encoding(void *arg) {
     ATT_ASSERT_STATUS(mjb_convert_encoding("", 0, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding rejects NULL result")
 
+    MJB_TEST_COVERAGE(mjb_convert_encoding_into);
+
+    size_t into_size = 123;
+
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL,
+                          &into_size),
+        MJB_STATUS_INVALID_ARGUMENT, "Convert encoding into rejects NULL buffer")
+    ATT_ASSERT(into_size, (size_t)0, "Convert encoding into resets size for invalid input")
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL,
+                          NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Convert encoding into rejects NULL output size")
+
+    const char into_input[] = "caf\xC3\xA9";
+    const unsigned char into_expected[] = { 'c', 0, 'a', 0, 'f', 0, 0xE9, 0 };
+
+    into_size = 0;
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
+                          MJB_ENC_UTF_16LE, NULL, &into_size),
+        MJB_STATUS_OK, "Query encoding conversion output size")
+    ATT_ASSERT(into_size, sizeof(into_expected), "Encoding conversion required payload size")
+
+    unsigned char into_output[sizeof(into_expected) + 1];
+    memset(into_output, 0xA5, sizeof(into_output));
+    into_size = sizeof(into_expected) - 1;
+
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
+                          MJB_ENC_UTF_16LE, into_output, &into_size),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Convert encoding reports a small output buffer")
+    ATT_ASSERT(into_size, sizeof(into_expected), "Small output buffer reports required size")
+
+    unsigned char untouched_output[sizeof(into_output)];
+    memset(untouched_output, 0xA5, sizeof(untouched_output));
+    ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
+        "Small output buffer is not modified")
+
+    into_size = sizeof(into_expected);
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
+                          MJB_ENC_UTF_16LE, into_output, &into_size),
+        MJB_STATUS_OK, "Convert encoding into exact-size output buffer")
+    ATT_ASSERT(into_size, sizeof(into_expected), "Convert encoding into written payload size")
+    ATT_ASSERT(memcmp(into_output, into_expected, sizeof(into_expected)), 0,
+        "Convert encoding into output bytes")
+    ATT_ASSERT((unsigned int)into_output[sizeof(into_expected)], 0xA5u,
+        "Convert encoding into does not write a terminator")
+
+    unsigned char same_encoding_output[] = { 0, 0xA5 };
+    into_size = 1;
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          same_encoding_output, &into_size),
+        MJB_STATUS_OK, "Convert encoding into copies unchanged encoding")
+    ATT_ASSERT((unsigned int)same_encoding_output[0], (unsigned int)'A',
+        "Convert encoding into unchanged byte")
+    ATT_ASSERT((unsigned int)same_encoding_output[1], 0xA5u,
+        "Unchanged encoding does not write a terminator")
+
     const char utf16le_ascii[] = { 'e', '\0', 'n', '\0' };
     mjb_result ascii_result;
 

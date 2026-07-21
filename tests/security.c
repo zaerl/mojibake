@@ -150,6 +150,28 @@ static void check_skeleton(const char *input, size_t input_size, const char *exp
         &skeleton), MJB_STATUS_OK, name)
     ATT_ASSERT(skeleton.output_size, expected_size, name)
     ATT_ASSERT((int)memcmp(skeleton.output, expected, expected_size), 0, name)
+
+    size_t required = 0;
+    MJB_TEST_COVERAGE(mjb_confusable_skeleton_into);
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(input, input_size, MJB_ENC_UTF_8,
+                          MJB_ENC_UTF_8, NULL, &required),
+        MJB_STATUS_OK, name)
+    ATT_ASSERT(required, expected_size, name)
+
+    char output[128];
+    ATT_ASSERT((int)(required < sizeof(output)), true, name)
+
+    if(required < sizeof(output)) {
+        memset(output, '#', sizeof(output));
+        size_t output_size = required;
+        ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(input, input_size, MJB_ENC_UTF_8,
+                              MJB_ENC_UTF_8, output, &output_size),
+            MJB_STATUS_OK, name)
+        ATT_ASSERT(output_size, expected_size, name)
+        ATT_ASSERT((int)memcmp(output, expected, expected_size), 0, name)
+        ATT_ASSERT(output[output_size], '#', name)
+    }
+
     ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, name)
 }
 
@@ -239,6 +261,39 @@ int test_security(void *arg) {
     ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, MJB_ENC_UNKNOWN, enc, &skeleton),
         MJB_STATUS_INVALID_ENCODING, "Skeleton rejects invalid input encoding")
 
+    size_t into_size = 9;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(NULL, 1, enc, enc, NULL, &into_size),
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton into rejects NULL input")
+    ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after invalid input")
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("A", 1, enc, enc, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton into rejects NULL size")
+
+    into_size = 9;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("", 0, enc, enc, NULL, &into_size),
+        MJB_STATUS_OK, "Skeleton into measures empty input")
+    ATT_ASSERT(into_size, (size_t)0, "Skeleton into empty size")
+
+    const char *into_input = "h\xD0\xB5llo";
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(into_input, 6, enc, enc, NULL, &into_size),
+        MJB_STATUS_OK, "Skeleton into queries required size")
+    ATT_ASSERT(into_size, (size_t)5, "Skeleton into required size")
+
+    char into_output[6] = { '#', '#', '#', '#', '#', '#' };
+    into_size = 4;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(into_input, 6, enc, enc, into_output,
+                          &into_size),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Skeleton into reports a small output buffer")
+    ATT_ASSERT(into_size, (size_t)5, "Skeleton into preserves required size")
+    ATT_ASSERT((int)memcmp(into_output, "######", sizeof(into_output)), 0,
+        "Skeleton into leaves a small buffer untouched")
+
+    into_size = 5;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(into_input, 6, enc, enc, into_output,
+                          &into_size),
+        MJB_STATUS_OK, "Skeleton into writes into exact capacity")
+    ATT_ASSERT((int)memcmp(into_output, "hello", 5), 0, "Skeleton into output")
+    ATT_ASSERT(into_output[5], '#', "Skeleton into does not write a terminator")
+
     check_skeleton("h\xD0\xB5llo", 6, "hello", 5, "Skeleton maps Cyrillic e");
     check_skeleton("a\xE2\x80\x8D"
                    "b",
@@ -256,6 +311,15 @@ int test_security(void *arg) {
     ATT_ASSERT((int)memcmp(skeleton.output, "A\0", 2), 0, "Skeleton UTF-16 output")
     ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, "Free UTF-16 skeleton")
 
+    char utf16_output[3] = { '#', '#', '#' };
+    into_size = sizeof(utf16_output) - 1;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("A", 1, enc, MJB_ENC_UTF_16LE, utf16_output,
+                          &into_size),
+        MJB_STATUS_OK, "Skeleton into supports UTF-16 output")
+    ATT_ASSERT(into_size, (size_t)2, "Skeleton into UTF-16 output size")
+    ATT_ASSERT((int)memcmp(utf16_output, "A\0", 2), 0, "Skeleton into UTF-16 output")
+    ATT_ASSERT(utf16_output[2], '#', "Skeleton into UTF-16 output has no terminator")
+
     bool confusable = true;
     ATT_ASSERT_STATUS(mjb_are_confusable(NULL, 1, enc, "A", 1, enc, &confusable),
         MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL left string")
@@ -268,6 +332,11 @@ int test_security(void *arg) {
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(
                           malformed_utf8_bytes, sizeof(malformed_utf8), enc, enc, &skeleton),
         MJB_STATUS_MALFORMED_INPUT, "Skeleton reports malformed input")
+    into_size = 9;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(malformed_utf8_bytes,
+                          sizeof(malformed_utf8), enc, enc, NULL, &into_size),
+        MJB_STATUS_MALFORMED_INPUT, "Skeleton into reports malformed input")
+    ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after malformed input")
     ATT_ASSERT_STATUS(mjb_are_confusable(malformed_utf8_bytes, sizeof(malformed_utf8), enc, "A", 1,
                           enc, &confusable),
         MJB_STATUS_MALFORMED_INPUT, "Confusable reports malformed input")

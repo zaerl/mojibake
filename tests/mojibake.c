@@ -99,6 +99,78 @@ int test_mojibake(void *arg) {
 
     test_set_failing_allocator(0);
 
+    char case_into_output[1];
+    size_t case_into_size = sizeof(case_into_output);
+
+    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+                          case_into_output, &case_into_size),
+        MJB_STATUS_OK, "Caller-buffer case mapping does not allocate")
+    ATT_ASSERT(case_into_size, (size_t)1, "Caller-buffer case mapping output size")
+    ATT_ASSERT((unsigned int)case_into_output[0], (unsigned int)'A',
+        "Caller-buffer case mapping output")
+
+    char filter_into_output[3];
+    size_t filter_into_size = sizeof(filter_into_output);
+
+    ATT_ASSERT_STATUS(mjb_filter_into("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE, MJB_ENC_UTF_8,
+                          filter_into_output, &filter_into_size),
+        MJB_STATUS_OK, "Caller-buffer filtering does not allocate")
+    ATT_ASSERT(filter_into_size, (size_t)1, "Caller-buffer filtering output size")
+    ATT_ASSERT((unsigned int)filter_into_output[0], (unsigned int)'a',
+        "Caller-buffer filtering output")
+
+    char normalize_into_output[3];
+    size_t normalize_into_size = sizeof(normalize_into_output);
+
+    ATT_ASSERT_STATUS(mjb_normalize_into("\xC3\xA9", 2, MJB_ENC_UTF_8,
+                          MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, normalize_into_output,
+                          &normalize_into_size),
+        MJB_STATUS_OK, "Caller-buffer decomposition does not allocate")
+    ATT_ASSERT(normalize_into_size, (size_t)3, "Caller-buffer decomposition output size")
+    ATT_ASSERT((int)memcmp(normalize_into_output, "e\xCC\x81", 3), 0,
+        "Caller-buffer decomposition output")
+
+    char normalize_utf16_output[2];
+    normalize_into_size = sizeof(normalize_utf16_output);
+    ATT_ASSERT_STATUS(mjb_normalize_into("A", 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_UTF_16LE, normalize_utf16_output, &normalize_into_size),
+        MJB_STATUS_OK, "Caller-buffer normalized encoding conversion does not allocate")
+    ATT_ASSERT(normalize_into_size, (size_t)2,
+        "Caller-buffer normalized encoding conversion output size")
+
+    normalize_into_size = 0;
+    ATT_ASSERT_STATUS(mjb_normalize_into("e\xCC\x81", 3, MJB_ENC_UTF_8,
+                          MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &normalize_into_size),
+        MJB_STATUS_NO_MEMORY, "Caller-buffer composition handles temporary allocation failure")
+    ATT_ASSERT(normalize_into_size, (size_t)0,
+        "Caller-buffer composition clears size after allocation failure")
+
+    filter_into_size = sizeof(filter_into_output);
+    ATT_ASSERT_STATUS(mjb_filter_into("e\xCC\x81", 3, MJB_ENC_UTF_8, MJB_FILTER_NORMALIZE,
+                          MJB_ENC_UTF_8, filter_into_output, &filter_into_size),
+        MJB_STATUS_NO_MEMORY, "Caller-buffer normalization handles temporary allocation failure")
+
+    size_t nfkc_casefold_into_size = 0;
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, NULL,
+                          &nfkc_casefold_into_size),
+        MJB_STATUS_NO_MEMORY, "Caller-buffer NFKC casefold handles temporary allocation failure")
+    ATT_ASSERT(nfkc_casefold_into_size, (size_t)0,
+        "Caller-buffer NFKC casefold clears size after allocation failure")
+
+    size_t collation_key_into_size = 0;
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, NULL, &collation_key_into_size),
+        MJB_STATUS_NO_MEMORY, "Caller-buffer collation key handles temporary allocation failure")
+    ATT_ASSERT(collation_key_into_size, (size_t)0,
+        "Caller-buffer collation key clears size after allocation failure")
+
+    size_t skeleton_into_size = 0;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, NULL,
+                          &skeleton_into_size),
+        MJB_STATUS_NO_MEMORY, "Caller-buffer skeleton handles temporary allocation failure")
+    ATT_ASSERT(skeleton_into_size, (size_t)0,
+        "Caller-buffer skeleton clears size after allocation failure")
+
     ATT_ASSERT_STATUS(mjb_convert_encoding("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles allocation failure")
     ATT_ASSERT_STATUS(mjb_filter("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE, MJB_ENC_UTF_8,

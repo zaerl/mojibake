@@ -302,6 +302,21 @@ int test_collation(void *arg) {
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects NULL buffer")
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects NULL result")
+
+    size_t into_size = 9;
+    ATT_ASSERT_STATUS(mjb_collation_key_into(NULL, 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, NULL, &into_size),
+        MJB_STATUS_INVALID_ARGUMENT, "Key into rejects NULL buffer")
+    ATT_ASSERT(into_size, (size_t)0, "Key into clears size after invalid input")
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Key into rejects NULL size")
+
+    into_size = 9;
+    ATT_ASSERT_STATUS(mjb_collation_key_into("", 0, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, NULL, &into_size),
+        MJB_STATUS_OK, "Key into measures empty input")
+    ATT_ASSERT(into_size, (size_t)0, "Key into empty size")
     int order = 42;
     ATT_ASSERT_STATUS(mjb_collation_compare(NULL, 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
                           MJB_COLLATION_NON_IGNORABLE, &order),
@@ -339,6 +354,39 @@ int test_collation(void *arg) {
         MJB_STATUS_OK, "Key: 'a' succeeds")
     ATT_ASSERT_STATUS(mjb_collation_key("b", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, &kb),
         MJB_STATUS_OK, "Key: 'b' succeeds")
+
+    MJB_TEST_COVERAGE(mjb_collation_key_into);
+    into_size = 0;
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, NULL, &into_size),
+        MJB_STATUS_OK, "Key into queries required size")
+    ATT_ASSERT(into_size, ka.output_size, "Key into required size")
+
+    unsigned char into_output[256];
+    ATT_ASSERT((int)(into_size < sizeof(into_output)), true, "Key into test buffer is large enough")
+
+    if(into_size > 0 && into_size < sizeof(into_output)) {
+        memset(into_output, 0xA5, sizeof(into_output));
+        size_t small_size = into_size - 1;
+        ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+                              MJB_COLLATION_NON_IGNORABLE, into_output, &small_size),
+            MJB_STATUS_OUTPUT_TOO_SMALL, "Key into reports a small output buffer")
+        ATT_ASSERT(small_size, into_size, "Key into preserves required size")
+
+        unsigned char untouched[sizeof(into_output)];
+        memset(untouched, 0xA5, sizeof(untouched));
+        ATT_ASSERT((int)memcmp(into_output, untouched, sizeof(into_output)), 0,
+            "Key into leaves a small buffer untouched")
+
+        size_t exact_size = into_size;
+        ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+                              MJB_COLLATION_NON_IGNORABLE, into_output, &exact_size),
+            MJB_STATUS_OK, "Key into writes into exact capacity")
+        ATT_ASSERT(exact_size, ka.output_size, "Key into written size")
+        ATT_ASSERT((int)memcmp(into_output, ka.output, exact_size), 0, "Key into output")
+        ATT_ASSERT((unsigned int)into_output[exact_size], 0xA5u,
+            "Key into does not write a terminator")
+    }
 
     // key("a") < key("b") byte-for-byte
     ATT_ASSERT((int)(ka.output_size > 0), 1, "Key: 'a' non-empty")

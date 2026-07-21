@@ -50,6 +50,32 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_normalize_into
+    MJB_TEST_COVERAGE(mjb_normalize_into); // Added by the script
+    const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    size_t output_size = 0;
+
+    if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
+        MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_normalize_into test failed") // Added by the script
+        return 1;
+    }
+
+    char output[5];
+
+    if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_normalize_into test failed") // Added by the script
+        return 1;
+    }
+
+    // NFC payload (no terminator): Café
+    // printf("NFC payload (no terminator): %.*s", (int)output_size, output);
+    snprintf(test_buffer, sizeof(test_buffer), "NFC payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    ATT_ASSERT(test_buffer, "NFC payload (no terminator): Café", "mjb_normalize_into test failed") // Added by the script
+}
+
+{
     // Example for mjb_filter
     MJB_TEST_COVERAGE(mjb_filter); // Added by the script
     const char *mixed_whitespace = "Hello\t\t\n\nworld";
@@ -89,6 +115,32 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_filter_into
+    MJB_TEST_COVERAGE(mjb_filter_into); // Added by the script
+    const char *input = "Hello\t\t\nworld";
+    size_t output_size = 0;
+
+    if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_FILTER_COLLAPSE_SPACES,
+        MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_filter_into test failed") // Added by the script
+        return 1;
+    }
+
+    char output[11];
+
+    if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_filter_into test failed") // Added by the script
+        return 1;
+    }
+
+    // Filtered payload (no terminator): Hello world
+    // printf("Filtered payload (no terminator): %.*s", (int)output_size, output);
+    snprintf(test_buffer, sizeof(test_buffer), "Filtered payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered payload (no terminator): Hello world", "mjb_filter_into test failed") // Added by the script
+}
+
+{
     // Example for mjb_nfkc_casefold
     MJB_TEST_COVERAGE(mjb_nfkc_casefold); // Added by the script
     const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
@@ -105,6 +157,32 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "strasse", "mjb_nfkc_casefold test failed") // Added by the script
     mjb_result_free(&result);
+}
+
+{
+    // Example for mjb_nfkc_casefold_into
+    MJB_TEST_COVERAGE(mjb_nfkc_casefold_into); // Added by the script
+    const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
+    size_t output_size = 0;
+
+    if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed") // Added by the script
+        return 1;
+    }
+
+    char output[7];
+
+    if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed") // Added by the script
+        return 1;
+    }
+
+    // NFKC casefold payload (no terminator): strasse
+    // printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
+    snprintf(test_buffer, sizeof(test_buffer), "NFKC casefold payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    ATT_ASSERT(test_buffer, "NFKC casefold payload (no terminator): strasse", "mjb_nfkc_casefold_into test failed") // Added by the script
 }
 
 {
@@ -360,6 +438,32 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_convert_encoding_into
+    MJB_TEST_COVERAGE(mjb_convert_encoding_into); // Added by the script
+    const char *input = "caf\xC3\xA9";
+    size_t output_size = 0;
+
+    if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_ENC_UTF_16LE, NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed") // Added by the script
+        return 1;
+    }
+
+    unsigned char output[8];
+
+    if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
+        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed") // Added by the script
+        return 1;
+    }
+
+    // UTF-16LE payload bytes (no terminator): 8
+    // printf("UTF-16LE payload bytes (no terminator): %zu", output_size);
+    snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE payload bytes (no terminator): %zu", output_size); // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16LE payload bytes (no terminator): 8", "mjb_convert_encoding_into test failed") // Added by the script
+}
+
+{
     // Example for mjb_collation_compare
     MJB_TEST_COVERAGE(mjb_collation_compare); // Added by the script
     int order;
@@ -395,6 +499,32 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_collation_key_into
+    MJB_TEST_COVERAGE(mjb_collation_key_into); // Added by the script
+    const char *input = "r\xC3\xA9sum\xC3\xA9";
+    size_t output_size = 0;
+
+    if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+        NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
+        return 1;
+    }
+
+    unsigned char output[64];
+
+    if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
+        MJB_COLLATION_NON_IGNORABLE, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
+        return 1;
+    }
+
+    // Sort key is non-empty: yes
+    // printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Sort key is non-empty: %s", output_size > 0 ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key_into test failed") // Added by the script
+}
+
+{
     // Example for mjb_map_case
     MJB_TEST_COVERAGE(mjb_map_case); // Added by the script
     const char *input = "Stra\xC3\x9F""e"; // "Straße"
@@ -414,6 +544,32 @@ int test_example(void *arg) {
     if(result.transformed) {
         mjb_free(result.output);
     }
+}
+
+{
+    // Example for mjb_map_case_into
+    MJB_TEST_COVERAGE(mjb_map_case_into); // Added by the script
+    const char *input = "Stra\xC3\x9F""e"; // "Straße"
+    size_t output_size = 0;
+
+    if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+        NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_map_case_into test failed") // Added by the script
+        return 1;
+    }
+
+    char output[7];
+
+    if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_map_case_into test failed") // Added by the script
+        return 1;
+    }
+
+    // Upper payload (no terminator): STRASSE
+    // printf("Upper payload (no terminator): %.*s", (int)output_size, output);
+    snprintf(test_buffer, sizeof(test_buffer), "Upper payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    ATT_ASSERT(test_buffer, "Upper payload (no terminator): STRASSE", "mjb_map_case_into test failed") // Added by the script
 }
 
 {
@@ -841,6 +997,32 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "hello", "mjb_confusable_skeleton test failed") // Added by the script
     mjb_result_free(&result);
+}
+
+{
+    // Example for mjb_confusable_skeleton_into
+    MJB_TEST_COVERAGE(mjb_confusable_skeleton_into); // Added by the script
+    const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
+    size_t output_size = 0;
+
+    if(mjb_confusable_skeleton_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        NULL, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed") // Added by the script
+        return 1;
+    }
+
+    char output[5];
+
+    if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(input),
+        MJB_ENC_UTF_8, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed") // Added by the script
+        return 1;
+    }
+
+    // Skeleton payload (no terminator): hello
+    // printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);
+    snprintf(test_buffer, sizeof(test_buffer), "Skeleton payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    ATT_ASSERT(test_buffer, "Skeleton payload (no terminator): hello", "mjb_confusable_skeleton_into test failed") // Added by the script
 }
 
 {

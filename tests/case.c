@@ -123,6 +123,57 @@ int test_case(void *arg) {
 
     mjb_result guard_result = { NULL, 0, false };
 
+    MJB_TEST_COVERAGE(mjb_map_case_into);
+
+    size_t into_size = 11;
+    ATT_ASSERT_STATUS(mjb_map_case_into(NULL, 1, encoding, MJB_CASE_UPPER, encoding, NULL,
+                          &into_size),
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL buffer")
+    ATT_ASSERT(into_size, (size_t)0, "Case into resets size for invalid input")
+    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_CASE_UPPER, encoding, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL output size")
+    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_CASE_NONE, encoding, NULL,
+                          &into_size),
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects MJB_CASE_NONE")
+
+    const char *into_input = "Stra\xC3\x9F" "e";
+    const char *into_expected = "STRASSE";
+    into_size = 0;
+
+    ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_CASE_UPPER,
+                          encoding, NULL, &into_size),
+        MJB_STATUS_OK, "Query case-mapped output size")
+    ATT_ASSERT(into_size, strlen(into_expected), "Case into required payload size")
+
+    unsigned char into_output[8];
+    unsigned char untouched_output[sizeof(into_output)];
+    memset(into_output, 0xA5, sizeof(into_output));
+    memset(untouched_output, 0xA5, sizeof(untouched_output));
+    into_size = strlen(into_expected) - 1;
+
+    ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_CASE_UPPER,
+                          encoding, into_output, &into_size),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Case into reports a small output buffer")
+    ATT_ASSERT(into_size, strlen(into_expected), "Small case output reports required size")
+    ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
+        "Small case output buffer is not modified")
+
+    into_size = strlen(into_expected);
+    ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_CASE_UPPER,
+                          encoding, into_output, &into_size),
+        MJB_STATUS_OK, "Case into exact-size output buffer")
+    ATT_ASSERT(into_size, strlen(into_expected), "Case into written payload size")
+    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Case into output bytes")
+    ATT_ASSERT((unsigned int)into_output[into_size], 0xA5u,
+        "Case into does not write a terminator")
+
+    into_size = sizeof(into_output);
+    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_CASE_UPPER, MJB_ENC_UTF_16LE,
+                          into_output, &into_size),
+        MJB_STATUS_OK, "Case into converts output encoding")
+    ATT_ASSERT(into_size, (size_t)2, "Case into converted output size")
+    ATT_ASSERT(memcmp(into_output, "A\0", 2), 0, "Case into converted output bytes")
+
     ATT_ASSERT_STATUS(mjb_map_case(NULL, 1, encoding, MJB_CASE_UPPER, encoding, &guard_result),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL buffer")
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_CASE_UPPER, encoding, NULL),
