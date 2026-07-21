@@ -48,7 +48,7 @@ static void mjb_case_lookup_or_identity(mjb_codepoint codepoint,
 
     mjb_character character;
 
-    if(mjb_codepoint_character(codepoint, &character) == MJB_STATUS_OK) {
+    if(mjb_codepoint_info(codepoint, &character) == MJB_STATUS_OK) {
         mapping->category = character.category;
     }
 }

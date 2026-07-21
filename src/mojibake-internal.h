@@ -66,7 +66,7 @@ typedef struct mjb_n_character {
 } mjb_n_character;
 
 /**
- * A smaller version of mjb_codepoint_character() that only returns the character information.
+ * A smaller version of mjb_codepoint_info() that only returns the character information.
  * This is used to avoid the overhead of the full normalization process.
  */
 bool mjb_n_codepoint_character(mjb_codepoint codepoint, mjb_n_character *character);

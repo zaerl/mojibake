@@ -36,12 +36,12 @@ the official tests included in the standard:
 | `mjb_codepoint_script_extensions`        | 639         |
 | `mjb_break_sentence`                     | 459         |
 | `mjb_string_filter`                      | 155         |
-| `mjb_string_convert_encoding`            | 137         |
+| `mjb_convert_encoding`            | 137         |
 | `mjb_locale_parse`                       | 121         |
 | `mjb_string_is_confusable`               | 120         |
 | `mjb_string_length`                      | 111         |
 | `mjb_codepoint_encode`                   | 106         |
-| `mjb_codepoint_character`                | 82          |
+| `mjb_codepoint_info`                | 82          |
 | `mjb_display_width`                      | 49          |
 | `mjb_collation_key`                      | 45          |
 | `mjb_hangul_syllable_composition`        | 45          |
@@ -167,7 +167,7 @@ the official tests included in the standard:
 | `Mojibake.planeName`                       | 1          |
 | `Mojibake.propertyName`                    | 1          |
 | `Mojibake.stringCompare`                   | 1          |
-| `Mojibake.stringConvertEncoding`           | 1          |
+| `Mojibake.convertEncoding`           | 1          |
 | `Mojibake.stringEmojiSequence`             | 1          |
 | `Mojibake.stringEncoding`                  | 1          |
 | `Mojibake.stringIsAscii`                   | 1          |

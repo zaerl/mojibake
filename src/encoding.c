@@ -304,7 +304,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
     return 0;
 }
 
-MJB_EXPORT mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length,
+MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;

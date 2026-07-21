@@ -138,7 +138,7 @@ static bool mjb_codepoint_cjk_th_character(mjb_codepoint codepoint, mjb_characte
 }
 
 // Return the codepoint character
-MJB_EXPORT mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character) {
+MJB_EXPORT mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character *character) {
     if(character == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -270,7 +270,7 @@ MJB_EXPORT mjb_status mjb_codepoint_block(mjb_codepoint codepoint, mjb_block_inf
 MJB_EXPORT bool mjb_codepoint_is_graphic(mjb_codepoint codepoint) {
     mjb_character character;
 
-    if(mjb_codepoint_character(codepoint, &character) != MJB_STATUS_OK) {
+    if(mjb_codepoint_info(codepoint, &character) != MJB_STATUS_OK) {
         return false;
     }
 

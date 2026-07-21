@@ -161,7 +161,7 @@ export default [
   {
     comment: 'Return the codepoint character.',
     ret: 'mjb_status',
-    name: 'mjb_codepoint_character',
+    name: 'mjb_codepoint_info',
     attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
@@ -185,7 +185,7 @@ export default [
     ],
     example: `mjb_character character;
 
-if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -733,7 +733,7 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
   {
     comment: 'Convert from one encoding to another.',
     ret: 'mjb_status',
-    name: 'mjb_string_convert_encoding',
+    name: 'mjb_convert_encoding',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to convert'),
@@ -762,7 +762,7 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
     example: `const char *input = "caf\\xC3\\xA9";
 mjb_result result;
 
-if(mjb_string_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
+if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
     MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2201,7 +2201,7 @@ if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
     ],
     example: `mjb_result result;
 
-if(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
     &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
     return 1;
 }

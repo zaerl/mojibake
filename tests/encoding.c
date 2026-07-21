@@ -11,7 +11,7 @@ static void assert_encoding_conversion(const char *input, size_t input_size,
     size_t expected_size, const char *message) {
     mjb_result result;
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(input, input_size, input_encoding,
+    ATT_ASSERT_STATUS(mjb_convert_encoding(input, input_size, input_encoding,
                           output_encoding, &result),
         MJB_STATUS_OK, message)
     ATT_ASSERT(result.output_size, expected_size, message)
@@ -362,16 +362,16 @@ int test_encoding(void *arg) {
     char test_description[64];
     mjb_result boundary_result;
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+    ATT_ASSERT_STATUS(mjb_convert_encoding(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
                           &boundary_result),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("", 0, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL),
+    ATT_ASSERT_STATUS(mjb_convert_encoding("", 0, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding rejects NULL result")
 
     const char utf16le_ascii[] = { 'e', '\0', 'n', '\0' };
     mjb_result ascii_result;
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
+    ATT_ASSERT_STATUS(mjb_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
                           MJB_ENC_UTF_16LE, MJB_ENC_ASCII, &ascii_result),
         MJB_STATUS_OK, "Convert UTF-16LE ASCII text to ASCII")
     ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
@@ -379,14 +379,14 @@ int test_encoding(void *arg) {
     ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output")
     mjb_free(ascii_result.output);
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_ENC_ASCII,
+    ATT_ASSERT_STATUS(mjb_convert_encoding("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_ENC_ASCII,
                           &ascii_result),
         MJB_STATUS_UNSUPPORTED, "Convert UTF-8 non-ASCII text to ASCII")
 
     const char utf16le_smile[] = { '\x3D', '\xD8', '\x42', '\xDE' };
     const char utf16be_smile[] = { '\xD8', '\x3D', '\xDE', '\x42' };
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16le_smile, sizeof(utf16le_smile),
+    ATT_ASSERT_STATUS(mjb_convert_encoding(utf16le_smile, sizeof(utf16le_smile),
                           MJB_ENC_UTF_16LE, MJB_ENC_UTF_8, &ascii_result),
         MJB_STATUS_OK, "Convert UTF-16LE surrogate pair to UTF-8")
     ATT_ASSERT(ascii_result.output_size, (size_t)4, "Convert UTF-16LE surrogate pair to UTF-8 size")
@@ -394,7 +394,7 @@ int test_encoding(void *arg) {
         "Convert UTF-16LE surrogate pair to UTF-8 output")
     mjb_free(ascii_result.output);
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16be_smile, sizeof(utf16be_smile),
+    ATT_ASSERT_STATUS(mjb_convert_encoding(utf16be_smile, sizeof(utf16be_smile),
                           MJB_ENC_UTF_16BE, MJB_ENC_UTF_8, &ascii_result),
         MJB_STATUS_OK, "Convert UTF-16BE surrogate pair to UTF-8")
     ATT_ASSERT(ascii_result.output_size, (size_t)4, "Convert UTF-16BE surrogate pair to UTF-8 size")
@@ -488,20 +488,20 @@ int test_encoding(void *arg) {
     ATT_ASSERT(mjb_string_length(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE), (size_t)2,
         "Length explicit UTF-32LE preserves U+FEFF")
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding(utf16be_plain_a, sizeof(utf16be_plain_a),
+    ATT_ASSERT_STATUS(mjb_convert_encoding(utf16be_plain_a, sizeof(utf16be_plain_a),
                           MJB_ENC_UTF_16, MJB_ENC_UTF_8, &ascii_result),
         MJB_STATUS_INVALID_ENCODING,
         "Convert generic UTF-16 without BOM rejects unknown byte order")
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16,
+    ATT_ASSERT_STATUS(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16,
                           &ascii_result),
         MJB_STATUS_INVALID_ENCODING, "Convert generic UTF-16 output rejects unknown byte order")
 
-    MJB_TEST_COVERAGE(mjb_string_convert_encoding);
+    MJB_TEST_COVERAGE(mjb_convert_encoding);
     for(size_t from = 0; from < 5; ++from) {
         for(size_t to = 0; to < 5; ++to) {
             mjb_result convert_result;
-            mjb_status status = mjb_string_convert_encoding(hello_strings[from],
-                hello_strings_sizes[from], encodings[from], encodings[to], &convert_result);
+            mjb_status status = mjb_convert_encoding(hello_strings[from], hello_strings_sizes[from],
+                encodings[from], encodings[to], &convert_result);
 
             snprintf(test_description, 64, "%s to %s", output_encodings[from],
                 output_encodings[to]);
