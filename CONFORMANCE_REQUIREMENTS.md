@@ -82,9 +82,9 @@ character semantics.
 sequences are distinct.
 
 ✅ Satisfied. `mjb_normalize` implements NFC/NFD/NFKC/NFKD, `mjb_nfkc_casefold` applies the
-mandatory final NFC step, and `mjb_collation_compare` normalizes to NFD before building UCA collation
-elements. A direct probe of `U+00E9` versus `U+0065 U+0301` compares equal and normalizes to the
-expected canonical forms.
+mandatory final NFC step, and `mjb_collation_compare` normalizes to NFD before building UCA
+collation elements. A direct probe of `U+00E9` versus `U+0065 U+0301` compares equal and normalizes
+to the expected canonical forms.
 
 ### C7
 
@@ -123,8 +123,8 @@ encoding form, it shall treat ill-formed code unit sequences as an error conditi
 interpret such sequences as characters.
 
 ✅ Satisfied. `mjb_collation_key` returns `MJB_STATUS_MALFORMED_INPUT` for malformed UTF-8.
-`mjb_collation_compare` uses the same sort-key path and returns its existing failure signal instead of
-producing collation weights for malformed input.
+`mjb_collation_compare` uses the same sort-key path and returns its existing failure signal instead
+of producing collation weights for malformed input.
 
 ### C11
 
@@ -215,11 +215,11 @@ protocol. If a process that purports to implement a Unicode algorithm applies a 
 must be disclosed.
 
 ✅ Satisfied. `README.md`, `API.md` and `CONFORMANCE_REQUIREMENTS.md` include a Unicode tailoring
-section. It discloses that `mjb_map_case` is locale-sensitive through process-global `mjb_set_locale`,
-that `MJB_LOCALE_EN` is the default, that Turkish/Azerbaijani tailor dotted-I casing and Turkic case
-folding, that Lithuanian tailors dot-above casing only, and that the other advertised Unicode
-algorithms are not locale-tailored by Mojibake. Generated function metadata now carries the same
-disclosure on `mjb_map_case` and `mjb_set_locale`.
+section. It discloses that `mjb_map_case` is locale-sensitive through process-global
+`mjb_set_locale`, that `MJB_LOCALE_EN` is the default, that Turkish/Azerbaijani tailor dotted-I
+casing and Turkic case folding, that Lithuanian tailors dot-above casing only, and that the other
+advertised Unicode algorithms are not locale-tailored by Mojibake. Generated function metadata now
+carries the same disclosure on `mjb_map_case` and `mjb_set_locale`.
 
 ### C20
 
@@ -242,13 +242,13 @@ does not expose a separate *Default Case Detection* API.
 Unless listed here, Mojibake applies the referenced Unicode 18.0.0 algorithms *without*
 higher-level protocol tailoring.
 
-- **Case conversion and case folding**: `mjb_map_case` is locale-sensitive through the process-global
-  locale set by `mjb_set_locale`. The default locale is `MJB_LOCALE_EN`. `MJB_LOCALE_TR` and
-  `MJB_LOCALE_AZ` apply the Turkish/Azerbaijani dotted-I rules from `SpecialCasing.txt` for
-  uppercase, lowercase, and titlecase, and the Turkic `T` mappings from `CaseFolding.txt` for full
-  and simple case folding. `MJB_LOCALE_LT` applies Lithuanian dot-above rules from
-  `SpecialCasing.txt` for uppercase, lowercase, and titlecase; case folding remains the default
-  non-Turkic mapping.
+- **Case conversion and case folding**: `mjb_map_case` is locale-sensitive through the
+  process-global locale set by `mjb_set_locale`. The default locale is `MJB_LOCALE_EN`.
+  `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply the Turkish/Azerbaijani dotted-I rules from
+  `SpecialCasing.txt` for uppercase, lowercase, and titlecase, and the Turkic `T` mappings from
+  `CaseFolding.txt` for full and simple case folding. `MJB_LOCALE_LT` applies Lithuanian dot-above
+  rules from `SpecialCasing.txt` for uppercase, lowercase, and titlecase; case folding remains the
+  default non-Turkic mapping.
 - **Collation**: `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation
   tailoring. The `mjb_collation_mode` argument only selects the UCA variable weighting strategy.
 - **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
@@ -275,7 +275,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Line breaking | `mjb_next_line_break` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
-| Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
+| Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

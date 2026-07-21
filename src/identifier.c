@@ -8,8 +8,8 @@
 #include "utf.h"
 
 // Return true if the string is a valid Unicode identifier (UAX#31).
-MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_identifier_profile profile) {
+MJB_EXPORT bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_identifier_profile profile) {
     if(buffer == NULL || byte_length == 0) {
         return false;
     }

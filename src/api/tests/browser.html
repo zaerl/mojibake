@@ -22,7 +22,7 @@
 
       assert(mojibake.version(), '0.3.1-WASM', 'version');
       assert(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
-      assert(mojibake.stringIsIdentifier('hello'), true, 'stringIsIdentifier');
+      assert(mojibake.isIdentifier('hello'), true, 'isIdentifier');
 
       result.textContent = 'PASS';
     } catch(error) {

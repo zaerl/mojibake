@@ -120,7 +120,7 @@ export type MojibakeWasmModule = {
   // Return true if the codepoint is pattern whitespace (Unicode 18.0.0 UAX #31 Pattern_White_Space).
   _mjb_codepoint_is_pattern_white_space: (codepoint: Codepoint) => boolean;
   // Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).
-  _mjb_string_is_identifier: (buffer: Pointer, byte_length: number, encoding: number, profile: number) => boolean;
+  _mjb_is_identifier: (buffer: Pointer, byte_length: number, encoding: number, profile: number) => boolean;
   // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
@@ -150,9 +150,9 @@ export type MojibakeWasmModule = {
   // Return emoji sequence metadata for a complete string.
   _mjb_classify_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
   // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
-  _mjb_string_is_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
+  _mjb_is_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
-  _mjb_string_is_rgi_emoji: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
+  _mjb_is_rgi_emoji: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
   // Return hangul syllable name.
   _mjb_hangul_syllable_name: (codepoint: Codepoint, buffer: Pointer, byte_length: number) => number;
   // Return the east asian width of a codepoint.

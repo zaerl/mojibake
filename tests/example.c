@@ -790,17 +790,17 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_is_identifier
-    MJB_TEST_COVERAGE(mjb_string_is_identifier); // Added by the script
+    // Example for mjb_is_identifier
+    MJB_TEST_COVERAGE(mjb_is_identifier); // Added by the script
     const char *identifier = "delta_2";
 
-    bool valid = mjb_string_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
+    bool valid = mjb_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
         MJB_IDENTIFIER_NFKC);
 
     // Valid identifier: yes
     // printf("Valid identifier: %s", valid ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Valid identifier: %s", valid ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Valid identifier: yes", "mjb_string_is_identifier test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Valid identifier: yes", "mjb_is_identifier test failed") // Added by the script
 }
 
 {
@@ -984,29 +984,29 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_is_emoji_sequence
-    MJB_TEST_COVERAGE(mjb_string_is_emoji_sequence); // Added by the script
+    // Example for mjb_is_emoji_sequence
+    MJB_TEST_COVERAGE(mjb_is_emoji_sequence); // Added by the script
     const char *keycap = "1\xEF\xB8\x8F\xE2\x83\xA3"; // 1️⃣
 
-    bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+    bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
 
     // Listed emoji sequence: yes
     // printf("Listed emoji sequence: %s", listed ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Listed emoji sequence: %s", listed ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Listed emoji sequence: yes", "mjb_string_is_emoji_sequence test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Listed emoji sequence: yes", "mjb_is_emoji_sequence test failed") // Added by the script
 }
 
 {
-    // Example for mjb_string_is_rgi_emoji
-    MJB_TEST_COVERAGE(mjb_string_is_rgi_emoji); // Added by the script
+    // Example for mjb_is_rgi_emoji
+    MJB_TEST_COVERAGE(mjb_is_rgi_emoji); // Added by the script
     const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
 
-    bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+    bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 
     // RGI emoji: yes
     // printf("RGI emoji: %s", rgi ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "RGI emoji: %s", rgi ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "RGI emoji: yes", "mjb_string_is_rgi_emoji test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "RGI emoji: yes", "mjb_is_rgi_emoji test failed") // Added by the script
 }
 
 {

@@ -670,7 +670,7 @@ MJB_EXPORT bool mjb_codepoint_is_pattern_syntax(mjb_codepoint codepoint);
 MJB_EXPORT bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 
 // Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).
-MJB_EXPORT bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_identifier_profile profile);
+MJB_EXPORT bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_identifier_profile profile);
 
 // Return the name of a property, NULL if the property specified is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
@@ -715,10 +715,10 @@ MJB_EXPORT MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviati
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 
 // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
-MJB_EXPORT bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding);
+MJB_EXPORT bool mjb_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding);
 
 // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
-MJB_EXPORT bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding);
+MJB_EXPORT bool mjb_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding);
 
 // Return hangul syllable name.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t byte_length);

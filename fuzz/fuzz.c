@@ -229,8 +229,8 @@ static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length,
         fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification + emoji.codepoint_count;
     }
 
-    fuzz_sink += (size_t)mjb_string_is_emoji_sequence(buffer, byte_length, encoding);
-    fuzz_sink += (size_t)mjb_string_is_rgi_emoji(buffer, byte_length, encoding);
+    fuzz_sink += (size_t)mjb_is_emoji_sequence(buffer, byte_length, encoding);
+    fuzz_sink += (size_t)mjb_is_rgi_emoji(buffer, byte_length, encoding);
 }
 
 static void fuzz_emoji_string_apis(const char *buffer, size_t byte_length, mjb_encoding encoding) {
@@ -381,7 +381,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         }
 
         case 11: // Identifier validation, both profiles
-            mjb_string_is_identifier(buffer, size, encoding,
+            mjb_is_identifier(buffer, size, encoding,
                 (variant & 0x10) ? MJB_IDENTIFIER_NFKC : MJB_IDENTIFIER_DEFAULT);
             break;
 

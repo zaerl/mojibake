@@ -1055,14 +1055,14 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_pattern_white_space(codepoint) ? true : false;
   }
 
-  // bool mjb_string_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_identifier_profile profile)
-  stringIsIdentifier(input: MojibakeInput, profile = IdentifierProfile.DEFAULT,
+  isIdentifier(input: MojibakeInput, profile = IdentifierProfile.DEFAULT,
     options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_identifier(wasmInput.ptr, wasmInput.size,
+      return this.module._mjb_is_identifier(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, profile) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
@@ -1193,24 +1193,24 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding)
-  stringIsEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  // bool mjb_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding)
+  isEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_emoji_sequence(wasmInput.ptr, wasmInput.size,
+      return this.module._mjb_is_emoji_sequence(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
     }
   }
 
-  // bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding)
-  stringIsRgiEmoji(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  // bool mjb_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding)
+  isRGIEmoji(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_rgi_emoji(wasmInput.ptr, wasmInput.size,
+      return this.module._mjb_is_rgi_emoji(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding) ? true : false;
     } finally {
       this.free(wasmInput.ptr);

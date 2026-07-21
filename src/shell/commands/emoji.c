@@ -293,10 +293,10 @@ int mjbsh_emoji_command(int argc, char *const argv[], unsigned int flags) {
     mjb_emoji_sequence emoji;
     memset(&emoji, 0, sizeof(emoji));
 
-    bool is_emoji_sequence = mjb_string_is_emoji_sequence(buffer, size, MJB_ENC_UTF_8);
+    bool is_emoji_sequence = mjb_is_emoji_sequence(buffer, size, MJB_ENC_UTF_8);
     bool has_sequence_metadata = mjb_classify_emoji_sequence(buffer, size, MJB_ENC_UTF_8, &emoji) ==
         MJB_STATUS_OK;
-    bool is_rgi = mjb_string_is_rgi_emoji(buffer, size, MJB_ENC_UTF_8);
+    bool is_rgi = mjb_is_rgi_emoji(buffer, size, MJB_ENC_UTF_8);
 
     if(!has_sequence_metadata) {
         emoji.type = MJB_EMOJI_SEQUENCE_NONE;

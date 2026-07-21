@@ -125,15 +125,14 @@ MJB_EXPORT mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byt
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length,
+MJB_EXPORT bool mjb_is_emoji_sequence(const char *buffer, size_t byte_length,
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
     return mjb_classify_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK;
 }
 
-MJB_EXPORT bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length,
-    mjb_encoding encoding) {
+MJB_EXPORT bool mjb_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
     if(mjb_classify_emoji_sequence(buffer, byte_length, encoding, &emoji) != MJB_STATUS_OK) {
