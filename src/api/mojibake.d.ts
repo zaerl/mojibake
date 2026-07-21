@@ -72,11 +72,11 @@ export type MojibakeWasmModule = {
   // Return true if the codepoint is combining.
   _mjb_codepoint_is_combining: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is a hangul L.
-  _mjb_codepoint_is_hangul_l: (codepoint: Codepoint) => boolean;
+  _mjb_codepoint_is_hangul_leading_jamo: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is a hangul V.
-  _mjb_codepoint_is_hangul_v: (codepoint: Codepoint) => boolean;
+  _mjb_codepoint_is_hangul_vowel_jamo: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is a hangul T.
-  _mjb_codepoint_is_hangul_t: (codepoint: Codepoint) => boolean;
+  _mjb_codepoint_is_hangul_trailing_jamo: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is a hangul jamo.
   _mjb_codepoint_is_hangul_jamo: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is a hangul syllable.

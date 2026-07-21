@@ -434,30 +434,30 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_codepoint_is_hangul_l
-    MJB_TEST_COVERAGE(mjb_codepoint_is_hangul_l); // Added by the script
+    // Example for mjb_codepoint_is_hangul_leading_jamo
+    MJB_TEST_COVERAGE(mjb_codepoint_is_hangul_leading_jamo); // Added by the script
     // U+1100 is a leading Jamo: yes
-    // printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1100 is a leading Jamo: yes", "mjb_codepoint_is_hangul_l test failed") // Added by the script
+    // printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "U+1100 is a leading Jamo: yes", "mjb_codepoint_is_hangul_leading_jamo test failed") // Added by the script
 }
 
 {
-    // Example for mjb_codepoint_is_hangul_v
-    MJB_TEST_COVERAGE(mjb_codepoint_is_hangul_v); // Added by the script
+    // Example for mjb_codepoint_is_hangul_vowel_jamo
+    MJB_TEST_COVERAGE(mjb_codepoint_is_hangul_vowel_jamo); // Added by the script
     // U+1161 is a vowel Jamo: yes
-    // printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1161 is a vowel Jamo: yes", "mjb_codepoint_is_hangul_v test failed") // Added by the script
+    // printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "U+1161 is a vowel Jamo: yes", "mjb_codepoint_is_hangul_vowel_jamo test failed") // Added by the script
 }
 
 {
-    // Example for mjb_codepoint_is_hangul_t
-    MJB_TEST_COVERAGE(mjb_codepoint_is_hangul_t); // Added by the script
+    // Example for mjb_codepoint_is_hangul_trailing_jamo
+    MJB_TEST_COVERAGE(mjb_codepoint_is_hangul_trailing_jamo); // Added by the script
     // U+11A8 is a trailing Jamo: yes
-    // printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+11A8 is a trailing Jamo: yes", "mjb_codepoint_is_hangul_t test failed") // Added by the script
+    // printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "U+11A8 is a trailing Jamo: yes", "mjb_codepoint_is_hangul_trailing_jamo test failed") // Added by the script
 }
 
 {

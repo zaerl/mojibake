@@ -309,15 +309,15 @@ class Character {
     }
 
     [[nodiscard]] bool is_hangul_l() const noexcept {
-        return mjb_codepoint_is_hangul_l(data.codepoint);
+        return mjb_codepoint_is_hangul_leading_jamo(data.codepoint);
     }
 
     [[nodiscard]] bool is_hangul_v() const noexcept {
-        return mjb_codepoint_is_hangul_v(data.codepoint);
+        return mjb_codepoint_is_hangul_vowel_jamo(data.codepoint);
     }
 
     [[nodiscard]] bool is_hangul_t() const noexcept {
-        return mjb_codepoint_is_hangul_t(data.codepoint);
+        return mjb_codepoint_is_hangul_trailing_jamo(data.codepoint);
     }
 
     [[nodiscard]] bool is_hangul_jamo() const noexcept {
@@ -504,15 +504,15 @@ struct EmojiProperties {
 }
 
 [[nodiscard]] inline bool is_hangul_l(mjb_codepoint codepoint) noexcept {
-    return mjb_codepoint_is_hangul_l(codepoint);
+    return mjb_codepoint_is_hangul_leading_jamo(codepoint);
 }
 
 [[nodiscard]] inline bool is_hangul_v(mjb_codepoint codepoint) noexcept {
-    return mjb_codepoint_is_hangul_v(codepoint);
+    return mjb_codepoint_is_hangul_vowel_jamo(codepoint);
 }
 
 [[nodiscard]] inline bool is_hangul_t(mjb_codepoint codepoint) noexcept {
-    return mjb_codepoint_is_hangul_t(codepoint);
+    return mjb_codepoint_is_hangul_trailing_jamo(codepoint);
 }
 
 [[nodiscard]] inline bool is_hangul_jamo(mjb_codepoint codepoint) noexcept {

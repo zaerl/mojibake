@@ -564,7 +564,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
                 if(buffer_index > 0 &&
                     mjb_codepoint_is_hangul_syllable(characters_buffer[buffer_index - 1]
                             .codepoint) &&
-                    mjb_codepoint_is_hangul_t(codepoint)) {
+                    mjb_codepoint_is_hangul_trailing_jamo(codepoint)) {
 
                     // Check if the syllable can accept a trailing consonant
                     mjb_codepoint syllable = characters_buffer[buffer_index - 1].codepoint;

@@ -78,9 +78,9 @@ ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
-ATT_ASSERT(mojibake.codepointIsHangulL(0x1100), true, 'codepointIsHangulL');
-ATT_ASSERT(mojibake.codepointIsHangulV(0x1161), true, 'codepointIsHangulV');
-ATT_ASSERT(mojibake.codepointIsHangulT(0x11A8), true, 'codepointIsHangulT');
+ATT_ASSERT(mojibake.codepointIsHangulLeadingJamo(0x1100), true, 'codepointIsHangulLeadingJamo');
+ATT_ASSERT(mojibake.codepointIsHangulVowelJamo(0x1161), true, 'codepointIsHangulVowelJamo');
+ATT_ASSERT(mojibake.codepointIsHangulTrailingJamo(0x11A8), true, 'codepointIsHangulTrailingJamo');
 ATT_ASSERT(mojibake.codepointIsHangulJamo(0x1100), true, 'codepointIsHangulJamo');
 ATT_ASSERT(mojibake.codepointIsHangulSyllable(0xAC00), true, 'codepointIsHangulSyllable');
 ATT_ASSERT(mojibake.codepointIsCjkIdeograph(0x4E00), true, 'codepointIsCjkIdeograph');

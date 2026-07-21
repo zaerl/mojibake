@@ -1101,12 +1101,12 @@ bool mjb_codepoint_is_combining(
 printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");
 ```
 
-## `mjb_codepoint_is_hangul_l`
+## `mjb_codepoint_is_hangul_leading_jamo`
 
 Return if the codepoint is a hangul L.
 
 ```c
-bool mjb_codepoint_is_hangul_l(
+bool mjb_codepoint_is_hangul_leading_jamo(
     mjb_codepoint codepoint
 );
 ```
@@ -1117,15 +1117,15 @@ bool mjb_codepoint_is_hangul_l(
 
 ```c
 // U+1100 is a leading Jamo: yes
-printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_l(0x1100) ? "yes" : "no");
+printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no");
 ```
 
-## `mjb_codepoint_is_hangul_v`
+## `mjb_codepoint_is_hangul_vowel_jamo`
 
 Return if the codepoint is a hangul V.
 
 ```c
-bool mjb_codepoint_is_hangul_v(
+bool mjb_codepoint_is_hangul_vowel_jamo(
     mjb_codepoint codepoint
 );
 ```
@@ -1136,15 +1136,15 @@ bool mjb_codepoint_is_hangul_v(
 
 ```c
 // U+1161 is a vowel Jamo: yes
-printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_v(0x1161) ? "yes" : "no");
+printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no");
 ```
 
-## `mjb_codepoint_is_hangul_t`
+## `mjb_codepoint_is_hangul_trailing_jamo`
 
 Return if the codepoint is a hangul T.
 
 ```c
-bool mjb_codepoint_is_hangul_t(
+bool mjb_codepoint_is_hangul_trailing_jamo(
     mjb_codepoint codepoint
 );
 ```
@@ -1155,7 +1155,7 @@ bool mjb_codepoint_is_hangul_t(
 
 ```c
 // U+11A8 is a trailing Jamo: yes
-printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_t(0x11A8) ? "yes" : "no");
+printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no");
 ```
 
 ## `mjb_codepoint_is_hangul_jamo`
