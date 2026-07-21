@@ -404,8 +404,8 @@ export class CFunction implements MojibakeFunction {
         ];
 
         ret += this.getBitfieldInput(i, options, values, 'Leave all unchecked for MJB_FILTER_NONE.');
-      } else if(type.startsWith('mjb_case_type')) {
-        // See mjb_case_type on mojibake.h
+      } else if(type.startsWith('mjb_map_case_type')) {
+        // See mjb_map_case_type on mojibake.h
         const options = [
           'MJB_CASE_UPPER',
           'MJB_CASE_LOWER',

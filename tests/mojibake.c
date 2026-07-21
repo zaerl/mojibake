@@ -104,7 +104,7 @@ int test_mojibake(void *arg) {
     ATT_ASSERT_STATUS(mjb_normalize("e\xCC\x81", 3, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
                           MJB_ENC_UTF_8, &result),
         MJB_STATUS_NO_MEMORY, "Normalization handles allocation failure")
-    ATT_ASSERT_STATUS(mjb_case("a", 1, MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result),
+    ATT_ASSERT_STATUS(mjb_map_case("a", 1, MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result),
         MJB_STATUS_NO_MEMORY, "Case conversion handles allocation failure")
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
                           &result),

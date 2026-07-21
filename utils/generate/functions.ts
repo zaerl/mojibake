@@ -330,7 +330,7 @@ if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
 // strasse
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
-    related: ['mjb_normalize', 'mjb_case', 'mjb_string_is_identifier'],
+    related: ['mjb_normalize', 'mjb_map_case', 'mjb_string_is_identifier'],
     specs: [
       unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992'),
       uax(31, 'Unicode Identifiers and Syntax'),
@@ -853,7 +853,7 @@ mjb_result_free(&key);`,
   {
     comment: 'Change string case.',
     ret: 'mjb_status',
-    name: 'mjb_case',
+    name: 'mjb_map_case',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to change case'),
@@ -861,7 +861,7 @@ mjb_result_free(&key);`,
       encoding(),
       {
         name: 'type',
-        type: 'mjb_case_type',
+        type: 'mjb_map_case_type',
         description: 'The type of case change',
         wasm_generated: false
       },
@@ -889,7 +889,7 @@ mjb_result_free(&key);`,
     example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
 mjb_result result;
 
-if(mjb_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -1058,7 +1058,7 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
   {
     comment: 'Unicode line break algorithm.',
     ret: 'mjb_break_type',
-    name: 'mjb_break_line',
+    name: 'mjb_next_line_break',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1075,17 +1075,17 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
     section: Section.Segmentation,
     example: `mjb_next_line_state state;
 state.index = 0;
-mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
+mjb_break_type type = mjb_next_line_break("Hello world", 11, MJB_ENC_UTF_8, &state);
 
 // First line-break result is set: yes
 printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");`,
-    related: ['mjb_break_grapheme_cluster', 'mjb_break_word', 'mjb_break_sentence'],
+    related: ['mjb_next_grapheme_break', 'mjb_next_word_break', 'mjb_next_sentence_break'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
   {
     comment: 'Word cluster breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_break_word',
+    name: 'mjb_next_word_break',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1104,19 +1104,19 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
 state.index = 0;
 size_t boundaries = 0;
 
-while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_word_break("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
 // Word-break positions: 11
 printf("Word-break positions: %zu", boundaries);`,
-    related: ['mjb_break_grapheme_cluster', 'mjb_break_sentence', 'mjb_truncate_word'],
+    related: ['mjb_next_grapheme_break', 'mjb_next_sentence_break', 'mjb_truncate_word'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Sentence boundaries breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_break_sentence',
+    name: 'mjb_next_sentence_break',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1136,19 +1136,19 @@ state.index = 0;
 size_t boundaries = 0;
 const char *input = "Hello. Goodbye.";
 
-while(mjb_break_sentence(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_sentence_break(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
 // Sentence-break positions: 15
 printf("Sentence-break positions: %zu", boundaries);`,
-    related: ['mjb_break_grapheme_cluster', 'mjb_break_word'],
+    related: ['mjb_next_grapheme_break', 'mjb_next_word_break'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Grapheme cluster breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_break_grapheme_cluster',
+    name: 'mjb_next_grapheme_break',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1170,14 +1170,14 @@ mjb_next_state state;
 state.index = 0;
 size_t codepoints = 0;
 
-while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
+while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
     &state) != MJB_BT_NOT_SET) {
     ++codepoints;
 }
 
 // Codepoints examined: 2
 printf("Codepoints examined: %zu", codepoints);`,
-    related: ['mjb_break_word', 'mjb_break_sentence', 'mjb_break_line', 'mjb_truncate'],
+    related: ['mjb_next_word_break', 'mjb_next_sentence_break', 'mjb_next_line_break', 'mjb_truncate'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
@@ -2160,7 +2160,7 @@ printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
     ],
     wasm: true,
     section: Section.Utility,
-    details: 'Set the process-global locale used by `mjb_case`. The default locale is ' +
+    details: 'Set the process-global locale used by `mjb_map_case`. The default locale is ' +
       '`MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only ' +
       '`MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other ' +
       'valid locale values are accepted but do not change Unicode algorithm behavior.',
@@ -2177,7 +2177,7 @@ printf("Turkish locale selected: yes");
 if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
     return 1;
 }`,
-    related: ['mjb_case']
+    related: ['mjb_map_case']
   },
   {
     comment: 'Free a mjb_result.',

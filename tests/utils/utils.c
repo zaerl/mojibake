@@ -43,13 +43,13 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
 }
 
 /**
- * Call mjb_case and return the output string, or NULL when the call fails.
+ * Call mjb_map_case and return the output string, or NULL when the call fails.
  */
-char *run_mjb_case(const char *buffer, size_t byte_length, mjb_case_type type,
+char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type type,
     mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
-    if(mjb_case(buffer, byte_length, encoding, type, encoding, &result) != MJB_STATUS_OK) {
+    if(mjb_map_case(buffer, byte_length, encoding, type, encoding, &result) != MJB_STATUS_OK) {
         return NULL;
     }
 

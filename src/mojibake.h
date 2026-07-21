@@ -246,14 +246,14 @@ typedef enum mjb_filter {
     MJB_FILTER_LIMIT_COMBINING = 0x20
 } mjb_filter;
 
-typedef enum mjb_case_type {
+typedef enum mjb_map_case_type {
     MJB_CASE_NONE,
     MJB_CASE_UPPER,
     MJB_CASE_LOWER,
     MJB_CASE_TITLE,
     MJB_CASE_CASEFOLD,       // C + F statuses, string may grow
     MJB_CASE_CASEFOLD_SIMPLE // C + S statuses, length-preserving
-} mjb_case_type;
+} mjb_map_case_type;
 
 typedef enum mjb_error {
     MJB_ERROR_NONE,
@@ -577,7 +577,7 @@ MJB_EXPORT int mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
 
 // Change string case.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_case_type type, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result);
 
 // Return true if the codepoint is valid.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -616,16 +616,16 @@ MJB_EXPORT MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 MJB_EXPORT MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
 // Unicode line break algorithm.
-MJB_EXPORT mjb_break_type mjb_break_line(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_line_state *state);
+MJB_EXPORT mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_line_state *state);
 
 // Word cluster breaking.
-MJB_EXPORT mjb_break_type mjb_break_word(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_word_state *state);
+MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_word_state *state);
 
 // Sentence boundaries breaking.
-MJB_EXPORT mjb_break_type mjb_break_sentence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_sentence_state *state);
+MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_sentence_state *state);
 
 // Grapheme cluster breaking.
-MJB_EXPORT mjb_break_type mjb_break_grapheme_cluster(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
+MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
 
 // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
 MJB_EXPORT size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_graphemes);

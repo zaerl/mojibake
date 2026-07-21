@@ -817,16 +817,16 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return nfkc_casefold_result(input, input_encoding, output_encoding).str();
 }
 
-[[nodiscard]] inline TextResult case_map_result(std::string_view input, mjb_case_type type,
+[[nodiscard]] inline TextResult case_map_result(std::string_view input, mjb_map_case_type type,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_case(input.data(), input.size(), input_encoding, type,
+    const mjb_status status = mjb_map_case(input.data(), input.size(), input_encoding, type,
         output_encoding, detail::ResultAccess::out(result));
 
     return detail::ResultAccess::checked(std::move(result), status, "Case mapping failed");
 }
 
-[[nodiscard]] inline std::string case_map(std::string_view input, mjb_case_type type,
+[[nodiscard]] inline std::string case_map(std::string_view input, mjb_map_case_type type,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     return case_map_result(input, type, input_encoding, output_encoding).str();
 }
@@ -1270,10 +1270,10 @@ class Breaker {
     }
 };
 
-using WordBreaker = Breaker<mjb_next_word_state, mjb_break_word>;
-using SentenceBreaker = Breaker<mjb_next_sentence_state, mjb_break_sentence>;
-using LineBreaker = Breaker<mjb_next_line_state, mjb_break_line>;
-using GraphemeBreaker = Breaker<mjb_next_state, mjb_break_grapheme_cluster>;
+using WordBreaker = Breaker<mjb_next_word_state, mjb_next_word_break>;
+using SentenceBreaker = Breaker<mjb_next_sentence_state, mjb_next_sentence_break>;
+using LineBreaker = Breaker<mjb_next_line_state, mjb_next_line_break>;
+using GraphemeBreaker = Breaker<mjb_next_state, mjb_next_grapheme_break>;
 
 } // namespace mjb
 

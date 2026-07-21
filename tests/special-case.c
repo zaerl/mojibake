@@ -11,7 +11,7 @@
 #include "test.h"
 
 static int check_case(char *source, size_t source_size, char *target, size_t target_size,
-    mjb_case_type type, unsigned int current_line, const char *step) {
+    mjb_map_case_type type, unsigned int current_line, const char *step) {
     mjb_encoding encoding = MJB_ENC_UTF_8;
     char test_name[128];
 
@@ -21,9 +21,9 @@ static int check_case(char *source, size_t source_size, char *target, size_t tar
         return 0;
     }
 
-    char *result = run_mjb_case(source, source_size, type, encoding);
+    char *result = run_mjb_map_case(source, source_size, type, encoding);
 
-    MJB_TEST_COVERAGE(mjb_case);
+    MJB_TEST_COVERAGE(mjb_map_case);
     ATT_ASSERT(result, target, test_name)
 
     if(result != NULL && result != source) {
@@ -33,11 +33,11 @@ static int check_case(char *source, size_t source_size, char *target, size_t tar
     return 0;
 }
 
-static int check_conditional(const char *source, const char *target, mjb_case_type type,
+static int check_conditional(const char *source, const char *target, mjb_map_case_type type,
     const char *name) {
-    char *result = run_mjb_case(source, strlen(source), type, MJB_ENC_UTF_8);
+    char *result = run_mjb_map_case(source, strlen(source), type, MJB_ENC_UTF_8);
 
-    MJB_TEST_COVERAGE(mjb_case);
+    MJB_TEST_COVERAGE(mjb_map_case);
     ATT_ASSERT(result, (char *)target, name)
 
     if(result != NULL) {

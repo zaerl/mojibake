@@ -72,9 +72,9 @@ ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'conve
 ATT_ASSERT(mojibake.countCodepoints('H\u00E9ll\u00F6'), 5, 'countCodepoints');
 ATT_ASSERT(mojibake.collationCompare('hello', 'hello'), 0, 'collationCompare');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
-ATT_ASSERT(mojibake.case('hello', CaseType.UPPER)?.output, 'HELLO', 'case');
-ATT_ASSERT(mojibake.case('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
-  'casefold uppercase Cherokee');
+ATT_ASSERT(mojibake.mapCase('hello', CaseType.UPPER)?.output, 'HELLO', 'mapCase');
+ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
+  'mapCase casefold uppercase Cherokee');
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
@@ -91,13 +91,13 @@ ATT_ASSERT(mojibake.codepointNumericValue(0x31), { decimal: 1, digit: 1, numeric
   'codepointNumericValue');
 ATT_ASSERT(mojibake.codepointBlock(0x41)?.id, Block.BASIC_LATIN, 'codepointBlock');
 ATT_ASSERT(mojibake.nfkcCasefold('Straße\u00AD')?.output, 'strasse', 'nfkcCasefold');
-ATT_ASSERT(mojibake.breakLine('A'), [BreakType.ALLOWED], 'breakLine');
-ATT_ASSERT(mojibake.breakWord('A'), [BreakType.ALLOWED], 'breakWord');
+ATT_ASSERT(mojibake.nextLineBreak('A'), [BreakType.ALLOWED], 'nextLineBreak');
+ATT_ASSERT(mojibake.nextWordBreak('A'), [BreakType.ALLOWED], 'nextWordBreak');
+ATT_ASSERT(mojibake.nextSentenceBreak('A'), [BreakType.ALLOWED], 'nextSentenceBreak');
+ATT_ASSERT(mojibake.nextGraphemeBreak('A'), [BreakType.ALLOWED], 'nextGraphemeBreak');
 ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');
 ATT_ASSERT(mojibake.truncateWordWidth('Hello World', WidthContext.WESTERN, 5), 5,
   'truncateWordWidth');
-ATT_ASSERT(mojibake.breakSentence('A'), [BreakType.ALLOWED], 'breakSentence');
-ATT_ASSERT(mojibake.breakGraphemeCluster('A'), [BreakType.ALLOWED], 'breakGraphemeCluster');
 ATT_ASSERT(mojibake.truncate('ABC', 2), 2, 'truncate');
 ATT_ASSERT(mojibake.truncateWidth('ABC', WidthContext.WESTERN, 2), 2, 'truncateWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');

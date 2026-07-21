@@ -114,7 +114,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   (`mjb_nfkc_casefold`), plus a fast quick-check
   (`mjb_normalization_quick_check`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
-  and conditional mappings (`mjb_case`)
+  and conditional mappings (`mjb_map_case`)
 - **Filtering**: strip controls, spaces, or numeric characters while normalizing
   (`mjb_string_filter`)
 

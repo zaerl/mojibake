@@ -700,7 +700,7 @@ bool mjb_unicode_case_lookup(mjb_codepoint codepoint, mjb_unicode_case_mapping *
     return true;
 }
 
-bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_case_type case_type,
+bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_map_case_type case_type,
     const mjb_codepoint **values, uint8_t *length) {
     size_t low = 0;
     size_t high = MJB_COUNT_OF(mjb_unicode_special_case_mappings);

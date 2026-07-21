@@ -38,7 +38,7 @@ Titlecase: N/A
 > The Uppercase, Lowercase, Titlecase fields [you find](https://github.com/zaerl/mojibake/blob/main/src/mojibake.h#L322-L324)
 > in the `mjb_character` struct are not the real uppercase version of the codepoint you passed to
 > the function but its "simple case uppercase", a 1-to-1 character transformation. To have the real
-> case version of a string, use `mjb_case` function. Codepoint as `ß` transforms to a `SS` in
+> case version of a string, use `mjb_map_case` function. Codepoint as `ß` transforms to a `SS` in
 > uppercase.
 
 An **encoding** is a way of storing a list of codepoints in memory. Nowadays, the UTF-8 encoding is
@@ -400,7 +400,7 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_normalize`](#mjb_normalize), [`mjb_case`](#mjb_case), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+See also: [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -991,16 +991,16 @@ See also: [`mjb_collation_compare`](#mjb_collation_compare).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html).
 
-## `mjb_case`
+## `mjb_map_case`
 
 Change string case.
 
 ```c
-mjb_status mjb_case(
+mjb_status mjb_map_case(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_case_type type,
+    mjb_map_case_type type,
     mjb_encoding output_encoding,
     mjb_result *result
 );
@@ -1027,7 +1027,7 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 const char *input = "Stra\xC3\x9F""e"; // "Straße"
 mjb_result result;
 
-if(mjb_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -1278,12 +1278,12 @@ bool combining = mjb_category_is_combining(MJB_CATEGORY_MN);
 printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");
 ```
 
-## `mjb_break_line`
+## `mjb_next_line_break`
 
 Unicode line break algorithm.
 
 ```c
-mjb_break_type mjb_break_line(
+mjb_break_type mjb_next_line_break(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1301,22 +1301,22 @@ mjb_break_type mjb_break_line(
 ```c
 mjb_next_line_state state;
 state.index = 0;
-mjb_break_type type = mjb_break_line("Hello world", 11, MJB_ENC_UTF_8, &state);
+mjb_break_type type = mjb_next_line_break("Hello world", 11, MJB_ENC_UTF_8, &state);
 
 // First line-break result is set: yes
 printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
 ```
 
-See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence).
+See also: [`mjb_next_grapheme_break`](#mjb_next_grapheme_break), [`mjb_next_word_break`](#mjb_next_word_break), [`mjb_next_sentence_break`](#mjb_next_sentence_break).
 
 Specifications: [UAX #14: Unicode Line Breaking Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr14/tr14-56.html).
 
-## `mjb_break_word`
+## `mjb_next_word_break`
 
 Word cluster breaking.
 
 ```c
-mjb_break_type mjb_break_word(
+mjb_break_type mjb_next_word_break(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1336,7 +1336,7 @@ mjb_next_word_state state;
 state.index = 0;
 size_t boundaries = 0;
 
-while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_word_break("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
@@ -1344,16 +1344,16 @@ while(mjb_break_word("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET
 printf("Word-break positions: %zu", boundaries);
 ```
 
-See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_truncate_word`](#mjb_truncate_word).
+See also: [`mjb_next_grapheme_break`](#mjb_next_grapheme_break), [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_truncate_word`](#mjb_truncate_word).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
-## `mjb_break_sentence`
+## `mjb_next_sentence_break`
 
 Sentence boundaries breaking.
 
 ```c
-mjb_break_type mjb_break_sentence(
+mjb_break_type mjb_next_sentence_break(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1374,7 +1374,7 @@ state.index = 0;
 size_t boundaries = 0;
 const char *input = "Hello. Goodbye.";
 
-while(mjb_break_sentence(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_sentence_break(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
@@ -1382,16 +1382,16 @@ while(mjb_break_sentence(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_
 printf("Sentence-break positions: %zu", boundaries);
 ```
 
-See also: [`mjb_break_grapheme_cluster`](#mjb_break_grapheme_cluster), [`mjb_break_word`](#mjb_break_word).
+See also: [`mjb_next_grapheme_break`](#mjb_next_grapheme_break), [`mjb_next_word_break`](#mjb_next_word_break).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
-## `mjb_break_grapheme_cluster`
+## `mjb_next_grapheme_break`
 
 Grapheme cluster breaking.
 
 ```c
-mjb_break_type mjb_break_grapheme_cluster(
+mjb_break_type mjb_next_grapheme_break(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1414,7 +1414,7 @@ mjb_next_state state;
 state.index = 0;
 size_t codepoints = 0;
 
-while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
+while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
     &state) != MJB_BT_NOT_SET) {
     ++codepoints;
 }
@@ -1423,7 +1423,7 @@ while(mjb_break_grapheme_cluster(input, strlen(input), MJB_ENC_UTF_8,
 printf("Codepoints examined: %zu", codepoints);
 ```
 
-See also: [`mjb_break_word`](#mjb_break_word), [`mjb_break_sentence`](#mjb_break_sentence), [`mjb_break_line`](#mjb_break_line), [`mjb_truncate`](#mjb_truncate).
+See also: [`mjb_next_word_break`](#mjb_next_word_break), [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_next_line_break`](#mjb_next_line_break), [`mjb_truncate`](#mjb_truncate).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
@@ -2554,7 +2554,7 @@ mjb_status mjb_locale_set(
 );
 ```
 
-Set the process-global locale used by `mjb_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
+Set the process-global locale used by `mjb_map_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
 
 - `locale` - The locale to set
 
@@ -2577,7 +2577,7 @@ if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
 }
 ```
 
-See also: [`mjb_case`](#mjb_case).
+See also: [`mjb_map_case`](#mjb_map_case).
 
 ## `mjb_result_free`
 
@@ -2841,7 +2841,7 @@ present, are informational or download links rather than normative conformance r
 Unless a function documents a tailoring, it uses the referenced Unicode 18.0.0 algorithm
 without higher-level protocol tailoring.
 
-- `mjb_case` is locale-sensitive through the process-global locale set by `mjb_locale_set`. The
+- `mjb_map_case` is locale-sensitive through the process-global locale set by `mjb_locale_set`. The
   default locale is `MJB_LOCALE_EN`. Turkish and Azerbaijani apply dotted-I casing rules and Turkic
   case-folding mappings. Lithuanian applies dot-above casing rules; case folding remains the default
   non-Turkic mapping.
@@ -2866,9 +2866,9 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | ----- | -------------- | ----------------- | -------- |
 | Unicode Character Database data and derived properties | `mjb_codepoint_info`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_normalization_quick_check` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
-| Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
-| Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
-| Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
+| Default case conversion and caseless matching | `mjb_map_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
+| Grapheme, word, and sentence boundaries | `mjb_next_grapheme_break`, `mjb_next_word_break`, `mjb_next_sentence_break`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
+| Line breaking | `mjb_next_line_break` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |

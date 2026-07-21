@@ -80,7 +80,7 @@ static void mjbsh_print_grapheme_breaks(const char *input, size_t input_size) {
     mjb_next_state segment_state;
     segment_state.index = 0;
 
-    while((bt = mjb_break_grapheme_cluster(input, input_size, MJB_ENC_UTF_8, &segment_state)) !=
+    while((bt = mjb_next_grapheme_break(input, input_size, MJB_ENC_UTF_8, &segment_state)) !=
         MJB_BT_NOT_SET) {
         bool is_eot = (segment_state.index > input_size);
 
@@ -104,7 +104,8 @@ static void mjbsh_print_word_breaks(const char *input, size_t input_size) {
     mjb_next_word_state word_state;
     word_state.index = 0;
 
-    while((bt = mjb_break_word(input, input_size, MJB_ENC_UTF_8, &word_state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_word_break(input, input_size, MJB_ENC_UTF_8, &word_state)) !=
+        MJB_BT_NOT_SET) {
         bool is_eot = (word_state.index > input_size);
 
         if(first) {
@@ -127,7 +128,8 @@ static void mjbsh_print_line_breaks(const char *input, size_t input_size) {
     mjb_next_line_state line_state;
     line_state.index = 0;
 
-    while((bt = mjb_break_line(input, input_size, MJB_ENC_UTF_8, &line_state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_line_break(input, input_size, MJB_ENC_UTF_8, &line_state)) !=
+        MJB_BT_NOT_SET) {
         bool is_eot = (line_state.index > input_size);
 
         if(first) {
@@ -150,7 +152,7 @@ static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
     mjb_next_sentence_state sentence_state;
     sentence_state.index = 0;
 
-    while((bt = mjb_break_sentence(input, input_size, MJB_ENC_UTF_8, &sentence_state)) !=
+    while((bt = mjb_next_sentence_break(input, input_size, MJB_ENC_UTF_8, &sentence_state)) !=
         MJB_BT_NOT_SET) {
         bool is_eot = (sentence_state.index > input_size);
 
