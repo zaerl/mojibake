@@ -36,7 +36,7 @@ static mjb_status api_md_examples(void) {
         return status;
     }
 
-    char *output = malloc(required);
+    char *output = (char *)malloc(required);
 
     if(output == NULL) {
         return MJB_STATUS_NO_MEMORY;

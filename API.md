@@ -233,7 +233,7 @@ if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
     return 1;
 }
 
-char *output = malloc(required);
+char *output = (char *)malloc(required);
 size_t capacity = required;
 
 if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
