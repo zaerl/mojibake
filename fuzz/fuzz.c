@@ -281,9 +281,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
             break;
 
-        case 1: // Normalization quick check
-            mjb_normalization_quick_check(buffer, size, encoding, (mjb_normalization)(variant % 4));
+        case 1: { // Normalization quick check
+            mjb_quick_check_result quick_check;
+            fuzz_sink += (size_t)mjb_normalization_quick_check(buffer, size, encoding,
+                (mjb_normalization)(variant % 4), &quick_check);
             break;
+        }
 
         case 17: // Identifier-oriented NFKC case folding
             if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
@@ -354,10 +357,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
             break;
 
-        case 8: // Collation comparison, input split in two halves
-            mjb_collation_compare(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
-                encoding, (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE);
+        case 8: { // Collation comparison, input split in two halves
+            int order;
+            fuzz_sink += (size_t)mjb_collation_compare(buffer, size / 2, encoding,
+                buffer + size / 2, size - size / 2, encoding,
+                (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE, &order);
             break;
+        }
 
         case 9: // Segmentation: grapheme, word and width truncation
             fuzz_sink += mjb_count_codepoints(buffer, size, encoding);
@@ -385,14 +391,16 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 (variant & 0x10) ? MJB_IDENTIFIER_NFKC : MJB_IDENTIFIER_DEFAULT);
             break;
 
-        case 12: // Confusable skeleton and pairwise detection
+        case 12: { // Confusable skeleton and pairwise detection
             if(mjb_confusable_skeleton(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==
                 MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
-            mjb_are_confusable(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
-                encoding);
+            bool confusable;
+            fuzz_sink += (size_t)mjb_are_confusable(buffer, size / 2, encoding, buffer + size / 2,
+                size - size / 2, encoding, &confusable);
             break;
+        }
 
         case 13: { // BCP 47 locale parsing
             mjb_locale_id locale;

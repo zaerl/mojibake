@@ -30,7 +30,7 @@ export type MojibakeWasmModule = {
   // Apply the Unicode NFKC_Casefold transform to a string.
   _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-  _mjb_normalization_quick_check: (buffer: Pointer, byte_length: number, encoding: number, form: number) => number;
+  _mjb_normalization_quick_check: (buffer: Pointer, byte_length: number, encoding: number, form: number, quick_check: Pointer) => number;
   // Return the string encoding (the most probable).
   _mjb_detect_encoding: (buffer: Pointer, byte_length: number) => number;
   // Return true if the string is encoded in ASCII.
@@ -60,7 +60,7 @@ export type MojibakeWasmModule = {
   // Convert from one encoding to another.
   _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Compare two strings using UCA.
-  _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number) => number;
+  _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, order: Pointer) => number;
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case.
@@ -125,8 +125,8 @@ export type MojibakeWasmModule = {
   _mjb_property_name: (property: number) => Pointer;
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
   _mjb_confusable_skeleton: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
-  // Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-  _mjb_are_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number) => boolean;
+  // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
+  _mjb_are_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, confusable: Pointer) => number;
   // Return the emoji properties.
   _mjb_codepoint_emoji_properties: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property.

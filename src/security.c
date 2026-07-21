@@ -127,9 +127,18 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    result->output = NULL;
+    result->output_size = 0;
+    result->transformed = false;
+
+    mjb_status status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     mjb_bidi_paragraph paragraph;
-    mjb_status status = mjb_bidi_resolve(buffer, byte_length, encoding, MJB_DIRECTION_LTR,
-        &paragraph);
+    status = mjb_bidi_resolve(buffer, byte_length, encoding, MJB_DIRECTION_LTR, &paragraph);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -253,29 +262,41 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     return status;
 }
 
-// Return true if two strings are visually confusable (UTS#39 §4). They are confusable if their
+// Determine whether two strings are visually confusable (UTS#39 §4). They are confusable if their
 // skeletons are identical.
-MJB_EXPORT bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
-    const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding) {
-    mjb_result skel1;
-    mjb_result skel2;
-
-    if(mjb_confusable_skeleton(s1, s1_byte_length, s1_encoding, MJB_ENC_UTF_8, &skel1) !=
-        MJB_STATUS_OK) {
-
-        return false;
+MJB_EXPORT mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length,
+    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+    bool *confusable) {
+    if(confusable == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(mjb_confusable_skeleton(s2, s2_byte_length, s2_encoding, MJB_ENC_UTF_8, &skel2) !=
-        MJB_STATUS_OK) {
+    *confusable = false;
+
+    if((s1 == NULL && s1_byte_length > 0) || (s2 == NULL && s2_byte_length > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_result skel1;
+    mjb_result skel2;
+    mjb_status status = mjb_confusable_skeleton(s1, s1_byte_length, s1_encoding, MJB_ENC_UTF_8,
+        &skel1);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_confusable_skeleton(s2, s2_byte_length, s2_encoding, MJB_ENC_UTF_8, &skel2);
+
+    if(status != MJB_STATUS_OK) {
         if(skel1.transformed) {
             mjb_free(skel1.output);
         }
 
-        return false;
+        return status;
     }
 
-    bool confusable = (skel1.output_size == skel2.output_size) && skel1.output_size > 0 &&
+    *confusable = (skel1.output_size == skel2.output_size) && skel1.output_size > 0 &&
         (memcmp(skel1.output, skel2.output, skel1.output_size) == 0);
 
     if(skel1.transformed) {
@@ -286,5 +307,5 @@ MJB_EXPORT bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_en
         mjb_free(skel2.output);
     }
 
-    return confusable;
+    return MJB_STATUS_OK;
 }

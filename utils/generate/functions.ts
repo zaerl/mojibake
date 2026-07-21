@@ -340,9 +340,9 @@ mjb_result_free(&result);`,
   },
   {
     comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
-    ret: 'mjb_quick_check_result',
+    ret: 'mjb_status',
     name: 'mjb_normalization_quick_check',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
       byte_length(),
@@ -352,6 +352,12 @@ mjb_result_free(&result);`,
         type: 'mjb_normalization',
         description: 'The normalization form to check',
         wasm_generated: false
+      },
+      {
+        name: 'quick_check',
+        type: 'mjb_quick_check_result *',
+        description: 'The quick-check result to store',
+        wasm_generated: true
       }
     ],
     wasm: true,
@@ -360,13 +366,19 @@ mjb_result_free(&result);`,
       'means the string may still be normalized, and only a full normalization pass with ' +
       '`mjb_normalize` can decide.',
     returns: [
-      { value: 'MJB_QC_YES', description: 'The string is normalized to the requested form' },
-      { value: 'MJB_QC_NO', description: 'The string is not normalized' },
-      { value: 'MJB_QC_MAYBE', description: 'Inconclusive: a full normalization is needed to decide' }
+      { value: 'MJB_STATUS_OK', description: '`quick_check` contains `MJB_QC_YES`, `MJB_QC_NO`, or `MJB_QC_MAYBE`' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`quick_check` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: '`encoding` is invalid or a generic UTF-16/UTF-32 encoding has no byte-order information' },
+      { value: 'MJB_STATUS_INVALID_FORM', description: '`form` is not NFC, NFD, NFKC, or NFKD' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'The input contains an ill-formed code-unit sequence' }
     ],
     example: `const char *input = "caf\\xC3\\xA9";
-mjb_quick_check_result check = mjb_normalization_quick_check(input, strlen(input),
-    MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
+mjb_quick_check_result check;
+
+if(mjb_normalization_quick_check(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
+    return 1;
+}
 
 // NFC normalized: yes
 printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
@@ -778,9 +790,9 @@ mjb_result_free(&result);`,
   },
   {
     comment: 'Compare two strings using UCA.',
-    ret: 'int',
+    ret: 'mjb_status',
     name: 'mjb_collation_compare',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The first string to compare', 's1'),
       byte_length('The length of the first string, in bytes', 's1_byte_length'),
@@ -793,6 +805,12 @@ mjb_result_free(&result);`,
         type: 'mjb_collation_mode',
         description: 'The variable weighting strategy',
         wasm_generated: false
+      },
+      {
+        name: 'order',
+        type: 'int *',
+        description: 'The strcmp-style comparison result to store',
+        wasm_generated: true
       }
     ],
     wasm: true,
@@ -800,12 +818,19 @@ mjb_result_free(&result);`,
     details: 'Compare two strings using the Unicode Collation Algorithm and the default ' +
       'collation element table (DUCET), with `strcmp`-style semantics.',
     returns: [
-      { value: '< 0', description: 'The first string collates before the second' },
-      { value: '0', description: 'The strings are equal under UCA' },
-      { value: '> 0', description: 'The first string collates after the second' }
+      { value: 'MJB_STATUS_OK', description: '`order` is negative, zero, or positive according to the collation order' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`order` is NULL, or an input buffer is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `int order = mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
+    example: `int order;
+
+if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
+    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, &order) != MJB_STATUS_OK) {
+    return 1;
+}
 
 // apple sorts before banana: yes
 printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
@@ -1659,28 +1684,45 @@ mjb_result_free(&result);`,
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
-    comment: 'Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
-    ret: 'bool',
+    comment: 'Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
+    ret: 'mjb_status',
     name: 'mjb_are_confusable',
-    attributes: [],
+    attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The first string', 's1'),
       byte_length('The length of the first string, in bytes', 's1_byte_length'),
       encoding('The encoding of the first string', 's1_encoding'),
       buffer('The second string', 's2'),
       byte_length('The length of the second string, in bytes', 's2_byte_length'),
-      encoding('The encoding of the second string', 's2_encoding')
+      encoding('The encoding of the second string', 's2_encoding'),
+      {
+        name: 'confusable',
+        type: 'bool *',
+        description: 'Whether the strings are visually confusable',
+        wasm_generated: true
+      }
     ],
     wasm: true,
     section: Section.Security,
-    details: 'Compute the confusable skeleton of both strings and return true when the ' +
+    details: 'Compute the confusable skeleton of both strings and store true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
       '"good" and "gооd" with Cyrillic о.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: '`confusable` contains the comparison result' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`confusable` is NULL, or an input buffer is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
     example: `const char *latin = "hello";
 const char *mixed = "h\\xD0\\xB5llo"; // Cyrillic е
+bool confusable;
 
-bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
-    mixed, strlen(mixed), MJB_ENC_UTF_8);
+if(mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+    mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
+    return 1;
+}
 
 // Visually confusable: yes
 printf("Visually confusable: %s", confusable ? "yes" : "no");`,

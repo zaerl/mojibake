@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake run a total of **1,600,184** C assertions and **82** JavaScript assertions, including all
+Mojibake run a total of **1,600,345** C assertions and **88** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -22,7 +22,7 @@ the official tests included in the standard:
 | Test                                       | Coverage    |
 | ------------------------------------------ | ----------- |
 | `mjb_bidi_resolve`                         | 582573      |
-| `mjb_collation_compare`                    | 424486      |
+| `mjb_collation_compare`                    | 424502      |
 | `mjb_normalize`                            | 424423      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_nfkc_casefold`                        | 32037       |
@@ -35,22 +35,23 @@ the official tests included in the standard:
 | `mjb_next_grapheme_break`                  | 803         |
 | `mjb_codepoint_script_extensions`          | 639         |
 | `mjb_next_sentence_break`                  | 459         |
+| `mjb_are_confusable`                       | 241         |
 | `mjb_filter`                               | 155         |
 | `mjb_convert_encoding`                     | 137         |
 | `mjb_locale_parse`                         | 121         |
-| `mjb_are_confusable`                       | 120         |
 | `mjb_count_codepoints`                     | 111         |
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_codepoint_info`                       | 82          |
 | `mjb_display_width`                        | 49          |
-| `mjb_collation_key`                        | 45          |
 | `mjb_hangul_syllable_composition`          | 45          |
+| `mjb_collation_key`                        | 44          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_codepoint_east_asian_width`           | 35          |
+| `mjb_normalization_quick_check`            | 34          |
 | `mjb_set_locale`                           | 24          |
 | `mjb_codepoint_numeric_value`              | 20          |
+| `mjb_confusable_skeleton`                  | 20          |
 | `mjb_hangul_syllable_name`                 | 19          |
-| `mjb_confusable_skeleton`                  | 18          |
 | `mjb_is_utf8`                              | 18          |
 | `mjb_codepoint_is_cjk_extension_ideograph` | 17          |
 | `mjb_codepoint_block`                      | 16          |
@@ -60,7 +61,6 @@ the official tests included in the standard:
 | `mjb_truncate_grapheme`                    | 12          |
 | `mjb_detect_encoding`                      | 11          |
 | `mjb_is_ascii`                             | 11          |
-| `mjb_normalization_quick_check`            | 11          |
 | `mjb_truncate_grapheme_width`              | 11          |
 | `mjb_codepoint_script`                     | 10          |
 | `mjb_plane_name`                           | 9           |
@@ -107,18 +107,20 @@ the official tests included in the standard:
 | `mjb_unicode_version`                      | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **1600184** |
+| **Total**                                  | **1600345** |
 
 ## JavaScript
 
 | Test                                        | Coverage   |
 | ------------------------------------------- | ---------- |
+| `Mojibake.areConfusable`                    | 3          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
+| `Mojibake.collationCompare`                 | 3          |
+| `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.codepointPropertyInt`             | 2          |
 | `Mojibake.filter`                           | 2          |
 | `Mojibake.mapCase`                          | 2          |
 | `Mojibake.setLocale`                        | 2          |
-| `Mojibake.areConfusable`                    | 1          |
 | `Mojibake.bidiResolve`                      | 1          |
 | `Mojibake.categoryIsCombining`              | 1          |
 | `Mojibake.categoryIsGraphic`                | 1          |
@@ -154,7 +156,6 @@ the official tests included in the standard:
 | `Mojibake.codepointPlane`                   | 1          |
 | `Mojibake.codepointScript`                  | 1          |
 | `Mojibake.codepointScriptExtensions`        | 1          |
-| `Mojibake.collationCompare`                 | 1          |
 | `Mojibake.collationKey`                     | 1          |
 | `Mojibake.confusableSkeleton`               | 1          |
 | `Mojibake.convertEncoding`                  | 1          |
@@ -176,7 +177,6 @@ the official tests included in the standard:
 | `Mojibake.nextSentenceBreak`                | 1          |
 | `Mojibake.nextWordBreak`                    | 1          |
 | `Mojibake.nfkcCasefold`                     | 1          |
-| `Mojibake.normalizationQuickCheck`          | 1          |
 | `Mojibake.normalize`                        | 1          |
 | `Mojibake.planeIsValid`                     | 1          |
 | `Mojibake.planeName`                        | 1          |
@@ -189,4 +189,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **82**     |
+| **Total**                                   | **88**     |

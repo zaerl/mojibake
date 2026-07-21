@@ -526,7 +526,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_l
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-MJB_EXPORT mjb_quick_check_result mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check);
 
 // Return the string encoding (the most probable).
 MJB_EXPORT MJB_PURE mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_length);
@@ -571,7 +571,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Compare two strings using UCA.
-MJB_EXPORT int mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode, int *order);
 
 // Generate a UCA sort key for a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
@@ -678,8 +678,8 @@ MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
-// Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-MJB_EXPORT bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
+// Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, bool *confusable);
 
 // Return the emoji properties.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji_properties(mjb_codepoint codepoint, mjb_emoji_properties *emoji);

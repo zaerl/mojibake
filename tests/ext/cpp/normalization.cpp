@@ -72,5 +72,36 @@ int test_cpp_normalization(void *arg) {
 
     ATT_ASSERT(caught, true, "LibraryError preserves mjb_status")
 
+    const std::string malformed_utf8("\x80", 1);
+    caught = false;
+
+    try {
+        (void)mjb::normalization_quick_check(malformed_utf8, mjb::NormalizationForm::NFC);
+    } catch(const mjb::LibraryError &error) {
+        caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    ATT_ASSERT(caught, true, "normalization_quick_check preserves malformed-input status")
+
+    caught = false;
+
+    try {
+        (void)mjb::compare(malformed_utf8, "a");
+    } catch(const mjb::LibraryError &error) {
+        caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    ATT_ASSERT(caught, true, "compare preserves malformed-input status")
+
+    caught = false;
+
+    try {
+        (void)mjb::is_confusable(malformed_utf8, "A");
+    } catch(const mjb::LibraryError &error) {
+        caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    ATT_ASSERT(caught, true, "is_confusable preserves malformed-input status")
+
     return 0;
 }

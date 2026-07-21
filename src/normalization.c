@@ -326,8 +326,13 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 
     bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
-    mjb_quick_check_result is_normalized = mjb_normalization_quick_check(buffer, byte_length,
-        encoding, form);
+    mjb_quick_check_result is_normalized;
+    mjb_status quick_check_status = mjb_normalization_quick_check(buffer, byte_length, encoding,
+        form, &is_normalized);
+
+    if(quick_check_status != MJB_STATUS_OK) {
+        return quick_check_status;
+    }
 
     if(is_normalized == MJB_QC_YES) {
         // No need to normalize.

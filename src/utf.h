@@ -350,3 +350,49 @@ static inline bool MJB_USED mjb_encoding_is_valid_output(mjb_encoding encoding) 
         encoding == MJB_ENC_UTF_16LE || encoding == MJB_ENC_UTF_32BE ||
         encoding == MJB_ENC_UTF_32LE;
 }
+
+/**
+ * Validate a complete code-unit sequence without producing output.
+ */
+static inline mjb_status MJB_USED mjb_validate_code_unit_sequence(const char *buffer,
+    size_t byte_length, mjb_encoding encoding) {
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    size_t resolved_index = 0;
+    mjb_encoding resolved_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
+        &resolved_index);
+
+    if((encoding == MJB_ENC_UTF_16 || encoding == MJB_ENC_UTF_32) &&
+        resolved_encoding == encoding) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    uint8_t state = MJB_UTF_ACCEPT;
+    bool in_error = false;
+    mjb_codepoint codepoint;
+
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
+            &codepoint, &in_error);
+
+        if(result == MJB_DECODE_END) {
+            break;
+        }
+
+        if(result == MJB_DECODE_ERROR) {
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+    }
+
+    if(mjb_utf_state_is_incomplete(state)) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    return MJB_STATUS_OK;
+}

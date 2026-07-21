@@ -17,6 +17,7 @@ import {
   FilterFlags,
   Locale,
   Mojibake,
+  Normalization,
   Plane,
   Property,
   QuickCheckResult,
@@ -46,6 +47,10 @@ ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepo
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
 ATT_ASSERT(mojibake.stringEachCharacter('A')?.[0]?.character.codepoint, 0x41, 'stringEachCharacter');
 ATT_ASSERT(mojibake.normalizationQuickCheck('abc'), QuickCheckResult.YES, 'normalizationQuickCheck');
+ATT_ASSERT(mojibake.normalizationQuickCheck('\u00E9', Normalization.NFD), QuickCheckResult.NO,
+  'normalizationQuickCheck negative result');
+ATT_ASSERT(mojibake.normalizationQuickCheck(new Uint8Array([0x80])), null,
+  'normalizationQuickCheck malformed input');
 ATT_ASSERT(mojibake.filter('hello    world',
   FilterFlags.COLLAPSE_SPACES | FilterFlags.CONTROLS)?.output, 'hello world', 'filter');
 ATT_ASSERT(mojibake.filter('a\u0300\u0301\u0302\u0303\u0304', FilterFlags.LIMIT_COMBINING)?.output,
@@ -71,6 +76,10 @@ ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
 ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
 ATT_ASSERT(mojibake.countCodepoints('H\u00E9ll\u00F6'), 5, 'countCodepoints');
 ATT_ASSERT(mojibake.collationCompare('hello', 'hello'), 0, 'collationCompare');
+ATT_ASSERT((mojibake.collationCompare('a', 'b') ?? 0) < 0, true,
+  'collationCompare negative order');
+ATT_ASSERT(mojibake.collationCompare(new Uint8Array([0x80]), 'a'), null,
+  'collationCompare malformed input');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
 ATT_ASSERT(mojibake.mapCase('hello', CaseType.UPPER)?.output, 'HELLO', 'mapCase');
 ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
@@ -115,6 +124,9 @@ ATT_ASSERT(mojibake.codepointIsPatternWhiteSpace(0x20), true, 'codepointIsPatter
 ATT_ASSERT(mojibake.isIdentifier('hello'), true, 'isIdentifier');
 ATT_ASSERT(mojibake.propertyName(Property.CASED), 'Cased', 'propertyName');
 ATT_ASSERT(mojibake.areConfusable('\u0410', 'A'), true, 'areConfusable');
+ATT_ASSERT(mojibake.areConfusable('a', 'b'), false, 'areConfusable false result');
+ATT_ASSERT(mojibake.areConfusable(new Uint8Array([0x80]), 'A'), null,
+  'areConfusable malformed input');
 ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
   'confusableSkeleton');
 ATT_ASSERT(mojibake.codepointEmojiProperties(0x23)?.component, true, 'codepointEmojiProperties');

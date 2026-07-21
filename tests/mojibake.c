@@ -112,6 +112,14 @@ int test_mojibake(void *arg) {
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
                           &result),
         MJB_STATUS_NO_MEMORY, "Collation key handles allocation failure")
+    int order;
+    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, &order),
+        MJB_STATUS_NO_MEMORY, "Collation comparison handles allocation failure")
+    bool confusable;
+    ATT_ASSERT_STATUS(mjb_are_confusable("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
+                          &confusable),
+        MJB_STATUS_NO_MEMORY, "Confusable comparison handles allocation failure")
 
     ATT_ASSERT((mjb_reset(), true), true, "Reset failing allocator")
 

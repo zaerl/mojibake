@@ -111,8 +111,13 @@ int test_example(void *arg) {
     // Example for mjb_normalization_quick_check
     MJB_TEST_COVERAGE(mjb_normalization_quick_check); // Added by the script
     const char *input = "caf\xC3\xA9";
-    mjb_quick_check_result check = mjb_normalization_quick_check(input, strlen(input),
-        MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
+    mjb_quick_check_result check;
+
+    if(mjb_normalization_quick_check(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_normalization_quick_check test failed") // Added by the script
+        return 1;
+    }
 
     // NFC normalized: yes
     // printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");
@@ -357,8 +362,13 @@ int test_example(void *arg) {
 {
     // Example for mjb_collation_compare
     MJB_TEST_COVERAGE(mjb_collation_compare); // Added by the script
-    int order = mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-        "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
+    int order;
+
+    if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
+        "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, &order) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_collation_compare test failed") // Added by the script
+        return 1;
+    }
 
     // apple sorts before banana: yes
     // printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
@@ -838,9 +848,13 @@ int test_example(void *arg) {
     MJB_TEST_COVERAGE(mjb_are_confusable); // Added by the script
     const char *latin = "hello";
     const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
+    bool confusable;
 
-    bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
-        mixed, strlen(mixed), MJB_ENC_UTF_8);
+    if(mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+        mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_are_confusable test failed") // Added by the script
+        return 1;
+    }
 
     // Visually confusable: yes
     // printf("Visually confusable: %s", confusable ? "yes" : "no");

@@ -689,8 +689,13 @@ struct NumericValue {
 }
 
 [[nodiscard]] inline bool is_confusable(std::string_view s1, std::string_view s2,
-    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_are_confusable(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(), s2_encoding);
+    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    bool confusable = false;
+    detail::check_status(mjb_are_confusable(s1.data(), s1.size(), s1_encoding, s2.data(),
+                             s2.size(), s2_encoding, &confusable),
+        "Confusable comparison failed");
+
+    return confusable;
 }
 
 [[nodiscard]] inline TextResult confusable_skeleton_result(std::string_view input,
@@ -750,9 +755,13 @@ enum class NormalizationForm {
 }
 
 [[nodiscard]] inline mjb_quick_check_result normalization_quick_check(std::string_view input,
-    NormalizationForm form, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_normalization_quick_check(input.data(), input.size(), encoding,
-        static_cast<mjb_normalization>(form));
+    NormalizationForm form, mjb_encoding encoding = MJB_ENC_UTF_8) {
+    mjb_quick_check_result quick_check = MJB_QC_NO;
+    detail::check_status(mjb_normalization_quick_check(input.data(), input.size(), encoding,
+                             static_cast<mjb_normalization>(form), &quick_check),
+        "Normalization quick-check failed");
+
+    return quick_check;
 }
 
 enum class Filter : unsigned int {
@@ -858,9 +867,13 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
 
 [[nodiscard]] inline int compare(std::string_view s1, std::string_view s2,
     mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
-    mjb_encoding s2_encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_collation_compare(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(),
-        s2_encoding, mode);
+    mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    int order = 0;
+    detail::check_status(mjb_collation_compare(s1.data(), s1.size(), s1_encoding, s2.data(),
+                             s2.size(), s2_encoding, mode, &order),
+        "Collation comparison failed");
+
+    return order;
 }
 
 [[nodiscard]] inline TextResult collation_key_result(std::string_view input,

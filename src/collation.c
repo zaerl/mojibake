@@ -301,32 +301,6 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
     return true;
 }
 
-static mjb_status validate_code_unit_sequence(const char *buffer, size_t byte_length,
-    mjb_encoding encoding) {
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
-    mjb_codepoint codepoint;
-
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
-
-        if(result == MJB_DECODE_END) {
-            break;
-        }
-
-        if(result == MJB_DECODE_ERROR) {
-            return MJB_STATUS_MALFORMED_INPUT;
-        }
-    }
-
-    if(mjb_utf_state_is_incomplete(state)) {
-        return MJB_STATUS_MALFORMED_INPUT;
-    }
-
-    return MJB_STATUS_OK;
-}
-
 // Build CEA from NFD codepoint array
 
 // Canonical Combining Class for a codepoint.
@@ -778,7 +752,7 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
         return MJB_STATUS_OK;
     }
 
-    mjb_status status = validate_code_unit_sequence(buffer, byte_length, encoding);
+    mjb_status status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -912,42 +886,56 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT int mjb_collation_compare(const char *s1, size_t s1_byte_length,
+MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
     mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-    mjb_collation_mode mode) {
+    mjb_collation_mode mode, int *order) {
+    if(order == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *order = 0;
+
     if((s1 == NULL && s1_byte_length > 0) || (s2 == NULL && s2_byte_length > 0)) {
-        return -1;
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     if(s1_byte_length == 0 && s2_byte_length == 0) {
-        return 0;
+        return MJB_STATUS_OK;
     }
 
     if(s1_byte_length == 0) {
-        return -1;
+        *order = -1;
+
+        return MJB_STATUS_OK;
     }
 
     if(s2_byte_length == 0) {
-        return 1;
+        *order = 1;
+
+        return MJB_STATUS_OK;
     }
 
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    if(compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1) != MJB_STATUS_OK) {
-        return -1;
+    mjb_status status = compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
-    if(compute_sort_key(s2, s2_byte_length, s2_encoding, mode, &sk2) != MJB_STATUS_OK) {
+    status = compute_sort_key(s2, s2_byte_length, s2_encoding, mode, &sk2);
+
+    if(status != MJB_STATUS_OK) {
         sk_free(&sk1);
 
-        return -1;
+        return status;
     }
 
-    int result = compare_sort_keys(&sk1, &sk2);
+    *order = compare_sort_keys(&sk1, &sk2);
 
     sk_free(&sk1);
     sk_free(&sk2);
 
-    return result;
+    return MJB_STATUS_OK;
 }

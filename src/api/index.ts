@@ -461,17 +461,22 @@ export class Mojibake {
     }
   }
 
-  // mjb_quick_check_result mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding
-  // encoding, mjb_normalization form)
+  // mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length,
+  // mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check)
   normalizationQuickCheck(input: MojibakeInput, form = Normalization.NFC,
-    options: TextInputOptions = {}): number {
+    options: TextInputOptions = {}): QuickCheckResult | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const quickCheckPtr = this.malloc(4);
 
     try {
-      return this.module._mjb_normalization_quick_check(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, form);
+      const status = this.module._mjb_normalization_quick_check(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, form, quickCheckPtr);
+
+      return status === Status.OK ?
+        this.module.HEAP32[quickCheckPtr / 4] as QuickCheckResult : null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(quickCheckPtr);
     }
   }
 
@@ -712,19 +717,25 @@ export class Mojibake {
     }
   }
 
-  // int mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
-  // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode
+  // mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
+  // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+  // mjb_collation_mode mode, int *order)
   collationCompare(first: MojibakeInput, second: MojibakeInput,
-    mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number {
+    mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number | null {
     const firstInput = this.copyInput(first, options.encoding);
     const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
+    const orderPtr = this.malloc(4);
 
     try {
-      return this.module._mjb_collation_compare(firstInput.ptr, firstInput.size,
-        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode);
+      const status = this.module._mjb_collation_compare(firstInput.ptr, firstInput.size,
+        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode,
+        orderPtr);
+
+      return status === Status.OK ? this.module.HEAP32[orderPtr / 4] : null;
     } finally {
       this.free(firstInput.ptr);
       this.free(secondInput.ptr);
+      this.free(orderPtr);
     }
   }
 
@@ -1109,18 +1120,24 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
-  // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding)
-  areConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
+  // mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length,
+  // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+  // bool *confusable)
+  areConfusable(s1: MojibakeInput, s2: MojibakeInput,
+    options: TextInputOptions = {}): boolean | null {
     const wasmInput1 = this.copyInput(s1, options.encoding);
     const wasmInput2 = this.copyInput(s2, options.additionalEncoding ?? options.encoding);
+    const confusablePtr = this.malloc(1);
 
     try {
-      return this.module._mjb_are_confusable(wasmInput1.ptr, wasmInput1.size,
-        wasmInput1.encoding, wasmInput2.ptr, wasmInput2.size, wasmInput2.encoding) ? true : false;
+      const status = this.module._mjb_are_confusable(wasmInput1.ptr, wasmInput1.size,
+        wasmInput1.encoding, wasmInput2.ptr, wasmInput2.size, wasmInput2.encoding, confusablePtr);
+
+      return status === Status.OK ? this.module.HEAPU8[confusablePtr] !== 0 : null;
     } finally {
       this.free(wasmInput1.ptr);
       this.free(wasmInput2.ptr);
+      this.free(confusablePtr);
     }
   }
 
