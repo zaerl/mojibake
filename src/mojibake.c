@@ -81,7 +81,7 @@ MJB_EXPORT mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_reallo
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT void mjb_shutdown(void) {
+MJB_EXPORT void mjb_reset(void) {
     mjb_global.memory_functions_locked = false;
     mjb_global.memory_free = MJB_DEFAULT_FREE;
     mjb_global.memory_realloc = MJB_DEFAULT_REALLOC;

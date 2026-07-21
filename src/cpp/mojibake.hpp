@@ -472,7 +472,7 @@ struct EmojiProperties {
 
 [[nodiscard]] inline std::optional<EmojiProperties> emoji_properties(mjb_codepoint codepoint) {
     EmojiProperties properties;
-    const mjb_status status = mjb_codepoint_emoji(codepoint, &properties.data);
+    const mjb_status status = mjb_codepoint_emoji_properties(codepoint, &properties.data);
 
     if(status == MJB_STATUS_NOT_FOUND) {
         return std::nullopt;
@@ -896,7 +896,7 @@ struct EmojiSequence {
 [[nodiscard]] inline std::optional<EmojiSequence> emoji_sequence(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     EmojiSequence sequence;
-    const mjb_status status = mjb_string_emoji_sequence(input.data(), input.size(), encoding,
+    const mjb_status status = mjb_classify_emoji_sequence(input.data(), input.size(), encoding,
         &sequence.data);
 
     if(status == MJB_STATUS_NOT_FOUND) {
@@ -1003,7 +1003,7 @@ struct LocaleId {
 }
 
 inline void set_locale(mjb_locale locale) {
-    detail::check_status(mjb_locale_set(static_cast<unsigned int>(locale)),
+    detail::check_status(mjb_set_locale(static_cast<unsigned int>(locale)),
         "Locale selection failed");
 }
 
@@ -1025,8 +1025,8 @@ inline void set_memory_functions(mjb_alloc_fn allocate_fn, mjb_realloc_fn reallo
         "Memory function selection failed");
 }
 
-inline void shutdown() noexcept {
-    mjb_shutdown();
+inline void Reset() noexcept {
+    mjb_reset();
 }
 
 [[nodiscard]] inline void *allocate(size_t byte_length) noexcept {
@@ -1041,15 +1041,15 @@ inline void deallocate(void *pointer) noexcept {
     mjb_free(pointer);
 }
 
-[[nodiscard]] inline std::string_view truncate(std::string_view input, size_t max_graphemes,
-    mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
+[[nodiscard]] inline std::string_view truncate_grapheme(std::string_view input,
+    size_t max_graphemes, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const size_t n = mjb_truncate_grapheme(input.data(), input.size(), encoding, max_graphemes);
 
     return input.substr(0, n);
 }
 
-[[nodiscard]] inline std::string_view truncate_width(std::string_view input, size_t max_columns,
-    mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO,
+[[nodiscard]] inline std::string_view truncate_grapheme_width(std::string_view input,
+    size_t max_columns, mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const size_t n = mjb_truncate_grapheme_width(input.data(), input.size(), encoding, context,
         max_columns);

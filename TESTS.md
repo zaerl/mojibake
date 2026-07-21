@@ -28,10 +28,10 @@ the official tests included in the standard:
 | `mjb_nfkc_casefold`                        | 32037       |
 | `mjb_next_line_break`                      | 18800       |
 | `mjb_result_free`                          | 10686       |
-| `mjb_string_emoji_sequence`                | 5286        |
+| `mjb_classify_emoji_sequence`              | 5286        |
 | `mjb_map_case`                             | 3532        |
 | `mjb_next_word_break`                      | 1829        |
-| `mjb_codepoint_emoji`                      | 1429        |
+| `mjb_codepoint_emoji_properties`           | 1429        |
 | `mjb_next_grapheme_break`                  | 803         |
 | `mjb_codepoint_script_extensions`          | 639         |
 | `mjb_next_sentence_break`                  | 459         |
@@ -47,7 +47,7 @@ the official tests included in the standard:
 | `mjb_hangul_syllable_composition`          | 45          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_codepoint_east_asian_width`           | 35          |
-| `mjb_locale_set`                           | 21          |
+| `mjb_set_locale`                           | 21          |
 | `mjb_codepoint_numeric_value`              | 20          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_confusable_skeleton`                  | 18          |
@@ -66,7 +66,7 @@ the official tests included in the standard:
 | `mjb_plane_name`                           | 9           |
 | `mjb_truncate_word`                        | 9           |
 | `mjb_codepoint_is_cjk_ideograph`           | 8           |
-| `mjb_shutdown`                             | 8           |
+| `mjb_reset`                                | 8           |
 | `mjb_truncate_word_width`                  | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
@@ -120,9 +120,10 @@ the official tests included in the standard:
 | `Mojibake.bidiResolve`                      | 1          |
 | `Mojibake.categoryIsCombining`              | 1          |
 | `Mojibake.categoryIsGraphic`                | 1          |
+| `Mojibake.classifyEmojiSequence`            | 1          |
 | `Mojibake.codepointBlock`                   | 1          |
 | `Mojibake.codepointEastAsianWidth`          | 1          |
-| `Mojibake.codepointEmoji`                   | 1          |
+| `Mojibake.codepointEmojiProperties`         | 1          |
 | `Mojibake.codepointEncode`                  | 1          |
 | `Mojibake.codepointInfo`                    | 1          |
 | `Mojibake.codepointIsCjkIdeograph`          | 1          |
@@ -160,7 +161,6 @@ the official tests included in the standard:
 | `Mojibake.displayWidth`                     | 1          |
 | `Mojibake.hangulSyllableName`               | 1          |
 | `Mojibake.localeParse`                      | 1          |
-| `Mojibake.localeSet`                        | 1          |
 | `Mojibake.nextGraphemeBreak`                | 1          |
 | `Mojibake.nextLineBreak`                    | 1          |
 | `Mojibake.nextSentenceBreak`                | 1          |
@@ -171,7 +171,7 @@ the official tests included in the standard:
 | `Mojibake.planeIsValid`                     | 1          |
 | `Mojibake.planeName`                        | 1          |
 | `Mojibake.propertyName`                     | 1          |
-| `Mojibake.stringEmojiSequence`              | 1          |
+| `Mojibake.setLocale`                        | 1          |
 | `Mojibake.stringIsAscii`                    | 1          |
 | `Mojibake.stringIsEmojiSequence`            | 1          |
 | `Mojibake.stringIsIdentifier`               | 1          |

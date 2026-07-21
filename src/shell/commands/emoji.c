@@ -118,7 +118,8 @@ static bool mjbsh_emoji_next_character(mjb_character *character, mjb_character_p
     unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8,
         sizeof(buffer_utf8), MJB_ENC_UTF_8);
     mjb_emoji_properties emoji;
-    bool emoji_valid = mjb_codepoint_emoji(character->codepoint, &emoji) == MJB_STATUS_OK;
+    bool emoji_valid = mjb_codepoint_emoji_properties(character->codepoint, &emoji) ==
+        MJB_STATUS_OK;
 
     if(utf8_length == 0) {
         return false;
@@ -293,7 +294,7 @@ int mjbsh_emoji_command(int argc, char *const argv[], unsigned int flags) {
     memset(&emoji, 0, sizeof(emoji));
 
     bool is_emoji_sequence = mjb_string_is_emoji_sequence(buffer, size, MJB_ENC_UTF_8);
-    bool has_sequence_metadata = mjb_string_emoji_sequence(buffer, size, MJB_ENC_UTF_8, &emoji) ==
+    bool has_sequence_metadata = mjb_classify_emoji_sequence(buffer, size, MJB_ENC_UTF_8, &emoji) ==
         MJB_STATUS_OK;
     bool is_rgi = mjb_string_is_rgi_emoji(buffer, size, MJB_ENC_UTF_8);
 

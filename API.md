@@ -1006,7 +1006,7 @@ mjb_status mjb_map_case(
 );
 ```
 
-Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
+Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
 
 - `buffer` - The string to change case
 - `byte_length` - The length of the string, in bytes
@@ -1040,7 +1040,7 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_locale_set`](#mjb_locale_set).
+See also: [`mjb_set_locale`](#mjb_set_locale).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
 
@@ -1999,12 +1999,12 @@ See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_string_is
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
-## `mjb_codepoint_emoji`
+## `mjb_codepoint_emoji_properties`
 
 Return the emoji properties.
 
 ```c
-mjb_status mjb_codepoint_emoji(
+mjb_status mjb_codepoint_emoji_properties(
     mjb_codepoint codepoint,
     mjb_emoji_properties *emoji
 );
@@ -2018,7 +2018,7 @@ mjb_status mjb_codepoint_emoji(
 ```c
 mjb_emoji_properties emoji;
 
-if(mjb_codepoint_emoji(0x1F600, &emoji) != MJB_STATUS_OK) {
+if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2026,7 +2026,7 @@ if(mjb_codepoint_emoji(0x1F600, &emoji) != MJB_STATUS_OK) {
 printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
 ```
 
-See also: [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
+See also: [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -2235,12 +2235,12 @@ const char *mjb_plane_name(
 printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));
 ```
 
-## `mjb_string_emoji_sequence`
+## `mjb_classify_emoji_sequence`
 
 Return emoji sequence metadata for a complete string.
 
 ```c
-mjb_status mjb_string_emoji_sequence(
+mjb_status mjb_classify_emoji_sequence(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -2259,7 +2259,7 @@ mjb_status mjb_string_emoji_sequence(
 const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
 mjb_emoji_sequence emoji;
 
-if(mjb_string_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
     &emoji) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2299,7 +2299,7 @@ bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");
 ```
 
-See also: [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
+See also: [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -2330,7 +2330,7 @@ bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 printf("RGI emoji: %s", rgi ? "yes" : "no");
 ```
 
-See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_emoji_sequence`](#mjb_string_emoji_sequence).
+See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -2540,21 +2540,21 @@ if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
 printf("Locale: %s %s %s", locale.language, locale.script, locale.region);
 ```
 
-See also: [`mjb_locale_set`](#mjb_locale_set).
+See also: [`mjb_set_locale`](#mjb_set_locale).
 
 Specifications: [BCP 47: Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646).
 
-## `mjb_locale_set`
+## `mjb_set_locale`
 
 Set current locale used by locale-sensitive casing.
 
 ```c
-mjb_status mjb_locale_set(
+mjb_status mjb_set_locale(
     unsigned int locale
 );
 ```
 
-Set the process-global locale used by `mjb_map_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
+Set the process-global locale used by `mjb_map_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_reset` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
 
 - `locale` - The locale to set
 
@@ -2566,13 +2566,13 @@ Set the process-global locale used by `mjb_map_case`. The default locale is `MJB
 **Example**
 
 ```c
-if(mjb_locale_set(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Turkish locale selected: yes
 printf("Turkish locale selected: yes");
-if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
+if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
     return 1;
 }
 ```
@@ -2696,7 +2696,7 @@ Replace the allocator used by the library for all internal allocations and for t
 **Example**
 
 ```c
-mjb_shutdown(); // Ensure no allocator is currently locked in.
+mjb_reset(); // Ensure no allocator is currently locked in.
 
 if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
     return 1;
@@ -2704,23 +2704,23 @@ if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
 
 // Standard allocator installed: yes
 printf("Standard allocator installed: yes");
-mjb_shutdown();
+mjb_reset();
 ```
 
 See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc), [`mjb_free`](#mjb_free).
 
-## `mjb_shutdown`
+## `mjb_reset`
 
-Shutdown the library. Not needed to be called.
+Reset the library. Not needed to be called.
 
 ```c
-void mjb_shutdown(void);
+void mjb_reset(void);
 ```
 
 **Example**
 
 ```c
-mjb_shutdown();
+mjb_reset();
 
 // Library state reset: yes
 printf("Library state reset: yes");
@@ -2841,7 +2841,7 @@ present, are informational or download links rather than normative conformance r
 Unless a function documents a tailoring, it uses the referenced Unicode 18.0.0 algorithm
 without higher-level protocol tailoring.
 
-- `mjb_map_case` is locale-sensitive through the process-global locale set by `mjb_locale_set`. The
+- `mjb_map_case` is locale-sensitive through the process-global locale set by `mjb_set_locale`. The
   default locale is `MJB_LOCALE_EN`. Turkish and Azerbaijani apply dotted-I casing rules and Turkic
   case-folding mappings. Lithuanian applies dot-above casing rules; case folding remains the default
   non-Turkic mapping.
@@ -2873,5 +2873,5 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
-| Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
+| Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

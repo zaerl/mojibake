@@ -875,7 +875,7 @@ mjb_result_free(&key);`,
       'the output may have a different length than the input. Titlecase uses UAX #29 word ' +
       'boundaries: the first cased character in each word segment is titlecased, and ' +
       'subsequent characters in that segment are lowercased. Casing is tailored by the ' +
-      'process-global locale set with `mjb_locale_set`: the default `MJB_LOCALE_EN` uses ' +
+      'process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses ' +
       'default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply ' +
       'Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. ' +
       '`MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains ' +
@@ -900,7 +900,7 @@ printf("Upper: %.*s", (int)result.output_size, result.output);
 if(result.transformed) {
     mjb_free(result.output);
 }`,
-    related: ['mjb_locale_set'],
+    related: ['mjb_set_locale'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
   {
@@ -1685,7 +1685,7 @@ printf("Visually confusable: %s", confusable ? "yes" : "no");`,
   {
     comment: 'Return the emoji properties.',
     ret: 'mjb_status',
-    name: 'mjb_codepoint_emoji',
+    name: 'mjb_codepoint_emoji_properties',
     attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
@@ -1700,13 +1700,13 @@ printf("Visually confusable: %s", confusable ? "yes" : "no");`,
     section: Section.Emoji,
     example: `mjb_emoji_properties emoji;
 
-if(mjb_codepoint_emoji(0x1F600, &emoji) != MJB_STATUS_OK) {
+if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
     return 1;
 }
 
 // U+1F600 has Emoji_Presentation: yes
 printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");`,
-    related: ['mjb_string_emoji_sequence', 'mjb_codepoint_is_emoji'],
+    related: ['mjb_classify_emoji_sequence', 'mjb_codepoint_is_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1857,7 +1857,7 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
   {
     comment: 'Return emoji sequence metadata for a complete string.',
     ret: 'mjb_status',
-    name: 'mjb_string_emoji_sequence',
+    name: 'mjb_classify_emoji_sequence',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
@@ -1875,7 +1875,7 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
     example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
 mjb_emoji_sequence emoji;
 
-if(mjb_string_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
     &emoji) != MJB_STATUS_OK) {
     return 1;
 }
@@ -1904,7 +1904,7 @@ bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8
 
 // Listed emoji sequence: yes
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
-    related: ['mjb_string_is_rgi_emoji', 'mjb_string_emoji_sequence'],
+    related: ['mjb_string_is_rgi_emoji', 'mjb_classify_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -1926,7 +1926,7 @@ bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 
 // RGI emoji: yes
 printf("RGI emoji: %s", rgi ? "yes" : "no");`,
-    related: ['mjb_string_is_emoji_sequence', 'mjb_string_emoji_sequence'],
+    related: ['mjb_string_is_emoji_sequence', 'mjb_classify_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -2142,13 +2142,13 @@ if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
 
 // Locale: sr Latn RS
 printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
-    related: ['mjb_locale_set'],
+    related: ['mjb_set_locale'],
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
   {
     comment: 'Set current locale used by locale-sensitive casing.',
     ret: 'mjb_status',
-    name: 'mjb_locale_set',
+    name: 'mjb_set_locale',
     attributes: ['MJB_NODISCARD'],
     args: [
       {
@@ -2161,20 +2161,20 @@ printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
     wasm: true,
     section: Section.Utility,
     details: 'Set the process-global locale used by `mjb_map_case`. The default locale is ' +
-      '`MJB_LOCALE_EN`, and `mjb_shutdown` resets it to `MJB_LOCALE_EN`. Only ' +
+      '`MJB_LOCALE_EN`, and `mjb_reset` resets it to `MJB_LOCALE_EN`. Only ' +
       '`MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other ' +
       'valid locale values are accepted but do not change Unicode algorithm behavior.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The locale was set' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`locale` is not a valid `mjb_locale` value' }
     ],
-    example: `if(mjb_locale_set(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+    example: `if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Turkish locale selected: yes
 printf("Turkish locale selected: yes");
-if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
+if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
     return 1;
 }`,
     related: ['mjb_map_case']
@@ -2283,7 +2283,7 @@ printf("Unicode version: %s", version);`,
     section: Section.Utility,
     details: 'Replace the allocator used by the library for all internal allocations and for ' +
       'the buffers returned in `mjb_result`. Must be called before any other library call.',
-    example: `mjb_shutdown(); // Ensure no allocator is currently locked in.
+    example: `mjb_reset(); // Ensure no allocator is currently locked in.
 
 if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
     return 1;
@@ -2291,18 +2291,18 @@ if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
 
 // Standard allocator installed: yes
 printf("Standard allocator installed: yes");
-mjb_shutdown();`,
+mjb_reset();`,
     related: ['mjb_alloc', 'mjb_realloc', 'mjb_free']
   },
   {
-    comment: 'Shutdown the library. Not needed to be called.',
+    comment: 'Reset the library. Not needed to be called.',
     ret: 'void',
-    name: 'mjb_shutdown',
+    name: 'mjb_reset',
     attributes: [],
     args: [],
     wasm: false,
     section: Section.Utility,
-    example: `mjb_shutdown();
+    example: `mjb_reset();
 
 // Library state reset: yes
 printf("Library state reset: yes");`

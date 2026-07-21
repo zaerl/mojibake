@@ -47,7 +47,7 @@ void *test_fail_realloc(void *ptr, size_t new_size) {
 }
 
 static void test_set_failing_allocator(size_t fail_after) {
-    mjb_shutdown();
+    mjb_reset();
     fail_alloc_count = 0;
     fail_alloc_after = fail_after;
     ATT_ASSERT_STATUS(mjb_set_memory_functions(test_fail_malloc, test_fail_realloc, test_free),
@@ -67,12 +67,12 @@ int test_mojibake(void *arg) {
     ATT_ASSERT(result.output == NULL, true, "Result output NULL after free")
     ATT_ASSERT(result.output_size, 0, "Result output size 0 after free")
 
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown before memory functions")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset before memory functions")
     void *implicit_buffer = NULL;
     ATT_ASSERT((implicit_buffer = mjb_alloc(1)) != NULL, true, "Default alloc before set")
     ATT_ASSERT((mjb_free(implicit_buffer), true), true, "Default free before set")
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown implicit default memory functions")
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown idempotent")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset implicit default memory functions")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset idempotent")
 
     ATT_ASSERT_STATUS(mjb_set_memory_functions(NULL, NULL, NULL), MJB_STATUS_OK,
         "Void memory functions")
@@ -81,7 +81,7 @@ int test_mojibake(void *arg) {
     ATT_ASSERT((default_buffer = mjb_alloc(1)) != NULL, true, "Default alloc")
     ATT_ASSERT((default_buffer = mjb_realloc(default_buffer, 2)) != NULL, true, "Default realloc")
     ATT_ASSERT((mjb_free(default_buffer), true), true, "Default free")
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown void memory functions")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset void memory functions")
 
     test_counter = 0;
     ATT_ASSERT_STATUS(mjb_set_memory_functions(test_malloc, test_realloc, test_free), MJB_STATUS_OK,
@@ -92,7 +92,7 @@ int test_mojibake(void *arg) {
     ATT_ASSERT((buffer = mjb_realloc(buffer, 2)) != NULL, true, "Custom realloc")
     ATT_ASSERT(test_counter, 2, "Custom realloc function")
     ATT_ASSERT((mjb_free(buffer), test_counter), 3, "Custom free function")
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown custom memory functions")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset custom memory functions")
 
     test_set_failing_allocator(0);
 
@@ -110,14 +110,14 @@ int test_mojibake(void *arg) {
                           &result),
         MJB_STATUS_NO_MEMORY, "Collation key handles allocation failure")
 
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown failing allocator")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset failing allocator")
 
     test_set_failing_allocator(1);
     ATT_ASSERT_STATUS(mjb_convert_encoding("ab", 2, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
                           &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles reallocation failure")
 
-    ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown realloc failing allocator")
+    ATT_ASSERT((mjb_reset(), true), true, "Reset realloc failing allocator")
 
     return 0;
 }

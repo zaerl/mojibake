@@ -12,7 +12,8 @@
 
 #define MJB_EMOJI_SEQUENCE_MAX_CODEPOINTS 32
 
-MJB_EXPORT mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji) {
+MJB_EXPORT mjb_status mjb_codepoint_emoji_properties(mjb_codepoint codepoint,
+    mjb_emoji_properties *emoji) {
     if(emoji == NULL || !mjb_codepoint_is_valid(codepoint)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -27,37 +28,39 @@ MJB_EXPORT mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_pro
 MJB_EXPORT bool mjb_codepoint_is_emoji(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.emoji;
+    return mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK && emoji.emoji;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_presentation(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.presentation;
+    return mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK && emoji.presentation;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_modifier(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.modifier;
+    return mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK && emoji.modifier;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_modifier_base(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.modifier_base;
+    return mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK &&
+        emoji.modifier_base;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_emoji_component(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.component;
+    return mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK && emoji.component;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_extended_pictographic(mjb_codepoint codepoint) {
     mjb_emoji_properties emoji;
 
-    return mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK && emoji.extended_pictographic;
+    return mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK &&
+        emoji.extended_pictographic;
 }
 
 static mjb_status mjb_emoji_decode_sequence(const char *buffer, size_t byte_length,
@@ -99,7 +102,7 @@ static mjb_status mjb_emoji_decode_sequence(const char *buffer, size_t byte_leng
     return *count > 0 ? MJB_STATUS_OK : MJB_STATUS_MALFORMED_INPUT;
 }
 
-MJB_EXPORT mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length,
+MJB_EXPORT mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_emoji_sequence *emoji) {
     mjb_codepoint codepoints[MJB_EMOJI_SEQUENCE_MAX_CODEPOINTS];
     size_t count = 0;
@@ -126,14 +129,14 @@ MJB_EXPORT bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_len
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    return mjb_string_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK;
+    return mjb_classify_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK;
 }
 
 MJB_EXPORT bool mjb_string_is_rgi_emoji(const char *buffer, size_t byte_length,
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    if(mjb_string_emoji_sequence(buffer, byte_length, encoding, &emoji) != MJB_STATUS_OK) {
+    if(mjb_classify_emoji_sequence(buffer, byte_length, encoding, &emoji) != MJB_STATUS_OK) {
         return false;
     }
 

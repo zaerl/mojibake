@@ -128,7 +128,7 @@ export type MojibakeWasmModule = {
   // Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
   _mjb_are_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number) => boolean;
   // Return the emoji properties.
-  _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => number;
+  _mjb_codepoint_emoji_properties: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property.
   _mjb_codepoint_is_emoji: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint has the Unicode Emoji_Presentation property.
@@ -148,7 +148,7 @@ export type MojibakeWasmModule = {
   // Return the name of a plane, NULL if the plane specified is not valid.
   _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
   // Return emoji sequence metadata for a complete string.
-  _mjb_string_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
+  _mjb_classify_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
   // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
   _mjb_string_is_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
@@ -162,7 +162,7 @@ export type MojibakeWasmModule = {
   // Parse a BCP 47 language tag.
   _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer, error: Pointer) => number;
   // Set current locale used by locale-sensitive casing.
-  _mjb_locale_set: (locale: number) => number;
+  _mjb_set_locale: (locale: number) => number;
   // Output the current library version (MJB_VERSION).
   _mjb_version: () => Pointer;
   // Output the current library version number (MJB_VERSION_NUMBER).

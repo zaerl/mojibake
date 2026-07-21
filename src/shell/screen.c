@@ -48,7 +48,7 @@ static BOOL WINAPI mjbsh_console_ctrl_handler(DWORD ctrl_type) {
         case CTRL_BREAK_EVENT:
         case CTRL_CLOSE_EVENT:
         case CTRL_LOGOFF_EVENT:
-        case CTRL_SHUTDOWN_EVENT:
+        case CTRL_Reset_EVENT:
             mjbsh_cleanup_terminal();
 
             return FALSE; // Let default handler terminate

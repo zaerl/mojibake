@@ -83,7 +83,7 @@ Core modules in `src/`:
 - `cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
 - `display.c` - Display width calculation (`mjb_display_width`)
 - `east-asian-width.c` - East Asian width property (`mjb_codepoint_east_asian_width`)
-- `emoji.c` - Emoji property detection (`mjb_codepoint_emoji`)
+- `emoji.c` - Emoji property detection (`mjb_codepoint_emoji_properties`)
 - `encoding.c` - String encoding detection, codepoint encoding, and encoding conversion
 - `filter.c` - String filtering (`mjb_string_filter`)
 - `hangul.c` - Hangul syllable handling

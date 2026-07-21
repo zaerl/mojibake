@@ -220,8 +220,8 @@ int test_locales(void *arg) {
     ATT_ASSERT((unsigned int)error, (unsigned int)MJB_ERROR_INVALID_ARGUMENT,
         "Parse locale long subtag error")
 
-    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale it_IT")
-    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_NUM), MJB_STATUS_INVALID_ARGUMENT,
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale it_IT")
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_NUM), MJB_STATUS_INVALID_ARGUMENT,
         "Set locale to unknown value")
 
     return 0;

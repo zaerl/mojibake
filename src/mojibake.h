@@ -682,7 +682,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, 
 MJB_EXPORT bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding);
 
 // Return the emoji properties.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji_properties(mjb_codepoint codepoint, mjb_emoji_properties *emoji);
 
 // Return true if the codepoint has the Unicode Emoji property.
 MJB_EXPORT bool mjb_codepoint_is_emoji(mjb_codepoint codepoint);
@@ -712,7 +712,7 @@ MJB_EXPORT MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
 MJB_EXPORT MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 // Return emoji sequence metadata for a complete string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 
 // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
 MJB_EXPORT bool mjb_string_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding);
@@ -739,7 +739,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
 
 // Set current locale used by locale-sensitive casing.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_set(unsigned int locale);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_locale(unsigned int locale);
 
 // Free a mjb_result.
 MJB_EXPORT mjb_status mjb_result_free(mjb_result *result);
@@ -756,8 +756,8 @@ MJB_EXPORT MJB_CONST const char *mjb_unicode_version(void);
 // Set the library memory functions.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
 
-// Shutdown the library. Not needed to be called.
-MJB_EXPORT void mjb_shutdown(void);
+// Reset the library. Not needed to be called.
+MJB_EXPORT void mjb_reset(void);
 
 // Allocate memory.
 MJB_EXPORT MJB_NODISCARD void *mjb_alloc(size_t byte_length);

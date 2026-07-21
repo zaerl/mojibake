@@ -849,19 +849,19 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_codepoint_emoji
-    MJB_TEST_COVERAGE(mjb_codepoint_emoji); // Added by the script
+    // Example for mjb_codepoint_emoji_properties
+    MJB_TEST_COVERAGE(mjb_codepoint_emoji_properties); // Added by the script
     mjb_emoji_properties emoji;
 
-    if(mjb_codepoint_emoji(0x1F600, &emoji) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_emoji test failed") // Added by the script
+    if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_codepoint_emoji_properties test failed") // Added by the script
         return 1;
     }
 
     // U+1F600 has Emoji_Presentation: yes
     // printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1F600 has Emoji_Presentation: yes", "mjb_codepoint_emoji test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+1F600 has Emoji_Presentation: yes", "mjb_codepoint_emoji_properties test failed") // Added by the script
 }
 
 {
@@ -966,21 +966,21 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_emoji_sequence
-    MJB_TEST_COVERAGE(mjb_string_emoji_sequence); // Added by the script
+    // Example for mjb_classify_emoji_sequence
+    MJB_TEST_COVERAGE(mjb_classify_emoji_sequence); // Added by the script
     const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
     mjb_emoji_sequence emoji;
 
-    if(mjb_string_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+    if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
         &emoji) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_string_emoji_sequence test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_classify_emoji_sequence test failed") // Added by the script
         return 1;
     }
 
     // Sequence codepoints: 2
     // printf("Sequence codepoints: %zu", emoji.codepoint_count);
     snprintf(test_buffer, sizeof(test_buffer), "Sequence codepoints: %zu", emoji.codepoint_count); // Added by the script
-    ATT_ASSERT(test_buffer, "Sequence codepoints: 2", "mjb_string_emoji_sequence test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sequence codepoints: 2", "mjb_classify_emoji_sequence test failed") // Added by the script
 }
 
 {
@@ -1111,19 +1111,19 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_locale_set
-    MJB_TEST_COVERAGE(mjb_locale_set); // Added by the script
-    if(mjb_locale_set(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_locale_set test failed") // Added by the script
+    // Example for mjb_set_locale
+    MJB_TEST_COVERAGE(mjb_set_locale); // Added by the script
+    if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_set_locale test failed") // Added by the script
         return 1;
     }
 
     // Turkish locale selected: yes
     // printf("Turkish locale selected: yes");
     snprintf(test_buffer, sizeof(test_buffer), "Turkish locale selected: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Turkish locale selected: yes", "mjb_locale_set test failed") // Added by the script
-    if(mjb_locale_set(MJB_LOCALE_EN) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_locale_set test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Turkish locale selected: yes", "mjb_set_locale test failed") // Added by the script
+    if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_set_locale test failed") // Added by the script
         return 1;
     }
 }
@@ -1181,7 +1181,7 @@ int test_example(void *arg) {
 {
     // Example for mjb_set_memory_functions
     MJB_TEST_COVERAGE(mjb_set_memory_functions); // Added by the script
-    mjb_shutdown(); // Ensure no allocator is currently locked in.
+    mjb_reset(); // Ensure no allocator is currently locked in.
 
     if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_set_memory_functions test failed") // Added by the script
@@ -1192,18 +1192,18 @@ int test_example(void *arg) {
     // printf("Standard allocator installed: yes");
     snprintf(test_buffer, sizeof(test_buffer), "Standard allocator installed: yes"); // Added by the script
     ATT_ASSERT(test_buffer, "Standard allocator installed: yes", "mjb_set_memory_functions test failed") // Added by the script
-    mjb_shutdown();
+    mjb_reset();
 }
 
 {
-    // Example for mjb_shutdown
-    MJB_TEST_COVERAGE(mjb_shutdown); // Added by the script
-    mjb_shutdown();
+    // Example for mjb_reset
+    MJB_TEST_COVERAGE(mjb_reset); // Added by the script
+    mjb_reset();
 
     // Library state reset: yes
     // printf("Library state reset: yes");
     snprintf(test_buffer, sizeof(test_buffer), "Library state reset: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Library state reset: yes", "mjb_shutdown test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Library state reset: yes", "mjb_reset test failed") // Added by the script
 }
 
 {

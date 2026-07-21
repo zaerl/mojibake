@@ -198,7 +198,7 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
         fuzz_sink += (unsigned char)name[0];
     }
 
-    if(mjb_codepoint_emoji(codepoint, &emoji) == MJB_STATUS_OK) {
+    if(mjb_codepoint_emoji_properties(codepoint, &emoji) == MJB_STATUS_OK) {
         fuzz_sink += (size_t)emoji.emoji + (size_t)emoji.presentation + (size_t)emoji.modifier +
             (size_t)emoji.modifier_base + (size_t)emoji.component +
             (size_t)emoji.extended_pictographic;
@@ -225,7 +225,7 @@ static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length,
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    if(mjb_string_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
+    if(mjb_classify_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
         fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification + emoji.codepoint_count;
     }
 
@@ -265,7 +265,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     static const unsigned int locales[] = { MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ,
         MJB_LOCALE_LT };
 
-    if(mjb_locale_set(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
+    if(mjb_set_locale(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
         return 0;
     }
 
