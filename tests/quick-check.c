@@ -40,9 +40,10 @@ int test_quick_check(void *arg) {
     assert_quick_check("a", 1, MJB_ENC_UTF_16, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ENCODING,
         MJB_QC_NO, "Generic UTF-16 requires byte order");
 
-    const char malformed_utf8[] = { (char)0xE2, (char)0x82 };
-    assert_quick_check(malformed_utf8, sizeof(malformed_utf8), enc, MJB_NORMALIZATION_NFC,
-        MJB_STATUS_MALFORMED_INPUT, MJB_QC_NO, "Malformed UTF-8 quick check");
+    const unsigned char malformed_utf8[] = { 0xE2, 0x82 };
+    assert_quick_check((const char *)malformed_utf8, sizeof(malformed_utf8), enc,
+        MJB_NORMALIZATION_NFC, MJB_STATUS_MALFORMED_INPUT, MJB_QC_NO,
+        "Malformed UTF-8 quick check");
 
     assert_quick_check("", 0, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_OK, MJB_QC_YES,
         "Empty string is NFC normalized");

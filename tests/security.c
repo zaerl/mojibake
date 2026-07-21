@@ -263,12 +263,13 @@ int test_security(void *arg) {
     ATT_ASSERT_STATUS(mjb_are_confusable("A", 1, enc, "A", 1, enc, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL output")
 
-    const char malformed_utf8[] = { (char)0x80 };
-    ATT_ASSERT_STATUS(mjb_confusable_skeleton(malformed_utf8, sizeof(malformed_utf8), enc, enc,
-                          &skeleton),
+    const unsigned char malformed_utf8[] = { 0x80 };
+    const char *malformed_utf8_bytes = (const char *)malformed_utf8;
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton(
+                          malformed_utf8_bytes, sizeof(malformed_utf8), enc, enc, &skeleton),
         MJB_STATUS_MALFORMED_INPUT, "Skeleton reports malformed input")
-    ATT_ASSERT_STATUS(mjb_are_confusable(malformed_utf8, sizeof(malformed_utf8), enc, "A", 1, enc,
-                          &confusable),
+    ATT_ASSERT_STATUS(mjb_are_confusable(malformed_utf8_bytes, sizeof(malformed_utf8), enc, "A", 1,
+                          enc, &confusable),
         MJB_STATUS_MALFORMED_INPUT, "Confusable reports malformed input")
     ATT_ASSERT_STATUS(mjb_are_confusable("A", 1, MJB_ENC_UNKNOWN, "A", 1, enc, &confusable),
         MJB_STATUS_INVALID_ENCODING, "Confusable rejects invalid encoding")
