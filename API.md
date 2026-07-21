@@ -590,16 +590,16 @@ printf("%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_
 printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE));
 ```
 
-## `mjb_string_each_character`
+## `mjb_for_each_character`
 
 Run a callback for each character of a string.
 
 ```c
-mjb_status mjb_string_each_character(
+mjb_status mjb_for_each_character(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_string_each_character_fn callback
+    mjb_for_each_character_fn callback
 );
 ```
 
@@ -611,7 +611,7 @@ mjb_status mjb_string_each_character(
 **Example**
 
 ```c
-mjb_status status = mjb_string_each_character("ABC", 3, MJB_ENC_UTF_8, NULL);
+mjb_status status = mjb_for_each_character("ABC", 3, MJB_ENC_UTF_8, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;

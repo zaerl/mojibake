@@ -116,7 +116,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_is_utf8\""
         "\"_mjb_is_utf16\""
         "\"_mjb_count_codepoints\""
-        "\"_mjb_string_each_character\""
+        "\"_mjb_for_each_character\""
         "\"_mjb_codepoint_property_binary\""
         "\"_mjb_codepoint_property_int\""
         "\"_mjb_codepoint_numeric_value\""

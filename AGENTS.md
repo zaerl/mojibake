@@ -89,7 +89,7 @@ Core modules in `src/`:
 - `hangul.c` - Hangul syllable handling
 - `locales.c` - Locale APIs, including strict BCP 47 parsing (`mjb_locale_parse`)
 - `mojibake.c/.h` - Main API and library initialization
-- `next.c` - Character-by-character iteration (`mjb_string_each_character`)
+- `next.c` - Character-by-character iteration (`mjb_for_each_character`)
 - `normalization.c` - Unicode normalization (NFC, NFD, NFKC, NFKD)
 - `plane.c` - Unicode plane operations
 - `properties.c` - Codepoints properties

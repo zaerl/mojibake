@@ -70,7 +70,7 @@ the official tests included in the standard:
 | `mjb_truncate_word_width`                  | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
-| `mjb_string_each_character`                | 7           |
+| `mjb_for_each_character`                   | 7           |
 | `mjb_codepoint_is_combining`               | 6           |
 | `mjb_codepoint_is_graphic`                 | 6           |
 | `mjb_codepoint_is_id_continue`             | 6           |
@@ -163,6 +163,7 @@ the official tests included in the standard:
 | `Mojibake.create`                           | 1          |
 | `Mojibake.detectEncoding`                   | 1          |
 | `Mojibake.displayWidth`                     | 1          |
+| `Mojibake.forEachCharacter`                 | 1          |
 | `Mojibake.getLocale`                        | 1          |
 | `Mojibake.hangulSyllableName`               | 1          |
 | `Mojibake.isASCII`                          | 1          |
@@ -181,7 +182,6 @@ the official tests included in the standard:
 | `Mojibake.planeIsValid`                     | 1          |
 | `Mojibake.planeName`                        | 1          |
 | `Mojibake.propertyName`                     | 1          |
-| `Mojibake.stringEachCharacter`              | 1          |
 | `Mojibake.truncateGrapheme`                 | 1          |
 | `Mojibake.truncateGraphemeWidth`            | 1          |
 | `Mojibake.truncateWord`                     | 1          |

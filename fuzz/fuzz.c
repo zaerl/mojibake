@@ -420,7 +420,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 16: // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
-            fuzz_sink += (size_t)mjb_string_each_character(buffer, size, encoding,
+            fuzz_sink += (size_t)mjb_for_each_character(buffer, size, encoding,
                 fuzz_next_character);
             break;
     }

@@ -68,15 +68,15 @@ static int check_normalization(char *source, size_t source_size, char *normalize
             mjb_status print_status;
 
             printf("\n%s: source:", test_name);
-            print_status = mjb_string_each_character(source, source_size, MJB_ENC_UTF_8,
+            print_status = mjb_for_each_character(source, source_size, MJB_ENC_UTF_8,
                 next_character);
             (void)print_status; // we can ignore this.
             printf("\nExpected: ");
-            print_status = mjb_string_each_character(normalized, normalized_size, MJB_ENC_UTF_8,
+            print_status = mjb_for_each_character(normalized, normalized_size, MJB_ENC_UTF_8,
                 next_character);
             (void)print_status; // we can ignore this.
             printf("\nGot: ");
-            print_status = mjb_string_each_character(result.output, result.output_size,
+            print_status = mjb_for_each_character(result.output, result.output_size,
                 MJB_ENC_UTF_8, next_character);
             (void)print_status; // we can ignore this.
             puts("");

@@ -275,7 +275,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
 }
 
 int mjbsh_character_command(int argc, char *const argv[], unsigned int flags) {
-    if(mjb_string_each_character(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
+    if(mjb_for_each_character(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
            mjbsh_output_next_character) != MJB_STATUS_OK) {
         return 1;
     }

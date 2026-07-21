@@ -42,7 +42,7 @@ export type MojibakeWasmModule = {
   // Return the length of a string.
   _mjb_count_codepoints: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Run a callback for each character of a string.
-  _mjb_string_each_character: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
+  _mjb_for_each_character: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
   // Return the value of a binary Unicode property.
   _mjb_codepoint_property_binary: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return the value of an enumerated or integer Unicode property.

@@ -149,8 +149,8 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::encode(0x1F642), std::string("\xF0\x9F\x99\x82"), "encode")
 
     cpp_each_character_count = 0;
-    ATT_ASSERT_STATUS(mjb::each_character("ABC", cpp_each_character), MJB_STATUS_OK,
-        "each_character")
+    ATT_ASSERT_STATUS(mjb::for_each_character("ABC", cpp_each_character), MJB_STATUS_OK,
+        "for_each_character")
     ATT_ASSERT(cpp_each_character_count, 3u, "each_character count")
 
     const auto sequence = mjb::emoji_sequence("\xF0\x9F\x99\x82");

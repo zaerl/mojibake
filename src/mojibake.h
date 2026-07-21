@@ -468,7 +468,7 @@ typedef struct mjb_next_sentence_state {
     bool sat_is_aterm;
 } mjb_next_sentence_state;
 
-typedef bool (*mjb_string_each_character_fn)(mjb_character *character, mjb_character_position type);
+typedef bool (*mjb_for_each_character_fn)(mjb_character *character, mjb_character_position type);
 
 typedef enum mjb_direction {
     MJB_DIRECTION_LTR = 0,
@@ -544,7 +544,7 @@ MJB_EXPORT MJB_PURE bool mjb_is_utf16(const char *buffer, size_t byte_length);
 MJB_EXPORT MJB_PURE size_t mjb_count_codepoints(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Run a callback for each character of a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_for_each_character_fn callback);
 
 // Return the value of a binary Unicode property.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property, bool *value);

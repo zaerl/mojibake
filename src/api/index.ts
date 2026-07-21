@@ -224,7 +224,7 @@ export enum WidthContext {
 // mjb_next_line_state
 // mjb_next_word_state
 // mjb_next_sentence_state
-// mjb_string_each_character_fn
+// mjb_for_each_character_fn
 
 // mjb_direction
 export enum Direction {
@@ -264,7 +264,7 @@ export enum IdentifierProfile {
   NFKC,
 };
 
-// Result of mjb_string_each_character function
+// Result of mjb_for_each_character function
 export type NextCharacter = {
   character: Character;
   type: NextCharacterType; // mjb_character_position
@@ -480,15 +480,15 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_string_each_character callback)
-  stringEachCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
+  // mjb_status mjb_for_each_character(const char *buffer, size_t byte_length,
+  // mjb_encoding encoding, mjb_for_each_character_fn callback)
+  forEachCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options.encoding);
-    const previousCallback = (globalThis as any)._mjbEachCharacterCallback;
+    const previousCallback = (globalThis as any)._mjbForEachCharacterCallback;
     const characters: NextCharacter[] = [];
 
-    // See mjb_string_each_character function
-    (globalThis as any)._mjbEachCharacterCallback = (character: Pointer, type: number) => {
+    // See mjb_for_each_character function
+    (globalThis as any)._mjbForEachCharacterCallback = (character: Pointer, type: number) => {
       characters.push({
         character: this.pointerToCharacter(character),
         type
@@ -498,7 +498,7 @@ export class Mojibake {
     };
 
     try {
-      const status = this.module._mjb_string_each_character(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_for_each_character(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, 0);
 
       if(status !== Status.OK) {
@@ -508,9 +508,9 @@ export class Mojibake {
       return characters;
     } finally {
       if(previousCallback === undefined) {
-        delete (globalThis as any)._mjbEachCharacterCallback;
+        delete (globalThis as any)._mjbForEachCharacterCallback;
       } else {
-        (globalThis as any)._mjbEachCharacterCallback = previousCallback;
+        (globalThis as any)._mjbForEachCharacterCallback = previousCallback;
       }
 
       this.free(wasmInput.ptr);
