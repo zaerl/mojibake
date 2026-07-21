@@ -391,7 +391,7 @@ export class CFunction implements MojibakeFunction {
         ];
 
         ret += this.getSelectInput(i, options, values);
-      } else if(type.startsWith('mjb_filter_type')) {
+      } else if(type.startsWith('mjb_filter_flags')) {
         const options = [
           'MJB_FILTER_NORMALIZE',
           'MJB_FILTER_SPACES',

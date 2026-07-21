@@ -48,8 +48,8 @@ export enum QuickCheckResult {
   NFKD_MAYBE = 0x200 // Impossible to happen
 };
 
-// mjb_filter_type
-export enum FilterType {
+// mjb_filter_flags
+export enum FilterFlags {
   NONE            = 0x0,
   NORMALIZE       = 0x1,
   SPACES          = 0x2,
@@ -513,8 +513,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_filter_type filters, mjb_encoding output_encoding, mjb_result *result)
-  filter(input: MojibakeInput, filters = FilterType.NONE,
+  // mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result)
+  filter(input: MojibakeInput, filters = FilterFlags.NONE,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);

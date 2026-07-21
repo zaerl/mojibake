@@ -779,7 +779,7 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return left;
 }
 
-[[nodiscard]] inline TextResult filter_result(std::string_view input, mjb_filter_type filters,
+[[nodiscard]] inline TextResult filter_result(std::string_view input, mjb_filter_flags filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
     const mjb_status status = mjb_filter(input.data(), input.size(), input_encoding, filters,
@@ -788,14 +788,14 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return detail::ResultAccess::checked(std::move(result), status, "String filtering failed");
 }
 
-[[nodiscard]] inline std::string filter(std::string_view input, mjb_filter_type filters,
+[[nodiscard]] inline std::string filter(std::string_view input, mjb_filter_flags filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     return filter_result(input, filters, input_encoding, output_encoding).str();
 }
 
 [[nodiscard]] inline TextResult filter_result(std::string_view input, Filter filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return filter_result(input, static_cast<mjb_filter_type>(filters), input_encoding,
+    return filter_result(input, static_cast<mjb_filter_flags>(filters), input_encoding,
         output_encoding);
 }
 

@@ -14,7 +14,7 @@ import {
   EmojiQualification,
   EmojiSequenceType,
   Encoding,
-  FilterType,
+  FilterFlags,
   Locale,
   Mojibake,
   Plane,
@@ -46,9 +46,9 @@ ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepo
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
 ATT_ASSERT(mojibake.stringEachCharacter('A')?.[0]?.character.codepoint, 0x41, 'stringEachCharacter');
 ATT_ASSERT(mojibake.normalizationQuickCheck('abc'), QuickCheckResult.YES, 'normalizationQuickCheck');
-ATT_ASSERT(mojibake.filter('hello    world', FilterType.COLLAPSE_SPACES)?.output, 'hello world',
-  'filter');
-ATT_ASSERT(mojibake.filter('a\u0300\u0301\u0302\u0303\u0304', FilterType.LIMIT_COMBINING)?.output,
+ATT_ASSERT(mojibake.filter('hello    world',
+  FilterFlags.COLLAPSE_SPACES | FilterFlags.CONTROLS)?.output, 'hello world', 'filter');
+ATT_ASSERT(mojibake.filter('a\u0300\u0301\u0302\u0303\u0304', FilterFlags.LIMIT_COMBINING)?.output,
   'a\u0300\u0301\u0302\u0303', 'filter LIMIT_COMBINING');
 ATT_ASSERT(mojibake.codepointPropertyBinary(0x41, Property.ALPHABETIC), true,
   'codepointPropertyBinary true');

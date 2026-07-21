@@ -77,7 +77,7 @@ int test_filter(void *arg) {
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter(spaces, strlen(spaces), enc,
-        (mjb_filter_type)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), enc, &result), MJB_STATUS_OK,
+        (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), enc, &result), MJB_STATUS_OK,
         "Filter spaces and normalize")
     ATT_ASSERT(result.output, (char *)"                 ", "Filter spaces and normalize output")
     ATT_ASSERT(result.output_size, 17, "Filter spaces and normalize output size")
@@ -121,7 +121,7 @@ int test_filter(void *arg) {
                                    "\xE2\x80\x80\xE2\x80\x81" // U+2000 EN QUAD, U+2001 EM QUAD
                                    "world";
     ATT_ASSERT_STATUS(mjb_filter(unicode_multiple_spaces, strlen(unicode_multiple_spaces),
-        enc, (mjb_filter_type)(MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES), enc, &result),
+        enc, (mjb_filter_flags)(MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES), enc, &result),
         MJB_STATUS_OK, "Collapse Unicode spaces")
     ATT_ASSERT(result.output, (char *)"hello world", "Collapse Unicode spaces output")
     ATT_ASSERT(result.output_size, 11, "Collapse Unicode spaces output size")
@@ -228,7 +228,7 @@ int test_filter(void *arg) {
     // clang-format on
 
     ATT_ASSERT_STATUS(mjb_filter(split_by_removed_control, strlen(split_by_removed_control),
-        enc, (mjb_filter_type)(MJB_FILTER_CONTROLS | MJB_FILTER_LIMIT_COMBINING), enc, &result),
+        enc, (mjb_filter_flags)(MJB_FILTER_CONTROLS | MJB_FILTER_LIMIT_COMBINING), enc, &result),
         MJB_STATUS_OK, "Limit combining after removed control")
     ATT_ASSERT(strcmp(result.output, expected_split_by_removed_control), 0,
         "Limit combining after removed control output")

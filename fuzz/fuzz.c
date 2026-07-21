@@ -338,7 +338,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 6: // String filtering, all filter combinations
-            if(mjb_filter(buffer, size, encoding, (mjb_filter_type)(variant & 0x1F), MJB_ENC_UTF_8,
+            if(mjb_filter(buffer, size, encoding, (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8,
                    &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }

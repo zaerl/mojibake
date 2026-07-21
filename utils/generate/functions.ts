@@ -244,7 +244,7 @@ if(result.transformed) {
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
-    comment: 'Filter a string with the selected mjb_filter_type flags.',
+    comment: 'Filter a string with the selected mjb_filter_flags.',
     ret: 'mjb_status',
     name: 'mjb_filter',
     attributes: ['MJB_NODISCARD'],
@@ -254,7 +254,7 @@ if(result.transformed) {
       encoding(),
       {
         name: 'filters',
-        type: 'mjb_filter_type',
+        type: 'mjb_filter_flags',
         description: 'The filters to use',
         wasm_generated: false
       },

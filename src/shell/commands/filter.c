@@ -6,13 +6,13 @@
 
 #include "../shell.h"
 
-static mjb_filter_type filter_flags = MJB_FILTER_NONE;
+static mjb_filter_flags filter_flags = MJB_FILTER_NONE;
 
 static void mjbsh_print_filter_analysis(const char *input) {
     mjb_result result;
     size_t input_size = strlen(input);
 
-    mjb_status status = mjb_filter(input, input_size, MJB_ENC_UTF_8, (mjb_filter_type)filter_flags,
+    mjb_status status = mjb_filter(input, input_size, MJB_ENC_UTF_8, filter_flags,
         MJB_ENC_UTF_8, &result);
 
     if(status != MJB_STATUS_OK) {
@@ -45,7 +45,7 @@ static void mjbsh_display_filter_output(const char *input) {
 }
 
 int mjbsh_filter_command(int argc, char *const argv[], unsigned int flags) {
-    filter_flags = (mjb_filter_type)flags;
+    filter_flags = (mjb_filter_flags)flags;
 
     if(argc != 0) {
         mjbsh_print_filter_analysis(argv[0]);

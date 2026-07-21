@@ -298,14 +298,14 @@ Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://w
 
 ## `mjb_filter`
 
-Filter a string with the selected mjb_filter_type flags.
+Filter a string with the selected mjb_filter_flags.
 
 ```c
 mjb_status mjb_filter(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_filter_type filters,
+    mjb_filter_flags filters,
     mjb_encoding output_encoding,
     mjb_result *result
 );

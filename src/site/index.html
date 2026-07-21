@@ -490,7 +490,7 @@
 
                 if(arg.type === 'bool') {
                     value = form.elements[`${func}-${arg.name}`].checked;
-                } else if(arg.type === 'mjb_filter_type') {
+                } else if(arg.type === 'mjb_filter_flags') {
                     value = Array.from(form.querySelectorAll(
                         `input[name="${func}-${arg.name}"]:checked`
                     )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
