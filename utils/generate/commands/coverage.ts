@@ -53,7 +53,7 @@ function findExports(): Coverage {
 function findJavaScriptExports(): Coverage {
   const names = functions
     .filter(item => item.wasm)
-    .map(item => `Mojibake.${CFunction.wasmFunctionName(item)}`);
+    .map(item => `Mojibake.${CFunction.wasmFunctionName(item.wasmName, item.name)}`);
 
   return createCoverage(['Mojibake.create', ...names]);
 }

@@ -69,8 +69,8 @@ export class CFunction implements MojibakeFunction {
     return this.wasm;
   }
 
-  public static wasmFunctionName(fn: MojibakeFunction): string {
-    return fn.wasmName ?? CFunction.snakeToCamel(CFunction.functionName(fn.name));
+  public static wasmFunctionName(wasmName?: string, name?: string): string {
+    return wasmName ?? CFunction.snakeToCamel(CFunction.functionName(name ?? ''));
   }
 
   getArgs(): string[] {
@@ -161,6 +161,7 @@ export class CFunction implements MojibakeFunction {
       name: this.getName(),
       args: this.args,
       wasm: this.wasm,
+      wasmName: CFunction.wasmFunctionName(this.wasmName, this.name),
       section: this.section,
       details: this.details,
       returns: this.returns,

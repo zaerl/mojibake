@@ -533,7 +533,7 @@
             let data = null;
 
             try {
-                data = callAPI(func, args);
+                data = callAPI(functions[func].wasmName, args);
             } catch (error) {
                 funcResults.innerHTML = error.message;
                 funcResults.style.display = 'block';
