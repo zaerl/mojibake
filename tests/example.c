@@ -108,29 +108,29 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_is_normalized
-    MJB_TEST_COVERAGE(mjb_string_is_normalized); // Added by the script
+    // Example for mjb_normalization_quick_check
+    MJB_TEST_COVERAGE(mjb_normalization_quick_check); // Added by the script
     const char *input = "caf\xC3\xA9";
-    mjb_quick_check_result check = mjb_string_is_normalized(input, strlen(input),
+    mjb_quick_check_result check = mjb_normalization_quick_check(input, strlen(input),
         MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
 
     // NFC normalized: yes
     // printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "NFC normalized: yes", "mjb_string_is_normalized test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "NFC normalized: yes", "mjb_normalization_quick_check test failed") // Added by the script
 }
 
 {
-    // Example for mjb_string_encoding
-    MJB_TEST_COVERAGE(mjb_string_encoding); // Added by the script
+    // Example for mjb_detect_encoding
+    MJB_TEST_COVERAGE(mjb_detect_encoding); // Added by the script
     const char utf16le[] = "\xFF\xFEH\0i\0";
-    mjb_encoding detected = mjb_string_encoding(utf16le, sizeof(utf16le) - 1);
+    mjb_encoding detected = mjb_detect_encoding(utf16le, sizeof(utf16le) - 1);
     bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
 
     // UTF-16LE detected: yes
     // printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE detected: %s", is_utf16le ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16LE detected: yes", "mjb_string_encoding test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16LE detected: yes", "mjb_detect_encoding test failed") // Added by the script
 }
 
 {
@@ -167,8 +167,8 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_length
-    MJB_TEST_COVERAGE(mjb_string_length); // Added by the script
+    // Example for mjb_count_codepoints
+    MJB_TEST_COVERAGE(mjb_count_codepoints); // Added by the script
     // The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
 
     const char *utf8 = "H\xC3\xA9ll\xC3\xB6"; // 7 bytes
@@ -178,25 +178,25 @@ int test_example(void *arg) {
     const char utf32be[] = "\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6"; // 20 bytes
 
     // 5 UTF-8 characters
-    // printf("%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8));
-    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8)); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_string_length test failed") // Added by the script
+    // printf("%zu UTF-8 characters", mjb_count_codepoints(utf8, 7, MJB_ENC_UTF_8));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-8 characters", mjb_count_codepoints(utf8, 7, MJB_ENC_UTF_8)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_count_codepoints test failed") // Added by the script
     // 5 UTF-16LE characters
-    // printf("%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE));
-    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE)); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-16LE characters", "mjb_string_length test failed") // Added by the script
+    // printf("%zu UTF-16LE characters", mjb_count_codepoints(utf16le, 10, MJB_ENC_UTF_16LE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16LE characters", mjb_count_codepoints(utf16le, 10, MJB_ENC_UTF_16LE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-16LE characters", "mjb_count_codepoints test failed") // Added by the script
     // 5 UTF-16BE characters
-    // printf("%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE));
-    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE)); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-16BE characters", "mjb_string_length test failed") // Added by the script
+    // printf("%zu UTF-16BE characters", mjb_count_codepoints(utf16be, 10, MJB_ENC_UTF_16BE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16BE characters", mjb_count_codepoints(utf16be, 10, MJB_ENC_UTF_16BE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-16BE characters", "mjb_count_codepoints test failed") // Added by the script
     // 5 UTF-32LE characters
-    // printf("%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE));
-    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE)); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-32LE characters", "mjb_string_length test failed") // Added by the script
+    // printf("%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_32LE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_32LE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-32LE characters", "mjb_count_codepoints test failed") // Added by the script
     // 5 UTF-32BE characters
-    // printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE));
-    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE)); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-32BE characters", "mjb_string_length test failed") // Added by the script
+    // printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE));
+    snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE)); // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-32BE characters", "mjb_count_codepoints test failed") // Added by the script
 }
 
 {
@@ -355,15 +355,15 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_compare
-    MJB_TEST_COVERAGE(mjb_string_compare); // Added by the script
-    int order = mjb_string_compare("apple", 5, MJB_ENC_UTF_8,
+    // Example for mjb_collation_compare
+    MJB_TEST_COVERAGE(mjb_collation_compare); // Added by the script
+    int order = mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
         "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
 
     // apple sorts before banana: yes
     // printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "apple sorts before banana: %s", order < 0 ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "apple sorts before banana: yes", "mjb_string_compare test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "apple sorts before banana: yes", "mjb_collation_compare test failed") // Added by the script
 }
 
 {

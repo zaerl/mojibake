@@ -192,7 +192,7 @@ count the length of the `"Hello, test"` string and we fixed it. In `tests/string
 new assertion:
 
 ```c
-ATT_ASSERT(mjb_string_length("Hello, test", 11, MJB_ENC_UTF_8), 11, "UTF-8 Hello, test")
+ATT_ASSERT(mjb_count_codepoints("Hello, test", 11, MJB_ENC_UTF_8), 11, "UTF-8 Hello, test")
 ```
 
 Then run `make test` and `make test-cpp` to be sure all tests are working.

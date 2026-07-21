@@ -189,7 +189,7 @@ static void assert_collation_malformed_utf8(const unsigned char *buffer, size_t 
     ATT_ASSERT_STATUS(mjb_collation_key(bytes, byte_length, MJB_ENC_UTF_8,
                           MJB_COLLATION_NON_IGNORABLE, &result),
         MJB_STATUS_MALFORMED_INPUT, message)
-    ATT_ASSERT(mjb_string_compare(bytes, byte_length, MJB_ENC_UTF_8, bytes, byte_length,
+    ATT_ASSERT(mjb_collation_compare(bytes, byte_length, MJB_ENC_UTF_8, bytes, byte_length,
                    MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE),
         -1, message)
 }
@@ -235,9 +235,9 @@ static void run_collation_test_file(const char *filename, mjb_collation_mode mod
         if(prev_len > 0) {
             int cmp = mode == MJB_COLLATION_SHIFTED ?
                 compare_shifted_test_strings(prev_utf8, prev_len, curr_utf8, curr_len) :
-                mjb_string_compare(prev_utf8, prev_len, MJB_ENC_UTF_8, curr_utf8, curr_len,
+                mjb_collation_compare(prev_utf8, prev_len, MJB_ENC_UTF_8, curr_utf8, curr_len,
                     MJB_ENC_UTF_8, mode);
-            MJB_TEST_COVERAGE(mjb_string_compare);
+            MJB_TEST_COVERAGE(mjb_collation_compare);
 
             // Must be <= 0 (prev collates before or equal to curr)
             if(cmp > 0) {
@@ -277,7 +277,7 @@ int test_collation(void *arg) {
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects NULL buffer")
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects NULL result")
-    ATT_ASSERT(mjb_string_compare(NULL, 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb_collation_compare(NULL, 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
                    MJB_COLLATION_NON_IGNORABLE),
         -1, "Compare rejects NULL left")
 
@@ -347,13 +347,13 @@ int test_collation(void *arg) {
     assert_collation_primaries(0xFFFE, 0x0200, 0x0000, "U+FFFE reserved low weight");
     assert_collation_primaries(0xFFFF, 0xFFFF, 0x0000, "U+FFFF reserved high weight");
 
-    // Key ordering matches mjb_string_compare
+    // Key ordering matches mjb_collation_compare
     ATT_ASSERT_STATUS(mjb_collation_key("apple", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
         &ka), MJB_STATUS_OK, "Key: 'apple' succeeds")
     ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
         &kb), MJB_STATUS_OK, "Key: 'banana' succeeds")
 
-    int cmp_direct = mjb_string_compare("apple", 5, MJB_ENC_UTF_8, "banana", 6, MJB_ENC_UTF_8,
+    int cmp_direct = mjb_collation_compare("apple", 5, MJB_ENC_UTF_8, "banana", 6, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE);
     size_t min_size = ka.output_size < kb.output_size ? ka.output_size : kb.output_size;
     int cmp_keys = memcmp(ka.output, kb.output, min_size);
@@ -363,21 +363,21 @@ int test_collation(void *arg) {
     }
 
     ATT_ASSERT((int)((cmp_direct < 0) == (cmp_keys < 0)), 1,
-        "Key: ordering matches mjb_string_compare")
+        "Key: ordering matches mjb_collation_compare")
 
     mjb_free(ka.output);
     mjb_free(kb.output);
 
     // Sanity checks
-    ATT_ASSERT(mjb_string_compare("", 0, MJB_ENC_UTF_8, "", 0, MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb_collation_compare("", 0, MJB_ENC_UTF_8, "", 0, MJB_ENC_UTF_8,
                    MJB_COLLATION_NON_IGNORABLE),
         0, "Collation: '' == ''")
-    ATT_ASSERT(mjb_string_compare("hello", 5, MJB_ENC_UTF_8, "hello", 5, MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb_collation_compare("hello", 5, MJB_ENC_UTF_8, "hello", 5, MJB_ENC_UTF_8,
                    MJB_COLLATION_NON_IGNORABLE),
         0, "Collation: hello == hello")
 
     const char hello_utf16le[] = { 'h', '\0', 'e', '\0', 'l', '\0', 'l', '\0', 'o', '\0' };
-    ATT_ASSERT(mjb_string_compare("hello", 5, MJB_ENC_UTF_8, hello_utf16le, sizeof(hello_utf16le),
+    ATT_ASSERT(mjb_collation_compare("hello", 5, MJB_ENC_UTF_8, hello_utf16le, sizeof(hello_utf16le),
                    MJB_ENC_UTF_16LE, MJB_COLLATION_NON_IGNORABLE),
         0, "Collation: UTF-8 hello == UTF-16LE hello")
 
@@ -403,7 +403,7 @@ int test_collation(void *arg) {
         '\0',
         '\0',
     };
-    ATT_ASSERT((int)(mjb_string_compare(apple_utf32le, sizeof(apple_utf32le), MJB_ENC_UTF_32LE,
+    ATT_ASSERT((int)(mjb_collation_compare(apple_utf32le, sizeof(apple_utf32le), MJB_ENC_UTF_32LE,
         "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE) < 0), 1,
         "Collation: UTF-32LE apple < UTF-8 banana")
 

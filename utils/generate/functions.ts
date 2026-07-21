@@ -239,7 +239,7 @@ printf("NFC: %.*s", (int)result.output_size, result.output);
 if(result.transformed) {
     mjb_free(result.output);
 }`,
-    related: ['mjb_string_is_normalized', 'mjb_string_filter'],
+    related: ['mjb_normalization_quick_check', 'mjb_string_filter'],
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
   {
@@ -340,7 +340,7 @@ mjb_result_free(&result);`,
   {
     comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',
     ret: 'mjb_quick_check_result',
-    name: 'mjb_string_is_normalized',
+    name: 'mjb_normalization_quick_check',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -364,7 +364,7 @@ mjb_result_free(&result);`,
       { value: 'MJB_QC_MAYBE', description: 'Inconclusive: a full normalization is needed to decide' }
     ],
     example: `const char *input = "caf\\xC3\\xA9";
-mjb_quick_check_result check = mjb_string_is_normalized(input, strlen(input),
+mjb_quick_check_result check = mjb_normalization_quick_check(input, strlen(input),
     MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
 
 // NFC normalized: yes
@@ -375,7 +375,7 @@ printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
   {
     comment: 'Return the string encoding (the most probable).',
     ret: 'mjb_encoding',
-    name: 'mjb_string_encoding',
+    name: 'mjb_detect_encoding',
     attributes: [
       'MJB_PURE'
     ],
@@ -385,13 +385,13 @@ printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    details: '`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic ' +
+    details: '`mjb_detect_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic ' +
       'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
       'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
       'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
       'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.',
     example: `const char utf16le[] = "\\xFF\\xFEH\\0i\\0";
-mjb_encoding detected = mjb_string_encoding(utf16le, sizeof(utf16le) - 1);
+mjb_encoding detected = mjb_detect_encoding(utf16le, sizeof(utf16le) - 1);
 bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
 
 // UTF-16LE detected: yes
@@ -454,7 +454,7 @@ printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" :
   {
     comment: 'Return the length of a string.',
     ret: 'size_t',
-    name: 'mjb_string_length',
+    name: 'mjb_count_codepoints',
     attributes: [
       'MJB_PURE'
     ],
@@ -480,15 +480,15 @@ const char utf32le[] = "H\\0\\0\\0\\xE9\\0\\0\\0l\\0\\0\\0l\\0\\0\\0\\xF6\\0\\0\
 const char utf32be[] = "\\0\\0\\0H\\0\\0\\0\\xE9\\0\\0\\0l\\0\\0\\0l\\0\\0\\0\\xF6"; // 20 bytes
 
 // 5 UTF-8 characters
-printf("%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8));
+printf("%zu UTF-8 characters", mjb_count_codepoints(utf8, 7, MJB_ENC_UTF_8));
 // 5 UTF-16LE characters
-printf("%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE));
+printf("%zu UTF-16LE characters", mjb_count_codepoints(utf16le, 10, MJB_ENC_UTF_16LE));
 // 5 UTF-16BE characters
-printf("%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE));
+printf("%zu UTF-16BE characters", mjb_count_codepoints(utf16be, 10, MJB_ENC_UTF_16BE));
 // 5 UTF-32LE characters
-printf("%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE));
+printf("%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_32LE));
 // 5 UTF-32BE characters
-printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE));`
+printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE));`
   },
   {
     comment: 'Run a callback for each character of a string.',
@@ -770,12 +770,12 @@ if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
 // UTF-16LE bytes: 8
 printf("UTF-16LE bytes: %zu", result.output_size);
 mjb_result_free(&result);`,
-    related: ['mjb_string_encoding', 'mjb_codepoint_encode']
+    related: ['mjb_detect_encoding', 'mjb_codepoint_encode']
   },
   {
     comment: 'Compare two strings using UCA.',
     ret: 'int',
-    name: 'mjb_string_compare',
+    name: 'mjb_collation_compare',
     attributes: [],
     args: [
       buffer('The first string to compare', 's1'),
@@ -800,7 +800,7 @@ mjb_result_free(&result);`,
       { value: '0', description: 'The strings are equal under UCA' },
       { value: '> 0', description: 'The first string collates after the second' }
     ],
-    example: `int order = mjb_string_compare("apple", 5, MJB_ENC_UTF_8,
+    example: `int order = mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
     "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
 
 // apple sorts before banana: yes
@@ -828,7 +828,7 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
     wasm: true,
     section: Section.SortingComparison,
     details: 'Generate a binary sort key for a string. Sort keys of different strings can be ' +
-      'compared with `memcmp` and yield the same order as `mjb_string_compare`. Useful when ' +
+      'compared with `memcmp` and yield the same order as `mjb_collation_compare`. Useful when ' +
       'the same strings are compared many times, such as sorting or database indexing.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The sort key was generated' },
@@ -847,7 +847,7 @@ if(mjb_collation_key("r\\xC3\\xA9sum\\xC3\\xA9", 8, MJB_ENC_UTF_8,
 // Sort key is non-empty: yes
 printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
 mjb_result_free(&key);`,
-    related: ['mjb_string_compare'],
+    related: ['mjb_collation_compare'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
   {

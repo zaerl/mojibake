@@ -13,8 +13,8 @@ extern mojibake mjb_global;
  * Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
  */
-MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_normalization form) {
+MJB_EXPORT mjb_quick_check_result mjb_normalization_quick_check(const char *buffer,
+    size_t byte_length, mjb_encoding encoding, mjb_normalization form) {
     // A NULL string can be considered normalized, but if the size is greater than 0, it is not
     // valid.
     if(buffer == NULL && byte_length > 0) {

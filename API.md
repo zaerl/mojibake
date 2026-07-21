@@ -193,11 +193,11 @@ A summary for `Héllö`, encoded this way:
 To find the real number of characters, you will later use `mjb_string_length`.
 
 ```c
-mjb_string_length("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8); // 5 characters
-mjb_string_length("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE); // 5 characters
-mjb_string_length("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE); // 5 characters
-mjb_string_length("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE); // 5 characters
-mjb_string_length("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE); // 5 characters
+mjb_count_codepoints("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8); // 5 characters
+mjb_count_codepoints("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE); // 5 characters
+mjb_count_codepoints("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE); // 5 characters
+mjb_count_codepoints("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE); // 5 characters
+mjb_count_codepoints("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE); // 5 characters
 ```
 
 # Functions
@@ -292,7 +292,7 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_string_is_normalized`](#mjb_string_is_normalized), [`mjb_string_filter`](#mjb_string_filter).
+See also: [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_string_filter`](#mjb_string_filter).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
@@ -404,12 +404,12 @@ See also: [`mjb_normalize`](#mjb_normalize), [`mjb_case`](#mjb_case), [`mjb_stri
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
-## `mjb_string_is_normalized`
+## `mjb_normalization_quick_check`
 
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 
 ```c
-mjb_quick_check_result mjb_string_is_normalized(
+mjb_quick_check_result mjb_normalization_quick_check(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -434,7 +434,7 @@ Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE`
 
 ```c
 const char *input = "caf\xC3\xA9";
-mjb_quick_check_result check = mjb_string_is_normalized(input, strlen(input),
+mjb_quick_check_result check = mjb_normalization_quick_check(input, strlen(input),
     MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC);
 
 // NFC normalized: yes
@@ -445,18 +445,18 @@ See also: [`mjb_normalize`](#mjb_normalize).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
-## `mjb_string_encoding`
+## `mjb_detect_encoding`
 
 Return the string encoding (the most probable).
 
 ```c
-mjb_encoding mjb_string_encoding(
+mjb_encoding mjb_detect_encoding(
     const char *buffer,
     size_t byte_length
 );
 ```
 
-`mjb_string_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
+`mjb_detect_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
 
 - `buffer` - The string to check
 - `byte_length` - The length of the string, in bytes
@@ -465,7 +465,7 @@ mjb_encoding mjb_string_encoding(
 
 ```c
 const char utf16le[] = "\xFF\xFEH\0i\0";
-mjb_encoding detected = mjb_string_encoding(utf16le, sizeof(utf16le) - 1);
+mjb_encoding detected = mjb_detect_encoding(utf16le, sizeof(utf16le) - 1);
 bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
 
 // UTF-16LE detected: yes
@@ -541,12 +541,12 @@ const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
 printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
 ```
 
-## `mjb_string_length`
+## `mjb_count_codepoints`
 
 Return the length of a string.
 
 ```c
-size_t mjb_string_length(
+size_t mjb_count_codepoints(
     const char *buffer,
     size_t max_length,
     mjb_encoding encoding
@@ -571,15 +571,15 @@ const char utf32le[] = "H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0"; // 20 bytes
 const char utf32be[] = "\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6"; // 20 bytes
 
 // 5 UTF-8 characters
-printf("%zu UTF-8 characters", mjb_string_length(utf8, 7, MJB_ENC_UTF_8));
+printf("%zu UTF-8 characters", mjb_count_codepoints(utf8, 7, MJB_ENC_UTF_8));
 // 5 UTF-16LE characters
-printf("%zu UTF-16LE characters", mjb_string_length(utf16le, 10, MJB_ENC_UTF_16LE));
+printf("%zu UTF-16LE characters", mjb_count_codepoints(utf16le, 10, MJB_ENC_UTF_16LE));
 // 5 UTF-16BE characters
-printf("%zu UTF-16BE characters", mjb_string_length(utf16be, 10, MJB_ENC_UTF_16BE));
+printf("%zu UTF-16BE characters", mjb_count_codepoints(utf16be, 10, MJB_ENC_UTF_16BE));
 // 5 UTF-32LE characters
-printf("%zu UTF-32LE characters", mjb_string_length(utf32le, 20, MJB_ENC_UTF_32LE));
+printf("%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_32LE));
 // 5 UTF-32BE characters
-printf("%zu UTF-32BE characters", mjb_string_length(utf32be, 20, MJB_ENC_UTF_32BE));
+printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE));
 ```
 
 ## `mjb_string_each_character`
@@ -895,14 +895,14 @@ printf("UTF-16LE bytes: %zu", result.output_size);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_string_encoding`](#mjb_string_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
+See also: [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
-## `mjb_string_compare`
+## `mjb_collation_compare`
 
 Compare two strings using UCA.
 
 ```c
-int mjb_string_compare(
+int mjb_collation_compare(
     const char *s1,
     size_t s1_byte_length,
     mjb_encoding s1_encoding,
@@ -932,7 +932,7 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 **Example**
 
 ```c
-int order = mjb_string_compare("apple", 5, MJB_ENC_UTF_8,
+int order = mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
     "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE);
 
 // apple sorts before banana: yes
@@ -957,7 +957,7 @@ mjb_status mjb_collation_key(
 );
 ```
 
-Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_string_compare`. Useful when the same strings are compared many times, such as sorting or database indexing.
+Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare`. Useful when the same strings are compared many times, such as sorting or database indexing.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string, in bytes
@@ -987,7 +987,7 @@ printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
 mjb_result_free(&key);
 ```
 
-See also: [`mjb_string_compare`](#mjb_string_compare).
+See also: [`mjb_collation_compare`](#mjb_collation_compare).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html).
 
@@ -2845,7 +2845,7 @@ without higher-level protocol tailoring.
   default locale is `MJB_LOCALE_EN`. Turkish and Azerbaijani apply dotted-I casing rules and Turkic
   case-folding mappings. Lithuanian applies dot-above casing rules; case folding remains the default
   non-Turkic mapping.
-- `mjb_string_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
+- `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
   `mjb_collation_mode` only selects the UCA variable weighting strategy.
 - `mjb_display_width` uses its `mjb_width_context` argument to choose how East Asian Width
   `Ambiguous` characters are counted. `mjb_codepoint_east_asian_width` returns the Unicode 18.0.0
@@ -2865,12 +2865,12 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Claim | Public surface | Unicode reference | Evidence |
 | ----- | -------------- | ----------------- | -------- |
 | Unicode Character Database data and derived properties | `mjb_codepoint_info`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
-| Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
+| Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_normalization_quick_check` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
 | Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
 | Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
-| Unicode Collation Algorithm, DUCET | `mjb_string_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
+| Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |

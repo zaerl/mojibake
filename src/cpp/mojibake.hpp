@@ -643,7 +643,7 @@ struct NumericValue {
 }
 
 [[nodiscard]] inline mjb_encoding detect_encoding(std::string_view input) noexcept {
-    return mjb_string_encoding(input.data(), input.size());
+    return mjb_detect_encoding(input.data(), input.size());
 }
 
 [[nodiscard]] inline bool is_ascii(std::string_view input) noexcept {
@@ -660,7 +660,7 @@ struct NumericValue {
 
 [[nodiscard]] inline size_t length(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_length(input.data(), input.size(), encoding);
+    return mjb_count_codepoints(input.data(), input.size(), encoding);
 }
 
 [[nodiscard]] inline mjb_status each_character(std::string_view input,
@@ -752,7 +752,7 @@ enum class NormalizationForm {
 
 [[nodiscard]] inline mjb_quick_check_result normalization_quick_check(std::string_view input,
     NormalizationForm form, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_is_normalized(input.data(), input.size(), encoding,
+    return mjb_normalization_quick_check(input.data(), input.size(), encoding,
         static_cast<mjb_normalization>(form));
 }
 
@@ -859,8 +859,8 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
 [[nodiscard]] inline int compare(std::string_view s1, std::string_view s2,
     mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
     mjb_encoding s2_encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_compare(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(), s2_encoding,
-        mode);
+    return mjb_collation_compare(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(),
+        s2_encoding, mode);
 }
 
 [[nodiscard]] inline TextResult collation_key_result(std::string_view input,

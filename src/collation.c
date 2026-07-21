@@ -911,8 +911,9 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
-    const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode) {
+MJB_EXPORT int mjb_collation_compare(const char *s1, size_t s1_byte_length,
+    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+    mjb_collation_mode mode) {
     if((s1 == NULL && s1_byte_length > 0) || (s2 == NULL && s2_byte_length > 0)) {
         return -1;
     }
