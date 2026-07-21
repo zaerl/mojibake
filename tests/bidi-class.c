@@ -250,7 +250,7 @@ static void read_bidi_class_test_file(const char *filename) {
                 }
             }
 
-            mjb_bidi_free(&para);
+            mjb_bidi_paragraph_free(&para);
         }
 
         char test_name[64];

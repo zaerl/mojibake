@@ -155,8 +155,9 @@ static bool cea_append_implicit(mjb_cea *cea, mjb_codepoint cp) {
         // UTS#10 Table 16: only the 4E00-9FFF block uses base FB40.
         if(cp >= MJB_CJK_IDEOGRAPH_START && cp <= MJB_CJK_IDEOGRAPH_END) {
             base = 0xFB40;
-        } else if(mjb_codepoint_is_cjk_ext(cp)) { // UTS#10 Table 16: all extensions use base FB80
-                                                  // (NOT FB40).
+        } else if(mjb_codepoint_is_cjk_extension_ideograph(cp)) { // UTS#10 Table 16: all extensions
+                                                                  // use base FB80
+                                                                  // (NOT FB40).
             base = 0xFB80;
         } else {
             base = 0xFBC0;

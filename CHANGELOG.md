@@ -180,7 +180,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `mjb_next_character` to `mjb_string_each_character`
 - Renamed `_mjbNextCharacterCallback` to `_mjbEachCharacterCallback`
 - Added second encoding to `mjb_collation_compare`
-- Added second encoding to `mjb_string_is_confusable`
+- Added second encoding to `mjb_are_confusable`
 - Renamed `size` to `byte_length`
 - Changed test function return from `void*` to `int`
 - Renamed `MJB_ENCODING_*` to `MJB_ENC_*`
@@ -250,7 +250,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing `ctest-cpp` target
 - Moved `mjb_size` to WASM-generated
 - Added missing license headers
-- Added missing `mjb_string_is_confusable` to WASM
+- Added missing `mjb_are_confusable` to WASM
 - Fixed missing file imports in Dockerfile
 - Windows: fixed `C1189`, `C4267` warnings
 - `UBSan`: fixed multiple security problems

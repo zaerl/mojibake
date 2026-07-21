@@ -1353,7 +1353,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
 }
 
 // Free a bidi paragraph allocated by mjb_bidi_resolve.
-MJB_EXPORT void mjb_bidi_free(mjb_bidi_paragraph *paragraph) {
+MJB_EXPORT void mjb_bidi_paragraph_free(mjb_bidi_paragraph *paragraph) {
     if(paragraph == NULL) {
         return;
     }

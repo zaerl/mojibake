@@ -84,7 +84,7 @@ export type MojibakeWasmModule = {
   // Return if the codepoint is CJK ideograph.
   _mjb_codepoint_is_cjk_ideograph: (codepoint: Codepoint) => boolean;
   // Return if the codepoint is CJK extension.
-  _mjb_codepoint_is_cjk_ext: (codepoint: Codepoint) => boolean;
+  _mjb_codepoint_is_cjk_extension_ideograph: (codepoint: Codepoint) => boolean;
   // Return true if the category is graphic.
   _mjb_category_is_graphic: (category: number) => boolean;
   // Return true if the category is combining.
@@ -98,9 +98,9 @@ export type MojibakeWasmModule = {
   // Grapheme cluster breaking.
   _mjb_next_grapheme_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-  _mjb_truncate: (buffer: Pointer, byte_length: number, encoding: number, max_graphemes: number) => number;
+  _mjb_truncate_grapheme: (buffer: Pointer, byte_length: number, encoding: number, max_graphemes: number) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
-  _mjb_truncate_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, max_columns: number) => number;
+  _mjb_truncate_grapheme_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
   _mjb_truncate_word: (buffer: Pointer, byte_length: number, encoding: number, max_segments: number) => number;
   // Return the number of bytes whose word-break segments fit within max_columns display columns.
@@ -126,7 +126,7 @@ export type MojibakeWasmModule = {
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
   _mjb_confusable_skeleton: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-  _mjb_string_is_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number) => boolean;
+  _mjb_are_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number) => boolean;
   // Return the emoji properties.
   _mjb_codepoint_emoji: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property.

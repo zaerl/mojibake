@@ -84,7 +84,8 @@ ATT_ASSERT(mojibake.codepointIsHangulT(0x11A8), true, 'codepointIsHangulT');
 ATT_ASSERT(mojibake.codepointIsHangulJamo(0x1100), true, 'codepointIsHangulJamo');
 ATT_ASSERT(mojibake.codepointIsHangulSyllable(0xAC00), true, 'codepointIsHangulSyllable');
 ATT_ASSERT(mojibake.codepointIsCjkIdeograph(0x4E00), true, 'codepointIsCjkIdeograph');
-ATT_ASSERT(mojibake.codepointIsCjkExt(0x3400), true, 'codepointIsCjkExt');
+ATT_ASSERT(mojibake.codepointIsCJKExtensionIdeograph(0x3400), true,
+'codepointIsCJKExtensionIdeograph');
 ATT_ASSERT(mojibake.categoryIsGraphic(Category.LU), true, 'categoryIsGraphic');
 ATT_ASSERT(mojibake.categoryIsCombining(Category.MN), true, 'categoryIsCombining');
 ATT_ASSERT(mojibake.codepointNumericValue(0x31), { decimal: 1, digit: 1, numeric: '1' },
@@ -98,8 +99,9 @@ ATT_ASSERT(mojibake.nextGraphemeBreak('A'), [BreakType.ALLOWED], 'nextGraphemeBr
 ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');
 ATT_ASSERT(mojibake.truncateWordWidth('Hello World', WidthContext.WESTERN, 5), 5,
   'truncateWordWidth');
-ATT_ASSERT(mojibake.truncate('ABC', 2), 2, 'truncate');
-ATT_ASSERT(mojibake.truncateWidth('ABC', WidthContext.WESTERN, 2), 2, 'truncateWidth');
+ATT_ASSERT(mojibake.truncateGrapheme('ABC', 2), 2, 'truncateGrapheme');
+ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', WidthContext.WESTERN, 2), 2,
+  'truncateGraphemeWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');
 ATT_ASSERT(mojibake.codepointPlane(0xFFFD), Plane.BMP, 'codepointPlane');
 ATT_ASSERT(mojibake.planeIsValid(Plane.SMP), true, 'planeIsValid');
@@ -112,7 +114,7 @@ ATT_ASSERT(mojibake.codepointIsPatternSyntax(0x21), true, 'codepointIsPatternSyn
 ATT_ASSERT(mojibake.codepointIsPatternWhiteSpace(0x20), true, 'codepointIsPatternWhiteSpace');
 ATT_ASSERT(mojibake.stringIsIdentifier('hello'), true, 'stringIsIdentifier');
 ATT_ASSERT(mojibake.propertyName(Property.CASED), 'Cased', 'propertyName');
-ATT_ASSERT(mojibake.stringIsConfusable('\u0410', 'A'), true, 'stringIsConfusable');
+ATT_ASSERT(mojibake.areConfusable('\u0410', 'A'), true, 'areConfusable');
 ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
   'confusableSkeleton');
 ATT_ASSERT(mojibake.codepointEmoji(0x23)?.component, true, 'codepointEmoji');

@@ -1215,12 +1215,12 @@ bool mjb_codepoint_is_cjk_ideograph(
 printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");
 ```
 
-## `mjb_codepoint_is_cjk_ext`
+## `mjb_codepoint_is_cjk_extension_ideograph`
 
 Return if the codepoint is CJK extension.
 
 ```c
-bool mjb_codepoint_is_cjk_ext(
+bool mjb_codepoint_is_cjk_extension_ideograph(
     mjb_codepoint codepoint
 );
 ```
@@ -1231,7 +1231,7 @@ bool mjb_codepoint_is_cjk_ext(
 
 ```c
 // U+20000 is a CJK extension ideograph: yes
-printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_ext(0x20000) ? "yes" : "no");
+printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");
 ```
 
 ## `mjb_category_is_graphic`
@@ -1423,16 +1423,16 @@ while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
 printf("Codepoints examined: %zu", codepoints);
 ```
 
-See also: [`mjb_next_word_break`](#mjb_next_word_break), [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_next_line_break`](#mjb_next_line_break), [`mjb_truncate`](#mjb_truncate).
+See also: [`mjb_next_word_break`](#mjb_next_word_break), [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_next_line_break`](#mjb_next_line_break), [`mjb_truncate_grapheme`](#mjb_truncate_grapheme).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
-## `mjb_truncate`
+## `mjb_truncate_grapheme`
 
 Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
 
 ```c
-size_t mjb_truncate(
+size_t mjb_truncate_grapheme(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1449,18 +1449,18 @@ size_t mjb_truncate(
 
 ```c
 const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z"; // A🇮🇹Z
-size_t bytes = mjb_truncate(input, strlen(input), MJB_ENC_UTF_8, 2);
+size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);
 ```
 
-## `mjb_truncate_width`
+## `mjb_truncate_grapheme_width`
 
 Return the number of bytes whose grapheme clusters fit within max_columns display columns.
 
 ```c
-size_t mjb_truncate_width(
+size_t mjb_truncate_grapheme_width(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1479,7 +1479,7 @@ size_t mjb_truncate_width(
 
 ```c
 const char *input = "A\xE7\x95\x8C"; // A界
-size_t bytes = mjb_truncate_width(input, strlen(input), MJB_ENC_UTF_8,
+size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
     MJB_WIDTH_CONTEXT_WESTERN, 2);
 
 // Two columns include 1 byte
@@ -1565,7 +1565,7 @@ Resolve the embedding levels of a paragraph following the Unicode Bidirectional 
 - `byte_length` - The length of the string, in bytes
 - `encoding` - The encoding of the string
 - `direction` - The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
-- `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_free()`
+- `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_paragraph_free()`
 
 **Returns**
 
@@ -1587,10 +1587,10 @@ if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
 
 // Paragraph codepoints: 7
 printf("Paragraph codepoints: %zu", paragraph.count);
-mjb_bidi_free(&paragraph);
+mjb_bidi_paragraph_free(&paragraph);
 ```
 
-See also: [`mjb_bidi_free`](#mjb_bidi_free), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
+See also: [`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
 
@@ -1628,7 +1628,7 @@ if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
 
 // First visual index: 2
 printf("First visual index: %zu", visual_order[0]);
-mjb_bidi_free(&paragraph);
+mjb_bidi_paragraph_free(&paragraph);
 ```
 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_line_runs`](#mjb_bidi_line_runs).
@@ -1672,19 +1672,19 @@ if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
 
 // Visual runs: 1
 printf("Visual runs: %zu", run_count);
-mjb_bidi_free(&paragraph);
+mjb_bidi_paragraph_free(&paragraph);
 ```
 
 See also: [`mjb_bidi_resolve`](#mjb_bidi_resolve), [`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line).
 
 Specifications: [UAX #9: Unicode Bidirectional Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html).
 
-## `mjb_bidi_free`
+## `mjb_bidi_paragraph_free`
 
 Free a bidi paragraph allocated by mjb_bidi_resolve.
 
 ```c
-void mjb_bidi_free(
+void mjb_bidi_paragraph_free(
     mjb_bidi_paragraph *paragraph
 );
 ```
@@ -1701,7 +1701,7 @@ if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
     return 1;
 }
 
-mjb_bidi_free(&paragraph);
+mjb_bidi_paragraph_free(&paragraph);
 
 // Paragraph released: yes
 printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");
@@ -1954,16 +1954,16 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_string_is_confusable`](#mjb_string_is_confusable), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+See also: [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
-## `mjb_string_is_confusable`
+## `mjb_are_confusable`
 
 Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 
 ```c
-bool mjb_string_is_confusable(
+bool mjb_are_confusable(
     const char *s1,
     size_t s1_byte_length,
     mjb_encoding s1_encoding,
@@ -1988,7 +1988,7 @@ Compute the confusable skeleton of both strings and return true when the skeleto
 const char *latin = "hello";
 const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
 
-bool confusable = mjb_string_is_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
     mixed, strlen(mixed), MJB_ENC_UTF_8);
 
 // Visually confusable: yes
@@ -2493,7 +2493,7 @@ if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
 printf("Display columns: %zu", width);
 ```
 
-See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_truncate_width`](#mjb_truncate_width).
+See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_truncate_grapheme_width`](#mjb_truncate_grapheme_width).
 
 Specifications: [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-45.html).
 
@@ -2872,6 +2872,6 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
-| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
+| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

@@ -1005,13 +1005,13 @@ printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ?
   {
     comment: 'Return if the codepoint is CJK extension.',
     ret: 'bool',
-    name: 'mjb_codepoint_is_cjk_ext',
+    name: 'mjb_codepoint_is_cjk_extension_ideograph',
     attributes: ['MJB_CONST'],
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
     example: `// U+20000 is a CJK extension ideograph: yes
-printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_ext(0x20000) ? "yes" : "no");`
+printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");`
   },
   {
     comment: 'Return true if the category is graphic.',
@@ -1177,13 +1177,13 @@ while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
 
 // Codepoints examined: 2
 printf("Codepoints examined: %zu", codepoints);`,
-    related: ['mjb_next_word_break', 'mjb_next_sentence_break', 'mjb_next_line_break', 'mjb_truncate'],
+    related: ['mjb_next_word_break', 'mjb_next_sentence_break', 'mjb_next_line_break', 'mjb_truncate_grapheme'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.',
     ret: 'size_t',
-    name: 'mjb_truncate',
+    name: 'mjb_truncate_grapheme',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1199,7 +1199,7 @@ printf("Codepoints examined: %zu", codepoints);`,
     wasm: true,
     section: Section.Segmentation,
     example: `const char *input = "A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z"; // A🇮🇹Z
-size_t bytes = mjb_truncate(input, strlen(input), MJB_ENC_UTF_8, 2);
+size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);`
@@ -1207,7 +1207,7 @@ printf("First two graphemes use %zu bytes", bytes);`
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
     ret: 'size_t',
-    name: 'mjb_truncate_width',
+    name: 'mjb_truncate_grapheme_width',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1229,7 +1229,7 @@ printf("First two graphemes use %zu bytes", bytes);`
     wasm: true,
     section: Section.DisplayWidth,
     example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
-size_t bytes = mjb_truncate_width(input, strlen(input), MJB_ENC_UTF_8,
+size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
     MJB_WIDTH_CONTEXT_WESTERN, 2);
 
 // Two columns include 1 byte
@@ -1310,7 +1310,7 @@ printf("Six columns include %zu bytes", bytes);`
         type: 'mjb_bidi_paragraph *',
         description: 'Output paragraph; chars is library-allocated',
         wasm_generated: false,
-        ownership: '`result->chars` is library-allocated and must be freed with `mjb_bidi_free()`'
+        ownership: '`result->chars` is library-allocated and must be freed with `mjb_bidi_paragraph_free()`'
       }
     ],
     wasm: true,
@@ -1335,8 +1335,8 @@ if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
 
 // Paragraph codepoints: 7
 printf("Paragraph codepoints: %zu", paragraph.count);
-mjb_bidi_free(&paragraph);`,
-    related: ['mjb_bidi_free', 'mjb_bidi_reorder_line', 'mjb_bidi_line_runs'],
+mjb_bidi_paragraph_free(&paragraph);`,
+    related: ['mjb_bidi_paragraph_free', 'mjb_bidi_reorder_line', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
@@ -1386,7 +1386,7 @@ if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
 
 // First visual index: 2
 printf("First visual index: %zu", visual_order[0]);
-mjb_bidi_free(&paragraph);`,
+mjb_bidi_paragraph_free(&paragraph);`,
     related: ['mjb_bidi_resolve', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -1443,14 +1443,14 @@ if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
 
 // Visual runs: 1
 printf("Visual runs: %zu", run_count);
-mjb_bidi_free(&paragraph);`,
+mjb_bidi_paragraph_free(&paragraph);`,
     related: ['mjb_bidi_resolve', 'mjb_bidi_reorder_line'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
   {
     comment: 'Free a bidi paragraph allocated by mjb_bidi_resolve.',
     ret: 'void',
-    name: 'mjb_bidi_free',
+    name: 'mjb_bidi_paragraph_free',
     attributes: [],
     args: [
       {
@@ -1469,7 +1469,7 @@ if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
     return 1;
 }
 
-mjb_bidi_free(&paragraph);
+mjb_bidi_paragraph_free(&paragraph);
 
 // Paragraph released: yes
 printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`,
@@ -1650,13 +1650,13 @@ if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
 // hello
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
-    related: ['mjb_string_is_confusable', 'mjb_string_is_identifier'],
+    related: ['mjb_are_confusable', 'mjb_string_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
     comment: 'Return true if two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
     ret: 'bool',
-    name: 'mjb_string_is_confusable',
+    name: 'mjb_are_confusable',
     attributes: [],
     args: [
       buffer('The first string', 's1'),
@@ -1674,7 +1674,7 @@ mjb_result_free(&result);`,
     example: `const char *latin = "hello";
 const char *mixed = "h\\xD0\\xB5llo"; // Cyrillic е
 
-bool confusable = mjb_string_is_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
     mixed, strlen(mixed), MJB_ENC_UTF_8);
 
 // Visually confusable: yes
@@ -2081,7 +2081,7 @@ if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
 
 // Display columns: 3
 printf("Display columns: %zu", width);`,
-    related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_width'],
+    related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_grapheme_width'],
     specs: [uax(11, 'East Asian Width')]
   },
   {

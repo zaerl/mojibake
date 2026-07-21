@@ -835,9 +835,9 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_cjk_ideograph(codepoint) ? true : false;
   }
 
-  // bool mjb_codepoint_is_cjk_ext(mjb_codepoint codepoint)
-  codepointIsCjkExt(codepoint: Codepoint): boolean {
-    return this.module._mjb_codepoint_is_cjk_ext(codepoint) ? true : false;
+  // bool mjb_codepoint_is_cjk_extension_ideograph(mjb_codepoint codepoint)
+  codepointIsCJKExtensionIdeograph(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_cjk_extension_ideograph(codepoint) ? true : false;
   }
 
   // bool mjb_category_is_graphic(mjb_category category)
@@ -936,27 +936,27 @@ export class Mojibake {
     return this.collectBreaks(input, this.module._mjb_next_grapheme_break, options);
   }
 
-  // size_t mjb_truncate(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t
+  // size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t
   // max_graphemes)
-  truncate(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
+  truncateGrapheme(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_truncate(wasmInput.ptr, wasmInput.size,
+      return this.module._mjb_truncate_grapheme(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, maxGraphemes);
     } finally {
       this.free(wasmInput.ptr);
     }
   }
 
-  // size_t mjb_truncate_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_width_context context, size_t max_columns)
-  truncateWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
+  truncateGraphemeWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_truncate_width(wasmInput.ptr, wasmInput.size,
+      return this.module._mjb_truncate_grapheme_width(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, context, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
@@ -998,7 +998,7 @@ export class Mojibake {
     }
   }
 
-  // void mjb_bidi_free(mjb_bidi_paragraph *paragraph)
+  // void mjb_bidi_paragraph_free(mjb_bidi_paragraph *paragraph)
   // mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start, size_t
   // line_end, size_t *visual_order)
   // mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph, const size_t *visual_order,
@@ -1108,14 +1108,14 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
+  // bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
   // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding)
-  stringIsConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
+  areConfusable(s1: MojibakeInput, s2: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput1 = this.copyInput(s1, options.encoding);
     const wasmInput2 = this.copyInput(s2, options.additionalEncoding ?? options.encoding);
 
     try {
-      return this.module._mjb_string_is_confusable(wasmInput1.ptr, wasmInput1.size,
+      return this.module._mjb_are_confusable(wasmInput1.ptr, wasmInput1.size,
         wasmInput1.encoding, wasmInput2.ptr, wasmInput2.size, wasmInput2.encoding) ? true : false;
     } finally {
       this.free(wasmInput1.ptr);

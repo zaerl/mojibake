@@ -9,10 +9,10 @@
 // Return if the codepoint is a CJK ideograph
 MJB_EXPORT bool mjb_codepoint_is_cjk_ideograph(mjb_codepoint cp) {
     return (cp >= MJB_CJK_IDEOGRAPH_START && cp <= MJB_CJK_IDEOGRAPH_END) ||
-        mjb_codepoint_is_cjk_ext(cp);
+        mjb_codepoint_is_cjk_extension_ideograph(cp);
 }
 
-MJB_EXPORT bool mjb_codepoint_is_cjk_ext(mjb_codepoint cp) {
+MJB_EXPORT bool mjb_codepoint_is_cjk_extension_ideograph(mjb_codepoint cp) {
     return (cp >= MJB_CJK_EXTENSION_A_START && cp <= MJB_CJK_EXTENSION_A_END) ||
         (cp >= MJB_CJK_EXTENSION_B_START && cp <= MJB_CJK_EXTENSION_B_END) ||
         (cp >= MJB_CJK_EXTENSION_C_START && cp <= MJB_CJK_EXTENSION_C_END) ||

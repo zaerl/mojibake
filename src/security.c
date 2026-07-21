@@ -139,7 +139,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     char *reordered = (char *)mjb_alloc(reordered_capacity);
 
     if(reordered == NULL) {
-        mjb_bidi_free(&paragraph);
+        mjb_bidi_paragraph_free(&paragraph);
         return MJB_STATUS_NO_MEMORY;
     }
 
@@ -151,7 +151,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
 
         if(visual_order == NULL) {
             mjb_free(reordered);
-            mjb_bidi_free(&paragraph);
+            mjb_bidi_paragraph_free(&paragraph);
 
             return MJB_STATUS_NO_MEMORY;
         }
@@ -161,7 +161,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
         if(status != MJB_STATUS_OK) {
             mjb_free(visual_order);
             mjb_free(reordered);
-            mjb_bidi_free(&paragraph);
+            mjb_bidi_paragraph_free(&paragraph);
 
             return status;
         }
@@ -209,7 +209,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
             if(new_reordered == NULL) {
                 mjb_free(visual_order);
                 mjb_free(reordered);
-                mjb_bidi_free(&paragraph);
+                mjb_bidi_paragraph_free(&paragraph);
 
                 return MJB_STATUS_NO_MEMORY;
             }
@@ -219,7 +219,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     }
 
     mjb_free(visual_order);
-    mjb_bidi_free(&paragraph);
+    mjb_bidi_paragraph_free(&paragraph);
 
     mjb_result utf8_skeleton;
     status = mjb_confusable_skeleton_utf8(reordered, reordered_size, MJB_ENC_UTF_8, &utf8_skeleton);
@@ -255,8 +255,8 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
 
 // Return true if two strings are visually confusable (UTS#39 §4). They are confusable if their
 // skeletons are identical.
-MJB_EXPORT bool mjb_string_is_confusable(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding) {
+MJB_EXPORT bool mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
+    const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding) {
     mjb_result skel1;
     mjb_result skel2;
 
