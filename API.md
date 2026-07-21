@@ -400,7 +400,7 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+See also: [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -1850,12 +1850,12 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html).
 
-## `mjb_string_is_identifier`
+## `mjb_is_identifier`
 
 Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).
 
 ```c
-bool mjb_string_is_identifier(
+bool mjb_is_identifier(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -1875,7 +1875,7 @@ Validate a string as a Unicode identifier: the first character must be a valid i
 ```c
 const char *identifier = "delta_2";
 
-bool valid = mjb_string_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
+bool valid = mjb_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
     MJB_IDENTIFIER_NFKC);
 
 // Valid identifier: yes
@@ -1954,7 +1954,7 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+See also: [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
@@ -1995,7 +1995,7 @@ bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
 printf("Visually confusable: %s", confusable ? "yes" : "no");
 ```
 
-See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_string_is_identifier`](#mjb_string_is_identifier).
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
@@ -2268,16 +2268,16 @@ if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
 printf("Sequence codepoints: %zu", emoji.codepoint_count);
 ```
 
-See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji).
+See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
-## `mjb_string_is_emoji_sequence`
+## `mjb_is_emoji_sequence`
 
 Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
 
 ```c
-bool mjb_string_is_emoji_sequence(
+bool mjb_is_emoji_sequence(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding
@@ -2293,22 +2293,22 @@ bool mjb_string_is_emoji_sequence(
 ```c
 const char *keycap = "1\xEF\xB8\x8F\xE2\x83\xA3"; // 1️⃣
 
-bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
 
 // Listed emoji sequence: yes
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");
 ```
 
-See also: [`mjb_string_is_rgi_emoji`](#mjb_string_is_rgi_emoji), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
+See also: [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
-## `mjb_string_is_rgi_emoji`
+## `mjb_is_rgi_emoji`
 
 Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
 
 ```c
-bool mjb_string_is_rgi_emoji(
+bool mjb_is_rgi_emoji(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding
@@ -2324,13 +2324,13 @@ bool mjb_string_is_rgi_emoji(
 ```c
 const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
 
-bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 
 // RGI emoji: yes
 printf("RGI emoji: %s", rgi ? "yes" : "no");
 ```
 
-See also: [`mjb_string_is_emoji_sequence`](#mjb_string_is_emoji_sequence), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
+See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -2871,7 +2871,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Line breaking | `mjb_next_line_break` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
-| Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
+| Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

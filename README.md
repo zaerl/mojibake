@@ -144,7 +144,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   confusable (`mjb_confusable_skeleton`, `mjb_are_confusable`,
   [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
-  (`mjb_string_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))
+  (`mjb_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))
 
 **Integration**
 

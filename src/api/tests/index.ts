@@ -112,7 +112,7 @@ ATT_ASSERT(mojibake.codepointIsXidStart(0x41), true, 'codepointIsXidStart');
 ATT_ASSERT(mojibake.codepointIsXidContinue(0x30), true, 'codepointIsXidContinue');
 ATT_ASSERT(mojibake.codepointIsPatternSyntax(0x21), true, 'codepointIsPatternSyntax');
 ATT_ASSERT(mojibake.codepointIsPatternWhiteSpace(0x20), true, 'codepointIsPatternWhiteSpace');
-ATT_ASSERT(mojibake.stringIsIdentifier('hello'), true, 'stringIsIdentifier');
+ATT_ASSERT(mojibake.isIdentifier('hello'), true, 'isIdentifier');
 ATT_ASSERT(mojibake.propertyName(Property.CASED), 'Cased', 'propertyName');
 ATT_ASSERT(mojibake.areConfusable('\u0410', 'A'), true, 'areConfusable');
 ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
@@ -130,8 +130,8 @@ ATT_ASSERT(mojibake.classifyEmojiSequence('\u263A\uFE0F'), {
   qualification: EmojiQualification.FULLY_QUALIFIED,
   codepoint_count: 2
 }, 'classifyEmojiSequence');
-ATT_ASSERT(mojibake.stringIsEmojiSequence('\u263A'), true, 'stringIsEmojiSequence');
-ATT_ASSERT(mojibake.stringIsRgiEmoji('\u263A\uFE0F'), true, 'stringIsRgiEmoji');
+ATT_ASSERT(mojibake.isEmojiSequence('\u263A'), true, 'isEmojiSequence');
+ATT_ASSERT(mojibake.isRGIEmoji('\u263A\uFE0F'), true, 'stringIsRgiEmoji');
 ATT_ASSERT(mojibake.hangulSyllableName(0xAC01), 'HANGUL SYLLABLE GAG', 'hangulSyllableName');
 ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
   'codepointEastAsianWidth');

@@ -685,7 +685,7 @@ struct NumericValue {
 [[nodiscard]] inline bool is_identifier(std::string_view input,
     mjb_identifier_profile profile = MJB_IDENTIFIER_DEFAULT,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_is_identifier(input.data(), input.size(), encoding, profile);
+    return mjb_is_identifier(input.data(), input.size(), encoding, profile);
 }
 
 [[nodiscard]] inline bool is_confusable(std::string_view s1, std::string_view s2,
@@ -911,12 +911,12 @@ struct EmojiSequence {
 
 [[nodiscard]] inline bool is_emoji_sequence(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_is_emoji_sequence(input.data(), input.size(), encoding);
+    return mjb_is_emoji_sequence(input.data(), input.size(), encoding);
 }
 
 [[nodiscard]] inline bool is_rgi_emoji(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_string_is_rgi_emoji(input.data(), input.size(), encoding);
+    return mjb_is_rgi_emoji(input.data(), input.size(), encoding);
 }
 
 [[nodiscard]] inline size_t display_width(std::string_view input,

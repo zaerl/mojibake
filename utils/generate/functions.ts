@@ -331,7 +331,7 @@ if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
 // strasse
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
-    related: ['mjb_normalize', 'mjb_map_case', 'mjb_string_is_identifier'],
+    related: ['mjb_normalize', 'mjb_map_case', 'mjb_is_identifier'],
     specs: [
       unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992'),
       uax(31, 'Unicode Identifiers and Syntax'),
@@ -1570,7 +1570,7 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
   {
     comment: 'Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).',
     ret: 'bool',
-    name: 'mjb_string_is_identifier',
+    name: 'mjb_is_identifier',
     attributes: [],
     args: [
       buffer('The string to validate'),
@@ -1590,7 +1590,7 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
       'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
     example: `const char *identifier = "delta_2";
 
-bool valid = mjb_string_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
+bool valid = mjb_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
     MJB_IDENTIFIER_NFKC);
 
 // Valid identifier: yes
@@ -1655,7 +1655,7 @@ if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
 // hello
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
-    related: ['mjb_are_confusable', 'mjb_string_is_identifier'],
+    related: ['mjb_are_confusable', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
@@ -1684,7 +1684,7 @@ bool confusable = mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
 
 // Visually confusable: yes
 printf("Visually confusable: %s", confusable ? "yes" : "no");`,
-    related: ['mjb_confusable_skeleton', 'mjb_string_is_identifier'],
+    related: ['mjb_confusable_skeleton', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
@@ -1887,14 +1887,14 @@ if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
 
 // Sequence codepoints: 2
 printf("Sequence codepoints: %zu", emoji.codepoint_count);`,
-    related: ['mjb_string_is_emoji_sequence', 'mjb_string_is_rgi_emoji'],
+    related: ['mjb_is_emoji_sequence', 'mjb_is_rgi_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the complete string is an emoji sequence listed by Unicode, ' +
       'including standardized emoji variation sequences.',
     ret: 'bool',
-    name: 'mjb_string_is_emoji_sequence',
+    name: 'mjb_is_emoji_sequence',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1905,18 +1905,18 @@ printf("Sequence codepoints: %zu", emoji.codepoint_count);`,
     wasm: true,
     example: `const char *keycap = "1\\xEF\\xB8\\x8F\\xE2\\x83\\xA3"; // 1️⃣
 
-bool listed = mjb_string_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
 
 // Listed emoji sequence: yes
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
-    related: ['mjb_string_is_rgi_emoji', 'mjb_classify_emoji_sequence'],
+    related: ['mjb_is_rgi_emoji', 'mjb_classify_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Return true if the complete string is an RGI emoji sequence, excluding plain ' +
       'standardized variation sequences.',
     ret: 'bool',
-    name: 'mjb_string_is_rgi_emoji',
+    name: 'mjb_is_rgi_emoji',
     attributes: [],
     args: [
       buffer('The string to check'),
@@ -1924,14 +1924,15 @@ printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
       encoding()
     ],
     wasm: true,
+    wasmName: 'isRGIEmoji',
     section: Section.Emoji,
     example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
 
-bool rgi = mjb_string_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 
 // RGI emoji: yes
 printf("RGI emoji: %s", rgi ? "yes" : "no");`,
-    related: ['mjb_string_is_emoji_sequence', 'mjb_classify_emoji_sequence'],
+    related: ['mjb_is_emoji_sequence', 'mjb_classify_emoji_sequence'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
