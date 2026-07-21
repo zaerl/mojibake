@@ -28,6 +28,13 @@ typedef struct {
     size_t cap;
 } mjb_cea;
 
+// Dynamic sort-key array (uint16_t)
+typedef struct {
+    uint16_t *data;
+    size_t count;
+    size_t cap;
+} mjb_sort_key;
+
 static bool cea_grow(mjb_cea *a, size_t need) {
     if(need > SIZE_MAX - a->count) {
         return false;
@@ -87,13 +94,6 @@ static void cea_free(mjb_cea *a) {
     a->count = 0;
     a->cap = 0;
 }
-
-// Dynamic sort-key array (uint16_t)
-typedef struct {
-    uint16_t *data;
-    size_t count;
-    size_t cap;
-} mjb_sort_key;
 
 static bool sk_push(mjb_sort_key *sk, uint16_t w) {
     if(sk->count >= sk->cap) {
@@ -236,7 +236,6 @@ static bool cea_append_packed(mjb_cea *cea, const uint32_t *weights) {
 }
 
 // Decode UTF-8 to a codepoint array
-
 static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_codepoints,
     size_t *out_count) {
     *out_codepoints = NULL;
@@ -833,6 +832,32 @@ static int compare_sort_keys(const mjb_sort_key *k1, const mjb_sort_key *k2) {
     return 0;
 }
 
+static mjb_status mjb_collation_key_write(mjb_output *output, const void *context) {
+    const mjb_sort_key *sort_key = (const mjb_sort_key *)context;
+
+    for(size_t i = 0; i < sort_key->count; ++i) {
+        uint8_t bytes[2] = { (uint8_t)(sort_key->data[i] >> 8),
+            (uint8_t)(sort_key->data[i] & 0xFF) };
+        mjb_status status = mjb_output_write(output, bytes, sizeof(bytes));
+
+        if(status != MJB_STATUS_OK) {
+            return status;
+        }
+    }
+
+    return MJB_STATUS_OK;
+}
+
+static mjb_status mjb_collation_key_byte_count(const mjb_sort_key *sort_key, size_t *byte_count) {
+    if(sort_key->count > SIZE_MAX / 2) {
+        return MJB_STATUS_OVERFLOW;
+    }
+
+    *byte_count = sort_key->count * 2;
+
+    return MJB_STATUS_OK;
+}
+
 MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
@@ -851,13 +876,14 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
         return status;
     }
 
-    if(sk.count > SIZE_MAX / 2) {
+    size_t byte_count = 0;
+    status = mjb_collation_key_byte_count(&sk, &byte_count);
+
+    if(status != MJB_STATUS_OK) {
         sk_free(&sk);
 
-        return MJB_STATUS_OVERFLOW;
+        return status;
     }
-
-    size_t byte_count = sk.count * 2;
 
     if(byte_count == 0) {
         result->transformed = true;
@@ -872,9 +898,14 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
         return MJB_STATUS_NO_MEMORY;
     }
 
-    for(size_t i = 0; i < sk.count; ++i) {
-        bytes[i * 2] = (uint8_t)(sk.data[i] >> 8);
-        bytes[i * 2 + 1] = (uint8_t)(sk.data[i] & 0xFF);
+    mjb_output output = { (char *)bytes, 0, byte_count, MJB_OUTPUT_FIXED };
+    status = mjb_collation_key_write(&output, &sk);
+
+    if(status != MJB_STATUS_OK) {
+        mjb_free(bytes);
+        sk_free(&sk);
+
+        return status;
     }
 
     sk_free(&sk);
@@ -884,6 +915,41 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
     result->transformed = true;
 
     return MJB_STATUS_OK;
+}
+
+MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_collation_mode mode, void *output, size_t *output_size) {
+    if(output_size == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(buffer == NULL && byte_length > 0) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_sort_key sort_key = { 0, 0, 0 };
+    mjb_status status = compute_sort_key(buffer, byte_length, encoding, mode, &sort_key);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
+    size_t byte_count = 0;
+    status = mjb_collation_key_byte_count(&sort_key, &byte_count);
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_output_into(output, output_size, mjb_collation_key_write, &sort_key);
+    } else {
+        *output_size = 0;
+    }
+
+    sk_free(&sort_key);
+
+    return status;
 }
 
 MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,

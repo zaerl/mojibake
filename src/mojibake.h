@@ -519,11 +519,20 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_info(mjb_codepoint codepoint, 
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 
+// Normalize a string into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, void *output, size_t *output_size);
+
 // Filter a string with the selected mjb_filter_flags.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result);
 
+// Filter a string into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter_flags filters, mjb_encoding output_encoding, void *output, size_t *output_size);
+
 // Apply the Unicode NFKC_Casefold transform to a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+
+// Apply the Unicode NFKC_Casefold transform into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check);
@@ -570,14 +579,23 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 // Convert from one encoding to another.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
+// Convert from one encoding to another into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
+
 // Compare two strings using UCA.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode, int *order);
 
 // Generate a UCA sort key for a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
 
+// Generate a binary collation key into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, void *output, size_t *output_size);
+
 // Change string case.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result);
+
+// Change string case into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, void *output, size_t *output_size);
 
 // Return true if the codepoint is valid.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -677,6 +695,9 @@ MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 
 // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+
+// Compute a Unicode confusable skeleton into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
 
 // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, bool *confusable);

@@ -273,13 +273,26 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     mjb_codepoint codepoint = fuzz_codepoint((const uint8_t *)buffer, size, variant);
 
     switch(selector % 18) {
-        case 0: // Normalization, all four forms
+        case 0: { // Normalization, all four forms
             if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
                    MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
+            size_t required = 0;
+
+            if(mjb_normalize_into(buffer, size, encoding,
+                   (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, NULL, &required) ==
+                    MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = required;
+                fuzz_sink += (size_t)mjb_normalize_into(buffer, size, encoding,
+                    (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, output, &capacity);
+            }
+
             break;
+        }
 
         case 1: { // Normalization quick check
             mjb_quick_check_result quick_check;
@@ -288,12 +301,24 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
         }
 
-        case 17: // Identifier-oriented NFKC case folding
+        case 17: { // Identifier-oriented NFKC case folding
             if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
+            size_t required = 0;
+
+            if(mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8, NULL, &required) ==
+                    MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = required;
+                fuzz_sink += (size_t)mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8,
+                    output, &capacity);
+            }
+
             break;
+        }
 
         case 2: // Case conversion and folding, all transforming types
             if(mjb_map_case(buffer, size, encoding, (mjb_map_case_type)(1 + (variant % 5)),
@@ -348,14 +373,28 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
             break;
 
-        case 7: // Collation key
+        case 7: { // Collation key
             if(mjb_collation_key(buffer, size, encoding,
                    (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
                    &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
+            size_t required = 0;
+            mjb_collation_mode mode = (variant & 0x10) ? MJB_COLLATION_SHIFTED :
+                MJB_COLLATION_NON_IGNORABLE;
+
+            if(mjb_collation_key_into(buffer, size, encoding, mode, NULL, &required) ==
+                    MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = required;
+                fuzz_sink += (size_t)mjb_collation_key_into(buffer, size, encoding, mode, output,
+                    &capacity);
+            }
+
             break;
+        }
 
         case 8: { // Collation comparison, input split in two halves
             int order;
@@ -396,6 +435,18 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
+
+            size_t required = 0;
+
+            if(mjb_confusable_skeleton_into(buffer, size, encoding, MJB_ENC_UTF_8, NULL,
+                   &required) == MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = required;
+                fuzz_sink += (size_t)mjb_confusable_skeleton_into(buffer, size, encoding,
+                    MJB_ENC_UTF_8, output, &capacity);
+            }
+
             bool confusable;
             fuzz_sink += (size_t)mjb_are_confusable(buffer, size / 2, encoding, buffer + size / 2,
                 size - size / 2, encoding, &confusable);

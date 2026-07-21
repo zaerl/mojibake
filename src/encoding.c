@@ -4,8 +4,18 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <string.h>
+
 #include "mojibake.h"
 #include "utf.h"
+
+typedef struct mjb_convert_encoding_context {
+    const char *buffer;
+    size_t byte_length;
+    size_t input_index;
+    mjb_encoding input_encoding;
+    mjb_encoding output_encoding;
+} mjb_convert_encoding_context;
 
 static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
     return codepoint >= 0xD800 && codepoint <= 0xDFFF;
@@ -304,6 +314,35 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
     return 0;
 }
 
+static mjb_status mjb_convert_encoding_write(mjb_output *output, const void *context_pointer) {
+    const mjb_convert_encoding_context *context = (const mjb_convert_encoding_context *)
+        context_pointer;
+    uint8_t state = MJB_UTF_ACCEPT;
+    mjb_codepoint codepoint = 0;
+    bool in_error = false;
+
+    for(size_t i = context->input_index; i < context->byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(context->buffer, context->byte_length,
+            &state, &i, context->input_encoding, &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
+            break;
+        }
+
+        if(decode_status == MJB_DECODE_INCOMPLETE) {
+            continue;
+        }
+
+        mjb_status status = mjb_output_codepoint(output, codepoint, context->output_encoding);
+
+        if(status != MJB_STATUS_OK) {
+            return status;
+        }
+    }
+
+    return MJB_STATUS_OK;
+}
+
 MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
@@ -317,7 +356,6 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
     if(byte_length == 0 || encoding == output_encoding) {
         result->output = (char *)buffer;
         result->output_size = byte_length;
-        result->transformed = false;
 
         return MJB_STATUS_OK;
     }
@@ -331,57 +369,60 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
         return MJB_STATUS_INVALID_ENCODING;
     }
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint = 0;
-    result->output = (char *)mjb_alloc(byte_length);
+    char *allocated = (char *)mjb_alloc(byte_length);
 
-    if(result->output == NULL) {
-        result->output_size = 0;
-        result->transformed = false;
-
+    if(allocated == NULL) {
         return MJB_STATUS_NO_MEMORY;
     }
 
-    result->output_size = byte_length;
-    result->transformed = true;
-    size_t output_index = 0;
-    bool in_error = false;
+    mjb_output output;
+    mjb_output_init_dynamic(&output, allocated, byte_length);
+    mjb_convert_encoding_context context = { buffer, byte_length, input_index, input_encoding,
+        output_encoding };
+    mjb_status status = mjb_convert_encoding_write(&output, &context);
 
-    for(size_t i = input_index; i < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            input_encoding, &codepoint, &in_error);
+    if(status != MJB_STATUS_OK) {
+        mjb_free(output.buffer);
 
-        if(decode_status == MJB_DECODE_END) {
-            break;
-        }
-
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        char output_buffer[5];
-        size_t output_size = mjb_codepoint_encode(codepoint, output_buffer, sizeof(output_buffer),
-            output_encoding);
-
-        if(output_size == 0) {
-            mjb_result_free(result);
-
-            return MJB_STATUS_UNSUPPORTED;
-        }
-
-        char *new_output = mjb_string_output(result->output, output_buffer, output_size,
-            &output_index, &result->output_size);
-
-        if(new_output != NULL) {
-            result->output = new_output;
-        } else {
-            mjb_result_free(result);
-
-            return MJB_STATUS_NO_MEMORY;
-        }
+        return status;
     }
 
-    result->output_size = output_index;
+    result->output = output.buffer;
+    result->output_size = output.size;
+    result->transformed = true;
 
     return MJB_STATUS_OK;
+}
+
+MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
+    if(output_size == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(buffer == NULL && byte_length > 0) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(byte_length == 0 || encoding == output_encoding) {
+        return mjb_output_copy_into(buffer, byte_length, output, output_size);
+    }
+
+    size_t input_index = 0;
+    mjb_encoding input_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
+        &input_index);
+
+    if(input_encoding == MJB_ENC_UTF_16 || input_encoding == MJB_ENC_UTF_32 ||
+        output_encoding == MJB_ENC_UTF_16 || output_encoding == MJB_ENC_UTF_32) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_convert_encoding_context context = { buffer, byte_length, input_index, input_encoding,
+        output_encoding };
+
+    return mjb_output_into(output, output_size, mjb_convert_encoding_write, &context);
 }

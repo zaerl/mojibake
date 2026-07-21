@@ -12,14 +12,19 @@
 
 // Compute the Unicode security skeleton of a string (UTS#39 §4).
 // Algorithm: NFD(input) -> remove default-ignorables -> per-codepoint substitution -> NFD.
-static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_result *result) {
+static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result, void *output,
+    size_t *output_size) {
     if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->transformed = false;
+        if(result != NULL) {
+            result->output = (char *)buffer;
+            result->output_size = 0;
+            result->transformed = false;
 
-        return MJB_STATUS_OK;
+            return MJB_STATUS_OK;
+        }
+
+        return mjb_output_copy_into(buffer, byte_length, output, output_size);
     }
 
     // Step 1: NFD the input.
@@ -105,31 +110,35 @@ static mjb_status mjb_confusable_skeleton_utf8(const char *buffer, size_t byte_l
         mjb_free(nfd.output);
     }
 
-    // Step 3: NFD the intermediate string.
-    status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8,
-        result);
+    // Step 3: NFD the intermediate string into the selected final output.
+    if(result != NULL) {
+        status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD,
+            output_encoding, result);
 
-    // mjb_normalize may return result->output == mid when the string is already NFD.
-    // In that case transfer ownership so the caller can free it via mjb_free(result->output).
-    if(status == MJB_STATUS_OK && !result->transformed) {
-        result->transformed = true;
-    } else {
-        mjb_free(mid);
+        // mjb_normalize may return result->output == mid when the string is already NFD.
+        // In that case transfer ownership so the caller can free it via mjb_result_free.
+        if(status == MJB_STATUS_OK && !result->transformed) {
+            result->transformed = true;
+        } else {
+            mjb_free(mid);
+        }
+
+        return status;
     }
+
+    status = mjb_normalize_into(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD,
+        output_encoding, output, output_size);
+    mjb_free(mid);
 
     return status;
 }
 
-// Compute the Unicode security skeleton of a string (UTS #39 Section 4).
-MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result, void *output,
+    size_t *output_size) {
+    if(buffer == NULL && byte_length > 0) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
-
-    result->output = NULL;
-    result->output_size = 0;
-    result->transformed = false;
 
     mjb_status status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
 
@@ -149,6 +158,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
 
     if(reordered == NULL) {
         mjb_bidi_paragraph_free(&paragraph);
+
         return MJB_STATUS_NO_MEMORY;
     }
 
@@ -178,9 +188,10 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
         // UAX #9 L3: when L2 reversal placed nonspacing marks before their base,
         // move the base back in front of the mark sequence.
         for(size_t i = 0; i < paragraph.count;) {
-            mjb_bidi_class bidi_class;
+            mjb_bidi_class bidi_class = MJB_PR_BIDI_CLASS_NOT_SET;
             bool mirrored;
-            (void)mjb_unicode_bidi_lookup(paragraph.chars[visual_order[i]].codepoint, &bidi_class,
+
+            mjb_unicode_bidi_lookup(paragraph.chars[visual_order[i]].codepoint, &bidi_class,
                 &mirrored);
 
             if(bidi_class != MJB_PR_BIDI_CLASS_NSM) {
@@ -230,33 +241,50 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     mjb_free(visual_order);
     mjb_bidi_paragraph_free(&paragraph);
 
-    mjb_result utf8_skeleton;
-    status = mjb_confusable_skeleton_utf8(reordered, reordered_size, MJB_ENC_UTF_8, &utf8_skeleton);
+    status = mjb_confusable_skeleton_finish(reordered, reordered_size, MJB_ENC_UTF_8,
+        output_encoding, result, output, output_size);
 
-    if(status == MJB_STATUS_OK && utf8_skeleton.output == reordered) {
-        utf8_skeleton.transformed = true;
+    if(result != NULL && status == MJB_STATUS_OK && result->output == reordered) {
+        result->transformed = true;
     } else {
         mjb_free(reordered);
     }
 
-    if(status != MJB_STATUS_OK || output_encoding == MJB_ENC_UTF_8) {
-        if(status == MJB_STATUS_OK) {
-            *result = utf8_skeleton;
-        }
+    return status;
+}
 
-        return status;
+// Compute the Unicode security skeleton of a string (UTS #39 Section 4).
+MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_result converted;
-    status = mjb_convert_encoding(utf8_skeleton.output, utf8_skeleton.output_size, MJB_ENC_UTF_8,
-        output_encoding, &converted);
+    result->output = NULL;
+    result->output_size = 0;
+    result->transformed = false;
 
-    if(utf8_skeleton.transformed) {
-        mjb_free(utf8_skeleton.output);
+    return mjb_confusable_skeleton_process(buffer, byte_length, encoding, output_encoding, result,
+        NULL, NULL);
+}
+
+MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
+    if(output_size == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(status == MJB_STATUS_OK) {
-        *result = converted;
+    if(buffer == NULL && byte_length > 0) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_status status = mjb_confusable_skeleton_process(buffer, byte_length, encoding,
+        output_encoding, NULL, output, output_size);
+
+    if(status != MJB_STATUS_OK && status != MJB_STATUS_OUTPUT_TOO_SMALL) {
+        *output_size = 0;
     }
 
     return status;

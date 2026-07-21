@@ -109,13 +109,14 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 **Text transformation**
 
-- **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), identifier-oriented NFKC case folding
-  (`mjb_nfkc_casefold`), plus a fast quick-check
+- **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`, `mjb_normalize_into`),
+  identifier-oriented NFKC case folding (`mjb_nfkc_casefold`, `mjb_nfkc_casefold_into`), plus a
+  fast quick-check
   (`mjb_normalization_quick_check`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
-  and conditional mappings (`mjb_map_case`)
+  and conditional mappings (`mjb_map_case`, `mjb_map_case_into`)
 - **Filtering**: strip controls, spaces, or numeric characters while normalizing
-  (`mjb_filter`)
+  (`mjb_filter`, `mjb_filter_into`)
 
 **Text analysis**
 
@@ -134,13 +135,13 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Sorting and comparison**
 
 - **Collation**: Unicode Collation Algorithm string comparison and sort keys, in shifted and
-  non-ignorable modes (`mjb_collation_compare`, `mjb_collation_key`,
+  non-ignorable modes (`mjb_collation_compare`, `mjb_collation_key`, `mjb_collation_key_into`,
   [UTS #10, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html))
 
 **Security**
 
 - **Confusable detection**: generate reusable skeletons and check if strings are visually
-  confusable (`mjb_confusable_skeleton`, `mjb_are_confusable`,
+  confusable (`mjb_confusable_skeleton`, `mjb_confusable_skeleton_into`, `mjb_are_confusable`,
   [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
   (`mjb_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))
@@ -149,7 +150,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
   strings, with encoding detection and conversion (`mjb_detect_encoding`,
-  `mjb_convert_encoding`)
+  `mjb_convert_encoding`, `mjb_convert_encoding_into`)
 - **Parsing and string functions**: character-by-character iteration (`mjb_for_each_character`)
   and codepoint counting (`mjb_count_codepoints`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)

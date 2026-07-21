@@ -10,6 +10,15 @@
 #include "unicode-tables.h"
 #include "utf.h"
 
+typedef struct mjb_normalize_context {
+    const char *buffer;
+    size_t byte_length;
+    size_t potential_output_size;
+    mjb_encoding encoding;
+    mjb_normalization form;
+    mjb_encoding output_encoding;
+} mjb_normalize_context;
+
 // Normalization sort.
 static void mjb_normalization_sort(mjb_n_character array[], size_t size) {
     for(size_t step = 1; step < size; ++step) {
@@ -27,13 +36,12 @@ static void mjb_normalization_sort(mjb_n_character array[], size_t size) {
     }
 }
 
-// Flush the decomposition buffer to a UTF-8 string.
-static char *mjb_flush_d_buffer(mjb_n_character *characters_buffer, size_t buffer_index,
-    char *output, size_t *output_index, size_t *output_size, mjb_normalization form,
-    mjb_encoding output_encoding) {
+// Flush the decomposition buffer to the transformation output.
+static mjb_status mjb_flush_d_buffer(mjb_n_character *characters_buffer, size_t buffer_index,
+    mjb_output *output, mjb_encoding output_encoding) {
 
     if(buffer_index == 0) {
-        return output;
+        return MJB_STATUS_OK;
     }
 
     // Sort combining characters by Canonical Combining Class (required for all forms)
@@ -48,26 +56,23 @@ static char *mjb_flush_d_buffer(mjb_n_character *characters_buffer, size_t buffe
             continue;
         }
 
-        char *new_output = mjb_string_output_codepoint(characters_buffer[i].codepoint, output,
-            output_index, output_size, output_encoding);
+        mjb_status status = mjb_output_codepoint(output, characters_buffer[i].codepoint,
+            output_encoding);
 
-        if(new_output == NULL) {
-            return NULL;
+        if(status != MJB_STATUS_OK) {
+            return status;
         }
-
-        output = new_output;
     }
 
-    return output;
+    return MJB_STATUS_OK;
 }
 
 // Flush the composition buffer to a bit array.
-static mjb_buffer_character *mjb_flush_c_buffer(mjb_n_character *characters_buffer,
-    size_t buffer_index, mjb_buffer_character *output, size_t *output_index, size_t *output_size,
-    mjb_normalization form) {
+static mjb_status mjb_flush_c_buffer(mjb_n_character *characters_buffer, size_t buffer_index,
+    mjb_buffer_character **output, size_t *output_index, size_t *output_size) {
 
     if(buffer_index == 0) {
-        return output;
+        return MJB_STATUS_OK;
     }
 
     // Sort combining characters by Canonical Combining Class (required for all forms)
@@ -87,47 +92,37 @@ static mjb_buffer_character *mjb_flush_c_buffer(mjb_n_character *characters_buff
 
             if(*output_size > SIZE_MAX / 2 ||
                 new_output_size > SIZE_MAX / sizeof(mjb_buffer_character)) {
-                return NULL;
+                return MJB_STATUS_OVERFLOW;
             }
 
-            mjb_buffer_character *new_output = (mjb_buffer_character *)mjb_realloc(output,
+            mjb_buffer_character *new_output = (mjb_buffer_character *)mjb_realloc(*output,
                 new_output_size * sizeof(mjb_buffer_character));
 
             if(new_output == NULL) {
-                return NULL;
+                return MJB_STATUS_NO_MEMORY;
             }
 
-            output = new_output;
+            *output = new_output;
             *output_size = new_output_size;
         }
 
-        output[*output_index].codepoint = characters_buffer[i].codepoint;
-        output[*output_index].combining = characters_buffer[i].combining;
+        (*output)[*output_index].codepoint = characters_buffer[i].codepoint;
+        (*output)[*output_index].combining = characters_buffer[i].combining;
 
         ++(*output_index);
     }
 
-    return output;
+    return MJB_STATUS_OK;
 }
 
 /**
  * Recompose the string.
  * Canonical Composition Algorithm
  */
-static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_count,
+static mjb_status mjb_recompose(mjb_output *output, size_t codepoints_count,
     mjb_buffer_character *composition_buffer, mjb_encoding output_encoding) {
-    // Nothing to recompose. Output an empty string.
     if(codepoints_count == 0) {
-        *output = (char *)mjb_alloc(1);
-
-        if(*output == NULL) {
-            return false;
-        }
-
-        *output_size = 0;
-        (*output)[0] = '\0';
-
-        return true;
+        return MJB_STATUS_OK;
     }
 
     // Apply Hangul composition first
@@ -144,34 +139,17 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         codepoints_count = mjb_hangul_syllable_composition(composition_buffer, codepoints_count);
     }
 
-    // Apply Canonical Composition Algorithm
-    if(codepoints_count > SIZE_MAX / 2) {
-        return false;
-    }
-
-    *output_size = codepoints_count * 2; // A good starting size.
-    char *composed_output = (char *)mjb_alloc(*output_size);
-
-    if(composed_output == NULL) {
-        return false;
-    }
-
-    size_t composed_output_index = 0;
     size_t i = 0;
 
     while(i < codepoints_count) {
         if(composition_buffer[i].combining != MJB_CCC_NOT_REORDERED) {
             // Non-starter: output and continue
-            char *new_output = mjb_string_output_codepoint(composition_buffer[i].codepoint,
-                composed_output, &composed_output_index, output_size, output_encoding);
+            mjb_status status = mjb_output_codepoint(output, composition_buffer[i].codepoint,
+                output_encoding);
 
-            if(new_output == NULL) {
-                mjb_free(composed_output);
-
-                return false;
+            if(status != MJB_STATUS_OK) {
+                return status;
             }
-
-            composed_output = new_output;
 
             ++i;
 
@@ -235,158 +213,60 @@ static bool mjb_recompose(char **output, size_t *output_size, size_t codepoints_
         }
 
         // Output the starter (possibly composed)
-        char *new_output = mjb_string_output_codepoint(starter, composed_output,
-            &composed_output_index, output_size, output_encoding);
+        mjb_status status = mjb_output_codepoint(output, starter, output_encoding);
 
-        if(new_output == NULL) {
-            mjb_free(composed_output);
-
-            return false;
+        if(status != MJB_STATUS_OK) {
+            return status;
         }
-
-        composed_output = new_output;
 
         // Output any non-consumed combining characters in order
         for(size_t j = starter_pos + 1; j < i; ++j) {
             if(composition_buffer[j].codepoint != MJB_CODEPOINT_NOT_VALID) {
-                new_output = mjb_string_output_codepoint(composition_buffer[j].codepoint,
-                    composed_output, &composed_output_index, output_size, output_encoding);
+                status = mjb_output_codepoint(output, composition_buffer[j].codepoint,
+                    output_encoding);
 
-                if(new_output == NULL) {
-                    mjb_free(composed_output);
-
-                    return false;
+                if(status != MJB_STATUS_OK) {
+                    return status;
                 }
-
-                composed_output = new_output;
             }
         }
     }
 
-    if(composed_output_index >= *output_size) {
-        char *new_output = (char *)mjb_realloc(composed_output, composed_output_index + 1);
-
-        if(new_output == NULL) {
-            mjb_free(composed_output);
-
-            return false;
-        }
-
-        composed_output = new_output;
-    }
-
-    *output = composed_output;
-    *output_size = composed_output_index;
-    composed_output[composed_output_index] = '\0';
-
-    return true;
+    return MJB_STATUS_OK;
 }
 
-/**
- * Normalize a string
- */
-MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_normalization form, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
+static bool mjb_normalization_form_is_valid(mjb_normalization form) {
+    return form == MJB_NORMALIZATION_NFD || form == MJB_NORMALIZATION_NFKD ||
+        form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
+}
 
-    if(form != MJB_NORMALIZATION_NFD && form != MJB_NORMALIZATION_NFKD &&
-        form != MJB_NORMALIZATION_NFC && form != MJB_NORMALIZATION_NFKC) {
-        return MJB_STATUS_INVALID_FORM;
-    }
-
-    if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->transformed = false;
-
-        return MJB_STATUS_OK;
-    }
-
-    uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint;
-    mjb_n_character current_character;
-// size_t codepoints_count = 0;
-
-// Combining characters buffer.
-#define MJB_MAX_COMBINING_CHARACTERS 32
-    mjb_n_character characters_buffer[MJB_MAX_COMBINING_CHARACTERS];
-    size_t buffer_index = 0;
-
-    // We directly return the string for NFD/NFKD forms.
-    result->output = NULL;
-
-    // A composition buffer is used for NFC/NFKC forms. A string is returned later.
-    mjb_buffer_character *composition_buffer = NULL;
-
-    // This is the index of the next character to be written to the output string or the composition
-    // buffer.
-    size_t output_index = 0;
-
-    bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
-    bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
-    mjb_quick_check_result is_normalized;
-    mjb_status quick_check_status = mjb_normalization_quick_check(buffer, byte_length, encoding,
-        form, &is_normalized);
-
-    if(quick_check_status != MJB_STATUS_OK) {
-        return quick_check_status;
-    }
-
-    if(is_normalized == MJB_QC_YES) {
-        // No need to normalize.
-        if(encoding != output_encoding) {
-            mjb_status status = mjb_convert_encoding(buffer, byte_length, encoding, output_encoding,
-                result);
-
-            if(status != MJB_STATUS_OK) {
-                return status;
-            }
-
-            return MJB_STATUS_OK;
-        }
-
-        result->output = (char *)buffer;
-        result->output_size = byte_length;
-        result->transformed = false;
-
-        return MJB_STATUS_OK;
-    }
-
-    // Estimate the potential output size.
-    size_t potential_output_size = 0;
-
+static mjb_status mjb_normalization_estimate(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, size_t *potential_output_size) {
     if(encoding == output_encoding) {
-        // The output encoding is the same as the input encoding, we can use the input size as the
-        // potential output size.
-        potential_output_size = byte_length;
+        *potential_output_size = byte_length;
     } else {
-        potential_output_size = mjb_count_codepoints(buffer, byte_length, encoding);
+        *potential_output_size = mjb_count_codepoints(buffer, byte_length, encoding);
 
         switch(output_encoding) {
-            case MJB_ENC_UTF_8:
-                // Tipically, a UTF-8 character in mainly english text is ~1.0-1.2 bytes.
-                {
-                    size_t extra = potential_output_size / 5;
+            case MJB_ENC_UTF_8: {
+                size_t extra = *potential_output_size / 5;
 
-                    if(potential_output_size > SIZE_MAX - extra) {
-                        return MJB_STATUS_OVERFLOW;
-                    }
-
-                    potential_output_size += extra;
-
-                    break;
-                }
-            case MJB_ENC_UTF_16:
-            case MJB_ENC_UTF_16BE:
-            case MJB_ENC_UTF_16LE:
-                // Tipically, a UTF-16 character in mainly english text is ~2 bytes.
-                if(potential_output_size > SIZE_MAX / 2) {
+                if(*potential_output_size > SIZE_MAX - extra) {
                     return MJB_STATUS_OVERFLOW;
                 }
 
-                potential_output_size *= 2;
+                *potential_output_size += extra;
+
+                break;
+            }
+            case MJB_ENC_UTF_16:
+            case MJB_ENC_UTF_16BE:
+            case MJB_ENC_UTF_16LE:
+                if(*potential_output_size > SIZE_MAX / 2) {
+                    return MJB_STATUS_OVERFLOW;
+                }
+
+                *potential_output_size *= 2;
 
                 break;
             case MJB_ENC_ASCII:
@@ -395,59 +275,73 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
             case MJB_ENC_UTF_32:
             case MJB_ENC_UTF_32BE:
             case MJB_ENC_UTF_32LE:
-                // Always 4 bytes.
-                if(potential_output_size > SIZE_MAX / 4) {
+                if(*potential_output_size > SIZE_MAX / 4) {
                     return MJB_STATUS_OVERFLOW;
                 }
 
-                potential_output_size *= 4;
+                *potential_output_size *= 4;
 
                 break;
         }
     }
 
-    if(potential_output_size == 0) {
-        potential_output_size = 1;
+    if(*potential_output_size == 0) {
+        *potential_output_size = 1;
     }
 
+    return MJB_STATUS_OK;
+}
+
+static mjb_status mjb_normalize_write(mjb_output *output, const void *context_pointer) {
+    const mjb_normalize_context *context = (const mjb_normalize_context *)context_pointer;
+    const char *buffer = context->buffer;
+    size_t byte_length = context->byte_length;
+    mjb_encoding encoding = context->encoding;
+    mjb_normalization form = context->form;
+    mjb_encoding output_encoding = context->output_encoding;
+    uint8_t state = MJB_UTF_ACCEPT;
+    mjb_codepoint codepoint;
+    mjb_n_character current_character;
+
+// Combining characters buffer.
+#define MJB_MAX_COMBINING_CHARACTERS 32
+    mjb_n_character characters_buffer[MJB_MAX_COMBINING_CHARACTERS];
+    size_t buffer_index = 0;
+
+    mjb_buffer_character *composition_buffer = NULL;
+    size_t output_index = 0;
+    bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
+    bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
+    size_t composition_capacity = context->potential_output_size;
+    mjb_status status = MJB_STATUS_OK;
+
     if(is_composition) {
-        if(potential_output_size > SIZE_MAX / sizeof(mjb_buffer_character)) {
+        if(composition_capacity > SIZE_MAX / sizeof(mjb_buffer_character)) {
             return MJB_STATUS_OVERFLOW;
         }
 
-        composition_buffer = (mjb_buffer_character *)mjb_alloc(potential_output_size *
+        composition_buffer = (mjb_buffer_character *)mjb_alloc(composition_capacity *
             sizeof(mjb_buffer_character));
 
         if(composition_buffer == NULL) {
             return MJB_STATUS_NO_MEMORY;
         }
-    } else {
-        result->output = (char *)mjb_alloc(potential_output_size);
-
-        if(result->output == NULL) {
-            return MJB_STATUS_NO_MEMORY;
-        }
     }
-
-    result->output_size = potential_output_size;
 
 // The flush buffer is called multiple times, let's make a macro to avoid code duplication.
 #define MJB_NORMALIZE_FLUSH_BUFFER() \
     do { \
         if(is_composition) { \
-            mjb_buffer_character *new_composition_buffer = mjb_flush_c_buffer(characters_buffer, \
-                buffer_index, composition_buffer, &output_index, &result->output_size, form); \
-            if(new_composition_buffer == NULL) { \
+            status = mjb_flush_c_buffer(characters_buffer, buffer_index, &composition_buffer, \
+                &output_index, &composition_capacity); \
+            if(status != MJB_STATUS_OK) { \
                 goto fail; \
             } \
-            composition_buffer = new_composition_buffer; \
         } else { \
-            char *new_output = mjb_flush_d_buffer(characters_buffer, buffer_index, result->output, \
-                &output_index, &result->output_size, form, output_encoding); \
-            if(new_output == NULL) { \
+            status = mjb_flush_d_buffer(characters_buffer, buffer_index, output, output_encoding); \
+            if(status != MJB_STATUS_OK) { \
                 goto fail; \
             } \
-            result->output = new_output; \
         } \
         buffer_index = 0; \
     } while(0)
@@ -607,31 +501,14 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
     }
 
     if(is_composition) {
-        // Recompose the string.
-        if(!mjb_recompose(&result->output, &result->output_size, output_index, composition_buffer,
-               output_encoding)) {
+        status = mjb_recompose(output, output_index, composition_buffer, output_encoding);
+
+        if(status != MJB_STATUS_OK) {
             goto fail;
         }
-
-        mjb_free(composition_buffer);
-        composition_buffer = NULL;
-    } else {
-        // Guarantee null-terminated string
-        if(output_index >= result->output_size) {
-            char *new_output = (char *)mjb_realloc(result->output, result->output_size + 1);
-
-            if(new_output == NULL) {
-                goto fail;
-            }
-
-            result->output = new_output;
-        }
-
-        result->output[output_index] = '\0';
-        result->output_size = output_index;
     }
 
-    result->transformed = true;
+    mjb_free(composition_buffer);
 
 #undef MJB_NORMALIZE_FLUSH_BUFFER
 
@@ -639,11 +516,146 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 
 fail:
     mjb_free(composition_buffer);
-    mjb_result_free(result);
 
 #undef MJB_NORMALIZE_FLUSH_BUFFER
 
-    return MJB_STATUS_NO_MEMORY;
+    return status;
+}
+
+/**
+ * Normalize a string
+ */
+MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_normalization form, mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_normalization_form_is_valid(form)) {
+        return MJB_STATUS_INVALID_FORM;
+    }
+
+    if(byte_length == 0) {
+        result->output = (char *)buffer;
+        result->output_size = 0;
+        result->transformed = false;
+
+        return MJB_STATUS_OK;
+    }
+
+    result->output = NULL;
+    result->output_size = 0;
+    result->transformed = false;
+
+    mjb_quick_check_result is_normalized;
+    mjb_status status = mjb_normalization_quick_check(buffer, byte_length, encoding, form,
+        &is_normalized);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if(is_normalized == MJB_QC_YES) {
+        if(encoding != output_encoding) {
+            return mjb_convert_encoding(buffer, byte_length, encoding, output_encoding, result);
+        }
+
+        result->output = (char *)buffer;
+        result->output_size = byte_length;
+
+        return MJB_STATUS_OK;
+    }
+
+    size_t potential_output_size = 0;
+    status = mjb_normalization_estimate(buffer, byte_length, encoding, output_encoding,
+        &potential_output_size);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    char *allocated = (char *)mjb_alloc(potential_output_size);
+
+    if(allocated == NULL) {
+        return MJB_STATUS_NO_MEMORY;
+    }
+
+    mjb_output output;
+    mjb_output_init_dynamic(&output, allocated, potential_output_size);
+    mjb_normalize_context context = { buffer, byte_length, potential_output_size, encoding, form,
+        output_encoding };
+    status = mjb_normalize_write(&output, &context);
+
+    if(status != MJB_STATUS_OK) {
+        mjb_free(output.buffer);
+
+        return status == MJB_STATUS_UNSUPPORTED ? MJB_STATUS_NO_MEMORY : status;
+    }
+
+    output.buffer[output.size] = '\0';
+    result->output = output.buffer;
+    result->output_size = output.size;
+    result->transformed = true;
+
+    return MJB_STATUS_OK;
+}
+
+MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, void *output,
+    size_t *output_size) {
+    if(output_size == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(buffer == NULL && byte_length > 0) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_normalization_form_is_valid(form)) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_FORM;
+    }
+
+    if(byte_length == 0) {
+        return mjb_output_copy_into(buffer, byte_length, output, output_size);
+    }
+
+    mjb_quick_check_result is_normalized;
+    mjb_status status = mjb_normalization_quick_check(buffer, byte_length, encoding, form,
+        &is_normalized);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
+    if(is_normalized == MJB_QC_YES) {
+        if(encoding != output_encoding) {
+            return mjb_convert_encoding_into(buffer, byte_length, encoding, output_encoding, output,
+                output_size);
+        }
+
+        return mjb_output_copy_into(buffer, byte_length, output, output_size);
+    }
+
+    size_t potential_output_size = 0;
+    status = mjb_normalization_estimate(buffer, byte_length, encoding, output_encoding,
+        &potential_output_size);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
+    mjb_normalize_context context = { buffer, byte_length, potential_output_size, encoding, form,
+        output_encoding };
+
+    return mjb_output_into(output, output_size, mjb_normalize_write, &context);
 }
 
 // Apply full default case folding and remove Default_Ignorable_Code_Point characters.
@@ -726,23 +738,9 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
     return MJB_STATUS_OK;
 }
 
-/**
- * Apply the Unicode NFKC_Casefold transform without duplicating its derived mapping table.
- */
-MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->transformed = false;
-
-        return MJB_STATUS_OK;
-    }
-
+static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result, void *output,
+    size_t *output_size) {
     const char *current = buffer;
     size_t current_size = byte_length;
     mjb_encoding current_encoding = encoding;
@@ -794,28 +792,83 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
         current_owned = true;
 
         if(stable) {
-            mjb_result normalized_result;
-            status = mjb_normalize(current, current_size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-                output_encoding, &normalized_result);
+            if(result != NULL) {
+                mjb_result normalized_result;
+                status = mjb_normalize(current, current_size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
+                    output_encoding, &normalized_result);
 
-            if(status != MJB_STATUS_OK) {
-                mjb_free((void *)current);
+                if(status != MJB_STATUS_OK) {
+                    mjb_free((void *)current);
 
-                return status;
+                    return status;
+                }
+
+                if(normalized_result.output != current) {
+                    mjb_free((void *)current);
+                }
+
+                *result = normalized_result;
+                result->transformed = true;
+
+                return MJB_STATUS_OK;
             }
 
-            if(normalized_result.output != current) {
-                mjb_free((void *)current);
-            }
+            status = mjb_normalize_into(current, current_size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
+                output_encoding, output, output_size);
+            mjb_free((void *)current);
 
-            *result = normalized_result;
-            result->transformed = true;
-
-            return MJB_STATUS_OK;
+            return status;
         }
     }
 
     mjb_free((void *)current);
 
     return MJB_STATUS_UNSUPPORTED;
+}
+
+/**
+ * Apply the Unicode NFKC_Casefold transform without duplicating its derived mapping table.
+ */
+MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
+    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(byte_length == 0) {
+        result->output = (char *)buffer;
+        result->output_size = 0;
+        result->transformed = false;
+
+        return MJB_STATUS_OK;
+    }
+
+    return mjb_nfkc_casefold_transform(buffer, byte_length, encoding, output_encoding, result, NULL,
+        NULL);
+}
+
+MJB_EXPORT mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
+    if(output_size == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(buffer == NULL && byte_length > 0) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(byte_length == 0) {
+        return mjb_output_copy_into(buffer, byte_length, output, output_size);
+    }
+
+    mjb_status status = mjb_nfkc_casefold_transform(buffer, byte_length, encoding, output_encoding,
+        NULL, output, output_size);
+
+    if(status != MJB_STATUS_OK && status != MJB_STATUS_OUTPUT_TOO_SMALL) {
+        *output_size = 0;
+    }
+
+    return status;
 }

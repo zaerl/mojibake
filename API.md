@@ -292,7 +292,71 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter`](#mjb_filter).
+See also: [`mjb_normalize_into`](#mjb_normalize_into), [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter`](#mjb_filter), [`mjb_filter_into`](#mjb_filter_into).
+
+Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
+
+## `mjb_normalize_into`
+
+Normalize a string into a caller-provided buffer.
+
+```c
+mjb_status mjb_normalize_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_normalization form,
+    mjb_encoding output_encoding,
+    void *output,
+    size_t *output_size
+);
+```
+
+Normalize a string using the same Unicode normalization forms and encoding rules as `mjb_normalize`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. NFD and NFKD write without allocation. NFC and NFKC may allocate temporary composition storage, including during a size query.
+
+- `buffer` - The string to normalize
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `form` - The normalization form to use
+- `output_encoding` - The output encoding of the string
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the normalized string was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a normalized codepoint
+- `MJB_STATUS_OVERFLOW` - The required output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Temporary composition allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+size_t output_size = 0;
+
+if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
+    MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char output[5];
+
+if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// NFC payload (no terminator): Café
+printf("NFC payload (no terminator): %.*s", (int)output_size, output);
+```
+
+See also: [`mjb_normalize`](#mjb_normalize), [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter_into`](#mjb_filter_into), [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into).
 
 Specifications: [UAX #15: Unicode Normalization Forms, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html).
 
@@ -353,7 +417,67 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_normalize`](#mjb_normalize).
+See also: [`mjb_filter_into`](#mjb_filter_into), [`mjb_normalize`](#mjb_normalize).
+
+## `mjb_filter_into`
+
+Filter a string into a caller-provided buffer.
+
+```c
+mjb_status mjb_filter_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_filter_flags filters,
+    mjb_encoding output_encoding,
+    void *output,
+    size_t *output_size
+);
+```
+
+Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run.
+
+- `buffer` - The string to filter
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `filters` - The filters to use
+- `output_encoding` - The output encoding of the string
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the filtered string was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
+- `MJB_STATUS_OVERFLOW` - The required output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Temporary normalization allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "Hello\t\t\nworld";
+size_t output_size = 0;
+
+if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_FILTER_COLLAPSE_SPACES,
+    MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char output[11];
+
+if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Filtered payload (no terminator): Hello world
+printf("Filtered payload (no terminator): %.*s", (int)output_size, output);
+```
+
+See also: [`mjb_filter`](#mjb_filter), [`mjb_normalize`](#mjb_normalize).
 
 ## `mjb_nfkc_casefold`
 
@@ -382,6 +506,7 @@ Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. Thi
 - `MJB_STATUS_OK` - The transformed string was returned
 - `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
+- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
@@ -400,7 +525,66 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into), [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
+
+Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
+
+## `mjb_nfkc_casefold_into`
+
+Apply the Unicode NFKC_Casefold transform into a caller-provided buffer.
+
+```c
+mjb_status mjb_nfkc_casefold_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    void *output,
+    size_t *output_size
+);
+```
+
+Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
+
+- `buffer` - The string to transform
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the string
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the transformed string was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_OVERFLOW` - The required output size would overflow
+- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize
+- `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
+size_t output_size = 0;
+
+if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char output[7];
+
+if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// NFKC casefold payload (no terminator): strasse
+printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
+```
+
+See also: [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
@@ -903,7 +1087,64 @@ printf("UTF-16LE bytes: %zu", result.output_size);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
+See also: [`mjb_convert_encoding_into`](#mjb_convert_encoding_into), [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
+
+## `mjb_convert_encoding_into`
+
+Convert from one encoding to another into a caller-provided buffer.
+
+```c
+mjb_status mjb_convert_encoding_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    void *output,
+    size_t *output_size
+);
+```
+
+Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. No bytes are written when capacity is insufficient.
+
+- `buffer` - The string to convert
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The input encoding of the string
+- `output_encoding` - The output encoding of the string
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the string was converted
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - A generic UTF-16/UTF-32 encoding did not provide enough byte order information
+- `MJB_STATUS_UNSUPPORTED` - The requested encoding conversion is not supported
+- `MJB_STATUS_OVERFLOW` - The required output size would overflow
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "caf\xC3\xA9";
+size_t output_size = 0;
+
+if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_ENC_UTF_16LE, NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+unsigned char output[8];
+
+if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
+    MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// UTF-16LE payload bytes (no terminator): 8
+printf("UTF-16LE payload bytes (no terminator): %zu", output_size);
+```
+
+See also: [`mjb_convert_encoding`](#mjb_convert_encoding), [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
 ## `mjb_collation_compare`
 
@@ -956,7 +1197,7 @@ if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
 printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
 ```
 
-See also: [`mjb_collation_key`](#mjb_collation_key).
+See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_key_into`](#mjb_collation_key_into).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html).
 
@@ -1004,7 +1245,67 @@ printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
 mjb_result_free(&key);
 ```
 
-See also: [`mjb_collation_compare`](#mjb_collation_compare).
+See also: [`mjb_collation_key_into`](#mjb_collation_key_into), [`mjb_collation_compare`](#mjb_collation_compare).
+
+Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html).
+
+## `mjb_collation_key_into`
+
+Generate a binary collation key into a caller-provided buffer.
+
+```c
+mjb_status mjb_collation_key_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_collation_mode mode,
+    void *output,
+    size_t *output_size
+);
+```
+
+Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query.
+
+- `buffer` - The string to generate the sort key for
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `mode` - The variable weighting strategy
+- `output` - The caller-provided binary output buffer, or NULL to query its size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the binary sort key was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_OVERFLOW` - The required key size would overflow
+- `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "r\xC3\xA9sum\xC3\xA9";
+size_t output_size = 0;
+
+if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+    NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+unsigned char output[64];
+
+if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
+    MJB_COLLATION_NON_IGNORABLE, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Sort key is non-empty: yes
+printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");
+```
+
+See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_compare`](#mjb_collation_compare).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html).
 
@@ -1057,7 +1358,67 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
+See also: [`mjb_map_case_into`](#mjb_map_case_into), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
+
+Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
+
+## `mjb_map_case_into`
+
+Change string case into a caller-provided buffer.
+
+```c
+mjb_status mjb_map_case_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_map_case_type type,
+    mjb_encoding output_encoding,
+    void *output,
+    size_t *output_size
+);
+```
+
+Apply the same full, special, conditional, titlecase, locale-sensitive, and case folding mappings as `mjb_map_case` without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient.
+
+- `buffer` - The string to change case
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `type` - The type of case change
+- `output_encoding` - The output encoding of the string
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the case-mapped string was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, `buffer` is NULL with a non-zero size, or `type` is invalid
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
+- `MJB_STATUS_OVERFLOW` - The required output size would overflow
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "Stra\xC3\x9F""e"; // "Straße"
+size_t output_size = 0;
+
+if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+    NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char output[7];
+
+if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Upper payload (no terminator): STRASSE
+printf("Upper payload (no terminator): %.*s", (int)output_size, output);
+```
+
+See also: [`mjb_map_case`](#mjb_map_case), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
 
@@ -1971,7 +2332,68 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into), [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_is_identifier`](#mjb_is_identifier).
+
+Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
+
+## `mjb_confusable_skeleton_into`
+
+Compute a Unicode confusable skeleton into a caller-provided buffer.
+
+```c
+mjb_status mjb_confusable_skeleton_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    void *output,
+    size_t *output_size
+);
+```
+
+Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. No bytes are written when capacity is insufficient. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query.
+
+- `buffer` - The string to transform
+- `byte_length` - The length of the string, in bytes
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the skeleton
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the skeleton was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_UNSUPPORTED` - The output encoding cannot represent a skeleton codepoint
+- `MJB_STATUS_OVERFLOW` - The required output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+**Example**
+
+```c
+const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
+size_t output_size = 0;
+
+if(mjb_confusable_skeleton_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    NULL, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char output[5];
+
+if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(input),
+    MJB_ENC_UTF_8, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Skeleton payload (no terminator): hello
+printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);
+```
+
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
@@ -2026,7 +2448,7 @@ if(mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
 printf("Visually confusable: %s", confusable ? "yes" : "no");
 ```
 
-See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
@@ -2608,7 +3030,7 @@ if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
 }
 ```
 
-See also: [`mjb_get_locale`](#mjb_get_locale), [`mjb_map_case`](#mjb_map_case).
+See also: [`mjb_get_locale`](#mjb_get_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
 
 ## `mjb_get_locale`
 
@@ -2633,7 +3055,7 @@ mjb_locale locale = mjb_get_locale();
 printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
 ```
 
-See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_map_case`](#mjb_map_case).
+See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
 
 ## `mjb_result_free`
 
