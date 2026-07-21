@@ -121,7 +121,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Text analysis**
 
 - **Character database**: every Unicode Character Database property: category, script and
-  Script_Extensions, block, plane, numeric value, name (`mjb_codepoint_character`,
+  Script_Extensions, block, plane, numeric value, name (`mjb_codepoint_info`,
   `mjb_codepoint_script_extensions`)
 - **Segmentation**: grapheme clusters, words, sentences, and line-break opportunities
   ([UAX #29, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html),
@@ -150,7 +150,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
   strings, with encoding detection and conversion (`mjb_string_encoding`,
-  `mjb_string_convert_encoding`)
+  `mjb_convert_encoding`)
 - **Parsing and string functions**: character-by-character iteration (`mjb_next_character`) and
   standard C `string.h`-style helpers (`mjb_string_length`, and others)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
@@ -231,7 +231,7 @@ Mojibake can compile out optional feature tables to reduce binary size. Feature 
 enabled.
 
 - `#define MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
-`mjb_codepoint_character(...)` to fill `mjb_character.name`. When disabled, the tables are not
+`mjb_codepoint_info(...)` to fill `mjb_character.name`. When disabled, the tables are not
 compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will redude the output
 of **~30%**.
 

@@ -514,7 +514,7 @@ typedef enum mjb_identifier_profile {
 // clang-format off
 
 // Return the codepoint character.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
@@ -568,7 +568,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_script_extensions(mjb_codepoin
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length, mjb_encoding encoding);
 
 // Convert from one encoding to another.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Compare two strings using UCA.
 MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);

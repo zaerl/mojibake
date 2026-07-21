@@ -221,14 +221,14 @@ class Character {
 
   public:
     explicit Character(mjb_codepoint codepoint) {
-        detail::check_status(mjb_codepoint_character(codepoint, &data),
+        detail::check_status(mjb_codepoint_info(codepoint, &data),
             "Unable to read codepoint character");
     }
 
     [[nodiscard]] static std::optional<Character> from(mjb_codepoint codepoint) noexcept {
         mjb_character data{};
 
-        if(mjb_codepoint_character(codepoint, &data) != MJB_STATUS_OK) {
+        if(mjb_codepoint_info(codepoint, &data) != MJB_STATUS_OK) {
             return std::nullopt;
         }
 
@@ -671,8 +671,8 @@ struct NumericValue {
 [[nodiscard]] inline TextResult convert_encoding_result(std::string_view input,
     mjb_encoding input_encoding, mjb_encoding output_encoding) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_string_convert_encoding(input.data(), input.size(),
-        input_encoding, output_encoding, detail::ResultAccess::out(result));
+    const mjb_status status = mjb_convert_encoding(input.data(), input.size(), input_encoding,
+        output_encoding, detail::ResultAccess::out(result));
 
     return detail::ResultAccess::checked(std::move(result), status, "Encoding conversion failed");
 }

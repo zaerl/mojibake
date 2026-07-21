@@ -106,7 +106,7 @@ if(MJB_BUILD_WASM)
 
     # This is auto-generated, do not edit this array.
     set(EXPORTED_FUNCTIONS
-        "\"_mjb_codepoint_character\""
+        "\"_mjb_codepoint_info\""
         "\"_mjb_normalize\""
         "\"_mjb_string_filter\""
         "\"_mjb_nfkc_casefold\""
@@ -124,7 +124,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_codepoint_script\""
         "\"_mjb_codepoint_script_extensions\""
         "\"_mjb_codepoint_encode\""
-        "\"_mjb_string_convert_encoding\""
+        "\"_mjb_convert_encoding\""
         "\"_mjb_string_compare\""
         "\"_mjb_collation_key\""
         "\"_mjb_case\""

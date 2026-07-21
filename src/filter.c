@@ -91,7 +91,7 @@ MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length,
         }
 
         // Get current character.
-        if(mjb_codepoint_character(codepoint, &character) != MJB_STATUS_OK) {
+        if(mjb_codepoint_info(codepoint, &character) != MJB_STATUS_OK) {
             continue;
         }
 

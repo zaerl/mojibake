@@ -34,7 +34,7 @@ See https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G29705
 abstract character.
 
 ✅ Satisfied. The common UTF encoders/decoders reject surrogate code points,
-`mjb_codepoint_character` does not return a character for `U+D800`/`U+DFFF`, and public collation
+`mjb_codepoint_info` does not return a character for `U+D800`/`U+DFFF`, and public collation
 input rejects surrogate-shaped CESU-8 byte sequences.
 
 ### C2
@@ -42,7 +42,7 @@ input rejects surrogate-shaped CESU-8 byte sequences.
 > A process shall not interpret a noncharacter code point as an abstract character.
 
 ✅ Satisfied. `mjb_codepoint_is_valid` rejects `U+FDD0..U+FDEF` and `U+nFFFE/U+nFFFF`, and
-`mjb_codepoint_character` returns `MJB_STATUS_INVALID_ARGUMENT` for noncharacters. Encoding helpers
+`mjb_codepoint_info` returns `MJB_STATUS_INVALID_ARGUMENT` for noncharacters. Encoding helpers
 may serialize noncharacters as code points, but the character metadata APIs do not treat them as
 abstract characters.
 
@@ -51,7 +51,7 @@ abstract characters.
 > A process shall not interpret an unassigned code point as an abstract character.
 
 ✅ Satisfied. Unassigned samples such as `U+0378` return `MJB_STATUS_NOT_FOUND` from
-`mjb_codepoint_character`. Algorithms use default property values where required, but Mojibake does
+`mjb_codepoint_info`. Algorithms use default property values where required, but Mojibake does
 not report reserved code points as assigned characters.
 
 ### C4
@@ -268,7 +268,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 
 | Claim | Public surface | Unicode reference | Evidence |
 | --- | --- | --- | --- |
-| Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
+| Unicode Character Database data and derived properties | `mjb_codepoint_info`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
 | Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |

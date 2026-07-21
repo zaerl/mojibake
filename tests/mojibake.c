@@ -96,7 +96,7 @@ int test_mojibake(void *arg) {
 
     test_set_failing_allocator(0);
 
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
+    ATT_ASSERT_STATUS(mjb_convert_encoding("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles allocation failure")
     ATT_ASSERT_STATUS(mjb_string_filter("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE, MJB_ENC_UTF_8,
                           &result),
@@ -113,7 +113,7 @@ int test_mojibake(void *arg) {
     ATT_ASSERT((mjb_shutdown(), true), true, "Shutdown failing allocator")
 
     test_set_failing_allocator(1);
-    ATT_ASSERT_STATUS(mjb_string_convert_encoding("ab", 2, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+    ATT_ASSERT_STATUS(mjb_convert_encoding("ab", 2, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
                           &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles reallocation failure")
 

@@ -8,7 +8,7 @@
 
 static int mjbsh_show_version(void) {
     mjb_character character;
-    bool valid = mjb_codepoint_character(MJB_VERSION_NUMBER, &character) == MJB_STATUS_OK;
+    bool valid = mjb_codepoint_info(MJB_VERSION_NUMBER, &character) == MJB_STATUS_OK;
 
     printf("Mojibake %sv%s [%s]%s\n", mjbsh_green(), mjb_version(),
         valid ? character.name : "UNKNOWN", mjbsh_reset());

@@ -42,7 +42,7 @@ att_set_verbose(verbosity);
 att_set_show_colors(showColors);
 
 ATT_ASSERT(mojibake instanceof Mojibake, true, 'create');
-ATT_ASSERT(mojibake.codepointCharacter(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
+ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
 ATT_ASSERT(mojibake.nextCharacter('A')?.[0]?.character.codepoint, 0x41, 'nextCharacter');
 ATT_ASSERT(mojibake.stringIsNormalized('abc'), QuickCheckResult.YES, 'stringIsNormalized');
@@ -68,7 +68,7 @@ ATT_ASSERT(mojibake.stringIsUtf8('Hello'), true, 'stringIsUtf8');
 ATT_ASSERT(mojibake.stringIsUtf16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'stringIsUtf16');
 ATT_ASSERT(mojibake.stringIsAscii('Hello'), true, 'stringIsAscii');
 ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
-ATT_ASSERT(mojibake.stringConvertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'stringConvertEncoding');
+ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
 ATT_ASSERT(mojibake.stringLength('H\u00E9ll\u00F6'), 5, 'stringLength');
 ATT_ASSERT(mojibake.stringCompare('hello', 'hello'), 0, 'stringCompare');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');

@@ -156,7 +156,7 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
         MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
 
-    fuzz_sink += (size_t)mjb_codepoint_character(codepoint, &character);
+    fuzz_sink += (size_t)mjb_codepoint_info(codepoint, &character);
     fuzz_sink += (size_t)mjb_codepoint_is_valid(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_graphic(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_combining(codepoint);
@@ -331,7 +331,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 5: // Encoding conversion
-            if(mjb_string_convert_encoding(buffer, size, encoding, encodings[(variant >> 1) % 6],
+            if(mjb_convert_encoding(buffer, size, encoding, encodings[(variant >> 1) % 6],
                    &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }

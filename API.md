@@ -108,7 +108,7 @@ The functions return a `mjb_status` and accept these arguments:
 2. The needed _arguments_ of the function, if any
 3. A pointer to a structure to save the result
 
-See for example [`mjb_codepoint_character`](#mjb_codepoint_character),
+See for example [`mjb_codepoint_info`](#mjb_codepoint_info),
 [`mjb_codepoint_numeric_value`](#mjb_codepoint_numeric_value).
 
 ### Predicate functions
@@ -202,12 +202,12 @@ mjb_string_length("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_3
 
 # Functions
 
-## `mjb_codepoint_character`
+## `mjb_codepoint_info`
 
 Return the codepoint character.
 
 ```c
-mjb_status mjb_codepoint_character(
+mjb_status mjb_codepoint_info(
     mjb_codepoint codepoint,
     mjb_character *character
 );
@@ -229,7 +229,7 @@ Fill `character` with the Unicode Character Database record of a codepoint: name
 ```c
 mjb_character character;
 
-if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
+if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -848,12 +848,12 @@ unsigned int size = mjb_codepoint_encode(0x20AC, encoded, sizeof(encoded), MJB_E
 printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);
 ```
 
-## `mjb_string_convert_encoding`
+## `mjb_convert_encoding`
 
 Convert from one encoding to another.
 
 ```c
-mjb_status mjb_string_convert_encoding(
+mjb_status mjb_convert_encoding(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -885,7 +885,7 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 const char *input = "caf\xC3\xA9";
 mjb_result result;
 
-if(mjb_string_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
+if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
     MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2603,7 +2603,7 @@ Free the memory allocated for a `mjb_result`. The `result` pointer is set to NUL
 ```c
 mjb_result result;
 
-if(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
     &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2864,7 +2864,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 
 | Claim | Public surface | Unicode reference | Evidence |
 | ----- | -------------- | ----------------- | -------- |
-| Unicode Character Database data and derived properties | `mjb_codepoint_character`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
+| Unicode Character Database data and derived properties | `mjb_codepoint_info`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
 | Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |

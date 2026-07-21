@@ -12,19 +12,19 @@ int test_example(void *arg) {
 
     // This function is automatically generated. Do not edit.
 {
-    // Example for mjb_codepoint_character
-    MJB_TEST_COVERAGE(mjb_codepoint_character); // Added by the script
+    // Example for mjb_codepoint_info
+    MJB_TEST_COVERAGE(mjb_codepoint_info); // Added by the script
     mjb_character character;
 
-    if(mjb_codepoint_character(0x022A, &character) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_character test failed") // Added by the script
+    if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_codepoint_info test failed") // Added by the script
         return 1;
     }
 
     // U+022A lowercase: U+022B
     // printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
     snprintf(test_buffer, sizeof(test_buffer), "U+%04X lowercase: U+%04X", character.codepoint, character.lowercase); // Added by the script
-    ATT_ASSERT(test_buffer, "U+022A lowercase: U+022B", "mjb_codepoint_character test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+022A lowercase: U+022B", "mjb_codepoint_info test failed") // Added by the script
 }
 
 {
@@ -336,21 +336,21 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_convert_encoding
-    MJB_TEST_COVERAGE(mjb_string_convert_encoding); // Added by the script
+    // Example for mjb_convert_encoding
+    MJB_TEST_COVERAGE(mjb_convert_encoding); // Added by the script
     const char *input = "caf\xC3\xA9";
     mjb_result result;
 
-    if(mjb_string_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
+    if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
         MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_string_convert_encoding test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_convert_encoding test failed") // Added by the script
         return 1;
     }
 
     // UTF-16LE bytes: 8
     // printf("UTF-16LE bytes: %zu", result.output_size);
     snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE bytes: %zu", result.output_size); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16LE bytes: 8", "mjb_string_convert_encoding test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16LE bytes: 8", "mjb_convert_encoding test failed") // Added by the script
     mjb_result_free(&result);
 }
 
@@ -1133,7 +1133,7 @@ int test_example(void *arg) {
     MJB_TEST_COVERAGE(mjb_result_free); // Added by the script
     mjb_result result;
 
-    if(mjb_string_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+    if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
         &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_result_free test failed") // Added by the script
         return 1;

@@ -382,14 +382,14 @@ export class Mojibake {
     return new Mojibake(module);
   }
 
-  // mjb_status mjb_codepoint_character(mjb_codepoint codepoint, mjb_character *character)
-  codepointCharacter(codepoint: number): Character | null {
+  // mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character *character)
+  codepointInfo(codepoint: number): Character | null {
     // Allocate memory for mjb_character structure
     const structSize = 512;
     const ptr = this.malloc(structSize);
 
     try {
-      const status = this.module._mjb_codepoint_character(codepoint, ptr);
+      const status = this.module._mjb_codepoint_info(codepoint, ptr);
 
       if(status === Status.OK) {
         return this.pointerToCharacter(ptr);
@@ -670,9 +670,9 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_string_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_encoding output_encoding, mjb_result *result)
-  stringConvertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
+  convertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     outputEncoding = this.resolveEncoding(outputEncoding);
@@ -680,7 +680,7 @@ export class Mojibake {
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_string_convert_encoding(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_convert_encoding(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {

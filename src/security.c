@@ -239,8 +239,8 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     }
 
     mjb_result converted;
-    status = mjb_string_convert_encoding(utf8_skeleton.output, utf8_skeleton.output_size,
-        MJB_ENC_UTF_8, output_encoding, &converted);
+    status = mjb_convert_encoding(utf8_skeleton.output, utf8_skeleton.output_size, MJB_ENC_UTF_8,
+        output_encoding, &converted);
 
     if(utf8_skeleton.transformed) {
         mjb_free(utf8_skeleton.output);

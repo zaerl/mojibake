@@ -22,7 +22,7 @@ export type MojibakeWasmModule = {
   _malloc: (size: number) => number;
   _free: (ptr: number) => void;
   // Return the codepoint character.
-  _mjb_codepoint_character: (codepoint: Codepoint, character: Pointer) => number;
+  _mjb_codepoint_info: (codepoint: Codepoint, character: Pointer) => number;
   // Normalize a string to NFC/NFKC/NFD/NFKD form.
   _mjb_normalize: (buffer: Pointer, byte_length: number, encoding: number, form: number, output_encoding: number, result: Pointer) => number;
   // Filter a string with the selected mjb_filter flags.
@@ -58,7 +58,7 @@ export type MojibakeWasmModule = {
   // Encode a codepoint to a string.
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, byte_length: number, encoding: number) => number;
   // Convert from one encoding to another.
-  _mjb_string_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
+  _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Compare two strings using UCA.
   _mjb_string_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number) => number;
   // Generate a UCA sort key for a string.
