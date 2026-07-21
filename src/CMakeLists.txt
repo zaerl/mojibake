@@ -177,6 +177,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_display_width\""
         "\"_mjb_locale_parse\""
         "\"_mjb_set_locale\""
+        "\"_mjb_get_locale\""
         "\"_mjb_version\""
         "\"_mjb_version_number\""
         "\"_mjb_unicode_version\""

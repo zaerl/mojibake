@@ -1004,8 +1004,11 @@ struct LocaleId {
 }
 
 inline void set_locale(mjb_locale locale) {
-    detail::check_status(mjb_set_locale(static_cast<unsigned int>(locale)),
-        "Locale selection failed");
+    detail::check_status(mjb_set_locale(locale), "Locale selection failed");
+}
+
+[[nodiscard]] inline mjb_locale get_locale() noexcept {
+    return mjb_get_locale();
 }
 
 [[nodiscard]] inline std::string_view version() noexcept {

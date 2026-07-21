@@ -904,7 +904,7 @@ printf("Upper: %.*s", (int)result.output_size, result.output);
 if(result.transformed) {
     mjb_free(result.output);
 }`,
-    related: ['mjb_set_locale'],
+    related: ['mjb_set_locale', 'mjb_get_locale'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
   {
@@ -2152,14 +2152,14 @@ printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
   {
-    comment: 'Set current locale used by locale-sensitive casing.',
+    comment: 'Set the current process-global locale.',
     ret: 'mjb_status',
     name: 'mjb_set_locale',
     attributes: ['MJB_NODISCARD'],
     args: [
       {
         name: 'locale',
-        type: 'unsigned int',
+        type: 'mjb_locale',
         description: 'The locale to set',
         wasm_generated: false
       }
@@ -2183,7 +2183,26 @@ printf("Turkish locale selected: yes");
 if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
     return 1;
 }`,
-    related: ['mjb_map_case']
+    related: ['mjb_get_locale', 'mjb_map_case']
+  },
+  {
+    comment: 'Return the current process-global locale.',
+    ret: 'mjb_locale',
+    name: 'mjb_get_locale',
+    attributes: ['MJB_PURE'],
+    args: [],
+    wasm: true,
+    section: Section.Utility,
+    details: 'Return the process-global locale selected with `mjb_set_locale`. The default is ' +
+      '`MJB_LOCALE_EN`, and `mjb_reset` restores that default.',
+    returns: [
+      { value: 'mjb_locale', description: 'The currently selected locale' }
+    ],
+    example: `mjb_locale locale = mjb_get_locale();
+
+// Current locale is English: yes
+printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");`,
+    related: ['mjb_set_locale', 'mjb_map_case']
   },
   {
     comment: 'Free a mjb_result.',

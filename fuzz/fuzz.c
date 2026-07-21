@@ -262,7 +262,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     mjb_encoding encoding = encodings[variant % 6];
 
     // Exercise the language-sensitive casing and folding paths too.
-    static const unsigned int locales[] = { MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ,
+    static const mjb_locale locales[] = { MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ,
         MJB_LOCALE_LT };
 
     if(mjb_set_locale(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {

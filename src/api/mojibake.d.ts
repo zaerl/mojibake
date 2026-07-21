@@ -161,8 +161,10 @@ export type MojibakeWasmModule = {
   _mjb_display_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, width: Pointer) => number;
   // Parse a BCP 47 language tag.
   _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer, error: Pointer) => number;
-  // Set current locale used by locale-sensitive casing.
+  // Set the current process-global locale.
   _mjb_set_locale: (locale: number) => number;
+  // Return the current process-global locale.
+  _mjb_get_locale: () => number;
   // Output the current library version (MJB_VERSION).
   _mjb_version: () => Pointer;
   // Output the current library version number (MJB_VERSION_NUMBER).

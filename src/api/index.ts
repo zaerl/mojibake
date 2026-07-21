@@ -6,6 +6,7 @@
 
 import mojibakeModule from './mojibake.js';
 import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
+import type { Locale } from './locales.js';
 
 export * from './locales.js';
 export * from './unicode.js';
@@ -1300,9 +1301,14 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_set_locale(unsigned int locale);
-  setLocale(locale: number): boolean {
+  // mjb_status mjb_set_locale(mjb_locale locale);
+  setLocale(locale: Locale): boolean {
     return this.module._mjb_set_locale(locale) === Status.OK;
+  }
+
+  // mjb_locale mjb_get_locale(void);
+  getLocale(): Locale {
+    return this.module._mjb_get_locale() as Locale;
   }
 
   // const char *mjb_version(void);

@@ -67,7 +67,10 @@ int test_mojibake(void *arg) {
     ATT_ASSERT(result.output == NULL, true, "Result output NULL after free")
     ATT_ASSERT(result.output_size, 0, "Result output size 0 after free")
 
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale before reset")
     ATT_ASSERT((mjb_reset(), true), true, "Reset before memory functions")
+    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_EN,
+        "Reset restores default locale")
     void *implicit_buffer = NULL;
     ATT_ASSERT((implicit_buffer = mjb_alloc(1)) != NULL, true, "Default alloc before set")
     ATT_ASSERT((mjb_free(implicit_buffer), true), true, "Default free before set")

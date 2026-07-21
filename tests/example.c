@@ -1129,6 +1129,17 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_get_locale
+    MJB_TEST_COVERAGE(mjb_get_locale); // Added by the script
+    mjb_locale locale = mjb_get_locale();
+
+    // Current locale is English: yes
+    // printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "Current locale is English: yes", "mjb_get_locale test failed") // Added by the script
+}
+
+{
     // Example for mjb_result_free
     MJB_TEST_COVERAGE(mjb_result_free); // Added by the script
     mjb_result result;

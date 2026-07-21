@@ -137,7 +137,9 @@ ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
   'codepointEastAsianWidth');
 ATT_ASSERT(mojibake.displayWidth('Hello'), 5, 'displayWidth');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
-ATT_ASSERT(mojibake.setLocale(Locale.EN), true, 'setLocale');
+ATT_ASSERT(mojibake.setLocale(Locale.IT), true, 'setLocale');
+ATT_ASSERT(mojibake.getLocale(), Locale.IT, 'getLocale');
+ATT_ASSERT(mojibake.setLocale(Locale.EN), true, 'restore locale');
 ATT_ASSERT(mojibake.version(), '0.3.1-WASM', 'version');
 ATT_ASSERT(mojibake.versionNumber(), 0x31, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '18.0.0', 'unicodeVersion');

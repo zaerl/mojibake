@@ -1040,7 +1040,7 @@ if(result.transformed) {
 }
 ```
 
-See also: [`mjb_set_locale`](#mjb_set_locale).
+See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
 
@@ -2546,11 +2546,11 @@ Specifications: [BCP 47: Tags for Identifying Languages](https://www.rfc-editor.
 
 ## `mjb_set_locale`
 
-Set current locale used by locale-sensitive casing.
+Set the current process-global locale.
 
 ```c
 mjb_status mjb_set_locale(
-    unsigned int locale
+    mjb_locale locale
 );
 ```
 
@@ -2577,7 +2577,32 @@ if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
 }
 ```
 
-See also: [`mjb_map_case`](#mjb_map_case).
+See also: [`mjb_get_locale`](#mjb_get_locale), [`mjb_map_case`](#mjb_map_case).
+
+## `mjb_get_locale`
+
+Return the current process-global locale.
+
+```c
+mjb_locale mjb_get_locale(void);
+```
+
+Return the process-global locale selected with `mjb_set_locale`. The default is `MJB_LOCALE_EN`, and `mjb_reset` restores that default.
+
+**Returns**
+
+- `mjb_locale` - The currently selected locale
+
+**Example**
+
+```c
+mjb_locale locale = mjb_get_locale();
+
+// Current locale is English: yes
+printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
+```
+
+See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_map_case`](#mjb_map_case).
 
 ## `mjb_result_free`
 
