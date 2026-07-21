@@ -805,19 +805,19 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_combining(codepoint) ? true : false;
   }
 
-  // bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint)
-  codepointIsHangulL(codepoint: Codepoint): boolean {
-    return this.module._mjb_codepoint_is_hangul_l(codepoint) ? true : false;
+  // bool mjb_codepoint_is_hangul_leading_jamo(mjb_codepoint codepoint)
+  codepointIsHangulLeadingJamo(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_leading_jamo(codepoint) ? true : false;
   }
 
-  // bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint)
-  codepointIsHangulV(codepoint: Codepoint): boolean {
-    return this.module._mjb_codepoint_is_hangul_v(codepoint) ? true : false;
+  // bool mjb_codepoint_is_hangul_vowel_jamo(mjb_codepoint codepoint)
+  codepointIsHangulVowelJamo(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_vowel_jamo(codepoint) ? true : false;
   }
 
-  // bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint)
-  codepointIsHangulT(codepoint: Codepoint): boolean {
-    return this.module._mjb_codepoint_is_hangul_t(codepoint) ? true : false;
+  // bool mjb_codepoint_is_hangul_trailing_jamo(mjb_codepoint codepoint)
+  codepointIsHangulTrailingJamo(codepoint: Codepoint): boolean {
+    return this.module._mjb_codepoint_is_hangul_trailing_jamo(codepoint) ? true : false;
   }
 
   // bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint)

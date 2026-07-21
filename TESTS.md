@@ -79,9 +79,9 @@ the official tests included in the standard:
 | `mjb_alloc`                                | 5           |
 | `mjb_codepoint_is_hangul_jamo`             | 5           |
 | `mjb_set_memory_functions`                 | 5           |
-| `mjb_codepoint_is_hangul_l`                | 4           |
-| `mjb_codepoint_is_hangul_t`                | 4           |
-| `mjb_codepoint_is_hangul_v`                | 4           |
+| `mjb_codepoint_is_hangul_leading_jamo`     | 4           |
+| `mjb_codepoint_is_hangul_trailing_jamo`    | 4           |
+| `mjb_codepoint_is_hangul_vowel_jamo`       | 4           |
 | `mjb_codepoint_is_pattern_syntax`          | 4           |
 | `mjb_codepoint_is_pattern_white_space`     | 4           |
 | `mjb_codepoint_plane`                      | 4           |
@@ -137,10 +137,10 @@ the official tests included in the standard:
 | `Mojibake.codepointIsExtendedPictographic`  | 1          |
 | `Mojibake.codepointIsGraphic`               | 1          |
 | `Mojibake.codepointIsHangulJamo`            | 1          |
-| `Mojibake.codepointIsHangulL`               | 1          |
+| `Mojibake.codepointIsHangulLeadingJamo`     | 1          |
 | `Mojibake.codepointIsHangulSyllable`        | 1          |
-| `Mojibake.codepointIsHangulT`               | 1          |
-| `Mojibake.codepointIsHangulV`               | 1          |
+| `Mojibake.codepointIsHangulTrailingJamo`    | 1          |
+| `Mojibake.codepointIsHangulVowelJamo`       | 1          |
 | `Mojibake.codepointIsIdContinue`            | 1          |
 | `Mojibake.codepointIsIdStart`               | 1          |
 | `Mojibake.codepointIsPatternSyntax`         | 1          |

@@ -159,9 +159,9 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_valid(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_graphic(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_combining(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_is_hangul_l(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_is_hangul_v(codepoint);
-    fuzz_sink += (size_t)mjb_codepoint_is_hangul_t(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_hangul_leading_jamo(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_hangul_vowel_jamo(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_hangul_trailing_jamo(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_hangul_jamo(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_hangul_syllable(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_cjk_ideograph(codepoint);

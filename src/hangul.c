@@ -132,24 +132,25 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
     return len;
 }
 
-MJB_EXPORT bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_is_hangul_leading_jamo(mjb_codepoint codepoint) {
     int l_index = codepoint - MJB_CP_HANGUL_L_BASE;
     return l_index >= 0 && l_index < MJB_CP_HANGUL_L_COUNT;
 }
 
-MJB_EXPORT bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_is_hangul_vowel_jamo(mjb_codepoint codepoint) {
     int v_index = codepoint - MJB_CP_HANGUL_V_BASE;
     return v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT;
 }
 
-MJB_EXPORT bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint) {
+MJB_EXPORT bool mjb_codepoint_is_hangul_trailing_jamo(mjb_codepoint codepoint) {
     int t_index = codepoint - MJB_CP_HANGUL_T_BASE;
     return t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint) {
-    return mjb_codepoint_is_hangul_l(codepoint) || mjb_codepoint_is_hangul_v(codepoint) ||
-        mjb_codepoint_is_hangul_t(codepoint);
+    return mjb_codepoint_is_hangul_leading_jamo(codepoint) ||
+        mjb_codepoint_is_hangul_vowel_jamo(codepoint) ||
+        mjb_codepoint_is_hangul_trailing_jamo(codepoint);
 }
 
 // Return if the codepoint is an hangul syllable

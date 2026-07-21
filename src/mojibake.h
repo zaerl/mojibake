@@ -589,13 +589,13 @@ MJB_EXPORT MJB_CONST bool mjb_codepoint_is_graphic(mjb_codepoint codepoint);
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_combining(mjb_codepoint codepoint);
 
 // Return if the codepoint is a hangul L.
-MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_l(mjb_codepoint codepoint);
+MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_leading_jamo(mjb_codepoint codepoint);
 
 // Return if the codepoint is a hangul V.
-MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_v(mjb_codepoint codepoint);
+MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_vowel_jamo(mjb_codepoint codepoint);
 
 // Return if the codepoint is a hangul T.
-MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_t(mjb_codepoint codepoint);
+MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_trailing_jamo(mjb_codepoint codepoint);
 
 // Return if the codepoint is a hangul jamo.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint);
