@@ -556,7 +556,7 @@ bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result, mj
     return false;
 }
 
-MJB_EXPORT mjb_status mjb_locale_set(unsigned int locale) {
+MJB_EXPORT mjb_status mjb_set_locale(unsigned int locale) {
     if(locale >= MJB_LOCALE_NUM) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }

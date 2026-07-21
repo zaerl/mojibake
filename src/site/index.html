@@ -340,7 +340,7 @@
             return ret;
         }
 
-        function parseEmoji(result) {
+        function parseEmojiProperties(result) {
             let ret = `Codepoint <strong>${codepointToString(result.codepoint)}</strong>:<br>`;
             ret += `Emoji: <strong>${result.emoji ? 'true' : 'false'}</strong><br>`;
             ret += `Presentation: <strong>${result.presentation ? 'true' : 'false'}</strong><br>`;
@@ -553,8 +553,8 @@
                 case 'mjb_confusable_skeleton':
                     data = parseResult(data);
                     break;
-                case 'mjb_codepoint_emoji':
-                    data = parseEmoji(data);
+                case 'mjb_codepoint_emoji_properties':
+                    data = parseEmojiProperties(data);
                     break;
                 case 'mjb_next_character':
                     data = parseNextCharacter(data);

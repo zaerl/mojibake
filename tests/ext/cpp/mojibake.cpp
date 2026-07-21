@@ -100,8 +100,8 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::collation_key(""), std::string(""), "collation_key: empty")
 
     // truncate
-    ATT_ASSERT(std::string(mjb::truncate("hello", 3)), std::string("hel"), "truncate: 3 graphemes")
-    ATT_ASSERT(std::string(mjb::truncate("hello", 10)), std::string("hello"),
+    ATT_ASSERT(std::string(mjb::truncate_grapheme("hello", 3)), std::string("hel"), "truncate: 3 graphemes")
+    ATT_ASSERT(std::string(mjb::truncate_grapheme("hello", 10)), std::string("hello"),
         "truncate: beyond length")
     ATT_ASSERT(std::string(mjb::truncate_word("hello world", 1)), std::string("hello"),
         "truncate_word: 1 segment")

@@ -99,12 +99,12 @@ static void test_case_folding_file(void) {
                 break;
 
             case 'T': // Turkic: applies to both folding types when the locale is tr or az.
-                ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
+                ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
                 check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD,
                     current_line, "T full");
                 check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD_SIMPLE,
                     current_line, "T simple");
-                ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
+                ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
                 break;
         }
 
@@ -333,7 +333,7 @@ int test_case(void *arg) {
     mjb_free(result);
 
     // Turkic (T) case folding, active for the tr and az locales.
-    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
 
     result = run_mjb_map_case("KIRMIZI", 7, MJB_CASE_CASEFOLD, encoding);
     ATT_ASSERT(result, (char *)"kırmızı", "Turkic casefold: KIRMIZI -> kırmızı")
@@ -347,7 +347,7 @@ int test_case(void *arg) {
     ATT_ASSERT(result, (char *)"ı", "Turkic simple casefold: I -> ı")
     mjb_free(result);
 
-    ATT_ASSERT_STATUS(mjb_locale_set(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
 
     // Test Final_Sigma rule: word-final Σ → ς, non-final Σ → σ
     result = run_mjb_map_case("ΣΕΙΣ", 8, MJB_CASE_LOWER, encoding);

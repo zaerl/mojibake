@@ -63,7 +63,7 @@ established by this standard, if that process does interpret that coded characte
 documented public APIs and supported UTF encodings. The conformance inventory maps each advertised
 Unicode algorithm or data claim to its Unicode 18.0.0 reference and test evidence. Mojibake does not
 render text or interpret standardized or ideographic variation sequences as glyph-selection
-requests. `mjb_string_emoji_sequence` recognizes assigned emoji variation sequences from
+requests. `mjb_classify_emoji_sequence` recognizes assigned emoji variation sequences from
 `emoji-variation-sequences.txt`. Misplaced variation selectors and unsupported variation sequences
 are not interpreted as requests to modify the glyph of a preceding character.
 
@@ -215,11 +215,11 @@ protocol. If a process that purports to implement a Unicode algorithm applies a 
 must be disclosed.
 
 ✅ Satisfied. `README.md`, `API.md` and `CONFORMANCE_REQUIREMENTS.md` include a Unicode tailoring
-section. It discloses that `mjb_map_case` is locale-sensitive through process-global `mjb_locale_set`,
+section. It discloses that `mjb_map_case` is locale-sensitive through process-global `mjb_set_locale`,
 that `MJB_LOCALE_EN` is the default, that Turkish/Azerbaijani tailor dotted-I casing and Turkic case
 folding, that Lithuanian tailors dot-above casing only, and that the other advertised Unicode
 algorithms are not locale-tailored by Mojibake. Generated function metadata now carries the same
-disclosure on `mjb_map_case` and `mjb_locale_set`.
+disclosure on `mjb_map_case` and `mjb_set_locale`.
 
 ### C20
 
@@ -243,7 +243,7 @@ Unless listed here, Mojibake applies the referenced Unicode 18.0.0 algorithms *w
 higher-level protocol tailoring.
 
 - **Case conversion and case folding**: `mjb_map_case` is locale-sensitive through the process-global
-  locale set by `mjb_locale_set`. The default locale is `MJB_LOCALE_EN`. `MJB_LOCALE_TR` and
+  locale set by `mjb_set_locale`. The default locale is `MJB_LOCALE_EN`. `MJB_LOCALE_TR` and
   `MJB_LOCALE_AZ` apply the Turkish/Azerbaijani dotted-I rules from `SpecialCasing.txt` for
   uppercase, lowercase, and titlecase, and the Turkic `T` mappings from `CaseFolding.txt` for full
   and simple case folding. `MJB_LOCALE_LT` applies Lithuanian dot-above rules from
@@ -277,5 +277,5 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
-| Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
+| Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |

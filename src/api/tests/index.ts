@@ -117,7 +117,7 @@ ATT_ASSERT(mojibake.propertyName(Property.CASED), 'Cased', 'propertyName');
 ATT_ASSERT(mojibake.areConfusable('\u0410', 'A'), true, 'areConfusable');
 ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
   'confusableSkeleton');
-ATT_ASSERT(mojibake.codepointEmoji(0x23)?.component, true, 'codepointEmoji');
+ATT_ASSERT(mojibake.codepointEmojiProperties(0x23)?.component, true, 'codepointEmojiProperties');
 ATT_ASSERT(mojibake.codepointIsEmoji(0x23), true, 'codepointIsEmoji');
 ATT_ASSERT(mojibake.codepointIsEmojiPresentation(0x23), false, 'codepointIsEmojiPresentation');
 ATT_ASSERT(mojibake.codepointIsEmojiModifier(0x1F3FB), true, 'codepointIsEmojiModifier');
@@ -125,11 +125,11 @@ ATT_ASSERT(mojibake.codepointIsEmojiModifierBase(0x1F44B), true, 'codepointIsEmo
 ATT_ASSERT(mojibake.codepointIsEmojiComponent(0x23), true, 'codepointIsEmojiComponent');
 ATT_ASSERT(mojibake.codepointIsExtendedPictographic(0x1F600), true,
   'codepointIsExtendedPictographic');
-ATT_ASSERT(mojibake.stringEmojiSequence('\u263A\uFE0F'), {
+ATT_ASSERT(mojibake.classifyEmojiSequence('\u263A\uFE0F'), {
   type: EmojiSequenceType.BASIC,
   qualification: EmojiQualification.FULLY_QUALIFIED,
   codepoint_count: 2
-}, 'stringEmojiSequence');
+}, 'classifyEmojiSequence');
 ATT_ASSERT(mojibake.stringIsEmojiSequence('\u263A'), true, 'stringIsEmojiSequence');
 ATT_ASSERT(mojibake.stringIsRgiEmoji('\u263A\uFE0F'), true, 'stringIsRgiEmoji');
 ATT_ASSERT(mojibake.hangulSyllableName(0xAC01), 'HANGUL SYLLABLE GAG', 'hangulSyllableName');
@@ -137,7 +137,7 @@ ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
   'codepointEastAsianWidth');
 ATT_ASSERT(mojibake.displayWidth('Hello'), 5, 'displayWidth');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
-ATT_ASSERT(mojibake.localeSet(Locale.EN), true, 'localeSet');
+ATT_ASSERT(mojibake.setLocale(Locale.EN), true, 'setLocale');
 ATT_ASSERT(mojibake.version(), '0.3.1-WASM', 'version');
 ATT_ASSERT(mojibake.versionNumber(), 0x31, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '18.0.0', 'unicodeVersion');

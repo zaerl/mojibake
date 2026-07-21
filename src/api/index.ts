@@ -1123,13 +1123,13 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_codepoint_emoji(mjb_codepoint codepoint, mjb_emoji_properties *emoji)
-  codepointEmoji(codepoint: Codepoint): EmojiProperties | null {
+  // mjb_status mjb_codepoint_emoji_properties(mjb_codepoint codepoint, mjb_emoji_properties *emoji)
+  codepointEmojiProperties(codepoint: Codepoint): EmojiProperties | null {
     const structSize = 16;
     const ptr = this.malloc(structSize);
 
     try {
-      const status = this.module._mjb_codepoint_emoji(codepoint, ptr);
+      const status = this.module._mjb_codepoint_emoji_properties(codepoint, ptr);
 
       if(status !== Status.OK) {
         return null;
@@ -1171,15 +1171,15 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_extended_pictographic(codepoint) ? true : false;
   }
 
-  // mjb_status mjb_string_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_emoji_sequence *emoji)
-  stringEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
+  classifyEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
     const structSize = 12;
     const wasmInput = this.copyInput(input, options.encoding);
     const ptr = this.malloc(structSize);
 
     try {
-      const status = this.module._mjb_string_emoji_sequence(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_classify_emoji_sequence(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, ptr);
 
       if(status !== Status.OK) {
@@ -1300,9 +1300,9 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_locale_set(unsigned int locale);
-  localeSet(locale: number): boolean {
-    return this.module._mjb_locale_set(locale) === Status.OK;
+  // mjb_status mjb_set_locale(unsigned int locale);
+  setLocale(locale: number): boolean {
+    return this.module._mjb_set_locale(locale) === Status.OK;
   }
 
   // const char *mjb_version(void);
@@ -1321,7 +1321,7 @@ export class Mojibake {
   }
 
   // mjb_status mjb_set_memory_functions(mjb_alloc_fn, mjb_realloc_fn, mjb_free_fn);
-  // void mjb_shutdown(void);
+  // void mjb_reset(void);
   // void *mjb_alloc(size_t size);
   // void *mjb_realloc(void *ptr, size_t new_size);
   // void *mjb_free(void *ptr);
