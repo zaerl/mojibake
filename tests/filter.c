@@ -94,12 +94,14 @@ int test_filter(void *arg) {
         "Filter into numeric mapping matches allocating filter");
     assert_filter_into_matches("a\xCC\x80\xCC\x81\xCC\x82\xCC\x83\xCC\x84", 11, enc,
         MJB_FILTER_LIMIT_COMBINING, enc, "Filter into combining limit matches allocating filter");
-    assert_filter_into_matches("A\xC0" "B", 3, enc, MJB_FILTER_NONE, enc,
+    assert_filter_into_matches("A\xC0"
+                               "B",
+        3, enc, MJB_FILTER_NONE, enc,
         "Filter into malformed replacement matches allocating filter");
     assert_filter_into_matches("A", 1, enc, MJB_FILTER_NONE, MJB_ENC_UTF_16LE,
         "Filter into encoding conversion matches allocating filter");
-    assert_filter_into_matches(normalize_input, strlen(normalize_input), enc,
-        MJB_FILTER_NORMALIZE, enc, "Filter into normalization matches allocating filter");
+    assert_filter_into_matches(normalize_input, strlen(normalize_input), enc, MJB_FILTER_NORMALIZE,
+        enc, "Filter into normalization matches allocating filter");
 
     ATT_ASSERT_STATUS(mjb_filter(NULL, 1, enc, MJB_FILTER_NONE, enc, &result),
         MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL buffer")

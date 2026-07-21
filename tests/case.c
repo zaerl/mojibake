@@ -136,7 +136,8 @@ int test_case(void *arg) {
                           &into_size),
         MJB_STATUS_INVALID_ARGUMENT, "Case into rejects MJB_CASE_NONE")
 
-    const char *into_input = "Stra\xC3\x9F" "e";
+    const char *into_input = "Stra\xC3\x9F"
+                             "e";
     const char *into_expected = "STRASSE";
     into_size = 0;
 

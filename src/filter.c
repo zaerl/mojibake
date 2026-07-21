@@ -26,8 +26,8 @@ static mjb_status mjb_filter_process(const mjb_filter_context *context, mjb_outp
     bool in_error = false;
 
     for(size_t i = 0; i < context->byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(context->buffer,
-            context->byte_length, &state, &i, context->encoding, &codepoint, &in_error);
+        mjb_decode_result decode_status = mjb_next_codepoint(context->buffer, context->byte_length,
+            &state, &i, context->encoding, &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
             break;
@@ -97,8 +97,7 @@ static mjb_status mjb_filter_process(const mjb_filter_context *context, mjb_outp
             }
         }
 
-        if((context->filters & MJB_FILTER_NUMERIC) &&
-            character.decimal != MJB_NUMBER_NOT_VALID) {
+        if((context->filters & MJB_FILTER_NUMERIC) && character.decimal != MJB_NUMBER_NOT_VALID) {
             codepoint = 0x30 + character.decimal; // U+0030 DIGIT ZERO
 
             if(original_codepoint != codepoint) {
@@ -170,8 +169,8 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     bool is_normalized = false;
 
     if(filters & MJB_FILTER_NORMALIZE) {
-        mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ?
-            output_encoding : encoding;
+        mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ? output_encoding :
+                                                                                   encoding;
         mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC,
             normalize_output_encoding, result);
 
@@ -203,9 +202,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
 
     mjb_output output;
     mjb_output_init_dynamic(&output, allocated, byte_length);
-    mjb_filter_context context = {
-        buffer, byte_length, encoding, filters, output_encoding
-    };
+    mjb_filter_context context = { buffer, byte_length, encoding, filters, output_encoding };
     bool transformed = false;
     mjb_status status = mjb_filter_process(&context, &output, &transformed);
 
@@ -243,9 +240,8 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_filter_flags filters, mjb_encoding output_encoding, void *output,
-    size_t *output_size) {
+MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_filter_flags filters, mjb_encoding output_encoding, void *output, size_t *output_size) {
     if(output_size == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -282,9 +278,7 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length,
         byte_length = normalized.output_size;
     }
 
-    mjb_filter_context context = {
-        buffer, byte_length, encoding, filters, output_encoding
-    };
+    mjb_filter_context context = { buffer, byte_length, encoding, filters, output_encoding };
     mjb_status status = mjb_output_into(output, output_size, mjb_filter_write, &context);
 
     if(normalization_requested) {

@@ -281,9 +281,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
             size_t required = 0;
 
-            if(mjb_normalize_into(buffer, size, encoding,
-                   (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, NULL, &required) ==
-                    MJB_STATUS_OK &&
+            if(mjb_normalize_into(buffer, size, encoding, (mjb_normalization)(variant % 4),
+                   MJB_ENC_UTF_8, NULL, &required) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = required;
@@ -382,7 +381,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
             size_t required = 0;
             mjb_collation_mode mode = (variant & 0x10) ? MJB_COLLATION_SHIFTED :
-                MJB_COLLATION_NON_IGNORABLE;
+                                                         MJB_COLLATION_NON_IGNORABLE;
 
             if(mjb_collation_key_into(buffer, size, encoding, mode, NULL, &required) ==
                     MJB_STATUS_OK &&
