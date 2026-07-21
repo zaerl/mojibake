@@ -167,7 +167,7 @@ static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
 
 static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode) {
     size_t input_size = strlen(input);
-    size_t input_real_size = mjb_string_length(input, input_size, MJB_ENC_UTF_8);
+    size_t input_real_size = mjb_count_codepoints(input, input_size, MJB_ENC_UTF_8);
     size_t display_width;
 
     if(mjb_display_width(input, input_size, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_AUTO,

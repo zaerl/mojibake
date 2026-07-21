@@ -526,10 +526,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-MJB_EXPORT mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
+MJB_EXPORT mjb_quick_check_result mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form);
 
 // Return the string encoding (the most probable).
-MJB_EXPORT MJB_PURE mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length);
+MJB_EXPORT MJB_PURE mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_length);
 
 // Return true if the string is encoded in ASCII.
 MJB_EXPORT MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
@@ -541,7 +541,7 @@ MJB_EXPORT MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t byte_leng
 MJB_EXPORT MJB_PURE bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
 
 // Return the length of a string.
-MJB_EXPORT MJB_PURE size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding);
+MJB_EXPORT MJB_PURE size_t mjb_count_codepoints(const char *buffer, size_t max_length, mjb_encoding encoding);
 
 // Run a callback for each character of a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_string_each_character_fn callback);
@@ -571,7 +571,7 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
 
 // Compare two strings using UCA.
-MJB_EXPORT int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);
+MJB_EXPORT int mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode);
 
 // Generate a UCA sort key for a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);

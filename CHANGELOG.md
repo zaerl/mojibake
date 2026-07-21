@@ -119,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved legalese to conformance file
 - Removed fuzz paragraph
 - Fix: `Mojibake.codepointEncode` wrong signature
-- Fix: `Mojibake.stringLength` wrong signature
+- Fix: `Mojibake.countCodepoints` wrong signature
 - Inverted `mjb_normalize`, `mjb_case` and `mjb_string_filter` parameters
 - Split `mjb_codepoint_property_value` in `mjb_codepoint_property_binary`,
   `mjb_codepoint_property_int`
@@ -179,7 +179,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `mjb_segmentation` to `mjb_break_grapheme_cluster`
 - Renamed `mjb_next_character` to `mjb_string_each_character`
 - Renamed `_mjbNextCharacterCallback` to `_mjbEachCharacterCallback`
-- Added second encoding to `mjb_string_compare`
+- Added second encoding to `mjb_collation_compare`
 - Added second encoding to `mjb_string_is_confusable`
 - Renamed `size` to `byte_length`
 - Changed test function return from `void*` to `int`

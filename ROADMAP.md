@@ -13,7 +13,7 @@ This is the Mojibake roadmap. For great justice.
    `mjb_identifier_check` and `mjb_string_restriction_level`.
 
 3. **Caseless comparison**
-   Add `mjb_string_compare_caseless` with default, canonical, compatibility, and identifier modes.
+   Add `mjb_collation_compare_caseless` with default, canonical, compatibility, and identifier modes.
 
 4. **Detailed validation and decoder iteration**
    Add `mjb_string_validate`, `mjb_decode_next`, and `mjb_decode_previous`. Use a shared diagnostic

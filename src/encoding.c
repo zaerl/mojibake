@@ -46,7 +46,7 @@ static mjb_encoding mjb_encoding_from_bom(const char *buffer, size_t byte_length
 /**
  * Return the string encoding (the most probable).
  */
-MJB_EXPORT mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length) {
+MJB_EXPORT mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_length) {
     if(buffer == NULL || byte_length == 0) {
         return MJB_ENC_UNKNOWN;
     }

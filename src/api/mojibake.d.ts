@@ -30,9 +30,9 @@ export type MojibakeWasmModule = {
   // Apply the Unicode NFKC_Casefold transform to a string.
   _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-  _mjb_string_is_normalized: (buffer: Pointer, byte_length: number, encoding: number, form: number) => number;
+  _mjb_normalization_quick_check: (buffer: Pointer, byte_length: number, encoding: number, form: number) => number;
   // Return the string encoding (the most probable).
-  _mjb_string_encoding: (buffer: Pointer, byte_length: number) => number;
+  _mjb_detect_encoding: (buffer: Pointer, byte_length: number) => number;
   // Return true if the string is encoded in ASCII.
   _mjb_string_is_ascii: (buffer: Pointer, byte_length: number) => boolean;
   // Return true if the string is encoded in UTF-8.
@@ -40,7 +40,7 @@ export type MojibakeWasmModule = {
   // Return true if the string is encoded in UTF-16BE or UTF-16LE.
   _mjb_string_is_utf16: (buffer: Pointer, byte_length: number) => boolean;
   // Return the length of a string.
-  _mjb_string_length: (buffer: Pointer, max_length: number, encoding: number) => number;
+  _mjb_count_codepoints: (buffer: Pointer, max_length: number, encoding: number) => number;
   // Run a callback for each character of a string.
   _mjb_string_each_character: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
   // Return the value of a binary Unicode property.
@@ -60,7 +60,7 @@ export type MojibakeWasmModule = {
   // Convert from one encoding to another.
   _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Compare two strings using UCA.
-  _mjb_string_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number) => number;
+  _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number) => number;
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
   // Change string case.

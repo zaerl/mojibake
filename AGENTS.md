@@ -93,7 +93,7 @@ Core modules in `src/`:
 - `normalization.c` - Unicode normalization (NFC, NFD, NFKC, NFKD)
 - `plane.c` - Unicode plane operations
 - `properties.c` - Codepoints properties
-- `quick-check.c` - Normalization quick-check (`mjb_string_is_normalized`)
+- `quick-check.c` - Normalization quick-check (`mjb_normalization_quick_check`)
 - `segmentation.c` - Grapheme Cluster Breaking algorithm (TR29)
 - `shell/` provides CLI access to library functions
 - `site/` files for generating the WASM version site

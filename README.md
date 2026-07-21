@@ -44,7 +44,7 @@ int main(int argc, char *const argv[]) {
     // String length example: mjb_string_length counts the number of characters in a
     // string, not the number of bytes.
     printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu characters long\n",
-        mojibake, length, mjb_string_length(mojibake, length, MJB_ENC_UTF_8));
+        mojibake, length, mjb_count_codepoints(mojibake, length, MJB_ENC_UTF_8));
 
     mjb_result_free(&result);
 
@@ -112,7 +112,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 - **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`), identifier-oriented NFKC case folding
   (`mjb_nfkc_casefold`), plus a fast quick-check
-  (`mjb_string_is_normalized`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
+  (`mjb_normalization_quick_check`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
   and conditional mappings (`mjb_case`)
 - **Filtering**: strip controls, spaces, or numeric characters while normalizing
@@ -135,7 +135,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Sorting and comparison**
 
 - **Collation**: Unicode Collation Algorithm string comparison and sort keys, in shifted and
-  non-ignorable modes (`mjb_string_compare`, `mjb_collation_key`,
+  non-ignorable modes (`mjb_collation_compare`, `mjb_collation_key`,
   [UTS #10, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html))
 
 **Security**
@@ -149,7 +149,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Integration**
 
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
-  strings, with encoding detection and conversion (`mjb_string_encoding`,
+  strings, with encoding detection and conversion (`mjb_detect_encoding`,
   `mjb_convert_encoding`)
 - **Parsing and string functions**: character-by-character iteration (`mjb_next_character`) and
   standard C `string.h`-style helpers (`mjb_string_length`, and others)

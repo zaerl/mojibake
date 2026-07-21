@@ -283,7 +283,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 1: // Normalization quick check
-            mjb_string_is_normalized(buffer, size, encoding, (mjb_normalization)(variant % 4));
+            mjb_normalization_quick_check(buffer, size, encoding, (mjb_normalization)(variant % 4));
             break;
 
         case 17: // Identifier-oriented NFKC case folding
@@ -324,7 +324,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         }
 
         case 4: // Encoding detection
-            fuzz_sink += (size_t)mjb_string_encoding(buffer, size);
+            fuzz_sink += (size_t)mjb_detect_encoding(buffer, size);
             fuzz_sink += (size_t)mjb_string_is_utf8(buffer, size);
             fuzz_sink += (size_t)mjb_string_is_utf16(buffer, size);
             fuzz_sink += (size_t)mjb_string_is_ascii(buffer, size);
@@ -356,12 +356,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 8: // Collation comparison, input split in two halves
-            mjb_string_compare(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
+            mjb_collation_compare(buffer, size / 2, encoding, buffer + size / 2, size - size / 2,
                 encoding, (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE);
             break;
 
         case 9: // Segmentation: grapheme, word and width truncation
-            fuzz_sink += mjb_string_length(buffer, size, encoding);
+            fuzz_sink += mjb_count_codepoints(buffer, size, encoding);
             mjb_truncate(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
             mjb_truncate_width(buffer, size, encoding, (mjb_width_context)(variant % 3), variant);

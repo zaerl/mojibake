@@ -326,8 +326,8 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 
     bool is_composition = form == MJB_NORMALIZATION_NFC || form == MJB_NORMALIZATION_NFKC;
     bool is_compatibility = form == MJB_NORMALIZATION_NFKC || form == MJB_NORMALIZATION_NFKD;
-    mjb_quick_check_result is_normalized = mjb_string_is_normalized(buffer, byte_length, encoding,
-        form);
+    mjb_quick_check_result is_normalized = mjb_normalization_quick_check(buffer, byte_length,
+        encoding, form);
 
     if(is_normalized == MJB_QC_YES) {
         // No need to normalize.
@@ -357,7 +357,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
         // potential output size.
         potential_output_size = byte_length;
     } else {
-        potential_output_size = mjb_string_length(buffer, byte_length, encoding);
+        potential_output_size = mjb_count_codepoints(buffer, byte_length, encoding);
 
         switch(output_encoding) {
             case MJB_ENC_UTF_8:

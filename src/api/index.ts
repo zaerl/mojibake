@@ -460,14 +460,14 @@ export class Mojibake {
     }
   }
 
-  // mjb_quick_check_result mjb_string_is_normalized(const char *buffer, size_t byte_length, mjb_encoding
+  // mjb_quick_check_result mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding
   // encoding, mjb_normalization form)
-  stringIsNormalized(input: MojibakeInput, form = Normalization.NFC,
+  normalizationQuickCheck(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_normalized(wasmInput.ptr, wasmInput.size,
+      return this.module._mjb_normalization_quick_check(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, form);
     } finally {
       this.free(wasmInput.ptr);
@@ -607,12 +607,12 @@ export class Mojibake {
     return this.module._mjb_codepoint_script(codepoint);
   }
 
-  // mjb_encoding mjb_string_encoding(const char *buffer, size_t byte_length)
-  stringEncoding(input: MojibakeInput, options: TextInputOptions = {}): number {
+  // mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_length)
+  detectEncoding(input: MojibakeInput, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_encoding(wasmInput.ptr, wasmInput.size);
+      return this.module._mjb_detect_encoding(wasmInput.ptr, wasmInput.size);
     } finally {
       this.free(wasmInput.ptr);
     }
@@ -700,26 +700,26 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_string_length(const char *buffer, size_t max_length, mjb_encoding encoding)
-  stringLength(input: MojibakeInput, options: TextInputOptions = {}): number {
+  // size_t mjb_count_codepoints(const char *buffer, size_t max_length, mjb_encoding encoding)
+  countCodepoints(input: MojibakeInput, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_length(wasmInput.ptr, wasmInput.size, wasmInput.encoding);
+      return this.module._mjb_count_codepoints(wasmInput.ptr, wasmInput.size, wasmInput.encoding);
     } finally {
       this.free(wasmInput.ptr);
     }
   }
 
-  // int mjb_string_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
+  // int mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
   // const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode
-  stringCompare(first: MojibakeInput, second: MojibakeInput,
+  collationCompare(first: MojibakeInput, second: MojibakeInput,
     mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number {
     const firstInput = this.copyInput(first, options.encoding);
     const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
 
     try {
-      return this.module._mjb_string_compare(firstInput.ptr, firstInput.size,
+      return this.module._mjb_collation_compare(firstInput.ptr, firstInput.size,
         firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode);
     } finally {
       this.free(firstInput.ptr);

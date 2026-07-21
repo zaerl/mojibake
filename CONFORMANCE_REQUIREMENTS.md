@@ -82,7 +82,7 @@ character semantics.
 sequences are distinct.
 
 ✅ Satisfied. `mjb_normalize` implements NFC/NFD/NFKC/NFKD, `mjb_nfkc_casefold` applies the
-mandatory final NFC step, and `mjb_string_compare` normalizes to NFD before building UCA collation
+mandatory final NFC step, and `mjb_collation_compare` normalizes to NFD before building UCA collation
 elements. A direct probe of `U+00E9` versus `U+0065 U+0301` compares equal and normalizes to the
 expected canonical forms.
 
@@ -123,7 +123,7 @@ encoding form, it shall treat ill-formed code unit sequences as an error conditi
 interpret such sequences as characters.
 
 ✅ Satisfied. `mjb_collation_key` returns `MJB_STATUS_MALFORMED_INPUT` for malformed UTF-8.
-`mjb_string_compare` uses the same sort-key path and returns its existing failure signal instead of
+`mjb_collation_compare` uses the same sort-key path and returns its existing failure signal instead of
 producing collation weights for malformed input.
 
 ### C11
@@ -133,7 +133,7 @@ encoding scheme, it shall interpret that byte sequence according to the byte ord
 specifications for the use of the byte order mark established by this standard for that character
 encoding scheme.
 
-✅ Satisfied. BOM-derived `mjb_string_encoding` values decode through the resolved byte order.
+✅ Satisfied. BOM-derived `mjb_detect_encoding` values decode through the resolved byte order.
 Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature, while
 explicit-endian input preserves an initial `U+FEFF` as text. Generic UTF-16/UTF-32 conversion
 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not
@@ -163,7 +163,7 @@ canonical composition, and Hangul normalization behavior for NFC/NFD/NFKC/NFKD.
 > A process that tests Unicode text to determine whether it is in a Normalization Form shall
 do so in accordance with the specifications in Section 3.11, Normalization Forms.
 
-✅ Satisfied. `mjb_string_is_normalized` implements the Unicode quick-check approach using
+✅ Satisfied. `mjb_normalization_quick_check` implements the Unicode quick-check approach using
 normalization quick-check data and canonical combining class ordering, with `MJB_QC_MAYBE` exposed
 when a full normalization pass is required.
 
@@ -249,7 +249,7 @@ higher-level protocol tailoring.
   and simple case folding. `MJB_LOCALE_LT` applies Lithuanian dot-above rules from
   `SpecialCasing.txt` for uppercase, lowercase, and titlecase; case folding remains the default
   non-Turkic mapping.
-- **Collation**: `mjb_string_compare` and `mjb_collation_key` use DUCET without locale collation
+- **Collation**: `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation
   tailoring. The `mjb_collation_mode` argument only selects the UCA variable weighting strategy.
 - **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
   Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 18.0.0
@@ -269,12 +269,12 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Claim | Public surface | Unicode reference | Evidence |
 | --- | --- | --- | --- |
 | Unicode Character Database data and derived properties | `mjb_codepoint_info`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
-| Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_string_is_normalized` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
+| Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_normalization_quick_check` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
 | Default case conversion and caseless matching | `mjb_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_break_grapheme_cluster`, `mjb_break_word`, `mjb_break_sentence`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
 | Line breaking | `mjb_break_line` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
-| Unicode Collation Algorithm, DUCET | `mjb_string_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
+| Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_string_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_string_is_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_string_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |

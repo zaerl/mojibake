@@ -45,7 +45,7 @@ ATT_ASSERT(mojibake instanceof Mojibake, true, 'create');
 ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
 ATT_ASSERT(mojibake.nextCharacter('A')?.[0]?.character.codepoint, 0x41, 'nextCharacter');
-ATT_ASSERT(mojibake.stringIsNormalized('abc'), QuickCheckResult.YES, 'stringIsNormalized');
+ATT_ASSERT(mojibake.normalizationQuickCheck('abc'), QuickCheckResult.YES, 'normalizationQuickCheck');
 ATT_ASSERT(mojibake.stringFilter('hello    world', FilterType.COLLAPSE_SPACES)?.output, 'hello world',
   'stringFilter');
 ATT_ASSERT(mojibake.stringFilter('a\u0300\u0301\u0302\u0303\u0304', FilterType.LIMIT_COMBINING)?.output,
@@ -63,14 +63,14 @@ ATT_ASSERT(mojibake.codepointPropertyInt(0x41, Property.ALPHABETIC), null,
 ATT_ASSERT(mojibake.codepointScriptExtensions(0x30FC), [Script.HIRA, Script.KANA],
   'codepointScriptExtensions');
 ATT_ASSERT(mojibake.codepointScript(0x41), Script.LATN, 'codepointScript');
-ATT_ASSERT(mojibake.stringEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'stringEncoding');
+ATT_ASSERT(mojibake.detectEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'detectEncoding');
 ATT_ASSERT(mojibake.stringIsUtf8('Hello'), true, 'stringIsUtf8');
 ATT_ASSERT(mojibake.stringIsUtf16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'stringIsUtf16');
 ATT_ASSERT(mojibake.stringIsAscii('Hello'), true, 'stringIsAscii');
 ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
 ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
-ATT_ASSERT(mojibake.stringLength('H\u00E9ll\u00F6'), 5, 'stringLength');
-ATT_ASSERT(mojibake.stringCompare('hello', 'hello'), 0, 'stringCompare');
+ATT_ASSERT(mojibake.countCodepoints('H\u00E9ll\u00F6'), 5, 'countCodepoints');
+ATT_ASSERT(mojibake.collationCompare('hello', 'hello'), 0, 'collationCompare');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
 ATT_ASSERT(mojibake.case('hello', CaseType.UPPER)?.output, 'HELLO', 'case');
 ATT_ASSERT(mojibake.case('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',

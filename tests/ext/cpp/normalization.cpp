@@ -54,8 +54,7 @@ int test_cpp_normalization(void *arg) {
         "TextResult aliases untransformed input")
     ATT_ASSERT(view_result.str(), already_normalized, "TextResult::str")
 
-    auto owned_result =
-        mjb::normalize_result("e\xCC\x81", mjb::NormalizationForm::NFC);
+    auto owned_result = mjb::normalize_result("e\xCC\x81", mjb::NormalizationForm::NFC);
     ATT_ASSERT(owned_result.transformed(), true, "TextResult owns transformed result")
     ATT_ASSERT(owned_result.str(), std::string("\xC3\xA9"), "TextResult transformed output")
 
