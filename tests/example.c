@@ -44,9 +44,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "NFC: %.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "NFC: Café", "mjb_normalize test failed") // Added by the script
 
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
+    mjb_result_free(&result);
 }
 
 {
@@ -92,9 +90,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "Filtered: Hello world", "mjb_filter test failed") // Added by the script
 
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
+    mjb_result_free(&result);
 
     const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
@@ -109,9 +105,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_filter test failed") // Added by the script
 
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
+    mjb_result_free(&result);
 }
 
 {
@@ -541,9 +535,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_map_case test failed") // Added by the script
 
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
+    mjb_result_free(&result);
 }
 
 {

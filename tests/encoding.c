@@ -22,6 +22,47 @@ static void assert_encoding_conversion(const char *input, size_t input_size,
     }
 }
 
+// See API.md for the example.
+static mjb_status api_md_examples(void) {
+    const char *input = "caf\xC3\xA9";
+    size_t required = 0;
+    mjb_status status;
+
+    // Get the length.
+    status = mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL,
+        &required);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    char *output = malloc(required);
+
+    if(output == NULL) {
+        return MJB_STATUS_NO_MEMORY;
+    }
+
+    size_t capacity = required;
+
+    status = mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
+        output, &capacity);
+
+    if(status != MJB_STATUS_OK) {
+        free(output);
+
+        return status;
+    }
+
+    MJB_TEST_COVERAGE(mjb_convert_encoding_into);
+
+    ATT_ASSERT(capacity, required, "mjb_convert_encoding_into API.md example")
+    ATT_ASSERT(capacity, 8, "mjb_convert_encoding_into API.md example capacity")
+
+    free(output);
+
+    return MJB_STATUS_OK;
+}
+
 int test_encoding(void *arg) {
     ATT_ASSERT((unsigned int)mjb_detect_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN,
         "Void unknown string")
@@ -583,6 +624,8 @@ int test_encoding(void *arg) {
             }
         }
     }
+
+    ATT_ASSERT_STATUS(api_md_examples(), MJB_STATUS_OK, "API MD examples");
 
     return 0;
 }

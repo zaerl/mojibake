@@ -47,6 +47,8 @@ All the other things found on +10MB libraries.
 # TODO
 
 - [ ] Add generic binary search
+- [ ] Check `mjb_confusable_skeleton_into` that alloc memory by using
+  `mjb_confusable_skeleton_process`
 - [ ] Check maximum size of combining characters
 - [ ] Optimize memory allocation in `mjb_normalize`
 - [ ] Optimize memory allocation in `mjb_recompose`
@@ -55,15 +57,3 @@ All the other things found on +10MB libraries.
 - [ ] Check all the links such as https://www.unicode.org/reports/tr15/tr15-57.html if they will
 have a new Unicode 18 version, that right now they don't have
 - [ ] Adopt one convention everywhere for fallible and buffer-producing APIs:
-  - Allocating transforms return `mjb_status` and write to a final `mjb_result *` parameter.
-  - Caller-buffer variants use an `_into` suffix, report the required byte count, support a
-    `NULL`/zero-capacity sizing call, and never silently truncate output.
-  - Fallible scalar results return `mjb_status` and write to a final output parameter, following
-    `mjb_normalization_quick_check`, `mjb_collation_compare`, and `mjb_are_confusable`.
-  - Reserve direct `bool` returns for predicates whose boolean is the actual answer, direct scalar
-    returns for genuinely infallible queries, and `void` for destructors/reset operations.
-  - Mark status-returning APIs `MJB_NODISCARD`, initialize output parameters to neutral values, and
-    preserve precise argument, encoding, malformed-input, overflow, and allocation errors.
-  - Audit the remaining sentinel-based APIs, especially counting, codepoint encoding, boundary
-    iteration, truncation, Hangul composition, and enum/name lookups; then update the C++ and
-    TypeScript wrappers, generated declarations, documentation, examples, tests, and fuzzing.

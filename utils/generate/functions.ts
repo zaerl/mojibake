@@ -237,9 +237,7 @@ if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB
 // NFC: Café
 printf("NFC: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}`,
+mjb_result_free(&result);`,
     related: ['mjb_normalize_into', 'mjb_normalization_quick_check', 'mjb_filter',
       'mjb_filter_into'],
     specs: [uax(15, 'Unicode Normalization Forms')]
@@ -356,9 +354,7 @@ if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
 // Filtered: Hello world
 printf("Filtered: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}
+mjb_result_free(&result);
 
 const char *controls = "\\x1\\x2\\t\\n\\v\\f\\r\\x1f";
 
@@ -370,9 +366,7 @@ if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
 // Filtered: \\t\\n\\v\\f\\r
 printf("Filtered: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}`,
+mjb_result_free(&result);`,
     related: ['mjb_filter_into', 'mjb_normalize']
   },
   {
@@ -1284,9 +1278,7 @@ if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF
 // Upper: STRASSE
 printf("Upper: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}`,
+mjb_result_free(&result);`,
     related: ['mjb_map_case_into', 'mjb_set_locale', 'mjb_get_locale'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
