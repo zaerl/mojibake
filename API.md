@@ -200,6 +200,53 @@ mjb_count_codepoints("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UT
 mjb_count_codepoints("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE); // 5 characters
 ```
 
+Functions that handle a string, as `mjb_normalize`, `mjb_convert_encoding` has always a `_into(...)`
+alternative that do not allocate the results for you, but you provide the buffer.
+
+Example for the function:
+
+```
+mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding,
+mjb_encoding output_encoding, void *output, size_t *output_size);
+```
+
+These are the rules, all the functions are equal:
+
+1. Set `output` to NULL to query the required size you will get back stored in the  `output_size`
+  pointer
+2. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required
+   size when the buffer is too small (`MJB_STATUS_OUTPUT_TOO_SMALL`), or the written size on success
+3. **Terminators are excluded from the byte count and are not written**
+4. No bytes are written when capacity is insufficient
+
+> [!IMPORTANT]
+> In Mojibake APIs string are length-delimited and binary-safe. It does not write a NULL character
+> at the end of a string
+
+```c
+const char *input = "caf\xC3\xA9";
+size_t required = 0;
+
+// Get the length.
+if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_ENC_UTF_16LE, NULL, &required) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char *output = malloc(required);
+size_t capacity = required;
+
+if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_ENC_UTF_16LE, output, &capacity) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// UTF-16LE payload bytes (no terminator): 8
+printf("UTF-16LE payload bytes (no terminator): %zu", output_size)
+
+free(output);
+```
+
 # Functions
 
 ## `mjb_codepoint_info`
@@ -287,9 +334,7 @@ if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB
 // NFC: Café
 printf("NFC: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}
+mjb_result_free(&result);
 ```
 
 See also: [`mjb_normalize_into`](#mjb_normalize_into), [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter`](#mjb_filter), [`mjb_filter_into`](#mjb_filter_into).
@@ -398,9 +443,7 @@ if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
 // Filtered: Hello world
 printf("Filtered: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}
+mjb_result_free(&result);
 
 const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
@@ -412,9 +455,7 @@ if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
 // Filtered: \t\n\v\f\r
 printf("Filtered: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}
+mjb_result_free(&result);
 ```
 
 See also: [`mjb_filter_into`](#mjb_filter_into), [`mjb_normalize`](#mjb_normalize).
@@ -1353,9 +1394,7 @@ if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF
 // Upper: STRASSE
 printf("Upper: %.*s", (int)result.output_size, result.output);
 
-if(result.transformed) {
-    mjb_free(result.output);
-}
+mjb_result_free(&result);
 ```
 
 See also: [`mjb_map_case_into`](#mjb_map_case_into), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
