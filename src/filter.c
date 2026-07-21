@@ -9,8 +9,8 @@
 
 extern mojibake mjb_global;
 
-MJB_EXPORT mjb_status mjb_string_filter(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_filter filters, mjb_encoding output_encoding, mjb_result *result) {
+MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_filter_type filters, mjb_encoding output_encoding, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }

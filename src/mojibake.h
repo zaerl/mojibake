@@ -236,7 +236,7 @@ typedef enum mjb_quick_check_result {
     MJB_QC_NFKD_MAYBE = 0x200 // Impossible to happen
 } mjb_quick_check_result;
 
-typedef enum mjb_filter {
+typedef enum mjb_filter_type {
     MJB_FILTER_NONE = 0x0,
     MJB_FILTER_NORMALIZE = 0x1,
     MJB_FILTER_SPACES = 0x2,
@@ -244,7 +244,7 @@ typedef enum mjb_filter {
     MJB_FILTER_CONTROLS = 0x8,
     MJB_FILTER_NUMERIC = 0x10,
     MJB_FILTER_LIMIT_COMBINING = 0x20
-} mjb_filter;
+} mjb_filter_type;
 
 typedef enum mjb_map_case_type {
     MJB_CASE_NONE,
@@ -519,8 +519,8 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_info(mjb_codepoint codepoint, 
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
 
-// Filter a string with the selected mjb_filter flags.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter filters, mjb_encoding output_encoding, mjb_result *result);
+// Filter a string with the selected mjb_filter_type flags.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter_type filters, mjb_encoding output_encoding, mjb_result *result);
 
 // Apply the Unicode NFKC_Casefold transform to a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
@@ -532,13 +532,13 @@ MJB_EXPORT mjb_quick_check_result mjb_normalization_quick_check(const char *buff
 MJB_EXPORT MJB_PURE mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_length);
 
 // Return true if the string is encoded in ASCII.
-MJB_EXPORT MJB_PURE bool mjb_string_is_ascii(const char *buffer, size_t byte_length);
+MJB_EXPORT MJB_PURE bool mjb_is_ascii(const char *buffer, size_t byte_length);
 
 // Return true if the string is encoded in UTF-8.
-MJB_EXPORT MJB_PURE bool mjb_string_is_utf8(const char *buffer, size_t byte_length);
+MJB_EXPORT MJB_PURE bool mjb_is_utf8(const char *buffer, size_t byte_length);
 
 // Return true if the string is encoded in UTF-16BE or UTF-16LE.
-MJB_EXPORT MJB_PURE bool mjb_string_is_utf16(const char *buffer, size_t byte_length);
+MJB_EXPORT MJB_PURE bool mjb_is_utf16(const char *buffer, size_t byte_length);
 
 // Return the length of a string.
 MJB_EXPORT MJB_PURE size_t mjb_count_codepoints(const char *buffer, size_t max_length, mjb_encoding encoding);

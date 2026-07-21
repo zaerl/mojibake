@@ -120,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed fuzz paragraph
 - Fix: `Mojibake.codepointEncode` wrong signature
 - Fix: `Mojibake.countCodepoints` wrong signature
-- Inverted `mjb_normalize`, `mjb_map_case` and `mjb_string_filter` parameters
+- Inverted `mjb_normalize`, `mjb_map_case` and `mjb_filter` parameters
 - Split `mjb_codepoint_property_value` in `mjb_codepoint_property_binary`,
   `mjb_codepoint_property_int`
 - Minor functions reordering
@@ -287,8 +287,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed all `MJB_NONNULL` declarations
 - Added missing ASCII check to `mjb_decode_step`
 - Added missing ASCII check to `mjb_codepoint_encode`
-- Fixed output encoding on `mjb_string_filter` normalized strings
-- Added support for `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` to `mjb_string_is_utf8`
+- Fixed output encoding on `mjb_filter` normalized strings
+- Added support for `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` to `mjb_is_utf8`
 - Set `width` CLI argument as required
 - FreeBSD: removed `gmake` specific syntax
 - Windows: fixed `C4310`, `C4456`, `C4566`, `C4701`, `C4702` warnings

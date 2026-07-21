@@ -50,21 +50,21 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_filter
-    MJB_TEST_COVERAGE(mjb_string_filter); // Added by the script
+    // Example for mjb_filter
+    MJB_TEST_COVERAGE(mjb_filter); // Added by the script
     const char *mixed_whitespace = "Hello\t\t\n\nworld";
     mjb_result result;
 
-    if(mjb_string_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
+    if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
         MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_string_filter test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_filter test failed") // Added by the script
         return 1;
     }
 
     // Filtered: Hello world
     // printf("Filtered: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Filtered: Hello world", "mjb_string_filter test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered: Hello world", "mjb_filter test failed") // Added by the script
 
     if(result.transformed) {
         mjb_free(result.output);
@@ -72,16 +72,16 @@ int test_example(void *arg) {
 
     const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
-    if(mjb_string_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
+    if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
         MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_string_filter test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_filter test failed") // Added by the script
         return 1;
     }
 
     // Filtered: \t\n\v\f\r
     // printf("Filtered: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_string_filter test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_filter test failed") // Added by the script
 
     if(result.transformed) {
         mjb_free(result.output);
@@ -134,36 +134,36 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_string_is_ascii
-    MJB_TEST_COVERAGE(mjb_string_is_ascii); // Added by the script
+    // Example for mjb_is_ascii
+    MJB_TEST_COVERAGE(mjb_is_ascii); // Added by the script
     const char *input = "Plain ASCII";
 
     // ASCII: yes
-    // printf("ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "ASCII: %s", mjb_string_is_ascii(input, strlen(input)) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "ASCII: yes", "mjb_string_is_ascii test failed") // Added by the script
+    // printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "ASCII: yes", "mjb_is_ascii test failed") // Added by the script
 }
 
 {
-    // Example for mjb_string_is_utf8
-    MJB_TEST_COVERAGE(mjb_string_is_utf8); // Added by the script
+    // Example for mjb_is_utf8
+    MJB_TEST_COVERAGE(mjb_is_utf8); // Added by the script
     const char *input = "caf\xC3\xA9";
 
     // Valid UTF-8: yes
-    // printf("Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "Valid UTF-8: %s", mjb_string_is_utf8(input, strlen(input)) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Valid UTF-8: yes", "mjb_string_is_utf8 test failed") // Added by the script
+    // printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "Valid UTF-8: yes", "mjb_is_utf8 test failed") // Added by the script
 }
 
 {
-    // Example for mjb_string_is_utf16
-    MJB_TEST_COVERAGE(mjb_string_is_utf16); // Added by the script
+    // Example for mjb_is_utf16
+    MJB_TEST_COVERAGE(mjb_is_utf16); // Added by the script
     const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
 
     // UTF-16: yes
-    // printf("UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "UTF-16: %s", mjb_string_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16: yes", "mjb_string_is_utf16 test failed") // Added by the script
+    // printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16: yes", "mjb_is_utf16 test failed") // Added by the script
 }
 
 {

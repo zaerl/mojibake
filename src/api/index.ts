@@ -47,7 +47,7 @@ export enum QuickCheckResult {
   NFKD_MAYBE = 0x200 // Impossible to happen
 };
 
-// mjb_filter
+// mjb_filter_type
 export enum FilterType {
   NONE            = 0x0,
   NORMALIZE       = 0x1,
@@ -476,7 +476,7 @@ export class Mojibake {
 
   // mjb_status mjb_string_each_character(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_string_each_character callback)
-  nextCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
+  stringEachCharacter(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const previousCallback = (globalThis as any)._mjbEachCharacterCallback;
     const characters: NextCharacter[] = [];
@@ -511,9 +511,9 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_string_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_filter filters, mjb_encoding output_encoding, mjb_result *result)
-  stringFilter(input: MojibakeInput, filters = FilterType.NONE,
+  // mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_filter_type filters, mjb_encoding output_encoding, mjb_result *result)
+  filter(input: MojibakeInput, filters = FilterType.NONE,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
@@ -521,7 +521,7 @@ export class Mojibake {
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_string_filter(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_filter(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, filters, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {
@@ -618,34 +618,34 @@ export class Mojibake {
     }
   }
 
-  // bool mjb_string_is_utf8(const char *buffer, size_t byte_length)
-  stringIsUtf8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  // bool mjb_is_utf8(const char *buffer, size_t byte_length)
+  isUTF8(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_utf8(wasmInput.ptr, wasmInput.size) ? true : false;
+      return this.module._mjb_is_utf8(wasmInput.ptr, wasmInput.size) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
     }
   }
 
-  // bool mjb_string_is_utf16(const char *buffer, size_t byte_length)
-  stringIsUtf16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  // bool mjb_is_utf16(const char *buffer, size_t byte_length)
+  isUTF16(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_utf16(wasmInput.ptr, wasmInput.size) ? true : false;
+      return this.module._mjb_is_utf16(wasmInput.ptr, wasmInput.size) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
     }
   }
 
-  // bool mjb_string_is_ascii(const char *buffer, size_t byte_length)
-  stringIsAscii(input: MojibakeInput, options: TextInputOptions = {}): boolean {
+  // bool mjb_is_ascii(const char *buffer, size_t byte_length)
+  isASCII(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
-      return this.module._mjb_string_is_ascii(wasmInput.ptr, wasmInput.size) ? true : false;
+      return this.module._mjb_is_ascii(wasmInput.ptr, wasmInput.size) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
     }

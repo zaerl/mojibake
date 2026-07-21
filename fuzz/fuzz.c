@@ -324,9 +324,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 4: // Encoding detection
             fuzz_sink += (size_t)mjb_detect_encoding(buffer, size);
-            fuzz_sink += (size_t)mjb_string_is_utf8(buffer, size);
-            fuzz_sink += (size_t)mjb_string_is_utf16(buffer, size);
-            fuzz_sink += (size_t)mjb_string_is_ascii(buffer, size);
+            fuzz_sink += (size_t)mjb_is_utf8(buffer, size);
+            fuzz_sink += (size_t)mjb_is_utf16(buffer, size);
+            fuzz_sink += (size_t)mjb_is_ascii(buffer, size);
             break;
 
         case 5: // Encoding conversion
@@ -338,8 +338,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 6: // String filtering, all filter combinations
-            if(mjb_string_filter(buffer, size, encoding, (mjb_filter)(variant & 0x1F),
-                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+            if(mjb_filter(buffer, size, encoding, (mjb_filter_type)(variant & 0x1F), MJB_ENC_UTF_8,
+                   &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 

@@ -501,14 +501,14 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
 
     // Parse byte-oriented ASCII after validating or converting the input encoding.
     if(encoding == MJB_ENC_ASCII) {
-        if(!mjb_string_is_ascii(id, size)) {
+        if(!mjb_is_ascii(id, size)) {
             if(error != NULL) {
                 *error = MJB_ERROR_INVALID_ARGUMENT;
             }
 
             return MJB_STATUS_INVALID_ARGUMENT;
         }
-    } else if(encoding == MJB_ENC_UTF_8 && mjb_string_is_ascii(id, size)) {
+    } else if(encoding == MJB_ENC_UTF_8 && mjb_is_ascii(id, size)) {
         // Already suitable for the byte-oriented locale parser.
     } else {
         mjb_status status = mjb_convert_encoding(id, size, encoding, MJB_ENC_ASCII, &converted);

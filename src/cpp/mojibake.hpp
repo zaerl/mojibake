@@ -647,15 +647,15 @@ struct NumericValue {
 }
 
 [[nodiscard]] inline bool is_ascii(std::string_view input) noexcept {
-    return mjb_string_is_ascii(input.data(), input.size());
+    return mjb_is_ascii(input.data(), input.size());
 }
 
 [[nodiscard]] inline bool is_utf8(std::string_view input) noexcept {
-    return mjb_string_is_utf8(input.data(), input.size());
+    return mjb_is_utf8(input.data(), input.size());
 }
 
 [[nodiscard]] inline bool is_utf16(std::string_view input) noexcept {
-    return mjb_string_is_utf16(input.data(), input.size());
+    return mjb_is_utf16(input.data(), input.size());
 }
 
 [[nodiscard]] inline size_t length(std::string_view input,
@@ -779,23 +779,24 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return left;
 }
 
-[[nodiscard]] inline TextResult filter_result(std::string_view input, mjb_filter filters,
+[[nodiscard]] inline TextResult filter_result(std::string_view input, mjb_filter_type filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_string_filter(input.data(), input.size(), input_encoding, filters,
+    const mjb_status status = mjb_filter(input.data(), input.size(), input_encoding, filters,
         output_encoding, detail::ResultAccess::out(result));
 
     return detail::ResultAccess::checked(std::move(result), status, "String filtering failed");
 }
 
-[[nodiscard]] inline std::string filter(std::string_view input, mjb_filter filters,
+[[nodiscard]] inline std::string filter(std::string_view input, mjb_filter_type filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     return filter_result(input, filters, input_encoding, output_encoding).str();
 }
 
 [[nodiscard]] inline TextResult filter_result(std::string_view input, Filter filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return filter_result(input, static_cast<mjb_filter>(filters), input_encoding, output_encoding);
+    return filter_result(input, static_cast<mjb_filter_type>(filters), input_encoding,
+        output_encoding);
 }
 
 [[nodiscard]] inline std::string filter(std::string_view input, Filter filters,

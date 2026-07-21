@@ -98,7 +98,7 @@ int test_mojibake(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_convert_encoding("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles allocation failure")
-    ATT_ASSERT_STATUS(mjb_string_filter("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_filter("a", 1, MJB_ENC_UTF_8, MJB_FILTER_NONE, MJB_ENC_UTF_8,
                           &result),
         MJB_STATUS_NO_MEMORY, "Filter handles allocation failure")
     ATT_ASSERT_STATUS(mjb_normalize("e\xCC\x81", 3, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,

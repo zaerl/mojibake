@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake run a total of **1,600,176** C assertions and **78** JavaScript assertions, including all
+Mojibake run a total of **1,600,176** C assertions and **80** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -35,7 +35,7 @@ the official tests included in the standard:
 | `mjb_next_grapheme_break`                  | 803         |
 | `mjb_codepoint_script_extensions`          | 639         |
 | `mjb_next_sentence_break`                  | 459         |
-| `mjb_string_filter`                        | 155         |
+| `mjb_filter`                               | 155         |
 | `mjb_convert_encoding`                     | 137         |
 | `mjb_locale_parse`                         | 121         |
 | `mjb_are_confusable`                       | 120         |
@@ -51,16 +51,16 @@ the official tests included in the standard:
 | `mjb_codepoint_numeric_value`              | 20          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_confusable_skeleton`                  | 18          |
-| `mjb_string_is_utf8`                       | 18          |
+| `mjb_is_utf8`                              | 18          |
 | `mjb_codepoint_is_cjk_extension_ideograph` | 17          |
 | `mjb_codepoint_block`                      | 16          |
-| `mjb_string_is_utf16`                      | 15          |
+| `mjb_is_utf16`                             | 15          |
 | `mjb_string_is_identifier`                 | 13          |
 | `mjb_bidi_line_runs`                       | 12          |
 | `mjb_truncate_grapheme`                    | 12          |
 | `mjb_detect_encoding`                      | 11          |
+| `mjb_is_ascii`                             | 11          |
 | `mjb_normalization_quick_check`            | 11          |
-| `mjb_string_is_ascii`                      | 11          |
 | `mjb_truncate_grapheme_width`              | 11          |
 | `mjb_codepoint_script`                     | 10          |
 | `mjb_plane_name`                           | 9           |
@@ -114,8 +114,8 @@ the official tests included in the standard:
 | ------------------------------------------- | ---------- |
 | `Mojibake.codepointPropertyBinary`          | 3          |
 | `Mojibake.codepointPropertyInt`             | 2          |
+| `Mojibake.filter`                           | 2          |
 | `Mojibake.mapCase`                          | 2          |
-| `Mojibake.stringFilter`                     | 2          |
 | `Mojibake.areConfusable`                    | 1          |
 | `Mojibake.bidiResolve`                      | 1          |
 | `Mojibake.categoryIsCombining`              | 1          |
@@ -126,6 +126,7 @@ the official tests included in the standard:
 | `Mojibake.codepointEmojiProperties`         | 1          |
 | `Mojibake.codepointEncode`                  | 1          |
 | `Mojibake.codepointInfo`                    | 1          |
+| `Mojibake.codepointIsCJKExtensionIdeograph` | 1          |
 | `Mojibake.codepointIsCjkIdeograph`          | 1          |
 | `Mojibake.codepointIsCombining`             | 1          |
 | `Mojibake.codepointIsEmoji`                 | 1          |
@@ -160,6 +161,9 @@ the official tests included in the standard:
 | `Mojibake.detectEncoding`                   | 1          |
 | `Mojibake.displayWidth`                     | 1          |
 | `Mojibake.hangulSyllableName`               | 1          |
+| `Mojibake.isASCII`                          | 1          |
+| `Mojibake.isUTF16`                          | 1          |
+| `Mojibake.isUTF8`                           | 1          |
 | `Mojibake.localeParse`                      | 1          |
 | `Mojibake.nextGraphemeBreak`                | 1          |
 | `Mojibake.nextLineBreak`                    | 1          |
@@ -172,12 +176,10 @@ the official tests included in the standard:
 | `Mojibake.planeName`                        | 1          |
 | `Mojibake.propertyName`                     | 1          |
 | `Mojibake.setLocale`                        | 1          |
-| `Mojibake.stringIsAscii`                    | 1          |
+| `Mojibake.stringEachCharacter`              | 1          |
 | `Mojibake.stringIsEmojiSequence`            | 1          |
 | `Mojibake.stringIsIdentifier`               | 1          |
 | `Mojibake.stringIsRgiEmoji`                 | 1          |
-| `Mojibake.stringIsUtf16`                    | 1          |
-| `Mojibake.stringIsUtf8`                     | 1          |
 | `Mojibake.truncateGrapheme`                 | 1          |
 | `Mojibake.truncateGraphemeWidth`            | 1          |
 | `Mojibake.truncateWord`                     | 1          |
@@ -185,6 +187,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| `Mojibake.codepointIsCjkExtensionIdeograph` | 0          |
-| `Mojibake.stringEachCharacter`              | 0          |
-| **Total**                                   | **78**     |
+| **Total**                                   | **80**     |

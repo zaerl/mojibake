@@ -58,12 +58,12 @@ MJB_EXPORT mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_leng
     }
 
     // No BOM, let's try UTF-8
-    if(mjb_string_is_utf8(buffer, byte_length)) {
+    if(mjb_is_utf8(buffer, byte_length)) {
         bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_UTF_8);
     }
 
     // No BOM, let's try ASCII
-    if(mjb_string_is_ascii(buffer, byte_length)) {
+    if(mjb_is_ascii(buffer, byte_length)) {
         bom_encoding = (mjb_encoding)(bom_encoding | MJB_ENC_ASCII);
     }
 
@@ -73,7 +73,7 @@ MJB_EXPORT mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_leng
 /**
  * Return true if the string is encoded in UTF-8.
  */
-MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t byte_length) {
+MJB_EXPORT bool mjb_is_utf8(const char *buffer, size_t byte_length) {
     if(buffer == NULL || byte_length == 0) {
         return false;
     }
@@ -104,7 +104,7 @@ MJB_EXPORT bool mjb_string_is_utf8(const char *buffer, size_t byte_length) {
 /**
  * Return true if the string is encoded in ASCII.
  */
-MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t byte_length) {
+MJB_EXPORT bool mjb_is_ascii(const char *buffer, size_t byte_length) {
     if(buffer == NULL || byte_length == 0) {
         return false;
     }
@@ -128,7 +128,7 @@ MJB_EXPORT bool mjb_string_is_ascii(const char *buffer, size_t byte_length) {
 /**
  * Return true if the string is encoded in UTF-16BE or UTF-16LE.
  */
-MJB_EXPORT bool mjb_string_is_utf16(const char *buffer, size_t byte_length) {
+MJB_EXPORT bool mjb_is_utf16(const char *buffer, size_t byte_length) {
     if(buffer == NULL || byte_length < 2 || (byte_length % 2) != 0) {
         return false;
     }

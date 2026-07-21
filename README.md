@@ -116,7 +116,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
   and conditional mappings (`mjb_map_case`)
 - **Filtering**: strip controls, spaces, or numeric characters while normalizing
-  (`mjb_string_filter`)
+  (`mjb_filter`)
 
 **Text analysis**
 

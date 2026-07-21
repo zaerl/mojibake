@@ -37,6 +37,7 @@ export class CFunction implements MojibakeFunction {
   public attributes: string[];
   public args: MojibakeArg[];
   public wasm: boolean;
+  public wasmName?: string;
   public section: Section;
   public details?: string;
   public returns?: MojibakeReturnCase[];
@@ -51,6 +52,7 @@ export class CFunction implements MojibakeFunction {
     this.attributes = fn.attributes;
     this.args = fn.args;
     this.wasm = fn.wasm;
+    this.wasmName = fn.wasmName;
     this.section = fn.section;
     this.details = fn.details;
     this.returns = fn.returns;
@@ -65,6 +67,10 @@ export class CFunction implements MojibakeFunction {
 
   isWASM() {
     return this.wasm;
+  }
+
+  public static wasmFunctionName(fn: MojibakeFunction): string {
+    return fn.wasmName ?? CFunction.snakeToCamel(CFunction.functionName(fn.name));
   }
 
   getArgs(): string[] {
@@ -385,7 +391,7 @@ export class CFunction implements MojibakeFunction {
         ];
 
         ret += this.getSelectInput(i, options, values);
-      } else if(type.startsWith('mjb_filter')) {
+      } else if(type.startsWith('mjb_filter_type')) {
         const options = [
           'MJB_FILTER_NORMALIZE',
           'MJB_FILTER_SPACES',
