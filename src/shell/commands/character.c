@@ -111,7 +111,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
         mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFD, "nfd", "NFD", 1);
         mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFC, "nfc", "NFC", 1);
         mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkd", "NFKD", 1);
-        mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKD, "nfkc", "NFKC", 1);
+        mjbsh_normalization(buffer_utf8, utf8_length, MJB_NORMALIZATION_NFKC, "nfkc", "NFKC", 1);
 
         // Flush stdout here to ensure the normalization is printed before the next character
         fflush(stdout);
