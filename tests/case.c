@@ -325,7 +325,7 @@ int test_case(void *arg) {
     ATT_ASSERT(result, (char *)"😀Grinning", "UTF-8 titlecase: 😀grinning")
     mjb_free(result);
 
-    result = run_mjb_map_case("123abc", 8, MJB_CASE_TITLE, encoding);
+    result = run_mjb_map_case("123abc", MJB_NUL_TERMINATED, MJB_CASE_TITLE, encoding);
     ATT_ASSERT(result, (char *)"123Abc", "UTF-8 titlecase: 123abc")
     mjb_free(result);
 
