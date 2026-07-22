@@ -65,7 +65,7 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
             MJB_ENC_UTF_8);
     }
 
-    codepoints[++index] = '\0';
+    codepoints[index] = '\0';
 
     mjb_result result;
     bool ret = mjb_normalize(codepoints, index, MJB_ENC_UTF_8, (mjb_normalization)flags,
