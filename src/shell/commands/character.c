@@ -174,21 +174,22 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
         mjbsh_bool("Mirrored", 1, character->mirrored);
 
         if(character->uppercase != 0) {
-            mjbsh_codepoint("Uppercase", 1, character->uppercase);
+            mjbsh_codepoint("Simple Uppercase Mapping", 1, character->uppercase);
         } else {
-            mjbsh_null("Uppercase", 1);
+            mjbsh_null("Simple Uppercase Mapping", 1);
         }
 
         if(character->lowercase != 0) {
-            mjbsh_codepoint("Lowercase", 1, (unsigned int)character->lowercase);
+            mjbsh_codepoint("Simple Lowercase Mapping", 1, (unsigned int)character->lowercase);
         } else {
-            mjbsh_null("Lowercase", 1);
+            mjbsh_null("Simple Lowercase Mapping", 1);
         }
 
         if(character->titlecase != 0) {
-            mjbsh_codepoint("Titlecase", cmd_verbose == 1 ? 0 : 1, character->titlecase);
+            mjbsh_codepoint("Simple Titlecase Mapping", cmd_verbose == 1 ? 0 : 1,
+                character->titlecase);
         } else {
-            mjbsh_null("Titlecase", cmd_verbose == 1 ? 0 : 1);
+            mjbsh_null("Simple Titlecase Mapping", cmd_verbose == 1 ? 0 : 1);
         }
     }
 
