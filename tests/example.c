@@ -1364,10 +1364,10 @@ int test_example(void *arg) {
     int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
         "Ae\xCC\x81" "B"); // A, e + combining acute accent, B
 
-    // 5:A
-    // printf("%d:%s", required, buffer);
-    snprintf(test_buffer, sizeof(test_buffer), "%d:%s", required, buffer); // Added by the script
-    ATT_ASSERT(test_buffer, "5:A", "mjb_utf8_grapheme_snprintf test failed") // Added by the script
+    // 5: A
+    // printf("%d: %s", required, buffer);
+    snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
+    ATT_ASSERT(test_buffer, "5: A", "mjb_utf8_grapheme_snprintf test failed") // Added by the script
 }
 
 {

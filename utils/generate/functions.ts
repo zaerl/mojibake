@@ -2894,13 +2894,12 @@ printf("%d: %s", required, buffer);`,
     wasm: false,
     section: Section.Formatting,
     details: 'Use the C library formatting rules and return semantics of `snprintf`. If the ' +
-      'destination buffer truncates an otherwise well-formed UTF-8 result, the output is ' +
-      'shortened to the largest prefix that ends at an extended grapheme-cluster boundary in ' +
-      'the complete result. Unlike `mjb_utf8_snprintf`, truncation can require temporary ' +
-      'allocation and a second evaluation of the format. Do not use `%n` or arguments whose ' +
-      'values can change as a formatting side effect. On allocation failure the destination is ' +
-      'set to an empty string, the function returns a negative value, and `errno` is set to ' +
-      '`ENOMEM`.',
+      'destination buffer truncates a well-formed UTF-8 result, the output is shortened to the ' +
+      'largest prefix that ends at an extended grapheme-cluster boundary in the complete result. ' +
+      'Unlike `mjb_utf8_snprintf`, truncation can require temporary allocation and a second ' +
+      'evaluation of the format. Do not use `%n` or arguments whose values can change as a ' +
+      'formatting side effect. On allocation failure the destination is set to an empty string, ' +
+      'the function returns a negative value, and `errno` is set to `ENOMEM`.',
     returns: [
       {
         value: 'A nonnegative value',
@@ -2916,8 +2915,8 @@ printf("%d: %s", required, buffer);`,
 int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
     "Ae\\xCC\\x81" "B"); // A, e + combining acute accent, B
 
-// 5:A
-printf("%d:%s", required, buffer);`,
+// 5: A
+printf("%d: %s", required, buffer);`,
     related: ['mjb_utf8_grapheme_vsnprintf', 'mjb_utf8_snprintf',
       'mjb_truncate_grapheme'],
     specs: [uax(29, 'Unicode Text Segmentation')]

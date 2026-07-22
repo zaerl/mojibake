@@ -3206,7 +3206,7 @@ int mjb_utf8_grapheme_snprintf(
 );
 ```
 
-Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer truncates an otherwise well-formed UTF-8 result, the output is shortened to the largest prefix that ends at an extended grapheme-cluster boundary in the complete result. Unlike `mjb_utf8_snprintf`, truncation can require temporary allocation and a second evaluation of the format. Do not use `%n` or arguments whose values can change as a formatting side effect. On allocation failure the destination is set to an empty string, the function returns a negative value, and `errno` is set to `ENOMEM`.
+Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer truncates a well-formed UTF-8 result, the output is shortened to the largest prefix that ends at an extended grapheme-cluster boundary in the complete result. Unlike `mjb_utf8_snprintf`, truncation can require temporary allocation and a second evaluation of the format. Do not use `%n` or arguments whose values can change as a formatting side effect. On allocation failure the destination is set to an empty string, the function returns a negative value, and `errno` is set to `ENOMEM`.
 
 - `buffer` - The destination buffer, or NULL when buffer_size is zero
 - `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
@@ -3224,8 +3224,8 @@ char buffer[4];
 int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
     "Ae\xCC\x81" "B"); // A, e + combining acute accent, B
 
-// 5:A
-printf("%d:%s", required, buffer);
+// 5: A
+printf("%d: %s", required, buffer);
 ```
 
 See also: [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_truncate_grapheme`](#mjb_truncate_grapheme).
