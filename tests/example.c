@@ -1345,6 +1345,32 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_utf8_snprintf
+    MJB_TEST_COVERAGE(mjb_utf8_snprintf); // Added by the script
+    char buffer[4];
+    int required = mjb_utf8_snprintf(buffer, sizeof(buffer), "%s",
+        "\xC3\xA9\xC3\xA9"); // éé
+
+    // 4: é
+    // printf("%d: %s", required, buffer);
+    snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
+    ATT_ASSERT(test_buffer, "4: é", "mjb_utf8_snprintf test failed") // Added by the script
+}
+
+{
+    // Example for mjb_utf8_grapheme_snprintf
+    MJB_TEST_COVERAGE(mjb_utf8_grapheme_snprintf); // Added by the script
+    char buffer[4];
+    int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
+        "Ae\xCC\x81" "B"); // A, e + combining acute accent, B
+
+    // 5:A
+    // printf("%d:%s", required, buffer);
+    snprintf(test_buffer, sizeof(test_buffer), "%d:%s", required, buffer); // Added by the script
+    ATT_ASSERT(test_buffer, "5:A", "mjb_utf8_grapheme_snprintf test failed") // Added by the script
+}
+
+{
     // Example for mjb_version
     MJB_TEST_COVERAGE(mjb_version); // Added by the script
     const char *version = mjb_version();

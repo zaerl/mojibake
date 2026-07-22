@@ -352,6 +352,7 @@ int main(int argc, char *const argv[]) {
     RUN_TEST(encoding)
     RUN_TEST(example)
     RUN_TEST(filter)
+    RUN_TEST(format)
     RUN_TEST(hangul_composition)
     RUN_TEST(hangul)
     RUN_TEST(identifier)
