@@ -85,7 +85,7 @@ Caf<C3><A9>
 Straße -> strasse
 ```
 
-Pass an exact byte length when the input may contain U+0000. For a properly terminated input, pass
+Pass an exact byte length when the input may contain `U+0000`. For a properly terminated input, pass
 `MJB_NUL_TERMINATED`; Mojibake scans one-, two-, or four-byte code units according to the declared
 encoding and excludes the terminator.
 
