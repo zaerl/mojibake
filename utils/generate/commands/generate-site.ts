@@ -43,6 +43,12 @@ const API_SECTIONS = [
     description: 'Compare and sort strings with the Unicode Collation Algorithm.'
   },
   {
+    section: Section.Formatting,
+    id: 'formatting',
+    title: 'Formatting',
+    description: 'Format UTF-8 text with codepoint or grapheme-safe truncation.'
+  },
+  {
     section: Section.Security,
     id: 'security',
     title: 'Security',
