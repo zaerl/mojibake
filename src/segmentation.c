@@ -41,8 +41,7 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, uint8_t *buf
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_next_state *state) {
-    if(buffer == NULL || state == NULL || byte_length == 0 ||
-        byte_length == MJB_NUL_TERMINATED) {
+    if(buffer == NULL || state == NULL || byte_length == 0 || byte_length == MJB_NUL_TERMINATED) {
         return MJB_BT_NOT_SET;
     }
 

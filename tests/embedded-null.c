@@ -124,9 +124,8 @@ int test_embedded_null(void *arg) {
     ATT_ASSERT(mjb_count_codepoints(utf32be_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_32BE), 1,
         "UTF-32BE: NUL-terminated A\\0B = 1 codepoint")
 
-    const char utf32_with_bom[] = {
-        '\xFF', '\xFE', '\0', '\0', 'A', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
-    };
+    const char utf32_with_bom[] = { '\xFF', '\xFE', '\0', '\0', 'A', '\0', '\0', '\0', '\0', '\0',
+        '\0', '\0' };
     ATT_ASSERT(mjb_count_codepoints(utf32_with_bom, MJB_NUL_TERMINATED, MJB_ENC_UTF_32), 1,
         "Generic UTF-32: NUL termination is resolved before BOM decoding")
 

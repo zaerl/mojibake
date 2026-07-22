@@ -84,7 +84,6 @@ static void test_truncate_word(void) {
     ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN,
                    11),
         (size_t)11, "Truncate word width: 11 columns (no-op)")
-
 }
 
 int test_break_word(void *arg) {
