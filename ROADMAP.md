@@ -58,3 +58,4 @@ All the other things found on +10MB libraries.
 have a new Unicode 18 version, that right now they don't have
 - [ ] Adopt one convention everywhere for fallible and buffer-producing APIs
 - [ ] Check if there are functions that truncate a codepoint or a grapheme at the end of a buffer
+- [ ] Add `mjb_utf8_snprintf` and others to the C++ API
