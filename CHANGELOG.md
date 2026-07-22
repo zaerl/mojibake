@@ -5,20 +5,22 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.3] - 2026-07-22
 
 ### Added
-
-- Added `MJB_NUL_TERMINATED` for encoding-aware NUL-terminated input strings
+- Added `MJB_NUL_TERMINATED` (`byte_length`) for encoding-aware NUL-terminated input strings
+- Added `_into(...)` function alternatives to use a user-provided buffer to store results
+- Added `mjb_utf8_snprintf`, `mjb_utf8_vsnprintf`, a `snprintf` that does not break encoding
+- Added `mjb_utf8_grapheme_snprintf`, `mjb_utf8_grapheme_vsnprintf` that do not break graphemes
+- New API documentation
 
 ### Changed
-
-- Explicitly sized input strings now always process embedded U+0000 codepoints
-
-### Removed
-
+- Explicitly sized input strings now always process embedded `U+0000` codepoints
 - Removed the `MJB_ALLOW_EMBEDDED_NULLS` build option and
   `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` compile-time switch
+
+### Fixed
+- Missing WASM name on site
 
 ## [0.3.2] - 2026-07-21
 
@@ -556,7 +558,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/zaerl/mojibake/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/zaerl/mojibake/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/zaerl/mojibake/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/zaerl/mojibake/compare/v0.2.8...v0.3.0
