@@ -159,6 +159,13 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
+.PHONY: lint
+
+# Check C and C++ formatting with Apple's clang-format
+lint:
+	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' | \
+		xargs -0 xcrun clang-format --dry-run --Werror
+
 .PHONY: test test-all test-cpp test-asan test-ubsan test-no-names test-wasm ctest \
 	ctest-cpp test-docker
 
@@ -274,6 +281,7 @@ help:
 	@echo "  generate-locale         - Generate locale file"
 	@echo "  generate-site           - Generate site"
 	@echo "  generate-unicode-tables - Generate embedded Unicode lookup tables"
+	@echo "  lint                    - Check C and C++ formatting with Apple's clang-format"
 	@echo "  sync-api-wasm           - Copy current WASM build artifacts into src/api"
 	@echo "  test                    - Build and run tests"
 	@echo "  test-all                - Build and run all local test configurations"
