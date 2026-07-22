@@ -29,6 +29,7 @@ export enum Section {
   TextTransformation,
   TextAnalysis,
   SortingComparison,
+  Formatting,
   Security,
   Segmentation,
   Bidirectional,
@@ -44,6 +45,7 @@ export type MojibakeFunction = {
   name: string;
   attributes: string[];
   args: MojibakeArg[];
+  variadic?: boolean;
   wasm: boolean;
   wasmName?: string;
   section: Section;
@@ -2762,6 +2764,214 @@ if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
 
 // Result released: yes
 printf("Result released: %s", result.output == NULL ? "yes" : "no");`
+  },
+  {
+    comment: 'Format a UTF-8 string without leaving an incomplete trailing codepoint.',
+    ret: 'int',
+    name: 'mjb_utf8_snprintf',
+    attributes: ['MJB_NODISCARD', 'MJB_PRINTF_FORMAT(3, 4)'],
+    args: [
+      {
+        name: 'buffer',
+        type: 'char *',
+        description: 'The destination buffer, or NULL when buffer_size is zero',
+        wasm_generated: false
+      },
+      {
+        name: 'buffer_size',
+        type: 'size_t',
+        description: 'The destination buffer capacity in bytes, including the terminating NULL',
+        wasm_generated: false
+      },
+      {
+        name: 'format',
+        type: 'const char *',
+        description: 'The printf format string',
+        wasm_generated: false
+      }
+    ],
+    variadic: true,
+    wasm: false,
+    section: Section.Formatting,
+    details: 'Use the C library formatting rules and return semantics of `snprintf`. If the ' +
+      'destination buffer truncates a well-formed UTF-8 result, any incomplete trailing codepoint' +
+      ' is removed before the terminating NULL. Truncation is at a codepoint boundary, not a ' +
+      'grapheme-cluster boundary.',
+    returns: [
+      {
+        value: 'A nonnegative value',
+        description:
+          'The number of bytes the complete result requires, excluding the terminating NULL'
+      },
+      {
+        value: 'A negative value',
+        description: 'The underlying `vsnprintf` reported an encoding error'
+      }
+    ],
+    example: `char buffer[4];
+int required = mjb_utf8_snprintf(buffer, sizeof(buffer), "%s",
+    "\\xC3\\xA9\\xC3\\xA9"); // éé
+
+// 4: é
+printf("%d: %s", required, buffer);`,
+    related: ['mjb_utf8_vsnprintf', 'mjb_utf8_grapheme_snprintf', 'mjb_is_utf8']
+  },
+  {
+    comment:
+      'Format a UTF-8 string from a va_list without leaving an incomplete trailing codepoint.',
+    ret: 'int',
+    name: 'mjb_utf8_vsnprintf',
+    attributes: ['MJB_NODISCARD', 'MJB_PRINTF_FORMAT(3, 0)'],
+    args: [
+      {
+        name: 'buffer',
+        type: 'char *',
+        description: 'The destination buffer, or NULL when buffer_size is zero',
+        wasm_generated: false
+      },
+      {
+        name: 'buffer_size',
+        type: 'size_t',
+        description: 'The destination buffer capacity in bytes, including the terminating NULL',
+        wasm_generated: false
+      },
+      {
+        name: 'format',
+        type: 'const char *',
+        description: 'The printf format string',
+        wasm_generated: false
+      },
+      {
+        name: 'args',
+        type: 'va_list',
+        description: 'The formatting arguments',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    section: Section.Formatting,
+    details: 'The `va_list` counterpart of `mjb_utf8_snprintf`. It has the same UTF-8 input ' +
+      'requirements, clipping behavior, and return semantics as `mjb_utf8_snprintf`.',
+    returns: [
+      {
+        value: 'A nonnegative value',
+        description:
+          'The number of bytes the complete result requires, excluding the terminating NULL'
+      },
+      {
+        value: 'A negative value',
+        description: 'The underlying `vsnprintf` reported an encoding error'
+      }
+    ],
+    related: ['mjb_utf8_snprintf', 'mjb_utf8_grapheme_vsnprintf', 'mjb_is_utf8']
+  },
+  {
+    comment: 'Format UTF-8 without truncating an extended grapheme cluster.',
+    ret: 'int',
+    name: 'mjb_utf8_grapheme_snprintf',
+    attributes: ['MJB_NODISCARD', 'MJB_PRINTF_FORMAT(3, 4)'],
+    args: [
+      {
+        name: 'buffer',
+        type: 'char *',
+        description: 'The destination buffer, or NULL when buffer_size is zero',
+        wasm_generated: false
+      },
+      {
+        name: 'buffer_size',
+        type: 'size_t',
+        description: 'The destination buffer capacity in bytes, including the terminating NULL',
+        wasm_generated: false
+      },
+      {
+        name: 'format',
+        type: 'const char *',
+        description: 'The printf format string',
+        wasm_generated: false
+      }
+    ],
+    variadic: true,
+    wasm: false,
+    section: Section.Formatting,
+    details: 'Use the C library formatting rules and return semantics of `snprintf`. If the ' +
+      'destination buffer truncates an otherwise well-formed UTF-8 result, the output is ' +
+      'shortened to the largest prefix that ends at an extended grapheme-cluster boundary in ' +
+      'the complete result. Unlike `mjb_utf8_snprintf`, truncation can require temporary ' +
+      'allocation and a second evaluation of the format. Do not use `%n` or arguments whose ' +
+      'values can change as a formatting side effect. On allocation failure the destination is ' +
+      'set to an empty string, the function returns a negative value, and `errno` is set to ' +
+      '`ENOMEM`.',
+    returns: [
+      {
+        value: 'A nonnegative value',
+        description:
+          'The number of bytes the complete result requires, excluding the terminating NULL'
+      },
+      {
+        value: 'A negative value',
+        description: 'Formatting failed or the complete result could not be obtained'
+      }
+    ],
+    example: `char buffer[4];
+int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
+    "Ae\\xCC\\x81" "B"); // A, e + combining acute accent, B
+
+// 5:A
+printf("%d:%s", required, buffer);`,
+    related: ['mjb_utf8_grapheme_vsnprintf', 'mjb_utf8_snprintf',
+      'mjb_truncate_grapheme'],
+    specs: [uax(29, 'Unicode Text Segmentation')]
+  },
+  {
+    comment: 'Format UTF-8 from a va_list without truncating an extended grapheme cluster.',
+    ret: 'int',
+    name: 'mjb_utf8_grapheme_vsnprintf',
+    attributes: ['MJB_NODISCARD', 'MJB_PRINTF_FORMAT(3, 0)'],
+    args: [
+      {
+        name: 'buffer',
+        type: 'char *',
+        description: 'The destination buffer, or NULL when buffer_size is zero',
+        wasm_generated: false
+      },
+      {
+        name: 'buffer_size',
+        type: 'size_t',
+        description: 'The destination buffer capacity in bytes, including the terminating NULL',
+        wasm_generated: false
+      },
+      {
+        name: 'format',
+        type: 'const char *',
+        description: 'The printf format string',
+        wasm_generated: false
+      },
+      {
+        name: 'args',
+        type: 'va_list',
+        description: 'The formatting arguments',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    section: Section.Formatting,
+    details: 'The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same ' +
+      'grapheme-safe clipping behavior, allocation requirements, and return semantics as ' +
+      '`mjb_utf8_grapheme_snprintf`.',
+    returns: [
+      {
+        value: 'A nonnegative value',
+        description:
+          'The number of bytes the complete result requires, excluding the terminating NULL'
+      },
+      {
+        value: 'A negative value',
+        description: 'Formatting failed or the complete result could not be obtained'
+      }
+    ],
+    related: ['mjb_utf8_grapheme_snprintf', 'mjb_utf8_vsnprintf',
+      'mjb_truncate_grapheme'],
+    specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Output the current library version (MJB_VERSION).',
