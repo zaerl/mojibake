@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake run a total of **4,524,062** C assertions and **88** JavaScript assertions, including all
+Mojibake run a total of **4,524,115** C assertions and **88** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -53,15 +53,17 @@ the official tests included in the standard:
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_codepoint_east_asian_width`           | 35          |
 | `mjb_normalization_quick_check`            | 34          |
+| `mjb_utf8_grapheme_snprintf`               | 24          |
 | `mjb_collation_key_into`                   | 21          |
+| `mjb_utf8_snprintf`                        | 21          |
 | `mjb_codepoint_numeric_value`              | 20          |
 | `mjb_confusable_skeleton`                  | 20          |
+| `mjb_convert_encoding_into`                | 19          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_is_utf8`                              | 18          |
 | `mjb_codepoint_is_cjk_extension_ideograph` | 17          |
 | `mjb_set_locale`                           | 17          |
 | `mjb_codepoint_block`                      | 16          |
-| `mjb_convert_encoding_into`                | 16          |
 | `mjb_is_utf16`                             | 15          |
 | `mjb_is_identifier`                        | 13          |
 | `mjb_bidi_line_runs`                       | 12          |
@@ -83,10 +85,10 @@ the official tests included in the standard:
 | `mjb_codepoint_is_id_continue`             | 6           |
 | `mjb_codepoint_property_int`               | 6           |
 | `mjb_hangul_syllable_decomposition`        | 6           |
+| `mjb_set_memory_functions`                 | 6           |
 | `mjb_alloc`                                | 5           |
 | `mjb_codepoint_is_hangul_jamo`             | 5           |
 | `mjb_get_locale`                           | 5           |
-| `mjb_set_memory_functions`                 | 5           |
 | `mjb_codepoint_is_hangul_leading_jamo`     | 4           |
 | `mjb_codepoint_is_hangul_trailing_jamo`    | 4           |
 | `mjb_codepoint_is_hangul_vowel_jamo`       | 4           |
@@ -112,9 +114,11 @@ the official tests included in the standard:
 | `mjb_codepoint_is_extended_pictographic`   | 2           |
 | `mjb_codepoint_is_hangul_syllable`         | 2           |
 | `mjb_unicode_version`                      | 2           |
+| `mjb_utf8_grapheme_vsnprintf`              | 2           |
+| `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4524062** |
+| **Total**                                  | **4524115** |
 
 ## JavaScript
 
