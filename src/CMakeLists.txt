@@ -80,12 +80,6 @@ if(MJB_BUILD_CPP)
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()
 
-# Enable embedded NULL support for library if requested
-if(MJB_ALLOW_EMBEDDED_NULLS)
-    message(STATUS "Building library with embedded NULL support enabled")
-    target_compile_definitions(mojibake_lib PRIVATE MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS=1)
-endif()
-
 if(NOT MJB_FEATURE_CHARACTER_NAMES)
     message(STATUS "Building library without Unicode character name tables")
     target_compile_definitions(mojibake_lib PUBLIC MJB_FEATURE_CHARACTER_NAMES=0)

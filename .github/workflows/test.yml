@@ -68,12 +68,6 @@ jobs:
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
-      - name: Test (embedded NULLs)
-        run: |
-          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DMJB_ALLOW_EMBEDDED_NULLS=ON
-          cmake --build build-test-null
-          ./build-test-null/tests/mojibake-test
-
       - name: Test (C++)
         run: |
           cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DMJB_BUILD_CPP=ON
@@ -157,13 +151,6 @@ jobs:
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
-      - name: Test (embedded NULLs)
-        shell: cpa.sh {0} --sync-files none
-        run: |
-          cmake -S . -B build-test-null -DCMAKE_BUILD_TYPE=Test -DMJB_ALLOW_EMBEDDED_NULLS=ON
-          cmake --build build-test-null
-          ./build-test-null/tests/mojibake-test
-
       - name: Test (C++)
         shell: cpa.sh {0} --sync-files none
         run: |
@@ -202,15 +189,6 @@ jobs:
             -DMJB_FEATURE_CHARACTER_NAMES=OFF
           cmake --build build-test-no-names --config Test
           ./build-test-no-names/tests/Test/mojibake-test.exe
-
-      - name: Test (embedded NULLs)
-        shell: bash
-        run: |
-          cmake -S . -B build-test-null \
-            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
-            -DMJB_ALLOW_EMBEDDED_NULLS=ON
-          cmake --build build-test-null --config Test
-          ./build-test-null/tests/Test/mojibake-test.exe
 
       - name: Test (C++)
         shell: bash
