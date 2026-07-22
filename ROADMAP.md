@@ -56,4 +56,5 @@ All the other things found on +10MB libraries.
 - [ ] Add `vcpkg` support
 - [ ] Check all the links such as https://www.unicode.org/reports/tr15/tr15-57.html if they will
 have a new Unicode 18 version, that right now they don't have
-- [ ] Adopt one convention everywhere for fallible and buffer-producing APIs:
+- [ ] Adopt one convention everywhere for fallible and buffer-producing APIs
+- [ ] Check if there are functions that truncate a codepoint or a grapheme at the end of a buffer
