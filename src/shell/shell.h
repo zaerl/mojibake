@@ -77,6 +77,7 @@ extern mjbsh_output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
 
 bool mjbsh_print_escaped_character(const char *buffer_utf8);
+void mjbsh_print_json_result(const char *output, size_t output_size);
 void mjbsh_print_codepoint(mjb_codepoint codepoint);
 void mjbsh_print_break_symbol(mjb_break_type bt);
 

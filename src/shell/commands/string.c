@@ -14,7 +14,11 @@ int mjbsh_case_command(int argc, char *const argv[], unsigned int flags) {
         return 1;
     }
 
-    puts(result.output);
+    if(cmd_output_mode == OUTPUT_MODE_JSON) {
+        mjbsh_print_json_result(result.output, result.output_size);
+    } else {
+        puts(result.output);
+    }
 
     if(result.transformed) {
         mjb_free(result.output);

@@ -140,6 +140,18 @@ static void mjbsh_print_json_string(const char *value) {
     }
 }
 
+void mjbsh_print_json_result(const char *output, size_t output_size) {
+    printf("{%s%s\"output\":%s\"", mjbsh_jnl(), mjbsh_ji(), cmd_json_indent > 0 ? " " : "");
+
+    for(size_t i = 0; output != NULL && i < output_size; ++i) {
+        if(!mjbsh_print_escaped_character(output + i)) {
+            putchar((unsigned char)output[i]);
+        }
+    }
+
+    printf("\"%s}\n", mjbsh_jnl());
+}
+
 void mjbsh_print_codepoint(mjb_codepoint codepoint) {
     if(codepoint == MJB_CODEPOINT_NOT_VALID) {
         return;
