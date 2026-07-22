@@ -28,7 +28,7 @@ static const char *bidi_dir_json(mjb_direction dir) {
     }
 }
 
-static void mjbsh_bidi_revolve(const char *input) {
+static int mjbsh_bidi_revolve(const char *input) {
     size_t input_size = strlen(input);
     bool is_json = (cmd_output_mode == OUTPUT_MODE_JSON);
 
@@ -37,14 +37,25 @@ static void mjbsh_bidi_revolve(const char *input) {
     if(mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para) !=
         MJB_STATUS_OK) {
         fprintf(stderr, "bidi: resolution failed\n");
-        return;
+        return 1;
     }
 
     size_t *visual_order = para.count > 0 ? (size_t *)malloc(para.count * sizeof(size_t)) : NULL;
 
-    if(visual_order) {
-        mjb_status reorder_status = mjb_bidi_reorder_line(&para, 0, para.count, visual_order);
-        (void)reorder_status; // Not used.
+    if(para.count > 0 && visual_order == NULL) {
+        fprintf(stderr, "bidi: could not allocate visual order\n");
+        mjb_bidi_paragraph_free(&para);
+
+        return 1;
+    }
+
+    if(para.count > 0 &&
+        mjb_bidi_reorder_line(&para, 0, para.count, visual_order) != MJB_STATUS_OK) {
+        fprintf(stderr, "bidi: line reordering failed\n");
+        free(visual_order);
+        mjb_bidi_paragraph_free(&para);
+
+        return 1;
     }
 
     if(is_json) {
@@ -114,10 +125,10 @@ static void mjbsh_bidi_revolve(const char *input) {
 
     free(visual_order);
     mjb_bidi_paragraph_free(&para);
+
+    return 0;
 }
 
 int mjbsh_bidi_command(int argc, char *const argv[], unsigned int flags) {
-    mjbsh_bidi_revolve(argv[0]);
-
-    return 0;
+    return mjbsh_bidi_revolve(argv[0]);
 }
