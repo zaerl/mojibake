@@ -21,6 +21,7 @@ set(TEST_SOURCES
     embedded-null.c
     example.c
     filter.c
+    format.c
     hangul-composition.c
     hangul.c
     identifier.c
@@ -106,6 +107,7 @@ add_test(NAME "Emoji" COMMAND mojibake-test -f emoji)
 add_test(NAME "Encoding" COMMAND mojibake-test -f encoding)
 add_test(NAME "Example" COMMAND mojibake-test -f example)
 add_test(NAME "Filter" COMMAND mojibake-test -f filter)
+add_test(NAME "Format" COMMAND mojibake-test -f format)
 add_test(NAME "Hangul Composition" COMMAND mojibake-test -f hangul_composition)
 add_test(NAME "Hangul" COMMAND mojibake-test -f hangul)
 add_test(NAME "Identifier" COMMAND mojibake-test -f identifier)

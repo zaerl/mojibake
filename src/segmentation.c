@@ -248,6 +248,42 @@ MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byt
     return MJB_BT_ALLOWED;
 }
 
+// Return the largest prefix no longer than max_bytes that ends at a grapheme boundary.
+// See: mjb_truncate_grapheme
+size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    size_t max_bytes) {
+    if(buffer == NULL || byte_length == 0 || max_bytes == 0) {
+        return 0;
+    }
+
+    if(byte_length <= max_bytes) {
+        return byte_length;
+    }
+
+    mjb_next_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t last_break = 0;
+
+    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
+            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
+
+        if(break_pos > max_bytes) {
+            return last_break;
+        }
+
+        last_break = break_pos;
+    }
+
+    return last_break;
+}
+
 // Return the number of bytes that form the first max_graphemes grapheme clusters.
 MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length,
     mjb_encoding encoding, size_t max_graphemes) {

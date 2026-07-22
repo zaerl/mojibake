@@ -20,6 +20,7 @@
     #endif
 #endif
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -87,16 +88,20 @@ extern "C" {
 #if defined(__GNUC__) || defined(__clang__)
     #define MJB_NODISCARD __attribute__((warn_unused_result))
     #define MJB_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+    #define MJB_PRINTF_FORMAT(FORMAT_INDEX, FIRST_ARGUMENT) \
+        __attribute__((format(printf, FORMAT_INDEX, FIRST_ARGUMENT)))
     #define MJB_PURE __attribute__((pure))
     #define MJB_CONST __attribute__((const))
 #elif defined(__cplusplus) && __cplusplus >= 201703L
     #define MJB_NODISCARD [[nodiscard]]
     #define MJB_NONNULL(...)
+    #define MJB_PRINTF_FORMAT(FORMAT_INDEX, FIRST_ARGUMENT)
     #define MJB_PURE
     #define MJB_CONST
 #else
     #define MJB_NODISCARD
     #define MJB_NONNULL(...)
+    #define MJB_PRINTF_FORMAT(FORMAT_INDEX, FIRST_ARGUMENT)
     #define MJB_PURE
     #define MJB_CONST
 #endif
@@ -767,6 +772,18 @@ MJB_EXPORT MJB_PURE mjb_locale mjb_get_locale(void);
 
 // Free a mjb_result.
 MJB_EXPORT mjb_status mjb_result_free(mjb_result *result);
+
+// Format a UTF-8 string without leaving an incomplete trailing codepoint.
+MJB_EXPORT MJB_NODISCARD MJB_PRINTF_FORMAT(3, 4) int mjb_utf8_snprintf(char *buffer, size_t buffer_size, const char *format, ...);
+
+// Format a UTF-8 string from a va_list without leaving an incomplete trailing codepoint.
+MJB_EXPORT MJB_NODISCARD MJB_PRINTF_FORMAT(3, 0) int mjb_utf8_vsnprintf(char *buffer, size_t buffer_size, const char *format, va_list args);
+
+// Format UTF-8 without truncating an extended grapheme cluster.
+MJB_EXPORT MJB_NODISCARD MJB_PRINTF_FORMAT(3, 4) int mjb_utf8_grapheme_snprintf(char *buffer, size_t buffer_size, const char *format, ...);
+
+// Format UTF-8 from a va_list without truncating an extended grapheme cluster.
+MJB_EXPORT MJB_NODISCARD MJB_PRINTF_FORMAT(3, 0) int mjb_utf8_grapheme_vsnprintf(char *buffer, size_t buffer_size, const char *format, va_list args);
 
 // Output the current library version (MJB_VERSION).
 MJB_EXPORT MJB_CONST const char *mjb_version(void);

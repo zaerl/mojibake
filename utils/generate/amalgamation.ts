@@ -58,6 +58,7 @@ export async function generateAmalgamation() {
 // Start of sources
 // ----------
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>

@@ -3129,6 +3129,138 @@ if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
 printf("Result released: %s", result.output == NULL ? "yes" : "no");
 ```
 
+## `mjb_utf8_snprintf`
+
+Format a UTF-8 string without leaving an incomplete trailing codepoint.
+
+```c
+int mjb_utf8_snprintf(
+    char *buffer,
+    size_t buffer_size,
+    const char *format,
+    ...
+);
+```
+
+Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer truncates a well-formed UTF-8 result, any incomplete trailing codepoint is removed before the terminating NULL. Truncation is at a codepoint boundary, not a grapheme-cluster boundary.
+
+- `buffer` - The destination buffer, or NULL when buffer_size is zero
+- `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
+- `format` - The printf format string
+
+**Returns**
+
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A negative value` - The underlying `vsnprintf` reported an encoding error
+
+**Example**
+
+```c
+char buffer[4];
+int required = mjb_utf8_snprintf(buffer, sizeof(buffer), "%s",
+    "\xC3\xA9\xC3\xA9"); // éé
+
+// 4: é
+printf("%d: %s", required, buffer);
+```
+
+See also: [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_is_utf8`](#mjb_is_utf8).
+
+## `mjb_utf8_vsnprintf`
+
+Format a UTF-8 string from a va_list without leaving an incomplete trailing codepoint.
+
+```c
+int mjb_utf8_vsnprintf(
+    char *buffer,
+    size_t buffer_size,
+    const char *format,
+    va_list args
+);
+```
+
+The `va_list` counterpart of `mjb_utf8_snprintf`. It has the same UTF-8 input requirements, clipping behavior, and return semantics as `mjb_utf8_snprintf`.
+
+- `buffer` - The destination buffer, or NULL when buffer_size is zero
+- `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
+- `format` - The printf format string
+- `args` - The formatting arguments
+
+**Returns**
+
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A negative value` - The underlying `vsnprintf` reported an encoding error
+
+See also: [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_is_utf8`](#mjb_is_utf8).
+
+## `mjb_utf8_grapheme_snprintf`
+
+Format UTF-8 without truncating an extended grapheme cluster.
+
+```c
+int mjb_utf8_grapheme_snprintf(
+    char *buffer,
+    size_t buffer_size,
+    const char *format,
+    ...
+);
+```
+
+Use the C library formatting rules and return semantics of `snprintf`. If the destination buffer truncates a well-formed UTF-8 result, the output is shortened to the largest prefix that ends at an extended grapheme-cluster boundary in the complete result. Unlike `mjb_utf8_snprintf`, truncation can require temporary allocation and a second evaluation of the format. Do not use `%n` or arguments whose values can change as a formatting side effect. On allocation failure the destination is set to an empty string, the function returns a negative value, and `errno` is set to `ENOMEM`.
+
+- `buffer` - The destination buffer, or NULL when buffer_size is zero
+- `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
+- `format` - The printf format string
+
+**Returns**
+
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A negative value` - Formatting failed or the complete result could not be obtained
+
+**Example**
+
+```c
+char buffer[4];
+int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
+    "Ae\xCC\x81" "B"); // A, e + combining acute accent, B
+
+// 5: A
+printf("%d: %s", required, buffer);
+```
+
+See also: [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_truncate_grapheme`](#mjb_truncate_grapheme).
+
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
+
+## `mjb_utf8_grapheme_vsnprintf`
+
+Format UTF-8 from a va_list without truncating an extended grapheme cluster.
+
+```c
+int mjb_utf8_grapheme_vsnprintf(
+    char *buffer,
+    size_t buffer_size,
+    const char *format,
+    va_list args
+);
+```
+
+The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same grapheme-safe clipping behavior, allocation requirements, and return semantics as `mjb_utf8_grapheme_snprintf`.
+
+- `buffer` - The destination buffer, or NULL when buffer_size is zero
+- `buffer_size` - The destination buffer capacity in bytes, including the terminating NULL
+- `format` - The printf format string
+- `args` - The formatting arguments
+
+**Returns**
+
+- `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
+- `A negative value` - Formatting failed or the complete result could not be obtained
+
+See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_truncate_grapheme`](#mjb_truncate_grapheme).
+
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
+
 ## `mjb_version`
 
 Output the current library version (MJB_VERSION).

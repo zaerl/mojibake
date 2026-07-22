@@ -18,6 +18,7 @@ set(SOURCES
     emoji.c
     hangul.c
     filter.c
+    format.c
     identifier.c
     locales.c
     next.c
