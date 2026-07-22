@@ -225,5 +225,5 @@ int main(int argc, char *const argv[]) {
     SetConsoleOutputCP(original_cp);
 #endif
 
-    return 0;
+    return 1;
 }
