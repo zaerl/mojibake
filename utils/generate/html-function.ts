@@ -36,6 +36,7 @@ export class CFunction implements MojibakeFunction {
   public name: string;
   public attributes: string[];
   public args: MojibakeArg[];
+  public variadic?: boolean;
   public wasm: boolean;
   public wasmName?: string;
   public section: Section;
@@ -51,6 +52,7 @@ export class CFunction implements MojibakeFunction {
     this.name = fn.name;
     this.attributes = fn.attributes;
     this.args = fn.args;
+    this.variadic = fn.variadic;
     this.wasm = fn.wasm;
     this.wasmName = fn.wasmName;
     this.section = fn.section;
@@ -75,6 +77,10 @@ export class CFunction implements MojibakeFunction {
 
   getArgs(): string[] {
     const args = this.args.map((arg, index) => `${arg.type}${arg.type.endsWith('*') ? '' : ' '}${arg.name}`);
+
+    if(this.variadic) {
+      args.push('...');
+    }
 
     return args.length ? args : ['void'];
   }
@@ -160,6 +166,7 @@ export class CFunction implements MojibakeFunction {
       ret: this.ret.trimEnd(),
       name: this.getName(),
       args: this.args,
+      variadic: this.variadic,
       wasm: this.wasm,
       wasmName: CFunction.wasmFunctionName(this.wasmName, this.name),
       section: this.section,
