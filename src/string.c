@@ -183,6 +183,10 @@ MJB_EXPORT size_t mjb_count_codepoints(const char *buffer, size_t max_length,
         return 0;
     }
 
+    if(mjb_resolve_input_byte_length(buffer, &max_length, encoding) != MJB_STATUS_OK) {
+        return 0;
+    }
+
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint;

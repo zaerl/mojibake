@@ -13,7 +13,6 @@ TEST_BUILD_DIR ?= $(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR ?= $(BUILD_DIR)-test-cpp
 TEST_ASAN_BUILD_DIR ?= $(BUILD_DIR)-test-asan
 TEST_UBSAN_BUILD_DIR ?= $(BUILD_DIR)-test-ubsan
-TEST_NULL_BUILD_DIR ?= $(BUILD_DIR)-test-null
 TEST_NO_NAMES_BUILD_DIR ?= $(BUILD_DIR)-test-no-names
 
 # WASM and amalgamation build directories
@@ -27,19 +26,17 @@ FEATURE_CHARACTER_NAMES ?= ON
 CMAKE_NATIVE_BASE_FLAGS = -DMJB_BUILD_WASM=OFF \
 	-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES)
 NATIVE_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF -DMJB_ALLOW_EMBEDDED_NULLS=OFF
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 CPP_CMAKE_FLAGS = -DMJB_BUILD_CPP=ON -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF -DMJB_ALLOW_EMBEDDED_NULLS=OFF
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 SHARED_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=ON $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF -DMJB_ALLOW_EMBEDDED_NULLS=OFF
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 ASAN_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DMJB_USE_ASAN=ON -DMJB_USE_UBSAN=OFF -DMJB_ALLOW_EMBEDDED_NULLS=OFF
+	-DMJB_USE_ASAN=ON -DMJB_USE_UBSAN=OFF
 UBSAN_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=ON -DMJB_ALLOW_EMBEDDED_NULLS=OFF
-NULL_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF -DMJB_ALLOW_EMBEDDED_NULLS=ON
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=ON
 WASM_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF -DMJB_BUILD_WASM=ON \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF -DMJB_ALLOW_EMBEDDED_NULLS=OFF
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
@@ -55,16 +52,12 @@ UNICODE_DATA = src/unicode-data.h
 
 all: configure build
 
-.PHONY: all configure configure-cpp configure-shared configure-asan configure-ubsan configure-null \
+.PHONY: all configure configure-cpp configure-shared configure-asan configure-ubsan \
 	configure-wasm
 
 # C targets
 configure: $(UNICODE_DATA)
 	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
-
-# NULL-safe testing targets
-configure-null: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NULL_CMAKE_FLAGS)
 
 # C++ targets
 configure-cpp: $(UNICODE_DATA)
@@ -166,7 +159,7 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: test test-all test-cpp test-asan test-ubsan test-null test-no-names test-wasm ctest \
+.PHONY: test test-all test-cpp test-asan test-ubsan test-no-names test-wasm ctest \
 	ctest-cpp test-docker
 
 # Run tests
@@ -174,12 +167,6 @@ test: $(UNICODE_DATA)
 	@cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NATIVE_CMAKE_FLAGS)
 	@cmake --build $(TEST_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_BUILD_DIR)/tests/mojibake-test $(ARGS)
-
-# Run tests with embedded NULL support
-test-null: $(UNICODE_DATA)
-	@cmake -S . -B $(TEST_NULL_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(NULL_CMAKE_FLAGS)
-	@cmake --build $(TEST_NULL_BUILD_DIR) --config $(TEST_BUILD_TYPE)
-	$(TEST_NULL_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests without Unicode character name tables
 test-no-names:
@@ -213,7 +200,6 @@ test-all:
 	$(MAKE) test-cpp
 	$(MAKE) test-asan
 	$(MAKE) test-ubsan
-	$(MAKE) test-null
 	$(MAKE) test-no-names
 
 # Run tests using CTest
@@ -252,7 +238,7 @@ clean-build:
 clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
 		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
-		$(TEST_UBSAN_BUILD_DIR) $(TEST_NULL_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR)
+		$(TEST_UBSAN_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
@@ -295,7 +281,6 @@ help:
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-docker             - Build and run tests in Docker container"
 	@echo "  test-no-names           - Build and run tests without Unicode character names"
-	@echo "  test-null               - Build and run tests with embedded NULL support"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  test-wasm               - Run WASM Node and browser API tests"
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"

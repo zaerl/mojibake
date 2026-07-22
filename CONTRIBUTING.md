@@ -152,10 +152,9 @@ You can run tests in multiple ways. On POSIX platforms:
 2. `make test-cpp` run tests as C++
 3. `make test-asan` run tests with [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html)
 4. `make test-ubsan` run tests with [UndefinedBehaviorSanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html)
-5. `make test-null` run tests with embedded NULL support
-6. `make ctest` run tests using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html)
-7. `make ctest-cpp` run C and C++ tests using `ctest`
-8. `make test-wasm` build the TypeScript package and test the WASM API in Node and a local
+5. `make ctest` run tests using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html)
+6. `make ctest-cpp` run C and C++ tests using `ctest`
+7. `make test-wasm` build the TypeScript package and test the WASM API in Node and a local
    Chromium-based browser (set `MJB_BROWSER` if it is not on the default search path)
 
 Windows 10/11:
@@ -164,9 +163,8 @@ Windows 10/11:
 2. `nmake /F Makefile.nmake test-cpp` run tests compiled as C++
 3. `nmake /F Makefile.nmake test-asan` run tests with `AddressSanitizer`
 4. `nmake /F Makefile.nmake test-ubsan` run tests with `UndefinedBehaviorSanitizer`
-5. `nmake /F Makefile.nmake test-null` run tests with embedded `NULL` support
-6. `nmake /F Makefile.nmake ctest` run tests using `ctest`
-7. `make ctest-cpp` run C and C++ tests using `ctest`
+5. `nmake /F Makefile.nmake ctest` run tests using `ctest`
+6. `make ctest-cpp` run C and C++ tests using `ctest`
 
 Docker:
 

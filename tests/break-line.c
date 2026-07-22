@@ -47,18 +47,6 @@ int test_break_line(void *arg) {
     ATT_ASSERT((uint8_t)mjb_next_line_break("A", 1, MJB_ENC_UTF_8, NULL), (uint8_t)MJB_BT_NOT_SET,
         "Line break rejects NULL state")
 
-#if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    const char utf16le_null[] = { '\0', '\0', 'A', '\0' };
-
-    state.index = 0;
-    ATT_ASSERT((uint8_t)mjb_next_line_break(utf16le_null, sizeof(utf16le_null), MJB_ENC_UTF_16LE,
-                   &state),
-        (uint8_t)MJB_BT_ALLOWED, "Line break stops at UTF-16LE NULL")
-    ATT_ASSERT((uint8_t)mjb_next_line_break(utf16le_null, sizeof(utf16le_null), MJB_ENC_UTF_16LE,
-                   &state),
-        (uint8_t)MJB_BT_NOT_SET, "Line break finishes after UTF-16LE NULL")
-#endif
-
     // Unicode 18 LB12a disallows BA × GL; U+2012 changed from HH to BA.
     const char ba_gl[] = "\xE2\x80\x92\xC2\xA0"; // FIGURE DASH, NO-BREAK SPACE
     state.index = 0;

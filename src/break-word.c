@@ -57,7 +57,7 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length,
 // See: https://unicode.org/reports/tr29/
 MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_next_word_state *state) {
-    if(buffer == NULL || state == NULL || byte_length == 0) {
+    if(buffer == NULL || state == NULL || byte_length == 0 || byte_length == MJB_NUL_TERMINATED) {
         return MJB_BT_NOT_SET;
     }
 
@@ -356,6 +356,11 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_
         return 0;
     }
 
+    if(mjb_resolve_input_byte_length(buffer, &byte_length, encoding) != MJB_STATUS_OK ||
+        byte_length == 0) {
+        return 0;
+    }
+
     mjb_next_word_state state;
     state.index = 0;
 
@@ -384,6 +389,11 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_
 MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_width_context context, size_t max_columns) {
     if(buffer == NULL || byte_length == 0 || max_columns == 0) {
+        return 0;
+    }
+
+    if(mjb_resolve_input_byte_length(buffer, &byte_length, encoding) != MJB_STATUS_OK ||
+        byte_length == 0) {
         return 0;
     }
 

@@ -33,7 +33,7 @@ int test_example(void *arg) {
     const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
     mjb_result result;
 
-    if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+    if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
         &result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize test failed") // Added by the script
         return 1;

@@ -684,6 +684,12 @@ MJB_EXPORT mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_e
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
@@ -701,7 +707,7 @@ MJB_EXPORT mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_e
     mjb_output output;
     mjb_output_init_dynamic(&output, allocated, byte_length);
     mjb_map_case_write_context context = { buffer, byte_length, encoding, type, output_encoding };
-    mjb_status status = mjb_map_case_write(&output, &context);
+    status = mjb_map_case_write(&output, &context);
 
     if(status != MJB_STATUS_OK) {
         mjb_free(output.buffer);
@@ -749,6 +755,14 @@ MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
     }
 
     mjb_map_case_write_context context = { buffer, byte_length, encoding, type, output_encoding };

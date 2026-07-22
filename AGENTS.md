@@ -14,7 +14,6 @@ portable. Key commands:
 - `make build-shared` - Build the project as a shared library
 - `make build-asan` - Build the project with AddressSanitizer
 - `make test` - Build and run tests
-- `make test-null` - Build and run tests with embedded NULL support
 - `make test-cpp` - Build and run tests with a C++ compiler
 - `make test-asan` - Build and run tests with AddressSanitizer
 - `make test-docker` - Build and run tests in a Linux container

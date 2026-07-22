@@ -120,7 +120,6 @@ void read_test_file(const char *filename, test_file_callback callback) {
         }
 
         memset(generated_input, 0, 1024);
-        bool skip_line = false;
 
         // × (U+00D7) = 0xC3 0x97
         // ÷ (U+00F7) = 0xC3 0xB7
@@ -150,23 +149,10 @@ void read_test_file(const char *filename, test_file_callback callback) {
 
             mjb_codepoint codepoint = strtoul((const char *)(token), NULL, 16);
 
-#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-            if(codepoint == 0) {
-                free(tofree);
-                ++current_line;
-                skip_line = true;
-
-                break;
-            }
-#endif
             unsigned int encoded_size = mjb_codepoint_encode(codepoint,
                 generated_input + generated_index, 1024 - generated_index, MJB_ENC_UTF_8);
 
             generated_index += encoded_size;
-        }
-
-        if(skip_line) {
-            continue;
         }
 
         generated_input[generated_index] = '\0';

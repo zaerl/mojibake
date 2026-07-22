@@ -16,6 +16,16 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if(byte_length == 0) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
 #ifndef __EMSCRIPTEN__
     // Emscripten uses _mjbForEachCharacterCallback.
     if(callback == NULL) {

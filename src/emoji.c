@@ -111,8 +111,13 @@ MJB_EXPORT mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byt
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_status status = mjb_emoji_decode_sequence(buffer, byte_length, encoding, codepoints,
-        &count);
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_emoji_decode_sequence(buffer, byte_length, encoding, codepoints, &count);
 
     if(status != MJB_STATUS_OK) {
         return status;

@@ -34,6 +34,12 @@ MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t b
         return MJB_STATUS_INVALID_ENCODING;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(byte_length == 0) {
         *quick_check = MJB_QC_YES;
 

@@ -50,7 +50,7 @@ int main(int argc, char *const argv[]) {
     const char *case_input = "Straße";
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
-    if(mjb_nfkc_casefold(case_input, strlen(case_input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    if(mjb_nfkc_casefold(case_input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         &result) != MJB_STATUS_OK) {
         return 1;
     }
@@ -84,6 +84,10 @@ Caf<C3><A9>
 "文字化け" encoded in UTF-8 is 12 bytes long, and 4 characters long
 Straße -> strasse
 ```
+
+Pass an exact byte length when the input may contain `U+0000`. For a properly terminated input, pass
+`MJB_NUL_TERMINATED`; Mojibake scans one-, two-, or four-byte code units according to the declared
+encoding and excludes the terminator.
 
 Mojibake aims to be:
 
@@ -216,7 +220,8 @@ Mojibake is embedded. They can be controlled with:
 2. `MJB_BUILD_CLI`
 3. `MJB_INSTALL`
 
-Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_USE_ASAN`, `MJB_USE_UBSAN`, `MJB_ALLOW_EMBEDDED_NULLS`, and `MJB_FEATURE_CHARACTER_NAMES`.
+Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_USE_ASAN`,
+`MJB_USE_UBSAN`, and `MJB_FEATURE_CHARACTER_NAMES`.
 
 Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 

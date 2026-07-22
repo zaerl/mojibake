@@ -747,11 +747,17 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     sk->count = 0;
     sk->cap = 0;
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(byte_length == 0) {
         return MJB_STATUS_OK;
     }
 
-    mjb_status status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
+    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -965,6 +971,18 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(s1, &s1_byte_length, s1_encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_resolve_input_byte_length(s2, &s2_byte_length, s2_encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(s1_byte_length == 0 && s2_byte_length == 0) {
         return MJB_STATUS_OK;
     }
@@ -984,7 +1002,7 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    mjb_status status = compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1);
+    status = compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1);
 
     if(status != MJB_STATUS_OK) {
         return status;

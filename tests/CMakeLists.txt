@@ -63,12 +63,6 @@ target_compile_definitions(mojibake-test PRIVATE MJB_TEST_SOURCE_DIR="${Mojibake
 # The tests use strdup and strnlen, which strict C11 hides on glibc/musl.
 target_compile_definitions(mojibake-test PRIVATE _DEFAULT_SOURCE)
 
-# Enable embedded NULL support if requested
-if(MJB_ALLOW_EMBEDDED_NULLS)
-    message(STATUS "Building tests with embedded NULL support enabled")
-    target_compile_definitions(mojibake-test PRIVATE MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS=1)
-endif()
-
 # Force C++ compilation if MJB_BUILD_CPP is enabled
 if(MJB_BUILD_CPP)
     set_target_properties(mojibake-test PROPERTIES
