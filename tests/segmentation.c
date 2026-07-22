@@ -57,18 +57,6 @@ static void test_basic_segmentation(void) {
     ATT_ASSERT(mjb_truncate_grapheme_width(NULL, 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0,
         "Truncate width rejects NULL buffer")
 
-#if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    const char utf16le_null[] = { '\0', '\0', 'A', '\0' };
-
-    MJB_TEST_S
-    ATT_ASSERT((uint8_t)mjb_next_grapheme_break(utf16le_null, sizeof(utf16le_null),
-                   MJB_ENC_UTF_16LE, &state),
-        (uint8_t)MJB_BT_ALLOWED, "Segmentation stops at UTF-16LE NULL")
-    ATT_ASSERT((uint8_t)mjb_next_grapheme_break(utf16le_null, sizeof(utf16le_null),
-                   MJB_ENC_UTF_16LE, &state),
-        (uint8_t)MJB_BT_NOT_SET, "Segmentation finishes after UTF-16LE NULL")
-#endif
-
     MJB_TEST_S
     mjb_break_type expected_a[] = { MJB_BT_ALLOWED };
 
@@ -171,22 +159,6 @@ static void test_truncate(void) {
         "Truncate width: ABC to 3 columns (no-op)")
     ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10),
         (size_t)3, "Truncate width: ABC to 10 columns (no-op)")
-
-#if !defined(MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS) || !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-    const char utf16le_with_null[] = { 'A', '\0', '\0', '\0', 'B', '\0' };
-    const char utf16le_null_start[] = { '\0', '\0', 'A', '\0' };
-    const char timeout_repro[] = { '\0', '\0', '\x10', '\xDF', '\x03', '\x1F', '\x01', '\0', '\0',
-        '\0', '\0', '\0', '\0', '\0', '\xFF', '\xDC', '\xFF', '\0', '\xF3', '\xA1', ' ', 'S' };
-
-    ATT_ASSERT(mjb_truncate_grapheme(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE, 5),
-        (size_t)2, "Truncate: UTF-16LE stops at NULL")
-    ATT_ASSERT(mjb_truncate_grapheme_width(utf16le_with_null, sizeof(utf16le_with_null), MJB_ENC_UTF_16LE,
-        MJB_WIDTH_CONTEXT_WESTERN, 10), (size_t)2, "Truncate width: UTF-16LE stops at NULL")
-    ATT_ASSERT(mjb_truncate_grapheme_width(utf16le_null_start, sizeof(utf16le_null_start), MJB_ENC_UTF_16LE,
-        MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0, "Truncate width: UTF-16LE NULL start")
-    ATT_ASSERT(mjb_truncate_grapheme_width(timeout_repro, sizeof(timeout_repro), MJB_ENC_UTF_16LE,
-        MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0, "Truncate width: fuzzer timeout regression")
-#endif
 
     const char malformed_utf8_width[] = { 'a', '\x17', '\xCE', '\x08', 's', 't' };
 

@@ -106,13 +106,10 @@ int test_encoding(void *arg) {
     ATT_ASSERT(mjb_is_ascii(test10, 43), true, "Valid string and length")
 
     const unsigned char ascii_null_invalid[] = { 'A', '\0', 0x80 };
-#ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
     ATT_ASSERT(mjb_is_ascii((const char *)ascii_null_invalid, sizeof(ascii_null_invalid)),
         false, "ASCII rejects non-ASCII after embedded NULL")
-#else
-    ATT_ASSERT(mjb_is_ascii((const char *)ascii_null_invalid, sizeof(ascii_null_invalid)),
-        true, "ASCII stops at NULL terminator")
-#endif
+    ATT_ASSERT(mjb_is_ascii((const char *)ascii_null_invalid, MJB_NUL_TERMINATED), true,
+        "NUL-terminated ASCII excludes bytes after the terminator")
 
     // \xF0\x9F\x99\x82 = 🙂
     const char *test11 = "\xF0\x9F\x99\x82";
@@ -177,19 +174,13 @@ int test_encoding(void *arg) {
     ATT_ASSERT(mjb_is_utf8(utf8_test, 11), true, "String with NULL character")
 
     const unsigned char utf8_null_invalid[] = { 'A', '\0', 0xFF };
-#ifdef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
     ATT_ASSERT(mjb_is_utf8((const char *)utf8_null_invalid, sizeof(utf8_null_invalid)),
         false, "UTF-8 rejects invalid byte after embedded NULL")
     ATT_ASSERT((unsigned int)mjb_detect_encoding((const char *)utf8_null_invalid,
                    sizeof(utf8_null_invalid)),
         (unsigned int)MJB_ENC_UNKNOWN, "Encoding rejects invalid byte after embedded NULL")
-#else
-    ATT_ASSERT(mjb_is_utf8((const char *)utf8_null_invalid, sizeof(utf8_null_invalid)), true,
-        "UTF-8 stops at NULL terminator")
-    ATT_ASSERT((unsigned int)mjb_detect_encoding((const char *)utf8_null_invalid,
-                   sizeof(utf8_null_invalid)),
-        (unsigned int)(MJB_ENC_UTF_8 | MJB_ENC_ASCII), "Encoding stops at NULL terminator")
-#endif
+    ATT_ASSERT(mjb_is_utf8((const char *)utf8_null_invalid, MJB_NUL_TERMINATED), true,
+        "NUL-terminated UTF-8 excludes bytes after the terminator")
 
     utf8_test = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14"
                 "\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F"; //
@@ -216,6 +207,10 @@ int test_encoding(void *arg) {
     // UTF-16LE tests (Little Endian)
     const char *utf16le_hello = "H\x00e\x00l\x00l\x00o\x00"; // "Hello" in UTF-16LE
     ATT_ASSERT(mjb_is_utf16(utf16le_hello, 10), true, "UTF-16LE Hello")
+
+    const char utf16le_terminated[] = { 'H', '\0', 'i', '\0', '\0', '\0' };
+    ATT_ASSERT(mjb_is_utf16(utf16le_terminated, MJB_NUL_TERMINATED), true,
+        "NUL-terminated UTF-16LE")
 
     const char *utf16le_with_bmp = "A\x00\x91\x03Z\x00"; // "AΑZ" (A, Greek Alpha, Z) in UTF-16LE
     ATT_ASSERT(mjb_is_utf16(utf16le_with_bmp, 6), true, "UTF-16LE with BMP characters")
