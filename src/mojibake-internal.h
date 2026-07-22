@@ -94,6 +94,9 @@ mjb_status mjb_output_into(void *output, size_t *output_size, mjb_output_writer 
 mjb_status mjb_output_copy_into(const void *buffer, size_t byte_length, void *output,
     size_t *output_size);
 
+size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    size_t max_bytes);
+
 bool mjb_n_codepoint_character(mjb_codepoint codepoint, mjb_n_character *character);
 
 mjb_status mjb_codepoint_properties_lookup(mjb_codepoint codepoint, uint8_t *buffer);
