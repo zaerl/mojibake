@@ -68,28 +68,36 @@ int main(int argc, char *const argv[]) {
         "Show allowed symbols", "Verbose output", "Print version", "Width of output" };
 
     mjbsh_command commands[] = { { "bidi", "Resolve the bidirectional algorithm for the input",
-                                     mjbsh_bidi_command, 0 },
+                                     mjbsh_bidi_command, 0, 1, false },
         { "break", "Break the input into grapheme, word, line, and sentence breaks",
-            mjbsh_break_command, 0 },
-        { "char", "Print the characters for the given string", mjbsh_character_command, 0 },
-        { "codepoint", "Print the character for the given codepoint", mjbsh_codepoint_command, 0 },
+            mjbsh_break_command, 0, 2, false },
+        { "char", "Print the characters for the given string", mjbsh_character_command, 0, 1,
+            false },
+        { "codepoint", "Print the character for the given codepoint", mjbsh_codepoint_command, 0, 1,
+            false },
         { "emoji", "Print emoji sequence and codepoint information for the input",
-            mjbsh_emoji_command, 0 },
+            mjbsh_emoji_command, 0, 1, true },
         { "filter", "Filter the input", mjbsh_filter_command,
             MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES |
-                MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC | MJB_FILTER_LIMIT_COMBINING },
-        { "locale", "Parse a BCP 47 language tag", mjbsh_locale_command, 0 },
-        { "nfd", "Normalize the input to NFD", mjbsh_normalize_command, MJB_NORMALIZATION_NFD },
-        { "nfkd", "Normalize the input to NFKD", mjbsh_normalize_command, MJB_NORMALIZATION_NFKD },
-        { "nfc", "Normalize the input to NFC", mjbsh_normalize_command, MJB_NORMALIZATION_NFC },
-        { "nfkc", "Normalize the input to NFKC", mjbsh_normalize_command, MJB_NORMALIZATION_NFKC },
-        { "upper", "Convert the input to uppercase", mjbsh_case_command, MJB_CASE_UPPER },
-        { "lower", "Convert the input to lowercase", mjbsh_case_command, MJB_CASE_LOWER },
-        { "title", "Convert the input to titlecase", mjbsh_case_command, MJB_CASE_TITLE },
-        { "casefold", "Convert the input to case fold", mjbsh_case_command, MJB_CASE_CASEFOLD },
+                MJB_FILTER_CONTROLS | MJB_FILTER_NUMERIC | MJB_FILTER_LIMIT_COMBINING,
+            1, false },
+        { "locale", "Parse a BCP 47 language tag", mjbsh_locale_command, 0, 1, false },
+        { "nfd", "Normalize the input to NFD", mjbsh_normalize_command, MJB_NORMALIZATION_NFD, 1,
+            true },
+        { "nfkd", "Normalize the input to NFKD", mjbsh_normalize_command, MJB_NORMALIZATION_NFKD, 1,
+            true },
+        { "nfc", "Normalize the input to NFC", mjbsh_normalize_command, MJB_NORMALIZATION_NFC, 1,
+            true },
+        { "nfkc", "Normalize the input to NFKC", mjbsh_normalize_command, MJB_NORMALIZATION_NFKC, 1,
+            true },
+        { "upper", "Convert the input to uppercase", mjbsh_case_command, MJB_CASE_UPPER, 1, false },
+        { "lower", "Convert the input to lowercase", mjbsh_case_command, MJB_CASE_LOWER, 1, false },
+        { "title", "Convert the input to titlecase", mjbsh_case_command, MJB_CASE_TITLE, 1, false },
+        { "casefold", "Convert the input to case fold", mjbsh_case_command, MJB_CASE_CASEFOLD, 1,
+            false },
         { "casefold-simple", "Convert the input to simple case fold", mjbsh_case_command,
-            MJB_CASE_CASEFOLD_SIMPLE },
-        { NULL, NULL, NULL, 0 } };
+            MJB_CASE_CASEFOLD_SIMPLE, 1, false },
+        { NULL, NULL, NULL, 0, 0, false } };
 
     if(isatty(STDOUT_FILENO)) {
         /*struct winsize w;
@@ -214,6 +222,18 @@ int main(int argc, char *const argv[]) {
 
     for(int i = 0; commands[i].name != NULL; ++i) {
         if(strcmp(argv[optind], commands[i].name) == 0) {
+            bool accepts_arguments = next_argc <= commands[i].max_arguments ||
+                (commands[i].accepts_codepoint_list &&
+                    cmd_interpret_mode == INTERPRET_MODE_CODEPOINT);
+
+            if(!accepts_arguments) {
+                fprintf(stderr, "%s: expected at most %d argument%s, received %d\n",
+                    commands[i].name, commands[i].max_arguments,
+                    commands[i].max_arguments == 1 ? "" : "s", next_argc);
+
+                return 1;
+            }
+
             return commands[i].function(next_argc, next_argv, commands[i].flags);
         }
     }

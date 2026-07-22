@@ -65,6 +65,8 @@ typedef struct mjb_command {
     const char *description;
     mjbsh_command_function function;
     unsigned int flags;
+    int max_arguments;
+    bool accepts_codepoint_list;
 } mjbsh_command;
 
 extern int cmd_show_colors;
