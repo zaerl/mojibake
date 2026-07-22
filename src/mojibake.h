@@ -58,6 +58,9 @@ extern "C" {
 #define MJB_UNICODE_VERSION_MINOR 0
 #define MJB_UNICODE_VERSION_REVISION 0
 
+// Use an encoding-aware NUL code unit to determine an input string's byte length.
+#define MJB_NUL_TERMINATED SIZE_MAX
+
 #ifndef MJB_FEATURE_CHARACTER_NAMES
     #define MJB_FEATURE_CHARACTER_NAMES 1
 #endif

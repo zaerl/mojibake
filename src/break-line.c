@@ -90,7 +90,8 @@ static inline bool mjb_is_lb15b_follower(mjb_lbp lbp) {
 // see: https://www.unicode.org/reports/tr14
 MJB_EXPORT mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_next_line_state *state) {
-    if(buffer == NULL || state == NULL || byte_length == 0) {
+    if(buffer == NULL || state == NULL || byte_length == 0 ||
+        byte_length == MJB_NUL_TERMINATED) {
         return MJB_BT_NOT_SET;
     }
 

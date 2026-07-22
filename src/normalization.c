@@ -535,6 +535,12 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
         return MJB_STATUS_INVALID_FORM;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
@@ -548,8 +554,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
     result->transformed = false;
 
     mjb_quick_check_result is_normalized;
-    mjb_status status = mjb_normalization_quick_check(buffer, byte_length, encoding, form,
-        &is_normalized);
+    status = mjb_normalization_quick_check(buffer, byte_length, encoding, form, &is_normalized);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -619,13 +624,20 @@ MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
         return MJB_STATUS_INVALID_FORM;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
     if(byte_length == 0) {
         return mjb_output_copy_into(buffer, byte_length, output, output_size);
     }
 
     mjb_quick_check_result is_normalized;
-    mjb_status status = mjb_normalization_quick_check(buffer, byte_length, encoding, form,
-        &is_normalized);
+    status = mjb_normalization_quick_check(buffer, byte_length, encoding, form, &is_normalized);
 
     if(status != MJB_STATUS_OK) {
         *output_size = 0;
@@ -835,6 +847,12 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
@@ -859,12 +877,20 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_len
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
     if(byte_length == 0) {
         return mjb_output_copy_into(buffer, byte_length, output, output_size);
     }
 
-    mjb_status status = mjb_nfkc_casefold_transform(buffer, byte_length, encoding, output_encoding,
-        NULL, output, output_size);
+    status = mjb_nfkc_casefold_transform(buffer, byte_length, encoding, output_encoding, NULL,
+        output, output_size);
 
     if(status != MJB_STATUS_OK && status != MJB_STATUS_OUTPUT_TOO_SMALL) {
         *output_size = 0;

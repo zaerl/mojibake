@@ -1182,6 +1182,12 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     result->chars = NULL;
     result->count = 0;
     result->paragraph_level = 0;

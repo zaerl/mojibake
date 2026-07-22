@@ -89,7 +89,9 @@ function buffer(description: string, name = 'buffer', isConst = true, wasm_gener
   };
 }
 
-function byte_length(description = 'The length of the string, in bytes', name = 'byte_length'): MojibakeArg {
+function byte_length(description = 'The length of the string in bytes, or ' +
+  '`MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit',
+  name = 'byte_length'): MojibakeArg {
   return {
     name,
     type: 'size_t',
@@ -231,7 +233,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     example: `const char *input = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_result result;
 
-if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -612,7 +614,7 @@ printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
     ],
     args: [
       buffer('The string to check'),
-      byte_length()
+      byte_length('The explicit length of the string, in bytes')
     ],
     wasm: true,
     section: Section.TextAnalysis,
@@ -620,7 +622,8 @@ printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
       'family bit plus the resolved endian bit. Passing that detected value consumes the leading ' +
       'BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves ' +
       'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
-      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence.',
+      'UTF-16LE BOM prefix, decoding gives UTF-32 precedence. `MJB_NUL_TERMINATED` is not ' +
+      'accepted because the encoding, and therefore the NUL code-unit width, is unknown.',
     example: `const char utf16le[] = "\\xFF\\xFEH\\0i\\0";
 mjb_encoding detected = mjb_detect_encoding(utf16le, sizeof(utf16le) - 1);
 bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
@@ -697,7 +700,7 @@ printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
       {
         name: 'max_length',
         type: 'size_t',
-        description: 'The maximum length of the string, in bytes',
+        description: 'The maximum length of the string in bytes, or `MJB_NUL_TERMINATED`',
         wasm_generated: true
       },
       encoding()
@@ -1078,10 +1081,12 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output_size);`,
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The first string to compare', 's1'),
-      byte_length('The length of the first string, in bytes', 's1_byte_length'),
+      byte_length('The length of the first string in bytes, or `MJB_NUL_TERMINATED`',
+        's1_byte_length'),
       encoding('The encoding of the first string', 's1_encoding'),
       buffer('The second string to compare', 's2'),
-      byte_length('The length of the second string, in bytes', 's2_byte_length'),
+      byte_length('The length of the second string in bytes, or `MJB_NUL_TERMINATED`',
+        's2_byte_length'),
       encoding('The encoding of the second string', 's2_encoding'),
       {
         name: 'mode',
@@ -1513,7 +1518,7 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
     attributes: [],
     args: [
       buffer('The string to check'),
-      byte_length(),
+      byte_length('The explicit length of the string, in bytes'),
       encoding(),
       {
         name: 'state',
@@ -1540,7 +1545,7 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
     attributes: [],
     args: [
       buffer('The string to check'),
-      byte_length(),
+      byte_length('The explicit length of the string, in bytes'),
       encoding(),
       {
         name: 'state',
@@ -1571,7 +1576,7 @@ printf("Word-break positions: %zu", boundaries);`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      byte_length(),
+      byte_length('The explicit length of the string, in bytes'),
       encoding(),
       {
         name: 'state',
@@ -1603,7 +1608,7 @@ printf("Sentence-break positions: %zu", boundaries);`,
     attributes: [],
     args: [
       buffer('The string to check'),
-      byte_length(),
+      byte_length('The explicit length of the string, in bytes'),
       encoding(),
       {
         name: 'state',
@@ -1615,7 +1620,9 @@ printf("Sentence-break positions: %zu", boundaries);`,
     wasm: true,
     section: Section.Segmentation,
     details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
-      'Call repeatedly with the same state until it reports the end of the string.',
+      'Call repeatedly with the same state until it reports the end of the string. Stateful ' +
+      'break functions require an explicit length and do not accept `MJB_NUL_TERMINATED`; ' +
+      'determine the length once before iteration.',
     example: `const char *input = "e\\xCC\\x81"; // e + combining acute accent
 mjb_next_state state;
 state.index = 0;
@@ -2179,10 +2186,12 @@ printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);`,
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The first string', 's1'),
-      byte_length('The length of the first string, in bytes', 's1_byte_length'),
+      byte_length('The length of the first string in bytes, or `MJB_NUL_TERMINATED`',
+        's1_byte_length'),
       encoding('The encoding of the first string', 's1_encoding'),
       buffer('The second string', 's2'),
-      byte_length('The length of the second string, in bytes', 's2_byte_length'),
+      byte_length('The length of the second string in bytes, or `MJB_NUL_TERMINATED`',
+        's2_byte_length'),
       encoding('The encoding of the second string', 's2_encoding'),
       {
         name: 'confusable',
@@ -2479,7 +2488,7 @@ printf("RGI emoji: %s", rgi ? "yes" : "no");`,
         description: 'The buffer to store the result',
         wasm_generated: true
       },
-      byte_length()
+      byte_length('The capacity of the output buffer, in bytes')
     ],
     wasm: true,
     section: Section.HangulLanguage,
@@ -2636,7 +2645,7 @@ printf("Display columns: %zu", width);`,
       {
         name: 'byte_length',
         type: 'size_t',
-        description: 'The length of the locale identifier, in bytes',
+        description: 'The length of the locale identifier in bytes, or `MJB_NUL_TERMINATED`',
         wasm_generated: true
       },
       {

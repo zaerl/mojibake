@@ -140,7 +140,13 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_status status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;

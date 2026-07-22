@@ -10,17 +10,6 @@
 #include "utf32.h"
 #include "utf8.h"
 
-/**
- * WARNING: Setting this macro to 1 disables NULL termination checks. This allows processing strings
- * with embedded U+0000 codepoints but removes a **critical safety feature**. Only enable it if you
- * know what you are doing.
- *
- * Default: 0 (NULL codepoints terminate string processing)
- */
-#ifndef MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-#define MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS 0
-#endif
-
 typedef enum {
     MJB_DECODE_OK,         // Successfully decoded a codepoint
     MJB_DECODE_INCOMPLETE, // Still accumulating bytes for multi-byte sequence
@@ -119,12 +108,6 @@ static inline mjb_encoding MJB_USED mjb_resolve_input_encoding(const char *buffe
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_length, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
     if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
-#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-        if(!buffer[*index]) {
-            return false;
-        }
-#endif
-
         *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
         ++*index; // Increment by 1 byte
     } else if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
@@ -133,12 +116,6 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_leng
             *state = MJB_UTF_REJECT;
             *index = byte_length;
         } else {
-#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-            if(!buffer[*index] && !buffer[*index + 1]) {
-                return false;
-            }
-#endif
-
             *state = mjb_utf16_decode_step(*state, buffer[*index], buffer[*index + 1], codepoint,
                 encoding == MJB_ENC_UTF_16BE);
             *index += 2; // Increment by 2 bytes (full code unit)
@@ -149,13 +126,6 @@ static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_leng
             *state = MJB_UTF_REJECT;
             *index = byte_length;
         } else {
-#if !MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS
-            if(!buffer[*index] && !buffer[*index + 1] && !buffer[*index + 2] &&
-                !buffer[*index + 3]) {
-                return false;
-            }
-#endif
-
             *state = mjb_utf32_decode_step(*state, buffer[*index], buffer[*index + 1],
                 buffer[*index + 2], buffer[*index + 3], codepoint, encoding == MJB_ENC_UTF_32BE);
             *index += 4; // Increment by 4 bytes (full code unit)
@@ -349,6 +319,60 @@ static inline bool MJB_USED mjb_encoding_is_valid_output(mjb_encoding encoding) 
     return encoding == MJB_ENC_ASCII || encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_UTF_16BE ||
         encoding == MJB_ENC_UTF_16LE || encoding == MJB_ENC_UTF_32BE ||
         encoding == MJB_ENC_UTF_32LE;
+}
+
+/**
+ * Resolve MJB_NUL_TERMINATED to an encoding-aware payload byte length. The terminator itself is not
+ * included. Explicit byte lengths are left unchanged and may contain U+0000 codepoints.
+ */
+static inline mjb_status MJB_USED mjb_resolve_input_byte_length(const char *buffer,
+    size_t *byte_length, mjb_encoding encoding) {
+    if(byte_length == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(*byte_length != MJB_NUL_TERMINATED) {
+        return MJB_STATUS_OK;
+    }
+
+    if(buffer == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    size_t code_unit_size;
+
+    if(encoding == MJB_ENC_ASCII || encoding == MJB_ENC_UTF_8) {
+        code_unit_size = 1;
+    } else if(encoding == MJB_ENC_UTF_16 || encoding == MJB_ENC_UTF_16BE ||
+        encoding == MJB_ENC_UTF_16LE) {
+        code_unit_size = 2;
+    } else if(encoding == MJB_ENC_UTF_32 || encoding == MJB_ENC_UTF_32BE ||
+        encoding == MJB_ENC_UTF_32LE) {
+        code_unit_size = 4;
+    } else {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    size_t index = 0;
+
+    for(;;) {
+        bool terminated = true;
+
+        for(size_t i = 0; i < code_unit_size; ++i) {
+            if(buffer[index + i] != '\0') {
+                terminated = false;
+                break;
+            }
+        }
+
+        if(terminated) {
+            *byte_length = index;
+
+            return MJB_STATUS_OK;
+        }
+
+        index += code_unit_size;
+    }
 }
 
 /**

@@ -66,10 +66,12 @@ Here is the basis for using the library:
 
 1. Mojibake does not have a default input encoding or output decoding; you must decide what to use
 2. Input and output encodings can be different
-3. Every string passed is simply a stream of bytes, and you must specify how many bytes there are
-4. For safety reasons, the functions stop when they encounter a `\0` byte in the input strings even
-if the `byte_length` is bigger. This is _unless_ you declare `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS`
-or you use UTF-16/UTF-32 that can have `\0` bytes
+3. Every string passed is simply a stream of bytes. Specify its exact byte length to process U+0000
+   like any other codepoint, or pass `MJB_NUL_TERMINATED` when the input has an encoding-aware NUL
+   terminator
+4. `MJB_NUL_TERMINATED` scans one-byte code units for ASCII/UTF-8, two-byte code units for UTF-16,
+   and four-byte code units for UTF-32. The terminator is excluded from the input. As with standard
+   C string functions, the caller must provide a correctly terminated buffer
 5. The major part of the functions return a `mjb_status` and should be checked against the
 `MJB_STATUS_OK` constant. The `MJB_STATUS_OK` enum value is `0 (zero)` so don't check for truthy
 6. Predicate APIs, such as `mjb_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
@@ -128,11 +130,12 @@ Mojibake is encoding agnostic. It can accept and output `uint8_t` (ASCII, UTF-8)
 encodings of the input strings.
 
 > [!IMPORTANT]
-> The _length_ of the input string (`byte_length`) **must** be "the length in bytes". So calling a
-> `strlen(...)` on an UTF-8 string is enough, as well of a `sizeof(input)` if `input` is a constant
-> array of `uint16_t` or `uint32_t`. But keep attention! If an array _decay_ to a pointer (for
-> example if passed to a function), calling `sizeof(...)` of that pointer will return `8` (on a
-> 64-bit system), the size of a pointer.
+> The _length_ of the input string (`byte_length`) **must** be the exact payload length in bytes.
+> `strlen(...)` provides that length for a terminated UTF-8 string. For terminated `uint16_t` or
+> `uint32_t` arrays, exclude the final code unit when computing an explicit length; otherwise it is
+> processed as U+0000. Alternatively, use `MJB_NUL_TERMINATED`. If an array _decays_ to a pointer
+> (for example when passed to a function), `sizeof(...)` returns the size of the pointer instead of
+> the array.
 
 Example of the [`mjb_normalize`](#mjb_normalize) function.
 
@@ -156,7 +159,7 @@ const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 
 mjb_result result;
 
-if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -220,8 +223,9 @@ These are the rules, all the functions are equal:
 4. No bytes are written when capacity is insufficient
 
 > [!IMPORTANT]
-> In Mojibake APIs string are length-delimited and binary-safe. It does not write a NULL character
-> at the end of a string
+> Explicitly sized Mojibake inputs are length-delimited and binary-safe. Output sizes never include
+> a terminator, and `_into` functions do not write one. `MJB_NUL_TERMINATED` changes input length
+> discovery only; it does not change output semantics.
 
 ```c
 const char *input = "caf\xC3\xA9";
@@ -306,7 +310,7 @@ mjb_status mjb_normalize(
 Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating.
 
 - `buffer` - The string to normalize
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
@@ -326,7 +330,7 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_result result;
 
-if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
     &result) != MJB_STATUS_OK) {
     return 1;
 }
@@ -360,7 +364,7 @@ mjb_status mjb_normalize_into(
 Normalize a string using the same Unicode normalization forms and encoding rules as `mjb_normalize`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. NFD and NFKD write without allocation. NFC and NFKC may allocate temporary composition storage, including during a size query.
 
 - `buffer` - The string to normalize
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
@@ -423,7 +427,7 @@ mjb_status mjb_filter(
 `MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks.
 
 - `buffer` - The string to filter
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
@@ -479,7 +483,7 @@ mjb_status mjb_filter_into(
 Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run.
 
 - `buffer` - The string to filter
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
@@ -537,7 +541,7 @@ mjb_status mjb_nfkc_casefold(
 Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive.
 
 - `buffer` - The string to transform
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
@@ -588,7 +592,7 @@ mjb_status mjb_nfkc_casefold_into(
 Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
 
 - `buffer` - The string to transform
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
@@ -646,7 +650,7 @@ mjb_status mjb_normalization_quick_check(
 Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `form` - The normalization form to check
 - `quick_check` - The quick-check result to store
@@ -689,10 +693,10 @@ mjb_encoding mjb_detect_encoding(
 );
 ```
 
-`mjb_detect_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence.
+`mjb_detect_encoding` reports BOM-derived UTF-16/UTF-32 schemes with the generic family bit plus the resolved endian bit. Passing that detected value consumes the leading BOM as a signature. Passing an explicit-endian encoding such as `MJB_ENC_UTF_16BE` preserves an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the UTF-16LE BOM prefix, decoding gives UTF-32 precedence. `MJB_NUL_TERMINATED` is not accepted because the encoding, and therefore the NUL code-unit width, is unknown.
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The explicit length of the string, in bytes
 
 **Example**
 
@@ -717,7 +721,7 @@ bool mjb_is_ascii(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 
 **Example**
 
@@ -740,7 +744,7 @@ bool mjb_is_utf8(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 
 **Example**
 
@@ -763,7 +767,7 @@ bool mjb_is_utf16(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 
 **Example**
 
@@ -789,7 +793,7 @@ size_t mjb_count_codepoints(
 Return the number of Unicode codepoints in a string, up to `max_length` bytes.
 
 - `buffer` - The string to check
-- `max_length` - The maximum length of the string, in bytes
+- `max_length` - The maximum length of the string in bytes, or `MJB_NUL_TERMINATED`
 - `encoding` - The encoding of the string
 
 **Example**
@@ -829,7 +833,7 @@ mjb_status mjb_for_each_character(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `callback` - The function to call for each character
 
@@ -1098,7 +1102,7 @@ mjb_status mjb_convert_encoding(
 Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified.
 
 - `buffer` - The string to convert
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The input encoding of the string
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
@@ -1148,7 +1152,7 @@ mjb_status mjb_convert_encoding_into(
 Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. No bytes are written when capacity is insufficient.
 
 - `buffer` - The string to convert
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The input encoding of the string
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
@@ -1207,10 +1211,10 @@ mjb_status mjb_collation_compare(
 Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics.
 
 - `s1` - The first string to compare
-- `s1_byte_length` - The length of the first string, in bytes
+- `s1_byte_length` - The length of the first string in bytes, or `MJB_NUL_TERMINATED`
 - `s1_encoding` - The encoding of the first string
 - `s2` - The second string to compare
-- `s2_byte_length` - The length of the second string, in bytes
+- `s2_byte_length` - The length of the second string in bytes, or `MJB_NUL_TERMINATED`
 - `s2_encoding` - The encoding of the second string
 - `mode` - The variable weighting strategy
 - `order` - The strcmp-style comparison result to store
@@ -1259,7 +1263,7 @@ mjb_status mjb_collation_key(
 Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare`. Useful when the same strings are compared many times, such as sorting or database indexing.
 
 - `buffer` - The string to generate the sort key for
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `mode` - The variable weighting strategy
 - `result` - The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
@@ -1308,7 +1312,7 @@ mjb_status mjb_collation_key_into(
 Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query.
 
 - `buffer` - The string to generate the sort key for
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `mode` - The variable weighting strategy
 - `output` - The caller-provided binary output buffer, or NULL to query its size. The caller retains ownership
@@ -1368,7 +1372,7 @@ mjb_status mjb_map_case(
 Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
 
 - `buffer` - The string to change case
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `type` - The type of case change
 - `output_encoding` - The output encoding of the string
@@ -1420,7 +1424,7 @@ mjb_status mjb_map_case_into(
 Apply the same full, special, conditional, titlecase, locale-sensitive, and case folding mappings as `mjb_map_case` without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient.
 
 - `buffer` - The string to change case
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `type` - The type of case change
 - `output_encoding` - The output encoding of the string
@@ -1709,7 +1713,7 @@ mjb_break_type mjb_next_line_break(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The explicit length of the string, in bytes
 - `encoding` - The encoding of the string
 - `state` - The state to store the result
 
@@ -1742,7 +1746,7 @@ mjb_break_type mjb_next_word_break(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The explicit length of the string, in bytes
 - `encoding` - The encoding of the string
 - `state` - The state to store the result
 
@@ -1779,7 +1783,7 @@ mjb_break_type mjb_next_sentence_break(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The explicit length of the string, in bytes
 - `encoding` - The encoding of the string
 - `state` - The state to store the result
 
@@ -1816,10 +1820,10 @@ mjb_break_type mjb_next_grapheme_break(
 );
 ```
 
-Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string.
+Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string. Stateful break functions require an explicit length and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The explicit length of the string, in bytes
 - `encoding` - The encoding of the string
 - `state` - The state to store the result
 
@@ -1858,7 +1862,7 @@ size_t mjb_truncate_grapheme(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `max_graphemes` - The maximum number of graphemes to return
 
@@ -1887,7 +1891,7 @@ size_t mjb_truncate_grapheme_width(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `context` - The width context
 - `max_columns` - The maximum number of columns to return
@@ -1917,7 +1921,7 @@ size_t mjb_truncate_word(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `max_segments` - The maximum number of segments to return
 
@@ -1946,7 +1950,7 @@ size_t mjb_truncate_word_width(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `context` - The width context
 - `max_columns` - The maximum number of columns to return
@@ -1979,7 +1983,7 @@ mjb_status mjb_bidi_resolve(
 Resolve the embedding levels of a paragraph following the Unicode Bidirectional Algorithm. The resolved paragraph can then be split into lines and reordered visually with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.
 
 - `buffer` - The input string
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `direction` - The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
 - `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_paragraph_free()`
@@ -2283,7 +2287,7 @@ bool mjb_is_identifier(
 Validate a string as a Unicode identifier: the first character must be a valid identifier start and the following ones valid identifier continuations, using ID_Start/ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.
 
 - `buffer` - The string to validate
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `profile` - The identifier profile (DEFAULT or NFKC)
 
@@ -2343,7 +2347,7 @@ mjb_status mjb_confusable_skeleton(
 Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly.
 
 - `buffer` - The string to transform
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the skeleton
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
@@ -2393,7 +2397,7 @@ mjb_status mjb_confusable_skeleton_into(
 Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. No bytes are written when capacity is insufficient. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query.
 
 - `buffer` - The string to transform
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the skeleton
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
@@ -2455,10 +2459,10 @@ mjb_status mjb_are_confusable(
 Compute the confusable skeleton of both strings and store true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
 
 - `s1` - The first string
-- `s1_byte_length` - The length of the first string, in bytes
+- `s1_byte_length` - The length of the first string in bytes, or `MJB_NUL_TERMINATED`
 - `s1_encoding` - The encoding of the first string
 - `s2` - The second string
-- `s2_byte_length` - The length of the second string, in bytes
+- `s2_byte_length` - The length of the second string in bytes, or `MJB_NUL_TERMINATED`
 - `s2_encoding` - The encoding of the second string
 - `confusable` - Whether the strings are visually confusable
 
@@ -2741,7 +2745,7 @@ mjb_status mjb_classify_emoji_sequence(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `emoji` - The emoji sequence metadata to store the result
 
@@ -2777,7 +2781,7 @@ bool mjb_is_emoji_sequence(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 
 **Example**
@@ -2808,7 +2812,7 @@ bool mjb_is_rgi_emoji(
 ```
 
 - `buffer` - The string to check
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 
 **Example**
@@ -2840,7 +2844,7 @@ mjb_status mjb_hangul_syllable_name(
 
 - `codepoint` - The codepoint to check
 - `buffer` - The buffer to store the result
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The capacity of the output buffer, in bytes
 
 **Example**
 
@@ -2959,7 +2963,7 @@ mjb_status mjb_display_width(
 Compute the number of display columns a string occupies in a terminal, accounting for wide and ambiguous East Asian characters, combining marks, and emoji sequences.
 
 - `buffer` - The string to normalize
-- `byte_length` - The length of the string, in bytes
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `context` - The width context for ambiguous-width characters
 - `width` - The width to store the result
@@ -3006,7 +3010,7 @@ mjb_status mjb_locale_parse(
 Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is filled with the failure reason.
 
 - `id` - The BCP 47 language tag to parse
-- `byte_length` - The length of the locale identifier, in bytes
+- `byte_length` - The length of the locale identifier in bytes, or `MJB_NUL_TERMINATED`
 - `encoding` - The encoding of the locale identifier
 - `locale` - The locale structure to store the result
 - `error` - The error to store when parsing fails

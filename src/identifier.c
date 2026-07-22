@@ -14,6 +14,11 @@ MJB_EXPORT bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_en
         return false;
     }
 
+    if(mjb_resolve_input_byte_length(buffer, &byte_length, encoding) != MJB_STATUS_OK ||
+        byte_length == 0) {
+        return false;
+    }
+
     mjb_property start_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_START : MJB_PR_ID_START;
     // clang-format off
     mjb_property cont_prop = (profile == MJB_IDENTIFIER_NFKC) ? MJB_PR_XID_CONTINUE :

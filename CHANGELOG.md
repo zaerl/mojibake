@@ -5,6 +5,21 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added `MJB_NUL_TERMINATED` for encoding-aware NUL-terminated input strings
+
+### Changed
+
+- Explicitly sized input strings now always process embedded U+0000 codepoints
+
+### Removed
+
+- Removed the `MJB_ALLOW_EMBEDDED_NULLS` build option and
+  `MJB_DANGEROUSLY_ALLOW_EMBEDDED_NULLS` compile-time switch
+
 ## [0.3.2] - 2026-07-21
 
 ### Added

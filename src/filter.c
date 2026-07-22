@@ -158,6 +158,12 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = byte_length;
@@ -171,7 +177,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     if(filters & MJB_FILTER_NORMALIZE) {
         mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ? output_encoding :
                                                                                    encoding;
-        mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC,
+        status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC,
             normalize_output_encoding, result);
 
         if(status != MJB_STATUS_OK) {
@@ -204,7 +210,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     mjb_output_init_dynamic(&output, allocated, byte_length);
     mjb_filter_context context = { buffer, byte_length, encoding, filters, output_encoding };
     bool transformed = false;
-    mjb_status status = mjb_filter_process(&context, &output, &transformed);
+    status = mjb_filter_process(&context, &output, &transformed);
 
     if(status != MJB_STATUS_OK) {
         mjb_free(output.buffer);
@@ -252,6 +258,14 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
     if(byte_length == 0) {
         return mjb_output_copy_into(buffer, byte_length, output, output_size);
     }
@@ -265,8 +279,8 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
     bool normalization_requested = (filters & MJB_FILTER_NORMALIZE) != 0;
 
     if(normalization_requested) {
-        mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC,
-            encoding, &normalized);
+        status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC, encoding,
+            &normalized);
 
         if(status != MJB_STATUS_OK) {
             *output_size = 0;
@@ -279,7 +293,7 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
     }
 
     mjb_filter_context context = { buffer, byte_length, encoding, filters, output_encoding };
-    mjb_status status = mjb_output_into(output, output_size, mjb_filter_write, &context);
+    status = mjb_output_into(output, output_size, mjb_filter_write, &context);
 
     if(normalization_requested) {
         mjb_result_free(&normalized);

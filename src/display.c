@@ -33,6 +33,16 @@ MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t byte_length,
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
     size_t ambiguous_count = 0;
     size_t wide_count = 0;
     size_t visible_count = 0;
