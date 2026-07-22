@@ -43,7 +43,7 @@ static const char *mjbsh_color_table[2][4] = { { "", "", "", "" },
     { "\x1B[32m", "\x1B[31m", "\x1B[33m", "\x1B[0m" } };
 
 static inline const char *mjbsh_color(mjbsh_color_id id) {
-    return mjbsh_color_table[cmd_show_colors != 0][(int)id];
+    return mjbsh_color_table[cmd_show_colors != 0 && cmd_output_mode != OUTPUT_MODE_JSON][(int)id];
 }
 
 static void mjbsh_to_json_key(const char *label, char *buf, size_t bufsize) {
