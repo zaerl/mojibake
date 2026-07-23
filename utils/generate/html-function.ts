@@ -4,12 +4,12 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import hljs from 'highlight.js/lib/core';
+import c from 'highlight.js/lib/languages/c';
 import functions, {
   MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef, Section
 } from './functions';
-import { categories } from './types';
-import hljs from 'highlight.js/lib/core';
-import c from 'highlight.js/lib/languages/c';
+import { caseModes, caseType, caseTypeValues, categories, collationModes, directions, encodings, encodingValues, filterFlags, filterFlagValues, identifierProfiles, normalizations, planes, planeValues, widthContexts } from './types';
 
 const mojibakeTypes = new Set<string>();
 
@@ -94,7 +94,7 @@ export class CFunction implements MojibakeFunction {
   }
 
   getLabelName(arg: number) {
-    return this.args[arg].name.replace('_', ' ');
+    return this.args[arg].name.replace(/_/g, ' ');
   }
 
   isInternal() {
@@ -307,7 +307,6 @@ export class CFunction implements MojibakeFunction {
   private getCheckbox(arg: number): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
-    const description = this.getDescription(arg);
 
     let ret = `<div class="function-checkbox"><input id="${name}" type="checkbox" name="${name}" ${disabled ? 'disabled' : ''}>` +
       `<label for="${name}"${disabled ? ' class="text-secondary"' : ''}>${this.getLabelName(arg)}</label>`;
@@ -358,126 +357,92 @@ export class CFunction implements MojibakeFunction {
     for(const arg of this.args) {
       ret += `\n            `;
       const type = arg.type;
-      if(type.startsWith('const char *')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('char *')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('size_t *')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_character *')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_emoji_properties *')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_emoji_sequence *')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('size_t')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('unsigned int')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_codepoint')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('bool')) {
-        ret += this.getCheckbox(i);
-      } else if(type.startsWith('mjb_category')) {
-        ret += this.getSelectInput(i, categories, null);
-      } else if(type.startsWith('mjb_encoding')) {
-        const options = [
-          'MJB_ENC_UTF_8',
-          'MJB_ENC_UTF_16BE',
-          'MJB_ENC_UTF_16LE',
-          'MJB_ENC_UTF_32BE',
-          'MJB_ENC_UTF_32LE',
-        ];
 
-        // See mjb_encoding on mojibake.h
-        const values = [
-          0x2,
-          0x8,
-          0x10,
-          0x40,
-          0x80,
-        ];
-
-        ret += this.getSelectInput(i, options, values);
-      } else if(type.startsWith('mjb_filter_flags')) {
-        const options = [
-          'MJB_FILTER_NORMALIZE',
-          'MJB_FILTER_SPACES',
-          'MJB_FILTER_COLLAPSE_SPACES',
-          'MJB_FILTER_CONTROLS',
-          'MJB_FILTER_NUMERIC',
-          'MJB_FILTER_LIMIT_COMBINING',
-        ];
-        const values = [
-          0x1,
-          0x2,
-          0x4,
-          0x8,
-          0x10,
-          0x20,
-        ];
-
-        ret += this.getBitfieldInput(i, options, values, 'Leave all unchecked for MJB_FILTER_NONE.');
-      } else if(type.startsWith('mjb_map_case_type')) {
-        // See mjb_map_case_type on mojibake.h
-        const options = [
-          'MJB_CASE_UPPER',
-          'MJB_CASE_LOWER',
-          'MJB_CASE_TITLE',
-          'MJB_CASE_CASEFOLD',
-        ];
-
-        // See mjb_encoding on mojibake.h
-        const values = [
-          1,
-          2,
-          3,
-          4,
-        ];
-
-        ret += this.getSelectInput(i, options, values);
-      } else if(type.startsWith('mjb_result')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_property')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_locale_id')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_error')) {
-        ret += this.getInput(i);
-      } else if(type.startsWith('mjb_normalization')) {
-        // See mjb_normalization on mojibake.h
-        const options = [
-          'MJB_NORMALIZATION_NFC',
-          'MJB_NORMALIZATION_NFD',
-          'MJB_NORMALIZATION_NFKC',
-          'MJB_NORMALIZATION_NFKD',
-        ];
-
-        ret += this.getSelectInput(i, options);
-      } else if(type.startsWith('mjb_plane')) {
-        // See mjb_plane on unicode.h
-        const options = [
-          'MJB_PLANE_BMP',
-          'MJB_PLANE_SMP',
-          'MJB_PLANE_SIP',
-          'MJB_PLANE_TIP',
-          'MJB_PLANE_SSP',
-          'MJB_PLANE_PUA_A',
-          'MJB_PLANE_PUA_B',
-        ];
-
-        // See mjb_plane on unicode.h
-        const values = [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          16,
-        ];
-
-        ret += this.getSelectInput(i, options, values);
+      switch(type) {
+        case 'bool':
+          ret += this.getCheckbox(i);
+          break;
+        // case 'bool *':
+        case 'char *':
+        case 'const char *':
+          ret += this.getInput(i);
+          break;
+        // case 'const mjb_bidi_paragraph *':
+        // case 'const size_t *':
+        // case 'int *':
+        // case 'int32_t *':
+        // case 'mjb_alloc_fn':
+        // case 'mjb_bidi_paragraph *':
+        // case 'mjb_bidi_run *':
+        // case 'mjb_block_info *':
+        // case 'mjb_buffer_character *':
+        case 'mjb_caseless_mode':
+          ret += this.getSelectInput(i, caseModes, null);
+          break;
+        case 'mjb_category':
+          ret += this.getSelectInput(i, categories, null);
+          break;
+        // case 'mjb_character *':
+        case 'mjb_codepoint':
+          ret += this.getInput(i);
+          break;
+        // case 'mjb_codepoint *':
+        case 'mjb_collation_mode':
+          ret += this.getSelectInput(i, collationModes, null);
+          break;
+        case 'mjb_direction':
+          ret += this.getSelectInput(i, directions, null);
+          break;
+        // case 'mjb_east_asian_width *':
+        // case 'mjb_emoji_properties *':
+        // case 'mjb_emoji_sequence *':
+        case 'mjb_encoding':
+          ret += this.getSelectInput(i, encodings, encodingValues);
+          break;
+        // case 'mjb_error *':
+        case 'mjb_filter_flags':
+          ret += this.getBitfieldInput(i, filterFlags, filterFlagValues,
+            'Leave all unchecked for MJB_FILTER_NONE.');
+          break;
+        // case 'mjb_for_each_character_fn':
+        // case 'mjb_free_fn':
+        case 'mjb_identifier_profile':
+          ret += this.getSelectInput(i, identifierProfiles, null);
+          break;
+        case 'mjb_locale':
+          ret += this.getInput(i);
+          break;
+        // case 'mjb_locale_id *':
+        case 'mjb_map_case_type':
+          ret += this.getSelectInput(i, caseType, caseTypeValues);
+          break;
+        // case 'mjb_next_line_state *':
+        // case 'mjb_next_sentence_state *':
+        // case 'mjb_next_state *':
+        // case 'mjb_next_word_state *':
+        case 'mjb_normalization':
+          ret += this.getSelectInput(i, normalizations);
+          break;
+        // case 'mjb_numeric_value *':
+        case 'mjb_plane':
+          ret += this.getSelectInput(i, planes, planeValues);
+          break;
+        case 'mjb_property': // TODO: generate from mjb_property enum
+          ret += this.getInput(i);
+          break;
+        // case 'mjb_quick_check_result *':
+        // case 'mjb_realloc_fn':
+        // case 'mjb_result *':
+        // case 'mjb_script *':
+        case 'mjb_width_context':
+          ret += this.getSelectInput(i, widthContexts);
+          break;
+        case 'size_t':
+          ret += this.getInput(i);
+          break;
+        // case 'size_t *':
+        // case 'va_list':
+        // case 'void *':
       }
 
       ++i;

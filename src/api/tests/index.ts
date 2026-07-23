@@ -7,6 +7,7 @@
 import {
   Block,
   BreakType,
+  CaselessMode,
   CaseType,
   Category,
   Direction,
@@ -75,6 +76,15 @@ ATT_ASSERT(mojibake.isASCII('Hello'), true, 'isASCII');
 ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
 ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
 ATT_ASSERT(mojibake.countCodepoints('H\u00E9ll\u00F6'), 5, 'countCodepoints');
+ATT_ASSERT(mojibake.caselessMatch('Straße', 'STRASSE'), true, 'caselessMatch');
+ATT_ASSERT(mojibake.caselessMatch('\u00C5', 'A\u030A', CaselessMode.UNNORMALIZED), false,
+  'caselessMatch unnormalized');
+ATT_ASSERT(mojibake.caselessMatch('\u00C5', 'A\u030A', CaselessMode.CANONICAL), true,
+  'caselessMatch canonical');
+ATT_ASSERT(mojibake.caselessMatch('ab\u00AD', 'ab', CaselessMode.IDENTIFIER), true,
+  'caselessMatch identifier');
+ATT_ASSERT(mojibake.caselessMatch(new Uint8Array([0x80]), 'a'), null,
+  'caselessMatch malformed input');
 ATT_ASSERT(mojibake.collationCompare('hello', 'hello'), 0, 'collationCompare');
 ATT_ASSERT((mojibake.collationCompare('a', 'b') ?? 0) < 0, true,
   'collationCompare negative order');

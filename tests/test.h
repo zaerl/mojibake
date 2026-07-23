@@ -27,6 +27,7 @@ int test_break_line(void *arg);
 int test_break_sentence(void *arg);
 int test_break_word(void *arg);
 int test_case(void *arg);
+int test_caseless(void *arg);
 int test_cjk(void *arg);
 int test_codepoint(void *arg);
 int test_collation(void *arg);

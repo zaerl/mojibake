@@ -9,6 +9,7 @@ set(SOURCES
     break-word.c
     buffer.c
     case.c
+    caseless.c
     codepoint.c
     collation.c
     cjk.c
@@ -120,6 +121,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_codepoint_script_extensions\""
         "\"_mjb_codepoint_encode\""
         "\"_mjb_convert_encoding\""
+        "\"_mjb_caseless_match\""
         "\"_mjb_collation_compare\""
         "\"_mjb_collation_key\""
         "\"_mjb_map_case\""
