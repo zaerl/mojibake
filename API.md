@@ -1191,6 +1191,64 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output_size);
 
 See also: [`mjb_convert_encoding`](#mjb_convert_encoding), [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
 
+## `mjb_caseless_match`
+
+Compare two strings using a Unicode caseless matching relation.
+
+```c
+mjb_status mjb_caseless_match(
+    const char *s1,
+    size_t s1_byte_length,
+    mjb_encoding s1_encoding,
+    const char *s2,
+    size_t s2_byte_length,
+    mjb_encoding s2_encoding,
+    mjb_caseless_mode mode,
+    bool *matches
+);
+```
+
+Compare two strings for case-insensitive equality using Unicode full default case folding. Canonical mode implements D145 and is recommended for ordinary text. Unnormalized mode implements D144 without normalization. Compatibility mode implements the iterated folding and compatibility normalization required by D146. Identifier mode implements D147 by applying NFD before `mjb_nfkc_casefold`; it removes default-ignorable codepoints but does not validate identifier syntax.
+
+- `s1` - The first string to compare
+- `s1_byte_length` - The length of the first string in bytes, or `MJB_NUL_TERMINATED`
+- `s1_encoding` - The encoding of the first string
+- `s2` - The second string to compare
+- `s2_byte_length` - The length of the second string in bytes, or `MJB_NUL_TERMINATED`
+- `s2_encoding` - The encoding of the second string
+- `mode` - The Unicode caseless matching relation
+- `matches` - Whether the strings are a caseless match
+
+**Returns**
+
+- `MJB_STATUS_OK` - `matches` contains the comparison result
+- `MJB_STATUS_INVALID_ARGUMENT` - `matches` is NULL, an input buffer is NULL with a non-zero size, or `mode` is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An input encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - An input contains an ill-formed code-unit sequence
+- `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_UNSUPPORTED` - The identifier case-folding transform did not converge
+
+**Example**
+
+```c
+const char *left = "Stra\xC3\x9F" "e";
+const char *right = "STRASSE";
+bool matches;
+
+if(mjb_caseless_match(left, strlen(left), MJB_ENC_UTF_8,
+    right, strlen(right), MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Canonical caseless match: yes
+printf("Canonical caseless match: %s", matches ? "yes" : "no");
+```
+
+See also: [`mjb_map_case`](#mjb_map_case), [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_normalize), [`mjb_collation_compare`](#mjb_collation_compare), [`mjb_is_identifier`](#mjb_is_identifier).
+
+Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13.5: Default Caseless Matching](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html).
+
 ## `mjb_collation_compare`
 
 Compare two strings using UCA.
@@ -3498,6 +3556,8 @@ without higher-level protocol tailoring.
   default locale is `MJB_LOCALE_EN`. Turkish and Azerbaijani apply dotted-I casing rules and Turkic
   case-folding mappings. Lithuanian applies dot-above casing rules; case folding remains the default
   non-Turkic mapping.
+- `mjb_caseless_match` always uses full default (non-Turkic) case folding and is not affected by the
+  process-global locale.
 - `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
   `mjb_collation_mode` only selects the UCA variable weighting strategy.
 - `mjb_display_width` uses its `mjb_width_context` argument to choose how East Asian Width
@@ -3519,7 +3579,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | ----- | -------------- | ----------------- | -------- |
 | Unicode Character Database data and derived properties | `mjb_codepoint_info`, `mjb_codepoint_property_binary`, `mjb_codepoint_property_int`, `mjb_codepoint_script_extensions`, script/block/category/numeric helpers | [UAX #44](https://www.unicode.org/reports/tr44/tr44-36.html), [UAX #24](https://www.unicode.org/reports/tr24/tr24-40.html), UCD 18.0.0 | Generated from UCD data files including `UnicodeData.txt`, `Blocks.txt`, `Scripts.txt`, `ScriptExtensions.txt`, `PropList.txt`, `DerivedCoreProperties.txt`, `PropertyAliases.txt`, and `PropertyValueAliases.txt`; every explicit Script_Extensions range is covered by `tests/properties.c`. |
 | Unicode Normalization Forms and quick check | `mjb_normalize`, `mjb_normalization_quick_check` | [UAX #15](https://www.unicode.org/reports/tr15/tr15-57.html) | `NormalizationTest.txt`, `DerivedNormalizationProps.txt`, `tests/normalization.c`, and `tests/quick-check.c`. |
-| Default case conversion and caseless matching | `mjb_map_case`, `mjb_nfkc_casefold`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/normalization.c`, and `tests/break-word.c`. |
+| Default case conversion and caseless matching | `mjb_map_case`, `mjb_nfkc_casefold`, `mjb_caseless_match`, simple codepoint case helpers | [Unicode Core Section 3.13](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) for titlecase word boundaries, [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) for identifier caseless matching | `SpecialCasing.txt`, `CaseFolding.txt`, `WordBreakTest.txt`, every explicit `NFKC_CF` mapping in `DerivedNormalizationProps.txt`, `tests/special-case.c`, `tests/case.c`, `tests/caseless.c`, `tests/normalization.c`, and `tests/break-word.c`. |
 | Grapheme, word, and sentence boundaries | `mjb_next_grapheme_break`, `mjb_next_word_break`, `mjb_next_sentence_break`, related truncation helpers | [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html) | `GraphemeBreakTest.txt`, `WordBreakTest.txt`, `SentenceBreakTest.txt`, `tests/segmentation.c`, `tests/break-word.c`, and `tests/break-sentence.c`. |
 | Line breaking | `mjb_next_line_break` | [UAX #14](https://www.unicode.org/reports/tr14/tr14-56.html) | `LineBreakTest.txt` and `tests/break-line.c`. |
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |

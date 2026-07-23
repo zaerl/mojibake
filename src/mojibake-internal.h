@@ -94,6 +94,9 @@ mjb_status mjb_output_into(void *output, size_t *output_size, mjb_output_writer 
 mjb_status mjb_output_copy_into(const void *buffer, size_t byte_length, void *output,
     size_t *output_size);
 
+mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_encoding output_encoding, mjb_result *result);
+
 size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_encoding encoding,
     size_t max_bytes);
 

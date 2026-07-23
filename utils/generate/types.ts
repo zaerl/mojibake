@@ -246,3 +246,112 @@ export interface BidiMirroringPair {
   cp: number;
   mirror: number;
 }
+
+// See mjb_caseless_mode on mojibake.h
+export const caseModes = [
+  'MJB_CASELESS_CANONICAL',
+  'MJB_CASELESS_UNNORMALIZED',
+  'MJB_CASELESS_COMPATIBILITY',
+  'MJB_CASELESS_IDENTIFIER',
+];
+
+export const collationModes = [
+  'MJB_COLLATION_DEFAULT',
+  'MJB_COLLATION_NUMERIC',
+];
+
+export const directions = [
+  'MJB_DIRECTION_LTR',
+  'MJB_DIRECTION_RTL',
+  'MJB_DIRECTION_TTB',
+  'MJB_DIRECTION_BTT',
+];
+
+export const encodings = [
+  'MJB_ENC_UTF_8',
+  'MJB_ENC_UTF_16BE',
+  'MJB_ENC_UTF_16LE',
+  'MJB_ENC_UTF_32BE',
+  'MJB_ENC_UTF_32LE',
+];
+
+export const encodingValues = [
+  0x2,
+  0x8,
+  0x10,
+  0x40,
+  0x80,
+];
+
+export const filterFlags = [
+  'MJB_FILTER_NORMALIZE',
+  'MJB_FILTER_SPACES',
+  'MJB_FILTER_COLLAPSE_SPACES',
+  'MJB_FILTER_CONTROLS',
+  'MJB_FILTER_NUMERIC',
+  'MJB_FILTER_LIMIT_COMBINING',
+];
+
+export const filterFlagValues = [
+  0x1,
+  0x2,
+  0x4,
+  0x8,
+  0x10,
+  0x20,
+];
+
+export const identifierProfiles = [
+  'MJB_IDENTIFIER_DEFAULT',
+  'MJB_IDENTIFIER_NFKC'
+];
+
+export const caseType = [
+  'MJB_CASE_UPPER',
+  'MJB_CASE_LOWER',
+  'MJB_CASE_TITLE',
+  'MJB_CASE_CASEFOLD',
+];
+
+// See mjb_encoding on mojibake.h
+export const caseTypeValues = [
+  1,
+  2,
+  3,
+  4,
+];
+
+export const normalizations = [
+  'MJB_NORMALIZATION_NFC',
+  'MJB_NORMALIZATION_NFD',
+  'MJB_NORMALIZATION_NFKC',
+  'MJB_NORMALIZATION_NFKD',
+];
+
+// See mjb_plane on unicode.h
+export const planes = [
+  'MJB_PLANE_BMP',
+  'MJB_PLANE_SMP',
+  'MJB_PLANE_SIP',
+  'MJB_PLANE_TIP',
+  'MJB_PLANE_SSP',
+  'MJB_PLANE_PUA_A',
+  'MJB_PLANE_PUA_B',
+];
+
+// See mjb_plane on unicode.h
+export const planeValues = [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  16,
+];
+
+export const widthContexts = [
+  'MJB_WIDTH_CONTEXT_WESTERN',
+  'MJB_WIDTH_CONTEXT_EAST_ASIAN',
+  'MJB_WIDTH_CONTEXT_AUTO',
+];

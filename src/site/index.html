@@ -494,9 +494,8 @@
                     value = Array.from(form.querySelectorAll(
                         `input[name="${func}-${arg.name}"]:checked`
                     )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
-                } else if(arg.type === 'mjb_plane') {
-                    value = parseInt(value, 10);
                 } else if(arg.type === 'mjb_encoding') {
+                    console.log(value);
                     value = parseInt(value, 10);
 
                     if(arg.name === 'encoding' || arg.name === 's1_encoding') {
@@ -510,6 +509,8 @@
                     gotOptions = true;
 
                     continue;
+                } else if(arg.is_enum) {
+                    value = parseInt(value, 10);
                 } else if(arg.type === 'mjb_codepoint') {
                     value = readCodepoint(value);
 

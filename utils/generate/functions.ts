@@ -9,6 +9,7 @@ export type MojibakeArg = {
   type: string;
   description: string;
   wasm_generated: boolean;
+  is_enum?: boolean;
   // Memory-ownership note.
   ownership?: string;
 };
@@ -105,7 +106,8 @@ function encoding(description = 'The encoding of the string', name = 'encoding')
     name,
     type: 'mjb_encoding',
     description,
-    wasm_generated: false
+    wasm_generated: false,
+    is_enum: true
   }
 }
 
@@ -213,7 +215,8 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
         name: 'form',
         type: 'mjb_normalization',
         description: 'The normalization form to use',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       encoding('The output encoding of the string', 'output_encoding'),
       result()
@@ -259,7 +262,8 @@ mjb_result_free(&result);`,
         name: 'form',
         type: 'mjb_normalization',
         description: 'The normalization form to use',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       encoding('The output encoding of the string', 'output_encoding'),
       {
@@ -571,7 +575,8 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
         name: 'form',
         type: 'mjb_normalization',
         description: 'The normalization form to check',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'quick_check',
@@ -1075,6 +1080,73 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output_size);`,
     related: ['mjb_convert_encoding', 'mjb_detect_encoding', 'mjb_codepoint_encode']
   },
   {
+    comment: 'Compare two strings using a Unicode caseless matching relation.',
+    ret: 'mjb_status',
+    name: 'mjb_caseless_match',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The first string to compare', 's1'),
+      byte_length('The length of the first string in bytes, or `MJB_NUL_TERMINATED`',
+        's1_byte_length'),
+      encoding('The encoding of the first string', 's1_encoding'),
+      buffer('The second string to compare', 's2'),
+      byte_length('The length of the second string in bytes, or `MJB_NUL_TERMINATED`',
+        's2_byte_length'),
+      encoding('The encoding of the second string', 's2_encoding'),
+      {
+        name: 'mode',
+        type: 'mjb_caseless_mode',
+        description: 'The Unicode caseless matching relation',
+        wasm_generated: false,
+        is_enum: true
+      },
+      {
+        name: 'matches',
+        type: 'bool *',
+        description: 'Whether the strings are a caseless match',
+        wasm_generated: true
+      }
+    ],
+    wasm: true,
+    section: Section.SortingComparison,
+    details: 'Compare two strings for case-insensitive equality using Unicode full default case ' +
+      'folding. Canonical mode implements D145 and is recommended for ordinary text. ' +
+      'Unnormalized mode implements D144 without normalization. Compatibility mode implements ' +
+      'the iterated folding and compatibility normalization required by D146. Identifier mode ' +
+      'implements D147 by applying NFD before `mjb_nfkc_casefold`; it removes default-ignorable ' +
+      'codepoints but does not validate identifier syntax.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: '`matches` contains the comparison result' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`matches` is NULL, an input buffer is NULL with a non-zero size, or `mode` is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An input encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'An input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The identifier case-folding transform did not converge' }
+    ],
+    example: `const char *left = "Stra\\xC3\\x9F" "e";
+const char *right = "STRASSE";
+bool matches;
+
+if(mjb_caseless_match(left, strlen(left), MJB_ENC_UTF_8,
+    right, strlen(right), MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Canonical caseless match: yes
+printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
+    related: ['mjb_map_case', 'mjb_nfkc_casefold', 'mjb_normalize',
+      'mjb_collation_compare', 'mjb_is_identifier'],
+    specs: [
+      unicodeCore('Section 3.13.5', 'Default Caseless Matching', 'G33992'),
+      uax(31, 'Unicode Identifiers and Syntax')
+    ]
+  },
+  {
     comment: 'Compare two strings using UCA.',
     ret: 'mjb_status',
     name: 'mjb_collation_compare',
@@ -1092,7 +1164,8 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output_size);`,
         name: 'mode',
         type: 'mjb_collation_mode',
         description: 'The variable weighting strategy',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'order',
@@ -1138,7 +1211,8 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
         name: 'mode',
         type: 'mjb_collation_mode',
         description: 'The variable weighting strategy',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       result('The pointer to store the binary sort key')
     ],
@@ -1180,7 +1254,8 @@ mjb_result_free(&key);`,
         name: 'mode',
         type: 'mjb_collation_mode',
         description: 'The variable weighting strategy',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'output',
@@ -1251,7 +1326,8 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
         name: 'type',
         type: 'mjb_map_case_type',
         description: 'The type of case change',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       encoding('The output encoding of the string', 'output_encoding'),
       result()
@@ -1479,7 +1555,8 @@ printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extensio
         name: 'category',
         type: 'mjb_category',
         description: 'The category to check',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       }
     ],
     wasm: true,
@@ -1500,7 +1577,8 @@ printf("Uppercase letters are graphic: %s", graphic ? "yes" : "no");`
         name: 'category',
         type: 'mjb_category',
         description: 'The category to check',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       }
     ],
     wasm: true,
@@ -1675,7 +1753,8 @@ printf("First two graphemes use %zu bytes", bytes);`
         name: 'context',
         type: 'mjb_width_context',
         description: 'The width context',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'max_columns',
@@ -1730,7 +1809,8 @@ printf("First word segment uses %zu bytes", bytes);`
         name: 'context',
         type: 'mjb_width_context',
         description: 'The width context',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'max_columns',
@@ -1761,7 +1841,8 @@ printf("Six columns include %zu bytes", bytes);`
         name: 'direction',
         type: 'mjb_direction',
         description: 'The base paragraph direction (LTR, RTL, or AUTO for P2/P3)',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'result',
@@ -2033,7 +2114,8 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
         name: 'profile',
         type: 'mjb_identifier_profile',
         description: 'The identifier profile (DEFAULT or NFKC)',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       }
     ],
     wasm: true,
@@ -2367,7 +2449,8 @@ printf("U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no");`
         name: 'plane',
         type: 'mjb_plane',
         description: 'The plane to check',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       }
     ],
     wasm: true,
@@ -2385,7 +2468,8 @@ printf("Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "n
         name: 'plane',
         type: 'mjb_plane',
         description: 'The plane to check',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'abbreviation',
@@ -2598,7 +2682,8 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
         name: 'context',
         type: 'mjb_width_context',
         description: 'The width context for ambiguous-width characters',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'width',
@@ -2652,7 +2737,8 @@ printf("Display columns: %zu", width);`,
         name: 'encoding',
         type: 'mjb_encoding',
         description: 'The encoding of the locale identifier',
-        wasm_generated: false
+        wasm_generated: false,
+        is_enum: true
       },
       {
         name: 'locale',

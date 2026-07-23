@@ -59,6 +59,8 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, byte_length: number, encoding: number) => number;
   // Convert from one encoding to another.
   _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
+  // Compare two strings using a Unicode caseless matching relation.
+  _mjb_caseless_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, matches: Pointer) => number;
   // Compare two strings using UCA.
   _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, order: Pointer) => number;
   // Generate a UCA sort key for a string.

@@ -258,6 +258,14 @@ export enum CollationMode {
   SHIFTED,
 };
 
+// mjb_caseless_mode
+export enum CaselessMode {
+  CANONICAL,
+  UNNORMALIZED,
+  COMPATIBILITY,
+  IDENTIFIER,
+};
+
 // mjb_identifier_profile
 export enum IdentifierProfile {
   DEFAULT,
@@ -714,6 +722,28 @@ export class Mojibake {
       return this.module._mjb_count_codepoints(wasmInput.ptr, wasmInput.size, wasmInput.encoding);
     } finally {
       this.free(wasmInput.ptr);
+    }
+  }
+
+  // mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
+  // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+  // mjb_caseless_mode mode, bool *matches)
+  caselessMatch(first: MojibakeInput, second: MojibakeInput,
+    mode = CaselessMode.CANONICAL, options: TextInputOptions = {}): boolean | null {
+    const firstInput = this.copyInput(first, options.encoding);
+    const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
+    const matchesPtr = this.malloc(1);
+
+    try {
+      const status = this.module._mjb_caseless_match(firstInput.ptr, firstInput.size,
+        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode,
+        matchesPtr);
+
+      return status === Status.OK ? this.module.HEAPU8[matchesPtr] !== 0 : null;
+    } finally {
+      this.free(firstInput.ptr);
+      this.free(secondInput.ptr);
+      this.free(matchesPtr);
     }
   }
 

@@ -34,6 +34,11 @@ int test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::casefold("Stra\xC3\x9F" "e"), std::string("strasse"), "casefold")
     ATT_ASSERT(mjb::casefold_simple("\xE1\xBA\x9E"), std::string("\xC3\x9F"),
         "casefold_simple")
+    ATT_ASSERT(mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE"), true, "caseless_match")
+    ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A", mjb::CaselessMode::Unnormalized),
+        false, "caseless_match unnormalized")
+    ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A"), true,
+        "caseless_match canonical")
 
     ATT_ASSERT((int)mjb::detect_encoding("abc"), MJB_ENC_ASCII | MJB_ENC_UTF_8,
         "detect_encoding")
@@ -92,6 +97,16 @@ int test_cpp_normalization(void *arg) {
     }
 
     ATT_ASSERT(caught, true, "compare preserves malformed-input status")
+
+    caught = false;
+
+    try {
+        (void)mjb::caseless_match(malformed_utf8, "a");
+    } catch(const mjb::LibraryError &error) {
+        caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    ATT_ASSERT(caught, true, "caseless_match preserves malformed-input status")
 
     caught = false;
 

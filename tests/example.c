@@ -458,6 +458,25 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_caseless_match
+    MJB_TEST_COVERAGE(mjb_caseless_match); // Added by the script
+    const char *left = "Stra\xC3\x9F" "e";
+    const char *right = "STRASSE";
+    bool matches;
+
+    if(mjb_caseless_match(left, strlen(left), MJB_ENC_UTF_8,
+        right, strlen(right), MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_caseless_match test failed") // Added by the script
+        return 1;
+    }
+
+    // Canonical caseless match: yes
+    // printf("Canonical caseless match: %s", matches ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Canonical caseless match: %s", matches ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "Canonical caseless match: yes", "mjb_caseless_match test failed") // Added by the script
+}
+
+{
     // Example for mjb_collation_compare
     MJB_TEST_COVERAGE(mjb_collation_compare); // Added by the script
     int order;

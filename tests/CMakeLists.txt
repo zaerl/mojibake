@@ -11,6 +11,7 @@ set(TEST_SOURCES
     break-sentence.c
     break-word.c
     case.c
+    caseless.c
     cjk.c
     codepoint.c
     collation.c
@@ -91,6 +92,7 @@ add_test(NAME "Break Line" COMMAND mojibake-test -f break_line)
 add_test(NAME "Break Sentence" COMMAND mojibake-test -f break_sentence)
 add_test(NAME "Break Word" COMMAND mojibake-test -f break_word)
 add_test(NAME "Case" COMMAND mojibake-test -f case)
+add_test(NAME "Caseless" COMMAND mojibake-test -f caseless)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
 add_test(NAME "Collation" COMMAND mojibake-test -f collation)

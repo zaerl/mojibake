@@ -342,6 +342,7 @@ int main(int argc, char *const argv[]) {
     RUN_TEST(break_sentence)
     RUN_TEST(break_word)
     RUN_TEST(case)
+    RUN_TEST(caseless)
     RUN_TEST(cjk)
     RUN_TEST(codepoint)
     RUN_TEST(collation)

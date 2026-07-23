@@ -865,6 +865,24 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, input_encoding, output_encoding);
 }
 
+enum class CaselessMode {
+    Canonical = MJB_CASELESS_CANONICAL,
+    Unnormalized = MJB_CASELESS_UNNORMALIZED,
+    Compatibility = MJB_CASELESS_COMPATIBILITY,
+    Identifier = MJB_CASELESS_IDENTIFIER
+};
+
+[[nodiscard]] inline bool caseless_match(std::string_view s1, std::string_view s2,
+    CaselessMode mode = CaselessMode::Canonical, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
+    mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    bool matches = false;
+    detail::check_status(mjb_caseless_match(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(),
+                             s2_encoding, static_cast<mjb_caseless_mode>(mode), &matches),
+        "Caseless matching failed");
+
+    return matches;
+}
+
 [[nodiscard]] inline int compare(std::string_view s1, std::string_view s2,
     mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
     mjb_encoding s2_encoding = MJB_ENC_UTF_8) {

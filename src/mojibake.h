@@ -263,6 +263,18 @@ typedef enum mjb_map_case_type {
     MJB_CASE_CASEFOLD_SIMPLE // C + S statuses, length-preserving
 } mjb_map_case_type;
 
+// Unicode caseless matching relation (Unicode 18.0.0, Core Specification D144-D147).
+typedef enum mjb_caseless_mode {
+    // D145: NFD(toCasefold(NFD(X))) = NFD(toCasefold(NFD(Y)))
+    MJB_CASELESS_CANONICAL,
+    // D144: toCasefold(X) = toCasefold(Y)
+    MJB_CASELESS_UNNORMALIZED,
+    // D146: NFKD(toCasefold(NFKD(toCasefold(NFD(X))))) = NFKD(toCasefold(NFKD(toCasefold(NFD(Y)))))
+    MJB_CASELESS_COMPATIBILITY,
+    // D147: toNFKC_Casefold(NFD(X)) = toNFKC_Casefold(NFD(Y))
+    MJB_CASELESS_IDENTIFIER
+} mjb_caseless_mode;
+
 typedef enum mjb_error {
     MJB_ERROR_NONE,
     MJB_ERROR_INVALID_ARGUMENT,
@@ -589,6 +601,9 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, siz
 
 // Convert from one encoding to another into a caller-provided buffer.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
+
+// Compare two strings using a Unicode caseless matching relation.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_caseless_mode mode, bool *matches);
 
 // Compare two strings using UCA.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode, int *order);
