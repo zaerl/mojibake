@@ -17,7 +17,7 @@ typedef struct {
     uint16_t primary;    // 0x0000–0xFFFF; 0 = ignorable at L1
     uint16_t secondary;  // 0x0000–0x0127; 0 = ignorable at L2
     uint16_t tertiary;   // 0x0000–0x001F; 0 = ignorable at L3
-    uint16_t quaternary; // Filled only in SHIFTED mode
+    uint16_t quaternary; // Filled only with SHIFTED variable weighting
     bool variable;       // Originally marked * in DUCET
 } mjb_ce;
 
@@ -128,6 +128,16 @@ static void sk_free(mjb_sort_key *sk) {
     sk->data = NULL;
     sk->count = 0;
     sk->cap = 0;
+}
+
+static void sk_clear_if_all_ignorable(mjb_sort_key *sk) {
+    for(size_t i = 0; i < sk->count; ++i) {
+        if(sk->data[i] != 0) {
+            return;
+        }
+    }
+
+    sk_free(sk);
 }
 
 /**
@@ -587,7 +597,8 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
 }
 
 // Sort key construction
-static bool build_sort_key_non_ignorable(const mjb_cea *cea, mjb_sort_key *sk) {
+static bool build_sort_key_non_ignorable(const mjb_cea *cea, mjb_collation_strength strength,
+    mjb_sort_key *sk) {
     // L1: non-zero primary weights
     for(size_t i = 0; i < cea->count; ++i) {
         if(cea->data[i].primary != 0 && !sk_push(sk, cea->data[i].primary)) {
@@ -599,6 +610,10 @@ static bool build_sort_key_non_ignorable(const mjb_cea *cea, mjb_sort_key *sk) {
         return false;
     }
 
+    if(strength == MJB_COLLATION_PRIMARY) {
+        return true;
+    }
+
     // L2: non-zero secondary weights
     for(size_t i = 0; i < cea->count; ++i) {
         if(cea->data[i].secondary != 0 && !sk_push(sk, cea->data[i].secondary)) {
@@ -608,6 +623,10 @@ static bool build_sort_key_non_ignorable(const mjb_cea *cea, mjb_sort_key *sk) {
 
     if(!sk_push(sk, 0x0000)) {
         return false;
+    }
+
+    if(strength == MJB_COLLATION_SECONDARY) {
+        return true;
     }
 
     // L3: non-zero tertiary weights
@@ -624,7 +643,8 @@ static bool build_sort_key_non_ignorable(const mjb_cea *cea, mjb_sort_key *sk) {
     return true;
 }
 
-static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
+static bool build_sort_key_shifted(const mjb_cea *cea, mjb_collation_strength strength,
+    mjb_sort_key *sk) {
     size_t n = cea->count;
 
     if(n > SIZE_MAX / sizeof(uint16_t)) {
@@ -690,6 +710,10 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
         goto fail;
     }
 
+    if(strength == MJB_COLLATION_PRIMARY) {
+        goto success;
+    }
+
     // Emit L2
     for(size_t i = 0; i < n; ++i) {
         if(l2[i] != 0) {
@@ -701,6 +725,10 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
 
     if(!sk_push(sk, 0x0000)) {
         goto fail;
+    }
+
+    if(strength == MJB_COLLATION_SECONDARY) {
+        goto success;
     }
 
     // Emit L3
@@ -716,6 +744,10 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
         goto fail;
     }
 
+    if(strength != MJB_COLLATION_QUATERNARY) {
+        goto success;
+    }
+
     // Emit L4: only the shifted primaries (non-zero)
     for(size_t i = 0; i < n; ++i) {
         if(l4[i] != 0) {
@@ -725,6 +757,7 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_sort_key *sk) {
         }
     }
 
+success:
     mjb_free(l1);
     mjb_free(l2);
     mjb_free(l3);
@@ -741,11 +774,28 @@ fail:
     return false;
 }
 
+static bool
+mjb_collation_variable_weighting_is_valid(mjb_collation_variable_weighting variable_weighting) {
+    return variable_weighting == MJB_COLLATION_NON_IGNORABLE ||
+        variable_weighting == MJB_COLLATION_SHIFTED;
+}
+
+static bool mjb_collation_strength_is_valid(mjb_collation_strength strength) {
+    return strength == MJB_COLLATION_PRIMARY || strength == MJB_COLLATION_SECONDARY ||
+        strength == MJB_COLLATION_TERTIARY || strength == MJB_COLLATION_QUATERNARY;
+}
+
 static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_collation_mode mode, mjb_sort_key *sk) {
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    mjb_sort_key *sk) {
     sk->data = NULL;
     sk->count = 0;
     sk->cap = 0;
+
+    if(!mjb_collation_variable_weighting_is_valid(variable_weighting) ||
+        !mjb_collation_strength_is_valid(strength)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
 
@@ -773,10 +823,7 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     size_t len = 0;
     mjb_codepoint *cps = NULL;
     bool codepoints_ok = utf8_to_codepoints(r.output, r.output_size, &cps, &len);
-
-    if(r.output && r.output != buffer) {
-        mjb_free((void *)r.output);
-    }
+    mjb_result_free(&r);
 
     if(!codepoints_ok) {
         return MJB_STATUS_NO_MEMORY;
@@ -797,10 +844,10 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
 
     bool key_ok = false;
 
-    if(mode == MJB_COLLATION_SHIFTED) {
-        key_ok = build_sort_key_shifted(&cea, sk);
+    if(variable_weighting == MJB_COLLATION_SHIFTED) {
+        key_ok = build_sort_key_shifted(&cea, strength, sk);
     } else {
-        key_ok = build_sort_key_non_ignorable(&cea, sk);
+        key_ok = build_sort_key_non_ignorable(&cea, strength, sk);
     }
 
     cea_free(&cea);
@@ -810,6 +857,11 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
 
         return MJB_STATUS_NO_MEMORY;
     }
+
+    // A key containing only level separators has no effective collation weights. Canonicalize it
+    // to the same empty key returned for empty input so completely ignorable strings compare equal
+    // to empty, and level-N ignorables do so at strengths below level N.
+    sk_clear_if_all_ignorable(sk);
 
     return MJB_STATUS_OK;
 }
@@ -865,7 +917,8 @@ static mjb_status mjb_collation_key_byte_count(const mjb_sort_key *sort_key, siz
 }
 
 MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result) {
+    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, mjb_result *result) {
     if(result == NULL || (buffer == NULL && byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -876,7 +929,8 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
 
     mjb_sort_key sk = { 0, 0, 0 };
 
-    mjb_status status = compute_sort_key(buffer, byte_length, encoding, mode, &sk);
+    mjb_status status = compute_sort_key(buffer, byte_length, encoding, variable_weighting,
+        strength, &sk);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -924,7 +978,8 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
 }
 
 MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_collation_mode mode, void *output, size_t *output_size) {
+    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, void *output, size_t *output_size) {
     if(output_size == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -936,7 +991,8 @@ MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_len
     }
 
     mjb_sort_key sort_key = { 0, 0, 0 };
-    mjb_status status = compute_sort_key(buffer, byte_length, encoding, mode, &sort_key);
+    mjb_status status = compute_sort_key(buffer, byte_length, encoding, variable_weighting,
+        strength, &sort_key);
 
     if(status != MJB_STATUS_OK) {
         *output_size = 0;
@@ -960,14 +1016,17 @@ MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_len
 
 MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
     mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-    mjb_collation_mode mode, int *order) {
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    int *order) {
     if(order == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *order = 0;
 
-    if((s1 == NULL && s1_byte_length > 0) || (s2 == NULL && s2_byte_length > 0)) {
+    if(!mjb_collation_variable_weighting_is_valid(variable_weighting) ||
+        !mjb_collation_strength_is_valid(strength) || (s1 == NULL && s1_byte_length > 0) ||
+        (s2 == NULL && s2_byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -987,28 +1046,16 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
         return MJB_STATUS_OK;
     }
 
-    if(s1_byte_length == 0) {
-        *order = -1;
-
-        return MJB_STATUS_OK;
-    }
-
-    if(s2_byte_length == 0) {
-        *order = 1;
-
-        return MJB_STATUS_OK;
-    }
-
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    status = compute_sort_key(s1, s1_byte_length, s1_encoding, mode, &sk1);
+    status = compute_sort_key(s1, s1_byte_length, s1_encoding, variable_weighting, strength, &sk1);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    status = compute_sort_key(s2, s2_byte_length, s2_encoding, mode, &sk2);
+    status = compute_sort_key(s2, s2_byte_length, s2_encoding, variable_weighting, strength, &sk2);
 
     if(status != MJB_STATUS_OK) {
         sk_free(&sk1);

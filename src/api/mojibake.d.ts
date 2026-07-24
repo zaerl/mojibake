@@ -62,9 +62,9 @@ export type MojibakeWasmModule = {
   // Compare two strings using a Unicode caseless matching relation.
   _mjb_caseless_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, matches: Pointer) => number;
   // Compare two strings using UCA.
-  _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, order: Pointer) => number;
+  _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, variable_weighting: number, strength: number, order: Pointer) => number;
   // Generate a UCA sort key for a string.
-  _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, mode: number, result: Pointer) => number;
+  _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, variable_weighting: number, strength: number, result: Pointer) => number;
   // Change string case.
   _mjb_map_case: (buffer: Pointer, byte_length: number, encoding: number, type: number, output_encoding: number, result: Pointer) => number;
   // Return true if the codepoint is valid.

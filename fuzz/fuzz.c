@@ -373,23 +373,26 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 7: { // Collation key
+            mjb_collation_strength strength = (mjb_collation_strength)((variant >> 5) % 4);
+
             if(mjb_collation_key(buffer, size, encoding,
-                   (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
+                   (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE, strength,
                    &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             size_t required = 0;
-            mjb_collation_mode mode = (variant & 0x10) ? MJB_COLLATION_SHIFTED :
-                                                         MJB_COLLATION_NON_IGNORABLE;
+            mjb_collation_variable_weighting variable_weighting = (variant & 0x10) ?
+                MJB_COLLATION_SHIFTED :
+                MJB_COLLATION_NON_IGNORABLE;
 
-            if(mjb_collation_key_into(buffer, size, encoding, mode, NULL, &required) ==
-                    MJB_STATUS_OK &&
+            if(mjb_collation_key_into(buffer, size, encoding, variable_weighting, strength, NULL,
+                   &required) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = required;
-                fuzz_sink += (size_t)mjb_collation_key_into(buffer, size, encoding, mode, output,
-                    &capacity);
+                fuzz_sink += (size_t)mjb_collation_key_into(buffer, size, encoding,
+                    variable_weighting, strength, output, &capacity);
             }
 
             break;
@@ -399,7 +402,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             int order;
             fuzz_sink += (size_t)mjb_collation_compare(buffer, size / 2, encoding,
                 buffer + size / 2, size - size / 2, encoding,
-                (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE, &order);
+                (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
+                (mjb_collation_strength)((variant >> 5) % 4), &order);
             break;
         }
 

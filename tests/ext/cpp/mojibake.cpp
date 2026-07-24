@@ -98,6 +98,19 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(key_a.empty(), false, "collation_key: a not empty")
     ATT_ASSERT(key_a < key_b, true, "collation_key: a < b")
     ATT_ASSERT(mjb::collation_key(""), std::string(""), "collation_key: empty")
+    ATT_ASSERT(mjb::collation_key("\xE2\x80\x8B"), mjb::collation_key(""),
+        "collation_key: completely ignorable equals empty")
+    ATT_ASSERT(mjb::collation_key("\xCC\x81",
+                   mjb::CollationVariableWeighting::NonIgnorable,
+                   mjb::CollationStrength::Primary),
+        mjb::collation_key("", mjb::CollationVariableWeighting::NonIgnorable,
+            mjb::CollationStrength::Primary),
+        "collation_key: primary-ignorable accent equals empty")
+    ATT_ASSERT(mjb::collation_key("A", mjb::CollationVariableWeighting::NonIgnorable,
+                   mjb::CollationStrength::Secondary),
+        mjb::collation_key("a", mjb::CollationVariableWeighting::NonIgnorable,
+            mjb::CollationStrength::Secondary),
+        "collation_key: secondary ignores case")
 
     // truncate
     ATT_ASSERT(std::string(mjb::truncate_grapheme("hello", 3)), std::string("hel"), "truncate: 3 graphemes")

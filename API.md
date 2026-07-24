@@ -16,7 +16,11 @@ A **Code Point** (`typedef uint32_t mjb_codepoint` in the code) in Unicode is an
 
 A **Character** (`typedef struct mjb_character`) is the "smallest component of written language that
 has semantic value". In Mojibake, an `mjb_character` is a struct with all the associated values.
-For example `U+00BD` (**½**):
+Keep in mind that a Character in Unicode is not a C character (`char`) which is just the
+name of one byte of the memory allocated for a string. To avoid confusion I will always use the
+Character word with an uppercase C.
+
+An example of Unicode Character, `U+00BD` (**½**):
 
 ```
 Codepoint: U+U+00BD
@@ -29,17 +33,10 @@ Decimal: N/A
 Digit: N/A
 Numeric: 1/2
 Mirrored: N
-Uppercase: N/A
-Lowercase: N/A
-Titlecase: N/A
+Simple Uppercase Mapping: N/A
+Simple Lowercase Mapping: N/A
+Simple Titlecase Mapping: N/A
 ```
-
-> [!NOTE]
-> The Uppercase, Lowercase, Titlecase fields [you find](https://github.com/zaerl/mojibake/blob/main/src/mojibake.h#L322-L324)
-> in the `mjb_character` struct are not the real uppercase version of the codepoint you passed to
-> the function but its "simple case uppercase", a 1-to-1 character transformation. To have the real
-> case version of a string, use `mjb_map_case` function. Codepoint as `ß` transforms to a `SS` in
-> uppercase.
 
 An **encoding** is a way of storing a list of codepoints in memory. Nowadays, the UTF-8 encoding is
 by far the most used one when we are talking about moving data around, but there are important
@@ -47,8 +44,8 @@ contexts where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, 
 others.
 
 > [!NOTE]
-> In Mojibake `MJB_ENC_UTF_16` doesn't mean `MJB_ENC_UTF_16LE` (Little Endian, used by all modern
-> CPUs) by default. To follow the [C8 requirement](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md#c8),
+> In Mojibake `MJB_ENC_UTF_16` doesn't mean `MJB_ENC_UTF_16LE` (`LE` stands for "Little Endian",
+> used by all modern CPUs) by default. To follow the [C8 requirement](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md#c8),
 > if you declare a generic `UTF-16` this means that the algorithm will check if there is a BOM at
 > the start of the string and decide whether to use Little Endian or Big Endian. Usually it's not a
 > good idea; use the generic `MJB_ENC_UTF_16` only if you are reading a file that you know has a
@@ -57,31 +54,78 @@ others.
 A **normalization** is the "process of removing alternate representations of equivalent sequences
 from textual data". This means transforming a string to another one called its normalized form by
 replacing parts with others. For example, `U+00C0` (LATIN CAPITAL LETTER A WITH GRAVE) is normalized
-in NFD as a list of two characters: `U+0041` (LATIN CAPITAL LETTER A) + `U+0300` (COMBINING GRAVE
-ACCENT).
+in _NFD_ as a list of two characters: `U+0041` (LATIN CAPITAL LETTER A) + `U+0300` (COMBINING GRAVE
+ACCENT). Usually, Mojibake takes care of this kind of transformations by selecting the best for you.
 
 ## Basis
 
 Here is the basis for using the library:
 
-1. Mojibake does not have a default input encoding or output decoding; you must decide what to use
-2. Input and output encodings can be different
-3. Every string passed is simply a stream of bytes. Specify its exact byte length to process U+0000
-   like any other codepoint, or pass `MJB_NUL_TERMINATED` when the input has an encoding-aware NUL
-   terminator
-4. `MJB_NUL_TERMINATED` scans one-byte code units for ASCII/UTF-8, two-byte code units for UTF-16,
-   and four-byte code units for UTF-32. The terminator is excluded from the input. As with standard
-   C string functions, the caller must provide a correctly terminated buffer
-5. The major part of the functions return a `mjb_status` and should be checked against the
-`MJB_STATUS_OK` constant. The `MJB_STATUS_OK` enum value is `0 (zero)` so don't check for truthy
-6. Predicate APIs, such as `mjb_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because
-the boolean is the result
+### Mojibake does not have a default input encoding or output decoding
+You must decide what to use. Always use `MJB_ENC_UTF_8` if you don't need to interface for things
+like the Windows API.
+
+### Input and output encodings can be different
+Mojibake is encoding agnostic. It can accept and output `uint8_t` (ASCII, UTF-8),
+`uint16_t` (UTF-16), `uint32_t` (UTF-32) bytes of memory. The output strings can have different
+encodings of the input strings.
+
+This means that you can specify UTF-8 in input but have UTF-16 in output. Using the same encoding is
+the best approach if you don't want to change it. So this is ok:
+
+```c
+// See, the output is UTF-16.
+mjb_filter("Hello", 5, MJB_ENC_UTF_8, MJB_FILTER_SPACES, MJB_ENC_UTF_16LE, &result);
+```
+
+### Every string passed is simply a stream of bytes
+Mojibake handle different encodings, so the string you pass can be:
+
+1. A stream of bytes (`char`), in UTF-8. The classic C strings
+2. A stream of `uint16_t` in UTF-16LE, UTF-16BE.
+3. A stream of `uint32_t` in UTF-32LE, UTF-32BE.
+
+Specify its exact byte length to process `U+0000` (`NULL`) like any other codepoint, or pass
+`MJB_NUL_TERMINATED` when the input has an encoding-aware NUL terminator.
+
+`MJB_NUL_TERMINATED` scans one-byte code units for ASCII/UTF-8, two-byte code units for UTF-16, and
+four-byte code units for UTF-32. The terminator is excluded from the input. As with standard C
+string functions, the caller must provide a correctly terminated buffer. These function calls are
+equivalent:
+
+```c
+const char *hello = "Hello";
+mjb_encoding enc = MJB_ENC_UTF_8;
+
+mjb_normalize(hello, 5, enc, MJB_NORMALIZATION_NFC, enc, &result);
+mjb_normalize(hello, MJB_NUL_TERMINATED, enc, MJB_NORMALIZATION_NFC, enc, &result);
+
+const char hello_16[] = {
+    0x48, 0x00,  0x65, 0x00,  0x6C, 0x00,
+    0x6C, 0x00,  0x6F, 0x00,
+    0x00, 0x00,
+};
+
+enc = MJB_ENC_UTF_16LE
+
+// sizeof(uint16_t) is 2
+mjb_normalize(hello_16, 5 * sizeof(uint16_t), enc, MJB_NORMALIZATION_NFC, enc, &result);
+mjb_normalize(hello_16, MJB_NUL_TERMINATED, enc, MJB_NORMALIZATION_NFC, enc, &result);
+```
+
+### Status return
+
+The major part of the functions return a `mjb_status` and should be checked against the
+`MJB_STATUS_OK` constant.
 
 > [!IMPORTANT]
 > `mjb_status` is an enum and if a function **succeeds** returns
 > [MJB_STATUS_OK](https://github.com/zaerl/mojibake/blob/main/src/mojibake.h#L265) that is _zero_,
 > so _false_. Always check for that value `if(mjb_normalize(...) == MJB_STATUS_OK)`. I've chosen
 > this to follow other libraries' de facto standards.
+
+Predicate APIs, such as `mjb_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because the
+boolean is the result.
 
 ## API signatures
 
@@ -125,18 +169,6 @@ See for example [`mjb_is_utf8`](#mjb_is_utf8),
 
 ## Strings encoding and generation
 
-Mojibake is encoding agnostic. It can accept and output `uint8_t` (ASCII, UTF-8),
-`uint16_t` (UTF-16), `uint32_t` (UTF-32) bytes of memory. The output strings can have different
-encodings of the input strings.
-
-> [!IMPORTANT]
-> The _length_ of the input string (`byte_length`) **must** be the exact payload length in bytes.
-> `strlen(...)` provides that length for a terminated UTF-8 string. For terminated `uint16_t` or
-> `uint32_t` arrays, exclude the final code unit when computing an explicit length; otherwise it is
-> processed as U+0000. Alternatively, use `MJB_NUL_TERMINATED`. If an array _decays_ to a pointer
-> (for example when passed to a function), `sizeof(...)` returns the size of the pointer instead of
-> the array.
-
 Example of the [`mjb_normalize`](#mjb_normalize) function.
 
 ```c
@@ -155,7 +187,7 @@ If you want to normalize the UTF-8 encoded `Cafe\xCC\x81` string to `NFC`, this 
 do:
 
 ```c
-const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+const char *input = "Cafe\xCC\x81"; // UTF-8 string of: "Cafe" + U+0301 COMBINING ACUTE ACCENT
 
 mjb_result result;
 
@@ -169,11 +201,10 @@ printf("%s -> %.*s\n", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-1. The `length` of the input string is **six** because the input buffer is encoded in UTF-8 and so
-`strlen` returns six.
-2. The function can potentially return something different from `MJB_STATUS_OK`. In this situation,
+The function can potentially return something different from `MJB_STATUS_OK`. In this situation,
 you don't need to do anything. If a function fails, it will never leave data behind.
-3. If the output string has been `transformed`, it means the function has allocated a result, and
+
+If the output string has been `transformed`, it means the function has allocated a result, and
 you need to `mjb_result_free` it.
 
 This way the output buffer will be encoded in UTF-16LE.
@@ -208,7 +239,7 @@ alternative that do not allocate the results for you, but you provide the buffer
 
 Example for the function:
 
-```
+```c
 mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding,
 mjb_encoding output_encoding, void *output, size_t *output_size);
 ```
@@ -250,6 +281,124 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output_size)
 
 free(output);
 ```
+
+## Unicode collation
+
+Unicode codepoint order is not a useful general-purpose sorting order for human text. For example,
+users normally expect related letters to sort together even when they differ in accents or case.
+The [Unicode Collation Algorithm (UCA)](https://www.unicode.org/reports/tr10/tr10-54.html) defines a
+multi-level comparison for this purpose.
+
+[`mjb_collation_compare`](#mjb_collation_compare) implements UCA using the Default Unicode
+Collation Element Table (DUCET). It is locale-independent: `mjb_set_locale` does not affect
+collation, and Mojibake does not currently apply CLDR language-specific tailoring.
+
+### How `mjb_collation_compare` works
+
+For each input, Mojibake:
+
+1. validates and decodes the specified encoding;
+2. normalizes the text to NFD so canonically equivalent sequences receive the same collation
+   treatment;
+3. maps the normalized codepoints to DUCET collation elements, including contractions, expansions,
+   and implicit weights;
+4. applies the selected `mjb_collation_variable_weighting`;
+5. constructs and compares the collation levels through the selected `mjb_collation_strength`.
+
+The function writes a `strcmp`-style result:
+
+- `*order < 0`: the first string sorts before the second;
+- `*order == 0`: the strings are equal at the selected collation strength;
+- `*order > 0`: the first string sorts after the second.
+
+Equality here means *collation equality at the requested strength*. Distinct strings can therefore
+compare equal. If deterministic ordering among those strings is required, preserve their original
+order with a stable sort or apply a separate tie-breaker.
+
+### `mjb_collation_variable_weighting`
+
+Variable collation elements are DUCET elements, typically punctuation and some symbols, whose
+importance can be changed without changing ordinary letter ordering. Variable weighting determines
+which collation level contains those elements:
+
+```c
+typedef enum mjb_collation_variable_weighting {
+    MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_SHIFTED
+} mjb_collation_variable_weighting;
+```
+
+- `MJB_COLLATION_NON_IGNORABLE` keeps every variable element's DUCET weights unchanged. Punctuation
+  can therefore create a primary difference.
+- `MJB_COLLATION_SHIFTED` removes variable elements from levels one through three and moves their
+  original primary weights to level four. Punctuation is ignored through tertiary strength, but
+  can still be used as a final distinction at quaternary strength.
+
+The set of variable characters comes from DUCET; it is not determined from Unicode general
+categories at comparison time.
+
+### `mjb_collation_strength`
+
+Strength selects the highest collation level that participates in comparison:
+
+```c
+typedef enum mjb_collation_strength {
+    MJB_COLLATION_PRIMARY,
+    MJB_COLLATION_SECONDARY,
+    MJB_COLLATION_TERTIARY,
+    MJB_COLLATION_QUATERNARY
+} mjb_collation_strength;
+```
+
+| Strength | Levels compared | Typical distinction added |
+| --- | --- | --- |
+| `MJB_COLLATION_PRIMARY` | 1 | Base letters |
+| `MJB_COLLATION_SECONDARY` | 1–2 | Accents and other secondary differences |
+| `MJB_COLLATION_TERTIARY` | 1–3 | Case and other tertiary variants |
+| `MJB_COLLATION_QUATERNARY` | 1–4 | Variable elements moved by shifted weighting |
+
+These examples illustrate the interaction between strength and variable weighting under DUCET:
+
+| Strings | Variable weighting | Strength | Comparison |
+| --- | --- | --- | --- |
+| `a`, `á` | either | primary | equal |
+| `a`, `á` | either | secondary | different |
+| `A`, `a` | either | secondary | equal |
+| `A`, `a` | either | tertiary | different |
+| `ab`, `a-b` | non-ignorable | primary | different |
+| `ab`, `a-b` | shifted | tertiary | equal |
+| `ab`, `a-b` | shifted | quaternary | different |
+| empty, U+200B ZERO WIDTH SPACE | either | quaternary | equal |
+| empty, U+0301 COMBINING ACUTE ACCENT | either | primary | equal |
+| empty, U+0301 COMBINING ACUTE ACCENT | either | secondary | different |
+
+The two settings are independent: variable weighting decides where variable elements participate,
+while strength decides how many levels are examined. Quaternary and tertiary strength are
+equivalent with `MJB_COLLATION_NON_IGNORABLE`, because that strategy does not move anything to
+level four. `MJB_COLLATION_SHIFTED` with tertiary strength also provides the behavior UCA calls
+*blanked*: variable elements do not participate in the comparison.
+
+The C API requires both settings explicitly. The C++ and TypeScript wrappers default to
+non-ignorable variable weighting and tertiary strength.
+
+### Collation is not caseless matching
+
+Secondary-strength collation often ignores case, but it is not the Unicode Default Caseless
+Matching algorithm. Collation can also account for contractions, compatibility variants,
+ignorables, and other DUCET relationships. Use [`mjb_caseless_match`](#mjb_caseless_match) when the
+question is whether two strings are case-insensitively equal.
+
+### Comparing many strings
+
+`mjb_collation_compare` constructs temporary sort keys for both inputs. When the same strings will
+be compared repeatedly, generate each key once with [`mjb_collation_key`](#mjb_collation_key) or
+[`mjb_collation_key_into`](#mjb_collation_key_into).
+
+Sort keys are opaque binary data, not terminated strings. Compare keys only when they were produced
+with the same variable weighting, strength, library version, and Unicode data version. Compare the
+common byte prefix with `memcmp`; if it is equal, compare the key lengths. Do not use `strcmp`.
+Empty input and non-empty input with no effective weights at the selected strength both produce a
+zero-length key.
 
 # Functions
 
@@ -1261,12 +1410,13 @@ mjb_status mjb_collation_compare(
     const char *s2,
     size_t s2_byte_length,
     mjb_encoding s2_encoding,
-    mjb_collation_mode mode,
+    mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength,
     int *order
 );
 ```
 
-Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics.
+Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics. Primary strength compares base-character weights. Secondary strength also compares accents while ignoring tertiary case differences. Tertiary strength adds case and variant differences. Quaternary strength also compares variable elements moved to level 4 by `MJB_COLLATION_SHIFTED`; with `MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary strength. Collation equality at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when case-insensitive equality is the intended operation. See [Unicode collation](#unicode-collation) for the comparison process and configuration guidance.
 
 - `s1` - The first string to compare
 - `s1_byte_length` - The length of the first string in bytes, or `MJB_NUL_TERMINATED`
@@ -1274,13 +1424,14 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 - `s2` - The second string to compare
 - `s2_byte_length` - The length of the second string in bytes, or `MJB_NUL_TERMINATED`
 - `s2_encoding` - The encoding of the second string
-- `mode` - The variable weighting strategy
+- `variable_weighting` - The variable weighting strategy
+- `strength` - The maximum collation level to compare
 - `order` - The strcmp-style comparison result to store
 
 **Returns**
 
 - `MJB_STATUS_OK` - `order` is negative, zero, or positive according to the collation order
-- `MJB_STATUS_INVALID_ARGUMENT` - `order` is NULL, or an input buffer is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `order` is NULL, an input buffer is NULL with a non-zero size, or an option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - An input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
@@ -1292,7 +1443,8 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 int order;
 
 if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, &order) != MJB_STATUS_OK) {
+    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &order) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1300,7 +1452,7 @@ if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
 printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
 ```
 
-See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_key_into`](#mjb_collation_key_into).
+See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_key_into`](#mjb_collation_key_into), [`mjb_caseless_match`](#mjb_caseless_match).
 
 Specifications: [UTS #10: Unicode Collation Algorithm, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html).
 
@@ -1313,23 +1465,27 @@ mjb_status mjb_collation_key(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_collation_mode mode,
+    mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength,
     mjb_result *result
 );
 ```
 
-Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare`. Useful when the same strings are compared many times, such as sorting or database indexing.
+Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
-- `mode` - The variable weighting strategy
+- `variable_weighting` - The variable weighting strategy
+- `strength` - The maximum collation level to include
 - `result` - The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The sort key was generated
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid
+- `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - The sort key size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
@@ -1339,7 +1495,7 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 mjb_result key;
 
 if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
-    MJB_COLLATION_NON_IGNORABLE, &key) != MJB_STATUS_OK) {
+    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1361,25 +1517,27 @@ mjb_status mjb_collation_key_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_collation_mode mode,
+    mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength,
     void *output,
     size_t *output_size
 );
 ```
 
-Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query.
+Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
-- `mode` - The variable weighting strategy
+- `variable_weighting` - The variable weighting strategy
+- `strength` - The maximum collation level to include
 - `output` - The caller-provided binary output buffer, or NULL to query its size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the binary sort key was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - The required key size would overflow
@@ -1393,14 +1551,15 @@ const char *input = "r\xC3\xA9sum\xC3\xA9";
 size_t output_size = 0;
 
 if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-    NULL, &output_size) != MJB_STATUS_OK) {
+    MJB_COLLATION_TERTIARY, NULL, &output_size) != MJB_STATUS_OK) {
     return 1;
 }
 
 unsigned char output[64];
 
 if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
-    MJB_COLLATION_NON_IGNORABLE, output, &output_size) != MJB_STATUS_OK) {
+    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
+    &output_size) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3559,7 +3718,8 @@ without higher-level protocol tailoring.
 - `mjb_caseless_match` always uses full default (non-Turkic) case folding and is not affected by the
   process-global locale.
 - `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
-  `mjb_collation_mode` only selects the UCA variable weighting strategy.
+  `mjb_collation_variable_weighting` selects the UCA variable weighting strategy, while
+  `mjb_collation_strength` selects the maximum comparison level.
 - `mjb_display_width` uses its `mjb_width_context` argument to choose how East Asian Width
   `Ambiguous` characters are counted. `mjb_codepoint_east_asian_width` returns the Unicode 18.0.0
   property value without tailoring.

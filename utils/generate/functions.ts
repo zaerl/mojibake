@@ -1161,9 +1161,16 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
         's2_byte_length'),
       encoding('The encoding of the second string', 's2_encoding'),
       {
-        name: 'mode',
-        type: 'mjb_collation_mode',
+        name: 'variable_weighting',
+        type: 'mjb_collation_variable_weighting',
         description: 'The variable weighting strategy',
+        wasm_generated: false,
+        is_enum: true
+      },
+      {
+        name: 'strength',
+        type: 'mjb_collation_strength',
+        description: 'The maximum collation level to compare',
         wasm_generated: false,
         is_enum: true
       },
@@ -1177,10 +1184,19 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
     wasm: true,
     section: Section.SortingComparison,
     details: 'Compare two strings using the Unicode Collation Algorithm and the default ' +
-      'collation element table (DUCET), with `strcmp`-style semantics.',
+      'collation element table (DUCET), with `strcmp`-style semantics. Primary strength compares ' +
+      'base-character weights. Secondary strength also compares accents while ignoring tertiary ' +
+      'case differences. Tertiary strength adds case and variant differences. Quaternary strength ' +
+      'also compares variable elements moved to level 4 by `MJB_COLLATION_SHIFTED`; with ' +
+      '`MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary strength. Collation equality ' +
+      'at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when ' +
+      'case-insensitive equality is the intended operation. See ' +
+      '[Unicode collation](#unicode-collation) for the comparison process and configuration ' +
+      'guidance.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`order` is negative, zero, or positive according to the collation order' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`order` is NULL, or an input buffer is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`order` is NULL, an input buffer is NULL with a non-zero size, or an option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
@@ -1189,13 +1205,14 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
     example: `int order;
 
 if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, &order) != MJB_STATUS_OK) {
+    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &order) != MJB_STATUS_OK) {
     return 1;
 }
 
 // apple sorts before banana: yes
 printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
-    related: ['mjb_collation_key', 'mjb_collation_key_into'],
+    related: ['mjb_collation_key', 'mjb_collation_key_into', 'mjb_caseless_match'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
   {
@@ -1208,9 +1225,16 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       byte_length(),
       encoding(),
       {
-        name: 'mode',
-        type: 'mjb_collation_mode',
+        name: 'variable_weighting',
+        type: 'mjb_collation_variable_weighting',
         description: 'The variable weighting strategy',
+        wasm_generated: false,
+        is_enum: true
+      },
+      {
+        name: 'strength',
+        type: 'mjb_collation_strength',
+        description: 'The maximum collation level to include',
         wasm_generated: false,
         is_enum: true
       },
@@ -1219,19 +1243,26 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
     wasm: true,
     section: Section.SortingComparison,
     details: 'Generate a binary sort key for a string. Sort keys of different strings can be ' +
-      'compared with `memcmp` and yield the same order as `mjb_collation_compare`. Useful when ' +
-      'the same strings are compared many times, such as sorting or database indexing.',
+      'compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use ' +
+      'the same variable weighting and strength. Useful when the same strings are compared many ' +
+      'times, such as sorting or database indexing. Empty input and non-empty input with no ' +
+      'effective weights at the selected strength both produce a zero-length key.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The sort key was generated' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
-        description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+        description:
+          '`result` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'The input encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The sort key size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     example: `mjb_result key;
 
 if(mjb_collation_key("r\\xC3\\xA9sum\\xC3\\xA9", 8, MJB_ENC_UTF_8,
-    MJB_COLLATION_NON_IGNORABLE, &key) != MJB_STATUS_OK) {
+    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1251,9 +1282,16 @@ mjb_result_free(&key);`,
       byte_length(),
       encoding(),
       {
-        name: 'mode',
-        type: 'mjb_collation_mode',
+        name: 'variable_weighting',
+        type: 'mjb_collation_variable_weighting',
         description: 'The variable weighting strategy',
+        wasm_generated: false,
+        is_enum: true
+      },
+      {
+        name: 'strength',
+        type: 'mjb_collation_strength',
+        description: 'The maximum collation level to include',
         wasm_generated: false,
         is_enum: true
       },
@@ -1279,12 +1317,13 @@ mjb_result_free(&key);`,
       'when the buffer is too small, or the written size on success. A collation key is binary: ' +
       'no terminator is included or written, and no bytes are written when capacity is ' +
       'insufficient. Collation processing still uses temporary allocations, including during a ' +
-      'size query.',
+      'size query. Empty input and non-empty input with no effective weights at the selected ' +
+      'strength both require zero bytes.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the binary sort key was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`output_size` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The input encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },
@@ -1297,14 +1336,15 @@ mjb_result_free(&key);`,
 size_t output_size = 0;
 
 if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-    NULL, &output_size) != MJB_STATUS_OK) {
+    MJB_COLLATION_TERTIARY, NULL, &output_size) != MJB_STATUS_OK) {
     return 1;
 }
 
 unsigned char output[64];
 
 if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
-    MJB_COLLATION_NON_IGNORABLE, output, &output_size) != MJB_STATUS_OK) {
+    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
+    &output_size) != MJB_STATUS_OK) {
     return 1;
 }
 

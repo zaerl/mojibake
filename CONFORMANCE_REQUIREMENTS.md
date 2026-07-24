@@ -250,7 +250,8 @@ higher-level protocol tailoring.
   rules from `SpecialCasing.txt` for uppercase, lowercase, and titlecase; case folding remains the
   default non-Turkic mapping.
 - **Collation**: `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation
-  tailoring. The `mjb_collation_mode` argument only selects the UCA variable weighting strategy.
+  tailoring. The `mjb_collation_variable_weighting` argument only selects the UCA variable
+  weighting strategy.
 - **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
   Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 18.0.0
   property value without tailoring.

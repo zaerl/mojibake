@@ -255,9 +255,16 @@ export const caseModes = [
   'MJB_CASELESS_IDENTIFIER',
 ];
 
-export const collationModes = [
-  'MJB_COLLATION_DEFAULT',
-  'MJB_COLLATION_NUMERIC',
+export const collationVariableWeightings = [
+  'MJB_COLLATION_NON_IGNORABLE',
+  'MJB_COLLATION_SHIFTED',
+];
+
+export const collationStrengths = [
+  'MJB_COLLATION_PRIMARY',
+  'MJB_COLLATION_SECONDARY',
+  'MJB_COLLATION_TERTIARY',
+  'MJB_COLLATION_QUATERNARY',
 ];
 
 export const directions = [

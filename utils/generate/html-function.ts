@@ -9,7 +9,11 @@ import c from 'highlight.js/lib/languages/c';
 import functions, {
   MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef, Section
 } from './functions';
-import { caseModes, caseType, caseTypeValues, categories, collationModes, directions, encodings, encodingValues, filterFlags, filterFlagValues, identifierProfiles, normalizations, planes, planeValues, widthContexts } from './types';
+import {
+  caseModes, caseType, caseTypeValues, categories, collationStrengths,
+  collationVariableWeightings, directions, encodings, encodingValues, filterFlags, filterFlagValues,
+  identifierProfiles, normalizations, planes, planeValues, widthContexts
+} from './types';
 
 const mojibakeTypes = new Set<string>();
 
@@ -387,8 +391,11 @@ export class CFunction implements MojibakeFunction {
           ret += this.getInput(i);
           break;
         // case 'mjb_codepoint *':
-        case 'mjb_collation_mode':
-          ret += this.getSelectInput(i, collationModes, null);
+        case 'mjb_collation_variable_weighting':
+          ret += this.getSelectInput(i, collationVariableWeightings, null);
+          break;
+        case 'mjb_collation_strength':
+          ret += this.getSelectInput(i, collationStrengths, null);
           break;
         case 'mjb_direction':
           ret += this.getSelectInput(i, directions, null);
