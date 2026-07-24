@@ -175,10 +175,10 @@ int test_properties(void *arg) {
     snprintf(extensions_path, sizeof(extensions_path),
         "%s/utils/generate/unicode-data/UCD/ScriptExtensions.txt", MJB_TEST_SOURCE_DIR);
 
-    test_script_alias aliases[MJB_SC_COUNT];
-    size_t alias_count = load_script_aliases(aliases_path, aliases, MJB_SC_COUNT);
+    test_script_alias aliases[MJB_SC_PROPERTY_COUNT];
+    size_t alias_count = load_script_aliases(aliases_path, aliases, MJB_SC_PROPERTY_COUNT);
 
-    ATT_ASSERT(alias_count, (size_t)MJB_SC_COUNT - 1, "All Script aliases loaded")
+    ATT_ASSERT(alias_count, (size_t)MJB_SC_PROPERTY_COUNT - 1, "All Script aliases loaded")
 
     test_script_extensions_file(extensions_path, aliases, alias_count);
 

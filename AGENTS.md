@@ -1,173 +1,256 @@
 # AGENTS.md
 
-This file provides guidance to coding agents when working with code in this repository.
+This file is the repository-specific working guide for coding agents.
 
-## Build System
+## Project overview
 
-This is a C11 Unicode library using CMake and Make. The library is written to be small, fast and
-portable. Key commands:
+Mojibake is a small, portable Unicode library. The core is strict C11 and is also compiled as
+C++17 to catch C/C++ compatibility regressions. The repository contains:
 
-- `make all` - Full build including configure and build
-- `make configure` - Configure CMake build system
-- `make build` - Build the project (calls cmake --build)
-- `make build-cpp` - Build the project with a C++ compiler
-- `make build-shared` - Build the project as a shared library
-- `make build-asan` - Build the project with AddressSanitizer
-- `make test` - Build and run tests
-- `make test-cpp` - Build and run tests with a C++ compiler
-- `make test-asan` - Build and run tests with AddressSanitizer
-- `make test-docker` - Build and run tests in a Linux container
-- `make fuzz` - Fuzz the public API with libFuzzer in Docker (`FUZZ_TIME` sets the duration)
-- `make clean` - Remove build artifacts
-- `make generate` - Regenerate Unicode data from utils/generate/
-- `make generate-unicode-tables` - Regenerate embedded Unicode lookup tables
-- `make sync-api-wasm` - Copy the current WASM build output into `src/api`
-- `make coverage` - Generate test coverage reports
-- `make wasm` - Generate a WASM version of the library
-- `make watch-site` - Serve the WASM site locally at localhost:6251, regenerate on changes
-- `make watch-api` - Watch the JavaScript API files
+- the C library and public headers in `src/`
+- a header-only C++ wrapper in `src/cpp/mojibake.hpp`
+- a native command-line client in `src/shell/`
+- an Emscripten/WASM module and TypeScript API in `src/api/`
+- a generated single-file distribution in `build-amalgamation/`
+- conformance, unit, integration, C++, Node, and browser tests
 
-Build configurations: Debug, Release, Test (via BUILD_TYPE environment variable)
+CMake is the underlying build system; the root `Makefile` is the normal POSIX entry point.
+`Makefile.nmake` provides the corresponding Windows/MSVC entry points. The public C API requires a
+C11 compiler, and builds with `MJB_BUILD_CPP=ON` require C++17.
 
-## Unicode Data Generation
+The checked-in data currently targets Unicode 18. Take the authoritative library and Unicode
+versions from `CMakeLists.txt`, `src/mojibake.h`, and the generator scripts rather than duplicating
+version values in new code.
 
-Runtime Unicode data lives in generated C tables:
+## Working rules
 
-- `src/unicode-data.h`
-- `src/unicode-tables.h`
-- `src/unicode-tables.c`
+- Run commands from the repository root unless a command below explicitly changes directory.
+- Do not hand-edit a block or file marked as automatically generated. Change its generator and
+  regenerate it.
+- Keep the library buildable as both C11 and C++17. A successful C build alone is not sufficient
+  for changes to shared C sources or public headers.
+- Preserve embedded-NUL behavior: public string lengths are byte counts, not codepoint or code-unit
+  counts. `MJB_NUL_TERMINATED` requests an encoding-aware terminator scan where supported.
+- Keep platform portability in mind. CI covers GCC, Clang, Apple Clang, MSVC, MinGW, Emscripten,
+  Linux ARM64, BSD systems, and Haiku.
+- Add or update tests with behavior changes. Tests normally mirror the source module being changed.
+- Do not modify Attractor sources in `tests/attractor/` unless the task is specifically about the
+  test framework.
 
-The generator reads downloaded Unicode data from `utils/generate/unicode-data/`.
-It builds the generated C tables directly in memory. Prefer changing
-`utils/generate/generate-unicode-tables.ts` and regenerating the tables instead of hand-editing
-generated C.
+## Dependencies and first build
 
-The generated tables are intentionally compressed. Current techniques include:
+Native library builds need CMake 3.14 or newer, Make, and a supported C/C++ toolchain. Generator
+work also needs Node.js and npm. Install generator dependencies once with:
 
-- sparse page indexes for codepoint-keyed tables instead of direct page arrays
-- packed 32-bit and 64-bit records for blocks, prefixes, emoji, decompositions, compositions,
-  numeric values, simple case mappings, special casing, case folding, and collation contractions
-- shared string, codepoint, and byte payload tables for names, decompositions, confusables, and
-  collation weights
-- interned property blobs and bitsets for compact property and mirrored-character data
-- substring/suffix sharing for confusable skeletons and collation weight sequences
+```sh
+cd utils/generate
+npm ci
+cd ../..
+```
 
-When changing generated table layout, keep each step measurable and reversible:
+For TypeScript API work, also run `(cd src/api && npm ci)`. The WASM and browser workflows
+additionally require Emscripten and a Chromium-based browser. Docker is required only for the
+Docker and fuzz targets.
 
-- capture this size snapshot before and after the change:
-  ```sh
-  wc -c \
-    src/unicode-tables.c \
-    build/src/CMakeFiles/mojibake_lib.dir/unicode-tables.c.o \
-    build/src/libmojibake.a
-  ```
-- run `node_modules/.bin/tsc --noEmit` from `utils/generate/`
-- run `make generate-unicode-tables`, `make build`, focused tests for affected features, and
-  `make test`
-- keep the change only when behavior is unchanged, performance stays in the same range, and the
-  generated source plus compiled artifacts are smaller
+## Build commands
 
-## Architecture
+- `make` or `make all` - configure and build the default static Release library and CLI
+- `make configure` - configure the default native build in `build/`
+- `make build` - configure if necessary, then build
+- `BUILD_TYPE=Debug make build` - build a Debug configuration
+- `make build-cpp` - compile the C sources as C++17 and build the C++ wrapper configuration
+- `make build-shared` - build a shared library
+- `make build-asan` - build with AddressSanitizer
+- `make build-ubsan` - build with UndefinedBehaviorSanitizer
+- `FEATURE_CHARACTER_NAMES=OFF make build` - omit the large character-name tables
+- `make amalgamation` - generate `mojibake.c`, `mojibake.h`, and `shell.c` in
+  `build-amalgamation/`
+- `make clean` - remove the Makefile-managed native, WASM, and amalgamation build directories
+
+The common CMake feature switches are `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_BUILD_CLI`,
+`MJB_BUILD_TESTS`, `MJB_INSTALL`, `MJB_USE_ASAN`, `MJB_USE_UBSAN`,
+`MJB_FEATURE_CHARACTER_NAMES`, and the standard `BUILD_SHARED_LIBS`.
+
+## Testing
+
+Use the smallest focused test while iterating, then run the full relevant configurations before
+finishing:
+
+- `make test ARGS="-f normalization"` - run C tests whose registered name contains
+  `normalization`
+- `make test` - run the full C test executable
+- `make test-cpp` - compile all C sources and C tests as C++17 and run the C++ wrapper tests
+- `make test-asan` - run the C tests with AddressSanitizer
+- `make test-ubsan` - run the C tests with UndefinedBehaviorSanitizer
+- `make test-no-names` - test with character-name tables disabled
+- `make test-all` - run all five local native configurations above
+- `make ctest` / `make ctest-cpp` - run the registered CMake tests, including embedded-project
+  integration tests
+- `make test-docker` - build and test in the Alpine Linux container
+- `FUZZ_TIME=60 make fuzz` - fuzz the public API with libFuzzer in Docker
+
+For WASM/API work:
+
+- `make sync-api-wasm` - build with Emscripten and copy `mojibake.js` and `mojibake.wasm` into
+  `src/api/`
+- `make build-api` - sync WASM and build the TypeScript package
+- `make test-wasm` - test the currently synced API artifacts in Node and a local browser
+- `make wasm` - sync the WASM artifacts and generate the demo site
+- `make watch-site` - build, serve, and watch the demo at `http://localhost:6251`
+- `make watch-api` - watch the TypeScript API tests
+
+Run `make sync-api-wasm` before `make test-wasm` when C code, exports, or the WASM ABI changed.
+`MJB_BROWSER` can select a non-default Chromium-based browser for browser tests.
+
+Tests use Attractor. Use `ATT_ASSERT_STATUS` from `tests/test.h` for `mjb_status` values and
+`ATT_ASSERT` for ordinary values and predicates. Test names are registered in `tests/test.c` and
+`tests/CMakeLists.txt`; C++ wrapper tests live in `tests/ext/cpp/`, and TypeScript tests live in
+`src/api/tests/`. `make coverage` executes the native test binary with coverage accounting and
+rewrites `TESTS.md`.
+
+## Generated sources and Unicode data
+
+The generator lives in `utils/generate/` and reads ignored, downloaded inputs from
+`utils/generate/unicode-data/`. `make generate` invokes `utils/generate/scripts/generate.sh`; when
+the input directories are absent, that script downloads the UCD, Unihan, emoji, collation, and
+UTS #39 data before generating the checked-in outputs.
+
+Important boundaries:
+
+- `src/unicode-data.h` is the generated, compressed Unicode payload.
+- `src/unicode-tables.c` and `src/unicode-tables.h` are hand-maintained lookup and decoding code.
+  Edit them when changing lookup behavior or the payload format.
+- `utils/generate/file-generators/unicode-data/` contains the table-specific emitters.
+- `utils/generate/unicode-data-store.ts` is the in-memory representation shared by those emitters.
+- `utils/generate/functions.ts` is the source of truth for generated public function declarations
+  and API documentation metadata.
+- `src/locales.h` carries a generated marker, but the current `make generate-locale` path refreshes
+  CLDR tooling data rather than rebuilding that enum. Its intended emitter is
+  `utils/generate/file-generators/locales-h.ts`; do not hand-edit the enum.
+
+Useful generation targets:
+
+- `make generate` - regenerate all normal checked-in outputs
+- `make generate-unicode-tables` - regenerate only `src/unicode-data.h` from already downloaded
+  Unicode inputs
+- `make generate-site` - regenerate the WASM demo site
+- `make generate-locale` - refresh the Italian CLDR data used by the locale generator tooling
+- `make update-version` - update version-bearing project, package, test, and documentation files
+
+Full generation updates generated sections or files including `src/unicode-data.h`,
+`src/unicode.h`, `src/mojibake.h`, `src/properties.c`, `src/bidi.c`, `src/CMakeLists.txt`,
+`src/api/unicode.ts`, `src/api/mojibake.d.ts`, `API.md`, and `tests/example.c`. Follow the generated
+markers in those files; surrounding hand-written code remains editable.
+
+When changing the generated table layout, make the change measurable and reversible:
+
+```sh
+wc -c \
+  src/unicode-data.h \
+  build/src/CMakeFiles/mojibake_lib.dir/unicode-tables.c.o \
+  build/src/libmojibake.a
+```
+
+Capture that snapshot before and after the change. Then run:
+
+```sh
+(cd utils/generate && npm exec -- tsc --noEmit)
+make generate-unicode-tables
+make build
+make test
+```
+
+Also run focused tests for every affected feature. Keep a compression change only when generated
+source and compiled artifacts improve, behavior is unchanged, and performance remains in the same
+range. Never judge table work only by the size of `src/unicode-data.h`; compiler output and lookup
+cost matter too.
+
+## Source layout
 
 Core modules in `src/`:
 
-- `bidi.c` - Unicode Bidirectional Algorithm (TR9)
-- `break-line.c` - Unicode Line Breaking algorithm (TR14)
-- `break-sentence.c` - Unicode Sentence Breaking algorithm (TR29)
-- `break-word.c` - Unicode Word Breaking algorithm (TR29)
-- `buffer.c/.h` - Internal buffer used during normalization
-- `case.c` - Unicode casing methods (upper, lower, title, casefold)
-- `cjk.c` - CJK ideograph detection
-- `codepoint.c` - Unicode codepoint operations
-- `cpp/mojibake.hpp` - Header-only C++ wrapper for the C library
-- `display.c` - Display width calculation (`mjb_display_width`)
-- `east-asian-width.c` - East Asian width property (`mjb_codepoint_east_asian_width`)
-- `emoji.c` - Emoji property detection (`mjb_codepoint_emoji_properties`)
-- `encoding.c` - String encoding detection, codepoint encoding, and encoding conversion
-- `filter.c` - String filtering (`mjb_filter`)
-- `hangul.c` - Hangul syllable handling
-- `locales.c` - Locale APIs, including strict BCP 47 parsing (`mjb_locale_parse`)
-- `mojibake.c/.h` - Main API and library initialization
-- `next.c` - Character-by-character iteration (`mjb_for_each_character`)
-- `normalization.c` - Unicode normalization (NFC, NFD, NFKC, NFKD)
-- `plane.c` - Unicode plane operations
-- `properties.c` - Codepoints properties
-- `quick-check.c` - Normalization quick-check (`mjb_normalization_quick_check`)
-- `segmentation.c` - Grapheme Cluster Breaking algorithm (TR29)
-- `shell/` provides CLI access to library functions
-- `site/` files for generating the WASM version site
-- `string.c` - Internal string output utilities
-- `unicode-tables.c/.h` - Generated Unicode lookup tables
-- `version.c` - Version query functions
+- `bidi.c` - Unicode Bidirectional Algorithm (UAX #9)
+- `break-line.c` - line breaking (UAX #14)
+- `break-sentence.c`, `break-word.c`, `segmentation.c` - sentence, word, and grapheme breaking
+  (UAX #29)
+- `case.c`, `caseless.c` - full/simple casing, case folding, NFKC casefold, and caseless matching
+- `collation.c` - locale-independent DUCET comparison and sort keys
+- `codepoint.c`, `properties.c`, `plane.c`, `cjk.c` - character and property queries
+- `encoding.c`, `utf.h`, `utf8.h`, `utf16.h`, `utf32.h` - validation, iteration, and conversion
+- `normalization.c`, `quick-check.c`, `hangul.c`, `buffer.c/.h` - normalization and Hangul support
+- `emoji.c`, `display.c`, `east-asian-width.c` - emoji classification and display width
+- `identifier.c`, `security.c` - UAX #31 identifiers and UTS #39 confusables
+- `filter.c`, `format.c`, `next.c` - filtering, UTF-8-safe formatting, and character iteration
+- `locales.c` - strict BCP 47 parsing and the process-global casing locale
+- `mojibake.c`, `mojibake-internal.h`, `string.c` - global state, allocation, output, and shared
+  internals
+- `unicode-tables.c/.h` - lookup layer over the generated payload
+- `version.c` - library and Unicode version queries
 
-Key headers:
+Key public headers are `src/mojibake.h`, `src/unicode.h`, and `src/locales.h`. Supporting areas are
+`src/shell/` for the CLI, `src/api/` for the TypeScript/WASM wrapper, `src/site/` for the demo,
+`fuzz/` for the public-API harness and seed corpus, `examples/` for consumers, and `cmake/` plus
+`ports/` for package integration.
 
-- `locales.h` - Generated ISO-639-2 locale enum
-- `mojibake.h` - Public API, including `mjb_status`, `mjb_locale_id`, `mjb_error`, and
-  `mjb_locale_parse`
-- `unicode.h` - Unicode constants and enums
-- `utf*.h` UTF encode/decode functions
+## Public API conventions
 
-## Public API Conventions
+Public declarations are generated from `utils/generate/functions.ts`; implementations remain in
+the corresponding C module. When adding or changing a public function:
 
-Result-producing public APIs return `mjb_status`, are declared `MJB_NODISCARD`, and should be
-checked against `MJB_STATUS_OK` by callers. Keep semantic predicates as `bool` only when the boolean
-is the actual answer, such as `mjb_is_utf8`, `mjb_codepoint_is_valid`, identifier checks, and
-emoji predicate helpers.
+1. Update its function metadata and documentation in `utils/generate/functions.ts`.
+2. Update the C implementation and focused C tests.
+3. Update the C++ wrapper and `tests/ext/cpp/` when the wrapper exposes the API.
+4. Update `src/api/index.ts` and `src/api/tests/` when the API is exposed through WASM.
+5. Run `make generate` so `src/mojibake.h`, `API.md`, the WASM export list, and declarations stay in
+   sync.
+6. Run generator and API typechecks plus the relevant native, C++, and WASM tests.
 
-Public API declarations are generated from `utils/generate/functions.ts`. When changing a signature
-or return type, update that generator metadata, run `make generate`, and keep `API.md`,
-`src/mojibake.h`, and `src/api/mojibake.d.ts` in sync. C tests should use `ATT_ASSERT_STATUS` from
-`tests/test.h` for `mjb_status` return values.
+Function metadata supports `details`, `returns`, `example`, `related`, `specs`, and per-argument
+`ownership`. `related` entries are validated against the function list.
 
-Function metadata can carry optional documentation fields: `details`, `returns`, `example`,
-`related` (validated against the function list), `specs`, and per-argument `ownership` notes.
+Result-producing APIs normally return `mjb_status`, are `MJB_NODISCARD`, and use
+`MJB_STATUS_OK == 0` for success. Use `bool` only when truth is the semantic result, such as
+encoding, codepoint, identifier, category, and emoji predicates.
 
-Tests in `tests/` mirror the source structure with comprehensive coverage tracking. The
-`tests/attractor/` directory contains the Attractor unit test framework used across all tests.
-C++ wrapper tests are in `tests/ext/cpp/`.
+Allocation and ownership are part of the API contract:
 
-## CLI access
+- allocating transforms return an `mjb_result`; release it with `mjb_result_free`
+- matching `_into` variants use caller-owned storage, permit `output == NULL` to measure, report
+  required byte size, and do not write partial output when capacity is insufficient
+- core library allocations must use `mjb_alloc`, `mjb_realloc`, and `mjb_free` so custom memory
+  functions remain effective; the standalone CLI may use the C allocator for its own storage
+- free specialized owned structures with their matching API, such as
+  `mjb_bidi_paragraph_free`
 
-The library can be accessed by the `build/src/shell/mojibake` executable, once compiled. The
-`mojibake.sh` bash script can be used to simplify access on POSIX systems, `mojibake.bat` on Windows.
+Validate arguments and overflow before dereferencing or allocating. On failure, leave outputs in
+the state documented by the API and clean up every owned intermediate allocation.
 
-### Global options
+## CLI
 
-- `-c / --codepoint` - interpret input as a list of codepoints (e.g. `U+0041`)
-- `-j / --json-indent <0-10>` - pretty-print JSON output with the given indent level
-- `-o / --output <plain|json>` - output format (default: `plain`)
-- `-s / --show-allowed-symbols` - show allowed symbols
-- `-v / --verbose` - verbose output
-- `-V / --version` - print library version
+After `make build`, use `build/src/shell/mojibake` directly or the root wrappers
+`./mojibake.sh` and `mojibake.bat`.
 
-### Commands
+Global options are `-h/--help`, `-c/--codepoint`, `-j/--json-indent`,
+`-o/--output plain|json`, `-s/--show-allowed-symbols`, `-v/--verbose`, and `-V/--version`.
+Commands are `bidi`, `break`, `char`, `codepoint`, `emoji`, `filter`, `locale`, `nfd`, `nfkd`,
+`nfc`, `nfkc`, `upper`, `lower`, `title`, `casefold`, and `casefold-simple`.
 
-- `bidi` - print the results of the bidirectional algorithm
-- `break` - break the input into grapheme, word, line, and sentence boundaries
-- `char` - print character information for a string
-- `codepoint` - print character information for a codepoint
-- `filter` - filter input (normalize to NFC, strip spaces/controls/numeric characters)
-- `locale` - parse a BCP 47 language tag
-- `nfd` / `nfkd` / `nfc` / `nfkc` - normalize input to the given Unicode normalization form
-- `upper` / `lower` / `title` / `casefold` - case conversion
-
-### Examples
-
-```
-./mojibake.sh char "A"                 # plain text character info
-./mojibake.sh -o json char "A"         # JSON character info
-./mojibake.sh nfd "ABC"                # NFD normalization
-./mojibake.sh -c nfd "U+0041" "U+0042" # normalize from codepoint list
-./mojibake.sh upper "Hello"            # uppercase conversion
-./mojibake.sh break "Hello World"      # all break analyses
-./mojibake.sh break word "Hello World" # word break analysis
-./mojibake.sh locale "sr-Latn-RS"      # BCP 47 language tag parsing
+```sh
+./mojibake.sh char "A"
+./mojibake.sh -o json emoji "☺️"
+./mojibake.sh -c nfd "U+0041" "U+0042"
+./mojibake.sh break word "Hello World"
+./mojibake.sh locale "sr-Latn-RS"
 ```
 
-## Code Standards
+## Style and validation
 
-- C11 standard with C17 compiler setting
-- 4 spaces indentation, 100 character line limit
-- clang-format for style consistency
-- Comprehensive test coverage (see TESTS.md)
+- Use 4 spaces, never tabs, and keep code at 100 columns; `.clang-format` is authoritative.
+- Preserve the project license header in new source files.
+- Keep warnings clean under the flags in `CMakeLists.txt`.
+- `make lint` runs Apple's `xcrun clang-format` and is therefore a macOS convenience target. On
+  other platforms, run the equivalent installed `clang-format --dry-run --Werror` command.
+- Typecheck generator changes with `(cd utils/generate && npm exec -- tsc --noEmit)`.
+- Typecheck API changes with `(cd src/api && npm run typecheck)`.
+- Do not regenerate unrelated outputs or include build products in a change.
+- Before finishing, inspect `git diff` and report exactly which validation commands were run.

@@ -538,6 +538,13 @@ typedef enum mjb_identifier_profile {
     MJB_IDENTIFIER_NFKC     // NFKC + XID_Start / XID_Continue
 } mjb_identifier_profile;
 
+// Shape of a UTS #39 resolved script set.
+typedef enum mjb_script_set_kind {
+    MJB_SCRIPT_SET_EMPTY,    // No script resolves the string; the string is mixed-script
+    MJB_SCRIPT_SET_RESOLVED, // The output contains the scripts that resolve the string
+    MJB_SCRIPT_SET_ALL       // Every script resolves the string
+} mjb_script_set_kind;
+
 // This functions list is automatically generated. Do not edit.
 // clang-format off
 
@@ -720,6 +727,9 @@ MJB_EXPORT bool mjb_codepoint_is_pattern_white_space(mjb_codepoint codepoint);
 
 // Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).
 MJB_EXPORT bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_identifier_profile profile);
+
+// Return the UTS #39 resolved script set of a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_script *scripts, size_t *count, mjb_script_set_kind *kind);
 
 // Return the name of a property, NULL if the property specified is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);

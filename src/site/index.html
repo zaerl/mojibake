@@ -162,6 +162,193 @@
             'Other, not assigned',
         ];
 
+        const scripts = [
+            "Not set",
+            "Adlm",
+            "Aghb",
+            "Ahom",
+            "Arab",
+            "Armi",
+            "Armn",
+            "Avst",
+            "Bali",
+            "Bamu",
+            "Bass",
+            "Batk",
+            "Beng",
+            "Berf",
+            "Bhks",
+            "Bopo",
+            "Brah",
+            "Brai",
+            "Bugi",
+            "Buhd",
+            "Cakm",
+            "Cans",
+            "Cari",
+            "Cham",
+            "Cher",
+            "Chis",
+            "Chrs",
+            "Copt",
+            "Cpmn",
+            "Cprt",
+            "Cyrl",
+            "Deva",
+            "Diak",
+            "Dogr",
+            "Dsrt",
+            "Dupl",
+            "Egyp",
+            "Elba",
+            "Elym",
+            "Ethi",
+            "Gara",
+            "Geor",
+            "Glag",
+            "Gong",
+            "Gonm",
+            "Goth",
+            "Gran",
+            "Grek",
+            "Gujr",
+            "Gukh",
+            "Guru",
+            "Hang",
+            "Hani",
+            "Hano",
+            "Hatr",
+            "Hebr",
+            "Hira",
+            "Hluw",
+            "Hmng",
+            "Hmnp",
+            "Hrkt",
+            "Hung",
+            "Ital",
+            "Java",
+            "Jurc",
+            "Kali",
+            "Kana",
+            "Kawi",
+            "Khar",
+            "Khmr",
+            "Khoj",
+            "Kits",
+            "Knda",
+            "Krai",
+            "Kthi",
+            "Lana",
+            "Laoo",
+            "Latn",
+            "Lepc",
+            "Limb",
+            "Lina",
+            "Linb",
+            "Lisu",
+            "Lyci",
+            "Lydi",
+            "Mahj",
+            "Maka",
+            "Mand",
+            "Mani",
+            "Marc",
+            "Medf",
+            "Mend",
+            "Merc",
+            "Mero",
+            "Mlym",
+            "Modi",
+            "Mong",
+            "Mroo",
+            "Mtei",
+            "Mult",
+            "Mymr",
+            "Nagm",
+            "Nand",
+            "Narb",
+            "Nbat",
+            "Newa",
+            "Nkoo",
+            "Nshu",
+            "Ogam",
+            "Olck",
+            "Onao",
+            "Orkh",
+            "Orya",
+            "Osge",
+            "Osma",
+            "Ougr",
+            "Palm",
+            "Pauc",
+            "Pcun",
+            "Perm",
+            "Phag",
+            "Phli",
+            "Phlp",
+            "Phnx",
+            "Plrd",
+            "Prti",
+            "Rjng",
+            "Rohg",
+            "Runr",
+            "Samr",
+            "Sarb",
+            "Saur",
+            "Seal",
+            "Sgnw",
+            "Shaw",
+            "Shrd",
+            "Sidd",
+            "Sidt",
+            "Sind",
+            "Sinh",
+            "Sogd",
+            "Sogo",
+            "Sora",
+            "Soyo",
+            "Sund",
+            "Sunu",
+            "Sylo",
+            "Syrc",
+            "Tagb",
+            "Takr",
+            "Tale",
+            "Talu",
+            "Taml",
+            "Tang",
+            "Tavt",
+            "Tayo",
+            "Telu",
+            "Tfng",
+            "Tglg",
+            "Thaa",
+            "Thai",
+            "Tibt",
+            "Tirh",
+            "Tnsa",
+            "Todr",
+            "Tols",
+            "Toto",
+            "Tutg",
+            "Ugar",
+            "Vaii",
+            "Vith",
+            "Wara",
+            "Wcho",
+            "Xpeo",
+            "Xsux",
+            "Yezi",
+            "Yiii",
+            "Zanb",
+            "Zinh",
+            "Zyyy",
+            "Zzzz",
+            "Hanb",
+            "Jpan",
+            "Kore"
+        ];
+
         function typeMap(type) {
             if(type === 'const char *') {
                 return 'string';
@@ -454,6 +641,27 @@
             return codepoint;
         }
 
+        function parseResolvedScriptSet(value) {
+            const kinds = [
+                'Empty',
+                'Resolved',
+                'All',
+            ];
+            let ret = `Resolved script set kind: <strong>${kinds[value.kind]}</strong>`;
+
+            if(!value.scripts.length) {
+                return ret;
+            }
+
+            ret += '<br>Scripts:';
+
+            for(const script of value.scripts) {
+                ret += ` <strong>${scripts[script]}</strong>`;
+            }
+
+            return ret;
+        }
+
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-wasm-form');
@@ -495,7 +703,6 @@
                         `input[name="${func}-${arg.name}"]:checked`
                     )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
                 } else if(arg.type === 'mjb_encoding') {
-                    console.log(value);
                     value = parseInt(value, 10);
 
                     if(arg.name === 'encoding' || arg.name === 's1_encoding') {
@@ -578,6 +785,9 @@
                 case 'mjb_next_grapheme_break':
                     // mjb_next_line_break has a MJB_BT_NO_BREAK type as first break, by standard.
                     data = parseBreakResult(data, args[0], func === 'mjb_next_line_break' ? 2 : 3);
+                    break;
+                case 'mjb_resolved_script_set':
+                    data = parseResolvedScriptSet(data);
                     break;
             }
 

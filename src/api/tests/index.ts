@@ -25,6 +25,7 @@ import {
   Property,
   QuickCheckResult,
   Script,
+  ScriptSetKind,
   WidthContext
 } from '../index.js';
 import {
@@ -71,6 +72,16 @@ ATT_ASSERT(mojibake.codepointPropertyInt(0x41, Property.ALPHABETIC), null,
 ATT_ASSERT(mojibake.codepointScriptExtensions(0x30FC), [Script.HIRA, Script.KANA],
   'codepointScriptExtensions');
 ATT_ASSERT(mojibake.codepointScript(0x41), Script.LATN, 'codepointScript');
+ATT_ASSERT(mojibake.resolvedScriptSet('hello123!'),
+  { kind: ScriptSetKind.RESOLVED, scripts: [Script.LATN] }, 'resolvedScriptSet Latin');
+ATT_ASSERT(mojibake.resolvedScriptSet('h\u0435llo'),
+  { kind: ScriptSetKind.EMPTY, scripts: [] }, 'resolvedScriptSet mixed');
+ATT_ASSERT(mojibake.resolvedScriptSet('123!'),
+  { kind: ScriptSetKind.ALL, scripts: [] }, 'resolvedScriptSet ALL');
+ATT_ASSERT(mojibake.resolvedScriptSet('\u306D\u30AC'),
+  { kind: ScriptSetKind.RESOLVED, scripts: [Script.JPAN] }, 'resolvedScriptSet Japanese');
+ATT_ASSERT(mojibake.resolvedScriptSet(new Uint8Array([0x80])), null,
+  'resolvedScriptSet malformed');
 ATT_ASSERT(mojibake.detectEncoding('A'), Encoding.ASCII | Encoding.UTF_8, 'detectEncoding');
 ATT_ASSERT(mojibake.isUTF8('Hello'), true, 'isUTF8');
 ATT_ASSERT(mojibake.isUTF16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'isUTF16');

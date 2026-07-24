@@ -209,6 +209,39 @@ struct ResultAccess {
     return scripts;
 }
 
+struct ResolvedScriptSet {
+    mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
+    std::vector<mjb_script> scripts;
+
+    [[nodiscard]] bool is_mixed_script() const noexcept {
+        return kind == MJB_SCRIPT_SET_EMPTY;
+    }
+
+    [[nodiscard]] bool is_all() const noexcept {
+        return kind == MJB_SCRIPT_SET_ALL;
+    }
+};
+
+[[nodiscard]] inline ResolvedScriptSet resolved_script_set(std::string_view input,
+    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    ResolvedScriptSet result;
+    size_t count = 0;
+    detail::check_status(mjb_resolved_script_set(input.data(), input.size(), encoding, nullptr,
+                             &count, &result.kind),
+        "Unable to count resolved scripts");
+
+    result.scripts.resize(count);
+
+    if(count > 0) {
+        detail::check_status(mjb_resolved_script_set(input.data(), input.size(), encoding,
+                                 result.scripts.data(), &count, &result.kind),
+            "Unable to read resolved scripts");
+        result.scripts.resize(count);
+    }
+
+    return result;
+}
+
 /**
  * See mjb_character for details.
  */

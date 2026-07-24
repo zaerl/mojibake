@@ -12,6 +12,8 @@
 #endif
 #include "test.h"
 
+#define MJB_TEST_COUNT_OF(array) (sizeof(array) / sizeof((array)[0]))
+
 static char *trim_ascii(char *text) {
     while(*text == ' ' || *text == '\t' || *text == '\r' || *text == '\n') {
         ++text;
@@ -250,8 +252,122 @@ static void run_confusables_file(const char *filename) {
 }
 #endif
 
+static void check_resolved_script_set(const char *input, size_t input_size, mjb_encoding encoding,
+    mjb_script_set_kind expected_kind, const mjb_script *expected, size_t expected_count,
+    const char *name) {
+    size_t count = 0;
+    mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
+
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(input, input_size, encoding, NULL, &count, &kind),
+        MJB_STATUS_OK, name)
+    ATT_ASSERT((int)kind, expected_kind, name)
+    ATT_ASSERT(count, expected_count, name)
+
+    if(expected_count == 0) {
+        return;
+    }
+
+    mjb_script scripts[8];
+    ATT_ASSERT(expected_count <= MJB_TEST_COUNT_OF(scripts), true, name)
+
+    if(expected_count > MJB_TEST_COUNT_OF(scripts)) {
+        return;
+    }
+
+    count = MJB_TEST_COUNT_OF(scripts);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(input, input_size, encoding, scripts, &count, &kind),
+        MJB_STATUS_OK, name)
+    ATT_ASSERT((int)kind, expected_kind, name)
+    ATT_ASSERT(count, expected_count, name)
+    ATT_ASSERT((int)memcmp(scripts, expected, expected_count * sizeof(mjb_script)), 0, name)
+}
+
 int test_security(void *arg) {
     mjb_encoding enc = MJB_ENC_UTF_8;
+
+    MJB_TEST_COVERAGE(mjb_resolved_script_set);
+
+    const mjb_script latin[] = { MJB_SC_LATN };
+    check_resolved_script_set("Circle", 6, enc, MJB_SCRIPT_SET_RESOLVED, latin,
+        MJB_TEST_COUNT_OF(latin), "Resolved Latin script");
+    check_resolved_script_set("Circ1e", 6, enc, MJB_SCRIPT_SET_RESOLVED, latin,
+        MJB_TEST_COUNT_OF(latin), "Common characters do not restrict Latin");
+    check_resolved_script_set("h\xD0\xB5llo", 6, enc, MJB_SCRIPT_SET_EMPTY, NULL, 0,
+        "Mixed Latin and Cyrillic has an empty resolved set");
+    check_resolved_script_set("123!", 4, enc, MJB_SCRIPT_SET_ALL, NULL, 0,
+        "Common-only string resolves to ALL");
+    check_resolved_script_set("", 0, enc, MJB_SCRIPT_SET_ALL, NULL, 0,
+        "Empty string resolves to ALL");
+
+    const mjb_script prolonged[] = { MJB_SC_HIRA, MJB_SC_KANA, MJB_SC_JPAN };
+    check_resolved_script_set("\xE3\x83\xBC", 3, enc, MJB_SCRIPT_SET_RESOLVED, prolonged,
+        MJB_TEST_COUNT_OF(prolonged), "Hiragana-Katakana mark adds Jpan");
+
+    const mjb_script japanese[] = { MJB_SC_JPAN };
+    check_resolved_script_set("\xE3\x81\xAD\xE3\x82\xAC", 6, enc, MJB_SCRIPT_SET_RESOLVED, japanese,
+        MJB_TEST_COUNT_OF(japanese), "Hiragana and Katakana resolve to Jpan");
+
+    const mjb_script han[] = { MJB_SC_HANI, MJB_SC_HANB, MJB_SC_JPAN, MJB_SC_KORE };
+    check_resolved_script_set("\xE3\x80\x86\xE5\x88\x87", 6, enc, MJB_SCRIPT_SET_RESOLVED, han,
+        MJB_TEST_COUNT_OF(han), "Han text receives writing-system augmentations");
+
+    const mjb_script unknown[] = { MJB_SC_ZZZZ };
+    check_resolved_script_set("\xCD\xB8", 2, enc, MJB_SCRIPT_SET_RESOLVED, unknown,
+        MJB_TEST_COUNT_OF(unknown), "Unassigned codepoint resolves to Unknown");
+
+    const char embedded_nul[] = { 'A', '\0', '1' };
+    check_resolved_script_set(embedded_nul, sizeof(embedded_nul), enc, MJB_SCRIPT_SET_RESOLVED,
+        latin, MJB_TEST_COUNT_OF(latin), "Resolved scripts preserve embedded NUL");
+    check_resolved_script_set("A", MJB_NUL_TERMINATED, enc, MJB_SCRIPT_SET_RESOLVED, latin,
+        MJB_TEST_COUNT_OF(latin), "Resolved scripts support NUL-terminated input");
+
+    const char utf16be_latin[] = { '\0', 'A', '\0', '1' };
+    check_resolved_script_set(utf16be_latin, sizeof(utf16be_latin), MJB_ENC_UTF_16BE,
+        MJB_SCRIPT_SET_RESOLVED, latin, MJB_TEST_COUNT_OF(latin),
+        "Resolved scripts support UTF-16");
+
+    size_t script_count = 9;
+    mjb_script_set_kind script_kind = MJB_SCRIPT_SET_ALL;
+    ATT_ASSERT_STATUS(mjb_resolved_script_set("A", 1, enc, NULL, NULL, &script_kind),
+        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL count")
+    ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_EMPTY,
+        "Resolved scripts clear kind after NULL count")
+
+    ATT_ASSERT_STATUS(mjb_resolved_script_set("A", 1, enc, NULL, &script_count, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL kind")
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after NULL kind")
+
+    script_count = 9;
+    script_kind = MJB_SCRIPT_SET_ALL;
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(NULL, 1, enc, NULL, &script_count, &script_kind),
+        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL input")
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid input")
+    ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_EMPTY,
+        "Resolved scripts clear kind after invalid input")
+
+    script_count = 9;
+    ATT_ASSERT_STATUS(
+        mjb_resolved_script_set("A", 1, MJB_ENC_UNKNOWN, NULL, &script_count, &script_kind),
+        MJB_STATUS_INVALID_ENCODING, "Resolved scripts reject invalid encoding")
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid encoding")
+
+    const char malformed_script_input[] = { (char)0x80 };
+    script_count = 9;
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(malformed_script_input,
+                          sizeof(malformed_script_input), enc, NULL, &script_count, &script_kind),
+        MJB_STATUS_MALFORMED_INPUT, "Resolved scripts reject malformed input")
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after malformed input")
+
+    mjb_script script_output = MJB_SC_ZZZZ;
+    script_count = 0;
+    ATT_ASSERT_STATUS(
+        mjb_resolved_script_set("A", 1, enc, &script_output, &script_count, &script_kind),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Resolved scripts report a small output buffer")
+    ATT_ASSERT(script_count, 1u, "Resolved scripts report required count")
+    ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_RESOLVED,
+        "Resolved scripts preserve kind after a small output buffer")
+    ATT_ASSERT((int)script_output, MJB_SC_ZZZZ,
+        "Resolved scripts leave a small output buffer untouched")
 
     mjb_result skeleton;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(NULL, 1, enc, enc, &skeleton),

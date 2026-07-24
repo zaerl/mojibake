@@ -153,6 +153,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_codepoint_is_pattern_syntax\""
         "\"_mjb_codepoint_is_pattern_white_space\""
         "\"_mjb_is_identifier\""
+        "\"_mjb_resolved_script_set\""
         "\"_mjb_property_name\""
         "\"_mjb_confusable_skeleton\""
         "\"_mjb_are_confusable\""

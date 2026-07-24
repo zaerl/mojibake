@@ -983,6 +983,28 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_resolved_script_set
+    MJB_TEST_COVERAGE(mjb_resolved_script_set); // Added by the script
+    const char *input = "\xE3\x81\xAD\xE3\x82\xAC"; // Hiragana + Katakana
+    mjb_script scripts[1];
+    size_t count = 1;
+    mjb_script_set_kind kind;
+
+    if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
+        &kind) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_resolved_script_set test failed") // Added by the script
+        return 1;
+    }
+
+    bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == MJB_SC_JPAN;
+
+    // Japanese writing system: yes
+    // printf("Japanese writing system: %s", japanese ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Japanese writing system: %s", japanese ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "Japanese writing system: yes", "mjb_resolved_script_set test failed") // Added by the script
+}
+
+{
     // Example for mjb_property_name
     MJB_TEST_COVERAGE(mjb_property_name); // Added by the script
     const char *name = mjb_property_name(MJB_PR_ALPHABETIC);

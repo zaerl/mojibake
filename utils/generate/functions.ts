@@ -2175,6 +2175,72 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
+    comment: 'Return the UTS #39 resolved script set of a string.',
+    ret: 'mjb_status',
+    name: 'mjb_resolved_script_set',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to analyze'),
+      byte_length(),
+      encoding(),
+      {
+        name: 'scripts',
+        type: 'mjb_script *',
+        description: 'The caller-provided script buffer, or NULL to query the required count',
+        wasm_generated: true
+      },
+      {
+        name: 'count',
+        type: 'size_t *',
+        description: 'The input capacity and output script count',
+        wasm_generated: true
+      },
+      {
+        name: 'kind',
+        type: 'mjb_script_set_kind *',
+        description: 'Whether the resolved set is empty, concrete, or ALL',
+        wasm_generated: true
+      }
+    ],
+    wasm: true,
+    section: Section.Security,
+    details: 'Intersect the augmented Script_Extensions sets of every codepoint as specified by ' +
+      'UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and ' +
+      'Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` ' +
+      'to NULL to query the required count. A mixed-script string returns EMPTY with a zero ' +
+      'count; an empty string or a string containing only Common or Inherited characters returns ' +
+      'ALL with a zero count.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description:
+        'The required count and set kind were returned, or the resolved scripts were written' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`count` or `kind` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'The input encoding is invalid or lacks required byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
+        'The script buffer capacity is smaller than the required count' }
+    ],
+    example: `const char *input = "\\xE3\\x81\\xAD\\xE3\\x82\\xAC"; // Hiragana + Katakana
+mjb_script scripts[1];
+size_t count = 1;
+mjb_script_set_kind kind;
+
+if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
+    &kind) != MJB_STATUS_OK) {
+    return 1;
+}
+
+bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == MJB_SC_JPAN;
+
+// Japanese writing system: yes
+printf("Japanese writing system: %s", japanese ? "yes" : "no");`,
+    related: ['mjb_codepoint_script_extensions', 'mjb_is_identifier',
+      'mjb_confusable_skeleton', 'mjb_are_confusable'],
+    specs: [uts(39, 'Unicode Security Mechanisms')]
+  },
+  {
     comment: 'Return the name of a property, NULL if the property specified is not valid.',
     ret: 'const char *',
     name: 'mjb_property_name',

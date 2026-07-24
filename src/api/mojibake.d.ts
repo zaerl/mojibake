@@ -123,6 +123,8 @@ export type MojibakeWasmModule = {
   _mjb_codepoint_is_pattern_white_space: (codepoint: Codepoint) => boolean;
   // Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).
   _mjb_is_identifier: (buffer: Pointer, byte_length: number, encoding: number, profile: number) => boolean;
+  // Return the UTS #39 resolved script set of a string.
+  _mjb_resolved_script_set: (buffer: Pointer, byte_length: number, encoding: number, scripts: Pointer, count: Pointer, kind: Pointer) => number;
   // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).

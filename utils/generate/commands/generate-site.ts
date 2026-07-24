@@ -5,13 +5,13 @@
  */
 
 import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'fs';
+import hljs from 'highlight.js/lib/core';
 import http from 'http';
 import markdownit from 'markdown-it';
 import { basename, extname, join, relative } from 'path';
-import { cfns } from '../html-function';
 import { Section } from '../functions';
+import { cfns } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
-import hljs from 'highlight.js/lib/core';
 
 const SOURCE_DIR = '../../src/site';
 const BUILD_DIR = '../../build-wasm/src';

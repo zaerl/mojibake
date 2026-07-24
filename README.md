@@ -148,6 +148,9 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 **Security**
 
+- **Mixed-script detection**: resolve a string to its augmented Unicode script set for
+  identifier-policy checks (`mjb_resolved_script_set`,
+  [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Confusable detection**: generate reusable skeletons and check if strings are visually
   confusable (`mjb_confusable_skeleton`, `mjb_confusable_skeleton_into`, `mjb_are_confusable`,
   [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))

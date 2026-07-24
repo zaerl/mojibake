@@ -79,7 +79,7 @@ mjb_filter("Hello", 5, MJB_ENC_UTF_8, MJB_FILTER_SPACES, MJB_ENC_UTF_16LE, &resu
 ```
 
 ### Every string passed is simply a stream of bytes
-Mojibake handle different encodings, so the string you pass can be:
+Mojibake handles different encodings, so the string you pass can be:
 
 1. A stream of bytes (`char`), in UTF-8. The classic C strings
 2. A stream of `uint16_t` in UTF-16LE, UTF-16BE.
@@ -106,7 +106,7 @@ const char hello_16[] = {
     0x00, 0x00,
 };
 
-enc = MJB_ENC_UTF_16LE
+enc = MJB_ENC_UTF_16LE;
 
 // sizeof(uint16_t) is 2
 mjb_normalize(hello_16, 5 * sizeof(uint16_t), enc, MJB_NORMALIZATION_NFC, enc, &result);
@@ -2524,6 +2524,61 @@ See also: [`mjb_codepoint_is_id_start`](#mjb_codepoint_is_id_start), [`mjb_codep
 
 Specifications: [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html).
 
+## `mjb_resolved_script_set`
+
+Return the UTS #39 resolved script set of a string.
+
+```c
+mjb_status mjb_resolved_script_set(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_script *scripts,
+    size_t *count,
+    mjb_script_set_kind *kind
+);
+```
+
+Intersect the augmented Script_Extensions sets of every codepoint as specified by UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` to NULL to query the required count. A mixed-script string returns EMPTY with a zero count; an empty string or a string containing only Common or Inherited characters returns ALL with a zero count.
+
+- `buffer` - The string to analyze
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `scripts` - The caller-provided script buffer, or NULL to query the required count
+- `count` - The input capacity and output script count
+- `kind` - Whether the resolved set is empty, concrete, or ALL
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required count and set kind were returned, or the resolved scripts were written
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` or `kind` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks required byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The script buffer capacity is smaller than the required count
+
+**Example**
+
+```c
+const char *input = "\xE3\x81\xAD\xE3\x82\xAC"; // Hiragana + Katakana
+mjb_script scripts[1];
+size_t count = 1;
+mjb_script_set_kind kind;
+
+if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
+    &kind) != MJB_STATUS_OK) {
+    return 1;
+}
+
+bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == MJB_SC_JPAN;
+
+// Japanese writing system: yes
+printf("Japanese writing system: %s", japanese ? "yes" : "no");
+```
+
+See also: [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions), [`mjb_is_identifier`](#mjb_is_identifier), [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_are_confusable`](#mjb_are_confusable).
+
+Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
+
 ## `mjb_property_name`
 
 Return the name of a property, NULL if the property specified is not valid.
@@ -3745,6 +3800,7 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Bidirectional Algorithm | `mjb_bidi_resolve`, `mjb_bidi_reorder_line`, `mjb_bidi_line_runs` | [UAX #9](https://www.unicode.org/reports/tr9/tr9-51.html) | `BidiCharacterTest.txt`, `BidiTest.txt`, `tests/bidi.c`, and `tests/bidi-class.c`. |
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
+| Resolved-script and mixed-script detection | `mjb_resolved_script_set` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | UTS #39 resolved-script examples, augmented writing-system values, encodings, embedded NULs, and error handling in `tests/security.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |
