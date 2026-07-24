@@ -159,7 +159,8 @@ int test_mojibake(void *arg) {
 
     size_t collation_key_into_size = 0;
     ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, NULL, &collation_key_into_size),
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL,
+                          &collation_key_into_size),
         MJB_STATUS_NO_MEMORY, "Caller-buffer collation key handles temporary allocation failure")
     ATT_ASSERT(collation_key_into_size, (size_t)0,
         "Caller-buffer collation key clears size after allocation failure")
@@ -182,11 +183,11 @@ int test_mojibake(void *arg) {
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result),
         MJB_STATUS_NO_MEMORY, "Case conversion handles allocation failure")
     ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          &result),
+                          MJB_COLLATION_TERTIARY, &result),
         MJB_STATUS_NO_MEMORY, "Collation key handles allocation failure")
     int order;
     ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, &order),
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
         MJB_STATUS_NO_MEMORY, "Collation comparison handles allocation failure")
     bool confusable;
     ATT_ASSERT_STATUS(mjb_are_confusable("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,

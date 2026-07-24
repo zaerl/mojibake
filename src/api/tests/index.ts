@@ -10,6 +10,8 @@ import {
   CaselessMode,
   CaseType,
   Category,
+  CollationStrength,
+  CollationVariableWeighting,
   Direction,
   EastAsianWidth,
   EmojiQualification,
@@ -88,9 +90,48 @@ ATT_ASSERT(mojibake.caselessMatch(new Uint8Array([0x80]), 'a'), null,
 ATT_ASSERT(mojibake.collationCompare('hello', 'hello'), 0, 'collationCompare');
 ATT_ASSERT((mojibake.collationCompare('a', 'b') ?? 0) < 0, true,
   'collationCompare negative order');
+ATT_ASSERT(mojibake.collationCompare('A', 'a', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.SECONDARY), 0, 'collationCompare secondary ignores case');
+ATT_ASSERT((mojibake.collationCompare('A', 'a', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.TERTIARY) ?? 0) !== 0, true, 'collationCompare tertiary compares case');
+ATT_ASSERT(mojibake.collationCompare('a', '\u00E1', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.PRIMARY), 0, 'collationCompare primary ignores accents');
+ATT_ASSERT((mojibake.collationCompare('a', '\u00E1', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.SECONDARY) ?? 0) !== 0, true, 'collationCompare secondary compares accents');
+ATT_ASSERT(mojibake.collationCompare('ab', 'a-b', CollationVariableWeighting.SHIFTED,
+  CollationStrength.TERTIARY), 0, 'collationCompare shifted tertiary ignores punctuation');
+ATT_ASSERT((mojibake.collationCompare('ab', 'a-b', CollationVariableWeighting.SHIFTED,
+  CollationStrength.QUATERNARY) ?? 0) !== 0, true,
+  'collationCompare shifted quaternary compares punctuation');
+ATT_ASSERT(mojibake.collationCompare('', '\u200B'), 0,
+  'collationCompare completely ignorable equals empty');
+ATT_ASSERT(mojibake.collationCompare('\u200B', ''), 0,
+  'collationCompare completely ignorable equals empty in reverse order');
+ATT_ASSERT(mojibake.collationCompare('', '\u0301',
+  CollationVariableWeighting.NON_IGNORABLE, CollationStrength.PRIMARY), 0,
+  'collationCompare primary-ignorable accent equals empty');
+ATT_ASSERT((mojibake.collationCompare('', '\u0301',
+  CollationVariableWeighting.NON_IGNORABLE, CollationStrength.SECONDARY) ?? 0) !== 0, true,
+  'collationCompare secondary accent differs from empty');
+ATT_ASSERT(mojibake.collationCompare('', '-', CollationVariableWeighting.SHIFTED,
+  CollationStrength.TERTIARY), 0,
+  'collationCompare shifted punctuation equals empty below quaternary');
+ATT_ASSERT((mojibake.collationCompare('', '-', CollationVariableWeighting.SHIFTED,
+  CollationStrength.QUATERNARY) ?? 0) !== 0, true,
+  'collationCompare shifted punctuation differs from empty at quaternary');
 ATT_ASSERT(mojibake.collationCompare(new Uint8Array([0x80]), 'a'), null,
   'collationCompare malformed input');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
+ATT_ASSERT(mojibake.collationKey('\u200B'), mojibake.collationKey(''),
+  'collationKey completely ignorable equals empty');
+ATT_ASSERT(mojibake.collationKey('\u0301', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.PRIMARY), mojibake.collationKey('',
+  CollationVariableWeighting.NON_IGNORABLE, CollationStrength.PRIMARY),
+  'collationKey primary-ignorable accent equals empty');
+ATT_ASSERT(mojibake.collationKey('A', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.SECONDARY), mojibake.collationKey('a',
+  CollationVariableWeighting.NON_IGNORABLE, CollationStrength.SECONDARY),
+  'collationKey secondary ignores case');
 ATT_ASSERT(mojibake.mapCase('hello', CaseType.UPPER)?.output, 'HELLO', 'mapCase');
 ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
   'mapCase casefold uppercase Cherokee');

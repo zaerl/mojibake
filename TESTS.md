@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake run a total of **4,524,971** C assertions and **93** JavaScript assertions, including all
+Mojibake run a total of **4,525,013** C assertions and **108** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -23,7 +23,7 @@ the official tests included in the standard:
 | ------------------------------------------ | ----------- |
 | `mjb_normalize_into`                       | 2824113     |
 | `mjb_bidi_resolve`                         | 582573      |
-| `mjb_collation_compare`                    | 424502      |
+| `mjb_collation_compare`                    | 424529      |
 | `mjb_normalize`                            | 424427      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_nfkc_casefold_into`                   | 74749       |
@@ -46,16 +46,16 @@ the official tests included in the standard:
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_codepoint_info`                       | 82          |
 | `mjb_filter_into`                          | 56          |
+| `mjb_collation_key`                        | 54          |
 | `mjb_confusable_skeleton_into`             | 50          |
 | `mjb_display_width`                        | 49          |
 | `mjb_caseless_match`                       | 45          |
 | `mjb_hangul_syllable_composition`          | 45          |
-| `mjb_collation_key`                        | 41          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_codepoint_east_asian_width`           | 35          |
 | `mjb_normalization_quick_check`            | 34          |
 | `mjb_utf8_grapheme_snprintf`               | 24          |
-| `mjb_collation_key_into`                   | 21          |
+| `mjb_collation_key_into`                   | 23          |
 | `mjb_utf8_snprintf`                        | 21          |
 | `mjb_codepoint_numeric_value`              | 20          |
 | `mjb_confusable_skeleton`                  | 20          |
@@ -119,16 +119,17 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4524971** |
+| **Total**                                  | **4525013** |
 
 ## JavaScript
 
 | Test                                        | Coverage   |
 | ------------------------------------------- | ---------- |
+| `Mojibake.collationCompare`                 | 15         |
 | `Mojibake.caselessMatch`                    | 5          |
+| `Mojibake.collationKey`                     | 4          |
 | `Mojibake.areConfusable`                    | 3          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
-| `Mojibake.collationCompare`                 | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.codepointPropertyInt`             | 2          |
 | `Mojibake.filter`                           | 2          |
@@ -169,7 +170,6 @@ the official tests included in the standard:
 | `Mojibake.codepointPlane`                   | 1          |
 | `Mojibake.codepointScript`                  | 1          |
 | `Mojibake.codepointScriptExtensions`        | 1          |
-| `Mojibake.collationKey`                     | 1          |
 | `Mojibake.confusableSkeleton`               | 1          |
 | `Mojibake.convertEncoding`                  | 1          |
 | `Mojibake.countCodepoints`                  | 1          |
@@ -202,4 +202,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **93**     |
+| **Total**                                   | **108**    |

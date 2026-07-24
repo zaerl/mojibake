@@ -51,6 +51,24 @@ int test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::convert_encoding("\xC3\xA9", MJB_ENC_UTF_8, MJB_ENC_UTF_16LE),
         std::string("\xE9\0", 2), "convert_encoding")
     ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare")
+    ATT_ASSERT(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
+                   mjb::CollationStrength::Secondary),
+        0, "compare secondary ignores case")
+    ATT_ASSERT((int)(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
+                        mjb::CollationStrength::Tertiary) != 0),
+        1, "compare tertiary compares case")
+    ATT_ASSERT(mjb::compare("", "\xE2\x80\x8B"), 0,
+        "compare completely ignorable string with empty")
+    ATT_ASSERT(mjb::compare("\xE2\x80\x8B", ""), 0,
+        "compare completely ignorable string with empty in reverse order")
+    ATT_ASSERT(mjb::compare("", "\xCC\x81",
+                   mjb::CollationVariableWeighting::NonIgnorable,
+                   mjb::CollationStrength::Primary),
+        0, "compare primary-ignorable accent with empty")
+    ATT_ASSERT((int)(mjb::compare("", "\xCC\x81",
+                        mjb::CollationVariableWeighting::NonIgnorable,
+                        mjb::CollationStrength::Secondary) != 0),
+        1, "compare accent with empty at secondary strength")
 
     const std::string already_normalized("plain");
     auto view_result = mjb::normalize_result(already_normalized, mjb::NormalizationForm::NFC);

@@ -883,30 +883,50 @@ enum class CaselessMode {
     return matches;
 }
 
+enum class CollationStrength {
+    Primary = MJB_COLLATION_PRIMARY,
+    Secondary = MJB_COLLATION_SECONDARY,
+    Tertiary = MJB_COLLATION_TERTIARY,
+    Quaternary = MJB_COLLATION_QUATERNARY
+};
+
+enum class CollationVariableWeighting {
+    NonIgnorable = MJB_COLLATION_NON_IGNORABLE,
+    Shifted = MJB_COLLATION_SHIFTED
+};
+
 [[nodiscard]] inline int compare(std::string_view s1, std::string_view s2,
-    mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
-    mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
+    CollationStrength strength = CollationStrength::Tertiary,
+    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
     int order = 0;
     detail::check_status(mjb_collation_compare(s1.data(), s1.size(), s1_encoding, s2.data(),
-                             s2.size(), s2_encoding, mode, &order),
+                             s2.size(), s2_encoding,
+                             static_cast<mjb_collation_variable_weighting>(variable_weighting),
+                             static_cast<mjb_collation_strength>(strength), &order),
         "Collation comparison failed");
 
     return order;
 }
 
 [[nodiscard]] inline TextResult collation_key_result(std::string_view input,
-    mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE, mjb_encoding encoding = MJB_ENC_UTF_8) {
+    CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
+    CollationStrength strength = CollationStrength::Tertiary,
+    mjb_encoding encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_collation_key(input.data(), input.size(), encoding, mode,
-        detail::ResultAccess::out(result));
+    const mjb_status status = mjb_collation_key(input.data(), input.size(), encoding,
+        static_cast<mjb_collation_variable_weighting>(variable_weighting),
+        static_cast<mjb_collation_strength>(strength), detail::ResultAccess::out(result));
 
     return detail::ResultAccess::checked(std::move(result), status,
         "Collation key generation failed");
 }
 
 [[nodiscard]] inline std::string collation_key(std::string_view input,
-    mjb_collation_mode mode = MJB_COLLATION_NON_IGNORABLE, mjb_encoding encoding = MJB_ENC_UTF_8) {
-    return collation_key_result(input, mode, encoding).str();
+    CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
+    CollationStrength strength = CollationStrength::Tertiary,
+    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    return collation_key_result(input, variable_weighting, strength, encoding).str();
 }
 
 struct EmojiSequence {

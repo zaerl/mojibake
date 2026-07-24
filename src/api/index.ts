@@ -252,10 +252,18 @@ export type BidiParagraph = {
 
 // mjb_bidi_run
 
-// mjb_collation_mode
-export enum CollationMode {
+// mjb_collation_variable_weighting
+export enum CollationVariableWeighting {
   NON_IGNORABLE,
   SHIFTED,
+};
+
+// mjb_collation_strength
+export enum CollationStrength {
+  PRIMARY,
+  SECONDARY,
+  TERTIARY,
+  QUATERNARY,
 };
 
 // mjb_caseless_mode
@@ -749,17 +757,20 @@ export class Mojibake {
 
   // mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
   // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-  // mjb_collation_mode mode, int *order)
+  // mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+  // int *order)
   collationCompare(first: MojibakeInput, second: MojibakeInput,
-    mode = CollationMode.NON_IGNORABLE, options: TextInputOptions = {}): number | null {
+    variableWeighting = CollationVariableWeighting.NON_IGNORABLE,
+    strength = CollationStrength.TERTIARY,
+    options: TextInputOptions = {}): number | null {
     const firstInput = this.copyInput(first, options.encoding);
     const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
     const orderPtr = this.malloc(4);
 
     try {
       const status = this.module._mjb_collation_compare(firstInput.ptr, firstInput.size,
-        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode,
-        orderPtr);
+        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding,
+        variableWeighting, strength, orderPtr);
 
       return status === Status.OK ? this.module.HEAP32[orderPtr / 4] : null;
     } finally {
@@ -770,8 +781,11 @@ export class Mojibake {
   }
 
   // mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_collation_mode mode, mjb_result *result)
-  collationKey(input: MojibakeInput, mode = CollationMode.NON_IGNORABLE,
+  // mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+  // mjb_result *result)
+  collationKey(input: MojibakeInput,
+    variableWeighting = CollationVariableWeighting.NON_IGNORABLE,
+    strength = CollationStrength.TERTIARY,
     options: TextInputOptions = {}): Uint8Array | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const resultPtr = this.malloc(24);
@@ -779,7 +793,7 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, mode, resultPtr);
+        wasmInput.encoding, variableWeighting, strength, resultPtr);
 
       if(status !== Status.OK) {
         return null;

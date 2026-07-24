@@ -519,10 +519,18 @@ typedef struct mjb_bidi_run {
 } mjb_bidi_run;
 
 // Collation variable-weighting strategy (UTS #10, Unicode 18.0.0, Section 4)
-typedef enum mjb_collation_mode {
+typedef enum mjb_collation_variable_weighting {
     MJB_COLLATION_NON_IGNORABLE, // variable elements keep their weights unchanged
     MJB_COLLATION_SHIFTED        // variable elements move primary to level 4
-} mjb_collation_mode;
+} mjb_collation_variable_weighting;
+
+// Maximum UCA comparison level (UTS #10, Unicode 18.0.0, Section 3.1).
+typedef enum mjb_collation_strength {
+    MJB_COLLATION_PRIMARY,   // Base-character differences
+    MJB_COLLATION_SECONDARY, // Plus accents; case differences remain ignored
+    MJB_COLLATION_TERTIARY,  // Plus case and other tertiary variants
+    MJB_COLLATION_QUATERNARY // Plus shifted variable elements such as punctuation
+} mjb_collation_strength;
 
 // UAX #31 identifier profile (Unicode 18.0.0)
 typedef enum mjb_identifier_profile {
@@ -606,13 +614,13 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding_into(const char *buffer
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_caseless_mode mode, bool *matches);
 
 // Compare two strings using UCA.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_mode mode, int *order);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, int *order);
 
 // Generate a UCA sort key for a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_result *result);
 
 // Generate a binary collation key into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_mode mode, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, void *output, size_t *output_size);
 
 // Change string case.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result);

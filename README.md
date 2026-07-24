@@ -141,8 +141,9 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Caseless matching**: Unicode default, canonical, compatibility, and identifier
   case-insensitive equality (`mjb_caseless_match`,
   [Unicode 18.0.0 Section 3.13.5](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G34145))
-- **Collation**: Unicode Collation Algorithm string comparison and sort keys, in shifted and
-  non-ignorable modes (`mjb_collation_compare`, `mjb_collation_key`, `mjb_collation_key_into`,
+- **Collation**: Unicode Collation Algorithm string comparison and sort keys, with primary through
+  quaternary strengths and shifted or non-ignorable variable weighting (`mjb_collation_compare`,
+  `mjb_collation_key`, `mjb_collation_key_into`,
   [UTS #10, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html))
 
 **Security**

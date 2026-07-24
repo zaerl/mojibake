@@ -482,7 +482,8 @@ int test_example(void *arg) {
     int order;
 
     if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-        "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, &order) != MJB_STATUS_OK) {
+        "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &order) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_compare test failed") // Added by the script
         return 1;
     }
@@ -499,7 +500,7 @@ int test_example(void *arg) {
     mjb_result key;
 
     if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
-        MJB_COLLATION_NON_IGNORABLE, &key) != MJB_STATUS_OK) {
+        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key test failed") // Added by the script
         return 1;
     }
@@ -518,7 +519,7 @@ int test_example(void *arg) {
     size_t output_size = 0;
 
     if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        NULL, &output_size) != MJB_STATUS_OK) {
+        MJB_COLLATION_TERTIARY, NULL, &output_size) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
         return 1;
     }
@@ -526,7 +527,8 @@ int test_example(void *arg) {
     unsigned char output[64];
 
     if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
-        MJB_COLLATION_NON_IGNORABLE, output, &output_size) != MJB_STATUS_OK) {
+        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
+        &output_size) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
         return 1;
     }
