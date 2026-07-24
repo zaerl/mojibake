@@ -217,7 +217,7 @@ function printCoverage(cCoverage: Coverage, javascriptCoverage: Coverage): void 
   const totalJS = javascriptSection.total.toLocaleString('en-US');
   let output = `# Test coverage
 
-Mojibake run a total of **${total}** C assertions and **${totalJS}** JavaScript assertions, including all
+Mojibake runs a total of **${total}** C assertions and **${totalJS}** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)

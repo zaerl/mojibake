@@ -79,7 +79,7 @@ mjb_filter("Hello", 5, MJB_ENC_UTF_8, MJB_FILTER_SPACES, MJB_ENC_UTF_16LE, &resu
 ```
 
 ### Every string passed is simply a stream of bytes
-Mojibake handle different encodings, so the string you pass can be:
+Mojibake handles different encodings, so the string you pass can be:
 
 1. A stream of bytes (`char`), in UTF-8. The classic C strings
 2. A stream of `uint16_t` in UTF-16LE, UTF-16BE.
@@ -106,7 +106,7 @@ const char hello_16[] = {
     0x00, 0x00,
 };
 
-enc = MJB_ENC_UTF_16LE
+enc = MJB_ENC_UTF_16LE;
 
 // sizeof(uint16_t) is 2
 mjb_normalize(hello_16, 5 * sizeof(uint16_t), enc, MJB_NORMALIZATION_NFC, enc, &result);
