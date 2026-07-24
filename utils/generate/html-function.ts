@@ -441,6 +441,7 @@ export class CFunction implements MojibakeFunction {
         // case 'mjb_realloc_fn':
         // case 'mjb_result *':
         // case 'mjb_script *':
+        // case 'mjb_script_set_kind *':
         case 'mjb_width_context':
           ret += this.getSelectInput(i, widthContexts);
           break;

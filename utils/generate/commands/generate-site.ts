@@ -12,6 +12,7 @@ import { cfns } from '../html-function';
 import { Section } from '../functions';
 import { getVersion, substituteBlock, substituteText } from '../utils';
 import hljs from 'highlight.js/lib/core';
+import { Property } from '../parse-ucd/properties';
 
 const SOURCE_DIR = '../../src/site';
 const BUILD_DIR = '../../build-wasm/src';

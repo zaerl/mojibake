@@ -428,10 +428,18 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
         }
 
-        case 11: // Identifier validation, both profiles
+        case 11: { // Identifier validation and resolved scripts
             mjb_is_identifier(buffer, size, encoding,
                 (variant & 0x10) ? MJB_IDENTIFIER_NFKC : MJB_IDENTIFIER_DEFAULT);
+
+            mjb_script scripts[8];
+            size_t script_count = variant % 9;
+            mjb_script_set_kind kind;
+            fuzz_sink += (size_t)mjb_resolved_script_set(buffer, size, encoding, scripts,
+                &script_count, &kind);
+            fuzz_sink += script_count + (size_t)kind;
             break;
+        }
 
         case 12: { // Confusable skeleton and pairwise detection
             if(mjb_confusable_skeleton(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==

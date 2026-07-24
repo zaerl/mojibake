@@ -4,29 +4,26 @@ This is the Mojibake roadmap. For great justice.
 
 ## Next steps
 
-1. **Resolved script sets**
-   Add `mjb_string_script_set` by combining the `Script_Extensions` sets of every code point. See
-   UTS #39 restriction levels.
-2. **Complete UTS #39 identifier checks**
+1. **Complete UTS #39 identifier checks**
    Generate compact tables from `IdentifierStatus.txt` and `IdentifierType.txt`, then add
    `mjb_identifier_check` and `mjb_string_restriction_level`.
-3. **Detailed validation and decoder iteration**
+2. **Detailed validation and decoder iteration**
    Add `mjb_string_validate`, `mjb_decode_next`, and `mjb_decode_previous`. Use a shared diagnostic
    result with the first failing byte (or code-unit offset?) and a precise malformed-input kind.
-4. **Finish typed UCD access**
+3. **Finish typed UCD access**
    Add typed getters for code-point, code-point-sequence, and string-valued properties. Follow with
    character age, bidi mirror, modern/alias/extended names, and reverse character-name lookup. Is
    this needed?
-5. **Explicit locale operations**
+4. **Explicit locale operations**
    Implement the currently unsupported `mjb_locale_canonicalize` using a pinned IANA Language
    Subtag Registry snapshot.
-6. **UTS #46 IDNA**
+5. **UTS #46 IDNA**
    Implement nontransitional `mjb_idna_to_ascii` and `mjb_idna_to_unicode`, including Punycode,
    STD3, hyphen, bidi, and joiner checks. Validate against the complete `IdnaTestV2.txt` suite.
-7. **Reusable configurable collators**
+6. **Reusable configurable collators**
    Introduce immutable DUCET collator objects that encapsulate strength and variable weighting,
    then add case ordering, numeric collation, and normalization options.
-8. **Streaming processing**
+7. **Streaming processing**
    Add stateful `init`/`feed`/`finish` APIs for decoding and conversion, normalization, casing, and
    segmentation, using caller-kind of API.
 

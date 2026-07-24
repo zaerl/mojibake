@@ -797,6 +797,8 @@ typedef enum mjb_sbp {
 
 /**
  * Script (sc)
+ * Hanb, Jpan, and Kore are UTS #39 writing-system values used in augmented script sets; they are
+ * not values of the Unicode Script property.
  * This enum is automatically generated. Do not edit.
  */
 typedef enum mjb_script {
@@ -980,10 +982,14 @@ typedef enum mjb_script {
     MJB_SC_ZANB,
     MJB_SC_ZINH,
     MJB_SC_ZYYY,
-    MJB_SC_ZZZZ
+    MJB_SC_ZZZZ,
+    MJB_SC_HANB,
+    MJB_SC_JPAN,
+    MJB_SC_KORE
 } mjb_script;
 
-#define MJB_SC_COUNT 181
+#define MJB_SC_PROPERTY_COUNT 181
+#define MJB_SC_COUNT 184
 
 /**
  * Property (pr)

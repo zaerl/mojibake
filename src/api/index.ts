@@ -7,6 +7,7 @@
 import mojibakeModule from './mojibake.js';
 import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
 import type { Locale } from './locales.js';
+import type { Script } from './unicode.js';
 
 export * from './locales.js';
 export * from './unicode.js';
@@ -89,6 +90,18 @@ export enum Status {
   OUTPUT_TOO_SMALL,
   CALLBACK_STOPPED,
   NOT_FOUND,
+};
+
+// mjb_script_set_kind
+export enum ScriptSetKind {
+  EMPTY,
+  RESOLVED,
+  ALL,
+}
+
+export type ResolvedScriptSet = {
+  kind: ScriptSetKind;
+  scripts: Script[];
 };
 
 // mjb_locale_id
@@ -627,6 +640,57 @@ export class Mojibake {
   // mjb_script mjb_codepoint_script(mjb_codepoint codepoint)
   codepointScript(codepoint: Codepoint): number {
     return this.module._mjb_codepoint_script(codepoint);
+  }
+
+  // mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_length,
+  // mjb_encoding encoding, mjb_script *scripts, size_t *count, mjb_script_set_kind *kind)
+  resolvedScriptSet(input: MojibakeInput,
+    options: TextInputOptions = {}): ResolvedScriptSet | null {
+    const wasmInput = this.copyInput(input, options.encoding);
+    const countPtr = this.malloc(4);
+    const kindPtr = this.malloc(4);
+    let scriptsPtr = 0;
+
+    try {
+      this.module.HEAP32[countPtr / 4] = 0;
+      let status = this.module._mjb_resolved_script_set(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, 0, countPtr, kindPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      const count = this.module.HEAP32[countPtr / 4];
+      let kind = this.module.HEAP32[kindPtr / 4] as ScriptSetKind;
+
+      if(count === 0) {
+        return { kind, scripts: [] };
+      }
+
+      scriptsPtr = this.malloc(count * 4);
+      this.module.HEAP32[countPtr / 4] = count;
+      status = this.module._mjb_resolved_script_set(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, scriptsPtr, countPtr, kindPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      kind = this.module.HEAP32[kindPtr / 4] as ScriptSetKind;
+      const scripts = Array.from(
+        this.module.HEAP32.subarray(scriptsPtr / 4, scriptsPtr / 4 + count)
+      ) as Script[];
+
+      return { kind, scripts };
+    } finally {
+      if(scriptsPtr !== 0) {
+        this.free(scriptsPtr);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(countPtr);
+      this.free(kindPtr);
+    }
   }
 
   // mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_length)

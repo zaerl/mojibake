@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake run a total of **4,525,013** C assertions and **108** JavaScript assertions, including all
+Mojibake run a total of **4,525,110** C assertions and **113** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -44,6 +44,7 @@ the official tests included in the standard:
 | `mjb_locale_parse`                         | 121         |
 | `mjb_count_codepoints`                     | 119         |
 | `mjb_codepoint_encode`                     | 106         |
+| `mjb_resolved_script_set`                  | 97          |
 | `mjb_codepoint_info`                       | 82          |
 | `mjb_filter_into`                          | 56          |
 | `mjb_collation_key`                        | 54          |
@@ -119,7 +120,7 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4525013** |
+| **Total**                                  | **4525110** |
 
 ## JavaScript
 
@@ -127,6 +128,7 @@ the official tests included in the standard:
 | ------------------------------------------- | ---------- |
 | `Mojibake.collationCompare`                 | 15         |
 | `Mojibake.caselessMatch`                    | 5          |
+| `Mojibake.resolvedScriptSet`                | 5          |
 | `Mojibake.collationKey`                     | 4          |
 | `Mojibake.areConfusable`                    | 3          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
@@ -202,4 +204,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **108**    |
+| **Total**                                   | **113**    |

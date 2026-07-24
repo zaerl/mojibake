@@ -731,6 +731,8 @@ export enum SentenceBreakProperty {
 };
 
 // mjb_script
+// HANB, JPAN, and KORE are UTS #39 writing-system values used in augmented script sets; they are
+// not values of the Unicode Script property.
 // This enum is automatically generated. Do not edit.
 export enum Script {
   NOT_SET, // 0 is "no value"
@@ -913,7 +915,10 @@ export enum Script {
   ZANB,
   ZINH,
   ZYYY,
-  ZZZZ
+  ZZZZ,
+  HANB,
+  JPAN,
+  KORE
 };
 
 // mjb_property

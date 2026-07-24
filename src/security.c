@@ -10,6 +10,201 @@
 #include "unicode-tables.h"
 #include "utf.h"
 
+#define MJB_SCRIPT_SET_WORD_COUNT ((MJB_SC_COUNT + 63u) / 64u)
+
+typedef struct mjb_script_bits {
+    uint64_t words[MJB_SCRIPT_SET_WORD_COUNT];
+} mjb_script_bits;
+
+static void mjb_script_bits_clear(mjb_script_bits *set) {
+    memset(set, 0, sizeof(*set));
+}
+
+static void mjb_script_bits_fill(mjb_script_bits *set) {
+    memset(set, 0xFF, sizeof(*set));
+    set->words[0] &= ~UINT64_C(1); // MJB_SC_NOT_SET is not a script.
+}
+
+static void mjb_script_bits_add(mjb_script_bits *set, mjb_script script) {
+    size_t value = (size_t)script;
+
+    if(value == (size_t)MJB_SC_NOT_SET || value >= (size_t)MJB_SC_COUNT) {
+        return;
+    }
+
+    set->words[value / 64u] |= UINT64_C(1) << (value % 64u);
+}
+
+static bool mjb_script_bits_contains(const mjb_script_bits *set, mjb_script script) {
+    size_t value = (size_t)script;
+
+    return value > (size_t)MJB_SC_NOT_SET && value < (size_t)MJB_SC_COUNT &&
+        (set->words[value / 64u] & (UINT64_C(1) << (value % 64u))) != 0;
+}
+
+static void mjb_script_bits_intersect(mjb_script_bits *set, const mjb_script_bits *other) {
+    for(size_t i = 0; i < MJB_SCRIPT_SET_WORD_COUNT; ++i) {
+        set->words[i] &= other->words[i];
+    }
+}
+
+static size_t mjb_script_bits_count(const mjb_script_bits *set) {
+    size_t count = 0;
+
+    for(size_t script = (size_t)MJB_SC_NOT_SET + 1u; script < (size_t)MJB_SC_COUNT; ++script) {
+        if(mjb_script_bits_contains(set, (mjb_script)script)) {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
+static void mjb_script_bits_augment(mjb_script_bits *set) {
+    if(mjb_script_bits_contains(set, MJB_SC_HANI)) {
+        mjb_script_bits_add(set, MJB_SC_HANB);
+        mjb_script_bits_add(set, MJB_SC_JPAN);
+        mjb_script_bits_add(set, MJB_SC_KORE);
+    }
+
+    if(mjb_script_bits_contains(set, MJB_SC_HIRA) || mjb_script_bits_contains(set, MJB_SC_KANA)) {
+        mjb_script_bits_add(set, MJB_SC_JPAN);
+    }
+
+    if(mjb_script_bits_contains(set, MJB_SC_HANG)) {
+        mjb_script_bits_add(set, MJB_SC_KORE);
+    }
+
+    if(mjb_script_bits_contains(set, MJB_SC_BOPO)) {
+        mjb_script_bits_add(set, MJB_SC_HANB);
+    }
+}
+
+MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_script *scripts, size_t *count, mjb_script_set_kind *kind) {
+    if(count == NULL || kind == NULL) {
+        if(count != NULL) {
+            *count = 0;
+        }
+
+        if(kind != NULL) {
+            *kind = MJB_SCRIPT_SET_EMPTY;
+        }
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    size_t capacity = scripts == NULL ? 0 : *count;
+    *count = 0;
+    *kind = MJB_SCRIPT_SET_EMPTY;
+
+    if(buffer == NULL && byte_length > 0) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    mjb_script_bits resolved;
+    mjb_script_bits_fill(&resolved);
+    bool is_all = true;
+    uint8_t state = MJB_UTF_ACCEPT;
+    bool in_error = false;
+    mjb_codepoint codepoint;
+
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
+            encoding, &codepoint, &in_error);
+
+        if(decode_status == MJB_DECODE_END) {
+            break;
+        }
+
+        if(decode_status == MJB_DECODE_INCOMPLETE) {
+            continue;
+        }
+
+        if(decode_status == MJB_DECODE_ERROR) {
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        const uint8_t *values = NULL;
+        uint8_t value_count = 0;
+        uint8_t fallback = (uint8_t)mjb_codepoint_script(codepoint);
+
+        if(!mjb_unicode_script_extensions_lookup(codepoint, &values, &value_count)) {
+            values = &fallback;
+            value_count = 1;
+        }
+
+        bool character_is_all = false;
+
+        for(uint8_t j = 0; j < value_count; ++j) {
+            if(values[j] == MJB_SC_ZYYY || values[j] == MJB_SC_ZINH) {
+                character_is_all = true;
+                break;
+            }
+        }
+
+        if(character_is_all) {
+            continue;
+        }
+
+        mjb_script_bits character;
+        mjb_script_bits_clear(&character);
+
+        for(uint8_t j = 0; j < value_count; ++j) {
+            mjb_script_bits_add(&character, (mjb_script)values[j]);
+        }
+
+        mjb_script_bits_augment(&character);
+        mjb_script_bits_intersect(&resolved, &character);
+        is_all = false;
+    }
+
+    if(is_all) {
+        *kind = MJB_SCRIPT_SET_ALL;
+
+        return MJB_STATUS_OK;
+    }
+
+    size_t required = mjb_script_bits_count(&resolved);
+    *count = required;
+
+    if(required == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    *kind = MJB_SCRIPT_SET_RESOLVED;
+
+    if(scripts == NULL) {
+        return MJB_STATUS_OK;
+    }
+
+    if(capacity < required) {
+        return MJB_STATUS_OUTPUT_TOO_SMALL;
+    }
+
+    size_t output = 0;
+
+    for(size_t script = (size_t)MJB_SC_NOT_SET + 1u; script < (size_t)MJB_SC_COUNT; ++script) {
+        if(mjb_script_bits_contains(&resolved, (mjb_script)script)) {
+            scripts[output++] = (mjb_script)script;
+        }
+    }
+
+    return MJB_STATUS_OK;
+}
+
 // Compute the Unicode security skeleton of a string (UTS#39 §4).
 // Algorithm: NFD(input) -> remove default-ignorables -> per-codepoint substitution -> NFD.
 static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte_length,

@@ -31,6 +31,26 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT((int)script_extensions[0], MJB_SC_HIRA, "C++ Script_Extensions Hiragana")
     ATT_ASSERT((int)script_extensions[1], MJB_SC_KANA, "C++ Script_Extensions Katakana")
 
+    const auto resolved_latin = mjb::resolved_script_set("hello123!");
+    ATT_ASSERT((int)resolved_latin.kind, MJB_SCRIPT_SET_RESOLVED,
+        "C++ resolved script set kind")
+    ATT_ASSERT(resolved_latin.scripts.size(), 1u, "C++ resolved script count")
+    ATT_ASSERT((int)resolved_latin.scripts[0], MJB_SC_LATN, "C++ resolved Latin script")
+
+    const auto resolved_mixed = mjb::resolved_script_set("h\xD0\xB5llo");
+    ATT_ASSERT(resolved_mixed.is_mixed_script(), true, "C++ mixed script set")
+    ATT_ASSERT(resolved_mixed.scripts.empty(), true, "C++ mixed script set has no scripts")
+
+    const auto resolved_all = mjb::resolved_script_set("123!");
+    ATT_ASSERT(resolved_all.is_all(), true, "C++ Common-only script set is ALL")
+
+    const auto resolved_japanese = mjb::resolved_script_set("\xE3\x81\xAD\xE3\x82\xAC");
+    ATT_ASSERT((int)resolved_japanese.kind, MJB_SCRIPT_SET_RESOLVED,
+        "C++ Japanese script set kind")
+    ATT_ASSERT(resolved_japanese.scripts.size(), 1u, "C++ Japanese script count")
+    ATT_ASSERT((int)resolved_japanese.scripts[0], MJB_SC_JPAN,
+        "C++ Japanese writing system")
+
     // U+1F642 = 🙂
     auto character = mjb::Character((mjb_codepoint)0x1F642);
     // U+1F643 = 🙃

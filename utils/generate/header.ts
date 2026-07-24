@@ -56,7 +56,7 @@ function getPropertyTypes(properties: Property[]) {
   }).join('\n');
 }
 
-function getScriptEnumNames(properties: { [key: string]: number }, wasm = false) {
+function getScriptEnumNames(properties: { [key: string]: number }, fn: (name: string) => string) {
   const propertyEnums: string[] = [];
 
   /*
@@ -73,7 +73,7 @@ function getScriptEnumNames(properties: { [key: string]: number }, wasm = false)
       continue;
     }
 
-    propertyEnums.push(`${wasm ? '  ' : '    MJB_SC_'}${key.toUpperCase()}`);
+    propertyEnums.push(fn(key));
     previousValue = properties[key];
   }
 
@@ -125,6 +125,7 @@ function getBidiMirroringInfo(pairs: BidiMirroringPair[]) {
 export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[], bidiMirroring: BidiMirroringPair[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
   let fileWASMContent = readFileSync('../../src/api/unicode.ts', 'utf-8');
+  let fileHTMLContent = readFileSync('../../src/site/index.html', 'utf-8');
 
   // Fill unicode.h mjb_block.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
@@ -153,13 +154,35 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   if(scriptProperty) {
     // Fill unicode.h mjb_script.
-    let scriptEnumNames = getScriptEnumNames(scriptProperty.values);
+    const scriptPropertyEnumNames = getScriptEnumNames(scriptProperty.values, key => `    MJB_SC_${key.toUpperCase()}`);
+    let scriptEnumNames = [
+      ...scriptPropertyEnumNames,
+      '    MJB_SC_HANB',
+      '    MJB_SC_JPAN',
+      '    MJB_SC_KORE'
+    ];
     fileContent = substituteBlock(fileContent, "  MJB_SC_NOT_SET, // 0 is \"no value\"\n", "\n} mjb_script;", scriptEnumNames.join(',\n'));
+    fileContent = substituteBlock(fileContent, '#define MJB_SC_PROPERTY_COUNT ', "\n", '' + (scriptPropertyEnumNames.length + 1));
     fileContent = substituteBlock(fileContent, '#define MJB_SC_COUNT ', "\n", '' + (scriptEnumNames.length + 1));
 
     // Fill unicode.ts Script.
-    scriptEnumNames = getScriptEnumNames(scriptProperty.values, true);
+    scriptEnumNames = [
+      ...getScriptEnumNames(scriptProperty.values, key => `  ${key.toUpperCase()}`),
+      '  HANB',
+      '  JPAN',
+      '  KORE'
+    ];
     fileWASMContent = substituteBlock(fileWASMContent, "export enum Script {\n  NOT_SET, // 0 is \"no value\"\n", "\n};", scriptEnumNames.join(',\n'));
+
+    // Fill index.html Script.
+    scriptEnumNames = [
+      '            "Not set"',
+      ...getScriptEnumNames(scriptProperty.values, key => `            "${key}"`),
+      '            "Hanb"',
+      '            "Jpan"',
+      '            "Kore"'
+    ];
+    fileHTMLContent = substituteBlock(fileHTMLContent, "const scripts = [\n", "];", scriptEnumNames.join(',\n') + '\n        ');
   }
 
   let boolCount = properties.reduce((previousValue, currentValue) => previousValue + (currentValue.bool ? 1 : 0), 0);
@@ -196,4 +219,5 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   writeFileSync('../../src/bidi.c', fileContent);
   writeFileSync('../../src/api/unicode.ts', fileWASMContent);
+  writeFileSync('../../src/site/index.html', fileHTMLContent);
 }
