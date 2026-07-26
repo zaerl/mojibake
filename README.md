@@ -249,7 +249,7 @@ invoking a C or C++ compiler directly, define the corresponding preprocessor mac
 
 - `MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
   `mjb_codepoint_info(...)` to fill `mjb_character.name`. When disabled, the tables are not
-  compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will redude the output
+  compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will reduce the output
   of ~30%.
 - `MJB_FEATURE_IDNA` controls the UTS #46 implementation, Punycode implementation, and IDNA
   mapping tables. The `mjb_idna_*` functions return `MJB_STATUS_FEATURE_NOT_ENABLED` when support is
