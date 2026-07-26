@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `MJB_FEATURE_COLLATION` to compile out Unicode collation support and DUCET tables
 - Added `MJB_FEATURE_IDNA` to compile out IDNA and Punycode implementations and mapping tables
+- Added `MJB_FEATURE_SECURITY` to compile out UTS #39 security support and confusable mapping tables
 
 ## [0.3.3] - 2026-07-22
 

@@ -129,6 +129,7 @@ int test_cpp_normalization(void *arg) {
 
     ATT_ASSERT(caught, true, "caseless_match preserves malformed-input status")
 
+#if MJB_FEATURE_SECURITY
     caught = false;
 
     try {
@@ -138,6 +139,7 @@ int test_cpp_normalization(void *arg) {
     }
 
     ATT_ASSERT(caught, true, "is_confusable preserves malformed-input status")
+#endif
 
     return 0;
 }

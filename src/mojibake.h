@@ -74,6 +74,10 @@ extern "C" {
     #define MJB_FEATURE_IDNA 1
 #endif
 
+#ifndef MJB_FEATURE_SECURITY
+    #define MJB_FEATURE_SECURITY 1
+#endif
+
 // Library configuration macros
 #ifndef MJB_EXTERN
     #define MJB_EXTERN extern
