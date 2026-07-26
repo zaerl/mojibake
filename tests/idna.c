@@ -261,8 +261,8 @@ static void test_idna_api(void) {
         "IDNA ToUnicode decodes Punycode")
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA ToUnicode result frees")
 
-    const char utf16le[] = { 'b', 0, '\xFC', 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'd', 0,
-        'e', 0 };
+    const char utf16le[] = { 'b', 0, '\xFC', 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'd', 0, 'e',
+        0 };
     ATT_ASSERT_STATUS(mjb_idna_to_unicode(ascii, strlen(ascii), MJB_ENC_ASCII,
                           MJB_ENC_UTF_16LE, &info, &result),
         MJB_STATUS_OK, "IDNA ToUnicode converts its output encoding")
