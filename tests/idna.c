@@ -261,7 +261,7 @@ static void test_idna_api(void) {
         "IDNA ToUnicode decodes Punycode")
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA ToUnicode result frees")
 
-    const char utf16le[] = { 'b', 0, (char)0xFC, 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'd', 0,
+    const char utf16le[] = { 'b', 0, '\xFC', 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'd', 0,
         'e', 0 };
     ATT_ASSERT_STATUS(mjb_idna_to_unicode(ascii, strlen(ascii), MJB_ENC_ASCII,
                           MJB_ENC_UTF_16LE, &info, &result),
@@ -319,11 +319,11 @@ static void test_idna_api(void) {
         "IDNA reports an embedded NUL as a STD3 violation")
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA embedded-NUL result frees")
 
-    const char malformed[] = { (char)0xC3 };
+    const char malformed[] = { '\xC3' };
     ATT_ASSERT_STATUS(mjb_idna_to_unicode(malformed, sizeof(malformed), MJB_ENC_UTF_8,
                           MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_MALFORMED_INPUT, "IDNA rejects malformed UTF-8")
-    const char non_ascii[] = { (char)0xC3, (char)0xBC };
+    const char non_ascii[] = { '\xC3', '\xBC' };
     ATT_ASSERT_STATUS(mjb_idna_to_unicode(non_ascii, sizeof(non_ascii), MJB_ENC_ASCII,
                           MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_MALFORMED_INPUT, "IDNA rejects non-ASCII input declared as ASCII")
