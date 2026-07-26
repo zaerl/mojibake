@@ -56,6 +56,8 @@ export type MojibakeFunction = {
   returns?: MojibakeReturnCase[];
   // Compilable C example. See utils/generate/generate-examples.ts
   example?: string;
+  // Preprocessor feature required to compile and run the example.
+  exampleFeature?: string;
   // Names of related public functions.
   related?: string[];
   // Unicode specifications implemented or referenced by the function.
@@ -185,7 +187,7 @@ export default [
     details: 'Fill `character` with the Unicode Character Database record of a codepoint: name, ' +
       'category, combining class, bidirectional category, decomposition, numeric values, ' +
       'mirrored flag, and simple case mappings. When the library is compiled with ' +
-      '`MJB_FEATURE_CHARACTER_NAMES=OFF` the name field is reported as `Codepoint U+XXXX`.',
+      '`MJB_FEATURE_CHARACTER_NAMES=0` the name field is reported as `Codepoint U+XXXX`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The character was found and filled' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`character` is NULL or the codepoint is not valid' },
@@ -583,10 +585,12 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
     ],
     wasm: true,
     section: Section.TextTransformation,
+    exampleFeature: 'MJB_FEATURE_IDNA',
     details: 'Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, ' +
       'label-length, and domain-length checks enabled. Non-ASCII labels are encoded with ' +
       'Punycode. A successful operational status can still set `info->errors`; an errored ' +
-      'ToASCII result must not be used for DNS lookup.',
+      'ToASCII result must not be used for DNS lookup. If `MJB_FEATURE_IDNA=0` the function ' +
+      'always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'Processing completed; inspect `info->errors` for validation failures' },
@@ -598,7 +602,9 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The requested output encoding cannot represent the result' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
-      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
     example: `const char *domain = "b\\xC3\\xBC" "cher.de";
 mjb_idna_info info;
@@ -650,7 +656,8 @@ mjb_result_free(&result);`,
     section: Section.TextTransformation,
     details: 'Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` ' +
       'to NULL to query the required byte count. No bytes are written if capacity is ' +
-      'insufficient. Processing uses temporary allocations even during a size query.',
+      'insufficient. Processing uses temporary allocations even during a size query. If ' +
+      '`MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the ASCII domain was written' },
@@ -664,7 +671,9 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'A temporary allocation failed' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
-        'The output capacity is smaller than the required byte count' }
+        'The output capacity is smaller than the required byte count' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
     related: ['mjb_idna_to_ascii', 'mjb_idna_to_unicode',
       'mjb_idna_to_unicode_into'],
@@ -690,9 +699,11 @@ mjb_result_free(&result);`,
     ],
     wasm: true,
     section: Section.TextTransformation,
+    exampleFeature: 'MJB_FEATURE_IDNA',
     details: 'Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The ' +
       'function returns its best-effort converted string even when `info->errors` records a ' +
-      'validation problem.',
+      'validation problem. If `MJB_FEATURE_IDNA=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'Processing completed; inspect `info->errors` for validation failures' },
@@ -704,7 +715,9 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The requested output encoding cannot represent the result' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
-      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
     example: `const char *domain = "xn--bcher-kva.de";
 mjb_idna_info info;
@@ -756,7 +769,8 @@ mjb_result_free(&result);`,
     section: Section.TextTransformation,
     details: 'Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set ' +
       '`output` to NULL to query the required byte count. No bytes are written if capacity is ' +
-      'insufficient. Processing uses temporary allocations even during a size query.',
+      'insufficient. Processing uses temporary allocations even during a size query. If ' +
+      '`MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the Unicode domain was written' },
@@ -770,7 +784,9 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'A temporary allocation failed' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
-        'The output capacity is smaller than the required byte count' }
+        'The output capacity is smaller than the required byte count' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
     related: ['mjb_idna_to_unicode', 'mjb_idna_to_ascii',
       'mjb_idna_to_ascii_into'],

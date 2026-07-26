@@ -24,6 +24,7 @@ typedef struct mjb_unicode_case_mapping {
 
 typedef uint32_t mjb_unicode_collation_contraction_entry;
 
+#if MJB_FEATURE_IDNA
 typedef enum mjb_unicode_idna_status {
     MJB_UNICODE_IDNA_DISALLOWED,
     MJB_UNICODE_IDNA_VALID,
@@ -31,6 +32,7 @@ typedef enum mjb_unicode_idna_status {
     MJB_UNICODE_IDNA_MAPPED,
     MJB_UNICODE_IDNA_DEVIATION
 } mjb_unicode_idna_status;
+#endif
 
 bool mjb_unicode_block_lookup(mjb_codepoint codepoint, mjb_block_info *block);
 bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_size);
@@ -54,8 +56,10 @@ bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoin
 bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value);
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
+#if MJB_FEATURE_IDNA
 bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
     const mjb_codepoint **mapping, uint8_t *length);
+#endif
 bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights);
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset);

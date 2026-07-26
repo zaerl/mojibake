@@ -9,6 +9,8 @@
 
 #include "punycode.h"
 
+#if MJB_FEATURE_IDNA
+
 #define MJB_PUNYCODE_BASE UINT64_C(36)
 #define MJB_PUNYCODE_TMIN UINT64_C(1)
 #define MJB_PUNYCODE_TMAX UINT64_C(26)
@@ -300,3 +302,5 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
 
     return MJB_STATUS_OK;
 }
+
+#endif // MJB_FEATURE_IDNA

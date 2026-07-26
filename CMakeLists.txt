@@ -29,8 +29,11 @@ option(MJB_USE_ASAN "Enable AddressSanitizer for Mojibake targets" OFF)
 option(MJB_USE_UBSAN "Enable UndefinedBehaviorSanitizer for Mojibake targets" OFF)
 option(MJB_BUILD_CLI "Build the Mojibake command-line interface" ${PROJECT_IS_TOP_LEVEL})
 option(MJB_BUILD_TESTS "Build Mojibake tests" ${PROJECT_IS_TOP_LEVEL})
-option(MJB_FEATURE_CHARACTER_NAMES "Compile Unicode character name lookup tables" ON)
 option(MJB_INSTALL "Generate Mojibake installation rules" ${PROJECT_IS_TOP_LEVEL})
+
+# Features
+option(MJB_FEATURE_CHARACTER_NAMES "Compile Unicode character name lookup tables" ON)
+option(MJB_FEATURE_IDNA "Compile IDNA support and Unicode mapping tables" ON)
 
 option(BUILD_SHARED_LIBS "Build libraries as shared libraries" OFF)
 

@@ -3,17 +3,20 @@
 # This file is distributed under the MIT License. See LICENSE for details.
 
 BUILD_DIR ?= build
+
 # Build directories
 CPP_BUILD_DIR ?= $(BUILD_DIR)-cpp
 SHARED_BUILD_DIR ?= $(BUILD_DIR)-shared
 ASAN_BUILD_DIR ?= $(BUILD_DIR)-asan
 UBSAN_BUILD_DIR ?= $(BUILD_DIR)-ubsan
+
 # Build test directories
 TEST_BUILD_DIR ?= $(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR ?= $(BUILD_DIR)-test-cpp
 TEST_ASAN_BUILD_DIR ?= $(BUILD_DIR)-test-asan
 TEST_UBSAN_BUILD_DIR ?= $(BUILD_DIR)-test-ubsan
 TEST_NO_NAMES_BUILD_DIR ?= $(BUILD_DIR)-test-no-names
+TEST_NO_IDNA_BUILD_DIR ?= $(BUILD_DIR)-test-no-idna
 
 # WASM and amalgamation build directories
 WASM_BUILD_DIR ?= build-wasm
@@ -22,9 +25,15 @@ AMALGAMATION_BUILD_DIR ?= build-amalgamation
 # CMake build flags
 BUILD_TYPE ?= Release
 TEST_BUILD_TYPE ?= Test
+
+# Feature flags
 FEATURE_CHARACTER_NAMES ?= ON
-CMAKE_NATIVE_BASE_FLAGS = -DMJB_BUILD_WASM=OFF \
-	-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES)
+FEATURE_IDNA ?= ON
+
+CMAKE_FEATURE_FLAGS = \
+	-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES) \
+	-DMJB_FEATURE_IDNA=$(FEATURE_IDNA)
+CMAKE_NATIVE_BASE_FLAGS = -DMJB_BUILD_WASM=OFF $(CMAKE_FEATURE_FLAGS)
 NATIVE_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 CPP_CMAKE_FLAGS = -DMJB_BUILD_CPP=ON -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
@@ -36,7 +45,7 @@ ASAN_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BA
 UBSAN_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=ON
 WASM_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF -DMJB_BUILD_WASM=ON \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF $(CMAKE_FEATURE_FLAGS)
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
@@ -166,7 +175,7 @@ lint:
 	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
 
-.PHONY: test test-all test-cpp test-asan test-ubsan test-no-names test-wasm ctest \
+.PHONY: test test-all test-cpp test-asan test-ubsan test-no-names test-no-idna test-wasm ctest \
 	ctest-cpp test-docker
 
 # Run tests
@@ -178,6 +187,9 @@ test: $(UNICODE_DATA)
 # Run tests without Unicode character name tables
 test-no-names:
 	$(MAKE) test TEST_BUILD_DIR=$(TEST_NO_NAMES_BUILD_DIR) FEATURE_CHARACTER_NAMES=OFF ARGS="$(ARGS)"
+
+test-no-idna:
+	$(MAKE) test TEST_BUILD_DIR=$(TEST_NO_IDNA_BUILD_DIR) FEATURE_IDNA=OFF ARGS="$(ARGS)"
 
 # Run tests with C++ compiler
 test-cpp: $(UNICODE_DATA)
@@ -208,6 +220,7 @@ test-all:
 	$(MAKE) test-asan
 	$(MAKE) test-ubsan
 	$(MAKE) test-no-names
+	$(MAKE) test-no-idna
 
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
@@ -245,7 +258,7 @@ clean-build:
 clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
 		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
-		$(TEST_UBSAN_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR)
+		$(TEST_UBSAN_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR) $(TEST_NO_IDNA_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
@@ -289,6 +302,7 @@ help:
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-docker             - Build and run tests in Docker container"
 	@echo "  test-no-names           - Build and run tests without Unicode character names"
+	@echo "  test-no-idna            - Build and run tests with IDNA feature disabled"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  test-wasm               - Run WASM Node and browser API tests"
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"

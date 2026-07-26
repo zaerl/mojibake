@@ -49,13 +49,17 @@ function exampleSource(fn: MojibakeFunction): string {
   const generated = output.map(
     line => line.length ? `    ${line}` : ''
   ).join('\n');
+  const featureStart = fn.exampleFeature ? `#if ${fn.exampleFeature}\n` : '';
+  const featureEnd = fn.exampleFeature ? `#endif // ${fn.exampleFeature}\n` : '';
 
   return `
+${featureStart}\
 {
     // Example for ${fn.name}
     MJB_TEST_COVERAGE(${fn.name}); // Added by the script
 ${generated}
 }
+${featureEnd}\
 `;
 }
 

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `_into(...)` function alternatives to use a user-provided buffer to store results
 - Added `mjb_utf8_snprintf`, `mjb_utf8_vsnprintf`, a `snprintf` that does not break encoding
 - Added `mjb_utf8_grapheme_snprintf`, `mjb_utf8_grapheme_vsnprintf` that do not break graphemes
+- Added `MJB_FEATURE_IDNA` to compile out IDNA and Punycode implementations and mapping tables
 - New API documentation
 
 ### Changed

@@ -61,10 +61,16 @@ extern "C" {
 // Use an encoding-aware NUL code unit to determine an input string's byte length.
 #define MJB_NUL_TERMINATED SIZE_MAX
 
+// Feature flags. Use numeric 0 or 1 when defining these macros directly.
 #ifndef MJB_FEATURE_CHARACTER_NAMES
     #define MJB_FEATURE_CHARACTER_NAMES 1
 #endif
 
+#ifndef MJB_FEATURE_IDNA
+    #define MJB_FEATURE_IDNA 1
+#endif
+
+// Library configuration macros
 #ifndef MJB_EXTERN
     #define MJB_EXTERN extern
 #endif
@@ -293,7 +299,8 @@ typedef enum mjb_status {
     MJB_STATUS_MALFORMED_INPUT,
     MJB_STATUS_OUTPUT_TOO_SMALL,
     MJB_STATUS_CALLBACK_STOPPED,
-    MJB_STATUS_NOT_FOUND
+    MJB_STATUS_NOT_FOUND,
+    MJB_STATUS_FEATURE_NOT_ENABLED
 } mjb_status;
 
 typedef struct mjb_locale_id {

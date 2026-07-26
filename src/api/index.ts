@@ -90,6 +90,7 @@ export enum Status {
   OUTPUT_TOO_SMALL,
   CALLBACK_STOPPED,
   NOT_FOUND,
+  FEATURE_NOT_ENABLED,
 };
 
 // mjb_idna_error

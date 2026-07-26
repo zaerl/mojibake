@@ -99,6 +99,7 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::confusable_skeleton("h\xD0\xB5llo"), std::string("hello"),
         "confusable_skeleton")
 
+#if MJB_FEATURE_IDNA
     const auto idna_ascii = mjb::idna_to_ascii("b\xC3\xBC"
                                                "cher.de");
     ATT_ASSERT(idna_ascii.valid(), true, "C++ IDNA ToASCII valid")
@@ -114,6 +115,17 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(idna_invalid.valid(), false, "C++ IDNA reports invalid domain")
     ATT_ASSERT(idna_invalid.has_error(MJB_IDNA_ERROR_EMPTY_LABEL), true,
         "C++ IDNA exposes error flags")
+#else
+    bool idna_disabled = false;
+
+    try {
+        (void)mjb::idna_to_ascii("example.com");
+    } catch(const mjb::LibraryError &error) {
+        idna_disabled = error.status() == MJB_STATUS_FEATURE_NOT_ENABLED;
+    }
+
+    ATT_ASSERT(idna_disabled, true, "C++ disabled IDNA reports feature status")
+#endif
 
     // NumericValue and codepoint_numeric_value
     // U+0031 = '1'

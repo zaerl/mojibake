@@ -413,7 +413,7 @@ mjb_status mjb_codepoint_info(
 );
 ```
 
-Fill `character` with the Unicode Character Database record of a codepoint: name, category, combining class, bidirectional category, decomposition, numeric values, mirrored flag, and simple case mappings. When the library is compiled with `MJB_FEATURE_CHARACTER_NAMES=OFF` the name field is reported as `Codepoint U+XXXX`.
+Fill `character` with the Unicode Character Database record of a codepoint: name, category, combining class, bidirectional category, decomposition, numeric values, mirrored flag, and simple case mappings. When the library is compiled with `MJB_FEATURE_CHARACTER_NAMES=0` the name field is reported as `Codepoint U+XXXX`.
 
 - `codepoint` - The codepoint to check
 - `character` - The character to store the result
@@ -797,7 +797,7 @@ mjb_status mjb_idna_to_ascii(
 );
 ```
 
-Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, label-length, and domain-length checks enabled. Non-ASCII labels are encoded with Punycode. A successful operational status can still set `info->errors`; an errored ToASCII result must not be used for DNS lookup.
+Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, label-length, and domain-length checks enabled. Non-ASCII labels are encoded with Punycode. A successful operational status can still set `info->errors`; an errored ToASCII result must not be used for DNS lookup. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The domain name to process
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -815,6 +815,7 @@ Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, 
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
 - `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
 
 **Example**
 
@@ -853,7 +854,7 @@ mjb_status mjb_idna_to_ascii_into(
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query.
+Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The domain name to process
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -873,6 +874,7 @@ Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `outpu
 - `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
 - `MJB_STATUS_NO_MEMORY` - A temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
 
 See also: [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
 
@@ -893,7 +895,7 @@ mjb_status mjb_idna_to_unicode(
 );
 ```
 
-Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The function returns its best-effort converted string even when `info->errors` records a validation problem.
+Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The function returns its best-effort converted string even when `info->errors` records a validation problem. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The domain name to process
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -911,6 +913,7 @@ Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The fun
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
 - `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
 
 **Example**
 
@@ -949,7 +952,7 @@ mjb_status mjb_idna_to_unicode_into(
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query.
+Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The domain name to process
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -969,6 +972,7 @@ Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `out
 - `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
 - `MJB_STATUS_NO_MEMORY` - A temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
 
 See also: [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
 

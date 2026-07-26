@@ -18977,6 +18977,7 @@ static const uint16_t mjb_unicode_emoji_sequence_children[] = {
 };
 
 
+#if MJB_FEATURE_IDNA
 typedef uint64_t mjb_unicode_idna_range;
 
 static const mjb_codepoint mjb_unicode_idna_mapping_data[] = {
@@ -22539,6 +22540,7 @@ static const mjb_unicode_idna_range mjb_unicode_idna_ranges[] = {
     0x00001FFFAF0000ULL, 0x000000002FFFFEULL, 0x00001FFFB00000ULL, 0x0000000030FFFEULL,
 };
 
+#endif // MJB_FEATURE_IDNA
 typedef uint32_t mjb_unicode_property_range;
 
 static const uint8_t mjb_unicode_property_data[] = {

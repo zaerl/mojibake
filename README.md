@@ -231,7 +231,7 @@ Mojibake is embedded. They can be controlled with:
 3. `MJB_INSTALL`
 
 Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_USE_ASAN`,
-`MJB_USE_UBSAN`, and `MJB_FEATURE_CHARACTER_NAMES`.
+`MJB_USE_UBSAN`, `MJB_FEATURE_CHARACTER_NAMES`, and `MJB_FEATURE_IDNA`.
 
 Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 
@@ -242,26 +242,41 @@ Mojibake also has a tiny C++ wrapper. Check here for details:
 
 ### Build-time features
 
-Mojibake can compile out optional feature tables to reduce binary size. Feature macros default to
-enabled.
+Mojibake can compile out optional implementations and tables to reduce binary size. Features
+default to enabled. CMake and the root Makefiles use the boolean values `ON` and `OFF`; when
+invoking a C or C++ compiler directly, define the corresponding preprocessor macros as numeric
+`1` or `0`.
 
-- `#define MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
-`mjb_codepoint_info(...)` to fill `mjb_character.name`. When disabled, the tables are not
-compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will redude the output
-of **~30%**.
+- `MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
+  `mjb_codepoint_info(...)` to fill `mjb_character.name`. When disabled, the tables are not
+  compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will reduce the output
+  of ~30%.
+- `MJB_FEATURE_IDNA` controls the UTS #46 implementation, Punycode implementation, and IDNA
+  mapping tables. The `mjb_idna_*` functions return `MJB_STATUS_FEATURE_NOT_ENABLED` when support is
+  disabled.
 
 With CMake:
 
 ```bash
-cmake -S . -B build-no-name -DMJB_FEATURE_CHARACTER_NAMES=OFF
-cmake --build build-no-name
+cmake -S . -B build-minimal \
+  -DMJB_FEATURE_CHARACTER_NAMES=OFF \
+  -DMJB_FEATURE_IDNA=OFF
+cmake --build build-minimal
 ```
 
 With the provided Makefile:
 
 ```bash
-make build BUILD_DIR=build-no-name FEATURE_CHARACTER_NAMES=OFF
+make build BUILD_DIR=build-minimal FEATURE_CHARACTER_NAMES=OFF FEATURE_IDNA=OFF
 make test-no-names
+make test-no-idna
+```
+
+When compiling the amalgamation directly:
+
+```bash
+cc -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_IDNA=0 \
+  example.c mojibake.c -o example
 ```
 
 ### API documentation
