@@ -1413,6 +1413,7 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.SortingComparison,
+    exampleFeature: 'MJB_FEATURE_COLLATION',
     details: 'Compare two strings using the Unicode Collation Algorithm and the default ' +
       'collation element table (DUCET), with `strcmp`-style semantics. Primary strength compares ' +
       'base-character weights. Secondary strength also compares accents while ignoring tertiary ' +
@@ -1422,7 +1423,8 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
       'at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when ' +
       'case-insensitive equality is the intended operation. See ' +
       '[Unicode collation](#unicode-collation) for the comparison process and configuration ' +
-      'guidance.',
+      'guidance. If `MJB_FEATURE_COLLATION=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`order` is negative, zero, or positive according to the collation order' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
@@ -1430,7 +1432,9 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
-      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
     example: `int order;
 
@@ -1472,11 +1476,14 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.SortingComparison,
+    exampleFeature: 'MJB_FEATURE_COLLATION',
     details: 'Generate a binary sort key for a string. Sort keys of different strings can be ' +
       'compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use ' +
       'the same variable weighting and strength. Useful when the same strings are compared many ' +
       'times, such as sorting or database indexing. Empty input and non-empty input with no ' +
-      'effective weights at the selected strength both produce a zero-length key.',
+      'effective weights at the selected strength both produce a zero-length key. If ' +
+      '`MJB_FEATURE_COLLATION=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The sort key was generated' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
@@ -1487,7 +1494,9 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The sort key size would overflow' },
-      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
     example: `mjb_result key;
 
@@ -1541,6 +1550,7 @@ mjb_result_free(&key);`,
     ],
     wasm: false,
     section: Section.SortingComparison,
+    exampleFeature: 'MJB_FEATURE_COLLATION',
     details: 'Generate the same binary sort key as `mjb_collation_key` without allocating the ' +
       'final key buffer. Set `output` to NULL to query the required byte count. If `output` is ' +
       'non-NULL, `*output_size` supplies its capacity; on return it contains the required size ' +
@@ -1548,7 +1558,8 @@ mjb_result_free(&key);`,
       'no terminator is included or written, and no bytes are written when capacity is ' +
       'insufficient. Collation processing still uses temporary allocations, including during a ' +
       'size query. Empty input and non-empty input with no effective weights at the selected ' +
-      'strength both require zero bytes.',
+      'strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the binary sort key was written' },
@@ -1560,7 +1571,9 @@ mjb_result_free(&key);`,
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required key size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Temporary allocation failed' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
-        'The output capacity is smaller than the required byte count' }
+        'The output capacity is smaller than the required byte count' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
     example: `const char *input = "r\\xC3\\xA9sum\\xC3\\xA9";
 size_t output_size = 0;

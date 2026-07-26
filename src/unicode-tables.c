@@ -859,6 +859,7 @@ bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *s
 }
 #endif
 
+#if MJB_FEATURE_COLLATION
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset) {
     for(size_t i = 0; i < MJB_UNICODE_COLLATION_IMPLICIT_RANGE_COUNT; ++i) {
@@ -942,6 +943,7 @@ mjb_unicode_collation_contraction_weights(const mjb_unicode_collation_contractio
 
     return &mjb_unicode_collation_contraction_weight_data[offset];
 }
+#endif // MJB_FEATURE_COLLATION
 
 static bool mjb_unicode_decomposition_table_lookup(const uint8_t *page_index, size_t page_count,
     const uint16_t *page_starts, const uint64_t *page_bits, const uint32_t *page_ranks,

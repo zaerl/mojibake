@@ -87,11 +87,16 @@ target_compile_definitions(
     mojibake_lib
     PUBLIC
         MJB_FEATURE_CHARACTER_NAMES=$<BOOL:${MJB_FEATURE_CHARACTER_NAMES}>
+        MJB_FEATURE_COLLATION=$<BOOL:${MJB_FEATURE_COLLATION}>
         MJB_FEATURE_IDNA=$<BOOL:${MJB_FEATURE_IDNA}>
 )
 
 if(NOT MJB_FEATURE_CHARACTER_NAMES)
     message(STATUS "Building library without Unicode character name tables")
+endif()
+
+if(NOT MJB_FEATURE_COLLATION)
+    message(STATUS "Building library without Unicode collation support")
 endif()
 
 if(NOT MJB_FEATURE_IDNA)

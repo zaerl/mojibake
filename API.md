@@ -293,6 +293,9 @@ multi-level comparison for this purpose.
 Collation Element Table (DUCET). It is locale-independent: `mjb_set_locale` does not affect
 collation, and Mojibake does not currently apply CLDR language-specific tailoring.
 
+Define `MJB_FEATURE_COLLATION=0` when compiling the library to omit the implementation and DUCET
+tables. Collation functions then return `MJB_STATUS_FEATURE_NOT_ENABLED`.
+
 ### How `mjb_collation_compare` works
 
 For each input, Mojibake:
@@ -1612,7 +1615,7 @@ mjb_status mjb_collation_compare(
 );
 ```
 
-Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics. Primary strength compares base-character weights. Secondary strength also compares accents while ignoring tertiary case differences. Tertiary strength adds case and variant differences. Quaternary strength also compares variable elements moved to level 4 by `MJB_COLLATION_SHIFTED`; with `MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary strength. Collation equality at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when case-insensitive equality is the intended operation. See [Unicode collation](#unicode-collation) for the comparison process and configuration guidance.
+Compare two strings using the Unicode Collation Algorithm and the default collation element table (DUCET), with `strcmp`-style semantics. Primary strength compares base-character weights. Secondary strength also compares accents while ignoring tertiary case differences. Tertiary strength adds case and variant differences. Quaternary strength also compares variable elements moved to level 4 by `MJB_COLLATION_SHIFTED`; with `MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary strength. Collation equality at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when case-insensitive equality is the intended operation. See [Unicode collation](#unicode-collation) for the comparison process and configuration guidance. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `s1` - The first string to compare
 - `s1_byte_length` - The length of the first string in bytes, or `MJB_NUL_TERMINATED`
@@ -1632,6 +1635,7 @@ Compare two strings using the Unicode Collation Algorithm and the default collat
 - `MJB_STATUS_MALFORMED_INPUT` - An input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_COLLATION=0`
 
 **Example**
 
@@ -1667,7 +1671,7 @@ mjb_status mjb_collation_key(
 );
 ```
 
-Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key.
+Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -1684,6 +1688,7 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - The sort key size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_COLLATION=0`
 
 **Example**
 
@@ -1720,7 +1725,7 @@ mjb_status mjb_collation_key_into(
 );
 ```
 
-Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes.
+Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -1739,6 +1744,7 @@ Generate the same binary sort key as `mjb_collation_key` without allocating the 
 - `MJB_STATUS_OVERFLOW` - The required key size would overflow
 - `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_COLLATION=0`
 
 **Example**
 

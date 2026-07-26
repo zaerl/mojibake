@@ -12,6 +12,8 @@
 #include "unicode.h"
 #include "utf.h"
 
+#if MJB_FEATURE_COLLATION
+
 // Collation element
 typedef struct {
     uint16_t primary;    // 0x0000–0xFFFF; 0 = ignorable at L1
@@ -1070,3 +1072,48 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
 
     return MJB_STATUS_OK;
 }
+
+#else
+
+MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, mjb_result *result) {
+    (void)buffer;
+    (void)byte_length;
+    (void)encoding;
+    (void)variable_weighting;
+    (void)strength;
+    (void)result;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+}
+
+MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, void *output, size_t *output_size) {
+    (void)buffer;
+    (void)byte_length;
+    (void)encoding;
+    (void)variable_weighting;
+    (void)strength;
+    (void)output;
+    (void)output_size;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+}
+
+MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
+    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    int *order) {
+    (void)s1;
+    (void)s1_byte_length;
+    (void)s1_encoding;
+    (void)s2;
+    (void)s2_byte_length;
+    (void)s2_encoding;
+    (void)variable_weighting;
+    (void)strength;
+    (void)order;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+}
+
+#endif // MJB_FEATURE_COLLATION

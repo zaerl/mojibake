@@ -66,6 +66,10 @@ extern "C" {
     #define MJB_FEATURE_CHARACTER_NAMES 1
 #endif
 
+#ifndef MJB_FEATURE_COLLATION
+    #define MJB_FEATURE_COLLATION 1
+#endif
+
 #ifndef MJB_FEATURE_IDNA
     #define MJB_FEATURE_IDNA 1
 #endif

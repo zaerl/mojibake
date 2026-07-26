@@ -44,6 +44,10 @@ TEST_UBSAN_BUILD_DIR=$(BUILD_DIR)-test-ubsan
 TEST_NO_NAMES_BUILD_DIR=$(BUILD_DIR)-test-no-names
 !ENDIF
 
+!IFNDEF TEST_NO_COLLATION_BUILD_DIR
+TEST_NO_COLLATION_BUILD_DIR=$(BUILD_DIR)-test-no-collation
+!ENDIF
+
 !IFNDEF TEST_NO_IDNA_BUILD_DIR
 TEST_NO_IDNA_BUILD_DIR=$(BUILD_DIR)-test-no-idna
 !ENDIF
@@ -70,11 +74,15 @@ TEST_BUILD_TYPE=Test
 FEATURE_CHARACTER_NAMES=ON
 !ENDIF
 
+!IFNDEF FEATURE_COLLATION
+FEATURE_COLLATION=ON
+!ENDIF
+
 !IFNDEF FEATURE_IDNA
 FEATURE_IDNA=ON
 !ENDIF
 
-CMAKE_FEATURE_FLAGS=-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES) -DMJB_FEATURE_IDNA=$(FEATURE_IDNA)
+CMAKE_FEATURE_FLAGS=-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES) -DMJB_FEATURE_COLLATION=$(FEATURE_COLLATION) -DMJB_FEATURE_IDNA=$(FEATURE_IDNA)
 CMAKE_NATIVE_BASE_FLAGS=-DMJB_BUILD_WASM=OFF $(CMAKE_FEATURE_FLAGS)
 NATIVE_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 CPP_CMAKE_FLAGS=-DMJB_BUILD_CPP=ON -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
@@ -207,6 +215,10 @@ test: $(UNICODE_DATA)
 test-no-names:
 	@$(MAKE) /F Makefile.nmake test TEST_BUILD_DIR=$(TEST_NO_NAMES_BUILD_DIR) FEATURE_CHARACTER_NAMES=OFF ARGS="$(ARGS)"
 
+# Run tests without Unicode collation support
+test-no-collation:
+	@$(MAKE) /F Makefile.nmake test TEST_BUILD_DIR=$(TEST_NO_COLLATION_BUILD_DIR) FEATURE_COLLATION=OFF ARGS="$(ARGS)"
+
 # Run tests without IDNA support
 test-no-idna:
 	@$(MAKE) /F Makefile.nmake test TEST_BUILD_DIR=$(TEST_NO_IDNA_BUILD_DIR) FEATURE_IDNA=OFF ARGS="$(ARGS)"
@@ -240,6 +252,7 @@ test-all:
 	@$(MAKE) /F Makefile.nmake test-asan
 	@$(MAKE) /F Makefile.nmake test-ubsan
 	@$(MAKE) /F Makefile.nmake test-no-names
+	@$(MAKE) /F Makefile.nmake test-no-collation
 	@$(MAKE) /F Makefile.nmake test-no-idna
 
 # Run tests using CTest
@@ -283,6 +296,7 @@ clean-native:
 	@if exist $(TEST_ASAN_BUILD_DIR) rmdir /S /Q $(TEST_ASAN_BUILD_DIR)
 	@if exist $(TEST_UBSAN_BUILD_DIR) rmdir /S /Q $(TEST_UBSAN_BUILD_DIR)
 	@if exist $(TEST_NO_NAMES_BUILD_DIR) rmdir /S /Q $(TEST_NO_NAMES_BUILD_DIR)
+	@if exist $(TEST_NO_COLLATION_BUILD_DIR) rmdir /S /Q $(TEST_NO_COLLATION_BUILD_DIR)
 	@if exist $(TEST_NO_IDNA_BUILD_DIR) rmdir /S /Q $(TEST_NO_IDNA_BUILD_DIR)
 
 clean-wasm:
@@ -322,6 +336,7 @@ help:
 	@echo   test-asan               - Build and run tests with AddressSanitizer
 	@echo   test-cpp                - Build and run tests with C++ compiler
 	@echo   test-docker             - Build and run tests in Docker container
+	@echo   test-no-collation       - Build and run tests without Unicode collation support
 	@echo   test-no-idna            - Build and run tests without IDNA support
 	@echo   test-no-names           - Build and run tests without Unicode character names
 	@echo   test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer
