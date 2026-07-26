@@ -68,11 +68,28 @@ jobs:
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
+      - name: Test (IDNA disabled)
+        run: |
+          cmake -S . -B build-test-no-idna -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_IDNA=OFF
+          cmake --build build-test-no-idna
+          ./build-test-no-idna/tests/mojibake-test
+
       - name: Test (C++)
         run: |
           cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DMJB_BUILD_CPP=ON
           cmake --build build-test-cpp
           ./build-test-cpp/tests/mojibake-test
+
+      - name: Test (C++, optional features disabled)
+        if: matrix.label == 'Linux / GCC'
+        run: |
+          cmake -S . -B build-test-cpp-minimal -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_BUILD_CPP=ON \
+            -DMJB_FEATURE_CHARACTER_NAMES=OFF \
+            -DMJB_FEATURE_IDNA=OFF
+          cmake --build build-test-cpp-minimal
+          ./build-test-cpp-minimal/tests/mojibake-test
 
       - name: Test (AddressSanitizer)
         run: |
@@ -151,6 +168,14 @@ jobs:
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
+      - name: Test (IDNA disabled)
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          cmake -S . -B build-test-no-idna -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_IDNA=OFF
+          cmake --build build-test-no-idna
+          ./build-test-no-idna/tests/mojibake-test
+
       - name: Test (C++)
         shell: cpa.sh {0} --sync-files none
         run: |
@@ -189,6 +214,15 @@ jobs:
             -DMJB_FEATURE_CHARACTER_NAMES=OFF
           cmake --build build-test-no-names --config Test
           ./build-test-no-names/tests/Test/mojibake-test.exe
+
+      - name: Test (IDNA disabled)
+        shell: bash
+        run: |
+          cmake -S . -B build-test-no-idna \
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+            -DMJB_FEATURE_IDNA=OFF
+          cmake --build build-test-no-idna --config Test
+          ./build-test-no-idna/tests/Test/mojibake-test.exe
 
       - name: Test (C++)
         shell: bash
@@ -232,6 +266,15 @@ jobs:
             examples/example.c build-amalgamation/mojibake.c \
             -o build-strict/amalgamation-example
           ./build-strict/amalgamation-example
+
+      - name: Compile and run amalgamation with optional features disabled
+        run: |
+          cc -std=c11 -Werror -Wall -Wextra -pedantic \
+            -Wno-unused-parameter -Wtype-limits \
+            -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_IDNA=0 \
+            -Ibuild-amalgamation examples/example.c build-amalgamation/mojibake.c \
+            -o build-strict/amalgamation-example-minimal
+          ./build-strict/amalgamation-example-minimal
 
   minimum-compilers:
     name: Minimum compiler (${{ matrix.label }})

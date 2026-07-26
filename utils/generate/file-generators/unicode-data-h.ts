@@ -40,7 +40,9 @@ export async function generateUnicodeDataHeader(data: UnicodeTableData = getUnic
 ${generateBlocks(data.blocks)}
 ${generateNames(data.prefixes, data.names)}
 ${generateEmoji(data.emoji, data.emojiSequences)}
+#if MJB_FEATURE_IDNA
 ${generateIdnaMappings(data.idnaMappings)}
+#endif // MJB_FEATURE_IDNA
 ${generateProperties(data.properties)}
 ${generateScriptExtensions(data.scriptExtensions)}
 ${generateNCharacters(data.nCharacters)}

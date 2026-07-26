@@ -83,9 +83,19 @@ if(MJB_BUILD_CPP)
     set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CXX)
 endif()
 
+target_compile_definitions(
+    mojibake_lib
+    PUBLIC
+        MJB_FEATURE_CHARACTER_NAMES=$<BOOL:${MJB_FEATURE_CHARACTER_NAMES}>
+        MJB_FEATURE_IDNA=$<BOOL:${MJB_FEATURE_IDNA}>
+)
+
 if(NOT MJB_FEATURE_CHARACTER_NAMES)
     message(STATUS "Building library without Unicode character name tables")
-    target_compile_definitions(mojibake_lib PUBLIC MJB_FEATURE_CHARACTER_NAMES=0)
+endif()
+
+if(NOT MJB_FEATURE_IDNA)
+    message(STATUS "Building library without IDNA support")
 endif()
 
 # WASM-specific configuration

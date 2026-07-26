@@ -179,6 +179,7 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "NFKC casefold payload (no terminator): strasse", "mjb_nfkc_casefold_into test failed") // Added by the script
 }
 
+#if MJB_FEATURE_IDNA
 {
     // Example for mjb_idna_to_ascii
     MJB_TEST_COVERAGE(mjb_idna_to_ascii); // Added by the script
@@ -198,7 +199,9 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "xn--bcher-kva.de", "mjb_idna_to_ascii test failed") // Added by the script
     mjb_result_free(&result);
 }
+#endif // MJB_FEATURE_IDNA
 
+#if MJB_FEATURE_IDNA
 {
     // Example for mjb_idna_to_unicode
     MJB_TEST_COVERAGE(mjb_idna_to_unicode); // Added by the script
@@ -218,6 +221,7 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "bücher.de", "mjb_idna_to_unicode test failed") // Added by the script
     mjb_result_free(&result);
 }
+#endif // MJB_FEATURE_IDNA
 
 {
     // Example for mjb_normalization_quick_check

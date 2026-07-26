@@ -11,6 +11,7 @@
 #include "unicode-tables.h"
 #include "utf.h"
 
+#if MJB_FEATURE_IDNA
 typedef struct mjb_idna_codepoints {
     mjb_codepoint *values;
     size_t count;
@@ -725,17 +726,39 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     mjb_free(ascii.buffer);
     return status;
 }
+#endif // MJB_FEATURE_IDNA
 
 MJB_EXPORT mjb_status mjb_idna_to_ascii(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result) {
+#if MJB_FEATURE_IDNA
     return mjb_idna_process(buffer, byte_length, encoding, output_encoding, true, info, result);
+#else
+    (void)buffer;
+    (void)byte_length;
+    (void)encoding;
+    (void)output_encoding;
+    (void)info;
+    (void)result;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+#endif
 }
 
 MJB_EXPORT mjb_status mjb_idna_to_unicode(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result) {
+#if MJB_FEATURE_IDNA
     return mjb_idna_process(buffer, byte_length, encoding, output_encoding, false, info, result);
+#else
+    (void)buffer;
+    (void)byte_length;
+    (void)encoding;
+    (void)output_encoding;
+    (void)info;
+    (void)result;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+#endif
 }
 
+#if MJB_FEATURE_IDNA
 static mjb_status mjb_idna_into(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_encoding output_encoding, bool to_ascii, mjb_idna_info *info, void *output,
     size_t *output_size) {
@@ -767,17 +790,40 @@ static mjb_status mjb_idna_into(const char *buffer, size_t byte_length, mjb_enco
     mjb_result_free(&result);
     return MJB_STATUS_OK;
 }
+#endif // MJB_FEATURE_IDNA
 
 MJB_EXPORT mjb_status mjb_idna_to_ascii_into(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, void *output,
     size_t *output_size) {
+#if MJB_FEATURE_IDNA
     return mjb_idna_into(buffer, byte_length, encoding, output_encoding, true, info, output,
         output_size);
+#else
+    (void)buffer;
+    (void)byte_length;
+    (void)encoding;
+    (void)output_encoding;
+    (void)info;
+    (void)output;
+    (void)output_size;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+#endif
 }
 
 MJB_EXPORT mjb_status mjb_idna_to_unicode_into(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, void *output,
     size_t *output_size) {
+#if MJB_FEATURE_IDNA
     return mjb_idna_into(buffer, byte_length, encoding, output_encoding, false, info, output,
         output_size);
+#else
+    (void)buffer;
+    (void)byte_length;
+    (void)encoding;
+    (void)output_encoding;
+    (void)info;
+    (void)output;
+    (void)output_size;
+    return MJB_STATUS_FEATURE_NOT_ENABLED;
+#endif
 }

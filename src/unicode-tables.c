@@ -822,6 +822,7 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
     return true;
 }
 
+#if MJB_FEATURE_IDNA
 bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
     const mjb_codepoint **mapping, uint8_t *length) {
     size_t low = 0;
@@ -856,6 +857,7 @@ bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *s
 
     return false;
 }
+#endif
 
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset) {

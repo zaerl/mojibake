@@ -8,6 +8,8 @@
 
 #include "test.h"
 
+#if MJB_FEATURE_IDNA
+
 static char *idna_trim(char *field) {
     while(*field == ' ' || *field == '\t') {
         ++field;
@@ -335,10 +337,39 @@ static void test_idna_api(void) {
         MJB_STATUS_INVALID_ARGUMENT, "IDNA requires a result")
 }
 
+#else
+
+static void test_idna_disabled(void) {
+    const char *domain = "example.com";
+    mjb_idna_info info = { 0 };
+    mjb_result result = { NULL, 0, false };
+    char output[32] = { 0 };
+    size_t output_size = sizeof(output);
+
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          &info, &result),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToASCII reports feature status")
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          &info, &result),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToUnicode reports feature status")
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          &info, output, &output_size),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToASCII into reports feature status")
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          &info, output, &output_size),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToUnicode into reports feature status")
+}
+
+#endif
+
 int test_idna(void *arg) {
     (void)arg;
+#if MJB_FEATURE_IDNA
     test_idna_api();
     test_idna_conformance();
+#else
+    test_idna_disabled();
+#endif
 
     return 0;
 }
