@@ -5,6 +5,12 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Added
+- Added `MJB_FEATURE_COLLATION` to compile out Unicode collation support and DUCET tables
+- Added `MJB_FEATURE_IDNA` to compile out IDNA and Punycode implementations and mapping tables
+
 ## [0.3.3] - 2026-07-22
 
 ### Added
@@ -12,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `_into(...)` function alternatives to use a user-provided buffer to store results
 - Added `mjb_utf8_snprintf`, `mjb_utf8_vsnprintf`, a `snprintf` that does not break encoding
 - Added `mjb_utf8_grapheme_snprintf`, `mjb_utf8_grapheme_vsnprintf` that do not break graphemes
-- Added `MJB_FEATURE_IDNA` to compile out IDNA and Punycode implementations and mapping tables
 - New API documentation
 
 ### Changed

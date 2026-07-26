@@ -520,6 +520,7 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "Canonical caseless match: yes", "mjb_caseless_match test failed") // Added by the script
 }
 
+#if MJB_FEATURE_COLLATION
 {
     // Example for mjb_collation_compare
     MJB_TEST_COVERAGE(mjb_collation_compare); // Added by the script
@@ -537,7 +538,9 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "apple sorts before banana: %s", order < 0 ? "yes" : "no"); // Added by the script
     ATT_ASSERT(test_buffer, "apple sorts before banana: yes", "mjb_collation_compare test failed") // Added by the script
 }
+#endif // MJB_FEATURE_COLLATION
 
+#if MJB_FEATURE_COLLATION
 {
     // Example for mjb_collation_key
     MJB_TEST_COVERAGE(mjb_collation_key); // Added by the script
@@ -555,7 +558,9 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key test failed") // Added by the script
     mjb_result_free(&key);
 }
+#endif // MJB_FEATURE_COLLATION
 
+#if MJB_FEATURE_COLLATION
 {
     // Example for mjb_collation_key_into
     MJB_TEST_COVERAGE(mjb_collation_key_into); // Added by the script
@@ -582,6 +587,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Sort key is non-empty: %s", output_size > 0 ? "yes" : "no"); // Added by the script
     ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key_into test failed") // Added by the script
 }
+#endif // MJB_FEATURE_COLLATION
 
 {
     // Example for mjb_map_case

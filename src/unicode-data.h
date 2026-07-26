@@ -30746,6 +30746,7 @@ static const uint16_t mjb_unicode_confusables[] = {
     4262,4263,4264,4265,4031,4266,4267,4268,3828,4269,4270,4271,4272,4273,4274,
 };
 
+#if MJB_FEATURE_COLLATION
 typedef struct mjb_unicode_collation_implicit_range {
     uint32_t start;
     uint32_t end;
@@ -41323,4 +41324,6 @@ static const mjb_unicode_collation_contraction_entry mjb_unicode_collation_contr
     0x001BD40F, 0x001BD00B, 0x001BC40B, 0x001C3C10, 0x001C40EF, 0x003C4010,
     0x001C3810, 0x001C4010,
 };
+
+#endif // MJB_FEATURE_COLLATION
 // clang-format on

@@ -13,6 +13,8 @@
 
 #include "test.h"
 
+#if MJB_FEATURE_COLLATION
+
 // Maximum UTF-8 bytes for a single test line (each codepoint <= 4 bytes, the longest test lines
 // have ~6 codepoints = 24 bytes, but we keep slack).
 #define COLLATION_BUF 256
@@ -615,3 +617,29 @@ int test_collation(void *arg) {
 
     return 0;
 }
+
+#else
+
+int test_collation(void *arg) {
+    (void)arg;
+
+    mjb_result result = { NULL, 0, false };
+    unsigned char output[16] = { 0 };
+    size_t output_size = sizeof(output);
+    int order = 0;
+
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &result),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation key reports feature status")
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
+                          &output_size),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation key into reports feature status")
+    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation comparison reports feature status")
+
+    return 0;
+}
+
+#endif // MJB_FEATURE_COLLATION

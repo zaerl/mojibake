@@ -22,7 +22,9 @@ typedef struct mjb_unicode_case_mapping {
     mjb_codepoint titlecase;
 } mjb_unicode_case_mapping;
 
+#if MJB_FEATURE_COLLATION
 typedef uint32_t mjb_unicode_collation_contraction_entry;
+#endif
 
 #if MJB_FEATURE_IDNA
 typedef enum mjb_unicode_idna_status {
@@ -56,10 +58,13 @@ bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoin
 bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value);
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
+
 #if MJB_FEATURE_IDNA
 bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
     const mjb_codepoint **mapping, uint8_t *length);
 #endif
+
+#if MJB_FEATURE_COLLATION
 bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights);
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset);
@@ -71,6 +76,8 @@ mjb_unicode_collation_contraction_sequence(const mjb_unicode_collation_contracti
 const uint8_t *
 mjb_unicode_collation_contraction_weights(const mjb_unicode_collation_contraction_entry *entry,
     uint8_t *length);
+#endif
+
 bool mjb_unicode_decomposition_lookup(mjb_codepoint codepoint, bool compatibility,
     const mjb_codepoint **values, uint8_t *length);
 mjb_codepoint mjb_unicode_compose_pair(mjb_codepoint starter, mjb_codepoint combining);

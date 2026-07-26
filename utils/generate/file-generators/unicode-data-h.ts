@@ -54,9 +54,12 @@ ${generateSpecialCaseMappings(data.specialCaseMappings)}
 ${generateCaseFoldMappings(data.caseFoldMappings)}
 ${generateCaseFoldSimpleMappings(data.caseFoldSimpleMappings)}
 ${generateConfusables(data.confusables)}
+#if MJB_FEATURE_COLLATION
 ${generateCollationImplicitRanges(data.collationImplicitRanges)}
 ${generateCollationEntries(data.collationEntries)}
-${generateCollationContractions(data.collationContractions)}// clang-format on
+${generateCollationContractions(data.collationContractions)}
+#endif // MJB_FEATURE_COLLATION
+// clang-format on
 `;
 
   await writeFile(outputPath, output);

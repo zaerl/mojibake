@@ -68,6 +68,13 @@ jobs:
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
+      - name: Test (collation disabled)
+        run: |
+          cmake -S . -B build-test-no-collation -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_COLLATION=OFF
+          cmake --build build-test-no-collation
+          ./build-test-no-collation/tests/mojibake-test
+
       - name: Test (IDNA disabled)
         run: |
           cmake -S . -B build-test-no-idna -DCMAKE_BUILD_TYPE=Test \
@@ -87,6 +94,7 @@ jobs:
           cmake -S . -B build-test-cpp-minimal -DCMAKE_BUILD_TYPE=Test \
             -DMJB_BUILD_CPP=ON \
             -DMJB_FEATURE_CHARACTER_NAMES=OFF \
+            -DMJB_FEATURE_COLLATION=OFF \
             -DMJB_FEATURE_IDNA=OFF
           cmake --build build-test-cpp-minimal
           ./build-test-cpp-minimal/tests/mojibake-test
@@ -168,6 +176,14 @@ jobs:
           cmake --build build-test-no-names
           ./build-test-no-names/tests/mojibake-test
 
+      - name: Test (collation disabled)
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          cmake -S . -B build-test-no-collation -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_COLLATION=OFF
+          cmake --build build-test-no-collation
+          ./build-test-no-collation/tests/mojibake-test
+
       - name: Test (IDNA disabled)
         shell: cpa.sh {0} --sync-files none
         run: |
@@ -214,6 +230,15 @@ jobs:
             -DMJB_FEATURE_CHARACTER_NAMES=OFF
           cmake --build build-test-no-names --config Test
           ./build-test-no-names/tests/Test/mojibake-test.exe
+
+      - name: Test (collation disabled)
+        shell: bash
+        run: |
+          cmake -S . -B build-test-no-collation \
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+            -DMJB_FEATURE_COLLATION=OFF
+          cmake --build build-test-no-collation --config Test
+          ./build-test-no-collation/tests/Test/mojibake-test.exe
 
       - name: Test (IDNA disabled)
         shell: bash
@@ -271,7 +296,8 @@ jobs:
         run: |
           cc -std=c11 -Werror -Wall -Wextra -pedantic \
             -Wno-unused-parameter -Wtype-limits \
-            -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_IDNA=0 \
+            -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_COLLATION=0 \
+            -DMJB_FEATURE_IDNA=0 \
             -Ibuild-amalgamation examples/example.c build-amalgamation/mojibake.c \
             -o build-strict/amalgamation-example-minimal
           ./build-strict/amalgamation-example-minimal

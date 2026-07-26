@@ -50,6 +50,7 @@ int test_cpp_normalization(void *arg) {
     ATT_ASSERT(mjb::length("caf\xC3\xA9"), 4u, "length")
     ATT_ASSERT(mjb::convert_encoding("\xC3\xA9", MJB_ENC_UTF_8, MJB_ENC_UTF_16LE),
         std::string("\xE9\0", 2), "convert_encoding")
+#if MJB_FEATURE_COLLATION
     ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare")
     ATT_ASSERT(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Secondary),
@@ -69,6 +70,7 @@ int test_cpp_normalization(void *arg) {
                         mjb::CollationVariableWeighting::NonIgnorable,
                         mjb::CollationStrength::Secondary) != 0),
         1, "compare accent with empty at secondary strength")
+#endif
 
     const std::string already_normalized("plain");
     auto view_result = mjb::normalize_result(already_normalized, mjb::NormalizationForm::NFC);
@@ -106,8 +108,8 @@ int test_cpp_normalization(void *arg) {
 
     ATT_ASSERT(caught, true, "normalization_quick_check preserves malformed-input status")
 
+#if MJB_FEATURE_COLLATION
     caught = false;
-
     try {
         (void)mjb::compare(malformed_utf8, "a");
     } catch(const mjb::LibraryError &error) {
@@ -115,6 +117,7 @@ int test_cpp_normalization(void *arg) {
     }
 
     ATT_ASSERT(caught, true, "compare preserves malformed-input status")
+#endif
 
     caught = false;
 

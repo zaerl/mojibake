@@ -140,6 +140,7 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(num_half.decimal().has_value(), false, "numeric_value ½: no decimal")
     ATT_ASSERT(std::string(num_half.numeric()), std::string("1/2"), "numeric_value ½: numeric")
 
+#if MJB_FEATURE_COLLATION
     // collation_key
     auto key_a = mjb::collation_key("a");
     auto key_b = mjb::collation_key("b");
@@ -159,6 +160,17 @@ int test_cpp_mojibake(void *arg) {
         mjb::collation_key("a", mjb::CollationVariableWeighting::NonIgnorable,
             mjb::CollationStrength::Secondary),
         "collation_key: secondary ignores case")
+#else
+    bool collation_disabled = false;
+
+    try {
+        (void)mjb::collation_key("a");
+    } catch(const mjb::LibraryError &error) {
+        collation_disabled = error.status() == MJB_STATUS_FEATURE_NOT_ENABLED;
+    }
+
+    ATT_ASSERT(collation_disabled, true, "C++ disabled collation reports feature status")
+#endif
 
     // truncate
     ATT_ASSERT(std::string(mjb::truncate_grapheme("hello", 3)), std::string("hel"), "truncate: 3 graphemes")
