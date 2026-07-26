@@ -63,8 +63,7 @@ static uint64_t mjb_punycode_adapt(uint64_t delta, uint64_t points, bool first_t
         k += MJB_PUNYCODE_BASE;
     }
 
-    return k + ((MJB_PUNYCODE_BASE - MJB_PUNYCODE_TMIN + 1) * delta) /
-        (delta + MJB_PUNYCODE_SKEW);
+    return k + ((MJB_PUNYCODE_BASE - MJB_PUNYCODE_TMIN + 1) * delta) / (delta + MJB_PUNYCODE_SKEW);
 }
 
 mjb_status mjb_punycode_encode(const mjb_codepoint *codepoints, size_t count, mjb_output *output) {
@@ -147,8 +146,7 @@ mjb_status mjb_punycode_encode(const mjb_codepoint *codepoints, size_t count, mj
                         break;
                     }
 
-                    uint64_t digit = threshold +
-                        (q - threshold) % (MJB_PUNYCODE_BASE - threshold);
+                    uint64_t digit = threshold + (q - threshold) % (MJB_PUNYCODE_BASE - threshold);
                     char character = mjb_punycode_encode_digit(digit);
                     mjb_status status = mjb_output_write(output, &character, 1);
 
