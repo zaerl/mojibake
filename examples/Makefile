@@ -2,6 +2,9 @@
 #
 # This file is distributed under the MIT License. See LICENSE for details.
 
+CPPFLAGS ?= -DNDEBUG
+CFLAGS ?= -O3
+
 FEATURE_CHARACTER_NAMES ?= 1
 FEATURE_COLLATION ?= 1
 FEATURE_IDNA ?= 1
