@@ -121,16 +121,6 @@ static bool idna_parse_field(char *field, char *output, size_t output_capacity,
     return true;
 }
 
-static void idna_print_bytes(const char *label, const char *buffer, size_t byte_length) {
-    printf("%s", label);
-
-    for(size_t i = 0; i < byte_length; ++i) {
-        printf("%02X", (unsigned int)(uint8_t)buffer[i]);
-    }
-
-    puts("");
-}
-
 static bool idna_check_result(const mjb_result *result, const char *expected,
     size_t expected_size) {
     return result->output_size == expected_size &&
@@ -148,10 +138,7 @@ static void test_idna_conformance(void) {
     char line[4096];
     char test_name[128];
     unsigned int line_number = 0;
-    unsigned int tested = 0;
     unsigned int skipped = 0;
-    unsigned int failures = 0;
-    unsigned int printed = 0;
 
     while(fgets(line, (int)sizeof(line), file) != NULL) {
         ++line_number;
@@ -243,8 +230,6 @@ static void test_idna_conformance(void) {
         if(ascii_status == MJB_STATUS_OK) {
             mjb_result_free(&ascii_result);
         }
-
-        ++tested;
     }
 
     fclose(file);
