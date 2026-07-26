@@ -800,6 +800,7 @@ bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoi
     return false;
 }
 
+#if MJB_FEATURE_SECURITY
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length) {
     size_t entry_index = 0;
@@ -821,6 +822,7 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
 
     return true;
 }
+#endif // MJB_FEATURE_SECURITY
 
 #if MJB_FEATURE_IDNA
 bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,

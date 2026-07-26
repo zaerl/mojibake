@@ -20,6 +20,7 @@ TEST_UBSAN_BUILD_DIR ?= $(BUILD_DIR)-test-ubsan
 TEST_NO_NAMES_BUILD_DIR ?= $(BUILD_DIR)-test-no-names
 TEST_NO_COLLATION_BUILD_DIR ?= $(BUILD_DIR)-test-no-collation
 TEST_NO_IDNA_BUILD_DIR ?= $(BUILD_DIR)-test-no-idna
+TEST_NO_SECURITY_BUILD_DIR ?= $(BUILD_DIR)-test-no-security
 
 # WASM and amalgamation build directories
 WASM_BUILD_DIR ?= build-wasm
@@ -33,11 +34,13 @@ TEST_BUILD_TYPE ?= Test
 FEATURE_CHARACTER_NAMES ?= ON
 FEATURE_COLLATION ?= ON
 FEATURE_IDNA ?= ON
+FEATURE_SECURITY ?= ON
 
 CMAKE_FEATURE_FLAGS = \
 	-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES) \
 	-DMJB_FEATURE_COLLATION=$(FEATURE_COLLATION) \
-	-DMJB_FEATURE_IDNA=$(FEATURE_IDNA)
+	-DMJB_FEATURE_IDNA=$(FEATURE_IDNA) \
+	-DMJB_FEATURE_SECURITY=$(FEATURE_SECURITY)
 CMAKE_NATIVE_BASE_FLAGS = -DMJB_BUILD_WASM=OFF $(CMAKE_FEATURE_FLAGS)
 NATIVE_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
@@ -181,7 +184,7 @@ lint:
 		xargs -0 xcrun clang-format --dry-run --Werror
 
 .PHONY: test test-all test-cpp test-asan test-ubsan test-no-names test-no-collation \
-	test-no-idna test-wasm ctest ctest-cpp test-docker
+	test-no-idna test-no-security test-wasm ctest ctest-cpp test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -198,6 +201,9 @@ test-no-collation:
 
 test-no-idna:
 	$(MAKE) test TEST_BUILD_DIR=$(TEST_NO_IDNA_BUILD_DIR) FEATURE_IDNA=OFF ARGS="$(ARGS)"
+
+test-no-security:
+	$(MAKE) test TEST_BUILD_DIR=$(TEST_NO_SECURITY_BUILD_DIR) FEATURE_SECURITY=OFF ARGS="$(ARGS)"
 
 # Run tests with C++ compiler
 test-cpp: $(UNICODE_DATA)
@@ -230,6 +236,7 @@ test-all:
 	$(MAKE) test-no-names
 	$(MAKE) test-no-collation
 	$(MAKE) test-no-idna
+	$(MAKE) test-no-security
 
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
@@ -268,7 +275,7 @@ clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
 		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
 		$(TEST_UBSAN_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR) $(TEST_NO_COLLATION_BUILD_DIR) \
-		$(TEST_NO_IDNA_BUILD_DIR)
+		$(TEST_NO_IDNA_BUILD_DIR) $(TEST_NO_SECURITY_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
@@ -314,6 +321,7 @@ help:
 	@echo "  test-no-collation       - Build and run tests without Unicode collation support"
 	@echo "  test-no-names           - Build and run tests without Unicode character names"
 	@echo "  test-no-idna            - Build and run tests with IDNA feature disabled"
+	@echo "  test-no-security        - Build and run tests without Unicode security support"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  test-wasm               - Run WASM Node and browser API tests"
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"

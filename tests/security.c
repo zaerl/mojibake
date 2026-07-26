@@ -12,6 +12,8 @@
 #endif
 #include "test.h"
 
+#if MJB_FEATURE_SECURITY
+
 #define MJB_TEST_COUNT_OF(array) (sizeof(array) / sizeof((array)[0]))
 
 static char *trim_ascii(char *text) {
@@ -538,3 +540,36 @@ int test_security(void *arg) {
 
     return 0;
 }
+
+#else
+
+int test_security(void *arg) {
+    (void)arg;
+
+    mjb_script script = MJB_SC_NOT_SET;
+    size_t count = 1;
+    mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
+    mjb_result result = { NULL, 0, false };
+    unsigned char output[16] = { 0 };
+    size_t output_size = sizeof(output);
+    bool confusable = false;
+
+    MJB_TEST_COVERAGE(mjb_resolved_script_set);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set("a", 1, MJB_ENC_UTF_8, &script, &count, &kind),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled resolved scripts report feature status")
+    MJB_TEST_COVERAGE(mjb_confusable_skeleton);
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton reports feature status")
+    MJB_TEST_COVERAGE(mjb_confusable_skeleton_into);
+    ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, output,
+                          &output_size),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton into reports feature status")
+    MJB_TEST_COVERAGE(mjb_are_confusable);
+    ATT_ASSERT_STATUS(mjb_are_confusable("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
+                          &confusable),
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled confusable check reports feature status")
+
+    return 0;
+}
+
+#endif // MJB_FEATURE_SECURITY

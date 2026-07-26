@@ -2741,7 +2741,7 @@ mjb_status mjb_resolved_script_set(
 );
 ```
 
-Intersect the augmented Script_Extensions sets of every codepoint as specified by UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` to NULL to query the required count. A mixed-script string returns EMPTY with a zero count; an empty string or a string containing only Common or Inherited characters returns ALL with a zero count.
+Intersect the augmented Script_Extensions sets of every codepoint as specified by UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` to NULL to query the required count. A mixed-script string returns EMPTY with a zero count; an empty string or a string containing only Common or Inherited characters returns ALL with a zero count. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to analyze
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -2757,6 +2757,7 @@ Intersect the augmented Script_Extensions sets of every codepoint as specified b
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks required byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The script buffer capacity is smaller than the required count
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_SECURITY=0`
 
 **Example**
 
@@ -2818,7 +2819,7 @@ mjb_status mjb_confusable_skeleton(
 );
 ```
 
-Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly.
+Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to transform
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -2832,6 +2833,7 @@ Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional 
 - `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_SECURITY=0`
 
 **Example**
 
@@ -2868,7 +2870,7 @@ mjb_status mjb_confusable_skeleton_into(
 );
 ```
 
-Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. No bytes are written when capacity is insufficient. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query.
+Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. No bytes are written when capacity is insufficient. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to transform
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -2887,6 +2889,7 @@ Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton`
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_SECURITY=0`
 
 **Example**
 
@@ -2930,7 +2933,7 @@ mjb_status mjb_are_confusable(
 );
 ```
 
-Compute the confusable skeleton of both strings and store true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о.
+Compute the confusable skeleton of both strings and store true when the skeletons are equal, meaning the two strings are visually confusable, such as "good" and "gооd" with Cyrillic о. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `s1` - The first string
 - `s1_byte_length` - The length of the first string in bytes, or `MJB_NUL_TERMINATED`
@@ -2948,6 +2951,7 @@ Compute the confusable skeleton of both strings and store true when the skeleton
 - `MJB_STATUS_MALFORMED_INPUT` - An input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - An intermediate size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_SECURITY=0`
 
 **Example**
 

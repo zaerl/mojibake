@@ -56,8 +56,10 @@ bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_map_case_typ
 bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
 bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value);
+#if MJB_FEATURE_SECURITY
 bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
+#endif
 
 #if MJB_FEATURE_IDNA
 bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,

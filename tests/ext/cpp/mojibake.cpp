@@ -31,6 +31,7 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT((int)script_extensions[0], MJB_SC_HIRA, "C++ Script_Extensions Hiragana")
     ATT_ASSERT((int)script_extensions[1], MJB_SC_KANA, "C++ Script_Extensions Katakana")
 
+#if MJB_FEATURE_SECURITY
     const auto resolved_latin = mjb::resolved_script_set("hello123!");
     ATT_ASSERT((int)resolved_latin.kind, MJB_SCRIPT_SET_RESOLVED,
         "C++ resolved script set kind")
@@ -50,6 +51,18 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(resolved_japanese.scripts.size(), 1u, "C++ Japanese script count")
     ATT_ASSERT((int)resolved_japanese.scripts[0], MJB_SC_JPAN,
         "C++ Japanese writing system")
+#else
+    bool resolved_scripts_disabled = false;
+
+    try {
+        (void)mjb::resolved_script_set("hello");
+    } catch(const mjb::LibraryError &error) {
+        resolved_scripts_disabled = error.status() == MJB_STATUS_FEATURE_NOT_ENABLED;
+    }
+
+    ATT_ASSERT(resolved_scripts_disabled, true,
+        "C++ disabled resolved scripts report feature status")
+#endif
 
     // U+1F642 = 🙂
     auto character = mjb::Character((mjb_codepoint)0x1F642);
@@ -92,12 +105,24 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(mjb::is_identifier("hello world"), false, "is_identifier: hello world")
     ATT_ASSERT(mjb::is_identifier(""), false, "is_identifier: empty")
 
+#if MJB_FEATURE_SECURITY
     // is_confusable free function
     ATT_ASSERT(mjb::is_confusable("\xD0\x90", "A"), true, "is_confusable: Cyrillic A / Latin A")
     ATT_ASSERT(mjb::is_confusable("hello", "hello"), true, "is_confusable: same string")
     ATT_ASSERT(mjb::is_confusable("a", "b"), false, "is_confusable: a / b")
     ATT_ASSERT(mjb::confusable_skeleton("h\xD0\xB5llo"), std::string("hello"),
         "confusable_skeleton")
+#else
+    bool confusables_disabled = false;
+
+    try {
+        (void)mjb::is_confusable("a", "b");
+    } catch(const mjb::LibraryError &error) {
+        confusables_disabled = error.status() == MJB_STATUS_FEATURE_NOT_ENABLED;
+    }
+
+    ATT_ASSERT(confusables_disabled, true, "C++ disabled confusables report feature status")
+#endif
 
 #if MJB_FEATURE_IDNA
     const auto idna_ascii = mjb::idna_to_ascii("b\xC3\xBC"

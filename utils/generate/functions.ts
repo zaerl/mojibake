@@ -2447,12 +2447,14 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.Security,
+    exampleFeature: 'MJB_FEATURE_SECURITY',
     details: 'Intersect the augmented Script_Extensions sets of every codepoint as specified by ' +
       'UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and ' +
       'Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` ' +
       'to NULL to query the required count. A mixed-script string returns EMPTY with a zero ' +
       'count; an empty string or a string containing only Common or Inherited characters returns ' +
-      'ALL with a zero count.',
+      'ALL with a zero count. If `MJB_FEATURE_SECURITY=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required count and set kind were returned, or the resolved scripts were written' },
@@ -2463,7 +2465,9 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
-        'The script buffer capacity is smaller than the required count' }
+        'The script buffer capacity is smaller than the required count' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
     example: `const char *input = "\\xE3\\x81\\xAD\\xE3\\x82\\xAC"; // Hiragana + Katakana
 mjb_script scripts[1];
@@ -2518,15 +2522,19 @@ printf("Property: %s", name);`,
     ],
     wasm: true,
     section: Section.Security,
+    exampleFeature: 'MJB_FEATURE_SECURITY',
     details: 'Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional ' +
       'Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from ' +
       '`confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future ' +
-      'confusable checks can compare them directly.',
+      'confusable checks can compare them directly. If `MJB_FEATURE_SECURITY=0` the function ' +
+      'always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The confusable skeleton was returned' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
-      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
     example: `const char *input = "h\\xD0\\xB5llo"; // Cyrillic U+0435 in place of e
 mjb_result result;
@@ -2568,13 +2576,16 @@ mjb_result_free(&result);`,
     ],
     wasm: false,
     section: Section.Security,
+    exampleFeature: 'MJB_FEATURE_SECURITY',
     details: 'Compute the same UTS #39 `bidiSkeleton(LTR, input)` as ' +
       '`mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to ' +
       'NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its ' +
       'capacity; on return it contains the required size when the buffer is too small, or the ' +
       'written size on success. Terminators are excluded and are not written. No bytes are ' +
       'written when capacity is insufficient. Bidirectional resolution, normalization, and ' +
-      'skeleton mapping still require temporary allocations, including during a size query.',
+      'skeleton mapping still require temporary allocations, including during a size query. If ' +
+      '`MJB_FEATURE_SECURITY=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the skeleton was written' },
@@ -2588,7 +2599,9 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Temporary allocation failed' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
-        'The output capacity is smaller than the required byte count' }
+        'The output capacity is smaller than the required byte count' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
     example: `const char *input = "h\\xD0\\xB5llo"; // Cyrillic U+0435 in place of e
 size_t output_size = 0;
@@ -2633,16 +2646,20 @@ printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);`,
     ],
     wasm: true,
     section: Section.Security,
+    exampleFeature: 'MJB_FEATURE_SECURITY',
     details: 'Compute the confusable skeleton of both strings and store true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
-      '"good" and "gооd" with Cyrillic о.',
+      '"good" and "gооd" with Cyrillic о. If `MJB_FEATURE_SECURITY=0` the function always returns ' +
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`confusable` contains the comparison result' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`confusable` is NULL, or an input buffer is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
-      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
+      { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
+        'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
     example: `const char *latin = "hello";
 const char *mixed = "h\\xD0\\xB5llo"; // Cyrillic е

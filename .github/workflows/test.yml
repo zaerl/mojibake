@@ -82,6 +82,13 @@ jobs:
           cmake --build build-test-no-idna
           ./build-test-no-idna/tests/mojibake-test
 
+      - name: Test (security disabled)
+        run: |
+          cmake -S . -B build-test-no-security -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_SECURITY=OFF
+          cmake --build build-test-no-security
+          ./build-test-no-security/tests/mojibake-test
+
       - name: Test (C++)
         run: |
           cmake -S . -B build-test-cpp -DCMAKE_BUILD_TYPE=Test -DMJB_BUILD_CPP=ON
@@ -95,7 +102,8 @@ jobs:
             -DMJB_BUILD_CPP=ON \
             -DMJB_FEATURE_CHARACTER_NAMES=OFF \
             -DMJB_FEATURE_COLLATION=OFF \
-            -DMJB_FEATURE_IDNA=OFF
+            -DMJB_FEATURE_IDNA=OFF \
+            -DMJB_FEATURE_SECURITY=OFF
           cmake --build build-test-cpp-minimal
           ./build-test-cpp-minimal/tests/mojibake-test
 
@@ -192,6 +200,14 @@ jobs:
           cmake --build build-test-no-idna
           ./build-test-no-idna/tests/mojibake-test
 
+      - name: Test (security disabled)
+        shell: cpa.sh {0} --sync-files none
+        run: |
+          cmake -S . -B build-test-no-security -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_FEATURE_SECURITY=OFF
+          cmake --build build-test-no-security
+          ./build-test-no-security/tests/mojibake-test
+
       - name: Test (C++)
         shell: cpa.sh {0} --sync-files none
         run: |
@@ -249,6 +265,15 @@ jobs:
           cmake --build build-test-no-idna --config Test
           ./build-test-no-idna/tests/Test/mojibake-test.exe
 
+      - name: Test (security disabled)
+        shell: bash
+        run: |
+          cmake -S . -B build-test-no-security \
+            "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+            -DMJB_FEATURE_SECURITY=OFF
+          cmake --build build-test-no-security --config Test
+          ./build-test-no-security/tests/Test/mojibake-test.exe
+
       - name: Test (C++)
         shell: bash
         run: |
@@ -297,7 +322,7 @@ jobs:
           cc -std=c11 -Werror -Wall -Wextra -pedantic \
             -Wno-unused-parameter -Wtype-limits \
             -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_COLLATION=0 \
-            -DMJB_FEATURE_IDNA=0 \
+            -DMJB_FEATURE_IDNA=0 -DMJB_FEATURE_SECURITY=0 \
             -Ibuild-amalgamation examples/example.c build-amalgamation/mojibake.c \
             -o build-strict/amalgamation-example-minimal
           ./build-strict/amalgamation-example-minimal

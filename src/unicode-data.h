@@ -29468,6 +29468,7 @@ static const uint64_t mjb_unicode_case_fold_simple_supplementary_mappings[] = {
     0x03BF2A000DFULL,
 };
 
+#if MJB_FEATURE_SECURITY
 #define MJB_UNICODE_CONFUSABLE_LONG_LENGTH 18
 
 static const mjb_codepoint mjb_unicode_confusable_data[] = {
@@ -30746,6 +30747,7 @@ static const uint16_t mjb_unicode_confusables[] = {
     4262,4263,4264,4265,4031,4266,4267,4268,3828,4269,4270,4271,4272,4273,4274,
 };
 
+#endif // MJB_FEATURE_SECURITY
 #if MJB_FEATURE_COLLATION
 typedef struct mjb_unicode_collation_implicit_range {
     uint32_t start;

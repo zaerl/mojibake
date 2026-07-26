@@ -1032,6 +1032,7 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "Valid identifier: yes", "mjb_is_identifier test failed") // Added by the script
 }
 
+#if MJB_FEATURE_SECURITY
 {
     // Example for mjb_resolved_script_set
     MJB_TEST_COVERAGE(mjb_resolved_script_set); // Added by the script
@@ -1053,6 +1054,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Japanese writing system: %s", japanese ? "yes" : "no"); // Added by the script
     ATT_ASSERT(test_buffer, "Japanese writing system: yes", "mjb_resolved_script_set test failed") // Added by the script
 }
+#endif // MJB_FEATURE_SECURITY
 
 {
     // Example for mjb_property_name
@@ -1065,6 +1067,7 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "Property: Alphabetic", "mjb_property_name test failed") // Added by the script
 }
 
+#if MJB_FEATURE_SECURITY
 {
     // Example for mjb_confusable_skeleton
     MJB_TEST_COVERAGE(mjb_confusable_skeleton); // Added by the script
@@ -1083,7 +1086,9 @@ int test_example(void *arg) {
     ATT_ASSERT(test_buffer, "hello", "mjb_confusable_skeleton test failed") // Added by the script
     mjb_result_free(&result);
 }
+#endif // MJB_FEATURE_SECURITY
 
+#if MJB_FEATURE_SECURITY
 {
     // Example for mjb_confusable_skeleton_into
     MJB_TEST_COVERAGE(mjb_confusable_skeleton_into); // Added by the script
@@ -1109,7 +1114,9 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Skeleton payload (no terminator): %.*s", (int)output_size, output); // Added by the script
     ATT_ASSERT(test_buffer, "Skeleton payload (no terminator): hello", "mjb_confusable_skeleton_into test failed") // Added by the script
 }
+#endif // MJB_FEATURE_SECURITY
 
+#if MJB_FEATURE_SECURITY
 {
     // Example for mjb_are_confusable
     MJB_TEST_COVERAGE(mjb_are_confusable); // Added by the script
@@ -1128,6 +1135,7 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "Visually confusable: %s", confusable ? "yes" : "no"); // Added by the script
     ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_are_confusable test failed") // Added by the script
 }
+#endif // MJB_FEATURE_SECURITY
 
 {
     // Example for mjb_codepoint_emoji_properties

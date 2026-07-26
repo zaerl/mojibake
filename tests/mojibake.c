@@ -167,12 +167,14 @@ int test_mojibake(void *arg) {
         "Caller-buffer collation key clears size after allocation failure")
 #endif
 
+#if MJB_FEATURE_SECURITY
     size_t skeleton_into_size = 0;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, NULL,
                           &skeleton_into_size),
         MJB_STATUS_NO_MEMORY, "Caller-buffer skeleton handles temporary allocation failure")
     ATT_ASSERT(skeleton_into_size, (size_t)0,
         "Caller-buffer skeleton clears size after allocation failure")
+#endif
 
     ATT_ASSERT_STATUS(mjb_convert_encoding("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles allocation failure")
@@ -193,10 +195,12 @@ int test_mojibake(void *arg) {
                           MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
         MJB_STATUS_NO_MEMORY, "Collation comparison handles allocation failure")
 #endif
+#if MJB_FEATURE_SECURITY
     bool confusable;
     ATT_ASSERT_STATUS(mjb_are_confusable("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
                           &confusable),
         MJB_STATUS_NO_MEMORY, "Confusable comparison handles allocation failure")
+#endif
 
     ATT_ASSERT((mjb_reset(), true), true, "Reset failing allocator")
 

@@ -53,7 +53,9 @@ ${generateSimpleCaseMappings(data.simpleCaseMappings)}
 ${generateSpecialCaseMappings(data.specialCaseMappings)}
 ${generateCaseFoldMappings(data.caseFoldMappings)}
 ${generateCaseFoldSimpleMappings(data.caseFoldSimpleMappings)}
+#if MJB_FEATURE_SECURITY
 ${generateConfusables(data.confusables)}
+#endif // MJB_FEATURE_SECURITY
 #if MJB_FEATURE_COLLATION
 ${generateCollationImplicitRanges(data.collationImplicitRanges)}
 ${generateCollationEntries(data.collationEntries)}

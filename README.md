@@ -231,7 +231,8 @@ Mojibake is embedded. They can be controlled with:
 3. `MJB_INSTALL`
 
 Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_USE_ASAN`,
-`MJB_USE_UBSAN`, `MJB_FEATURE_CHARACTER_NAMES`, `MJB_FEATURE_COLLATION`, and `MJB_FEATURE_IDNA`.
+`MJB_USE_UBSAN`, `MJB_FEATURE_CHARACTER_NAMES`, `MJB_FEATURE_COLLATION`, `MJB_FEATURE_IDNA`, and
+`MJB_FEATURE_SECURITY`.
 
 Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 
@@ -257,6 +258,10 @@ invoking a C or C++ compiler directly, define the corresponding preprocessor mac
 - `MJB_FEATURE_IDNA` controls the UTS #46 implementation, Punycode implementation, and IDNA
   mapping tables. The `mjb_idna_*` functions return `MJB_STATUS_FEATURE_NOT_ENABLED` when support is
   disabled.
+- `MJB_FEATURE_SECURITY` controls the UTS #39 resolved-script and confusable implementations and
+  confusable mapping tables. The `mjb_resolved_script_set`, `mjb_confusable_skeleton`,
+  `mjb_confusable_skeleton_into`, and `mjb_are_confusable` functions return
+  `MJB_STATUS_FEATURE_NOT_ENABLED` when support is disabled.
 
 With CMake:
 
@@ -264,7 +269,8 @@ With CMake:
 cmake -S . -B build-minimal \
   -DMJB_FEATURE_CHARACTER_NAMES=OFF \
   -DMJB_FEATURE_COLLATION=OFF \
-  -DMJB_FEATURE_IDNA=OFF
+  -DMJB_FEATURE_IDNA=OFF \
+  -DMJB_FEATURE_SECURITY=OFF
 cmake --build build-minimal
 ```
 
@@ -272,17 +278,18 @@ With the provided Makefile:
 
 ```bash
 make build BUILD_DIR=build-minimal FEATURE_CHARACTER_NAMES=OFF FEATURE_COLLATION=OFF \
-  FEATURE_IDNA=OFF
+  FEATURE_IDNA=OFF FEATURE_SECURITY=OFF
 make test-no-names
 make test-no-collation
 make test-no-idna
+make test-no-security
 ```
 
 When compiling the amalgamation directly:
 
 ```bash
 cc -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_COLLATION=0 -DMJB_FEATURE_IDNA=0 \
-  example.c mojibake.c -o example
+  -DMJB_FEATURE_SECURITY=0 example.c mojibake.c -o example
 ```
 
 ### API documentation
