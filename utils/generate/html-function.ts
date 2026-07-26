@@ -416,6 +416,7 @@ export class CFunction implements MojibakeFunction {
         case 'mjb_identifier_profile':
           ret += this.getSelectInput(i, identifierProfiles, null);
           break;
+        // case 'mjb_idna_info *':
         case 'mjb_locale':
           ret += this.getInput(i);
           break;

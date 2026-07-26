@@ -92,6 +92,22 @@ export enum Status {
   NOT_FOUND,
 };
 
+// mjb_idna_error
+export enum IdnaError {
+  NONE          = 0x0,
+  PUNYCODE      = 0x1,
+  EMPTY_LABEL   = 0x2,
+  HYPHEN        = 0x4,
+  NOT_NFC       = 0x8,
+  LEADING_MARK  = 0x10,
+  DISALLOWED    = 0x20,
+  STD3          = 0x40,
+  CONTEXTJ      = 0x80,
+  BIDI          = 0x100,
+  LABEL_LENGTH  = 0x200,
+  DOMAIN_LENGTH = 0x400,
+}
+
 // mjb_script_set_kind
 export enum ScriptSetKind {
   EMPTY,
@@ -132,6 +148,11 @@ type RawResult = {
 type Result = ComposedString & {
   outputSize: number;
   transformed: boolean;
+};
+
+export type IdnaResult = Result & {
+  errors: number;
+  valid: boolean;
 };
 
 // mjb_block_info
@@ -457,6 +478,80 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(resultPtr);
+    }
+  }
+
+  // mjb_status mjb_idna_to_ascii(const char *buffer, size_t byte_length,
+  // mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info,
+  // mjb_result *result)
+  idnaToAscii(input: MojibakeInput, options: TextInputOptions = {}): IdnaResult | null {
+    const wasmInput = this.copyInput(input, options.encoding);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const infoPtr = this.malloc(4);
+    const resultPtr = this.malloc(12);
+    let result: RawResult | null = null;
+
+    try {
+      const status = this.module._mjb_idna_to_ascii(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, outputEncoding, infoPtr, resultPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+      const errors = this.module.HEAP32[infoPtr / 4] >>> 0;
+
+      return {
+        ...this.rawResultToResult(result, outputEncoding),
+        errors,
+        valid: errors === IdnaError.NONE
+      };
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(infoPtr);
+      this.free(resultPtr);
+    }
+  }
+
+  // mjb_status mjb_idna_to_unicode(const char *buffer, size_t byte_length,
+  // mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info,
+  // mjb_result *result)
+  idnaToUnicode(input: MojibakeInput, options: TextInputOptions = {}): IdnaResult | null {
+    const wasmInput = this.copyInput(input, options.encoding);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
+    const infoPtr = this.malloc(4);
+    const resultPtr = this.malloc(12);
+    let result: RawResult | null = null;
+
+    try {
+      const status = this.module._mjb_idna_to_unicode(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, outputEncoding, infoPtr, resultPtr);
+
+      if(status !== Status.OK) {
+        return null;
+      }
+
+      result = this.pointerToResult(resultPtr);
+      const errors = this.module.HEAP32[infoPtr / 4] >>> 0;
+
+      return {
+        ...this.rawResultToResult(result, outputEncoding),
+        errors,
+        valid: errors === IdnaError.NONE
+      };
+    } finally {
+      if(result?.transformed && result.output !== 0) {
+        this.free(result.output);
+      }
+
+      this.free(wasmInput.ptr);
+      this.free(infoPtr);
       this.free(resultPtr);
     }
   }

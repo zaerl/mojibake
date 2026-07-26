@@ -17,7 +17,7 @@ static bool next_character(mjb_character *character, mjb_character_position type
     return true;
 }
 
-static bool has_only_latin1(char *source, size_t source_size) {
+static bool has_only_latin1(const char *source, size_t source_size) {
     uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint current_codepoint = 0;
 
@@ -349,6 +349,15 @@ int test_normalization(void *arg) {
     ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
                           NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL result")
+
+    char noncharacter_source[] = "\xF1\x8F\xBF\xBE>\xCC\xB8";
+    char noncharacter_normalized[] = "\xF1\x8F\xBF\xBE\xE2\x89\xAF";
+    check_normalization(noncharacter_source, 7, noncharacter_normalized, 7, MJB_NORMALIZATION_NFC,
+        0, "NFC preserves noncharacters while composing");
+    char hangul_source[] = "\xE1\x84\x8F\xE1\x85\xB5\xE1\x86\xBF.>\xCC\xB8";
+    char hangul_normalized[] = "\xED\x82\xBC.\xE2\x89\xAF";
+    check_normalization(hangul_source, 13, hangul_normalized, 7, MJB_NORMALIZATION_NFC, 0,
+        "NFC composes after Hangul compaction");
 
     ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE,
                           &guard_result),

@@ -180,6 +180,46 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_idna_to_ascii
+    MJB_TEST_COVERAGE(mjb_idna_to_ascii); // Added by the script
+    const char *domain = "b\xC3\xBC" "cher.de";
+    mjb_idna_info info;
+    mjb_result result;
+
+    if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii test failed") // Added by the script
+        return 1;
+    }
+
+    // xn--bcher-kva.de
+    // printf("%.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "xn--bcher-kva.de", "mjb_idna_to_ascii test failed") // Added by the script
+    mjb_result_free(&result);
+}
+
+{
+    // Example for mjb_idna_to_unicode
+    MJB_TEST_COVERAGE(mjb_idna_to_unicode); // Added by the script
+    const char *domain = "xn--bcher-kva.de";
+    mjb_idna_info info;
+    mjb_result result;
+
+    if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+        &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode test failed") // Added by the script
+        return 1;
+    }
+
+    // bücher.de
+    // printf("%.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "bücher.de", "mjb_idna_to_unicode test failed") // Added by the script
+    mjb_result_free(&result);
+}
+
+{
     // Example for mjb_normalization_quick_check
     MJB_TEST_COVERAGE(mjb_normalization_quick_check); // Added by the script
     const char *input = "caf\xC3\xA9";

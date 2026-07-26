@@ -662,6 +662,44 @@
             return ret;
         }
 
+        function idnaErrorToString(error) {
+            const errors = {
+                0x0: 'NONE',
+                0x1: 'PUNYCODE',
+                0x2: 'EMPTY_LABEL',
+                0x4: 'HYPHEN',
+                0x8: 'NOT_NFC',
+                0x10: 'LEADING_MARK',
+                0x20: 'DISALLOWED',
+                0x40: 'STD3',
+                0x80: 'CONTEXTJ',
+                0x100: 'BIDI',
+                0x200: 'LABEL_LENGTH',
+                0x400: 'DOMAIN_LENGTH',
+            };
+
+            let ret = [];
+
+            for(const key in errors) {
+                if(error & key) {
+                    ret.push(errors[key]);
+                }
+            }
+
+            return ret.join(', ');
+        }
+
+        function parseIDNAResult(value) {
+            let ret = `Result: <strong>${value.output}</strong><br>`;
+            ret += `Valid: <strong>${value.valid ? 'Yes' : 'No'}</strong><br>`;
+
+            if(value.errors) {
+                ret += `<br>Errors: <strong>${idnaErrorToString(value.errors)}</strong>`;
+            }
+
+            return ret;
+        }
+
         async function callFunction(func) {
             const funcDiv = document.getElementById(func);
             const form = document.getElementById(func + '-wasm-form');
@@ -788,6 +826,10 @@
                     break;
                 case 'mjb_resolved_script_set':
                     data = parseResolvedScriptSet(data);
+                    break;
+                case 'mjb_idna_to_ascii':
+                case 'mjb_idna_to_unicode':
+                    data = parseIDNAResult(data);
                     break;
             }
 

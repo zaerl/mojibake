@@ -782,6 +782,198 @@ See also: [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_norm
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992), [UAX #31: Unicode Identifiers and Syntax, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html), [UAX #44: Unicode Character Database, Unicode 18.0.0](https://www.unicode.org/reports/tr44/tr44-36.html).
 
+## `mjb_idna_to_ascii`
+
+Convert a domain name to its UTS #46 nontransitional ASCII form.
+
+```c
+mjb_status mjb_idna_to_ascii(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    mjb_idna_info *info,
+    mjb_result *result
+);
+```
+
+Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, label-length, and domain-length checks enabled. Non-ASCII labels are encoded with Punycode. A successful operational status can still set `info->errors`; an errored ToASCII result must not be used for DNS lookup.
+
+- `buffer` - The domain name to process
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the ASCII domain name
+- `info` - The UTS #46 validation errors to store
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+
+**Returns**
+
+- `MJB_STATUS_OK` - Processing completed; inspect `info->errors` for validation failures
+- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
+- `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
+
+**Example**
+
+```c
+const char *domain = "b\xC3\xBC" "cher.de";
+mjb_idna_info info;
+mjb_result result;
+
+if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// xn--bcher-kva.de
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);
+```
+
+See also: [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
+
+Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
+
+## `mjb_idna_to_ascii_into`
+
+Convert a domain name to its UTS #46 nontransitional ASCII form into a caller-provided buffer.
+
+```c
+mjb_status mjb_idna_to_ascii_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    mjb_idna_info *info,
+    void *output,
+    size_t *output_size
+);
+```
+
+Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query.
+
+- `buffer` - The domain name to process
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the ASCII domain name
+- `info` - The UTS #46 validation errors to store
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the ASCII domain was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
+- `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
+- `MJB_STATUS_NO_MEMORY` - A temporary allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+See also: [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
+
+Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
+
+## `mjb_idna_to_unicode`
+
+Convert a domain name to its UTS #46 nontransitional Unicode form.
+
+```c
+mjb_status mjb_idna_to_unicode(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    mjb_idna_info *info,
+    mjb_result *result
+);
+```
+
+Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The function returns its best-effort converted string even when `info->errors` records a validation problem.
+
+- `buffer` - The domain name to process
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the Unicode domain name
+- `info` - The UTS #46 validation errors to store
+- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+
+**Returns**
+
+- `MJB_STATUS_OK` - Processing completed; inspect `info->errors` for validation failures
+- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
+- `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
+
+**Example**
+
+```c
+const char *domain = "xn--bcher-kva.de";
+mjb_idna_info info;
+mjb_result result;
+
+if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// bücher.de
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);
+```
+
+See also: [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
+
+Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
+
+## `mjb_idna_to_unicode_into`
+
+Convert a domain name to its UTS #46 nontransitional Unicode form into a caller-provided buffer.
+
+```c
+mjb_status mjb_idna_to_unicode_into(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_encoding output_encoding,
+    mjb_idna_info *info,
+    void *output,
+    size_t *output_size
+);
+```
+
+Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query.
+
+- `buffer` - The domain name to process
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `output_encoding` - The output encoding of the Unicode domain name
+- `info` - The UTS #46 validation errors to store
+- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
+- `output_size` - The input capacity and output required or written byte count
+
+**Returns**
+
+- `MJB_STATUS_OK` - The required size was returned or the Unicode domain was written
+- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
+- `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
+- `MJB_STATUS_NO_MEMORY` - A temporary allocation failed
+- `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
+
+See also: [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
+
+Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
+
 ## `mjb_normalization_quick_check`
 
 Check if a string is normalized to NFC/NFKC/NFD/NFKD form.

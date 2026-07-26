@@ -859,6 +859,62 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return nfkc_casefold_result(input, input_encoding, output_encoding).str();
 }
 
+class IdnaResult {
+    TextResult text_result;
+    uint32_t error_flags;
+
+  public:
+    IdnaResult(TextResult result, uint32_t errors) noexcept
+        : text_result(std::move(result)), error_flags(errors) {
+    }
+
+    [[nodiscard]] bool valid() const noexcept {
+        return error_flags == MJB_IDNA_ERROR_NONE;
+    }
+
+    [[nodiscard]] uint32_t errors() const noexcept {
+        return error_flags;
+    }
+
+    [[nodiscard]] bool has_error(mjb_idna_error error) const noexcept {
+        return (error_flags & static_cast<uint32_t>(error)) != 0;
+    }
+
+    [[nodiscard]] std::string_view view() const noexcept {
+        return text_result.view();
+    }
+
+    [[nodiscard]] std::string str() const {
+        return text_result.str();
+    }
+
+    [[nodiscard]] const TextResult &text() const noexcept {
+        return text_result;
+    }
+};
+
+[[nodiscard]] inline IdnaResult idna_to_ascii(std::string_view input,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    TextResult result = detail::ResultAccess::create();
+    mjb_idna_info info{};
+    const mjb_status status = mjb_idna_to_ascii(input.data(), input.size(), input_encoding,
+        output_encoding, &info, detail::ResultAccess::out(result));
+
+    result = detail::ResultAccess::checked(std::move(result), status, "IDNA ToASCII failed");
+    return IdnaResult(std::move(result), info.errors);
+}
+
+[[nodiscard]] inline IdnaResult idna_to_unicode(std::string_view input,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    TextResult result = detail::ResultAccess::create();
+    mjb_idna_info info{};
+    const mjb_status status = mjb_idna_to_unicode(input.data(), input.size(), input_encoding,
+        output_encoding, &info, detail::ResultAccess::out(result));
+
+    result = detail::ResultAccess::checked(std::move(result), status, "IDNA ToUnicode failed");
+    return IdnaResult(std::move(result), info.errors);
+}
+
 [[nodiscard]] inline TextResult case_map_result(std::string_view input, mjb_map_case_type type,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();

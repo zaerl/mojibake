@@ -112,6 +112,13 @@ export type ConfusableRow = {
   skeleton: Buffer;
 };
 
+export type IdnaMappingRow = {
+  start: number;
+  end: number;
+  status: number;
+  mapping: number[];
+};
+
 export type CollationEntryRow = {
   codepoint: number;
   weights: Buffer;

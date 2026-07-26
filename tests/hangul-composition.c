@@ -90,6 +90,19 @@ int test_hangul_composition(void *arg) {
     ATT_ASSERT(non_composable[1].codepoint, 0x1101, "Second character should remain unchanged")
     ATT_ASSERT(non_composable[2].codepoint, 0x1102, "Third character should remain unchanged")
 
+    mjb_buffer_character metadata[3] = {
+        { 0x1100, 7 },
+        { 0x1161, 8 },
+        { 0x41, 42 },
+    };
+    result_len = mjb_hangul_syllable_composition(metadata, 3);
+    ATT_ASSERT(result_len, 2, "Hangul composition compacts metadata")
+    ATT_ASSERT(metadata[0].codepoint, 0xAC00, "Hangul metadata composition codepoint")
+    ATT_ASSERT(metadata[0].combining, MJB_CCC_NOT_REORDERED,
+        "Composed Hangul is a normalization starter")
+    ATT_ASSERT(metadata[1].codepoint, 0x41, "Compacted character codepoint")
+    ATT_ASSERT(metadata[1].combining, 42, "Compacted character preserves metadata")
+
     // Test complex sequence
     mjb_buffer_character complex_input[9];
     complex_input[0].codepoint = 0x1100; // KIYEOK

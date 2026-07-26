@@ -12,6 +12,7 @@ set -e
 
 UNICODE_VERSION="draft"
 SECURITY_VERSION="18.0.0"
+IDNA_VERSION="18.0.0"
 GENERATOR_DIR=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
 DATA_DIR="$GENERATOR_DIR/unicode-data"
 
@@ -37,6 +38,12 @@ done
 
 fetch "https://www.unicode.org/Public/$UNICODE_VERSION/emoji/emoji-test.txt" \
     "$DATA_DIR/emoji/emoji-test.txt"
+fetch "https://www.unicode.org/Public/$UNICODE_VERSION/idna/IdnaTestV2.txt" \
+    "$DATA_DIR/idna/IdnaTestV2.txt"
+if ! grep -q "^# Version: $IDNA_VERSION$" "$DATA_DIR/idna/IdnaTestV2.txt"; then
+    echo "IDNA data version mismatch in IdnaTestV2.txt; expected $IDNA_VERSION" >&2
+    exit 1
+fi
 if [ ! -f "$DATA_DIR/security/intentional.txt" ] || \
     [ ! -f "$DATA_DIR/security/confusables.txt" ]; then
     mkdir -p "$DATA_DIR/security"

@@ -20,6 +20,7 @@ set(SOURCES
     hangul.c
     filter.c
     format.c
+    idna.c
     identifier.c
     locales.c
     next.c
@@ -28,6 +29,7 @@ set(SOURCES
     quick-check.c
     plane.c
     properties.c
+    punycode.c
     security.c
     segmentation.c
     string.c
@@ -106,6 +108,8 @@ if(MJB_BUILD_WASM)
         "\"_mjb_normalize\""
         "\"_mjb_filter\""
         "\"_mjb_nfkc_casefold\""
+        "\"_mjb_idna_to_ascii\""
+        "\"_mjb_idna_to_unicode\""
         "\"_mjb_normalization_quick_check\""
         "\"_mjb_detect_encoding\""
         "\"_mjb_is_ascii\""

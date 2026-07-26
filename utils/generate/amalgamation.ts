@@ -75,6 +75,7 @@ export async function generateAmalgamation() {
 
   const sources = [
     'mojibake-internal.h',
+    'punycode.h',
     'unicode-tables.h',
     'unicode-data.h',
     'mojibake.c',

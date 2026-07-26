@@ -23,6 +23,7 @@ import { generateCasefold } from '../parse-ucd/casefold';
 import { parseCollationAllKeys } from '../parse-ucd/collation';
 import { readCompositionExclusions } from '../parse-ucd/compositition-exclusion';
 import { parseConfusables } from '../parse-ucd/confusables';
+import { parseIdnaMappingTable } from '../parse-ucd/idna';
 import { generateEmojiProperties } from '../parse-ucd/emoji-properties';
 import { generateEmojiSequences } from '../parse-ucd/emoji-sequences';
 import { buildPropertyRanges, Property } from '../parse-ucd/properties';
@@ -37,7 +38,7 @@ import {
 } from '../types';
 import {
   addCaseFolding, addCharacters, addCollation, addCompositions, addConfusables,
-  addDecompositions, addEmojiProperties, addEmojiSequences, addPropertyRanges,
+  addDecompositions, addEmojiProperties, addEmojiSequences, addIdnaMappings, addPropertyRanges,
   addScriptExtensions,
   addSimpleCaseFolding,
   addSpecialCasing,
@@ -194,6 +195,11 @@ async function buildUnicodeTableData() {
   iLog('Parse confusables data');
   const confusableEntries = await parseConfusables('./unicode-data/security/confusables.txt');
   addConfusables(confusableEntries);
+
+  iLog('Parse IDNA mapping data');
+  addIdnaMappings(await parseIdnaMappingTable(
+    './unicode-data/idna/IdnaMappingTable.txt'
+  ));
 
   return { blocks, properties };
 }

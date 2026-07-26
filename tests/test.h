@@ -42,6 +42,7 @@ int test_format(void *arg);
 int test_hangul_composition(void *arg);
 int test_hangul(void *arg);
 int test_identifier(void *arg);
+int test_idna(void *arg);
 int test_locales(void *arg);
 int test_mojibake(void *arg);
 int test_next(void *arg);

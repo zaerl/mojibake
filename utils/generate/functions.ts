@@ -78,6 +78,7 @@ const uaxRevisions: Record<number, number> = {
 const utsRevisions: Record<number, number> = {
   10: 54,
   39: 33,
+  46: 35,
   51: 30
 };
 
@@ -561,6 +562,219 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
       uax(31, 'Unicode Identifiers and Syntax'),
       uax(44, 'Unicode Character Database')
     ]
+  },
+  {
+    comment: 'Convert a domain name to its UTS #46 nontransitional ASCII form.',
+    ret: 'mjb_status',
+    name: 'mjb_idna_to_ascii',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The domain name to process'),
+      byte_length(),
+      encoding(),
+      encoding('The output encoding of the ASCII domain name', 'output_encoding'),
+      {
+        name: 'info',
+        type: 'mjb_idna_info *',
+        description: 'The UTS #46 validation errors to store',
+        wasm_generated: true
+      },
+      result()
+    ],
+    wasm: true,
+    section: Section.TextTransformation,
+    details: 'Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, ' +
+      'label-length, and domain-length checks enabled. Non-ASCII labels are encoded with ' +
+      'Punycode. A successful operational status can still set `info->errors`; an errored ' +
+      'ToASCII result must not be used for DNS lookup.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description:
+        'Processing completed; inspect `info->errors` for validation failures' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`info` or `result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent the result' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    example: `const char *domain = "b\\xC3\\xBC" "cher.de";
+mjb_idna_info info;
+mjb_result result;
+
+if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// xn--bcher-kva.de
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);`,
+    related: ['mjb_idna_to_ascii_into', 'mjb_idna_to_unicode',
+      'mjb_idna_to_unicode_into'],
+    specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
+  },
+  {
+    comment: 'Convert a domain name to its UTS #46 nontransitional ASCII form into a caller-provided buffer.',
+    ret: 'mjb_status',
+    name: 'mjb_idna_to_ascii_into',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The domain name to process'),
+      byte_length(),
+      encoding(),
+      encoding('The output encoding of the ASCII domain name', 'output_encoding'),
+      {
+        name: 'info',
+        type: 'mjb_idna_info *',
+        description: 'The UTS #46 validation errors to store',
+        wasm_generated: false
+      },
+      {
+        name: 'output',
+        type: 'void *',
+        description: 'The caller-provided output buffer, or NULL to query the required size',
+        wasm_generated: false,
+        ownership: 'The caller retains ownership'
+      },
+      {
+        name: 'output_size',
+        type: 'size_t *',
+        description: 'The input capacity and output required or written byte count',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    section: Section.TextTransformation,
+    details: 'Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` ' +
+      'to NULL to query the required byte count. No bytes are written if capacity is ' +
+      'insufficient. Processing uses temporary allocations even during a size query.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description:
+        'The required size was returned or the ASCII domain was written' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent the result' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'A temporary allocation failed' },
+      { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
+        'The output capacity is smaller than the required byte count' }
+    ],
+    related: ['mjb_idna_to_ascii', 'mjb_idna_to_unicode',
+      'mjb_idna_to_unicode_into'],
+    specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
+  },
+  {
+    comment: 'Convert a domain name to its UTS #46 nontransitional Unicode form.',
+    ret: 'mjb_status',
+    name: 'mjb_idna_to_unicode',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The domain name to process'),
+      byte_length(),
+      encoding(),
+      encoding('The output encoding of the Unicode domain name', 'output_encoding'),
+      {
+        name: 'info',
+        type: 'mjb_idna_info *',
+        description: 'The UTS #46 validation errors to store',
+        wasm_generated: true
+      },
+      result()
+    ],
+    wasm: true,
+    section: Section.TextTransformation,
+    details: 'Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The ' +
+      'function returns its best-effort converted string even when `info->errors` records a ' +
+      'validation problem.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description:
+        'Processing completed; inspect `info->errors` for validation failures' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`info` or `result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent the result' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
+    example: `const char *domain = "xn--bcher-kva.de";
+mjb_idna_info info;
+mjb_result result;
+
+if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// bücher.de
+printf("%.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);`,
+    related: ['mjb_idna_to_unicode_into', 'mjb_idna_to_ascii',
+      'mjb_idna_to_ascii_into'],
+    specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
+  },
+  {
+    comment: 'Convert a domain name to its UTS #46 nontransitional Unicode form into a caller-provided buffer.',
+    ret: 'mjb_status',
+    name: 'mjb_idna_to_unicode_into',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The domain name to process'),
+      byte_length(),
+      encoding(),
+      encoding('The output encoding of the Unicode domain name', 'output_encoding'),
+      {
+        name: 'info',
+        type: 'mjb_idna_info *',
+        description: 'The UTS #46 validation errors to store',
+        wasm_generated: false
+      },
+      {
+        name: 'output',
+        type: 'void *',
+        description: 'The caller-provided output buffer, or NULL to query the required size',
+        wasm_generated: false,
+        ownership: 'The caller retains ownership'
+      },
+      {
+        name: 'output_size',
+        type: 'size_t *',
+        description: 'The input capacity and output required or written byte count',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    section: Section.TextTransformation,
+    details: 'Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set ' +
+      '`output` to NULL to query the required byte count. No bytes are written if capacity is ' +
+      'insufficient. Processing uses temporary allocations even during a size query.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description:
+        'The required size was returned or the Unicode domain was written' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent the result' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'An output or Punycode size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'A temporary allocation failed' },
+      { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
+        'The output capacity is smaller than the required byte count' }
+    ],
+    related: ['mjb_idna_to_unicode', 'mjb_idna_to_ascii',
+      'mjb_idna_to_ascii_into'],
+    specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
   },
   {
     comment: 'Check if a string is normalized to NFC/NFKC/NFD/NFKD form.',

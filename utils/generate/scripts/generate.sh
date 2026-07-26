@@ -12,6 +12,7 @@ cd "$GENERATOR_DIR"
 # TODO: change "draft" to 18.0.0 when the final version is released.
 UNICODE_VERSION="draft"
 SECURITY_VERSION="18.0.0"
+IDNA_VERSION="18.0.0"
 DATA_DIR="./unicode-data"
 
 mkdir -p "$DATA_DIR"
@@ -56,9 +57,25 @@ if [ ! -d "$DATA_DIR/security" ] ; then
     rm "$DATA_DIR/uts39-data.zip"
 fi
 
+mkdir -p "$DATA_DIR/idna"
+
+for file in "ReadMe.txt" "IdnaMappingTable.txt" "IdnaTestV2.txt"; do
+    if [ ! -f "$DATA_DIR/idna/$file" ]; then
+        curl -o "$DATA_DIR/idna/$file" \
+            "https://www.unicode.org/Public/$UNICODE_VERSION/idna/$file"
+    fi
+done
+
 for file in "confusables.txt" "intentional.txt"; do
     if ! grep -q "^# Version: $SECURITY_VERSION$" "$DATA_DIR/security/$file"; then
         echo "Security data version mismatch in $file; expected $SECURITY_VERSION" >&2
+        exit 1
+    fi
+done
+
+for file in "IdnaMappingTable.txt" "IdnaTestV2.txt"; do
+    if ! grep -q "^# Version: $IDNA_VERSION$" "$DATA_DIR/idna/$file"; then
+        echo "IDNA data version mismatch in $file; expected $IDNA_VERSION" >&2
         exit 1
     fi
 done

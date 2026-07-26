@@ -822,6 +822,41 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
     return true;
 }
 
+bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
+    const mjb_codepoint **mapping, uint8_t *length) {
+    size_t low = 0;
+    size_t high = MJB_COUNT_OF(mjb_unicode_idna_ranges);
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        uint64_t entry = mjb_unicode_idna_ranges[mid];
+        mjb_codepoint start = (mjb_codepoint)(entry & 0x1FFFFF);
+        mjb_codepoint end = start + (mjb_codepoint)((entry >> 21) & 0x1FFFFF);
+
+        if(codepoint < start) {
+            high = mid;
+        } else if(codepoint > end) {
+            low = mid + 1;
+        } else {
+            uint16_t mapping_id = (uint16_t)((entry >> 45) & 0x1FFF);
+            *status = (mjb_unicode_idna_status)((entry >> 42) & 0x7);
+            *mapping = NULL;
+            *length = 0;
+
+            if(mapping_id != 0) {
+                uint16_t mapping_start = mjb_unicode_idna_mapping_offsets[mapping_id - 1];
+                uint16_t mapping_end = mjb_unicode_idna_mapping_offsets[mapping_id];
+                *mapping = &mjb_unicode_idna_mapping_data[mapping_start];
+                *length = (uint8_t)(mapping_end - mapping_start);
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset) {
     for(size_t i = 0; i < MJB_UNICODE_COLLATION_IMPLICIT_RANGE_COUNT; ++i) {

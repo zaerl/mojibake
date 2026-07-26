@@ -141,6 +141,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
     './unicode-data/UCD/auxiliary/SentenceBreakProperty.txt',
     './unicode-data/UCD/emoji/emoji-data.txt',
     './unicode-data/UCD/Scripts.txt',
+    './unicode-data/UCD/extracted/DerivedJoiningType.txt',
   ];
 
   const defaultProperties = [
@@ -153,6 +154,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
     'SB',
     '',
     'sc',
+    'jt',
   ]
 
   // Collect all property entries
@@ -166,7 +168,7 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
       const property = hasDefault ? defaultProperties[i] : split[1];
       const value = hasDefault ? split[1] : split[2];
 
-      if(property && propertyMap[property]) {
+      if(property && propertyMap[property] !== undefined) {
         let valueId = 1;
 
         if(typeof value !== 'undefined') {
