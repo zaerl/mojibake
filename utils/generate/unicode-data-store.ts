@@ -19,7 +19,7 @@ import {
   BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow,
   CollationImplicitRangeRow, CompositionRow, ConfusableRow, DecompositionRow, EmojiRow,
   EmojiSequenceRow, NameRow, NCharacterRow, NumericRow, PrefixRow, PropertyRangeRow, SimpleCaseRow,
-  SpecialCaseRow,
+  SpecialCaseRow, IdnaMappingRow,
   ScriptExtensionRow,
 } from './file-generators/types';
 import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
@@ -41,6 +41,7 @@ export type UnicodeTableData = {
   caseFoldMappings: CaseFoldRow[];
   caseFoldSimpleMappings: CaseFoldSimpleRow[];
   confusables: ConfusableRow[];
+  idnaMappings: IdnaMappingRow[];
   collationEntries: CollationEntryRow[];
   collationImplicitRanges: CollationImplicitRangeRow[];
   collationContractions: CollationContractionRow[];
@@ -65,6 +66,7 @@ function emptyUnicodeTableData(): UnicodeTableData {
     caseFoldMappings: [],
     caseFoldSimpleMappings: [],
     confusables: [],
+    idnaMappings: [],
     collationEntries: [],
     collationImplicitRanges: [],
     collationContractions: [],
@@ -117,6 +119,7 @@ export function getUnicodeTableData(): UnicodeTableData {
     caseFoldMappings: [...unicodeTableData.caseFoldMappings].sort(byCodepoint),
     caseFoldSimpleMappings: [...unicodeTableData.caseFoldSimpleMappings].sort(byCodepoint),
     confusables: [...unicodeTableData.confusables].sort(byCodepoint),
+    idnaMappings: [...unicodeTableData.idnaMappings].sort((a, b) => a.start - b.start),
     collationEntries: [...unicodeTableData.collationEntries].sort(byCodepoint),
     collationImplicitRanges: [...unicodeTableData.collationImplicitRanges].sort((a, b) =>
       a.start - b.start
@@ -387,4 +390,8 @@ export function addConfusables(entries: ConfusableEntry[]) {
       skeleton: encodeCodepointSequence(entry.skeleton),
     });
   }
+}
+
+export function addIdnaMappings(entries: IdnaMappingRow[]) {
+  unicodeTableData.idnaMappings.push(...entries);
 }

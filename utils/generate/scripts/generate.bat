@@ -14,6 +14,7 @@ pushd "%~dp0.." || (
 REM TODO: change "draft" to 18.0.0 when the final version is released.
 set UNICODE_VERSION=draft
 set SECURITY_VERSION=18.0.0
+set IDNA_VERSION=18.0.0
 set DATA_DIR=unicode-data
 
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%" || goto :fail
@@ -61,6 +62,17 @@ if not exist "%DATA_DIR%\security" (
     del "%DATA_DIR%\uts39-data.zip" || goto :fail
 )
 
+if not exist "%DATA_DIR%\idna" mkdir "%DATA_DIR%\idna" || goto :fail
+if not exist "%DATA_DIR%\idna\ReadMe.txt" (
+    curl -o "%DATA_DIR%\idna\ReadMe.txt" "https://www.unicode.org/Public/%UNICODE_VERSION%/idna/ReadMe.txt" || goto :fail
+)
+if not exist "%DATA_DIR%\idna\IdnaMappingTable.txt" (
+    curl -o "%DATA_DIR%\idna\IdnaMappingTable.txt" "https://www.unicode.org/Public/%UNICODE_VERSION%/idna/IdnaMappingTable.txt" || goto :fail
+)
+if not exist "%DATA_DIR%\idna\IdnaTestV2.txt" (
+    curl -o "%DATA_DIR%\idna\IdnaTestV2.txt" "https://www.unicode.org/Public/%UNICODE_VERSION%/idna/IdnaTestV2.txt" || goto :fail
+)
+
 node -e "const fs = require('fs'); const expected = '# Version: ' + process.argv[2]; const lines = fs.readFileSync(process.argv[1], 'utf8').split(/\r?\n/u); process.exit(lines.includes(expected) ? 0 : 1)" "%DATA_DIR%\security\confusables.txt" "%SECURITY_VERSION%"
 if errorlevel 1 (
     echo Security data version mismatch in confusables.txt; expected %SECURITY_VERSION% 1>&2
@@ -70,6 +82,18 @@ if errorlevel 1 (
 node -e "const fs = require('fs'); const expected = '# Version: ' + process.argv[2]; const lines = fs.readFileSync(process.argv[1], 'utf8').split(/\r?\n/u); process.exit(lines.includes(expected) ? 0 : 1)" "%DATA_DIR%\security\intentional.txt" "%SECURITY_VERSION%"
 if errorlevel 1 (
     echo Security data version mismatch in intentional.txt; expected %SECURITY_VERSION% 1>&2
+    goto :fail
+)
+
+node -e "const fs = require('fs'); const expected = '# Version: ' + process.argv[2]; const lines = fs.readFileSync(process.argv[1], 'utf8').split(/\r?\n/u); process.exit(lines.includes(expected) ? 0 : 1)" "%DATA_DIR%\idna\IdnaMappingTable.txt" "%IDNA_VERSION%"
+if errorlevel 1 (
+    echo IDNA data version mismatch in IdnaMappingTable.txt; expected %IDNA_VERSION% 1>&2
+    goto :fail
+)
+
+node -e "const fs = require('fs'); const expected = '# Version: ' + process.argv[2]; const lines = fs.readFileSync(process.argv[1], 'utf8').split(/\r?\n/u); process.exit(lines.includes(expected) ? 0 : 1)" "%DATA_DIR%\idna\IdnaTestV2.txt" "%IDNA_VERSION%"
+if errorlevel 1 (
+    echo IDNA data version mismatch in IdnaTestV2.txt; expected %IDNA_VERSION% 1>&2
     goto :fail
 )
 

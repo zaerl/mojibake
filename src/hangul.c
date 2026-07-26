@@ -82,7 +82,7 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
 
     // Copy first character
     mjb_codepoint last = characters[0].codepoint;
-    characters[len++].codepoint = last;
+    characters[len++] = characters[0];
 
     for(size_t i = 1; i < characters_len; ++i) {
         mjb_codepoint ch = characters[i].codepoint;
@@ -98,6 +98,7 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
                 last = MJB_CP_HANGUL_S_BASE +
                     (l_index * MJB_CP_HANGUL_V_COUNT + v_index) * MJB_CP_HANGUL_T_COUNT;
                 characters[len - 1].codepoint = last; // reset last
+                characters[len - 1].combining = MJB_CCC_NOT_REORDERED;
 
                 continue; // discard ch
             }
@@ -114,6 +115,7 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
                 // make syllable of form LVT
                 last += t_index;
                 characters[len - 1].codepoint = last; // reset last
+                characters[len - 1].combining = MJB_CCC_NOT_REORDERED;
 
                 continue; // discard ch
             }
@@ -121,7 +123,7 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
 
         // if neither case was true, just add the character
         last = ch;
-        characters[len++].codepoint = ch;
+        characters[len++] = characters[i];
     }
 
     // Mark remaining characters as invalid

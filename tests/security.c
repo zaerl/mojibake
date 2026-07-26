@@ -351,7 +351,7 @@ int test_security(void *arg) {
         MJB_STATUS_INVALID_ENCODING, "Resolved scripts reject invalid encoding")
     ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid encoding")
 
-    const char malformed_script_input[] = { (char)0x80 };
+    const char malformed_script_input[] = { '\x80' };
     script_count = 9;
     ATT_ASSERT_STATUS(mjb_resolved_script_set(malformed_script_input,
                           sizeof(malformed_script_input), enc, NULL, &script_count, &script_kind),

@@ -26,6 +26,7 @@ set(TEST_SOURCES
     hangul-composition.c
     hangul.c
     identifier.c
+    idna.c
     locales.c
     mojibake.c
     next.c
@@ -107,6 +108,7 @@ add_test(NAME "Format" COMMAND mojibake-test -f format)
 add_test(NAME "Hangul Composition" COMMAND mojibake-test -f hangul_composition)
 add_test(NAME "Hangul" COMMAND mojibake-test -f hangul)
 add_test(NAME "Identifier" COMMAND mojibake-test -f identifier)
+add_test(NAME "IDNA" COMMAND mojibake-test -f idna)
 add_test(NAME "Locales" COMMAND mojibake-test -f locales)
 add_test(NAME "Mojibake" COMMAND mojibake-test -f mojibake)
 add_test(NAME "Next" COMMAND mojibake-test -f next)

@@ -15,6 +15,7 @@ import { generateCollationContractions, generateCollationEntries, generateCollat
 import { generateDecompositionAndCompositionTables } from './unicode-data/composition';
 import { generateConfusables } from './unicode-data/confusable';
 import { generateEmoji } from './unicode-data/emoji';
+import { generateIdnaMappings } from './unicode-data/idna';
 import { generateNCharacters } from './unicode-data/n-characters';
 import { generateNames } from './unicode-data/names';
 import { generateNumericValues } from './unicode-data/numeric';
@@ -39,6 +40,7 @@ export async function generateUnicodeDataHeader(data: UnicodeTableData = getUnic
 ${generateBlocks(data.blocks)}
 ${generateNames(data.prefixes, data.names)}
 ${generateEmoji(data.emoji, data.emojiSequences)}
+${generateIdnaMappings(data.idnaMappings)}
 ${generateProperties(data.properties)}
 ${generateScriptExtensions(data.scriptExtensions)}
 ${generateNCharacters(data.nCharacters)}

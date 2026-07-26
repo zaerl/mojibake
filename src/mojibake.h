@@ -313,6 +313,28 @@ typedef struct mjb_result {
     bool transformed;
 } mjb_result;
 
+// UTS #46 processing errors. Processing can produce a best-effort result while setting one or
+// more of these flags.
+// Callers must not use an errored ToASCII result for DNS lookup.
+typedef enum mjb_idna_error {
+    MJB_IDNA_ERROR_NONE = 0x0,
+    MJB_IDNA_ERROR_PUNYCODE = 0x1,
+    MJB_IDNA_ERROR_EMPTY_LABEL = 0x2,
+    MJB_IDNA_ERROR_HYPHEN = 0x4,
+    MJB_IDNA_ERROR_NOT_NFC = 0x8,
+    MJB_IDNA_ERROR_LEADING_MARK = 0x10,
+    MJB_IDNA_ERROR_DISALLOWED = 0x20,
+    MJB_IDNA_ERROR_STD3 = 0x40,
+    MJB_IDNA_ERROR_CONTEXTJ = 0x80,
+    MJB_IDNA_ERROR_BIDI = 0x100,
+    MJB_IDNA_ERROR_LABEL_LENGTH = 0x200,
+    MJB_IDNA_ERROR_DOMAIN_LENGTH = 0x400
+} mjb_idna_error;
+
+typedef struct mjb_idna_info {
+    uint32_t errors;
+} mjb_idna_info;
+
 /**
  * Unicode block
  * [see: https://www.unicode.org/glossary/#block]
@@ -568,6 +590,18 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t
 
 // Apply the Unicode NFKC_Casefold transform into a caller-provided buffer.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
+
+// Convert a domain name to its UTS #46 nontransitional ASCII form.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
+
+// Convert a domain name to its UTS #46 nontransitional ASCII form into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, void *output, size_t *output_size);
+
+// Convert a domain name to its UTS #46 nontransitional Unicode form.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_unicode(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
+
+// Convert a domain name to its UTS #46 nontransitional Unicode form into a caller-provided buffer.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_unicode_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, void *output, size_t *output_size);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check);

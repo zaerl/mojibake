@@ -17,13 +17,10 @@ This is the Mojibake roadmap. For great justice.
 4. **Explicit locale operations**
    Implement the currently unsupported `mjb_locale_canonicalize` using a pinned IANA Language
    Subtag Registry snapshot.
-5. **UTS #46 IDNA**
-   Implement nontransitional `mjb_idna_to_ascii` and `mjb_idna_to_unicode`, including Punycode,
-   STD3, hyphen, bidi, and joiner checks. Validate against the complete `IdnaTestV2.txt` suite.
-6. **Reusable configurable collators**
+5. **Reusable configurable collators**
    Introduce immutable DUCET collator objects that encapsulate strength and variable weighting,
    then add case ordering, numeric collation, and normalization options.
-7. **Streaming processing**
+6. **Streaming processing**
    Add stateful `init`/`feed`/`finish` APIs for decoding and conversion, normalization, casing, and
    segmentation, using caller-kind of API.
 

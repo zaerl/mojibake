@@ -18,6 +18,7 @@ import {
   EmojiSequenceType,
   Encoding,
   FilterFlags,
+  IdnaError,
   Locale,
   Mojibake,
   Normalization,
@@ -49,6 +50,11 @@ att_set_show_colors(showColors);
 ATT_ASSERT(mojibake instanceof Mojibake, true, 'create');
 ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
+ATT_ASSERT(mojibake.idnaToAscii('bücher.de')?.output, 'xn--bcher-kva.de', 'idnaToAscii');
+ATT_ASSERT(mojibake.idnaToUnicode('xn--bcher-kva.de')?.output, 'bücher.de', 'idnaToUnicode');
+ATT_ASSERT(mojibake.idnaToAscii('a..b')?.valid, false, 'idnaToAscii validation');
+ATT_ASSERT((mojibake.idnaToAscii('a..b')?.errors ?? 0) & IdnaError.EMPTY_LABEL,
+  IdnaError.EMPTY_LABEL, 'idnaToAscii error flags');
 ATT_ASSERT(mojibake.forEachCharacter('A')?.[0]?.character.codepoint, 0x41, 'forEachCharacter');
 ATT_ASSERT(mojibake.normalizationQuickCheck('abc'), QuickCheckResult.YES, 'normalizationQuickCheck');
 ATT_ASSERT(mojibake.normalizationQuickCheck('\u00E9', Normalization.NFD), QuickCheckResult.NO,
