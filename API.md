@@ -815,7 +815,7 @@ Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, 
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
 - `MJB_STATUS_OVERFLOW` - An output or Punycode size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
-- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled without that feature
+- `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
 
 **Example**
 
