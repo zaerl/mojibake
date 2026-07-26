@@ -29,6 +29,7 @@ COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNOR
 COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt
 COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt
 COPY utils/generate/unicode-data/emoji/emoji-test.txt utils/generate/unicode-data/emoji/emoji-test.txt
+COPY utils/generate/unicode-data/idna/IdnaTestV2.txt utils/generate/unicode-data/idna/IdnaTestV2.txt
 COPY utils/generate/unicode-data/security/intentional.txt utils/generate/unicode-data/security/intentional.txt
 COPY utils/generate/unicode-data/security/confusables.txt utils/generate/unicode-data/security/confusables.txt
 COPY utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt
