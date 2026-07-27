@@ -19,3 +19,7 @@ runs:
     - name: Download Unicode test data
       shell: bash
       run: ./utils/generate/scripts/download-test-data.sh
+
+    - name: Use checked-in Unicode payload
+      shell: bash
+      run: touch src/unicode-data.h
