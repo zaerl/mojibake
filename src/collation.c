@@ -221,28 +221,46 @@ static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
 }
 
 /**
- * Append directly loadable collation elements. Bit 31 marks the final element; the remaining bits
- * have the same layout as the four-byte contraction BLOB decoded above.
+ * Append directly loadable collation elements. The first element is indexed directly; bit 31 marks
+ * single-element entries and the final element of an expansion tail. The remaining bits have the
+ * same layout as the four-byte contraction BLOB decoded above.
  */
-static bool cea_append_packed(mjb_cea *cea, const uint32_t *weights) {
-    bool last;
+static bool cea_append_packed_weight(mjb_cea *cea, uint32_t packed) {
+    if(!cea_grow(cea, 1)) {
+        return false;
+    }
+
+    cea->data[cea->count].primary = (uint16_t)(packed & 0xFFFF);
+    cea->data[cea->count].secondary = (uint16_t)((packed >> 16) & 0x1FF);
+    cea->data[cea->count].tertiary = (uint16_t)((packed >> 25) & 0x1F);
+    cea->data[cea->count].quaternary = 0;
+    cea->data[cea->count].variable = (packed & (1u << 30)) != 0;
+
+    ++cea->count;
+
+    return true;
+}
+
+static bool cea_append_packed(mjb_cea *cea, const uint32_t *entry) {
+    uint32_t packed = *entry;
+
+    if(!cea_append_packed_weight(cea, packed)) {
+        return false;
+    }
+
+    if((packed & UINT32_C(0x80000000)) != 0) {
+        return true;
+    }
+
+    const uint32_t *weights = mjb_unicode_collation_expansion_lookup(entry);
 
     do {
-        uint32_t packed = *weights++;
-        last = (packed & UINT32_C(0x80000000)) != 0;
+        packed = *weights++;
 
-        if(!cea_grow(cea, 1)) {
+        if(!cea_append_packed_weight(cea, packed)) {
             return false;
         }
-
-        cea->data[cea->count].primary = (uint16_t)(packed & 0xFFFF);
-        cea->data[cea->count].secondary = (uint16_t)((packed >> 16) & 0x1FF);
-        cea->data[cea->count].tertiary = (uint16_t)((packed >> 25) & 0x1F);
-        cea->data[cea->count].quaternary = 0;
-        cea->data[cea->count].variable = (packed & (1u << 30)) != 0;
-
-        ++cea->count;
-    } while(!last);
+    } while((packed & UINT32_C(0x80000000)) == 0);
 
     return true;
 }

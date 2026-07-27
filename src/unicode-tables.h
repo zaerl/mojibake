@@ -68,6 +68,7 @@ bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *s
 
 #if MJB_FEATURE_COLLATION
 bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights);
+const uint32_t *mjb_unicode_collation_expansion_lookup(const uint32_t *entry);
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset);
 bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
