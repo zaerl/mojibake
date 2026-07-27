@@ -16,9 +16,10 @@ const DOWNLOAD_OPTIONS = {
   },
 };
 
-export function substituteBlock(fileContent: string, start: string, end: string | null, replacement: string) {
-  const startIndex = fileContent.indexOf(start) + start.length;
-  const endIndex = end === null ? null : fileContent.indexOf(end, startIndex);
+export function substituteBlock(fileContent: string, start: string, end: string | null,
+  replacement: string, includedStart = false, includedEnd = false) {
+  const startIndex = fileContent.indexOf(start) + (includedStart ? 0 : start.length);
+  const endIndex = end === null ? null : fileContent.indexOf(end, startIndex) + (includedEnd ? end.length : 0);
 
   const ret = fileContent.slice(0, startIndex) + replacement;
 

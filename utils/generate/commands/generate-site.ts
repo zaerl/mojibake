@@ -18,6 +18,9 @@ const BUILD_DIR = '../../build-wasm/src';
 const API_DIST_DIR = '../../src/api/dist';
 const API_ROUTE = '/api/';
 const SERVE_PORT = 6251;
+const PAGE_TEMPLATE = 'index.html';
+const PAGE_OUTPUTS = ['index.html', 'api.html'] as const;
+const HTML_SOURCE_FILES = new Set([PAGE_TEMPLATE, 'footer.html']);
 const HIGHLIGHT_THEMES = {
   'highlight-light.css': require.resolve('highlight.js/styles/github.css'),
   'highlight-dark.css': require.resolve('highlight.js/styles/github-dark.css'),
@@ -185,18 +188,20 @@ function getFooterContent(functs: CFunction[]): string {
   return footerContent;
 }
 
+function highlight(str: string, lang: string): string {
+  if(lang && hljs.getLanguage(lang)) {
+
+    try {
+      return hljs.highlight(str, { language: lang }).value;
+    } catch (__) {}
+  }
+
+  return ''; // use external default escaping
+}
+
 function getHeaderContent(): string {
   const md = markdownit({
-    highlight: function (str, lang) {
-      if(lang && hljs.getLanguage(lang)) {
-
-        try {
-          return hljs.highlight(str, { language: lang }).value;
-        } catch (__) {}
-      }
-
-      return ''; // use external default escaping
-    }
+    highlight: highlight,
   }).use(require('markdown-it-footnote'));
 
   let readme = readFileSync('../../README.md', 'utf-8');
@@ -205,10 +210,72 @@ function getHeaderContent(): string {
   return md.render(readme.slice(readme.indexOf("You don't need"), readme.indexOf('## Thanks')));
 }
 
-function processIndexHtml() {
-  console.log('Processing index.html...');
+function getAPIHeaderContent(): string {
+  const md = markdownit({
+    highlight: highlight,
+  }).use(require('markdown-it-footnote'));
 
-  let fileContent = readFileSync(`${SOURCE_DIR}/index.html`, 'utf-8');
+  let api = readFileSync('../../API.md', 'utf-8');
+  api = substituteBlock(api, '# API', 'Welcome to', '', true);
+
+  return md.render(api);
+}
+
+type PageVariables = Record<string, string>;
+
+interface PageOptions {
+  pageNavigation?: string;
+  showAPIOnly?: boolean;
+  showHero?: boolean;
+}
+
+function processPage(
+  outputFileName: typeof PAGE_OUTPUTS[number],
+  vars: PageVariables,
+  options: PageOptions = {}
+) {
+  console.log(`Processing ${outputFileName}...`);
+
+  let fileContent = readFileSync(`${SOURCE_DIR}/${PAGE_TEMPLATE}`, 'utf-8');
+
+  if(options.pageNavigation !== undefined) {
+    fileContent = substituteBlock(
+      fileContent,
+      '<nav class="page-navigation" aria-label="On this page">\n',
+      '                </nav>',
+      options.pageNavigation
+    );
+  }
+
+  if(options.showAPIOnly) {
+    fileContent = substituteBlock(
+      fileContent,
+      '        <main id="main">\n',
+      '            <section class="api-reference" id="api-reference">',
+      ''
+    );
+  }
+
+  if(!options.showHero) {
+    fileContent = substituteBlock(
+      fileContent,
+      '<section class="hero" id="overview">',
+      '</section>',
+      '',
+      true,
+      true
+    );
+  }
+
+  for(const [key, value] of Object.entries(vars)) {
+    fileContent = substituteText(fileContent, `[${key}]`, value);
+  }
+
+  writeFileSync(`${BUILD_DIR}/${outputFileName}`, fileContent);
+  console.log(`${outputFileName} processed successfully`);
+}
+
+function processPages() {
   const functs = getFunctions();
   const functionNames = new Set(functs.map(fn => fn.getName()));
 
@@ -216,24 +283,40 @@ function processIndexHtml() {
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
   const baseURL = `https://github.com/zaerl/mojibake/releases/download/v${version.version}/`;
 
-  const vars = {
-    'TITLE_HERE': 'Mojibake — Unicode text processing in C, without the baggage',
+  const sharedVars = {
     'SIDEBAR_HERE': '<nav id="api-navigation" aria-label="API reference">' +
       formatAPINavigation(functs) + '</nav>',
     'FUNCTIONS_HERE': '\n' + formatAPISections(functs, functionNames) + '\n        ',
     'FOOTER_HERE': getFooterContent(functs),
+    'VERSION': version.version,
+  };
+
+  processPage('index.html', {
+    ...sharedVars,
+    'TITLE_HERE': 'Mojibake — Unicode text processing in C, without the baggage',
+    'DESCRIPTION_HERE':
+      'Mojibake is a fast, self-contained Unicode 18 library for C11 and C++17.',
     'AM_HREF': baseURL + fileName,
     'AM_NAME': fileName,
-    'VERSION': version.version,
-    'HEADER_HERE': getHeaderContent()
-  }
+    'HEADER_HERE': getHeaderContent(),
+    'GUIDE_TITLE_HERE': 'A practical Unicode toolkit',
+  }, {
+    showHero: true
+  });
 
-  for(const [key, value] of Object.entries(vars)) {
-    fileContent = substituteText(fileContent, `[${key}]`, value);
-  }
-
-  writeFileSync(`${BUILD_DIR}/index.html`, fileContent);
-  console.log('index.html processed successfully');
+  processPage('api.html', {
+    ...sharedVars,
+    'TITLE_HERE': 'Mojibake C API reference and browser demo',
+    'DESCRIPTION_HERE': 'Browse the Mojibake C API reference and try supported functions in your browser.',
+    'HEADER_HERE': getAPIHeaderContent(),
+    'GUIDE_TITLE_HERE': 'Mojibake C API reference',
+    }, {
+    pageNavigation: `                    <p class="sidebar-heading">API reference</p>
+                    <a href="#api-reference">Overview</a>
+                    <a href="#playground">Browser demo</a>\n`,
+    showHero: false
+    }
+  );
 }
 
 function copyFile(filePath: string) {
@@ -260,8 +343,8 @@ function copyHighlightThemes() {
 function handleFileChange(filePath: string) {
   const fileName = basename(filePath);
 
-  if(fileName === 'index.html') {
-    processIndexHtml();
+  if(HTML_SOURCE_FILES.has(fileName)) {
+    processPages();
   } else if(!fileName.startsWith('.')) {
     // Skip hidden files like .DS_Store
     copyFile(filePath);
@@ -301,15 +384,15 @@ mkdirSync(BUILD_DIR, { recursive: true });
 
 // Process all files initially
 console.log('Initial build...');
-processIndexHtml();
+processPages();
 copyHighlightThemes();
 
-// Copy all non-index.html files initially
+// Copy all files that are not HTML templates or partials initially
 try {
   const files = readdirSync(SOURCE_DIR);
 
   files.forEach(file => {
-    if(file !== 'index.html' && !file.startsWith('.')) {
+    if(!HTML_SOURCE_FILES.has(file) && !file.startsWith('.')) {
       const fullPath = join(SOURCE_DIR, file);
       const stats = statSync(fullPath);
 

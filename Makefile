@@ -136,7 +136,7 @@ generate-locale:
 generate-unicode-tables:
 	@cd ./utils/generate && npm run generate -- unicode-tables
 
-generate-site: src/site/index.html
+generate-site: src/site/index.html src/site/footer.html
 	@cd ./utils/generate && npm run generate-site
 
 sync-api-wasm: build-wasm
@@ -147,7 +147,7 @@ build-api: sync-api-wasm
 	@cd ./src/api && npm run build
 
 # Watch site files
-watch-site: build-api src/site/index.html
+watch-site: build-api src/site/index.html src/site/footer.html
 	@cd ./utils/generate && npm run watch-site
 
 # Watch API files
