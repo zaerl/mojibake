@@ -889,9 +889,18 @@ bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t 
         return false;
     }
 
-    *weights = &mjb_unicode_collation_weight_data[mjb_unicode_collation_entry_offsets[entry_index]];
+    *weights = &mjb_unicode_collation_first_weights[entry_index];
 
     return true;
+}
+
+const uint32_t *mjb_unicode_collation_expansion_lookup(const uint32_t *entry) {
+    size_t entry_index = (size_t)(entry - mjb_unicode_collation_first_weights);
+    size_t group = entry_index >> MJB_UNICODE_COLLATION_EXPANSION_GROUP_SHIFT;
+    uint16_t group_start = mjb_unicode_collation_expansion_group_starts[group];
+    uint8_t local_offset = mjb_unicode_collation_expansion_offsets[entry_index];
+
+    return &mjb_unicode_collation_expansion_weights[group_start + local_offset];
 }
 
 bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,

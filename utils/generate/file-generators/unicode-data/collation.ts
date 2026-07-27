@@ -212,7 +212,7 @@ function codepointsFromBlob(blob: Buffer) {
   return values;
 }
 
-// Emits indexed collation entries with shared packed weight data.
+// Emits indexed first collation weights with group-local shared expansion tails.
 export function generateCollationEntries(rows: CollationEntryRow[]) {
   iLog('Collation entries');
 
@@ -244,23 +244,44 @@ export function generateCollationEntries(rows: CollationEntryRow[]) {
     return elements;
   });
 
-  const packedWeights = packCodepointSequences(weightsByRow);
+  const expansionGroupShift = 7;
+  const expansionGroupSize = 1 << expansionGroupShift;
+  const firstWeights = weightsByRow.map((weights) => weights[0]);
+  const expansionWeights: number[] = [];
+  const expansionGroupStarts: number[] = [];
+  const expansionOffsets = new Array<number>(rows.length).fill(0);
   const pages = indexedPages(codepointPages(rows));
   const pageBitsets = codepointPageBitsets(rows, pages.pages);
-  const entryOffsets: number[] = [];
 
-  weightsByRow.forEach((weights, index) => {
-    const offset = packedWeights.entries[index].offset;
+  for(let start = 0; start < weightsByRow.length; start += expansionGroupSize) {
+    const groupRows = weightsByRow.slice(start, start + expansionGroupSize);
+    const expansions = groupRows
+      .map((weights, index) => ({ index, weights }))
+      .filter((entry) => entry.weights.length > 1);
+    const group = packCodepointSequences(expansions.map((entry) => entry.weights.slice(1)));
 
-    if(offset > 0xFFFF) {
-      throw new Error(`Collation weight offset is too large to pack: ${offset}`);
+    if(expansionWeights.length > 0xFFFF) {
+      throw new Error(`Collation expansion group start is too large: ${expansionWeights.length}`);
     }
 
-    entryOffsets.push(offset);
-  });
+    expansionGroupStarts.push(expansionWeights.length);
+    expansionWeights.push(...group.data);
 
-  return `static const uint32_t mjb_unicode_collation_weight_data[] = {
-${formatWords(packedWeights.data)}
+    group.entries.forEach((packed, index) => {
+      if(packed.offset > 0xFF) {
+        throw new Error(
+          `Collation group-local expansion offset is too large: ${packed.offset}`
+        );
+      }
+
+      expansionOffsets[start + expansions[index].index] = packed.offset;
+    });
+  }
+
+  return `enum { MJB_UNICODE_COLLATION_EXPANSION_GROUP_SHIFT = ${expansionGroupShift} };
+
+static const uint32_t mjb_unicode_collation_first_weights[] = {
+${formatWords(firstWeights)}
 };
 
 static const uint8_t mjb_unicode_collation_page_index[] = {
@@ -279,8 +300,16 @@ static const uint32_t mjb_unicode_collation_page_ranks[] = {
 ${formatWords(pageBitsets.ranks)}
 };
 
-static const uint16_t mjb_unicode_collation_entry_offsets[] = {
-${formatCompactIntegers(entryOffsets, 16)}
+static const uint32_t mjb_unicode_collation_expansion_weights[] = {
+${formatWords(expansionWeights)}
+};
+
+static const uint16_t mjb_unicode_collation_expansion_group_starts[] = {
+${formatHalfwords(expansionGroupStarts)}
+};
+
+static const uint8_t mjb_unicode_collation_expansion_offsets[] = {
+${formatCompactIntegers(expansionOffsets, 24)}
 };
 `;
 }
