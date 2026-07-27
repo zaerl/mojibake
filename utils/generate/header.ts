@@ -125,7 +125,7 @@ function getBidiMirroringInfo(pairs: BidiMirroringPair[]) {
 export function generateHeader(blocks: Block[], categories: string[], properties: Property[], bidiBrackets: BidiBracket[], bidiMirroring: BidiMirroringPair[]) {
   let fileContent = readFileSync('../../src/unicode.h', 'utf-8');
   let fileWASMContent = readFileSync('../../src/api/unicode.ts', 'utf-8');
-  let fileHTMLContent = readFileSync('../../src/site/index.html', 'utf-8');
+  let fileHTMLContent = readFileSync('../../src/site/footer.html', 'utf-8');
 
   // Fill unicode.h mjb_block.
   fileContent = substituteBlock(fileContent, "typedef enum mjb_block {\n", "\n} mjb_block;", getBlockEnumNames(blocks));
@@ -219,5 +219,5 @@ export function generateHeader(blocks: Block[], categories: string[], properties
 
   writeFileSync('../../src/bidi.c', fileContent);
   writeFileSync('../../src/api/unicode.ts', fileWASMContent);
-  writeFileSync('../../src/site/index.html', fileHTMLContent);
+  writeFileSync('../../src/site/footer.html', fileHTMLContent);
 }

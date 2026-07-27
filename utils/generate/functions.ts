@@ -35,6 +35,7 @@ export enum Section {
   Segmentation,
   Bidirectional,
   Emoji,
+  IDNA,
   DisplayWidth,
   HangulLanguage,
   Utility
@@ -584,7 +585,7 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
       result()
     ],
     wasm: true,
-    section: Section.TextTransformation,
+    section: Section.IDNA,
     exampleFeature: 'MJB_FEATURE_IDNA',
     details: 'Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, ' +
       'label-length, and domain-length checks enabled. Non-ASCII labels are encoded with ' +
@@ -653,7 +654,7 @@ mjb_result_free(&result);`,
       }
     ],
     wasm: false,
-    section: Section.TextTransformation,
+    section: Section.IDNA,
     details: 'Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` ' +
       'to NULL to query the required byte count. No bytes are written if capacity is ' +
       'insufficient. Processing uses temporary allocations even during a size query. If ' +
@@ -698,7 +699,7 @@ mjb_result_free(&result);`,
       result()
     ],
     wasm: true,
-    section: Section.TextTransformation,
+    section: Section.IDNA,
     exampleFeature: 'MJB_FEATURE_IDNA',
     details: 'Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The ' +
       'function returns its best-effort converted string even when `info->errors` records a ' +
@@ -766,7 +767,7 @@ mjb_result_free(&result);`,
       }
     ],
     wasm: false,
-    section: Section.TextTransformation,
+    section: Section.IDNA,
     details: 'Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set ' +
       '`output` to NULL to query the required byte count. No bytes are written if capacity is ' +
       'insufficient. Processing uses temporary allocations even during a size query. If ' +

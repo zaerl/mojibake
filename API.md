@@ -1,15 +1,15 @@
 # API
 
-Welcome to the Unicode world. Before starting, you can find a demo site where you can find the API
-documentation and test the functions by using WASM here:
-[https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+You can find a demo site where you can find the API documentation and test the functions by using
+WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
 
 > [!NOTE]
 > When we refer to "Unicode" or "Unicode 18" we refer to Unicode 18 **beta**
 
 ## Unicode glossary
 
-You will need to have a basic glossary to understand the terminology.
+Welcome to the Unicode world. Before starting, you will need to have a basic glossary to understand
+the terminology.
 
 A **Code Point** (`typedef uint32_t mjb_codepoint` in the code) in Unicode is an integer from 0 to
 0x10FFFF. It's used to identify a **Character** in the list. For example `U+20A0`, the € currency.

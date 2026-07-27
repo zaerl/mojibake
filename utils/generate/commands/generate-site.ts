@@ -10,7 +10,7 @@ import http from 'http';
 import markdownit from 'markdown-it';
 import { basename, extname, join, relative } from 'path';
 import { Section } from '../functions';
-import { cfns } from '../html-function';
+import { cfns, CFunction } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
 
 const SOURCE_DIR = '../../src/site';
@@ -18,6 +18,9 @@ const BUILD_DIR = '../../build-wasm/src';
 const API_DIST_DIR = '../../src/api/dist';
 const API_ROUTE = '/api/';
 const SERVE_PORT = 6251;
+const PAGE_TEMPLATE = 'index.html';
+const PAGE_OUTPUTS = ['index.html', 'api.html'] as const;
+const HTML_SOURCE_FILES = new Set([PAGE_TEMPLATE, 'footer.html']);
 const HIGHLIGHT_THEMES = {
   'highlight-light.css': require.resolve('highlight.js/styles/github.css'),
   'highlight-dark.css': require.resolve('highlight.js/styles/github-dark.css'),
@@ -71,6 +74,12 @@ const API_SECTIONS = [
     id: 'emoji',
     title: 'Emoji',
     description: 'Inspect emoji sequences and properties.'
+  },
+  {
+    section: Section.IDNA,
+    id: 'idna',
+    title: 'IDNA',
+    description: 'Handle Internationalized Domain Names in Applications (IDNA).'
   },
   {
     section: Section.DisplayWidth,
@@ -163,64 +172,151 @@ ${functionsHTML}
   }).join('\n');
 }
 
-function processIndexHtml() {
-  console.log('Processing index.html...');
-
-  let fileContent = readFileSync(`${SOURCE_DIR}/index.html`, 'utf-8');
-  const functs = getFunctions();
-  const functionNames = new Set(functs.map(fn => fn.getName()));
-
-  fileContent = substituteBlock(fileContent,
-    '<nav id="api-navigation" aria-label="API reference">',
-    '</nav>',
-    '\n' + formatAPINavigation(functs) + '\n    ');
-
-  fileContent = substituteBlock(fileContent,
+function getFooterContent(functs: CFunction[]): string {
+  let footerContent = readFileSync(`${SOURCE_DIR}/footer.html`, 'utf-8');
+  footerContent = substituteBlock(footerContent,
     'const functions = {',
     '};',
     functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
 
-  fileContent = substituteBlock(fileContent,
-    '<div id="functions">',
-    '</div>',
-    '\n' + formatAPISections(functs, functionNames) + '\n        ');
-
-  fileContent = substituteBlock(fileContent,
+  footerContent = substituteBlock(footerContent,
     "// On click events\n",
-    "    </script>",
+    "</script>",
     functs.filter(fn => fn.isWASM()).map(fn => '        ' + fn.formatEventListener()).join('\n') + "\n"
   );
+
+  return footerContent;
+}
+
+function highlight(str: string, lang: string): string {
+  if(lang && hljs.getLanguage(lang)) {
+
+    try {
+      return hljs.highlight(str, { language: lang }).value;
+    } catch (__) {}
+  }
+
+  return ''; // use external default escaping
+}
+
+function getHeaderContent(): string {
+  const md = markdownit({
+    highlight: highlight,
+  }).use(require('markdown-it-footnote'));
+
+  let readme = readFileSync('../../README.md', 'utf-8');
+  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
+
+  return md.render(readme.slice(readme.indexOf("You don't need"), readme.indexOf('## Thanks')));
+}
+
+function getAPIHeaderContent(): string {
+  const md = markdownit({
+    highlight: highlight,
+  }).use(require('markdown-it-footnote'));
+
+  let api = readFileSync('../../API.md', 'utf-8');
+  api = substituteBlock(api, '# API', 'Welcome to', '', true);
+
+  return md.render(api);
+}
+
+type PageVariables = Record<string, string>;
+
+interface PageOptions {
+  pageNavigation?: string;
+  showAPIOnly?: boolean;
+  showHero?: boolean;
+}
+
+function processPage(
+  outputFileName: typeof PAGE_OUTPUTS[number],
+  vars: PageVariables,
+  options: PageOptions = {}
+) {
+  console.log(`Processing ${outputFileName}...`);
+
+  let fileContent = readFileSync(`${SOURCE_DIR}/${PAGE_TEMPLATE}`, 'utf-8');
+
+  if(options.pageNavigation !== undefined) {
+    fileContent = substituteBlock(
+      fileContent,
+      '<nav class="page-navigation" aria-label="On this page">\n',
+      '                </nav>',
+      options.pageNavigation
+    );
+  }
+
+  if(options.showAPIOnly) {
+    fileContent = substituteBlock(
+      fileContent,
+      '        <main id="main">\n',
+      '            <section class="api-reference" id="api-reference">',
+      ''
+    );
+  }
+
+  if(!options.showHero) {
+    fileContent = substituteBlock(
+      fileContent,
+      '<section class="hero" id="overview">',
+      '</section>',
+      '',
+      true,
+      true
+    );
+  }
+
+  for(const [key, value] of Object.entries(vars)) {
+    fileContent = substituteText(fileContent, `[${key}]`, value);
+  }
+
+  writeFileSync(`${BUILD_DIR}/${outputFileName}`, fileContent);
+  console.log(`${outputFileName} processed successfully`);
+}
+
+function processPages() {
+  const functs = getFunctions();
+  const functionNames = new Set(functs.map(fn => fn.getName()));
 
   const version = getVersion();
   const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
   const baseURL = `https://github.com/zaerl/mojibake/releases/download/v${version.version}/`;
 
-  fileContent = substituteText(fileContent, '[AM_HREF]', baseURL + fileName);
-  fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
-  fileContent = substituteText(fileContent, '[VERSION]', version.version);
+  const sharedVars = {
+    'SIDEBAR_HERE': '<nav id="api-navigation" aria-label="API reference">' +
+      formatAPINavigation(functs) + '</nav>',
+    'FUNCTIONS_HERE': '\n' + formatAPISections(functs, functionNames) + '\n        ',
+    'FOOTER_HERE': getFooterContent(functs),
+    'VERSION': version.version,
+  };
 
-  let readme = readFileSync('../../README.md', 'utf-8');
-  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
-  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
+  processPage('index.html', {
+    ...sharedVars,
+    'TITLE_HERE': 'Mojibake — Unicode text processing in C, without the baggage',
+    'DESCRIPTION_HERE':
+      'Mojibake is a fast, self-contained Unicode 18 library for C11 and C++17.',
+    'AM_HREF': baseURL + fileName,
+    'AM_NAME': fileName,
+    'HEADER_HERE': getHeaderContent(),
+    'GUIDE_TITLE_HERE': 'A practical Unicode toolkit',
+  }, {
+    showHero: true
+  });
 
-  const md = markdownit({
-    highlight: function (str, lang) {
-      if(lang && hljs.getLanguage(lang)) {
-
-        try {
-          return hljs.highlight(str, { language: lang }).value;
-        } catch (__) {}
-      }
-
-      return ''; // use external default escaping
+  processPage('api.html', {
+    ...sharedVars,
+    'TITLE_HERE': 'Mojibake C API reference and browser demo',
+    'DESCRIPTION_HERE': 'Browse the Mojibake C API reference and try supported functions in your browser.',
+    'HEADER_HERE': getAPIHeaderContent(),
+    'GUIDE_TITLE_HERE': 'Mojibake C API reference',
+    }, {
+    pageNavigation: `                    <p class="sidebar-heading">API reference</p>
+                    <a href="#api-reference">Overview</a>
+                    <a href="#playground">Browser demo</a>\n`,
+    showHero: false
     }
-  }).use(require('markdown-it-footnote'));
-
-  const header = md.render(readme.slice(readme.indexOf("You don't need"), readme.indexOf('## Thanks')));
-  fileContent = substituteText(fileContent, '[HEADER_HERE]', header);
-
-  writeFileSync(`${BUILD_DIR}/index.html`, fileContent);
-  console.log('index.html processed successfully');
+  );
 }
 
 function copyFile(filePath: string) {
@@ -247,8 +343,8 @@ function copyHighlightThemes() {
 function handleFileChange(filePath: string) {
   const fileName = basename(filePath);
 
-  if(fileName === 'index.html') {
-    processIndexHtml();
+  if(HTML_SOURCE_FILES.has(fileName)) {
+    processPages();
   } else if(!fileName.startsWith('.')) {
     // Skip hidden files like .DS_Store
     copyFile(filePath);
@@ -288,15 +384,15 @@ mkdirSync(BUILD_DIR, { recursive: true });
 
 // Process all files initially
 console.log('Initial build...');
-processIndexHtml();
+processPages();
 copyHighlightThemes();
 
-// Copy all non-index.html files initially
+// Copy all files that are not HTML templates or partials initially
 try {
   const files = readdirSync(SOURCE_DIR);
 
   files.forEach(file => {
-    if(file !== 'index.html' && !file.startsWith('.')) {
+    if(!HTML_SOURCE_FILES.has(file) && !file.startsWith('.')) {
       const fullPath = join(SOURCE_DIR, file);
       const stats = statSync(fullPath);
 

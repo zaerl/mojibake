@@ -1,0 +1,877 @@
+<footer class="site-footer">
+    <p><strong>Mojibake</strong> - Unicode text processing for C.</p>
+    <p><a href="https://github.com/zaerl/mojibake">Source on GitHub</a> - MIT License</p>
+</footer>
+<!-- Use at your own discretion, and feel free to collaborate. https://github.com/zaerl/mojibake/ -->
+<script type="module">
+    // This is used for auto-generated site, do not edit this object.
+    const functions = {};
+
+    // C: mjb_category
+    const categories = [
+        'Letter, uppercase',
+        'Letter, lowercase',
+        'Letter, titlecase',
+        'Letter, modifier',
+        'Letter, other',
+        'Mark, non-spacing',
+        'Mark, spacing combining',
+        'Mark, enclosing',
+        'Number, decimal digit',
+        'Number, letter',
+        'Number, other',
+        'Punctuation, connector',
+        'Punctuation, dash',
+        'Punctuation, open',
+        'Punctuation, close',
+        'Punctuation, initial quote',
+        'Punctuation, final quote',
+        'Punctuation, other',
+        'Symbol, math',
+        'Symbol, currency',
+        'Symbol, modifier',
+        'Symbol, other',
+        'Separator, space',
+        'Separator, line',
+        'Separator, paragraph',
+        'Other, control',
+        'Other, format',
+        'Other, surrogate',
+        'Other, private use',
+        'Other, not assigned',
+    ];
+
+    const scripts = [
+            "Not set",
+            "Adlm",
+            "Aghb",
+            "Ahom",
+            "Arab",
+            "Armi",
+            "Armn",
+            "Avst",
+            "Bali",
+            "Bamu",
+            "Bass",
+            "Batk",
+            "Beng",
+            "Berf",
+            "Bhks",
+            "Bopo",
+            "Brah",
+            "Brai",
+            "Bugi",
+            "Buhd",
+            "Cakm",
+            "Cans",
+            "Cari",
+            "Cham",
+            "Cher",
+            "Chis",
+            "Chrs",
+            "Copt",
+            "Cpmn",
+            "Cprt",
+            "Cyrl",
+            "Deva",
+            "Diak",
+            "Dogr",
+            "Dsrt",
+            "Dupl",
+            "Egyp",
+            "Elba",
+            "Elym",
+            "Ethi",
+            "Gara",
+            "Geor",
+            "Glag",
+            "Gong",
+            "Gonm",
+            "Goth",
+            "Gran",
+            "Grek",
+            "Gujr",
+            "Gukh",
+            "Guru",
+            "Hang",
+            "Hani",
+            "Hano",
+            "Hatr",
+            "Hebr",
+            "Hira",
+            "Hluw",
+            "Hmng",
+            "Hmnp",
+            "Hrkt",
+            "Hung",
+            "Ital",
+            "Java",
+            "Jurc",
+            "Kali",
+            "Kana",
+            "Kawi",
+            "Khar",
+            "Khmr",
+            "Khoj",
+            "Kits",
+            "Knda",
+            "Krai",
+            "Kthi",
+            "Lana",
+            "Laoo",
+            "Latn",
+            "Lepc",
+            "Limb",
+            "Lina",
+            "Linb",
+            "Lisu",
+            "Lyci",
+            "Lydi",
+            "Mahj",
+            "Maka",
+            "Mand",
+            "Mani",
+            "Marc",
+            "Medf",
+            "Mend",
+            "Merc",
+            "Mero",
+            "Mlym",
+            "Modi",
+            "Mong",
+            "Mroo",
+            "Mtei",
+            "Mult",
+            "Mymr",
+            "Nagm",
+            "Nand",
+            "Narb",
+            "Nbat",
+            "Newa",
+            "Nkoo",
+            "Nshu",
+            "Ogam",
+            "Olck",
+            "Onao",
+            "Orkh",
+            "Orya",
+            "Osge",
+            "Osma",
+            "Ougr",
+            "Palm",
+            "Pauc",
+            "Pcun",
+            "Perm",
+            "Phag",
+            "Phli",
+            "Phlp",
+            "Phnx",
+            "Plrd",
+            "Prti",
+            "Rjng",
+            "Rohg",
+            "Runr",
+            "Samr",
+            "Sarb",
+            "Saur",
+            "Seal",
+            "Sgnw",
+            "Shaw",
+            "Shrd",
+            "Sidd",
+            "Sidt",
+            "Sind",
+            "Sinh",
+            "Sogd",
+            "Sogo",
+            "Sora",
+            "Soyo",
+            "Sund",
+            "Sunu",
+            "Sylo",
+            "Syrc",
+            "Tagb",
+            "Takr",
+            "Tale",
+            "Talu",
+            "Taml",
+            "Tang",
+            "Tavt",
+            "Tayo",
+            "Telu",
+            "Tfng",
+            "Tglg",
+            "Thaa",
+            "Thai",
+            "Tibt",
+            "Tirh",
+            "Tnsa",
+            "Todr",
+            "Tols",
+            "Toto",
+            "Tutg",
+            "Ugar",
+            "Vaii",
+            "Vith",
+            "Wara",
+            "Wcho",
+            "Xpeo",
+            "Xsux",
+            "Yezi",
+            "Yiii",
+            "Zanb",
+            "Zinh",
+            "Zyyy",
+            "Zzzz",
+            "Hanb",
+            "Jpan",
+            "Kore"
+        ];
+
+    function typeMap(type) {
+        if(type === 'const char *') {
+            return 'string';
+        } else if(type === 'char *') {
+            return 'string';
+        } else if(type === 'bool') {
+            return 'boolean';
+        }
+        return 'number';
+    }
+
+    function codepointToString(codepoint, all = true) {
+        if(!all && (codepoint === 0 || codepoint === null)) {
+            return 'N/A';
+        }
+
+        return 'U+' + codepoint.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    // See Mojibake::encodeString in src/api/index.ts for the TypeScript implementation of this function.
+    function encodeString(str, encoding) {
+        if(encoding == 0x1) { // ASCII
+            const bytes = new Uint8Array(str.length);
+
+            for(let i = 0; i < str.length; ++i) {
+                const codeUnit = str.charCodeAt(i);
+
+                if(codeUnit > 0x7F) {
+                    throw new Error('Cannot encode non-ASCII codepoint as ASCII');
+                }
+
+                bytes[i] = codeUnit;
+            }
+
+            return bytes;
+        } else if(encoding == 0x2) { // UTF-8
+            const utf8Encoder = new TextEncoder();
+            return utf8Encoder.encode(str);
+        } else if(encoding == 0x8 || encoding == 0x10) { // UTF-16BE or UTF-16LE
+            const bytes = new Uint8Array(str.length * 2);
+            const view = new DataView(bytes.buffer);
+            const littleEndian = encoding == 0x10; // UTF-16LE
+
+            for(let i = 0; i < str.length; ++i) {
+                view.setUint16(i * 2, str.charCodeAt(i), littleEndian);
+            }
+
+            return bytes;
+        } else if(encoding == 0x40 || encoding == 0x80) { // UTF-32BE or UTF-32LE
+            const bytes = new Uint8Array(str.length * 4);
+            const view = new DataView(bytes.buffer);
+            const littleEndian = encoding == 0x80; // UTF-32LE
+            let offset = 0;
+
+            for(const char of str) {
+                const codepoint = char.codePointAt(0);
+
+                view.setUint32(offset, codepoint, littleEndian);
+                offset += 4;
+            }
+
+            return bytes.subarray(0, offset);
+        }
+
+        throw new Error(`Unsupported text encoding: ${encoding}`);
+    }
+
+    function encodingToString(encoding, includeHex = false) {
+        const encodings = {
+            0x0: 'Unknown',
+            0x1: 'ASCII',
+            0x2: 'UTF-8',
+            0x4: 'UTF-16',
+            0x8: 'UTF-16BE',
+            0x10: 'UTF-16LE',
+            0x20: 'UTF-32',
+            0x40: 'UTF-32BE',
+            0x80: 'UTF-32LE',
+        };
+
+        let ret = [];
+
+        for(const key in encodings) {
+            if(encoding & key) {
+                ret.push(encodings[key] + (includeHex ? ' (0x' + key.toString(16).toUpperCase() + ')' : ''));
+            }
+        }
+
+        return ret.join(', ');
+    }
+
+    function quickCheckResultToString(result) {
+        const qcResults = {
+            0x0: 'Yes',
+            0x1: 'No',
+            0x2: 'Maybe',
+            0x4: 'NFD No',
+            0x8: 'NFD Maybe',
+            0x10: 'NFC No',
+            0x20: 'NFC Maybe',
+            0x40: 'NFKC No',
+            0x80: 'NFKC Maybe',
+            0x100: 'NFKD No',
+            0x200: 'NFKD Maybe'
+        };
+
+        if(typeof qcResults[result] !== 'undefined') {
+            return qcResults[result];
+        }
+
+        return 'Unknown';
+    }
+
+    window.toggleFunctionCall = (func) => {
+        const funcDiv = document.getElementById(func);
+        const selected = funcDiv.classList.toggle('selected');
+        const toggle = document.getElementById(func + '-toggle');
+
+        if(toggle) {
+            const hasWASMForm = toggle.dataset.wasm === 'true';
+            const contentDescription = hasWASMForm ? 'details and WASM form' : 'details';
+
+            toggle.setAttribute('aria-expanded', selected.toString());
+            toggle.setAttribute('aria-label',
+                selected ? `Hide ${contentDescription} for ${func}` :
+                    hasWASMForm ? `Try ${func} in your browser` :
+                        `Show details for ${func}`);
+            toggle.textContent = selected ? 'Close' : hasWASMForm ? 'Try it' : 'Details';
+        }
+
+        if(!selected) {
+            const form = document.getElementById(func + '-wasm-form');
+
+            if(form) {
+                form.reset();
+            }
+        }
+    }
+
+    function parseCodepointCharacter(char) {
+        let ret = `Codepoint <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
+        ret += `Name: <span class="text-primary">${char.name}</span><br>`;
+        ret += `Category: <strong>${categories[char.category]}</strong><br>`;
+        ret += `Combining: <strong>${char.combining}</strong><br>`;
+        ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
+        ret += `Decimal: <strong>${char.decimal === null ? 'N/A' : char.decimal}</strong><br>`;
+        ret += `Digit: <strong>${char.digit === null ? 'N/A' : char.digit}</strong><br>`;
+        ret += `Numeric: <strong>${char.numeric === '' ? 'N/A' : char.numeric}</strong><br>`;
+        ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
+        ret += `Uppercase: <strong>${codepointToString(char.uppercase, false)}</strong><br>`;
+        ret += `Lowercase: <strong>${codepointToString(char.lowercase, false)}</strong><br>`;
+        ret += `Titlecase: <strong>${codepointToString(char.titlecase, false)}</strong>`;
+
+        return ret;
+    }
+
+    function outputUint8Array(array) {
+        return Array.from(
+            array,
+            byte => byte.toString(16).padStart(2, '0')
+        ).join(' ');
+    }
+
+    function parseComposedString(result) {
+        let ret = `Javascript string: "<strong>${result.output}</strong>"<br>`;
+        ret += `Raw bytes: <strong>${result.bytes === null ? 'N/A' : outputUint8Array(result.bytes)}</strong>`;
+
+        return ret;
+    }
+
+    function parseResult(result) {
+        let ret = parseComposedString(result) + `<br>`;
+        ret += `Output size: <strong>${result.outputSize}</strong><br>`;
+        ret += `Has been transformed: <strong>${result.transformed ? 'true' : 'false'}</strong><br>`;
+
+        return ret;
+    }
+
+    function parseEmojiProperties(result) {
+        let ret = `Codepoint <strong>${codepointToString(result.codepoint)}</strong>:<br>`;
+        ret += `Emoji: <strong>${result.emoji ? 'true' : 'false'}</strong><br>`;
+        ret += `Presentation: <strong>${result.presentation ? 'true' : 'false'}</strong><br>`;
+        ret += `Modifier: <strong>${result.modifier ? 'true' : 'false'}</strong><br>`;
+        ret += `Modifier Base: <strong>${result.modifier_base ? 'true' : 'false'}</strong><br>`;
+        ret += `Component: <strong>${result.component ? 'true' : 'false'}</strong><br>`;
+        ret += `Extended Pictographic: <strong>${result.extended_pictographic ? 'true' : 'false'}</strong><br>`;
+
+        return ret;
+    }
+
+    function parseNextCharacter(result) {
+        let ret = '';
+
+        // Use an index and add a <br> if it's not the last one
+        for(let i = 0; i < result.characters.length; ++i) {
+            ret += parseCodepointCharacter(result.characters[i]);
+
+            if(i !== result.characters.length - 1) {
+                ret += '<br><br>';
+            }
+        }
+
+        return ret;
+    }
+
+    function parseLocale(result) {
+        let ret = `Language: <strong>${result.language}</strong><br>`;
+        ret += `Extended language: <strong>${result.extlang}</strong><br>`;
+        ret += `Script: <strong>${result.script}</strong><br>`;
+        ret += `Region: <strong>${result.region}</strong><br>`;
+        ret += `Variant: <strong>${result.variant}</strong><br>`;
+        ret += `Extensions: <strong>${result.extensions}</strong><br>`;
+        ret += `Private Use: <strong>${result.private_use}</strong><br>`;
+        ret += `Grandfathered: <strong>${result.grandfathered}</strong><br>`;
+
+        return ret;
+    }
+
+    function parseBlockInfo(result) {
+        let ret = `Block name: <strong>${result.name}</strong><br>`;
+        ret += `Start codepoint: <strong>${codepointToString(result.start)}</strong><br>`;
+        ret += `End codepoint: <strong>${codepointToString(result.end)}</strong><br>`;
+
+        return ret;
+    }
+
+    function getBreakSymbol(breakType) {
+        let breakSymbol = '';
+        let breakClass = '';
+
+        // See mjb_break_type
+        if(breakType === 1) {
+            breakSymbol = '!';
+            breakClass = 'mandatory';
+        } else if(breakType === 2) {
+            // See cmd_show_allowed_symbols, false by default
+            // breakSymbol = '×';
+            // breakClass = 'no-break';
+        } else if(breakType === 3) {
+            breakSymbol = '÷';
+            breakClass = 'allowed';
+        }
+
+        if(breakSymbol.length > 0) {
+            breakSymbol = `<span class="break-symbol break-symbol-${breakClass}">${breakSymbol}</span>`;
+        }
+
+        return breakSymbol;
+    }
+
+    function parseBreakResult(result, buffer, firstBreakType) {
+        let ret = getBreakSymbol(firstBreakType);
+        let i = 0;
+
+        for(const character of buffer) {
+            ret += character + getBreakSymbol(result[i++]);
+        }
+
+        return ret;
+    }
+
+    function callAPI(func, args = []) {
+        let name = func.replace(/^mjb_/, '');
+        name = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        console.log(`Calling API function: ${name} with arguments:`, args);
+
+        const ret = mojibake[name].apply(mojibake, args);
+        console.log(ret);
+
+        return ret;
+    }
+
+    function readCodepoint(value) {
+        // Handle different codepoint formats: decimal, hex, 0x hex, U+FFFF
+        value = value.trim().toUpperCase();
+        let codepoint = null;
+
+        if(value.startsWith('U+') || value.startsWith('0X')) {
+            // U+FFFF or 0xFFFF format
+            codepoint = parseInt(value.substring(2), 16);
+        } else {
+            // Plain hex format
+            codepoint = parseInt(value, 16);
+        }
+
+        if(isNaN(codepoint) || codepoint < 0) {
+            return -1;
+        }
+
+        return codepoint;
+    }
+
+    function parseResolvedScriptSet(value) {
+        const kinds = [
+            'Empty',
+            'Resolved',
+            'All',
+        ];
+        let ret = `Resolved script set kind: <strong>${kinds[value.kind]}</strong>`;
+
+        if(!value.scripts.length) {
+            return ret;
+        }
+
+        ret += '<br>Scripts:';
+
+        for(const script of value.scripts) {
+            ret += ` <strong>${scripts[script]}</strong>`;
+        }
+
+        return ret;
+    }
+
+    function idnaErrorToString(error) {
+        const errors = {
+            0x0: 'NONE',
+            0x1: 'PUNYCODE',
+            0x2: 'EMPTY_LABEL',
+            0x4: 'HYPHEN',
+            0x8: 'NOT_NFC',
+            0x10: 'LEADING_MARK',
+            0x20: 'DISALLOWED',
+            0x40: 'STD3',
+            0x80: 'CONTEXTJ',
+            0x100: 'BIDI',
+            0x200: 'LABEL_LENGTH',
+            0x400: 'DOMAIN_LENGTH',
+        };
+
+        let ret = [];
+
+        for(const key in errors) {
+            if(error & key) {
+                ret.push(errors[key]);
+            }
+        }
+
+        return ret.join(', ');
+    }
+
+    function parseIDNAResult(value) {
+        let ret = `Result: <strong>${value.output}</strong><br>`;
+        ret += `Valid: <strong>${value.valid ? 'Yes' : 'No'}</strong><br>`;
+
+        if(value.errors) {
+            ret += `<br>Errors: <strong>${idnaErrorToString(value.errors)}</strong>`;
+        }
+
+        return ret;
+    }
+
+    async function callFunction(func) {
+        const funcDiv = document.getElementById(func);
+        const form = document.getElementById(func + '-wasm-form');
+        const funcResults = document.getElementById(func + '-results');
+
+        if(functions[func].args.length === 0 ||
+            (functions[func].args.length === 1 && functions[func].args[0].type === 'void')) {
+            try {
+                const data = await callAPI(func);
+                funcResults.innerHTML = data;
+            } catch (error) {
+                funcResults.innerHTML = error.message;
+            }
+
+            funcResults.style.display = 'block';
+
+            return;
+        }
+
+        let gotOptions = false;
+        let args = [];
+        let options = {
+            encoding: 0x2, // Default to UTF-8
+            additionalEncoding: 0x2, // Default to UTF-8
+            outputEncoding: 0x2, // Default to UTF-8
+        };
+
+        for(const arg of functions[func].args) {
+            if(arg.wasm_generated) {
+                continue;
+            }
+
+            let value = form.elements[`${func}-${arg.name}`].value;
+
+            if(arg.type === 'bool') {
+                value = form.elements[`${func}-${arg.name}`].checked;
+            } else if(arg.type === 'mjb_filter_flags') {
+                value = Array.from(form.querySelectorAll(
+                    `input[name="${func}-${arg.name}"]:checked`
+                )).reduce((filters, input) => filters | parseInt(input.value, 10), 0);
+            } else if(arg.type === 'mjb_encoding') {
+                value = parseInt(value, 10);
+
+                if(arg.name === 'encoding' || arg.name === 's1_encoding') {
+                    options.encoding = value;
+                } else if(arg.name === 'output_encoding') {
+                    options.outputEncoding = value;
+                } else if(arg.name === 's2_encoding') {
+                    options.additionalEncoding = value;
+                }
+
+                gotOptions = true;
+
+                continue;
+            } else if(arg.is_enum) {
+                value = parseInt(value, 10);
+            } else if(arg.type === 'mjb_codepoint') {
+                value = readCodepoint(value);
+
+                if(value === -1) {
+                    funcResults.innerHTML = `Invalid codepoint: ${form.elements[`${func}-${arg.name}`].value}`;
+                    funcResults.style.display = 'block';
+
+                    return;
+                }
+            } else if(arg.type === 'const char *' || arg.type === 'char *') {
+                // value = encodeString(value, options.encoding);
+            }
+
+            args.push(value);
+        }
+
+        if(gotOptions) {
+            args.push(options);
+        }
+
+        let data = null;
+
+        try {
+            data = callAPI(functions[func].wasmName, args);
+        } catch (error) {
+            funcResults.innerHTML = error.message;
+            funcResults.style.display = 'block';
+
+            return;
+        }
+
+        switch(func) {
+            case 'mjb_codepoint_info':
+                data = parseCodepointCharacter(data);
+                break;
+            case 'mjb_normalize':
+            case 'mjb_filter':
+            case 'mjb_convert_encoding':
+            case 'mjb_map_case':
+            case 'mjb_nfkc_casefold':
+            case 'mjb_confusable_skeleton':
+                data = parseResult(data);
+                break;
+            case 'mjb_codepoint_emoji_properties':
+                data = parseEmojiProperties(data);
+                break;
+            case 'mjb_for_each_character':
+                data = parseNextCharacter(data);
+                break;
+            case 'mjb_locale_parse':
+                data = parseLocale(data);
+                break;
+            case 'mjb_codepoint_encode':
+                data = parseComposedString(data);
+                break;
+            case 'mjb_codepoint_block':
+                data = parseBlockInfo(data);
+                break;
+            case 'mjb_normalization_quick_check':
+                data = quickCheckResultToString(data);
+                break;
+            case 'mjb_next_line_break':
+            case 'mjb_next_word_break':
+            case 'mjb_next_sentence_break':
+            case 'mjb_next_grapheme_break':
+                // mjb_next_line_break has a MJB_BT_NO_BREAK type as first break, by standard.
+                data = parseBreakResult(data, args[0], func === 'mjb_next_line_break' ? 2 : 3);
+                break;
+            case 'mjb_resolved_script_set':
+                data = parseResolvedScriptSet(data);
+                break;
+            case 'mjb_idna_to_ascii':
+            case 'mjb_idna_to_unicode':
+                data = parseIDNAResult(data);
+                break;
+        }
+
+        if(functions[func].ret === 'mjb_codepoint') {
+            data = codepointToString(data);
+        } else if(functions[func].ret === 'mjb_encoding') {
+            data = encodingToString(data, true);
+        }
+
+        funcResults.innerHTML = data;
+        funcResults.style.display = 'block';
+    }
+
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+    function setNavigationOpen(open) {
+        document.body.classList.toggle('navigation-open', open);
+        sidebarToggle.setAttribute('aria-expanded', open.toString());
+        sidebarToggle.querySelector('.visually-hidden').textContent =
+            open ? 'Close navigation' : 'Open navigation';
+    }
+
+    sidebarToggle.addEventListener('click', () => {
+        setNavigationOpen(!document.body.classList.contains('navigation-open'));
+    });
+    sidebarBackdrop.addEventListener('click', () => setNavigationOpen(false));
+
+    document.querySelectorAll('#api-sidebar a').forEach(link => {
+        link.addEventListener('click', () => setNavigationOpen(false));
+    });
+
+    document.addEventListener('keydown', event => {
+        if(event.key === 'Escape') {
+            setNavigationOpen(false);
+        }
+    });
+
+    const apiFilter = document.getElementById('api-filter');
+    const filterStatus = document.getElementById('api-filter-status');
+    const noResults = document.getElementById('api-no-results');
+    const functionLinks = [...document.querySelectorAll('[data-function-link]')];
+    const functionReferences = [...document.querySelectorAll('[data-function-reference]')];
+
+    function filterAPI() {
+        const query = apiFilter.value.trim().toLowerCase();
+        let matches = 0;
+
+        for(const link of functionLinks) {
+            const match = !query || link.dataset.search.includes(query);
+            link.parentElement.hidden = !match;
+            matches += match ? 1 : 0;
+        }
+
+        for(const reference of functionReferences) {
+            reference.hidden = Boolean(query) && !reference.dataset.search.includes(query);
+        }
+
+        for(const group of document.querySelectorAll('[data-section-nav]')) {
+            const visibleLinks = [...group.querySelectorAll('li')].filter(item => !item.hidden);
+            group.hidden = visibleLinks.length === 0;
+            group.querySelector('.sidebar-count').textContent = visibleLinks.length;
+
+            if(query && visibleLinks.length) {
+                group.open = true;
+            }
+        }
+
+        for(const section of document.querySelectorAll('[data-api-section]')) {
+            const visibleFunctions = [...section.querySelectorAll('[data-function-reference]')]
+                .filter(reference => !reference.hidden);
+            section.hidden = visibleFunctions.length === 0;
+            const countLabel = visibleFunctions.length === 1 ? 'function' : 'functions';
+            section.querySelector('.api-section-count').textContent =
+                `${visibleFunctions.length} ${countLabel}`;
+        }
+
+        filterStatus.textContent = query ? `${matches} of ${functionLinks.length} functions` :
+            `${functionLinks.length} functions`;
+        noResults.hidden = matches !== 0;
+    }
+
+    apiFilter.addEventListener('input', filterAPI);
+    apiFilter.addEventListener('keydown', event => {
+        if(event.key === 'Escape' && apiFilter.value) {
+            apiFilter.value = '';
+            filterAPI();
+            event.stopPropagation();
+        }
+    });
+    filterAPI();
+
+    function setActiveFunction(name) {
+        for(const link of functionLinks) {
+            const active = link.getAttribute('href') === `#${name}`;
+            link.classList.toggle('active', active);
+
+            if(active) {
+                link.closest('details').open = true;
+            }
+        }
+    }
+
+    if('IntersectionObserver' in window) {
+        const functionObserver = new IntersectionObserver(entries => {
+            for(const entry of entries) {
+                if(entry.isIntersecting) {
+                    setActiveFunction(entry.target.id);
+                }
+            }
+        }, { rootMargin: '-15% 0px -75% 0px' });
+
+        functionReferences.forEach(reference => functionObserver.observe(reference));
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const functionParam = urlParams.get('function');
+
+    // Use the function parameter if provided
+    if(functionParam && functions[functionParam]) {
+        const targetDiv = document.getElementById(functionParam);
+        const form = document.getElementById(functionParam + '-wasm-form');
+        let ready = true;
+
+        if(form) {
+            form.reset();
+        }
+
+        for(let i = 0; i < functions[functionParam].args.length; ++i) {
+            let arg = functions[functionParam].args[i];
+            if(arg.wasm_generated) {
+                continue;
+            }
+
+            const param = urlParams.get(arg.name);
+
+            if(param === null) {
+                ready = false;
+                break;
+            }
+
+            const input = document.getElementById(functionParam + '-' + arg.name);
+
+            if(input) {
+                input.value = param;
+            }
+        }
+
+        targetDiv.scrollIntoView({ block: 'start' });
+        toggleFunctionCall(functionParam);
+
+        if(ready) {
+            callFunction(functionParam);
+        }
+    }
+
+    import createMojibake, { Mojibake }from '/api/index.js';
+
+    globalThis.mojibakeReady = createMojibake();
+    globalThis.mojibakeReady.then(mojibake => {
+        globalThis.mojibake = mojibake;
+    });
+
+    // This is used for auto-generated site, do not edit next line.
+    // On click events
+</script>

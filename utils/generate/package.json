@@ -6,6 +6,7 @@
   "description": "Mojibake Unicode data generator",
   "license": "MIT",
   "scripts": {
+    "examples": "tsx commands/examples.ts",
     "generate": "tsx commands/generate.ts",
     "generate-site": "tsx commands/generate-site.ts",
     "generate-locales": "tsx index.ts generate-locale",
