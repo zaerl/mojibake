@@ -216,6 +216,36 @@ export class CFunction implements MojibakeFunction {
     </article>`;
   }
 
+  private functionCall(args: string[], after?: string): string {
+    const is_status = this.ret === 'mjb_status';
+
+    const prefix = is_status ? 'if(' : '';
+    const suffix = is_status ? ` != MJB_OK) {\n        return 1;\n    }` : ';';
+
+    return `#include <stdio.h>
+#include <mojibake.h>
+
+int main(int argc, char *const argv[]) {
+    ${prefix}${this.getName()}(${args.join(', ')})${suffix}
+
+    return 0;
+}`;
+  }
+
+  public functionCallHTML(args: string[], after?: string): string {
+    const code = this.functionCall(args, after);
+
+    return `<article class="function-reference" id="${this.getName()}" data-function-reference>
+      <div class="function-call" id="${this.getName()}-function">
+        <pre><code class="hljs language-c">${hljs.highlight(code, { language: 'c' }).value}</code></pre>
+      </div>
+      <div class="function-card" id="${this.getName()}-card">
+        <div>${this.isWASM() ? this.formInputHTML() : '' }</div>
+        <div id="${this.getName()}-results" class="function-results code"></div>
+      </div>
+    </article>`;
+  }
+
   private static escapeHTML(value: string): string {
     return value.replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')

@@ -10,7 +10,7 @@ import http from 'http';
 import markdownit from 'markdown-it';
 import { basename, extname, join, relative } from 'path';
 import { Section } from '../functions';
-import { cfns } from '../html-function';
+import { cfns, CFunction } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
 
 const SOURCE_DIR = '../../src/site';
@@ -71,6 +71,12 @@ const API_SECTIONS = [
     id: 'emoji',
     title: 'Emoji',
     description: 'Inspect emoji sequences and properties.'
+  },
+  {
+    section: Section.IDNA,
+    id: 'idna',
+    title: 'IDNA',
+    description: 'Handle Internationalized Domain Names in Applications (IDNA).'
   },
   {
     section: Section.DisplayWidth,
@@ -163,46 +169,23 @@ ${functionsHTML}
   }).join('\n');
 }
 
-function processIndexHtml() {
-  console.log('Processing index.html...');
-
-  let fileContent = readFileSync(`${SOURCE_DIR}/index.html`, 'utf-8');
-  const functs = getFunctions();
-  const functionNames = new Set(functs.map(fn => fn.getName()));
-
-  fileContent = substituteBlock(fileContent,
-    '<nav id="api-navigation" aria-label="API reference">',
-    '</nav>',
-    '\n' + formatAPINavigation(functs) + '\n    ');
-
-  fileContent = substituteBlock(fileContent,
+function getFooterContent(functs: CFunction[]): string {
+  let footerContent = readFileSync(`${SOURCE_DIR}/footer.html`, 'utf-8');
+  footerContent = substituteBlock(footerContent,
     'const functions = {',
     '};',
     functs.map(fn => `"${fn.getName()}": ${fn.formatJSON()}`).join(',\n'));
 
-  fileContent = substituteBlock(fileContent,
-    '<div id="functions">',
-    '</div>',
-    '\n' + formatAPISections(functs, functionNames) + '\n        ');
-
-  fileContent = substituteBlock(fileContent,
+  footerContent = substituteBlock(footerContent,
     "// On click events\n",
-    "    </script>",
+    "</script>",
     functs.filter(fn => fn.isWASM()).map(fn => '        ' + fn.formatEventListener()).join('\n') + "\n"
   );
 
-  const version = getVersion();
-  const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
-  const baseURL = `https://github.com/zaerl/mojibake/releases/download/v${version.version}/`;
+  return footerContent;
+}
 
-  fileContent = substituteText(fileContent, '[AM_HREF]', baseURL + fileName);
-  fileContent = substituteText(fileContent, '[AM_NAME]', fileName);
-  fileContent = substituteText(fileContent, '[VERSION]', version.version);
-
-  let readme = readFileSync('../../README.md', 'utf-8');
-  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
-  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
-
+function getHeaderContent(): string {
   const md = markdownit({
     highlight: function (str, lang) {
       if(lang && hljs.getLanguage(lang)) {
@@ -216,8 +199,38 @@ function processIndexHtml() {
     }
   }).use(require('markdown-it-footnote'));
 
-  const header = md.render(readme.slice(readme.indexOf("You don't need"), readme.indexOf('## Thanks')));
-  fileContent = substituteText(fileContent, '[HEADER_HERE]', header);
+  let readme = readFileSync('../../README.md', 'utf-8');
+  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
+
+  return md.render(readme.slice(readme.indexOf("You don't need"), readme.indexOf('## Thanks')));
+}
+
+function processIndexHtml() {
+  console.log('Processing index.html...');
+
+  let fileContent = readFileSync(`${SOURCE_DIR}/index.html`, 'utf-8');
+  const functs = getFunctions();
+  const functionNames = new Set(functs.map(fn => fn.getName()));
+
+  const version = getVersion();
+  const fileName = `mojibake-amalgamation-${version.major}${version.minor}${version.revision}.zip`;
+  const baseURL = `https://github.com/zaerl/mojibake/releases/download/v${version.version}/`;
+
+  const vars = {
+    'TITLE_HERE': 'Mojibake — Unicode text processing in C, without the baggage',
+    'SIDEBAR_HERE': '<nav id="api-navigation" aria-label="API reference">' +
+      formatAPINavigation(functs) + '</nav>',
+    'FUNCTIONS_HERE': '\n' + formatAPISections(functs, functionNames) + '\n        ',
+    'FOOTER_HERE': getFooterContent(functs),
+    'AM_HREF': baseURL + fileName,
+    'AM_NAME': fileName,
+    'VERSION': version.version,
+    'HEADER_HERE': getHeaderContent()
+  }
+
+  for(const [key, value] of Object.entries(vars)) {
+    fileContent = substituteText(fileContent, `[${key}]`, value);
+  }
 
   writeFileSync(`${BUILD_DIR}/index.html`, fileContent);
   console.log('index.html processed successfully');
