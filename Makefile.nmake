@@ -32,6 +32,14 @@ TEST_BUILD_DIR=$(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR=$(BUILD_DIR)-test-cpp
 !ENDIF
 
+!IFNDEF TEST_MINIMAL_BUILD_DIR
+TEST_MINIMAL_BUILD_DIR=$(BUILD_DIR)-test-minimal
+!ENDIF
+
+!IFNDEF TEST_CPP_MINIMAL_BUILD_DIR
+TEST_CPP_MINIMAL_BUILD_DIR=$(BUILD_DIR)-test-cpp-minimal
+!ENDIF
+
 !IFNDEF TEST_ASAN_BUILD_DIR
 TEST_ASAN_BUILD_DIR=$(BUILD_DIR)-test-asan
 !ENDIF
@@ -241,6 +249,18 @@ test-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_CPP_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
+# Run tests with all optional features disabled
+test-minimal:
+	@$(MAKE) /F Makefile.nmake test TEST_BUILD_DIR=$(TEST_MINIMAL_BUILD_DIR) \
+		FEATURE_CHARACTER_NAMES=OFF FEATURE_COLLATION=OFF FEATURE_IDNA=OFF \
+		FEATURE_SECURITY=OFF ARGS="$(ARGS)"
+
+# Run C++ tests with all optional features disabled
+test-cpp-minimal:
+	@$(MAKE) /F Makefile.nmake test-cpp \
+		TEST_CPP_BUILD_DIR=$(TEST_CPP_MINIMAL_BUILD_DIR) FEATURE_CHARACTER_NAMES=OFF \
+		FEATURE_COLLATION=OFF FEATURE_IDNA=OFF FEATURE_SECURITY=OFF ARGS="$(ARGS)"
+
 # Build the API and run its Node and browser WASM tests
 test-wasm:
 	@cd src\api && npm run test
@@ -257,16 +277,30 @@ test-ubsan: $(UNICODE_DATA)
 	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_UBSAN_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
-# Run all local test configurations
-test-all:
+# Run the default C and C++ configurations
+test-native:
 	@$(MAKE) /F Makefile.nmake test
 	@$(MAKE) /F Makefile.nmake test-cpp
-	@$(MAKE) /F Makefile.nmake test-asan
-	@$(MAKE) /F Makefile.nmake test-ubsan
+
+# Run optional-feature configurations
+test-features:
 	@$(MAKE) /F Makefile.nmake test-no-names
 	@$(MAKE) /F Makefile.nmake test-no-collation
 	@$(MAKE) /F Makefile.nmake test-no-idna
 	@$(MAKE) /F Makefile.nmake test-no-security
+	@$(MAKE) /F Makefile.nmake test-minimal
+	@$(MAKE) /F Makefile.nmake test-cpp-minimal
+
+# Run sanitizer configurations
+test-sanitizers:
+	@$(MAKE) /F Makefile.nmake test-asan
+	@$(MAKE) /F Makefile.nmake test-ubsan
+
+# Run all local test configurations
+test-all:
+	@$(MAKE) /F Makefile.nmake test-native
+	@$(MAKE) /F Makefile.nmake test-features
+	@$(MAKE) /F Makefile.nmake test-sanitizers
 
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
@@ -306,6 +340,8 @@ clean-native:
 	@if exist $(UBSAN_BUILD_DIR) rmdir /S /Q $(UBSAN_BUILD_DIR)
 	@if exist $(TEST_BUILD_DIR) rmdir /S /Q $(TEST_BUILD_DIR)
 	@if exist $(TEST_CPP_BUILD_DIR) rmdir /S /Q $(TEST_CPP_BUILD_DIR)
+	@if exist $(TEST_MINIMAL_BUILD_DIR) rmdir /S /Q $(TEST_MINIMAL_BUILD_DIR)
+	@if exist $(TEST_CPP_MINIMAL_BUILD_DIR) rmdir /S /Q $(TEST_CPP_MINIMAL_BUILD_DIR)
 	@if exist $(TEST_ASAN_BUILD_DIR) rmdir /S /Q $(TEST_ASAN_BUILD_DIR)
 	@if exist $(TEST_UBSAN_BUILD_DIR) rmdir /S /Q $(TEST_UBSAN_BUILD_DIR)
 	@if exist $(TEST_NO_NAMES_BUILD_DIR) rmdir /S /Q $(TEST_NO_NAMES_BUILD_DIR)
@@ -349,11 +385,16 @@ help:
 	@echo   test-all                - Build and run all local test configurations
 	@echo   test-asan               - Build and run tests with AddressSanitizer
 	@echo   test-cpp                - Build and run tests with C++ compiler
+	@echo   test-cpp-minimal        - Build and run C++ tests without optional features
 	@echo   test-docker             - Build and run tests in Docker container
+	@echo   test-features           - Build and run optional-feature configurations
+	@echo   test-minimal            - Build and run tests without optional features
+	@echo   test-native             - Build and run the default C and C++ configurations
 	@echo   test-no-collation       - Build and run tests without Unicode collation support
 	@echo   test-no-idna            - Build and run tests without IDNA support
 	@echo   test-no-names           - Build and run tests without Unicode character names
 	@echo   test-no-security        - Build and run tests without Unicode security support
+	@echo   test-sanitizers         - Build and run sanitizer configurations
 	@echo   test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer
 	@echo   test-wasm               - Run WASM Node and browser API tests
 	@echo   fuzz                    - Fuzz the public API with libFuzzer in Docker

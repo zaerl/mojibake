@@ -13,6 +13,8 @@ UBSAN_BUILD_DIR ?= $(BUILD_DIR)-ubsan
 # Build test directories
 TEST_BUILD_DIR ?= $(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR ?= $(BUILD_DIR)-test-cpp
+TEST_MINIMAL_BUILD_DIR ?= $(BUILD_DIR)-test-minimal
+TEST_CPP_MINIMAL_BUILD_DIR ?= $(BUILD_DIR)-test-cpp-minimal
 TEST_ASAN_BUILD_DIR ?= $(BUILD_DIR)-test-asan
 TEST_UBSAN_BUILD_DIR ?= $(BUILD_DIR)-test-ubsan
 
@@ -183,8 +185,9 @@ lint:
 	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
 
-.PHONY: test test-all test-cpp test-asan test-ubsan test-no-names test-no-collation \
-	test-no-idna test-no-security test-wasm ctest ctest-cpp test-docker
+.PHONY: test test-all test-native test-features test-sanitizers test-minimal test-cpp \
+	test-cpp-minimal test-asan test-ubsan test-no-names test-no-collation test-no-idna \
+	test-no-security test-wasm ctest ctest-cpp test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -211,6 +214,17 @@ test-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_CPP_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
+# Run tests with all optional features disabled
+test-minimal:
+	$(MAKE) test TEST_BUILD_DIR=$(TEST_MINIMAL_BUILD_DIR) FEATURE_CHARACTER_NAMES=OFF \
+		FEATURE_COLLATION=OFF FEATURE_IDNA=OFF FEATURE_SECURITY=OFF ARGS="$(ARGS)"
+
+# Run C++ tests with all optional features disabled
+test-cpp-minimal:
+	$(MAKE) test-cpp TEST_CPP_BUILD_DIR=$(TEST_CPP_MINIMAL_BUILD_DIR) \
+		FEATURE_CHARACTER_NAMES=OFF FEATURE_COLLATION=OFF FEATURE_IDNA=OFF \
+		FEATURE_SECURITY=OFF ARGS="$(ARGS)"
+
 # Build the API and run its Node and browser WASM tests
 test-wasm:
 	@cd ./src/api && npm run test
@@ -227,16 +241,30 @@ test-ubsan: $(UNICODE_DATA)
 	@cmake --build $(TEST_UBSAN_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_UBSAN_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
-# Run all local test configurations
-test-all:
+# Run the default C and C++ configurations
+test-native:
 	$(MAKE) test
 	$(MAKE) test-cpp
-	$(MAKE) test-asan
-	$(MAKE) test-ubsan
+
+# Run optional-feature configurations
+test-features:
 	$(MAKE) test-no-names
 	$(MAKE) test-no-collation
 	$(MAKE) test-no-idna
 	$(MAKE) test-no-security
+	$(MAKE) test-minimal
+	$(MAKE) test-cpp-minimal
+
+# Run sanitizer configurations
+test-sanitizers:
+	$(MAKE) test-asan
+	$(MAKE) test-ubsan
+
+# Run all local test configurations
+test-all:
+	$(MAKE) test-native
+	$(MAKE) test-features
+	$(MAKE) test-sanitizers
 
 # Run tests using CTest
 ctest: $(UNICODE_DATA)
@@ -273,7 +301,8 @@ clean-build:
 # Clean native build
 clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
-		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
+		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) \
+		$(TEST_MINIMAL_BUILD_DIR) $(TEST_CPP_MINIMAL_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
 		$(TEST_UBSAN_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR) $(TEST_NO_COLLATION_BUILD_DIR) \
 		$(TEST_NO_IDNA_BUILD_DIR) $(TEST_NO_SECURITY_BUILD_DIR)
 
@@ -317,11 +346,16 @@ help:
 	@echo "  test-all                - Build and run all local test configurations"
 	@echo "  test-asan               - Build and run tests with AddressSanitizer"
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
+	@echo "  test-cpp-minimal        - Build and run C++ tests without optional features"
 	@echo "  test-docker             - Build and run tests in Docker container"
+	@echo "  test-features           - Build and run optional-feature configurations"
+	@echo "  test-minimal            - Build and run tests without optional features"
+	@echo "  test-native             - Build and run the default C and C++ configurations"
 	@echo "  test-no-collation       - Build and run tests without Unicode collation support"
 	@echo "  test-no-names           - Build and run tests without Unicode character names"
 	@echo "  test-no-idna            - Build and run tests with IDNA feature disabled"
 	@echo "  test-no-security        - Build and run tests without Unicode security support"
+	@echo "  test-sanitizers         - Build and run sanitizer configurations"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  test-wasm               - Run WASM Node and browser API tests"
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"

@@ -1,0 +1,21 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
+name: Set up Unicode test data
+description: Restore and download the external Unicode conformance data used by native tests.
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Unicode test data
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        path: utils/generate/unicode-data
+        key: >-
+          test-data-${{ runner.os }}-${{
+          hashFiles('utils/generate/scripts/download-test-data.sh', 'src/unicode-data.h') }}
+
+    - name: Download Unicode test data
+      shell: bash
+      run: ./utils/generate/scripts/download-test-data.sh

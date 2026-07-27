@@ -69,7 +69,8 @@ Docker and fuzz targets.
 
 The common CMake feature switches are `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_BUILD_CLI`,
 `MJB_BUILD_TESTS`, `MJB_INSTALL`, `MJB_USE_ASAN`, `MJB_USE_UBSAN`,
-`MJB_FEATURE_CHARACTER_NAMES`, and the standard `BUILD_SHARED_LIBS`.
+`MJB_FEATURE_CHARACTER_NAMES`, `MJB_FEATURE_COLLATION`, `MJB_FEATURE_IDNA`,
+`MJB_FEATURE_SECURITY`, and the standard `BUILD_SHARED_LIBS`.
 
 ## Testing
 
@@ -83,7 +84,12 @@ finishing:
 - `make test-asan` - run the C tests with AddressSanitizer
 - `make test-ubsan` - run the C tests with UndefinedBehaviorSanitizer
 - `make test-no-names` - test with character-name tables disabled
-- `make test-all` - run all five local native configurations above
+- `make test-minimal` / `make test-cpp-minimal` - test C11 and C++17 with all optional features
+  disabled
+- `make test-native` - run the default C11 and C++17 configurations
+- `make test-features` - run all optional-feature configurations
+- `make test-sanitizers` - run the AddressSanitizer and UndefinedBehaviorSanitizer configurations
+- `make test-all` - run all local native configurations
 - `make ctest` / `make ctest-cpp` - run the registered CMake tests, including embedded-project
   integration tests
 - `make test-docker` - build and test in the Alpine Linux container
