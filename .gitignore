@@ -38,6 +38,7 @@ examples/*
 !examples/cpp/
 !examples/python/
 examples/python/__pycache__/
+!examples/rust/
 !examples/zig/
 
 # Clang
