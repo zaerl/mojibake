@@ -27,7 +27,10 @@ COPY src/ src/
 COPY fuzz/ fuzz/
 
 # Build the fuzzer with the sanitizers enabled.
-RUN clang -g -O1 -std=c17 -fsanitize=fuzzer,address,undefined \
+RUN clang -g -O1 -std=c17 -Werror -Wall -Wextra -pedantic-errors \
+    -Wno-unused-parameter -Wtype-limits -Wshadow -Wundef -Wvla \
+    -Wimplicit-fallthrough -Wnull-dereference -Wformat-security \
+    -Wpointer-arith -Walloca -fno-common -fsanitize=fuzzer,address,undefined \
     -fno-sanitize-recover=undefined -Isrc \
     -o mojibake-fuzz fuzz/fuzz.c src/*.c
 

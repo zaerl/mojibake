@@ -70,11 +70,11 @@ jobs:
             Haiku) pkgman install -y cmake ;;
           esac
 
-      - name: Test C and C++17
+      - name: Test C and strict C++17
         shell: cpa.sh {0} --sync-files none
         run: |
           uname -a
-          make test-native
+          make test-native WARNINGS_AS_ERRORS=ON
 
   strict-c11:
     name: Strict C11 (source and amalgamation)
@@ -98,8 +98,11 @@ jobs:
           mkdir -p build-strict/source
           for source in src/*.c; do
             object="build-strict/source/$(basename "${source%.c}").o"
-            cc -std=c11 -Werror -Wall -Wextra -pedantic \
-              -Wno-unused-parameter -Wtype-limits -Isrc -c "$source" -o "$object"
+            cc -std=c11 -Werror -Wall -Wextra -pedantic-errors \
+              -Wno-unused-parameter -Wtype-limits -Wshadow -Wundef -Wvla \
+              -Wimplicit-fallthrough -Wnull-dereference -Wformat-security \
+              -Wpointer-arith -Walloca -Wstrict-prototypes -Wold-style-definition \
+              -Wmissing-prototypes -fno-common -Isrc -c "$source" -o "$object"
           done
           ar rcs build-strict/libmojibake.a build-strict/source/*.o
 
@@ -111,16 +114,22 @@ jobs:
 
       - name: Compile and run amalgamation with -std=c11 -Werror
         run: |
-          cc -std=c11 -Werror -Wall -Wextra -pedantic \
-            -Wno-unused-parameter -Wtype-limits -Ibuild-amalgamation \
+          cc -std=c11 -Werror -Wall -Wextra -pedantic-errors \
+            -Wno-unused-parameter -Wtype-limits -Wshadow -Wundef -Wvla \
+            -Wimplicit-fallthrough -Wnull-dereference -Wformat-security \
+            -Wpointer-arith -Walloca -Wstrict-prototypes -Wold-style-definition \
+            -Wmissing-prototypes -fno-common -Ibuild-amalgamation \
             examples/example.c build-amalgamation/mojibake.c \
             -o build-strict/amalgamation-example
           ./build-strict/amalgamation-example
 
       - name: Compile and run amalgamation with optional features disabled
         run: |
-          cc -std=c11 -Werror -Wall -Wextra -pedantic \
-            -Wno-unused-parameter -Wtype-limits \
+          cc -std=c11 -Werror -Wall -Wextra -pedantic-errors \
+            -Wno-unused-parameter -Wtype-limits -Wshadow -Wundef -Wvla \
+            -Wimplicit-fallthrough -Wnull-dereference -Wformat-security \
+            -Wpointer-arith -Walloca -Wstrict-prototypes -Wold-style-definition \
+            -Wmissing-prototypes -fno-common \
             -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_COLLATION=0 \
             -DMJB_FEATURE_IDNA=0 -DMJB_FEATURE_SECURITY=0 \
             -Ibuild-amalgamation examples/example.c build-amalgamation/mojibake.c \
@@ -162,14 +171,15 @@ jobs:
             esac
 
             cmake -S /src -B /tmp/build-c -DCMAKE_BUILD_TYPE=Test \
-              -DCMAKE_C_COMPILER=${{ matrix.cc }}
+              -DCMAKE_C_COMPILER=${{ matrix.cc }} -DMJB_WARNINGS_AS_ERRORS=ON
             cmake --build /tmp/build-c --parallel 2
             cd /tmp/build-c
             ctest --output-on-failure -R "^Version$"
 
             cmake -S /src -B /tmp/build-cpp -DCMAKE_BUILD_TYPE=Test \
               -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-              -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DMJB_BUILD_CPP=ON
+              -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DMJB_BUILD_CPP=ON \
+              -DMJB_WARNINGS_AS_ERRORS=ON
             cmake --build /tmp/build-cpp --parallel 2
             cd /tmp/build-cpp
             ctest --output-on-failure -R "^(C\\+\\+ Mojibake|Version)$"
@@ -197,7 +207,8 @@ jobs:
       - name: Build and smoke-test
         run: |
           gcc --version
-          cmake -S . -B build-mingw -G Ninja -DCMAKE_BUILD_TYPE=Test
+          cmake -S . -B build-mingw -G Ninja -DCMAKE_BUILD_TYPE=Test \
+            -DMJB_WARNINGS_AS_ERRORS=ON
           cmake --build build-mingw
           cd build-mingw
           ctest --output-on-failure -R '^(Encoding|Version)$'
@@ -237,7 +248,8 @@ jobs:
             -v "$PWD:/src:ro" alpine:3.23 sh -ec '
               apk add --no-cache build-base cmake
               test "$(uname -m)" = "${{ matrix.machine }}"
-              cmake -S /src -B /tmp/build -DCMAKE_BUILD_TYPE=Test
+              cmake -S /src -B /tmp/build -DCMAKE_BUILD_TYPE=Test \
+                -DMJB_WARNINGS_AS_ERRORS=ON
               cmake --build /tmp/build --parallel 2
               cd /tmp/build
               ctest --output-on-failure -R "^(Encoding|Version)$"
@@ -256,7 +268,8 @@ jobs:
           cmake -S . -B build-android -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
             -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21 \
-            -DMJB_BUILD_TESTS=OFF -DMJB_BUILD_CLI=OFF -DMJB_INSTALL=OFF
+            -DMJB_BUILD_TESTS=OFF -DMJB_BUILD_CLI=OFF -DMJB_INSTALL=OFF \
+            -DMJB_WARNINGS_AS_ERRORS=ON
           cmake --build build-android --parallel 2
           "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
             -h build-android/src/CMakeFiles/mojibake_lib.dir/mojibake.c.o | \
@@ -277,7 +290,8 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
             -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-            -DMJB_BUILD_TESTS=OFF -DMJB_BUILD_CLI=OFF -DMJB_INSTALL=OFF
+            -DMJB_BUILD_TESTS=OFF -DMJB_BUILD_CLI=OFF -DMJB_INSTALL=OFF \
+            -DMJB_WARNINGS_AS_ERRORS=ON
           cmake --build build-ios --config Release --parallel 2 -- \
             -sdk iphoneos CODE_SIGNING_ALLOWED=NO
           find build-ios -name libmojibake.a -exec lipo -info {} \; | grep arm64

@@ -49,8 +49,11 @@ jobs:
 
       - uses: ./.github/actions/setup-unicode-test-data
 
-      - name: Test C and C++17
-        run: make test-native
+      - name: Test C and strict C++17
+        run: make test-native WARNINGS_AS_ERRORS=ON
+
+      - name: Test optimized C and strict C++17
+        run: make test-optimized WARNINGS_AS_ERRORS=ON
 
   features:
     name: Test (optional features)
@@ -65,7 +68,7 @@ jobs:
       - uses: ./.github/actions/setup-unicode-test-data
 
       - name: Test optional-feature configurations
-        run: make test-features
+        run: make test-features WARNINGS_AS_ERRORS=ON
 
   sanitizers:
     name: Test (sanitizers / Clang)
@@ -80,31 +83,33 @@ jobs:
       - uses: ./.github/actions/setup-unicode-test-data
 
       - name: Test sanitizer configurations
-        run: make test-sanitizers
+        run: make test-sanitizers WARNINGS_AS_ERRORS=ON
 
   test-windows:
     name: Test (Windows / MSVC)
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: ./.github/actions/setup-unicode-test-data
 
-      - name: Test C, C++17, and minimal configurations
+      - name: Test C, C++17, minimal, optimized, and sanitizer configurations
         shell: bash
         run: |
           run_test() {
             build_dir=$1
-            shift
+            configuration=$2
+            shift 2
             cmake -S . -B "$build_dir" \
-              "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" "$@"
-            cmake --build "$build_dir" --config Test
-            "./$build_dir/tests/Test/mojibake-test.exe"
+              "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;Test" \
+              -DMJB_WARNINGS_AS_ERRORS=ON "$@"
+            cmake --build "$build_dir" --config "$configuration"
+            "./$build_dir/tests/$configuration/mojibake-test.exe"
           }
 
-          run_test build-test
-          run_test build-test-cpp -DMJB_BUILD_CPP=ON
+          run_test build-test Test
+          run_test build-test-cpp Test -DMJB_BUILD_CPP=ON
 
           minimal_flags=(
             -DMJB_FEATURE_CHARACTER_NAMES=OFF
@@ -112,8 +117,11 @@ jobs:
             -DMJB_FEATURE_IDNA=OFF
             -DMJB_FEATURE_SECURITY=OFF
           )
-          run_test build-test-minimal "${minimal_flags[@]}"
-          run_test build-test-cpp-minimal -DMJB_BUILD_CPP=ON "${minimal_flags[@]}"
+          run_test build-test-minimal Test "${minimal_flags[@]}"
+          run_test build-test-cpp-minimal Test -DMJB_BUILD_CPP=ON "${minimal_flags[@]}"
+          run_test build-release Release
+          run_test build-release-cpp Release -DMJB_BUILD_CPP=ON
+          run_test build-test-asan Test -DMJB_USE_ASAN=ON
 
   wasm:
     name: WASM (Node and browser)
@@ -144,7 +152,7 @@ jobs:
         run: npm ci
 
       - name: Build WASM
-        run: make sync-api-wasm
+        run: make sync-api-wasm WARNINGS_AS_ERRORS=ON
 
       - name: Test Node and browser runtimes
         working-directory: src/api
@@ -162,7 +170,10 @@ jobs:
       # The runner ships a libFuzzer-capable clang, so build directly instead of via Docker.
       - name: Fuzz
         run: |
-          clang -g -O1 -std=c17 -fsanitize=fuzzer,address,undefined \
-            -fno-sanitize-recover=undefined -Isrc \
+          clang -g -O1 -std=c17 -Werror -Wall -Wextra -pedantic-errors \
+            -Wno-unused-parameter -Wtype-limits -Wshadow -Wundef -Wvla \
+            -Wimplicit-fallthrough -Wnull-dereference -Wformat-security \
+            -Wpointer-arith -Walloca -fno-common \
+            -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined -Isrc \
             -o mojibake-fuzz fuzz/fuzz.c src/*.c
           ./mojibake-fuzz -max_total_time=60 fuzz/corpus

@@ -27,6 +27,7 @@ option(MJB_BUILD_CPP "Build Mojibake sources with C++ instead of C" OFF)
 option(MJB_BUILD_WASM "Build Mojibake for WebAssembly" OFF)
 option(MJB_USE_ASAN "Enable AddressSanitizer for Mojibake targets" OFF)
 option(MJB_USE_UBSAN "Enable UndefinedBehaviorSanitizer for Mojibake targets" OFF)
+option(MJB_WARNINGS_AS_ERRORS "Treat compiler warnings as errors for Mojibake targets" OFF)
 option(MJB_BUILD_CLI "Build the Mojibake command-line interface" ${PROJECT_IS_TOP_LEVEL})
 option(MJB_BUILD_TESTS "Build Mojibake tests" ${PROJECT_IS_TOP_LEVEL})
 option(MJB_INSTALL "Generate Mojibake installation rules" ${PROJECT_IS_TOP_LEVEL})
@@ -56,7 +57,7 @@ function(mjb_configure_target target)
         set(_mjb_sanitizer_link_scope PRIVATE)
     endif()
 
-    set_target_properties(${target} PROPERTIES C_EXTENSIONS OFF)
+    set_target_properties(${target} PROPERTIES C_EXTENSIONS OFF CXX_EXTENSIONS OFF)
 
     if(MJB_BUILD_CPP)
         target_compile_features(${target} PRIVATE cxx_std_17)
@@ -68,13 +69,26 @@ function(mjb_configure_target target)
             PRIVATE
                 /W4
                 /wd4100
+                $<$<COMPILE_LANGUAGE:CXX>:/permissive->
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:/Zi>
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:/Od>
                 $<$<CONFIG:Release>:/O2>
         )
 
+        if(MJB_WARNINGS_AS_ERRORS)
+            target_compile_options(${target} PRIVATE /WX)
+        endif()
+
         if(MJB_BUILD_CPP)
             target_compile_options(${target} PRIVATE /Zc:__cplusplus)
+        endif()
+
+        if(MJB_USE_ASAN)
+            target_compile_options(${target} PRIVATE /fsanitize=address)
+        endif()
+
+        if(MJB_USE_UBSAN)
+            message(FATAL_ERROR "MJB_USE_UBSAN is not supported by MSVC")
         endif()
     else()
         target_compile_options(
@@ -85,13 +99,38 @@ function(mjb_configure_target target)
                 -pedantic
                 -Wno-unused-parameter
                 -Wtype-limits
+                -Wshadow
+                -Wundef
+                -Wvla
+                -Wimplicit-fallthrough
+                -Wnull-dereference
+                -Wformat-security
+                -Wpointer-arith
+                -Walloca
+                $<$<COMPILE_LANGUAGE:C>:-Wstrict-prototypes>
+                $<$<COMPILE_LANGUAGE:C>:-Wold-style-definition>
+                $<$<COMPILE_LANGUAGE:C>:-Wmissing-prototypes>
+                $<$<COMPILE_LANGUAGE:C>:-fno-common>
+                $<$<COMPILE_LANGUAGE:CXX>:-Wmissing-declarations>
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:-g>
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:-O0>
                 $<$<CONFIG:Release>:-O3>
         )
 
+        if(MJB_WARNINGS_AS_ERRORS)
+            target_compile_options(${target} PRIVATE -Werror -pedantic-errors)
+        endif()
+
         if(MJB_USE_ASAN)
-            target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+            target_compile_options(
+                ${target}
+                PRIVATE
+                    -O1
+                    -fsanitize=address
+                    -fsanitize-address-use-after-scope
+                    -fno-omit-frame-pointer
+                    -fno-optimize-sibling-calls
+            )
             target_link_options(${target} ${_mjb_sanitizer_link_scope} -fsanitize=address)
         endif()
 
@@ -99,10 +138,17 @@ function(mjb_configure_target target)
             target_compile_options(
                 ${target}
                 PRIVATE
+                    -O1
                     -fsanitize=undefined
                     -fno-sanitize-recover=undefined
                     -fno-omit-frame-pointer
+                    -fno-optimize-sibling-calls
             )
+
+            if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+                target_compile_options(${target} PRIVATE -fno-sanitize-merge)
+            endif()
+
             target_link_options(${target} ${_mjb_sanitizer_link_scope} -fsanitize=undefined)
         endif()
     endif()
