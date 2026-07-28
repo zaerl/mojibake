@@ -49,6 +49,16 @@ if(MJB_BUILD_CPP)
     enable_language(CXX)
 endif()
 
+if(MJB_USE_UBSAN AND NOT MSVC)
+    if(MJB_BUILD_CPP AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        include(CheckCXXCompilerFlag)
+        check_cxx_compiler_flag("-fno-sanitize-merge" MJB_CXX_HAS_NO_SANITIZE_MERGE)
+    elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        include(CheckCCompilerFlag)
+        check_c_compiler_flag("-fno-sanitize-merge" MJB_C_HAS_NO_SANITIZE_MERGE)
+    endif()
+endif()
+
 function(mjb_configure_target target)
     get_target_property(_mjb_target_type ${target} TYPE)
     if(_mjb_target_type MATCHES "^(STATIC|SHARED|MODULE)_LIBRARY$")
@@ -145,7 +155,8 @@ function(mjb_configure_target target)
                     -fno-optimize-sibling-calls
             )
 
-            if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            if((MJB_BUILD_CPP AND MJB_CXX_HAS_NO_SANITIZE_MERGE) OR
+                (NOT MJB_BUILD_CPP AND MJB_C_HAS_NO_SANITIZE_MERGE))
                 target_compile_options(${target} PRIVATE -fno-sanitize-merge)
             endif()
 
