@@ -35,6 +35,7 @@ src/api/dist
 examples/*
 !examples/*.c
 !examples/Makefile
+!examples/zig/
 
 # Clang
 .cache/*
