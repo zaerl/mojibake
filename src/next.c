@@ -35,7 +35,7 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     mjb_character character;
     bool has_previous_character = false;
     bool first_character = true;
@@ -58,11 +58,11 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
 
         if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
-            bool result = EM_ASM_INT(
+            bool asm_result = EM_ASM_INT(
                 { return _mjbForEachCharacterCallback($0, $1); }, &character,
                 first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE);
 
-            if(!result) {
+            if(!asm_result) {
                 return MJB_STATUS_CALLBACK_STOPPED;
             }
 #else
@@ -86,11 +86,11 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
 
     if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
-        bool result = EM_ASM_INT(
+        bool asm_result = EM_ASM_INT(
             { return _mjbForEachCharacterCallback($0, $1); }, &character,
             first_character ? MJB_POSITION_FIRST | MJB_POSITION_LAST : MJB_POSITION_LAST);
 
-        if(!result) {
+        if(!asm_result) {
             return MJB_STATUS_CALLBACK_STOPPED;
         }
 #else

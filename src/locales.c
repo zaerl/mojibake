@@ -555,18 +555,6 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     return MJB_STATUS_OK;
 }
 
-bool mjb_locale_canonicalize(const char *id, size_t size, mjb_result *result, mjb_error *error) {
-    (void)id;
-    (void)size;
-    (void)result;
-
-    if(error != NULL) {
-        *error = MJB_ERROR_UNSUPPORTED;
-    }
-
-    return false;
-}
-
 MJB_EXPORT mjb_status mjb_set_locale(mjb_locale locale) {
     if((unsigned int)locale >= MJB_LOCALE_NUM) {
         return MJB_STATUS_INVALID_ARGUMENT;

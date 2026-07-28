@@ -32,6 +32,14 @@ TEST_BUILD_DIR=$(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR=$(BUILD_DIR)-test-cpp
 !ENDIF
 
+!IFNDEF TEST_RELEASE_BUILD_DIR
+TEST_RELEASE_BUILD_DIR=$(BUILD_DIR)-test-release
+!ENDIF
+
+!IFNDEF TEST_CPP_RELEASE_BUILD_DIR
+TEST_CPP_RELEASE_BUILD_DIR=$(BUILD_DIR)-test-cpp-release
+!ENDIF
+
 !IFNDEF TEST_MINIMAL_BUILD_DIR
 TEST_MINIMAL_BUILD_DIR=$(BUILD_DIR)-test-minimal
 !ENDIF
@@ -98,6 +106,10 @@ FEATURE_IDNA=ON
 FEATURE_SECURITY=ON
 !ENDIF
 
+!IFNDEF WARNINGS_AS_ERRORS
+WARNINGS_AS_ERRORS=OFF
+!ENDIF
+
 MINIMAL_FEATURE_ARGS_1=FEATURE_CHARACTER_NAMES=OFF FEATURE_COLLATION=OFF
 MINIMAL_FEATURE_ARGS_2=FEATURE_IDNA=OFF FEATURE_SECURITY=OFF
 MINIMAL_FEATURE_ARGS=$(MINIMAL_FEATURE_ARGS_1) $(MINIMAL_FEATURE_ARGS_2)
@@ -105,13 +117,13 @@ MINIMAL_TEST_ARGS=TEST_BUILD_DIR=$(TEST_MINIMAL_BUILD_DIR) $(MINIMAL_FEATURE_ARG
 MINIMAL_CPP_TEST_ARGS=TEST_CPP_BUILD_DIR=$(TEST_CPP_MINIMAL_BUILD_DIR) $(MINIMAL_FEATURE_ARGS)
 
 CMAKE_FEATURE_FLAGS=-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES) -DMJB_FEATURE_COLLATION=$(FEATURE_COLLATION) -DMJB_FEATURE_IDNA=$(FEATURE_IDNA) -DMJB_FEATURE_SECURITY=$(FEATURE_SECURITY)
-CMAKE_NATIVE_BASE_FLAGS=-DMJB_BUILD_WASM=OFF $(CMAKE_FEATURE_FLAGS)
+CMAKE_NATIVE_BASE_FLAGS=-DMJB_BUILD_WASM=OFF -DMJB_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS) $(CMAKE_FEATURE_FLAGS)
 NATIVE_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 CPP_CMAKE_FLAGS=-DMJB_BUILD_CPP=ON -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 SHARED_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=ON $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 ASAN_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=ON -DMJB_USE_UBSAN=OFF
 UBSAN_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=ON
-WASM_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF -DMJB_BUILD_WASM=ON -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF $(CMAKE_FEATURE_FLAGS)
+WASM_CMAKE_FLAGS=-DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF -DMJB_BUILD_WASM=ON -DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF -DMJB_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS) $(CMAKE_FEATURE_FLAGS)
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
@@ -255,6 +267,18 @@ test-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	@$(TEST_CPP_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
 
+# Run optimized C tests
+test-release: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_RELEASE_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_RELEASE_BUILD_DIR) --config Release
+	@$(TEST_RELEASE_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+
+# Run optimized C++ tests
+test-cpp-release: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_CPP_RELEASE_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_RELEASE_BUILD_DIR) --config Release
+	@$(TEST_CPP_RELEASE_BUILD_DIR)\tests\mojibake-test.exe $(ARGS)
+
 # Run tests with all optional features disabled
 test-minimal:
 	@$(MAKE) /F Makefile.nmake test $(MINIMAL_TEST_ARGS) ARGS="$(ARGS)"
@@ -284,6 +308,11 @@ test-native:
 	@$(MAKE) /F Makefile.nmake test
 	@$(MAKE) /F Makefile.nmake test-cpp
 
+# Run optimized C and C++ configurations
+test-optimized:
+	@$(MAKE) /F Makefile.nmake test-release
+	@$(MAKE) /F Makefile.nmake test-cpp-release
+
 # Run optional-feature configurations
 test-features:
 	@$(MAKE) /F Makefile.nmake test-no-names
@@ -296,11 +325,11 @@ test-features:
 # Run sanitizer configurations
 test-sanitizers:
 	@$(MAKE) /F Makefile.nmake test-asan
-	@$(MAKE) /F Makefile.nmake test-ubsan
 
 # Run all local test configurations
 test-all:
 	@$(MAKE) /F Makefile.nmake test-native
+	@$(MAKE) /F Makefile.nmake test-optimized
 	@$(MAKE) /F Makefile.nmake test-features
 	@$(MAKE) /F Makefile.nmake test-sanitizers
 
@@ -342,6 +371,8 @@ clean-native:
 	@if exist $(UBSAN_BUILD_DIR) rmdir /S /Q $(UBSAN_BUILD_DIR)
 	@if exist $(TEST_BUILD_DIR) rmdir /S /Q $(TEST_BUILD_DIR)
 	@if exist $(TEST_CPP_BUILD_DIR) rmdir /S /Q $(TEST_CPP_BUILD_DIR)
+	@if exist $(TEST_RELEASE_BUILD_DIR) rmdir /S /Q $(TEST_RELEASE_BUILD_DIR)
+	@if exist $(TEST_CPP_RELEASE_BUILD_DIR) rmdir /S /Q $(TEST_CPP_RELEASE_BUILD_DIR)
 	@if exist $(TEST_MINIMAL_BUILD_DIR) rmdir /S /Q $(TEST_MINIMAL_BUILD_DIR)
 	@if exist $(TEST_CPP_MINIMAL_BUILD_DIR) rmdir /S /Q $(TEST_CPP_MINIMAL_BUILD_DIR)
 	@if exist $(TEST_ASAN_BUILD_DIR) rmdir /S /Q $(TEST_ASAN_BUILD_DIR)
@@ -388,6 +419,7 @@ help:
 	@echo   test-asan               - Build and run tests with AddressSanitizer
 	@echo   test-cpp                - Build and run tests with C++ compiler
 	@echo   test-cpp-minimal        - Build and run C++ tests without optional features
+	@echo   test-cpp-release        - Build and run optimized C++ tests
 	@echo   test-docker             - Build and run tests in Docker container
 	@echo   test-features           - Build and run optional-feature configurations
 	@echo   test-minimal            - Build and run tests without optional features
@@ -396,8 +428,10 @@ help:
 	@echo   test-no-idna            - Build and run tests without IDNA support
 	@echo   test-no-names           - Build and run tests without Unicode character names
 	@echo   test-no-security        - Build and run tests without Unicode security support
-	@echo   test-sanitizers         - Build and run sanitizer configurations
-	@echo   test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer
+	@echo   test-optimized          - Build and run optimized C and C++ configurations
+	@echo   test-release            - Build and run optimized C tests
+	@echo   test-sanitizers         - Build and run supported sanitizer configurations
+	@echo   test-ubsan              - Unsupported by MSVC; configuration fails explicitly
 	@echo   test-wasm               - Run WASM Node and browser API tests
 	@echo   fuzz                    - Fuzz the public API with libFuzzer in Docker
 	@echo   update-version          - Update version in source files

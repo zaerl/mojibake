@@ -684,7 +684,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 23:
-            mjb_status_message((mjb_status)(variant % 256));
+            (void)mjb_status_message((mjb_status)(variant % 256));
             break;
     }
 

@@ -73,7 +73,7 @@ static mjb_status mjb_emoji_decode_sequence(const char *buffer, size_t byte_leng
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
 
     for(size_t i = 0; i < byte_length;) {
         mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,

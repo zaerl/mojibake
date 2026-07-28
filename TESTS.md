@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,961** C assertions and **117** JavaScript assertions, including all
+Mojibake runs a total of **4,537,964** C assertions and **118** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -114,6 +114,7 @@ the official tests included in the standard:
 | `mjb_codepoint_is_xid_start`               | 3           |
 | `mjb_is_emoji_sequence`                    | 3           |
 | `mjb_property_name`                        | 3           |
+| `mjb_status_message`                       | 3           |
 | `mjb_codepoint_is_emoji_component`         | 2           |
 | `mjb_codepoint_is_emoji_modifier`          | 2           |
 | `mjb_codepoint_is_emoji_modifier_base`     | 2           |
@@ -125,7 +126,7 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4537961** |
+| **Total**                                  | **4537964** |
 
 ## JavaScript
 
@@ -204,6 +205,7 @@ the official tests included in the standard:
 | `Mojibake.planeIsValid`                     | 1          |
 | `Mojibake.planeName`                        | 1          |
 | `Mojibake.propertyName`                     | 1          |
+| `Mojibake.statusMessage`                    | 1          |
 | `Mojibake.truncateGrapheme`                 | 1          |
 | `Mojibake.truncateGraphemeWidth`            | 1          |
 | `Mojibake.truncateWord`                     | 1          |
@@ -211,4 +213,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **117**    |
+| **Total**                                   | **118**    |

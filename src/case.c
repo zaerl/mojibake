@@ -336,7 +336,7 @@ static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_encoding output_encoding, mjb_output *output) {
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
         mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
     mjb_map_case_context context = { false, false, false, locale_sensitive };
@@ -470,7 +470,7 @@ static mjb_status mjb_map_case_process(const char *buffer, size_t byte_length,
         return mjb_titlecase_process(buffer, byte_length, encoding, output_encoding, output);
     }
 
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     bool folding = type == MJB_CASE_CASEFOLD || type == MJB_CASE_CASEFOLD_SIMPLE;

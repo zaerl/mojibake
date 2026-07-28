@@ -13,6 +13,8 @@ UBSAN_BUILD_DIR ?= $(BUILD_DIR)-ubsan
 # Build test directories
 TEST_BUILD_DIR ?= $(BUILD_DIR)-test
 TEST_CPP_BUILD_DIR ?= $(BUILD_DIR)-test-cpp
+TEST_RELEASE_BUILD_DIR ?= $(BUILD_DIR)-test-release
+TEST_CPP_RELEASE_BUILD_DIR ?= $(BUILD_DIR)-test-cpp-release
 TEST_MINIMAL_BUILD_DIR ?= $(BUILD_DIR)-test-minimal
 TEST_CPP_MINIMAL_BUILD_DIR ?= $(BUILD_DIR)-test-cpp-minimal
 TEST_ASAN_BUILD_DIR ?= $(BUILD_DIR)-test-asan
@@ -37,13 +39,15 @@ FEATURE_CHARACTER_NAMES ?= ON
 FEATURE_COLLATION ?= ON
 FEATURE_IDNA ?= ON
 FEATURE_SECURITY ?= ON
+WARNINGS_AS_ERRORS ?= OFF
 
 CMAKE_FEATURE_FLAGS = \
 	-DMJB_FEATURE_CHARACTER_NAMES=$(FEATURE_CHARACTER_NAMES) \
 	-DMJB_FEATURE_COLLATION=$(FEATURE_COLLATION) \
 	-DMJB_FEATURE_IDNA=$(FEATURE_IDNA) \
 	-DMJB_FEATURE_SECURITY=$(FEATURE_SECURITY)
-CMAKE_NATIVE_BASE_FLAGS = -DMJB_BUILD_WASM=OFF $(CMAKE_FEATURE_FLAGS)
+CMAKE_NATIVE_BASE_FLAGS = -DMJB_BUILD_WASM=OFF \
+	-DMJB_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS) $(CMAKE_FEATURE_FLAGS)
 NATIVE_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF
 CPP_CMAKE_FLAGS = -DMJB_BUILD_CPP=ON -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
@@ -55,7 +59,8 @@ ASAN_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BA
 UBSAN_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF $(CMAKE_NATIVE_BASE_FLAGS) \
 	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=ON
 WASM_CMAKE_FLAGS = -DMJB_BUILD_CPP=OFF -DBUILD_SHARED_LIBS=OFF -DMJB_BUILD_WASM=ON \
-	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF $(CMAKE_FEATURE_FLAGS)
+	-DMJB_USE_ASAN=OFF -DMJB_USE_UBSAN=OFF \
+	-DMJB_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS) $(CMAKE_FEATURE_FLAGS)
 
 # Source files that trigger regeneration.
 GENERATE_SOURCES = \
@@ -185,9 +190,10 @@ lint:
 	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
 
-.PHONY: test test-all test-native test-features test-sanitizers test-minimal test-cpp \
-	test-cpp-minimal test-asan test-ubsan test-no-names test-no-collation test-no-idna \
-	test-no-security test-wasm ctest ctest-cpp test-docker
+.PHONY: test test-all test-native test-optimized test-release test-cpp-release \
+	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
+	test-ubsan test-no-names test-no-collation test-no-idna test-no-security test-wasm \
+	ctest ctest-cpp test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -213,6 +219,18 @@ test-cpp: $(UNICODE_DATA)
 	@cmake -S . -B $(TEST_CPP_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) $(CPP_CMAKE_FLAGS)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	$(TEST_CPP_BUILD_DIR)/tests/mojibake-test $(ARGS)
+
+# Run optimized C tests
+test-release: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_RELEASE_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(NATIVE_CMAKE_FLAGS)
+	@cmake --build $(TEST_RELEASE_BUILD_DIR) --config Release
+	$(TEST_RELEASE_BUILD_DIR)/tests/mojibake-test $(ARGS)
+
+# Run optimized C++ tests
+test-cpp-release: $(UNICODE_DATA)
+	@cmake -S . -B $(TEST_CPP_RELEASE_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(CPP_CMAKE_FLAGS)
+	@cmake --build $(TEST_CPP_RELEASE_BUILD_DIR) --config Release
+	$(TEST_CPP_RELEASE_BUILD_DIR)/tests/mojibake-test $(ARGS)
 
 # Run tests with all optional features disabled
 test-minimal:
@@ -246,6 +264,11 @@ test-native:
 	$(MAKE) test
 	$(MAKE) test-cpp
 
+# Run optimized C and C++ configurations
+test-optimized:
+	$(MAKE) test-release
+	$(MAKE) test-cpp-release
+
 # Run optional-feature configurations
 test-features:
 	$(MAKE) test-no-names
@@ -263,6 +286,7 @@ test-sanitizers:
 # Run all local test configurations
 test-all:
 	$(MAKE) test-native
+	$(MAKE) test-optimized
 	$(MAKE) test-features
 	$(MAKE) test-sanitizers
 
@@ -302,9 +326,10 @@ clean-build:
 clean-native:
 	@rm -rf $(BUILD_DIR) $(CPP_BUILD_DIR) $(SHARED_BUILD_DIR) $(ASAN_BUILD_DIR) \
 		$(UBSAN_BUILD_DIR) $(TEST_BUILD_DIR) $(TEST_CPP_BUILD_DIR) \
-		$(TEST_MINIMAL_BUILD_DIR) $(TEST_CPP_MINIMAL_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) \
-		$(TEST_UBSAN_BUILD_DIR) $(TEST_NO_NAMES_BUILD_DIR) $(TEST_NO_COLLATION_BUILD_DIR) \
-		$(TEST_NO_IDNA_BUILD_DIR) $(TEST_NO_SECURITY_BUILD_DIR)
+		$(TEST_RELEASE_BUILD_DIR) $(TEST_CPP_RELEASE_BUILD_DIR) $(TEST_MINIMAL_BUILD_DIR) \
+		$(TEST_CPP_MINIMAL_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) $(TEST_UBSAN_BUILD_DIR) \
+		$(TEST_NO_NAMES_BUILD_DIR) $(TEST_NO_COLLATION_BUILD_DIR) $(TEST_NO_IDNA_BUILD_DIR) \
+		$(TEST_NO_SECURITY_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
@@ -347,6 +372,7 @@ help:
 	@echo "  test-asan               - Build and run tests with AddressSanitizer"
 	@echo "  test-cpp                - Build and run tests with C++ compiler"
 	@echo "  test-cpp-minimal        - Build and run C++ tests without optional features"
+	@echo "  test-cpp-release        - Build and run optimized C++ tests"
 	@echo "  test-docker             - Build and run tests in Docker container"
 	@echo "  test-features           - Build and run optional-feature configurations"
 	@echo "  test-minimal            - Build and run tests without optional features"
@@ -355,6 +381,8 @@ help:
 	@echo "  test-no-names           - Build and run tests without Unicode character names"
 	@echo "  test-no-idna            - Build and run tests with IDNA feature disabled"
 	@echo "  test-no-security        - Build and run tests without Unicode security support"
+	@echo "  test-optimized          - Build and run optimized C and C++ configurations"
+	@echo "  test-release            - Build and run optimized C tests"
 	@echo "  test-sanitizers         - Build and run sanitizer configurations"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
 	@echo "  test-wasm               - Run WASM Node and browser API tests"

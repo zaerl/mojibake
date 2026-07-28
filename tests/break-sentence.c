@@ -10,8 +10,8 @@
 #include "../src/mojibake-internal.h"
 #include "test.h"
 
-void break_sentence_callback(const char *buffer, size_t byte_length, unsigned int current_line,
-    mjb_break_type *expected_types) {
+static void break_sentence_callback(const char *buffer, size_t byte_length,
+    unsigned int current_line, mjb_break_type *expected_types) {
     char test_name[256];
     mjb_break_type bt = MJB_BT_NOT_SET;
     mjb_next_sentence_state state;

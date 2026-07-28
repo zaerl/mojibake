@@ -47,6 +47,7 @@ COPY utils/generate/unicode-data/UCD/SpecialCasing.txt utils/generate/unicode-da
 
 # Build the project
 RUN cmake -S . -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+        -DMJB_WARNINGS_AS_ERRORS=ON \
     && cmake --build ${BUILD_DIR}
 
 # Default command to run tests

@@ -189,7 +189,7 @@ MJB_EXPORT size_t mjb_count_codepoints(const char *buffer, size_t max_length,
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     size_t count = 0;
 
     for(size_t i = 0; i < max_length;) {
