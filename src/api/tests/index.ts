@@ -27,6 +27,7 @@ import {
   QuickCheckResult,
   Script,
   ScriptSetKind,
+  Status,
   WidthContext
 } from '../index.js';
 import {
@@ -223,6 +224,8 @@ ATT_ASSERT(mojibake.setLocale(Locale.EN), true, 'restore locale');
 ATT_ASSERT(mojibake.version(), '0.3.4-WASM', 'version');
 ATT_ASSERT(mojibake.versionNumber(), 0x34, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '18.0.0', 'unicodeVersion');
+ATT_ASSERT(mojibake.statusMessage(Status.OK), 'The operation completed successfully',
+  'statusMessage');
 
 const valid = att_get_valid_tests();
 const total = att_get_total_tests();
