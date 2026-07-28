@@ -6,13 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
+Codename: [DIGIT FIVE]
+
+## [0.3.4] - 2026-07-28
+Codename: [DIGIT FOUR]
 
 ### Added
+- Added `mjb_caseless_match`
+- Added `mjb_collation_key`
+- Added `mjb_resolved_script_set`
+- Added `mjb_idna_to_ascii`
+- Added `mjb_idna_to_ascii_into`
+- Added `mjb_idna_to_unicode`
+- Added `mjb_idna_to_unicode_into`
 - Added `MJB_FEATURE_COLLATION` to compile out Unicode collation support and DUCET tables
 - Added `MJB_FEATURE_IDNA` to compile out IDNA and Punycode implementations and mapping tables
 - Added `MJB_FEATURE_SECURITY` to compile out UTS #39 security support and confusable mapping tables
+- Added release codenames
+- Shell: added maximum accepted argument count
+
+### Changed
+- A slightly smaller DUCET representation
+- Added `HANB`, `JPAN`, `KORE` augmented script sets to `mjb_script`
+- Changed `mjb_collation_mode` type to `mjb_collation_variable_weighting` to avoid confusion
+- Added optimization flags to examples
+- `mjb_collation_compare`, `mjb_collation_key`, `mjb_collation_key_into` now accept a
+  `variable_weighting`, the maximum UCA comparison level
+- Reorganized the HTML handling of C arguments
+- Shell: renamed the Uppercase, Lowercase, Titlecase to "Simple * Mapping", to not duplicate the
+  preexisting "upper", etc.
+
+### Fixed
+- The code compiled with `-O3 -DNDEBUG` was removing the codepoint declared in the IDNA loop
+- Wrong index, U+0000 was appended to normalized content
+- Shell: disabled colors when JSON is selected
+- Shell: the `nfkc` command was producing NKFD content
+- Shell: now returns 1 when a user doesn't select a command
+- Shell: the `bidi` command now returns 1 for an error
+- Shell: `normalize`, `break` and `case` command now output JSON, if JSON is selected
 
 ## [0.3.3] - 2026-07-22
+Codename: [DIGIT THREE]
 
 ### Added
 - Added `MJB_NUL_TERMINATED` (`byte_length`) for encoding-aware NUL-terminated input strings
@@ -30,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing WASM name on site
 
 ## [0.3.2] - 2026-07-21
+Codename: [DIGIT TWO]
 
 ### Added
 - Added to the C++ wrapper the missing C API
@@ -56,6 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor doc typos
 
 ## [0.3.1] - 2026-07-20
+Codename: [DIGIT ONE]
 
 ### Added
 - Added a `shell.c` amalgamation to the main amalgamation. Now there are three files
@@ -86,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing Haiku on the OSes list
 
 ## [0.3.0] - 2026-07-18
+Codename: [DIGIT ZERO]
 
 ### Added
 - Moved to Unicode 18 beta
@@ -103,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed fuzz/corpus/** files to "binary"
 
 ## [0.2.8] - 2026-07-16
+Codename: [LEFT PARENTHESIS]
 
 ### Added
 - Added FreeBSD, OpenBSD, NetBSD test flows
@@ -122,6 +160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor test typos
 
 ## [0.2.7] - 2026-07-16
+Codename: [APOSTROPHE]
 
 ### Added
 - Added break algorithms HTML output
@@ -150,6 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On break sentence SB2 Any ÷ eot
 
 ## [0.2.6] - 2026-07-13
+Codename: [AMPERSAND]
 
 ### Added
 - Forced clang-format rules from now on
@@ -184,6 +224,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing include in `unicode-tables.h`
 
 ## [0.2.5] - 2026-07-11
+Codename: [PERCENT SIGN]
 
 ### Added
 - Limit combining characters filter
@@ -211,6 +252,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Not-WASM functions were missing on the site
 
 ## [0.2.4] - 2026-07-09
+Codename: [DOLLAR SIGN]
 
 ### Added
 - Added Unicode Conformance Requirements conformance
@@ -246,6 +288,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows: fixed C4310 warning
 
 ## [0.2.3] - 2026-07-06
+Codename: [NUMBER SIGN]
 
 ### Added
 - Attractor JS library
@@ -277,6 +320,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mjb_string_output()` crashing on realloc failure
 
 ## [0.2.2] - 2026-07-02
+Codename: [QUOTATION MARK]
 
 ### Added
 - NetBSD support
@@ -306,6 +350,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `UBSan`: fixed multiple security problems
 
 ## [0.2.1] - 2026-06-27
+Codename: [EXCLAMATION MARK]
 
 ### Added
 - Added tests for main allocation functions
@@ -344,6 +389,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows: fixed `C4310`, `C4456`, `C4566`, `C4701`, `C4702` warnings
 
 ## [0.2.0] - 2026-06-23
+Codename: [SPACE]
 
 ### Added
 - Replaced SQLite with embedded data tables
@@ -367,6 +413,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed usage of `strncpy`
 
 ## [0.1.5] - 2026-03-06
+Codename [NEGATIVE ACKNOWLEDGE]
 
 ### Added
 - Unicode collation algorithm
@@ -389,6 +436,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing test files on Dockerfile
 
 ## [0.1.4] - 2026-03-04
+Codename [DEVICE CONTROL FOUR]
 
 ### Added
 - Unicode Bidirectional Algorithm
@@ -410,6 +458,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing files on amalgamation
 
 ## [0.1.3] - 2026-02-27
+Codename [DEVICE CONTROL THREE]
 
 ### Added
 - OpenBSD and NetBSD support in the SQLite build script
@@ -422,6 +471,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows build warnings and compilation fixes
 
 ## [0.1.2] - 2026-02-24
+Codename [DEVICE CONTROL TWO]
 
 ### Added
 - Word Boundary (WB) algorithm. Unicode TR29 word cluster breaking
@@ -440,6 +490,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Null-terminated string handling in break output
 
 ## [0.1.1] - 2026-02-11
+Codename [DEVICE CONTROL ONE]
 
 ### Added
 - New emoji data
@@ -456,6 +507,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor UTF decoding fixes
 
 ## [0.1.0] - 2026-02-05
+Codename [DATA LINK ESCAPE]
 
 ### Added
 - Codepoint properties system (`properties.c`) with derived core properties
@@ -473,6 +525,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM missing declarations
 
 ## [0.0.9] - 2026-01-12
+Codename [HORIZONTAL TABULATION]
 
 ### Added
 - Database prefix compression for smaller file size
@@ -485,6 +538,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wrong test assertion
 
 ## [0.0.8] - 2025-12-23
+Codename [BACKSPACE]
 
 ### Added
 - Interactive break mode in the CLI
@@ -504,12 +558,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Decimal and digit column handling
 
 ## [0.0.7] - 2025-12-09
+Codename [ALERT]
 
 ### Fixed
 - Minor documentation fixes and typos
 - Wrong Makefile targets
 
 ## [0.0.6] - 2025-12-08
+Codename [ACKNOWLEDGE]
 
 ### Added
 - FreeBSD documentation
@@ -519,12 +575,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FreeBSD build: removed bash-specific syntax
 
 ## [0.0.5] - 2025-12-07
+Codename [ENQUIRY]
 
 ### Fixed
 - FreeBSD: use `gmake` instead of `make`
 - Makefile target fixes
 
 ## [0.0.4] - 2025-12-06
+Codename [END OF TRANSMISSION]
 
 ### Added
 - Embedded database build (`make build-embedded`, `USE_EMBEDDED_DB` CMake option)
@@ -538,17 +596,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing declaration in amalgamation file
 
 ## [0.0.3] - 2025-12-04
+Codename [END OF TEXT]
 
 ### Fixed
 - Unicode version number in the database
 
 ## [0.0.2] - 2025-12-04
+Codename [START OF TEXT]
 
 ### Fixed
 - Example amalgamation paths
 - Alignment fixes
 
 ## [0.0.1] - 2025-12-03
+Codename [START OF HEADING]
 
 ### Added
 - Initial public release
