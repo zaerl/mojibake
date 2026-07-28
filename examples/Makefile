@@ -108,7 +108,6 @@ $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE):
 
 clean:
 	rm -rf $(EXAMPLE_BUILD_DIR)
-	rm -f zig/mojibake.zig zig/mojibake.zig.tmp
 
 .PHONY: all example example-zig example-no-character-names example-no-collation \
 	example-no-idna example-no-security example-no-features clean
