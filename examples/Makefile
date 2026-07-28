@@ -4,6 +4,7 @@
 
 CPPFLAGS ?= -DNDEBUG
 CFLAGS ?= -O3
+CXXFLAGS ?= -O3
 ZIG ?= zig
 
 FEATURE_CHARACTER_NAMES ?= 1
@@ -19,6 +20,13 @@ AMALGAMATION_SOURCE = $(AMALGAMATION_DIR)/mojibake.c
 
 # C files
 EXAMPLE_SOURCE = example.c
+
+# C++ files
+CPP_EXAMPLE_SOURCE = cpp/example.cpp
+CPP_WRAPPER = ../src/cpp/mojibake.hpp
+CPP_EXAMPLE = $(EXAMPLE_BUILD_DIR)/example-cpp
+CPP_EXAMPLE_DEPS = $(CPP_EXAMPLE_SOURCE) $(CPP_WRAPPER) $(AMALGAMATION_HEADER) \
+	$(AMALGAMATION_SOURCE)
 
 # Zig files
 ZIG_EXAMPLE_SOURCE = zig/example.zig
@@ -62,6 +70,12 @@ all: example example-no-character-names example-no-collation example-no-idna exa
 example: $(EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
 	$(CC) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CFLAGS) -o $(EXAMPLE_BUILD_DIR)/$@ \
 		$(EXAMPLE_SOURCE) $(AMALGAMATION_SOURCE)
+
+# Compile the C++ example program
+example-cpp: $(CPP_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CXXFLAGS) -std=c++17 -x c++ \
+		-I $(AMALGAMATION_DIR) -o $(CPP_EXAMPLE) $(CPP_EXAMPLE_SOURCE) \
+		$(AMALGAMATION_SOURCE)
 
 # Compile the Zig example program
 example-zig: $(ZIG_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
@@ -109,5 +123,5 @@ $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE):
 clean:
 	rm -rf $(EXAMPLE_BUILD_DIR)
 
-.PHONY: all example example-zig example-no-character-names example-no-collation \
-	example-no-idna example-no-security example-no-features clean
+.PHONY: all example example-cpp example-zig example-no-character-names \
+	example-no-collation example-no-idna example-no-security example-no-features clean
