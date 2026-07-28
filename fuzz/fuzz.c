@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,6 +26,24 @@ static uint32_t fuzz_u32(const uint8_t *data, size_t size, uint8_t variant) {
     }
 
     return value;
+}
+
+static int fuzz_utf8_vsnprintf(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+static int fuzz_utf8_grapheme_vsnprintf(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_grapheme_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
 }
 
 static mjb_codepoint fuzz_codepoint(const uint8_t *data, size_t size, uint8_t variant) {
@@ -166,6 +185,12 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     fuzz_sink += (size_t)mjb_codepoint_is_hangul_syllable(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_cjk_ideograph(codepoint);
     fuzz_sink += (size_t)mjb_codepoint_is_cjk_extension_ideograph(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_emoji(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_emoji_presentation(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_emoji_modifier(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_emoji_modifier_base(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_emoji_component(codepoint);
+    fuzz_sink += (size_t)mjb_codepoint_is_extended_pictographic(codepoint);
     fuzz_sink += (size_t)mjb_category_is_graphic((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_category_is_combining((mjb_category)(variant % MJB_CATEGORY_COUNT));
     fuzz_sink += (size_t)mjb_codepoint_numeric_value(codepoint, &numeric);
@@ -241,6 +266,102 @@ static void fuzz_emoji_string_apis(const char *buffer, size_t byte_length, mjb_e
     }
 }
 
+static void fuzz_idna_apis(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_encoding output_encoding, uint8_t variant, bool to_ascii) {
+    mjb_idna_info info = { 0 };
+    mjb_result result = { 0 };
+    mjb_status status;
+
+    if(to_ascii) {
+        status = mjb_idna_to_ascii(buffer, byte_length, encoding, output_encoding, &info, &result);
+    } else {
+        status = mjb_idna_to_unicode(buffer, byte_length, encoding, output_encoding, &info,
+            &result);
+    }
+
+    fuzz_sink += (size_t)status + info.errors;
+
+    if(status == MJB_STATUS_OK) {
+        mjb_result_free(&result);
+    }
+
+    size_t required = 0;
+    info.errors = 0;
+
+    if(to_ascii) {
+        status = mjb_idna_to_ascii_into(buffer, byte_length, encoding, output_encoding, &info, NULL,
+            &required);
+    } else {
+        status = mjb_idna_to_unicode_into(buffer, byte_length, encoding, output_encoding, &info,
+            NULL, &required);
+    }
+
+    fuzz_sink += (size_t)status + info.errors + required;
+
+    if(status != MJB_STATUS_OK || required > 4096) {
+        return;
+    }
+
+    char output[4096];
+    size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
+    info.errors = 0;
+
+    if(to_ascii) {
+        status = mjb_idna_to_ascii_into(buffer, byte_length, encoding, output_encoding, &info,
+            output, &capacity);
+    } else {
+        status = mjb_idna_to_unicode_into(buffer, byte_length, encoding, output_encoding, &info,
+            output, &capacity);
+    }
+
+    fuzz_sink += (size_t)status + info.errors + capacity;
+}
+
+static void fuzz_format_apis(const char *buffer, size_t byte_length, uint8_t variant) {
+    char output[64] = { 0 };
+    size_t output_size = variant % (sizeof(output) + 1);
+    char *destination = output_size == 0 && (variant & 0x80) != 0 ? NULL : output;
+    int precision = (int)(byte_length > 4096 ? 4096 : byte_length);
+
+    fuzz_sink += (size_t)mjb_utf8_snprintf(destination, output_size, "%.*s", precision, buffer);
+    fuzz_sink += (size_t)fuzz_utf8_vsnprintf(destination, output_size, "%.*s", precision, buffer);
+    fuzz_sink += (size_t)mjb_utf8_grapheme_snprintf(destination, output_size, "%.*s", precision,
+        buffer);
+    fuzz_sink += (size_t)fuzz_utf8_grapheme_vsnprintf(destination, output_size, "%.*s", precision,
+        buffer);
+
+    if(output_size > 0) {
+        fuzz_sink += (unsigned char)output[0];
+    }
+}
+
+static void fuzz_memory_apis(const char *buffer, size_t byte_length, uint8_t variant) {
+    size_t allocation_size = (variant % 64) + 1;
+    unsigned char *memory = (unsigned char *)mjb_alloc(allocation_size);
+
+    if(memory == NULL) {
+        return;
+    }
+
+    size_t copy_size = byte_length < allocation_size ? byte_length : allocation_size;
+    memcpy(memory, buffer, copy_size);
+
+    size_t resized_size = allocation_size + (variant % 64) + 1;
+    unsigned char *resized = (unsigned char *)mjb_realloc(memory, resized_size);
+
+    if(resized == NULL) {
+        mjb_free(memory);
+
+        return;
+    }
+
+    if(copy_size > 0) {
+        fuzz_sink += resized[0];
+    }
+
+    mjb_free(resized);
+}
+
 /**
  * The libFuzzer harness. The first byte selects the API under test and some of its parameters,
  * the second byte selects the input encoding and locale, the rest is the input buffer.
@@ -257,6 +378,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     const char *buffer = (const char *)data + 2;
     size -= 2;
 
+    mjb_reset();
+    fuzz_sink += (size_t)((variant & 0x40) != 0 ? mjb_set_memory_functions(malloc, realloc, free) :
+                                                  mjb_set_memory_functions(NULL, NULL, NULL));
+
     static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
         MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
     mjb_encoding encoding = encodings[variant % 6];
@@ -266,13 +391,23 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         MJB_LOCALE_LT };
 
     if(mjb_set_locale(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
+        mjb_reset();
+
         return 0;
     }
+
+    fuzz_sink += (size_t)mjb_get_locale();
+
+    const char *version = mjb_version();
+    const char *unicode_version = mjb_unicode_version();
+    fuzz_sink += (unsigned char)version[0];
+    fuzz_sink += (size_t)mjb_version_number();
+    fuzz_sink += (unsigned char)unicode_version[0];
 
     mjb_result result = { 0 };
     mjb_codepoint codepoint = fuzz_codepoint((const uint8_t *)buffer, size, variant);
 
-    switch(selector % 18) {
+    switch(selector % 23) {
         case 0: { // Normalization, all four forms
             if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
                    MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
@@ -300,32 +435,25 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
         }
 
-        case 17: { // Identifier-oriented NFKC case folding
-            if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
-                mjb_result_free(&result);
-            }
-
-            size_t required = 0;
-
-            if(mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8, NULL, &required) ==
-                    MJB_STATUS_OK &&
-                required <= 4096) {
-                char output[4096];
-                size_t capacity = required;
-                fuzz_sink += (size_t)mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8,
-                    output, &capacity);
-            }
-
-            break;
-        }
-
-        case 2: // Case conversion and folding, all transforming types
+        case 2: { // Case conversion and folding, all transforming types
             if(mjb_map_case(buffer, size, encoding, (mjb_map_case_type)(1 + (variant % 5)),
                    MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
+            size_t required = 0;
+
+            if(mjb_map_case_into(buffer, size, encoding, (mjb_map_case_type)(1 + (variant % 5)),
+                   MJB_ENC_UTF_8, NULL, &required) == MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
+                fuzz_sink += (size_t)mjb_map_case_into(buffer, size, encoding,
+                    (mjb_map_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8, output, &capacity);
+            }
+
             break;
+        }
 
         case 3: { // Bidirectional algorithm, all three directions
             mjb_bidi_paragraph para;
@@ -356,21 +484,47 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_sink += (size_t)mjb_is_ascii(buffer, size);
             break;
 
-        case 5: // Encoding conversion
-            if(mjb_convert_encoding(buffer, size, encoding, encodings[(variant >> 1) % 6],
-                   &result) == MJB_STATUS_OK) {
+        case 5: { // Encoding conversion
+            mjb_encoding output_encoding = encodings[(variant >> 1) % 6];
+
+            if(mjb_convert_encoding(buffer, size, encoding, output_encoding, &result) ==
+                MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            break;
+            size_t required = 0;
 
-        case 6: // String filtering, all filter combinations
+            if(mjb_convert_encoding_into(buffer, size, encoding, output_encoding, NULL,
+                   &required) == MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
+                fuzz_sink += (size_t)mjb_convert_encoding_into(buffer, size, encoding,
+                    output_encoding, output, &capacity);
+            }
+
+            break;
+        }
+
+        case 6: { // String filtering, all filter combinations
             if(mjb_filter(buffer, size, encoding, (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8,
                    &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
+            size_t required = 0;
+
+            if(mjb_filter_into(buffer, size, encoding, (mjb_filter_flags)(variant & 0x1F),
+                   MJB_ENC_UTF_8, NULL, &required) == MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
+                fuzz_sink += (size_t)mjb_filter_into(buffer, size, encoding,
+                    (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8, output, &capacity);
+            }
+
             break;
+        }
 
         case 7: { // Collation key
             mjb_collation_strength strength = (mjb_collation_strength)((variant >> 5) % 4);
@@ -485,7 +639,52 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_sink += (size_t)mjb_for_each_character(buffer, size, encoding,
                 fuzz_next_character);
             break;
+
+        case 17: { // Identifier-oriented NFKC case folding
+            if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+                mjb_result_free(&result);
+            }
+
+            size_t required = 0;
+
+            if(mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8, NULL, &required) ==
+                    MJB_STATUS_OK &&
+                required <= 4096) {
+                char output[4096];
+                size_t capacity = required;
+                fuzz_sink += (size_t)mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8,
+                    output, &capacity);
+            }
+
+            break;
+        }
+
+        case 18: // IDNA ToASCII, allocating and caller-provided output
+            fuzz_idna_apis(buffer, size, encoding, encodings[(variant >> 1) % 6], variant, true);
+            break;
+
+        case 19: // IDNA ToUnicode, allocating and caller-provided output
+            fuzz_idna_apis(buffer, size, encoding, encodings[(variant >> 1) % 6], variant, false);
+            break;
+
+        case 20: { // Unicode caseless matching, input split in two halves
+            bool matches = false;
+            fuzz_sink += (size_t)mjb_caseless_match(buffer, size / 2, encoding, buffer + size / 2,
+                size - size / 2, encoding, (mjb_caseless_mode)(variant % 4), &matches);
+            fuzz_sink += (size_t)matches;
+            break;
+        }
+
+        case 21: // UTF-8 codepoint- and grapheme-safe formatting
+            fuzz_format_apis(buffer, size, variant);
+            break;
+
+        case 22: // Public allocator functions
+            fuzz_memory_apis(buffer, size, variant);
+            break;
     }
+
+    mjb_reset();
 
     return 0;
 }
