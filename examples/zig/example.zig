@@ -7,7 +7,7 @@ const mjb = @import("mojibake");
 
 // This is a simple Zig example of how to use the Mojibake library.
 // Run `make example-zig` to compile it.
-// ./build/examples-zig to run it.
+// ./build/example-zig to run it.
 pub fn main(init: std.process.Init) !u8 {
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = std.Io.File.stdout().writer(init.io, &stdout_buffer);

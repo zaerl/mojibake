@@ -14,7 +14,7 @@ void print_string(std::string_view input);
 
 // This is a simple C++ example of how to use the Mojibake library.
 // Run `make example-cpp` from the examples directory to compile it.
-// ./build/examples-cpp to run it.
+// ./build/example-cpp to run it.
 int main() {
     try {
         constexpr std::string_view input = "Cafe\xCC\x81";
