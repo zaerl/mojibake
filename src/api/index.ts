@@ -1532,6 +1532,17 @@ export class Mojibake {
     return this.module._mjb_get_locale() as Locale;
   }
 
+  // const char *mjb_status_message(mjb_status status);
+  statusMessage(status: Status): string | null {
+    const ptr = this.module._mjb_status_message(status);
+
+    if(ptr === 0) {
+      return null;
+    }
+
+    return this.decodeString(ptr, null, Encoding.UTF_8).output;
+  }
+
   // const char *mjb_version(void);
   version(): string | null {
     return this.decodeString(this.module._mjb_version(), null, Encoding.UTF_8).output;

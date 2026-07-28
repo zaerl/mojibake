@@ -1472,6 +1472,17 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_status_message
+    MJB_TEST_COVERAGE(mjb_status_message); // Added by the script
+    const char *message = mjb_status_message(MJB_STATUS_INVALID_ARGUMENT);
+
+    // Error message: One or more arguments are invalid or inconsistent with the requested operation
+    // printf("Error message: %s", message);
+    snprintf(test_buffer, sizeof(test_buffer), "Error message: %s", message); // Added by the script
+    ATT_ASSERT(test_buffer, "Error message: One or more arguments are invalid or inconsistent with the requested operation", "mjb_status_message test failed") // Added by the script
+}
+
+{
     // Example for mjb_version
     MJB_TEST_COVERAGE(mjb_version); // Added by the script
     const char *version = mjb_version();

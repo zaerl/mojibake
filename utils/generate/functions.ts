@@ -3434,6 +3434,28 @@ printf("%d: %s", required, buffer);`,
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
+    comment: 'Return a UTF-8 English-language message that describes a status code.',
+    ret: 'const char *',
+    name: 'mjb_status_message',
+    attributes: ['MJB_CONST'],
+    args: [
+      {
+        name: 'status',
+        type: 'mjb_status',
+        description: 'The status code to describe',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.Utility,
+    details: 'Return a static English-language message of at most 100 characters.',
+    example: `const char *message = mjb_status_message(MJB_STATUS_INVALID_ARGUMENT);
+
+// Error message: One or more arguments are invalid or inconsistent with the requested operation
+printf("Error message: %s", message);`,
+    related: []
+  },
+  {
     comment: 'Output the current library version (MJB_VERSION).',
     ret: 'const char *',
     name: 'mjb_version',

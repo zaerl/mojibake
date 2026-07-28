@@ -109,3 +109,41 @@ MJB_EXPORT void mjb_free(void *ptr) {
     mjb_global.memory_functions_locked = true;
     mjb_global.memory_free(ptr);
 }
+
+MJB_EXPORT MJB_CONST const char *mjb_status_message(mjb_status status) {
+    const char *message = "The status code is unknown";
+
+    static const char *const messages[] = { // MJB_STATUS_OK
+        "The operation completed successfully",
+        // MJB_STATUS_INVALID_ARGUMENT
+        "One or more arguments are invalid or inconsistent with the requested operation",
+        // MJB_STATUS_INVALID_ENCODING
+        "The encoding is invalid or missing required byte-order information",
+        // MJB_STATUS_INVALID_CODEPOINT,
+        "The codepoint is not a valid Unicode scalar value",
+        // MJB_STATUS_INVALID_FORM
+        "The normalization form is invalid",
+        // MJB_STATUS_UNSUPPORTED
+        "The requested operation, conversion, or value is not supported",
+        // MJB_STATUS_NO_MEMORY
+        "Memory allocation failed",
+        // MJB_STATUS_OVERFLOW
+        "The required size exceeds the supported range",
+        // MJB_STATUS_MALFORMED_INPUT
+        "The input contains a malformed code-unit sequence",
+        // MJB_STATUS_OUTPUT_TOO_SMALL
+        "The output buffer is too small for the complete result",
+        // MJB_STATUS_CALLBACK_STOPPED
+        "The callback requested that iteration stop",
+        // MJB_STATUS_NOT_FOUND,
+        "No Unicode data was found for the requested value",
+        // MJB_STATUS_FEATURE_NOT_ENABLED
+        "The requested feature was disabled when the library was built"
+    };
+
+    if((unsigned int)status < (sizeof(messages) / sizeof(messages[0]))) {
+        message = messages[status];
+    }
+
+    return message;
+}

@@ -870,6 +870,9 @@ MJB_EXPORT MJB_NODISCARD MJB_PRINTF_FORMAT(3, 4) int mjb_utf8_grapheme_snprintf(
 // Format UTF-8 from a va_list without truncating an extended grapheme cluster.
 MJB_EXPORT MJB_NODISCARD MJB_PRINTF_FORMAT(3, 0) int mjb_utf8_grapheme_vsnprintf(char *buffer, size_t buffer_size, const char *format, va_list args);
 
+// Return a UTF-8 English-language message that describes a status code.
+MJB_EXPORT MJB_CONST const char *mjb_status_message(mjb_status status);
+
 // Output the current library version (MJB_VERSION).
 MJB_EXPORT MJB_CONST const char *mjb_version(void);
 

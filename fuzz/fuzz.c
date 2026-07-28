@@ -682,6 +682,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 22: // Public allocator functions
             fuzz_memory_apis(buffer, size, variant);
             break;
+
+        case 23:
+            mjb_status_message((mjb_status)(variant % 256));
+            break;
     }
 
     mjb_reset();

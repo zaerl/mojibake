@@ -211,5 +211,10 @@ int test_mojibake(void *arg) {
 
     ATT_ASSERT((mjb_reset(), true), true, "Reset realloc failing allocator")
 
+    ATT_ASSERT(mjb_status_message(MJB_STATUS_OK), "The operation completed successfully",
+        "Status message returns OK")
+    ATT_ASSERT(mjb_status_message((mjb_status)100), "The status code is unknown",
+        "Status message returns unknown error for invalid status")
+
     return 0;
 }
