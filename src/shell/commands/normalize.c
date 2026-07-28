@@ -14,7 +14,7 @@ int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int fl
         (mjb_normalization)flags, MJB_ENC_UTF_8, &result);
 
     if(status != MJB_STATUS_OK) {
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
@@ -77,7 +77,7 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
     if(status != MJB_STATUS_OK) {
         free(codepoints);
 
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {

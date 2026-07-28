@@ -16,7 +16,7 @@ static int mjbsh_print_filter_analysis(const char *input) {
         &result);
 
     if(status != MJB_STATUS_OK) {
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {

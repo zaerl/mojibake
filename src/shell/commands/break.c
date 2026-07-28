@@ -374,7 +374,7 @@ int mjbsh_break_command(int argc, char *const argv[], unsigned int flags) {
 
         if(argc > 1) {
             if(!mjbsh_break_parse_mode(argv[0], &mode)) {
-                return mjbsh_error("break: unknown mode");
+                return mjbsh_error("break: unknown mode: %s", argv[0]);
             }
 
             input = argv[1];

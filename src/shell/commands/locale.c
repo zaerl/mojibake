@@ -23,7 +23,7 @@ int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags) {
     mjb_status status = mjb_locale_parse(input, strlen(input), MJB_ENC_UTF_8, &locale, &error);
 
     if(status != MJB_STATUS_OK) {
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {

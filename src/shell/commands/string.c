@@ -12,7 +12,7 @@ int mjbsh_case_command(int argc, char *const argv[], unsigned int flags) {
         (mjb_map_case_type)flags, MJB_ENC_UTF_8, &result);
 
     if(status != MJB_STATUS_OK) {
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {

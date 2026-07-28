@@ -141,7 +141,7 @@ MJB_EXPORT MJB_CONST const char *mjb_status_message(mjb_status status) {
         "The requested feature was disabled when the library was built"
     };
 
-    if(status >= MJB_STATUS_OK && status <= MJB_STATUS_FEATURE_NOT_ENABLED) {
+    if((unsigned int)status < (sizeof(messages) / sizeof(messages[0]))) {
         message = messages[status];
     }
 

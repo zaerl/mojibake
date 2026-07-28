@@ -280,7 +280,7 @@ int mjbsh_character_command(int argc, char *const argv[], unsigned int flags) {
         mjbsh_output_next_character);
 
     if(status != MJB_STATUS_OK) {
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     return 0;

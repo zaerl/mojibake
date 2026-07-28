@@ -37,7 +37,7 @@ static int mjbsh_bidi_revolve(const char *input) {
         &para);
 
     if(status != MJB_STATUS_OK) {
-        return mjbsh_error(mjb_status_message(status));
+        return mjbsh_error("%s", mjb_status_message(status));
     }
 
     size_t *visual_order = para.count > 0 ? (size_t *)malloc(para.count * sizeof(size_t)) : NULL;
