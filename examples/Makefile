@@ -28,6 +28,20 @@ CPP_EXAMPLE = $(EXAMPLE_BUILD_DIR)/example-cpp
 CPP_EXAMPLE_DEPS = $(CPP_EXAMPLE_SOURCE) $(CPP_WRAPPER) $(AMALGAMATION_HEADER) \
 	$(AMALGAMATION_SOURCE)
 
+# Python files
+PYTHON_EXAMPLE_SOURCE = python/example.py
+
+ifeq ($(OS),Windows_NT)
+PYTHON_LIBRARY = $(EXAMPLE_BUILD_DIR)/mojibake.dll
+PYTHON_SHARED_FLAGS = -shared
+else ifeq ($(shell uname -s),Darwin)
+PYTHON_LIBRARY = $(EXAMPLE_BUILD_DIR)/libmojibake.dylib
+PYTHON_SHARED_FLAGS = -dynamiclib
+else
+PYTHON_LIBRARY = $(EXAMPLE_BUILD_DIR)/libmojibake.so
+PYTHON_SHARED_FLAGS = -shared -fPIC
+endif
+
 # Zig files
 ZIG_EXAMPLE_SOURCE = zig/example.zig
 ZIG_BINDINGS = $(EXAMPLE_BUILD_DIR)/mojibake.zig
@@ -77,6 +91,13 @@ example-cpp: $(CPP_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
 		-I $(AMALGAMATION_DIR) -o $(CPP_EXAMPLE) $(CPP_EXAMPLE_SOURCE) \
 		$(AMALGAMATION_SOURCE)
 
+# Build the shared library used by the Python example
+example-python: $(PYTHON_EXAMPLE_SOURCE) $(PYTHON_LIBRARY)
+
+$(PYTHON_LIBRARY): $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE) | $(EXAMPLE_BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CFLAGS) -DMJB_SHARED=1 \
+		-DMJB_BUILDING_LIBRARY=1 $(PYTHON_SHARED_FLAGS) -o $@ $(AMALGAMATION_SOURCE)
+
 # Compile the Zig example program
 example-zig: $(ZIG_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
 	$(ZIG) build-exe --dep mojibake -I $(AMALGAMATION_DIR) $(AMALGAMATION_SOURCE) \
@@ -123,5 +144,6 @@ $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE):
 clean:
 	rm -rf $(EXAMPLE_BUILD_DIR)
 
-.PHONY: all example example-cpp example-zig example-no-character-names \
-	example-no-collation example-no-idna example-no-security example-no-features clean
+.PHONY: all example example-cpp example-python example-zig \
+	example-no-character-names example-no-collation example-no-idna \
+	example-no-security example-no-features clean

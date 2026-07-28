@@ -12,8 +12,8 @@
 void print_string(const char *input, size_t length);
 
 // This is a simple C example of how to use the Mojibake library.
-// Run `make` to compile it.
-// See examples/cpp/example.cpp and examples/zig/example.zig for a Zig example.
+// Run `make` from the examples directory to compile it.
+// ./build/example to run it.
 int main(int argc, char *const argv[]) {
     const char *input = "Cafe\xCC\x81";
     size_t length = strlen(input);

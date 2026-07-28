@@ -36,6 +36,8 @@ examples/*
 !examples/*.c
 !examples/Makefile
 !examples/cpp/
+!examples/python/
+examples/python/__pycache__/
 !examples/zig/
 
 # Clang
