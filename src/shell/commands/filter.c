@@ -16,9 +16,7 @@ static int mjbsh_print_filter_analysis(const char *input) {
         &result);
 
     if(status != MJB_STATUS_OK) {
-        fprintf(stderr, "Could not filter string\n");
-
-        return 1;
+        return mjbsh_error(mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
@@ -58,9 +56,7 @@ int mjbsh_filter_command(int argc, char *const argv[], unsigned int flags) {
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        fprintf(stderr, "filter: JSON output requires an input\n");
-
-        return 1;
+        return mjbsh_error("filter: JSON output requires an input");
     }
 
     mjbsh_screen_mode(mjbsh_display_filter_output, NULL);

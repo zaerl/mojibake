@@ -96,6 +96,7 @@ void mjbsh_id_name(const char *label, unsigned int id, const char *name, unsigne
 void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normalization form,
     const char *name, const char *label, unsigned int nl);
 void mjbsh_codepoint(const char *label, unsigned int nl, mjb_codepoint codepoint);
+int mjbsh_error(const char *format, ...);
 
 bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint);
 

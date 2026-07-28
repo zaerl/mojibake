@@ -19,6 +19,6 @@ mjb_assert_shell_command(
 mjb_assert_shell_command(
     ARGS --output json break
     STATUS 1
-    ERROR "break: JSON output requires an input\n"
-    OUTPUT ""
+    ERROR ""
+    OUTPUT "{\"error\":\"break: JSON output requires an input\"}"
 )

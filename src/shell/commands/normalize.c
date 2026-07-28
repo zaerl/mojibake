@@ -8,14 +8,13 @@
 
 int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int flags) {
     mjb_result result;
+    bool ret = true;
 
-    bool ret = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENC_UTF_8, (mjb_normalization)flags,
-                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
+    mjb_status status = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
+        (mjb_normalization)flags, MJB_ENC_UTF_8, &result);
 
-    if(!ret) {
-        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
-        return 1;
+    if(status != MJB_STATUS_OK) {
+        return mjbsh_error(mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
@@ -24,14 +23,17 @@ int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int fl
     }
 
     printf("%s", mjbsh_green());
+
     if(result.output_size > 0 &&
         mjb_for_each_character(result.output, result.output_size, MJB_ENC_UTF_8,
             mjbsh_next_string_character) != MJB_STATUS_OK) {
         printf("%s", mjbsh_reset());
         puts("");
         ret = false;
+
         goto cleanup;
     }
+
     printf("%s", mjbsh_reset());
     puts("");
 
@@ -56,11 +58,9 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
         mjb_codepoint codepoint = 0;
 
         if(!mjbsh_parse_codepoint(argv[i], &codepoint)) {
-            fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
             free(codepoints);
 
-            return 1;
+            return mjbsh_error("Invalid codepoint input: %s", argv[i]);
         }
 
         index += mjb_codepoint_encode(codepoint, codepoints + index, (argc * 5) - index,
@@ -70,19 +70,19 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
     codepoints[index] = '\0';
 
     mjb_result result;
-    bool ret = mjb_normalize(codepoints, index, MJB_ENC_UTF_8, (mjb_normalization)flags,
-                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK;
+    bool ret = true;
+    mjb_status status = mjb_normalize(codepoints, index, MJB_ENC_UTF_8, (mjb_normalization)flags,
+        MJB_ENC_UTF_8, &result);
 
-    if(!ret) {
-        fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
+    if(status != MJB_STATUS_OK) {
         free(codepoints);
 
-        return 1;
+        return mjbsh_error(mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_print_json_result(result.output, result.output_size);
+
         goto cleanup;
     }
 
@@ -91,8 +91,10 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
             mjbsh_next_character) != MJB_STATUS_OK) {
         puts("");
         ret = false;
+
         goto cleanup;
     }
+
     puts("");
 
 cleanup:

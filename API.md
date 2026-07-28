@@ -3743,6 +3743,29 @@ See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_utf
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
+## `mjb_status_message`
+
+Return a UTF-8 English-language message that describes a status code.
+
+```c
+const char *mjb_status_message(
+    mjb_status status
+);
+```
+
+Return a static English-language message of at most 100 characters.
+
+- `status` - The status code to describe
+
+**Example**
+
+```c
+const char *message = mjb_status_message(MJB_STATUS_INVALID_ARGUMENT);
+
+// Error message: One or more arguments are invalid or inconsistent with the requested operation
+printf("Error message: %s", message);
+```
+
 ## `mjb_version`
 
 Output the current library version (MJB_VERSION).

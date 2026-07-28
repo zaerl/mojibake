@@ -374,10 +374,7 @@ int mjbsh_break_command(int argc, char *const argv[], unsigned int flags) {
 
         if(argc > 1) {
             if(!mjbsh_break_parse_mode(argv[0], &mode)) {
-                fprintf(stderr, "break: unknown mode: %s\n", argv[0]);
-                fprintf(stderr, "break: expected all, grapheme, word, line, or sentence\n");
-
-                return 1;
+                return mjbsh_error("break: unknown mode");
             }
 
             input = argv[1];
@@ -389,9 +386,7 @@ int mjbsh_break_command(int argc, char *const argv[], unsigned int flags) {
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        fprintf(stderr, "break: JSON output requires an input\n");
-
-        return 1;
+        return mjbsh_error("break: JSON output requires an input");
     }
 
     mjbsh_screen_mode(mjbsh_display_break_output, mjbsh_handle_key);

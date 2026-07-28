@@ -207,36 +207,47 @@ void mjbsh_show_cursor(bool show) {
     printf("\x1B[?25%s", show ? "h" : "l");
 }
 
-void mjbsh_value(const char *label, unsigned int nl, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-
+static void mjbsh_value_args(const char *label, unsigned int nl, const char *format, va_list args) {
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_json_field(label);
         printf("\"%s", mjbsh_green());
 
-        va_list args_copy;
-        va_copy(args_copy, args);
-        int length = vsnprintf(NULL, 0, format, args_copy);
-        va_end(args_copy);
+        va_list length_args;
+        va_copy(length_args, args);
+        int length = vsnprintf(NULL, 0, format, length_args);
+        va_end(length_args);
 
         if(length >= 0) {
             char *value = (char *)malloc((size_t)length + 1);
 
             if(value != NULL) {
-                vsnprintf(value, (size_t)length + 1, format, args);
+                va_list value_args;
+                va_copy(value_args, args);
+                vsnprintf(value, (size_t)length + 1, format, value_args);
+                va_end(value_args);
+
                 mjbsh_print_json_string(value);
                 free(value);
             }
         }
     } else {
         printf("%s: %s", label, mjbsh_green());
-        vprintf(format, args);
+
+        va_list value_args;
+        va_copy(value_args, args);
+        vprintf(format, value_args);
+        va_end(value_args);
     }
 
     printf("%s%s", mjbsh_reset(), cmd_output_mode == OUTPUT_MODE_JSON ? "\"" : "");
 
     mjbsh_print_nl(nl);
+}
+
+void mjbsh_value(const char *label, unsigned int nl, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    mjbsh_value_args(label, nl, format, args);
     va_end(args);
 }
 
@@ -362,6 +373,26 @@ void mjbsh_codepoint(const char *label, unsigned int nl, mjb_codepoint codepoint
     }
 
     mjbsh_print_nl(nl);
+}
+
+int mjbsh_error(const char *format, ...) {
+    bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
+    va_list args;
+    va_start(args, format);
+
+    if(is_json) {
+        printf("{%s", mjbsh_jnl());
+        mjbsh_value_args("Error", 0, format, args);
+        printf("}%s", mjbsh_jnl());
+    } else {
+        fprintf(stderr, "Error: %s", mjbsh_red());
+        vfprintf(stderr, format, args);
+        fprintf(stderr, "%s\n", mjbsh_reset());
+    }
+
+    va_end(args);
+
+    return 1;
 }
 
 bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {

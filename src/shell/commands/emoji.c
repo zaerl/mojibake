@@ -282,9 +282,7 @@ int mjbsh_emoji_command(int argc, char *const argv[], unsigned int flags) {
 
     if(cmd_interpret_mode == INTERPRET_MODE_CODEPOINT) {
         if(!mjbsh_emoji_input_from_codepoints(argc, argv, &buffer, &size)) {
-            fprintf(stderr, cmd_verbose ? "Invalid\n" : "N\n");
-
-            return 1;
+            return mjbsh_error("Invalid codepoint input");
         }
 
         should_free = true;

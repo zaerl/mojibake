@@ -33,29 +33,27 @@ static int mjbsh_bidi_revolve(const char *input) {
     bool is_json = (cmd_output_mode == OUTPUT_MODE_JSON);
 
     mjb_bidi_paragraph para;
+    mjb_status status = mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
+        &para);
 
-    if(mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para) !=
-        MJB_STATUS_OK) {
-        fprintf(stderr, "bidi: resolution failed\n");
-        return 1;
+    if(status != MJB_STATUS_OK) {
+        return mjbsh_error(mjb_status_message(status));
     }
 
     size_t *visual_order = para.count > 0 ? (size_t *)malloc(para.count * sizeof(size_t)) : NULL;
 
     if(para.count > 0 && visual_order == NULL) {
-        fprintf(stderr, "bidi: could not allocate visual order\n");
         mjb_bidi_paragraph_free(&para);
 
-        return 1;
+        return mjbsh_error("bidi: could not allocate visual order");
     }
 
     if(para.count > 0 &&
         mjb_bidi_reorder_line(&para, 0, para.count, visual_order) != MJB_STATUS_OK) {
-        fprintf(stderr, "bidi: line reordering failed\n");
         free(visual_order);
         mjb_bidi_paragraph_free(&para);
 
-        return 1;
+        return mjbsh_error("bidi: line reordering failed");
     }
 
     if(is_json) {

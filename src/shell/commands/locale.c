@@ -6,19 +6,6 @@
 
 #include "../shell.h"
 
-static const char *mjbsh_locale_error_name(mjb_error error) {
-    switch(error) {
-        case MJB_ERROR_NONE:
-            return "none";
-        case MJB_ERROR_INVALID_ARGUMENT:
-            return "invalid argument";
-        case MJB_ERROR_UNSUPPORTED:
-            return "unsupported";
-        default:
-            return "unknown";
-    }
-}
-
 static void mjbsh_locale_field(const char *label, unsigned int nl, const char *value) {
     if(value[0] == '\0') {
         mjbsh_null(label, nl);
@@ -33,12 +20,10 @@ int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags) {
     const char *input = argv[0];
     mjb_locale_id locale;
     mjb_error error = MJB_ERROR_NONE;
+    mjb_status status = mjb_locale_parse(input, strlen(input), MJB_ENC_UTF_8, &locale, &error);
 
-    if(mjb_locale_parse(input, strlen(input), MJB_ENC_UTF_8, &locale, &error) != MJB_STATUS_OK) {
-        fprintf(stderr, "locale: could not parse BCP 47 language tag: %s\n",
-            mjbsh_locale_error_name(error));
-
-        return 1;
+    if(status != MJB_STATUS_OK) {
+        return mjbsh_error(mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {

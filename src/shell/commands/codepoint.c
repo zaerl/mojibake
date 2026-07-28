@@ -16,14 +16,14 @@ int mjbsh_codepoint_command(int argc, char *const argv[], unsigned int flags) {
     unsigned long value = strtoul(argv[0], &endptr, 16);
 
     if(endptr == argv[0] || *endptr != '\0' || errno == ERANGE || value > MJB_CODEPOINT_MAX) {
-        return 1;
+        return mjbsh_error("Invalid codepoint: %s", argv[0]);
     }
 
     mjb_codepoint codepoint = (mjb_codepoint)value;
     unsigned int length = mjb_codepoint_encode(codepoint, buffer, 5, MJB_ENC_UTF_8);
 
     if(length == 0) {
-        return 1;
+        return mjbsh_error("Failed to encode codepoint: %s", argv[0]);
     }
 
     char *argv_buffer[] = { buffer };

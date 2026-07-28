@@ -8,10 +8,11 @@
 
 int mjbsh_case_command(int argc, char *const argv[], unsigned int flags) {
     mjb_result result = { NULL, 0, false };
+    mjb_status status = mjb_map_case(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
+        (mjb_map_case_type)flags, MJB_ENC_UTF_8, &result);
 
-    if(mjb_map_case(argv[0], strlen(argv[0]), MJB_ENC_UTF_8, (mjb_map_case_type)flags,
-           MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
-        return 1;
+    if(status != MJB_STATUS_OK) {
+        return mjbsh_error(mjb_status_message(status));
     }
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
