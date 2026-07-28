@@ -43,7 +43,7 @@ Codename: [DIGIT FOUR]
 - Shell: the `nfkc` command was producing NKFD content
 - Shell: now returns 1 when a user doesn't select a command
 - Shell: the `bidi` command now returns 1 for an error
-- Shell: `normalize`, `break` and `case` command now output JSON, if JSON is selected
+- Shell: `normalize`, `break` and `case` commands now output JSON if JSON is selected
 
 ## [0.3.3] - 2026-07-22
 Codename: [DIGIT THREE]
@@ -626,7 +626,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.4...HEAD
+[0.3.4]: https://github.com/zaerl/mojibake/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/zaerl/mojibake/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/zaerl/mojibake/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/zaerl/mojibake/compare/v0.3.0...v0.3.1
