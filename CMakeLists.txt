@@ -113,6 +113,12 @@ function(mjb_configure_target target)
 
         if(MJB_USE_ASAN)
             target_compile_options(${target} PRIVATE /fsanitize=address)
+            target_link_options(
+                ${target}
+                ${_mjb_sanitizer_link_scope}
+                    /DEBUG
+                    /INCREMENTAL:NO
+            )
         endif()
 
         if(MJB_USE_UBSAN)
