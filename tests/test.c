@@ -202,7 +202,7 @@ static bool write_coverage_file(void) {
     return true;
 }
 
-int show_version(void) {
+static int show_version(void) {
     printf("Mojibake v%s\n", MJB_VERSION);
 
     return 0;
@@ -216,7 +216,7 @@ void set_error_callback(att_test_callback callback) {
     error_callback = callback;
 }
 
-void show_help(const char *executable, struct option options[], const char *descriptions[],
+static void show_help(const char *executable, struct option options[], const char *descriptions[],
     const char *error) {
     FILE *stream = error ? stderr : stdout;
 
