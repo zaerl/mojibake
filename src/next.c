@@ -35,7 +35,7 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     mjb_character character;
     bool has_previous_character = false;
     bool first_character = true;

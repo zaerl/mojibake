@@ -52,7 +52,7 @@ static mjb_status mjb_idna_decode_utf8(const char *buffer, size_t byte_length,
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
 
     for(size_t index = 0; index < byte_length;) {
         mjb_decode_result decoded = mjb_next_codepoint(buffer, byte_length, &state, &index,
@@ -102,7 +102,7 @@ static mjb_status mjb_idna_map(const char *buffer, size_t byte_length, mjb_encod
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
 
     for(size_t index = 0; index < byte_length;) {
         mjb_decode_result decoded = mjb_next_codepoint(buffer, byte_length, &state, &index,

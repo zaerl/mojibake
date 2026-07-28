@@ -121,7 +121,7 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_le
     bool is_all = true;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
 
     for(size_t i = 0; i < byte_length;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
@@ -248,7 +248,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
 
     size_t mid_index = 0;
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint cp;
+    mjb_codepoint cp = 0;
     bool in_error = false;
 
     for(size_t i = 0; i < nfd.output_size;) {

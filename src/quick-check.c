@@ -57,7 +57,7 @@ MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t b
 
     mjb_quick_check_result result = MJB_QC_YES;
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_n_character current_character;
     bool in_error = false;

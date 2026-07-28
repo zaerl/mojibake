@@ -48,7 +48,7 @@ MJB_EXPORT mjb_status mjb_display_width(const char *buffer, size_t byte_length,
     size_t visible_count = 0;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
 
     for(size_t i = 0; i < byte_length;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,

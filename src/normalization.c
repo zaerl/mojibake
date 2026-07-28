@@ -300,7 +300,7 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
     mjb_normalization form = context->form;
     mjb_encoding output_encoding = context->output_encoding;
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     mjb_n_character current_character;
 
 // Combining characters buffer.
@@ -682,7 +682,7 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
 
     size_t output_index = 0;
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     bool in_error = false;
 
     for(size_t i = 0; i < byte_length;) {

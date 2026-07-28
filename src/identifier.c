@@ -26,7 +26,7 @@ MJB_EXPORT bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_en
     // clang-format on
 
     uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint;
+    mjb_codepoint codepoint = 0;
     bool in_error = false;
     bool first = true;
 

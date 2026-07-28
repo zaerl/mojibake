@@ -276,7 +276,7 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
     size_t i = 0;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
-    mjb_codepoint cp;
+    mjb_codepoint cp = 0;
 
     while(i < len) {
         mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i, MJB_ENC_UTF_8, &cp,
