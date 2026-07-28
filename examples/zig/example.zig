@@ -1,0 +1,85 @@
+// The Mojibake library
+//
+// This file is distributed under the MIT License. See LICENSE for details.
+
+const std = @import("std");
+const mjb = @import("mojibake");
+
+// This is a simple Zig example of how to use the Mojibake library.
+// Run `make example-zig` to compile it.
+// See examples/example.c for a C example
+pub fn main(init: std.process.Init) !u8 {
+    var stdout_buffer: [1024]u8 = undefined;
+    var stdout_writer = std.Io.File.stdout().writer(init.io, &stdout_buffer);
+    const stdout = &stdout_writer.interface;
+    defer stdout.flush() catch {};
+
+    const input = "Cafe\u{0301}";
+    var result: mjb.mjb_result = .{};
+
+    // Normalize example: in NFC e + ◌́ -> é (U+00E9)
+    if (mjb.mjb_normalize(
+        input.ptr,
+        input.len,
+        mjb.MJB_ENC_UTF_8,
+        mjb.MJB_NORMALIZATION_NFC,
+        mjb.MJB_ENC_UTF_8,
+        &result,
+    ) != mjb.MJB_STATUS_OK) {
+        return 1;
+    }
+
+    // Cafe + ◌́ (U+0301, COMBINING ACUTE ACCENT) -> Café
+    try printString(stdout, input);
+
+    // Caf + é (U+00E9, LATIN SMALL LETTER E WITH ACUTE) -> Café
+    try printString(stdout, result.output[0..result.output_size]);
+
+    const mojibake = "文字化け";
+
+    // Codepoint count example: mjb_count_codepoints counts Unicode codepoints, not bytes.
+    try stdout.print(
+        "\"{s}\" encoded in UTF-8 is {d} bytes long, and {d} codepoints long\n",
+        .{
+            mojibake,
+            mojibake.len,
+            mjb.mjb_count_codepoints(mojibake.ptr, mojibake.len, mjb.MJB_ENC_UTF_8),
+        },
+    );
+
+    _ = mjb.mjb_result_free(&result);
+
+    const case_input = "Straße";
+
+    // NFKC casefold example: in NFKC casefold, ß -> ss
+    if (mjb.mjb_nfkc_casefold(
+        case_input.ptr,
+        case_input.len,
+        mjb.MJB_ENC_UTF_8,
+        mjb.MJB_ENC_UTF_8,
+        &result,
+    ) != mjb.MJB_STATUS_OK) {
+        return 1;
+    }
+
+    try stdout.print("{s} -> {s}\n", .{
+        case_input,
+        result.output[0..result.output_size],
+    });
+    _ = mjb.mjb_result_free(&result);
+
+    try stdout.flush();
+    return 0;
+}
+
+fn printString(stdout: *std.Io.Writer, input: []const u8) std.Io.Writer.Error!void {
+    for (input) |byte| {
+        if (byte >= 0x21 and byte <= 0x7E) {
+            try stdout.writeByte(byte);
+        } else {
+            try stdout.print("<{X:0>2}>", .{byte});
+        }
+    }
+
+    try stdout.writeByte('\n');
+}
