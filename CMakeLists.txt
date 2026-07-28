@@ -49,6 +49,16 @@ if(MJB_BUILD_CPP)
     enable_language(CXX)
 endif()
 
+# CMake 3.19 and older select the C++ compiler for LANGUAGE CXX sources without explicitly
+# forcing the language. Clang 10 diagnoses compiling a .c file as C++ without -x c++.
+set(_mjb_needs_explicit_cpp_language ON)
+if(POLICY CMP0119)
+    cmake_policy(GET CMP0119 _mjb_cpp_language_policy)
+    if(_mjb_cpp_language_policy STREQUAL "NEW")
+        set(_mjb_needs_explicit_cpp_language OFF)
+    endif()
+endif()
+
 if(MJB_USE_UBSAN AND NOT MSVC)
     if(MJB_BUILD_CPP AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         include(CheckCXXCompilerFlag)
@@ -71,6 +81,14 @@ function(mjb_configure_target target)
 
     if(MJB_BUILD_CPP)
         target_compile_features(${target} PRIVATE cxx_std_17)
+
+        if(_mjb_needs_explicit_cpp_language)
+            if(MSVC)
+                target_compile_options(${target} PRIVATE /TP)
+            else()
+                target_compile_options(${target} PRIVATE -x c++)
+            endif()
+        endif()
     endif()
 
     if(MSVC)
