@@ -8,5 +8,12 @@
     "C_Cpp.clang_format_style": "file",
     "C_Cpp.clang_format_fallbackStyle": "none",
     "files.insertFinalNewline": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:system",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
 }
