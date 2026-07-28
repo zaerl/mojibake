@@ -94,6 +94,34 @@ jobs:
 
       - uses: ./.github/actions/setup-unicode-test-data
 
+      - name: Add MSVC AddressSanitizer runtime to PATH
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} `
+            "Microsoft Visual Studio\Installer\vswhere.exe"
+          $visualStudio = & $vswhere -latest -products '*' `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
+
+          if (-not $visualStudio) {
+              throw "Visual Studio with C++ tools was not found"
+          }
+
+          $versionFile = Join-Path $visualStudio `
+            "VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt"
+          $toolsetVersion = (Get-Content -Raw $versionFile).Trim()
+          $asanDirectory = Join-Path $visualStudio `
+            "VC\Tools\MSVC\$toolsetVersion\bin\Hostx64\x64"
+          $asanRuntime = Join-Path $asanDirectory `
+            "clang_rt.asan_dynamic-x86_64.dll"
+
+          if (-not (Test-Path $asanRuntime)) {
+              throw "MSVC AddressSanitizer runtime not found: $asanRuntime"
+          }
+
+          Write-Host "Using MSVC AddressSanitizer runtime: $asanRuntime"
+          Add-Content -Path $env:GITHUB_PATH -Value $asanDirectory
+
       - name: Test C, C++17, minimal, optimized, and sanitizer configurations
         shell: bash
         run: |
