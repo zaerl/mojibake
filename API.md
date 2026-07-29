@@ -3480,18 +3480,16 @@ mjb_status mjb_locale_parse(
     const char *id,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_locale_id *locale,
-    mjb_error *error
+    mjb_locale_id *locale
 );
 ```
 
-Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is filled with the failure reason.
+Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected.
 
 - `id` - The BCP 47 language tag to parse
 - `byte_length` - The length of the locale identifier in bytes, or `MJB_NUL_TERMINATED`
 - `encoding` - The encoding of the locale identifier
 - `locale` - The locale structure to store the result
-- `error` - The error to store when parsing fails
 
 **Returns**
 
@@ -3503,10 +3501,8 @@ Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language
 
 ```c
 mjb_locale_id locale;
-mjb_error error;
 
-if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
-    &error) != MJB_STATUS_OK) {
+if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
     return 1;
 }
 

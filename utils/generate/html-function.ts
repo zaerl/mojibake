@@ -406,7 +406,6 @@ export class CFunction implements MojibakeFunction {
         case 'mjb_encoding':
           ret += this.getSelectInput(i, encodings, encodingValues);
           break;
-        // case 'mjb_error *':
         case 'mjb_filter_flags':
           ret += this.getBitfieldInput(i, filterFlags, filterFlagValues,
             'Leave all unchecked for MJB_FILTER_NONE.');

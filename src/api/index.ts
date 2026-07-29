@@ -69,13 +69,6 @@ export enum CaseType {
   CASEFOLD
 };
 
-// mjb_error
-export enum ErrorType {
-  NONE,
-  INVALID_ARGUMENT,
-  UNSUPPORTED,
-};
-
 // mjb_status
 export enum Status {
   OK = 0,
@@ -1499,16 +1492,15 @@ export class Mojibake {
   }
 
   // mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
-  // mjb_locale_id *locale, mjb_error *error);
+  // mjb_locale_id *locale);
   localeParse(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
     const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
     const wasmInput = this.copyInput(id, options.encoding);
     const localePtr = this.malloc(localeStructSize);
-    const errorPtr = this.malloc(4);
 
     try {
       const status = this.module._mjb_locale_parse(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, localePtr, errorPtr);
+        wasmInput.encoding, localePtr);
 
       if(status === Status.OK) {
         return this.pointerToLocaleId(localePtr);
@@ -1518,7 +1510,6 @@ export class Mojibake {
     } finally {
       this.free(wasmInput.ptr);
       this.free(localePtr);
-      this.free(errorPtr);
     }
   }
 

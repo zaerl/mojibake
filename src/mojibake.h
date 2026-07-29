@@ -289,12 +289,6 @@ typedef enum mjb_caseless_mode {
     MJB_CASELESS_IDENTIFIER
 } mjb_caseless_mode;
 
-typedef enum mjb_error {
-    MJB_ERROR_NONE,
-    MJB_ERROR_INVALID_ARGUMENT,
-    MJB_ERROR_UNSUPPORTED
-} mjb_error;
-
 typedef enum mjb_status {
     MJB_STATUS_OK = 0,
     MJB_STATUS_INVALID_ARGUMENT,
@@ -847,7 +841,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_east_asian_width(mjb_codepoint
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t *width);
 
 // Parse a BCP 47 language tag.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale, mjb_error *error);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale);
 
 // Set the current process-global locale.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_locale(mjb_locale locale);

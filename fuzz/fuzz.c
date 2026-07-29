@@ -620,8 +620,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 13: { // BCP 47 locale parsing
             mjb_locale_id locale;
-            mjb_error error;
-            mjb_status locale_status = mjb_locale_parse(buffer, size, encoding, &locale, &error);
+            mjb_status locale_status = mjb_locale_parse(buffer, size, encoding, &locale);
             fuzz_sink += (size_t)locale_status;
             break;
         }

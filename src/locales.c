@@ -244,30 +244,27 @@ static bool mjb_locale_is_grandfathered(const mjb_locale_subtag *subtags, size_t
     return false;
 }
 
-static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_locale_id *locale,
-    mjb_error *error) {
+static mjb_status mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size,
+    mjb_locale_id *locale) {
     mjb_locale_subtag *subtags = NULL;
 
-#define MJB_LOCALE_PARSE_RETURN(value, error_type) \
+#define MJB_LOCALE_PARSE_RETURN(status) \
     do { \
-        if(error != NULL) { \
-            *error = (error_type); \
-        } \
         if(subtags != NULL) { \
             mjb_free(subtags); \
         } \
-        return (value); \
+        return (status); \
     } while(0)
 
     if(ascii_size == 0) {
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
     size_t subtag_capacity = ascii_size / 2 + 1;
     subtags = (mjb_locale_subtag *)mjb_alloc(subtag_capacity * sizeof(*subtags));
 
     if(subtags == NULL) {
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_NO_MEMORY);
     }
 
     const char *subtag_start = NULL;
@@ -286,7 +283,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
             ++subtag_length;
 
             if(subtag_length > 8) {
-                MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+                MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
             }
 
             continue;
@@ -294,7 +291,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
 
         if(c == '-') {
             if(subtag_length == 0 || subtag_count >= subtag_capacity) {
-                MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+                MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
             }
 
             subtags[subtag_count].start = subtag_start;
@@ -305,11 +302,11 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
             continue;
         }
 
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
     if(subtag_length == 0 || subtag_count >= subtag_capacity) {
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
     subtags[subtag_count].start = subtag_start;
@@ -324,10 +321,10 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     if(mjb_locale_is_grandfathered(subtags, subtag_count)) {
         if(!mjb_locale_copy_subtags(locale->grandfathered, sizeof(locale->grandfathered), subtags,
                0, subtag_count, MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
-        MJB_LOCALE_PARSE_RETURN(true, MJB_ERROR_NONE);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_OK);
     }
 
     // x-whatever
@@ -337,17 +334,17 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         if(subtag_count < 2 ||
             !mjb_locale_copy_subtags(locale->private_use, sizeof(locale->private_use), subtags, 0,
                 subtag_count, MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
-        MJB_LOCALE_PARSE_RETURN(true, MJB_ERROR_NONE);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_OK);
     }
 
     size_t index = 0;
     const mjb_locale_subtag *language = &subtags[index];
 
     if(!mjb_locale_subtag_is_alpha(language)) {
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
     // language[-script][-region][-variant...][-extension...][-x-private...]
@@ -355,7 +352,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     if(language->length >= 2 && language->length <= 3) {
         if(!mjb_locale_copy_subtag(locale->language, sizeof(locale->language), language,
                MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         ++index;
@@ -366,18 +363,18 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
             ++extlang_count, ++index) {
             if(!mjb_locale_append_subtag(locale->extlang, sizeof(locale->extlang), &subtags[index],
                    MJB_LOCALE_CASE_LOWER)) {
-                MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+                MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
             }
         }
     } else if(language->length >= 4 && language->length <= 8) {
         if(!mjb_locale_copy_subtag(locale->language, sizeof(locale->language), language,
                MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         ++index;
     } else {
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
     // language[-script][-region][-variant...][-extension...][-x-private...]
@@ -386,7 +383,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         mjb_locale_subtag_is_alpha(&subtags[index])) {
         if(!mjb_locale_copy_subtag(locale->script, sizeof(locale->script), &subtags[index],
                MJB_LOCALE_CASE_TITLE)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         ++index;
@@ -400,7 +397,7 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         // See https://datatracker.ietf.org/doc/html/rfc5646 "region" section.
         if(!mjb_locale_copy_subtag(locale->region, sizeof(locale->region), &subtags[index],
                MJB_LOCALE_CASE_UPPER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         ++index;
@@ -413,13 +410,13 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
     while(index < subtag_count && mjb_locale_subtag_is_variant(&subtags[index])) {
         for(size_t i = variant_start; i < index; ++i) {
             if(mjb_locale_subtag_equal(&subtags[i], &subtags[index])) {
-                MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+                MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
             }
         }
 
         if(!mjb_locale_append_subtag(locale->variant, sizeof(locale->variant), &subtags[index],
                MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         ++index;
@@ -433,26 +430,26 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         unsigned int singleton = mjb_locale_singleton_index(&subtags[index]);
 
         if(seen_singletons[singleton]) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         seen_singletons[singleton] = true;
 
         if(!mjb_locale_append_subtag(locale->extensions, sizeof(locale->extensions),
                &subtags[index], MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         ++index;
 
         if(index >= subtag_count || subtags[index].length < 2) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         while(index < subtag_count && subtags[index].length >= 2) {
             if(!mjb_locale_append_subtag(locale->extensions, sizeof(locale->extensions),
                    &subtags[index], MJB_LOCALE_CASE_LOWER)) {
-                MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+                MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
             }
 
             ++index;
@@ -465,17 +462,17 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
         if(index + 1 >= subtag_count ||
             !mjb_locale_copy_subtags(locale->private_use, sizeof(locale->private_use), subtags,
                 index, subtag_count, MJB_LOCALE_CASE_LOWER)) {
-            MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+            MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
         }
 
         index = subtag_count;
     }
 
     if(index != subtag_count) {
-        MJB_LOCALE_PARSE_RETURN(false, MJB_ERROR_INVALID_ARGUMENT);
+        MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
-    MJB_LOCALE_PARSE_RETURN(true, MJB_ERROR_NONE);
+    MJB_LOCALE_PARSE_RETURN(MJB_STATUS_OK);
 
 #undef MJB_LOCALE_PARSE_RETURN
 }
@@ -483,26 +480,14 @@ static bool mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size, mjb_
 // Parses a BCP 47 language tag and returns the corresponding locale ID.
 // language[-script][-region][-variant...][-extension...][-x-private...]
 MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
-    mjb_locale_id *locale, mjb_error *error) {
-    if(error != NULL) {
-        *error = MJB_ERROR_NONE;
-    }
-
+    mjb_locale_id *locale) {
     if((id == NULL && size > 0) || locale == NULL) {
-        if(error != NULL) {
-            *error = MJB_ERROR_INVALID_ARGUMENT;
-        }
-
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(id, &size, encoding);
 
     if(status != MJB_STATUS_OK) {
-        if(error != NULL) {
-            *error = MJB_ERROR_INVALID_ARGUMENT;
-        }
-
         return status;
     }
 
@@ -513,10 +498,6 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     // Parse byte-oriented ASCII after validating or converting the input encoding.
     if(encoding == MJB_ENC_ASCII) {
         if(!mjb_is_ascii(id, size)) {
-            if(error != NULL) {
-                *error = MJB_ERROR_INVALID_ARGUMENT;
-            }
-
             return MJB_STATUS_INVALID_ARGUMENT;
         }
     } else if(encoding == MJB_ENC_UTF_8 && mjb_is_ascii(id, size)) {
@@ -528,24 +509,18 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
             ascii_id = converted.output;
             ascii_size = converted.output_size;
         } else {
-            if(error != NULL) {
-                *error = MJB_ERROR_INVALID_ARGUMENT;
-            }
-
             return status == MJB_STATUS_NO_MEMORY ? status : MJB_STATUS_INVALID_ARGUMENT;
         }
     }
 
-    if(!mjb_locale_parse_ascii(ascii_id, ascii_size, locale, error)) {
-        if(error != NULL) {
-            *error = MJB_ERROR_INVALID_ARGUMENT;
-        }
+    status = mjb_locale_parse_ascii(ascii_id, ascii_size, locale);
 
+    if(status != MJB_STATUS_OK) {
         if(converted.transformed) {
             mjb_free(converted.output);
         }
 
-        return MJB_STATUS_INVALID_ARGUMENT;
+        return status;
     }
 
     if(converted.transformed) {

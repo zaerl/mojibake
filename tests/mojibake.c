@@ -99,6 +99,10 @@ int test_mojibake(void *arg) {
 
     test_set_failing_allocator(0);
 
+    mjb_locale_id locale;
+    ATT_ASSERT_STATUS(mjb_locale_parse("en", 2, MJB_ENC_UTF_8, &locale),
+        MJB_STATUS_NO_MEMORY, "Locale parsing handles allocation failure")
+
     char case_into_output[1];
     size_t case_into_size = sizeof(case_into_output);
 
