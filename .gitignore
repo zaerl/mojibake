@@ -9,6 +9,14 @@ deploy*
 build
 build-*
 
+# Swift / Xcode artifacts
+src/ui/**/.build/
+src/ui/**/DerivedData/
+src/ui/**/xcuserdata/
+src/ui/**/*.xcuserstate
+src/ui/**/mojibake.c
+src/ui/**/mojibake.h
+
 src/gui/*
 
 # libFuzzer-generated corpus entries (40-hex-char names); hand-authored seeds are kept
