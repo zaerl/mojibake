@@ -168,7 +168,7 @@ export type MojibakeWasmModule = {
   // Return the display width of a string.
   _mjb_display_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, width: Pointer) => number;
   // Parse a BCP 47 language tag.
-  _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer, error: Pointer) => number;
+  _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer) => number;
   // Set the current process-global locale.
   _mjb_set_locale: (locale: number) => number;
   // Return the current process-global locale.

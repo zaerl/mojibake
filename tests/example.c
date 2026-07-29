@@ -1385,10 +1385,8 @@ int test_example(void *arg) {
     // Example for mjb_locale_parse
     MJB_TEST_COVERAGE(mjb_locale_parse); // Added by the script
     mjb_locale_id locale;
-    mjb_error error;
 
-    if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
-        &error) != MJB_STATUS_OK) {
+    if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_locale_parse test failed") // Added by the script
         return 1;
     }

@@ -45,16 +45,8 @@ class LibraryError : public std::runtime_error {
 };
 
 class LocaleError : public LibraryError {
-    mjb_error parse_error;
-
   public:
-    LocaleError(mjb_status status, mjb_error error, std::string_view message)
-        : LibraryError(status, message), parse_error(error) {
-    }
-
-    [[nodiscard]] mjb_error error() const noexcept {
-        return parse_error;
-    }
+    using LibraryError::LibraryError;
 };
 
 namespace detail {
@@ -1132,12 +1124,10 @@ struct LocaleId {
 [[nodiscard]] inline LocaleId parse_locale(std::string_view id,
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     LocaleId locale;
-    mjb_error error = MJB_ERROR_NONE;
-    const mjb_status status = mjb_locale_parse(id.data(), id.size(), encoding, &locale.data,
-        &error);
+    const mjb_status status = mjb_locale_parse(id.data(), id.size(), encoding, &locale.data);
 
     if(status != MJB_STATUS_OK) {
-        throw LocaleError(status, error, "Locale parsing failed");
+        throw LocaleError(status, "Locale parsing failed");
     }
 
     return locale;

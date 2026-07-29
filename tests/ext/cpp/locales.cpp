@@ -18,11 +18,10 @@ int test_cpp_locales(void *arg) {
     try {
         (void)mjb::parse_locale("not_a_locale");
     } catch(const mjb::LocaleError &error) {
-        locale_error = error.status() == MJB_STATUS_INVALID_ARGUMENT &&
-            error.error() == MJB_ERROR_INVALID_ARGUMENT;
+        locale_error = error.status() == MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    ATT_ASSERT(locale_error, true, "LocaleError preserves locale error")
+    ATT_ASSERT(locale_error, true, "LocaleError preserves status")
     mjb::set_locale(MJB_LOCALE_IT);
     ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_IT,
         "get_locale returns selected locale")

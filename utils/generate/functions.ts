@@ -3111,30 +3111,21 @@ printf("Display columns: %zu", width);`,
         type: 'mjb_locale_id *',
         description: 'The locale structure to store the result',
         wasm_generated: true
-      },
-      {
-        name: 'error',
-        type: 'mjb_error *',
-        description: 'The error to store when parsing fails',
-        wasm_generated: true
       }
     ],
     wasm: true,
     section: Section.Utility,
     details: 'Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: ' +
       'language, extended language, script, region, variant, extensions, private use, and ' +
-      'grandfathered tags. Parsing is strict: malformed tags are rejected and `error` is ' +
-      'filled with the failure reason.',
+      'grandfathered tags. Parsing is strict: malformed tags are rejected.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The tag was parsed and `locale` filled' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument is NULL or the tag is not a valid BCP 47 language tag' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     example: `mjb_locale_id locale;
-mjb_error error;
 
-if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale,
-    &error) != MJB_STATUS_OK) {
+if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
     return 1;
 }
 
