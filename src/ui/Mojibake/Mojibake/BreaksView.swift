@@ -107,13 +107,10 @@ struct BreaksView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Breaks")
-                        .font(.largeTitle)
-
-                    Text("Inspect Unicode grapheme, word, line, and sentence boundaries.")
-                        .foregroundStyle(.secondary)
-                }
+                ToolHeader(
+                    "Breaks",
+                    description: "Inspect Unicode grapheme, word, line, and sentence boundaries."
+                )
 
                 GroupBox {
                     TextEditor(text: $input)
@@ -591,7 +588,7 @@ private struct ScalarToken: View {
     }
 
     private var codepoint: String {
-        String(format: "U+%04X", scalar.value)
+        MojibakeFormatting.codepoint(scalar.value)
     }
 
     private var displayValue: String {

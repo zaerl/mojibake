@@ -68,7 +68,7 @@ private struct CharacterDetailsBuilder {
         return CharacterDetails(
             character: displayedCharacter,
             codepoint: codepointString(codepoint),
-            name: stringFromCString(character.name),
+            name: MojibakeFormatting.string(fromCString: character.name),
             sections: [
                 DetailSection("Overview", rows: overviewRows(for: character)),
                 DetailSection("Encodings", rows: encodingRows(for: codepoint)),
@@ -98,8 +98,11 @@ private struct CharacterDetailsBuilder {
         let planeName = mjb_plane_name(plane, false).map(String.init(cString:)) ?? "Unknown"
         let script = mjb_codepoint_script(codepoint)
         var rows = [
-            DetailRow("Category", idAndName(category, categoryName(category))),
-            DetailRow("Plane", idAndName(planeID, planeName)),
+            DetailRow(
+                "Category",
+                MojibakeFormatting.idAndName(category, categoryName(category))
+            ),
+            DetailRow("Plane", MojibakeFormatting.idAndName(planeID, planeName)),
             DetailRow("Script", String(script.rawValue)),
         ]
 
@@ -109,7 +112,10 @@ private struct CharacterDetailsBuilder {
             rows.append(
                 DetailRow(
                     "Block",
-                    idAndName(blockID, stringFromCString(block.name))
+                    MojibakeFormatting.idAndName(
+                        blockID,
+                        MojibakeFormatting.string(fromCString: block.name)
+                    )
                 )
             )
         }
@@ -170,16 +176,25 @@ private struct CharacterDetailsBuilder {
         let decomposition = Int(character.decomposition.rawValue)
         var eastAsianWidth = MJB_EAW_NOT_SET
         var rows = [
-            DetailRow("Combining", idAndName(combining, combiningName(combining))),
+            DetailRow(
+                "Combining",
+                MojibakeFormatting.idAndName(combining, combiningName(combining))
+            ),
             DetailRow(
                 "Bidirectional",
-                idAndName(bidirectional, bidirectionalName(bidirectional))
+                MojibakeFormatting.idAndName(
+                    bidirectional,
+                    bidirectionalName(bidirectional)
+                )
             ),
             DetailRow(
                 "Decomposition",
-                idAndName(decomposition, decompositionName(decomposition))
+                MojibakeFormatting.idAndName(
+                    decomposition,
+                    decompositionName(decomposition)
+                )
             ),
-            DetailRow("Mirrored", yesOrNo(character.mirrored)),
+            DetailRow("Mirrored", MojibakeFormatting.yesOrNo(character.mirrored)),
         ]
 
         if mjb_codepoint_east_asian_width(codepoint, &eastAsianWidth) == MJB_STATUS_OK {
@@ -187,7 +202,7 @@ private struct CharacterDetailsBuilder {
             rows.append(
                 DetailRow(
                     "East Asian Width",
-                    idAndName(width, eastAsianWidthName(width))
+                    MojibakeFormatting.idAndName(width, eastAsianWidthName(width))
                 )
             )
         } else {
@@ -198,7 +213,7 @@ private struct CharacterDetailsBuilder {
     }
 
     private func numericAndCaseRows(for character: mjb_character) -> [DetailRow] {
-        let numeric = stringFromCString(character.numeric)
+        let numeric = MojibakeFormatting.string(fromCString: character.numeric)
 
         return [
             DetailRow("Decimal", numberOrNotAvailable(character.decimal)),
@@ -237,7 +252,7 @@ private struct CharacterDetailsBuilder {
         }
 
         return labelsAndValues.map { label, keyPath in
-            DetailRow(label, yesOrNo(emoji[keyPath: keyPath]))
+            DetailRow(label, MojibakeFormatting.yesOrNo(emoji[keyPath: keyPath]))
         }
     }
 
@@ -262,7 +277,7 @@ private struct CharacterDetailsBuilder {
                 let status = mjb_codepoint_property_binary(codepoint, property, &value)
 
                 if status == MJB_STATUS_OK && value {
-                    rows.append(DetailRow(label, yesOrNo(value)))
+                    rows.append(DetailRow(label, MojibakeFormatting.yesOrNo(value)))
                 }
             } else {
                 var value: Int32 = 0
@@ -380,48 +395,20 @@ private struct CharacterDetailsBuilder {
     }
 
     private func normalized(_ value: String, form: mjb_normalization) -> String? {
-        let input = value.utf8CString
-
-        return input.withUnsafeBufferPointer { inputBuffer in
-            var result = mjb_result()
-            let status = mjb_normalize(
-                inputBuffer.baseAddress,
-                inputBuffer.count - 1,
+        MojibakeString.transform(value) { input, byteLength, result in
+            mjb_normalize(
+                input,
+                byteLength,
                 MJB_ENC_UTF_8,
                 form,
                 MJB_ENC_UTF_8,
-                &result
+                result
             )
-
-            guard status == MJB_STATUS_OK else {
-                return nil
-            }
-
-            defer {
-                _ = mjb_result_free(&result)
-            }
-
-            guard let output = result.output else {
-                return result.output_size == 0 ? "" : nil
-            }
-
-            let bytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
-            return String(decoding: bytes.map { UInt8(bitPattern: $0) }, as: UTF8.self)
-        }
-    }
-
-    private func stringFromCString<T>(_ value: T) -> String {
-        var value = value
-
-        return withUnsafePointer(to: &value) {
-            $0.withMemoryRebound(to: CChar.self, capacity: MemoryLayout<T>.size) {
-                String(cString: $0)
-            }
         }
     }
 
     private func codepointString(_ codepoint: mjb_codepoint) -> String {
-        String(format: "U+%04X", codepoint)
+        MojibakeFormatting.codepoint(codepoint)
     }
 
     private func mappedCodepoint(_ codepoint: mjb_codepoint) -> String {
@@ -430,14 +417,6 @@ private struct CharacterDetailsBuilder {
 
     private func numberOrNotAvailable(_ value: Int32) -> String {
         value == MJB_NUMBER_NOT_VALID ? "N/A" : String(value)
-    }
-
-    private func yesOrNo(_ value: Bool) -> String {
-        value ? String(localized: "Yes") : String(localized: "No")
-    }
-
-    private func idAndName(_ id: Int, _ name: String) -> String {
-        "[\(id)] \(name)"
     }
 
     private func categoryName(_ category: Int) -> String {

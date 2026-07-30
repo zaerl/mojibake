@@ -51,13 +51,10 @@ struct NormalizationView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Normalize")
-                    .font(.largeTitle)
-
-                Text("Convert text to a Unicode normalization form.")
-                    .foregroundStyle(.secondary)
-            }
+            ToolHeader(
+                "Normalize",
+                description: "Convert text to a Unicode normalization form."
+            )
 
             VStack(alignment: .leading, spacing: 6) {
                 Picker("Normalization Form", selection: $selectedForm) {
@@ -132,33 +129,15 @@ struct NormalizationView: View {
     }
 
     private func normalized(_ value: String, form: mjb_normalization) -> String? {
-        let input = value.utf8CString
-
-        return input.withUnsafeBufferPointer { inputBuffer in
-            var result = mjb_result()
-            let status = mjb_normalize(
-                inputBuffer.baseAddress,
-                inputBuffer.count - 1,
+        MojibakeString.transform(value) { input, byteLength, result in
+            mjb_normalize(
+                input,
+                byteLength,
                 MJB_ENC_UTF_8,
                 form,
                 MJB_ENC_UTF_8,
-                &result
+                result
             )
-
-            guard status == MJB_STATUS_OK else {
-                return nil
-            }
-
-            defer {
-                _ = mjb_result_free(&result)
-            }
-
-            guard let output = result.output else {
-                return result.output_size == 0 ? "" : nil
-            }
-
-            let bytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
-            return String(decoding: bytes.map { UInt8(bitPattern: $0) }, as: UTF8.self)
         }
     }
 }

@@ -270,7 +270,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Mojibake/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Mojibake;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2021-present, Francesco Bigiarini";
@@ -306,7 +305,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Mojibake/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Mojibake;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2021-present, Francesco Bigiarini";

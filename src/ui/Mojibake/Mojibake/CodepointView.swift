@@ -93,10 +93,11 @@ struct CodepointView: View {
 
         guard status == MJB_STATUS_OK else {
             if status == MJB_STATUS_NOT_FOUND {
-                lookupState = .notFound(String(format: "U+%04X", value))
+                lookupState = .notFound(MojibakeFormatting.codepoint(value))
             } else {
                 lookupState = .invalid(
-                    String(format: "U+%04X is not a valid Unicode codepoint.", value)
+                    "\(MojibakeFormatting.codepoint(value)) "
+                        + "is not a valid Unicode codepoint."
                 )
             }
             return

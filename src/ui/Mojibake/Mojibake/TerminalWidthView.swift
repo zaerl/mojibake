@@ -43,13 +43,10 @@ struct TerminalWidthView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Terminal Width")
-                        .font(.largeTitle)
-
-                    Text("Estimate terminal cells for printable, single-line text.")
-                        .foregroundStyle(.secondary)
-                }
+                ToolHeader(
+                    "Terminal Width",
+                    description: "Estimate terminal cells for printable, single-line text."
+                )
 
                 GroupBox {
                     TextField("Text to measure", text: $input)
@@ -356,9 +353,13 @@ private struct TerminalWidthAnalysis {
         )
 
         guard status == MJB_STATUS_OK else {
-            let message =
-                mjb_status_message(status).map(String.init(cString:)) ?? "Unknown error"
-            return (nil, "mjb_terminal_width: \(message)")
+            return (
+                nil,
+                MojibakeFormatting.statusMessage(
+                    operation: "mjb_terminal_width",
+                    status: status
+                )
+            )
         }
 
         return (width, nil)
@@ -386,7 +387,7 @@ private struct TerminalWidthCluster: Identifiable {
 
     var codepoints: String {
         value.unicodeScalars
-            .map { String(format: "U+%04X", $0.value) }
+            .map { MojibakeFormatting.codepoint($0.value) }
             .joined(separator: " ")
     }
 
@@ -671,7 +672,7 @@ private enum TerminalWidthFormatting {
         case 0xE0100 ... 0xE01EF:
             "VS\(codepoint - 0xE0100 + 17)"
         default:
-            String(format: "U+%04X", codepoint)
+            MojibakeFormatting.codepoint(codepoint)
         }
     }
 }
