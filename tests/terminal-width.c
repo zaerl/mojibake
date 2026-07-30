@@ -155,8 +155,8 @@ int test_terminal_width(void *arg) {
         MJB_TERMINAL_WIDTH_NARROW, &sw), MJB_STATUS_OK, "NFD Hangul syllable")
     ATT_ASSERT(sw, 2, "Canonically equivalent Hangul has equal terminal width")
 
-    const char malformed[] = { (char)0xC3, (char)0x28 };
-    ATT_ASSERT_STATUS(mjb_terminal_width(malformed, sizeof(malformed), MJB_ENC_UTF_8,
+    const unsigned char malformed[] = { 0xC3, 0x28 };
+    ATT_ASSERT_STATUS(mjb_terminal_width((const char *)malformed, sizeof(malformed), MJB_ENC_UTF_8,
         MJB_TERMINAL_WIDTH_NARROW, &sw), MJB_STATUS_MALFORMED_INPUT, "Malformed UTF-8")
 
     return 0;
