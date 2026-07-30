@@ -10,22 +10,9 @@
 		31B697D8301A8E6400D4A9DC /* Mojibake.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mojibake.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		31ACA635301BE89B008095AC /* Exceptions for "Mojibake" folder in "Mojibake" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 31B697D7301A8E6400D4A9DC /* Mojibake */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		31B697DA301A8E6400D4A9DC /* Mojibake */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				31ACA635301BE89B008095AC /* Exceptions for "Mojibake" folder in "Mojibake" target */,
-			);
 			path = Mojibake;
 			sourceTree = "<group>";
 		};

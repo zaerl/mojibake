@@ -10,6 +10,7 @@ struct ContentView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case codepoint
         case emoji
+        case security
         case `case`
         case breaks
         case bidi
@@ -31,6 +32,8 @@ struct ContentView: View {
                 "character.cursor.ibeam"
             case .emoji:
                 "face.smiling"
+            case .security:
+                "lock.shield"
             case .case:
                 "textformat.abc"
             case .breaks:
@@ -62,6 +65,8 @@ struct ContentView: View {
                 CodepointView()
             case .emoji:
                 EmojiView()
+            case .security:
+                SecurityView()
             case .case:
                 CaseView()
             case .breaks:
