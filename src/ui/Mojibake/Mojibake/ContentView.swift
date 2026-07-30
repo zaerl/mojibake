@@ -10,6 +10,7 @@ struct ContentView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case codepoint
         case normalize
+        case filter
 
         var id: Self {
             self
@@ -25,6 +26,8 @@ struct ContentView: View {
                 "character.cursor.ibeam"
             case .normalize:
                 "textformat"
+            case .filter:
+                "line.3.horizontal.decrease"
             }
         }
     }
@@ -44,6 +47,8 @@ struct ContentView: View {
                 CodepointView()
             case .normalize:
                 NormalizationView()
+            case .filter:
+                FilterView()
             case nil:
                 ContentUnavailableView("Select a tool", systemImage: "sidebar.left")
             }
