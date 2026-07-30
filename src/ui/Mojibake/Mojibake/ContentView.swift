@@ -43,11 +43,7 @@ struct ContentView: View {
             case .codepoint:
                 CodepointView()
             case .normalize:
-                ContentUnavailableView(
-                    "Normalize",
-                    systemImage: "textformat",
-                    description: Text("This tool will be added later.")
-                )
+                NormalizationView()
             case nil:
                 ContentUnavailableView("Select a tool", systemImage: "sidebar.left")
             }
