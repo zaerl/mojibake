@@ -27,6 +27,49 @@ struct ToolHeader: View {
     }
 }
 
+struct ToolTextEditor: View {
+    let title: LocalizedStringKey
+    @Binding var text: String
+    let minimumHeight: CGFloat
+
+    init(
+        _ title: LocalizedStringKey,
+        text: Binding<String>,
+        minimumHeight: CGFloat = 100
+    ) {
+        self.title = title
+        _text = text
+        self.minimumHeight = minimumHeight
+    }
+
+    var body: some View {
+        GroupBox {
+            TextEditor(text: $text)
+                .font(.body)
+                .frame(minHeight: minimumHeight)
+                .accessibilityLabel(title)
+        } label: {
+            HStack {
+                Text(title)
+                    .font(.headline)
+
+                Spacer()
+
+                Text(summary)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(minWidth: 260, maxWidth: .infinity)
+    }
+
+    private var summary: String {
+        let scalarCount = text.unicodeScalars.count
+        let scalarLabel = scalarCount == 1 ? "scalar" : "scalars"
+        return "\(text.utf8.count) bytes · \(scalarCount) \(scalarLabel)"
+    }
+}
+
 enum MojibakeFormatting {
     static func yesOrNo(_ value: Bool) -> String {
         value ? String(localized: "Yes") : String(localized: "No")

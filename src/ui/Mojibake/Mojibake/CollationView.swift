@@ -94,8 +94,8 @@ struct CollationView: View {
 
     @ViewBuilder
     private var inputEditors: some View {
-        CollationInputEditor(title: "First Text", text: $firstInput)
-        CollationInputEditor(title: "Second Text", text: $secondInput)
+        ToolTextEditor("First Text", text: $firstInput)
+        ToolTextEditor("Second Text", text: $secondInput)
     }
 
     @ViewBuilder
@@ -167,36 +167,6 @@ private struct CollationOptionsView: View {
             Text("Options")
                 .font(.headline)
         }
-    }
-}
-
-private struct CollationInputEditor: View {
-    let title: LocalizedStringKey
-    @Binding var text: String
-
-    var body: some View {
-        GroupBox {
-            TextEditor(text: $text)
-                .font(.body)
-                .frame(minHeight: 100)
-                .accessibilityLabel(title)
-        } label: {
-            HStack {
-                Text(title)
-                    .font(.headline)
-
-                Spacer()
-
-                Text(byteSummary)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(minWidth: 260, maxWidth: .infinity)
-    }
-
-    private var byteSummary: String {
-        "\(text.utf8.count) bytes"
     }
 }
 

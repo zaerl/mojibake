@@ -13,6 +13,7 @@ struct ContentView: View {
         case security
         case idna = "IDNA"
         case collation
+        case caseless = "Caseless Match"
         case `case`
         case breaks
         case bidi
@@ -40,6 +41,8 @@ struct ContentView: View {
                 "globe"
             case .collation:
                 "arrow.up.arrow.down"
+            case .caseless:
+                "equal.circle"
             case .case:
                 "textformat.abc"
             case .breaks:
@@ -77,6 +80,8 @@ struct ContentView: View {
                 IDNAView()
             case .collation:
                 CollationView()
+            case .caseless:
+                CaselessMatchingView()
             case .case:
                 CaseView()
             case .breaks:

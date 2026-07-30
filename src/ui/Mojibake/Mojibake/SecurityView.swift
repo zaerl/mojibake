@@ -89,47 +89,8 @@ struct SecurityView: View {
 
     @ViewBuilder
     private var inputEditors: some View {
-        SecurityInputEditor(
-            title: "First Text",
-            text: $firstInput
-        )
-
-        SecurityInputEditor(
-            title: "Comparison Text",
-            text: $secondInput
-        )
-    }
-}
-
-private struct SecurityInputEditor: View {
-    let title: LocalizedStringKey
-    @Binding var text: String
-
-    var body: some View {
-        GroupBox {
-            TextEditor(text: $text)
-                .font(.body)
-                .frame(minHeight: 100)
-                .accessibilityLabel(title)
-        } label: {
-            HStack {
-                Text(title)
-                    .font(.headline)
-
-                Spacer()
-
-                Text(summary)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(minWidth: 260, maxWidth: .infinity)
-    }
-
-    private var summary: String {
-        let scalarCount = text.unicodeScalars.count
-        let scalarLabel = scalarCount == 1 ? "scalar" : "scalars"
-        return "\(text.utf8.count) bytes · \(scalarCount) \(scalarLabel)"
+        ToolTextEditor("First Text", text: $firstInput)
+        ToolTextEditor("Comparison Text", text: $secondInput)
     }
 }
 
