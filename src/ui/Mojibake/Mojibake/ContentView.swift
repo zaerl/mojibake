@@ -10,6 +10,7 @@ struct ContentView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case codepoint
         case emoji
+        case `case`
         case normalize
         case filter
 
@@ -27,6 +28,8 @@ struct ContentView: View {
                 "character.cursor.ibeam"
             case .emoji:
                 "face.smiling"
+            case .case:
+                "textformat.abc"
             case .normalize:
                 "textformat"
             case .filter:
@@ -50,6 +53,8 @@ struct ContentView: View {
                 CodepointView()
             case .emoji:
                 EmojiView()
+            case .case:
+                CaseView()
             case .normalize:
                 NormalizationView()
             case .filter:
