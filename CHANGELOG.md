@@ -5,20 +5,28 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.5] - 2026-07-30
 Codename: [DIGIT FIVE]
 
 ### Added
+- Added macOS UI initial support
+- Added mjb_status_message message
+- Added Zig example
+- Added C++ example
+- Added Python 3 example
+- Added Rust example
 
 ### Changed
+- Removed obsolete `mjb_error` from `mjb_locale_parse` function
+- More strict compiler flags
 - Renamed `mjb_display_width` to `mjb_terminal_width` and replaced
   `mjb_width_context` with explicit narrow and East Asian terminal-width profiles
-- Terminal width is now NFC-stable and grapheme-aware, counts listed emoji-presentation sequences
-  as two cells, and rejects controls and multiline separators whose widths depend on terminal state
 - Renamed the WASM `displayWidth` method and shell `display_width` field to `terminalWidth` and
   `terminal_width`
 
 ### Fixed
+- Removed hardcoded team code
+- Added missing function in the buzz file
 - Minor documentation fixes
 
 ## [0.3.4] - 2026-07-28
@@ -639,7 +647,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.5...HEAD
+[0.3.5]: https://github.com/zaerl/mojibake/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/zaerl/mojibake/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/zaerl/mojibake/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/zaerl/mojibake/compare/v0.3.1...v0.3.2

@@ -1,6 +1,6 @@
 {
   "name": "mojibake",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Mojibake TypeScript API",
   "homepage": "https://mojibake.zaerl.com",
   "license": "MIT",
@@ -32,6 +32,6 @@
   },
   "sideEffects": false,
   "devDependencies": {
-    "@types/node": "^26.1.1"
+    "@types/node": "^26.1.2"
   }
 }

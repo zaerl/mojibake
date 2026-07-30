@@ -1,6 +1,6 @@
 {
   "name": "mojibake-utils",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "author": "Francesco Bigiarini",
   "main": "index.ts",
   "description": "Mojibake Unicode data generator",
@@ -13,7 +13,7 @@
     "coverage": "tsx commands/coverage.ts"
   },
   "dependencies": {
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "fast-xml-parser": "^5.10.1",
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.3.0",
