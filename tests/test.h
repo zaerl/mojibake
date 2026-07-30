@@ -31,7 +31,7 @@ int test_caseless(void *arg);
 int test_cjk(void *arg);
 int test_codepoint(void *arg);
 int test_collation(void *arg);
-int test_display(void *arg);
+int test_terminal_width(void *arg);
 int test_east_asian_width(void *arg);
 int test_embedded_null(void *arg);
 int test_emoji(void *arg);

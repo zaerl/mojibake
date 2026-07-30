@@ -1051,11 +1051,12 @@ struct EmojiSequence {
     return mjb_is_rgi_emoji(input.data(), input.size(), encoding);
 }
 
-[[nodiscard]] inline size_t display_width(std::string_view input,
-    mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO, mjb_encoding encoding = MJB_ENC_UTF_8) {
+[[nodiscard]] inline size_t terminal_width(std::string_view input,
+    mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
+    mjb_encoding encoding = MJB_ENC_UTF_8) {
     size_t width = 0;
-    detail::check_status(mjb_display_width(input.data(), input.size(), encoding, context, &width),
-        "Display width calculation failed");
+    detail::check_status(mjb_terminal_width(input.data(), input.size(), encoding, profile, &width),
+        "Terminal width calculation failed");
 
     return width;
 }
@@ -1183,9 +1184,9 @@ inline void deallocate(void *pointer) noexcept {
 }
 
 [[nodiscard]] inline std::string_view truncate_grapheme_width(std::string_view input,
-    size_t max_columns, mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO,
+    size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_grapheme_width(input.data(), input.size(), encoding, context,
+    const size_t n = mjb_truncate_grapheme_width(input.data(), input.size(), encoding, profile,
         max_columns);
 
     return input.substr(0, n);
@@ -1199,9 +1200,9 @@ inline void deallocate(void *pointer) noexcept {
 }
 
 [[nodiscard]] inline std::string_view truncate_word_width(std::string_view input,
-    size_t max_columns, mjb_width_context context = MJB_WIDTH_CONTEXT_AUTO,
+    size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_word_width(input.data(), input.size(), encoding, context,
+    const size_t n = mjb_truncate_word_width(input.data(), input.size(), encoding, profile,
         max_columns);
 
     return input.substr(0, n);

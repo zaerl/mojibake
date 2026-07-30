@@ -13,7 +13,6 @@ set(SOURCES
     codepoint.c
     collation.c
     cjk.c
-    display.c
     encoding.c
     east-asian-width.c
     emoji.c
@@ -33,6 +32,7 @@ set(SOURCES
     security.c
     segmentation.c
     string.c
+    terminal-width.c
     unicode-tables.c
     version.c
 )
@@ -196,7 +196,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_is_rgi_emoji\""
         "\"_mjb_hangul_syllable_name\""
         "\"_mjb_codepoint_east_asian_width\""
-        "\"_mjb_display_width\""
+        "\"_mjb_terminal_width\""
         "\"_mjb_locale_parse\""
         "\"_mjb_set_locale\""
         "\"_mjb_get_locale\""

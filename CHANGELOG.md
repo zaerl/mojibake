@@ -11,6 +11,12 @@ Codename: [DIGIT FIVE]
 ### Added
 
 ### Changed
+- Renamed `mjb_display_width` to `mjb_terminal_width` and replaced
+  `mjb_width_context` with explicit narrow and East Asian terminal-width profiles
+- Terminal width is now NFC-stable and grapheme-aware, counts listed emoji-presentation sequences
+  as two cells, and rejects controls and multiline separators whose widths depend on terminal state
+- Renamed the WASM `displayWidth` method and shell `display_width` field to `terminalWidth` and
+  `terminal_width`
 
 ### Fixed
 - Minor documentation fixes

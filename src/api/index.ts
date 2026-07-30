@@ -241,11 +241,10 @@ export enum NextCharacterType {
   LAST,
 };
 
-// mjb_width_context
-export enum WidthContext {
-  WESTERN,
-  EAST_ASIAN,
-  AUTO
+// mjb_terminal_width_profile
+export enum TerminalWidthProfile {
+  NARROW,
+  EAST_ASIAN
 };
 
 // mjb_next_state
@@ -1120,14 +1119,14 @@ export class Mojibake {
   }
 
   // size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_width_context context, size_t max_columns)
-  truncateWordWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
+  // mjb_terminal_width_profile profile, size_t max_columns)
+  truncateWordWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_truncate_word_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, context, maxColumns);
+        wasmInput.encoding, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
     }
@@ -1159,14 +1158,14 @@ export class Mojibake {
   }
 
   // size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_width_context context, size_t max_columns)
-  truncateGraphemeWidth(input: MojibakeInput, context: WidthContext, maxColumns: number,
+  // mjb_terminal_width_profile profile, size_t max_columns)
+  truncateGraphemeWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
 
     try {
       return this.module._mjb_truncate_grapheme_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, context, maxColumns);
+        wasmInput.encoding, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
     }
@@ -1469,16 +1468,16 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_width_context context, size_t *width);
-  displayWidth(input: MojibakeInput, context = WidthContext.AUTO,
+  // mjb_status mjb_terminal_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_terminal_width_profile profile, size_t *width);
+  terminalWidth(input: MojibakeInput, profile = TerminalWidthProfile.NARROW,
     options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const widthPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_display_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, context, widthPtr);
+      const status = this.module._mjb_terminal_width(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, profile, widthPtr);
 
       if(status === Status.OK) {
         return this.module.HEAP32[widthPtr / 4];

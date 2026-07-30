@@ -184,7 +184,7 @@ Core modules in `src/`:
 - `codepoint.c`, `properties.c`, `plane.c`, `cjk.c` - character and property queries
 - `encoding.c`, `utf.h`, `utf8.h`, `utf16.h`, `utf32.h` - validation, iteration, and conversion
 - `normalization.c`, `quick-check.c`, `hangul.c`, `buffer.c/.h` - normalization and Hangul support
-- `emoji.c`, `display.c`, `east-asian-width.c` - emoji classification and display width
+- `emoji.c`, `terminal-width.c`, `east-asian-width.c` - emoji classification and terminal width
 - `identifier.c`, `security.c` - UAX #31 identifiers and UTS #39 confusables
 - `filter.c`, `format.c`, `next.c` - filtering, UTF-8-safe formatting, and character iteration
 - `locales.c` - strict BCP 47 parsing and the process-global casing locale

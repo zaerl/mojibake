@@ -54,7 +54,8 @@ static void test_basic_segmentation(void) {
     ATT_ASSERT((uint8_t)mjb_next_grapheme_break("", 0, MJB_ENC_UTF_8, &state),
         (uint8_t)MJB_BT_NOT_SET, "Empty string")
     ATT_ASSERT(mjb_truncate_grapheme(NULL, 1, MJB_ENC_UTF_8, 1), (size_t)0, "Truncate rejects NULL buffer")
-    ATT_ASSERT(mjb_truncate_grapheme_width(NULL, 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 1), (size_t)0,
+    ATT_ASSERT(mjb_truncate_grapheme_width(NULL, 1, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
         "Truncate width rejects NULL buffer")
 
     MJB_TEST_S
@@ -149,22 +150,34 @@ static void test_truncate(void) {
         "Truncate: flag emoji to 1 grapheme (no-op)")
 
     // mjb_truncate_grapheme_width
-    ATT_ASSERT(mjb_truncate_grapheme_width("", 0, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 5), (size_t)0,
+    ATT_ASSERT(mjb_truncate_grapheme_width("", 0, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 5), (size_t)0,
         "Truncate width: empty string")
-    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 0), (size_t)0,
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 0), (size_t)0,
         "Truncate width: 0 columns")
-    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 2), (size_t)2,
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 2), (size_t)2,
         "Truncate width: ABC to 2 columns")
-    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 3), (size_t)3,
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 3), (size_t)3,
         "Truncate width: ABC to 3 columns (no-op)")
-    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10),
+    ATT_ASSERT(mjb_truncate_grapheme_width("ABC", 3, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 10),
         (size_t)3, "Truncate width: ABC to 10 columns (no-op)")
 
     const char malformed_utf8_width[] = { 'a', '\x17', '\xCE', '\x08', 's', 't' };
 
     ATT_ASSERT(mjb_truncate_grapheme_width(malformed_utf8_width, sizeof(malformed_utf8_width), MJB_ENC_UTF_8,
-        MJB_WIDTH_CONTEXT_WESTERN, 114), sizeof(malformed_utf8_width),
-        "Truncate width: malformed UTF-8 regression")
+        MJB_TERMINAL_WIDTH_NARROW, 114), (size_t)1,
+        "Truncate width stops before malformed or stateful terminal input")
+
+    const char *kiss = "\xf0\x9f\x91\xa8\xf0\x9f\x8f\xbb\xe2\x80\x8d\xe2\x9d\xa4\xef\xb8\x8f"
+                       "\xe2\x80\x8d\xf0\x9f\x92\x8b\xe2\x80\x8d\xf0\x9f\x91\xa8\xf0\x9f\x8f\xbb";
+    ATT_ASSERT(mjb_truncate_grapheme_width(kiss, strlen(kiss), MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0, "Emoji does not fit in one terminal cell")
+    ATT_ASSERT(mjb_truncate_grapheme_width(kiss, strlen(kiss), MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, 2), strlen(kiss), "Emoji fits in two terminal cells")
 }
 
 int test_segmentation(void *arg) {

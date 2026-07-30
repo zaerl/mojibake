@@ -445,12 +445,11 @@ typedef enum mjb_character_position {
     MJB_POSITION_LAST
 } mjb_character_position;
 
-// Display width context for ambiguous-width characters
-typedef enum mjb_width_context {
-    MJB_WIDTH_CONTEXT_WESTERN,    // Treat ambiguous characters as narrow (width 1)
-    MJB_WIDTH_CONTEXT_EAST_ASIAN, // Treat ambiguous characters as wide (width 2)
-    MJB_WIDTH_CONTEXT_AUTO        // Auto-detect from string content
-} mjb_width_context;
+// Terminal-cell width profile for East Asian Width Ambiguous characters.
+typedef enum mjb_terminal_width_profile {
+    MJB_TERMINAL_WIDTH_NARROW,    // Treat ambiguous characters as one terminal cell
+    MJB_TERMINAL_WIDTH_EAST_ASIAN // Treat ambiguous characters as two terminal cells
+} mjb_terminal_width_profile;
 
 typedef struct mjb_next_state {
     uint8_t state;
@@ -729,14 +728,14 @@ MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byt
 // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
 MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_graphemes);
 
-// Return the number of bytes whose grapheme clusters fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+// Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
+MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns);
 
 // Return the number of bytes that form the first max_segments word-break segments.
 MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
 
-// Return the number of bytes whose word-break segments fit within max_columns display columns.
-MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t max_columns);
+// Return the number of bytes whose word-break segments fit within max_columns terminal cells.
+MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result);
@@ -837,8 +836,8 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
 // Return the east asian width of a codepoint.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 
-// Return the display width of a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_display_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_width_context context, size_t *width);
+// Return the estimated terminal-cell width of printable, single-line text.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_terminal_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t *width);
 
 // Parse a BCP 47 language tag.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale);

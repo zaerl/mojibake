@@ -346,7 +346,6 @@ int main(int argc, char *const argv[]) {
     RUN_TEST(cjk)
     RUN_TEST(codepoint)
     RUN_TEST(collation)
-    RUN_TEST(display)
     RUN_TEST(east_asian_width)
     RUN_TEST(embedded_null)
     RUN_TEST(emoji)
@@ -369,6 +368,7 @@ int main(int argc, char *const argv[]) {
     RUN_TEST(segmentation)
     RUN_TEST(special_case)
     RUN_TEST(string)
+    RUN_TEST(terminal_width)
     RUN_TEST(utf)
     RUN_TEST(version)
 

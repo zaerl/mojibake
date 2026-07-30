@@ -2297,22 +2297,24 @@ printf("First two graphemes use %zu bytes", bytes);
 
 ## `mjb_truncate_grapheme_width`
 
-Return the number of bytes whose grapheme clusters fit within max_columns display columns.
+Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
 
 ```c
 size_t mjb_truncate_grapheme_width(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_width_context context,
+    mjb_terminal_width_profile profile,
     size_t max_columns
 );
 ```
 
+Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed the budget or cannot be measured as printable, single-line terminal text.
+
 - `buffer` - The string to check
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
-- `context` - The width context
+- `profile` - The terminal-width profile
 - `max_columns` - The maximum number of columns to return
 
 **Example**
@@ -2320,7 +2322,7 @@ size_t mjb_truncate_grapheme_width(
 ```c
 const char *input = "A\xE7\x95\x8C"; // A界
 size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_WIDTH_CONTEXT_WESTERN, 2);
+    MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);
@@ -2356,22 +2358,24 @@ printf("First word segment uses %zu bytes", bytes);
 
 ## `mjb_truncate_word_width`
 
-Return the number of bytes whose word-break segments fit within max_columns display columns.
+Return the number of bytes whose word-break segments fit within max_columns terminal cells.
 
 ```c
 size_t mjb_truncate_word_width(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_width_context context,
+    mjb_terminal_width_profile profile,
     size_t max_columns
 );
 ```
 
+Truncate only at word-break boundaries, using the same terminal-cell policy as `mjb_terminal_width`. The returned prefix stops before a segment that would exceed the budget or cannot be measured as printable, single-line terminal text.
+
 - `buffer` - The string to check
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
-- `context` - The width context
+- `profile` - The terminal-width profile
 - `max_columns` - The maximum number of columns to return
 
 **Example**
@@ -2379,7 +2383,7 @@ size_t mjb_truncate_word_width(
 ```c
 const char *input = "Hello world";
 size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_WIDTH_CONTEXT_WESTERN, 6);
+    MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);
@@ -3420,37 +3424,41 @@ if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
 printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");
 ```
 
-See also: [`mjb_display_width`](#mjb_display_width).
+See also: [`mjb_terminal_width`](#mjb_terminal_width).
 
 Specifications: [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-45.html).
 
-## `mjb_display_width`
+## `mjb_terminal_width`
 
-Return the display width of a string.
+Return the estimated terminal-cell width of printable, single-line text.
 
 ```c
-mjb_status mjb_display_width(
+mjb_status mjb_terminal_width(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_width_context context,
+    mjb_terminal_width_profile profile,
     size_t *width
 );
 ```
 
-Compute the number of display columns a string occupies in a terminal, accounting for wide and ambiguous East Asian characters, combining marks, and emoji sequences.
+Estimate the number of fixed terminal cells occupied by printable, single-line text. The input is normalized to NFC so canonically equivalent text has the same width. Combining and format characters occupy no additional cells, listed emoji-presentation sequences occupy two cells, and text-presentation sequences retain their East Asian Width. This is a deterministic terminal policy, not a measurement of proportional glyph advances. Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived character counts. Controls, line separators, and paragraph separators are rejected because their effect depends on terminal state. On failure, `width` is set to zero.
 
-- `buffer` - The string to normalize
+- `buffer` - The printable, single-line string to measure
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
-- `context` - The width context for ambiguous-width characters
-- `width` - The width to store the result
+- `profile` - The terminal-width profile for ambiguous-width characters
+- `width` - The number of terminal cells to store; set to zero on failure
 
 **Returns**
 
 - `MJB_STATUS_OK` - The width was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile is invalid, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is invalid or lacks required byte-order information
+- `MJB_STATUS_UNSUPPORTED` - The input contains a control, line separator, or paragraph separator
+- `MJB_STATUS_NO_MEMORY` - NFC normalization could not allocate memory
 - `MJB_STATUS_OVERFLOW` - The width would overflow
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains a malformed code-unit sequence
 
 **Example**
 
@@ -3458,18 +3466,18 @@ Compute the number of display columns a string occupies in a terminal, accountin
 const char *input = "A\xE7\x95\x8C"; // A界
 size_t width;
 
-if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_WIDTH_CONTEXT_WESTERN, &width) != MJB_STATUS_OK) {
+if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_TERMINAL_WIDTH_NARROW, &width) != MJB_STATUS_OK) {
     return 1;
 }
 
-// Display columns: 3
-printf("Display columns: %zu", width);
+// Terminal cells: 3
+printf("Terminal cells: %zu", width);
 ```
 
-See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_truncate_grapheme_width`](#mjb_truncate_grapheme_width).
+See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_truncate_grapheme_width`](#mjb_truncate_grapheme_width), [`mjb_next_grapheme_break`](#mjb_next_grapheme_break), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
 
-Specifications: [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-45.html).
+Specifications: [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
 ## `mjb_locale_parse`
 
@@ -4000,9 +4008,11 @@ without higher-level protocol tailoring.
 - `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
   `mjb_collation_variable_weighting` selects the UCA variable weighting strategy, while
   `mjb_collation_strength` selects the maximum comparison level.
-- `mjb_display_width` uses its `mjb_width_context` argument to choose how East Asian Width
-  `Ambiguous` characters are counted. `mjb_codepoint_east_asian_width` returns the Unicode 18.0.0
-  property value without tailoring.
+- `mjb_terminal_width` uses its `mjb_terminal_width_profile` argument to choose how East Asian
+  Width `Ambiguous` characters are counted. It normalizes to NFC, measures extended grapheme
+  clusters, and assigns two cells to listed emoji-presentation sequences. Controls and line or
+  paragraph separators are rejected because their effect depends on terminal state.
+  `mjb_codepoint_east_asian_width` returns the Unicode 18.0.0 property value without tailoring.
 - Normalization, NFKC case folding, bidirectional processing, grapheme/word/sentence/line breaking,
   identifier validation, confusable skeletons, and emoji sequence checks are not locale-tailored by
   Mojibake.
@@ -4011,7 +4021,7 @@ without higher-level protocol tailoring.
 
 Mojibake interprets Unicode text only through the public APIs and supported UTF encodings listed in
 this documentation. It does not implement rendering, font shaping, locale collation tailoring, or
-higher-level protocol behavior beyond the documented locale-sensitive casing and display-width
+higher-level protocol behavior beyond the documented locale-sensitive casing and terminal-width
 policy. The table below maps the advertised Unicode algorithm and data claims to their Unicode
 18.0.0 reference and test evidence.
 
@@ -4028,4 +4038,4 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Resolved-script and mixed-script detection | `mjb_resolved_script_set` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | UTS #39 resolved-script examples, augmented writing-system values, encodings, embedded NULs, and error handling in `tests/security.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
-| East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |
+| Terminal-cell width policy | `mjb_terminal_width`, `mjb_truncate_grapheme_width`, `mjb_truncate_word_width`; consumes `mjb_codepoint_east_asian_width`, grapheme boundaries, normalization, and emoji-sequence data | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `EastAsianWidth.txt`, emoji sequence data, normalization data, `tests/east-asian-width.c`, `tests/terminal-width.c`, `tests/segmentation.c`, and `tests/break-word.c`; terminal cell counts are a documented local policy, not font or renderer measurements. |

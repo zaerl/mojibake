@@ -28,7 +28,7 @@ import {
   Script,
   ScriptSetKind,
   Status,
-  WidthContext
+  TerminalWidthProfile
 } from '../index.js';
 import {
   ATT_ASSERT,
@@ -175,10 +175,10 @@ ATT_ASSERT(mojibake.nextWordBreak('A'), [BreakType.ALLOWED], 'nextWordBreak');
 ATT_ASSERT(mojibake.nextSentenceBreak('A'), [BreakType.ALLOWED], 'nextSentenceBreak');
 ATT_ASSERT(mojibake.nextGraphemeBreak('A'), [BreakType.ALLOWED], 'nextGraphemeBreak');
 ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');
-ATT_ASSERT(mojibake.truncateWordWidth('Hello World', WidthContext.WESTERN, 5), 5,
+ATT_ASSERT(mojibake.truncateWordWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
   'truncateWordWidth');
 ATT_ASSERT(mojibake.truncateGrapheme('ABC', 2), 2, 'truncateGrapheme');
-ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', WidthContext.WESTERN, 2), 2,
+ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
   'truncateGraphemeWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');
 ATT_ASSERT(mojibake.codepointPlane(0xFFFD), Plane.BMP, 'codepointPlane');
@@ -216,7 +216,9 @@ ATT_ASSERT(mojibake.isRGIEmoji('\u263A\uFE0F'), true, 'stringIsRgiEmoji');
 ATT_ASSERT(mojibake.hangulSyllableName(0xAC01), 'HANGUL SYLLABLE GAG', 'hangulSyllableName');
 ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
   'codepointEastAsianWidth');
-ATT_ASSERT(mojibake.displayWidth('Hello'), 5, 'displayWidth');
+ATT_ASSERT(mojibake.terminalWidth('Hello'), 5, 'terminalWidth');
+ATT_ASSERT(mojibake.terminalWidth('👨🏻‍❤️‍💋‍👨🏻'), 2, 'terminalWidth emoji sequence');
+ATT_ASSERT(mojibake.terminalWidth('line\nbreak'), null, 'terminalWidth rejects controls');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
 ATT_ASSERT(mojibake.setLocale(Locale.IT), true, 'setLocale');
 ATT_ASSERT(mojibake.getLocale(), Locale.IT, 'getLocale');

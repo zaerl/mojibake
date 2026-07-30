@@ -73,10 +73,10 @@ const API_SECTIONS = [
     description: 'Inspect emoji sequences and properties.'
   },
   {
-    section: Section.DisplayWidth,
-    id: 'display-width',
-    title: 'Display width',
-    description: 'Compute the number of display columns a string occupies in a terminal.'
+    section: Section.TerminalWidth,
+    id: 'terminal-width',
+    title: 'Terminal width',
+    description: 'Estimate the terminal cells occupied by printable, single-line text.'
   },
   {
     section: Section.HangulLanguage,

@@ -252,9 +252,12 @@ higher-level protocol tailoring.
 - **Collation**: `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation
   tailoring. The `mjb_collation_variable_weighting` argument only selects the UCA variable
   weighting strategy.
-- **Display width**: `mjb_display_width` has an explicit `mjb_width_context` policy for East Asian
-  Width `Ambiguous` characters. `mjb_codepoint_east_asian_width` itself reports the Unicode 18.0.0
-  property value without tailoring.
+- **Terminal width**: `mjb_terminal_width` has an explicit `mjb_terminal_width_profile` policy for
+  East Asian Width `Ambiguous` characters. It normalizes to NFC, measures extended grapheme
+  clusters, and assigns two cells to listed emoji-presentation sequences. Controls and line or
+  paragraph separators are rejected because their effect depends on terminal state.
+  `mjb_codepoint_east_asian_width` itself reports the Unicode 18.0.0 property value without
+  tailoring.
 - **Other Unicode algorithms**: normalization, NFKC case folding, bidirectional processing,
   grapheme/word/sentence/line breaking, identifier validation, confusable skeletons, and emoji
   sequence checks are not locale-tailored by Mojibake.
@@ -263,7 +266,7 @@ higher-level protocol tailoring.
 
 Mojibake interprets Unicode text only through the public APIs and supported UTF encodings listed in
 this documentation. It does not implement *rendering*, *font shaping*, *locale collation tailoring*,
-or *higher-level protocol* behavior beyond the documented locale-sensitive casing and display-width
+or *higher-level protocol* behavior beyond the documented locale-sensitive casing and terminal-width
 policy. The table below maps the advertised Unicode algorithm and data claims to their Unicode
 18.0.0 reference and test evidence.
 
@@ -279,4 +282,4 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
-| East Asian Width property | `mjb_codepoint_east_asian_width`; consumed by `mjb_display_width` | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html) | `EastAsianWidth.txt`, `tests/east-asian-width.c`, and property tests; display column counts are a documented local policy over that property. |
+| Terminal-cell width policy | `mjb_terminal_width`, `mjb_truncate_grapheme_width`, `mjb_truncate_word_width`; consumes `mjb_codepoint_east_asian_width`, grapheme boundaries, normalization, and emoji-sequence data | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `EastAsianWidth.txt`, emoji sequence data, normalization data, `tests/east-asian-width.c`, `tests/terminal-width.c`, `tests/segmentation.c`, and `tests/break-word.c`; terminal cell counts are a documented local policy, not font or renderer measurements. |

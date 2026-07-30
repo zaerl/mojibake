@@ -136,8 +136,9 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Bidirectional text**: full Unicode Bidirectional Algorithm: paragraph resolution, line
   reordering, runs ([UAX #9, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html))
 - **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
-- **Display width**: East Asian width and terminal display width, with width-aware truncation
-  (`mjb_display_width`, `mjb_truncate_grapheme_width`)
+- **Terminal width**: grapheme-aware terminal-cell estimates with explicit narrow or East Asian
+  profiles, emoji-sequence handling, and width-aware truncation
+  (`mjb_terminal_width`, `mjb_truncate_grapheme_width`)
 
 **Sorting and comparison**
 

@@ -565,16 +565,16 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_sink += mjb_count_codepoints(buffer, size, encoding);
             mjb_truncate_grapheme(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
-            mjb_truncate_grapheme_width(buffer, size, encoding, (mjb_width_context)(variant % 3),
-                variant);
-            mjb_truncate_word_width(buffer, size, encoding, (mjb_width_context)(variant % 3),
-                variant);
+            mjb_truncate_grapheme_width(buffer, size, encoding,
+                (mjb_terminal_width_profile)(variant % 2), variant);
+            mjb_truncate_word_width(buffer, size, encoding,
+                (mjb_terminal_width_profile)(variant % 2), variant);
             break;
 
-        case 10: { // Display width
+        case 10: { // Terminal width
             size_t width = 0;
-            mjb_status status = mjb_display_width(buffer, size, encoding,
-                (mjb_width_context)(variant % 3), &width);
+            mjb_status status = mjb_terminal_width(buffer, size, encoding,
+                (mjb_terminal_width_profile)(variant % 2), &width);
             fuzz_sink += (size_t)status;
             if(status == MJB_STATUS_OK) {
                 fuzz_sink += width;
