@@ -126,14 +126,14 @@ int test_cpp_mojibake(void *arg) {
 
 #if MJB_FEATURE_IDNA
     const auto idna_ascii = mjb::idna_to_ascii("b\xC3\xBC"
-                                               "cher.de");
+                                               "cher.example");
     ATT_ASSERT(idna_ascii.valid(), true, "C++ IDNA ToASCII valid")
-    ATT_ASSERT(idna_ascii.str(), std::string("xn--bcher-kva.de"), "C++ IDNA ToASCII")
+    ATT_ASSERT(idna_ascii.str(), std::string("xn--bcher-kva.example"), "C++ IDNA ToASCII")
 
-    const auto idna_unicode = mjb::idna_to_unicode("xn--bcher-kva.de");
+    const auto idna_unicode = mjb::idna_to_unicode("xn--bcher-kva.example");
     ATT_ASSERT(idna_unicode.valid(), true, "C++ IDNA ToUnicode valid")
     ATT_ASSERT(idna_unicode.str(), std::string("b\xC3\xBC"
-                                              "cher.de"),
+                                              "cher.example"),
         "C++ IDNA ToUnicode")
 
     const auto idna_invalid = mjb::idna_to_ascii("a..b");
