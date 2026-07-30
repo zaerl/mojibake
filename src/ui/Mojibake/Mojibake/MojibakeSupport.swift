@@ -56,7 +56,7 @@ enum MojibakeFormatting {
     }
 }
 
-enum MojibakeString {
+enum MojibakeBytes {
     static func transform(
         _ value: String,
         operation: (
@@ -64,7 +64,7 @@ enum MojibakeString {
             Int,
             UnsafeMutablePointer<mjb_result>
         ) -> mjb_status
-    ) -> String? {
+    ) -> [UInt8]? {
         let input = value.utf8CString
 
         return input.withUnsafeBufferPointer { inputBuffer in
@@ -84,11 +84,28 @@ enum MojibakeString {
             }
 
             guard let output = result.output else {
-                return result.output_size == 0 ? "" : nil
+                return result.output_size == 0 ? [] : nil
             }
 
             let bytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
-            return String(decoding: bytes.map { UInt8(bitPattern: $0) }, as: UTF8.self)
+            return bytes.map { UInt8(bitPattern: $0) }
         }
+    }
+}
+
+enum MojibakeString {
+    static func transform(
+        _ value: String,
+        operation: (
+            UnsafePointer<CChar>?,
+            Int,
+            UnsafeMutablePointer<mjb_result>
+        ) -> mjb_status
+    ) -> String? {
+        guard let bytes = MojibakeBytes.transform(value, operation: operation) else {
+            return nil
+        }
+
+        return String(decoding: bytes, as: UTF8.self)
     }
 }
