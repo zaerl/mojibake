@@ -54,13 +54,89 @@ struct CharacterDetails {
     init(character: mjb_character) {
         self = CharacterDetailsBuilder().details(for: character)
     }
+
+    static func encodedCharacter(_ codepoint: mjb_codepoint) -> String? {
+        var buffer = [CChar](repeating: 0, count: 5)
+        let length = buffer.withUnsafeMutableBufferPointer {
+            mjb_codepoint_encode(codepoint, $0.baseAddress, $0.count, MJB_ENC_UTF_8)
+        }
+
+        guard length > 0 else {
+            return nil
+        }
+
+        let bytes = buffer.prefix(Int(length)).map { UInt8(bitPattern: $0) }
+        return String(decoding: bytes, as: UTF8.self)
+    }
+
+    static func displayCharacter(
+        for character: mjb_character,
+        encodedCharacter: String
+    ) -> String {
+        let codepoint = character.codepoint
+        let pictureCodepoint = controlPictureCodepoint(codepoint)
+
+        if pictureCodepoint != codepoint {
+            return Self.encodedCharacter(pictureCodepoint)
+                ?? MojibakeFormatting.codepoint(codepoint)
+        }
+
+        if codepoint == 0x20 {
+            return encodedCharacter
+        }
+
+        let category = character.category
+        let isSeparator = category == MJB_CATEGORY_ZS
+            || category == MJB_CATEGORY_ZL
+            || category == MJB_CATEGORY_ZP
+        let isDefaultIgnorable = hasBinaryProperty(
+            MJB_PR_DEFAULT_IGNORABLE_CODE_POINT,
+            for: codepoint
+        )
+
+        if isSeparator || isDefaultIgnorable || !mjb_codepoint_is_graphic(codepoint) {
+            return MojibakeFormatting.codepoint(codepoint)
+        }
+
+        // Show combining characters over a U+25CC DOTTED CIRCLE.
+        if mjb_codepoint_is_combining(codepoint) {
+            let dottedCircle = Self.encodedCharacter(0x25CC) ?? ""
+            return dottedCircle + encodedCharacter
+        }
+
+        return encodedCharacter
+    }
+
+    private static func hasBinaryProperty(
+        _ property: mjb_property,
+        for codepoint: mjb_codepoint
+    ) -> Bool {
+        var value = false
+        return mjb_codepoint_property_binary(codepoint, property, &value) == MJB_STATUS_OK
+            && value
+    }
+
+    private static func controlPictureCodepoint(
+        _ codepoint: mjb_codepoint
+    ) -> mjb_codepoint {
+        // Keep this display mapping consistent with mjbsh_control_picture_codepoint.
+        if codepoint < 0x20 {
+            return codepoint + 0x2400
+        }
+
+        if codepoint == 0x7F {
+            return 0x2421
+        }
+
+        return codepoint
+    }
 }
 
 private struct CharacterDetailsBuilder {
     func details(for character: mjb_character) -> CharacterDetails {
         let codepoint = character.codepoint
-        let encodedCharacter = characterString(codepoint) ?? "N/A"
-        let displayedCharacter = displayCharacter(
+        let encodedCharacter = CharacterDetails.encodedCharacter(codepoint) ?? "N/A"
+        let displayedCharacter = CharacterDetails.displayCharacter(
             for: character,
             encodedCharacter: encodedCharacter
         )
@@ -296,88 +372,6 @@ private struct CharacterDetailsBuilder {
         property == MJB_PR_NFD_QUICK_CHECK
             || property == MJB_PR_NFKD_QUICK_CHECK
             || property.rawValue >= MJB_PR_ASCII_HEX_DIGIT.rawValue
-    }
-
-    private func characterString(_ codepoint: mjb_codepoint) -> String? {
-        var buffer = [CChar](repeating: 0, count: 5)
-        let length = buffer.withUnsafeMutableBufferPointer {
-            mjb_codepoint_encode(codepoint, $0.baseAddress, $0.count, MJB_ENC_UTF_8)
-        }
-
-        guard length > 0 else {
-            return nil
-        }
-
-        let bytes = buffer.prefix(Int(length)).map { UInt8(bitPattern: $0) }
-        return String(decoding: bytes, as: UTF8.self)
-    }
-
-    private func displayCharacter(
-        for character: mjb_character,
-        encodedCharacter: String
-    ) -> String {
-        let codepoint = character.codepoint
-        let pictureCodepoint = controlPictureCodepoint(codepoint)
-
-        if pictureCodepoint != codepoint {
-            return characterString(pictureCodepoint) ?? codepointString(codepoint)
-        }
-
-        if codepoint == 0x20 {
-            return encodedCharacter
-        }
-
-        let category = character.category
-        let isSeparator = category == MJB_CATEGORY_ZS
-            || category == MJB_CATEGORY_ZL
-            || category == MJB_CATEGORY_ZP
-        let isDefaultIgnorable = hasBinaryProperty(
-            MJB_PR_DEFAULT_IGNORABLE_CODE_POINT,
-            for: codepoint
-        )
-
-        if isSeparator || isDefaultIgnorable || !mjb_codepoint_is_graphic(codepoint) {
-            return codepointString(codepoint)
-        }
-
-        // Show the combining characters over a U+25CC DOTTED CIRCLE
-        if mjb_codepoint_is_combining(codepoint) {
-            let dottedCircle = characterString(0x25CC) ?? ""
-            return dottedCircle + encodedCharacter
-        }
-
-        return encodedCharacter
-    }
-
-    private func hasBinaryProperty(
-        _ property: mjb_property,
-        for codepoint: mjb_codepoint
-    ) -> Bool {
-        var value = false
-        return mjb_codepoint_property_binary(codepoint, property, &value) == MJB_STATUS_OK
-            && value
-    }
-
-    private func controlPictureCodepoint(_ codepoint: mjb_codepoint) -> mjb_codepoint {
-        // Keep this display mapping consistent with mjbsh_control_picture_codepoint.
-        // Invisible control characters are displayed with the counterparts on [81] Control Pictures block
-        if codepoint < 0x20 {
-            return codepoint + 0x2400
-        }
-
-        // U+0020 SPACE
-        if codepoint == 0x20 {
-            // This is different from mjbsh_control_picture_codepoint
-            // return 0x2423
-            return codepoint
-        }
-
-        // U+007F DEL
-        if codepoint == 0x7F {
-            return 0x2421
-        }
-
-        return codepoint
     }
 
     private func hexEncoding(

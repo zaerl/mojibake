@@ -9,6 +9,7 @@ import SwiftUI
 struct ContentView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case codepoint
+        case characters
         case emoji
         case security
         case idna = "IDNA"
@@ -34,6 +35,8 @@ struct ContentView: View {
             switch self {
             case .codepoint:
                 "character.cursor.ibeam"
+            case .characters:
+                "text.quote"
             case .emoji:
                 "face.smiling"
             case .security:
@@ -63,6 +66,7 @@ struct ContentView: View {
     }
 
     @State private var selection: Section? = .codepoint
+    @State private var requestedCodepoint: String?
 
     var body: some View {
         NavigationSplitView {
@@ -74,7 +78,9 @@ struct ContentView: View {
         } detail: {
             switch selection {
             case .codepoint:
-                CodepointView()
+                CodepointView(requestedCodepoint: $requestedCodepoint)
+            case .characters:
+                CharactersView(onCodepointSelected: showCodepoint)
             case .emoji:
                 EmojiView()
             case .security:
@@ -103,6 +109,11 @@ struct ContentView: View {
                 ContentUnavailableView("Select a tool", systemImage: "sidebar.left")
             }
         }
+    }
+
+    private func showCodepoint(_ codepoint: String) {
+        requestedCodepoint = codepoint
+        selection = .codepoint
     }
 }
 
