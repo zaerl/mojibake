@@ -9,6 +9,7 @@ import SwiftUI
 struct ContentView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case codepoint
+        case emoji
         case normalize
         case filter
 
@@ -24,6 +25,8 @@ struct ContentView: View {
             switch self {
             case .codepoint:
                 "character.cursor.ibeam"
+            case .emoji:
+                "face.smiling"
             case .normalize:
                 "textformat"
             case .filter:
@@ -45,6 +48,8 @@ struct ContentView: View {
             switch selection {
             case .codepoint:
                 CodepointView()
+            case .emoji:
+                EmojiView()
             case .normalize:
                 NormalizationView()
             case .filter:
