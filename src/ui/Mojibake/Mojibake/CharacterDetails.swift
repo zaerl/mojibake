@@ -126,10 +126,10 @@ private struct CharacterDetailsBuilder {
     private func encodingRows(for codepoint: mjb_codepoint) -> [DetailRow] {
         let encodings: [(String, mjb_encoding)] = [
             ("Hex UTF-8", MJB_ENC_UTF_8),
-            ("Hex UTF-16BE", MJB_ENC_UTF_16BE),
             ("Hex UTF-16LE", MJB_ENC_UTF_16LE),
-            ("Hex UTF-32BE", MJB_ENC_UTF_32BE),
+            ("Hex UTF-16BE", MJB_ENC_UTF_16BE),
             ("Hex UTF-32LE", MJB_ENC_UTF_32LE),
+            ("Hex UTF-32BE", MJB_ENC_UTF_32BE),
         ]
 
         return encodings.map { label, encoding in

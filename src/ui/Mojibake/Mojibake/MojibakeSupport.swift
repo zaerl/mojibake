@@ -108,13 +108,23 @@ enum MojibakeBytes {
             UnsafeMutablePointer<mjb_result>
         ) -> mjb_status
     ) -> [UInt8]? {
-        let input = value.utf8CString
+        transform(Array(value.utf8), operation: operation)
+    }
 
-        return input.withUnsafeBufferPointer { inputBuffer in
+    static func transform(
+        _ bytes: [UInt8],
+        operation: (
+            UnsafePointer<CChar>?,
+            Int,
+            UnsafeMutablePointer<mjb_result>
+        ) -> mjb_status
+    ) -> [UInt8]? {
+        bytes.withUnsafeBytes { rawBuffer in
+            let inputBuffer = rawBuffer.bindMemory(to: CChar.self)
             var result = mjb_result()
             let status = operation(
                 inputBuffer.baseAddress,
-                inputBuffer.count - 1,
+                inputBuffer.count,
                 &result
             )
 
@@ -130,8 +140,8 @@ enum MojibakeBytes {
                 return result.output_size == 0 ? [] : nil
             }
 
-            let bytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
-            return bytes.map { UInt8(bitPattern: $0) }
+            let outputBytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
+            return outputBytes.map { UInt8(bitPattern: $0) }
         }
     }
 }

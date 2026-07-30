@@ -14,6 +14,7 @@ struct ContentView: View {
         case idna = "IDNA"
         case collation
         case caseless = "Caseless Match"
+        case encoding
         case `case`
         case breaks
         case bidi
@@ -43,6 +44,8 @@ struct ContentView: View {
                 "arrow.up.arrow.down"
             case .caseless:
                 "equal.circle"
+            case .encoding:
+                "memorychip"
             case .case:
                 "textformat.abc"
             case .breaks:
@@ -82,6 +85,8 @@ struct ContentView: View {
                 CollationView()
             case .caseless:
                 CaselessMatchingView()
+            case .encoding:
+                EncodingInspectorView()
             case .case:
                 CaseView()
             case .breaks:
