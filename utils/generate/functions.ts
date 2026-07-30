@@ -606,7 +606,7 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
-    example: `const char *domain = "b\\xC3\\xBC" "cher.de";
+    example: `const char *domain = "b\\xC3\\xBC" "cher.example"; // "bücher.example"
 mjb_idna_info info;
 mjb_result result;
 
@@ -615,7 +615,7 @@ if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
     return 1;
 }
 
-// xn--bcher-kva.de
+// xn--bcher-kva.example
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
     related: ['mjb_idna_to_ascii_into', 'mjb_idna_to_unicode',

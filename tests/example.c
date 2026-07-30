@@ -183,7 +183,7 @@ int test_example(void *arg) {
 {
     // Example for mjb_idna_to_ascii
     MJB_TEST_COVERAGE(mjb_idna_to_ascii); // Added by the script
-    const char *domain = "b\xC3\xBC" "cher.de";
+    const char *domain = "b\xC3\xBC" "cher.example"; // "bücher.example"
     mjb_idna_info info;
     mjb_result result;
 
@@ -193,10 +193,10 @@ int test_example(void *arg) {
         return 1;
     }
 
-    // xn--bcher-kva.de
+    // xn--bcher-kva.example
     // printf("%.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "xn--bcher-kva.de", "mjb_idna_to_ascii test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "xn--bcher-kva.example", "mjb_idna_to_ascii test failed") // Added by the script
     mjb_result_free(&result);
 }
 #endif // MJB_FEATURE_IDNA
