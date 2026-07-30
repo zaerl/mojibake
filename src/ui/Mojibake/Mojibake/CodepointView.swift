@@ -29,7 +29,10 @@ struct CodepointView: View {
                     )
                 )
             case .found(let details):
-                CharacterDetailsView(details: details)
+                CharacterDetailsView(
+                    details: details,
+                    onCodepointSelected: showCodepoint
+                )
                     .id(details.codepoint)
             case .notFound(let query):
                 ContentUnavailableView.search(text: query)
@@ -44,7 +47,9 @@ struct CodepointView: View {
         .frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
         .padding()
         .searchable(text: $codepoint, prompt: "Codepoint, such as U+0041")
-        .onSubmit(of: .search, search)
+        .onSubmit(of: .search) {
+            search()
+        }
         .onChange(of: codepoint) { _, newValue in
             if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 lookupState = .initial
@@ -53,7 +58,16 @@ struct CodepointView: View {
     }
 
     private func search() {
-        let input = codepoint.trimmingCharacters(in: .whitespacesAndNewlines)
+        search(codepoint)
+    }
+
+    private func showCodepoint(_ codepoint: String) {
+        self.codepoint = codepoint
+        search(codepoint)
+    }
+
+    private func search(_ query: String) {
+        let input = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let hexadecimal: Substring
 
         guard !input.isEmpty else {
