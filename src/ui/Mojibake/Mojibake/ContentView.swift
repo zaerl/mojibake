@@ -11,6 +11,7 @@ struct ContentView: View {
         case codepoint
         case emoji
         case security
+        case idna = "IDNA"
         case `case`
         case breaks
         case bidi
@@ -34,6 +35,8 @@ struct ContentView: View {
                 "face.smiling"
             case .security:
                 "lock.shield"
+            case .idna:
+                "globe"
             case .case:
                 "textformat.abc"
             case .breaks:
@@ -67,6 +70,8 @@ struct ContentView: View {
                 EmojiView()
             case .security:
                 SecurityView()
+            case .idna:
+                IDNAView()
             case .case:
                 CaseView()
             case .breaks:
