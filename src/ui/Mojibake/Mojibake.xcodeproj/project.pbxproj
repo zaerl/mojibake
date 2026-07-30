@@ -10,9 +10,22 @@
 		31B697D8301A8E6400D4A9DC /* Mojibake.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mojibake.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		31ACA635301BE89B008095AC /* Exceptions for "Mojibake" folder in "Mojibake" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 31B697D7301A8E6400D4A9DC /* Mojibake */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		31B697DA301A8E6400D4A9DC /* Mojibake */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				31ACA635301BE89B008095AC /* Exceptions for "Mojibake" folder in "Mojibake" target */,
+			);
 			path = Mojibake;
 			sourceTree = "<group>";
 		};
@@ -257,9 +270,10 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mojibake/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Mojibake;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2021-present, Francesco Bigiarini";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -292,9 +306,10 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mojibake/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Mojibake;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2021-present, Francesco Bigiarini";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
