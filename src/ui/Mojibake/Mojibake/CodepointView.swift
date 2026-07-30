@@ -9,7 +9,7 @@ import SwiftUI
 struct CodepointView: View {
     private enum LookupState {
         case initial
-        case found(String)
+        case found(CharacterDetails)
         case notFound(String)
         case invalid(String)
     }
@@ -28,17 +28,9 @@ struct CodepointView: View {
                         "Enter a codepoint in the search field, such as U+0041."
                     )
                 )
-            case .found(let characterName):
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Character name")
-                        .font(.headline)
-
-                    Text(characterName)
-                        .font(.title2)
-                        .textSelection(.enabled)
-
-                    Spacer()
-                }
+            case .found(let details):
+                CharacterDetailsView(details: details)
+                    .id(details.codepoint)
             case .notFound(let query):
                 ContentUnavailableView.search(text: query)
             case .invalid(let message):
@@ -96,12 +88,7 @@ struct CodepointView: View {
             return
         }
 
-        let characterName = withUnsafePointer(to: &character.name) { name in
-            name.withMemoryRebound(to: CChar.self, capacity: 128) {
-                String(cString: $0)
-            }
-        }
-        lookupState = .found(characterName)
+        lookupState = .found(CharacterDetails(character: character))
     }
 }
 
