@@ -7,6 +7,15 @@
 import SwiftUI
 
 struct BreaksView: View {
+    fileprivate enum OutputStyle: String, CaseIterable, Identifiable {
+        case scalars = "Scalars"
+        case noBreakBlocks = "No-Break Blocks"
+
+        var id: Self {
+            self
+        }
+    }
+
     fileprivate enum BreakMode: String, CaseIterable, Identifiable {
         case grapheme = "Grapheme Clusters"
         case word = "Words"
@@ -92,6 +101,7 @@ struct BreaksView: View {
     }
 
     @State private var input = ""
+    @State private var outputStyle = OutputStyle.scalars
     @State private var results: [BreakMode: [BreakBoundary]] = [:]
 
     var body: some View {
@@ -123,6 +133,22 @@ struct BreaksView: View {
                     }
                 }
 
+                HStack {
+                    Text("Output")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Picker("Output", selection: $outputStyle) {
+                        ForEach(OutputStyle.allCases) { style in
+                            Text(style.rawValue)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 320)
+                }
+
                 HStack(spacing: 20) {
                     BoundaryLegend(boundary: .allowed)
                     BoundaryLegend(boundary: .noBreak)
@@ -134,7 +160,8 @@ struct BreaksView: View {
                     BreakResultView(
                         mode: mode,
                         input: input,
-                        boundaries: results[mode] ?? []
+                        boundaries: results[mode] ?? [],
+                        outputStyle: outputStyle
                     )
                 }
             }
@@ -253,6 +280,7 @@ private struct BreakResultView: View {
     let mode: BreaksView.BreakMode
     let input: String
     let boundaries: [BreaksView.BreakBoundary]
+    let outputStyle: BreaksView.OutputStyle
 
     private var scalars: [Unicode.Scalar] {
         Array(input.unicodeScalars)
@@ -269,16 +297,8 @@ private struct BreakResultView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 56)
             } else {
-                BoundaryFlowLayout(spacing: 8) {
-                    ForEach(scalars.indices, id: \.self) { index in
-                        BoundaryScalarToken(
-                            leadingBoundary: boundary(before: index),
-                            scalar: scalars[index],
-                            trailingBoundary: trailingBoundary(after: index)
-                        )
-                    }
-                }
-                .padding(.vertical, 6)
+                output
+                    .padding(.vertical, 6)
 
                 if boundaries.count != scalars.count {
                     Label(
@@ -309,6 +329,68 @@ private struct BreakResultView: View {
         .frame(maxWidth: .infinity)
     }
 
+    @ViewBuilder
+    private var output: some View {
+        switch outputStyle {
+        case .scalars:
+            BoundaryFlowLayout(spacing: 8) {
+                ForEach(scalars.indices, id: \.self) { index in
+                    BoundaryScalarToken(
+                        leadingBoundary: boundary(before: index),
+                        scalar: scalars[index],
+                        trailingBoundary: trailingBoundary(after: index)
+                    )
+                }
+            }
+        case .noBreakBlocks:
+            BoundaryFlowLayout(spacing: 8) {
+                ForEach(noBreakBlocks) { block in
+                    BoundaryBlockToken(
+                        leadingBoundary: block.leadingBoundary,
+                        scalars: Array(scalars[block.range]),
+                        trailingBoundary: block.trailingBoundary
+                    )
+                }
+            }
+        }
+    }
+
+    private var noBreakBlocks: [NoBreakBlock] {
+        guard let lastIndex = scalars.indices.last else {
+            return []
+        }
+
+        var blocks: [NoBreakBlock] = []
+        var startIndex = scalars.startIndex
+        var leadingBoundary = mode.leadingBoundary
+
+        for index in scalars.indices {
+            let trailingBoundary = boundary(after: index)
+
+            if index == lastIndex {
+                blocks.append(
+                    NoBreakBlock(
+                        range: startIndex ..< scalars.endIndex,
+                        leadingBoundary: leadingBoundary,
+                        trailingBoundary: trailingBoundary
+                    )
+                )
+            } else if trailingBoundary?.isBreak == true {
+                blocks.append(
+                    NoBreakBlock(
+                        range: startIndex ..< index + 1,
+                        leadingBoundary: leadingBoundary,
+                        trailingBoundary: nil
+                    )
+                )
+                startIndex = index + 1
+                leadingBoundary = trailingBoundary ?? .allowed
+            }
+        }
+
+        return blocks
+    }
+
     private func boundary(before index: Int) -> BreaksView.BreakBoundary? {
         if index == scalars.startIndex {
             return mode.leadingBoundary
@@ -325,6 +407,20 @@ private struct BreakResultView: View {
 
         return boundaries.indices.contains(index) ? boundaries[index] : nil
     }
+
+    private func boundary(after index: Int) -> BreaksView.BreakBoundary? {
+        boundaries.indices.contains(index) ? boundaries[index] : nil
+    }
+}
+
+private struct NoBreakBlock: Identifiable {
+    let range: Range<Int>
+    let leadingBoundary: BreaksView.BreakBoundary
+    let trailingBoundary: BreaksView.BreakBoundary?
+
+    var id: Int {
+        range.lowerBound
+    }
 }
 
 private struct BoundaryScalarToken: View {
@@ -339,6 +435,36 @@ private struct BoundaryScalarToken: View {
             }
 
             ScalarToken(scalar: scalar)
+
+            if let trailingBoundary {
+                BoundarySymbol(boundary: trailingBoundary)
+            }
+        }
+        .fixedSize()
+    }
+}
+
+private struct BoundaryBlockToken: View {
+    let leadingBoundary: BreaksView.BreakBoundary
+    let scalars: [Unicode.Scalar]
+    let trailingBoundary: BreaksView.BreakBoundary?
+
+    var body: some View {
+        HStack(spacing: 6) {
+            BoundarySymbol(boundary: leadingBoundary)
+
+            HStack(spacing: 4) {
+                ForEach(scalars.indices, id: \.self) { index in
+                    ScalarToken(scalar: scalars[index], showsBackground: false)
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
+            .overlay {
+                RoundedRectangle(cornerRadius: 7)
+                    .stroke(.secondary.opacity(0.2))
+            }
 
             if let trailingBoundary {
                 BoundarySymbol(boundary: trailingBoundary)
@@ -447,13 +573,19 @@ private struct BoundarySymbol: View {
 
 private struct ScalarToken: View {
     let scalar: Unicode.Scalar
+    var showsBackground = true
 
     var body: some View {
         Text(displayValue)
             .font(.title3)
             .frame(minWidth: 24, minHeight: 32)
             .padding(.horizontal, 4)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
+            .background {
+                if showsBackground {
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(.quaternary)
+                }
+            }
             .accessibilityLabel(codepoint)
             .help(codepoint)
     }
@@ -474,11 +606,11 @@ private struct ScalarToken: View {
             return "␠"
         case 0x200D:
             return "ZWJ"
-        case 0xFE0E:
-            return "VS15"
-        case 0xFE0F:
-            return "ZWJ"
         default:
+            if let variationSelectorNumber {
+                return "VS\(variationSelectorNumber)"
+            }
+
             if mjb_codepoint_is_combining(scalar.value) {
                 return "◌\(String(scalar))"
             }
@@ -488,6 +620,17 @@ private struct ScalarToken: View {
             }
 
             return String(scalar)
+        }
+    }
+
+    private var variationSelectorNumber: UInt32? {
+        switch scalar.value {
+        case 0xFE00 ... 0xFE0F:
+            scalar.value - 0xFE00 + 1
+        case 0xE0100 ... 0xE01EF:
+            scalar.value - 0xE0100 + 17
+        default:
+            nil
         }
     }
 }
