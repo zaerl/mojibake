@@ -719,7 +719,7 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
-    example: `const char *domain = "xn--bcher-kva.de";
+    example: `const char *domain = "xn--bcher-kva.example";
 mjb_idna_info info;
 mjb_result result;
 
@@ -728,7 +728,7 @@ if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
     return 1;
 }
 
-// bücher.de
+// bücher.example
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
     related: ['mjb_idna_to_unicode_into', 'mjb_idna_to_ascii',

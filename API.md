@@ -921,7 +921,7 @@ Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The fun
 **Example**
 
 ```c
-const char *domain = "xn--bcher-kva.de";
+const char *domain = "xn--bcher-kva.example";
 mjb_idna_info info;
 mjb_result result;
 
@@ -930,7 +930,7 @@ if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
     return 1;
 }
 
-// bücher.de
+// bücher.example
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
