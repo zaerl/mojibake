@@ -12,6 +12,7 @@ struct ContentView: View {
         case emoji
         case `case`
         case breaks
+        case bidi
         case normalize
         case filter
 
@@ -33,6 +34,8 @@ struct ContentView: View {
                 "textformat.abc"
             case .breaks:
                 "text.word.spacing"
+            case .bidi:
+                "arrow.left.arrow.right"
             case .normalize:
                 "textformat"
             case .filter:
@@ -60,6 +63,8 @@ struct ContentView: View {
                 CaseView()
             case .breaks:
                 BreaksView()
+            case .bidi:
+                BidiView()
             case .normalize:
                 NormalizationView()
             case .filter:
