@@ -51,8 +51,8 @@ att_set_show_colors(showColors);
 ATT_ASSERT(mojibake instanceof Mojibake, true, 'create');
 ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
-ATT_ASSERT(mojibake.idnaToAscii('bücher.de')?.output, 'xn--bcher-kva.de', 'idnaToAscii');
-ATT_ASSERT(mojibake.idnaToUnicode('xn--bcher-kva.de')?.output, 'bücher.de', 'idnaToUnicode');
+ATT_ASSERT(mojibake.idnaToAscii('bücher.example')?.output, 'xn--bcher-kva.example', 'idnaToAscii');
+ATT_ASSERT(mojibake.idnaToUnicode('xn--bcher-kva.example')?.output, 'bücher.example', 'idnaToUnicode');
 ATT_ASSERT(mojibake.idnaToAscii('a..b')?.valid, false, 'idnaToAscii validation');
 ATT_ASSERT((mojibake.idnaToAscii('a..b')?.errors ?? 0) & IdnaError.EMPTY_LABEL,
   IdnaError.EMPTY_LABEL, 'idnaToAscii error flags');

@@ -36,13 +36,10 @@ struct BidiView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Bidi")
-                        .font(.largeTitle)
-
-                    Text("Resolve and visualize the Unicode Bidirectional Algorithm.")
-                        .foregroundStyle(.secondary)
-                }
+                ToolHeader(
+                    "Bidi",
+                    description: "Resolve and visualize the Unicode Bidirectional Algorithm."
+                )
 
                 Picker("Base Direction", selection: $baseDirection) {
                     ForEach(BaseDirection.allCases) { direction in
@@ -306,8 +303,7 @@ private struct BidiAnalysis {
     }
 
     private static func statusMessage(operation: String, status: mjb_status) -> String {
-        let message = mjb_status_message(status).map(String.init(cString:)) ?? "Unknown error"
-        return "\(operation): \(message)"
+        MojibakeFormatting.statusMessage(operation: operation, status: status)
     }
 
     private static func directionName(_ direction: mjb_direction) -> String {
@@ -643,7 +639,7 @@ private enum BidiFormatting {
     }
 
     static func codepoint(_ codepoint: mjb_codepoint) -> String {
-        String(format: "U+%04X", codepoint)
+        MojibakeFormatting.codepoint(codepoint)
     }
 
     static func displayValue(_ codepoint: mjb_codepoint) -> String {

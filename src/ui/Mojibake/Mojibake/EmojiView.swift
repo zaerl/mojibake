@@ -18,24 +18,23 @@ struct EmojiView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Emoji")
-                        .font(.largeTitle)
-
-                    Text("Inspect an emoji sequence and each of its Unicode characters.")
-                        .foregroundStyle(.secondary)
-                }
+                ToolHeader(
+                    "Emoji",
+                    description: "Inspect an emoji sequence and each of its Unicode characters."
+                )
 
                 if let analysis {
-                    EmojiDetailSection(
+                    DetailSectionView(
                         title: "Sequence",
-                        rows: analysis.sequenceRows
+                        rows: analysis.sequenceRows,
+                        linksCodepoints: false
                     )
 
                     ForEach(analysis.characters) { character in
-                        EmojiDetailSection(
+                        DetailSectionView(
                             title: "Character \(character.position)",
-                            rows: character.rows
+                            rows: character.rows,
+                            linksCodepoints: false
                         )
                     }
                 } else {
@@ -76,7 +75,7 @@ struct EmojiView: View {
 }
 
 private struct EmojiAnalysis {
-    let sequenceRows: [EmojiDetailRow]
+    let sequenceRows: [DetailRow]
     let characters: [EmojiCharacterAnalysis]
 
     init(input: String) {
@@ -111,24 +110,27 @@ private struct EmojiAnalysis {
         }
 
         sequenceRows = [
-            EmojiDetailRow("Input", input),
-            EmojiDetailRow("Emoji Sequence", yesOrNo(sequence.0)),
-            EmojiDetailRow("RGI Emoji", yesOrNo(sequence.1)),
-            EmojiDetailRow(
+            DetailRow("Input", input),
+            DetailRow(
+                "Emoji Sequence",
+                MojibakeFormatting.yesOrNo(sequence.0)
+            ),
+            DetailRow("RGI Emoji", MojibakeFormatting.yesOrNo(sequence.1)),
+            DetailRow(
                 "Sequence Type",
-                idAndName(
+                MojibakeFormatting.idAndName(
                     Int(sequence.2.type.rawValue),
                     Self.sequenceTypeName(sequence.2.type)
                 )
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Qualification",
-                idAndName(
+                MojibakeFormatting.idAndName(
                     Int(sequence.2.qualification.rawValue),
                     Self.qualificationName(sequence.2.qualification)
                 )
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Sequence Codepoints",
                 String(sequence.2.codepoint_count)
             ),
@@ -186,7 +188,7 @@ private struct EmojiAnalysis {
 
 private struct EmojiCharacterAnalysis: Identifiable {
     let position: Int
-    let rows: [EmojiDetailRow]
+    let rows: [DetailRow]
 
     var id: Int {
         position
@@ -202,103 +204,47 @@ private struct EmojiCharacterAnalysis: Identifiable {
 
         self.position = position
         rows = [
-            EmojiDetailRow(
+            DetailRow(
                 "Codepoint",
-                String(format: "U+%04X", codepoint),
+                MojibakeFormatting.codepoint(codepoint),
                 monospaced: true
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Name",
-                hasCharacterData ? Self.stringFromCString(character.name) : "N/A"
+                hasCharacterData
+                    ? MojibakeFormatting.string(fromCString: character.name)
+                    : "N/A"
             ),
-            EmojiDetailRow("Character", String(scalar)),
-            EmojiDetailRow("Emoji Data", yesOrNo(hasEmojiData)),
-            EmojiDetailRow("Emoji", yesOrNo(hasEmojiData && emoji.emoji)),
-            EmojiDetailRow(
+            DetailRow("Character", String(scalar)),
+            DetailRow("Emoji Data", MojibakeFormatting.yesOrNo(hasEmojiData)),
+            DetailRow(
+                "Emoji",
+                MojibakeFormatting.yesOrNo(hasEmojiData && emoji.emoji)
+            ),
+            DetailRow(
                 "Emoji Presentation",
-                yesOrNo(hasEmojiData && emoji.presentation)
+                MojibakeFormatting.yesOrNo(hasEmojiData && emoji.presentation)
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Emoji Modifier",
-                yesOrNo(hasEmojiData && emoji.modifier)
+                MojibakeFormatting.yesOrNo(hasEmojiData && emoji.modifier)
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Emoji Modifier Base",
-                yesOrNo(hasEmojiData && emoji.modifier_base)
+                MojibakeFormatting.yesOrNo(hasEmojiData && emoji.modifier_base)
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Emoji Component",
-                yesOrNo(hasEmojiData && emoji.component)
+                MojibakeFormatting.yesOrNo(hasEmojiData && emoji.component)
             ),
-            EmojiDetailRow(
+            DetailRow(
                 "Extended Pictographic",
-                yesOrNo(hasEmojiData && emoji.extended_pictographic)
+                MojibakeFormatting.yesOrNo(
+                    hasEmojiData && emoji.extended_pictographic
+                )
             ),
         ]
     }
-
-    private static func stringFromCString<T>(_ value: T) -> String {
-        var value = value
-
-        return withUnsafePointer(to: &value) {
-            $0.withMemoryRebound(to: CChar.self, capacity: MemoryLayout<T>.size) {
-                String(cString: $0)
-            }
-        }
-    }
-}
-
-private struct EmojiDetailRow {
-    let label: String
-    let value: String
-    let monospaced: Bool
-
-    init(_ label: String, _ value: String, monospaced: Bool = false) {
-        self.label = label
-        self.value = value
-        self.monospaced = monospaced
-    }
-}
-
-private struct EmojiDetailSection: View {
-    let title: String
-    let rows: [EmojiDetailRow]
-
-    var body: some View {
-        GroupBox {
-            VStack(spacing: 8) {
-                ForEach(rows.indices, id: \.self) { index in
-                    let row = rows[index]
-
-                    HStack(alignment: .firstTextBaseline, spacing: 20) {
-                        Text(row.label)
-                            .font(.callout.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-
-                        Text(row.value)
-                            .font(row.monospaced ? .body.monospaced() : .body)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
-        } label: {
-            Text(title)
-                .font(.headline)
-        }
-        .frame(maxWidth: .infinity)
-    }
-}
-
-private func yesOrNo(_ value: Bool) -> String {
-    value ? String(localized: "Yes") : String(localized: "No")
-}
-
-private func idAndName(_ id: Int, _ name: String) -> String {
-    "[\(id)] \(name)"
 }
 
 #Preview {

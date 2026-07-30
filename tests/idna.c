@@ -241,13 +241,13 @@ static void test_idna_conformance(void) {
 
 static void test_idna_api(void) {
     const char *unicode = "b\xC3\xBC"
-                          "cher.de";
-    const char *ascii = "xn--bcher-kva.de";
+                          "cher.example";
+    const char *ascii = "xn--bcher-kva.example";
     mjb_idna_info info;
     mjb_result result;
 
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii(unicode, 10, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info,
-                          &result),
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(unicode, strlen(unicode), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          &info, &result),
         MJB_STATUS_OK, "IDNA ToASCII succeeds")
     ATT_ASSERT(info.errors, (uint32_t)MJB_IDNA_ERROR_NONE, "IDNA ToASCII is valid")
     ATT_ASSERT(result.output_size, strlen(ascii), "IDNA ToASCII size")
@@ -258,13 +258,13 @@ static void test_idna_api(void) {
                           &info, &result),
         MJB_STATUS_OK, "IDNA ToUnicode succeeds")
     ATT_ASSERT(info.errors, (uint32_t)MJB_IDNA_ERROR_NONE, "IDNA ToUnicode is valid")
-    ATT_ASSERT(result.output_size, (size_t)10, "IDNA ToUnicode size")
+    ATT_ASSERT(result.output_size, strlen(unicode), "IDNA ToUnicode size")
     ATT_ASSERT((int)memcmp(result.output, unicode, result.output_size), 0,
         "IDNA ToUnicode decodes Punycode")
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA ToUnicode result frees")
 
-    const char utf16le[] = { 'b', 0, '\xFC', 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'd', 0, 'e',
-        0 };
+    const char utf16le[] = { 'b', 0, '\xFC', 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'e', 0, 'x',
+        0, 'a', 0, 'm', 0, 'p', 0, 'l', 0, 'e', 0 };
     ATT_ASSERT_STATUS(mjb_idna_to_unicode(ascii, strlen(ascii), MJB_ENC_ASCII,
                           MJB_ENC_UTF_16LE, &info, &result),
         MJB_STATUS_OK, "IDNA ToUnicode converts its output encoding")
@@ -274,22 +274,22 @@ static void test_idna_api(void) {
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA UTF-16LE result frees")
 
     size_t output_size = 0;
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, 10, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info,
-                          NULL, &output_size),
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, strlen(unicode), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                          &info, NULL, &output_size),
         MJB_STATUS_OK, "IDNA ToASCII into measures")
     ATT_ASSERT(output_size, strlen(ascii), "IDNA ToASCII into measured size")
 
     char output[32];
     memset(output, '#', sizeof(output));
     size_t small_size = output_size - 1;
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, 10, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info,
-                          output, &small_size),
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, strlen(unicode), MJB_ENC_UTF_8,
+                          MJB_ENC_UTF_8, &info, output, &small_size),
         MJB_STATUS_OUTPUT_TOO_SMALL, "IDNA ToASCII into reports small buffer")
     ATT_ASSERT(small_size, output_size, "IDNA ToASCII into returns required size")
     ATT_ASSERT(output[0], '#', "IDNA ToASCII into leaves small buffer unchanged")
 
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, 10, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info,
-                          output, &output_size),
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, strlen(unicode), MJB_ENC_UTF_8,
+                          MJB_ENC_UTF_8, &info, output, &output_size),
         MJB_STATUS_OK, "IDNA ToASCII into writes")
     ATT_ASSERT((int)memcmp(output, ascii, output_size), 0, "IDNA ToASCII into output")
     ATT_ASSERT(output[output_size], '#', "IDNA ToASCII into omits terminator")
@@ -300,7 +300,7 @@ static void test_idna_api(void) {
     ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(ascii, strlen(ascii), MJB_ENC_ASCII, MJB_ENC_UTF_8,
                           &info, output, &output_size),
         MJB_STATUS_OK, "IDNA ToUnicode into writes")
-    ATT_ASSERT(output_size, (size_t)10, "IDNA ToUnicode into output size")
+    ATT_ASSERT(output_size, strlen(unicode), "IDNA ToUnicode into output size")
     ATT_ASSERT((int)memcmp(output, unicode, output_size), 0, "IDNA ToUnicode into output")
     ATT_ASSERT(output[output_size], '#', "IDNA ToUnicode into omits terminator")
 

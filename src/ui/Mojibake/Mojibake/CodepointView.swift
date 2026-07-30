@@ -14,8 +14,13 @@ struct CodepointView: View {
         case invalid(String)
     }
 
+    @Binding private var requestedCodepoint: String?
     @State private var codepoint = ""
     @State private var lookupState = LookupState.initial
+
+    init(requestedCodepoint: Binding<String?> = .constant(nil)) {
+        _requestedCodepoint = requestedCodepoint
+    }
 
     var body: some View {
         Group {
@@ -55,6 +60,12 @@ struct CodepointView: View {
                 lookupState = .initial
             }
         }
+        .onChange(of: requestedCodepoint) {
+            consumeCodepointRequest()
+        }
+        .onAppear {
+            consumeCodepointRequest()
+        }
     }
 
     private func search() {
@@ -64,6 +75,15 @@ struct CodepointView: View {
     private func showCodepoint(_ codepoint: String) {
         self.codepoint = codepoint
         search(codepoint)
+    }
+
+    private func consumeCodepointRequest() {
+        guard let requestedCodepoint else {
+            return
+        }
+
+        self.requestedCodepoint = nil
+        showCodepoint(requestedCodepoint)
     }
 
     private func search(_ query: String) {
@@ -93,10 +113,11 @@ struct CodepointView: View {
 
         guard status == MJB_STATUS_OK else {
             if status == MJB_STATUS_NOT_FOUND {
-                lookupState = .notFound(String(format: "U+%04X", value))
+                lookupState = .notFound(MojibakeFormatting.codepoint(value))
             } else {
                 lookupState = .invalid(
-                    String(format: "U+%04X is not a valid Unicode codepoint.", value)
+                    "\(MojibakeFormatting.codepoint(value)) "
+                        + "is not a valid Unicode codepoint."
                 )
             }
             return

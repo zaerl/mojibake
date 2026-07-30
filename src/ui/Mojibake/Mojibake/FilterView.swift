@@ -66,13 +66,10 @@ struct FilterView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Filter")
-                    .font(.largeTitle)
-
-                Text("Apply one or more Unicode text filters.")
-                    .foregroundStyle(.secondary)
-            }
+            ToolHeader(
+                "Filter",
+                description: "Apply one or more Unicode text filters."
+            )
 
             GroupBox {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
@@ -192,33 +189,15 @@ struct FilterView: View {
     }
 
     private func filtered(_ value: String, filters: mjb_filter_flags) -> String? {
-        let input = value.utf8CString
-
-        return input.withUnsafeBufferPointer { inputBuffer in
-            var result = mjb_result()
-            let status = mjb_filter(
-                inputBuffer.baseAddress,
-                inputBuffer.count - 1,
+        MojibakeString.transform(value) { input, byteLength, result in
+            mjb_filter(
+                input,
+                byteLength,
                 MJB_ENC_UTF_8,
                 filters,
                 MJB_ENC_UTF_8,
-                &result
+                result
             )
-
-            guard status == MJB_STATUS_OK else {
-                return nil
-            }
-
-            defer {
-                _ = mjb_result_free(&result)
-            }
-
-            guard let output = result.output else {
-                return result.output_size == 0 ? "" : nil
-            }
-
-            let bytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
-            return String(decoding: bytes.map { UInt8(bitPattern: $0) }, as: UTF8.self)
         }
     }
 }

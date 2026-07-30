@@ -56,13 +56,10 @@ struct CaseView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Case")
-                        .font(.largeTitle)
-
-                    Text("Apply every Unicode case mapping.")
-                        .foregroundStyle(.secondary)
-                }
+                ToolHeader(
+                    "Case",
+                    description: "Apply every Unicode case mapping."
+                )
 
                 GroupBox {
                     TextEditor(text: $input)
@@ -131,33 +128,15 @@ struct CaseView: View {
     }
 
     private func mapped(_ value: String, type: mjb_map_case_type) -> String? {
-        let input = value.utf8CString
-
-        return input.withUnsafeBufferPointer { inputBuffer in
-            var result = mjb_result()
-            let status = mjb_map_case(
-                inputBuffer.baseAddress,
-                inputBuffer.count - 1,
+        MojibakeString.transform(value) { input, byteLength, result in
+            mjb_map_case(
+                input,
+                byteLength,
                 MJB_ENC_UTF_8,
                 type,
                 MJB_ENC_UTF_8,
-                &result
+                result
             )
-
-            guard status == MJB_STATUS_OK else {
-                return nil
-            }
-
-            defer {
-                _ = mjb_result_free(&result)
-            }
-
-            guard let output = result.output else {
-                return result.output_size == 0 ? "" : nil
-            }
-
-            let bytes = UnsafeBufferPointer(start: output, count: Int(result.output_size))
-            return String(decoding: bytes.map { UInt8(bitPattern: $0) }, as: UTF8.self)
         }
     }
 }

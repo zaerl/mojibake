@@ -96,12 +96,32 @@ private struct CharacterIdentityView: View {
     }
 }
 
-private struct DetailSectionView: View {
+struct DetailSectionView: View {
     let section: DetailSection
+    let linksCodepoints: Bool
+
+    init(section: DetailSection, linksCodepoints: Bool = true) {
+        self.section = section
+        self.linksCodepoints = linksCodepoints
+    }
+
+    init(
+        title: String,
+        rows: [DetailRow],
+        linksCodepoints: Bool = true
+    ) {
+        self.init(
+            section: DetailSection(title, rows: rows),
+            linksCodepoints: linksCodepoints
+        )
+    }
 
     var body: some View {
         GroupBox {
-            DetailGrid(rows: section.rows)
+            DetailGrid(
+                rows: section.rows,
+                linksCodepoints: linksCodepoints
+            )
                 .padding(.vertical, 4)
         } label: {
             Text(section.title)
@@ -113,6 +133,7 @@ private struct DetailSectionView: View {
 
 private struct DetailGrid: View {
     let rows: [DetailRow]
+    var linksCodepoints = true
 
     var body: some View {
         VStack(spacing: 8) {
@@ -125,13 +146,36 @@ private struct DetailGrid: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .trailing)
 
-                    CodepointText(row.value)
+                    DetailValueText(
+                        row.value,
+                        linksCodepoints: linksCodepoints
+                    )
                         .font(row.monospaced ? .body.monospaced() : .body)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+private struct DetailValueText: View {
+    let value: String
+    let linksCodepoints: Bool
+
+    init(_ value: String, linksCodepoints: Bool) {
+        self.value = value
+        self.linksCodepoints = linksCodepoints
+    }
+
+    @ViewBuilder
+    var body: some View {
+        if linksCodepoints {
+            CodepointText(value)
+        } else {
+            Text(value)
+                .textSelection(.enabled)
+        }
     }
 }
 
