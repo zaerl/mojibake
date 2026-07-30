@@ -13,6 +13,7 @@ struct ContentView: View {
         case `case`
         case breaks
         case bidi
+        case terminalWidth = "Terminal Width"
         case normalize
         case filter
 
@@ -36,6 +37,8 @@ struct ContentView: View {
                 "text.word.spacing"
             case .bidi:
                 "arrow.left.arrow.right"
+            case .terminalWidth:
+                "ruler"
             case .normalize:
                 "textformat"
             case .filter:
@@ -65,6 +68,8 @@ struct ContentView: View {
                 BreaksView()
             case .bidi:
                 BidiView()
+            case .terminalWidth:
+                TerminalWidthView()
             case .normalize:
                 NormalizationView()
             case .filter:
