@@ -385,9 +385,9 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_
     return state.state == MJB_UTF_TERMINATED ? last_break : byte_length;
 }
 
-// Return the number of bytes whose word-break segments fit within max_columns display columns.
+// Return the number of bytes whose word-break segments fit within max_columns terminal cells.
 MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_width_context context, size_t max_columns) {
+    mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns) {
     if(buffer == NULL || byte_length == 0 || max_columns == 0) {
         return 0;
     }
@@ -413,7 +413,7 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t segment_width = 0;
 
-        if(mjb_display_width(buffer + prev_break, break_pos - prev_break, encoding, context,
+        if(mjb_terminal_width(buffer + prev_break, break_pos - prev_break, encoding, profile,
                &segment_width) != MJB_STATUS_OK) {
             return prev_break;
         }

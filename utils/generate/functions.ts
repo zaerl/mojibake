@@ -35,7 +35,7 @@ export enum Section {
   Segmentation,
   Bidirectional,
   Emoji,
-  DisplayWidth,
+  TerminalWidth,
   HangulLanguage,
   Utility
 }
@@ -2024,7 +2024,7 @@ size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
 printf("First two graphemes use %zu bytes", bytes);`
   },
   {
-    comment: 'Return the number of bytes whose grapheme clusters fit within max_columns display columns.',
+    comment: 'Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.',
     ret: 'size_t',
     name: 'mjb_truncate_grapheme_width',
     attributes: [],
@@ -2033,9 +2033,9 @@ printf("First two graphemes use %zu bytes", bytes);`
       byte_length(),
       encoding(),
       {
-        name: 'context',
-        type: 'mjb_width_context',
-        description: 'The width context',
+        name: 'profile',
+        type: 'mjb_terminal_width_profile',
+        description: 'The terminal-width profile',
         wasm_generated: false,
         is_enum: true
       },
@@ -2047,10 +2047,13 @@ printf("First two graphemes use %zu bytes", bytes);`
       }
     ],
     wasm: true,
-    section: Section.DisplayWidth,
+    section: Section.TerminalWidth,
+    details: 'Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell ' +
+      'policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed ' +
+      'the budget or cannot be measured as printable, single-line terminal text.',
     example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
 size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_WIDTH_CONTEXT_WESTERN, 2);
+    MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);`
@@ -2080,7 +2083,7 @@ size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
 printf("First word segment uses %zu bytes", bytes);`
   },
   {
-    comment: 'Return the number of bytes whose word-break segments fit within max_columns display columns.',
+    comment: 'Return the number of bytes whose word-break segments fit within max_columns terminal cells.',
     ret: 'size_t',
     name: 'mjb_truncate_word_width',
     attributes: [],
@@ -2089,9 +2092,9 @@ printf("First word segment uses %zu bytes", bytes);`
       byte_length(),
       encoding(),
       {
-        name: 'context',
-        type: 'mjb_width_context',
-        description: 'The width context',
+        name: 'profile',
+        type: 'mjb_terminal_width_profile',
+        description: 'The terminal-width profile',
         wasm_generated: false,
         is_enum: true
       },
@@ -2103,10 +2106,13 @@ printf("First word segment uses %zu bytes", bytes);`
       }
     ],
     wasm: true,
-    section: Section.Segmentation,
+    section: Section.TerminalWidth,
+    details: 'Truncate only at word-break boundaries, using the same terminal-cell policy as ' +
+      '`mjb_terminal_width`. The returned prefix stops before a segment that would exceed the ' +
+      'budget or cannot be measured as printable, single-line terminal text.',
     example: `const char *input = "Hello world";
 size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_WIDTH_CONTEXT_WESTERN, 6);
+    MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);`
@@ -3023,7 +3029,7 @@ printf("Composition: U+%04X", length == 1 ? characters[0].codepoint : 0);`
       }
     ],
     wasm: true,
-    section: Section.DisplayWidth,
+    section: Section.TerminalWidth,
     example: `mjb_east_asian_width width;
 
 if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
@@ -3032,54 +3038,65 @@ if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
 
 // U+754C is wide: yes
 printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
-    related: ['mjb_display_width'],
+    related: ['mjb_terminal_width'],
     specs: [uax(11, 'East Asian Width')]
   },
   {
-    comment: 'Return the display width of a string.',
+    comment: 'Return the estimated terminal-cell width of printable, single-line text.',
     ret: 'mjb_status',
-    name: 'mjb_display_width',
+    name: 'mjb_terminal_width',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to normalize'),
+      buffer('The printable, single-line string to measure'),
       byte_length(),
       encoding(),
       {
-        name: 'context',
-        type: 'mjb_width_context',
-        description: 'The width context for ambiguous-width characters',
+        name: 'profile',
+        type: 'mjb_terminal_width_profile',
+        description: 'The terminal-width profile for ambiguous-width characters',
         wasm_generated: false,
         is_enum: true
       },
       {
         name: 'width',
         type: 'size_t *',
-        description: 'The width to store the result',
+        description: 'The number of terminal cells to store; set to zero on failure',
         wasm_generated: true
       }
     ],
     wasm: true,
-    section: Section.DisplayWidth,
-    details: 'Compute the number of display columns a string occupies in a terminal, ' +
-      'accounting for wide and ambiguous East Asian characters, combining marks, and emoji ' +
-      'sequences.',
+    section: Section.TerminalWidth,
+    details: 'Estimate the number of fixed terminal cells occupied by printable, single-line ' +
+      'text. The input is normalized to NFC so canonically equivalent text has the same width. ' +
+      'Combining and format characters occupy no additional cells, listed emoji-presentation ' +
+      'sequences occupy two cells, and text-presentation sequences retain their East Asian Width. ' +
+      'This is a deterministic terminal policy, not a measurement of proportional glyph advances. ' +
+      'Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived ' +
+      'character counts. Controls, line separators, and paragraph separators are rejected because ' +
+      'their effect depends on terminal state. On failure, `width` is set to zero.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The width was computed' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`width` is NULL, or `buffer` is NULL with a non-zero size' },
-      { value: 'MJB_STATUS_OVERFLOW', description: 'The width would overflow' }
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`width` is NULL, the profile is invalid, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is invalid or lacks required byte-order information' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description: 'The input contains a control, line separator, or paragraph separator' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'NFC normalization could not allocate memory' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The width would overflow' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'The input contains a malformed code-unit sequence' }
     ],
     example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
 size_t width;
 
-if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_WIDTH_CONTEXT_WESTERN, &width) != MJB_STATUS_OK) {
+if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8,
+    MJB_TERMINAL_WIDTH_NARROW, &width) != MJB_STATUS_OK) {
     return 1;
 }
 
-// Display columns: 3
-printf("Display columns: %zu", width);`,
-    related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_grapheme_width'],
-    specs: [uax(11, 'East Asian Width')]
+// Terminal cells: 3
+printf("Terminal cells: %zu", width);`,
+    related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_grapheme_width',
+      'mjb_next_grapheme_break', 'mjb_is_rgi_emoji'],
+    specs: [uax(11, 'East Asian Width'), uax(29, 'Unicode Text Segmentation'),
+      uts(51, 'Unicode Emoji')]
   },
   {
     comment: 'Parse a BCP 47 language tag.',

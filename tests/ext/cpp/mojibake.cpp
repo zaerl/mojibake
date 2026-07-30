@@ -256,7 +256,9 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(sequence->size(), 1u, "emoji_sequence size")
     ATT_ASSERT(mjb::is_emoji_sequence("\xF0\x9F\x99\x82"), true, "is_emoji_sequence")
     ATT_ASSERT(mjb::is_rgi_emoji("\xF0\x9F\x99\x82"), true, "is_rgi_emoji")
-    ATT_ASSERT(mjb::display_width("abc"), 3u, "display_width")
+    ATT_ASSERT(mjb::terminal_width("abc"), 3u, "terminal_width")
+    ATT_ASSERT(mjb::terminal_width("\xE2\x9D\xA4\xEF\xB8\x8F"), 2u,
+        "terminal_width emoji sequence")
 
     ATT_ASSERT(mjb::hangul_syllable_name(0xAC00), std::string("HANGUL SYLLABLE GA"),
         "hangul_syllable_name")

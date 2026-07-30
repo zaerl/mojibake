@@ -105,12 +105,12 @@ export type MojibakeWasmModule = {
   _mjb_next_grapheme_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
   _mjb_truncate_grapheme: (buffer: Pointer, byte_length: number, encoding: number, max_graphemes: number) => number;
-  // Return the number of bytes whose grapheme clusters fit within max_columns display columns.
-  _mjb_truncate_grapheme_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, max_columns: number) => number;
+  // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
+  _mjb_truncate_grapheme_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
   _mjb_truncate_word: (buffer: Pointer, byte_length: number, encoding: number, max_segments: number) => number;
-  // Return the number of bytes whose word-break segments fit within max_columns display columns.
-  _mjb_truncate_word_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, max_columns: number) => number;
+  // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
+  _mjb_truncate_word_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.
   _mjb_bidi_resolve: (buffer: Pointer, byte_length: number, encoding: number, direction: number, result: Pointer) => number;
   // Return true if the codepoint is a valid Unicode identifier start (Unicode 18.0.0 UAX #31 ID_Start).
@@ -165,8 +165,8 @@ export type MojibakeWasmModule = {
   _mjb_hangul_syllable_name: (codepoint: Codepoint, buffer: Pointer, byte_length: number) => number;
   // Return the east asian width of a codepoint.
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => number;
-  // Return the display width of a string.
-  _mjb_display_width: (buffer: Pointer, byte_length: number, encoding: number, context: number, width: Pointer) => number;
+  // Return the estimated terminal-cell width of printable, single-line text.
+  _mjb_terminal_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, width: Pointer) => number;
   // Parse a BCP 47 language tag.
   _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer) => number;
   // Set the current process-global locale.

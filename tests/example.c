@@ -833,7 +833,7 @@ int test_example(void *arg) {
     MJB_TEST_COVERAGE(mjb_truncate_grapheme_width); // Added by the script
     const char *input = "A\xE7\x95\x8C"; // A界
     size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_WIDTH_CONTEXT_WESTERN, 2);
+        MJB_TERMINAL_WIDTH_NARROW, 2);
 
     // Two columns include 1 byte
     // printf("Two columns include %zu byte", bytes);
@@ -858,7 +858,7 @@ int test_example(void *arg) {
     MJB_TEST_COVERAGE(mjb_truncate_word_width); // Added by the script
     const char *input = "Hello world";
     size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_WIDTH_CONTEXT_WESTERN, 6);
+        MJB_TERMINAL_WIDTH_NARROW, 6);
 
     // Six columns include 6 bytes
     // printf("Six columns include %zu bytes", bytes);
@@ -1364,21 +1364,21 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_display_width
-    MJB_TEST_COVERAGE(mjb_display_width); // Added by the script
+    // Example for mjb_terminal_width
+    MJB_TEST_COVERAGE(mjb_terminal_width); // Added by the script
     const char *input = "A\xE7\x95\x8C"; // A界
     size_t width;
 
-    if(mjb_display_width(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_WIDTH_CONTEXT_WESTERN, &width) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_display_width test failed") // Added by the script
+    if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, &width) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_terminal_width test failed") // Added by the script
         return 1;
     }
 
-    // Display columns: 3
-    // printf("Display columns: %zu", width);
-    snprintf(test_buffer, sizeof(test_buffer), "Display columns: %zu", width); // Added by the script
-    ATT_ASSERT(test_buffer, "Display columns: 3", "mjb_display_width test failed") // Added by the script
+    // Terminal cells: 3
+    // printf("Terminal cells: %zu", width);
+    snprintf(test_buffer, sizeof(test_buffer), "Terminal cells: %zu", width); // Added by the script
+    ATT_ASSERT(test_buffer, "Terminal cells: 3", "mjb_terminal_width test failed") // Added by the script
 }
 
 {

@@ -122,7 +122,7 @@ static void mjbsh_print_break_json_array(const char *name, const char *input, si
 }
 
 static void mjbsh_print_break_json(const char *input, size_t input_size, size_t input_real_size,
-    size_t display_width, mjbsh_break_mode mode) {
+    size_t terminal_width, mjb_status terminal_width_status, mjbsh_break_mode mode) {
     bool first_field = true;
 
     putchar('{');
@@ -133,8 +133,13 @@ static void mjbsh_print_break_json(const char *input, size_t input_size, size_t 
     mjbsh_print_break_json_field("real_input_size", &first_field);
     printf("%zu", input_real_size);
 
-    mjbsh_print_break_json_field("display_width", &first_field);
-    printf("%zu", display_width);
+    mjbsh_print_break_json_field("terminal_width", &first_field);
+
+    if(terminal_width_status == MJB_STATUS_OK) {
+        printf("%zu", terminal_width);
+    } else {
+        printf("null");
+    }
 
     mjbsh_print_break_json_field("raw_bytes", &first_field);
     putchar('[');
@@ -292,21 +297,24 @@ static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
 static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode) {
     size_t input_size = strlen(input);
     size_t input_real_size = mjb_count_codepoints(input, input_size, MJB_ENC_UTF_8);
-    size_t display_width;
-
-    if(mjb_display_width(input, input_size, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_AUTO,
-           &display_width) != MJB_STATUS_OK) {
-        display_width = 0;
-    }
+    size_t terminal_width = 0;
+    mjb_status terminal_width_status = mjb_terminal_width(input, input_size, MJB_ENC_UTF_8,
+        MJB_TERMINAL_WIDTH_NARROW, &terminal_width);
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
-        mjbsh_print_break_json(input, input_size, input_real_size, display_width, mode);
+        mjbsh_print_break_json(input, input_size, input_real_size, terminal_width,
+            terminal_width_status, mode);
         return;
     }
 
     printf("Raw input size: %s%zu%s\n", mjbsh_red(), input_size, mjbsh_reset());
     printf("Real input size: %s%zu%s\n", mjbsh_yellow(), input_real_size, mjbsh_reset());
-    printf("Display width: %s%zu%s\n", mjbsh_green(), display_width, mjbsh_reset());
+    if(terminal_width_status == MJB_STATUS_OK) {
+        printf("Terminal width: %s%zu%s\n", mjbsh_green(), terminal_width, mjbsh_reset());
+    } else {
+        printf("Terminal width: %sunsupported%s (%s)\n", mjbsh_yellow(), mjbsh_reset(),
+            mjb_status_message(terminal_width_status));
+    }
 
     printf("\nRaw bytes: ");
 

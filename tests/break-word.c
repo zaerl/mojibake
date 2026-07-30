@@ -64,24 +64,28 @@ static void test_truncate_word(void) {
     ATT_ASSERT(mjb_truncate_word("Hello World", 11, MJB_ENC_UTF_8, 5), (size_t)11,
         "Truncate word: 5 segments (no-op)")
 
-    ATT_ASSERT(mjb_truncate_word_width("", 0, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10),
+    ATT_ASSERT(mjb_truncate_word_width("", 0, MJB_ENC_UTF_8, MJB_TERMINAL_WIDTH_NARROW, 10),
         (size_t)0, "Truncate word width: empty string")
-    ATT_ASSERT(mjb_truncate_word_width(NULL, 1, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN, 10),
+    ATT_ASSERT(mjb_truncate_word_width(NULL, 1, MJB_ENC_UTF_8, MJB_TERMINAL_WIDTH_NARROW, 10),
         (size_t)0, "Truncate word width: NULL string")
-    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN,
+    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8,
+                   MJB_TERMINAL_WIDTH_NARROW,
                    0),
         (size_t)0, "Truncate word width: 0 columns")
 
     // "Hello"=5 cols, " "=1 col would exceed 5
-    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN,
+    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8,
+                   MJB_TERMINAL_WIDTH_NARROW,
                    5),
         (size_t)5, "Truncate word width: 5 columns")
 
     // "Hello " = 6 cols, "World" would exceed 6
-    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN,
+    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8,
+                   MJB_TERMINAL_WIDTH_NARROW,
                    6),
         (size_t)6, "Truncate word width: 6 columns")
-    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8, MJB_WIDTH_CONTEXT_WESTERN,
+    ATT_ASSERT(mjb_truncate_word_width("Hello World", 11, MJB_ENC_UTF_8,
+                   MJB_TERMINAL_WIDTH_NARROW,
                    11),
         (size_t)11, "Truncate word width: 11 columns (no-op)")
 }

@@ -357,10 +357,9 @@ export const planeValues = [
   16,
 ];
 
-export const widthContexts = [
-  'MJB_WIDTH_CONTEXT_WESTERN',
-  'MJB_WIDTH_CONTEXT_EAST_ASIAN',
-  'MJB_WIDTH_CONTEXT_AUTO',
+export const terminalWidthProfiles = [
+  'MJB_TERMINAL_WIDTH_NARROW',
+  'MJB_TERMINAL_WIDTH_EAST_ASIAN',
 ];
 
 export const statuses = [

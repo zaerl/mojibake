@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,918** C assertions and **118** JavaScript assertions, including all
+Mojibake runs a total of **4,537,934** C assertions and **120** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -49,11 +49,11 @@ the official tests included in the standard:
 | `mjb_resolved_script_set`                  | 97          |
 | `mjb_codepoint_info`                       | 82          |
 | `mjb_locale_parse`                         | 75          |
+| `mjb_terminal_width`                       | 63          |
 | `mjb_filter_into`                          | 56          |
 | `mjb_collation_key`                        | 54          |
 | `mjb_confusable_skeleton_into`             | 50          |
 | `mjb_hangul_syllable_composition`          | 50          |
-| `mjb_display_width`                        | 49          |
 | `mjb_caseless_match`                       | 45          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_codepoint_east_asian_width`           | 35          |
@@ -76,11 +76,11 @@ the official tests included in the standard:
 | `mjb_is_ascii`                             | 12          |
 | `mjb_truncate_grapheme`                    | 11          |
 | `mjb_codepoint_script`                     | 10          |
+| `mjb_truncate_grapheme_width`              | 10          |
 | `mjb_plane_name`                           | 9           |
 | `mjb_codepoint_is_cjk_ideograph`           | 8           |
 | `mjb_idna_to_ascii_into`                   | 8           |
 | `mjb_reset`                                | 8           |
-| `mjb_truncate_grapheme_width`              | 8           |
 | `mjb_truncate_word`                        | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
@@ -126,7 +126,7 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4537918** |
+| **Total**                                  | **4537934** |
 
 ## JavaScript
 
@@ -140,6 +140,7 @@ the official tests included in the standard:
 | `Mojibake.codepointPropertyBinary`          | 3          |
 | `Mojibake.idnaToAscii`                      | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
+| `Mojibake.terminalWidth`                    | 3          |
 | `Mojibake.codepointPropertyInt`             | 2          |
 | `Mojibake.filter`                           | 2          |
 | `Mojibake.mapCase`                          | 2          |
@@ -184,7 +185,6 @@ the official tests included in the standard:
 | `Mojibake.countCodepoints`                  | 1          |
 | `Mojibake.create`                           | 1          |
 | `Mojibake.detectEncoding`                   | 1          |
-| `Mojibake.displayWidth`                     | 1          |
 | `Mojibake.forEachCharacter`                 | 1          |
 | `Mojibake.getLocale`                        | 1          |
 | `Mojibake.hangulSyllableName`               | 1          |
@@ -213,4 +213,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **118**    |
+| **Total**                                   | **120**    |

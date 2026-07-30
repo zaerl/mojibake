@@ -15,7 +15,6 @@ set(TEST_SOURCES
     cjk.c
     codepoint.c
     collation.c
-    display.c
     emoji.c
     encoding.c
     east-asian-width.c
@@ -38,6 +37,7 @@ set(TEST_SOURCES
     segmentation.c
     special-case.c
     string.c
+    terminal-width.c
     test.c
     utf.c
     version.c
@@ -97,7 +97,7 @@ add_test(NAME "Caseless" COMMAND mojibake-test -f caseless)
 add_test(NAME "CJK" COMMAND mojibake-test -f cjk)
 add_test(NAME "Codepoint" COMMAND mojibake-test -f codepoint)
 add_test(NAME "Collation" COMMAND mojibake-test -f collation)
-add_test(NAME "Display" COMMAND mojibake-test -f display)
+add_test(NAME "Terminal Width" COMMAND mojibake-test -f terminal_width)
 add_test(NAME "East Asian Width" COMMAND mojibake-test -f east_asian_width)
 add_test(NAME "Embedded NULL" COMMAND mojibake-test -f embedded_null)
 add_test(NAME "Emoji" COMMAND mojibake-test -f emoji)
