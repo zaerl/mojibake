@@ -7,28 +7,28 @@
 import SwiftUI
 
 struct ContentView: View {
-    private enum Section: String, CaseIterable, Identifiable {
-        case codepoint
-        case characters
-        case emoji
-        case security
+    private enum Tool: String, Identifiable {
+        case codepoint = "Codepoint"
+        case characters = "Characters"
+        case emoji = "Emoji"
+        case security = "Security"
         case idna = "IDNA"
-        case collation
+        case collation = "Collation"
         case caseless = "Caseless Match"
-        case encoding
-        case `case`
-        case breaks
-        case bidi
+        case encoding = "Encoding"
+        case `case` = "Case"
+        case breaks = "Breaks"
+        case bidi = "Bidi"
         case terminalWidth = "Terminal Width"
-        case normalize
-        case filter
+        case normalize = "Normalize"
+        case filter = "Filter"
 
         var id: Self {
             self
         }
 
         var title: String {
-            rawValue.capitalized
+            rawValue
         }
 
         var systemImage: String {
@@ -65,14 +65,51 @@ struct ContentView: View {
         }
     }
 
-    @State private var selection: Section? = .codepoint
+    private enum SidebarSection: String, CaseIterable, Identifiable {
+        case characterData = "Character Data"
+        case textProcessing = "Text Processing"
+        case textAnalysis = "Text Analysis"
+        case comparison = "Comparison"
+        case security = "Security"
+
+        var id: Self {
+            self
+        }
+
+        var tools: [Tool] {
+            switch self {
+            case .characterData:
+                [.codepoint, .characters, .emoji]
+            case .textProcessing:
+                [.case, .normalize, .filter]
+            case .textAnalysis:
+                [.encoding, .breaks, .bidi, .terminalWidth]
+            case .comparison:
+                [.collation, .caseless]
+            case .security:
+                [.security, .idna]
+            }
+        }
+    }
+
+    @State private var selection: Tool? = .codepoint
     @State private var requestedCodepoint: String?
+    @State private var expandedSections = Set(SidebarSection.allCases)
 
     var body: some View {
         NavigationSplitView {
-            List(Section.allCases, selection: $selection) { section in
-                Label(section.title, systemImage: section.systemImage)
-                    .tag(section)
+            List(selection: $selection) {
+                ForEach(SidebarSection.allCases) { section in
+                    Section(
+                        section.rawValue,
+                        isExpanded: expansionBinding(for: section)
+                    ) {
+                        ForEach(section.tools) { tool in
+                            Label(tool.title, systemImage: tool.systemImage)
+                                .tag(tool)
+                        }
+                    }
+                }
             }
             .navigationSplitViewColumnWidth(min: 160, ideal: 180)
         } detail: {
@@ -107,6 +144,18 @@ struct ContentView: View {
                 FilterView()
             case nil:
                 ContentUnavailableView("Select a tool", systemImage: "sidebar.left")
+            }
+        }
+    }
+
+    private func expansionBinding(for section: SidebarSection) -> Binding<Bool> {
+        Binding {
+            expandedSections.contains(section)
+        } set: { isExpanded in
+            if isExpanded {
+                expandedSections.insert(section)
+            } else {
+                expandedSections.remove(section)
             }
         }
     }
