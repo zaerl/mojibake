@@ -689,8 +689,8 @@ struct NumericValue {
 }
 
 [[nodiscard]] inline mjb_status for_each_character(std::string_view input,
-    mjb_for_each_character_fn callback, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_for_each_character(input.data(), input.size(), encoding, callback);
+    mjb_for_each_codepoint_fn callback, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
+    return mjb_for_each_codepoint(input.data(), input.size(), encoding, callback);
 }
 
 [[nodiscard]] inline TextResult convert_encoding_result(std::string_view input,

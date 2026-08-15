@@ -321,9 +321,9 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_for_each_character
-    MJB_TEST_COVERAGE(mjb_for_each_character); // Added by the script
-    mjb_status status = mjb_for_each_character("ABC", 3, MJB_ENC_UTF_8, NULL);
+    // Example for mjb_for_each_codepoint
+    MJB_TEST_COVERAGE(mjb_for_each_codepoint); // Added by the script
+    mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8, NULL);
 
     // A callback is required: yes
     bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -331,7 +331,7 @@ int test_example(void *arg) {
     // A callback is required: yes
     // printf("A callback is required: %s", callback_required ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "A callback is required: %s", callback_required ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "A callback is required: yes", "mjb_for_each_character test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "A callback is required: yes", "mjb_for_each_codepoint test failed") // Added by the script
 }
 
 {

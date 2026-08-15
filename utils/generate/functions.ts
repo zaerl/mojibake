@@ -963,9 +963,9 @@ printf("%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_
 printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE));`
   },
   {
-    comment: 'Run a callback for each character of a string.',
+    comment: 'Run a callback for each codepoint of a string.',
     ret: 'mjb_status',
-    name: 'mjb_for_each_character',
+    name: 'mjb_for_each_codepoint',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
@@ -973,14 +973,14 @@ printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_
       encoding(),
       {
         name: 'callback',
-        type: 'mjb_for_each_character_fn',
-        description: 'The function to call for each character',
+        type: 'mjb_for_each_codepoint_fn',
+        description: 'The function to call for each codepoint',
         wasm_generated: true
       }
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `mjb_status status = mjb_for_each_character("ABC", 3, MJB_ENC_UTF_8, NULL);
+    example: `mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;

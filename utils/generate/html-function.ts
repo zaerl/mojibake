@@ -410,7 +410,7 @@ export class CFunction implements MojibakeFunction {
           ret += this.getBitfieldInput(i, filterFlags, filterFlagValues,
             'Leave all unchecked for MJB_FILTER_NONE.');
           break;
-        // case 'mjb_for_each_character_fn':
+        // case 'mjb_for_each_codepoint_fn':
         // case 'mjb_free_fn':
         case 'mjb_identifier_profile':
           ret += this.getSelectInput(i, identifierProfiles, null);

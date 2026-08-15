@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,934** C assertions and **120** JavaScript assertions, including all
+Mojibake runs a total of **4,537,934** C assertions and **119** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -84,7 +84,7 @@ the official tests included in the standard:
 | `mjb_truncate_word`                        | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
-| `mjb_for_each_character`                   | 7           |
+| `mjb_for_each_codepoint`                   | 7           |
 | `mjb_truncate_word_width`                  | 7           |
 | `mjb_codepoint_is_combining`               | 6           |
 | `mjb_codepoint_is_graphic`                 | 6           |
@@ -185,7 +185,6 @@ the official tests included in the standard:
 | `Mojibake.countCodepoints`                  | 1          |
 | `Mojibake.create`                           | 1          |
 | `Mojibake.detectEncoding`                   | 1          |
-| `Mojibake.forEachCharacter`                 | 1          |
 | `Mojibake.getLocale`                        | 1          |
 | `Mojibake.hangulSyllableName`               | 1          |
 | `Mojibake.idnaToUnicode`                    | 1          |
@@ -213,4 +212,5 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **120**    |
+| `Mojibake.forEachCodepoint`                 | 0          |
+| **Total**                                   | **119**    |

@@ -56,7 +56,7 @@ ATT_ASSERT(mojibake.idnaToUnicode('xn--bcher-kva.example')?.output, 'bücher.exa
 ATT_ASSERT(mojibake.idnaToAscii('a..b')?.valid, false, 'idnaToAscii validation');
 ATT_ASSERT((mojibake.idnaToAscii('a..b')?.errors ?? 0) & IdnaError.EMPTY_LABEL,
   IdnaError.EMPTY_LABEL, 'idnaToAscii error flags');
-ATT_ASSERT(mojibake.forEachCharacter('A')?.[0]?.character.codepoint, 0x41, 'forEachCharacter');
+ATT_ASSERT(mojibake.forEachCodepoint('A')?.[0]?.character.codepoint, 0x41, 'forEachCodepoint');
 ATT_ASSERT(mojibake.normalizationQuickCheck('abc'), QuickCheckResult.YES, 'normalizationQuickCheck');
 ATT_ASSERT(mojibake.normalizationQuickCheck('\u00E9', Normalization.NFD), QuickCheckResult.NO,
   'normalizationQuickCheck negative result');
