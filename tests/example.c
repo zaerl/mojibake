@@ -1255,21 +1255,21 @@ int test_example(void *arg) {
 }
 
 {
-    // Example for mjb_classify_emoji_sequence
-    MJB_TEST_COVERAGE(mjb_classify_emoji_sequence); // Added by the script
+    // Example for mjb_emoji_sequence_info
+    MJB_TEST_COVERAGE(mjb_emoji_sequence_info); // Added by the script
     const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
     mjb_emoji_sequence emoji;
 
-    if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+    if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
         &emoji) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_classify_emoji_sequence test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_emoji_sequence_info test failed") // Added by the script
         return 1;
     }
 
     // Sequence codepoints: 2
     // printf("Sequence codepoints: %zu", emoji.codepoint_count);
     snprintf(test_buffer, sizeof(test_buffer), "Sequence codepoints: %zu", emoji.codepoint_count); // Added by the script
-    ATT_ASSERT(test_buffer, "Sequence codepoints: 2", "mjb_classify_emoji_sequence test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sequence codepoints: 2", "mjb_emoji_sequence_info test failed") // Added by the script
 }
 
 {

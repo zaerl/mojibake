@@ -93,7 +93,7 @@ private struct EmojiAnalysis {
                 byteLength,
                 MJB_ENC_UTF_8
             )
-            let hasMetadata = mjb_classify_emoji_sequence(
+            let hasMetadata = mjb_emoji_sequence_info(
                 buffer.baseAddress,
                 byteLength,
                 MJB_ENC_UTF_8,

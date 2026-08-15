@@ -1029,7 +1029,7 @@ struct EmojiSequence {
 [[nodiscard]] inline std::optional<EmojiSequence> emoji_sequence(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     EmojiSequence sequence;
-    const mjb_status status = mjb_classify_emoji_sequence(input.data(), input.size(), encoding,
+    const mjb_status status = mjb_emoji_sequence_info(input.data(), input.size(), encoding,
         &sequence.data);
 
     if(status == MJB_STATUS_NOT_FOUND) {

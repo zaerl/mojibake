@@ -250,7 +250,7 @@ static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length,
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    if(mjb_classify_emoji_sequence(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
+    if(mjb_emoji_sequence_info(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
         fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification + emoji.codepoint_count;
     }
 

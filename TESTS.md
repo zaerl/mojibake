@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,446** C assertions and **117** JavaScript assertions, including all
+Mojibake runs a total of **4,537,446** C assertions and **119** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -34,7 +34,7 @@ the official tests included in the standard:
 | `mjb_result_free`                          | 10693       |
 | `mjb_idna_to_unicode`                      | 6408        |
 | `mjb_idna_to_ascii`                        | 6405        |
-| `mjb_classify_emoji_sequence`              | 5286        |
+| `mjb_emoji_sequence_info`                  | 5286        |
 | `mjb_map_case`                             | 3492        |
 | `mjb_next_word_break`                      | 1947        |
 | `mjb_codepoint_emoji_properties`           | 1429        |
@@ -137,6 +137,7 @@ the official tests included in the standard:
 | `Mojibake.resolvedScriptSet`                | 5          |
 | `Mojibake.collationKey`                     | 4          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
+| `Mojibake.confusableMatch`                  | 3          |
 | `Mojibake.idnaToAscii`                      | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.terminalWidth`                    | 3          |
@@ -147,7 +148,6 @@ the official tests included in the standard:
 | `Mojibake.bidiResolve`                      | 1          |
 | `Mojibake.categoryIsCombining`              | 1          |
 | `Mojibake.categoryIsGraphic`                | 1          |
-| `Mojibake.classifyEmojiSequence`            | 1          |
 | `Mojibake.codepointBlock`                   | 1          |
 | `Mojibake.codepointEastAsianWidth`          | 1          |
 | `Mojibake.codepointEmojiProperties`         | 1          |
@@ -212,5 +212,5 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| `Mojibake.confusableMatch`                  | 0          |
-| **Total**                                   | **117**    |
+| `Mojibake.emojiSequenceInfo`                | 0          |
+| **Total**                                   | **119**    |

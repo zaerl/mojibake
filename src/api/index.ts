@@ -1385,7 +1385,7 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_extended_pictographic(codepoint) ? true : false;
   }
 
-  // mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_status mjb_emoji_sequence_info(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_emoji_sequence *emoji)
   classifyEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
     const structSize = 12;
@@ -1393,7 +1393,7 @@ export class Mojibake {
     const ptr = this.malloc(structSize);
 
     try {
-      const status = this.module._mjb_classify_emoji_sequence(wasmInput.ptr, wasmInput.size,
+      const status = this.module._mjb_emoji_sequence_info(wasmInput.ptr, wasmInput.size,
         wasmInput.encoding, ptr);
 
       if(status !== Status.OK) {
