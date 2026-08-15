@@ -21,6 +21,7 @@ jobs:
     name: Test (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +38,8 @@ jobs:
           - label: Haiku R1/beta5
             os: haiku
             version: 'r1beta5'
+            # See https://discuss.haiku-os.org/t/what-happen-with-haikuports-repos-for-old-beta-releases/19674
+            experimental: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
