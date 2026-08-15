@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,934** C assertions and **119** JavaScript assertions, including all
+Mojibake runs a total of **4,537,446** C assertions and **120** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -22,15 +22,15 @@ the official tests included in the standard:
 
 | Test                                       | Coverage    |
 | ------------------------------------------ | ----------- |
-| `mjb_normalize_into`                       | 2824127     |
+| `mjb_normalize_into`                       | 2823987     |
 | `mjb_bidi_resolve`                         | 582573      |
-| `mjb_collation_compare`                    | 424529      |
-| `mjb_normalize`                            | 424429      |
+| `mjb_normalize`                            | 424409      |
+| `mjb_collation_compare`                    | 424191      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_nfkc_casefold_into`                   | 74749       |
 | `mjb_nfkc_casefold`                        | 32037       |
 | `mjb_map_case_into`                        | 24756       |
-| `mjb_next_line_break`                      | 19346       |
+| `mjb_next_line_break`                      | 19352       |
 | `mjb_result_free`                          | 10693       |
 | `mjb_idna_to_unicode`                      | 6408        |
 | `mjb_idna_to_ascii`                        | 6405        |
@@ -39,7 +39,7 @@ the official tests included in the standard:
 | `mjb_next_word_break`                      | 1947        |
 | `mjb_codepoint_emoji_properties`           | 1429        |
 | `mjb_next_grapheme_break`                  | 880         |
-| `mjb_codepoint_script_extensions`          | 639         |
+| `mjb_codepoint_script_extensions`          | 642         |
 | `mjb_next_sentence_break`                  | 515         |
 | `mjb_are_confusable`                       | 241         |
 | `mjb_filter`                               | 161         |
@@ -94,9 +94,9 @@ the official tests included in the standard:
 | `mjb_set_memory_functions`                 | 6           |
 | `mjb_alloc`                                | 5           |
 | `mjb_codepoint_is_hangul_jamo`             | 5           |
+| `mjb_codepoint_is_hangul_trailing_jamo`    | 5           |
 | `mjb_get_locale`                           | 5           |
 | `mjb_codepoint_is_hangul_leading_jamo`     | 4           |
-| `mjb_codepoint_is_hangul_trailing_jamo`    | 4           |
 | `mjb_codepoint_is_hangul_vowel_jamo`       | 4           |
 | `mjb_codepoint_is_pattern_syntax`          | 4           |
 | `mjb_codepoint_is_pattern_white_space`     | 4           |
@@ -126,7 +126,7 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4537934** |
+| **Total**                                  | **4537446** |
 
 ## JavaScript
 
@@ -185,6 +185,7 @@ the official tests included in the standard:
 | `Mojibake.countCodepoints`                  | 1          |
 | `Mojibake.create`                           | 1          |
 | `Mojibake.detectEncoding`                   | 1          |
+| `Mojibake.forEachCodepoint`                 | 1          |
 | `Mojibake.getLocale`                        | 1          |
 | `Mojibake.hangulSyllableName`               | 1          |
 | `Mojibake.idnaToUnicode`                    | 1          |
@@ -212,5 +213,4 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| `Mojibake.forEachCodepoint`                 | 0          |
-| **Total**                                   | **119**    |
+| **Total**                                   | **120**    |
