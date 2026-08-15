@@ -203,7 +203,7 @@ Mojibake is tested on:
 6. FreeBSD 15.1 (clang, clang++)
 7. OpenBSD 7.9 (clang, clang++)
 8. NetBSD 10.1 (clang, clang++)
-9. Haiku R1/beta6 (clang, clang++)
+9. ~~Haiku R1/beta5 (clang, clang++)~~ (temporarily disabled because HaikuPorts don't mantain beta5)
 10. Windows 11 (MSVC, MinGW-w64)
 
 ### CMake dependency
