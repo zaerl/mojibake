@@ -221,7 +221,7 @@ private struct SecurityResolution {
         return firstUTF8.withUnsafeBufferPointer { firstBuffer in
             secondUTF8.withUnsafeBufferPointer { secondBuffer in
                 var isConfusable = false
-                let status = mjb_are_confusable(
+                let status = mjb_confusable_match(
                     firstBuffer.baseAddress,
                     firstBuffer.count - 1,
                     MJB_ENC_UTF_8,
@@ -235,7 +235,7 @@ private struct SecurityResolution {
                     return (
                         nil,
                         MojibakeFormatting.statusMessage(
-                            operation: "mjb_are_confusable",
+                            operation: "mjb_confusable_match",
                             status: status
                         )
                     )

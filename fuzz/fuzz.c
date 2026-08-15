@@ -613,7 +613,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             }
 
             bool confusable;
-            fuzz_sink += (size_t)mjb_are_confusable(buffer, size / 2, encoding, buffer + size / 2,
+            fuzz_sink += (size_t)mjb_confusable_match(buffer, size / 2, encoding, buffer + size / 2,
                 size - size / 2, encoding, &confusable);
             break;
         }

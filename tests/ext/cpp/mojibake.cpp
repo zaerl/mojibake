@@ -107,16 +107,16 @@ int test_cpp_mojibake(void *arg) {
 
 #if MJB_FEATURE_SECURITY
     // is_confusable free function
-    ATT_ASSERT(mjb::is_confusable("\xD0\x90", "A"), true, "is_confusable: Cyrillic A / Latin A")
-    ATT_ASSERT(mjb::is_confusable("hello", "hello"), true, "is_confusable: same string")
-    ATT_ASSERT(mjb::is_confusable("a", "b"), false, "is_confusable: a / b")
+    ATT_ASSERT(mjb::confusable_match("\xD0\x90", "A"), true, "is_confusable: Cyrillic A / Latin A")
+    ATT_ASSERT(mjb::confusable_match("hello", "hello"), true, "is_confusable: same string")
+    ATT_ASSERT(mjb::confusable_match("a", "b"), false, "is_confusable: a / b")
     ATT_ASSERT(mjb::confusable_skeleton("h\xD0\xB5llo"), std::string("hello"),
         "confusable_skeleton")
 #else
     bool confusables_disabled = false;
 
     try {
-        (void)mjb::is_confusable("a", "b");
+        (void)mjb::confusable_match("a", "b");
     } catch(const mjb::LibraryError &error) {
         confusables_disabled = error.status() == MJB_STATUS_FEATURE_NOT_ENABLED;
     }

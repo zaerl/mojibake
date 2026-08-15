@@ -15,8 +15,10 @@ Codename:
 - Renamed `mjb_for_each_character` to `mjb_for_each_codepoint`
 - Renamed `mjb_for_each_character_fn` to `mjb_for_each_codepoint_fn`
 - Renamed `_mjbForEachCharacterCallback` to `_mjbForEachCodepointCallback`
+- Renamed `mjb_are_confusable` to `mjb_confusable_match`
 - WASM: renamed `forEachCharacter` to `forEachCodepoint`
 - WASM: renamed `forEachCharacter` to `forEachCodepoint`
+- WASM: renamed `areConfusable` to `confusableMatch`
 
 ### Fixed
 

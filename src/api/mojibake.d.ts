@@ -134,7 +134,7 @@ export type MojibakeWasmModule = {
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
   _mjb_confusable_skeleton: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
   // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-  _mjb_are_confusable: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, confusable: Pointer) => number;
+  _mjb_confusable_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, confusable: Pointer) => number;
   // Return the emoji properties.
   _mjb_codepoint_emoji_properties: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property.

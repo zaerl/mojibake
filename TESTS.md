@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,446** C assertions and **120** JavaScript assertions, including all
+Mojibake runs a total of **4,537,446** C assertions and **117** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -41,7 +41,7 @@ the official tests included in the standard:
 | `mjb_next_grapheme_break`                  | 880         |
 | `mjb_codepoint_script_extensions`          | 642         |
 | `mjb_next_sentence_break`                  | 515         |
-| `mjb_are_confusable`                       | 241         |
+| `mjb_confusable_match`                     | 241         |
 | `mjb_filter`                               | 161         |
 | `mjb_convert_encoding`                     | 137         |
 | `mjb_count_codepoints`                     | 119         |
@@ -136,7 +136,6 @@ the official tests included in the standard:
 | `Mojibake.caselessMatch`                    | 5          |
 | `Mojibake.resolvedScriptSet`                | 5          |
 | `Mojibake.collationKey`                     | 4          |
-| `Mojibake.areConfusable`                    | 3          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
 | `Mojibake.idnaToAscii`                      | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
@@ -213,4 +212,5 @@ the official tests included in the standard:
 | `Mojibake.unicodeVersion`                   | 1          |
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
-| **Total**                                   | **120**    |
+| `Mojibake.confusableMatch`                  | 0          |
+| **Total**                                   | **117**    |

@@ -201,7 +201,7 @@ int test_mojibake(void *arg) {
 #endif
 #if MJB_FEATURE_SECURITY
     bool confusable;
-    ATT_ASSERT_STATUS(mjb_are_confusable("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_confusable_match("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
                           &confusable),
         MJB_STATUS_NO_MEMORY, "Confusable comparison handles allocation failure")
 #endif

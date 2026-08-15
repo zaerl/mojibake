@@ -1316,17 +1316,17 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length,
+  // mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length,
   // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
   // bool *confusable)
-  areConfusable(s1: MojibakeInput, s2: MojibakeInput,
+  confusableMatch(s1: MojibakeInput, s2: MojibakeInput,
     options: TextInputOptions = {}): boolean | null {
     const wasmInput1 = this.copyInput(s1, options.encoding);
     const wasmInput2 = this.copyInput(s2, options.additionalEncoding ?? options.encoding);
     const confusablePtr = this.malloc(1);
 
     try {
-      const status = this.module._mjb_are_confusable(wasmInput1.ptr, wasmInput1.size,
+      const status = this.module._mjb_confusable_match(wasmInput1.ptr, wasmInput1.size,
         wasmInput1.encoding, wasmInput2.ptr, wasmInput2.size, wasmInput2.encoding, confusablePtr);
 
       return status === Status.OK ? this.module.HEAPU8[confusablePtr] !== 0 : null;

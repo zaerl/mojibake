@@ -2782,7 +2782,7 @@ bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == M
 printf("Japanese writing system: %s", japanese ? "yes" : "no");
 ```
 
-See also: [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions), [`mjb_is_identifier`](#mjb_is_identifier), [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_are_confusable`](#mjb_are_confusable).
+See also: [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions), [`mjb_is_identifier`](#mjb_is_identifier), [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_match`](#mjb_confusable_match).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
@@ -2855,7 +2855,7 @@ printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into), [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into), [`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
@@ -2917,16 +2917,16 @@ if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(in
 printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);
 ```
 
-See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_are_confusable`](#mjb_are_confusable), [`mjb_is_identifier`](#mjb_is_identifier).
+See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).
 
 Specifications: [UTS #39: Unicode Security Mechanisms, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html).
 
-## `mjb_are_confusable`
+## `mjb_confusable_match`
 
 Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 
 ```c
-mjb_status mjb_are_confusable(
+mjb_status mjb_confusable_match(
     const char *s1,
     size_t s1_byte_length,
     mjb_encoding s1_encoding,
@@ -2964,7 +2964,7 @@ const char *latin = "hello";
 const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
 bool confusable;
 
-if(mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+if(mjb_confusable_match(latin, strlen(latin), MJB_ENC_UTF_8,
     mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
     return 1;
 }
@@ -4036,6 +4036,6 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Unicode Collation Algorithm, DUCET | `mjb_collation_compare`, `mjb_collation_key` | [UTS #10](https://www.unicode.org/reports/tr10/tr10-54.html) | `CollationTest_NON_IGNORABLE.txt`, `CollationTest_SHIFTED.txt`, and `tests/collation.c`; surrogate-code-point rows are filtered because public string input rejects ill-formed surrogate code points. |
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Resolved-script and mixed-script detection | `mjb_resolved_script_set` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | UTS #39 resolved-script examples, augmented writing-system values, encodings, embedded NULs, and error handling in `tests/security.c`. |
-| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_are_confusable` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
+| Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_confusable_match` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | Terminal-cell width policy | `mjb_terminal_width`, `mjb_truncate_grapheme_width`, `mjb_truncate_word_width`; consumes `mjb_codepoint_east_asian_width`, grapheme boundaries, normalization, and emoji-sequence data | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `EastAsianWidth.txt`, emoji sequence data, normalization data, `tests/east-asian-width.c`, `tests/terminal-width.c`, `tests/segmentation.c`, and `tests/break-word.c`; terminal cell counts are a documented local policy, not font or renderer measurements. |
