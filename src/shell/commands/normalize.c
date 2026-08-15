@@ -88,7 +88,7 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
 
     if(result.output_size > 0 &&
         mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-            mjbsh_next_character) != MJB_STATUS_OK) {
+            mjbsh_next_codepoint) != MJB_STATUS_OK) {
         puts("");
         ret = false;
 

@@ -346,7 +346,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
 
     if(result.output_size > 0 &&
         mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-            is_json ? mjbsh_next_array_character : mjbsh_next_character) != MJB_STATUS_OK) {
+            is_json ? mjbsh_next_array_codepoint : mjbsh_next_codepoint) != MJB_STATUS_OK) {
         goto cleanup;
     }
 
