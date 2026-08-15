@@ -3004,7 +3004,7 @@ if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
 printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
 ```
 
-See also: [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
+See also: [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info), [`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -3213,12 +3213,12 @@ const char *mjb_plane_name(
 printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));
 ```
 
-## `mjb_classify_emoji_sequence`
+## `mjb_emoji_sequence_info`
 
 Return emoji sequence metadata for a complete string.
 
 ```c
-mjb_status mjb_classify_emoji_sequence(
+mjb_status mjb_emoji_sequence_info(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
@@ -3237,7 +3237,7 @@ mjb_status mjb_classify_emoji_sequence(
 const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
 mjb_emoji_sequence emoji;
 
-if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
     &emoji) != MJB_STATUS_OK) {
     return 1;
 }
@@ -3277,7 +3277,7 @@ bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");
 ```
 
-See also: [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
+See also: [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji), [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -3308,7 +3308,7 @@ bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 printf("RGI emoji: %s", rgi ? "yes" : "no");
 ```
 
-See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence), [`mjb_classify_emoji_sequence`](#mjb_classify_emoji_sequence).
+See also: [`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence), [`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info).
 
 Specifications: [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-30.html).
 
@@ -4037,5 +4037,5 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Unicode identifiers and pattern syntax data | ID/XID/pattern predicates and `mjb_is_identifier` | [UAX #31](https://www.unicode.org/reports/tr31/tr31-44.html) | UCD ID/XID and pattern properties from `DerivedCoreProperties.txt` and `PropList.txt`; covered by `tests/identifier.c`. |
 | Resolved-script and mixed-script detection | `mjb_resolved_script_set` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | UTS #39 resolved-script examples, augmented writing-system values, encodings, embedded NULs, and error handling in `tests/security.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_confusable_match` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
-| Emoji properties and sequence data | Emoji property predicates, `mjb_classify_emoji_sequence`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
+| Emoji properties and sequence data | Emoji property predicates, `mjb_emoji_sequence_info`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
 | Terminal-cell width policy | `mjb_terminal_width`, `mjb_truncate_grapheme_width`, `mjb_truncate_word_width`; consumes `mjb_codepoint_east_asian_width`, grapheme boundaries, normalization, and emoji-sequence data | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `EastAsianWidth.txt`, emoji sequence data, normalization data, `tests/east-asian-width.c`, `tests/terminal-width.c`, `tests/segmentation.c`, and `tests/break-word.c`; terminal cell counts are a documented local policy, not font or renderer measurements. |

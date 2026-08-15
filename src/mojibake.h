@@ -816,7 +816,7 @@ MJB_EXPORT MJB_CONST bool mjb_plane_is_valid(mjb_plane plane);
 MJB_EXPORT MJB_CONST const char *mjb_plane_name(mjb_plane plane, bool abbreviation);
 
 // Return emoji sequence metadata for a complete string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_classify_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_emoji_sequence_info(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_emoji_sequence *emoji);
 
 // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
 MJB_EXPORT bool mjb_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding);

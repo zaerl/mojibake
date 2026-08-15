@@ -156,7 +156,7 @@ export type MojibakeWasmModule = {
   // Return the name of a plane, NULL if the plane specified is not valid.
   _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
   // Return emoji sequence metadata for a complete string.
-  _mjb_classify_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
+  _mjb_emoji_sequence_info: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
   // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
   _mjb_is_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.

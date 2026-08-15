@@ -2705,7 +2705,7 @@ if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
 
 // U+1F600 has Emoji_Presentation: yes
 printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");`,
-    related: ['mjb_classify_emoji_sequence', 'mjb_codepoint_is_emoji'],
+    related: ['mjb_emoji_sequence_info', 'mjb_codepoint_is_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -2858,7 +2858,7 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
   {
     comment: 'Return emoji sequence metadata for a complete string.',
     ret: 'mjb_status',
-    name: 'mjb_classify_emoji_sequence',
+    name: 'mjb_emoji_sequence_info',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The string to check'),
@@ -2876,7 +2876,7 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
     example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
 mjb_emoji_sequence emoji;
 
-if(mjb_classify_emoji_sequence(flag, strlen(flag), MJB_ENC_UTF_8,
+if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
     &emoji) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2905,7 +2905,7 @@ bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
 
 // Listed emoji sequence: yes
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
-    related: ['mjb_is_rgi_emoji', 'mjb_classify_emoji_sequence'],
+    related: ['mjb_is_rgi_emoji', 'mjb_emoji_sequence_info'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -2928,7 +2928,7 @@ bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
 
 // RGI emoji: yes
 printf("RGI emoji: %s", rgi ? "yes" : "no");`,
-    related: ['mjb_is_emoji_sequence', 'mjb_classify_emoji_sequence'],
+    related: ['mjb_is_emoji_sequence', 'mjb_emoji_sequence_info'],
     specs: [uts(51, 'Unicode Emoji')]
   },
   {

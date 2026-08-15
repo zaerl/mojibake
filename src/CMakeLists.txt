@@ -191,7 +191,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_codepoint_plane\""
         "\"_mjb_plane_is_valid\""
         "\"_mjb_plane_name\""
-        "\"_mjb_classify_emoji_sequence\""
+        "\"_mjb_emoji_sequence_info\""
         "\"_mjb_is_emoji_sequence\""
         "\"_mjb_is_rgi_emoji\""
         "\"_mjb_hangul_syllable_name\""

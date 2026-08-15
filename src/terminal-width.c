@@ -12,7 +12,7 @@
 static bool mjb_terminal_cluster_is_wide_emoji(const char *buffer, size_t byte_length) {
     mjb_emoji_sequence emoji;
 
-    if(mjb_classify_emoji_sequence(buffer, byte_length, MJB_ENC_UTF_8, &emoji) != MJB_STATUS_OK) {
+    if(mjb_emoji_sequence_info(buffer, byte_length, MJB_ENC_UTF_8, &emoji) != MJB_STATUS_OK) {
         return false;
     }
 
