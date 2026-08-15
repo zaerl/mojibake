@@ -50,7 +50,7 @@ int test_hangul(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_hangul_syllable(MJB_CP_HANGUL_S_BASE), true, "Hangul start")
 
     ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x1100), true, "Hangul Jamo - Choseong Kiyeok")
-    ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x11A7), true, "Hangul Jamo - Jongseong Nieun")
+    ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x11AB), true, "Hangul Jamo - Jongseong Nieun")
     ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x1161), true, "Hangul Jamo - Jungseong A")
     ATT_ASSERT(mjb_codepoint_is_hangul_jamo(0x0000), false, "Not a Hangul Jamo")
 
@@ -65,6 +65,8 @@ int test_hangul(void *arg) {
     ATT_ASSERT(mjb_codepoint_is_hangul_trailing_jamo(0x11A8), true, "Hangul T - Jongseong Kiyeok")
     ATT_ASSERT(mjb_codepoint_is_hangul_trailing_jamo(0x11C2), true, "Hangul T - Jongseong Hieuh")
     ATT_ASSERT(mjb_codepoint_is_hangul_trailing_jamo(0x1100), false, "Not a Hangul T")
+    ATT_ASSERT(mjb_codepoint_is_hangul_trailing_jamo(0x11A7), false,
+        "Not a Hangul T - Jungseong O-YAE")
 
     mjb_codepoint codepoints[3];
     ATT_ASSERT_STATUS(mjb_hangul_syllable_decomposition(0xAC01, NULL), MJB_STATUS_INVALID_ARGUMENT,

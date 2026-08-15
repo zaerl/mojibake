@@ -169,6 +169,40 @@ static bool mjb_unicode_page_bitset_lookup(const uint8_t *page_index, size_t pag
     return true;
 }
 
+#if MJB_FEATURE_SECURITY
+// Wide variant for tables with 255 or more populated pages; 0xFFFF marks an empty page.
+static bool mjb_unicode_page_bitset_lookup_wide(const uint16_t *page_index, size_t page_count,
+    const uint16_t *page_starts, const uint64_t *page_bits, const uint32_t *page_ranks,
+    mjb_codepoint codepoint, size_t *index) {
+    size_t page = codepoint >> 8;
+
+    if(page >= page_count) {
+        return false;
+    }
+
+    uint16_t compact_page = page_index[page];
+
+    if(compact_page == 0xFFFF) {
+        return false;
+    }
+
+    uint8_t codepoint_low = (uint8_t)codepoint;
+    uint8_t word = codepoint_low >> 6;
+    uint8_t bit = codepoint_low & 0x3F;
+    uint64_t bits = page_bits[(size_t)compact_page * 4 + word];
+    uint64_t mask = (uint64_t)1 << bit;
+
+    if((bits & mask) == 0) {
+        return false;
+    }
+
+    uint8_t rank = (uint8_t)(page_ranks[compact_page] >> (word * 8));
+    *index = page_starts[compact_page] + rank + mjb_unicode_popcount64(bits & (mask - 1));
+
+    return true;
+}
+#endif // MJB_FEATURE_SECURITY
+
 #if MJB_FEATURE_CHARACTER_NAMES
 static bool mjb_unicode_name_entry_lookup(mjb_codepoint codepoint, size_t *index,
     uint16_t *prefix_start) {
@@ -805,7 +839,7 @@ bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint 
     uint8_t *length) {
     size_t entry_index = 0;
 
-    if(!mjb_unicode_page_bitset_lookup(mjb_unicode_confusable_page_index,
+    if(!mjb_unicode_page_bitset_lookup_wide(mjb_unicode_confusable_page_index,
            MJB_COUNT_OF(mjb_unicode_confusable_page_index), mjb_unicode_confusable_page_starts,
            mjb_unicode_confusable_page_bits, mjb_unicode_confusable_page_ranks, codepoint,
            &entry_index)) {

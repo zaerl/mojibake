@@ -111,7 +111,7 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
             (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
             int t_index = ch - MJB_CP_HANGUL_T_BASE;
 
-            if(t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT) {
+            if(t_index > 0 && t_index < MJB_CP_HANGUL_T_COUNT) {
                 // make syllable of form LVT
                 last += t_index;
                 characters[len - 1].codepoint = last; // reset last
@@ -146,7 +146,8 @@ MJB_EXPORT bool mjb_codepoint_is_hangul_vowel_jamo(mjb_codepoint codepoint) {
 
 MJB_EXPORT bool mjb_codepoint_is_hangul_trailing_jamo(mjb_codepoint codepoint) {
     int t_index = codepoint - MJB_CP_HANGUL_T_BASE;
-    return t_index >= 0 && t_index < MJB_CP_HANGUL_T_COUNT;
+
+    return t_index > 0 && t_index < MJB_CP_HANGUL_T_COUNT;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_hangul_jamo(mjb_codepoint codepoint) {

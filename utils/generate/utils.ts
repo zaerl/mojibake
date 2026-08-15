@@ -289,9 +289,11 @@ export function cStringData(values: string[]) {
   ).join('\n');
 }
 
-// Converts sparse page metadata into a compact page table plus page index.
-export function indexedPages(pages: { starts: number[]; counts: number[] }) {
-  const index = new Array(pages.starts.length).fill(0xFF);
+// Converts sparse page metadata into a compact page table plus page index. Narrow indexes are
+// 8-bit with 0xFF as the empty-page sentinel; wide indexes are 16-bit with 0xFFFF.
+export function indexedPages(pages: { starts: number[]; counts: number[] }, wide = false) {
+  const empty = wide ? 0xFFFF : 0xFF;
+  const index = new Array(pages.starts.length).fill(empty);
   const starts: number[] = [];
   const counts: number[] = [];
 
@@ -300,7 +302,7 @@ export function indexedPages(pages: { starts: number[]; counts: number[] }) {
       continue;
     }
 
-    if(starts.length >= 0xFF) {
+    if(starts.length >= empty) {
       throw new Error('Indexed page table is too large to pack');
     }
 

@@ -426,34 +426,24 @@ MJB_EXPORT mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_le
         // (sot | BK | CR | LF | NL | OP | QU | GL | SP | ZW) [\p{Pi}&QU] SP* ×
         // We track the Pi-QU context: set pi_qu_context when a Pi-QU character appears in that
         // context, and apply it to subsequent positions.
-        if(state->current == MJB_LBP_QU) {
-            if(qu_cur_cat == MJB_CATEGORY_PI) {
-                // Check if previous is in the LB15a context set
-                bool in_ctx = (state->previous == MJB_LBP_NOT_SET || // sot
-                    state->previous == MJB_LBP_BK || state->previous == MJB_LBP_CR ||
-                    state->previous == MJB_LBP_LF || state->previous == MJB_LBP_NL ||
-                    state->previous == MJB_LBP_OP || state->previous == MJB_LBP_QU ||
-                    state->previous == MJB_LBP_GL || state->previous == MJB_LBP_SP ||
-                    state->previous == MJB_LBP_ZW);
+        if(state->current == MJB_LBP_QU && qu_cur_cat == MJB_CATEGORY_PI) {
+            // Check if previous is in the LB15a context set
+            bool in_ctx = (state->previous == MJB_LBP_NOT_SET || // sot
+                state->previous == MJB_LBP_BK || state->previous == MJB_LBP_CR ||
+                state->previous == MJB_LBP_LF || state->previous == MJB_LBP_NL ||
+                state->previous == MJB_LBP_OP || state->previous == MJB_LBP_QU ||
+                state->previous == MJB_LBP_GL || state->previous == MJB_LBP_SP ||
+                state->previous == MJB_LBP_ZW);
 
-                if(!in_ctx) {
-                    // Also check via pi_qu_context (SP* continuation after Pi-QU)
-                    in_ctx = pi_qu_context_before && state->previous == MJB_LBP_SP;
-                }
-
-                if(in_ctx) {
-                    state->pi_qu_context = true;
-                } else {
-                    state->pi_qu_context = false;
-                }
-            } else {
-                // Not Pi-QU: clear pi_qu_context unless SP continuation
-                if(state->previous != MJB_LBP_SP) {
-                    state->pi_qu_context = false;
-                }
+            if(!in_ctx) {
+                // Also check via pi_qu_context (SP* continuation after Pi-QU)
+                in_ctx = pi_qu_context_before && state->previous == MJB_LBP_SP;
             }
-        } else if(state->previous != MJB_LBP_SP && state->previous != MJB_LBP_QU) {
-            // Non-SP, non-QU previous clears the Pi-QU zone
+
+            state->pi_qu_context = in_ctx;
+        } else if(state->current != MJB_LBP_SP) {
+            // Any other non-SP character consumes the zone: LB15a permits exactly one
+            // no-break position after the QU_Pi SP* run.
             state->pi_qu_context = false;
         }
 
