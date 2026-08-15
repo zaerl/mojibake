@@ -6,7 +6,7 @@
 
 import { iLog } from '../../log';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
+  codepointPageBitsets, codepointPages, formatCodepoints, formatCompactIntegers,
   formatHalfwords, formatLongWords, formatWords, indexedPages,
 } from '../../utils';
 import { ConfusableRow } from '../types';
@@ -17,7 +17,7 @@ export function generateConfusables(rows: ConfusableRow[]) {
 
   const data: number[] = [];
   const dataOffsets = new Map<string, { offset: number; length: number }>();
-  const pages = indexedPages(codepointPages(rows));
+  const pages = indexedPages(codepointPages(rows), true);
   const pageBitsets = codepointPageBitsets(rows, pages.pages);
   const skeletons = rows.map((row) => {
     const values: number[] = [];
@@ -107,8 +107,8 @@ static const mjb_codepoint mjb_unicode_confusable_data[] = {
 ${formatCodepoints(data)}
 };
 
-static const uint8_t mjb_unicode_confusable_page_index[] = {
-${formatBytes(pages.index)}
+static const uint16_t mjb_unicode_confusable_page_index[] = {
+${formatHalfwords(pages.index)}
 };
 
 static const uint16_t mjb_unicode_confusable_page_starts[] = {

@@ -337,7 +337,6 @@ typedef enum mjb_block {
     MJB_BLOCK_BASSA_VAH,
     MJB_BLOCK_PAHAWH_HMONG,
     MJB_BLOCK_KIRAT_RAI,
-    MJB_BLOCK_CHISOI,
     MJB_BLOCK_MEDEFAIDRIN,
     MJB_BLOCK_BERIA_ERFE,
     MJB_BLOCK_MIAO,
@@ -418,7 +417,7 @@ typedef enum mjb_block {
     MJB_BLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_B
 } mjb_block;
 
-#define MJB_BLOCK_NUM 354
+#define MJB_BLOCK_NUM 353
 
 /**
  * Unicode codepoint general category
@@ -827,7 +826,6 @@ typedef enum mjb_script {
     MJB_SC_CARI,
     MJB_SC_CHAM,
     MJB_SC_CHER,
-    MJB_SC_CHIS,
     MJB_SC_CHRS,
     MJB_SC_COPT,
     MJB_SC_CPMN,
@@ -988,8 +986,8 @@ typedef enum mjb_script {
     MJB_SC_KORE
 } mjb_script;
 
-#define MJB_SC_PROPERTY_COUNT 181
-#define MJB_SC_COUNT 184
+#define MJB_SC_PROPERTY_COUNT 180
+#define MJB_SC_COUNT 183
 
 /**
  * Property (pr)
