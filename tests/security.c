@@ -83,9 +83,9 @@ static bool parse_intentional_line(char *line, char *left, size_t *left_len, cha
 static bool test_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding,
     const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding) {
     bool confusable = false;
-    mjb_status status = mjb_are_confusable(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
+    mjb_status status = mjb_confusable_match(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
         s2_encoding, &confusable);
-    MJB_TEST_COVERAGE(mjb_are_confusable);
+    MJB_TEST_COVERAGE(mjb_confusable_match);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Confusable comparison succeeds")
 
     return confusable;
@@ -439,10 +439,10 @@ int test_security(void *arg) {
     ATT_ASSERT(utf16_output[2], '#', "Skeleton into UTF-16 output has no terminator")
 
     bool confusable = true;
-    ATT_ASSERT_STATUS(mjb_are_confusable(NULL, 1, enc, "A", 1, enc, &confusable),
+    ATT_ASSERT_STATUS(mjb_confusable_match(NULL, 1, enc, "A", 1, enc, &confusable),
         MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL left string")
     ATT_ASSERT(confusable, false, "Confusable clears output before failure")
-    ATT_ASSERT_STATUS(mjb_are_confusable("A", 1, enc, "A", 1, enc, NULL),
+    ATT_ASSERT_STATUS(mjb_confusable_match("A", 1, enc, "A", 1, enc, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL output")
 
     const unsigned char malformed_utf8[] = { 0x80 };
@@ -455,10 +455,10 @@ int test_security(void *arg) {
                           sizeof(malformed_utf8), enc, enc, NULL, &into_size),
         MJB_STATUS_MALFORMED_INPUT, "Skeleton into reports malformed input")
     ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after malformed input")
-    ATT_ASSERT_STATUS(mjb_are_confusable(malformed_utf8_bytes, sizeof(malformed_utf8), enc, "A", 1,
+    ATT_ASSERT_STATUS(mjb_confusable_match(malformed_utf8_bytes, sizeof(malformed_utf8), enc, "A", 1,
                           enc, &confusable),
         MJB_STATUS_MALFORMED_INPUT, "Confusable reports malformed input")
-    ATT_ASSERT_STATUS(mjb_are_confusable("A", 1, MJB_ENC_UNKNOWN, "A", 1, enc, &confusable),
+    ATT_ASSERT_STATUS(mjb_confusable_match("A", 1, MJB_ENC_UNKNOWN, "A", 1, enc, &confusable),
         MJB_STATUS_INVALID_ENCODING, "Confusable rejects invalid encoding")
 
     // Cyrillic "А" (U+0410, UTF-8: 0xD0 0x90) is confusable with Latin "A"
@@ -564,8 +564,8 @@ int test_security(void *arg) {
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, output,
                           &output_size),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton into reports feature status")
-    MJB_TEST_COVERAGE(mjb_are_confusable);
-    ATT_ASSERT_STATUS(mjb_are_confusable("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
+    MJB_TEST_COVERAGE(mjb_confusable_match);
+    ATT_ASSERT_STATUS(mjb_confusable_match("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
                           &confusable),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled confusable check reports feature status")
 

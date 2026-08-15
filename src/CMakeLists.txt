@@ -180,7 +180,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_resolved_script_set\""
         "\"_mjb_property_name\""
         "\"_mjb_confusable_skeleton\""
-        "\"_mjb_are_confusable\""
+        "\"_mjb_confusable_match\""
         "\"_mjb_codepoint_emoji_properties\""
         "\"_mjb_codepoint_is_emoji\""
         "\"_mjb_codepoint_is_emoji_presentation\""

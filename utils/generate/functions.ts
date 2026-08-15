@@ -2490,7 +2490,7 @@ bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == M
 // Japanese writing system: yes
 printf("Japanese writing system: %s", japanese ? "yes" : "no");`,
     related: ['mjb_codepoint_script_extensions', 'mjb_is_identifier',
-      'mjb_confusable_skeleton', 'mjb_are_confusable'],
+      'mjb_confusable_skeleton', 'mjb_confusable_match'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
@@ -2553,7 +2553,7 @@ if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
 // hello
 printf("%.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
-    related: ['mjb_confusable_skeleton_into', 'mjb_are_confusable', 'mjb_is_identifier'],
+    related: ['mjb_confusable_skeleton_into', 'mjb_confusable_match', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
@@ -2626,13 +2626,13 @@ if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(in
 
 // Skeleton payload (no terminator): hello
 printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);`,
-    related: ['mjb_confusable_skeleton', 'mjb_are_confusable', 'mjb_is_identifier'],
+    related: ['mjb_confusable_skeleton', 'mjb_confusable_match', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
   {
     comment: 'Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).',
     ret: 'mjb_status',
-    name: 'mjb_are_confusable',
+    name: 'mjb_confusable_match',
     attributes: ['MJB_NODISCARD'],
     args: [
       buffer('The first string', 's1'),
@@ -2671,7 +2671,7 @@ printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);`,
 const char *mixed = "h\\xD0\\xB5llo"; // Cyrillic е
 bool confusable;
 
-if(mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+if(mjb_confusable_match(latin, strlen(latin), MJB_ENC_UTF_8,
     mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
     return 1;
 }

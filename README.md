@@ -156,7 +156,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   identifier-policy checks (`mjb_resolved_script_set`,
   [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Confusable detection**: generate reusable skeletons and check if strings are visually
-  confusable (`mjb_confusable_skeleton`, `mjb_confusable_skeleton_into`, `mjb_are_confusable`,
+  confusable (`mjb_confusable_skeleton`, `mjb_confusable_skeleton_into`, `mjb_confusable_match`,
   [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
   (`mjb_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))
@@ -261,7 +261,7 @@ invoking a C or C++ compiler directly, define the corresponding preprocessor mac
   disabled.
 - `MJB_FEATURE_SECURITY` controls the UTS #39 resolved-script and confusable implementations and
   confusable mapping tables. The `mjb_resolved_script_set`, `mjb_confusable_skeleton`,
-  `mjb_confusable_skeleton_into`, and `mjb_are_confusable` functions return
+  `mjb_confusable_skeleton_into`, and `mjb_confusable_match` functions return
   `MJB_STATUS_FEATURE_NOT_ENABLED` when support is disabled.
 
 With CMake:

@@ -495,7 +495,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t by
 
 // Determine whether two strings are visually confusable (UTS#39 §4). They are confusable if their
 // skeletons are identical.
-MJB_EXPORT mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length,
+MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length,
     mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
     bool *confusable) {
     if(confusable == NULL) {
@@ -575,7 +575,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t by
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 
-MJB_EXPORT mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length,
+MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length,
     mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
     bool *confusable) {
     (void)s1;

@@ -783,7 +783,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, 
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
 
 // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_are_confusable(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, bool *confusable);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, bool *confusable);
 
 // Return the emoji properties.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji_properties(mjb_codepoint codepoint, mjb_emoji_properties *emoji);

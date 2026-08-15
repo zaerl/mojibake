@@ -1118,22 +1118,22 @@ int test_example(void *arg) {
 
 #if MJB_FEATURE_SECURITY
 {
-    // Example for mjb_are_confusable
-    MJB_TEST_COVERAGE(mjb_are_confusable); // Added by the script
+    // Example for mjb_confusable_match
+    MJB_TEST_COVERAGE(mjb_confusable_match); // Added by the script
     const char *latin = "hello";
     const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
     bool confusable;
 
-    if(mjb_are_confusable(latin, strlen(latin), MJB_ENC_UTF_8,
+    if(mjb_confusable_match(latin, strlen(latin), MJB_ENC_UTF_8,
         mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_are_confusable test failed") // Added by the script
+        ATT_ASSERT(0, 1, "mjb_confusable_match test failed") // Added by the script
         return 1;
     }
 
     // Visually confusable: yes
     // printf("Visually confusable: %s", confusable ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Visually confusable: %s", confusable ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_are_confusable test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_confusable_match test failed") // Added by the script
 }
 #endif // MJB_FEATURE_SECURITY
 

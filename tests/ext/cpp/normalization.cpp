@@ -133,7 +133,7 @@ int test_cpp_normalization(void *arg) {
     caught = false;
 
     try {
-        (void)mjb::is_confusable(malformed_utf8, "A");
+        (void)mjb::confusable_match(malformed_utf8, "A");
     } catch(const mjb::LibraryError &error) {
         caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
     }

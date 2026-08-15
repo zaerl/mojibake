@@ -192,9 +192,9 @@ ATT_ASSERT(mojibake.codepointIsPatternSyntax(0x21), true, 'codepointIsPatternSyn
 ATT_ASSERT(mojibake.codepointIsPatternWhiteSpace(0x20), true, 'codepointIsPatternWhiteSpace');
 ATT_ASSERT(mojibake.isIdentifier('hello'), true, 'isIdentifier');
 ATT_ASSERT(mojibake.propertyName(Property.CASED), 'Cased', 'propertyName');
-ATT_ASSERT(mojibake.areConfusable('\u0410', 'A'), true, 'areConfusable');
-ATT_ASSERT(mojibake.areConfusable('a', 'b'), false, 'areConfusable false result');
-ATT_ASSERT(mojibake.areConfusable(new Uint8Array([0x80]), 'A'), null,
+ATT_ASSERT(mojibake.confusableMatch('\u0410', 'A'), true, 'areConfusable');
+ATT_ASSERT(mojibake.confusableMatch('a', 'b'), false, 'areConfusable false result');
+ATT_ASSERT(mojibake.confusableMatch(new Uint8Array([0x80]), 'A'), null,
   'areConfusable malformed input');
 ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
   'confusableSkeleton');
