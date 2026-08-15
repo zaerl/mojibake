@@ -6,14 +6,14 @@
 
 #include "shell.h"
 
-bool mjbsh_next_character(mjb_character *character, mjb_character_position type) {
+bool mjbsh_next_codepoint(mjb_character *character, mjb_character_position type) {
     printf("%sU+%04X%s%s", mjbsh_green(), (unsigned int)character->codepoint, mjbsh_reset(),
         (type & MJB_POSITION_LAST) ? "" : " ");
 
     return true;
 }
 
-bool mjbsh_next_array_character(mjb_character *character, mjb_character_position type) {
+bool mjbsh_next_array_codepoint(mjb_character *character, mjb_character_position type) {
     printf("%u%s", character->codepoint, (type & MJB_POSITION_LAST) ? "" : ", ");
 
     return true;

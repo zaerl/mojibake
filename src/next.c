@@ -8,10 +8,10 @@
 #include "utf.h"
 
 /**
- * Run a callback for each character in the string.
+ * Run a callback for each codepoint in the string.
  */
-MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_for_each_character_fn callback) {
+MJB_EXPORT mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_for_each_codepoint_fn callback) {
     if(buffer == NULL || byte_length == 0) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -27,7 +27,7 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
     }
 
 #ifndef __EMSCRIPTEN__
-    // Emscripten uses _mjbForEachCharacterCallback.
+    // Emscripten uses _mjbForEachCodepointCallback.
     if(callback == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -59,7 +59,7 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
         if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
             bool asm_result = EM_ASM_INT(
-                { return _mjbForEachCharacterCallback($0, $1); }, &character,
+                { return _mjbForEachCodepointCallback($0, $1); }, &character,
                 first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE);
 
             if(!asm_result) {
@@ -87,7 +87,7 @@ MJB_EXPORT mjb_status mjb_for_each_character(const char *buffer, size_t byte_len
     if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
         bool asm_result = EM_ASM_INT(
-            { return _mjbForEachCharacterCallback($0, $1); }, &character,
+            { return _mjbForEachCodepointCallback($0, $1); }, &character,
             first_character ? MJB_POSITION_FIRST | MJB_POSITION_LAST : MJB_POSITION_LAST);
 
         if(!asm_result) {

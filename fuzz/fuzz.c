@@ -85,7 +85,7 @@ static mjb_codepoint fuzz_codepoint(const uint8_t *data, size_t size, uint8_t va
     }
 }
 
-static bool fuzz_next_character(mjb_character *character, mjb_character_position type) {
+static bool fuzz_next_codepoint(mjb_character *character, mjb_character_position type) {
     if(character != NULL) {
         fuzz_sink += (size_t)character->codepoint;
         fuzz_sink += (size_t)type;
@@ -635,8 +635,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 16: // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
-            fuzz_sink += (size_t)mjb_for_each_character(buffer, size, encoding,
-                fuzz_next_character);
+            fuzz_sink += (size_t)mjb_for_each_codepoint(buffer, size, encoding,
+                fuzz_next_codepoint);
             break;
 
         case 17: { // Identifier-oriented NFKC case folding

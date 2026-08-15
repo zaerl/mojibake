@@ -116,8 +116,8 @@ const char *mjbsh_decomposition_name(mjb_decomposition decomposition);
 const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width);
 
 // Characters
-bool mjbsh_next_character(mjb_character *character, mjb_character_position type);
-bool mjbsh_next_array_character(mjb_character *character, mjb_character_position type);
+bool mjbsh_next_codepoint(mjb_character *character, mjb_character_position type);
+bool mjbsh_next_array_codepoint(mjb_character *character, mjb_character_position type);
 bool mjbsh_next_string_character(mjb_character *character, mjb_character_position type);
 bool mjbsh_next_escaped_character(mjb_character *character, mjb_character_position type);
 

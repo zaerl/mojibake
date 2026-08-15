@@ -166,7 +166,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
   strings, with encoding detection and conversion (`mjb_detect_encoding`,
   `mjb_convert_encoding`, `mjb_convert_encoding_into`)
-- **Parsing and string functions**: character-by-character iteration (`mjb_for_each_character`)
+- **Parsing and string functions**: codepoint-by-codepoint iteration (`mjb_for_each_codepoint`)
   and codepoint counting (`mjb_count_codepoints`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
 - **Embeddable**: custom allocators (`mjb_set_memory_functions`), build-time feature flags to trim

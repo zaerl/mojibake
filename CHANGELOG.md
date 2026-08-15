@@ -5,6 +5,21 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+Codename:
+
+### Added
+- Added macOS new views
+
+### Changed
+- Renamed `mjb_for_each_character` to `mjb_for_each_codepoint`
+- Renamed `mjb_for_each_character_fn` to `mjb_for_each_codepoint_fn`
+- Renamed `_mjbForEachCharacterCallback` to `_mjbForEachCodepointCallback`
+- WASM: renamed `forEachCharacter` to `forEachCodepoint`
+- WASM: renamed `forEachCharacter` to `forEachCodepoint`
+
+### Fixed
+
 ## [0.3.5] - 2026-07-30
 Codename: [DIGIT FIVE]
 
