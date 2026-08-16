@@ -101,6 +101,8 @@ export type MojibakeWasmModule = {
   _mjb_next_word_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Sentence boundaries breaking.
   _mjb_next_sentence_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  // Count the sentence segments in a string.
+  _mjb_sentence_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
   // Grapheme cluster breaking.
   _mjb_next_grapheme_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.

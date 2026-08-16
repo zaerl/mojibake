@@ -798,6 +798,23 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_sentence_count
+    MJB_TEST_COVERAGE(mjb_sentence_count); // Added by the script
+    const char *input = "Hello. How are you? Fine!";
+    size_t count;
+
+    if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_sentence_count test failed") // Added by the script
+        return 1;
+    }
+
+    // Sentences: 3
+    // printf("Sentences: %zu", count);
+    snprintf(test_buffer, sizeof(test_buffer), "Sentences: %zu", count); // Added by the script
+    ATT_ASSERT(test_buffer, "Sentences: 3", "mjb_sentence_count test failed") // Added by the script
+}
+
+{
     // Example for mjb_next_grapheme_break
     MJB_TEST_COVERAGE(mjb_next_grapheme_break); // Added by the script
     const char *input = "e\xCC\x81"; // e + combining acute accent

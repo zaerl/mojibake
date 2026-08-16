@@ -299,3 +299,49 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
     // SB2 Any ÷ eot.
     return MJB_BT_ALLOWED;
 }
+
+// Count the sentence segments in a string.
+MJB_EXPORT mjb_status mjb_sentence_count(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, size_t *count) {
+    if(count == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *count = 0;
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    if(buffer == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK || byte_length == 0) {
+        return status;
+    }
+
+    mjb_next_sentence_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t segment_count = 0;
+
+    while((bt = mjb_next_sentence_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        ++segment_count;
+    }
+
+    *count = segment_count;
+
+    return MJB_STATUS_OK;
+}
