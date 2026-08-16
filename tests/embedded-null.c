@@ -180,5 +180,13 @@ int test_embedded_null(void *arg) {
         &grapheme_count), MJB_STATUS_OK, "NUL-terminated grapheme count")
     ATT_ASSERT(grapheme_count, (size_t)1, "UTF-8: NUL-terminated A\\0B\\0C = 1 grapheme cluster")
 
+    size_t word_count = 0;
+    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, &word_count),
+        MJB_STATUS_OK, "Explicit word count with embedded U+0000")
+    ATT_ASSERT(word_count, (size_t)3, "UTF-8: A\\0B\\0C = 3 words")
+    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8,
+        &word_count), MJB_STATUS_OK, "NUL-terminated word count")
+    ATT_ASSERT(word_count, (size_t)1, "UTF-8: NUL-terminated A\\0B\\0C = 1 word")
+
     return 0;
 }

@@ -1201,6 +1201,15 @@ inline void deallocate(void *pointer) noexcept {
     return count;
 }
 
+[[nodiscard]] inline size_t word_count(std::string_view input,
+    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    size_t count = 0;
+    detail::check_status(mjb_word_count(input.data(), input.size(), encoding, &count),
+        "Word count failed");
+
+    return count;
+}
+
 [[nodiscard]] inline std::string_view truncate_grapheme_width(std::string_view input,
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {

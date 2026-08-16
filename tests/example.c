@@ -888,6 +888,23 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_word_count
+    MJB_TEST_COVERAGE(mjb_word_count); // Added by the script
+    const char *input = "Hello, world! It works.";
+    size_t count;
+
+    if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_word_count test failed") // Added by the script
+        return 1;
+    }
+
+    // Words: 4
+    // printf("Words: %zu", count);
+    snprintf(test_buffer, sizeof(test_buffer), "Words: %zu", count); // Added by the script
+    ATT_ASSERT(test_buffer, "Words: 4", "mjb_word_count test failed") // Added by the script
+}
+
+{
     // Example for mjb_truncate_word_width
     MJB_TEST_COVERAGE(mjb_truncate_word_width); // Added by the script
     const char *input = "Hello world";
