@@ -6,6 +6,17 @@
 
 #include "test.h"
 
+// Return the codepoint count, or SIZE_MAX when mjb_codepoint_count reports a failure.
+static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
+    size_t count = 0;
+
+    if(mjb_codepoint_count(buffer, byte_length, encoding, &count) != MJB_STATUS_OK) {
+        return SIZE_MAX;
+    }
+
+    return count;
+}
+
 static void assert_encoding_conversion(const char *input, size_t input_size,
     mjb_encoding input_encoding, mjb_encoding output_encoding, const char *expected,
     size_t expected_size, const char *message) {
@@ -183,7 +194,7 @@ int test_encoding(void *arg) {
         "NUL-terminated UTF-8 excludes bytes after the terminator")
 
     utf8_test = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14"
-                "\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F"; //
+                "\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F";
     ATT_ASSERT(mjb_is_utf8(utf8_test, strlen(utf8_test)), true,
         "All ASCII control characters")
 
@@ -569,14 +580,20 @@ int test_encoding(void *arg) {
         MJB_ENC_UTF_8, utf8_bom_a, sizeof(utf8_bom_a),
         "Convert explicit UTF-32LE preserves U+FEFF");
 
-    MJB_TEST_COVERAGE(mjb_count_codepoints);
-    ATT_ASSERT(mjb_count_codepoints(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16), (size_t)1,
+    MJB_TEST_COVERAGE(mjb_codepoint_count);
+    ATT_ASSERT(count_codepoints(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16), (size_t)1,
         "Length generic UTF-16BE BOM consumes signature")
-    ATT_ASSERT(mjb_count_codepoints(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16BE), (size_t)2,
+    ATT_ASSERT(count_codepoints(utf16be_bom_a, sizeof(utf16be_bom_a), MJB_ENC_UTF_16BE), (size_t)2,
         "Length explicit UTF-16BE preserves U+FEFF")
-    ATT_ASSERT(mjb_count_codepoints(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le), (size_t)1,
-        "Length detected UTF-32LE BOM consumes signature")
-    ATT_ASSERT(mjb_count_codepoints(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE), (size_t)2,
+    ATT_ASSERT(count_codepoints(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32), (size_t)1,
+        "Length generic UTF-32LE BOM consumes signature")
+
+    size_t rejected_count = 6251;
+    ATT_ASSERT_STATUS(mjb_codepoint_count(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le,
+        &rejected_count), MJB_STATUS_INVALID_ENCODING,
+        "Codepoint count rejects a multi-encoding detection mask")
+    ATT_ASSERT(rejected_count, (size_t)0, "Codepoint count is zero after a detection mask")
+    ATT_ASSERT(count_codepoints(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE), (size_t)2,
         "Length explicit UTF-32LE preserves U+FEFF")
 
     ATT_ASSERT_STATUS(mjb_convert_encoding(utf16be_plain_a, sizeof(utf16be_plain_a),

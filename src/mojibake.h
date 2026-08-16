@@ -626,8 +626,8 @@ MJB_EXPORT MJB_PURE bool mjb_is_utf8(const char *buffer, size_t byte_length);
 // Return true if the string is encoded in UTF-16BE or UTF-16LE.
 MJB_EXPORT MJB_PURE bool mjb_is_utf16(const char *buffer, size_t byte_length);
 
-// Return the length of a string.
-MJB_EXPORT MJB_PURE size_t mjb_count_codepoints(const char *buffer, size_t max_length, mjb_encoding encoding);
+// Count the codepoints in a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
 
 // Run a callback for each codepoint of a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_for_each_codepoint_fn callback);

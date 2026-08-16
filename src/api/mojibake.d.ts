@@ -43,8 +43,8 @@ export type MojibakeWasmModule = {
   _mjb_is_utf8: (buffer: Pointer, byte_length: number) => boolean;
   // Return true if the string is encoded in UTF-16BE or UTF-16LE.
   _mjb_is_utf16: (buffer: Pointer, byte_length: number) => boolean;
-  // Return the length of a string.
-  _mjb_count_codepoints: (buffer: Pointer, max_length: number, encoding: number) => number;
+  // Count the codepoints in a string.
+  _mjb_codepoint_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
   // Run a callback for each codepoint of a string.
   _mjb_for_each_codepoint: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
   // Return the value of a binary Unicode property.

@@ -47,7 +47,7 @@ int test_cpp_normalization(void *arg) {
 
     const std::string utf16le("a\0b\0", 4);
     ATT_ASSERT(mjb::is_utf16(utf16le), true, "is_utf16")
-    ATT_ASSERT(mjb::length("caf\xC3\xA9"), 4u, "length")
+    ATT_ASSERT(mjb::codepoint_count("caf\xC3\xA9"), (size_t)4, "codepoint_count")
     ATT_ASSERT(mjb::convert_encoding("\xC3\xA9", MJB_ENC_UTF_8, MJB_ENC_UTF_16LE),
         std::string("\xE9\0", 2), "convert_encoding")
 #if MJB_FEATURE_COLLATION

@@ -245,7 +245,12 @@ static mjb_status mjb_normalization_estimate(const char *buffer, size_t byte_len
     if(encoding == output_encoding) {
         *potential_output_size = byte_length;
     } else {
-        *potential_output_size = mjb_count_codepoints(buffer, byte_length, encoding);
+        mjb_status count_status = mjb_codepoint_count(buffer, byte_length, encoding,
+            potential_output_size);
+
+        if(count_status != MJB_STATUS_OK) {
+            return count_status;
+        }
 
         switch(output_encoding) {
             case MJB_ENC_UTF_8: {

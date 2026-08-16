@@ -95,7 +95,8 @@ ATT_ASSERT(mojibake.isUTF16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'is
 ATT_ASSERT(mojibake.isASCII('Hello'), true, 'isASCII');
 ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
 ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
-ATT_ASSERT(mojibake.countCodepoints('H\u00E9ll\u00F6'), 5, 'countCodepoints');
+ATT_ASSERT(mojibake.codepointCount('H\u00E9ll\u00F6'), 5, 'codepointCount');
+ATT_ASSERT(mojibake.codepointCount(''), 0, 'codepointCount empty');
 ATT_ASSERT(mojibake.caselessMatch('Straße', 'STRASSE'), true, 'caselessMatch');
 ATT_ASSERT(mojibake.caselessMatch('\u00C5', 'A\u030A', CaselessMode.UNNORMALIZED), false,
   'caselessMatch unnormalized');

@@ -296,7 +296,11 @@ static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
 
 static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode) {
     size_t input_size = strlen(input);
-    size_t input_real_size = mjb_count_codepoints(input, input_size, MJB_ENC_UTF_8);
+    size_t input_real_size = 0;
+
+    if(mjb_codepoint_count(input, input_size, MJB_ENC_UTF_8, &input_real_size) != MJB_STATUS_OK) {
+        input_real_size = 0;
+    }
     size_t terminal_width = 0;
     mjb_status terminal_width_status = mjb_terminal_width(input, input_size, MJB_ENC_UTF_8,
         MJB_TERMINAL_WIDTH_NARROW, &terminal_width);

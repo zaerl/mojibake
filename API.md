@@ -224,14 +224,16 @@ A summary for `Héllö`, encoded this way:
 - UTF-32LE: `H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0`, 20 bytes
 - UTF-32BE: `\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6`, 20 bytes
 
-To count the Unicode codepoints, use `mjb_count_codepoints`.
+To count the Unicode codepoints, use `mjb_codepoint_count`.
 
 ```c
-mjb_count_codepoints("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8); // 5 characters
-mjb_count_codepoints("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE); // 5 characters
-mjb_count_codepoints("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE); // 5 characters
-mjb_count_codepoints("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE); // 5 characters
-mjb_count_codepoints("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE); // 5 characters
+size_t count = 0;
+
+mjb_codepoint_count("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8, &count); // 5 characters
+mjb_codepoint_count("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE, &count); // 5 characters
+mjb_codepoint_count("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE, &count); // 5 characters
+mjb_codepoint_count("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE, &count); // 5 characters
+mjb_codepoint_count("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE, &count); // 5 characters
 ```
 
 Functions that handle a string, as `mjb_normalize`, `mjb_convert_encoding` has always a `_into(...)`
@@ -1126,23 +1128,31 @@ const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
 printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
 ```
 
-## `mjb_count_codepoints`
+## `mjb_codepoint_count`
 
-Return the length of a string.
+Count the codepoints in a string.
 
 ```c
-size_t mjb_count_codepoints(
+mjb_status mjb_codepoint_count(
     const char *buffer,
-    size_t max_length,
-    mjb_encoding encoding
+    size_t byte_length,
+    mjb_encoding encoding,
+    size_t *count
 );
 ```
 
-Return the number of Unicode codepoints in a string, up to `max_length` bytes.
+Count the number of Unicode codepoints in a string. Malformed code-unit sequences count per the library replacement policy, and an incomplete trailing sequence does not add a codepoint. On failure, `count` is set to zero.
 
-- `buffer` - The string to check
-- `max_length` - The maximum length of the string in bytes, or `MJB_NUL_TERMINATED`
+- `buffer` - The string to count
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `count` - The number of codepoints to store; set to zero on failure
+
+**Returns**
+
+- `MJB_STATUS_OK` - The count was computed
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 
 **Example**
 
@@ -1151,21 +1161,24 @@ Return the number of Unicode codepoints in a string, up to `max_length` bytes.
 
 const char *utf8 = "H\xC3\xA9ll\xC3\xB6"; // 7 bytes
 const char utf16le[] = "H\0\xE9\0l\0l\0\xF6\0"; // 10 bytes
-const char utf16be[] = "\0H\0\xE9\0l\0l\0\xF6"; // 10 bytes
-const char utf32le[] = "H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0"; // 20 bytes
-const char utf32be[] = "\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6"; // 20 bytes
+size_t count;
+
+if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    return 1;
+}
 
 // 5 UTF-8 characters
-printf("%zu UTF-8 characters", mjb_count_codepoints(utf8, 7, MJB_ENC_UTF_8));
+printf("%zu UTF-8 characters", count);
+
+if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
 // 5 UTF-16LE characters
-printf("%zu UTF-16LE characters", mjb_count_codepoints(utf16le, 10, MJB_ENC_UTF_16LE));
-// 5 UTF-16BE characters
-printf("%zu UTF-16BE characters", mjb_count_codepoints(utf16be, 10, MJB_ENC_UTF_16BE));
-// 5 UTF-32LE characters
-printf("%zu UTF-32LE characters", mjb_count_codepoints(utf32le, 20, MJB_ENC_UTF_32LE));
-// 5 UTF-32BE characters
-printf("%zu UTF-32BE characters", mjb_count_codepoints(utf32be, 20, MJB_ENC_UTF_32BE));
+printf("%zu UTF-16LE characters", count);
 ```
+
+See also: [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_word_count`](#mjb_word_count), [`mjb_sentence_count`](#mjb_sentence_count).
 
 ## `mjb_for_each_codepoint`
 

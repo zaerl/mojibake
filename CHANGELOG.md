@@ -5,6 +5,16 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Breaking**: `mjb_count_codepoints` is now `mjb_codepoint_count`, matching the
+  `mjb_grapheme_count`, `mjb_word_count`, and `mjb_sentence_count` naming. It now returns an
+  `mjb_status` and stores the count in a `size_t *count` out parameter, and rejects invalid
+  encodings with `MJB_STATUS_INVALID_ENCODING` instead of decoding with replacements. The C++
+  wrapper `mjb::length` is now `mjb::codepoint_count`, and the TypeScript API `countCodepoints`
+  is now `codepointCount`.
+
 ## [0.3.6] - 2026-08-16
 Codename: [DIGIT SIX]
 

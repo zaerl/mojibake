@@ -420,11 +420,18 @@ private struct EncodingResolution {
     ) -> Int {
         bytes.withUnsafeBytes { rawBuffer in
             let buffer = rawBuffer.bindMemory(to: CChar.self)
-            return mjb_count_codepoints(
+            var count = 0
+
+            guard mjb_codepoint_count(
                 buffer.baseAddress,
                 buffer.count,
-                encoding
-            )
+                encoding,
+                &count
+            ) == MJB_STATUS_OK else {
+                return 0
+            }
+
+            return count
         }
     }
 }

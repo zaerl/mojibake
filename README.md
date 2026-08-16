@@ -41,9 +41,13 @@ int main(int argc, char *const argv[]) {
     const char *mojibake = "文字化け";
     length = strlen(mojibake);
 
-    // Codepoint count example: mjb_count_codepoints counts Unicode codepoints, not bytes.
-    printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu codepoints long\n",
-        mojibake, length, mjb_count_codepoints(mojibake, length, MJB_ENC_UTF_8));
+    // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
+    size_t codepoint_count = 0;
+
+    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, &codepoint_count) == MJB_STATUS_OK) {
+        printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu codepoints long\n",
+            mojibake, length, codepoint_count);
+    }
 
     mjb_result_free(&result);
 
@@ -167,7 +171,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   strings, with encoding detection and conversion (`mjb_detect_encoding`,
   `mjb_convert_encoding`, `mjb_convert_encoding_into`)
 - **Parsing and string functions**: codepoint-by-codepoint iteration (`mjb_for_each_codepoint`)
-  and codepoint counting (`mjb_count_codepoints`)
+  and codepoint counting (`mjb_codepoint_count`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
 - **Embeddable**: custom allocators (`mjb_set_memory_functions`), build-time feature flags to trim
   table size, a C++17 wrapper (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a
