@@ -1157,6 +1157,27 @@ export class Mojibake {
     }
   }
 
+  // mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // size_t *count)
+  graphemeCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
+    const wasmInput = this.copyInput(input, options.encoding);
+    const countPtr = this.malloc(4);
+
+    try {
+      const status = this.module._mjb_grapheme_count(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, countPtr);
+
+      if(status === Status.OK) {
+        return this.module.HEAP32[countPtr / 4];
+      }
+
+      return null;
+    } finally {
+      this.free(wasmInput.ptr);
+      this.free(countPtr);
+    }
+  }
+
   // size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
   // mjb_terminal_width_profile profile, size_t max_columns)
   truncateGraphemeWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,

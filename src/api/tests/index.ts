@@ -178,6 +178,10 @@ ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');
 ATT_ASSERT(mojibake.truncateWordWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
   'truncateWordWidth');
 ATT_ASSERT(mojibake.truncateGrapheme('ABC', 2), 2, 'truncateGrapheme');
+ATT_ASSERT(mojibake.graphemeCount('ABC'), 3, 'graphemeCount');
+ATT_ASSERT(mojibake.graphemeCount(''), 0, 'graphemeCount empty');
+ATT_ASSERT(mojibake.graphemeCount('🇮🇹'), 1, 'graphemeCount flag emoji');
+ATT_ASSERT(mojibake.graphemeCount('👨‍👩‍👦'), 1, 'graphemeCount ZWJ sequence');
 ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
   'truncateGraphemeWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');

@@ -166,6 +166,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_next_sentence_break\""
         "\"_mjb_next_grapheme_break\""
         "\"_mjb_truncate_grapheme\""
+        "\"_mjb_grapheme_count\""
         "\"_mjb_truncate_grapheme_width\""
         "\"_mjb_truncate_word\""
         "\"_mjb_truncate_word_width\""

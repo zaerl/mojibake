@@ -2295,6 +2295,50 @@ size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
 printf("First two graphemes use %zu bytes", bytes);
 ```
 
+## `mjb_grapheme_count`
+
+Count the extended grapheme clusters in a string.
+
+```c
+mjb_status mjb_grapheme_count(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    size_t *count
+);
+```
+
+Count user-perceived characters: the number of extended grapheme cluster segments in the string. Malformed code-unit sequences are segmented per the library replacement policy, and an incomplete trailing sequence does not add a cluster. On failure, `count` is set to zero.
+
+- `buffer` - The string to count
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `count` - The number of grapheme clusters to store; set to zero on failure
+
+**Returns**
+
+- `MJB_STATUS_OK` - The count was computed
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+
+**Example**
+
+```c
+const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // A🇮🇹
+size_t count;
+
+if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Grapheme clusters: 2
+printf("Grapheme clusters: %zu", count);
+```
+
+See also: [`mjb_truncate_grapheme`](#mjb_truncate_grapheme), [`mjb_next_grapheme_break`](#mjb_next_grapheme_break), [`mjb_terminal_width`](#mjb_terminal_width).
+
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
+
 ## `mjb_truncate_grapheme_width`
 
 Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.

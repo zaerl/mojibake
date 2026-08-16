@@ -829,6 +829,23 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_grapheme_count
+    MJB_TEST_COVERAGE(mjb_grapheme_count); // Added by the script
+    const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // A🇮🇹
+    size_t count;
+
+    if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_grapheme_count test failed") // Added by the script
+        return 1;
+    }
+
+    // Grapheme clusters: 2
+    // printf("Grapheme clusters: %zu", count);
+    snprintf(test_buffer, sizeof(test_buffer), "Grapheme clusters: %zu", count); // Added by the script
+    ATT_ASSERT(test_buffer, "Grapheme clusters: 2", "mjb_grapheme_count test failed") // Added by the script
+}
+
+{
     // Example for mjb_truncate_grapheme_width
     MJB_TEST_COVERAGE(mjb_truncate_grapheme_width); // Added by the script
     const char *input = "A\xE7\x95\x8C"; // A界
