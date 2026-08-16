@@ -34,9 +34,15 @@ int main(int argc, char *const argv[]) {
     const char *mojibake = "文字化け";
     length = strlen(mojibake);
 
-    // Codepoint count example: mjb_count_codepoints counts Unicode codepoints, not bytes.
+    // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
+    size_t codepoint_count = 0;
+
+    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, &codepoint_count) != MJB_STATUS_OK) {
+        return 1;
+    }
+
     printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu codepoints long\n", mojibake, length,
-        mjb_count_codepoints(mojibake, length, MJB_ENC_UTF_8));
+        codepoint_count);
 
     mjb_result_free(&result);
 

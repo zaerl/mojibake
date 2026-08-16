@@ -39,14 +39,21 @@ pub fn main(init: std.process.Init) !u8 {
 
         const mojibake = "文字化け";
 
-        // Codepoint count example: mjb_count_codepoints counts Unicode codepoints, not bytes.
+        // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
+        var codepoint_count: usize = 0;
+
+        if(mjb.mjb_codepoint_count(
+            mojibake.ptr,
+            mojibake.len,
+            mjb.MJB_ENC_UTF_8,
+            &codepoint_count,
+        ) != mjb.MJB_STATUS_OK) {
+            return error.CodepointCountFailed;
+        }
+
         try stdout.print(
             "\"{s}\" encoded in UTF-8 is {d} bytes long, and {d} codepoints long\n",
-            .{
-                mojibake,
-                mojibake.len,
-                mjb.mjb_count_codepoints(mojibake.ptr, mojibake.len, mjb.MJB_ENC_UTF_8),
-            },
+            .{ mojibake, mojibake.len, codepoint_count },
         );
     }
 

@@ -61,7 +61,12 @@ extern "C" {
         result: *mut MjbResult,
     ) -> c_int;
 
-    fn mjb_count_codepoints(buffer: *const c_char, max_length: usize, encoding: c_int) -> usize;
+    fn mjb_codepoint_count(
+        buffer: *const c_char,
+        byte_length: usize,
+        encoding: c_int,
+        count: *mut usize,
+    ) -> c_int;
 
     fn mjb_result_free(result: *mut MjbResult) -> c_int;
 }
@@ -104,9 +109,17 @@ fn run() -> bool {
 
     let mojibake = "文字化け";
 
-    // Codepoint count example: mjb_count_codepoints counts Unicode codepoints, not bytes.
-    let codepoint_count =
-        unsafe { mjb_count_codepoints(mojibake.as_ptr().cast(), mojibake.len(), MJB_ENC_UTF_8) };
+    // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
+    let mut codepoint_count: usize = 0;
+    let status = unsafe {
+        mjb_codepoint_count(
+            mojibake.as_ptr().cast(),
+            mojibake.len(),
+            MJB_ENC_UTF_8,
+            &mut codepoint_count,
+        )
+    };
+    assert_eq!(status, MJB_STATUS_OK, "mjb_codepoint_count failed");
     println!(
         "\"{mojibake}\" encoded in UTF-8 is {} bytes long, and {codepoint_count} codepoints long",
         mojibake.len()

@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,510** C assertions and **125** JavaScript assertions, including all
+Mojibake runs a total of **4,537,554** C assertions and **130** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -44,7 +44,7 @@ the official tests included in the standard:
 | `mjb_confusable_match`                     | 241         |
 | `mjb_filter`                               | 161         |
 | `mjb_convert_encoding`                     | 137         |
-| `mjb_count_codepoints`                     | 119         |
+| `mjb_codepoint_count`                      | 122         |
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_resolved_script_set`                  | 97          |
 | `mjb_codepoint_info`                       | 82          |
@@ -55,6 +55,7 @@ the official tests included in the standard:
 | `mjb_confusable_skeleton_into`             | 50          |
 | `mjb_hangul_syllable_composition`          | 50          |
 | `mjb_caseless_match`                       | 45          |
+| `mjb_word_count`                           | 41          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_grapheme_count`                       | 39          |
 | `mjb_codepoint_east_asian_width`           | 35          |
@@ -128,7 +129,7 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4537510** |
+| **Total**                                  | **4537554** |
 
 ## JavaScript
 
@@ -139,11 +140,13 @@ the official tests included in the standard:
 | `Mojibake.resolvedScriptSet`                | 5          |
 | `Mojibake.collationKey`                     | 4          |
 | `Mojibake.graphemeCount`                    | 4          |
+| `Mojibake.wordCount`                        | 4          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
 | `Mojibake.confusableMatch`                  | 3          |
 | `Mojibake.idnaToAscii`                      | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.terminalWidth`                    | 3          |
+| `Mojibake.codepointCount`                   | 2          |
 | `Mojibake.codepointPropertyInt`             | 2          |
 | `Mojibake.filter`                           | 2          |
 | `Mojibake.mapCase`                          | 2          |
@@ -185,7 +188,6 @@ the official tests included in the standard:
 | `Mojibake.codepointScriptExtensions`        | 1          |
 | `Mojibake.confusableSkeleton`               | 1          |
 | `Mojibake.convertEncoding`                  | 1          |
-| `Mojibake.countCodepoints`                  | 1          |
 | `Mojibake.create`                           | 1          |
 | `Mojibake.detectEncoding`                   | 1          |
 | `Mojibake.forEachCodepoint`                 | 1          |
@@ -217,4 +219,4 @@ the official tests included in the standard:
 | `Mojibake.version`                          | 1          |
 | `Mojibake.versionNumber`                    | 1          |
 | `Mojibake.emojiSequenceInfo`                | 0          |
-| **Total**                                   | **125**    |
+| **Total**                                   | **130**    |

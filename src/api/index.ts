@@ -874,14 +874,24 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_count_codepoints(const char *buffer, size_t max_length, mjb_encoding encoding)
-  countCodepoints(input: MojibakeInput, options: TextInputOptions = {}): number {
+  // mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // size_t *count)
+  codepointCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const countPtr = this.malloc(4);
 
     try {
-      return this.module._mjb_count_codepoints(wasmInput.ptr, wasmInput.size, wasmInput.encoding);
+      const status = this.module._mjb_codepoint_count(wasmInput.ptr, wasmInput.size,
+        wasmInput.encoding, countPtr);
+
+      if(status === Status.OK) {
+        return this.module.HEAP32[countPtr / 4];
+      }
+
+      return null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(countPtr);
     }
   }
 

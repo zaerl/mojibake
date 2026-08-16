@@ -135,7 +135,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_is_ascii\""
         "\"_mjb_is_utf8\""
         "\"_mjb_is_utf16\""
-        "\"_mjb_count_codepoints\""
+        "\"_mjb_codepoint_count\""
         "\"_mjb_for_each_codepoint\""
         "\"_mjb_codepoint_property_binary\""
         "\"_mjb_codepoint_property_int\""

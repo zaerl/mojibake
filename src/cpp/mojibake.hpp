@@ -683,9 +683,13 @@ struct NumericValue {
     return mjb_is_utf16(input.data(), input.size());
 }
 
-[[nodiscard]] inline size_t length(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_count_codepoints(input.data(), input.size(), encoding);
+[[nodiscard]] inline size_t codepoint_count(std::string_view input,
+    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    size_t count = 0;
+    detail::check_status(mjb_codepoint_count(input.data(), input.size(), encoding, &count),
+        "Codepoint count failed");
+
+    return count;
 }
 
 [[nodiscard]] inline mjb_status for_each_codepoint(std::string_view input,

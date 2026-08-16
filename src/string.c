@@ -175,25 +175,41 @@ mjb_status mjb_output_copy_into(const void *buffer, size_t byte_length, void *ou
 }
 
 /**
- * Return size of a string.
+ * Count the codepoints in a string.
  */
-MJB_EXPORT size_t mjb_count_codepoints(const char *buffer, size_t max_length,
-    mjb_encoding encoding) {
-    if(buffer == NULL || max_length == 0) {
-        return 0;
+MJB_EXPORT mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, size_t *count) {
+    if(count == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(mjb_resolve_input_byte_length(buffer, &max_length, encoding) != MJB_STATUS_OK) {
-        return 0;
+    *count = 0;
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    if(buffer == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK || byte_length == 0) {
+        return status;
     }
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint = 0;
-    size_t count = 0;
+    size_t codepoint_count = 0;
 
-    for(size_t i = 0; i < max_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, max_length, &state, &i,
+    for(size_t i = 0; i < byte_length;) {
+        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
             encoding, &codepoint, &in_error);
 
         if(decode_status == MJB_DECODE_END) {
@@ -201,9 +217,11 @@ MJB_EXPORT size_t mjb_count_codepoints(const char *buffer, size_t max_length,
         }
 
         if(decode_status == MJB_DECODE_OK || decode_status == MJB_DECODE_ERROR) {
-            ++count;
+            ++codepoint_count;
         }
     }
 
-    return count;
+    *count = codepoint_count;
+
+    return MJB_STATUS_OK;
 }

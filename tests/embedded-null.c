@@ -10,28 +10,42 @@
 #include "test.h"
 
 /**
- * Test mjb_count_codepoints behavior with embedded NULL codepoints (U+0000).
+ * Test mjb_codepoint_count behavior with embedded NULL codepoints (U+0000).
  */
+
+// Return the codepoint count, or SIZE_MAX when mjb_codepoint_count reports a failure.
+static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
+    size_t count = 0;
+
+    if(mjb_codepoint_count(buffer, byte_length, encoding, &count) != MJB_STATUS_OK) {
+        return SIZE_MAX;
+    }
+
+    return count;
+}
+
 int test_embedded_null(void *arg) {
+    MJB_TEST_COVERAGE(mjb_codepoint_count);
+
     // Explicit lengths always include U+0000 codepoints.
     const char utf8_with_nulls[] = { 'A', '\0', 'B', '\0', 'C' };
-    ATT_ASSERT(mjb_count_codepoints(utf8_with_nulls, 5, MJB_ENC_UTF_8), 5,
+    ATT_ASSERT(count_codepoints(utf8_with_nulls, 5, MJB_ENC_UTF_8), 5,
         "UTF-8: A\\0B\\0C = 5 codepoints")
-    ATT_ASSERT(mjb_count_codepoints(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8), 1,
+    ATT_ASSERT(count_codepoints(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8), 1,
         "UTF-8: NUL-terminated A\\0B\\0C = 1 codepoint")
 
     const char utf8_hello_null_world[] = { 'H', 'e', 'l', 'l', 'o', '\0', 'W', 'o', 'r', 'l', 'd' };
-    ATT_ASSERT(mjb_count_codepoints(utf8_hello_null_world, 11, MJB_ENC_UTF_8), 11,
+    ATT_ASSERT(count_codepoints(utf8_hello_null_world, 11, MJB_ENC_UTF_8), 11,
         "UTF-8: Hello\\0World = 11 codepoints")
 
     const char utf8_only_nulls[] = { '\0', '\0', '\0' };
-    ATT_ASSERT(mjb_count_codepoints(utf8_only_nulls, 3, MJB_ENC_UTF_8), 3,
+    ATT_ASSERT(count_codepoints(utf8_only_nulls, 3, MJB_ENC_UTF_8), 3,
         "UTF-8: \\0\\0\\0 = 3 codepoints")
-    ATT_ASSERT(mjb_count_codepoints(utf8_only_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8), 0,
+    ATT_ASSERT(count_codepoints(utf8_only_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8), 0,
         "UTF-8: NUL-terminated \\0\\0\\0 is empty")
 
     const char utf8_null_prefix[] = { '\0', 'A', 'B', 'C' };
-    ATT_ASSERT(mjb_count_codepoints(utf8_null_prefix, 4, MJB_ENC_UTF_8), 4,
+    ATT_ASSERT(count_codepoints(utf8_null_prefix, 4, MJB_ENC_UTF_8), 4,
         "UTF-8: \\0ABC = 4 codepoints")
 
     const char utf8_multibyte_nulls[] = {
@@ -40,7 +54,7 @@ int test_embedded_null(void *arg) {
         '\xE3', '\x83', '\x84', // ツ
         '\0'                    // U+0000
     };
-    ATT_ASSERT(mjb_count_codepoints(utf8_multibyte_nulls, 7, MJB_ENC_UTF_8), 4,
+    ATT_ASSERT(count_codepoints(utf8_multibyte_nulls, 7, MJB_ENC_UTF_8), 4,
         "UTF-8: é\\0ツ\\0 = 4 codepoints")
 
     const char utf16le_with_null[] = {
@@ -48,9 +62,9 @@ int test_embedded_null(void *arg) {
         '\0', '\0', // U+0000
         'B', '\0'   // U+0042 'B'
     };
-    ATT_ASSERT(mjb_count_codepoints(utf16le_with_null, 6, MJB_ENC_UTF_16LE), 3,
+    ATT_ASSERT(count_codepoints(utf16le_with_null, 6, MJB_ENC_UTF_16LE), 3,
         "UTF-16LE: A\\0B = 3 codepoints")
-    ATT_ASSERT(mjb_count_codepoints(utf16le_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_16LE), 1,
+    ATT_ASSERT(count_codepoints(utf16le_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_16LE), 1,
         "UTF-16LE: NUL-terminated A\\0B = 1 codepoint")
 
     const char utf16le_hello_null_exclaim[] = {
@@ -58,7 +72,7 @@ int test_embedded_null(void *arg) {
         '\0', '\0',                                            // U+0000
         '!', '\0'                                              // !
     };
-    ATT_ASSERT(mjb_count_codepoints(utf16le_hello_null_exclaim, 14, MJB_ENC_UTF_16LE), 7,
+    ATT_ASSERT(count_codepoints(utf16le_hello_null_exclaim, 14, MJB_ENC_UTF_16LE), 7,
         "UTF-16LE: Hello\\0! = 7 codepoints")
 
     const char utf16le_multiple_nulls[] = {
@@ -67,7 +81,7 @@ int test_embedded_null(void *arg) {
         '\0', '\0', // U+0000
         'Y', '\0'   // U+0059 'Y'
     };
-    ATT_ASSERT(mjb_count_codepoints(utf16le_multiple_nulls, 8, MJB_ENC_UTF_16LE), 4,
+    ATT_ASSERT(count_codepoints(utf16le_multiple_nulls, 8, MJB_ENC_UTF_16LE), 4,
         "UTF-16LE: X\\0\\0Y = 4 codepoints")
 
     const char utf16be_with_null[] = {
@@ -75,13 +89,13 @@ int test_embedded_null(void *arg) {
         '\0', '\0', // U+0000
         '\0', 'B'   // U+0042 'B'
     };
-    ATT_ASSERT(mjb_count_codepoints(utf16be_with_null, 6, MJB_ENC_UTF_16BE), 3,
+    ATT_ASSERT(count_codepoints(utf16be_with_null, 6, MJB_ENC_UTF_16BE), 3,
         "UTF-16BE: A\\0B = 3 codepoints")
-    ATT_ASSERT(mjb_count_codepoints(utf16be_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_16BE), 1,
+    ATT_ASSERT(count_codepoints(utf16be_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_16BE), 1,
         "UTF-16BE: NUL-terminated A\\0B = 1 codepoint")
 
     const char utf16_with_bom[] = { '\xFF', '\xFE', 'A', '\0', '\0', '\0' };
-    ATT_ASSERT(mjb_count_codepoints(utf16_with_bom, MJB_NUL_TERMINATED, MJB_ENC_UTF_16), 1,
+    ATT_ASSERT(count_codepoints(utf16_with_bom, MJB_NUL_TERMINATED, MJB_ENC_UTF_16), 1,
         "Generic UTF-16: NUL termination is resolved before BOM decoding")
 
     const char utf16be_test_null_data[] = {
@@ -89,7 +103,7 @@ int test_embedded_null(void *arg) {
         '\0', '\0',                                 // U+0000
         '\0', 'D', '\0', 'a', '\0', 't', '\0', 'a'  // Data
     };
-    ATT_ASSERT(mjb_count_codepoints(utf16be_test_null_data, 18, MJB_ENC_UTF_16BE), 9,
+    ATT_ASSERT(count_codepoints(utf16be_test_null_data, 18, MJB_ENC_UTF_16BE), 9,
         "UTF-16BE: Test\\0Data = 9 codepoints")
 
     const char utf32le_with_null[] = {
@@ -97,9 +111,9 @@ int test_embedded_null(void *arg) {
         '\0', '\0', '\0', '\0', // U+00000000
         'B', '\0', '\0', '\0'   // U+00000042 'B'
     };
-    ATT_ASSERT(mjb_count_codepoints(utf32le_with_null, 12, MJB_ENC_UTF_32LE), 3,
+    ATT_ASSERT(count_codepoints(utf32le_with_null, 12, MJB_ENC_UTF_32LE), 3,
         "UTF-32LE: A\\0B = 3 codepoints")
-    ATT_ASSERT(mjb_count_codepoints(utf32le_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_32LE), 1,
+    ATT_ASSERT(count_codepoints(utf32le_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_32LE), 1,
         "UTF-32LE: NUL-terminated A\\0B = 1 codepoint")
 
     const char utf32le_digits_nulls[] = {
@@ -111,7 +125,7 @@ int test_embedded_null(void *arg) {
         '\0', '\0', '\0', '\0', // U+00000000
         '3', '\0', '\0', '\0'   // U+00000033 '3'
     };
-    ATT_ASSERT(mjb_count_codepoints(utf32le_digits_nulls, 28, MJB_ENC_UTF_32LE), 7,
+    ATT_ASSERT(count_codepoints(utf32le_digits_nulls, 28, MJB_ENC_UTF_32LE), 7,
         "UTF-32LE: 1\\0\\02\\0\\03 = 7 codepoints")
 
     const char utf32be_with_null[] = {
@@ -119,14 +133,14 @@ int test_embedded_null(void *arg) {
         '\0', '\0', '\0', '\0', // U+00000000
         '\0', '\0', '\0', 'B'   // U+00000042 'B'
     };
-    ATT_ASSERT(mjb_count_codepoints(utf32be_with_null, 12, MJB_ENC_UTF_32BE), 3,
+    ATT_ASSERT(count_codepoints(utf32be_with_null, 12, MJB_ENC_UTF_32BE), 3,
         "UTF-32BE: A\\0B = 3 codepoints")
-    ATT_ASSERT(mjb_count_codepoints(utf32be_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_32BE), 1,
+    ATT_ASSERT(count_codepoints(utf32be_with_null, MJB_NUL_TERMINATED, MJB_ENC_UTF_32BE), 1,
         "UTF-32BE: NUL-terminated A\\0B = 1 codepoint")
 
     const char utf32_with_bom[] = { '\xFF', '\xFE', '\0', '\0', 'A', '\0', '\0', '\0', '\0', '\0',
         '\0', '\0' };
-    ATT_ASSERT(mjb_count_codepoints(utf32_with_bom, MJB_NUL_TERMINATED, MJB_ENC_UTF_32), 1,
+    ATT_ASSERT(count_codepoints(utf32_with_bom, MJB_NUL_TERMINATED, MJB_ENC_UTF_32), 1,
         "Generic UTF-32: NUL termination is resolved before BOM decoding")
 
     const char utf32be_emoji_null[] = {
@@ -134,15 +148,15 @@ int test_embedded_null(void *arg) {
         '\0', '\0', '\0', '\0',       // U+00000000
         '\0', '\x01', '\xF3', '\x0D'  // U+0001F30D 🌍 world globe
     };
-    ATT_ASSERT(mjb_count_codepoints(utf32be_emoji_null, 12, MJB_ENC_UTF_32BE), 3,
+    ATT_ASSERT(count_codepoints(utf32be_emoji_null, 12, MJB_ENC_UTF_32BE), 3,
         "UTF-32BE: 🤝\\0🌍 = 3 codepoints")
 
     const char utf8_boundary[] = { 'A', '\0', 'B' };
-    ATT_ASSERT(mjb_count_codepoints(utf8_boundary, 2, MJB_ENC_UTF_8), 2,
+    ATT_ASSERT(count_codepoints(utf8_boundary, 2, MJB_ENC_UTF_8), 2,
         "UTF-8: A\\0 = 2 codepoints")
 
     const char utf8_empty_then_data[] = { '\0', 'A', 'B', 'C' };
-    ATT_ASSERT(mjb_count_codepoints(utf8_empty_then_data, 4, MJB_ENC_UTF_8), 4,
+    ATT_ASSERT(count_codepoints(utf8_empty_then_data, 4, MJB_ENC_UTF_8), 4,
         "UTF-8: \\0ABC = 4 codepoints")
 
     // The normalization fast path must report the resolved payload length, not SIZE_MAX.

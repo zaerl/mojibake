@@ -61,13 +61,14 @@ def load_mojibake() -> ctypes.CDLL:
 
     library.mjb_nfkc_casefold.restype = ctypes.c_int
 
-    library.mjb_count_codepoints.argtypes = [
+    library.mjb_codepoint_count.argtypes = [
         ctypes.c_char_p,
         ctypes.c_size_t,
         ctypes.c_int,
+        ctypes.POINTER(ctypes.c_size_t),
     ]
 
-    library.mjb_count_codepoints.restype = ctypes.c_size_t
+    library.mjb_codepoint_count.restype = ctypes.c_int
     library.mjb_result_free.argtypes = [ctypes.POINTER(MjbResult)]
     library.mjb_result_free.restype = ctypes.c_int
 
@@ -139,13 +140,18 @@ def main() -> int:
 
     mojibake = "文字化け".encode()
 
-    # Codepoint count example: mjb_count_codepoints counts Unicode codepoints, not bytes.
-    codepoint_count = library.mjb_count_codepoints(
-        mojibake, len(mojibake), MJB_ENC_UTF_8
+    # Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
+    codepoint_count = ctypes.c_size_t(0)
+    status = library.mjb_codepoint_count(
+        mojibake, len(mojibake), MJB_ENC_UTF_8, ctypes.byref(codepoint_count)
     )
+
+    if status != MJB_STATUS_OK:
+        raise RuntimeError("mjb_codepoint_count failed")
+
     print(
         f'"{mojibake.decode()}" encoded in UTF-8 is {len(mojibake)} bytes long, '
-        f"and {codepoint_count} codepoints long"
+        f"and {codepoint_count.value} codepoints long"
     )
 
     case_input = "Straße".encode()

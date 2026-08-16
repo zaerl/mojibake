@@ -30,9 +30,9 @@ int main() {
 
         constexpr std::string_view mojibake = "文字化け";
 
-        // Codepoint count example: mjb::length counts Unicode codepoints, not bytes.
+        // Codepoint count example: mjb::codepoint_count counts Unicode codepoints, not bytes.
         std::cout << '"' << mojibake << "\" encoded in UTF-8 is " << mojibake.size()
-                  << " bytes long, and " << mjb::length(mojibake) << " codepoints long\n";
+                  << " bytes long, and " << mjb::codepoint_count(mojibake) << " codepoints long\n";
 
         constexpr std::string_view case_input = "Straße";
 

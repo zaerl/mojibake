@@ -185,13 +185,16 @@ We use Attractor to run tests.
 ATT_ASSERT(what_you_are_testing, "must be equal to this value", "Description")
 ```
 
-For example, imagine we have found a bug in the `mjb_count_codepoints` function that does not
+For example, imagine we have found a bug in the `mjb_codepoint_count` function that does not
 correctly count the codepoints in the `"Hello, test"` string and we fixed it. In
 `tests/encoding.c`, add a
 new assertion:
 
 ```c
-ATT_ASSERT(mjb_count_codepoints("Hello, test", 11, MJB_ENC_UTF_8), 11, "UTF-8 Hello, test")
+size_t count = 0;
+ATT_ASSERT_STATUS(mjb_codepoint_count("Hello, test", 11, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    "UTF-8 Hello, test status")
+ATT_ASSERT(count, (size_t)11, "UTF-8 Hello, test")
 ```
 
 Then run `make test` and `make test-cpp` to be sure all tests are working.
