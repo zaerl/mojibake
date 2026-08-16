@@ -182,6 +182,8 @@ ATT_ASSERT(mojibake.graphemeCount('ABC'), 3, 'graphemeCount');
 ATT_ASSERT(mojibake.graphemeCount(''), 0, 'graphemeCount empty');
 ATT_ASSERT(mojibake.graphemeCount('🇮🇹'), 1, 'graphemeCount flag emoji');
 ATT_ASSERT(mojibake.graphemeCount('👨‍👩‍👦'), 1, 'graphemeCount ZWJ sequence');
+ATT_ASSERT(mojibake.sentenceCount('Hello. How are you? Fine!'), 3, 'sentenceCount');
+ATT_ASSERT(mojibake.sentenceCount(''), 0, 'sentenceCount empty');
 ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
   'truncateGraphemeWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');

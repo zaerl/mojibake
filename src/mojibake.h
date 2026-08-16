@@ -722,6 +722,9 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
 // Sentence boundaries breaking.
 MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_sentence_state *state);
 
+// Count the sentence segments in a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_sentence_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
+
 // Grapheme cluster breaking.
 MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
 

@@ -206,6 +206,9 @@ int test_cpp_mojibake(void *arg) {
 
     ATT_ASSERT(mjb::grapheme_count("hello"), (size_t)5, "grapheme_count: ASCII")
     ATT_ASSERT(mjb::grapheme_count(""), (size_t)0, "grapheme_count: empty")
+    ATT_ASSERT(mjb::sentence_count("Hello. How are you? Fine!"), (size_t)3,
+        "sentence_count: three sentences")
+    ATT_ASSERT(mjb::sentence_count(""), (size_t)0, "sentence_count: empty")
     ATT_ASSERT(mjb::grapheme_count("a\xCC\x81"), (size_t)1, "grapheme_count: combining mark")
     ATT_ASSERT(mjb::grapheme_count("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"), (size_t)1,
         "grapheme_count: flag emoji")

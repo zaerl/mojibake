@@ -2226,6 +2226,50 @@ See also: [`mjb_next_grapheme_break`](#mjb_next_grapheme_break), [`mjb_next_word
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
+## `mjb_sentence_count`
+
+Count the sentence segments in a string.
+
+```c
+mjb_status mjb_sentence_count(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    size_t *count
+);
+```
+
+Count the sentence segments produced by the default Unicode sentence-boundary rules. The default rules carry no abbreviation list, so text such as `Dr. Smith` counts as two sentences. Malformed code-unit sequences are segmented per the library replacement policy. On failure, `count` is set to zero.
+
+- `buffer` - The string to count
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `count` - The number of sentence segments to store; set to zero on failure
+
+**Returns**
+
+- `MJB_STATUS_OK` - The count was computed
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+
+**Example**
+
+```c
+const char *input = "Hello. How are you? Fine!";
+size_t count;
+
+if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Sentences: 3
+printf("Sentences: %zu", count);
+```
+
+See also: [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_grapheme_count`](#mjb_grapheme_count).
+
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
+
 ## `mjb_next_grapheme_break`
 
 Grapheme cluster breaking.
