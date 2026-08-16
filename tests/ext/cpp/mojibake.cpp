@@ -204,6 +204,12 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(std::string(mjb::truncate_word("hello world", 1)), std::string("hello"),
         "truncate_word: 1 segment")
 
+    ATT_ASSERT(mjb::grapheme_count("hello"), (size_t)5, "grapheme_count: ASCII")
+    ATT_ASSERT(mjb::grapheme_count(""), (size_t)0, "grapheme_count: empty")
+    ATT_ASSERT(mjb::grapheme_count("a\xCC\x81"), (size_t)1, "grapheme_count: combining mark")
+    ATT_ASSERT(mjb::grapheme_count("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"), (size_t)1,
+        "grapheme_count: flag emoji")
+
     ATT_ASSERT(std::string(mjb::property_name(MJB_PR_ALPHABETIC)), std::string("Alphabetic"),
         "property_name")
     ATT_ASSERT((int)mjb::script('A'), MJB_SC_LATN, "script")
