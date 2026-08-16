@@ -11,7 +11,7 @@ Codename: [DIGIT SIX]
 ### Added
 - Added new `mjb_grapheme_count` function
 - Added new `mjb_sentence_count` function
-- Added macOS new views
+- Added new macOS views
 
 ### Changed
 - Updated to Unicode 18 2026-08 draft
@@ -27,7 +27,7 @@ Codename: [DIGIT SIX]
 - Temporarily disabled Haiku R1/beta5 until beta 6 is released
 
 ### Fixed
-- Minor regressions discovered after new Unicode 18 draft
+- Minor regressions discovered after the new Unicode 18 draft
 
 ## [0.3.5] - 2026-07-30
 Codename: [DIGIT FIVE]
