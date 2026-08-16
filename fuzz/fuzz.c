@@ -561,7 +561,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
         }
 
-        case 9: // Segmentation: grapheme, word and width truncation
+        case 9: { // Segmentation: grapheme, word and width truncation, segment counts
             fuzz_sink += mjb_count_codepoints(buffer, size, encoding);
             mjb_truncate_grapheme(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
@@ -569,7 +569,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 (mjb_terminal_width_profile)(variant % 2), variant);
             mjb_truncate_word_width(buffer, size, encoding,
                 (mjb_terminal_width_profile)(variant % 2), variant);
+
+            size_t segment_count = 0;
+            fuzz_sink += (size_t)mjb_grapheme_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += segment_count;
+            fuzz_sink += (size_t)mjb_sentence_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += segment_count;
             break;
+        }
 
         case 10: { // Terminal width
             size_t width = 0;
