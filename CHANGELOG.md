@@ -5,22 +5,29 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-Codename:
+## [0.3.6] - 2026-08-16
+Codename: [DIGIT SIX]
 
 ### Added
+- Added new `mjb_grapheme_count` function
+- Added new `mjb_sentence_count` function
 - Added macOS new views
 
 ### Changed
+- Updated to Unicode 18 2026-08 draft
 - Renamed `mjb_for_each_character` to `mjb_for_each_codepoint`
 - Renamed `mjb_for_each_character_fn` to `mjb_for_each_codepoint_fn`
 - Renamed `_mjbForEachCharacterCallback` to `_mjbForEachCodepointCallback`
 - Renamed `mjb_are_confusable` to `mjb_confusable_match`
+- Renamed `mjb_classify_emoji_sequence` to `mjb_emoji_sequence_info`
 - WASM: renamed `forEachCharacter` to `forEachCodepoint`
 - WASM: renamed `forEachCharacter` to `forEachCodepoint`
 - WASM: renamed `areConfusable` to `confusableMatch`
+- Reorganized macOS sidebar
+- Temporarily disabled Haiku R1/beta5 until beta 6 is released
 
 ### Fixed
+- Minor regressions discovered after new Unicode 18 draft
 
 ## [0.3.5] - 2026-07-30
 Codename: [DIGIT FIVE]
@@ -664,7 +671,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.6...HEAD
+[0.3.6]: https://github.com/zaerl/mojibake/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/zaerl/mojibake/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/zaerl/mojibake/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/zaerl/mojibake/compare/v0.3.2...v0.3.3

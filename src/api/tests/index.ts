@@ -229,8 +229,8 @@ ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
 ATT_ASSERT(mojibake.setLocale(Locale.IT), true, 'setLocale');
 ATT_ASSERT(mojibake.getLocale(), Locale.IT, 'getLocale');
 ATT_ASSERT(mojibake.setLocale(Locale.EN), true, 'restore locale');
-ATT_ASSERT(mojibake.version(), '0.3.5-WASM', 'version');
-ATT_ASSERT(mojibake.versionNumber(), 0x35, 'versionNumber');
+ATT_ASSERT(mojibake.version(), '0.3.6-WASM', 'version');
+ATT_ASSERT(mojibake.versionNumber(), 0x36, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '18.0.0', 'unicodeVersion');
 ATT_ASSERT(mojibake.statusMessage(Status.OK), 'The operation completed successfully',
   'statusMessage');
