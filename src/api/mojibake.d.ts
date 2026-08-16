@@ -113,6 +113,8 @@ export type MojibakeWasmModule = {
   _mjb_truncate_grapheme_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
   _mjb_truncate_word: (buffer: Pointer, byte_length: number, encoding: number, max_segments: number) => number;
+  // Count the word-like segments in a string.
+  _mjb_word_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
   // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
   _mjb_truncate_word_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.

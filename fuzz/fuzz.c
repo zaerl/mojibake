@@ -575,6 +575,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_sink += segment_count;
             fuzz_sink += (size_t)mjb_sentence_count(buffer, size, encoding, &segment_count);
             fuzz_sink += segment_count;
+            fuzz_sink += (size_t)mjb_word_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += segment_count;
             break;
         }
 

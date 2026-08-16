@@ -2266,7 +2266,7 @@ if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS
 printf("Sentences: %zu", count);
 ```
 
-See also: [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_grapheme_count`](#mjb_grapheme_count).
+See also: [`mjb_next_sentence_break`](#mjb_next_sentence_break), [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_word_count`](#mjb_word_count).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
@@ -2443,6 +2443,50 @@ size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);
 ```
+
+## `mjb_word_count`
+
+Count the word-like segments in a string.
+
+```c
+mjb_status mjb_word_count(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    size_t *count
+);
+```
+
+Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_truncate_word`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed code-unit sequences are segmented per the library replacement policy. On failure, `count` is set to zero.
+
+- `buffer` - The string to count
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `count` - The number of word-like segments to store; set to zero on failure
+
+**Returns**
+
+- `MJB_STATUS_OK` - The count was computed
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+
+**Example**
+
+```c
+const char *input = "Hello, world! It works.";
+size_t count;
+
+if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Words: 4
+printf("Words: %zu", count);
+```
+
+See also: [`mjb_next_word_break`](#mjb_next_word_break), [`mjb_truncate_word`](#mjb_truncate_word), [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_sentence_count`](#mjb_sentence_count).
+
+Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html).
 
 ## `mjb_truncate_word_width`
 

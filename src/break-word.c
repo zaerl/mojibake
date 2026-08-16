@@ -385,6 +385,99 @@ MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_
     return state.state == MJB_UTF_TERMINATED ? last_break : byte_length;
 }
 
+// A segment is word-like when it contains at least one alphabetic or numeric codepoint.
+static bool mjb_segment_is_word_like(const char *buffer, size_t byte_length,
+    mjb_encoding encoding) {
+    uint8_t state = MJB_UTF_ACCEPT;
+    size_t index = 0;
+    mjb_codepoint codepoint = 0;
+    bool in_error = false;
+
+    while(index < byte_length) {
+        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &index, encoding,
+            &codepoint, &in_error);
+
+        if(dr == MJB_DECODE_END) {
+            break;
+        }
+
+        if(dr != MJB_DECODE_OK) {
+            continue;
+        }
+
+        uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
+
+        if(mjb_codepoint_properties_lookup(codepoint, cpb) != MJB_STATUS_OK) {
+            continue;
+        }
+
+        if(mjb_codepoint_properties_get(cpb, MJB_PR_ALPHABETIC) ||
+            (mjb_wbp)mjb_codepoint_properties_get(cpb, MJB_PR_WORD_BREAK) == MJB_WBP_NUMERIC) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Count the word-break segments that contain at least one alphabetic or numeric character.
+// Scripts that other implementations segment by dictionary lookup, such as Chinese, Japanese,
+// Thai, Lao, Khmer, and Burmese, count roughly one word per character: Mojibake does not use
+// frequency dictionaries to keep the size of the library small.
+MJB_EXPORT mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    size_t *count) {
+    if(count == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *count = 0;
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    if(buffer == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK || byte_length == 0) {
+        return status;
+    }
+
+    mjb_next_word_state state;
+    state.index = 0;
+
+    mjb_break_type bt;
+    size_t word_count = 0;
+    size_t last_break = 0;
+
+    while((bt = mjb_next_word_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+        if(bt == MJB_BT_NO_BREAK) {
+            continue;
+        }
+
+        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
+            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
+
+        if(break_pos > last_break &&
+            mjb_segment_is_word_like(buffer + last_break, break_pos - last_break, encoding)) {
+            ++word_count;
+        }
+
+        last_break = break_pos;
+    }
+
+    *count = word_count;
+
+    return MJB_STATUS_OK;
+}
+
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
 MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns) {

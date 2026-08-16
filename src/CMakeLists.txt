@@ -170,6 +170,7 @@ if(MJB_BUILD_WASM)
         "\"_mjb_grapheme_count\""
         "\"_mjb_truncate_grapheme_width\""
         "\"_mjb_truncate_word\""
+        "\"_mjb_word_count\""
         "\"_mjb_truncate_word_width\""
         "\"_mjb_bidi_resolve\""
         "\"_mjb_codepoint_is_id_start\""

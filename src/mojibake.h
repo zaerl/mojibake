@@ -740,6 +740,9 @@ MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_le
 // Return the number of bytes that form the first max_segments word-break segments.
 MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
 
+// Count the word-like segments in a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
+
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
 MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns);
 
