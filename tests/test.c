@@ -37,6 +37,79 @@ static bool exit_on_error = false;
 static bool coverage_enabled = false;
 static const char *coverage_output = NULL;
 
+typedef struct mjb_test_allocator_state {
+    size_t call_count;
+    size_t allocation_count;
+    size_t fail_after;
+} mjb_test_allocator_state;
+
+static mjb_test_allocator_state allocator_state = { 0, 0, SIZE_MAX };
+static mjb_status allocator_invalid_status = MJB_STATUS_OK;
+static mjb_status allocator_install_status = MJB_STATUS_INVALID_ARGUMENT;
+
+static void *mjb_test_alloc(void *context, size_t size) {
+    mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
+    ++state->call_count;
+
+    if(state->allocation_count++ >= state->fail_after) {
+        return NULL;
+    }
+
+    return malloc(size);
+}
+
+static void *mjb_test_realloc(void *context, void *ptr, size_t new_size) {
+    mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
+    ++state->call_count;
+
+    if(state->allocation_count++ >= state->fail_after) {
+        return NULL;
+    }
+
+    return realloc(ptr, new_size);
+}
+
+static void mjb_test_dealloc(void *context, void *ptr) {
+    mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
+    ++state->call_count;
+    free(ptr);
+}
+
+bool mjb_test_allocator_initialize(void) {
+    mjb_allocator invalid = { &allocator_state, mjb_test_alloc, NULL, mjb_test_dealloc };
+    allocator_invalid_status = mjb_set_allocator(&invalid);
+
+    mjb_allocator allocator = { &allocator_state, mjb_test_alloc, mjb_test_realloc,
+        mjb_test_dealloc };
+    allocator_install_status = mjb_set_allocator(&allocator);
+
+    return allocator_invalid_status == MJB_STATUS_INVALID_ARGUMENT &&
+        allocator_install_status == MJB_STATUS_OK;
+}
+
+mjb_status mjb_test_allocator_invalid_status(void) {
+    return allocator_invalid_status;
+}
+
+mjb_status mjb_test_allocator_install_status(void) {
+    return allocator_install_status;
+}
+
+void mjb_test_allocator_reset(void) {
+    allocator_state.call_count = 0;
+    allocator_state.allocation_count = 0;
+    allocator_state.fail_after = SIZE_MAX;
+}
+
+void mjb_test_allocator_fail_after(size_t fail_after) {
+    mjb_test_allocator_reset();
+    allocator_state.fail_after = fail_after;
+}
+
+size_t mjb_test_allocator_call_count(void) {
+    return allocator_state.call_count;
+}
+
 typedef struct {
     char name[MJB_TEST_COVERAGE_NAME_SIZE];
     unsigned long long count;
@@ -320,6 +393,12 @@ int main(int argc, char *const argv[]) {
 
             return 1;
         }
+    }
+
+    if(!mjb_test_allocator_initialize()) {
+        fputs("Failed to install the test allocator\n", stderr);
+
+        return 1;
     }
 
     unsigned int step = 0;

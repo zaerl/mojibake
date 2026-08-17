@@ -1595,6 +1595,8 @@ export class Mojibake {
     return this.module._mjb_get_locale() as Locale;
   }
 
+  // void mjb_reset_locale(void);
+
   // const char *mjb_status_message(mjb_status status);
   statusMessage(status: Status): string | null {
     const ptr = this.module._mjb_status_message(status);
@@ -1621,11 +1623,7 @@ export class Mojibake {
     return this.decodeString(this.module._mjb_unicode_version(), null, Encoding.UTF_8).output;
   }
 
-  // mjb_status mjb_set_memory_functions(mjb_alloc_fn, mjb_realloc_fn, mjb_free_fn);
-  // void mjb_reset(void);
-  // void *mjb_alloc(size_t size);
-  // void *mjb_realloc(void *ptr, size_t new_size);
-  // void *mjb_free(void *ptr);
+  // mjb_status mjb_set_allocator(const mjb_allocator *allocator);
 
   private struct(ptr: Pointer, view = new DataView(this.module.HEAPU8.buffer)): StructReader {
     return new StructReader(ptr, this.module.HEAPU8, view, this.utf8Decoder);

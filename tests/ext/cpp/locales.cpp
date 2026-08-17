@@ -25,7 +25,9 @@ int test_cpp_locales(void *arg) {
     mjb::set_locale(MJB_LOCALE_IT);
     ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_IT,
         "get_locale returns selected locale")
-    mjb::set_locale(MJB_LOCALE_EN);
+    mjb::reset_locale();
+    ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_EN,
+        "reset_locale restores English")
 
     return 0;
 }

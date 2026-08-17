@@ -28,12 +28,6 @@ static int test_utf8_grapheme_vsnprintf(char *buffer, size_t buffer_size, const 
     return required;
 }
 
-static void *test_format_no_memory(size_t size) {
-    (void)size;
-
-    return NULL;
-}
-
 int test_format(void *arg) {
     (void)arg;
 
@@ -164,9 +158,7 @@ int test_format(void *arg) {
     ATT_ASSERT(required, 5, "Grapheme vsnprintf reports the complete result length")
     ATT_ASSERT(grapheme_variadic, "A", "Grapheme vsnprintf removes a partial grapheme")
 
-    mjb_reset();
-    ATT_ASSERT_STATUS(mjb_set_memory_functions(test_format_no_memory, NULL, NULL), MJB_STATUS_OK,
-        "Set allocation failure for grapheme snprintf")
+    mjb_test_allocator_fail_after(0);
 
     char no_allocation[8] = { '#', '#', '#', '#', '#', '#', '#', '#' };
     MJB_TEST_COVERAGE(mjb_utf8_grapheme_snprintf);
@@ -180,7 +172,7 @@ int test_format(void *arg) {
     ATT_ASSERT(required, -1, "Truncated grapheme snprintf reports allocation failure")
     ATT_ASSERT(no_memory, "", "Grapheme snprintf clears the output after allocation failure")
     ATT_ASSERT(errno, ENOMEM, "Grapheme snprintf reports ENOMEM after allocation failure")
-    mjb_reset();
+    mjb_test_allocator_reset();
 
     return 0;
 }

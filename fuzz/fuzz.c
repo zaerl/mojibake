@@ -335,33 +335,6 @@ static void fuzz_format_apis(const char *buffer, size_t byte_length, uint8_t var
     }
 }
 
-static void fuzz_memory_apis(const char *buffer, size_t byte_length, uint8_t variant) {
-    size_t allocation_size = (variant % 64) + 1;
-    unsigned char *memory = (unsigned char *)mjb_alloc(allocation_size);
-
-    if(memory == NULL) {
-        return;
-    }
-
-    size_t copy_size = byte_length < allocation_size ? byte_length : allocation_size;
-    memcpy(memory, buffer, copy_size);
-
-    size_t resized_size = allocation_size + (variant % 64) + 1;
-    unsigned char *resized = (unsigned char *)mjb_realloc(memory, resized_size);
-
-    if(resized == NULL) {
-        mjb_free(memory);
-
-        return;
-    }
-
-    if(copy_size > 0) {
-        fuzz_sink += resized[0];
-    }
-
-    mjb_free(resized);
-}
-
 /**
  * The libFuzzer harness. The first byte selects the API under test and some of its parameters,
  * the second byte selects the input encoding and locale, the rest is the input buffer.
@@ -378,9 +351,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     const char *buffer = (const char *)data + 2;
     size -= 2;
 
-    mjb_reset();
-    fuzz_sink += (size_t)((variant & 0x40) != 0 ? mjb_set_memory_functions(malloc, realloc, free) :
-                                                  mjb_set_memory_functions(NULL, NULL, NULL));
+    mjb_reset_locale();
 
     static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
         MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
@@ -391,7 +362,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         MJB_LOCALE_LT };
 
     if(mjb_set_locale(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
-        mjb_reset();
+        mjb_reset_locale();
 
         return 0;
     }
@@ -688,16 +659,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_format_apis(buffer, size, variant);
             break;
 
-        case 22: // Public allocator functions
-            fuzz_memory_apis(buffer, size, variant);
-            break;
-
-        case 23:
+        case 22:
             (void)mjb_status_message((mjb_status)(variant % 256));
             break;
     }
 
-    mjb_reset();
+    mjb_reset_locale();
 
     return 0;
 }

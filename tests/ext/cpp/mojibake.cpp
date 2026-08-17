@@ -288,12 +288,5 @@ int test_cpp_mojibake(void *arg) {
     ATT_ASSERT(std::string(mjb::unicode_version()), std::string(MJB_UNICODE_VERSION),
         "unicode_version")
 
-    mjb::set_memory_functions(nullptr, nullptr, nullptr);
-    void *memory = mjb::allocate(8);
-    ATT_ASSERT(memory != nullptr, true, "allocate")
-    memory = mjb::reallocate(memory, 16);
-    ATT_ASSERT(memory != nullptr, true, "reallocate")
-    mjb::deallocate(memory);
-
     return 0;
 }

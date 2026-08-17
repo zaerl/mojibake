@@ -9,33 +9,64 @@
 
 #include "mojibake-internal.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-static void *mjb_default_alloc(size_t size) {
+// These wrappers adapt the context-aware callback signatures. On MSVC they also avoid taking the
+// address of imported CRT allocation functions, which triggers warning C4232.
+static void *mjb_default_alloc(void *context, size_t size) {
+    (void)context;
+
     return malloc(size);
 }
 
-static void *mjb_default_realloc(void *ptr, size_t new_size) {
+static void *mjb_default_realloc(void *context, void *ptr, size_t new_size) {
+    (void)context;
+
     return realloc(ptr, new_size);
 }
 
-static void mjb_default_free(void *ptr) {
+static void mjb_default_free(void *context, void *ptr) {
+    (void)context;
+
     free(ptr);
 }
 
-// warning C4232: nonstandard extension used: 'memory_alloc': address of dllimport 'malloc' is not
-// static, identity not guaranteed
-#define MJB_DEFAULT_ALLOC mjb_default_alloc
-#define MJB_DEFAULT_REALLOC mjb_default_realloc
-#define MJB_DEFAULT_FREE mjb_default_free
-#else
-#define MJB_DEFAULT_ALLOC malloc
-#define MJB_DEFAULT_REALLOC realloc
-#define MJB_DEFAULT_FREE free
-#endif
-
-// Default allocators are valid before any explicit memory-function override.
-mojibake mjb_global = { false, MJB_DEFAULT_ALLOC, MJB_DEFAULT_REALLOC, MJB_DEFAULT_FREE,
+// The default allocator is usable without explicit configuration. Custom configuration is copied
+// once before any other library call and remains immutable for the process lifetime.
+mojibake mjb_global = { { NULL, mjb_default_alloc, mjb_default_realloc, mjb_default_free }, false,
     MJB_LOCALE_EN };
+
+// Set the process-global allocator once, before any other library call.
+MJB_EXPORT mjb_status mjb_set_allocator(const mjb_allocator *allocator) {
+    if(mjb_global.allocator_configured) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(allocator != NULL) {
+        if(allocator->alloc == NULL || allocator->realloc == NULL || allocator->free == NULL) {
+            return MJB_STATUS_INVALID_ARGUMENT;
+        }
+
+        mjb_global.allocator = *allocator;
+    }
+
+    mjb_global.allocator_configured = true;
+
+    return MJB_STATUS_OK;
+}
+
+// Allocate memory
+MJB_LOCAL void *mjb_alloc(size_t size) {
+    return mjb_global.allocator.alloc(mjb_global.allocator.context, size);
+}
+
+// Reallocate memory
+MJB_LOCAL void *mjb_realloc(void *ptr, size_t new_size) {
+    return mjb_global.allocator.realloc(mjb_global.allocator.context, ptr, new_size);
+}
+
+// Free memory
+MJB_LOCAL void mjb_free(void *ptr) {
+    mjb_global.allocator.free(mjb_global.allocator.context, ptr);
+}
 
 // Free a mjb_result.
 MJB_EXPORT mjb_status mjb_result_free(mjb_result *result) {
@@ -52,62 +83,6 @@ MJB_EXPORT mjb_status mjb_result_free(mjb_result *result) {
     result->transformed = false;
 
     return MJB_STATUS_OK;
-}
-
-// Set the library memory functions.
-MJB_EXPORT mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn,
-    mjb_free_fn free_fn) {
-    if(mjb_global.memory_functions_locked) {
-        return MJB_STATUS_OK;
-    }
-
-    if(alloc_fn == NULL) {
-        alloc_fn = MJB_DEFAULT_ALLOC;
-    }
-
-    if(realloc_fn == NULL) {
-        realloc_fn = MJB_DEFAULT_REALLOC;
-    }
-
-    if(free_fn == NULL) {
-        free_fn = MJB_DEFAULT_FREE;
-    }
-
-    mjb_global.memory_alloc = alloc_fn;
-    mjb_global.memory_realloc = realloc_fn;
-    mjb_global.memory_free = free_fn;
-    mjb_global.memory_functions_locked = true;
-
-    return MJB_STATUS_OK;
-}
-
-MJB_EXPORT void mjb_reset(void) {
-    mjb_global.memory_functions_locked = false;
-    mjb_global.memory_free = MJB_DEFAULT_FREE;
-    mjb_global.memory_realloc = MJB_DEFAULT_REALLOC;
-    mjb_global.memory_alloc = MJB_DEFAULT_ALLOC;
-    mjb_global.locale = MJB_LOCALE_EN;
-}
-
-// Allocate memory
-MJB_EXPORT void *mjb_alloc(size_t size) {
-    mjb_global.memory_functions_locked = true;
-    void *allocated = mjb_global.memory_alloc(size);
-
-    return allocated;
-}
-
-// Reallocate memory
-MJB_EXPORT void *mjb_realloc(void *ptr, size_t new_size) {
-    mjb_global.memory_functions_locked = true;
-
-    return mjb_global.memory_realloc(ptr, new_size);
-}
-
-// Free memory
-MJB_EXPORT void mjb_free(void *ptr) {
-    mjb_global.memory_functions_locked = true;
-    mjb_global.memory_free(ptr);
 }
 
 MJB_EXPORT MJB_CONST const char *mjb_status_message(mjb_status status) {

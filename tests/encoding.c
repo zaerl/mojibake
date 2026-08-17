@@ -29,7 +29,7 @@ static void assert_encoding_conversion(const char *input, size_t input_size,
     ATT_ASSERT(memcmp(result.output, expected, expected_size), 0, message)
 
     if(result.transformed) {
-        mjb_free(result.output);
+        (void)mjb_result_free(&result);
     }
 }
 
@@ -479,7 +479,7 @@ int test_encoding(void *arg) {
     ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
     ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size")
     ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output")
-    mjb_free(ascii_result.output);
+    (void)mjb_result_free(&ascii_result);
 
     ATT_ASSERT_STATUS(mjb_convert_encoding("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_ENC_ASCII,
                           &ascii_result),
@@ -494,7 +494,7 @@ int test_encoding(void *arg) {
     ATT_ASSERT(ascii_result.output_size, (size_t)4, "Convert UTF-16LE surrogate pair to UTF-8 size")
     ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
         "Convert UTF-16LE surrogate pair to UTF-8 output")
-    mjb_free(ascii_result.output);
+    (void)mjb_result_free(&ascii_result);
 
     ATT_ASSERT_STATUS(mjb_convert_encoding(utf16be_smile, sizeof(utf16be_smile),
                           MJB_ENC_UTF_16BE, MJB_ENC_UTF_8, &ascii_result),
@@ -502,7 +502,7 @@ int test_encoding(void *arg) {
     ATT_ASSERT(ascii_result.output_size, (size_t)4, "Convert UTF-16BE surrogate pair to UTF-8 size")
     ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
         "Convert UTF-16BE surrogate pair to UTF-8 output")
-    mjb_free(ascii_result.output);
+    (void)mjb_result_free(&ascii_result);
 
     const char utf8_bom_a[] = { '\xEF', '\xBB', '\xBF', 'A' };
     const char utf16be_bom_a[] = { '\xFE', '\xFF', '\x00', 'A' };
@@ -632,7 +632,7 @@ int test_encoding(void *arg) {
             }
 
             if(convert_result.transformed) {
-                mjb_free(convert_result.output);
+                (void)mjb_result_free(&convert_result);
             }
         }
     }

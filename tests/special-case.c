@@ -27,7 +27,7 @@ static int check_case(char *source, size_t source_size, char *target, size_t tar
     ATT_ASSERT(result, target, test_name)
 
     if(result != NULL && result != source) {
-        mjb_free(result);
+        mjb_test_free(result);
     }
 
     return 0;
@@ -41,7 +41,7 @@ static int check_conditional(const char *source, const char *target, mjb_map_cas
     ATT_ASSERT(result, (char *)target, name)
 
     if(result != NULL) {
-        mjb_free(result);
+        mjb_test_free(result);
     }
 
     return 0;

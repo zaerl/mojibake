@@ -21,9 +21,7 @@ int mjbsh_case_command(int argc, char *const argv[], unsigned int flags) {
         puts(result.output);
     }
 
-    if(result.transformed) {
-        mjb_free(result.output);
-    }
+    (void)mjb_result_free(&result);
 
     return 0;
 }

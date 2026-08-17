@@ -131,10 +131,19 @@ extern "C" {
 
 // clang-format on
 
-// See c standard memory allocation functions
-typedef void *(*mjb_alloc_fn)(size_t size);
-typedef void *(*mjb_realloc_fn)(void *ptr, size_t new_size);
-typedef void (*mjb_free_fn)(void *ptr);
+// Memory allocator callbacks. They must follow the corresponding C standard library semantics.
+typedef void *(*mjb_alloc_fn)(void *context, size_t size);
+typedef void *(*mjb_realloc_fn)(void *context, void *ptr, size_t new_size);
+typedef void (*mjb_free_fn)(void *context, void *ptr);
+
+// A process-global allocator installed once, before any other library call. The context remains
+// caller-owned and must stay valid for the lifetime of all Mojibake allocations.
+typedef struct mjb_allocator {
+    void *context;
+    mjb_alloc_fn alloc;
+    mjb_realloc_fn realloc;
+    mjb_free_fn free;
+} mjb_allocator;
 
 /**
  * A Unicode codepoint, a value in the range 0 to 0x10FFFF
@@ -857,6 +866,9 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_locale(mjb_locale locale);
 // Return the current process-global locale.
 MJB_EXPORT MJB_PURE mjb_locale mjb_get_locale(void);
 
+// Reset the process-global locale.
+MJB_EXPORT void mjb_reset_locale(void);
+
 // Free a mjb_result.
 MJB_EXPORT mjb_status mjb_result_free(mjb_result *result);
 
@@ -884,20 +896,8 @@ MJB_EXPORT MJB_CONST unsigned int mjb_version_number(void);
 // Output the current supported Unicode version (MJB_UNICODE_VERSION).
 MJB_EXPORT MJB_CONST const char *mjb_unicode_version(void);
 
-// Set the library memory functions.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_memory_functions(mjb_alloc_fn alloc_fn, mjb_realloc_fn realloc_fn, mjb_free_fn free_fn);
-
-// Reset the library. Not needed to be called.
-MJB_EXPORT void mjb_reset(void);
-
-// Allocate memory.
-MJB_EXPORT MJB_NODISCARD void *mjb_alloc(size_t byte_length);
-
-// Reallocate memory.
-MJB_EXPORT MJB_NODISCARD void *mjb_realloc(void *ptr, size_t new_size);
-
-// Free memory.
-MJB_EXPORT void mjb_free(void *ptr);
+// Set the process-global memory allocator.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_allocator(const mjb_allocator *allocator);
 
 // clang-format on
 #ifdef __cplusplus

@@ -359,9 +359,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     mjbsh_print_nl(nl);
 
 cleanup:
-    if(result.output != NULL && result.output != buffer_utf8) {
-        mjb_free(result.output);
-    }
+    (void)mjb_result_free(&result);
 }
 
 void mjbsh_codepoint(const char *label, unsigned int nl, mjb_codepoint codepoint) {

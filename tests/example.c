@@ -1475,6 +1475,23 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_reset_locale
+    MJB_TEST_COVERAGE(mjb_reset_locale); // Added by the script
+    if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_reset_locale test failed") // Added by the script
+        return 1;
+    }
+
+    mjb_reset_locale();
+    mjb_locale locale = mjb_get_locale();
+
+    // Current locale reset to English: yes
+    // printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no"); // Added by the script
+    ATT_ASSERT(test_buffer, "Current locale reset to English: yes", "mjb_reset_locale test failed") // Added by the script
+}
+
+{
     // Example for mjb_result_free
     MJB_TEST_COVERAGE(mjb_result_free); // Added by the script
     mjb_result result;
@@ -1559,96 +1576,6 @@ int test_example(void *arg) {
     // printf("Unicode version: %s", version);
     snprintf(test_buffer, sizeof(test_buffer), "Unicode version: %s", version); // Added by the script
     ATT_ASSERT(test_buffer, "Unicode version: 18.0.0", "mjb_unicode_version test failed") // Added by the script
-}
-
-{
-    // Example for mjb_set_memory_functions
-    MJB_TEST_COVERAGE(mjb_set_memory_functions); // Added by the script
-    mjb_reset(); // Ensure no allocator is currently locked in.
-
-    if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_set_memory_functions test failed") // Added by the script
-        return 1;
-    }
-
-    // Standard allocator installed: yes
-    // printf("Standard allocator installed: yes");
-    snprintf(test_buffer, sizeof(test_buffer), "Standard allocator installed: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Standard allocator installed: yes", "mjb_set_memory_functions test failed") // Added by the script
-    mjb_reset();
-}
-
-{
-    // Example for mjb_reset
-    MJB_TEST_COVERAGE(mjb_reset); // Added by the script
-    mjb_reset();
-
-    // Library state reset: yes
-    // printf("Library state reset: yes");
-    snprintf(test_buffer, sizeof(test_buffer), "Library state reset: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Library state reset: yes", "mjb_reset test failed") // Added by the script
-}
-
-{
-    // Example for mjb_alloc
-    MJB_TEST_COVERAGE(mjb_alloc); // Added by the script
-    char *buffer = (char*)mjb_alloc(sizeof("allocated"));
-
-    if(buffer == NULL) {
-        ATT_ASSERT(0, 1, "mjb_alloc test failed") // Added by the script
-        return 1;
-    }
-
-    memcpy(buffer, "allocated", sizeof("allocated"));
-
-    // Buffer: allocated
-    // printf("Buffer: %s", buffer);
-    snprintf(test_buffer, sizeof(test_buffer), "Buffer: %s", buffer); // Added by the script
-    ATT_ASSERT(test_buffer, "Buffer: allocated", "mjb_alloc test failed") // Added by the script
-    mjb_free(buffer);
-}
-
-{
-    // Example for mjb_realloc
-    MJB_TEST_COVERAGE(mjb_realloc); // Added by the script
-    char *buffer = (char*)mjb_alloc(8);
-
-    if(buffer == NULL) {
-        ATT_ASSERT(0, 1, "mjb_realloc test failed") // Added by the script
-        return 1;
-    }
-
-    char *larger = (char*)mjb_realloc(buffer, 32);
-
-    if(larger == NULL) {
-        mjb_free(buffer);
-        ATT_ASSERT(0, 1, "mjb_realloc test failed") // Added by the script
-        return 1;
-    }
-
-    // Reallocation succeeded: yes
-    // printf("Reallocation succeeded: yes");
-    snprintf(test_buffer, sizeof(test_buffer), "Reallocation succeeded: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Reallocation succeeded: yes", "mjb_realloc test failed") // Added by the script
-    mjb_free(larger);
-}
-
-{
-    // Example for mjb_free
-    MJB_TEST_COVERAGE(mjb_free); // Added by the script
-    void *memory = mjb_alloc(16);
-
-    if(memory == NULL) {
-        ATT_ASSERT(0, 1, "mjb_free test failed") // Added by the script
-        return 1;
-    }
-
-    mjb_free(memory);
-
-    // Memory freed: yes
-    // printf("Memory freed: yes");
-    snprintf(test_buffer, sizeof(test_buffer), "Memory freed: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Memory freed: yes", "mjb_free test failed") // Added by the script
 }
     return 0;
 }
