@@ -67,8 +67,16 @@ struct CaseView: View {
                         .frame(minHeight: 120)
                         .accessibilityLabel("Input text")
                 } label: {
-                    Text("Input")
-                        .font(.headline)
+                    HStack {
+                        Text("Input")
+                            .font(.headline)
+
+                        Spacer()
+
+                        Text(inputSummary)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 ForEach(CaseMapping.allCases) { mapping in
@@ -108,6 +116,10 @@ struct CaseView: View {
         .onChange(of: input) {
             mapCases()
         }
+    }
+
+    private var inputSummary: String {
+        MojibakeCounting.summary(for: input)
     }
 
     private func mapCases() {
