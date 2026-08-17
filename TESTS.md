@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,537,554** C assertions and **130** JavaScript assertions, including all
+Mojibake runs a total of **4,541,056** C assertions and **130** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -31,7 +31,7 @@ the official tests included in the standard:
 | `mjb_nfkc_casefold`                        | 32037       |
 | `mjb_map_case_into`                        | 24756       |
 | `mjb_next_line_break`                      | 19352       |
-| `mjb_result_free`                          | 10693       |
+| `mjb_result_free`                          | 14219       |
 | `mjb_idna_to_unicode`                      | 6408        |
 | `mjb_idna_to_ascii`                        | 6405        |
 | `mjb_emoji_sequence_info`                  | 5286        |
@@ -43,7 +43,7 @@ the official tests included in the standard:
 | `mjb_next_sentence_break`                  | 515         |
 | `mjb_confusable_match`                     | 241         |
 | `mjb_filter`                               | 161         |
-| `mjb_convert_encoding`                     | 137         |
+| `mjb_convert_encoding`                     | 138         |
 | `mjb_codepoint_count`                      | 122         |
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_resolved_script_set`                  | 97          |
@@ -69,8 +69,8 @@ the official tests included in the standard:
 | `mjb_convert_encoding_into`                | 19          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_is_utf8`                              | 19          |
-| `mjb_set_locale`                           | 19          |
 | `mjb_codepoint_is_cjk_extension_ideograph` | 17          |
+| `mjb_set_locale`                           | 17          |
 | `mjb_codepoint_block`                      | 16          |
 | `mjb_is_utf16`                             | 16          |
 | `mjb_is_identifier`                        | 13          |
@@ -83,7 +83,6 @@ the official tests included in the standard:
 | `mjb_plane_name`                           | 9           |
 | `mjb_codepoint_is_cjk_ideograph`           | 8           |
 | `mjb_idna_to_ascii_into`                   | 8           |
-| `mjb_reset`                                | 8           |
 | `mjb_truncate_word`                        | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
@@ -94,8 +93,6 @@ the official tests included in the standard:
 | `mjb_codepoint_is_id_continue`             | 6           |
 | `mjb_codepoint_property_int`               | 6           |
 | `mjb_hangul_syllable_decomposition`        | 6           |
-| `mjb_set_memory_functions`                 | 6           |
-| `mjb_alloc`                                | 5           |
 | `mjb_codepoint_is_hangul_jamo`             | 5           |
 | `mjb_codepoint_is_hangul_trailing_jamo`    | 5           |
 | `mjb_get_locale`                           | 5           |
@@ -104,11 +101,9 @@ the official tests included in the standard:
 | `mjb_codepoint_is_pattern_syntax`          | 4           |
 | `mjb_codepoint_is_pattern_white_space`     | 4           |
 | `mjb_codepoint_plane`                      | 4           |
-| `mjb_free`                                 | 4           |
 | `mjb_idna_to_unicode_into`                 | 4           |
 | `mjb_is_rgi_emoji`                         | 4           |
 | `mjb_plane_is_valid`                       | 4           |
-| `mjb_realloc`                              | 4           |
 | `mjb_bidi_paragraph_free`                  | 3           |
 | `mjb_category_is_combining`                | 3           |
 | `mjb_category_is_graphic`                  | 3           |
@@ -117,6 +112,7 @@ the official tests included in the standard:
 | `mjb_codepoint_is_xid_start`               | 3           |
 | `mjb_is_emoji_sequence`                    | 3           |
 | `mjb_property_name`                        | 3           |
+| `mjb_reset_locale`                         | 3           |
 | `mjb_status_message`                       | 3           |
 | `mjb_codepoint_is_emoji_component`         | 2           |
 | `mjb_codepoint_is_emoji_modifier`          | 2           |
@@ -129,7 +125,8 @@ the official tests included in the standard:
 | `mjb_utf8_vsnprintf`                       | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4537554** |
+| `mjb_set_allocator`                        | 1           |
+| **Total**                                  | **4541056** |
 
 ## JavaScript
 

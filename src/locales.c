@@ -543,3 +543,7 @@ MJB_EXPORT mjb_status mjb_set_locale(mjb_locale locale) {
 MJB_EXPORT mjb_locale mjb_get_locale(void) {
     return mjb_global.locale;
 }
+
+MJB_EXPORT void mjb_reset_locale(void) {
+    mjb_global.locale = MJB_LOCALE_EN;
+}

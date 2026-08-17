@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encodings with `MJB_STATUS_INVALID_ENCODING` instead of decoding with replacements. The C++
   wrapper `mjb::length` is now `mjb::codepoint_count`, and the TypeScript API `countCodepoints`
   is now `codepointCount`.
+- **Breaking**: replaced `mjb_set_memory_functions` with the context-aware `mjb_set_allocator`.
+  The allocator can be configured only once, before any other library call, and remains installed
+  for the process lifetime. The raw `mjb_alloc`, `mjb_realloc`, and `mjb_free` functions are now
+  private; callers must use `mjb_result_free` or the matching specialized destructor.
+- **Breaking**: renamed `mjb_reset` to `mjb_reset_locale` and moved its implementation to the
+  locale module, reflecting that it only restores the process-global locale. The C++ wrapper is
+  now `mjb::reset_locale`.
 
 ## [0.3.6] - 2026-08-16
 Codename: [DIGIT SIX]

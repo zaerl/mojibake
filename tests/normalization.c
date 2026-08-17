@@ -55,7 +55,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
         ATT_ASSERT(true, false, test_name)
 
         if(result.output != NULL && result.output != source) {
-            mjb_free(result.output);
+            (void)mjb_result_free(&result);
         }
 
         return 0;
@@ -88,7 +88,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
     // (strange reformatting of the ATT_ASSERT macro)
     if(result.output != NULL && result.output != source) {
-        mjb_free(result.output);
+        (void)mjb_result_free(&result);
     }
     // clang-format on
 
@@ -323,7 +323,7 @@ static void test_nfkc_casefold_file(void) {
         }
 
         if(expected.transformed) {
-            mjb_free(expected.output);
+            (void)mjb_result_free(&expected);
         }
         ++current_line;
     }
@@ -369,7 +369,7 @@ int test_normalization(void *arg) {
     ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
         "Normalize converted already-normalized input bytes")
     if(guard_result.transformed) {
-        mjb_free(guard_result.output);
+        (void)mjb_result_free(&guard_result);
     }
 
     size_t into_size = 9;

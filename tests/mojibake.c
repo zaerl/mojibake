@@ -4,98 +4,37 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-#include <stdlib.h>
-
 #include "test.h"
 
-static unsigned int test_counter = 0;
-static size_t fail_alloc_count = 0;
-static size_t fail_alloc_after = 0;
-
-static void *test_malloc(size_t size) {
-    ++test_counter;
-
-    return malloc(size);
-}
-
-static void *test_realloc(void *ptr, size_t new_size) {
-    ++test_counter;
-
-    return realloc(ptr, new_size);
-}
-
-static void test_free(void *ptr) {
-    ++test_counter;
-
-    free(ptr);
-}
-
-static void *test_fail_malloc(size_t size) {
-    if(fail_alloc_count++ >= fail_alloc_after) {
-        return NULL;
-    }
-
-    return malloc(size);
-}
-
-static void *test_fail_realloc(void *ptr, size_t new_size) {
-    if(fail_alloc_count++ >= fail_alloc_after) {
-        return NULL;
-    }
-
-    return realloc(ptr, new_size);
-}
-
 static void test_set_failing_allocator(size_t fail_after) {
-    mjb_reset();
-    fail_alloc_count = 0;
-    fail_alloc_after = fail_after;
-    ATT_ASSERT_STATUS(mjb_set_memory_functions(test_fail_malloc, test_fail_realloc, test_free),
-        MJB_STATUS_OK, "Set failing allocator")
+    mjb_test_allocator_fail_after(fail_after);
 }
 
 int test_mojibake(void *arg) {
-    test_counter = 0;
-    mjb_result result;
+    (void)arg;
+
+    MJB_TEST_COVERAGE(mjb_set_allocator);
+    ATT_ASSERT_STATUS(mjb_test_allocator_invalid_status(), MJB_STATUS_INVALID_ARGUMENT,
+        "Reject incomplete allocator")
+    ATT_ASSERT_STATUS(mjb_test_allocator_install_status(), MJB_STATUS_OK,
+        "Install context-aware allocator")
+    ATT_ASSERT_STATUS(mjb_set_allocator(NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Reject repeated allocator configuration")
+
+    mjb_result result = { NULL, 0, false };
     ATT_ASSERT_STATUS(mjb_result_free(NULL), MJB_STATUS_INVALID_ARGUMENT, "Free NULL result")
 
-    result.output = (char *)malloc(1);
-    result.output_size = 1;
-    result.transformed = true;
-
+    mjb_test_allocator_reset();
+    ATT_ASSERT_STATUS(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, &result),
+        MJB_STATUS_OK, "Allocate result through configured allocator")
+    ATT_ASSERT((int)(mjb_test_allocator_call_count() > 0), true,
+        "Configured allocator receives allocation context")
+    size_t calls_before_free = mjb_test_allocator_call_count();
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free result with output")
+    ATT_ASSERT((int)(mjb_test_allocator_call_count() > calls_before_free), true,
+        "Configured allocator frees result output")
     ATT_ASSERT(result.output == NULL, true, "Result output NULL after free")
     ATT_ASSERT(result.output_size, 0, "Result output size 0 after free")
-
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale before reset")
-    ATT_ASSERT((mjb_reset(), true), true, "Reset before memory functions")
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_EN,
-        "Reset restores default locale")
-    void *implicit_buffer = NULL;
-    ATT_ASSERT((implicit_buffer = mjb_alloc(1)) != NULL, true, "Default alloc before set")
-    ATT_ASSERT((mjb_free(implicit_buffer), true), true, "Default free before set")
-    ATT_ASSERT((mjb_reset(), true), true, "Reset implicit default memory functions")
-    ATT_ASSERT((mjb_reset(), true), true, "Reset idempotent")
-
-    ATT_ASSERT_STATUS(mjb_set_memory_functions(NULL, NULL, NULL), MJB_STATUS_OK,
-        "Void memory functions")
-
-    void *default_buffer = NULL;
-    ATT_ASSERT((default_buffer = mjb_alloc(1)) != NULL, true, "Default alloc")
-    ATT_ASSERT((default_buffer = mjb_realloc(default_buffer, 2)) != NULL, true, "Default realloc")
-    ATT_ASSERT((mjb_free(default_buffer), true), true, "Default free")
-    ATT_ASSERT((mjb_reset(), true), true, "Reset void memory functions")
-
-    test_counter = 0;
-    ATT_ASSERT_STATUS(mjb_set_memory_functions(test_malloc, test_realloc, test_free), MJB_STATUS_OK,
-        "Set custom memory functions")
-    void *buffer = NULL;
-    ATT_ASSERT((buffer = mjb_alloc(1)) != NULL, true, "Custom alloc")
-    ATT_ASSERT(test_counter, 1, "Custom alloc function")
-    ATT_ASSERT((buffer = mjb_realloc(buffer, 2)) != NULL, true, "Custom realloc")
-    ATT_ASSERT(test_counter, 2, "Custom realloc function")
-    ATT_ASSERT((mjb_free(buffer), test_counter), 3, "Custom free function")
-    ATT_ASSERT((mjb_reset(), true), true, "Reset custom memory functions")
 
     test_set_failing_allocator(0);
 
@@ -206,14 +145,14 @@ int test_mojibake(void *arg) {
         MJB_STATUS_NO_MEMORY, "Confusable comparison handles allocation failure")
 #endif
 
-    ATT_ASSERT((mjb_reset(), true), true, "Reset failing allocator")
+    mjb_test_allocator_reset();
 
     test_set_failing_allocator(1);
     ATT_ASSERT_STATUS(mjb_convert_encoding("ab", 2, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
                           &result),
         MJB_STATUS_NO_MEMORY, "Encoding conversion handles reallocation failure")
 
-    ATT_ASSERT((mjb_reset(), true), true, "Reset realloc failing allocator")
+    mjb_test_allocator_reset();
 
     ATT_ASSERT(mjb_status_message(MJB_STATUS_OK), "The operation completed successfully",
         "Status message returns OK")

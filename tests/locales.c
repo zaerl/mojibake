@@ -180,7 +180,10 @@ int test_locales(void *arg) {
         "Set locale to negative value")
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
         "Negative locale does not change current locale")
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Restore locale en")
+    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale")
+    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_EN,
+        "Reset locale restores English")
+    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale is idempotent")
 
     return 0;
 }

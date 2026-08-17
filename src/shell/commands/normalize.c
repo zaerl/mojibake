@@ -38,9 +38,7 @@ int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int fl
     puts("");
 
 cleanup:
-    if(result.output != NULL && result.output != argv[0]) {
-        mjb_free(result.output);
-    }
+    (void)mjb_result_free(&result);
 
     return ret ? 0 : 1;
 }
@@ -98,9 +96,7 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
     puts("");
 
 cleanup:
-    if(result.output != NULL && result.output != codepoints) {
-        mjb_free(result.output);
-    }
+    (void)mjb_result_free(&result);
 
     free(codepoints);
 

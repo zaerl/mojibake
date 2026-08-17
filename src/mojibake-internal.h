@@ -28,8 +28,10 @@
 
 #if defined(_MSC_VER)
 #define MJB_USED
+#define MJB_LOCAL
 #else
 #define MJB_USED __attribute__((used))
+#define MJB_LOCAL __attribute__((visibility("hidden")))
 #endif
 
 #define MJB_UTF_ACCEPT 0
@@ -42,10 +44,8 @@
  * This contains the internal state of the library
  */
 typedef struct mojibake {
-    bool memory_functions_locked;
-    mjb_alloc_fn memory_alloc;
-    mjb_realloc_fn memory_realloc;
-    mjb_free_fn memory_free;
+    mjb_allocator allocator;
+    bool allocator_configured;
     mjb_locale locale;
 } mojibake;
 
@@ -76,6 +76,12 @@ typedef struct mjb_n_character {
 typedef mjb_status (*mjb_output_writer)(mjb_output *output, const void *context);
 
 // Internal functions
+MJB_LOCAL void *mjb_alloc(size_t size);
+
+MJB_LOCAL void *mjb_realloc(void *ptr, size_t new_size);
+
+MJB_LOCAL void mjb_free(void *ptr);
+
 char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
     size_t *output_size);
 

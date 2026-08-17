@@ -1146,6 +1146,10 @@ inline void set_locale(mjb_locale locale) {
     return mjb_get_locale();
 }
 
+inline void reset_locale() noexcept {
+    mjb_reset_locale();
+}
+
 [[nodiscard]] inline std::string_view version() noexcept {
     return std::string_view(mjb_version());
 }
@@ -1158,26 +1162,8 @@ inline void set_locale(mjb_locale locale) {
     return std::string_view(mjb_unicode_version());
 }
 
-inline void set_memory_functions(mjb_alloc_fn allocate_fn, mjb_realloc_fn reallocate_fn,
-    mjb_free_fn free_fn) {
-    detail::check_status(mjb_set_memory_functions(allocate_fn, reallocate_fn, free_fn),
-        "Memory function selection failed");
-}
-
-inline void Reset() noexcept {
-    mjb_reset();
-}
-
-[[nodiscard]] inline void *allocate(size_t byte_length) noexcept {
-    return mjb_alloc(byte_length);
-}
-
-[[nodiscard]] inline void *reallocate(void *pointer, size_t byte_length) noexcept {
-    return mjb_realloc(pointer, byte_length);
-}
-
-inline void deallocate(void *pointer) noexcept {
-    mjb_free(pointer);
+inline void set_allocator(const mjb_allocator *allocator) {
+    detail::check_status(mjb_set_allocator(allocator), "Allocator selection failed");
 }
 
 [[nodiscard]] inline std::string_view truncate_grapheme(std::string_view input,

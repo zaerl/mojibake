@@ -3677,7 +3677,7 @@ mjb_status mjb_set_locale(
 );
 ```
 
-Set the process-global locale used by `mjb_map_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_reset` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
+Set the process-global locale used by `mjb_map_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_reset_locale` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
 
 - `locale` - The locale to set
 
@@ -3700,7 +3700,7 @@ if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
 }
 ```
 
-See also: [`mjb_get_locale`](#mjb_get_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
+See also: [`mjb_get_locale`](#mjb_get_locale), [`mjb_reset_locale`](#mjb_reset_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
 
 ## `mjb_get_locale`
 
@@ -3710,7 +3710,7 @@ Return the current process-global locale.
 mjb_locale mjb_get_locale(void);
 ```
 
-Return the process-global locale selected with `mjb_set_locale`. The default is `MJB_LOCALE_EN`, and `mjb_reset` restores that default.
+Return the process-global locale selected with `mjb_set_locale`. The default is `MJB_LOCALE_EN`, and `mjb_reset_locale` restores that default.
 
 **Returns**
 
@@ -3725,7 +3725,33 @@ mjb_locale locale = mjb_get_locale();
 printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
 ```
 
-See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
+See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_reset_locale`](#mjb_reset_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
+
+## `mjb_reset_locale`
+
+Reset the process-global locale.
+
+```c
+void mjb_reset_locale(void);
+```
+
+Restore the process-global locale to `MJB_LOCALE_EN`.
+
+**Example**
+
+```c
+if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
+    return 1;
+}
+
+mjb_reset_locale();
+mjb_locale locale = mjb_get_locale();
+
+// Current locale reset to English: yes
+printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
+```
+
+See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
 
 ## `mjb_result_free`
 
@@ -3978,158 +4004,26 @@ printf("Unicode version: %s", version);
 
 See also: [`mjb_version`](#mjb_version), [`mjb_version_number`](#mjb_version_number).
 
-## `mjb_set_memory_functions`
+## `mjb_set_allocator`
 
-Set the library memory functions.
+Set the process-global memory allocator.
 
 ```c
-mjb_status mjb_set_memory_functions(
-    mjb_alloc_fn alloc_fn,
-    mjb_realloc_fn realloc_fn,
-    mjb_free_fn free_fn
+mjb_status mjb_set_allocator(
+    const mjb_allocator *allocator
 );
 ```
 
-Replace the allocator used by the library for all internal allocations and for the buffers returned in `mjb_result`. Must be called before any other library call.
+Install the allocator used for internal allocations and owned result buffers. The allocator is copied and must provide all three callbacks, which receive its context pointer and follow the corresponding C standard library semantics. The context remains caller-owned and must stay valid for the lifetime of all Mojibake allocations. Pass NULL to explicitly select the default allocator. This process-global configuration may be set only once and must happen before any other library call or concurrent library use.
 
-- `alloc_fn` - The function to allocate memory
-- `realloc_fn` - The function to reallocate memory
-- `free_fn` - The function to free memory
+- `allocator` - The complete allocator to copy, or NULL to select the default allocator
 
-**Example**
+**Returns**
 
-```c
-mjb_reset(); // Ensure no allocator is currently locked in.
+- `MJB_STATUS_OK` - The allocator was installed
+- `MJB_STATUS_INVALID_ARGUMENT` - A callback is NULL, or the allocator was already configured
 
-if(mjb_set_memory_functions(malloc, realloc, free) != MJB_STATUS_OK) {
-    return 1;
-}
-
-// Standard allocator installed: yes
-printf("Standard allocator installed: yes");
-mjb_reset();
-```
-
-See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc), [`mjb_free`](#mjb_free).
-
-## `mjb_reset`
-
-Reset the library. Not needed to be called.
-
-```c
-void mjb_reset(void);
-```
-
-**Example**
-
-```c
-mjb_reset();
-
-// Library state reset: yes
-printf("Library state reset: yes");
-```
-
-## `mjb_alloc`
-
-Allocate memory.
-
-```c
-void *mjb_alloc(
-    size_t byte_length
-);
-```
-
-Allocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
-
-- `byte_length` - The length of the memory to allocate
-
-**Example**
-
-```c
-char *buffer = (char*)mjb_alloc(sizeof("allocated"));
-
-if(buffer == NULL) {
-    return 1;
-}
-
-memcpy(buffer, "allocated", sizeof("allocated"));
-
-// Buffer: allocated
-printf("Buffer: %s", buffer);
-mjb_free(buffer);
-```
-
-See also: [`mjb_realloc`](#mjb_realloc), [`mjb_free`](#mjb_free).
-
-## `mjb_realloc`
-
-Reallocate memory.
-
-```c
-void *mjb_realloc(
-    void *ptr,
-    size_t new_size
-);
-```
-
-Reallocate memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
-
-- `ptr` - The pointer to reallocate
-- `new_size` - The new size of the memory
-
-**Example**
-
-```c
-char *buffer = (char*)mjb_alloc(8);
-
-if(buffer == NULL) {
-    return 1;
-}
-
-char *larger = (char*)mjb_realloc(buffer, 32);
-
-if(larger == NULL) {
-    mjb_free(buffer);
-    return 1;
-}
-
-// Reallocation succeeded: yes
-printf("Reallocation succeeded: yes");
-mjb_free(larger);
-```
-
-See also: [`mjb_alloc`](#mjb_alloc), [`mjb_free`](#mjb_free).
-
-## `mjb_free`
-
-Free memory.
-
-```c
-void mjb_free(
-    void *ptr
-);
-```
-
-Free memory using the allocator set by `mjb_set_memory_functions`. If no allocator is set, the default allocator is used.
-
-- `ptr` - The pointer to free
-
-**Example**
-
-```c
-void *memory = mjb_alloc(16);
-
-if(memory == NULL) {
-    return 1;
-}
-
-mjb_free(memory);
-
-// Memory freed: yes
-printf("Memory freed: yes");
-```
-
-See also: [`mjb_alloc`](#mjb_alloc), [`mjb_realloc`](#mjb_realloc).
+See also: [`mjb_result_free`](#mjb_result_free), [`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free).
 
 # Unicode references
 

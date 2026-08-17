@@ -25,9 +25,7 @@ static int mjbsh_print_filter_analysis(const char *input) {
         puts(result.output);
     }
 
-    if(result.output != NULL && result.output != input) {
-        mjb_free(result.output);
-    }
+    (void)mjb_result_free(&result);
 
     return 0;
 }

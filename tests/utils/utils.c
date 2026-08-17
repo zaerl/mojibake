@@ -88,6 +88,11 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     return result.output;
 }
 
+void mjb_test_free(void *output) {
+    mjb_result result = { (char *)output, 0, true };
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free test result")
+}
+
 void read_test_file(const char *filename, test_file_callback callback) {
     char line[16384];
     char generated_input[1024];
