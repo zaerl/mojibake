@@ -9,6 +9,8 @@
 
 #include "mojibake-internal.h"
 
+// These wrappers adapt the context-aware callback signatures. On MSVC they also avoid taking the
+// address of imported CRT allocation functions, which triggers warning C4232.
 static void *mjb_default_alloc(void *context, size_t size) {
     (void)context;
 

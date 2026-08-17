@@ -28,10 +28,16 @@
 
 #if defined(_MSC_VER)
 #define MJB_USED
-#define MJB_LOCAL
 #else
 #define MJB_USED __attribute__((used))
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+#define MJB_LOCAL
+#elif defined(__GNUC__) || defined(__clang__)
 #define MJB_LOCAL __attribute__((visibility("hidden")))
+#else
+#define MJB_LOCAL
 #endif
 
 #define MJB_UTF_ACCEPT 0
