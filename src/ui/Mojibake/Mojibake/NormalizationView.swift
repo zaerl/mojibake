@@ -76,8 +76,16 @@ struct NormalizationView: View {
                     .frame(minHeight: 160)
                     .accessibilityLabel("Input text")
             } label: {
-                Text("Input")
-                    .font(.headline)
+                HStack {
+                    Text("Input")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Text(inputSummary)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
 
             GroupBox {
@@ -92,8 +100,8 @@ struct NormalizationView: View {
 
                     Spacer()
 
-                    Text(selectedForm.rawValue)
-                        .font(.caption.monospaced())
+                    Text(outputSummary)
+                        .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
             }
@@ -115,6 +123,14 @@ struct NormalizationView: View {
         .onChange(of: selectedForm) {
             normalize()
         }
+    }
+
+    private var inputSummary: String {
+        MojibakeCounting.summary(for: input)
+    }
+
+    private var outputSummary: String {
+        MojibakeCounting.summary(for: output)
     }
 
     private func normalize() {

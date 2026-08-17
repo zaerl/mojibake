@@ -9,6 +9,22 @@ import SwiftUI
 
 @main
 struct MojibakeApp: App {
+    init() {
+        // Tool inputs must reach the library exactly as typed, so disable the
+        // automatic substitutions text views read from the app's defaults.
+        let substitutionDefaults = [
+            "NSAutomaticQuoteSubstitutionEnabled",
+            "NSAutomaticDashSubstitutionEnabled",
+            "NSAutomaticPeriodSubstitutionEnabled",
+            "NSAutomaticTextReplacementEnabled",
+            "NSAutomaticSpellingCorrectionEnabled",
+        ]
+
+        for key in substitutionDefaults {
+            UserDefaults.standard.set(false, forKey: key)
+        }
+    }
+
     private var libraryVersion: String {
         versionString(mjb_version())
     }

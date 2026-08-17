@@ -108,8 +108,16 @@ struct FilterView: View {
                     .frame(minHeight: 120)
                     .accessibilityLabel("Input text")
             } label: {
-                Text("Input")
-                    .font(.headline)
+                HStack {
+                    Text("Input")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Text(inputSummary)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
 
             GroupBox {
@@ -124,7 +132,7 @@ struct FilterView: View {
 
                     Spacer()
 
-                    Text(selectionSummary)
+                    Text(outputSummary)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -149,20 +157,20 @@ struct FilterView: View {
         }
     }
 
+    private var inputSummary: String {
+        MojibakeCounting.summary(for: input)
+    }
+
+    private var outputSummary: String {
+        MojibakeCounting.summary(for: output)
+    }
+
     private var filters: mjb_filter_flags {
         let rawValue = selectedOptions.reduce(MJB_FILTER_NONE.rawValue) { value, option in
             value | option.flag.rawValue
         }
 
         return mjb_filter_flags(rawValue: rawValue)
-    }
-
-    private var selectionSummary: String {
-        if selectedOptions.isEmpty {
-            return "None"
-        }
-
-        return "\(selectedOptions.count) selected"
     }
 
     private func selectionBinding(for option: FilterOption) -> Binding<Bool> {

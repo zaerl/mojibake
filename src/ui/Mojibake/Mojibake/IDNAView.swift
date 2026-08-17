@@ -60,9 +60,7 @@ struct IDNAView: View {
     }
 
     private var inputSummary: String {
-        let scalarCount = input.unicodeScalars.count
-        let scalarLabel = scalarCount == 1 ? "scalar" : "scalars"
-        return "\(input.utf8.count) bytes · \(scalarCount) \(scalarLabel)"
+        MojibakeCounting.summary(for: input)
     }
 
     private func convert() {

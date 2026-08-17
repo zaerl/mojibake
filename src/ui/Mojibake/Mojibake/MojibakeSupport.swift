@@ -64,9 +64,71 @@ struct ToolTextEditor: View {
     }
 
     private var summary: String {
-        let scalarCount = text.unicodeScalars.count
-        let scalarLabel = scalarCount == 1 ? "scalar" : "scalars"
-        return "\(text.utf8.count) bytes · \(scalarCount) \(scalarLabel)"
+        MojibakeCounting.summary(for: text)
+    }
+}
+
+enum MojibakeCounting {
+    static func codepointCount(of value: String) -> Int? {
+        count(of: value, using: mjb_codepoint_count)
+    }
+
+    static func graphemeCount(of value: String) -> Int? {
+        count(of: value, using: mjb_grapheme_count)
+    }
+
+    static func wordCount(of value: String) -> Int? {
+        count(of: value, using: mjb_word_count)
+    }
+
+    static func summary(for value: String) -> String {
+        var components = ["\(value.utf8.count) bytes"]
+
+        if let scalarCount = codepointCount(of: value) {
+            components.append(counted(scalarCount, "scalar", "scalars"))
+        }
+
+        if let graphemeCount = graphemeCount(of: value) {
+            components.append(counted(graphemeCount, "grapheme", "graphemes"))
+        }
+
+        if let wordCount = wordCount(of: value) {
+            components.append(counted(wordCount, "word", "words"))
+        }
+
+        return components.joined(separator: " · ")
+    }
+
+    private static func counted(_ count: Int, _ singular: String, _ plural: String) -> String {
+        "\(count) \(count == 1 ? singular : plural)"
+    }
+
+    private static func count(
+        of value: String,
+        using function: (
+            UnsafePointer<CChar>?,
+            Int,
+            mjb_encoding,
+            UnsafeMutablePointer<Int>?
+        ) -> mjb_status
+    ) -> Int? {
+        let bytes = Array(value.utf8)
+
+        return bytes.withUnsafeBytes { rawBuffer in
+            let buffer = rawBuffer.bindMemory(to: CChar.self)
+            var count = 0
+
+            guard function(
+                buffer.baseAddress,
+                buffer.count,
+                MJB_ENC_UTF_8,
+                &count
+            ) == MJB_STATUS_OK else {
+                return nil
+            }
+
+            return count
+        }
     }
 }
 
