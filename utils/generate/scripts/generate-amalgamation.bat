@@ -10,6 +10,13 @@ pushd "%~dp0.." || exit /b 1
 if not exist "..\..\build-amalgamation" mkdir "..\..\build-amalgamation"
 
 call npm run generate -- amalgamation
+if errorlevel 1 goto :native_amalgamation_error
+
+REM Copy native amalgamation files to the macOS app
+copy /Y "..\..\build-amalgamation\mojibake.c" "..\..\src\ui\Mojibake\Mojibake\mojibake.c" >NUL
+if errorlevel 1 goto :native_amalgamation_error
+copy /Y "..\..\build-amalgamation\mojibake.h" "..\..\src\ui\Mojibake\Mojibake\mojibake.h" >NUL
+if errorlevel 1 goto :native_amalgamation_error
 
 REM Copy WASM files
 copy /Y "..\..\build-wasm\src\mojibake.js" "..\..\build-amalgamation\mojibake.js" >NUL
@@ -37,3 +44,7 @@ set "GENERATE_AMALGAMATION_STATUS=%ERRORLEVEL%"
 popd
 popd
 endlocal & exit /b %GENERATE_AMALGAMATION_STATUS%
+
+:native_amalgamation_error
+popd
+endlocal & exit /b 1
