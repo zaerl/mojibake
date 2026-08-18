@@ -453,11 +453,9 @@ private struct BoundaryBlockToken: View {
                     ScalarToken(scalar: scalars[index], showsBackground: false)
                 }
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
             .overlay {
-                RoundedRectangle(cornerRadius: 7)
+                RoundedRectangle(cornerRadius: 5)
                     .stroke(.secondary.opacity(0.2))
             }
 
