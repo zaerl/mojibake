@@ -13,6 +13,10 @@ mkdir -p ../../build-amalgamation
 
 npm run generate -- amalgamation
 
+# Copy native amalgamation files to the macOS app
+cp ../../build-amalgamation/mojibake.c ../../src/ui/Mojibake/Mojibake/mojibake.c
+cp ../../build-amalgamation/mojibake.h ../../src/ui/Mojibake/Mojibake/mojibake.h
+
 # Copy WASM files
 cp ../../build-wasm/src/mojibake.js ../../build-amalgamation/mojibake.js
 cp ../../build-wasm/src/mojibake.wasm ../../build-amalgamation/mojibake.wasm

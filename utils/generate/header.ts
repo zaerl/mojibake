@@ -70,6 +70,7 @@ function getScriptEnumNames(properties: { [key: string]: number }, fn: (name: st
 
   for(const key in properties) {
     if(properties[key] === previousValue) {
+      // An enum name that has the same value as the previous one is an alias and should be skipped.
       continue;
     }
 

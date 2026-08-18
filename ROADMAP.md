@@ -39,7 +39,11 @@ All the other things found on +10MB libraries.
 - [ ] Add more runtime options. See [HN:48945337](https://news.ycombinator.com/item?id=48945337)
 - [ ] Add `vcpkg` support
 - [ ] Check all the links such as https://www.unicode.org/reports/tr15/tr15-57.html if they will
-have a new Unicode 18 version, that right now they don't have
+  have a new Unicode 18 version, that right now they don't have
 - [ ] Adopt one convention everywhere for fallible and buffer-producing APIs
 - [ ] Check if there are functions that truncate a codepoint or a grapheme at the end of a buffer
 - [ ] Add `mjb_utf8_snprintf` and others to the C++ API
+- [ ] Show the script as a name on `CharacterDetails.swift`
+- [ ] Add `Script_Extension` to `CharacterDetails.swift`
+- [ ] Add Yes/No identifier rows for `ID_Start`, `ID_Continue`, `XID_Start`, `XID_Continue`,
+  `Pattern_Syntax`, and `Pattern_White_Space` (maybe)

@@ -8,7 +8,7 @@ import SwiftUI
 
 struct BreaksView: View {
     fileprivate enum OutputStyle: String, CaseIterable, Identifiable {
-        case scalars = "Scalars"
+        case codepoints = "Codepoints"
         case noBreakBlocks = "No-Break Blocks"
 
         var id: Self {
@@ -101,7 +101,7 @@ struct BreaksView: View {
     }
 
     @State private var input = ""
-    @State private var outputStyle = OutputStyle.scalars
+    @State private var outputStyle = OutputStyle.codepoints
     @State private var results: [BreakMode: [BreakBoundary]] = [:]
 
     var body: some View {
@@ -327,7 +327,7 @@ private struct BreakResultView: View {
     @ViewBuilder
     private var output: some View {
         switch outputStyle {
-        case .scalars:
+        case .codepoints:
             BoundaryFlowLayout(spacing: 8) {
                 ForEach(scalars.indices, id: \.self) { index in
                     BoundaryScalarToken(
@@ -453,11 +453,9 @@ private struct BoundaryBlockToken: View {
                     ScalarToken(scalar: scalars[index], showsBackground: false)
                 }
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
             .overlay {
-                RoundedRectangle(cornerRadius: 7)
+                RoundedRectangle(cornerRadius: 5)
                     .stroke(.secondary.opacity(0.2))
             }
 
