@@ -6,18 +6,18 @@
 
 import SwiftUI
 
-struct CharactersView: View {
+struct TextInspectorView: View {
     let onCodepointSelected: (String) -> Void
 
     @State private var input = ""
-    @State private var characters: [StringCharacter] = []
+    @State private var scalars: [InspectedScalar] = []
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ToolHeader(
-                    "Characters",
-                    description: "List the Unicode codepoints in a string and inspect each one."
+                    "Text Inspector",
+                    description: "Inspect every Unicode scalar in a string."
                 )
 
                 ToolTextEditor(
@@ -26,7 +26,7 @@ struct CharactersView: View {
                     minimumHeight: 120
                 )
 
-                if characters.isEmpty {
+                if scalars.isEmpty {
                     ContentUnavailableView(
                         "Enter Text to Inspect",
                         systemImage: "text.quote",
@@ -36,8 +36,8 @@ struct CharactersView: View {
                     )
                     .frame(maxWidth: .infinity, minHeight: 260)
                 } else {
-                    CharactersList(
-                        characters: characters,
+                    ScalarList(
+                        scalars: scalars,
                         onCodepointSelected: onCodepointSelected
                     )
                 }
@@ -47,34 +47,34 @@ struct CharactersView: View {
             .padding()
         }
         .onChange(of: input) {
-            characters = input.unicodeScalars.enumerated().map {
-                StringCharacter(index: $0.offset, scalar: $0.element)
+            scalars = input.unicodeScalars.enumerated().map {
+                InspectedScalar(index: $0.offset, scalar: $0.element)
             }
         }
     }
 }
 
-private struct CharactersList: View {
-    let characters: [StringCharacter]
+private struct ScalarList: View {
+    let scalars: [InspectedScalar]
     let onCodepointSelected: (String) -> Void
 
     private let columns = [
-        GridItem(.adaptive(minimum: 150), spacing: 8),
+        GridItem(.adaptive(minimum: 76, maximum: 100), spacing: 8),
     ]
 
     var body: some View {
         GroupBox {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                ForEach(characters) { character in
+                ForEach(scalars) { scalar in
                     Button {
-                        onCodepointSelected(character.codepoint)
+                        onCodepointSelected(scalar.codepoint)
                     } label: {
-                        CharacterTile(character: character)
+                        ScalarTile(scalar: scalar)
                     }
                     .buttonStyle(.plain)
                     .pointerStyle(.link)
-                    .help(character.helpText)
-                    .accessibilityLabel(character.accessibilityLabel)
+                    .help(scalar.helpText)
+                    .accessibilityLabel(scalar.accessibilityLabel)
                     .accessibilityHint("Open codepoint details")
                 }
             }
@@ -86,7 +86,7 @@ private struct CharactersList: View {
 
                 Spacer()
 
-                Text(characters.count, format: .number)
+                Text(scalars.count, format: .number)
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
@@ -94,27 +94,27 @@ private struct CharactersList: View {
     }
 }
 
-private struct CharacterTile: View {
-    let character: StringCharacter
+private struct ScalarTile: View {
+    let scalar: InspectedScalar
 
     var body: some View {
-        VStack(spacing: 6) {
-            Text(character.displayCharacter)
-                .font(.system(size: 34))
-                .frame(minHeight: 46)
+        VStack(spacing: 3) {
+            Text(scalar.displayCharacter)
+                .font(.title2)
+                .frame(minHeight: 30)
 
-            Text(character.codepoint)
-                .font(.callout.monospaced())
+            Text(scalar.codepoint)
+                .font(.caption2.monospaced())
 
-            Text(character.name)
-                .font(.caption)
+            Text(scalar.name)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .lineLimit(1)
+                .truncationMode(.tail)
                 .multilineTextAlignment(.center)
-                .frame(height: 32, alignment: .top)
         }
-        .frame(maxWidth: .infinity, minHeight: 122)
-        .padding(8)
+        .frame(maxWidth: .infinity)
+        .padding(6)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
         .overlay {
             RoundedRectangle(cornerRadius: 7)
@@ -124,7 +124,7 @@ private struct CharacterTile: View {
     }
 }
 
-private struct StringCharacter: Identifiable {
+private struct InspectedScalar: Identifiable {
     let id: Int
     let displayCharacter: String
     let codepoint: String
@@ -157,5 +157,5 @@ private struct StringCharacter: Identifiable {
 }
 
 #Preview {
-    CharactersView { _ in }
+    TextInspectorView { _ in }
 }

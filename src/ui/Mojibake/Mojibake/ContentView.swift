@@ -9,7 +9,7 @@ import SwiftUI
 struct ContentView: View {
     private enum Tool: String, Identifiable {
         case codepoint = "Codepoint"
-        case characters = "Characters"
+        case textInspector = "Text Inspector"
         case emoji = "Emoji"
         case security = "Security"
         case idna = "IDNA"
@@ -35,7 +35,7 @@ struct ContentView: View {
             switch self {
             case .codepoint:
                 "character.cursor.ibeam"
-            case .characters:
+            case .textInspector:
                 "text.quote"
             case .emoji:
                 "face.smiling"
@@ -79,7 +79,7 @@ struct ContentView: View {
         var tools: [Tool] {
             switch self {
             case .characterData:
-                [.codepoint, .characters, .emoji]
+                [.codepoint, .textInspector, .emoji]
             case .textProcessing:
                 [.case, .normalize, .filter]
             case .textAnalysis:
@@ -116,8 +116,8 @@ struct ContentView: View {
             switch selection {
             case .codepoint:
                 CodepointView(requestedCodepoint: $requestedCodepoint)
-            case .characters:
-                CharactersView(onCodepointSelected: showCodepoint)
+            case .textInspector:
+                TextInspectorView(onCodepointSelected: showCodepoint)
             case .emoji:
                 EmojiView()
             case .security:
