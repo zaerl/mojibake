@@ -328,6 +328,12 @@ export const caseTypeValues = [
   4,
 ];
 
+export const malformedPolicies = [
+  'MJB_MALFORMED_STOP',
+  'MJB_MALFORMED_REPLACE',
+  'MJB_MALFORMED_SKIP',
+];
+
 export const normalizations = [
   'MJB_NORMALIZATION_NFC',
   'MJB_NORMALIZATION_NFD',

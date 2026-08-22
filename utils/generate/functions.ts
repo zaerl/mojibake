@@ -129,7 +129,7 @@ function diagnostic(description = 'Where to store the first malformed-input diag
     name: 'diagnostic',
     type: 'mjb_diagnostic *',
     description,
-    wasm_generated: false
+    wasm_generated: true
   };
 }
 

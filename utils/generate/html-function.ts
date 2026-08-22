@@ -12,7 +12,7 @@ import functions, {
 import {
   caseModes, caseType, caseTypeValues, categories, collationStrengths,
   collationVariableWeightings, directions, encodings, encodingValues, filterFlags, filterFlagValues,
-  identifierProfiles, normalizations, planes, planeValues, statuses, terminalWidthProfiles
+  identifierProfiles, malformedPolicies, normalizations, planes, planeValues, statuses, terminalWidthProfiles
 } from './types';
 
 const mojibakeTypes = new Set<string>();
@@ -418,6 +418,9 @@ export class CFunction implements MojibakeFunction {
         // case 'mjb_idna_info *':
         case 'mjb_locale':
           ret += this.getInput(i);
+          break;
+        case 'mjb_malformed_policy':
+          ret += this.getSelectInput(i, malformedPolicies);
           break;
         // case 'mjb_locale_id *':
         case 'mjb_map_case_type':
