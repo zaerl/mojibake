@@ -232,6 +232,8 @@ static void test_nfkc_casefold(void) {
     check_nfkc_casefold("A\xCC\x8A", 3, "\xC3\xA5", 2, "NFKC casefold composes mappings to NFC");
     check_nfkc_casefold("\xE2\x84\xAA", 3, "k", 1,
         "NFKC casefold applies compatibility case mapping");
+    check_nfkc_casefold("\xF0\x9F\x98\x80", 4, "\xF0\x9F\x98\x80", 4,
+        "NFKC casefold safely preserves a supplementary codepoint");
 
     ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result, NULL),
         MJB_STATUS_OK, "NFKC casefold supports UTF-16 output")

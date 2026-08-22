@@ -217,11 +217,13 @@ static mjb_status mjb_decode_next_raw(const char *buffer, size_t byte_length, mj
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
-        if(byte_length - start < 2) {
+        size_t remaining = byte_length - start;
+
+        if(remaining < 2) {
             *offset = byte_length;
             *codepoint = MJB_CODEPOINT_REPLACEMENT;
-            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start,
-                byte_length - start, encoding);
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start, remaining,
+                encoding);
 
             return MJB_STATUS_MALFORMED_INPUT;
         }
@@ -256,17 +258,31 @@ static mjb_status mjb_decode_next_raw(const char *buffer, size_t byte_length, mj
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
+        mjb_codepoint decoded;
+
+        if(required == 2) {
+            decoded = (mjb_codepoint)(first & 0x1F);
+        } else if(required == 3) {
+            decoded = (mjb_codepoint)(first & 0x0F);
+        } else {
+            decoded = (mjb_codepoint)(first & 0x07);
+        }
+
+        decoded = (decoded << 6) | ((mjb_codepoint)second & 0x3F);
+
         for(size_t i = 2; i < required; ++i) {
-            if(start + i >= byte_length) {
+            if(i >= remaining) {
                 *offset = byte_length;
                 *codepoint = MJB_CODEPOINT_REPLACEMENT;
-                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start,
-                    byte_length - start, encoding);
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start, remaining,
+                    encoding);
 
                 return MJB_STATUS_MALFORMED_INPUT;
             }
 
-            if(((uint8_t)buffer[start + i] & 0xC0) != 0x80) {
+            uint8_t continuation = (uint8_t)buffer[start + i];
+
+            if((continuation & 0xC0) != 0x80) {
                 *offset = start + i;
                 *codepoint = MJB_CODEPOINT_REPLACEMENT;
                 mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_MISSING_CONTINUATION, start, i,
@@ -274,21 +290,11 @@ static mjb_status mjb_decode_next_raw(const char *buffer, size_t byte_length, mj
 
                 return MJB_STATUS_MALFORMED_INPUT;
             }
+
+            decoded = (decoded << 6) | ((mjb_codepoint)continuation & 0x3F);
         }
 
-        if(required == 2) {
-            *codepoint = ((mjb_codepoint)(first & 0x1F) << 6) | ((mjb_codepoint)second & 0x3F);
-        } else if(required == 3) {
-            *codepoint = ((mjb_codepoint)(first & 0x0F) << 12) |
-                (((mjb_codepoint)second & 0x3F) << 6) |
-                ((mjb_codepoint)(uint8_t)buffer[start + 2] & 0x3F);
-        } else {
-            *codepoint = ((mjb_codepoint)(first & 0x07) << 18) |
-                (((mjb_codepoint)second & 0x3F) << 12) |
-                (((mjb_codepoint)(uint8_t)buffer[start + 2] & 0x3F) << 6) |
-                ((mjb_codepoint)(uint8_t)buffer[start + 3] & 0x3F);
-        }
-
+        *codepoint = decoded;
         *offset = start + required;
 
         return MJB_STATUS_OK;

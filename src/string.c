@@ -29,9 +29,14 @@ char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *outpu
         return NULL;
     }
 
+    // Leave room for the terminator without allowing either addition below to wrap.
+    if(input_size >= SIZE_MAX - *output_index) {
+        return NULL;
+    }
+
     if(*output_index + input_size >= *output_size) {
         size_t required = *output_index + input_size + 1;
-        size_t doubled = *output_size * 2;
+        size_t doubled = *output_size > SIZE_MAX / 2 ? SIZE_MAX : *output_size * 2;
         size_t new_output_size = (doubled > required) ? doubled : required;
         char *new_ret = (char *)mjb_realloc(ret, new_output_size);
 

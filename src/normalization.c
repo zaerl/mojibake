@@ -817,15 +817,9 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
     }
 
     if(output_index >= capacity) {
-        char *new_folded = (char *)mjb_realloc(folded, output_index + 1);
+        mjb_free(folded);
 
-        if(new_folded == NULL) {
-            mjb_free(folded);
-
-            return MJB_STATUS_NO_MEMORY;
-        }
-
-        folded = new_folded;
+        return MJB_STATUS_OVERFLOW;
     }
 
     folded[output_index] = '\0';

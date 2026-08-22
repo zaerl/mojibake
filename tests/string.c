@@ -61,6 +61,15 @@ int test_string(void *arg) {
     ATT_ASSERT(mjb_string_output(NULL, output_input, 1, &output_index, NULL), (char *)NULL,
         "String output rejects NULL output size")
 
+    char overflow_output[1] = { 0 };
+    output_index = SIZE_MAX;
+    output_size = sizeof(overflow_output);
+    ATT_ASSERT(mjb_string_output(overflow_output, output_input, 1, &output_index, &output_size),
+        (char *)NULL, "String output rejects an overflowing index")
+    output_index = 0;
+    ATT_ASSERT(mjb_string_output(overflow_output, output_input, SIZE_MAX, &output_index, &output_size),
+        (char *)NULL, "String output rejects an overflowing input size")
+
     size_t into_size = 0;
     ATT_ASSERT_STATUS(mjb_output_into(NULL, &into_size, test_output_writer, NULL), MJB_STATUS_OK,
         "Output sink measures a transformation")
