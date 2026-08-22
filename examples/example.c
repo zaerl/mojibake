@@ -20,8 +20,8 @@ int main(int argc, char *const argv[]) {
     mjb_result result;
 
     // Normalize example: in NFC e + ◌́ -> é (U+00E9)
-    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result) !=
-        MJB_STATUS_OK) {
+    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+           MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -37,7 +37,8 @@ int main(int argc, char *const argv[]) {
     // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
     size_t codepoint_count = 0;
 
-    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, &codepoint_count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &codepoint_count,
+           NULL) != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -49,8 +50,8 @@ int main(int argc, char *const argv[]) {
     const char *case_input = "Straße";
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
-    if(mjb_nfkc_casefold(case_input, strlen(case_input), MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result) !=
-        MJB_STATUS_OK) {
+    if(mjb_nfkc_casefold(case_input, strlen(case_input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+           MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         return 1;
     }
 

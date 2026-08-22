@@ -109,7 +109,9 @@ enum MojibakeCounting {
             UnsafePointer<CChar>?,
             Int,
             mjb_encoding,
-            UnsafeMutablePointer<Int>?
+            mjb_malformed_policy,
+            UnsafeMutablePointer<Int>?,
+            UnsafeMutablePointer<mjb_diagnostic>?
         ) -> mjb_status
     ) -> Int? {
         let bytes = Array(value.utf8)
@@ -122,7 +124,9 @@ enum MojibakeCounting {
                 buffer.baseAddress,
                 buffer.count,
                 MJB_ENC_UTF_8,
-                &count
+                MJB_MALFORMED_STOP,
+                &count,
+                nil
             ) == MJB_STATUS_OK else {
                 return nil
             }

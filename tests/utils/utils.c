@@ -49,15 +49,16 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
-    if(mjb_map_case(buffer, byte_length, encoding, type, encoding, &result) != MJB_STATUS_OK) {
+    if(mjb_map_case(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type, encoding, &result,
+           NULL) != MJB_STATUS_OK) {
         return NULL;
     }
 
     MJB_TEST_COVERAGE(mjb_map_case_into);
 
     size_t required = 0;
-    mjb_status status = mjb_map_case_into(buffer, byte_length, encoding, type, encoding, NULL,
-        &required);
+    mjb_status status = mjb_map_case_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type,
+        encoding, NULL, &required, NULL);
 
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into sizing matches allocating case mapping")
     ATT_ASSERT(required, result.output_size, "Case into required size matches allocated size")
@@ -75,7 +76,8 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
 
     memset(output, 0xA5, required + 1);
     size_t output_size = required;
-    status = mjb_map_case_into(buffer, byte_length, encoding, type, encoding, output, &output_size);
+    status = mjb_map_case_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type, encoding,
+        output, &output_size, NULL);
 
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into output matches allocating case mapping")
     ATT_ASSERT(output_size, result.output_size, "Case into written size matches allocated size")

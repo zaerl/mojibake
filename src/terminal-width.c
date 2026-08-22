@@ -86,15 +86,25 @@ static mjb_status mjb_terminal_cluster_width(const char *buffer, size_t byte_len
  * Return the estimated terminal-cell width of printable, single-line text.
  */
 MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_terminal_width_profile profile, size_t *width) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_terminal_width_profile profile, size_t *width, mjb_diagnostic *diagnostic) {
     if(width == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *width = 0;
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
 
     if(profile != MJB_TERMINAL_WIDTH_NARROW && profile != MJB_TERMINAL_WIDTH_EAST_ASIAN) {
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     if(byte_length == 0) {
@@ -112,8 +122,8 @@ MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
     }
 
     mjb_result normalized = { NULL, 0, false };
-    status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-        &normalized);
+    status = mjb_normalize(buffer, byte_length, encoding, malformed_policy, MJB_NORMALIZATION_NFC,
+        MJB_ENC_UTF_8, &normalized, diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;

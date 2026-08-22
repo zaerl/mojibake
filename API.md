@@ -75,7 +75,8 @@ the best approach if you don't want to change it. So this is ok:
 
 ```c
 // See, the output is UTF-16.
-mjb_filter("Hello", 5, MJB_ENC_UTF_8, MJB_FILTER_SPACES, MJB_ENC_UTF_16LE, &result);
+mjb_filter("Hello", 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_FILTER_SPACES,
+    MJB_ENC_UTF_16LE, &result, NULL);
 ```
 
 ### Every string passed is simply a stream of bytes
@@ -97,8 +98,10 @@ equivalent:
 const char *hello = "Hello";
 mjb_encoding enc = MJB_ENC_UTF_8;
 
-mjb_normalize(hello, 5, enc, MJB_NORMALIZATION_NFC, enc, &result);
-mjb_normalize(hello, MJB_NUL_TERMINATED, enc, MJB_NORMALIZATION_NFC, enc, &result);
+mjb_normalize(hello, 5, enc, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, enc, &result,
+    NULL);
+mjb_normalize(hello, MJB_NUL_TERMINATED, enc, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, enc, &result, NULL);
 
 const char hello_16[] = {
     0x48, 0x00,  0x65, 0x00,  0x6C, 0x00,
@@ -109,8 +112,10 @@ const char hello_16[] = {
 enc = MJB_ENC_UTF_16LE;
 
 // sizeof(uint16_t) is 2
-mjb_normalize(hello_16, 5 * sizeof(uint16_t), enc, MJB_NORMALIZATION_NFC, enc, &result);
-mjb_normalize(hello_16, MJB_NUL_TERMINATED, enc, MJB_NORMALIZATION_NFC, enc, &result);
+mjb_normalize(hello_16, 5 * sizeof(uint16_t), enc, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, enc, &result, NULL);
+mjb_normalize(hello_16, MJB_NUL_TERMINATED, enc, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, enc, &result, NULL);
 ```
 
 ### Status return
@@ -139,9 +144,11 @@ The functions return a `_mjb_status_` and accept these arguments:
 1. The input string
 2. The _length_ of the input string (`byte_length`)
 3. The encoding of the input string (`encoding`)
-4. The needed _arguments_ of the function, if any
-5. The encoding you want to be used for the output string
-6. A `mjb_result` pointer to store the result
+4. A malformed-input policy when the operation can recover malformed text
+5. The needed _arguments_ of the function, if any
+6. The encoding you want to be used for the output string
+7. A `mjb_result` pointer to store the result
+8. An optional `mjb_diagnostic` pointer for the first malformed input sequence
 
 See for example the [`mjb_normalize`](#mjb_normalize), [`mjb_filter`](#mjb_filter)
 functions.
@@ -173,15 +180,18 @@ Example of the [`mjb_normalize`](#mjb_normalize) function.
 
 ```c
 mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
-mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
+mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding,
+mjb_result *result, mjb_diagnostic *diagnostic);
 ```
 
 1. `buffer`: a block of memory, `uint8_t` (ASCII, UTF-8), `uint16_t` (UTF-16), `uint32_t` (UTF-32)
 2. `byte_length`: the length in _bytes_ of `buffer`
-3. `form`: the normalization
-4. `encoding`: the encoding of `buffer`
-5. `output_encoding`: the encoding of _output_ you want.
-6. `results`: a pointer to a struct the function will fill
+3. `encoding`: the encoding of `buffer`
+4. `malformed_policy`: whether malformed input stops, is replaced, or is skipped
+5. `form`: the normalization
+6. `output_encoding`: the encoding of _output_ you want
+7. `result`: a pointer to a struct the function will fill
+8. `diagnostic`: an optional pointer that receives the first malformed input sequence
 
 If you want to normalize the UTF-8 encoded `Cafe\xCC\x81` string to `NFC`, this is what you need to
 do:
@@ -191,8 +201,8 @@ const char *input = "Cafe\xCC\x81"; // UTF-8 string of: "Cafe" + U+0301 COMBININ
 
 mjb_result result;
 
-if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -210,8 +220,8 @@ you need to `mjb_result_free` it.
 This way the output buffer will be encoded in UTF-16LE.
 
 ```c
-if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE,
-    &result) != MJB_STATUS_OK) {
+if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 ```
@@ -229,11 +239,16 @@ To count the Unicode codepoints, use `mjb_codepoint_count`.
 ```c
 size_t count = 0;
 
-mjb_codepoint_count("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8, &count); // 5 characters
-mjb_codepoint_count("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE, &count); // 5 characters
-mjb_codepoint_count("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE, &count); // 5 characters
-mjb_codepoint_count("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20, MJB_ENC_UTF_32LE, &count); // 5 characters
-mjb_codepoint_count("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20, MJB_ENC_UTF_32BE, &count); // 5 characters
+mjb_codepoint_count("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL); // 5 characters
+mjb_codepoint_count("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE,
+    MJB_MALFORMED_STOP, &count, NULL); // 5 characters
+mjb_codepoint_count("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE,
+    MJB_MALFORMED_STOP, &count, NULL); // 5 characters
+mjb_codepoint_count("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20,
+    MJB_ENC_UTF_32LE, MJB_MALFORMED_STOP, &count, NULL); // 5 characters
+mjb_codepoint_count("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20,
+    MJB_ENC_UTF_32BE, MJB_MALFORMED_STOP, &count, NULL); // 5 characters
 ```
 
 Functions that handle a string, as `mjb_normalize`, `mjb_convert_encoding` has always a `_into(...)`
@@ -242,8 +257,10 @@ alternative that do not allocate the results for you, but you provide the buffer
 Example for the function:
 
 ```c
-mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding,
-mjb_encoding output_encoding, void *output, size_t *output_size);
+mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_encoding output_encoding, void *output, size_t *output_size,
+    mjb_diagnostic *diagnostic);
 ```
 
 These are the rules, all the functions are equal:
@@ -266,7 +283,7 @@ size_t required = 0;
 
 // Get the length.
 if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_16LE, NULL, &required) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, NULL, &required, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -274,12 +291,12 @@ char *output = (char *)malloc(required);
 size_t capacity = required;
 
 if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_16LE, output, &capacity) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &capacity, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // UTF-16LE payload bytes (no terminator): 8
-printf("UTF-16LE payload bytes (no terminator): %zu", output_size)
+printf("UTF-16LE payload bytes (no terminator): %zu", capacity);
 
 free(output);
 ```
@@ -455,26 +472,32 @@ mjb_status mjb_normalize(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_normalization form,
     mjb_encoding output_encoding,
-    mjb_result *result
+    mjb_result *result,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating.
+Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `buffer` - The string to normalize
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The string was normalized (or already normal)
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
@@ -484,8 +507,8 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_result result;
 
-if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -508,10 +531,12 @@ mjb_status mjb_normalize_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_normalization form,
     mjb_encoding output_encoding,
     void *output,
-    size_t *output_size
+    size_t *output_size,
+    mjb_diagnostic *diagnostic
 );
 ```
 
@@ -520,18 +545,20 @@ Normalize a string using the same Unicode normalization forms and encoding rules
 - `buffer` - The string to normalize
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the normalized string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
-- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a normalized codepoint
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Temporary composition allocation failed
@@ -543,15 +570,16 @@ Normalize a string using the same Unicode normalization forms and encoding rules
 const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 size_t output_size = 0;
 
-if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-    MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[5];
 
 if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -572,20 +600,34 @@ mjb_status mjb_filter(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_filter_flags filters,
     mjb_encoding output_encoding,
-    mjb_result *result
+    mjb_result *result,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks.
+`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`; `diagnostic` records the first one encountered.
 
 - `buffer` - The string to filter
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
+
+**Returns**
+
+- `MJB_STATUS_OK` - The filtered string was returned
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
+- `MJB_STATUS_OVERFLOW` - The output size would overflow
+- `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
 
@@ -594,7 +636,8 @@ const char *mixed_whitespace = "Hello\t\t\n\nworld";
 mjb_result result;
 
 if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
-    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -605,8 +648,8 @@ mjb_result_free(&result);
 
 const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
-if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
-    MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -627,28 +670,33 @@ mjb_status mjb_filter_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_filter_flags filters,
     mjb_encoding output_encoding,
     void *output,
-    size_t *output_size
+    size_t *output_size,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run.
+Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `buffer` - The string to filter
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the filtered string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Temporary normalization allocation failed
@@ -660,15 +708,17 @@ Apply the same filters as `mjb_filter` without allocating the final output buffe
 const char *input = "Hello\t\t\nworld";
 size_t output_size = 0;
 
-if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_FILTER_COLLAPSE_SPACES,
-    MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, NULL, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[11];
 
 if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output,
+    &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -687,23 +737,29 @@ mjb_status mjb_nfkc_casefold(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_encoding output_encoding,
-    mjb_result *result
+    mjb_result *result,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive.
+Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `buffer` - The string to transform
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The transformed string was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
@@ -714,8 +770,8 @@ Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. Thi
 const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
 mjb_result result;
 
-if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -737,9 +793,11 @@ mjb_status mjb_nfkc_casefold_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_encoding output_encoding,
     void *output,
-    size_t *output_size
+    size_t *output_size,
+    mjb_diagnostic *diagnostic
 );
 ```
 
@@ -748,14 +806,18 @@ Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `
 - `buffer` - The string to transform
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the transformed string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize
 - `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
@@ -767,15 +829,15 @@ Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `
 const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
 size_t output_size = 0;
 
-if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[7];
 
 if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_ENC_UTF_8, output, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1128,6 +1190,119 @@ const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
 printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
 ```
 
+## `mjb_string_validate`
+
+Validate a complete Unicode code-unit sequence.
+
+```c
+mjb_status mjb_string_validate(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_diagnostic *diagnostic
+);
+```
+
+Validate the complete input without producing output. Empty input is well-formed. On malformed input, `diagnostic` identifies the first maximal ill-formed subsequence. Generic UTF-16 and UTF-32 require a byte-order mark.
+
+- `buffer` - The string to validate
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
+
+**Returns**
+
+- `MJB_STATUS_OK` - The complete input is well-formed
+- `MJB_STATUS_INVALID_ARGUMENT` - `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is unsupported, or generic UTF-16/UTF-32 has no byte-order mark
+- `MJB_STATUS_MALFORMED_INPUT` - The first malformed subsequence is described by `diagnostic`
+
+**Example**
+
+```c
+const char invalid[] = "\xE2\x82";
+mjb_diagnostic diagnostic;
+
+if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
+    &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
+    return 1;
+}
+```
+
+See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_is_utf8`](#mjb_is_utf8).
+
+## `mjb_decode_next`
+
+Decode the next codepoint from a string.
+
+```c
+mjb_status mjb_decode_next(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
+    size_t *offset,
+    mjb_codepoint *codepoint,
+    mjb_diagnostic *diagnostic
+);
+```
+
+Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed input returns `MJB_STATUS_MALFORMED_INPUT`; `offset` still advances over the malformed subsequence so decoding can resume. `MJB_MALFORMED_REPLACE` returns U+FFFD, while `MJB_MALFORMED_SKIP` advances until a valid codepoint or end of input. A diagnostic is reported for replacement and skipping even when the function returns success.
+
+- `buffer` - The string to decode
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
+- `offset` - The input byte offset and the byte offset following the decoded subsequence
+- `codepoint` - Where to store the decoded codepoint
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
+
+**Returns**
+
+- `MJB_STATUS_OK` - A codepoint was decoded
+- `MJB_STATUS_END_OF_INPUT` - No codepoint remains
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
+- `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
+
+See also: [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_string_validate`](#mjb_string_validate), [`mjb_codepoint_count`](#mjb_codepoint_count).
+
+## `mjb_decode_previous`
+
+Decode the previous codepoint from a string.
+
+```c
+mjb_status mjb_decode_previous(
+    const char *buffer,
+    size_t byte_length,
+    mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
+    size_t *offset,
+    mjb_codepoint *codepoint,
+    mjb_diagnostic *diagnostic
+);
+```
+
+Decode backward from `offset`, using the same malformed-input policies and diagnostic contract as `mjb_decode_next`. On success, `offset` is the first byte of the decoded codepoint. Start with the input byte length to iterate from the end.
+
+- `buffer` - The string to decode
+- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
+- `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
+- `offset` - The input byte offset and the start of the decoded subsequence
+- `codepoint` - Where to store the decoded codepoint
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
+
+**Returns**
+
+- `MJB_STATUS_OK` - A codepoint was decoded
+- `MJB_STATUS_END_OF_INPUT` - No codepoint precedes `offset`
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
+- `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
+
+See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_string_validate`](#mjb_string_validate), [`mjb_codepoint_count`](#mjb_codepoint_count).
+
 ## `mjb_codepoint_count`
 
 Count the codepoints in a string.
@@ -1137,22 +1312,27 @@ mjb_status mjb_codepoint_count(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    size_t *count
+    mjb_malformed_policy malformed_policy,
+    size_t *count,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Count the number of Unicode codepoints in a string. Malformed code-unit sequences count per the library replacement policy, and an incomplete trailing sequence does not add a codepoint. On failure, `count` is set to zero.
+Count the number of decoded Unicode codepoints in a string. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`. A replacement counts as one codepoint. On failure, `count` is set to zero.
 
 - `buffer` - The string to count
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of codepoints to store; set to zero on failure
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
 - `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
@@ -1163,14 +1343,16 @@ const char *utf8 = "H\xC3\xA9ll\xC3\xB6"; // 7 bytes
 const char utf16le[] = "H\0\xE9\0l\0l\0\xF6\0"; // 10 bytes
 size_t count;
 
-if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // 5 UTF-8 characters
 printf("%zu UTF-8 characters", count);
 
-if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, &count) != MJB_STATUS_OK) {
+if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1189,19 +1371,34 @@ mjb_status mjb_for_each_codepoint(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    mjb_for_each_codepoint_fn callback
+    mjb_malformed_policy malformed_policy,
+    mjb_for_each_codepoint_fn callback,
+    mjb_diagnostic *diagnostic
 );
 ```
+
+Decode the string according to `malformed_policy` and call the callback for every resulting codepoint. The first malformed subsequence is reported in `diagnostic` even when it is replaced or skipped.
 
 - `buffer` - The string to check
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `callback` - The function to call for each codepoint
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
+
+**Returns**
+
+- `MJB_STATUS_OK` - Every decoded codepoint was visited
+- `MJB_STATUS_INVALID_ARGUMENT` - The buffer, callback, or malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - The encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
+- `MJB_STATUS_CALLBACK_STOPPED` - The callback returned false
 
 **Example**
 
 ```c
-mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8, NULL);
+mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8,
+    MJB_MALFORMED_STOP, NULL, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -1455,24 +1652,29 @@ mjb_status mjb_convert_encoding(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_encoding output_encoding,
-    mjb_result *result
+    mjb_result *result,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified.
+Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified. Malformed source subsequences are stopped, replaced, or skipped according to `malformed_policy`.
 
 - `buffer` - The string to convert
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The input encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The string was converted
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding
-- `MJB_STATUS_INVALID_ENCODING` - A generic UTF-16/UTF-32 encoding did not provide enough byte order information
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested encoding conversion is not supported
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
@@ -1483,8 +1685,8 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 const char *input = "caf\xC3\xA9";
 mjb_result result;
 
-if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
+if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1504,9 +1706,11 @@ mjb_status mjb_convert_encoding_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_encoding output_encoding,
     void *output,
-    size_t *output_size
+    size_t *output_size,
+    mjb_diagnostic *diagnostic
 );
 ```
 
@@ -1515,15 +1719,18 @@ Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`
 - `buffer` - The string to convert
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The input encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the string was converted
 - `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_ENCODING` - A generic UTF-16/UTF-32 encoding did not provide enough byte order information
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested encoding conversion is not supported
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
@@ -1534,15 +1741,16 @@ Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`
 const char *input = "caf\xC3\xA9";
 size_t output_size = 0;
 
-if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_16LE, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 unsigned char output[8];
 
 if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
-    MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, output, &output_size) != MJB_STATUS_OK) {
+    MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1678,27 +1886,31 @@ mjb_status mjb_collation_key(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_collation_variable_weighting variable_weighting,
     mjb_collation_strength strength,
-    mjb_result *result
+    mjb_result *result,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
 - `result` - The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The sort key was generated
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, the malformed policy is invalid, or a collation option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
-- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The sort key size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 - `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_COLLATION=0`
@@ -1709,7 +1921,8 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 mjb_result key;
 
 if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
-    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1731,10 +1944,12 @@ mjb_status mjb_collation_key_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_collation_variable_weighting variable_weighting,
     mjb_collation_strength strength,
     void *output,
-    size_t *output_size
+    size_t *output_size,
+    mjb_diagnostic *diagnostic
 );
 ```
 
@@ -1743,17 +1958,19 @@ Generate the same binary sort key as `mjb_collation_key` without allocating the 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
 - `output` - The caller-provided binary output buffer, or NULL to query its size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the binary sort key was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or a collation option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid
-- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required key size would overflow
 - `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
@@ -1765,16 +1982,18 @@ Generate the same binary sort key as `mjb_collation_key` without allocating the 
 const char *input = "r\xC3\xA9sum\xC3\xA9";
 size_t output_size = 0;
 
-if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-    MJB_COLLATION_TERTIARY, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 unsigned char output[64];
 
 if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
+    MJB_MALFORMED_STOP,
     MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-    &output_size) != MJB_STATUS_OK) {
+    &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1795,25 +2014,31 @@ mjb_status mjb_map_case(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_map_case_type type,
     mjb_encoding output_encoding,
-    mjb_result *result
+    mjb_result *result,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping.
+Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `buffer` - The string to change case
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The case conversion succeeded
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or `type` is not a valid case type
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, the malformed policy is invalid, or `type` is not a valid case type
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
@@ -1822,8 +2047,8 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 const char *input = "Stra\xC3\x9F""e"; // "Straße"
 mjb_result result;
 
-if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
+    MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1846,10 +2071,12 @@ mjb_status mjb_map_case_into(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_map_case_type type,
     mjb_encoding output_encoding,
     void *output,
-    size_t *output_size
+    size_t *output_size,
+    mjb_diagnostic *diagnostic
 );
 ```
 
@@ -1858,15 +2085,19 @@ Apply the same full, special, conditional, titlecase, locale-sensitive, and case
 - `buffer` - The string to change case
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
 - `output_encoding` - The output encoding of the string
 - `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
 - `output_size` - The input capacity and output required or written byte count
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the case-mapped string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, `buffer` is NULL with a non-zero size, or `type` is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or `type` is invalid
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
@@ -1877,15 +2108,16 @@ Apply the same full, special, conditional, titlecase, locale-sensitive, and case
 const char *input = "Stra\xC3\x9F""e"; // "Straße"
 size_t output_size = 0;
 
-if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-    NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_CASE_UPPER, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[7];
 
 if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2248,22 +2480,27 @@ mjb_status mjb_sentence_count(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    size_t *count
+    mjb_malformed_policy malformed_policy,
+    size_t *count,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Count the sentence segments produced by the default Unicode sentence-boundary rules. The default rules carry no abbreviation list, so text such as `Dr. Smith` counts as two sentences. Malformed code-unit sequences are segmented per the library replacement policy. On failure, `count` is set to zero.
+Count the sentence segments produced by the default Unicode sentence-boundary rules. The default rules carry no abbreviation list, so text such as `Dr. Smith` counts as two sentences. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
 - `buffer` - The string to count
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of sentence segments to store; set to zero on failure
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the buffer is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
@@ -2271,7 +2508,8 @@ Count the sentence segments produced by the default Unicode sentence-boundary ru
 const char *input = "Hello. How are you? Fine!";
 size_t count;
 
-if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2361,22 +2599,27 @@ mjb_status mjb_grapheme_count(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    size_t *count
+    mjb_malformed_policy malformed_policy,
+    size_t *count,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Count user-perceived characters: the number of extended grapheme cluster segments in the string. Malformed code-unit sequences are segmented per the library replacement policy, and an incomplete trailing sequence does not add a cluster. On failure, `count` is set to zero.
+Count user-perceived characters: the number of extended grapheme cluster segments in the string. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
 - `buffer` - The string to count
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of grapheme clusters to store; set to zero on failure
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the buffer is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
@@ -2384,7 +2627,8 @@ Count user-perceived characters: the number of extended grapheme cluster segment
 const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // A🇮🇹
 size_t count;
 
-if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2466,22 +2710,27 @@ mjb_status mjb_word_count(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
-    size_t *count
+    mjb_malformed_policy malformed_policy,
+    size_t *count,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_truncate_word`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed code-unit sequences are segmented per the library replacement policy. On failure, `count` is set to zero.
+Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_truncate_word`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
 - `buffer` - The string to count
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of word-like segments to store; set to zero on failure
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the buffer is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
@@ -2489,7 +2738,8 @@ Count the words in a string: the word-break segments that contain at least one a
 const char *input = "Hello, world! It works.";
 size_t count;
 
-if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2560,6 +2810,8 @@ Resolve the embedding levels of a paragraph following the Unicode Bidirectional 
 
 - `MJB_STATUS_OK` - The paragraph was resolved
 - `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
+- `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - The paragraph size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
@@ -3582,28 +3834,32 @@ mjb_status mjb_terminal_width(
     const char *buffer,
     size_t byte_length,
     mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy,
     mjb_terminal_width_profile profile,
-    size_t *width
+    size_t *width,
+    mjb_diagnostic *diagnostic
 );
 ```
 
-Estimate the number of fixed terminal cells occupied by printable, single-line text. The input is normalized to NFC so canonically equivalent text has the same width. Combining and format characters occupy no additional cells, listed emoji-presentation sequences occupy two cells, and text-presentation sequences retain their East Asian Width. This is a deterministic terminal policy, not a measurement of proportional glyph advances. Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived character counts. Controls, line separators, and paragraph separators are rejected because their effect depends on terminal state. On failure, `width` is set to zero.
+Estimate the number of fixed terminal cells occupied by printable, single-line text. The input is normalized to NFC so canonically equivalent text has the same width. Combining and format characters occupy no additional cells, listed emoji-presentation sequences occupy two cells, and text-presentation sequences retain their East Asian Width. This is a deterministic terminal policy, not a measurement of proportional glyph advances. Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived character counts. Controls, line separators, and paragraph separators are rejected because their effect depends on terminal state. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `width` is set to zero.
 
 - `buffer` - The printable, single-line string to measure
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
+- `malformed_policy` - How malformed code-unit sequences are handled
 - `profile` - The terminal-width profile for ambiguous-width characters
 - `width` - The number of terminal cells to store; set to zero on failure
+- `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The width was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile is invalid, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile or malformed policy is invalid, or the buffer is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is invalid or lacks required byte-order information
 - `MJB_STATUS_UNSUPPORTED` - The input contains a control, line separator, or paragraph separator
 - `MJB_STATUS_NO_MEMORY` - NFC normalization could not allocate memory
 - `MJB_STATUS_OVERFLOW` - The width would overflow
-- `MJB_STATUS_MALFORMED_INPUT` - The input contains a malformed code-unit sequence
+- `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
@@ -3611,8 +3867,8 @@ Estimate the number of fixed terminal cells occupied by printable, single-line t
 const char *input = "A\xE7\x95\x8C"; // A界
 size_t width;
 
-if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_TERMINAL_WIDTH_NARROW, &width) != MJB_STATUS_OK) {
+if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3777,8 +4033,9 @@ Free the memory allocated for a `mjb_result`. The `result` pointer is set to NUL
 ```c
 mjb_result result;
 
-if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
-    &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
+if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
+    mjb_result_free(&result) != MJB_STATUS_OK) {
     return 1;
 }
 

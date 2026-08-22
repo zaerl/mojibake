@@ -47,8 +47,8 @@ static void mjb_caseless_value_replace(mjb_caseless_value *value, const mjb_resu
 
 static mjb_status mjb_caseless_normalize(mjb_caseless_value *value, mjb_normalization form) {
     mjb_result next;
-    mjb_status status = mjb_normalize(value->buffer, value->byte_length, value->encoding, form,
-        MJB_ENC_UTF_8, &next);
+    mjb_status status = mjb_normalize(value->buffer, value->byte_length, value->encoding,
+        MJB_MALFORMED_STOP, form, MJB_ENC_UTF_8, &next, NULL);
 
     if(status == MJB_STATUS_OK) {
         mjb_caseless_value_replace(value, &next);
@@ -72,7 +72,7 @@ static mjb_status mjb_caseless_casefold(mjb_caseless_value *value) {
 static mjb_status mjb_caseless_nfkc_casefold(mjb_caseless_value *value) {
     mjb_result next;
     mjb_status status = mjb_nfkc_casefold(value->buffer, value->byte_length, value->encoding,
-        MJB_ENC_UTF_8, &next);
+        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &next, NULL);
 
     if(status == MJB_STATUS_OK) {
         mjb_caseless_value_replace(value, &next);
@@ -156,6 +156,14 @@ MJB_EXPORT mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
         return status;
     }
 
+    status = s1_byte_length == 0 ?
+        MJB_STATUS_OK :
+        mjb_check_input_encoding_byte_order(s1, s1_byte_length, s1_encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     // Second string.
     status = mjb_resolve_input_byte_length(s2, &s2_byte_length, s2_encoding);
 
@@ -163,20 +171,12 @@ MJB_EXPORT mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
         return status;
     }
 
-    if(s1_byte_length > 0) {
-        status = mjb_validate_code_unit_sequence(s1, s1_byte_length, s1_encoding);
+    status = s2_byte_length == 0 ?
+        MJB_STATUS_OK :
+        mjb_check_input_encoding_byte_order(s2, s2_byte_length, s2_encoding);
 
-        if(status != MJB_STATUS_OK) {
-            return status;
-        }
-    }
-
-    if(s2_byte_length > 0) {
-        status = mjb_validate_code_unit_sequence(s2, s2_byte_length, s2_encoding);
-
-        if(status != MJB_STATUS_OK) {
-            return status;
-        }
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     mjb_caseless_value left = { s1, s1_byte_length, s1_encoding, false };

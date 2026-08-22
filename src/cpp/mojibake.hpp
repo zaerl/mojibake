@@ -683,32 +683,65 @@ struct NumericValue {
     return mjb_is_utf16(input.data(), input.size());
 }
 
+[[nodiscard]] inline mjb_status validate_string(std::string_view input,
+    mjb_encoding encoding = MJB_ENC_UTF_8, mjb_diagnostic *diagnostic = nullptr) noexcept {
+    return mjb_string_validate(input.data(), input.size(), encoding, diagnostic);
+}
+
+[[nodiscard]] inline mjb_status decode_next(std::string_view input, size_t &offset,
+    mjb_codepoint &codepoint, mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) noexcept {
+    return mjb_decode_next(input.data(), input.size(), encoding, malformed_policy, &offset,
+        &codepoint, diagnostic);
+}
+
+[[nodiscard]] inline mjb_status decode_previous(std::string_view input, size_t &offset,
+    mjb_codepoint &codepoint, mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) noexcept {
+    return mjb_decode_previous(input.data(), input.size(), encoding, malformed_policy, &offset,
+        &codepoint, diagnostic);
+}
+
 [[nodiscard]] inline size_t codepoint_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_codepoint_count(input.data(), input.size(), encoding, &count),
+    detail::check_status(mjb_codepoint_count(input.data(), input.size(), encoding, malformed_policy,
+                             &count, diagnostic),
         "Codepoint count failed");
 
     return count;
 }
 
 [[nodiscard]] inline mjb_status for_each_codepoint(std::string_view input,
-    mjb_for_each_codepoint_fn callback, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_for_each_codepoint(input.data(), input.size(), encoding, callback);
+    mjb_for_each_codepoint_fn callback, mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) noexcept {
+    return mjb_for_each_codepoint(input.data(), input.size(), encoding, malformed_policy, callback,
+        diagnostic);
 }
 
 [[nodiscard]] inline TextResult convert_encoding_result(std::string_view input,
-    mjb_encoding input_encoding, mjb_encoding output_encoding) {
+    mjb_encoding input_encoding, mjb_encoding output_encoding,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
     const mjb_status status = mjb_convert_encoding(input.data(), input.size(), input_encoding,
-        output_encoding, detail::ResultAccess::out(result));
+        malformed_policy, output_encoding, detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Encoding conversion failed");
 }
 
 [[nodiscard]] inline std::string convert_encoding(std::string_view input,
-    mjb_encoding input_encoding, mjb_encoding output_encoding) {
-    return convert_encoding_result(input, input_encoding, output_encoding).str();
+    mjb_encoding input_encoding, mjb_encoding output_encoding,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return convert_encoding_result(input, input_encoding, output_encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 [[nodiscard]] inline bool is_identifier(std::string_view input,
@@ -750,37 +783,56 @@ enum class NormalizationForm {
 };
 
 [[nodiscard]] inline TextResult normalize_result(std::string_view input, NormalizationForm form,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
     const mjb_status status = mjb_normalize(input.data(), input.size(), input_encoding,
-        static_cast<mjb_normalization>(form), output_encoding, detail::ResultAccess::out(result));
+        malformed_policy, static_cast<mjb_normalization>(form), output_encoding,
+        detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Normalization failed");
 }
 
 [[nodiscard]] inline std::string normalize(std::string_view input, NormalizationForm form,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return normalize_result(input, form, input_encoding, output_encoding).str();
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize_result(input, form, input_encoding, output_encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 [[nodiscard]] inline std::string nfc(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return normalize(input, NormalizationForm::NFC, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFC, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string nfd(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return normalize(input, NormalizationForm::NFD, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFD, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string nfkc(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return normalize(input, NormalizationForm::NFKC, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFKC, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string nfkd(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return normalize(input, NormalizationForm::NFKD, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFKD, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline mjb_quick_check_result normalization_quick_check(std::string_view input,
@@ -818,41 +870,59 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
 }
 
 [[nodiscard]] inline TextResult filter_result(std::string_view input, mjb_filter_flags filters,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_filter(input.data(), input.size(), input_encoding, filters,
-        output_encoding, detail::ResultAccess::out(result));
+    const mjb_status status = mjb_filter(input.data(), input.size(), input_encoding,
+        malformed_policy, filters, output_encoding, detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "String filtering failed");
 }
 
 [[nodiscard]] inline std::string filter(std::string_view input, mjb_filter_flags filters,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return filter_result(input, filters, input_encoding, output_encoding).str();
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return filter_result(input, filters, input_encoding, output_encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 [[nodiscard]] inline TextResult filter_result(std::string_view input, Filter filters,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     return filter_result(input, static_cast<mjb_filter_flags>(filters), input_encoding,
-        output_encoding);
+        output_encoding, malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string filter(std::string_view input, Filter filters,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return filter_result(input, filters, input_encoding, output_encoding).str();
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return filter_result(input, filters, input_encoding, output_encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 [[nodiscard]] inline TextResult nfkc_casefold_result(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
     const mjb_status status = mjb_nfkc_casefold(input.data(), input.size(), input_encoding,
-        output_encoding, detail::ResultAccess::out(result));
+        malformed_policy, output_encoding, detail::ResultAccess::out(result), diagnostic);
     return detail::ResultAccess::checked(std::move(result), status, "NFKC case folding failed");
 }
 
 [[nodiscard]] inline std::string nfkc_casefold(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return nfkc_casefold_result(input, input_encoding, output_encoding).str();
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return nfkc_casefold_result(input, input_encoding, output_encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 class IdnaResult {
@@ -912,42 +982,63 @@ class IdnaResult {
 }
 
 [[nodiscard]] inline TextResult case_map_result(std::string_view input, mjb_map_case_type type,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_map_case(input.data(), input.size(), input_encoding, type,
-        output_encoding, detail::ResultAccess::out(result));
+    const mjb_status status = mjb_map_case(input.data(), input.size(), input_encoding,
+        malformed_policy, type, output_encoding, detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Case mapping failed");
 }
 
 [[nodiscard]] inline std::string case_map(std::string_view input, mjb_map_case_type type,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return case_map_result(input, type, input_encoding, output_encoding).str();
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map_result(input, type, input_encoding, output_encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 [[nodiscard]] inline std::string uppercase(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return case_map(input, MJB_CASE_UPPER, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_UPPER, input_encoding, output_encoding, malformed_policy,
+        diagnostic);
 }
 
 [[nodiscard]] inline std::string lowercase(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return case_map(input, MJB_CASE_LOWER, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_LOWER, input_encoding, output_encoding, malformed_policy,
+        diagnostic);
 }
 
 [[nodiscard]] inline std::string titlecase(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return case_map(input, MJB_CASE_TITLE, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_TITLE, input_encoding, output_encoding, malformed_policy,
+        diagnostic);
 }
 
 [[nodiscard]] inline std::string casefold(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return case_map(input, MJB_CASE_CASEFOLD, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_CASEFOLD, input_encoding, output_encoding, malformed_policy,
+        diagnostic);
 }
 
 [[nodiscard]] inline std::string casefold_simple(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
-    return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, input_encoding, output_encoding);
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 enum class CaselessMode {
@@ -996,12 +1087,14 @@ enum class CollationVariableWeighting {
 
 [[nodiscard]] inline TextResult collation_key_result(std::string_view input,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
-    CollationStrength strength = CollationStrength::Tertiary,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    CollationStrength strength = CollationStrength::Tertiary, mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
     const mjb_status status = mjb_collation_key(input.data(), input.size(), encoding,
-        static_cast<mjb_collation_variable_weighting>(variable_weighting),
-        static_cast<mjb_collation_strength>(strength), detail::ResultAccess::out(result));
+        malformed_policy, static_cast<mjb_collation_variable_weighting>(variable_weighting),
+        static_cast<mjb_collation_strength>(strength), detail::ResultAccess::out(result),
+        diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status,
         "Collation key generation failed");
@@ -1009,9 +1102,12 @@ enum class CollationVariableWeighting {
 
 [[nodiscard]] inline std::string collation_key(std::string_view input,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
-    CollationStrength strength = CollationStrength::Tertiary,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
-    return collation_key_result(input, variable_weighting, strength, encoding).str();
+    CollationStrength strength = CollationStrength::Tertiary, mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return collation_key_result(input, variable_weighting, strength, encoding, malformed_policy,
+        diagnostic)
+        .str();
 }
 
 struct EmojiSequence {
@@ -1057,9 +1153,12 @@ struct EmojiSequence {
 
 [[nodiscard]] inline size_t terminal_width(std::string_view input,
     mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     size_t width = 0;
-    detail::check_status(mjb_terminal_width(input.data(), input.size(), encoding, profile, &width),
+    detail::check_status(mjb_terminal_width(input.data(), input.size(), encoding, malformed_policy,
+                             profile, &width, diagnostic),
         "Terminal width calculation failed");
 
     return width;
@@ -1174,27 +1273,36 @@ inline void set_allocator(const mjb_allocator *allocator) {
 }
 
 [[nodiscard]] inline size_t grapheme_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_grapheme_count(input.data(), input.size(), encoding, &count),
+    detail::check_status(mjb_grapheme_count(input.data(), input.size(), encoding, malformed_policy,
+                             &count, diagnostic),
         "Grapheme count failed");
 
     return count;
 }
 
 [[nodiscard]] inline size_t sentence_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_sentence_count(input.data(), input.size(), encoding, &count),
+    detail::check_status(mjb_sentence_count(input.data(), input.size(), encoding, malformed_policy,
+                             &count, diagnostic),
         "Sentence count failed");
 
     return count;
 }
 
 [[nodiscard]] inline size_t word_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+    mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_word_count(input.data(), input.size(), encoding, &count),
+    detail::check_status(mjb_word_count(input.data(), input.size(), encoding, malformed_policy,
+                             &count, diagnostic),
         "Word count failed");
 
     return count;

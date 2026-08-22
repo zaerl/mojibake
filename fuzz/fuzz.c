@@ -356,6 +356,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
         MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
     mjb_encoding encoding = encodings[variant % 6];
+    mjb_malformed_policy malformed_policy = (mjb_malformed_policy)(variant % 3);
 
     // Exercise the language-sensitive casing and folding paths too.
     static const mjb_locale locales[] = { MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ,
@@ -380,20 +381,22 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     switch(selector % 23) {
         case 0: { // Normalization, all four forms
-            if(mjb_normalize(buffer, size, encoding, (mjb_normalization)(variant % 4),
-                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+            if(mjb_normalize(buffer, size, encoding, malformed_policy,
+                   (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, &result,
+                   NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             size_t required = 0;
 
-            if(mjb_normalize_into(buffer, size, encoding, (mjb_normalization)(variant % 4),
-                   MJB_ENC_UTF_8, NULL, &required) == MJB_STATUS_OK &&
+            if(mjb_normalize_into(buffer, size, encoding, malformed_policy,
+                   (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, NULL, &required,
+                   NULL) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = required;
-                fuzz_sink += (size_t)mjb_normalize_into(buffer, size, encoding,
-                    (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, output, &capacity);
+                fuzz_sink += (size_t)mjb_normalize_into(buffer, size, encoding, malformed_policy,
+                    (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, output, &capacity, NULL);
             }
 
             break;
@@ -407,20 +410,22 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         }
 
         case 2: { // Case conversion and folding, all transforming types
-            if(mjb_map_case(buffer, size, encoding, (mjb_map_case_type)(1 + (variant % 5)),
-                   MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+            if(mjb_map_case(buffer, size, encoding, malformed_policy,
+                   (mjb_map_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8, &result,
+                   NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             size_t required = 0;
 
-            if(mjb_map_case_into(buffer, size, encoding, (mjb_map_case_type)(1 + (variant % 5)),
-                   MJB_ENC_UTF_8, NULL, &required) == MJB_STATUS_OK &&
+            if(mjb_map_case_into(buffer, size, encoding, malformed_policy,
+                   (mjb_map_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8, NULL, &required,
+                   NULL) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
-                fuzz_sink += (size_t)mjb_map_case_into(buffer, size, encoding,
-                    (mjb_map_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8, output, &capacity);
+                fuzz_sink += (size_t)mjb_map_case_into(buffer, size, encoding, malformed_policy,
+                    (mjb_map_case_type)(1 + (variant % 5)), MJB_ENC_UTF_8, output, &capacity, NULL);
             }
 
             break;
@@ -458,40 +463,44 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 5: { // Encoding conversion
             mjb_encoding output_encoding = encodings[(variant >> 1) % 6];
 
-            if(mjb_convert_encoding(buffer, size, encoding, output_encoding, &result) ==
-                MJB_STATUS_OK) {
+            mjb_malformed_policy policy = (mjb_malformed_policy)(variant % 3);
+
+            if(mjb_convert_encoding(buffer, size, encoding, policy, output_encoding, &result,
+                   NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             size_t required = 0;
 
-            if(mjb_convert_encoding_into(buffer, size, encoding, output_encoding, NULL,
-                   &required) == MJB_STATUS_OK &&
+            if(mjb_convert_encoding_into(buffer, size, encoding, policy, output_encoding, NULL,
+                   &required, NULL) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
-                fuzz_sink += (size_t)mjb_convert_encoding_into(buffer, size, encoding,
-                    output_encoding, output, &capacity);
+                fuzz_sink += (size_t)mjb_convert_encoding_into(buffer, size, encoding, policy,
+                    output_encoding, output, &capacity, NULL);
             }
 
             break;
         }
 
         case 6: { // String filtering, all filter combinations
-            if(mjb_filter(buffer, size, encoding, (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8,
-                   &result) == MJB_STATUS_OK) {
+            mjb_malformed_policy policy = (mjb_malformed_policy)(variant % 3);
+
+            if(mjb_filter(buffer, size, encoding, policy, (mjb_filter_flags)(variant & 0x1F),
+                   MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             size_t required = 0;
 
-            if(mjb_filter_into(buffer, size, encoding, (mjb_filter_flags)(variant & 0x1F),
-                   MJB_ENC_UTF_8, NULL, &required) == MJB_STATUS_OK &&
+            if(mjb_filter_into(buffer, size, encoding, policy, (mjb_filter_flags)(variant & 0x1F),
+                   MJB_ENC_UTF_8, NULL, &required, NULL) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
-                fuzz_sink += (size_t)mjb_filter_into(buffer, size, encoding,
-                    (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8, output, &capacity);
+                fuzz_sink += (size_t)mjb_filter_into(buffer, size, encoding, policy,
+                    (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8, output, &capacity, NULL);
             }
 
             break;
@@ -500,9 +509,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 7: { // Collation key
             mjb_collation_strength strength = (mjb_collation_strength)((variant >> 5) % 4);
 
-            if(mjb_collation_key(buffer, size, encoding,
+            if(mjb_collation_key(buffer, size, encoding, malformed_policy,
                    (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE, strength,
-                   &result) == MJB_STATUS_OK) {
+                   &result, NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
@@ -511,13 +520,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 MJB_COLLATION_SHIFTED :
                 MJB_COLLATION_NON_IGNORABLE;
 
-            if(mjb_collation_key_into(buffer, size, encoding, variable_weighting, strength, NULL,
-                   &required) == MJB_STATUS_OK &&
+            if(mjb_collation_key_into(buffer, size, encoding, malformed_policy, variable_weighting,
+                   strength, NULL, &required, NULL) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = required;
                 fuzz_sink += (size_t)mjb_collation_key_into(buffer, size, encoding,
-                    variable_weighting, strength, output, &capacity);
+                    malformed_policy, variable_weighting, strength, output, &capacity, NULL);
             }
 
             break;
@@ -534,7 +543,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 9: { // Segmentation: grapheme, word and width truncation, segment counts
             size_t segment_count = 0;
-            fuzz_sink += (size_t)mjb_codepoint_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += (size_t)mjb_codepoint_count(buffer, size, encoding, MJB_MALFORMED_REPLACE,
+                &segment_count, NULL);
             fuzz_sink += segment_count;
             mjb_truncate_grapheme(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
@@ -543,19 +553,22 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             mjb_truncate_word_width(buffer, size, encoding,
                 (mjb_terminal_width_profile)(variant % 2), variant);
 
-            fuzz_sink += (size_t)mjb_grapheme_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += (size_t)mjb_grapheme_count(buffer, size, encoding, malformed_policy,
+                &segment_count, NULL);
             fuzz_sink += segment_count;
-            fuzz_sink += (size_t)mjb_sentence_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += (size_t)mjb_sentence_count(buffer, size, encoding, malformed_policy,
+                &segment_count, NULL);
             fuzz_sink += segment_count;
-            fuzz_sink += (size_t)mjb_word_count(buffer, size, encoding, &segment_count);
+            fuzz_sink += (size_t)mjb_word_count(buffer, size, encoding, malformed_policy,
+                &segment_count, NULL);
             fuzz_sink += segment_count;
             break;
         }
 
         case 10: { // Terminal width
             size_t width = 0;
-            mjb_status status = mjb_terminal_width(buffer, size, encoding,
-                (mjb_terminal_width_profile)(variant % 2), &width);
+            mjb_status status = mjb_terminal_width(buffer, size, encoding, malformed_policy,
+                (mjb_terminal_width_profile)(variant % 2), &width, NULL);
             fuzz_sink += (size_t)status;
             if(status == MJB_STATUS_OK) {
                 fuzz_sink += width;
@@ -617,23 +630,24 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 16: // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
             fuzz_sink += (size_t)mjb_for_each_codepoint(buffer, size, encoding,
-                fuzz_next_codepoint);
+                MJB_MALFORMED_REPLACE, fuzz_next_codepoint, NULL);
             break;
 
         case 17: { // Identifier-oriented NFKC case folding
-            if(mjb_nfkc_casefold(buffer, size, encoding, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
+            if(mjb_nfkc_casefold(buffer, size, encoding, malformed_policy, MJB_ENC_UTF_8, &result,
+                   NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             size_t required = 0;
 
-            if(mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8, NULL, &required) ==
-                    MJB_STATUS_OK &&
+            if(mjb_nfkc_casefold_into(buffer, size, encoding, malformed_policy, MJB_ENC_UTF_8, NULL,
+                   &required, NULL) == MJB_STATUS_OK &&
                 required <= 4096) {
                 char output[4096];
                 size_t capacity = required;
-                fuzz_sink += (size_t)mjb_nfkc_casefold_into(buffer, size, encoding, MJB_ENC_UTF_8,
-                    output, &capacity);
+                fuzz_sink += (size_t)mjb_nfkc_casefold_into(buffer, size, encoding,
+                    malformed_policy, MJB_ENC_UTF_8, output, &capacity, NULL);
             }
 
             break;

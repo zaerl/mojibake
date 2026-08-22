@@ -24,11 +24,11 @@ export type MojibakeWasmModule = {
   // Return the codepoint character.
   _mjb_codepoint_info: (codepoint: Codepoint, character: Pointer) => number;
   // Normalize a string to NFC/NFKC/NFD/NFKD form.
-  _mjb_normalize: (buffer: Pointer, byte_length: number, encoding: number, form: number, output_encoding: number, result: Pointer) => number;
+  _mjb_normalize: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, form: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Filter a string with the selected mjb_filter_flags.
-  _mjb_filter: (buffer: Pointer, byte_length: number, encoding: number, filters: number, output_encoding: number, result: Pointer) => number;
+  _mjb_filter: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, filters: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Apply the Unicode NFKC_Casefold transform to a string.
-  _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
+  _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Convert a domain name to its UTS #46 nontransitional ASCII form.
   _mjb_idna_to_ascii: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, info: Pointer, result: Pointer) => number;
   // Convert a domain name to its UTS #46 nontransitional Unicode form.
@@ -44,9 +44,9 @@ export type MojibakeWasmModule = {
   // Return true if the string is encoded in UTF-16BE or UTF-16LE.
   _mjb_is_utf16: (buffer: Pointer, byte_length: number) => boolean;
   // Count the codepoints in a string.
-  _mjb_codepoint_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
+  _mjb_codepoint_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Run a callback for each codepoint of a string.
-  _mjb_for_each_codepoint: (buffer: Pointer, byte_length: number, encoding: number, callback: number) => number;
+  _mjb_for_each_codepoint: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, callback: number, diagnostic: Pointer) => number;
   // Return the value of a binary Unicode property.
   _mjb_codepoint_property_binary: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return the value of an enumerated or integer Unicode property.
@@ -62,15 +62,15 @@ export type MojibakeWasmModule = {
   // Encode a codepoint to a string.
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, byte_length: number, encoding: number) => number;
   // Convert from one encoding to another.
-  _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, result: Pointer) => number;
+  _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Compare two strings using a Unicode caseless matching relation.
   _mjb_caseless_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, matches: Pointer) => number;
   // Compare two strings using UCA.
   _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, variable_weighting: number, strength: number, order: Pointer) => number;
   // Generate a UCA sort key for a string.
-  _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, variable_weighting: number, strength: number, result: Pointer) => number;
+  _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, variable_weighting: number, strength: number, result: Pointer, diagnostic: Pointer) => number;
   // Change string case.
-  _mjb_map_case: (buffer: Pointer, byte_length: number, encoding: number, type: number, output_encoding: number, result: Pointer) => number;
+  _mjb_map_case: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, type: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Return true if the codepoint is valid.
   _mjb_codepoint_is_valid: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is graphic.
@@ -102,19 +102,19 @@ export type MojibakeWasmModule = {
   // Sentence boundaries breaking.
   _mjb_next_sentence_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Count the sentence segments in a string.
-  _mjb_sentence_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
+  _mjb_sentence_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Grapheme cluster breaking.
   _mjb_next_grapheme_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
   _mjb_truncate_grapheme: (buffer: Pointer, byte_length: number, encoding: number, max_graphemes: number) => number;
   // Count the extended grapheme clusters in a string.
-  _mjb_grapheme_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
+  _mjb_grapheme_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
   _mjb_truncate_grapheme_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
   _mjb_truncate_word: (buffer: Pointer, byte_length: number, encoding: number, max_segments: number) => number;
   // Count the word-like segments in a string.
-  _mjb_word_count: (buffer: Pointer, byte_length: number, encoding: number, count: Pointer) => number;
+  _mjb_word_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
   _mjb_truncate_word_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.
@@ -172,7 +172,7 @@ export type MojibakeWasmModule = {
   // Return the east asian width of a codepoint.
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => number;
   // Return the estimated terminal-cell width of printable, single-line text.
-  _mjb_terminal_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, width: Pointer) => number;
+  _mjb_terminal_width: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, profile: number, width: Pointer, diagnostic: Pointer) => number;
   // Parse a BCP 47 language tag.
   _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer) => number;
   // Set the current process-global locale.

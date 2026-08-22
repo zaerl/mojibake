@@ -243,6 +243,11 @@ int test_bidi(void *arg) {
     ATT_ASSERT(para.count, (size_t)0, "empty string count")
     mjb_bidi_paragraph_free(&para);
 
+    status = mjb_bidi_resolve("A\x80", 2, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    ATT_ASSERT_STATUS(status, MJB_STATUS_MALFORMED_INPUT, "resolve rejects malformed input")
+    ATT_ASSERT(para.chars, (mjb_bidi_char *)NULL, "malformed resolve leaves no characters")
+    ATT_ASSERT(para.count, (size_t)0, "malformed resolve leaves a zero count")
+
     const char *ltr = "ABC";
     status = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "LTR resolve ok")

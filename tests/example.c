@@ -33,8 +33,8 @@ int test_example(void *arg) {
     const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
     mjb_result result;
 
-    if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
+    if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize test failed") // Added by the script
         return 1;
     }
@@ -53,8 +53,8 @@ int test_example(void *arg) {
     const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
     size_t output_size = 0;
 
-    if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+    if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize_into test failed") // Added by the script
         return 1;
     }
@@ -62,7 +62,8 @@ int test_example(void *arg) {
     char output[5];
 
     if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize_into test failed") // Added by the script
         return 1;
     }
@@ -80,7 +81,8 @@ int test_example(void *arg) {
     mjb_result result;
 
     if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
-        MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+        MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter test failed") // Added by the script
         return 1;
     }
@@ -94,8 +96,8 @@ int test_example(void *arg) {
 
     const char *controls = "\x1\x2\t\n\v\f\r\x1f";
 
-    if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
-        MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+    if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter test failed") // Added by the script
         return 1;
     }
@@ -114,8 +116,9 @@ int test_example(void *arg) {
     const char *input = "Hello\t\t\nworld";
     size_t output_size = 0;
 
-    if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_FILTER_COLLAPSE_SPACES,
-        MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+    if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, NULL, &output_size,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter_into test failed") // Added by the script
         return 1;
     }
@@ -123,7 +126,8 @@ int test_example(void *arg) {
     char output[11];
 
     if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output,
+        &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter_into test failed") // Added by the script
         return 1;
     }
@@ -140,8 +144,8 @@ int test_example(void *arg) {
     const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
     mjb_result result;
 
-    if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
+    if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_nfkc_casefold test failed") // Added by the script
         return 1;
     }
@@ -159,8 +163,8 @@ int test_example(void *arg) {
     const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
     size_t output_size = 0;
 
-    if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        NULL, &output_size) != MJB_STATUS_OK) {
+    if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed") // Added by the script
         return 1;
     }
@@ -168,7 +172,7 @@ int test_example(void *arg) {
     char output[7];
 
     if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, output, &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed") // Added by the script
         return 1;
     }
@@ -288,6 +292,19 @@ int test_example(void *arg) {
 }
 
 {
+    // Example for mjb_string_validate
+    MJB_TEST_COVERAGE(mjb_string_validate); // Added by the script
+    const char invalid[] = "\xE2\x82";
+    mjb_diagnostic diagnostic;
+
+    if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
+        &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
+        ATT_ASSERT(0, 1, "mjb_string_validate test failed") // Added by the script
+        return 1;
+    }
+}
+
+{
     // Example for mjb_codepoint_count
     MJB_TEST_COVERAGE(mjb_codepoint_count); // Added by the script
     // The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
@@ -296,7 +313,8 @@ int test_example(void *arg) {
     const char utf16le[] = "H\0\xE9\0l\0l\0\xF6\0"; // 10 bytes
     size_t count;
 
-    if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_codepoint_count test failed") // Added by the script
         return 1;
     }
@@ -306,7 +324,8 @@ int test_example(void *arg) {
     snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-8 characters", count); // Added by the script
     ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_codepoint_count test failed") // Added by the script
 
-    if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, &count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP,
+        &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_codepoint_count test failed") // Added by the script
         return 1;
     }
@@ -320,7 +339,8 @@ int test_example(void *arg) {
 {
     // Example for mjb_for_each_codepoint
     MJB_TEST_COVERAGE(mjb_for_each_codepoint); // Added by the script
-    mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8, NULL);
+    mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8,
+        MJB_MALFORMED_STOP, NULL, NULL);
 
     // A callback is required: yes
     bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -459,8 +479,8 @@ int test_example(void *arg) {
     const char *input = "caf\xC3\xA9";
     mjb_result result;
 
-    if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
+    if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_convert_encoding test failed") // Added by the script
         return 1;
     }
@@ -478,8 +498,8 @@ int test_example(void *arg) {
     const char *input = "caf\xC3\xA9";
     size_t output_size = 0;
 
-    if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_ENC_UTF_16LE, NULL, &output_size) != MJB_STATUS_OK) {
+    if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed") // Added by the script
         return 1;
     }
@@ -487,7 +507,8 @@ int test_example(void *arg) {
     unsigned char output[8];
 
     if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
-        MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, output, &output_size) != MJB_STATUS_OK) {
+        MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed") // Added by the script
         return 1;
     }
@@ -544,7 +565,8 @@ int test_example(void *arg) {
     mjb_result key;
 
     if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
-        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key) != MJB_STATUS_OK) {
+        MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key test failed") // Added by the script
         return 1;
     }
@@ -564,8 +586,9 @@ int test_example(void *arg) {
     const char *input = "r\xC3\xA9sum\xC3\xA9";
     size_t output_size = 0;
 
-    if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        MJB_COLLATION_TERTIARY, NULL, &output_size) != MJB_STATUS_OK) {
+    if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
         return 1;
     }
@@ -573,8 +596,9 @@ int test_example(void *arg) {
     unsigned char output[64];
 
     if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
+        MJB_MALFORMED_STOP,
         MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-        &output_size) != MJB_STATUS_OK) {
+        &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
         return 1;
     }
@@ -592,8 +616,8 @@ int test_example(void *arg) {
     const char *input = "Stra\xC3\x9F""e"; // "Straße"
     mjb_result result;
 
-    if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
+    if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
+        MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case test failed") // Added by the script
         return 1;
     }
@@ -612,8 +636,8 @@ int test_example(void *arg) {
     const char *input = "Stra\xC3\x9F""e"; // "Straße"
     size_t output_size = 0;
 
-    if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-        NULL, &output_size) != MJB_STATUS_OK) {
+    if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_CASE_UPPER, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case_into test failed") // Added by the script
         return 1;
     }
@@ -621,7 +645,8 @@ int test_example(void *arg) {
     char output[7];
 
     if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+        MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case_into test failed") // Added by the script
         return 1;
     }
@@ -800,7 +825,8 @@ int test_example(void *arg) {
     const char *input = "Hello. How are you? Fine!";
     size_t count;
 
-    if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_sentence_count test failed") // Added by the script
         return 1;
     }
@@ -848,7 +874,8 @@ int test_example(void *arg) {
     const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // A🇮🇹
     size_t count;
 
-    if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_grapheme_count test failed") // Added by the script
         return 1;
     }
@@ -890,7 +917,8 @@ int test_example(void *arg) {
     const char *input = "Hello, world! It works.";
     size_t count;
 
-    if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+    if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_word_count test failed") // Added by the script
         return 1;
     }
@@ -1417,8 +1445,8 @@ int test_example(void *arg) {
     const char *input = "A\xE7\x95\x8C"; // A界
     size_t width;
 
-    if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_TERMINAL_WIDTH_NARROW, &width) != MJB_STATUS_OK) {
+    if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_terminal_width test failed") // Added by the script
         return 1;
     }
@@ -1496,8 +1524,9 @@ int test_example(void *arg) {
     MJB_TEST_COVERAGE(mjb_result_free); // Added by the script
     mjb_result result;
 
-    if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
-        &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
+    if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
+        mjb_result_free(&result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_result_free test failed") // Added by the script
         return 1;
     }

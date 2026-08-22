@@ -44,6 +44,11 @@ int test_quick_check(void *arg) {
     assert_quick_check((const char *)malformed_utf8, sizeof(malformed_utf8), enc,
         MJB_NORMALIZATION_NFC, MJB_STATUS_MALFORMED_INPUT, MJB_QC_NO,
         "Malformed UTF-8 quick check");
+    const unsigned char non_normalized_then_malformed[] = { 0xC3, 0xA9, 0x80 };
+    assert_quick_check((const char *)non_normalized_then_malformed,
+        sizeof(non_normalized_then_malformed), enc, MJB_NORMALIZATION_NFD,
+        MJB_STATUS_MALFORMED_INPUT, MJB_QC_NO,
+        "Quick check validates beyond an early normalization result");
 
     assert_quick_check("", 0, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_OK, MJB_QC_YES,
         "Empty string is NFC normalized");

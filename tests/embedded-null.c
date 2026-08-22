@@ -17,7 +17,8 @@
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, &count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
+        MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 
@@ -162,16 +163,16 @@ int test_embedded_null(void *arg) {
     // The normalization fast path must report the resolved payload length, not SIZE_MAX.
     const char normalized[] = { 'A', '\0', 'B', '\0' };
     mjb_result result;
-    ATT_ASSERT_STATUS(mjb_normalize(normalized, sizeof(normalized) - 1, MJB_ENC_UTF_8,
-                          MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result),
+    ATT_ASSERT_STATUS(mjb_normalize(normalized, sizeof(normalized) - 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, "Normalization with explicit embedded U+0000")
     ATT_ASSERT(result.output_size, sizeof(normalized) - 1,
         "Explicit normalization preserves bytes after U+0000")
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
         "Free explicit normalization result")
 
-    ATT_ASSERT_STATUS(mjb_normalize(normalized, MJB_NUL_TERMINATED, MJB_ENC_UTF_8,
-                          MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result),
+    ATT_ASSERT_STATUS(mjb_normalize(normalized, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, "Normalization with MJB_NUL_TERMINATED")
     ATT_ASSERT(result.output_size, (size_t)1,
         "NUL-terminated normalization excludes the terminator and suffix")
@@ -187,19 +188,19 @@ int test_embedded_null(void *arg) {
         (uint8_t)MJB_BT_NOT_SET, "Stateful segmentation requires an explicit byte length")
 
     size_t grapheme_count = 0;
-    ATT_ASSERT_STATUS(mjb_grapheme_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, &grapheme_count),
+    ATT_ASSERT_STATUS(mjb_grapheme_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &grapheme_count, NULL),
         MJB_STATUS_OK, "Explicit grapheme count with embedded U+0000")
     ATT_ASSERT(grapheme_count, (size_t)5, "UTF-8: A\\0B\\0C = 5 grapheme clusters")
-    ATT_ASSERT_STATUS(mjb_grapheme_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8,
-        &grapheme_count), MJB_STATUS_OK, "NUL-terminated grapheme count")
+    ATT_ASSERT_STATUS(mjb_grapheme_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &grapheme_count, NULL), MJB_STATUS_OK, "NUL-terminated grapheme count")
     ATT_ASSERT(grapheme_count, (size_t)1, "UTF-8: NUL-terminated A\\0B\\0C = 1 grapheme cluster")
 
     size_t word_count = 0;
-    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, &word_count),
+    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &word_count, NULL),
         MJB_STATUS_OK, "Explicit word count with embedded U+0000")
     ATT_ASSERT(word_count, (size_t)3, "UTF-8: A\\0B\\0C = 3 words")
-    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8,
-        &word_count), MJB_STATUS_OK, "NUL-terminated word count")
+    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &word_count, NULL), MJB_STATUS_OK, "NUL-terminated word count")
     ATT_ASSERT(word_count, (size_t)1, "UTF-8: NUL-terminated A\\0B\\0C = 1 word")
 
     return 0;

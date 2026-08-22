@@ -113,7 +113,9 @@ MJB_EXPORT MJB_CONST const char *mjb_status_message(mjb_status status) {
         // MJB_STATUS_NOT_FOUND,
         "No Unicode data was found for the requested value",
         // MJB_STATUS_FEATURE_NOT_ENABLED
-        "The requested feature was disabled when the library was built"
+        "The requested feature was disabled when the library was built",
+        // MJB_STATUS_END_OF_INPUT
+        "The end of the input was reached"
     };
 
     if((unsigned int)status < (sizeof(messages) / sizeof(messages[0]))) {

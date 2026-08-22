@@ -806,8 +806,8 @@ static bool mjb_collation_strength_is_valid(mjb_collation_strength strength) {
 }
 
 static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
-    mjb_sort_key *sk) {
+    mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, mjb_sort_key *sk, mjb_diagnostic *diagnostic) {
     sk->data = NULL;
     sk->count = 0;
     sk->cap = 0;
@@ -815,6 +815,10 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     if(!mjb_collation_variable_weighting_is_valid(variable_weighting) ||
         !mjb_collation_strength_is_valid(strength)) {
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -827,14 +831,9 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
         return MJB_STATUS_OK;
     }
 
-    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
-
-    if(status != MJB_STATUS_OK) {
-        return status;
-    }
-
     mjb_result r;
-    status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, &r);
+    status = mjb_normalize(buffer, byte_length, encoding, malformed_policy, MJB_NORMALIZATION_NFD,
+        MJB_ENC_UTF_8, &r, diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -937,11 +936,15 @@ static mjb_status mjb_collation_key_byte_count(const mjb_sort_key *sort_key, siz
 }
 
 MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
-    mjb_collation_strength strength, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    mjb_result *result, mjb_diagnostic *diagnostic) {
+    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+        !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    mjb_diagnostic_reset(diagnostic);
 
     result->output = NULL;
     result->output_size = 0;
@@ -949,8 +952,8 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
 
     mjb_sort_key sk = { 0, 0, 0 };
 
-    mjb_status status = compute_sort_key(buffer, byte_length, encoding, variable_weighting,
-        strength, &sk);
+    mjb_status status = compute_sort_key(buffer, byte_length, encoding, malformed_policy,
+        variable_weighting, strength, &sk, diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -998,21 +1001,24 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
 }
 
 MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
-    mjb_collation_strength strength, void *output, size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     if(output_size == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
+    mjb_diagnostic_reset(diagnostic);
+
+    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     mjb_sort_key sort_key = { 0, 0, 0 };
-    mjb_status status = compute_sort_key(buffer, byte_length, encoding, variable_weighting,
-        strength, &sort_key);
+    mjb_status status = compute_sort_key(buffer, byte_length, encoding, malformed_policy,
+        variable_weighting, strength, &sort_key, diagnostic);
 
     if(status != MJB_STATUS_OK) {
         *output_size = 0;
@@ -1069,13 +1075,15 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    status = compute_sort_key(s1, s1_byte_length, s1_encoding, variable_weighting, strength, &sk1);
+    status = compute_sort_key(s1, s1_byte_length, s1_encoding, MJB_MALFORMED_STOP,
+        variable_weighting, strength, &sk1, NULL);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    status = compute_sort_key(s2, s2_byte_length, s2_encoding, variable_weighting, strength, &sk2);
+    status = compute_sort_key(s2, s2_byte_length, s2_encoding, MJB_MALFORMED_STOP,
+        variable_weighting, strength, &sk2, NULL);
 
     if(status != MJB_STATUS_OK) {
         sk_free(&sk1);
@@ -1094,27 +1102,33 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
 #else
 
 MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
-    mjb_collation_strength strength, mjb_result *result) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    mjb_result *result, mjb_diagnostic *diagnostic) {
     (void)buffer;
     (void)byte_length;
     (void)encoding;
+    (void)malformed_policy;
     (void)variable_weighting;
     (void)strength;
     (void)result;
+    (void)diagnostic;
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 
 MJB_EXPORT mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting,
-    mjb_collation_strength strength, void *output, size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
+    void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     (void)buffer;
     (void)byte_length;
     (void)encoding;
+    (void)malformed_policy;
     (void)variable_weighting;
     (void)strength;
     (void)output;
     (void)output_size;
+    (void)diagnostic;
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 

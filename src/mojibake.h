@@ -311,8 +311,39 @@ typedef enum mjb_status {
     MJB_STATUS_OUTPUT_TOO_SMALL,
     MJB_STATUS_CALLBACK_STOPPED,
     MJB_STATUS_NOT_FOUND,
-    MJB_STATUS_FEATURE_NOT_ENABLED
+    MJB_STATUS_FEATURE_NOT_ENABLED,
+    MJB_STATUS_END_OF_INPUT
 } mjb_status;
+
+// Policy used by decoding operations when an ill-formed code-unit sequence is encountered.
+typedef enum mjb_malformed_policy {
+    MJB_MALFORMED_STOP,    // Report MJB_STATUS_MALFORMED_INPUT
+    MJB_MALFORMED_REPLACE, // Emit one U+FFFD per maximal ill-formed subsequence
+    MJB_MALFORMED_SKIP     // Discard maximal ill-formed subsequences
+} mjb_malformed_policy;
+
+// Precise reason that a code-unit sequence is not well-formed.
+typedef enum mjb_text_error {
+    MJB_TEXT_ERROR_NONE = 0,
+    MJB_TEXT_ERROR_NON_ASCII,
+    MJB_TEXT_ERROR_INVALID_LEADING_BYTE,
+    MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+    MJB_TEXT_ERROR_MISSING_CONTINUATION,
+    MJB_TEXT_ERROR_OVERLONG_SEQUENCE,
+    MJB_TEXT_ERROR_SURROGATE,
+    MJB_TEXT_ERROR_OUT_OF_RANGE,
+    MJB_TEXT_ERROR_TRUNCATED_SEQUENCE,
+    MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT,
+    MJB_TEXT_ERROR_UNPAIRED_SURROGATE
+} mjb_text_error;
+
+// Location and extent of the first malformed subsequence encountered by an operation.
+typedef struct mjb_diagnostic {
+    mjb_text_error error;
+    size_t byte_offset;
+    size_t byte_length;
+    size_t code_unit_offset;
+} mjb_diagnostic;
 
 typedef struct mjb_locale_id {
     char language[9];
@@ -468,6 +499,7 @@ typedef struct mjb_next_state {
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
+    bool had_error;
     unsigned short ri_count;
     bool ext_pict_seen;
     bool zwj_seen;
@@ -506,6 +538,7 @@ typedef struct mjb_next_word_state {
     mjb_codepoint current_codepoint;
     mjb_wbp prev_prev_wbp;
     bool in_error;
+    bool had_error;
     unsigned short ri_count;
     bool wb4_merged;
     bool zwj_pending;
@@ -521,6 +554,7 @@ typedef struct mjb_next_sentence_state {
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
+    bool had_error;
     bool sb5_merged;
     bool in_sat;
     bool sat_has_sp;
@@ -591,22 +625,22 @@ typedef enum mjb_script_set_kind {
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Normalize a string into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Filter a string with the selected mjb_filter_flags.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Filter a string into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_filter_flags filters, mjb_encoding output_encoding, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Apply the Unicode NFKC_Casefold transform to a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Apply the Unicode NFKC_Casefold transform into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Convert a domain name to its UTS #46 nontransitional ASCII form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
@@ -635,11 +669,20 @@ MJB_EXPORT MJB_PURE bool mjb_is_utf8(const char *buffer, size_t byte_length);
 // Return true if the string is encoded in UTF-16BE or UTF-16LE.
 MJB_EXPORT MJB_PURE bool mjb_is_utf16(const char *buffer, size_t byte_length);
 
+// Validate a complete Unicode code-unit sequence.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_string_validate(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_diagnostic *diagnostic);
+
+// Decode the next codepoint from a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_next(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic);
+
+// Decode the previous codepoint from a string.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_previous(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic);
+
 // Count the codepoints in a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Run a callback for each codepoint of a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_for_each_codepoint_fn callback);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic);
 
 // Return the value of a binary Unicode property.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property, bool *value);
@@ -663,10 +706,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_script_extensions(mjb_codepoin
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer, size_t byte_length, mjb_encoding encoding);
 
 // Convert from one encoding to another.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Convert from one encoding to another into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Compare two strings using a Unicode caseless matching relation.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_caseless_mode mode, bool *matches);
@@ -675,16 +718,16 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const char *s1, size_t s1
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, int *order);
 
 // Generate a UCA sort key for a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Generate a binary collation key into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Change string case.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Change string case into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Return true if the codepoint is valid.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -732,7 +775,7 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
 MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_sentence_state *state);
 
 // Count the sentence segments in a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_sentence_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_sentence_count(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Grapheme cluster breaking.
 MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_next_state *state);
@@ -741,7 +784,7 @@ MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byt
 MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_graphemes);
 
 // Count the extended grapheme clusters in a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
 MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns);
@@ -750,7 +793,7 @@ MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_le
 MJB_EXPORT size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t max_segments);
 
 // Count the word-like segments in a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t *count);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
 MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns);
@@ -855,7 +898,7 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);
 
 // Return the estimated terminal-cell width of printable, single-line text.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_terminal_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_terminal_width_profile profile, size_t *width);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_terminal_width(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_terminal_width_profile profile, size_t *width, mjb_diagnostic *diagnostic);
 
 // Parse a BCP 47 language tag.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const char *id, size_t byte_length, mjb_encoding encoding, mjb_locale_id *locale);

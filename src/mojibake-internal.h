@@ -88,6 +88,10 @@ MJB_LOCAL void *mjb_realloc(void *ptr, size_t new_size);
 
 MJB_LOCAL void mjb_free(void *ptr);
 
+MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check,
+    bool validate_full_input);
+
 char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
     size_t *output_size);
 

@@ -375,9 +375,11 @@ private struct CollationResolution {
                 buffer,
                 byteLength,
                 MJB_ENC_UTF_8,
+                MJB_MALFORMED_STOP,
                 weighting,
                 strength,
-                result
+                result,
+                nil
             )
             return status
         }

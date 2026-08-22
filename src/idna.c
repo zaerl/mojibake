@@ -54,7 +54,7 @@ static mjb_status mjb_idna_decode_utf8(const char *buffer, size_t byte_length,
     bool in_error = false;
     mjb_codepoint codepoint = 0;
 
-    for(size_t index = 0; index < byte_length;) {
+    for(size_t index = 0;;) {
         mjb_decode_result decoded = mjb_next_codepoint(buffer, byte_length, &state, &index,
             MJB_ENC_UTF_8, &codepoint, &in_error);
 
@@ -104,7 +104,7 @@ static mjb_status mjb_idna_map(const char *buffer, size_t byte_length, mjb_encod
     bool in_error = false;
     mjb_codepoint codepoint = 0;
 
-    for(size_t index = 0; index < byte_length;) {
+    for(size_t index = 0;;) {
         mjb_decode_result decoded = mjb_next_codepoint(buffer, byte_length, &state, &index,
             encoding, &codepoint, &in_error);
 
@@ -408,8 +408,8 @@ static bool mjb_idna_valid_contextj(const mjb_idna_codepoints *label) {
 
 static mjb_status mjb_idna_label_is_nfc(const char *label, size_t byte_length, bool *is_nfc) {
     mjb_result normalized;
-    mjb_status status = mjb_normalize(label, byte_length, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, &normalized);
+    mjb_status status = mjb_normalize(label, byte_length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &normalized, NULL);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -632,7 +632,7 @@ static mjb_status mjb_idna_finish_output(mjb_output *output, mjb_encoding output
     }
 
     mjb_status status = mjb_convert_encoding(output->buffer, output->size, MJB_ENC_UTF_8,
-        output_encoding, result);
+        MJB_MALFORMED_STOP, output_encoding, result, NULL);
     mjb_free(output->buffer);
     output->buffer = NULL;
 
@@ -660,18 +660,18 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
         return status;
     }
 
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     if(encoding == MJB_ENC_ASCII) {
         for(size_t i = 0; i < byte_length; ++i) {
             if(((uint8_t)buffer[i] & 0x80) != 0) {
                 return MJB_STATUS_MALFORMED_INPUT;
             }
         }
-    }
-
-    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
-
-    if(status != MJB_STATUS_OK) {
-        return status;
     }
 
     mjb_output mapped;
@@ -682,8 +682,8 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     }
 
     mjb_result normalized;
-    status = mjb_normalize(mapped.buffer, mapped.size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, &normalized);
+    status = mjb_normalize(mapped.buffer, mapped.size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &normalized, NULL);
 
     if(status != MJB_STATUS_OK) {
         mjb_free(mapped.buffer);

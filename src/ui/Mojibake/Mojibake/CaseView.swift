@@ -249,9 +249,11 @@ struct CaseView: View {
                 input,
                 byteLength,
                 MJB_ENC_UTF_8,
+                MJB_MALFORMED_STOP,
                 type,
                 MJB_ENC_UTF_8,
-                result
+                result,
+                nil
             )
         }
     }

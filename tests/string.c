@@ -38,7 +38,8 @@ static mjb_status test_output_failure_writer(mjb_output *output, const void *con
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, &count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
+        MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 
@@ -110,7 +111,8 @@ int test_string(void *arg) {
 
     ATT_ASSERT(count_codepoints("Héllö", 7, enc), 5, "UTF-8 length: Héllö")
     ATT_ASSERT(count_codepoints("Héllö", 4, enc), 3, "UTF-8 length: Héllö")
-    ATT_ASSERT(count_codepoints("Héllö", 2, enc), 1, "UTF-8 length: Héllö")
+    ATT_ASSERT(count_codepoints("Héllö", 2, enc), SIZE_MAX,
+        "UTF-8 length rejects a truncated sequence")
     ATT_ASSERT(count_codepoints("Héllö", 0, enc), 0, "UTF-8 length: Héllö")
     ATT_ASSERT(count_codepoints("Hèllõ ツ", 11, enc), 7, "UTF-8 length: Hèllõ ツ")
     ATT_ASSERT(count_codepoints("Hèllõ ツ", 5, enc), 4, "UTF-8 length: Hèllõ ツ")
@@ -120,14 +122,16 @@ int test_string(void *arg) {
     ATT_ASSERT(count_codepoints("Hello", 5, MJB_ENC_ASCII), 5, "ASCII length: Hello")
 
     size_t codepoint_count = 6251;
-    ATT_ASSERT_STATUS(mjb_codepoint_count("A", 1, MJB_ENC_UTF_8, NULL),
+    ATT_ASSERT_STATUS(mjb_codepoint_count("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Codepoint count rejects NULL count")
-    ATT_ASSERT_STATUS(mjb_codepoint_count(NULL, 1, MJB_ENC_UTF_8, &codepoint_count),
+    ATT_ASSERT_STATUS(mjb_codepoint_count(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          &codepoint_count, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Codepoint count rejects NULL buffer")
     ATT_ASSERT(codepoint_count, (size_t)0, "Codepoint count is zero after NULL buffer")
 
     codepoint_count = 6251;
-    ATT_ASSERT_STATUS(mjb_codepoint_count("Hello", 5, MJB_ENC_UNKNOWN, &codepoint_count),
+    ATT_ASSERT_STATUS(mjb_codepoint_count("Hello", 5, MJB_ENC_UNKNOWN, MJB_MALFORMED_STOP,
+                          &codepoint_count, NULL),
         MJB_STATUS_INVALID_ENCODING, "Codepoint count rejects an unknown encoding")
     ATT_ASSERT(codepoint_count, (size_t)0, "Codepoint count is zero after invalid encoding")
 

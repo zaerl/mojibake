@@ -17,6 +17,64 @@ typedef enum {
     MJB_DECODE_ERROR       // Invalid sequence (codepoint set to MJB_CODEPOINT_REPLACEMENT "�")
 } mjb_decode_result;
 
+static inline bool MJB_USED mjb_malformed_policy_is_valid(mjb_malformed_policy policy) {
+    return policy == MJB_MALFORMED_STOP || policy == MJB_MALFORMED_REPLACE ||
+        policy == MJB_MALFORMED_SKIP;
+}
+
+static inline void MJB_USED mjb_diagnostic_reset(mjb_diagnostic *diagnostic) {
+    if(diagnostic == NULL) {
+        return;
+    }
+
+    diagnostic->error = MJB_TEXT_ERROR_NONE;
+    diagnostic->byte_offset = 0;
+    diagnostic->byte_length = 0;
+    diagnostic->code_unit_offset = 0;
+}
+
+static inline void MJB_USED mjb_diagnostic_record(mjb_diagnostic *destination,
+    const mjb_diagnostic *source) {
+    if(destination != NULL && source != NULL && destination->error == MJB_TEXT_ERROR_NONE &&
+        source->error != MJB_TEXT_ERROR_NONE) {
+        *destination = *source;
+    }
+}
+
+static inline void MJB_USED mjb_diagnose_malformed_input(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_status status, mjb_diagnostic *diagnostic) {
+    if(status == MJB_STATUS_MALFORMED_INPUT && diagnostic != NULL &&
+        diagnostic->error == MJB_TEXT_ERROR_NONE) {
+        (void)mjb_string_validate(buffer, byte_length, encoding, diagnostic);
+    }
+}
+
+/**
+ * Repair input only after a strict traversal has found malformed text. Valid input therefore pays
+ * no separate validation cost.
+ */
+static inline mjb_status MJB_USED mjb_repair_text_input(const char **buffer, size_t *byte_length,
+    mjb_encoding *encoding, mjb_malformed_policy malformed_policy, mjb_diagnostic *diagnostic,
+    mjb_result *sanitized) {
+    if(malformed_policy == MJB_MALFORMED_STOP) {
+        mjb_diagnose_malformed_input(*buffer, *byte_length, *encoding, MJB_STATUS_MALFORMED_INPUT,
+            diagnostic);
+
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    mjb_status status = mjb_convert_encoding(*buffer, *byte_length, *encoding, malformed_policy,
+        MJB_ENC_UTF_8, sanitized, diagnostic);
+
+    if(status == MJB_STATUS_OK) {
+        *buffer = sanitized->output;
+        *byte_length = sanitized->output_size;
+        *encoding = MJB_ENC_UTF_8;
+    }
+
+    return status;
+}
+
 static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
     return state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT;
 }
@@ -105,9 +163,26 @@ static inline mjb_encoding MJB_USED mjb_resolve_input_encoding(const char *buffe
     return encoding;
 }
 
+static inline mjb_status MJB_USED mjb_check_input_encoding_byte_order(const char *buffer,
+    size_t byte_length, mjb_encoding encoding) {
+    size_t index = 0;
+    mjb_encoding resolved = mjb_resolve_input_encoding(buffer, byte_length, encoding, &index);
+
+    if((encoding == MJB_ENC_UTF_16 || encoding == MJB_ENC_UTF_32) && resolved == encoding) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    return MJB_STATUS_OK;
+}
+
 static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_length, uint8_t *state,
     size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
-    if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
+    if(encoding == MJB_ENC_ASCII) {
+        uint8_t byte = (uint8_t)buffer[*index];
+        *codepoint = byte;
+        *state = byte <= 0x7F ? MJB_UTF_ACCEPT : MJB_UTF_REJECT;
+        ++*index;
+    } else if(encoding == MJB_ENC_UTF_8) {
         *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
         ++*index; // Increment by 1 byte
     } else if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
@@ -373,50 +448,4 @@ static inline mjb_status MJB_USED mjb_resolve_input_byte_length(const char *buff
 
         index += code_unit_size;
     }
-}
-
-/**
- * Validate a complete code-unit sequence without producing output.
- */
-static inline mjb_status MJB_USED mjb_validate_code_unit_sequence(const char *buffer,
-    size_t byte_length, mjb_encoding encoding) {
-    if(!mjb_encoding_is_valid_input(encoding)) {
-        return MJB_STATUS_INVALID_ENCODING;
-    }
-
-    if(byte_length == 0) {
-        return MJB_STATUS_OK;
-    }
-
-    size_t resolved_index = 0;
-    mjb_encoding resolved_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
-        &resolved_index);
-
-    if((encoding == MJB_ENC_UTF_16 || encoding == MJB_ENC_UTF_32) &&
-        resolved_encoding == encoding) {
-        return MJB_STATUS_INVALID_ENCODING;
-    }
-
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
-    mjb_codepoint codepoint = 0;
-
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
-
-        if(result == MJB_DECODE_END) {
-            break;
-        }
-
-        if(result == MJB_DECODE_ERROR) {
-            return MJB_STATUS_MALFORMED_INPUT;
-        }
-    }
-
-    if(mjb_utf_state_is_incomplete(state)) {
-        return MJB_STATUS_MALFORMED_INPUT;
-    }
-
-    return MJB_STATUS_OK;
 }

@@ -9,6 +9,7 @@ use std::slice;
 const MJB_STATUS_OK: c_int = 0;
 const MJB_ENC_UTF_8: c_int = 0x2;
 const MJB_NORMALIZATION_NFC: c_int = 0;
+const MJB_MALFORMED_STOP: c_int = 0;
 
 #[repr(C)]
 struct MjbResult {
@@ -48,24 +49,30 @@ extern "C" {
         buffer: *const c_char,
         byte_length: usize,
         encoding: c_int,
+        malformed_policy: c_int,
         form: c_int,
         output_encoding: c_int,
         result: *mut MjbResult,
+        diagnostic: *mut std::ffi::c_void,
     ) -> c_int;
 
     fn mjb_nfkc_casefold(
         buffer: *const c_char,
         byte_length: usize,
         encoding: c_int,
+        malformed_policy: c_int,
         output_encoding: c_int,
         result: *mut MjbResult,
+        diagnostic: *mut std::ffi::c_void,
     ) -> c_int;
 
     fn mjb_codepoint_count(
         buffer: *const c_char,
         byte_length: usize,
         encoding: c_int,
+        malformed_policy: c_int,
         count: *mut usize,
+        diagnostic: *mut std::ffi::c_void,
     ) -> c_int;
 
     fn mjb_result_free(result: *mut MjbResult) -> c_int;
@@ -92,9 +99,11 @@ fn run() -> bool {
             input.as_ptr().cast(),
             input.len(),
             MJB_ENC_UTF_8,
+            MJB_MALFORMED_STOP,
             MJB_NORMALIZATION_NFC,
             MJB_ENC_UTF_8,
             &mut normalized,
+            std::ptr::null_mut(),
         )
     } != MJB_STATUS_OK
     {
@@ -116,7 +125,9 @@ fn run() -> bool {
             mojibake.as_ptr().cast(),
             mojibake.len(),
             MJB_ENC_UTF_8,
+            MJB_MALFORMED_STOP,
             &mut codepoint_count,
+            std::ptr::null_mut(),
         )
     };
     assert_eq!(status, MJB_STATUS_OK, "mjb_codepoint_count failed");
@@ -134,8 +145,10 @@ fn run() -> bool {
             case_input.as_ptr().cast(),
             case_input.len(),
             MJB_ENC_UTF_8,
+            MJB_MALFORMED_STOP,
             MJB_ENC_UTF_8,
             &mut casefolded,
+            std::ptr::null_mut(),
         )
     } != MJB_STATUS_OK
     {

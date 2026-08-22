@@ -104,13 +104,17 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_le
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -123,7 +127,7 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_le
     bool in_error = false;
     mjb_codepoint codepoint = 0;
 
-    for(size_t i = 0; i < byte_length;) {
+    for(size_t i = 0;;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
             encoding, &codepoint, &in_error);
 
@@ -227,8 +231,8 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_NORMALIZATION_NFD,
-        MJB_ENC_UTF_8, &nfd);
+    mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, &nfd, NULL);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -309,8 +313,8 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
 
     // Step 3: NFD the intermediate string into the selected final output.
     if(result != NULL) {
-        status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD,
-            output_encoding, result);
+        status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+            MJB_NORMALIZATION_NFD, output_encoding, result, NULL);
 
         // mjb_normalize may return result->output == mid when the string is already NFD.
         // In that case transfer ownership so the caller can free it via mjb_result_free.
@@ -323,8 +327,8 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         return status;
     }
 
-    status = mjb_normalize_into(mid, mid_index, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFD,
-        output_encoding, output, output_size);
+    status = mjb_normalize_into(mid, mid_index, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFD, output_encoding, output, output_size, NULL);
     mjb_free(mid);
 
     return status;
@@ -338,12 +342,6 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
-
-    if(status != MJB_STATUS_OK) {
-        return status;
-    }
-
-    status = mjb_validate_code_unit_sequence(buffer, byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;

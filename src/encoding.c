@@ -14,7 +14,9 @@ typedef struct mjb_convert_encoding_context {
     size_t byte_length;
     size_t input_index;
     mjb_encoding input_encoding;
+    mjb_malformed_policy malformed_policy;
     mjb_encoding output_encoding;
+    mjb_diagnostic *diagnostic;
 } mjb_convert_encoding_context;
 
 static bool mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
@@ -84,100 +86,611 @@ MJB_EXPORT mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_leng
  * Return true if the string is encoded in UTF-8.
  */
 MJB_EXPORT bool mjb_is_utf8(const char *buffer, size_t byte_length) {
-    if(buffer == NULL || byte_length == 0) {
-        return false;
-    }
-
-    if(mjb_resolve_input_byte_length(buffer, &byte_length, MJB_ENC_UTF_8) != MJB_STATUS_OK ||
-        byte_length == 0) {
-        return false;
-    }
-
-    uint8_t state = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
-
-    // Loop through the string.
-    for(size_t i = 0; i < byte_length; ++i) {
-        // Find next codepoint.
-        state = mjb_utf8_decode_step(state, buffer[i], &codepoint);
-
-        if(state == MJB_UTF_REJECT) {
-            // The string is not well-formed.
-            return false;
-        }
-    }
-
-    return state == MJB_UTF_ACCEPT;
+    return mjb_string_validate(buffer, byte_length, MJB_ENC_UTF_8, NULL) == MJB_STATUS_OK;
 }
 
 /**
  * Return true if the string is encoded in ASCII.
  */
 MJB_EXPORT bool mjb_is_ascii(const char *buffer, size_t byte_length) {
-    if(buffer == NULL || byte_length == 0) {
-        return false;
-    }
-
-    if(mjb_resolve_input_byte_length(buffer, &byte_length, MJB_ENC_ASCII) != MJB_STATUS_OK ||
-        byte_length == 0) {
-        return false;
-    }
-
-    for(size_t i = 0; i < byte_length; ++i) {
-        // Every character must have leading bit at zero.
-        if(buffer[i] & 0x80) {
-            return false;
-        }
-    }
-
-    return 1;
+    return mjb_string_validate(buffer, byte_length, MJB_ENC_ASCII, NULL) == MJB_STATUS_OK;
 }
 
 /**
  * Return true if the string is encoded in UTF-16BE or UTF-16LE.
  */
 MJB_EXPORT bool mjb_is_utf16(const char *buffer, size_t byte_length) {
-    if(buffer == NULL || byte_length == 0) {
-        return false;
+    return mjb_string_validate(buffer, byte_length, MJB_ENC_UTF_16BE, NULL) == MJB_STATUS_OK ||
+        mjb_string_validate(buffer, byte_length, MJB_ENC_UTF_16LE, NULL) == MJB_STATUS_OK;
+}
+
+static size_t mjb_encoding_code_unit_size(mjb_encoding encoding) {
+    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
+        return 2;
     }
 
-    if(mjb_resolve_input_byte_length(buffer, &byte_length, MJB_ENC_UTF_16LE) != MJB_STATUS_OK ||
-        byte_length < 2 || (byte_length % 2) != 0) {
-        return false;
+    if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
+        return 4;
     }
 
-    // Try UTF-16BE first
-    uint8_t state_be = MJB_UTF_ACCEPT;
-    mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
-    bool be_valid = true;
+    return 1;
+}
 
-    for(size_t i = 0; i < byte_length; i += 2) {
-        state_be = mjb_utf16_decode_step(state_be, buffer[i], buffer[i + 1], &codepoint, true);
+static void mjb_set_diagnostic(mjb_diagnostic *diagnostic, mjb_text_error error, size_t byte_offset,
+    size_t byte_length, mjb_encoding encoding) {
+    if(diagnostic == NULL) {
+        return;
+    }
 
-        if(state_be == MJB_UTF_REJECT) {
-            be_valid = false; // Error in UTF-16BE
-            break;
+    diagnostic->error = error;
+    diagnostic->byte_offset = byte_offset;
+    diagnostic->byte_length = byte_length;
+    diagnostic->code_unit_offset = byte_offset / mjb_encoding_code_unit_size(encoding);
+}
+
+static uint16_t mjb_read_utf16_unit(const char *buffer, size_t offset, bool big_endian) {
+    uint16_t first = (uint8_t)buffer[offset];
+    uint16_t second = (uint8_t)buffer[offset + 1];
+
+    return big_endian ? (uint16_t)((first << 8) | second) : (uint16_t)(first | (second << 8));
+}
+
+static uint32_t mjb_read_utf32_unit(const char *buffer, size_t offset, bool big_endian) {
+    uint32_t b0 = (uint8_t)buffer[offset];
+    uint32_t b1 = (uint8_t)buffer[offset + 1];
+    uint32_t b2 = (uint8_t)buffer[offset + 2];
+    uint32_t b3 = (uint8_t)buffer[offset + 3];
+
+    if(big_endian) {
+        return (b0 << 24) | (b1 << 16) | (b2 << 8) | b3;
+    }
+
+    return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+static mjb_status mjb_decode_next_raw(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic) {
+    size_t start = *offset;
+
+    if(start >= byte_length) {
+        return MJB_STATUS_END_OF_INPUT;
+    }
+
+    if(encoding == MJB_ENC_ASCII) {
+        uint8_t byte = (uint8_t)buffer[start];
+        *offset = start + 1;
+
+        if(byte <= 0x7F) {
+            *codepoint = byte;
+
+            return MJB_STATUS_OK;
+        }
+
+        *codepoint = MJB_CODEPOINT_REPLACEMENT;
+        mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_NON_ASCII, start, 1, encoding);
+
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    if(encoding == MJB_ENC_UTF_8) {
+        uint8_t first = (uint8_t)buffer[start];
+
+        if(first <= 0x7F) {
+            *offset = start + 1;
+            *codepoint = first;
+
+            return MJB_STATUS_OK;
+        }
+
+        if(first >= 0x80 && first <= 0xBF) {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION, start, 1,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        if(first == 0xC0 || first == 0xC1) {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_OVERLONG_SEQUENCE, start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        size_t required;
+
+        if(first <= 0xDF) {
+            required = 2;
+        } else if(first <= 0xEF) {
+            required = 3;
+        } else if(first <= 0xF4) {
+            required = 4;
+        } else {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic,
+                first <= 0xF7 ? MJB_TEXT_ERROR_OUT_OF_RANGE : MJB_TEXT_ERROR_INVALID_LEADING_BYTE,
+                start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        if(byte_length - start < 2) {
+            *offset = byte_length;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start,
+                byte_length - start, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        uint8_t second = (uint8_t)buffer[start + 1];
+
+        if((second & 0xC0) != 0x80) {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_MISSING_CONTINUATION, start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        mjb_text_error constrained_error = MJB_TEXT_ERROR_NONE;
+
+        if((first == 0xE0 && second < 0xA0) || (first == 0xF0 && second < 0x90)) {
+            constrained_error = MJB_TEXT_ERROR_OVERLONG_SEQUENCE;
+        } else if(first == 0xED && second >= 0xA0) {
+            constrained_error = MJB_TEXT_ERROR_SURROGATE;
+        } else if(first == 0xF4 && second >= 0x90) {
+            constrained_error = MJB_TEXT_ERROR_OUT_OF_RANGE;
+        }
+
+        if(constrained_error != MJB_TEXT_ERROR_NONE) {
+            // Only the lead byte is a maximal subpart when the second byte violates the
+            // well-formed UTF-8 range for that lead byte.
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, constrained_error, start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        for(size_t i = 2; i < required; ++i) {
+            if(start + i >= byte_length) {
+                *offset = byte_length;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start,
+                    byte_length - start, encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+
+            if(((uint8_t)buffer[start + i] & 0xC0) != 0x80) {
+                *offset = start + i;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_MISSING_CONTINUATION, start, i,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+        }
+
+        if(required == 2) {
+            *codepoint = ((mjb_codepoint)(first & 0x1F) << 6) | ((mjb_codepoint)second & 0x3F);
+        } else if(required == 3) {
+            *codepoint = ((mjb_codepoint)(first & 0x0F) << 12) |
+                (((mjb_codepoint)second & 0x3F) << 6) |
+                ((mjb_codepoint)(uint8_t)buffer[start + 2] & 0x3F);
+        } else {
+            *codepoint = ((mjb_codepoint)(first & 0x07) << 18) |
+                (((mjb_codepoint)second & 0x3F) << 12) |
+                (((mjb_codepoint)(uint8_t)buffer[start + 2] & 0x3F) << 6) |
+                ((mjb_codepoint)(uint8_t)buffer[start + 3] & 0x3F);
+        }
+
+        *offset = start + required;
+
+        return MJB_STATUS_OK;
+    }
+
+    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
+        size_t remaining = byte_length - start;
+
+        if(remaining < 2) {
+            *offset = byte_length;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, start, remaining,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        bool big_endian = encoding == MJB_ENC_UTF_16BE;
+        uint16_t first = mjb_read_utf16_unit(buffer, start, big_endian);
+
+        if(first >= 0xD800 && first <= 0xDBFF) {
+            if(remaining < 4) {
+                *offset = start + 2;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+
+            uint16_t second = mjb_read_utf16_unit(buffer, start + 2, big_endian);
+
+            if(second < 0xDC00 || second > 0xDFFF) {
+                *offset = start + 2;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+
+            *codepoint = 0x10000 + (((mjb_codepoint)first - 0xD800) << 10) +
+                ((mjb_codepoint)second - 0xDC00);
+            *offset = start + 4;
+
+            return MJB_STATUS_OK;
+        }
+
+        *offset = start + 2;
+
+        if(first >= 0xDC00 && first <= 0xDFFF) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        *codepoint = first;
+
+        return MJB_STATUS_OK;
+    }
+
+    if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
+        size_t remaining = byte_length - start;
+
+        if(remaining < 4) {
+            *offset = byte_length;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, start, remaining,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        mjb_codepoint decoded = mjb_read_utf32_unit(buffer, start, encoding == MJB_ENC_UTF_32BE);
+        *offset = start + 4;
+
+        if(mjb_codepoint_is_surrogate(decoded)) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_SURROGATE, start, 4, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        if(decoded > MJB_CODEPOINT_MAX) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_OUT_OF_RANGE, start, 4, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        *codepoint = decoded;
+
+        return MJB_STATUS_OK;
+    }
+
+    return MJB_STATUS_INVALID_ENCODING;
+}
+
+static mjb_status mjb_resolve_decode_input(const char *buffer, size_t *byte_length,
+    mjb_encoding requested_encoding, size_t *offset, mjb_encoding *resolved_encoding) {
+    if(!mjb_encoding_is_valid_input(requested_encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, byte_length, requested_encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if((buffer == NULL && *byte_length > 0) || *offset > *byte_length) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    size_t data_start = 0;
+    *resolved_encoding = mjb_resolve_input_encoding(buffer, *byte_length, requested_encoding,
+        &data_start);
+
+    if((requested_encoding == MJB_ENC_UTF_16 || requested_encoding == MJB_ENC_UTF_32) &&
+        *resolved_encoding == requested_encoding) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    if(*offset < data_start) {
+        if(*offset != 0) {
+            return MJB_STATUS_INVALID_ARGUMENT;
+        }
+
+        *offset = data_start;
+    }
+
+    return MJB_STATUS_OK;
+}
+
+MJB_EXPORT mjb_status mjb_decode_next(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy, size_t *offset, mjb_codepoint *codepoint,
+    mjb_diagnostic *diagnostic) {
+    if(offset == NULL || codepoint == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_diagnostic_reset(diagnostic);
+    *codepoint = MJB_CODEPOINT_NOT_VALID;
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_encoding resolved_encoding;
+    mjb_status status = mjb_resolve_decode_input(buffer, &byte_length, encoding, offset,
+        &resolved_encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    for(;;) {
+        mjb_diagnostic current;
+        mjb_diagnostic_reset(&current);
+        status = mjb_decode_next_raw(buffer, byte_length, resolved_encoding, offset, codepoint,
+            &current);
+        mjb_diagnostic_record(diagnostic, &current);
+
+        if(status != MJB_STATUS_MALFORMED_INPUT) {
+            return status;
+        }
+
+        if(malformed_policy == MJB_MALFORMED_STOP) {
+            return status;
+        }
+
+        if(malformed_policy == MJB_MALFORMED_REPLACE) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+
+            return MJB_STATUS_OK;
         }
     }
+}
 
-    if(be_valid && state_be == MJB_UTF_ACCEPT) {
-        return true; // Valid UTF-16BE
+static mjb_status mjb_decode_previous_raw(const char *buffer, size_t data_start,
+    mjb_encoding encoding, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic) {
+    size_t end = *offset;
+
+    if(end <= data_start) {
+        return MJB_STATUS_END_OF_INPUT;
     }
 
-    // Try UTF-16LE
-    uint8_t state_le = MJB_UTF_ACCEPT;
-    bool le_valid = true;
+    if(encoding == MJB_ENC_ASCII) {
+        size_t start = end - 1;
+        size_t next = start;
+        mjb_status status = mjb_decode_next_raw(buffer, end, encoding, &next, codepoint,
+            diagnostic);
+        *offset = start;
 
-    for(size_t i = 0; i < byte_length; i += 2) {
-        state_le = mjb_utf16_decode_step(state_le, buffer[i], buffer[i + 1], &codepoint, false);
+        return status;
+    }
 
-        if(state_le == MJB_UTF_REJECT) {
-            le_valid = false; // Error in UTF-16LE
-            break;
+    if(encoding == MJB_ENC_UTF_8) {
+        size_t candidate = end - 1;
+        size_t continuation_count = 0;
+
+        while(candidate > data_start && (((uint8_t)buffer[candidate] & 0xC0) == 0x80) &&
+            continuation_count < 3) {
+            --candidate;
+            ++continuation_count;
+        }
+
+        size_t next = candidate;
+        mjb_status status = mjb_decode_next_raw(buffer, end, encoding, &next, codepoint,
+            diagnostic);
+
+        if(next == end && (status == MJB_STATUS_OK || status == MJB_STATUS_MALFORMED_INPUT)) {
+            *offset = candidate;
+
+            return status;
+        }
+
+        candidate = end - 1;
+        *offset = candidate;
+        *codepoint = MJB_CODEPOINT_REPLACEMENT;
+        mjb_set_diagnostic(diagnostic,
+            (((uint8_t)buffer[candidate] & 0xC0) == 0x80) ? MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION :
+                                                            MJB_TEXT_ERROR_TRUNCATED_SEQUENCE,
+            candidate, 1, encoding);
+
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
+        size_t relative = end - data_start;
+
+        if((relative % 2) != 0) {
+            *offset = end - 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, end - 1, 1,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        bool big_endian = encoding == MJB_ENC_UTF_16BE;
+        size_t start = end - 2;
+        uint16_t last = mjb_read_utf16_unit(buffer, start, big_endian);
+
+        if(last >= 0xDC00 && last <= 0xDFFF && start >= data_start + 2) {
+            uint16_t first = mjb_read_utf16_unit(buffer, start - 2, big_endian);
+
+            if(first >= 0xD800 && first <= 0xDBFF) {
+                *offset = start - 2;
+                *codepoint = 0x10000 + (((mjb_codepoint)first - 0xD800) << 10) +
+                    ((mjb_codepoint)last - 0xDC00);
+
+                return MJB_STATUS_OK;
+            }
+        }
+
+        *offset = start;
+
+        if(last >= 0xD800 && last <= 0xDFFF) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        *codepoint = last;
+
+        return MJB_STATUS_OK;
+    }
+
+    if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
+        size_t relative = end - data_start;
+        size_t remainder = relative % 4;
+
+        if(remainder != 0) {
+            size_t start = end - remainder;
+            *offset = start;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, start, remainder,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        size_t start = end - 4;
+        size_t next = start;
+        mjb_status status = mjb_decode_next_raw(buffer, end, encoding, &next, codepoint,
+            diagnostic);
+        *offset = start;
+
+        return status;
+    }
+
+    return MJB_STATUS_INVALID_ENCODING;
+}
+
+MJB_EXPORT mjb_status mjb_decode_previous(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *offset,
+    mjb_codepoint *codepoint, mjb_diagnostic *diagnostic) {
+    if(offset == NULL || codepoint == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_diagnostic_reset(diagnostic);
+    *codepoint = MJB_CODEPOINT_NOT_VALID;
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if((buffer == NULL && byte_length > 0) || *offset > byte_length) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    size_t data_start = 0;
+    mjb_encoding resolved_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
+        &data_start);
+
+    if((encoding == MJB_ENC_UTF_16 || encoding == MJB_ENC_UTF_32) &&
+        resolved_encoding == encoding) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    if(*offset < data_start) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    for(;;) {
+        mjb_diagnostic current;
+        mjb_diagnostic_reset(&current);
+        status = mjb_decode_previous_raw(buffer, data_start, resolved_encoding, offset, codepoint,
+            &current);
+        mjb_diagnostic_record(diagnostic, &current);
+
+        if(status != MJB_STATUS_MALFORMED_INPUT) {
+            return status;
+        }
+
+        if(malformed_policy == MJB_MALFORMED_STOP) {
+            return status;
+        }
+
+        if(malformed_policy == MJB_MALFORMED_REPLACE) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+
+            return MJB_STATUS_OK;
         }
     }
+}
 
-    return le_valid && state_le == MJB_UTF_ACCEPT; // Valid UTF-16LE
+MJB_EXPORT mjb_status mjb_string_validate(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_diagnostic *diagnostic) {
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    if(buffer == NULL && byte_length > 0) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    size_t offset = 0;
+    mjb_encoding resolved_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
+        &offset);
+
+    if((encoding == MJB_ENC_UTF_16 || encoding == MJB_ENC_UTF_32) &&
+        resolved_encoding == encoding) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    mjb_codepoint codepoint;
+
+    for(;;) {
+        status = mjb_decode_next_raw(buffer, byte_length, resolved_encoding, &offset, &codepoint,
+            diagnostic);
+
+        if(status == MJB_STATUS_END_OF_INPUT) {
+            return MJB_STATUS_OK;
+        }
+
+        if(status != MJB_STATUS_OK) {
+            return status;
+        }
+    }
 }
 
 MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buffer,
@@ -320,20 +833,20 @@ MJB_EXPORT unsigned int mjb_codepoint_encode(mjb_codepoint codepoint, char *buff
 static mjb_status mjb_convert_encoding_write(mjb_output *output, const void *context_pointer) {
     const mjb_convert_encoding_context *context = (const mjb_convert_encoding_context *)
         context_pointer;
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
-    bool in_error = false;
 
-    for(size_t i = context->input_index; i < context->byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(context->buffer, context->byte_length,
-            &state, &i, context->input_encoding, &codepoint, &in_error);
+    for(size_t offset = context->input_index;;) {
+        mjb_diagnostic current;
+        mjb_status decode_status = mjb_decode_next(context->buffer, context->byte_length,
+            context->input_encoding, context->malformed_policy, &offset, &codepoint, &current);
+        mjb_diagnostic_record(context->diagnostic, &current);
 
-        if(decode_status == MJB_DECODE_END) {
+        if(decode_status == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
+        if(decode_status != MJB_STATUS_OK) {
+            return decode_status;
         }
 
         mjb_status status = mjb_output_codepoint(output, codepoint, context->output_encoding);
@@ -347,9 +860,17 @@ static mjb_status mjb_convert_encoding_write(mjb_output *output, const void *con
 }
 
 MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
+    mjb_result *result, mjb_diagnostic *diagnostic) {
+    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+        !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_encoding_is_valid_output(output_encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -362,20 +883,29 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
     result->output_size = 0;
     result->transformed = false;
 
-    if(byte_length == 0 || encoding == output_encoding) {
-        result->output = (char *)buffer;
-        result->output_size = byte_length;
-
-        return MJB_STATUS_OK;
-    }
-
     size_t input_index = 0;
     mjb_encoding input_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
         &input_index);
 
-    if(input_encoding == MJB_ENC_UTF_16 || input_encoding == MJB_ENC_UTF_32 ||
-        output_encoding == MJB_ENC_UTF_16 || output_encoding == MJB_ENC_UTF_32) {
+    if(input_encoding == MJB_ENC_UTF_16 || input_encoding == MJB_ENC_UTF_32) {
         return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    if(byte_length == 0 || encoding == output_encoding) {
+        mjb_diagnostic validity;
+        status = mjb_string_validate(buffer, byte_length, encoding, &validity);
+        mjb_diagnostic_record(diagnostic, &validity);
+
+        if(status == MJB_STATUS_OK) {
+            result->output = (char *)buffer;
+            result->output_size = byte_length;
+
+            return MJB_STATUS_OK;
+        }
+
+        if(status != MJB_STATUS_MALFORMED_INPUT || malformed_policy == MJB_MALFORMED_STOP) {
+            return status;
+        }
     }
 
     char *allocated = (char *)mjb_alloc(byte_length);
@@ -387,7 +917,7 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
     mjb_output output;
     mjb_output_init_dynamic(&output, allocated, byte_length);
     mjb_convert_encoding_context context = { buffer, byte_length, input_index, input_encoding,
-        output_encoding };
+        malformed_policy, output_encoding, diagnostic };
     status = mjb_convert_encoding_write(&output, &context);
 
     if(status != MJB_STATUS_OK) {
@@ -404,8 +934,17 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
 }
 
 MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
+    void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     if(output_size == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        *output_size = 0;
+
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -413,6 +952,12 @@ MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_output(output_encoding)) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -423,23 +968,34 @@ MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_
         return status;
     }
 
-    if(byte_length == 0 || encoding == output_encoding) {
-        return mjb_output_copy_into(buffer, byte_length, output, output_size);
-    }
-
     size_t input_index = 0;
     mjb_encoding input_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
         &input_index);
 
-    if(input_encoding == MJB_ENC_UTF_16 || input_encoding == MJB_ENC_UTF_32 ||
-        output_encoding == MJB_ENC_UTF_16 || output_encoding == MJB_ENC_UTF_32) {
+    if(input_encoding == MJB_ENC_UTF_16 || input_encoding == MJB_ENC_UTF_32) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ENCODING;
     }
 
+    if(byte_length == 0 || encoding == output_encoding) {
+        mjb_diagnostic validity;
+        status = mjb_string_validate(buffer, byte_length, encoding, &validity);
+        mjb_diagnostic_record(diagnostic, &validity);
+
+        if(status == MJB_STATUS_OK) {
+            return mjb_output_copy_into(buffer, byte_length, output, output_size);
+        }
+
+        if(status != MJB_STATUS_MALFORMED_INPUT || malformed_policy == MJB_MALFORMED_STOP) {
+            *output_size = 0;
+
+            return status;
+        }
+    }
+
     mjb_convert_encoding_context context = { buffer, byte_length, input_index, input_encoding,
-        output_encoding };
+        malformed_policy, output_encoding, diagnostic };
 
     return mjb_output_into(output, output_size, mjb_convert_encoding_write, &context);
 }

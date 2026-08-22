@@ -20,6 +20,7 @@ import {
   FilterFlags,
   IdnaError,
   Locale,
+  MalformedPolicy,
   Mojibake,
   Normalization,
   Plane,
@@ -66,6 +67,21 @@ ATT_ASSERT(mojibake.filter('hello    world',
   FilterFlags.COLLAPSE_SPACES | FilterFlags.CONTROLS)?.output, 'hello world', 'filter');
 ATT_ASSERT(mojibake.filter('a\u0300\u0301\u0302\u0303\u0304', FilterFlags.LIMIT_COMBINING)?.output,
   'a\u0300\u0301\u0302\u0303', 'filter LIMIT_COMBINING');
+const malformedText = new Uint8Array([0x41, 0x80, 0x42]);
+ATT_ASSERT(mojibake.normalize(malformedText), null, 'normalize malformed stop policy');
+ATT_ASSERT(mojibake.normalize(malformedText, Normalization.NFC,
+  { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'A\uFFFDB',
+  'normalize malformed replace policy');
+ATT_ASSERT(mojibake.normalize(malformedText, Normalization.NFC,
+  { malformedPolicy: MalformedPolicy.SKIP })?.output, 'AB',
+  'normalize malformed skip policy');
+ATT_ASSERT(mojibake.filter(malformedText), null, 'filter malformed stop policy');
+ATT_ASSERT(mojibake.filter(malformedText, FilterFlags.NONE,
+  { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'A\uFFFDB',
+  'filter malformed replace policy');
+ATT_ASSERT(mojibake.filter(malformedText, FilterFlags.NONE,
+  { malformedPolicy: MalformedPolicy.SKIP })?.output, 'AB',
+  'filter malformed skip policy');
 ATT_ASSERT(mojibake.codepointPropertyBinary(0x41, Property.ALPHABETIC), true,
   'codepointPropertyBinary true');
 ATT_ASSERT(mojibake.codepointPropertyBinary(0x20, Property.ALPHABETIC), false,
@@ -95,8 +111,20 @@ ATT_ASSERT(mojibake.isUTF16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'is
 ATT_ASSERT(mojibake.isASCII('Hello'), true, 'isASCII');
 ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
 ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
+ATT_ASSERT(mojibake.convertEncoding(malformedText), null, 'convertEncoding malformed stop policy');
+ATT_ASSERT(mojibake.convertEncoding(malformedText, Encoding.UTF_8,
+  { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'A\uFFFDB',
+  'convertEncoding malformed replace policy');
+ATT_ASSERT(mojibake.convertEncoding(malformedText, Encoding.UTF_8,
+  { malformedPolicy: MalformedPolicy.SKIP })?.output, 'AB',
+  'convertEncoding malformed skip policy');
 ATT_ASSERT(mojibake.codepointCount('H\u00E9ll\u00F6'), 5, 'codepointCount');
 ATT_ASSERT(mojibake.codepointCount(''), 0, 'codepointCount empty');
+ATT_ASSERT(mojibake.codepointCount(malformedText), null, 'codepointCount malformed stop policy');
+ATT_ASSERT(mojibake.codepointCount(malformedText,
+  { malformedPolicy: MalformedPolicy.REPLACE }), 3, 'codepointCount malformed replace policy');
+ATT_ASSERT(mojibake.codepointCount(malformedText,
+  { malformedPolicy: MalformedPolicy.SKIP }), 2, 'codepointCount malformed skip policy');
 ATT_ASSERT(mojibake.caselessMatch('Straße', 'STRASSE'), true, 'caselessMatch');
 ATT_ASSERT(mojibake.caselessMatch('\u00C5', 'A\u030A', CaselessMode.UNNORMALIZED), false,
   'caselessMatch unnormalized');
@@ -151,9 +179,15 @@ ATT_ASSERT(mojibake.collationKey('A', CollationVariableWeighting.NON_IGNORABLE,
   CollationStrength.SECONDARY), mojibake.collationKey('a',
   CollationVariableWeighting.NON_IGNORABLE, CollationStrength.SECONDARY),
   'collationKey secondary ignores case');
+ATT_ASSERT(mojibake.collationKey(malformedText, CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.TERTIARY, { malformedPolicy: MalformedPolicy.SKIP }),
+mojibake.collationKey('AB'), 'collationKey malformed skip policy');
 ATT_ASSERT(mojibake.mapCase('hello', CaseType.UPPER)?.output, 'HELLO', 'mapCase');
 ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
   'mapCase casefold uppercase Cherokee');
+ATT_ASSERT(mojibake.mapCase(malformedText, CaseType.LOWER,
+  { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'a\uFFFDb',
+  'mapCase malformed replace policy');
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
@@ -171,6 +205,9 @@ ATT_ASSERT(mojibake.codepointNumericValue(0x31), { decimal: 1, digit: 1, numeric
   'codepointNumericValue');
 ATT_ASSERT(mojibake.codepointBlock(0x41)?.id, Block.BASIC_LATIN, 'codepointBlock');
 ATT_ASSERT(mojibake.nfkcCasefold('Straße\u00AD')?.output, 'strasse', 'nfkcCasefold');
+ATT_ASSERT(mojibake.nfkcCasefold(malformedText,
+  { malformedPolicy: MalformedPolicy.SKIP })?.output, 'ab',
+  'nfkcCasefold malformed skip policy');
 ATT_ASSERT(mojibake.nextLineBreak('A'), [BreakType.ALLOWED], 'nextLineBreak');
 ATT_ASSERT(mojibake.nextWordBreak('A'), [BreakType.ALLOWED], 'nextWordBreak');
 ATT_ASSERT(mojibake.nextSentenceBreak('A'), [BreakType.ALLOWED], 'nextSentenceBreak');
@@ -183,12 +220,21 @@ ATT_ASSERT(mojibake.graphemeCount('ABC'), 3, 'graphemeCount');
 ATT_ASSERT(mojibake.graphemeCount(''), 0, 'graphemeCount empty');
 ATT_ASSERT(mojibake.graphemeCount('🇮🇹'), 1, 'graphemeCount flag emoji');
 ATT_ASSERT(mojibake.graphemeCount('👨‍👩‍👦'), 1, 'graphemeCount ZWJ sequence');
+ATT_ASSERT(mojibake.graphemeCount(malformedText,
+  { malformedPolicy: MalformedPolicy.REPLACE }), 3,
+  'graphemeCount malformed replace policy');
 ATT_ASSERT(mojibake.sentenceCount('Hello. How are you? Fine!'), 3, 'sentenceCount');
 ATT_ASSERT(mojibake.sentenceCount(''), 0, 'sentenceCount empty');
+ATT_ASSERT(mojibake.sentenceCount(malformedText,
+  { malformedPolicy: MalformedPolicy.SKIP }), 1,
+  'sentenceCount malformed skip policy');
 ATT_ASSERT(mojibake.wordCount('Hello, world! It works.'), 4, 'wordCount');
 ATT_ASSERT(mojibake.wordCount('state-of-the-art'), 4, 'wordCount hyphenated');
 ATT_ASSERT(mojibake.wordCount('...'), 0, 'wordCount punctuation only');
 ATT_ASSERT(mojibake.wordCount(''), 0, 'wordCount empty');
+ATT_ASSERT(mojibake.wordCount(malformedText,
+  { malformedPolicy: MalformedPolicy.REPLACE }), 2,
+  'wordCount malformed replace policy');
 ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
   'truncateGraphemeWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');
@@ -230,6 +276,9 @@ ATT_ASSERT(mojibake.codepointEastAsianWidth(0x20), EastAsianWidth.NARROW,
 ATT_ASSERT(mojibake.terminalWidth('Hello'), 5, 'terminalWidth');
 ATT_ASSERT(mojibake.terminalWidth('👨🏻‍❤️‍💋‍👨🏻'), 2, 'terminalWidth emoji sequence');
 ATT_ASSERT(mojibake.terminalWidth('line\nbreak'), null, 'terminalWidth rejects controls');
+ATT_ASSERT(mojibake.terminalWidth(malformedText, TerminalWidthProfile.NARROW,
+  { malformedPolicy: MalformedPolicy.SKIP }), 2,
+  'terminalWidth malformed skip policy');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
 ATT_ASSERT(mojibake.setLocale(Locale.IT), true, 'setLocale');
 ATT_ASSERT(mojibake.getLocale(), Locale.IT, 'getLocale');

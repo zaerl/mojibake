@@ -346,7 +346,7 @@ static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
         &word_state, 0);
     bool segment_has_cased = false;
 
-    for(size_t i = 0; i < byte_length;) {
+    for(size_t i = 0;;) {
         size_t codepoint_start = i;
 
         // Find next codepoint.
@@ -359,6 +359,10 @@ static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
 
         if(decode_status == MJB_DECODE_INCOMPLETE) {
             continue;
+        }
+
+        if(decode_status == MJB_DECODE_ERROR) {
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
         while(codepoint_start >= segment_end && segment_end < byte_length) {
@@ -481,7 +485,7 @@ static mjb_status mjb_map_case_process(const char *buffer, size_t byte_length,
     bool track_context = type == MJB_CASE_LOWER || locale_sensitive;
     mjb_map_case_context context = { false, false, false, locale_sensitive };
 
-    for(size_t i = 0; i < byte_length;) {
+    for(size_t i = 0;;) {
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
             encoding, &codepoint, &in_error);
@@ -492,6 +496,10 @@ static mjb_status mjb_map_case_process(const char *buffer, size_t byte_length,
 
         if(decode_status == MJB_DECODE_INCOMPLETE) {
             continue;
+        }
+
+        if(decode_status == MJB_DECODE_ERROR) {
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
         if(folding) {
@@ -720,14 +728,22 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
 }
 
 MJB_EXPORT mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+    mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding,
+    mjb_result *result, mjb_diagnostic *diagnostic) {
+    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+        !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    mjb_diagnostic_reset(diagnostic);
 
     if(type != MJB_CASE_UPPER && type != MJB_CASE_LOWER && type != MJB_CASE_TITLE &&
         type != MJB_CASE_CASEFOLD && type != MJB_CASE_CASEFOLD_SIMPLE) {
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -744,11 +760,39 @@ MJB_EXPORT mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_e
         return MJB_STATUS_OK;
     }
 
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     bool turkic_case_folding = (type == MJB_CASE_CASEFOLD || type == MJB_CASE_CASEFOLD_SIMPLE) &&
         (mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ);
 
-    return mjb_map_case_result(buffer, byte_length, encoding, type, output_encoding,
+    status = mjb_map_case_result(buffer, byte_length, encoding, type, output_encoding,
         turkic_case_folding, result);
+
+    mjb_result sanitized = { NULL, 0, false };
+
+    if(status == MJB_STATUS_MALFORMED_INPUT) {
+        status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
+            diagnostic, &sanitized);
+
+        if(status == MJB_STATUS_OK && byte_length == 0) {
+            *result = sanitized;
+
+            return MJB_STATUS_OK;
+        }
+
+        if(status == MJB_STATUS_OK) {
+            status = mjb_map_case_result(buffer, byte_length, encoding, type, output_encoding,
+                turkic_case_folding, result);
+        }
+    }
+
+    mjb_result_free(&sanitized);
+
+    return status;
 }
 
 mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_encoding encoding,
@@ -757,6 +801,10 @@ mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_enco
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
@@ -771,18 +819,26 @@ mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_enco
         return MJB_STATUS_OK;
     }
 
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
     return mjb_map_case_result(buffer, byte_length, encoding, MJB_CASE_CASEFOLD, output_encoding,
         false, result);
 }
 
 MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding, void *output,
-    size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_map_case_type type,
+    mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     if(output_size == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
+    mjb_diagnostic_reset(diagnostic);
+
+    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -795,7 +851,21 @@ MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        *output_size = 0;
+
+        return status;
+    }
+
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         *output_size = 0;
@@ -808,5 +878,25 @@ MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
     mjb_map_case_write_context context = { buffer, byte_length, encoding, type, output_encoding,
         turkic_case_folding };
 
-    return mjb_output_into(output, output_size, mjb_map_case_write, &context);
+    size_t output_capacity = *output_size;
+    status = mjb_output_into(output, output_size, mjb_map_case_write, &context);
+
+    mjb_result sanitized = { NULL, 0, false };
+
+    if(status == MJB_STATUS_MALFORMED_INPUT) {
+        status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
+            diagnostic, &sanitized);
+
+        if(status == MJB_STATUS_OK) {
+            *output_size = output_capacity;
+            context.buffer = buffer;
+            context.byte_length = byte_length;
+            context.encoding = encoding;
+            status = mjb_output_into(output, output_size, mjb_map_case_write, &context);
+        }
+    }
+
+    mjb_result_free(&sanitized);
+
+    return status;
 }

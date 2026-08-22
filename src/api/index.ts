@@ -84,6 +84,14 @@ export enum Status {
   CALLBACK_STOPPED,
   NOT_FOUND,
   FEATURE_NOT_ENABLED,
+  END_OF_INPUT,
+};
+
+// mjb_malformed_policy
+export enum MalformedPolicy {
+  STOP,
+  REPLACE,
+  SKIP,
 };
 
 // mjb_idna_error
@@ -324,6 +332,7 @@ export type TextInputOptions = {
   encoding?: Encoding;
   additionalEncoding?: Encoding;
   outputEncoding?: Encoding;
+  malformedPolicy?: MalformedPolicy;
 };
 
 // Used for preRun and postRun callbacks
@@ -446,7 +455,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_normalization form, mjb_encoding output_encoding, mjb_result *result)
+  // mjb_malformed_policy malformed_policy, mjb_normalization form,
+  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
   normalize(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -456,7 +466,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_normalize(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, form, outputEncoding, resultPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, form,
+        outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -550,7 +561,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_encoding output_encoding, mjb_result *result)
+  // mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
+  // mjb_result *result, mjb_diagnostic *diagnostic)
   nfkcCasefold(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
@@ -559,7 +571,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_nfkc_casefold(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, outputEncoding, resultPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP,
+        outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -616,7 +629,7 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_for_each_codepoint(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, 0);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, 0, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -635,7 +648,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result)
+  // mjb_malformed_policy malformed_policy, mjb_filter_flags filters,
+  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
   filter(input: MojibakeInput, filters = FilterFlags.NONE,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -645,7 +659,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_filter(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, filters, outputEncoding, resultPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, filters,
+        outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -845,7 +860,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_encoding output_encoding, mjb_result *result)
+  // mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, mjb_result *result,
+  // mjb_diagnostic *diagnostic)
   convertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -855,7 +871,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_convert_encoding(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, outputEncoding, resultPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, outputEncoding,
+        resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -875,14 +892,14 @@ export class Mojibake {
   }
 
   // mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // size_t *count)
+  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
   codepointCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const countPtr = this.malloc(4);
 
     try {
       const status = this.module._mjb_codepoint_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, countPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -943,8 +960,9 @@ export class Mojibake {
   }
 
   // mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
+  // mjb_malformed_policy malformed_policy,
   // mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
-  // mjb_result *result)
+  // mjb_result *result, mjb_diagnostic *diagnostic)
   collationKey(input: MojibakeInput,
     variableWeighting = CollationVariableWeighting.NON_IGNORABLE,
     strength = CollationStrength.TERTIARY,
@@ -955,7 +973,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, variableWeighting, strength, resultPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP,
+        variableWeighting, strength, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -980,7 +999,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result)
+  // mjb_malformed_policy malformed_policy, mjb_map_case_type type,
+  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
   mapCase(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
@@ -989,7 +1009,7 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_map_case(wasmInput.ptr, wasmInput.size, wasmInput.encoding,
-        type, outputEncoding, resultPtr);
+        options.malformedPolicy ?? MalformedPolicy.STOP, type, outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -1168,14 +1188,14 @@ export class Mojibake {
   }
 
   // mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // size_t *count)
+  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
   graphemeCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const countPtr = this.malloc(4);
 
     try {
       const status = this.module._mjb_grapheme_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, countPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -1189,14 +1209,14 @@ export class Mojibake {
   }
 
   // mjb_status mjb_sentence_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // size_t *count)
+  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
   sentenceCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const countPtr = this.malloc(4);
 
     try {
       const status = this.module._mjb_sentence_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, countPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -1210,14 +1230,14 @@ export class Mojibake {
   }
 
   // mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // size_t *count)
+  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
   wordCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const countPtr = this.malloc(4);
 
     try {
       const status = this.module._mjb_word_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, countPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -1542,7 +1562,8 @@ export class Mojibake {
   }
 
   // mjb_status mjb_terminal_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_terminal_width_profile profile, size_t *width);
+  // mjb_malformed_policy malformed_policy, mjb_terminal_width_profile profile,
+  // size_t *width, mjb_diagnostic *diagnostic);
   terminalWidth(input: MojibakeInput, profile = TerminalWidthProfile.NARROW,
     options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -1550,7 +1571,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_terminal_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, profile, widthPtr);
+        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP,
+        profile, widthPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[widthPtr / 4];

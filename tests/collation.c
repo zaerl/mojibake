@@ -139,10 +139,10 @@ static int compare_shifted_test_strings(const char *left, size_t left_len, const
     mjb_result left_key = { NULL, 0, false };
     mjb_result right_key = { NULL, 0, false };
 
-    if(mjb_collation_key(left, left_len, MJB_ENC_UTF_8, MJB_COLLATION_SHIFTED,
-           MJB_COLLATION_QUATERNARY, &left_key) != MJB_STATUS_OK ||
-        mjb_collation_key(right, right_len, MJB_ENC_UTF_8, MJB_COLLATION_SHIFTED,
-            MJB_COLLATION_QUATERNARY, &right_key) != MJB_STATUS_OK) {
+    if(mjb_collation_key(left, left_len, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
+           MJB_COLLATION_QUATERNARY, &left_key, NULL) != MJB_STATUS_OK ||
+        mjb_collation_key(right, right_len, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+            MJB_COLLATION_SHIFTED, MJB_COLLATION_QUATERNARY, &right_key, NULL) != MJB_STATUS_OK) {
         mjb_result_free(&left_key);
         mjb_result_free(&right_key);
 
@@ -186,8 +186,8 @@ static void assert_collation_primaries(mjb_codepoint codepoint, uint16_t first, 
     size_t length = mjb_codepoint_encode(codepoint, utf8, sizeof(utf8), MJB_ENC_UTF_8);
     mjb_result key = { NULL, 0, false };
 
-    ATT_ASSERT_STATUS(mjb_collation_key(utf8, length, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_PRIMARY, &key),
+    ATT_ASSERT_STATUS(mjb_collation_key(utf8, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_PRIMARY, &key, NULL),
         MJB_STATUS_OK, message)
     ATT_ASSERT((int)(key.output_size >= 4), 1, message)
     ATT_ASSERT((int)sort_key_word(&key, 0), (int)first, message)
@@ -202,8 +202,8 @@ static void assert_collation_malformed_utf8(const unsigned char *buffer, size_t 
     const char *bytes = (const char *)buffer;
     int order = 42;
 
-    ATT_ASSERT_STATUS(mjb_collation_key(bytes, byte_length, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &result),
+    ATT_ASSERT_STATUS(mjb_collation_key(bytes, byte_length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &result, NULL),
         MJB_STATUS_MALFORMED_INPUT, message)
     ATT_ASSERT_STATUS(mjb_collation_compare(bytes, byte_length, MJB_ENC_UTF_8, bytes, byte_length,
                           MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY,
@@ -304,25 +304,25 @@ int test_collation(void *arg) {
     // mjb_collation_key
     mjb_result ka, kb, kc, kd;
 
-    ATT_ASSERT_STATUS(mjb_collation_key(NULL, 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &ka, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, NULL),
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects NULL result")
 
     size_t into_size = 9;
-    ATT_ASSERT_STATUS(mjb_collation_key_into(NULL, 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &into_size),
+    ATT_ASSERT_STATUS(mjb_collation_key_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &into_size, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key into rejects NULL buffer")
     ATT_ASSERT(into_size, (size_t)0, "Key into clears size after invalid input")
-    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, NULL),
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key into rejects NULL size")
 
     into_size = 9;
-    ATT_ASSERT_STATUS(mjb_collation_key_into("", 0, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &into_size),
+    ATT_ASSERT_STATUS(mjb_collation_key_into("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &into_size, NULL),
         MJB_STATUS_OK, "Key into measures empty input")
     ATT_ASSERT(into_size, (size_t)0, "Key into empty size")
     int order = 42;
@@ -345,15 +345,15 @@ int test_collation(void *arg) {
     ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
                           MJB_COLLATION_NON_IGNORABLE, (mjb_collation_strength)99, &order),
         MJB_STATUS_INVALID_ARGUMENT, "Compare rejects invalid strength")
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8,
-                          (mjb_collation_variable_weighting)99, MJB_COLLATION_TERTIARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          (mjb_collation_variable_weighting)99, MJB_COLLATION_TERTIARY, &ka, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects invalid variable weighting")
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          (mjb_collation_strength)99, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          (mjb_collation_strength)99, &ka, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key rejects invalid strength")
     into_size = 9;
-    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, (mjb_collation_strength)99, NULL, &into_size),
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, (mjb_collation_strength)99, NULL, &into_size, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Key into rejects invalid strength")
     ATT_ASSERT(into_size, (size_t)0, "Key into clears size after invalid strength")
 
@@ -377,18 +377,61 @@ int test_collation(void *arg) {
     assert_collation_malformed_utf8(invalid_four_byte, sizeof(invalid_four_byte),
         "Collation rejects invalid four-byte UTF-8");
 
+    const char malformed_key_input[] = "a\x80"
+                                       "b";
+    mjb_diagnostic diagnostic;
+    mjb_result recovered_key = { NULL, 0, false };
+    mjb_result expected_key = { NULL, 0, false };
+    ATT_ASSERT_STATUS(mjb_collation_key(malformed_key_input, sizeof(malformed_key_input) - 1,
+                          MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &recovered_key,
+                          &diagnostic),
+        MJB_STATUS_OK, "Collation key replaces malformed input")
+    ATT_ASSERT_STATUS(mjb_collation_key("a\xEF\xBF\xBD"
+                                       "b",
+                          5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &expected_key,
+                          NULL),
+        MJB_STATUS_OK, "Collation key for explicit replacement")
+    ATT_ASSERT(recovered_key.output_size, expected_key.output_size,
+        "Replacement collation key size")
+    ATT_ASSERT((int)memcmp(recovered_key.output, expected_key.output, recovered_key.output_size),
+        0, "Replacement collation key bytes")
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1,
+        "Collation replacement retains malformed offset")
+    ATT_ASSERT_STATUS(mjb_result_free(&recovered_key), MJB_STATUS_OK,
+        "Free recovered collation key")
+    ATT_ASSERT_STATUS(mjb_result_free(&expected_key), MJB_STATUS_OK,
+        "Free expected replacement collation key")
+
+    ATT_ASSERT_STATUS(mjb_collation_key(malformed_key_input, sizeof(malformed_key_input) - 1,
+                          MJB_ENC_UTF_8, MJB_MALFORMED_SKIP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &recovered_key, &diagnostic),
+        MJB_STATUS_OK, "Collation key skips malformed input")
+    ATT_ASSERT_STATUS(mjb_collation_key("ab", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &expected_key,
+                          NULL),
+        MJB_STATUS_OK, "Collation key without malformed input")
+    ATT_ASSERT(recovered_key.output_size, expected_key.output_size, "Skip collation key size")
+    ATT_ASSERT((int)memcmp(recovered_key.output, expected_key.output, recovered_key.output_size),
+        0, "Skip collation key bytes")
+    ATT_ASSERT_STATUS(mjb_result_free(&recovered_key), MJB_STATUS_OK,
+        "Free skipped collation key")
+    ATT_ASSERT_STATUS(mjb_result_free(&expected_key), MJB_STATUS_OK,
+        "Free expected skipped collation key")
+
     // Key generation succeeds
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &ka, NULL),
         MJB_STATUS_OK, "Key: 'a' succeeds")
-    ATT_ASSERT_STATUS(mjb_collation_key("b", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, &kb),
+    ATT_ASSERT_STATUS(mjb_collation_key("b", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &kb, NULL),
         MJB_STATUS_OK, "Key: 'b' succeeds")
 
     MJB_TEST_COVERAGE(mjb_collation_key_into);
     into_size = 0;
-    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &into_size),
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &into_size, NULL),
         MJB_STATUS_OK, "Key into queries required size")
     ATT_ASSERT(into_size, ka.output_size, "Key into required size")
 
@@ -398,9 +441,9 @@ int test_collation(void *arg) {
     if(into_size > 0 && into_size < sizeof(into_output)) {
         memset(into_output, 0xA5, sizeof(into_output));
         size_t small_size = into_size - 1;
-        ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+        ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                               MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, into_output,
-                              &small_size),
+                              &small_size, NULL),
             MJB_STATUS_OUTPUT_TOO_SMALL, "Key into reports a small output buffer")
         ATT_ASSERT(small_size, into_size, "Key into preserves required size")
 
@@ -410,9 +453,9 @@ int test_collation(void *arg) {
             "Key into leaves a small buffer untouched")
 
         size_t exact_size = into_size;
-        ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+        ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                               MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, into_output,
-                              &exact_size),
+                              &exact_size, NULL),
             MJB_STATUS_OK, "Key into writes into exact capacity")
         ATT_ASSERT(exact_size, ka.output_size, "Key into written size")
         ATT_ASSERT((int)memcmp(into_output, ka.output, exact_size), 0, "Key into output")
@@ -428,10 +471,10 @@ int test_collation(void *arg) {
         1, "Key: 'a' < 'b'")
 
     // Same string -> identical keys
-    ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        MJB_COLLATION_TERTIARY, &kc), MJB_STATUS_OK, "Key: 'hello' NI succeeds")
-    ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        MJB_COLLATION_TERTIARY, &kd), MJB_STATUS_OK, "Key: 'hello' NI second succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &kc, NULL), MJB_STATUS_OK, "Key: 'hello' NI succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("hello", 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &kd, NULL), MJB_STATUS_OK, "Key: 'hello' NI second succeeds")
     ATT_ASSERT((int)(kc.output_size == kd.output_size), 1, "Key: same size")
     ATT_ASSERT((int)(memcmp(kc.output, kd.output, kc.output_size) == 0), 1,
         "Key: 'hello' == 'hello'")
@@ -440,11 +483,11 @@ int test_collation(void *arg) {
     mjb_result_free(&kd);
 
     // NON_IGNORABLE vs SHIFTED differ for strings with variable-weight punctuation
-    ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, &kc),
+    ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &kc, NULL),
         MJB_STATUS_OK, "Key: 'a-b' NI succeeds")
-    ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENC_UTF_8, MJB_COLLATION_SHIFTED,
-                          MJB_COLLATION_QUATERNARY, &kd),
+    ATT_ASSERT_STATUS(mjb_collation_key("a-b", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
+                          MJB_COLLATION_QUATERNARY, &kd, NULL),
         MJB_STATUS_OK, "Key: 'a-b' SHIFTED succeeds")
     ATT_ASSERT((int)(kc.output_size != kd.output_size ||
         memcmp(kc.output, kd.output, kc.output_size) != 0), 1, "Key: NI != SHIFTED for 'a-b'")
@@ -463,10 +506,10 @@ int test_collation(void *arg) {
     assert_collation_primaries(0xFFFF, 0xFFFF, 0x0000, "U+FFFF reserved high weight");
 
     // Key ordering matches mjb_collation_compare
-    ATT_ASSERT_STATUS(mjb_collation_key("apple", 5, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        MJB_COLLATION_TERTIARY, &ka), MJB_STATUS_OK, "Key: 'apple' succeeds")
-    ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        MJB_COLLATION_TERTIARY, &kb), MJB_STATUS_OK, "Key: 'banana' succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("apple", 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &ka, NULL), MJB_STATUS_OK, "Key: 'apple' succeeds")
+    ATT_ASSERT_STATUS(mjb_collation_key("banana", 6, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &kb, NULL), MJB_STATUS_OK, "Key: 'banana' succeeds")
 
     int cmp_direct = test_collation_compare("apple", 5, MJB_ENC_UTF_8, "banana", 6, MJB_ENC_UTF_8,
         MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY);
@@ -516,25 +559,25 @@ int test_collation(void *arg) {
                        MJB_COLLATION_SHIFTED, MJB_COLLATION_QUATERNARY) != 0),
         1, "Shifted punctuation differs from empty at quaternary strength")
 
-    ATT_ASSERT_STATUS(mjb_collation_key("", 0, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &ka, NULL),
         MJB_STATUS_OK, "Empty tertiary key succeeds")
-    ATT_ASSERT_STATUS(mjb_collation_key(zero_width_space, 3, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &kb),
+    ATT_ASSERT_STATUS(mjb_collation_key(zero_width_space, 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &kb, NULL),
         MJB_STATUS_OK, "Completely ignorable tertiary key succeeds")
     ATT_ASSERT(ka.output_size, (size_t)0, "Empty tertiary key has no effective weights")
     ATT_ASSERT(kb.output_size, (size_t)0, "Completely ignorable tertiary key is empty")
     mjb_result_free(&ka);
     mjb_result_free(&kb);
 
-    ATT_ASSERT_STATUS(mjb_collation_key(combining_acute, 2, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_PRIMARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key(combining_acute, 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_PRIMARY, &ka, NULL),
         MJB_STATUS_OK, "Primary-ignorable accent key succeeds")
     ATT_ASSERT(ka.output_size, (size_t)0, "Primary-ignorable accent key is empty")
     mjb_result_free(&ka);
 
-    ATT_ASSERT_STATUS(mjb_collation_key(combining_acute, 2, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_SECONDARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key(combining_acute, 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_SECONDARY, &ka, NULL),
         MJB_STATUS_OK, "Secondary accent key succeeds")
     ATT_ASSERT((int)(ka.output_size > 0), 1, "Secondary accent key retains its weight")
     mjb_result_free(&ka);
@@ -560,11 +603,11 @@ int test_collation(void *arg) {
                        MJB_COLLATION_SHIFTED, MJB_COLLATION_QUATERNARY) != 0),
         1, "Shifted quaternary strength compares variable punctuation")
 
-    ATT_ASSERT_STATUS(mjb_collation_key("A", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_SECONDARY, &ka),
+    ATT_ASSERT_STATUS(mjb_collation_key("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_SECONDARY, &ka, NULL),
         MJB_STATUS_OK, "Secondary key for uppercase succeeds")
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_SECONDARY, &kb),
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_SECONDARY, &kb, NULL),
         MJB_STATUS_OK, "Secondary key for lowercase succeeds")
     ATT_ASSERT((int)(ka.output_size == kb.output_size &&
         memcmp(ka.output, kb.output, ka.output_size) == 0), 1,
@@ -628,12 +671,12 @@ int test_collation(void *arg) {
     size_t output_size = sizeof(output);
     int order = 0;
 
-    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-                          MJB_COLLATION_TERTIARY, &result),
+    ATT_ASSERT_STATUS(mjb_collation_key("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+                          MJB_COLLATION_TERTIARY, &result, NULL),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation key reports feature status")
-    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8,
+    ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                           MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-                          &output_size),
+                          &output_size, NULL),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation key into reports feature status")
     ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
                           MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
