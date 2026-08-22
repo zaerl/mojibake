@@ -162,8 +162,8 @@ int test_terminal_width(void *arg) {
         MJB_STATUS_MALFORMED_INPUT, "Malformed UTF-8")
     ATT_ASSERT(diagnostic.byte_offset, (size_t)0, "Terminal width malformed offset")
 
-    const char recoverable_width[] = { 'A', (char)0x80, (char)0xE4, (char)0xB8, (char)0xAD };
-    ATT_ASSERT_STATUS(mjb_terminal_width(recoverable_width, sizeof(recoverable_width),
+    const unsigned char recoverable_width[] = { 'A', 0x80, 0xE4, 0xB8, 0xAD };
+    ATT_ASSERT_STATUS(mjb_terminal_width((const char *)recoverable_width, sizeof(recoverable_width),
                           MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE, MJB_TERMINAL_WIDTH_NARROW, &sw,
                           &diagnostic),
         MJB_STATUS_OK, "Terminal width replaces malformed input")
@@ -171,7 +171,7 @@ int test_terminal_width(void *arg) {
     ATT_ASSERT(diagnostic.byte_offset, (size_t)1,
         "Terminal width replacement retains malformed offset")
 
-    ATT_ASSERT_STATUS(mjb_terminal_width(recoverable_width, sizeof(recoverable_width),
+    ATT_ASSERT_STATUS(mjb_terminal_width((const char *)recoverable_width, sizeof(recoverable_width),
                           MJB_ENC_UTF_8, MJB_MALFORMED_SKIP, MJB_TERMINAL_WIDTH_NARROW, &sw,
                           &diagnostic),
         MJB_STATUS_OK, "Terminal width skips malformed input")
