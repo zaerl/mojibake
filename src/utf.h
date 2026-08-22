@@ -45,7 +45,9 @@ static inline void MJB_USED mjb_diagnose_malformed_input(const char *buffer, siz
     mjb_encoding encoding, mjb_status status, mjb_diagnostic *diagnostic) {
     if(status == MJB_STATUS_MALFORMED_INPUT && diagnostic != NULL &&
         diagnostic->error == MJB_TEXT_ERROR_NONE) {
-        (void)mjb_string_validate(buffer, byte_length, encoding, diagnostic);
+        mjb_status validation_status = mjb_string_validate(buffer, byte_length, encoding,
+            diagnostic);
+        (void)validation_status;
     }
 }
 
