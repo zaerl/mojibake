@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@types/node": "^26.2.0",
-    "fast-xml-parser": "^5.10.1",
+    "fast-xml-parser": "^5.11.0",
     "highlight.js": "^11.12.0",
     "markdown-it": "^15.0.0",
     "markdown-it-footnote": "^4.0.0",
@@ -26,6 +26,6 @@
     "fsevents@2.3.3": true
   },
   "devDependencies": {
-    "@types/markdown-it": "^14.1.2"
+    "@types/markdown-it": "^14.2.0"
   }
 }
