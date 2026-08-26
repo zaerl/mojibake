@@ -85,11 +85,11 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
         state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_SBP_NOT_SET;
         state->current = MJB_SBP_NOT_SET;
-        state->prev_prev = MJB_SBP_NOT_SET;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->in_error = false;
         state->had_error = false;
+        state->prev_prev = MJB_SBP_NOT_SET;
         state->sb5_merged = false;
         state->in_sat = false;
         state->sat_has_sp = false;

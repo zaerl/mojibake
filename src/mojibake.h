@@ -501,6 +501,7 @@ typedef struct mjb_next_state {
     bool in_error;
     bool had_error;
     unsigned short ri_count;
+    // Grapheme break-specific members
     bool ext_pict_seen;
     bool zwj_seen;
     bool incb_linker_seen;
@@ -511,20 +512,21 @@ typedef struct mjb_next_line_state {
     size_t index;
     mjb_lbp previous;
     mjb_lbp current;
-    mjb_codepoint prev_prev_codepoint;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
+    unsigned short ri_count;
+    // Line break-specific members
+    mjb_codepoint prev_prev_codepoint;
+    mjb_lbp prev_prev_lbp;
+    mjb_lbp prev_resolved;
+    mjb_lbp prev_num_lbp;
+    mjb_east_asian_width prev_ea;
+    mjb_east_asian_width qu_prev_ea;
     bool zw_seen;
     bool pi_qu_context;
     bool cm_merged;
     bool zwj_absorbed;
-    unsigned short ri_count;
-    mjb_lbp prev_resolved;
-    mjb_east_asian_width prev_ea;
-    mjb_east_asian_width qu_prev_ea;
-    mjb_lbp prev_prev_lbp;
-    mjb_lbp prev_num_lbp;
 } mjb_next_line_state;
 
 typedef struct mjb_next_word_state {
@@ -534,10 +536,11 @@ typedef struct mjb_next_word_state {
     mjb_wbp current;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
-    mjb_wbp prev_prev_wbp;
     bool in_error;
     bool had_error;
     unsigned short ri_count;
+    // Word break-specific members
+    mjb_wbp prev_prev_wbp;
     bool wb4_merged;
     bool zwj_pending;
     bool prev_was_zwj;
@@ -548,11 +551,12 @@ typedef struct mjb_next_sentence_state {
     size_t index;
     mjb_sbp previous;
     mjb_sbp current;
-    mjb_sbp prev_prev;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     bool in_error;
     bool had_error;
+    // Sentence break-specific members
+    mjb_sbp prev_prev;
     bool sb5_merged;
     bool in_sat;
     bool sat_has_sp;

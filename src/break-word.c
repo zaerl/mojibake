@@ -68,10 +68,10 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         state->current = MJB_WBP_NOT_SET;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
-        state->prev_prev_wbp = MJB_WBP_NOT_SET;
         state->in_error = false;
         state->had_error = false;
         state->ri_count = 0;
+        state->prev_prev_wbp = MJB_WBP_NOT_SET;
         state->wb4_merged = false;
         state->zwj_pending = false;
         state->prev_was_zwj = false;
