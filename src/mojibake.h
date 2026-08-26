@@ -503,7 +503,6 @@ typedef struct mjb_next_state {
     unsigned short ri_count;
     bool ext_pict_seen;
     bool zwj_seen;
-    bool incb_consonant_seen;
     bool incb_linker_seen;
 } mjb_next_state;
 
@@ -533,7 +532,6 @@ typedef struct mjb_next_word_state {
     size_t index;
     mjb_wbp previous;
     mjb_wbp current;
-    mjb_codepoint prev_prev_codepoint;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
     mjb_wbp prev_prev_wbp;

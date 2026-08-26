@@ -66,7 +66,6 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_WBP_NOT_SET;
         state->current = MJB_WBP_NOT_SET;
-        state->prev_prev_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->prev_prev_wbp = MJB_WBP_NOT_SET;
@@ -161,7 +160,6 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         // like WB7 and WB11 see the correct context before the WB4 base).
         if(!state->wb4_merged) {
             state->prev_prev_wbp = state->previous;
-            state->prev_prev_codepoint = state->previous_codepoint;
         }
 
         state->wb4_merged = false;

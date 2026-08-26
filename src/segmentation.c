@@ -57,7 +57,6 @@ MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byt
         state->ri_count = 0;
         state->ext_pict_seen = false;
         state->zwj_seen = false;
-        state->incb_consonant_seen = false;
         state->incb_linker_seen = false;
     }
 
