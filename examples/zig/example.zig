@@ -23,9 +23,11 @@ pub fn main(init: std.process.Init) !u8 {
             input.ptr,
             input.len,
             mjb.MJB_ENC_UTF_8,
+            mjb.MJB_MALFORMED_STOP,
             mjb.MJB_NORMALIZATION_NFC,
             mjb.MJB_ENC_UTF_8,
             &result,
+            null,
         ) != mjb.MJB_STATUS_OK) {
             return 1;
         }
@@ -46,7 +48,9 @@ pub fn main(init: std.process.Init) !u8 {
             mojibake.ptr,
             mojibake.len,
             mjb.MJB_ENC_UTF_8,
+            mjb.MJB_MALFORMED_STOP,
             &codepoint_count,
+            null,
         ) != mjb.MJB_STATUS_OK) {
             return error.CodepointCountFailed;
         }
@@ -66,8 +70,10 @@ pub fn main(init: std.process.Init) !u8 {
             case_input.ptr,
             case_input.len,
             mjb.MJB_ENC_UTF_8,
+            mjb.MJB_MALFORMED_STOP,
             mjb.MJB_ENC_UTF_8,
             &result,
+            null,
         ) != mjb.MJB_STATUS_OK) {
             return 1;
         }

@@ -202,9 +202,11 @@ struct FilterView: View {
                 input,
                 byteLength,
                 MJB_ENC_UTF_8,
+                MJB_MALFORMED_STOP,
                 filters,
                 MJB_ENC_UTF_8,
-                result
+                result,
+                nil
             )
         }
     }

@@ -329,15 +329,16 @@ static bool bidi_query(mjb_codepoint cp, mjb_bidi_class *out_class, bool *out_mi
 }
 
 // Pass 1: decode string + build working array + P2/P3 paragraph level.
-static size_t pass1_decode(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_bidi_work *work, size_t capacity, uint8_t *out_level, mjb_direction base_dir) {
+static mjb_status pass1_decode(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_bidi_work *work, size_t capacity, uint8_t *out_level, mjb_direction base_dir,
+    size_t *out_count) {
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint cp = 0;
     size_t count = 0;
     size_t i = 0;
 
-    while(i < byte_length && count < capacity) {
+    while(count < capacity) {
         size_t byte_offset = i;
         mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp,
             &in_error);
@@ -348,6 +349,10 @@ static size_t pass1_decode(const char *buffer, size_t byte_length, mjb_encoding 
 
         if(dr == MJB_DECODE_INCOMPLETE) {
             continue;
+        }
+
+        if(dr == MJB_DECODE_ERROR) {
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
         mjb_bidi_class bc;
@@ -393,7 +398,9 @@ static size_t pass1_decode(const char *buffer, size_t byte_length, mjb_encoding 
         }
     }
 
-    return count;
+    *out_count = count;
+
+    return MJB_STATUS_OK;
 }
 
 // Pass 2: X rules, explicit levels
@@ -1182,6 +1189,10 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
@@ -1195,6 +1206,12 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
 
     if(byte_length == 0) {
         return MJB_STATUS_OK;
+    }
+
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
     }
 
     // Upper bound: size bytes cannot produce more than size codepoints.
@@ -1211,8 +1228,15 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
     uint8_t para_level = 0;
 
     // Pass 1.
-    size_t count = pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level,
-        direction);
+    size_t count = 0;
+    status = pass1_decode(buffer, byte_length, encoding, work, byte_length, &para_level, direction,
+        &count);
+
+    if(status != MJB_STATUS_OK) {
+        mjb_free(work);
+
+        return status;
+    }
 
     if(count == 0) {
         mjb_free(work);

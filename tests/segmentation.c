@@ -184,88 +184,101 @@ static void test_grapheme_count(void) {
     size_t count = 12345;
 
     // Argument validation
-    ATT_ASSERT_STATUS(mjb_grapheme_count("A", 1, MJB_ENC_UTF_8, NULL),
+    ATT_ASSERT_STATUS(mjb_grapheme_count("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Count rejects NULL count")
-    ATT_ASSERT_STATUS(mjb_grapheme_count(NULL, 1, MJB_ENC_UTF_8, &count),
+    ATT_ASSERT_STATUS(mjb_grapheme_count(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Count rejects NULL buffer")
     ATT_ASSERT(count, (size_t)0, "Count is zero after NULL buffer")
 
     count = 12345;
-    ATT_ASSERT_STATUS(mjb_grapheme_count("A", 1, MJB_ENC_UNKNOWN, &count),
+    ATT_ASSERT_STATUS(mjb_grapheme_count("A", 1, MJB_ENC_UNKNOWN, MJB_MALFORMED_STOP, &count, NULL),
         MJB_STATUS_INVALID_ENCODING, "Count rejects invalid encoding")
     ATT_ASSERT(count, (size_t)0, "Count is zero after invalid encoding")
 
     // Empty input is valid and counts zero clusters
-    ATT_ASSERT_STATUS(mjb_grapheme_count("", 0, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: empty string status")
     ATT_ASSERT(count, (size_t)0, "Count: empty string")
-    ATT_ASSERT_STATUS(mjb_grapheme_count(NULL, 0, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count(NULL, 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: NULL buffer with zero length status")
 
     // ASCII: each byte is one grapheme cluster
-    ATT_ASSERT_STATUS(mjb_grapheme_count("ABC", 3, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count("ABC", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: ABC status")
     ATT_ASSERT(count, (size_t)3, "Count: ABC")
 
     // "aé" = 0x61 0xC3 0xA9 = 3 bytes, 2 grapheme clusters
-    ATT_ASSERT_STATUS(mjb_grapheme_count("a\xC3\xA9", 3, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\xC3\xA9", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: aé status")
     ATT_ASSERT(count, (size_t)2, "Count: aé")
 
     // a + combining acute accent = one user-perceived character
-    ATT_ASSERT_STATUS(mjb_grapheme_count("a\xCC\x81", 3, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\xCC\x81", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: a + combining acute status")
     ATT_ASSERT(count, (size_t)1, "Count: a + combining acute")
 
     // Flag emoji 🇺🇸 = two RI codepoints, one grapheme cluster; two flags do not pair across
-    ATT_ASSERT_STATUS(mjb_grapheme_count("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_ENC_UTF_8,
-        &count), MJB_STATUS_OK, "Count: flag emoji status")
+    ATT_ASSERT_STATUS(mjb_grapheme_count("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &count, NULL), MJB_STATUS_OK, "Count: flag emoji status")
     ATT_ASSERT(count, (size_t)1, "Count: flag emoji")
     ATT_ASSERT_STATUS(mjb_grapheme_count("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"
-        "\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 16, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+        "\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 16, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: two flags status")
     ATT_ASSERT(count, (size_t)2, "Count: two flags")
 
     // Family ZWJ sequence 👨‍👩‍👦 = one grapheme cluster
     ATT_ASSERT_STATUS(mjb_grapheme_count("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9"
-        "\xE2\x80\x8D\xF0\x9F\x91\xA6", 18, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+        "\xE2\x80\x8D\xF0\x9F\x91\xA6", 18, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: family ZWJ status")
     ATT_ASSERT(count, (size_t)1, "Count: family ZWJ sequence")
 
     // Hangul jamo L+V+T = one syllable cluster
-    ATT_ASSERT_STATUS(mjb_grapheme_count("\xE1\x84\x80\xE1\x85\xA1\xE1\x86\xA8", 9, MJB_ENC_UTF_8,
-        &count), MJB_STATUS_OK, "Count: Hangul jamo status")
+    ATT_ASSERT_STATUS(mjb_grapheme_count("\xE1\x84\x80\xE1\x85\xA1\xE1\x86\xA8", 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        &count, NULL), MJB_STATUS_OK, "Count: Hangul jamo status")
     ATT_ASSERT(count, (size_t)1, "Count: Hangul jamo LVT syllable")
 
     // CRLF is a single cluster (GB3)
-    ATT_ASSERT_STATUS(mjb_grapheme_count("a\r\nb", 4, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\r\nb", 4, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: CRLF status")
     ATT_ASSERT(count, (size_t)3, "Count: a CRLF b")
 
-    // Malformed byte mid-string counts as one replacement cluster
-    ATT_ASSERT_STATUS(mjb_grapheme_count("a\x80z", 3, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
-        "Count: malformed mid-string status")
-    ATT_ASSERT(count, (size_t)3, "Count: malformed mid-string")
+    mjb_diagnostic diagnostic;
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\x80z", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          &count, &diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Count rejects malformed input")
+    ATT_ASSERT(count, (size_t)0, "Count is zero after malformed input")
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "Grapheme count malformed offset")
 
-    // Incomplete trailing sequence does not add a cluster
-    ATT_ASSERT_STATUS(mjb_grapheme_count("a\xC3", 2, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
-        "Count: incomplete tail status")
-    ATT_ASSERT(count, (size_t)1, "Count: incomplete tail")
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\x80z", 3, MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, &count, &diagnostic),
+        MJB_STATUS_OK, "Grapheme count replaces malformed input")
+    ATT_ASSERT(count, (size_t)3, "Replacement is a grapheme")
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1,
+        "Grapheme replacement retains malformed offset")
+
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\x80z", 3, MJB_ENC_UTF_8,
+                          MJB_MALFORMED_SKIP, &count, &diagnostic),
+        MJB_STATUS_OK, "Grapheme count skips malformed input")
+    ATT_ASSERT(count, (size_t)2, "Skipped malformed input is not a grapheme")
+
+    ATT_ASSERT_STATUS(mjb_grapheme_count("a\xC3", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL),
+        MJB_STATUS_MALFORMED_INPUT, "Count rejects an incomplete tail")
+    ATT_ASSERT(count, (size_t)0, "Count is zero after an incomplete tail")
 
     // Explicit lengths include embedded U+0000 codepoints
     const char embedded_nul[] = { 'A', '\0', 'B' };
-    ATT_ASSERT_STATUS(mjb_grapheme_count(embedded_nul, 3, MJB_ENC_UTF_8, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count(embedded_nul, 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: embedded NUL status")
     ATT_ASSERT(count, (size_t)3, "Count: embedded NUL")
 
     // MJB_NUL_TERMINATED requests a terminator scan
-    ATT_ASSERT_STATUS(mjb_grapheme_count("hi", MJB_NUL_TERMINATED, MJB_ENC_UTF_8, &count),
+    ATT_ASSERT_STATUS(mjb_grapheme_count("hi", MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &count, NULL),
         MJB_STATUS_OK, "Count: NUL-terminated status")
     ATT_ASSERT(count, (size_t)2, "Count: NUL-terminated")
 
     // UTF-16LE input
     const char utf16le_ab[] = { 'A', '\0', 'B', '\0' };
-    ATT_ASSERT_STATUS(mjb_grapheme_count(utf16le_ab, 4, MJB_ENC_UTF_16LE, &count), MJB_STATUS_OK,
+    ATT_ASSERT_STATUS(mjb_grapheme_count(utf16le_ab, 4, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
         "Count: UTF-16LE status")
     ATT_ASSERT(count, (size_t)2, "Count: UTF-16LE AB")
 }

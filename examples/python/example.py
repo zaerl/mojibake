@@ -16,6 +16,7 @@ from pathlib import Path
 
 MJB_STATUS_OK = 0
 MJB_ENC_UTF_8 = 0x2
+MJB_MALFORMED_STOP = 0
 MJB_NORMALIZATION_NFC = 0
 
 
@@ -46,7 +47,9 @@ def load_mojibake() -> ctypes.CDLL:
         ctypes.c_int,
         ctypes.c_int,
         ctypes.c_int,
+        ctypes.c_int,
         ctypes.POINTER(MjbResult),
+        ctypes.c_void_p,
     ]
 
     library.mjb_normalize.restype = ctypes.c_int
@@ -56,7 +59,9 @@ def load_mojibake() -> ctypes.CDLL:
         ctypes.c_size_t,
         ctypes.c_int,
         ctypes.c_int,
+        ctypes.c_int,
         ctypes.POINTER(MjbResult),
+        ctypes.c_void_p,
     ]
 
     library.mjb_nfkc_casefold.restype = ctypes.c_int
@@ -65,7 +70,9 @@ def load_mojibake() -> ctypes.CDLL:
         ctypes.c_char_p,
         ctypes.c_size_t,
         ctypes.c_int,
+        ctypes.c_int,
         ctypes.POINTER(ctypes.c_size_t),
+        ctypes.c_void_p,
     ]
 
     library.mjb_codepoint_count.restype = ctypes.c_int
@@ -88,9 +95,11 @@ def normalize(library: ctypes.CDLL, input_bytes: bytes) -> bytes:
         input_bytes,
         len(input_bytes),
         MJB_ENC_UTF_8,
+        MJB_MALFORMED_STOP,
         MJB_NORMALIZATION_NFC,
         MJB_ENC_UTF_8,
         ctypes.byref(result),
+        None,
     )
 
     if status != MJB_STATUS_OK:
@@ -105,8 +114,10 @@ def nfkc_casefold(library: ctypes.CDLL, input_bytes: bytes) -> bytes:
         input_bytes,
         len(input_bytes),
         MJB_ENC_UTF_8,
+        MJB_MALFORMED_STOP,
         MJB_ENC_UTF_8,
         ctypes.byref(result),
+        None,
     )
 
     if status != MJB_STATUS_OK:
@@ -143,7 +154,7 @@ def main() -> int:
     # Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
     codepoint_count = ctypes.c_size_t(0)
     status = library.mjb_codepoint_count(
-        mojibake, len(mojibake), MJB_ENC_UTF_8, ctypes.byref(codepoint_count)
+        mojibake, len(mojibake), MJB_ENC_UTF_8, 0, ctypes.byref(codepoint_count), None
     )
 
     if status != MJB_STATUS_OK:

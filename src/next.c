@@ -11,19 +11,22 @@
  * Run a callback for each codepoint in the string.
  */
 MJB_EXPORT mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_for_each_codepoint_fn callback) {
-    if(buffer == NULL || byte_length == 0) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
+    mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic) {
+    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;
-    }
-
-    if(byte_length == 0) {
-        return MJB_STATUS_INVALID_ARGUMENT;
     }
 
 #ifndef __EMSCRIPTEN__
@@ -33,28 +36,26 @@ MJB_EXPORT mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_len
     }
 #endif
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
     mjb_character character;
     bool has_previous_character = false;
     bool first_character = true;
 
-    // Loop through the string.
-    for(size_t i = 0; i < byte_length;) {
-        // Find next codepoint.
-        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
+    size_t offset = 0;
 
-        if(result == MJB_DECODE_END) {
+    for(;;) {
+        mjb_diagnostic current;
+        mjb_status result = mjb_decode_next(buffer, byte_length, encoding, malformed_policy,
+            &offset, &codepoint, &current);
+        mjb_diagnostic_record(diagnostic, &current);
+
+        if(result == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(result == MJB_DECODE_INCOMPLETE) {
-            continue;
+        if(result != MJB_STATUS_OK) {
+            return result;
         }
-
-        // result is MJB_DECODE_OK or MJB_DECODE_ERROR (both have valid codepoint)
 
         if(has_previous_character) {
 #ifdef __EMSCRIPTEN__

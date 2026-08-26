@@ -298,12 +298,13 @@ static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode)
     size_t input_size = strlen(input);
     size_t input_real_size = 0;
 
-    if(mjb_codepoint_count(input, input_size, MJB_ENC_UTF_8, &input_real_size) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(input, input_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &input_real_size,
+           NULL) != MJB_STATUS_OK) {
         input_real_size = 0;
     }
     size_t terminal_width = 0;
     mjb_status terminal_width_status = mjb_terminal_width(input, input_size, MJB_ENC_UTF_8,
-        MJB_TERMINAL_WIDTH_NARROW, &terminal_width);
+        MJB_MALFORMED_STOP, MJB_TERMINAL_WIDTH_NARROW, &terminal_width, NULL);
 
     if(cmd_output_mode == OUTPUT_MODE_JSON) {
         mjbsh_print_break_json(input, input_size, input_real_size, terminal_width,

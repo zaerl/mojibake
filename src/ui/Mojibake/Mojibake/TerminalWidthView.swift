@@ -346,8 +346,10 @@ private struct TerminalWidthAnalysis {
             buffer,
             byteLength,
             MJB_ENC_UTF_8,
+            MJB_MALFORMED_STOP,
             profile,
-            &width
+            &width,
+            nil
         )
 
         guard status == MJB_STATUS_OK else {

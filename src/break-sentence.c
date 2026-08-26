@@ -85,10 +85,11 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
         state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_SBP_NOT_SET;
         state->current = MJB_SBP_NOT_SET;
-        state->prev_prev = MJB_SBP_NOT_SET;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->in_error = false;
+        state->had_error = false;
+        state->prev_prev = MJB_SBP_NOT_SET;
         state->sb5_merged = false;
         state->in_sat = false;
         state->sat_has_sp = false;
@@ -101,6 +102,10 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
 
     if(state->index == byte_length) {
         // Reached end of string.
+        if(mjb_utf_state_is_incomplete(state->state)) {
+            state->had_error = true;
+        }
+
         ++state->index;
 
         // SB2 Any ÷ eot
@@ -117,6 +122,10 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
     for(; state->index < byte_length;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
+
+        if(decode_status == MJB_DECODE_ERROR) {
+            state->had_error = true;
+        }
 
         if(decode_status == MJB_DECODE_END) {
             mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
@@ -294,37 +303,22 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
         return MJB_BT_NO_BREAK;
     }
 
+    if(mjb_utf_state_is_incomplete(state->state)) {
+        state->had_error = true;
+    }
+
     ++state->index;
 
     // SB2 Any ÷ eot.
     return MJB_BT_ALLOWED;
 }
 
-// Count the sentence segments in a string.
-MJB_EXPORT mjb_status mjb_sentence_count(const char *buffer, size_t byte_length,
+static mjb_status mjb_sentence_count_process(const char *buffer, size_t byte_length,
     mjb_encoding encoding, size_t *count) {
-    if(count == NULL) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    *count = 0;
-
     if(byte_length == 0) {
+        *count = 0;
+
         return MJB_STATUS_OK;
-    }
-
-    if(buffer == NULL) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    if(!mjb_encoding_is_valid_input(encoding)) {
-        return MJB_STATUS_INVALID_ENCODING;
-    }
-
-    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
-
-    if(status != MJB_STATUS_OK || byte_length == 0) {
-        return status;
     }
 
     mjb_next_sentence_state state;
@@ -334,14 +328,72 @@ MJB_EXPORT mjb_status mjb_sentence_count(const char *buffer, size_t byte_length,
     size_t segment_count = 0;
 
     while((bt = mjb_next_sentence_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
-        if(bt == MJB_BT_NO_BREAK) {
-            continue;
+        if(bt != MJB_BT_NO_BREAK) {
+            ++segment_count;
         }
+    }
 
-        ++segment_count;
+    if(state.had_error) {
+        return MJB_STATUS_MALFORMED_INPUT;
     }
 
     *count = segment_count;
 
     return MJB_STATUS_OK;
+}
+
+// Count the sentence segments in a string.
+MJB_EXPORT mjb_status mjb_sentence_count(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count,
+    mjb_diagnostic *diagnostic) {
+    if(count == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *count = 0;
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    if(buffer == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK || byte_length == 0) {
+        return status;
+    }
+
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_sentence_count_process(buffer, byte_length, encoding, count);
+    mjb_result sanitized = { NULL, 0, false };
+
+    if(status == MJB_STATUS_MALFORMED_INPUT) {
+        status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
+            diagnostic, &sanitized);
+
+        if(status == MJB_STATUS_OK) {
+            status = mjb_sentence_count_process(buffer, byte_length, encoding, count);
+        }
+    }
+
+    mjb_result_free(&sanitized);
+
+    return status;
 }

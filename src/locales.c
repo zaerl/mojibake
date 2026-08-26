@@ -503,7 +503,8 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     } else if(encoding == MJB_ENC_UTF_8 && mjb_is_ascii(id, size)) {
         // Already suitable for the byte-oriented locale parser.
     } else {
-        status = mjb_convert_encoding(id, size, encoding, MJB_ENC_ASCII, &converted);
+        status = mjb_convert_encoding(id, size, encoding, MJB_MALFORMED_STOP, MJB_ENC_ASCII,
+            &converted, NULL);
 
         if(status == MJB_STATUS_OK) {
             ascii_id = converted.output;

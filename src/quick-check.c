@@ -13,8 +13,9 @@ extern mojibake mjb_global;
  * Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms
  */
-MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check) {
+MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check,
+    bool validate_full_input) {
     if(quick_check == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -62,7 +63,16 @@ MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t b
     mjb_n_character current_character;
     bool in_error = false;
 
-    for(size_t i = 0; i < byte_length;) {
+#define MJB_QUICK_CHECK_NO() \
+    do { \
+        result = MJB_QC_NO; \
+        if(!validate_full_input) { \
+            *quick_check = result; \
+            return MJB_STATUS_OK; \
+        } \
+    } while(0)
+
+    for(size_t i = 0;;) {
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
             encoding, &codepoint, &in_error);
@@ -97,15 +107,11 @@ MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t b
 
         if(last_canonical_class > current_character.combining &&
             current_character.combining != MJB_CCC_NOT_REORDERED) {
-            *quick_check = MJB_QC_NO;
-
-            return MJB_STATUS_OK;
+            MJB_QUICK_CHECK_NO();
         }
 
         if(current_character.quick_check == MJB_QC_NO) {
-            *quick_check = MJB_QC_NO;
-
-            return MJB_STATUS_OK;
+            MJB_QUICK_CHECK_NO();
         }
 
         bool is_hangul_syllable = mjb_codepoint_is_hangul_syllable(codepoint);
@@ -113,51 +119,43 @@ MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t b
         switch(form) {
             case MJB_NORMALIZATION_NFC:
                 if(current_character.quick_check & MJB_QC_NFC_MAYBE) {
-                    result = MJB_QC_MAYBE;
+                    if(result == MJB_QC_YES) {
+                        result = MJB_QC_MAYBE;
+                    }
                 } else if(current_character.quick_check & MJB_QC_NFC_NO) {
-                    *quick_check = MJB_QC_NO;
-
-                    return MJB_STATUS_OK;
+                    MJB_QUICK_CHECK_NO();
                 }
 
                 break;
             case MJB_NORMALIZATION_NFKC:
                 if(current_character.quick_check & MJB_QC_NFKC_MAYBE) {
-                    result = MJB_QC_MAYBE;
+                    if(result == MJB_QC_YES) {
+                        result = MJB_QC_MAYBE;
+                    }
                 } else if(current_character.quick_check & MJB_QC_NFKC_NO) {
-                    *quick_check = MJB_QC_NO;
-
-                    return MJB_STATUS_OK;
+                    MJB_QUICK_CHECK_NO();
                 }
 
                 break;
             case MJB_NORMALIZATION_NFD:
                 if(is_hangul_syllable) {
-                    *quick_check = MJB_QC_NO;
-
-                    return MJB_STATUS_OK;
+                    MJB_QUICK_CHECK_NO();
                 }
 
                 // There are no MAYBE values for NFD.
                 if(current_character.quick_check & MJB_QC_NFD_NO) {
-                    *quick_check = MJB_QC_NO;
-
-                    return MJB_STATUS_OK;
+                    MJB_QUICK_CHECK_NO();
                 }
 
                 break;
             case MJB_NORMALIZATION_NFKD:
                 if(is_hangul_syllable) {
-                    *quick_check = MJB_QC_NO;
-
-                    return MJB_STATUS_OK;
+                    MJB_QUICK_CHECK_NO();
                 }
 
                 // There are no MAYBE values for NFKD.
                 if(current_character.quick_check & MJB_QC_NFKD_NO) {
-                    *quick_check = MJB_QC_NO;
-
-                    return MJB_STATUS_OK;
+                    MJB_QUICK_CHECK_NO();
                 }
 
                 break;
@@ -172,5 +170,13 @@ MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t b
 
     *quick_check = result;
 
+#undef MJB_QUICK_CHECK_NO
+
     return MJB_STATUS_OK;
+}
+
+MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check) {
+    return mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form, quick_check,
+        true);
 }

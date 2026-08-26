@@ -277,7 +277,7 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
 
 int mjbsh_character_command(int argc, char *const argv[], unsigned int flags) {
     mjb_status status = mjb_for_each_codepoint(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
-        mjbsh_output_next_character);
+        MJB_MALFORMED_STOP, mjbsh_output_next_character, NULL);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));

@@ -29,9 +29,14 @@ char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *outpu
         return NULL;
     }
 
+    // Leave room for the terminator without allowing either addition below to wrap.
+    if(input_size >= SIZE_MAX - *output_index) {
+        return NULL;
+    }
+
     if(*output_index + input_size >= *output_size) {
         size_t required = *output_index + input_size + 1;
-        size_t doubled = *output_size * 2;
+        size_t doubled = *output_size > SIZE_MAX / 2 ? SIZE_MAX : *output_size * 2;
         size_t new_output_size = (doubled > required) ? doubled : required;
         char *new_ret = (char *)mjb_realloc(ret, new_output_size);
 
@@ -178,12 +183,22 @@ mjb_status mjb_output_copy_into(const void *buffer, size_t byte_length, void *ou
  * Count the codepoints in a string.
  */
 MJB_EXPORT mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, size_t *count) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count,
+    mjb_diagnostic *diagnostic) {
     if(count == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *count = 0;
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
 
     if(byte_length == 0) {
         return MJB_STATUS_OK;
@@ -193,32 +208,31 @@ MJB_EXPORT mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(!mjb_encoding_is_valid_input(encoding)) {
-        return MJB_STATUS_INVALID_ENCODING;
-    }
-
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
 
     if(status != MJB_STATUS_OK || byte_length == 0) {
         return status;
     }
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
     size_t codepoint_count = 0;
+    size_t offset = 0;
 
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            encoding, &codepoint, &in_error);
+    for(;;) {
+        mjb_diagnostic current;
+        mjb_status decode_status = mjb_decode_next(buffer, byte_length, encoding, malformed_policy,
+            &offset, &codepoint, &current);
+        mjb_diagnostic_record(diagnostic, &current);
 
-        if(decode_status == MJB_DECODE_END) {
+        if(decode_status == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decode_status == MJB_DECODE_OK || decode_status == MJB_DECODE_ERROR) {
-            ++codepoint_count;
+        if(decode_status != MJB_STATUS_OK) {
+            return decode_status;
         }
+
+        ++codepoint_count;
     }
 
     *count = codepoint_count;

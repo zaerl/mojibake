@@ -47,10 +47,65 @@ int test_cpp_normalization(void *arg) {
 
     const std::string utf16le("a\0b\0", 4);
     ATT_ASSERT(mjb::is_utf16(utf16le), true, "is_utf16")
+    mjb_diagnostic diagnostic;
+    ATT_ASSERT_STATUS(mjb::validate_string("A\x80", MJB_ENC_UTF_8, &diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "validate_string malformed input")
+    ATT_ASSERT((unsigned int)diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "validate_string diagnostic")
+
+    const std::string decodable("A\x80"
+                                "B",
+        3);
+    size_t offset = 0;
+    mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
+    ATT_ASSERT_STATUS(mjb::decode_next(decodable, offset, codepoint), MJB_STATUS_OK,
+        "decode_next valid input")
+    ATT_ASSERT(codepoint, (mjb_codepoint)'A', "decode_next codepoint")
+    ATT_ASSERT_STATUS(mjb::decode_next(decodable, offset, codepoint, MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, &diagnostic),
+        MJB_STATUS_OK, "decode_next replacement policy")
+    ATT_ASSERT(codepoint, (mjb_codepoint)MJB_CODEPOINT_REPLACEMENT,
+        "decode_next replacement codepoint")
+    offset = decodable.size();
+    ATT_ASSERT_STATUS(mjb::decode_previous(decodable, offset, codepoint), MJB_STATUS_OK,
+        "decode_previous valid input")
+    ATT_ASSERT(codepoint, (mjb_codepoint)'B', "decode_previous codepoint")
+
+    ATT_ASSERT(mjb::nfc(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE,
+                   &diagnostic),
+        std::string("A\xEF\xBF\xBD"
+                    "B"),
+        "nfc replacement policy")
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "nfc replacement diagnostic")
+    ATT_ASSERT(mjb::nfc(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
+        std::string("AB"), "nfc skip policy")
+    ATT_ASSERT(mjb::nfkc_casefold(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                   MJB_MALFORMED_SKIP),
+        std::string("ab"), "nfkc_casefold skip policy")
+    ATT_ASSERT(mjb::uppercase(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                   MJB_MALFORMED_REPLACE),
+        std::string("A\xEF\xBF\xBD"
+                    "B"),
+        "uppercase replacement policy")
+    ATT_ASSERT(mjb::grapheme_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE),
+        (size_t)3, "grapheme_count replacement policy")
+    ATT_ASSERT(mjb::sentence_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP), (size_t)1,
+        "sentence_count skip policy")
+    ATT_ASSERT(mjb::word_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE), (size_t)2,
+        "word_count replacement policy")
+    ATT_ASSERT(mjb::terminal_width(decodable, MJB_TERMINAL_WIDTH_NARROW, MJB_ENC_UTF_8,
+                   MJB_MALFORMED_SKIP),
+        (size_t)2, "terminal_width skip policy")
+
     ATT_ASSERT(mjb::codepoint_count("caf\xC3\xA9"), (size_t)4, "codepoint_count")
     ATT_ASSERT(mjb::convert_encoding("\xC3\xA9", MJB_ENC_UTF_8, MJB_ENC_UTF_16LE),
         std::string("\xE9\0", 2), "convert_encoding")
 #if MJB_FEATURE_COLLATION
+    ATT_ASSERT(mjb::collation_key(decodable,
+                   mjb::CollationVariableWeighting::NonIgnorable,
+                   mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
+        mjb::collation_key("AB"), "collation_key skip policy")
     ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare")
     ATT_ASSERT(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Secondary),

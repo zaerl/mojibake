@@ -27,8 +27,8 @@ int main(int argc, char *const argv[]) {
     mjb_result result;
 
     // Normalize example: in NFC e + ◌́ -> é (U+00E9)
-    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
+    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -44,7 +44,8 @@ int main(int argc, char *const argv[]) {
     // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
     size_t codepoint_count = 0;
 
-    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, &codepoint_count) == MJB_STATUS_OK) {
+    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+           &codepoint_count, NULL) == MJB_STATUS_OK) {
         printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu codepoints long\n",
             mojibake, length, codepoint_count);
     }
@@ -54,8 +55,8 @@ int main(int argc, char *const argv[]) {
     const char *case_input = "Straße";
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
-    if(mjb_nfkc_casefold(case_input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
+    if(mjb_nfkc_casefold(case_input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8,
+        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
         return 1;
     }
 
@@ -168,10 +169,11 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 **Integration**
 
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
-  strings, with encoding detection and conversion (`mjb_detect_encoding`,
-  `mjb_convert_encoding`, `mjb_convert_encoding_into`)
-- **Parsing and string functions**: codepoint-by-codepoint iteration (`mjb_for_each_codepoint`)
-  and codepoint counting (`mjb_codepoint_count`)
+  strings, with detailed validation and explicit stop, replacement, or skip policies during
+  conversion (`mjb_string_validate`, `mjb_convert_encoding`, `mjb_convert_encoding_into`)
+- **Parsing and string functions**: forward and reverse decoding with malformed-input diagnostics
+  (`mjb_decode_next`, `mjb_decode_previous`), codepoint callbacks (`mjb_for_each_codepoint`), and
+  policy-aware codepoint counting (`mjb_codepoint_count`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
 - **Embeddable**: context-aware custom allocators (`mjb_set_allocator`), build-time feature flags
   to trim table size, a C++17 wrapper (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a

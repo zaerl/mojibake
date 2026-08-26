@@ -315,8 +315,8 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
     mjb_result result;
-    bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENC_UTF_8, form, MJB_ENC_UTF_8,
-                   &result) == MJB_STATUS_OK;
+    bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, form,
+                   MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK;
 
     if(ret) {
         if(is_json) {
@@ -324,7 +324,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
                 cmd_json_indent == 0 ? "" : " ", mjbsh_green());
             if(result.output_size > 0 &&
                 mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-                    mjbsh_next_escaped_character) != MJB_STATUS_OK) {
+                    MJB_MALFORMED_STOP, mjbsh_next_escaped_character, NULL) != MJB_STATUS_OK) {
                 goto cleanup;
             }
             printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
@@ -345,8 +345,8 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     }
 
     if(result.output_size > 0 &&
-        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-            is_json ? mjbsh_next_array_codepoint : mjbsh_next_codepoint) != MJB_STATUS_OK) {
+        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+            is_json ? mjbsh_next_array_codepoint : mjbsh_next_codepoint, NULL) != MJB_STATUS_OK) {
         goto cleanup;
     }
 
@@ -422,8 +422,8 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
 
         return true;
     } else {
-        if(mjb_for_each_codepoint(input, strlen(input), MJB_ENC_UTF_8,
-               mjbsh_next_current_character) != MJB_STATUS_OK) {
+        if(mjb_for_each_codepoint(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+               mjbsh_next_current_character, NULL) != MJB_STATUS_OK) {
             return false;
         }
 

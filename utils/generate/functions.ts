@@ -114,6 +114,25 @@ function encoding(description = 'The encoding of the string', name = 'encoding')
   }
 }
 
+function malformedPolicy(description = 'How malformed code-unit sequences are handled'): MojibakeArg {
+  return {
+    name: 'malformed_policy',
+    type: 'mjb_malformed_policy',
+    description,
+    wasm_generated: false,
+    is_enum: true
+  };
+}
+
+function diagnostic(description = 'Where to store the first malformed-input diagnostic, or NULL'): MojibakeArg {
+  return {
+    name: 'diagnostic',
+    type: 'mjb_diagnostic *',
+    description,
+    wasm_generated: true
+  };
+}
+
 function codepoint(description = 'The codepoint to check', name = 'codepoint'): MojibakeArg {
   return {
     name,
@@ -214,6 +233,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
       buffer('The string to normalize'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'form',
         type: 'mjb_normalization',
@@ -222,25 +242,32 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
         is_enum: true
       },
       encoding('The output encoding of the string', 'output_encoding'),
-      result()
+      result(),
+      diagnostic()
     ],
     wasm: true,
     section: Section.TextTransformation,
     details: 'Normalize a string to the requested Unicode normalization form. If the input is ' +
       'already normalized and no encoding conversion is needed, the input buffer is returned ' +
-      'as-is in `result->output` with `result->transformed` set to false, without allocating.',
+      'as-is in `result->output` with `result->transformed` set to false, without allocating. ' +
+      'Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The string was normalized (or already normal)' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`result` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_INVALID_FORM', description: '`form` is not NFC, NFD, NFKC, or NFKD' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     example: `const char *input = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_result result;
 
-if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -261,6 +288,7 @@ mjb_result_free(&result);`,
       buffer('The string to normalize'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'form',
         type: 'mjb_normalization',
@@ -281,7 +309,8 @@ mjb_result_free(&result);`,
         type: 'size_t *',
         description: 'The input capacity and output required or written byte count',
         wasm_generated: false
-      }
+      },
+      diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
@@ -296,13 +325,13 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the normalized string was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`output_size` is NULL, the buffer is invalid, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_INVALID_FORM', description:
         '`form` is not NFC, NFD, NFKC, or NFKD' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
-        'The input contains an ill-formed code-unit sequence' },
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The requested output encoding cannot represent a normalized codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
@@ -313,15 +342,16 @@ mjb_result_free(&result);`,
     example: `const char *input = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 size_t output_size = 0;
 
-if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-    MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[5];
 
 if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -340,6 +370,7 @@ printf("NFC payload (no terminator): %.*s", (int)output_size, output);`,
       buffer('The string to filter'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'filters',
         type: 'mjb_filter_flags',
@@ -347,18 +378,35 @@ printf("NFC payload (no terminator): %.*s", (int)output_size, output);`,
         wasm_generated: false
       },
       encoding('The output encoding of the string', 'output_encoding'),
-      result()
+      result(),
+      diagnostic()
     ],
     details: '`MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first ' +
       '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful ' +
-      'for reducing Zalgo-style text while keeping ordinary accents and stacked marks.',
+      'for reducing Zalgo-style text while keeping ordinary accents and stacked marks. ' +
+      'Malformed subsequences are stopped, replaced, or skipped according to ' +
+      '`malformed_policy`; `diagnostic` records the first one encountered.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The filtered string was returned' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`result` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent a filtered codepoint' },
+      { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
+      { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
+    ],
     wasm: true,
     section: Section.TextTransformation,
     example: `const char *mixed_whitespace = "Hello\\t\\t\\n\\nworld";
 mjb_result result;
 
 if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
-    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -369,8 +417,8 @@ mjb_result_free(&result);
 
 const char *controls = "\\x1\\x2\\t\\n\\v\\f\\r\\x1f";
 
-if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_FILTER_CONTROLS,
-    MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
+if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -389,6 +437,7 @@ mjb_result_free(&result);`,
       buffer('The string to filter'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'filters',
         type: 'mjb_filter_flags',
@@ -408,7 +457,8 @@ mjb_result_free(&result);`,
         type: 'size_t *',
         description: 'The input capacity and output required or written byte count',
         wasm_generated: false
-      }
+      },
+      diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
@@ -419,14 +469,17 @@ mjb_result_free(&result);`,
       'are not written. No bytes are written when capacity is insufficient. Filtering itself ' +
       'does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization ' +
       'storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first ' +
-      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run.',
+      '`MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed ' +
+      'subsequences follow `malformed_policy`, and `diagnostic` records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the filtered string was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`output_size` is NULL, the buffer is invalid, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The requested output encoding cannot represent a filtered codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
@@ -438,15 +491,17 @@ mjb_result_free(&result);`,
     example: `const char *input = "Hello\\t\\t\\nworld";
 size_t output_size = 0;
 
-if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_FILTER_COLLAPSE_SPACES,
-    MJB_ENC_UTF_8, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, NULL, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[11];
 
 if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output,
+    &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -463,18 +518,26 @@ printf("Filtered payload (no terminator): %.*s", (int)output_size, output);`,
       buffer('The string to transform'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       encoding('The output encoding of the string', 'output_encoding'),
-      result()
+      result(),
+      diagnostic()
     ],
     wasm: true,
     section: Section.TextTransformation,
     details: 'Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. ' +
       'This transform performs compatibility folding, full default case folding, and removal ' +
       'of default-ignorable codepoints. It is intended for identifier comparison and is not ' +
-      'locale-sensitive.',
+      'locale-sensitive. Malformed subsequences follow `malformed_policy`, and `diagnostic` ' +
+      'records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The transformed string was returned' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`result` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_UNSUPPORTED', description: 'The transform did not stabilize' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
@@ -482,8 +545,8 @@ printf("Filtered payload (no terminator): %.*s", (int)output_size, output);`,
     example: `const char *input = "Stra\\xC3\\x9F" "e\\xC2\\xAD";
 mjb_result result;
 
-if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -506,6 +569,7 @@ mjb_result_free(&result);`,
       buffer('The string to transform'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       encoding('The output encoding of the string', 'output_encoding'),
       {
         name: 'output',
@@ -519,7 +583,8 @@ mjb_result_free(&result);`,
         type: 'size_t *',
         description: 'The input capacity and output required or written byte count',
         wasm_generated: false
-      }
+      },
+      diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
@@ -534,7 +599,11 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the transformed string was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`output_size` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
       { value: 'MJB_STATUS_UNSUPPORTED', description: 'The transform did not stabilize' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Temporary allocation failed' },
@@ -544,15 +613,15 @@ mjb_result_free(&result);`,
     example: `const char *input = "Stra\\xC3\\x9F" "e\\xC2\\xAD";
 size_t output_size = 0;
 
-if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[7];
 
 if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_ENC_UTF_8, output, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -924,6 +993,120 @@ printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`
 printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`
   },
   {
+    comment: 'Validate a complete Unicode code-unit sequence.',
+    ret: 'mjb_status',
+    name: 'mjb_string_validate',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to validate'),
+      byte_length(),
+      encoding(),
+      diagnostic()
+    ],
+    wasm: false,
+    section: Section.TextAnalysis,
+    details: 'Validate the complete input without producing output. Empty input is well-formed. ' +
+      'On malformed input, `diagnostic` identifies the first maximal ill-formed subsequence. ' +
+      'Generic UTF-16 and UTF-32 require a byte-order mark.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The complete input is well-formed' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'The encoding is unsupported, or generic UTF-16/UTF-32 has no byte-order mark' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The first malformed subsequence is described by `diagnostic`' }
+    ],
+    example: `const char invalid[] = "\\xE2\\x82";
+mjb_diagnostic diagnostic;
+
+if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
+    &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
+    return 1;
+}`,
+    related: ['mjb_decode_next', 'mjb_decode_previous', 'mjb_is_utf8']
+  },
+  {
+    comment: 'Decode the next codepoint from a string.',
+    ret: 'mjb_status',
+    name: 'mjb_decode_next',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to decode'),
+      byte_length(),
+      encoding(),
+      malformedPolicy(),
+      {
+        name: 'offset',
+        type: 'size_t *',
+        description: 'The input byte offset and the byte offset following the decoded subsequence',
+        wasm_generated: false
+      },
+      {
+        name: 'codepoint',
+        type: 'mjb_codepoint *',
+        description: 'Where to store the decoded codepoint',
+        wasm_generated: false
+      },
+      diagnostic()
+    ],
+    wasm: false,
+    section: Section.TextAnalysis,
+    details: 'Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed ' +
+      'input returns `MJB_STATUS_MALFORMED_INPUT`; `offset` still advances over the malformed ' +
+      'subsequence so decoding can resume. `MJB_MALFORMED_REPLACE` returns U+FFFD, while ' +
+      '`MJB_MALFORMED_SKIP` advances until a valid codepoint or end of input. A diagnostic is ' +
+      'reported for replacement and skipping even when the function returns success.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'A codepoint was decoded' },
+      { value: 'MJB_STATUS_END_OF_INPUT', description: 'No codepoint remains' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
+    ],
+    related: ['mjb_decode_previous', 'mjb_string_validate', 'mjb_codepoint_count']
+  },
+  {
+    comment: 'Decode the previous codepoint from a string.',
+    ret: 'mjb_status',
+    name: 'mjb_decode_previous',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The string to decode'),
+      byte_length(),
+      encoding(),
+      malformedPolicy(),
+      {
+        name: 'offset',
+        type: 'size_t *',
+        description: 'The input byte offset and the start of the decoded subsequence',
+        wasm_generated: false
+      },
+      {
+        name: 'codepoint',
+        type: 'mjb_codepoint *',
+        description: 'Where to store the decoded codepoint',
+        wasm_generated: false
+      },
+      diagnostic()
+    ],
+    wasm: false,
+    section: Section.TextAnalysis,
+    details: 'Decode backward from `offset`, using the same malformed-input policies and ' +
+      'diagnostic contract as `mjb_decode_next`. On success, `offset` is the first byte of the ' +
+      'decoded codepoint. Start with the input byte length to iterate from the end.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'A codepoint was decoded' },
+      { value: 'MJB_STATUS_END_OF_INPUT', description: 'No codepoint precedes `offset`' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
+    ],
+    related: ['mjb_decode_next', 'mjb_string_validate', 'mjb_codepoint_count']
+  },
+  {
     comment: 'Count the codepoints in a string.',
     ret: 'mjb_status',
     name: 'mjb_codepoint_count',
@@ -932,22 +1115,26 @@ printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
       buffer('The string to count'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'count',
         type: 'size_t *',
         description: 'The number of codepoints to store; set to zero on failure',
         wasm_generated: true
-      }
+      },
+      diagnostic()
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    details: 'Count the number of Unicode codepoints in a string. Malformed code-unit sequences ' +
-      'count per the library replacement policy, and an incomplete trailing sequence does not ' +
-      'add a codepoint. On failure, `count` is set to zero.',
+    details: 'Count the number of decoded Unicode codepoints in a string. Malformed subsequences ' +
+      'are stopped, replaced, or skipped according to `malformed_policy`. A replacement counts ' +
+      'as one codepoint. On failure, `count` is set to zero.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`count` is NULL, or `buffer` is NULL with a non-zero size' },
-      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' }
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
     example: `// The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
 
@@ -955,14 +1142,16 @@ const char *utf8 = "H\\xC3\\xA9ll\\xC3\\xB6"; // 7 bytes
 const char utf16le[] = "H\\0\\xE9\\0l\\0l\\0\\xF6\\0"; // 10 bytes
 size_t count;
 
-if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // 5 UTF-8 characters
 printf("%zu UTF-8 characters", count);
 
-if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, &count) != MJB_STATUS_OK) {
+if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -979,16 +1168,32 @@ printf("%zu UTF-16LE characters", count);`,
       buffer('The string to check'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'callback',
         type: 'mjb_for_each_codepoint_fn',
         description: 'The function to call for each codepoint',
         wasm_generated: true
-      }
+      },
+      diagnostic()
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8, NULL);
+    details: 'Decode the string according to `malformed_policy` and call the callback for every ' +
+      'resulting codepoint. The first malformed subsequence is reported in `diagnostic` even ' +
+      'when it is replaced or skipped.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'Every decoded codepoint was visited' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        'The buffer, callback, or malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'The encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
+      { value: 'MJB_STATUS_CALLBACK_STOPPED', description: 'The callback returned false' }
+    ],
+    example: `mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8,
+    MJB_MALFORMED_STOP, NULL, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -1219,8 +1424,10 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
       buffer('The string to convert'),
       byte_length(),
       encoding('The input encoding of the string'),
+      malformedPolicy(),
       encoding('The output encoding of the string', 'output_encoding'),
-      result()
+      result(),
+      diagnostic()
     ],
     wasm: true,
     section: Section.TextTransformation,
@@ -1228,13 +1435,16 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
       'UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme ' +
       'signature and uses it to resolve byte order. Explicit-endian input preserves an initial ' +
       'U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are ' +
-      'rejected because the byte order is not specified.',
+      'rejected because the byte order is not specified. Malformed source subsequences are ' +
+      'stopped, replaced, or skipped according to `malformed_policy`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The string was converted' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`result` is NULL, `buffer` is NULL with a non-zero size, or the input is not valid in the source encoding' },
+        '`result` is NULL, `buffer` is NULL with a non-zero size, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
-        'A generic UTF-16/UTF-32 encoding did not provide enough byte order information' },
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_UNSUPPORTED', description: 'The requested encoding conversion is not supported' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
@@ -1242,8 +1452,8 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
     example: `const char *input = "caf\\xC3\\xA9";
 mjb_result result;
 
-if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_16LE, &result) != MJB_STATUS_OK) {
+if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1261,6 +1471,7 @@ mjb_result_free(&result);`,
       buffer('The string to convert'),
       byte_length(),
       encoding('The input encoding of the string'),
+      malformedPolicy(),
       encoding('The output encoding of the string', 'output_encoding'),
       {
         name: 'output',
@@ -1274,7 +1485,8 @@ mjb_result_free(&result);`,
         type: 'size_t *',
         description: 'The input capacity and output required or written byte count',
         wasm_generated: false
-      }
+      },
+      diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
@@ -1291,7 +1503,9 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
         '`output_size` is NULL, or `buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
-        'A generic UTF-16/UTF-32 encoding did not provide enough byte order information' },
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The requested encoding conversion is not supported' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
@@ -1301,15 +1515,16 @@ mjb_result_free(&result);`,
     example: `const char *input = "caf\\xC3\\xA9";
 size_t output_size = 0;
 
-if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_ENC_UTF_16LE, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 unsigned char output[8];
 
 if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
-    MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, output, &output_size) != MJB_STATUS_OK) {
+    MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1466,6 +1681,7 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       buffer('The string to generate the sort key for'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'variable_weighting',
         type: 'mjb_collation_variable_weighting',
@@ -1480,7 +1696,8 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
         wasm_generated: false,
         is_enum: true
       },
-      result('The pointer to store the binary sort key')
+      result('The pointer to store the binary sort key'),
+      diagnostic()
     ],
     wasm: true,
     section: Section.SortingComparison,
@@ -1489,18 +1706,20 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       'compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use ' +
       'the same variable weighting and strength. Useful when the same strings are compared many ' +
       'times, such as sorting or database indexing. Empty input and non-empty input with no ' +
-      'effective weights at the selected strength both produce a zero-length key. If ' +
+      'effective weights at the selected strength both produce a zero-length key. Malformed ' +
+      'subsequences follow `malformed_policy`, and `diagnostic` records the first one. If ' +
       '`MJB_FEATURE_COLLATION=0` the function always returns ' +
       '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The sort key was generated' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
         description:
-          '`result` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid' },
+          '`result` is NULL, the buffer is invalid, the malformed policy is invalid, or a ' +
+          'collation option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'The input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
-        'The input contains an ill-formed code-unit sequence' },
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The sort key size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
@@ -1509,7 +1728,8 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
     example: `mjb_result key;
 
 if(mjb_collation_key("r\\xC3\\xA9sum\\xC3\\xA9", 8, MJB_ENC_UTF_8,
-    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1528,6 +1748,7 @@ mjb_result_free(&key);`,
       buffer('The string to generate the sort key for'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'variable_weighting',
         type: 'mjb_collation_variable_weighting',
@@ -1554,7 +1775,8 @@ mjb_result_free(&key);`,
         type: 'size_t *',
         description: 'The input capacity and output required or written byte count',
         wasm_generated: false
-      }
+      },
+      diagnostic()
     ],
     wasm: false,
     section: Section.SortingComparison,
@@ -1572,10 +1794,11 @@ mjb_result_free(&key);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the binary sort key was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, `buffer` is NULL with a non-zero size, or an option is invalid' },
+        '`output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or a ' +
+        'collation option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The input encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
-        'The input contains an ill-formed code-unit sequence' },
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required key size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Temporary allocation failed' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
@@ -1586,16 +1809,18 @@ mjb_result_free(&key);`,
     example: `const char *input = "r\\xC3\\xA9sum\\xC3\\xA9";
 size_t output_size = 0;
 
-if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-    MJB_COLLATION_TERTIARY, NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 unsigned char output[64];
 
 if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
+    MJB_MALFORMED_STOP,
     MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-    &output_size) != MJB_STATUS_OK) {
+    &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1613,6 +1838,7 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
       buffer('The string to change case'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'type',
         type: 'mjb_map_case_type',
@@ -1621,7 +1847,8 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
         is_enum: true
       },
       encoding('The output encoding of the string', 'output_encoding'),
-      result()
+      result(),
+      diagnostic()
     ],
     wasm: true,
     section: Section.TextTransformation,
@@ -1634,18 +1861,24 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
       'default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply ' +
       'Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. ' +
       '`MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains ' +
-      'the default non-Turkic mapping.',
+      'the default non-Turkic mapping. Malformed subsequences follow `malformed_policy`, and ' +
+      '`diagnostic` records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The case conversion succeeded' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`result` is NULL, `buffer` is NULL with a non-zero size, or `type` is not a valid case type' },
+        '`result` is NULL, the buffer is invalid, the malformed policy is invalid, or `type` is ' +
+        'not a valid case type' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
 mjb_result result;
 
-if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
+    MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1665,6 +1898,7 @@ mjb_result_free(&result);`,
       buffer('The string to change case'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'type',
         type: 'mjb_map_case_type',
@@ -1684,7 +1918,8 @@ mjb_result_free(&result);`,
         type: 'size_t *',
         description: 'The input capacity and output required or written byte count',
         wasm_generated: false
-      }
+      },
+      diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
@@ -1698,7 +1933,12 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the case-mapped string was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, `buffer` is NULL with a non-zero size, or `type` is invalid' },
+        '`output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or ' +
+        '`type` is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'An encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The requested output encoding cannot represent a mapped codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
@@ -1708,15 +1948,16 @@ mjb_result_free(&result);`,
     example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
 size_t output_size = 0;
 
-if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_CASE_UPPER, MJB_ENC_UTF_8,
-    NULL, &output_size) != MJB_STATUS_OK) {
+if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_CASE_UPPER, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 char output[7];
 
 if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1979,28 +2220,34 @@ printf("Sentence-break positions: %zu", boundaries);`,
       buffer('The string to count'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'count',
         type: 'size_t *',
         description: 'The number of sentence segments to store; set to zero on failure',
         wasm_generated: true
-      }
+      },
+      diagnostic()
     ],
     wasm: true,
     section: Section.Segmentation,
     details: 'Count the sentence segments produced by the default Unicode sentence-boundary ' +
       'rules. The default rules carry no abbreviation list, so text such as `Dr. Smith` counts ' +
-      'as two sentences. Malformed code-unit sequences are segmented per the library ' +
-      'replacement policy. On failure, `count` is set to zero.',
+      'as two sentences. Malformed subsequences follow `malformed_policy`, and `diagnostic` ' +
+      'records the first one. On failure, `count` is set to zero.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`count` is NULL, or `buffer` is NULL with a non-zero size' },
-      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' }
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`count` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
     example: `const char *input = "Hello. How are you? Fine!";
 size_t count;
 
-if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2079,28 +2326,33 @@ printf("First two graphemes use %zu bytes", bytes);`
       buffer('The string to count'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'count',
         type: 'size_t *',
         description: 'The number of grapheme clusters to store; set to zero on failure',
         wasm_generated: true
-      }
+      },
+      diagnostic()
     ],
     wasm: true,
     section: Section.Segmentation,
     details: 'Count user-perceived characters: the number of extended grapheme cluster segments ' +
-      'in the string. Malformed code-unit sequences are segmented per the library replacement ' +
-      'policy, and an incomplete trailing sequence does not add a cluster. On failure, `count` ' +
-      'is set to zero.',
+      'in the string. Malformed subsequences follow `malformed_policy`, and `diagnostic` records ' +
+      'the first one. On failure, `count` is set to zero.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`count` is NULL, or `buffer` is NULL with a non-zero size' },
-      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' }
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`count` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
     example: `const char *input = "A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // A🇮🇹
 size_t count;
 
-if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2177,12 +2429,14 @@ printf("First word segment uses %zu bytes", bytes);`
       buffer('The string to count'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'count',
         type: 'size_t *',
         description: 'The number of word-like segments to store; set to zero on failure',
         wasm_generated: true
-      }
+      },
+      diagnostic()
     ],
     wasm: true,
     section: Section.Segmentation,
@@ -2194,17 +2448,21 @@ printf("First word segment uses %zu bytes", bytes);`
       'scripts segmented by dictionary lookup in other implementations, such as Chinese, ' +
       'Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: ' +
       'Mojibake does not use frequency dictionaries to keep the size of the library small. ' +
-      'Malformed code-unit sequences are segmented per the library replacement policy. On ' +
-      'failure, `count` is set to zero.',
+      'Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. ' +
+      'On failure, `count` is set to zero.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`count` is NULL, or `buffer` is NULL with a non-zero size' },
-      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' }
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`count` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
     example: `const char *input = "Hello, world! It works.";
 size_t count;
 
-if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, &count) != MJB_STATUS_OK) {
+if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2281,6 +2539,10 @@ printf("Six columns include %zu bytes", bytes);`
       { value: 'MJB_STATUS_OK', description: 'The paragraph was resolved' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
         description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description:
+        'The input encoding is invalid or lacks byte-order information' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'The input contains an ill-formed code-unit sequence' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The paragraph size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
@@ -3181,6 +3443,7 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
       buffer('The printable, single-line string to measure'),
       byte_length(),
       encoding(),
+      malformedPolicy(),
       {
         name: 'profile',
         type: 'mjb_terminal_width_profile',
@@ -3193,7 +3456,8 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
         type: 'size_t *',
         description: 'The number of terminal cells to store; set to zero on failure',
         wasm_generated: true
-      }
+      },
+      diagnostic()
     ],
     wasm: true,
     section: Section.TerminalWidth,
@@ -3204,21 +3468,24 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
       'This is a deterministic terminal policy, not a measurement of proportional glyph advances. ' +
       'Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived ' +
       'character counts. Controls, line separators, and paragraph separators are rejected because ' +
-      'their effect depends on terminal state. On failure, `width` is set to zero.',
+      'their effect depends on terminal state. Malformed subsequences follow `malformed_policy`, ' +
+      'and `diagnostic` records the first one. On failure, `width` is set to zero.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The width was computed' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`width` is NULL, the profile is invalid, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`width` is NULL, the profile or malformed policy is invalid, or the buffer is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is invalid or lacks required byte-order information' },
       { value: 'MJB_STATUS_UNSUPPORTED', description: 'The input contains a control, line separator, or paragraph separator' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'NFC normalization could not allocate memory' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The width would overflow' },
-      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'The input contains a malformed code-unit sequence' }
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
     example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
 size_t width;
 
-if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_TERMINAL_WIDTH_NARROW, &width) != MJB_STATUS_OK) {
+if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3377,8 +3644,9 @@ printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : 
     ],
     example: `mjb_result result;
 
-if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
-    &result) != MJB_STATUS_OK || mjb_result_free(&result) != MJB_STATUS_OK) {
+if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
+    mjb_result_free(&result) != MJB_STATUS_OK) {
     return 1;
 }
 

@@ -10,8 +10,8 @@ int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int fl
     mjb_result result;
     bool ret = true;
 
-    mjb_status status = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENC_UTF_8,
-        (mjb_normalization)flags, MJB_ENC_UTF_8, &result);
+    mjb_status status = mjb_normalize(argv[0], strlen(argv[0]), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        (mjb_normalization)flags, MJB_ENC_UTF_8, &result, NULL);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));
@@ -25,8 +25,8 @@ int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int fl
     printf("%s", mjbsh_green());
 
     if(result.output_size > 0 &&
-        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-            mjbsh_next_string_character) != MJB_STATUS_OK) {
+        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+            mjbsh_next_string_character, NULL) != MJB_STATUS_OK) {
         printf("%s", mjbsh_reset());
         puts("");
         ret = false;
@@ -69,8 +69,8 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
 
     mjb_result result;
     bool ret = true;
-    mjb_status status = mjb_normalize(codepoints, index, MJB_ENC_UTF_8, (mjb_normalization)flags,
-        MJB_ENC_UTF_8, &result);
+    mjb_status status = mjb_normalize(codepoints, index, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        (mjb_normalization)flags, MJB_ENC_UTF_8, &result, NULL);
 
     if(status != MJB_STATUS_OK) {
         free(codepoints);
@@ -85,8 +85,8 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
     }
 
     if(result.output_size > 0 &&
-        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-            mjbsh_next_codepoint) != MJB_STATUS_OK) {
+        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+            mjbsh_next_codepoint, NULL) != MJB_STATUS_OK) {
         puts("");
         ret = false;
 

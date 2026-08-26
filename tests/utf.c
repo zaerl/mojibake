@@ -11,7 +11,8 @@
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, &count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
+        MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 
@@ -223,17 +224,17 @@ int test_utf(void *arg) {
     ATT_ASSERT(index, 4, "UTF-16LE surrogate: index 4")
     ATT_ASSERT(in_error, false, "UTF-16LE surrogate: not error state")
 
-    // Truncated trailing units must terminate decoding (one replacement, then end), not loop.
+    // Strict codepoint counting rejects truncated trailing code units.
     MJB_TEST_COVERAGE(mjb_codepoint_count);
 
-    ATT_ASSERT(count_codepoints("A\0B", 3, MJB_ENC_UTF_16BE), 2,
-        "UTF-16BE: truncated trailing unit ends decoding")
-    ATT_ASSERT(count_codepoints("A", 1, MJB_ENC_UTF_16LE), 1,
-        "UTF-16LE: lone trailing byte decodes as replacement")
-    ATT_ASSERT(count_codepoints("\0\0\0A!", 5, MJB_ENC_UTF_32BE), 2,
-        "UTF-32BE: truncated trailing unit ends decoding")
-    ATT_ASSERT(count_codepoints("A!\0", 3, MJB_ENC_UTF_32LE), 1,
-        "UTF-32LE: lone truncated unit decodes as replacement")
+    ATT_ASSERT(count_codepoints("A\0B", 3, MJB_ENC_UTF_16BE), SIZE_MAX,
+        "UTF-16BE: truncated trailing unit is malformed")
+    ATT_ASSERT(count_codepoints("A", 1, MJB_ENC_UTF_16LE), SIZE_MAX,
+        "UTF-16LE: lone trailing byte is malformed")
+    ATT_ASSERT(count_codepoints("\0\0\0A!", 5, MJB_ENC_UTF_32BE), SIZE_MAX,
+        "UTF-32BE: truncated trailing unit is malformed")
+    ATT_ASSERT(count_codepoints("A!\0", 3, MJB_ENC_UTF_32LE), SIZE_MAX,
+        "UTF-32LE: lone truncated unit is malformed")
 
 #undef RESET_STATE
 

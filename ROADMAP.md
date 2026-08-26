@@ -7,20 +7,17 @@ This is the Mojibake roadmap. For great justice.
 1. **Complete UTS #39 identifier checks**
    Generate compact tables from `IdentifierStatus.txt` and `IdentifierType.txt`, then add
    `mjb_identifier_check` and `mjb_string_restriction_level`.
-2. **Detailed validation and decoder iteration**
-   Add `mjb_string_validate`, `mjb_decode_next`, and `mjb_decode_previous`. Use a shared diagnostic
-   result with the first failing byte (or code-unit offset?) and a precise malformed-input kind.
-3. **Finish typed UCD access**
+2. **Finish typed UCD access**
    Add typed getters for code-point, code-point-sequence, and string-valued properties. Follow with
    character age, bidi mirror, modern/alias/extended names, and reverse character-name lookup. Is
    this needed?
-4. **Explicit locale operations**
+3. **Explicit locale operations**
    Implement the currently unsupported `mjb_locale_canonicalize` using a pinned IANA Language
    Subtag Registry snapshot.
-5. **Reusable configurable collators**
+4. **Reusable configurable collators**
    Introduce immutable DUCET collator objects that encapsulate strength and variable weighting,
    then add case ordering, numeric collation, and normalization options.
-6. **Streaming processing**
+5. **Streaming processing**
    Add stateful `init`/`feed`/`finish` APIs for decoding and conversion, normalization, casing, and
    segmentation, using caller-kind of API.
 

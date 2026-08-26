@@ -246,7 +246,7 @@ static mjb_status mjb_normalization_estimate(const char *buffer, size_t byte_len
         *potential_output_size = byte_length;
     } else {
         mjb_status count_status = mjb_codepoint_count(buffer, byte_length, encoding,
-            potential_output_size);
+            MJB_MALFORMED_STOP, potential_output_size, NULL);
 
         if(count_status != MJB_STATUS_OK) {
             return count_status;
@@ -354,7 +354,7 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
     // Loop through the string.
     bool in_error = false;
 
-    for(size_t i = 0; i < byte_length;) {
+    for(size_t i = 0;;) {
         // Find next codepoint.
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
             encoding, &codepoint, &in_error);
@@ -365,6 +365,12 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
 
         if(decode_status == MJB_DECODE_INCOMPLETE) {
             continue;
+        }
+
+        if(decode_status == MJB_DECODE_ERROR) {
+            status = MJB_STATUS_MALFORMED_INPUT;
+
+            goto fail;
         }
 
         // Get current character.
@@ -531,13 +537,21 @@ fail:
  * Normalize a string
  */
 MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_normalization form, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+    mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding,
+    mjb_result *result, mjb_diagnostic *diagnostic) {
+    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+        !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_diagnostic_reset(diagnostic);
+
     if(!mjb_normalization_form_is_valid(form)) {
         return MJB_STATUS_INVALID_FORM;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -558,20 +572,44 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
     result->output_size = 0;
     result->transformed = false;
 
+    mjb_result sanitized = { NULL, 0, false };
     mjb_quick_check_result is_normalized;
-    status = mjb_normalization_quick_check(buffer, byte_length, encoding, form, &is_normalized);
+    status = mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form,
+        &is_normalized, false);
+
+    if(status == MJB_STATUS_MALFORMED_INPUT) {
+        status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
+            diagnostic, &sanitized);
+
+        if(status == MJB_STATUS_OK && byte_length > 0) {
+            status = mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form,
+                &is_normalized, false);
+        }
+    }
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
+    if(byte_length == 0) {
+        *result = sanitized;
+
+        return MJB_STATUS_OK;
+    }
+
     if(is_normalized == MJB_QC_YES) {
         if(encoding != output_encoding) {
-            return mjb_convert_encoding(buffer, byte_length, encoding, output_encoding, result);
+            status = mjb_convert_encoding(buffer, byte_length, encoding, MJB_MALFORMED_STOP,
+                output_encoding, result, NULL);
+            mjb_result_free(&sanitized);
+
+            return status;
         }
 
         result->output = (char *)buffer;
         result->output_size = byte_length;
+        result->transformed = sanitized.transformed;
+        sanitized.transformed = false;
 
         return MJB_STATUS_OK;
     }
@@ -581,12 +619,16 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
         &potential_output_size);
 
     if(status != MJB_STATUS_OK) {
+        mjb_result_free(&sanitized);
+
         return status;
     }
 
     char *allocated = (char *)mjb_alloc(potential_output_size);
 
     if(allocated == NULL) {
+        mjb_result_free(&sanitized);
+
         return MJB_STATUS_NO_MEMORY;
     }
 
@@ -597,11 +639,14 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
     status = mjb_normalize_write(&output, &context);
 
     if(status != MJB_STATUS_OK) {
+        mjb_diagnose_malformed_input(buffer, byte_length, encoding, status, diagnostic);
         mjb_free(output.buffer);
+        mjb_result_free(&sanitized);
 
         return status == MJB_STATUS_UNSUPPORTED ? MJB_STATUS_NO_MEMORY : status;
     }
 
+    mjb_result_free(&sanitized);
     output.buffer[output.size] = '\0';
     result->output = output.buffer;
     result->output_size = output.size;
@@ -611,13 +656,15 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
 }
 
 MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_normalization form, mjb_encoding output_encoding, void *output,
-    size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_normalization form,
+    mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     if(output_size == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
+    mjb_diagnostic_reset(diagnostic);
+
+    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -627,6 +674,12 @@ MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
         *output_size = 0;
 
         return MJB_STATUS_INVALID_FORM;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -641,8 +694,20 @@ MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
         return mjb_output_copy_into(buffer, byte_length, output, output_size);
     }
 
+    mjb_result sanitized = { NULL, 0, false };
     mjb_quick_check_result is_normalized;
-    status = mjb_normalization_quick_check(buffer, byte_length, encoding, form, &is_normalized);
+    status = mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form,
+        &is_normalized, false);
+
+    if(status == MJB_STATUS_MALFORMED_INPUT) {
+        status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
+            diagnostic, &sanitized);
+
+        if(status == MJB_STATUS_OK && byte_length > 0) {
+            status = mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form,
+                &is_normalized, false);
+        }
+    }
 
     if(status != MJB_STATUS_OK) {
         *output_size = 0;
@@ -650,13 +715,24 @@ MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
         return status;
     }
 
+    if(byte_length == 0) {
+        status = mjb_output_copy_into(buffer, byte_length, output, output_size);
+        mjb_result_free(&sanitized);
+
+        return status;
+    }
+
     if(is_normalized == MJB_QC_YES) {
         if(encoding != output_encoding) {
-            return mjb_convert_encoding_into(buffer, byte_length, encoding, output_encoding, output,
-                output_size);
+            status = mjb_convert_encoding_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP,
+                output_encoding, output, output_size, NULL);
+        } else {
+            status = mjb_output_copy_into(buffer, byte_length, output, output_size);
         }
 
-        return mjb_output_copy_into(buffer, byte_length, output, output_size);
+        mjb_result_free(&sanitized);
+
+        return status;
     }
 
     size_t potential_output_size = 0;
@@ -665,6 +741,7 @@ MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
 
     if(status != MJB_STATUS_OK) {
         *output_size = 0;
+        mjb_result_free(&sanitized);
 
         return status;
     }
@@ -672,7 +749,10 @@ MJB_EXPORT mjb_status mjb_normalize_into(const char *buffer, size_t byte_length,
     mjb_normalize_context context = { buffer, byte_length, potential_output_size, encoding, form,
         output_encoding };
 
-    return mjb_output_into(output, output_size, mjb_normalize_write, &context);
+    status = mjb_output_into(output, output_size, mjb_normalize_write, &context);
+    mjb_result_free(&sanitized);
+
+    return status;
 }
 
 // Apply full default case folding and remove Default_Ignorable_Code_Point characters.
@@ -737,15 +817,9 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
     }
 
     if(output_index >= capacity) {
-        char *new_folded = (char *)mjb_realloc(folded, output_index + 1);
+        mjb_free(folded);
 
-        if(new_folded == NULL) {
-            mjb_free(folded);
-
-            return MJB_STATUS_NO_MEMORY;
-        }
-
-        folded = new_folded;
+        return MJB_STATUS_OVERFLOW;
     }
 
     folded[output_index] = '\0';
@@ -756,8 +830,8 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
 }
 
 static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result, void *output,
-    size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
+    mjb_result *result, void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     const char *current = buffer;
     size_t current_size = byte_length;
     mjb_encoding current_encoding = encoding;
@@ -769,7 +843,8 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
         mjb_result normalized;
         // We use UTF-8 as the intermediate encoding for the NFKC_Casefold transform.
         mjb_status status = mjb_normalize(current, current_size, current_encoding,
-            MJB_NORMALIZATION_NFKC, MJB_ENC_UTF_8, &normalized);
+            pass == 0 ? malformed_policy : MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFKC,
+            MJB_ENC_UTF_8, &normalized, pass == 0 ? diagnostic : NULL);
 
         if(status != MJB_STATUS_OK) {
             if(current_owned) {
@@ -811,8 +886,8 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
         if(stable) {
             if(result != NULL) {
                 mjb_result normalized_result;
-                status = mjb_normalize(current, current_size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-                    output_encoding, &normalized_result);
+                status = mjb_normalize(current, current_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                    MJB_NORMALIZATION_NFC, output_encoding, &normalized_result, NULL);
 
                 if(status != MJB_STATUS_OK) {
                     mjb_free((void *)current);
@@ -830,8 +905,8 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
                 return MJB_STATUS_OK;
             }
 
-            status = mjb_normalize_into(current, current_size, MJB_ENC_UTF_8, MJB_NORMALIZATION_NFC,
-                output_encoding, output, output_size);
+            status = mjb_normalize_into(current, current_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                MJB_NORMALIZATION_NFC, output_encoding, output, output_size, NULL);
             mjb_free((void *)current);
 
             return status;
@@ -847,9 +922,17 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
  * Apply the Unicode NFKC_Casefold transform without duplicating its derived mapping table.
  */
 MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
+    mjb_result *result, mjb_diagnostic *diagnostic) {
+    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+        !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -866,20 +949,31 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
         return MJB_STATUS_OK;
     }
 
-    return mjb_nfkc_casefold_transform(buffer, byte_length, encoding, output_encoding, result, NULL,
-        NULL);
+    status = mjb_nfkc_casefold_transform(buffer, byte_length, encoding, malformed_policy,
+        output_encoding, result, NULL, NULL, diagnostic);
+
+    return status;
 }
 
 MJB_EXPORT mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
+    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
+    void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
     if(output_size == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
+    mjb_diagnostic_reset(diagnostic);
+
+    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
+        *output_size = 0;
+
+        return MJB_STATUS_INVALID_ENCODING;
     }
 
     mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
@@ -894,8 +988,8 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold_into(const char *buffer, size_t byte_len
         return mjb_output_copy_into(buffer, byte_length, output, output_size);
     }
 
-    status = mjb_nfkc_casefold_transform(buffer, byte_length, encoding, output_encoding, NULL,
-        output, output_size);
+    status = mjb_nfkc_casefold_transform(buffer, byte_length, encoding, malformed_policy,
+        output_encoding, NULL, output, output_size, diagnostic);
 
     if(status != MJB_STATUS_OK && status != MJB_STATUS_OUTPUT_TOO_SMALL) {
         *output_size = 0;

@@ -66,12 +66,12 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_WBP_NOT_SET;
         state->current = MJB_WBP_NOT_SET;
-        state->prev_prev_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
-        state->prev_prev_wbp = MJB_WBP_NOT_SET;
         state->in_error = false;
+        state->had_error = false;
         state->ri_count = 0;
+        state->prev_prev_wbp = MJB_WBP_NOT_SET;
         state->wb4_merged = false;
         state->zwj_pending = false;
         state->prev_was_zwj = false;
@@ -83,6 +83,10 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
 
     if(state->index == byte_length) {
         // Reached end of string.
+        if(mjb_utf_state_is_incomplete(state->state)) {
+            state->had_error = true;
+        }
+
         ++state->index;
 
         // WB2 Any ÷ eot
@@ -99,6 +103,10 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
     for(; state->index < byte_length;) {
         mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
             &state->index, encoding, &codepoint, &state->in_error);
+
+        if(decode_status == MJB_DECODE_ERROR) {
+            state->had_error = true;
+        }
 
         if(decode_status == MJB_DECODE_END) {
             mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
@@ -152,7 +160,6 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         // like WB7 and WB11 see the correct context before the WB4 base).
         if(!state->wb4_merged) {
             state->prev_prev_wbp = state->previous;
-            state->prev_prev_codepoint = state->previous_codepoint;
         }
 
         state->wb4_merged = false;
@@ -344,6 +351,10 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         return MJB_BT_ALLOWED;
     }
 
+    if(mjb_utf_state_is_incomplete(state->state)) {
+        state->had_error = true;
+    }
+
     ++state->index;
 
     return MJB_BT_ALLOWED;
@@ -420,34 +431,12 @@ static bool mjb_segment_is_word_like(const char *buffer, size_t byte_length,
     return false;
 }
 
-// Count the word-break segments that contain at least one alphabetic or numeric character.
-// Scripts that other implementations segment by dictionary lookup, such as Chinese, Japanese,
-// Thai, Lao, Khmer, and Burmese, count roughly one word per character: Mojibake does not use
-// frequency dictionaries to keep the size of the library small.
-MJB_EXPORT mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    size_t *count) {
-    if(count == NULL) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    *count = 0;
-
+static mjb_status mjb_word_count_process(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, size_t *count) {
     if(byte_length == 0) {
+        *count = 0;
+
         return MJB_STATUS_OK;
-    }
-
-    if(buffer == NULL) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    if(!mjb_encoding_is_valid_input(encoding)) {
-        return MJB_STATUS_INVALID_ENCODING;
-    }
-
-    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
-
-    if(status != MJB_STATUS_OK || byte_length == 0) {
-        return status;
     }
 
     mjb_next_word_state state;
@@ -473,9 +462,71 @@ MJB_EXPORT mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb
         last_break = break_pos;
     }
 
+    if(state.had_error) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
     *count = word_count;
 
     return MJB_STATUS_OK;
+}
+
+// Count the word-break segments that contain at least one alphabetic or numeric character.
+// Scripts that other implementations segment by dictionary lookup, such as Chinese, Japanese,
+// Thai, Lao, Khmer, and Burmese, count roughly one word per character: Mojibake does not use
+// frequency dictionaries to keep the size of the library small.
+MJB_EXPORT mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
+    mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic) {
+    if(count == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *count = 0;
+    mjb_diagnostic_reset(diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    if(byte_length == 0) {
+        return MJB_STATUS_OK;
+    }
+
+    if(buffer == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
+
+    if(status != MJB_STATUS_OK || byte_length == 0) {
+        return status;
+    }
+
+    status = mjb_check_input_encoding_byte_order(buffer, byte_length, encoding);
+
+    if(status != MJB_STATUS_OK) {
+        return status;
+    }
+
+    status = mjb_word_count_process(buffer, byte_length, encoding, count);
+    mjb_result sanitized = { NULL, 0, false };
+
+    if(status == MJB_STATUS_MALFORMED_INPUT) {
+        status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
+            diagnostic, &sanitized);
+
+        if(status == MJB_STATUS_OK) {
+            status = mjb_word_count_process(buffer, byte_length, encoding, count);
+        }
+    }
+
+    mjb_result_free(&sanitized);
+
+    return status;
 }
 
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
@@ -506,8 +557,8 @@ MJB_EXPORT size_t mjb_truncate_word_width(const char *buffer, size_t byte_length
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t segment_width = 0;
 
-        if(mjb_terminal_width(buffer + prev_break, break_pos - prev_break, encoding, profile,
-               &segment_width) != MJB_STATUS_OK) {
+        if(mjb_terminal_width(buffer + prev_break, break_pos - prev_break, encoding,
+               MJB_MALFORMED_STOP, profile, &segment_width, NULL) != MJB_STATUS_OK) {
             return prev_break;
         }
 

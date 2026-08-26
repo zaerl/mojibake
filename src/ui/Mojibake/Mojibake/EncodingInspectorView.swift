@@ -426,7 +426,9 @@ private struct EncodingResolution {
                 buffer.baseAddress,
                 buffer.count,
                 encoding,
-                &count
+                MJB_MALFORMED_STOP,
+                &count,
+                nil
             ) == MJB_STATUS_OK else {
                 return 0
             }
@@ -460,8 +462,10 @@ private struct EncodingConversion: Identifiable {
                 buffer,
                 byteLength,
                 inputEncoding,
+                MJB_MALFORMED_STOP,
                 target.value,
-                result
+                result,
+                nil
             )
             return status
         }

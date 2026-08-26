@@ -10,7 +10,8 @@
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, &count) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
+        MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 
@@ -22,8 +23,8 @@ static void assert_encoding_conversion(const char *input, size_t input_size,
     size_t expected_size, const char *message) {
     mjb_result result;
 
-    ATT_ASSERT_STATUS(mjb_convert_encoding(input, input_size, input_encoding,
-                          output_encoding, &result),
+    ATT_ASSERT_STATUS(mjb_convert_encoding(input, input_size, input_encoding, MJB_MALFORMED_STOP,
+                          output_encoding, &result, NULL),
         MJB_STATUS_OK, message)
     ATT_ASSERT(result.output_size, expected_size, message)
     ATT_ASSERT(memcmp(result.output, expected, expected_size), 0, message)
@@ -40,8 +41,8 @@ static mjb_status api_md_examples(void) {
     mjb_status status;
 
     // Get the length.
-    status = mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL,
-        &required);
+    status = mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_16LE, NULL, &required, NULL);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -55,8 +56,8 @@ static mjb_status api_md_examples(void) {
 
     size_t capacity = required;
 
-    status = mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
-        output, &capacity);
+    status = mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        MJB_ENC_UTF_16LE, output, &capacity, NULL);
 
     if(status != MJB_STATUS_OK) {
         free(output);
@@ -74,7 +75,200 @@ static mjb_status api_md_examples(void) {
     return MJB_STATUS_OK;
 }
 
+static void test_validation_and_decoding(void) {
+    mjb_diagnostic diagnostic = { MJB_TEXT_ERROR_OUT_OF_RANGE, 99, 99, 99 };
+
+    MJB_TEST_COVERAGE(mjb_string_validate);
+    ATT_ASSERT_STATUS(mjb_string_validate(NULL, 0, MJB_ENC_UTF_8, &diagnostic), MJB_STATUS_OK,
+        "NULL with zero size is well-formed")
+    ATT_ASSERT((unsigned int)diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Successful validation clears the diagnostic")
+    ATT_ASSERT_STATUS(mjb_string_validate(NULL, 0, MJB_ENC_UNKNOWN, &diagnostic),
+        MJB_STATUS_INVALID_ENCODING, "Validation rejects an invalid encoding for empty input")
+
+    const char valid_utf8[] = { 'A', '\xC3', '\xA9', '\xF0', '\x9F', '\x99', '\x82' };
+    size_t offset = 0;
+    mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
+
+    MJB_TEST_COVERAGE(mjb_decode_next);
+    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode next ASCII")
+    ATT_ASSERT((unsigned int)codepoint, 0x41u, "Decode next ASCII codepoint")
+    ATT_ASSERT(offset, (size_t)1, "Decode next ASCII offset")
+    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode next two-byte UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, 0xE9u, "Decode next two-byte codepoint")
+    ATT_ASSERT(offset, (size_t)3, "Decode next two-byte offset")
+    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode next four-byte UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, 0x1F642u, "Decode next four-byte codepoint")
+    ATT_ASSERT(offset, sizeof(valid_utf8), "Decode next four-byte offset")
+    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_END_OF_INPUT, "Decode next distinguishes end of input")
+
+    MJB_TEST_COVERAGE(mjb_decode_previous);
+    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode previous four-byte UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, 0x1F642u, "Decode previous four-byte codepoint")
+    ATT_ASSERT(offset, (size_t)3, "Decode previous four-byte offset")
+    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode previous two-byte UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, 0xE9u, "Decode previous two-byte codepoint")
+    ATT_ASSERT(offset, (size_t)1, "Decode previous two-byte offset")
+    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode previous ASCII")
+    ATT_ASSERT((unsigned int)codepoint, 0x41u, "Decode previous ASCII codepoint")
+    ATT_ASSERT(offset, (size_t)0, "Decode previous ASCII offset")
+    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_END_OF_INPUT, "Decode previous distinguishes start of input")
+
+    const char malformed_utf8[] = { 'A', '\x80', 'B' };
+    offset = 1;
+    ATT_ASSERT_STATUS(mjb_decode_next(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Stop policy reports malformed UTF-8")
+    ATT_ASSERT((unsigned int)diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "Stop policy reports unexpected continuation")
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "Stop diagnostic byte offset")
+    ATT_ASSERT(diagnostic.byte_length, (size_t)1, "Stop diagnostic byte length")
+    ATT_ASSERT(diagnostic.code_unit_offset, (size_t)1, "Stop diagnostic code-unit offset")
+    ATT_ASSERT(offset, (size_t)2, "Stop policy advances over malformed subsequence")
+
+    offset = 1;
+    ATT_ASSERT_STATUS(mjb_decode_next(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Replace policy decodes malformed UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_REPLACEMENT,
+        "Replace policy emits U+FFFD")
+    ATT_ASSERT((unsigned int)diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "Replace policy retains the diagnostic")
+
+    offset = 1;
+    ATT_ASSERT_STATUS(mjb_decode_next(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_SKIP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Skip policy resumes after malformed UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, (unsigned int)'B', "Skip policy returns the next codepoint")
+    ATT_ASSERT(offset, sizeof(malformed_utf8), "Skip policy advances through the next codepoint")
+    ATT_ASSERT((unsigned int)diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "Skip policy retains the diagnostic")
+
+    offset = sizeof(malformed_utf8);
+    ATT_ASSERT_STATUS(mjb_decode_previous(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode previous after malformed UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, (unsigned int)'B', "Decode previous trailing codepoint")
+    ATT_ASSERT_STATUS(mjb_decode_previous(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode previous replaces malformed UTF-8")
+    ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_REPLACEMENT,
+        "Decode previous replacement codepoint")
+    ATT_ASSERT(offset, (size_t)1, "Decode previous malformed offset")
+
+    const char truncated_utf8[] = { '\xE2', '\x82' };
+    offset = sizeof(truncated_utf8);
+    ATT_ASSERT_STATUS(mjb_decode_previous(truncated_utf8, sizeof(truncated_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Decode previous replaces a complete truncated subsequence")
+    ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_REPLACEMENT,
+        "Decode previous truncated replacement codepoint")
+    ATT_ASSERT(offset, (size_t)0, "Decode previous consumes the complete truncated subsequence")
+    ATT_ASSERT(diagnostic.byte_length, sizeof(truncated_utf8),
+        "Decode previous reports the complete truncated subsequence")
+
+    struct malformed_case {
+        const char *input;
+        size_t size;
+        mjb_encoding encoding;
+        mjb_text_error error;
+        size_t error_size;
+    } malformed_cases[] = {
+        { "\x80", 1, MJB_ENC_ASCII, MJB_TEXT_ERROR_NON_ASCII, 1 },
+        { "\xFF", 1, MJB_ENC_UTF_8, MJB_TEXT_ERROR_INVALID_LEADING_BYTE, 1 },
+        { "\xE2(A", 3, MJB_ENC_UTF_8, MJB_TEXT_ERROR_MISSING_CONTINUATION, 1 },
+        { "\xE0\x80\x80", 3, MJB_ENC_UTF_8, MJB_TEXT_ERROR_OVERLONG_SEQUENCE, 1 },
+        { "\xED\xA0\x80", 3, MJB_ENC_UTF_8, MJB_TEXT_ERROR_SURROGATE, 1 },
+        { "\xF4\x90\x80\x80", 4, MJB_ENC_UTF_8, MJB_TEXT_ERROR_OUT_OF_RANGE, 1 },
+        { "\xE2\x82", 2, MJB_ENC_UTF_8, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, 2 },
+        { "A", 1, MJB_ENC_UTF_16LE, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, 1 },
+        { "\x00\xD8", 2, MJB_ENC_UTF_16LE, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, 2 },
+        { "\x00\xD8\x00\x00", 4, MJB_ENC_UTF_32LE, MJB_TEXT_ERROR_SURROGATE, 4 },
+        { "\x00\x00\x11\x00", 4, MJB_ENC_UTF_32LE, MJB_TEXT_ERROR_OUT_OF_RANGE, 4 },
+    };
+
+    for(size_t i = 0; i < sizeof(malformed_cases) / sizeof(malformed_cases[0]); ++i) {
+        diagnostic.error = MJB_TEXT_ERROR_NONE;
+        ATT_ASSERT_STATUS(mjb_string_validate(malformed_cases[i].input, malformed_cases[i].size,
+                              malformed_cases[i].encoding, &diagnostic),
+            MJB_STATUS_MALFORMED_INPUT, "Validation rejects malformed encoding case")
+        ATT_ASSERT((unsigned int)diagnostic.error, (unsigned int)malformed_cases[i].error,
+            "Validation reports precise malformed encoding kind")
+        ATT_ASSERT(diagnostic.byte_length, malformed_cases[i].error_size,
+            "Validation reports malformed subsequence size")
+    }
+
+    const char generic_utf16[] = { '\xFF', '\xFE', 'A', '\0' };
+    offset = 0;
+    ATT_ASSERT_STATUS(mjb_decode_next(generic_utf16, sizeof(generic_utf16), MJB_ENC_UTF_16,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_OK, "Generic UTF-16 decoder consumes BOM")
+    ATT_ASSERT((unsigned int)codepoint, (unsigned int)'A', "Generic UTF-16 decoded codepoint")
+    ATT_ASSERT(offset, sizeof(generic_utf16), "Generic UTF-16 decoded offset")
+    offset = 1;
+    ATT_ASSERT_STATUS(mjb_decode_next(generic_utf16, sizeof(generic_utf16), MJB_ENC_UTF_16,
+                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+        MJB_STATUS_INVALID_ARGUMENT, "Generic UTF-16 rejects an offset inside its BOM")
+
+    size_t count = 99;
+    ATT_ASSERT_STATUS(mjb_codepoint_count(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, &count, &diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Codepoint count stop policy")
+    ATT_ASSERT(count, (size_t)0, "Codepoint count is reset after malformed input")
+    ATT_ASSERT_STATUS(mjb_codepoint_count(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, &count, &diagnostic),
+        MJB_STATUS_OK, "Codepoint count replace policy")
+    ATT_ASSERT(count, (size_t)3, "Replacement counts as a codepoint")
+    ATT_ASSERT_STATUS(mjb_codepoint_count(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_SKIP, &count, &diagnostic),
+        MJB_STATUS_OK, "Codepoint count skip policy")
+    ATT_ASSERT(count, (size_t)2, "Skipped malformed input is not counted")
+
+    mjb_result converted;
+    ATT_ASSERT_STATUS(mjb_convert_encoding(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &converted, &diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Same-encoding conversion validates in stop mode")
+    ATT_ASSERT_STATUS(mjb_convert_encoding(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_REPLACE, MJB_ENC_UTF_8, &converted, &diagnostic),
+        MJB_STATUS_OK, "Same-encoding conversion replaces malformed input")
+    ATT_ASSERT(converted.output_size, (size_t)5, "Replacement conversion output size")
+    ATT_ASSERT(memcmp(converted.output, "A\xEF\xBF\xBD"
+                                        "B",
+                   converted.output_size),
+        0, "Replacement conversion output")
+    (void)mjb_result_free(&converted);
+
+    ATT_ASSERT_STATUS(mjb_convert_encoding(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+                          MJB_MALFORMED_SKIP, MJB_ENC_UTF_8, &converted, &diagnostic),
+        MJB_STATUS_OK, "Same-encoding conversion skips malformed input")
+    ATT_ASSERT(converted.output_size, (size_t)2, "Skip conversion output size")
+    ATT_ASSERT(memcmp(converted.output, "AB", converted.output_size), 0,
+        "Skip conversion output")
+    (void)mjb_result_free(&converted);
+}
+
 int test_encoding(void *arg) {
+    test_validation_and_decoding();
+
     ATT_ASSERT((unsigned int)mjb_detect_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN,
         "Void unknown string")
     ATT_ASSERT((unsigned int)mjb_detect_encoding("", 0), (unsigned int)MJB_ENC_UNKNOWN,
@@ -109,9 +303,8 @@ int test_encoding(void *arg) {
         (unsigned int)(MJB_ENC_UTF_32 | MJB_ENC_UTF_32LE | MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE),
         "UTF-32-LE BOM")
 
-    ATT_ASSERT(mjb_is_ascii("", 0), false, "Void ASCII string")
-    ATT_ASSERT(mjb_is_ascii("", 0), false, "Void ASCII length")
-    ATT_ASSERT(mjb_is_ascii(0, 0), false, "Void ASCII string and length")
+    ATT_ASSERT(mjb_is_ascii("", 0), true, "Empty ASCII string")
+    ATT_ASSERT(mjb_is_ascii(0, 0), true, "NULL with zero size is empty ASCII")
 
     const char *test10 = "The quick brown fox jumps over the lazy dog";
     ATT_ASSERT(mjb_is_ascii(test10, 43), true, "Valid string and length")
@@ -140,9 +333,9 @@ int test_encoding(void *arg) {
 
     const char *utf8_test = "";
 
-    ATT_ASSERT(mjb_is_utf8(NULL, 0), false, "Void UTF-8 string")
-    ATT_ASSERT(mjb_is_utf8("", 0), false, "Empty UTF-8 \"\" string")
-    ATT_ASSERT(mjb_is_utf8(utf8_test, strlen(utf8_test)), false, "Empty UTF-8 string")
+    ATT_ASSERT(mjb_is_utf8(NULL, 0), true, "NULL with zero size is empty UTF-8")
+    ATT_ASSERT(mjb_is_utf8("", 0), true, "Empty UTF-8 \"\" string")
+    ATT_ASSERT(mjb_is_utf8(utf8_test, strlen(utf8_test)), true, "Empty UTF-8 string")
 
     utf8_test = "Hello, world!";
     ATT_ASSERT(mjb_is_utf8(utf8_test, strlen(utf8_test)), true, "Simple ASCII")
@@ -203,8 +396,8 @@ int test_encoding(void *arg) {
         "Various Unicode punctuation and symbols")
 
     // UTF-16 tests
-    ATT_ASSERT(mjb_is_utf16(NULL, 0), false, "Void UTF-16 string")
-    ATT_ASSERT(mjb_is_utf16("", 0), false, "Empty UTF-16 string")
+    ATT_ASSERT(mjb_is_utf16(NULL, 0), true, "NULL with zero size is empty UTF-16")
+    ATT_ASSERT(mjb_is_utf16("", 0), true, "Empty UTF-16 string")
     ATT_ASSERT(mjb_is_utf16("A", 1), false, "Odd-length UTF-16 string")
     ATT_ASSERT(mjb_is_utf16("", 1), false, "Odd-length empty UTF-16 string")
 
@@ -409,22 +602,23 @@ int test_encoding(void *arg) {
     char test_description[64];
     mjb_result boundary_result;
 
-    ATT_ASSERT_STATUS(mjb_convert_encoding(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE,
-                          &boundary_result),
+    ATT_ASSERT_STATUS(mjb_convert_encoding(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_UTF_16LE, &boundary_result, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding rejects NULL buffer")
-    ATT_ASSERT_STATUS(mjb_convert_encoding("", 0, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL),
+    ATT_ASSERT_STATUS(mjb_convert_encoding("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_UTF_16LE, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding rejects NULL result")
 
     MJB_TEST_COVERAGE(mjb_convert_encoding_into);
 
     size_t into_size = 123;
 
-    ATT_ASSERT_STATUS(mjb_convert_encoding_into(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL,
-                          &into_size),
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_UTF_16LE, NULL, &into_size, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding into rejects NULL buffer")
     ATT_ASSERT(into_size, (size_t)0, "Convert encoding into resets size for invalid input")
-    ATT_ASSERT_STATUS(mjb_convert_encoding_into("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, NULL,
-                          NULL),
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_UTF_16LE, NULL, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Convert encoding into rejects NULL output size")
 
     const char into_input[] = "caf\xC3\xA9";
@@ -432,7 +626,7 @@ int test_encoding(void *arg) {
 
     into_size = 0;
     ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
-                          MJB_ENC_UTF_16LE, NULL, &into_size),
+                          MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, NULL, &into_size, NULL),
         MJB_STATUS_OK, "Query encoding conversion output size")
     ATT_ASSERT(into_size, sizeof(into_expected), "Encoding conversion required payload size")
 
@@ -441,7 +635,7 @@ int test_encoding(void *arg) {
     into_size = sizeof(into_expected) - 1;
 
     ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
-                          MJB_ENC_UTF_16LE, into_output, &into_size),
+                          MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, into_output, &into_size, NULL),
         MJB_STATUS_OUTPUT_TOO_SMALL, "Convert encoding reports a small output buffer")
     ATT_ASSERT(into_size, sizeof(into_expected), "Small output buffer reports required size")
 
@@ -452,7 +646,7 @@ int test_encoding(void *arg) {
 
     into_size = sizeof(into_expected);
     ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
-                          MJB_ENC_UTF_16LE, into_output, &into_size),
+                          MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, into_output, &into_size, NULL),
         MJB_STATUS_OK, "Convert encoding into exact-size output buffer")
     ATT_ASSERT(into_size, sizeof(into_expected), "Convert encoding into written payload size")
     ATT_ASSERT(memcmp(into_output, into_expected, sizeof(into_expected)), 0,
@@ -462,8 +656,8 @@ int test_encoding(void *arg) {
 
     unsigned char same_encoding_output[] = { 0, 0xA5 };
     into_size = 1;
-    ATT_ASSERT_STATUS(mjb_convert_encoding_into("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          same_encoding_output, &into_size),
+    ATT_ASSERT_STATUS(mjb_convert_encoding_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_UTF_8, same_encoding_output, &into_size, NULL),
         MJB_STATUS_OK, "Convert encoding into copies unchanged encoding")
     ATT_ASSERT((unsigned int)same_encoding_output[0], (unsigned int)'A',
         "Convert encoding into unchanged byte")
@@ -474,22 +668,24 @@ int test_encoding(void *arg) {
     mjb_result ascii_result;
 
     ATT_ASSERT_STATUS(mjb_convert_encoding(utf16le_ascii, sizeof(utf16le_ascii),
-                          MJB_ENC_UTF_16LE, MJB_ENC_ASCII, &ascii_result),
+                          MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP, MJB_ENC_ASCII, &ascii_result,
+                          NULL),
         MJB_STATUS_OK, "Convert UTF-16LE ASCII text to ASCII")
     ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed")
     ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size")
     ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output")
     (void)mjb_result_free(&ascii_result);
 
-    ATT_ASSERT_STATUS(mjb_convert_encoding("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_ENC_ASCII,
-                          &ascii_result),
+    ATT_ASSERT_STATUS(mjb_convert_encoding("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_ASCII, &ascii_result, NULL),
         MJB_STATUS_UNSUPPORTED, "Convert UTF-8 non-ASCII text to ASCII")
 
     const char utf16le_smile[] = { '\x3D', '\xD8', '\x42', '\xDE' };
     const char utf16be_smile[] = { '\xD8', '\x3D', '\xDE', '\x42' };
 
     ATT_ASSERT_STATUS(mjb_convert_encoding(utf16le_smile, sizeof(utf16le_smile),
-                          MJB_ENC_UTF_16LE, MJB_ENC_UTF_8, &ascii_result),
+                          MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &ascii_result,
+                          NULL),
         MJB_STATUS_OK, "Convert UTF-16LE surrogate pair to UTF-8")
     ATT_ASSERT(ascii_result.output_size, (size_t)4, "Convert UTF-16LE surrogate pair to UTF-8 size")
     ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
@@ -497,7 +693,8 @@ int test_encoding(void *arg) {
     (void)mjb_result_free(&ascii_result);
 
     ATT_ASSERT_STATUS(mjb_convert_encoding(utf16be_smile, sizeof(utf16be_smile),
-                          MJB_ENC_UTF_16BE, MJB_ENC_UTF_8, &ascii_result),
+                          MJB_ENC_UTF_16BE, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &ascii_result,
+                          NULL),
         MJB_STATUS_OK, "Convert UTF-16BE surrogate pair to UTF-8")
     ATT_ASSERT(ascii_result.output_size, (size_t)4, "Convert UTF-16BE surrogate pair to UTF-8 size")
     ATT_ASSERT(memcmp(ascii_result.output, "\xF0\x9F\x99\x82", ascii_result.output_size), 0,
@@ -590,18 +787,18 @@ int test_encoding(void *arg) {
 
     size_t rejected_count = 6251;
     ATT_ASSERT_STATUS(mjb_codepoint_count(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le,
-        &rejected_count), MJB_STATUS_INVALID_ENCODING,
+        MJB_MALFORMED_STOP, &rejected_count, NULL), MJB_STATUS_INVALID_ENCODING,
         "Codepoint count rejects a multi-encoding detection mask")
     ATT_ASSERT(rejected_count, (size_t)0, "Codepoint count is zero after a detection mask")
     ATT_ASSERT(count_codepoints(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE), (size_t)2,
         "Length explicit UTF-32LE preserves U+FEFF")
 
     ATT_ASSERT_STATUS(mjb_convert_encoding(utf16be_plain_a, sizeof(utf16be_plain_a),
-                          MJB_ENC_UTF_16, MJB_ENC_UTF_8, &ascii_result),
+                          MJB_ENC_UTF_16, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &ascii_result, NULL),
         MJB_STATUS_INVALID_ENCODING,
         "Convert generic UTF-16 without BOM rejects unknown byte order")
-    ATT_ASSERT_STATUS(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_16,
-                          &ascii_result),
+    ATT_ASSERT_STATUS(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+                          MJB_ENC_UTF_16, &ascii_result, NULL),
         MJB_STATUS_INVALID_ENCODING, "Convert generic UTF-16 output rejects unknown byte order")
 
     MJB_TEST_COVERAGE(mjb_convert_encoding);
@@ -609,7 +806,7 @@ int test_encoding(void *arg) {
         for(size_t to = 0; to < 5; ++to) {
             mjb_result convert_result;
             mjb_status status = mjb_convert_encoding(hello_strings[from], hello_strings_sizes[from],
-                encodings[from], encodings[to], &convert_result);
+                encodings[from], MJB_MALFORMED_STOP, encodings[to], &convert_result, NULL);
 
             snprintf(test_description, 64, "%s to %s", output_encodings[from],
                 output_encodings[to]);

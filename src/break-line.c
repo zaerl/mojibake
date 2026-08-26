@@ -103,13 +103,13 @@ MJB_EXPORT mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_le
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->in_error = false;
         state->ri_count = 0;
-        state->zw_seen = false;
+        state->prev_prev_codepoint = MJB_CODEPOINT_NOT_VALID;
+        state->prev_prev_lbp = MJB_LBP_NOT_SET;
         state->prev_resolved = MJB_LBP_NOT_SET;
+        state->prev_num_lbp = MJB_LBP_NOT_SET;
         state->prev_ea = MJB_EAW_NOT_SET;
         state->qu_prev_ea = MJB_EAW_NOT_SET;
-        state->prev_prev_lbp = MJB_LBP_NOT_SET;
-        state->prev_num_lbp = MJB_LBP_NOT_SET;
-        state->prev_prev_codepoint = MJB_CODEPOINT_NOT_VALID;
+        state->zw_seen = false;
         state->pi_qu_context = false;
         state->cm_merged = false;
         state->zwj_absorbed = false;
