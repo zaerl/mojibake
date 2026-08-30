@@ -18,7 +18,9 @@
     #endif
     #define chdir _chdir
 #else
+    #include <fcntl.h>
     #include <getopt.h>
+    #include <sys/stat.h>
     #include <unistd.h>
 #endif
 
@@ -254,7 +256,17 @@ static bool write_coverage_file(void) {
         return true;
     }
 
+#ifdef _WIN32
     file = fopen(coverage_output, "w");
+#else
+    int fd = open(coverage_output, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    file = fd < 0 ? NULL : fdopen(fd, "w");
+
+    if(file == NULL && fd >= 0) {
+        close(fd);
+    }
+#endif
 
     if(file == NULL) {
         perror("coverage");
