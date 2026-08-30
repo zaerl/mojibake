@@ -297,14 +297,12 @@ static void test_nfkc_casefold_file(void) {
         unsigned int end;
         int matched = sscanf(line, "%X..%X", &start, &end);
 
-        if(matched < 1) {
+        if(matched == 1) {
+            end = start;
+        } else if(matched != 2) {
             ++current_line;
 
             continue;
-        }
-
-        if(matched < 2) {
-            end = start;
         }
 
         char expected_mapping[128];
