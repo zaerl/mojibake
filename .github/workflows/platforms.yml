@@ -34,18 +34,16 @@ jobs:
           - label: NetBSD 10.1
             os: netbsd
             version: '10.1'
-          # Temporarily disabled
-          # See https://discuss.haiku-os.org/t/what-happen-with-haikuports-repos-for-old-beta-releases/19674
-          # - label: Haiku R1/beta6
-          #  os: haiku
-          #  version: 'r1beta6'
+          - label: Haiku R1/beta6
+            os: haiku
+            version: 'r1beta6'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: ./.github/actions/setup-unicode-test-data
 
       - name: Start ${{ matrix.label }} VM
-        uses: cross-platform-actions/action@24ef01df165c76df1ed2b9f9e9212e78dc2fc963 # v1.4.0
+        uses: cross-platform-actions/action@faa0c6197e94aacf1c5956460152c8380d3560a5 # v1.5.0
         with:
           operating_system: ${{ matrix.os }}
           version: ${{ matrix.version }}
