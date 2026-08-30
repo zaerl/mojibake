@@ -263,22 +263,27 @@ static void test_nfkc_casefold_file(void) {
 
         if(first_semicolon == NULL) {
             ++current_line;
+
             continue;
         }
 
         char *property = first_semicolon + 1;
+
         while(*property == ' ') {
             ++property;
         }
 
         if(strncmp(property, "NFKC_CF", 7) != 0) {
             ++current_line;
+
             continue;
         }
 
         char *second_semicolon = strchr(property, ';');
+
         if(second_semicolon == NULL) {
             ++current_line;
+
             continue;
         }
 
@@ -290,11 +295,15 @@ static void test_nfkc_casefold_file(void) {
 
         unsigned int start;
         unsigned int end;
-        if(sscanf(line, "%X..%X", &start, &end) != 2) {
-            if(sscanf(line, "%X", &start) != 1) {
-                ++current_line;
-                continue;
-            }
+        int matched = sscanf(line, "%X..%X", &start, &end);
+
+        if(matched < 1) {
+            ++current_line;
+
+            continue;
+        }
+
+        if(matched < 2) {
             end = start;
         }
 
