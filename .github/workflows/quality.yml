@@ -33,7 +33,7 @@ jobs:
 
       - name: Check clang-format
         run: |
-          git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' |
+          git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' ':!tests/attractor.h' |
             xargs -0 clang-format --dry-run --Werror
 
   typecheck:

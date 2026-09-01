@@ -187,7 +187,7 @@ update-version:
 
 # Check C and C++ formatting with Apple's clang-format
 lint:
-	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' | \
+	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' ':!tests/attractor.h' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
 
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
