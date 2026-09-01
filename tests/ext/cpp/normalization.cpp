@@ -9,50 +9,50 @@
 
 #include <utility>
 
-int test_cpp_normalization(void *arg) {
-    ATT_ASSERT(mjb::nfc(""), std::string(""), "nfc(\"\")")
-    ATT_ASSERT(mjb::nfd(""), std::string(""), "nfd(\"\")")
-    ATT_ASSERT(mjb::nfkc(""), std::string(""), "nfkc(\"\")")
-    ATT_ASSERT(mjb::nfkd(""), std::string(""), "nfkd(\"\")")
+ATT_TEST(cpp_normalization) {
+    ATT_ASSERT(mjb::nfc(""), std::string(""), "nfc(\"\")");
+    ATT_ASSERT(mjb::nfd(""), std::string(""), "nfd(\"\")");
+    ATT_ASSERT(mjb::nfkc(""), std::string(""), "nfkc(\"\")");
+    ATT_ASSERT(mjb::nfkd(""), std::string(""), "nfkd(\"\")");
 
-    ATT_ASSERT(mjb::nfc("a"), std::string("a"), "nfc(\"a\")")
-    ATT_ASSERT(mjb::nfd("a"), std::string("a"), "nfd(\"a\")")
-    ATT_ASSERT(mjb::nfkc("a"), std::string("a"), "nfkc(\"a\")")
-    ATT_ASSERT(mjb::nfkd("a"), std::string("a"), "nfkd(\"a\")")
+    ATT_ASSERT(mjb::nfc("a"), std::string("a"), "nfc(\"a\")");
+    ATT_ASSERT(mjb::nfd("a"), std::string("a"), "nfd(\"a\")");
+    ATT_ASSERT(mjb::nfkc("a"), std::string("a"), "nfkc(\"a\")");
+    ATT_ASSERT(mjb::nfkd("a"), std::string("a"), "nfkd(\"a\")");
     ATT_ASSERT(mjb::nfkc_casefold("Stra\xC3\x9F" "e\xC2\xAD"), std::string("strasse"),
-        "nfkc_casefold")
+        "nfkc_casefold");
 
     ATT_ASSERT((int)mjb::normalization_quick_check("a", mjb::NormalizationForm::NFC),
-        MJB_QC_YES, "normalization_quick_check")
+        MJB_QC_YES, "normalization_quick_check");
     ATT_ASSERT(mjb::filter("a  b", MJB_FILTER_COLLAPSE_SPACES), std::string("a b"),
-        "filter")
+        "filter");
     ATT_ASSERT(mjb::filter("a\x01  b", mjb::Filter::Controls | mjb::Filter::CollapseSpaces),
-        std::string("a b"), "filter flags")
-    ATT_ASSERT(mjb::uppercase("Stra\xC3\x9F" "e"), std::string("STRASSE"), "uppercase")
-    ATT_ASSERT(mjb::lowercase("HELLO"), std::string("hello"), "lowercase")
-    ATT_ASSERT(mjb::titlecase("hello world"), std::string("Hello World"), "titlecase")
-    ATT_ASSERT(mjb::casefold("Stra\xC3\x9F" "e"), std::string("strasse"), "casefold")
+        std::string("a b"), "filter flags");
+    ATT_ASSERT(mjb::uppercase("Stra\xC3\x9F" "e"), std::string("STRASSE"), "uppercase");
+    ATT_ASSERT(mjb::lowercase("HELLO"), std::string("hello"), "lowercase");
+    ATT_ASSERT(mjb::titlecase("hello world"), std::string("Hello World"), "titlecase");
+    ATT_ASSERT(mjb::casefold("Stra\xC3\x9F" "e"), std::string("strasse"), "casefold");
     ATT_ASSERT(mjb::casefold_simple("\xE1\xBA\x9E"), std::string("\xC3\x9F"),
-        "casefold_simple")
-    ATT_ASSERT(mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE"), true, "caseless_match")
+        "casefold_simple");
+    ATT_ASSERT(mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE"), true, "caseless_match");
     ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A", mjb::CaselessMode::Unnormalized),
-        false, "caseless_match unnormalized")
+        false, "caseless_match unnormalized");
     ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A"), true,
-        "caseless_match canonical")
+        "caseless_match canonical");
 
     ATT_ASSERT((int)mjb::detect_encoding("abc"), MJB_ENC_ASCII | MJB_ENC_UTF_8,
-        "detect_encoding")
-    ATT_ASSERT(mjb::is_ascii("abc"), true, "is_ascii")
-    ATT_ASSERT(mjb::is_utf8("caf\xC3\xA9"), true, "is_utf8")
+        "detect_encoding");
+    ATT_ASSERT(mjb::is_ascii("abc"), true, "is_ascii");
+    ATT_ASSERT(mjb::is_utf8("caf\xC3\xA9"), true, "is_utf8");
 
     const std::string utf16le("a\0b\0", 4);
-    ATT_ASSERT(mjb::is_utf16(utf16le), true, "is_utf16")
+    ATT_ASSERT(mjb::is_utf16(utf16le), true, "is_utf16");
     mjb_diagnostic diagnostic;
     ATT_ASSERT_STATUS(mjb::validate_string("A\x80", MJB_ENC_UTF_8, &diagnostic),
-        MJB_STATUS_MALFORMED_INPUT, "validate_string malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "validate_string malformed input");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
-        "validate_string diagnostic")
+        "validate_string diagnostic");
 
     const std::string decodable("A\x80"
                                 "B",
@@ -60,87 +60,87 @@ int test_cpp_normalization(void *arg) {
     size_t offset = 0;
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
     ATT_ASSERT_STATUS(mjb::decode_next(decodable, offset, codepoint), MJB_STATUS_OK,
-        "decode_next valid input")
-    ATT_ASSERT(codepoint, (mjb_codepoint)'A', "decode_next codepoint")
+        "decode_next valid input");
+    ATT_ASSERT(codepoint, (mjb_codepoint)'A', "decode_next codepoint");
     ATT_ASSERT_STATUS(mjb::decode_next(decodable, offset, codepoint, MJB_ENC_UTF_8,
                           MJB_MALFORMED_REPLACE, &diagnostic),
-        MJB_STATUS_OK, "decode_next replacement policy")
+        MJB_STATUS_OK, "decode_next replacement policy");
     ATT_ASSERT(codepoint, (mjb_codepoint)MJB_CODEPOINT_REPLACEMENT,
-        "decode_next replacement codepoint")
+        "decode_next replacement codepoint");
     offset = decodable.size();
     ATT_ASSERT_STATUS(mjb::decode_previous(decodable, offset, codepoint), MJB_STATUS_OK,
-        "decode_previous valid input")
-    ATT_ASSERT(codepoint, (mjb_codepoint)'B', "decode_previous codepoint")
+        "decode_previous valid input");
+    ATT_ASSERT(codepoint, (mjb_codepoint)'B', "decode_previous codepoint");
 
     ATT_ASSERT(mjb::nfc(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE,
                    &diagnostic),
         std::string("A\xEF\xBF\xBD"
                     "B"),
-        "nfc replacement policy")
-    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "nfc replacement diagnostic")
+        "nfc replacement policy");
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "nfc replacement diagnostic");
     ATT_ASSERT(mjb::nfc(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
-        std::string("AB"), "nfc skip policy")
+        std::string("AB"), "nfc skip policy");
     ATT_ASSERT(mjb::nfkc_casefold(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
                    MJB_MALFORMED_SKIP),
-        std::string("ab"), "nfkc_casefold skip policy")
+        std::string("ab"), "nfkc_casefold skip policy");
     ATT_ASSERT(mjb::uppercase(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
                    MJB_MALFORMED_REPLACE),
         std::string("A\xEF\xBF\xBD"
                     "B"),
-        "uppercase replacement policy")
+        "uppercase replacement policy");
     ATT_ASSERT(mjb::grapheme_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE),
-        (size_t)3, "grapheme_count replacement policy")
+        (size_t)3, "grapheme_count replacement policy");
     ATT_ASSERT(mjb::sentence_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP), (size_t)1,
-        "sentence_count skip policy")
+        "sentence_count skip policy");
     ATT_ASSERT(mjb::word_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE), (size_t)2,
-        "word_count replacement policy")
+        "word_count replacement policy");
     ATT_ASSERT(mjb::terminal_width(decodable, MJB_TERMINAL_WIDTH_NARROW, MJB_ENC_UTF_8,
                    MJB_MALFORMED_SKIP),
-        (size_t)2, "terminal_width skip policy")
+        (size_t)2, "terminal_width skip policy");
 
-    ATT_ASSERT(mjb::codepoint_count("caf\xC3\xA9"), (size_t)4, "codepoint_count")
+    ATT_ASSERT(mjb::codepoint_count("caf\xC3\xA9"), (size_t)4, "codepoint_count");
     ATT_ASSERT(mjb::convert_encoding("\xC3\xA9", MJB_ENC_UTF_8, MJB_ENC_UTF_16LE),
-        std::string("\xE9\0", 2), "convert_encoding")
+        std::string("\xE9\0", 2), "convert_encoding");
 #if MJB_FEATURE_COLLATION
     ATT_ASSERT(mjb::collation_key(decodable,
                    mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
-        mjb::collation_key("AB"), "collation_key skip policy")
-    ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare")
+        mjb::collation_key("AB"), "collation_key skip policy");
+    ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare");
     ATT_ASSERT(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Secondary),
-        0, "compare secondary ignores case")
+        0, "compare secondary ignores case");
     ATT_ASSERT((int)(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                         mjb::CollationStrength::Tertiary) != 0),
-        1, "compare tertiary compares case")
+        1, "compare tertiary compares case");
     ATT_ASSERT(mjb::compare("", "\xE2\x80\x8B"), 0,
-        "compare completely ignorable string with empty")
+        "compare completely ignorable string with empty");
     ATT_ASSERT(mjb::compare("\xE2\x80\x8B", ""), 0,
-        "compare completely ignorable string with empty in reverse order")
+        "compare completely ignorable string with empty in reverse order");
     ATT_ASSERT(mjb::compare("", "\xCC\x81",
                    mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Primary),
-        0, "compare primary-ignorable accent with empty")
+        0, "compare primary-ignorable accent with empty");
     ATT_ASSERT((int)(mjb::compare("", "\xCC\x81",
                         mjb::CollationVariableWeighting::NonIgnorable,
                         mjb::CollationStrength::Secondary) != 0),
-        1, "compare accent with empty at secondary strength")
+        1, "compare accent with empty at secondary strength");
 #endif
 
     const std::string already_normalized("plain");
     auto view_result = mjb::normalize_result(already_normalized, mjb::NormalizationForm::NFC);
-    ATT_ASSERT(view_result.transformed(), false, "TextResult zero-copy result")
+    ATT_ASSERT(view_result.transformed(), false, "TextResult zero-copy result");
     ATT_ASSERT(view_result.view().data() == already_normalized.data(), true,
-        "TextResult aliases untransformed input")
-    ATT_ASSERT(view_result.str(), already_normalized, "TextResult::str")
+        "TextResult aliases untransformed input");
+    ATT_ASSERT(view_result.str(), already_normalized, "TextResult::str");
 
     auto owned_result = mjb::normalize_result("e\xCC\x81", mjb::NormalizationForm::NFC);
-    ATT_ASSERT(owned_result.transformed(), true, "TextResult owns transformed result")
-    ATT_ASSERT(owned_result.str(), std::string("\xC3\xA9"), "TextResult transformed output")
+    ATT_ASSERT(owned_result.transformed(), true, "TextResult owns transformed result");
+    ATT_ASSERT(owned_result.str(), std::string("\xC3\xA9"), "TextResult transformed output");
 
     auto moved_result = std::move(owned_result);
-    ATT_ASSERT(owned_result.empty(), true, "TextResult moved-from state")
-    ATT_ASSERT(moved_result.str(), std::string("\xC3\xA9"), "TextResult move constructor")
+    ATT_ASSERT(owned_result.empty(), true, "TextResult moved-from state");
+    ATT_ASSERT(moved_result.str(), std::string("\xC3\xA9"), "TextResult move constructor");
 
     bool caught = false;
 
@@ -150,7 +150,7 @@ int test_cpp_normalization(void *arg) {
         caught = error.status() == MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    ATT_ASSERT(caught, true, "LibraryError preserves mjb_status")
+    ATT_ASSERT(caught, true, "LibraryError preserves mjb_status");
 
     const std::string malformed_utf8("\x80", 1);
     caught = false;
@@ -161,7 +161,7 @@ int test_cpp_normalization(void *arg) {
         caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
     }
 
-    ATT_ASSERT(caught, true, "normalization_quick_check preserves malformed-input status")
+    ATT_ASSERT(caught, true, "normalization_quick_check preserves malformed-input status");
 
 #if MJB_FEATURE_COLLATION
     caught = false;
@@ -171,7 +171,7 @@ int test_cpp_normalization(void *arg) {
         caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
     }
 
-    ATT_ASSERT(caught, true, "compare preserves malformed-input status")
+    ATT_ASSERT(caught, true, "compare preserves malformed-input status");
 #endif
 
     caught = false;
@@ -182,7 +182,7 @@ int test_cpp_normalization(void *arg) {
         caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
     }
 
-    ATT_ASSERT(caught, true, "caseless_match preserves malformed-input status")
+    ATT_ASSERT(caught, true, "caseless_match preserves malformed-input status");
 
 #if MJB_FEATURE_SECURITY
     caught = false;
@@ -193,8 +193,6 @@ int test_cpp_normalization(void *arg) {
         caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
     }
 
-    ATT_ASSERT(caught, true, "is_confusable preserves malformed-input status")
+    ATT_ASSERT(caught, true, "is_confusable preserves malformed-input status");
 #endif
-
-    return 0;
 }

@@ -22,7 +22,7 @@ static int check_fold(const char *source, size_t source_size, const char *target
     char *result = run_mjb_map_case(source, source_size, type, MJB_ENC_UTF_8);
 
     MJB_TEST_COVERAGE(mjb_map_case);
-    ATT_ASSERT(result, (char *)target, test_name)
+    ATT_ASSERT(result, (char *)target, test_name);
 
     if(result != NULL) {
         mjb_test_free(result);
@@ -38,7 +38,7 @@ static void test_case_folding_file(void) {
     FILE *file = fopen("./utils/generate/unicode-data/UCD/CaseFolding.txt", "r");
 
     if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "Valid case folding test file")
+        ATT_ASSERT("Not opened", "Opened file", "Valid case folding test file");
 
         return;
     }
@@ -99,12 +99,12 @@ static void test_case_folding_file(void) {
                 break;
 
             case 'T': // Turkic: applies to both folding types when the locale is tr or az.
-                ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
+                ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr");
                 check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD,
                     current_line, "T full");
                 check_fold(source, source_size, target, target_size, MJB_CASE_CASEFOLD_SIMPLE,
                     current_line, "T simple");
-                ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
+                ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en");
                 break;
         }
 
@@ -114,7 +114,7 @@ static void test_case_folding_file(void) {
     fclose(file);
 }
 
-int test_case(void *arg) {
+ATT_TEST(case) {
     mjb_encoding encoding = MJB_ENC_UTF_8;
 
     // Test case conversion functions
@@ -128,21 +128,21 @@ int test_case(void *arg) {
     size_t into_size = 11;
     ATT_ASSERT_STATUS(mjb_map_case_into(NULL, 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL,
                           &into_size, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL buffer")
-    ATT_ASSERT(into_size, (size_t)0, "Case into resets size for invalid input")
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL buffer");
+    ATT_ASSERT(into_size, (size_t)0, "Case into resets size for invalid input");
     ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL output size")
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL output size");
     ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_NONE, encoding, NULL,
                           &into_size, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects MJB_CASE_NONE")
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects MJB_CASE_NONE");
     into_size = 11;
     ATT_ASSERT_STATUS(mjb_map_case_into("A\x80", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_LOWER, encoding, NULL,
                           &into_size, NULL),
-        MJB_STATUS_MALFORMED_INPUT, "Case into rejects malformed input")
-    ATT_ASSERT(into_size, (size_t)0, "Malformed case input resets output size")
+        MJB_STATUS_MALFORMED_INPUT, "Case into rejects malformed input");
+    ATT_ASSERT(into_size, (size_t)0, "Malformed case input resets output size");
     ATT_ASSERT_STATUS(mjb_map_case("A\x80", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_LOWER, encoding,
                           &guard_result, NULL),
-        MJB_STATUS_MALFORMED_INPUT, "Case mapping rejects malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "Case mapping rejects malformed input");
 
     const char malformed_case[] = "a\x80"
                                   "b";
@@ -150,28 +150,28 @@ int test_case(void *arg) {
     ATT_ASSERT_STATUS(mjb_map_case(malformed_case, sizeof(malformed_case) - 1, encoding,
                           MJB_MALFORMED_REPLACE, MJB_CASE_UPPER, encoding, &guard_result,
                           &diagnostic),
-        MJB_STATUS_OK, "Case mapping replaces malformed input")
-    ATT_ASSERT(guard_result.output_size, (size_t)5, "Case replacement output size")
+        MJB_STATUS_OK, "Case mapping replaces malformed input");
+    ATT_ASSERT(guard_result.output_size, (size_t)5, "Case replacement output size");
     ATT_ASSERT((int)memcmp(guard_result.output, "A\xEF\xBF\xBD"
                                                "B",
                    guard_result.output_size),
-        0, "Case replacement output")
-    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "Case replacement diagnostic offset")
+        0, "Case replacement output");
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "Case replacement diagnostic offset");
     ATT_ASSERT_STATUS(mjb_result_free(&guard_result), MJB_STATUS_OK,
-        "Free case replacement result")
+        "Free case replacement result");
 
     ATT_ASSERT_STATUS(mjb_map_case(malformed_case, sizeof(malformed_case) - 1, encoding,
                           MJB_MALFORMED_SKIP, MJB_CASE_UPPER, encoding, &guard_result,
                           &diagnostic),
-        MJB_STATUS_OK, "Case mapping skips malformed input")
-    ATT_ASSERT(guard_result.output_size, (size_t)2, "Case skip output size")
+        MJB_STATUS_OK, "Case mapping skips malformed input");
+    ATT_ASSERT(guard_result.output_size, (size_t)2, "Case skip output size");
     ATT_ASSERT((int)memcmp(guard_result.output, "AB", guard_result.output_size), 0,
-        "Case skip output")
-    ATT_ASSERT_STATUS(mjb_result_free(&guard_result), MJB_STATUS_OK, "Free case skip result")
+        "Case skip output");
+    ATT_ASSERT_STATUS(mjb_result_free(&guard_result), MJB_STATUS_OK, "Free case skip result");
 
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, (mjb_malformed_policy)99,
                           MJB_CASE_UPPER, encoding, &guard_result, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case mapping rejects invalid malformed policy")
+        MJB_STATUS_INVALID_ARGUMENT, "Case mapping rejects invalid malformed policy");
 
     const char *into_input = "Stra\xC3\x9F"
                              "e";
@@ -180,8 +180,8 @@ int test_case(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
                           encoding, NULL, &into_size, NULL),
-        MJB_STATUS_OK, "Query case-mapped output size")
-    ATT_ASSERT(into_size, strlen(into_expected), "Case into required payload size")
+        MJB_STATUS_OK, "Query case-mapped output size");
+    ATT_ASSERT(into_size, strlen(into_expected), "Case into required payload size");
 
     unsigned char into_output[8];
     unsigned char untouched_output[sizeof(into_output)];
@@ -191,55 +191,55 @@ int test_case(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
                           encoding, into_output, &into_size, NULL),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "Case into reports a small output buffer")
-    ATT_ASSERT(into_size, strlen(into_expected), "Small case output reports required size")
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Case into reports a small output buffer");
+    ATT_ASSERT(into_size, strlen(into_expected), "Small case output reports required size");
     ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
-        "Small case output buffer is not modified")
+        "Small case output buffer is not modified");
 
     into_size = strlen(into_expected);
     ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
                           encoding, into_output, &into_size, NULL),
-        MJB_STATUS_OK, "Case into exact-size output buffer")
-    ATT_ASSERT(into_size, strlen(into_expected), "Case into written payload size")
-    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Case into output bytes")
+        MJB_STATUS_OK, "Case into exact-size output buffer");
+    ATT_ASSERT(into_size, strlen(into_expected), "Case into written payload size");
+    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Case into output bytes");
     ATT_ASSERT((unsigned int)into_output[into_size], 0xA5u,
-        "Case into does not write a terminator")
+        "Case into does not write a terminator");
 
     into_size = sizeof(into_output);
     ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16LE,
                           into_output, &into_size, NULL),
-        MJB_STATUS_OK, "Case into converts output encoding")
-    ATT_ASSERT(into_size, (size_t)2, "Case into converted output size")
-    ATT_ASSERT(memcmp(into_output, "A\0", 2), 0, "Case into converted output bytes")
+        MJB_STATUS_OK, "Case into converts output encoding");
+    ATT_ASSERT(into_size, (size_t)2, "Case into converted output size");
+    ATT_ASSERT(memcmp(into_output, "A\0", 2), 0, "Case into converted output bytes");
 
     ATT_ASSERT_STATUS(mjb_map_case(NULL, 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL buffer")
+        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL buffer");
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL result")
+        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL result");
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_NONE, encoding, &guard_result, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects MJB_CASE_NONE")
+        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects MJB_CASE_NONE");
 
     ATT_ASSERT_STATUS(mjb_map_case("", 0, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
-        MJB_STATUS_OK, "Case conversion accepts empty string")
-    ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed")
-    ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size")
+        MJB_STATUS_OK, "Case conversion accepts empty string");
+    ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed");
+    ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size");
 
     result = run_mjb_map_case("\xE1\x8E\xA0", 3, MJB_CASE_CASEFOLD, encoding); // U+13A0
-    ATT_ASSERT(result, "\xE1\x8E\xA0", "Uppercase Cherokee casefolds to itself")
+    ATT_ASSERT(result, "\xE1\x8E\xA0", "Uppercase Cherokee casefolds to itself");
     mjb_test_free(result);
 
     result = run_mjb_map_case("\xEA\xAD\xB0", 3, MJB_CASE_CASEFOLD, encoding); // U+AB70
-    ATT_ASSERT(result, "\xE1\x8E\xA0", "Lowercase Cherokee casefolds to uppercase")
+    ATT_ASSERT(result, "\xE1\x8E\xA0", "Lowercase Cherokee casefolds to uppercase");
     mjb_test_free(result);
 
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16LE, &guard_result, NULL),
-        MJB_STATUS_OK, "Case conversion converts output encoding")
+        MJB_STATUS_OK, "Case conversion converts output encoding");
     ATT_ASSERT(guard_result.transformed, true,
-        "Case conversion converted output encoding transformed")
+        "Case conversion converted output encoding transformed");
     ATT_ASSERT(guard_result.output_size, (size_t)2,
-        "Case conversion converted output encoding size")
+        "Case conversion converted output encoding size");
     ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
-        "Case conversion converted output encoding bytes")
+        "Case conversion converted output encoding bytes");
 
     if(guard_result.transformed) {
         mjb_test_free(guard_result.output);
@@ -247,77 +247,77 @@ int test_case(void *arg) {
 
     // Test uppercase conversion
     result = run_mjb_map_case("hello", 5, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char *)"HELLO", "UTF-8 uppercase: hello")
+    ATT_ASSERT(result, (char *)"HELLO", "UTF-8 uppercase: hello");
     mjb_test_free(result);
 
     result = run_mjb_map_case("héllö", 7, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char *)"HÉLLÖ", "UTF-8 uppercase: héllö")
+    ATT_ASSERT(result, (char *)"HÉLLÖ", "UTF-8 uppercase: héllö");
     mjb_test_free(result);
 
     result = run_mjb_map_case("a𠀀b", 6, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char *)"A𠀀B", "UTF-8 uppercase preserves uncased CJK")
+    ATT_ASSERT(result, (char *)"A𠀀B", "UTF-8 uppercase preserves uncased CJK");
     mjb_test_free(result);
 
     // Test lowercase conversion
     result = run_mjb_map_case("HELLO", 5, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char *)"hello", "UTF-8 lowercase: HELLO")
+    ATT_ASSERT(result, (char *)"hello", "UTF-8 lowercase: HELLO");
     mjb_test_free(result);
 
     result = run_mjb_map_case("HÉLLÖ", 7, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char *)"héllö", "UTF-8 lowercase: HÉLLÖ")
+    ATT_ASSERT(result, (char *)"héllö", "UTF-8 lowercase: HÉLLÖ");
     mjb_test_free(result);
 
     result = run_mjb_map_case("A𠀀B", 6, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char *)"a𠀀b", "UTF-8 lowercase preserves uncased CJK")
+    ATT_ASSERT(result, (char *)"a𠀀b", "UTF-8 lowercase preserves uncased CJK");
     mjb_test_free(result);
 
     // Test titlecase conversion
     result = run_mjb_map_case("hello world", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: hello world")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: hello world");
     mjb_test_free(result);
 
     result = run_mjb_map_case("héllö wörld", 14, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Héllö Wörld", "UTF-8 titlecase: héllö wörld")
+    ATT_ASSERT(result, (char *)"Héllö Wörld", "UTF-8 titlecase: héllö wörld");
     mjb_test_free(result);
 
     result = run_mjb_map_case("a 𠀀 b", 8, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"A 𠀀 B", "UTF-8 titlecase preserves uncased CJK")
+    ATT_ASSERT(result, (char *)"A 𠀀 B", "UTF-8 titlecase preserves uncased CJK");
     mjb_test_free(result);
 
     result = run_mjb_map_case("hello world", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: hello world")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: hello world");
     mjb_test_free(result);
 
     result = run_mjb_map_case("HELLO WORLD", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: HELLO WORLD")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: HELLO WORLD");
     mjb_test_free(result);
 
     result = run_mjb_map_case("HELLO WORLD", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: HELLO WORLD")
+    ATT_ASSERT(result, (char *)"Hello World", "UTF-8 titlecase: HELLO WORLD");
     mjb_test_free(result);
 
     result = run_mjb_map_case("mixed CASE words", 17, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Mixed Case Words", "UTF-8 titlecase: mixed CASE words")
+    ATT_ASSERT(result, (char *)"Mixed Case Words", "UTF-8 titlecase: mixed CASE words");
     mjb_test_free(result);
 
     result = run_mjb_map_case("  leading space", 15, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"  Leading Space", "UTF-8 titlecase:   leading space")
+    ATT_ASSERT(result, (char *)"  Leading Space", "UTF-8 titlecase:   leading space");
     mjb_test_free(result);
 
     result = run_mjb_map_case("élan vital", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Élan Vital", "UTF-8 titlecase: élan vital")
+    ATT_ASSERT(result, (char *)"Élan Vital", "UTF-8 titlecase: élan vital");
     mjb_test_free(result);
 
     result = run_mjb_map_case("straße", 7, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Straße", "UTF-8 titlecase: straße")
+    ATT_ASSERT(result, (char *)"Straße", "UTF-8 titlecase: straße");
     mjb_test_free(result);
 
     result = run_mjb_map_case("παράδειγμα", 20, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Παράδειγμα", "UTF-8 titlecase: παράδειγμα")
+    ATT_ASSERT(result, (char *)"Παράδειγμα", "UTF-8 titlecase: παράδειγμα");
     mjb_test_free(result);
 
     result = run_mjb_map_case("ⅲ times", 10, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Ⅲ Times", "UTF-8 titlecase: ⅲ times")
+    ATT_ASSERT(result, (char *)"Ⅲ Times", "UTF-8 titlecase: ⅲ times");
     mjb_test_free(result);
 
     // UAX #29 keeps internal apostrophes in the same word segment for default titlecase.
@@ -327,11 +327,11 @@ int test_case(void *arg) {
     ATT_ASSERT(result,
         (char *)"O\xE2\x80\x99"
                 "connor",
-        "UTF-8 titlecase: o’CONNOR")
+        "UTF-8 titlecase: o’CONNOR");
     mjb_test_free(result);
 
     result = run_mjb_map_case("rock'n'ROLL", 11, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Rock'n'roll", "UTF-8 titlecase: rock'n'ROLL")
+    ATT_ASSERT(result, (char *)"Rock'n'roll", "UTF-8 titlecase: rock'n'ROLL");
     mjb_test_free(result);
 
     result = run_mjb_map_case("a\xCC\x88"
@@ -340,115 +340,115 @@ int test_case(void *arg) {
     ATT_ASSERT(result,
         (char *)"A\xCC\x88"
                 "bc",
-        "UTF-8 titlecase: a + diaeresis + BC")
+        "UTF-8 titlecase: a + diaeresis + BC");
     mjb_test_free(result);
 
     result = run_mjb_map_case("İstanbul", 9, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"İstanbul", "UTF-8 titlecase: İstanbul")
+    ATT_ASSERT(result, (char *)"İstanbul", "UTF-8 titlecase: İstanbul");
     mjb_test_free(result);
 
     // Modern German orthography sometimes prefers the uppercase form ẞ (U+1E9E) in all-caps or
     // titlecase contexts. Unicode's default case folding still maps ß to SS in titlecase unless
     // locale-specific tailoring is applied.
     result = run_mjb_map_case("ßeta", 5, MJB_CASE_UPPER, encoding);
-    ATT_ASSERT(result, (char *)"SSETA", "UTF-8 uppercase: ßeta")
+    ATT_ASSERT(result, (char *)"SSETA", "UTF-8 uppercase: ßeta");
     mjb_test_free(result);
 
     result = run_mjb_map_case("coöperate", 10, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Coöperate", "UTF-8 titlecase: Český Krumlov")
+    ATT_ASSERT(result, (char *)"Coöperate", "UTF-8 titlecase: Český Krumlov");
     mjb_test_free(result);
 
     result = run_mjb_map_case("😀grinning", 12, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"😀Grinning", "UTF-8 titlecase: 😀grinning")
+    ATT_ASSERT(result, (char *)"😀Grinning", "UTF-8 titlecase: 😀grinning");
     mjb_test_free(result);
 
     result = run_mjb_map_case("123abc", MJB_NUL_TERMINATED, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"123Abc", "UTF-8 titlecase: 123abc")
+    ATT_ASSERT(result, (char *)"123Abc", "UTF-8 titlecase: 123abc");
     mjb_test_free(result);
 
     // Test casefold: ASCII uppercase via unicode_data.lowercase fallback
     result = run_mjb_map_case("ABC", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"abc", "UTF-8 casefold: ABC -> abc")
+    ATT_ASSERT(result, (char *)"abc", "UTF-8 casefold: ABC -> abc");
     mjb_test_free(result);
 
     result = run_mjb_map_case("Hello World", 11, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"hello world", "UTF-8 casefold: Hello World -> hello world")
+    ATT_ASSERT(result, (char *)"hello world", "UTF-8 casefold: Hello World -> hello world");
     mjb_test_free(result);
 
     // Test casefold: ß (U+00DF) -> ss, F entry (multi-char expansion)
     result = run_mjb_map_case("ß", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"ss", "UTF-8 casefold: ß -> ss")
+    ATT_ASSERT(result, (char *)"ss", "UTF-8 casefold: ß -> ss");
     mjb_test_free(result);
 
     result = run_mjb_map_case("straße", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"strasse", "UTF-8 casefold: straße -> strasse")
+    ATT_ASSERT(result, (char *)"strasse", "UTF-8 casefold: straße -> strasse");
     mjb_test_free(result);
 
     // Test casefold: µ (U+00B5 MICRO SIGN) -> μ (U+03BC), C exception entry
     result = run_mjb_map_case("µ", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"μ", "UTF-8 casefold: µ (U+00B5) -> μ (U+03BC)")
+    ATT_ASSERT(result, (char *)"μ", "UTF-8 casefold: µ (U+00B5) -> μ (U+03BC)");
     mjb_test_free(result);
 
     // Test casefold: ﬃ (U+FB03) -> ffi, F entry with 3-codepoint expansion
     result = run_mjb_map_case("ﬃ", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"ffi", "UTF-8 casefold: ﬃ -> ffi")
+    ATT_ASSERT(result, (char *)"ffi", "UTF-8 casefold: ﬃ -> ffi");
     mjb_test_free(result);
 
     // Test casefold: Greek uppercase via unicode_data.lowercase fallback
     result = run_mjb_map_case("Σ", 2, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"σ", "UTF-8 casefold: Σ -> σ")
+    ATT_ASSERT(result, (char *)"σ", "UTF-8 casefold: Σ -> σ");
     mjb_test_free(result);
 
     // Test casefold: digits/symbols pass through unchanged (identity path)
     result = run_mjb_map_case("123", 3, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"123", "UTF-8 casefold: 123 -> 123")
+    ATT_ASSERT(result, (char *)"123", "UTF-8 casefold: 123 -> 123");
     mjb_test_free(result);
 
     // Simple case folding (C + S statuses): multi-char full folds are not applied.
     result = run_mjb_map_case("straße", 7, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"straße", "UTF-8 simple casefold: ß folds to itself")
+    ATT_ASSERT(result, (char *)"straße", "UTF-8 simple casefold: ß folds to itself");
     mjb_test_free(result);
 
     result = run_mjb_map_case("ẞ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"ß", "UTF-8 simple casefold: ẞ -> ß")
+    ATT_ASSERT(result, (char *)"ß", "UTF-8 simple casefold: ẞ -> ß");
     mjb_test_free(result);
 
     result = run_mjb_map_case("ﬃ", 3, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"ﬃ", "UTF-8 simple casefold: ﬃ folds to itself")
+    ATT_ASSERT(result, (char *)"ﬃ", "UTF-8 simple casefold: ﬃ folds to itself");
     mjb_test_free(result);
 
     result = run_mjb_map_case("İ", 2, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"İ", "UTF-8 simple casefold: İ folds to itself")
+    ATT_ASSERT(result, (char *)"İ", "UTF-8 simple casefold: İ folds to itself");
     mjb_test_free(result);
 
     // Turkic (T) case folding, active for the tr and az locales.
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr")
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK, "Set locale tr");
 
     result = run_mjb_map_case("KIRMIZI", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"kırmızı", "Turkic casefold: KIRMIZI -> kırmızı")
+    ATT_ASSERT(result, (char *)"kırmızı", "Turkic casefold: KIRMIZI -> kırmızı");
     mjb_test_free(result);
 
     result = run_mjb_map_case("İZMİR", 7, MJB_CASE_CASEFOLD, encoding);
-    ATT_ASSERT(result, (char *)"izmir", "Turkic casefold: İZMİR -> izmir")
+    ATT_ASSERT(result, (char *)"izmir", "Turkic casefold: İZMİR -> izmir");
     mjb_test_free(result);
 
     result = run_mjb_map_case("I", 1, MJB_CASE_CASEFOLD_SIMPLE, encoding);
-    ATT_ASSERT(result, (char *)"ı", "Turkic simple casefold: I -> ı")
+    ATT_ASSERT(result, (char *)"ı", "Turkic simple casefold: I -> ı");
     mjb_test_free(result);
 
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en")
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en");
 
     // Test Final_Sigma rule: word-final Σ → ς, non-final Σ → σ
     result = run_mjb_map_case("ΣΕΙΣ", 8, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char *)"σεις", "UTF-8 lowercase Final_Sigma: ΣΕΙΣ -> σεις")
+    ATT_ASSERT(result, (char *)"σεις", "UTF-8 lowercase Final_Sigma: ΣΕΙΣ -> σεις");
     mjb_test_free(result);
 
     result = run_mjb_map_case("ΑΣΑ", 6, MJB_CASE_LOWER, encoding);
-    ATT_ASSERT(result, (char *)"ασα", "UTF-8 lowercase non-final sigma: ΑΣΑ -> ασα")
+    ATT_ASSERT(result, (char *)"ασα", "UTF-8 lowercase non-final sigma: ΑΣΑ -> ασα");
     mjb_test_free(result);
 
     result = run_mjb_map_case("ΣΕΙΣ", 8, MJB_CASE_TITLE, encoding);
-    ATT_ASSERT(result, (char *)"Σεις", "UTF-8 titlecase Final_Sigma: ΣΕΙΣ -> Σεις")
+    ATT_ASSERT(result, (char *)"Σεις", "UTF-8 titlecase Final_Sigma: ΣΕΙΣ -> Σεις");
     mjb_test_free(result);
 
     // Test that titlecase uses original codepoint for special-casing lookup (Fix 2):
@@ -459,10 +459,8 @@ int test_case(void *arg) {
     ATT_ASSERT(result,
         (char *)"Ai\xCC\x87"
                 "b",
-        "UTF-8 titlecase special casing: A\\xC4\\xB0B -> Ai\\xCC\\x87b")
+        "UTF-8 titlecase special casing: A\\xC4\\xB0B -> Ai\\xCC\\x87b");
     mjb_test_free(result);
 
     test_case_folding_file();
-
-    return 0;
 }

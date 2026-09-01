@@ -14,54 +14,10 @@
 #include <string.h>
 
 #include "../src/mojibake.h"
-#include "./attractor/attractor.h"
+#include "attractor.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-// Start tests declarations.
-int test_bidi(void *arg);
-int test_bidi_class(void *arg);
-int test_break_line(void *arg);
-int test_break_sentence(void *arg);
-int test_break_word(void *arg);
-int test_case(void *arg);
-int test_caseless(void *arg);
-int test_cjk(void *arg);
-int test_codepoint(void *arg);
-int test_collation(void *arg);
-int test_terminal_width(void *arg);
-int test_east_asian_width(void *arg);
-int test_embedded_null(void *arg);
-int test_emoji(void *arg);
-int test_encoding(void *arg);
-int test_example(void *arg);
-int test_filter(void *arg);
-int test_format(void *arg);
-int test_hangul_composition(void *arg);
-int test_hangul(void *arg);
-int test_identifier(void *arg);
-int test_idna(void *arg);
-int test_locales(void *arg);
-int test_mojibake(void *arg);
-int test_next(void *arg);
-int test_normalization(void *arg);
-int test_plane(void *arg);
-int test_properties(void *arg);
-int test_quick_check(void *arg);
-int test_security(void *arg);
-int test_segmentation(void *arg);
-int test_special_case(void *arg);
-int test_string(void *arg);
-int test_utf(void *arg);
-int test_version(void *arg);
-
-#ifdef __cplusplus
-int test_cpp_break(void *arg);
-int test_cpp_locales(void *arg);
-int test_cpp_mojibake(void *arg);
-int test_cpp_normalization(void *arg);
 #endif
 
 void set_error_callback(att_test_callback callback);

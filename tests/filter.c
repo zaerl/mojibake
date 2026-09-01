@@ -12,27 +12,27 @@ static void assert_filter_into_matches(const char *input, size_t input_size, mjb
 
     ATT_ASSERT_STATUS(mjb_filter(input, input_size, encoding, MJB_MALFORMED_REPLACE, filters,
                           output_encoding, &allocated, NULL),
-        MJB_STATUS_OK, message)
+        MJB_STATUS_OK, message);
 
     size_t required = 0;
     ATT_ASSERT_STATUS(mjb_filter_into(input, input_size, encoding, MJB_MALFORMED_REPLACE, filters,
                           output_encoding, NULL, &required, NULL),
-        MJB_STATUS_OK, message)
-    ATT_ASSERT(required, allocated.output_size, message)
+        MJB_STATUS_OK, message);
+    ATT_ASSERT(required, allocated.output_size, message);
 
     unsigned char output[256];
     size_t capacity = sizeof(output);
-    ATT_ASSERT(required <= capacity, true, message)
+    ATT_ASSERT(required <= capacity, true, message);
     ATT_ASSERT_STATUS(mjb_filter_into(input, input_size, encoding, MJB_MALFORMED_REPLACE, filters,
                           output_encoding, output, &capacity, NULL),
-        MJB_STATUS_OK, message)
-    ATT_ASSERT(capacity, allocated.output_size, message)
-    ATT_ASSERT(memcmp(output, allocated.output, capacity), 0, message)
+        MJB_STATUS_OK, message);
+    ATT_ASSERT(capacity, allocated.output_size, message);
+    ATT_ASSERT(memcmp(output, allocated.output, capacity), 0, message);
 
     mjb_result_free(&allocated);
 }
 
-int test_filter(void *arg) {
+ATT_TEST(filter) {
     mjb_result result;
     mjb_encoding enc = MJB_ENC_UTF_8;
 
@@ -41,15 +41,15 @@ int test_filter(void *arg) {
     size_t into_size = 9;
 
     ATT_ASSERT_STATUS(mjb_filter_into(NULL, 1, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, NULL, &into_size, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects NULL buffer")
-    ATT_ASSERT(into_size, (size_t)0, "Filter into resets size for invalid input")
+        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects NULL buffer");
+    ATT_ASSERT(into_size, (size_t)0, "Filter into resets size for invalid input");
     ATT_ASSERT_STATUS(mjb_filter_into("A", 1, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, NULL, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects NULL output size")
+        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects NULL output size");
     into_size = 9;
     ATT_ASSERT_STATUS(mjb_filter_into("A", 1, enc, (mjb_malformed_policy)99,
                           MJB_FILTER_NONE, enc, NULL, &into_size, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects invalid malformed policy")
-    ATT_ASSERT(into_size, (size_t)0, "Invalid filter policy resets output size")
+        MJB_STATUS_INVALID_ARGUMENT, "Filter into rejects invalid malformed policy");
+    ATT_ASSERT(into_size, (size_t)0, "Invalid filter policy resets output size");
 
     const char *into_input = "Hello\t\t\nworld";
     const char *into_expected = "Hello world";
@@ -57,8 +57,8 @@ int test_filter(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_filter_into(into_input, strlen(into_input), enc, MJB_MALFORMED_REPLACE,
                           MJB_FILTER_COLLAPSE_SPACES, enc, NULL, &into_size, NULL),
-        MJB_STATUS_OK, "Query filtered output size")
-    ATT_ASSERT(into_size, strlen(into_expected), "Filtered output required payload size")
+        MJB_STATUS_OK, "Query filtered output size");
+    ATT_ASSERT(into_size, strlen(into_expected), "Filtered output required payload size");
 
     unsigned char into_output[12];
     unsigned char untouched_output[sizeof(into_output)];
@@ -68,19 +68,19 @@ int test_filter(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_filter_into(into_input, strlen(into_input), enc, MJB_MALFORMED_REPLACE,
                           MJB_FILTER_COLLAPSE_SPACES, enc, into_output, &into_size, NULL),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "Filter into reports a small output buffer")
-    ATT_ASSERT(into_size, strlen(into_expected), "Small filter output reports required size")
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Filter into reports a small output buffer");
+    ATT_ASSERT(into_size, strlen(into_expected), "Small filter output reports required size");
     ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
-        "Small filter output buffer is not modified")
+        "Small filter output buffer is not modified");
 
     into_size = strlen(into_expected);
     ATT_ASSERT_STATUS(mjb_filter_into(into_input, strlen(into_input), enc, MJB_MALFORMED_REPLACE,
                           MJB_FILTER_COLLAPSE_SPACES, enc, into_output, &into_size, NULL),
-        MJB_STATUS_OK, "Filter into exact-size output buffer")
-    ATT_ASSERT(into_size, strlen(into_expected), "Filter into written payload size")
-    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Filter into output bytes")
+        MJB_STATUS_OK, "Filter into exact-size output buffer");
+    ATT_ASSERT(into_size, strlen(into_expected), "Filter into written payload size");
+    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Filter into output bytes");
     ATT_ASSERT((unsigned int)into_output[into_size], 0xA5u,
-        "Filter into does not write a terminator")
+        "Filter into does not write a terminator");
 
     const char *normalize_input = "Cafe\xCC\x81";
     const char *normalize_expected = "Caf\xC3\xA9";
@@ -89,10 +89,10 @@ int test_filter(void *arg) {
     ATT_ASSERT_STATUS(mjb_filter_into(normalize_input, strlen(normalize_input), enc, MJB_MALFORMED_REPLACE,
                           (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), enc,
                           into_output, &into_size, NULL),
-        MJB_STATUS_OK, "Filter into normalizes before filtering")
-    ATT_ASSERT(into_size, strlen(normalize_expected), "Normalized filter into size")
+        MJB_STATUS_OK, "Filter into normalizes before filtering");
+    ATT_ASSERT(into_size, strlen(normalize_expected), "Normalized filter into size");
     ATT_ASSERT(memcmp(into_output, normalize_expected, into_size), 0,
-        "Normalized filter into output")
+        "Normalized filter into output");
 
     assert_filter_into_matches("\x1\x2\tA\x1F", 5, enc, MJB_FILTER_CONTROLS, enc,
         "Filter into controls matches allocating filter");
@@ -110,42 +110,42 @@ int test_filter(void *arg) {
         enc, "Filter into normalization matches allocating filter");
 
     ATT_ASSERT_STATUS(mjb_filter(NULL, 1, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL buffer")
+        MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL buffer");
     ATT_ASSERT_STATUS(mjb_filter("", 0, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL result")
+        MJB_STATUS_INVALID_ARGUMENT, "Filter rejects NULL result");
 
     ATT_ASSERT_STATUS(mjb_filter("", 0, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK,
-        "Filter empty string")
-    ATT_ASSERT(result.output, (char *)"", "Filter empty string output")
-    ATT_ASSERT(result.output_size, 0, "Filter empty string size")
-    ATT_ASSERT(result.transformed, false, "Filter empty string transformed")
+        "Filter empty string");
+    ATT_ASSERT(result.output, (char *)"", "Filter empty string output");
+    ATT_ASSERT(result.output_size, 0, "Filter empty string size");
+    ATT_ASSERT(result.transformed, false, "Filter empty string transformed");
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter("", 0, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NORMALIZE, enc, &result, NULL),
-        MJB_STATUS_OK, "Filter normalize empty string")
-    ATT_ASSERT(result.output, (char *)"", "Filter normalize empty string output")
-    ATT_ASSERT(result.output_size, 0, "Filter normalize empty string size")
-    ATT_ASSERT(result.transformed, false, "Filter normalize empty string transformed")
+        MJB_STATUS_OK, "Filter normalize empty string");
+    ATT_ASSERT(result.output, (char *)"", "Filter normalize empty string output");
+    ATT_ASSERT(result.output_size, 0, "Filter normalize empty string size");
+    ATT_ASSERT(result.transformed, false, "Filter normalize empty string transformed");
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter("   ", 0, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_SPACES, enc, &result, NULL),
-        MJB_STATUS_OK, "Filter spaces")
-    ATT_ASSERT(result.output, (char *)"   ", "Filter spaces output")
+        MJB_STATUS_OK, "Filter spaces");
+    ATT_ASSERT(result.output, (char *)"   ", "Filter spaces output");
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter("A", 1, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, MJB_ENC_UTF_16LE, &result, NULL),
-        MJB_STATUS_OK, "Filter converts output encoding without other changes")
-    ATT_ASSERT(result.transformed, true, "Filter output encoding conversion transformed")
-    ATT_ASSERT(result.output_size, (size_t)2, "Filter output encoding conversion size")
-    ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter output encoding conversion bytes")
+        MJB_STATUS_OK, "Filter converts output encoding without other changes");
+    ATT_ASSERT(result.transformed, true, "Filter output encoding conversion transformed");
+    ATT_ASSERT(result.output_size, (size_t)2, "Filter output encoding conversion size");
+    ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter output encoding conversion bytes");
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter("A", 1, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NORMALIZE, MJB_ENC_UTF_16LE,
                           &result, NULL),
-        MJB_STATUS_OK, "Filter normalize converts output encoding")
-    ATT_ASSERT(result.transformed, true, "Filter normalize output encoding transformed")
-    ATT_ASSERT(result.output_size, (size_t)2, "Filter normalize output encoding size")
-    ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter normalize output encoding bytes")
+        MJB_STATUS_OK, "Filter normalize converts output encoding");
+    ATT_ASSERT(result.transformed, true, "Filter normalize output encoding transformed");
+    ATT_ASSERT(result.output_size, (size_t)2, "Filter normalize output encoding size");
+    ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter normalize output encoding bytes");
     mjb_result_free(&result);
 
     // clang-format off
@@ -170,48 +170,48 @@ int test_filter(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_filter(spaces, strlen(spaces), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_SPACES, enc,
                           &result, NULL),
-        MJB_STATUS_OK, "Filter spaces")
-    ATT_ASSERT(result.output, (char *)"                 ", "Filter spaces output")
-    ATT_ASSERT(result.output_size, 17, "Filter spaces output size")
+        MJB_STATUS_OK, "Filter spaces");
+    ATT_ASSERT(result.output, (char *)"                 ", "Filter spaces output");
+    ATT_ASSERT(result.output_size, 17, "Filter spaces output size");
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter(spaces, strlen(spaces), enc, MJB_MALFORMED_REPLACE,
         (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), enc, &result, NULL), MJB_STATUS_OK,
-        "Filter spaces and normalize")
-    ATT_ASSERT(result.output, (char *)"                 ", "Filter spaces and normalize output")
-    ATT_ASSERT(result.output_size, 17, "Filter spaces and normalize output size")
+        "Filter spaces and normalize");
+    ATT_ASSERT(result.output, (char *)"                 ", "Filter spaces and normalize output");
+    ATT_ASSERT(result.output_size, 17, "Filter spaces and normalize output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing with consecutive spaces
     const char *multiple_spaces = "hello    world";
     ATT_ASSERT_STATUS(mjb_filter(multiple_spaces, strlen(multiple_spaces), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse multiple spaces")
-    ATT_ASSERT(result.output, (char *)"hello world", "Collapse multiple spaces output")
-    ATT_ASSERT(result.output_size, 11, "Collapse multiple spaces output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse multiple spaces");
+    ATT_ASSERT(result.output, (char *)"hello world", "Collapse multiple spaces output");
+    ATT_ASSERT(result.output_size, 11, "Collapse multiple spaces output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing with tabs and newlines
     const char *mixed_whitespace = "hello\t\t\n\nworld";
     ATT_ASSERT_STATUS(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse mixed whitespace")
-    ATT_ASSERT(result.output, (char *)"hello world", "Collapse mixed whitespace output")
-    ATT_ASSERT(result.output_size, 11, "Collapse mixed whitespace output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse mixed whitespace");
+    ATT_ASSERT(result.output, (char *)"hello world", "Collapse mixed whitespace output");
+    ATT_ASSERT(result.output_size, 11, "Collapse mixed whitespace output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing with leading whitespace
     const char *leading_whitespace = "   hello world";
     ATT_ASSERT_STATUS(mjb_filter(leading_whitespace, strlen(leading_whitespace), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse leading whitespace")
-    ATT_ASSERT(result.output, (char *)" hello world", "Collapse leading whitespace output")
-    ATT_ASSERT(result.output_size, 12, "Collapse leading whitespace output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse leading whitespace");
+    ATT_ASSERT(result.output, (char *)" hello world", "Collapse leading whitespace output");
+    ATT_ASSERT(result.output_size, 12, "Collapse leading whitespace output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing with trailing whitespace
     const char *trailing_whitespace = "hello world   ";
     ATT_ASSERT_STATUS(mjb_filter(trailing_whitespace, strlen(trailing_whitespace), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse trailing whitespace")
-    ATT_ASSERT(result.output, (char *)"hello world ", "Collapse trailing whitespace output")
-    ATT_ASSERT(result.output_size, 12, "Collapse trailing whitespace output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse trailing whitespace");
+    ATT_ASSERT(result.output, (char *)"hello world ", "Collapse trailing whitespace output");
+    ATT_ASSERT(result.output_size, 12, "Collapse trailing whitespace output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing combined with MJB_FILTER_SPACES
@@ -221,67 +221,67 @@ int test_filter(void *arg) {
                                    "world";
     ATT_ASSERT_STATUS(mjb_filter(unicode_multiple_spaces, strlen(unicode_multiple_spaces),
         enc, MJB_MALFORMED_REPLACE, (mjb_filter_flags)(MJB_FILTER_SPACES | MJB_FILTER_COLLAPSE_SPACES), enc, &result, NULL),
-        MJB_STATUS_OK, "Collapse Unicode spaces")
-    ATT_ASSERT(result.output, (char *)"hello world", "Collapse Unicode spaces output")
-    ATT_ASSERT(result.output_size, 11, "Collapse Unicode spaces output size")
+        MJB_STATUS_OK, "Collapse Unicode spaces");
+    ATT_ASSERT(result.output, (char *)"hello world", "Collapse Unicode spaces output");
+    ATT_ASSERT(result.output_size, 11, "Collapse Unicode spaces output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing with complex mixed whitespace
     const char *complex_whitespace = "one  \t\n  two\r\n\r\nthree    four";
     ATT_ASSERT_STATUS(mjb_filter(complex_whitespace, strlen(complex_whitespace), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse complex whitespace")
-    ATT_ASSERT(result.output, (char *)"one two three four", "Collapse complex whitespace output")
-    ATT_ASSERT(result.output_size, 18, "Collapse complex whitespace output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse complex whitespace");
+    ATT_ASSERT(result.output, (char *)"one two three four", "Collapse complex whitespace output");
+    ATT_ASSERT(result.output_size, 18, "Collapse complex whitespace output size");
     mjb_result_free(&result);
 
     // Test whitespace collapsing with only whitespace
     const char *only_whitespace = "  \t\n  ";
     ATT_ASSERT_STATUS(mjb_filter(only_whitespace, strlen(only_whitespace), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse only whitespace")
-    ATT_ASSERT(result.output, (char *)" ", "Collapse only whitespace output")
-    ATT_ASSERT(result.output_size, 1, "Collapse only whitespace output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "Collapse only whitespace");
+    ATT_ASSERT(result.output, (char *)" ", "Collapse only whitespace output");
+    ATT_ASSERT(result.output_size, 1, "Collapse only whitespace output size");
     mjb_result_free(&result);
 
     // Test no collapsing when there's no consecutive whitespace
     const char *single_spaces = "hello world test";
     ATT_ASSERT_STATUS(mjb_filter(single_spaces, strlen(single_spaces), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "No collapse needed")
-    ATT_ASSERT(result.output, (char *)"hello world test", "No collapse needed output")
-    ATT_ASSERT(result.output_size, 16, "No collapse needed output size")
+        MJB_FILTER_COLLAPSE_SPACES, enc, &result, NULL), MJB_STATUS_OK, "No collapse needed");
+    ATT_ASSERT(result.output, (char *)"hello world test", "No collapse needed output");
+    ATT_ASSERT(result.output_size, 16, "No collapse needed output size");
     mjb_result_free(&result);
 
     const char *controls = "\x1\x2\t\n\v\f\r\x1f";
     ATT_ASSERT_STATUS(mjb_filter(controls, strlen(controls), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_CONTROLS, enc,
-        &result, NULL), MJB_STATUS_OK, "Filter controls")
-    ATT_ASSERT(result.output, (char *)"\t\n\v\f\r", "Filter controls output")
-    ATT_ASSERT(result.output_size, 5, "Filter controls output size")
-    ATT_ASSERT(result.transformed, true, "Filter controls transformed")
+        &result, NULL), MJB_STATUS_OK, "Filter controls");
+    ATT_ASSERT(result.output, (char *)"\t\n\v\f\r", "Filter controls output");
+    ATT_ASSERT(result.output_size, 5, "Filter controls output size");
+    ATT_ASSERT(result.transformed, true, "Filter controls transformed");
     mjb_result_free(&result);
 
     const char *numeric = "1234567890";
     ATT_ASSERT_STATUS(mjb_filter(numeric, strlen(numeric), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NUMERIC, enc,
-        &result, NULL), MJB_STATUS_OK, "Filter numeric")
-    ATT_ASSERT(result.output, (char *)"1234567890", "Filter numeric output")
-    ATT_ASSERT(result.output_size, 10, "Filter numeric output size")
-    ATT_ASSERT(result.transformed, false, "Filter numeric transformed")
+        &result, NULL), MJB_STATUS_OK, "Filter numeric");
+    ATT_ASSERT(result.output, (char *)"1234567890", "Filter numeric output");
+    ATT_ASSERT(result.output_size, 10, "Filter numeric output size");
+    ATT_ASSERT(result.transformed, false, "Filter numeric transformed");
     mjb_result_free(&result);
 
     // U+0661 ARABIC-INDIC DIGIT ONE, U+0662 ARABIC-INDIC DIGIT TWO
     const char *arabic_indic_digit = "\xD9\xA1\xD9\xA2";
     ATT_ASSERT_STATUS(mjb_filter(arabic_indic_digit, strlen(arabic_indic_digit), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NUMERIC, enc, &result, NULL), MJB_STATUS_OK, "Filter arabic indic digit")
-    ATT_ASSERT(result.output, (char *)"12", "Filter arabic indic digit output")
-    ATT_ASSERT(result.output_size, 2, "Filter arabic indic digit output size")
-    ATT_ASSERT(result.transformed, true, "Filter arabic indic digit transformed")
+        MJB_FILTER_NUMERIC, enc, &result, NULL), MJB_STATUS_OK, "Filter arabic indic digit");
+    ATT_ASSERT(result.output, (char *)"12", "Filter arabic indic digit output");
+    ATT_ASSERT(result.output_size, 2, "Filter arabic indic digit output size");
+    ATT_ASSERT(result.transformed, true, "Filter arabic indic digit transformed");
     mjb_result_free(&result);
 
     const char *ordinary_combining = "Cafe\xCC\x81"; // Cafe + U+0301 COMBINING ACUTE ACCENT
     ATT_ASSERT_STATUS(mjb_filter(ordinary_combining, strlen(ordinary_combining), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_LIMIT_COMBINING, enc, &result, NULL), MJB_STATUS_OK, "Limit combining ordinary accent")
-    ATT_ASSERT(result.output, (char *)ordinary_combining, "Limit combining ordinary accent output")
+        MJB_FILTER_LIMIT_COMBINING, enc, &result, NULL), MJB_STATUS_OK, "Limit combining ordinary accent");
+    ATT_ASSERT(result.output, (char *)ordinary_combining, "Limit combining ordinary accent output");
     ATT_ASSERT(result.output_size, strlen(ordinary_combining),
-        "Limit combining ordinary accent size")
-    ATT_ASSERT(result.transformed, false, "Limit combining ordinary accent transformed")
+        "Limit combining ordinary accent size");
+    ATT_ASSERT(result.transformed, false, "Limit combining ordinary accent transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -303,12 +303,12 @@ int test_filter(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_filter(stacked_combining, strlen(stacked_combining), enc, MJB_MALFORMED_REPLACE,
                           MJB_FILTER_LIMIT_COMBINING, enc, &result, NULL),
-        MJB_STATUS_OK, "Limit stacked combining marks")
+        MJB_STATUS_OK, "Limit stacked combining marks");
     ATT_ASSERT(strcmp(result.output, expected_stacked_combining), 0,
-        "Limit stacked combining marks output")
+        "Limit stacked combining marks output");
     ATT_ASSERT(result.output_size, strlen(expected_stacked_combining),
-        "Limit stacked combining marks size")
-    ATT_ASSERT(result.transformed, true, "Limit stacked combining marks transformed")
+        "Limit stacked combining marks size");
+    ATT_ASSERT(result.transformed, true, "Limit stacked combining marks transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -328,27 +328,27 @@ int test_filter(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_filter(split_by_removed_control, strlen(split_by_removed_control),
         enc, MJB_MALFORMED_REPLACE, (mjb_filter_flags)(MJB_FILTER_CONTROLS | MJB_FILTER_LIMIT_COMBINING), enc, &result, NULL),
-        MJB_STATUS_OK, "Limit combining after removed control")
+        MJB_STATUS_OK, "Limit combining after removed control");
     ATT_ASSERT(strcmp(result.output, expected_split_by_removed_control), 0,
-        "Limit combining after removed control output")
+        "Limit combining after removed control output");
     ATT_ASSERT(result.output_size, strlen(expected_split_by_removed_control),
-        "Limit combining after removed control size")
-    ATT_ASSERT(result.transformed, true, "Limit combining after removed control transformed")
+        "Limit combining after removed control size");
+    ATT_ASSERT(result.transformed, true, "Limit combining after removed control transformed");
     mjb_result_free(&result);
 
     const char *valid_utf8 = "Hello World";
     ATT_ASSERT_STATUS(mjb_filter(valid_utf8, strlen(valid_utf8), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc,
-        &result, NULL), MJB_STATUS_OK, "UTF8: Valid string")
-    ATT_ASSERT(result.output, (char *)"Hello World", "UTF8: Valid string output")
-    ATT_ASSERT(result.output_size, 11, "UTF8: Valid string size")
-    ATT_ASSERT(result.transformed, false, "UTF8: Valid string not transformed")
+        &result, NULL), MJB_STATUS_OK, "UTF8: Valid string");
+    ATT_ASSERT(result.output, (char *)"Hello World", "UTF8: Valid string output");
+    ATT_ASSERT(result.output_size, 11, "UTF8: Valid string size");
+    ATT_ASSERT(result.transformed, false, "UTF8: Valid string not transformed");
     mjb_result_free(&result);
 
     const char *valid_multibyte = "Héllo Wörld 世界"; // Latin + CJK
     ATT_ASSERT_STATUS(mjb_filter(valid_multibyte, strlen(valid_multibyte), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Valid multibyte")
-    ATT_ASSERT(strcmp(result.output, valid_multibyte), 0, "UTF8: Valid multibyte unchanged")
-    ATT_ASSERT(result.transformed, false, "UTF8: Valid multibyte not transformed")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Valid multibyte");
+    ATT_ASSERT(strcmp(result.output, valid_multibyte), 0, "UTF8: Valid multibyte unchanged");
+    ATT_ASSERT(result.transformed, false, "UTF8: Valid multibyte not transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -357,41 +357,41 @@ int test_filter(void *arg) {
     // clang-format on
 
     ATT_ASSERT_STATUS(mjb_filter(single_invalid, strlen(single_invalid), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Single invalid byte")
-    ATT_ASSERT(strcmp(result.output, expected_single), 0, "UTF8: Single invalid byte replaced")
-    ATT_ASSERT(result.output_size, 5, "UTF8: Single invalid byte size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Single invalid byte transformed")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Single invalid byte");
+    ATT_ASSERT(strcmp(result.output, expected_single), 0, "UTF8: Single invalid byte replaced");
+    ATT_ASSERT(result.output_size, 5, "UTF8: Single invalid byte size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Single invalid byte transformed");
     mjb_result_free(&result);
 
     mjb_diagnostic diagnostic;
     ATT_ASSERT_STATUS(mjb_filter(single_invalid, strlen(single_invalid), enc, MJB_MALFORMED_STOP,
                           MJB_FILTER_NONE, enc, &result, &diagnostic),
-        MJB_STATUS_MALFORMED_INPUT, "UTF8: Stop policy rejects malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "UTF8: Stop policy rejects malformed input");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_OVERLONG_SEQUENCE,
-        "UTF8: Stop policy reports the malformed kind")
+        "UTF8: Stop policy reports the malformed kind");
     ATT_ASSERT(diagnostic.byte_offset, (size_t)1,
-        "UTF8: Stop policy reports the malformed byte offset")
+        "UTF8: Stop policy reports the malformed byte offset");
 
     ATT_ASSERT_STATUS(mjb_filter(single_invalid, strlen(single_invalid), enc, MJB_MALFORMED_SKIP,
                           MJB_FILTER_NONE, enc, &result, &diagnostic),
-        MJB_STATUS_OK, "UTF8: Skip policy filters malformed input")
-    ATT_ASSERT(result.output_size, (size_t)2, "UTF8: Skip policy output size")
-    ATT_ASSERT(memcmp(result.output, "AB", 2), 0, "UTF8: Skip policy output")
-    ATT_ASSERT(result.transformed, true, "UTF8: Skip policy marks the result transformed")
+        MJB_STATUS_OK, "UTF8: Skip policy filters malformed input");
+    ATT_ASSERT(result.output_size, (size_t)2, "UTF8: Skip policy output size");
+    ATT_ASSERT(memcmp(result.output, "AB", 2), 0, "UTF8: Skip policy output");
+    ATT_ASSERT(result.transformed, true, "UTF8: Skip policy marks the result transformed");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_OVERLONG_SEQUENCE,
-        "UTF8: Skip policy retains the malformed diagnostic")
+        "UTF8: Skip policy retains the malformed diagnostic");
     mjb_result_free(&result);
 
     ATT_ASSERT_STATUS(mjb_filter(single_invalid, strlen(single_invalid), enc,
                           MJB_MALFORMED_REPLACE, MJB_FILTER_NORMALIZE, enc, &result,
                           &diagnostic),
-        MJB_STATUS_OK, "UTF8: Replacement policy sanitizes before normalization")
+        MJB_STATUS_OK, "UTF8: Replacement policy sanitizes before normalization");
     ATT_ASSERT(memcmp(result.output, expected_single, result.output_size), 0,
-        "UTF8: Normalization preserves the replacement")
+        "UTF8: Normalization preserves the replacement");
     ATT_ASSERT(result.transformed, true,
-        "UTF8: Sanitizing before normalization marks the result transformed")
+        "UTF8: Sanitizing before normalization marks the result transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -400,10 +400,10 @@ int test_filter(void *arg) {
     // clang-format on
 
     ATT_ASSERT_STATUS(mjb_filter(multiple_invalid, strlen(multiple_invalid), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Multiple invalid bytes")
-    ATT_ASSERT(strcmp(result.output, expected_multiple), 0, "UTF8: Multiple invalid bytes replaced")
-    ATT_ASSERT(result.output_size, 9, "UTF8: Multiple invalid bytes size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Multiple invalid bytes transformed")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Multiple invalid bytes");
+    ATT_ASSERT(strcmp(result.output, expected_multiple), 0, "UTF8: Multiple invalid bytes replaced");
+    ATT_ASSERT(result.output_size, 9, "UTF8: Multiple invalid bytes size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Multiple invalid bytes transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -412,11 +412,11 @@ int test_filter(void *arg) {
     // clang-format on
 
     ATT_ASSERT_STATUS(mjb_filter(invalid_2byte, strlen(invalid_2byte), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE,
-        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid 2-byte sequence")
+        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid 2-byte sequence");
     ATT_ASSERT(strcmp(result.output, expected_2byte), 0,
-        "UTF8: Invalid 2-byte maximal subparts replaced")
-    ATT_ASSERT(result.output_size, 8, "UTF8: Invalid 2-byte sequence size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid 2-byte transformed")
+        "UTF8: Invalid 2-byte maximal subparts replaced");
+    ATT_ASSERT(result.output_size, 8, "UTF8: Invalid 2-byte sequence size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid 2-byte transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -426,11 +426,11 @@ int test_filter(void *arg) {
     // clang-format on
 
     ATT_ASSERT_STATUS(mjb_filter(invalid_3byte, strlen(invalid_3byte), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE,
-        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid 3-byte sequence")
+        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid 3-byte sequence");
     ATT_ASSERT(strcmp(result.output, expected_3byte), 0,
-        "UTF8: Invalid 3-byte maximal subparts replaced")
-    ATT_ASSERT(result.output_size, 11, "UTF8: Invalid 3-byte sequence size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid 3-byte transformed")
+        "UTF8: Invalid 3-byte maximal subparts replaced");
+    ATT_ASSERT(result.output_size, 11, "UTF8: Invalid 3-byte sequence size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid 3-byte transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -439,20 +439,20 @@ int test_filter(void *arg) {
         "A\xEF\xBF\xBD\xEF\xBF\xBD\xEF\xBF\xBD\xEF\xBF\xBD" "B";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(invalid_4byte, strlen(invalid_4byte), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE,
-        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid 4-byte sequence")
+        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid 4-byte sequence");
     ATT_ASSERT(strcmp(result.output, expected_4byte), 0,
-        "UTF8: Invalid 4-byte maximal subparts replaced")
-    ATT_ASSERT(result.output_size, 14, "UTF8: Invalid 4-byte sequence size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid 4-byte transformed")
+        "UTF8: Invalid 4-byte maximal subparts replaced");
+    ATT_ASSERT(result.output_size, 14, "UTF8: Invalid 4-byte sequence size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid 4-byte transformed");
     mjb_result_free(&result);
 
     const char *truncated = "Hello\xC2"; // Incomplete 2-byte sequence
     const char *expected_truncated = "Hello\xEF\xBF\xBD";
     ATT_ASSERT_STATUS(mjb_filter(truncated, 6, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_OK, "UTF8: Truncated sequence")
-    ATT_ASSERT(strcmp(result.output, expected_truncated), 0, "UTF8: Truncated sequence replaced")
-    ATT_ASSERT(result.output_size, 8, "UTF8: Truncated sequence size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Truncated sequence transformed")
+        MJB_STATUS_OK, "UTF8: Truncated sequence");
+    ATT_ASSERT(strcmp(result.output, expected_truncated), 0, "UTF8: Truncated sequence replaced");
+    ATT_ASSERT(result.output_size, 8, "UTF8: Truncated sequence size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Truncated sequence transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -460,11 +460,11 @@ int test_filter(void *arg) {
     const char *expected_continuation = "A\xEF\xBF\xBD" "B";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(invalid_continuation, strlen(invalid_continuation), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid continuation")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid continuation");
     ATT_ASSERT(strcmp(result.output, expected_continuation), 0,
-        "UTF8: Invalid continuation replaced")
-    ATT_ASSERT(result.output_size, 5, "UTF8: Invalid continuation size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid continuation transformed")
+        "UTF8: Invalid continuation replaced");
+    ATT_ASSERT(result.output_size, 5, "UTF8: Invalid continuation size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid continuation transformed");
     mjb_result_free(&result);
 
     const char *mixed_valid_invalid = "Hé\xC0llo\xF5\x80\x80\x80 世\xC1界";
@@ -472,9 +472,9 @@ int test_filter(void *arg) {
                                  "\xEF\xBF\xBD\xEF\xBF\xBD\xEF\xBF\xBD\xEF\xBF\xBD"
                                  " 世\xEF\xBF\xBD界";
     ATT_ASSERT_STATUS(mjb_filter(mixed_valid_invalid, strlen(mixed_valid_invalid), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Mixed valid/invalid")
-    ATT_ASSERT(strcmp(result.output, expected_mixed), 0, "UTF8: Mixed valid/invalid replaced")
-    ATT_ASSERT(result.transformed, true, "UTF8: Mixed valid/invalid transformed")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Mixed valid/invalid");
+    ATT_ASSERT(strcmp(result.output, expected_mixed), 0, "UTF8: Mixed valid/invalid replaced");
+    ATT_ASSERT(result.transformed, true, "UTF8: Mixed valid/invalid transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -482,19 +482,19 @@ int test_filter(void *arg) {
     const char *expected_start = "\xEF\xBF\xBD" "Hello";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(invalid_start, strlen(invalid_start), enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE,
-        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid at start")
-    ATT_ASSERT(strcmp(result.output, expected_start), 0, "UTF8: Invalid at start replaced")
-    ATT_ASSERT(result.output_size, 8, "UTF8: Invalid at start size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid at start transformed")
+        enc, &result, NULL), MJB_STATUS_OK, "UTF8: Invalid at start");
+    ATT_ASSERT(strcmp(result.output, expected_start), 0, "UTF8: Invalid at start replaced");
+    ATT_ASSERT(result.output_size, 8, "UTF8: Invalid at start size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid at start transformed");
     mjb_result_free(&result);
 
     const char *invalid_end = "Hello\xC0";
     const char *expected_end = "Hello\xEF\xBF\xBD";
     ATT_ASSERT_STATUS(mjb_filter(invalid_end, 6, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_OK, "UTF8: Invalid at end")
-    ATT_ASSERT(strcmp(result.output, expected_end), 0, "UTF8: Invalid at end replaced")
-    ATT_ASSERT(result.output_size, 8, "UTF8: Invalid at end size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid at end transformed")
+        MJB_STATUS_OK, "UTF8: Invalid at end");
+    ATT_ASSERT(strcmp(result.output, expected_end), 0, "UTF8: Invalid at end replaced");
+    ATT_ASSERT(result.output_size, 8, "UTF8: Invalid at end size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid at end transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -503,39 +503,39 @@ int test_filter(void *arg) {
         "A\xEF\xBF\xBD\xEF\xBF\xBD\xEF\xBF\xBD" "B";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(consecutive_invalid, strlen(consecutive_invalid), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Consecutive invalid bytes")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Consecutive invalid bytes");
     ATT_ASSERT(strcmp(result.output, expected_consecutive), 0,
-        "UTF8: Consecutive invalid maximal subparts replaced")
-    ATT_ASSERT(result.output_size, 11, "UTF8: Consecutive invalid size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Consecutive invalid transformed")
+        "UTF8: Consecutive invalid maximal subparts replaced");
+    ATT_ASSERT(result.output_size, 11, "UTF8: Consecutive invalid size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Consecutive invalid transformed");
     mjb_result_free(&result);
 
     const char *overlong_slash = "\xC0\xAF"; // Overlong encoding of '/'
     const char *expected_overlong = "\xEF\xBF\xBD\xEF\xBF\xBD";
     ATT_ASSERT_STATUS(mjb_filter(overlong_slash, 2, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_OK, "UTF8: Overlong encoding")
-    ATT_ASSERT(strcmp(result.output, expected_overlong), 0, "UTF8: Overlong encoding replaced")
-    ATT_ASSERT(result.output_size, 6, "UTF8: Overlong encoding size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Overlong encoding transformed")
+        MJB_STATUS_OK, "UTF8: Overlong encoding");
+    ATT_ASSERT(strcmp(result.output, expected_overlong), 0, "UTF8: Overlong encoding replaced");
+    ATT_ASSERT(result.output_size, 6, "UTF8: Overlong encoding size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Overlong encoding transformed");
     mjb_result_free(&result);
 
     const char *only_invalid = "\xC0\xC1\xC2";
     const char *expected_only_invalid = "\xEF\xBF\xBD\xEF\xBF\xBD\xEF\xBF\xBD";
     ATT_ASSERT_STATUS(mjb_filter(only_invalid, 3, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_OK, "UTF8: Only invalid bytes")
-    ATT_ASSERT(strcmp(result.output, expected_only_invalid), 0, "UTF8: Only invalid bytes replaced")
-    ATT_ASSERT(result.output_size, 9, "UTF8: Only invalid bytes size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Only invalid bytes transformed")
+        MJB_STATUS_OK, "UTF8: Only invalid bytes");
+    ATT_ASSERT(strcmp(result.output, expected_only_invalid), 0, "UTF8: Only invalid bytes replaced");
+    ATT_ASSERT(result.output_size, 9, "UTF8: Only invalid bytes size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Only invalid bytes transformed");
     mjb_result_free(&result);
 
     const char *invalid_then_valid = "\xC0\xE4\xB8\x96"; // Invalid + 世
     const char *expected_invalid_valid = "\xEF\xBF\xBD\xE4\xB8\x96";
     ATT_ASSERT_STATUS(mjb_filter(invalid_then_valid, 4, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_OK, "UTF8: Invalid then valid")
+        MJB_STATUS_OK, "UTF8: Invalid then valid");
     ATT_ASSERT(strcmp(result.output, expected_invalid_valid), 0,
-        "UTF8: Invalid then valid replaced")
-    ATT_ASSERT(result.output_size, 6, "UTF8: Invalid then valid size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Invalid then valid transformed")
+        "UTF8: Invalid then valid replaced");
+    ATT_ASSERT(result.output_size, 6, "UTF8: Invalid then valid size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Invalid then valid transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -543,11 +543,11 @@ int test_filter(void *arg) {
     const char *expected_missing_2 = "A\xEF\xBF\xBD" "B";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(missing_continuation_2, strlen(missing_continuation_2), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Missing continuation 2-byte")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Missing continuation 2-byte");
     ATT_ASSERT(strcmp(result.output, expected_missing_2), 0,
-        "UTF8: Missing continuation 2-byte replaced")
-    ATT_ASSERT(result.output_size, 5, "UTF8: Missing continuation 2-byte size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Missing continuation 2-byte transformed")
+        "UTF8: Missing continuation 2-byte replaced");
+    ATT_ASSERT(result.output_size, 5, "UTF8: Missing continuation 2-byte size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Missing continuation 2-byte transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -555,11 +555,11 @@ int test_filter(void *arg) {
     const char *expected_missing_3 = "A\xEF\xBF\xBD" "B";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(missing_continuation_3, strlen(missing_continuation_3), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Missing continuation 3-byte")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Missing continuation 3-byte");
     ATT_ASSERT(strcmp(result.output, expected_missing_3), 0,
-        "UTF8: Missing continuation 3-byte replaced")
-    ATT_ASSERT(result.output_size, 5, "UTF8: Missing continuation 3-byte size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Missing continuation 3-byte transformed")
+        "UTF8: Missing continuation 3-byte replaced");
+    ATT_ASSERT(result.output_size, 5, "UTF8: Missing continuation 3-byte size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Missing continuation 3-byte transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -568,11 +568,11 @@ int test_filter(void *arg) {
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(replacement_then_valid, strlen(replacement_then_valid), enc, MJB_MALFORMED_REPLACE,
                           MJB_FILTER_NONE, enc, &result, NULL),
-        MJB_STATUS_OK, "UTF8: Replacement then valid")
+        MJB_STATUS_OK, "UTF8: Replacement then valid");
     ATT_ASSERT(strcmp(result.output, expected_replacement_valid), 0,
-        "UTF8: Replacement then valid text")
-    ATT_ASSERT(result.output_size, 8, "UTF8: Replacement then valid size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Replacement then valid transformed")
+        "UTF8: Replacement then valid text");
+    ATT_ASSERT(result.output_size, 8, "UTF8: Replacement then valid size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Replacement then valid transformed");
     mjb_result_free(&result);
 
     // clang-format off
@@ -583,12 +583,10 @@ int test_filter(void *arg) {
         "D";
     // clang-format on
     ATT_ASSERT_STATUS(mjb_filter(separate_invalid, strlen(separate_invalid), enc, MJB_MALFORMED_REPLACE,
-        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Separate invalid sequences")
+        MJB_FILTER_NONE, enc, &result, NULL), MJB_STATUS_OK, "UTF8: Separate invalid sequences");
     ATT_ASSERT(strcmp(result.output, expected_separate), 0,
-        "UTF8: Separate invalid sequences replaced")
-    ATT_ASSERT(result.output_size, 19, "UTF8: Separate invalid sequences size")
-    ATT_ASSERT(result.transformed, true, "UTF8: Separate invalid sequences transformed")
+        "UTF8: Separate invalid sequences replaced");
+    ATT_ASSERT(result.output_size, 19, "UTF8: Separate invalid sequences size");
+    ATT_ASSERT(result.transformed, true, "UTF8: Separate invalid sequences transformed");
     mjb_result_free(&result);
-
-    return 0;
 }

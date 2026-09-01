@@ -60,15 +60,15 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     mjb_status status = mjb_map_case_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type,
         encoding, NULL, &required, NULL);
 
-    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into sizing matches allocating case mapping")
-    ATT_ASSERT(required, result.output_size, "Case into required size matches allocated size")
+    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into sizing matches allocating case mapping");
+    ATT_ASSERT(required, result.output_size, "Case into required size matches allocated size");
 
     if(status != MJB_STATUS_OK || required != result.output_size) {
         return result.output;
     }
 
     unsigned char *output = (unsigned char *)malloc(required + 1);
-    ATT_ASSERT(output != NULL, true, "Allocate case into comparison buffer")
+    ATT_ASSERT(output != NULL, true, "Allocate case into comparison buffer");
 
     if(output == NULL) {
         return result.output;
@@ -79,11 +79,11 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     status = mjb_map_case_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type, encoding,
         output, &output_size, NULL);
 
-    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into output matches allocating case mapping")
-    ATT_ASSERT(output_size, result.output_size, "Case into written size matches allocated size")
+    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into output matches allocating case mapping");
+    ATT_ASSERT(output_size, result.output_size, "Case into written size matches allocated size");
     ATT_ASSERT(memcmp(output, result.output, result.output_size), 0,
-        "Case into bytes match allocating case mapping")
-    ATT_ASSERT((unsigned int)output[required], 0xA5u, "Case into does not write a terminator")
+        "Case into bytes match allocating case mapping");
+    ATT_ASSERT((unsigned int)output[required], 0xA5u, "Case into does not write a terminator");
 
     free(output);
 
@@ -92,7 +92,7 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
 
 void mjb_test_free(void *output) {
     mjb_result result = { (char *)output, 0, true };
-    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free test result")
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free test result");
 }
 
 void read_test_file(const char *filename, test_file_callback callback) {
@@ -104,7 +104,7 @@ void read_test_file(const char *filename, test_file_callback callback) {
     FILE *file = fopen(filename, "r");
 
     if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "Valid breaking test file")
+        ATT_ASSERT("Not opened", "Opened file", "Valid breaking test file");
 
         return;
     }

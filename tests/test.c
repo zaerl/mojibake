@@ -24,6 +24,7 @@
     #include <unistd.h>
 #endif
 
+#define ATT_IMPLEMENTATION
 #include "test.h"
 
 #ifndef MJB_TEST_SOURCE_DIR
@@ -316,6 +317,10 @@ static void show_help(const char *executable, struct option options[], const cha
     }
 }
 
+static void test_started(const char *name) {
+    mjb_test_coverage_clear();
+}
+
 int main(int argc, char *const argv[]) {
 #ifdef _WIN32
     LARGE_INTEGER frequency, start, end;
@@ -324,26 +329,12 @@ int main(int argc, char *const argv[]) {
     struct timespec start, end;
 #endif
     double elapsed = 0;
-    unsigned int verbosity = 0;
+    unsigned int verbosity = 1;
     int option = 0;
     int option_index = 0;
     char *filter = NULL;
     bool is_ctest = getenv("CTEST_INTERACTIVE_DEBUG_MODE") != NULL ||
         getenv("DASHBOARD_TEST_FROM_CTEST") != NULL;
-    bool show_colors = false;
-
-    if(isatty(STDOUT_FILENO)) {
-        const char *no_color = getenv("NO_COLOR");
-
-#ifdef _WIN32
-        // On Windows, TERM is usually not set, so enable colors by default if NO_COLOR is not set
-        show_colors = no_color == NULL;
-#else
-        // On Unix, check TERM environment variable
-        const char *term = getenv("TERM");
-        show_colors = no_color == NULL && term != NULL && strcmp(term, "dumb") != 0;
-#endif
-    }
 
     struct option long_options[] = { { "coverage", required_argument, NULL, 'C' },
         { "filter", required_argument, NULL, 'f' }, { "help", no_argument, NULL, 'h' },
@@ -413,72 +404,10 @@ int main(int argc, char *const argv[]) {
         return 1;
     }
 
-    unsigned int step = 0;
-
-#define RUN_TEST(NAME) \
-    if(!filter || strstr(#NAME, filter)) { \
-        mjb_test_coverage_clear(); \
-        if(!is_ctest) { \
-            printf("%sTest: %s%s%s\n", verbosity && step ? "\n" : "", \
-                show_colors ? "\x1b[1;32m" : "", #NAME, show_colors ? "\x1b[0m" : ""); \
-        } \
-        test_##NAME(NULL); \
-        ++step; \
-    }
-
-    // Start tests declarations.
-    RUN_TEST(bidi)
-    RUN_TEST(bidi_class)
-    RUN_TEST(break_line)
-    RUN_TEST(break_sentence)
-    RUN_TEST(break_word)
-    RUN_TEST(case)
-    RUN_TEST(caseless)
-    RUN_TEST(cjk)
-    RUN_TEST(codepoint)
-    RUN_TEST(collation)
-    RUN_TEST(east_asian_width)
-    RUN_TEST(embedded_null)
-    RUN_TEST(emoji)
-    RUN_TEST(encoding)
-    RUN_TEST(example)
-    RUN_TEST(filter)
-    RUN_TEST(format)
-    RUN_TEST(hangul_composition)
-    RUN_TEST(hangul)
-    RUN_TEST(identifier)
-    RUN_TEST(idna)
-    RUN_TEST(locales)
-    RUN_TEST(mojibake)
-    RUN_TEST(next)
-    RUN_TEST(normalization)
-    RUN_TEST(plane)
-    RUN_TEST(properties)
-    RUN_TEST(quick_check)
-    RUN_TEST(security)
-    RUN_TEST(segmentation)
-    RUN_TEST(special_case)
-    RUN_TEST(string)
-    RUN_TEST(terminal_width)
-    RUN_TEST(utf)
-    RUN_TEST(version)
-
-#ifdef __cplusplus
-    RUN_TEST(cpp_break)
-    RUN_TEST(cpp_locales)
-    RUN_TEST(cpp_mojibake)
-    RUN_TEST(cpp_normalization)
-#endif
-
-    unsigned int tests_valid = att_get_valid_tests();
-    unsigned int tests_total = att_get_total_tests();
-    bool valid = tests_valid == tests_total;
-
-    // Green if valid and red if not
-    const char *color_code = show_colors ? (valid ? "\x1B[32m" : "\x1B[31m") : "";
-
-    printf("%sTests valid/run: %s%d/%d%s\n", verbosity >= 1 ? "\n" : "", color_code, tests_valid,
-        tests_total, show_colors ? "\x1B[0m" : "");
+    att_set_test_start_callback(test_started);
+    printf("Running tests with %s\n", filter ? filter : "no filter");
+    att_run_tests(filter);
+    bool all_valid = att_report() == 0;
 
     if(coverage_enabled && !write_coverage_file()) {
         return 1;
@@ -499,5 +428,5 @@ int main(int argc, char *const argv[]) {
         free(filter);
     }
 
-    return valid ? 0 : -1;
+    return all_valid ? 0 : -1;
 }

@@ -52,7 +52,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
     if(status != MJB_STATUS_OK) {
         snprintf(test_name, 128, "#%u %s", current_line, step);
-        ATT_ASSERT(true, false, test_name)
+        ATT_ASSERT(true, false, test_name);
 
         if(result.output != NULL && result.output != source) {
             (void)mjb_result_free(&result);
@@ -84,7 +84,7 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     }
 
     // clang-format off
-    int test_ret = ATT_ASSERT(result.output, normalized, test_name)
+    int test_ret = ATT_ASSERT(result.output, normalized, test_name);
 
     // (strange reformatting of the ATT_ASSERT macro)
     if(result.output != NULL && result.output != source) {
@@ -101,24 +101,24 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     // An ASCII string should not be normalized.
     if(is_ascii) {
         snprintf(test_name, 128, "#%u %s is ASCII and not normalized", current_line, step);
-        test_ret = ATT_ASSERT(result.transformed, false, test_name)
+        test_ret = ATT_ASSERT(result.transformed, false, test_name);
     }
 
     if(form == MJB_NORMALIZATION_NFC && has_only_latin1(source, source_size)) {
         snprintf(test_name, 128, "#%u %s \"%s\" is Latin-1 and not normalized", current_line, step,
             source);
-        test_ret = ATT_ASSERT(result.transformed, false, test_name)
+        test_ret = ATT_ASSERT(result.transformed, false, test_name);
     }
 
     MJB_TEST_COVERAGE(mjb_normalize_into);
     size_t required = 0;
     ATT_ASSERT_STATUS(mjb_normalize_into(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, form, MJB_ENC_UTF_8,
                           NULL, &required, NULL),
-        MJB_STATUS_OK, test_name)
-    ATT_ASSERT(required, normalized_size, test_name)
+        MJB_STATUS_OK, test_name);
+    ATT_ASSERT(required, normalized_size, test_name);
 
     char into_output[513];
-    ATT_ASSERT((int)(required < sizeof(into_output)), true, test_name)
+    ATT_ASSERT((int)(required < sizeof(into_output)), true, test_name);
 
     if(required >= sizeof(into_output)) {
         return 0;
@@ -128,10 +128,10 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     size_t output_size = required;
     ATT_ASSERT_STATUS(mjb_normalize_into(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, form, MJB_ENC_UTF_8,
                           into_output, &output_size, NULL),
-        MJB_STATUS_OK, test_name)
-    ATT_ASSERT(output_size, normalized_size, test_name)
-    ATT_ASSERT((int)memcmp(into_output, normalized, normalized_size), 0, test_name)
-    ATT_ASSERT(into_output[output_size], '#', test_name)
+        MJB_STATUS_OK, test_name);
+    ATT_ASSERT(output_size, normalized_size, test_name);
+    ATT_ASSERT((int)memcmp(into_output, normalized, normalized_size), 0, test_name);
+    ATT_ASSERT(into_output[output_size], '#', test_name);
 
     return test_ret;
 }
@@ -143,11 +143,11 @@ static void check_nfkc_casefold_into(const char *source, size_t source_size,
     MJB_TEST_COVERAGE(mjb_nfkc_casefold_into);
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, output_encoding,
                           NULL, &required, NULL),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT(required, allocated->output_size, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT(required, allocated->output_size, name);
 
     char output[513];
-    ATT_ASSERT((int)(required < sizeof(output)), true, name)
+    ATT_ASSERT((int)(required < sizeof(output)), true, name);
 
     if(required >= sizeof(output)) {
         return;
@@ -157,10 +157,10 @@ static void check_nfkc_casefold_into(const char *source, size_t source_size,
     size_t output_size = required;
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, output_encoding,
                           output, &output_size, NULL),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT(output_size, allocated->output_size, name)
-    ATT_ASSERT((int)memcmp(output, allocated->output, output_size), 0, name)
-    ATT_ASSERT(output[output_size], '#', name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT(output_size, allocated->output_size, name);
+    ATT_ASSERT((int)memcmp(output, allocated->output, output_size), 0, name);
+    ATT_ASSERT(output[output_size], '#', name);
 }
 
 static void check_nfkc_casefold(const char *source, size_t source_size, const char *expected,
@@ -169,60 +169,60 @@ static void check_nfkc_casefold(const char *source, size_t source_size, const ch
 
     MJB_TEST_COVERAGE(mjb_nfkc_casefold);
     ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT(result.output_size, expected_size, name)
-    ATT_ASSERT((int)memcmp(result.output, expected, expected_size), 0, name)
-    ATT_ASSERT(result.transformed, true, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT(result.output_size, expected_size, name);
+    ATT_ASSERT((int)memcmp(result.output, expected, expected_size), 0, name);
+    ATT_ASSERT(result.transformed, true, name);
     check_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, &result, name);
-    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, name)
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, name);
 }
 
 static void test_nfkc_casefold(void) {
     mjb_result result = { NULL, 0, false };
 
     ATT_ASSERT_STATUS(mjb_nfkc_casefold(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL buffer")
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL buffer");
     ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL result")
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL result");
     ATT_ASSERT_STATUS(mjb_nfkc_casefold("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
-        MJB_STATUS_OK, "NFKC casefold accepts empty input")
-    ATT_ASSERT(result.transformed, false, "NFKC casefold empty input is borrowed")
+        MJB_STATUS_OK, "NFKC casefold accepts empty input");
+    ATT_ASSERT(result.transformed, false, "NFKC casefold empty input is borrowed");
 
     size_t into_size = 9;
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
                           &into_size, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL buffer")
-    ATT_ASSERT(into_size, (size_t)0, "NFKC casefold into clears size after invalid input")
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL buffer");
+    ATT_ASSERT(into_size, (size_t)0, "NFKC casefold into clears size after invalid input");
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL size")
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL size");
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
                           &into_size, NULL),
-        MJB_STATUS_OK, "NFKC casefold into measures empty input")
-    ATT_ASSERT(into_size, (size_t)0, "NFKC casefold into empty size")
+        MJB_STATUS_OK, "NFKC casefold into measures empty input");
+    ATT_ASSERT(into_size, (size_t)0, "NFKC casefold into empty size");
 
     const char *into_input = "Stra\xC3\x9F"
                              "e\xC2\xAD";
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(into_input, 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
                           &into_size, NULL),
-        MJB_STATUS_OK, "NFKC casefold into queries required size")
-    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into required size")
+        MJB_STATUS_OK, "NFKC casefold into queries required size");
+    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into required size");
 
     char into_output[8] = { '#', '#', '#', '#', '#', '#', '#', '#' };
     into_size = 6;
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(into_input, 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
                           into_output, &into_size, NULL),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "NFKC casefold into reports a small output buffer")
-    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into preserves required size")
+        MJB_STATUS_OUTPUT_TOO_SMALL, "NFKC casefold into reports a small output buffer");
+    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into preserves required size");
     ATT_ASSERT((int)memcmp(into_output, "########", sizeof(into_output)), 0,
-        "NFKC casefold into leaves a small buffer untouched")
+        "NFKC casefold into leaves a small buffer untouched");
 
     into_size = 7;
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(into_input, 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
                           into_output, &into_size, NULL),
-        MJB_STATUS_OK, "NFKC casefold into writes into exact capacity")
-    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into written size")
-    ATT_ASSERT((int)memcmp(into_output, "strasse", 7), 0, "NFKC casefold into output")
-    ATT_ASSERT(into_output[7], '#', "NFKC casefold into does not write a terminator")
+        MJB_STATUS_OK, "NFKC casefold into writes into exact capacity");
+    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into written size");
+    ATT_ASSERT((int)memcmp(into_output, "strasse", 7), 0, "NFKC casefold into output");
+    ATT_ASSERT(into_output[7], '#', "NFKC casefold into does not write a terminator");
 
     check_nfkc_casefold("Stra\xC3\x9F"
                         "e\xC2\xAD",
@@ -236,12 +236,12 @@ static void test_nfkc_casefold(void) {
         "NFKC casefold safely preserves a supplementary codepoint");
 
     ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result, NULL),
-        MJB_STATUS_OK, "NFKC casefold supports UTF-16 output")
-    ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold UTF-16 output size")
-    ATT_ASSERT((int)memcmp(result.output, "a\0", 2), 0, "NFKC casefold UTF-16 output bytes")
+        MJB_STATUS_OK, "NFKC casefold supports UTF-16 output");
+    ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold UTF-16 output size");
+    ATT_ASSERT((int)memcmp(result.output, "a\0", 2), 0, "NFKC casefold UTF-16 output bytes");
     check_nfkc_casefold_into("A", 1, MJB_ENC_UTF_16LE, &result,
         "NFKC casefold into supports UTF-16 output");
-    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "NFKC casefold frees UTF-16 output")
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "NFKC casefold frees UTF-16 output");
 }
 
 // Verify Unicode R5 against every explicit NFKC_CF mapping. The normative string transform maps
@@ -251,7 +251,7 @@ static void test_nfkc_casefold_file(void) {
     FILE *file = fopen("./utils/generate/unicode-data/UCD/DerivedNormalizationProps.txt", "r");
 
     if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "Valid NFKC casefold data file")
+        ATT_ASSERT("Not opened", "Opened file", "Valid NFKC casefold data file");
         return;
     }
 
@@ -311,7 +311,7 @@ static void test_nfkc_casefold_file(void) {
         mjb_result expected;
         ATT_ASSERT_STATUS(mjb_normalize(expected_mapping, mapping_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                               MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &expected, NULL),
-            MJB_STATUS_OK, "Normalize expected NFKC casefold mapping")
+            MJB_STATUS_OK, "Normalize expected NFKC casefold mapping");
 
         for(unsigned int codepoint = start; codepoint <= end; ++codepoint) {
             char source[8];
@@ -323,12 +323,12 @@ static void test_nfkc_casefold_file(void) {
 
             ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
                                   &actual, NULL),
-                MJB_STATUS_OK, test_name)
-            ATT_ASSERT(actual.output_size, expected.output_size, test_name)
+                MJB_STATUS_OK, test_name);
+            ATT_ASSERT(actual.output_size, expected.output_size, test_name);
             ATT_ASSERT((int)memcmp(actual.output, expected.output, expected.output_size), 0,
-                test_name)
+                test_name);
             check_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, &actual, test_name);
-            ATT_ASSERT_STATUS(mjb_result_free(&actual), MJB_STATUS_OK, test_name)
+            ATT_ASSERT_STATUS(mjb_result_free(&actual), MJB_STATUS_OK, test_name);
         }
 
         if(expected.transformed) {
@@ -349,70 +349,70 @@ static void test_normalization_malformed_policies(void) {
     ATT_ASSERT_STATUS(mjb_normalize(malformed, sizeof(malformed) - 1, MJB_ENC_UTF_8,
                           MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
                           &diagnostic),
-        MJB_STATUS_MALFORMED_INPUT, "Normalize stop policy rejects malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "Normalize stop policy rejects malformed input");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
-        "Normalize reports malformed input kind")
-    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "Normalize reports malformed byte offset")
-    ATT_ASSERT(diagnostic.byte_length, (size_t)1, "Normalize reports malformed byte length")
+        "Normalize reports malformed input kind");
+    ATT_ASSERT(diagnostic.byte_offset, (size_t)1, "Normalize reports malformed byte offset");
+    ATT_ASSERT(diagnostic.byte_length, (size_t)1, "Normalize reports malformed byte length");
 
     ATT_ASSERT_STATUS(mjb_normalize(malformed, sizeof(malformed) - 1, MJB_ENC_UTF_8,
                           MJB_MALFORMED_REPLACE, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
                           &diagnostic),
-        MJB_STATUS_OK, "Normalize replace policy accepts malformed input")
-    ATT_ASSERT(result.output_size, (size_t)6, "Normalize replacement output size")
+        MJB_STATUS_OK, "Normalize replace policy accepts malformed input");
+    ATT_ASSERT(result.output_size, (size_t)6, "Normalize replacement output size");
     ATT_ASSERT((int)memcmp(result.output, "A\xEF\xBF\xBD\xC3\xA9", result.output_size), 0,
-        "Normalize replacement output")
+        "Normalize replacement output");
     ATT_ASSERT(diagnostic.byte_offset, (size_t)1,
-        "Normalize replacement retains malformed diagnostic")
+        "Normalize replacement retains malformed diagnostic");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
-        "Free normalization replacement result")
+        "Free normalization replacement result");
 
     ATT_ASSERT_STATUS(mjb_normalize(malformed, sizeof(malformed) - 1, MJB_ENC_UTF_8,
                           MJB_MALFORMED_SKIP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
                           &diagnostic),
-        MJB_STATUS_OK, "Normalize skip policy accepts malformed input")
-    ATT_ASSERT(result.output_size, (size_t)3, "Normalize skip output size")
+        MJB_STATUS_OK, "Normalize skip policy accepts malformed input");
+    ATT_ASSERT(result.output_size, (size_t)3, "Normalize skip output size");
     ATT_ASSERT((int)memcmp(result.output, "A\xC3\xA9", result.output_size), 0,
-        "Normalize skip output")
-    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free normalization skip result")
+        "Normalize skip output");
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free normalization skip result");
 
     size_t output_size = 0;
     ATT_ASSERT_STATUS(mjb_normalize_into(malformed, sizeof(malformed) - 1, MJB_ENC_UTF_8,
                           MJB_MALFORMED_REPLACE, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL,
                           &output_size, &diagnostic),
-        MJB_STATUS_OK, "Normalize into measures replacement output")
-    ATT_ASSERT(output_size, (size_t)6, "Normalize into replacement size")
+        MJB_STATUS_OK, "Normalize into measures replacement output");
+    ATT_ASSERT(output_size, (size_t)6, "Normalize into replacement size");
 
     const char malformed_casefold[] = "A\x80"
                                       "B";
     ATT_ASSERT_STATUS(mjb_nfkc_casefold(malformed_casefold, sizeof(malformed_casefold) - 1,
                           MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE, MJB_ENC_UTF_8, &result,
                           &diagnostic),
-        MJB_STATUS_OK, "NFKC casefold replace policy accepts malformed input")
-    ATT_ASSERT(result.output_size, (size_t)5, "NFKC casefold replacement output size")
+        MJB_STATUS_OK, "NFKC casefold replace policy accepts malformed input");
+    ATT_ASSERT(result.output_size, (size_t)5, "NFKC casefold replacement output size");
     ATT_ASSERT((int)memcmp(result.output, "a\xEF\xBF\xBD"
                                           "b",
                    result.output_size),
-        0, "NFKC casefold replacement output")
+        0, "NFKC casefold replacement output");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
-        "Free NFKC casefold replacement result")
+        "Free NFKC casefold replacement result");
 
     ATT_ASSERT_STATUS(mjb_nfkc_casefold(malformed_casefold, sizeof(malformed_casefold) - 1,
                           MJB_ENC_UTF_8, MJB_MALFORMED_SKIP, MJB_ENC_UTF_8, &result,
                           &diagnostic),
-        MJB_STATUS_OK, "NFKC casefold skip policy accepts malformed input")
-    ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold skip output size")
+        MJB_STATUS_OK, "NFKC casefold skip policy accepts malformed input");
+    ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold skip output size");
     ATT_ASSERT((int)memcmp(result.output, "ab", result.output_size), 0,
-        "NFKC casefold skip output")
+        "NFKC casefold skip output");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
-        "Free NFKC casefold skip result")
+        "Free NFKC casefold skip result");
 }
 
 /**
  * Run utils/generate/unicode-data/UCD/NormalizationTest.txt tests
  */
-int test_normalization(void *arg) {
+ATT_TEST(normalization) {
     char line[1024];
     unsigned int current_line = 1;
     // unsigned int index = 0;
@@ -424,10 +424,10 @@ int test_normalization(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_normalize(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
                           &guard_result, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL buffer")
+        MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL buffer");
     ATT_ASSERT_STATUS(mjb_normalize("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
                           NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL result")
+        MJB_STATUS_INVALID_ARGUMENT, "Normalize rejects NULL result");
 
     char noncharacter_source[] = "\xF1\x8F\xBF\xBE>\xCC\xB8";
     char noncharacter_normalized[] = "\xF1\x8F\xBF\xBE\xE2\x89\xAF";
@@ -440,13 +440,13 @@ int test_normalization(void *arg) {
 
     ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE,
                           &guard_result, NULL),
-        MJB_STATUS_OK, "Normalize converts output encoding for already-normalized input")
+        MJB_STATUS_OK, "Normalize converts output encoding for already-normalized input");
     ATT_ASSERT(guard_result.transformed, true,
-        "Normalize converted already-normalized input transformed")
+        "Normalize converted already-normalized input transformed");
     ATT_ASSERT(guard_result.output_size, (size_t)2,
-        "Normalize converted already-normalized input size")
+        "Normalize converted already-normalized input size");
     ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
-        "Normalize converted already-normalized input bytes")
+        "Normalize converted already-normalized input bytes");
     if(guard_result.transformed) {
         (void)mjb_result_free(&guard_result);
     }
@@ -454,70 +454,70 @@ int test_normalization(void *arg) {
     size_t into_size = 9;
     ATT_ASSERT_STATUS(mjb_normalize_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
                           MJB_ENC_UTF_8, NULL, &into_size, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Normalize into rejects NULL buffer")
-    ATT_ASSERT(into_size, (size_t)0, "Normalize into clears size after invalid input")
+        MJB_STATUS_INVALID_ARGUMENT, "Normalize into rejects NULL buffer");
+    ATT_ASSERT(into_size, (size_t)0, "Normalize into clears size after invalid input");
     ATT_ASSERT_STATUS(mjb_normalize_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
                           MJB_ENC_UTF_8, NULL, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Normalize into rejects NULL size")
+        MJB_STATUS_INVALID_ARGUMENT, "Normalize into rejects NULL size");
 
     into_size = 9;
     ATT_ASSERT_STATUS(mjb_normalize_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, (mjb_normalization)99,
                           MJB_ENC_UTF_8, NULL, &into_size, NULL),
-        MJB_STATUS_INVALID_FORM, "Normalize into rejects invalid form")
-    ATT_ASSERT(into_size, (size_t)0, "Normalize into clears size after invalid form")
+        MJB_STATUS_INVALID_FORM, "Normalize into rejects invalid form");
+    ATT_ASSERT(into_size, (size_t)0, "Normalize into clears size after invalid form");
 
     into_size = 9;
     ATT_ASSERT_STATUS(mjb_normalize_into("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
                           MJB_ENC_UTF_8, NULL, &into_size, NULL),
-        MJB_STATUS_OK, "Normalize into measures empty input")
-    ATT_ASSERT(into_size, (size_t)0, "Normalize into empty size")
+        MJB_STATUS_OK, "Normalize into measures empty input");
+    ATT_ASSERT(into_size, (size_t)0, "Normalize into empty size");
 
     const char *into_input = "Cafe\xCC\x81";
     into_size = 0;
     ATT_ASSERT_STATUS(mjb_normalize_into(into_input, 6, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &into_size, NULL),
-        MJB_STATUS_OK, "Normalize into queries required size")
-    ATT_ASSERT(into_size, (size_t)5, "Normalize into required size")
+        MJB_STATUS_OK, "Normalize into queries required size");
+    ATT_ASSERT(into_size, (size_t)5, "Normalize into required size");
 
     char into_output[6] = { '#', '#', '#', '#', '#', '#' };
     into_size = 4;
     ATT_ASSERT_STATUS(mjb_normalize_into(into_input, 6, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, into_output, &into_size, NULL),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "Normalize into reports a small output buffer")
-    ATT_ASSERT(into_size, (size_t)5, "Normalize into preserves required size")
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Normalize into reports a small output buffer");
+    ATT_ASSERT(into_size, (size_t)5, "Normalize into preserves required size");
     ATT_ASSERT((int)memcmp(into_output, "######", sizeof(into_output)), 0,
-        "Normalize into leaves a small buffer untouched")
+        "Normalize into leaves a small buffer untouched");
 
     into_size = 5;
     ATT_ASSERT_STATUS(mjb_normalize_into(into_input, 6, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, into_output, &into_size, NULL),
-        MJB_STATUS_OK, "Normalize into writes into exact capacity")
-    ATT_ASSERT(into_size, (size_t)5, "Normalize into written size")
-    ATT_ASSERT((int)memcmp(into_output, "Caf\xC3\xA9", 5), 0, "Normalize into output")
-    ATT_ASSERT(into_output[5], '#', "Normalize into does not write a terminator")
+        MJB_STATUS_OK, "Normalize into writes into exact capacity");
+    ATT_ASSERT(into_size, (size_t)5, "Normalize into written size");
+    ATT_ASSERT((int)memcmp(into_output, "Caf\xC3\xA9", 5), 0, "Normalize into output");
+    ATT_ASSERT(into_output[5], '#', "Normalize into does not write a terminator");
 
     char nfd_output[4] = { '#', '#', '#', '#' };
     into_size = 0;
     ATT_ASSERT_STATUS(mjb_normalize_into("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, NULL, &into_size, NULL),
-        MJB_STATUS_OK, "Normalize into measures decomposed output")
-    ATT_ASSERT(into_size, (size_t)3, "Normalize into decomposed required size")
+        MJB_STATUS_OK, "Normalize into measures decomposed output");
+    ATT_ASSERT(into_size, (size_t)3, "Normalize into decomposed required size");
     ATT_ASSERT_STATUS(mjb_normalize_into("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, nfd_output, &into_size, NULL),
-        MJB_STATUS_OK, "Normalize into writes decomposed output")
+        MJB_STATUS_OK, "Normalize into writes decomposed output");
     ATT_ASSERT((int)memcmp(nfd_output, "e\xCC\x81", 3), 0,
-        "Normalize into decomposed output bytes")
-    ATT_ASSERT(nfd_output[3], '#', "Normalize into decomposed output has no terminator")
+        "Normalize into decomposed output bytes");
+    ATT_ASSERT(nfd_output[3], '#', "Normalize into decomposed output has no terminator");
 
     char utf16_output[3] = { '#', '#', '#' };
     into_size = sizeof(utf16_output) - 1;
     ATT_ASSERT_STATUS(mjb_normalize_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
                           MJB_ENC_UTF_16LE, utf16_output, &into_size, NULL),
-        MJB_STATUS_OK, "Normalize into converts already-normalized output encoding")
-    ATT_ASSERT(into_size, (size_t)2, "Normalize into converted output size")
+        MJB_STATUS_OK, "Normalize into converts already-normalized output encoding");
+    ATT_ASSERT(into_size, (size_t)2, "Normalize into converted output size");
     ATT_ASSERT((int)memcmp(utf16_output, "A\0", 2), 0,
-        "Normalize into converted output bytes")
-    ATT_ASSERT(utf16_output[2], '#', "Normalize into converted output has no terminator")
+        "Normalize into converted output bytes");
+    ATT_ASSERT(utf16_output[2], '#', "Normalize into converted output has no terminator");
 
     // 256 characters is enough for any test.
     const char source[256] = { 0 };
@@ -535,9 +535,9 @@ int test_normalization(void *arg) {
     FILE *file = fopen("./utils/generate/unicode-data/UCD/NormalizationTest.txt", "r");
 
     if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "Valid normalization test file")
+        ATT_ASSERT("Not opened", "Opened file", "Valid normalization test file");
 
-        return 0;
+        return;
     }
 
     // Parse the file
@@ -662,6 +662,4 @@ int test_normalization(void *arg) {
     }
 
     fclose(file);
-
-    return 0;
 }

@@ -7,11 +7,11 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
-int test_cpp_locales(void *arg) {
+ATT_TEST(cpp_locales) {
     const auto locale = mjb::parse_locale("sr-Latn-RS");
-    ATT_ASSERT(std::string(locale.language()), std::string("sr"), "parse_locale language")
-    ATT_ASSERT(std::string(locale.script()), std::string("Latn"), "parse_locale script")
-    ATT_ASSERT(std::string(locale.region()), std::string("RS"), "parse_locale region")
+    ATT_ASSERT(std::string(locale.language()), std::string("sr"), "parse_locale language");
+    ATT_ASSERT(std::string(locale.script()), std::string("Latn"), "parse_locale script");
+    ATT_ASSERT(std::string(locale.region()), std::string("RS"), "parse_locale region");
 
     bool locale_error = false;
 
@@ -21,13 +21,11 @@ int test_cpp_locales(void *arg) {
         locale_error = error.status() == MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    ATT_ASSERT(locale_error, true, "LocaleError preserves status")
+    ATT_ASSERT(locale_error, true, "LocaleError preserves status");
     mjb::set_locale(MJB_LOCALE_IT);
     ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "get_locale returns selected locale")
+        "get_locale returns selected locale");
     mjb::reset_locale();
     ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_EN,
-        "reset_locale restores English")
-
-    return 0;
+        "reset_locale restores English");
 }

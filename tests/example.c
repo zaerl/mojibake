@@ -7,7 +7,7 @@
 #include "test.h"
 
 // clang-format off
-int test_example(void *arg) {
+ATT_TEST(example) {
     char test_buffer[256];
 
     // This function is automatically generated. Do not edit.
@@ -17,14 +17,14 @@ int test_example(void *arg) {
     mjb_character character;
 
     if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_info test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_info test failed"); // Added by the script
+        return;
     }
 
     // U+022A lowercase: U+022B
     // printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
     snprintf(test_buffer, sizeof(test_buffer), "U+%04X lowercase: U+%04X", character.codepoint, character.lowercase); // Added by the script
-    ATT_ASSERT(test_buffer, "U+022A lowercase: U+022B", "mjb_codepoint_info test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+022A lowercase: U+022B", "mjb_codepoint_info test failed"); // Added by the script
 }
 
 {
@@ -35,14 +35,14 @@ int test_example(void *arg) {
 
     if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_normalize test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_normalize test failed"); // Added by the script
+        return;
     }
 
     // NFC: Café
     // printf("NFC: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "NFC: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "NFC: Café", "mjb_normalize test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "NFC: Café", "mjb_normalize test failed"); // Added by the script
 
     mjb_result_free(&result);
 }
@@ -55,8 +55,8 @@ int test_example(void *arg) {
 
     if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_normalize_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_normalize_into test failed"); // Added by the script
+        return;
     }
 
     char output[5];
@@ -64,14 +64,14 @@ int test_example(void *arg) {
     if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
         MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_normalize_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_normalize_into test failed"); // Added by the script
+        return;
     }
 
     // NFC payload (no terminator): Café
     // printf("NFC payload (no terminator): %.*s", (int)output_size, output);
     snprintf(test_buffer, sizeof(test_buffer), "NFC payload (no terminator): %.*s", (int)output_size, output); // Added by the script
-    ATT_ASSERT(test_buffer, "NFC payload (no terminator): Café", "mjb_normalize_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "NFC payload (no terminator): Café", "mjb_normalize_into test failed"); // Added by the script
 }
 
 {
@@ -83,14 +83,14 @@ int test_example(void *arg) {
     if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
         MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_filter test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_filter test failed"); // Added by the script
+        return;
     }
 
     // Filtered: Hello world
     // printf("Filtered: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Filtered: Hello world", "mjb_filter test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered: Hello world", "mjb_filter test failed"); // Added by the script
 
     mjb_result_free(&result);
 
@@ -98,14 +98,14 @@ int test_example(void *arg) {
 
     if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_filter test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_filter test failed"); // Added by the script
+        return;
     }
 
     // Filtered: \t\n\v\f\r
     // printf("Filtered: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Filtered: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_filter test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered: \t\n\v\f\r", "mjb_filter test failed"); // Added by the script
 
     mjb_result_free(&result);
 }
@@ -119,8 +119,8 @@ int test_example(void *arg) {
     if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, NULL, &output_size,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_filter_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_filter_into test failed"); // Added by the script
+        return;
     }
 
     char output[11];
@@ -128,14 +128,14 @@ int test_example(void *arg) {
     if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
         MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output,
         &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_filter_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_filter_into test failed"); // Added by the script
+        return;
     }
 
     // Filtered payload (no terminator): Hello world
     // printf("Filtered payload (no terminator): %.*s", (int)output_size, output);
     snprintf(test_buffer, sizeof(test_buffer), "Filtered payload (no terminator): %.*s", (int)output_size, output); // Added by the script
-    ATT_ASSERT(test_buffer, "Filtered payload (no terminator): Hello world", "mjb_filter_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Filtered payload (no terminator): Hello world", "mjb_filter_into test failed"); // Added by the script
 }
 
 {
@@ -146,14 +146,14 @@ int test_example(void *arg) {
 
     if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_nfkc_casefold test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_nfkc_casefold test failed"); // Added by the script
+        return;
     }
 
     // strasse
     // printf("%.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "strasse", "mjb_nfkc_casefold test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "strasse", "mjb_nfkc_casefold test failed"); // Added by the script
     mjb_result_free(&result);
 }
 
@@ -165,22 +165,22 @@ int test_example(void *arg) {
 
     if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed"); // Added by the script
+        return;
     }
 
     char output[7];
 
     if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
         MJB_MALFORMED_STOP, MJB_ENC_UTF_8, output, &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_nfkc_casefold_into test failed"); // Added by the script
+        return;
     }
 
     // NFKC casefold payload (no terminator): strasse
     // printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
     snprintf(test_buffer, sizeof(test_buffer), "NFKC casefold payload (no terminator): %.*s", (int)output_size, output); // Added by the script
-    ATT_ASSERT(test_buffer, "NFKC casefold payload (no terminator): strasse", "mjb_nfkc_casefold_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "NFKC casefold payload (no terminator): strasse", "mjb_nfkc_casefold_into test failed"); // Added by the script
 }
 
 #if MJB_FEATURE_IDNA
@@ -193,14 +193,14 @@ int test_example(void *arg) {
 
     if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
-        ATT_ASSERT(0, 1, "mjb_idna_to_ascii test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii test failed"); // Added by the script
+        return;
     }
 
     // xn--bcher-kva.example
     // printf("%.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "xn--bcher-kva.example", "mjb_idna_to_ascii test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "xn--bcher-kva.example", "mjb_idna_to_ascii test failed"); // Added by the script
     mjb_result_free(&result);
 }
 #endif // MJB_FEATURE_IDNA
@@ -215,14 +215,14 @@ int test_example(void *arg) {
 
     if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
-        ATT_ASSERT(0, 1, "mjb_idna_to_unicode test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode test failed"); // Added by the script
+        return;
     }
 
     // bücher.example
     // printf("%.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "bücher.example", "mjb_idna_to_unicode test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "bücher.example", "mjb_idna_to_unicode test failed"); // Added by the script
     mjb_result_free(&result);
 }
 #endif // MJB_FEATURE_IDNA
@@ -235,14 +235,14 @@ int test_example(void *arg) {
 
     if(mjb_normalization_quick_check(input, strlen(input), MJB_ENC_UTF_8,
         MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_normalization_quick_check test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_normalization_quick_check test failed"); // Added by the script
+        return;
     }
 
     // NFC normalized: yes
     // printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "NFC normalized: yes", "mjb_normalization_quick_check test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "NFC normalized: yes", "mjb_normalization_quick_check test failed"); // Added by the script
 }
 
 {
@@ -255,7 +255,7 @@ int test_example(void *arg) {
     // UTF-16LE detected: yes
     // printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE detected: %s", is_utf16le ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16LE detected: yes", "mjb_detect_encoding test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16LE detected: yes", "mjb_detect_encoding test failed"); // Added by the script
 }
 
 {
@@ -266,7 +266,7 @@ int test_example(void *arg) {
     // ASCII: yes
     // printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "ASCII: yes", "mjb_is_ascii test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "ASCII: yes", "mjb_is_ascii test failed"); // Added by the script
 }
 
 {
@@ -277,7 +277,7 @@ int test_example(void *arg) {
     // Valid UTF-8: yes
     // printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Valid UTF-8: yes", "mjb_is_utf8 test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Valid UTF-8: yes", "mjb_is_utf8 test failed"); // Added by the script
 }
 
 {
@@ -288,7 +288,7 @@ int test_example(void *arg) {
     // UTF-16: yes
     // printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16: yes", "mjb_is_utf16 test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16: yes", "mjb_is_utf16 test failed"); // Added by the script
 }
 
 {
@@ -299,8 +299,8 @@ int test_example(void *arg) {
 
     if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
         &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
-        ATT_ASSERT(0, 1, "mjb_string_validate test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_string_validate test failed"); // Added by the script
+        return;
     }
 }
 
@@ -315,25 +315,25 @@ int test_example(void *arg) {
 
     if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         &count, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_count test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_count test failed"); // Added by the script
+        return;
     }
 
     // 5 UTF-8 characters
     // printf("%zu UTF-8 characters", count);
     snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-8 characters", count); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_codepoint_count test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_codepoint_count test failed"); // Added by the script
 
     if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP,
         &count, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_count test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_count test failed"); // Added by the script
+        return;
     }
 
     // 5 UTF-16LE characters
     // printf("%zu UTF-16LE characters", count);
     snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-16LE characters", count); // Added by the script
-    ATT_ASSERT(test_buffer, "5 UTF-16LE characters", "mjb_codepoint_count test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "5 UTF-16LE characters", "mjb_codepoint_count test failed"); // Added by the script
 }
 
 {
@@ -348,7 +348,7 @@ int test_example(void *arg) {
     // A callback is required: yes
     // printf("A callback is required: %s", callback_required ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "A callback is required: %s", callback_required ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "A callback is required: yes", "mjb_for_each_codepoint test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "A callback is required: yes", "mjb_for_each_codepoint test failed"); // Added by the script
 }
 
 {
@@ -358,14 +358,14 @@ int test_example(void *arg) {
 
     if(mjb_codepoint_property_binary('A', MJB_PR_ALPHABETIC,
         &is_alphabetic) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_property_binary test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_property_binary test failed"); // Added by the script
+        return;
     }
 
     // U+0041 is alphabetic: yes
     // printf("U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+0041 is alphabetic: yes", "mjb_codepoint_property_binary test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+0041 is alphabetic: yes", "mjb_codepoint_property_binary test failed"); // Added by the script
 }
 
 {
@@ -374,14 +374,14 @@ int test_example(void *arg) {
     int32_t script;
 
     if(mjb_codepoint_property_int('A', MJB_PR_SCRIPT, &script) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_property_int test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_property_int test failed"); // Added by the script
+        return;
     }
 
     // U+0041 uses the Latin script: yes
     // printf("U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+0041 uses the Latin script: yes", "mjb_codepoint_property_int test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+0041 uses the Latin script: yes", "mjb_codepoint_property_int test failed"); // Added by the script
 }
 
 {
@@ -390,24 +390,24 @@ int test_example(void *arg) {
     mjb_numeric_value num;
 
     if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
-        ATT_ASSERT(0, 1, "mjb_codepoint_numeric_value test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_numeric_value test failed"); // Added by the script
+        return;
     }
 
     // decimal=1, digit=1, numeric=1
     // printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     snprintf(test_buffer, sizeof(test_buffer), "decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric); // Added by the script
-    ATT_ASSERT(test_buffer, "decimal=1, digit=1, numeric=1", "mjb_codepoint_numeric_value test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "decimal=1, digit=1, numeric=1", "mjb_codepoint_numeric_value test failed"); // Added by the script
 
     if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½'
-        ATT_ASSERT(0, 1, "mjb_codepoint_numeric_value test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_numeric_value test failed"); // Added by the script
+        return;
     }
 
     // decimal=-1, digit=-1, numeric=1/2
     // printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     snprintf(test_buffer, sizeof(test_buffer), "decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric); // Added by the script
-    ATT_ASSERT(test_buffer, "decimal=-1, digit=-1, numeric=1/2", "mjb_codepoint_numeric_value test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "decimal=-1, digit=-1, numeric=1/2", "mjb_codepoint_numeric_value test failed"); // Added by the script
 }
 
 {
@@ -416,14 +416,14 @@ int test_example(void *arg) {
     mjb_block_info block;
 
     if(mjb_codepoint_block('A', &block) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_block test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_block test failed"); // Added by the script
+        return;
     }
 
     // Block: Basic Latin
     // printf("Block: %s", block.name);
     snprintf(test_buffer, sizeof(test_buffer), "Block: %s", block.name); // Added by the script
-    ATT_ASSERT(test_buffer, "Block: Basic Latin", "mjb_codepoint_block test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Block: Basic Latin", "mjb_codepoint_block test failed"); // Added by the script
 }
 
 {
@@ -434,7 +434,7 @@ int test_example(void *arg) {
     // Greek script: yes
     // printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Greek script: %s", script == MJB_SC_GREK ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Greek script: yes", "mjb_codepoint_script test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Greek script: yes", "mjb_codepoint_script test failed"); // Added by the script
 }
 
 {
@@ -443,22 +443,22 @@ int test_example(void *arg) {
     size_t count = 0;
 
     if(mjb_codepoint_script_extensions(0x30FC, NULL, &count) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_script_extensions test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_script_extensions test failed"); // Added by the script
+        return;
     }
 
     mjb_script scripts[3];
 
     if(count > 3 || mjb_codepoint_script_extensions(0x30FC, scripts,
         &count) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_script_extensions test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_script_extensions test failed"); // Added by the script
+        return;
     }
 
     // U+30FC has 2 Script_Extensions
     // printf("U+30FC has %zu Script_Extensions", count);
     snprintf(test_buffer, sizeof(test_buffer), "U+30FC has %zu Script_Extensions", count); // Added by the script
-    ATT_ASSERT(test_buffer, "U+30FC has 2 Script_Extensions", "mjb_codepoint_script_extensions test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+30FC has 2 Script_Extensions", "mjb_codepoint_script_extensions test failed"); // Added by the script
 }
 
 {
@@ -470,7 +470,7 @@ int test_example(void *arg) {
     // € sign uses 3 UTF-8 bytes
     // printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);
     snprintf(test_buffer, sizeof(test_buffer), "%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size); // Added by the script
-    ATT_ASSERT(test_buffer, "€ sign uses 3 UTF-8 bytes", "mjb_codepoint_encode test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "€ sign uses 3 UTF-8 bytes", "mjb_codepoint_encode test failed"); // Added by the script
 }
 
 {
@@ -481,14 +481,14 @@ int test_example(void *arg) {
 
     if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_convert_encoding test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_convert_encoding test failed"); // Added by the script
+        return;
     }
 
     // UTF-16LE bytes: 8
     // printf("UTF-16LE bytes: %zu", result.output_size);
     snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE bytes: %zu", result.output_size); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16LE bytes: 8", "mjb_convert_encoding test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16LE bytes: 8", "mjb_convert_encoding test failed"); // Added by the script
     mjb_result_free(&result);
 }
 
@@ -500,8 +500,8 @@ int test_example(void *arg) {
 
     if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed"); // Added by the script
+        return;
     }
 
     unsigned char output[8];
@@ -509,14 +509,14 @@ int test_example(void *arg) {
     if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
         MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed"); // Added by the script
+        return;
     }
 
     // UTF-16LE payload bytes (no terminator): 8
     // printf("UTF-16LE payload bytes (no terminator): %zu", output_size);
     snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE payload bytes (no terminator): %zu", output_size); // Added by the script
-    ATT_ASSERT(test_buffer, "UTF-16LE payload bytes (no terminator): 8", "mjb_convert_encoding_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "UTF-16LE payload bytes (no terminator): 8", "mjb_convert_encoding_into test failed"); // Added by the script
 }
 
 {
@@ -528,14 +528,14 @@ int test_example(void *arg) {
 
     if(mjb_caseless_match(left, strlen(left), MJB_ENC_UTF_8,
         right, strlen(right), MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_caseless_match test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_caseless_match test failed"); // Added by the script
+        return;
     }
 
     // Canonical caseless match: yes
     // printf("Canonical caseless match: %s", matches ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Canonical caseless match: %s", matches ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Canonical caseless match: yes", "mjb_caseless_match test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Canonical caseless match: yes", "mjb_caseless_match test failed"); // Added by the script
 }
 
 #if MJB_FEATURE_COLLATION
@@ -547,14 +547,14 @@ int test_example(void *arg) {
     if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
         "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
         MJB_COLLATION_TERTIARY, &order) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_collation_compare test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_collation_compare test failed"); // Added by the script
+        return;
     }
 
     // apple sorts before banana: yes
     // printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "apple sorts before banana: %s", order < 0 ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "apple sorts before banana: yes", "mjb_collation_compare test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "apple sorts before banana: yes", "mjb_collation_compare test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_COLLATION
 
@@ -567,14 +567,14 @@ int test_example(void *arg) {
     if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
         MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_collation_key test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_collation_key test failed"); // Added by the script
+        return;
     }
 
     // Sort key is non-empty: yes
     // printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key test failed"); // Added by the script
     mjb_result_free(&key);
 }
 #endif // MJB_FEATURE_COLLATION
@@ -589,8 +589,8 @@ int test_example(void *arg) {
     if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed"); // Added by the script
+        return;
     }
 
     unsigned char output[64];
@@ -599,14 +599,14 @@ int test_example(void *arg) {
         MJB_MALFORMED_STOP,
         MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
         &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed"); // Added by the script
+        return;
     }
 
     // Sort key is non-empty: yes
     // printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Sort key is non-empty: %s", output_size > 0 ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key_into test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_COLLATION
 
@@ -618,14 +618,14 @@ int test_example(void *arg) {
 
     if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
         MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_map_case test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_map_case test failed"); // Added by the script
+        return;
     }
 
     // Upper: STRASSE
     // printf("Upper: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_map_case test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_map_case test failed"); // Added by the script
 
     mjb_result_free(&result);
 }
@@ -638,8 +638,8 @@ int test_example(void *arg) {
 
     if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_CASE_UPPER, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_map_case_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
+        return;
     }
 
     char output[7];
@@ -647,14 +647,14 @@ int test_example(void *arg) {
     if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
         MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size,
         NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_map_case_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
+        return;
     }
 
     // Upper payload (no terminator): STRASSE
     // printf("Upper payload (no terminator): %.*s", (int)output_size, output);
     snprintf(test_buffer, sizeof(test_buffer), "Upper payload (no terminator): %.*s", (int)output_size, output); // Added by the script
-    ATT_ASSERT(test_buffer, "Upper payload (no terminator): STRASSE", "mjb_map_case_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Upper payload (no terminator): STRASSE", "mjb_map_case_into test failed"); // Added by the script
 }
 
 {
@@ -663,7 +663,7 @@ int test_example(void *arg) {
     // U+10FFFD valid: yes
     // printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+10FFFD valid: yes", "mjb_codepoint_is_valid test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+10FFFD valid: yes", "mjb_codepoint_is_valid test failed"); // Added by the script
 }
 
 {
@@ -672,7 +672,7 @@ int test_example(void *arg) {
     // Letter A is graphic: yes
     // printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Letter A is graphic: yes", "mjb_codepoint_is_graphic test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Letter A is graphic: yes", "mjb_codepoint_is_graphic test failed"); // Added by the script
 }
 
 {
@@ -681,7 +681,7 @@ int test_example(void *arg) {
     // U+0301 is combining: yes
     // printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+0301 is combining: yes", "mjb_codepoint_is_combining test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+0301 is combining: yes", "mjb_codepoint_is_combining test failed"); // Added by the script
 }
 
 {
@@ -690,7 +690,7 @@ int test_example(void *arg) {
     // U+1100 is a leading Jamo: yes
     // printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1100 is a leading Jamo: yes", "mjb_codepoint_is_hangul_leading_jamo test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+1100 is a leading Jamo: yes", "mjb_codepoint_is_hangul_leading_jamo test failed"); // Added by the script
 }
 
 {
@@ -699,7 +699,7 @@ int test_example(void *arg) {
     // U+1161 is a vowel Jamo: yes
     // printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1161 is a vowel Jamo: yes", "mjb_codepoint_is_hangul_vowel_jamo test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+1161 is a vowel Jamo: yes", "mjb_codepoint_is_hangul_vowel_jamo test failed"); // Added by the script
 }
 
 {
@@ -708,7 +708,7 @@ int test_example(void *arg) {
     // U+11A8 is a trailing Jamo: yes
     // printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+11A8 is a trailing Jamo: yes", "mjb_codepoint_is_hangul_trailing_jamo test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+11A8 is a trailing Jamo: yes", "mjb_codepoint_is_hangul_trailing_jamo test failed"); // Added by the script
 }
 
 {
@@ -717,7 +717,7 @@ int test_example(void *arg) {
     // U+1100 is Hangul Jamo: yes
     // printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1100 is Hangul Jamo: yes", "mjb_codepoint_is_hangul_jamo test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+1100 is Hangul Jamo: yes", "mjb_codepoint_is_hangul_jamo test failed"); // Added by the script
 }
 
 {
@@ -726,7 +726,7 @@ int test_example(void *arg) {
     // U+AC00 is a Hangul syllable: yes
     // printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+AC00 is a Hangul syllable: yes", "mjb_codepoint_is_hangul_syllable test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+AC00 is a Hangul syllable: yes", "mjb_codepoint_is_hangul_syllable test failed"); // Added by the script
 }
 
 {
@@ -735,7 +735,7 @@ int test_example(void *arg) {
     // U+4E00 is a CJK ideograph: yes
     // printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+4E00 is a CJK ideograph: yes", "mjb_codepoint_is_cjk_ideograph test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+4E00 is a CJK ideograph: yes", "mjb_codepoint_is_cjk_ideograph test failed"); // Added by the script
 }
 
 {
@@ -744,7 +744,7 @@ int test_example(void *arg) {
     // U+20000 is a CJK extension ideograph: yes
     // printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+20000 is a CJK extension ideograph: yes", "mjb_codepoint_is_cjk_extension_ideograph test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+20000 is a CJK extension ideograph: yes", "mjb_codepoint_is_cjk_extension_ideograph test failed"); // Added by the script
 }
 
 {
@@ -756,7 +756,7 @@ int test_example(void *arg) {
     // Uppercase letters are graphic: yes
     // printf("Uppercase letters are graphic: %s", graphic ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Uppercase letters are graphic: %s", graphic ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Uppercase letters are graphic: yes", "mjb_category_is_graphic test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Uppercase letters are graphic: yes", "mjb_category_is_graphic test failed"); // Added by the script
 }
 
 {
@@ -768,7 +768,7 @@ int test_example(void *arg) {
     // Nonspacing marks are combining: yes
     // printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Nonspacing marks are combining: %s", combining ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Nonspacing marks are combining: yes", "mjb_category_is_combining test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Nonspacing marks are combining: yes", "mjb_category_is_combining test failed"); // Added by the script
 }
 
 {
@@ -781,7 +781,7 @@ int test_example(void *arg) {
     // First line-break result is set: yes
     // printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "First line-break result is set: yes", "mjb_next_line_break test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "First line-break result is set: yes", "mjb_next_line_break test failed"); // Added by the script
 }
 
 {
@@ -798,7 +798,7 @@ int test_example(void *arg) {
     // Word-break positions: 11
     // printf("Word-break positions: %zu", boundaries);
     snprintf(test_buffer, sizeof(test_buffer), "Word-break positions: %zu", boundaries); // Added by the script
-    ATT_ASSERT(test_buffer, "Word-break positions: 11", "mjb_next_word_break test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Word-break positions: 11", "mjb_next_word_break test failed"); // Added by the script
 }
 
 {
@@ -816,7 +816,7 @@ int test_example(void *arg) {
     // Sentence-break positions: 15
     // printf("Sentence-break positions: %zu", boundaries);
     snprintf(test_buffer, sizeof(test_buffer), "Sentence-break positions: %zu", boundaries); // Added by the script
-    ATT_ASSERT(test_buffer, "Sentence-break positions: 15", "mjb_next_sentence_break test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sentence-break positions: 15", "mjb_next_sentence_break test failed"); // Added by the script
 }
 
 {
@@ -827,14 +827,14 @@ int test_example(void *arg) {
 
     if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         &count, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_sentence_count test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_sentence_count test failed"); // Added by the script
+        return;
     }
 
     // Sentences: 3
     // printf("Sentences: %zu", count);
     snprintf(test_buffer, sizeof(test_buffer), "Sentences: %zu", count); // Added by the script
-    ATT_ASSERT(test_buffer, "Sentences: 3", "mjb_sentence_count test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sentences: 3", "mjb_sentence_count test failed"); // Added by the script
 }
 
 {
@@ -853,7 +853,7 @@ int test_example(void *arg) {
     // Codepoints examined: 2
     // printf("Codepoints examined: %zu", codepoints);
     snprintf(test_buffer, sizeof(test_buffer), "Codepoints examined: %zu", codepoints); // Added by the script
-    ATT_ASSERT(test_buffer, "Codepoints examined: 2", "mjb_next_grapheme_break test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Codepoints examined: 2", "mjb_next_grapheme_break test failed"); // Added by the script
 }
 
 {
@@ -865,7 +865,7 @@ int test_example(void *arg) {
     // First two graphemes use 9 bytes
     // printf("First two graphemes use %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First two graphemes use %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_truncate_grapheme test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_truncate_grapheme test failed"); // Added by the script
 }
 
 {
@@ -876,14 +876,14 @@ int test_example(void *arg) {
 
     if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         &count, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_grapheme_count test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_grapheme_count test failed"); // Added by the script
+        return;
     }
 
     // Grapheme clusters: 2
     // printf("Grapheme clusters: %zu", count);
     snprintf(test_buffer, sizeof(test_buffer), "Grapheme clusters: %zu", count); // Added by the script
-    ATT_ASSERT(test_buffer, "Grapheme clusters: 2", "mjb_grapheme_count test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Grapheme clusters: 2", "mjb_grapheme_count test failed"); // Added by the script
 }
 
 {
@@ -896,7 +896,7 @@ int test_example(void *arg) {
     // Two columns include 1 byte
     // printf("Two columns include %zu byte", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Two columns include %zu byte", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_truncate_grapheme_width test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_truncate_grapheme_width test failed"); // Added by the script
 }
 
 {
@@ -908,7 +908,7 @@ int test_example(void *arg) {
     // First word segment uses 5 bytes
     // printf("First word segment uses %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First word segment uses %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First word segment uses 5 bytes", "mjb_truncate_word test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "First word segment uses 5 bytes", "mjb_truncate_word test failed"); // Added by the script
 }
 
 {
@@ -919,14 +919,14 @@ int test_example(void *arg) {
 
     if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         &count, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_word_count test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_word_count test failed"); // Added by the script
+        return;
     }
 
     // Words: 4
     // printf("Words: %zu", count);
     snprintf(test_buffer, sizeof(test_buffer), "Words: %zu", count); // Added by the script
-    ATT_ASSERT(test_buffer, "Words: 4", "mjb_word_count test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Words: 4", "mjb_word_count test failed"); // Added by the script
 }
 
 {
@@ -939,7 +939,7 @@ int test_example(void *arg) {
     // Six columns include 6 bytes
     // printf("Six columns include %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Six columns include %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Six columns include 6 bytes", "mjb_truncate_word_width test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Six columns include 6 bytes", "mjb_truncate_word_width test failed"); // Added by the script
 }
 
 {
@@ -950,14 +950,14 @@ int test_example(void *arg) {
 
     if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
         &paragraph) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_bidi_resolve test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_bidi_resolve test failed"); // Added by the script
+        return;
     }
 
     // Paragraph codepoints: 7
     // printf("Paragraph codepoints: %zu", paragraph.count);
     snprintf(test_buffer, sizeof(test_buffer), "Paragraph codepoints: %zu", paragraph.count); // Added by the script
-    ATT_ASSERT(test_buffer, "Paragraph codepoints: 7", "mjb_bidi_resolve test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Paragraph codepoints: 7", "mjb_bidi_resolve test failed"); // Added by the script
     mjb_bidi_paragraph_free(&paragraph);
 }
 
@@ -972,14 +972,14 @@ int test_example(void *arg) {
         &paragraph) != MJB_STATUS_OK ||
         mjb_bidi_reorder_line(&paragraph, 0, paragraph.count,
             visual_order) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_bidi_reorder_line test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_bidi_reorder_line test failed"); // Added by the script
+        return;
     }
 
     // First visual index: 2
     // printf("First visual index: %zu", visual_order[0]);
     snprintf(test_buffer, sizeof(test_buffer), "First visual index: %zu", visual_order[0]); // Added by the script
-    ATT_ASSERT(test_buffer, "First visual index: 2", "mjb_bidi_reorder_line test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "First visual index: 2", "mjb_bidi_reorder_line test failed"); // Added by the script
     mjb_bidi_paragraph_free(&paragraph);
 }
 
@@ -995,14 +995,14 @@ int test_example(void *arg) {
         mjb_bidi_reorder_line(&paragraph, 0, 3, visual_order) != MJB_STATUS_OK ||
         mjb_bidi_line_runs(&paragraph, visual_order, 3, NULL,
             &run_count) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_bidi_line_runs test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_bidi_line_runs test failed"); // Added by the script
+        return;
     }
 
     // Visual runs: 1
     // printf("Visual runs: %zu", run_count);
     snprintf(test_buffer, sizeof(test_buffer), "Visual runs: %zu", run_count); // Added by the script
-    ATT_ASSERT(test_buffer, "Visual runs: 1", "mjb_bidi_line_runs test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Visual runs: 1", "mjb_bidi_line_runs test failed"); // Added by the script
     mjb_bidi_paragraph_free(&paragraph);
 }
 
@@ -1013,8 +1013,8 @@ int test_example(void *arg) {
 
     if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
         &paragraph) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_bidi_paragraph_free test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_bidi_paragraph_free test failed"); // Added by the script
+        return;
     }
 
     mjb_bidi_paragraph_free(&paragraph);
@@ -1022,7 +1022,7 @@ int test_example(void *arg) {
     // Paragraph released: yes
     // printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Paragraph released: yes", "mjb_bidi_paragraph_free test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Paragraph released: yes", "mjb_bidi_paragraph_free test failed"); // Added by the script
 }
 
 {
@@ -1034,7 +1034,7 @@ int test_example(void *arg) {
     // Greek alpha starts an identifier: yes
     // printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Greek alpha starts an identifier: %s", starts ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Greek alpha starts an identifier: yes", "mjb_codepoint_is_id_start test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Greek alpha starts an identifier: yes", "mjb_codepoint_is_id_start test failed"); // Added by the script
 }
 
 {
@@ -1046,7 +1046,7 @@ int test_example(void *arg) {
     // Digit 7 continues an identifier: yes
     // printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Digit 7 continues an identifier: %s", continues ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Digit 7 continues an identifier: yes", "mjb_codepoint_is_id_continue test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Digit 7 continues an identifier: yes", "mjb_codepoint_is_id_continue test failed"); // Added by the script
 }
 
 {
@@ -1055,7 +1055,7 @@ int test_example(void *arg) {
     // Letter A is XID_Start: yes
     // printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Letter A is XID_Start: yes", "mjb_codepoint_is_xid_start test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Letter A is XID_Start: yes", "mjb_codepoint_is_xid_start test failed"); // Added by the script
 }
 
 {
@@ -1067,7 +1067,7 @@ int test_example(void *arg) {
     // Underscore is XID_Continue: yes
     // printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Underscore is XID_Continue: %s", continues ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Underscore is XID_Continue: yes", "mjb_codepoint_is_xid_continue test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Underscore is XID_Continue: yes", "mjb_codepoint_is_xid_continue test failed"); // Added by the script
 }
 
 {
@@ -1079,7 +1079,7 @@ int test_example(void *arg) {
     // Plus sign is Pattern_Syntax: yes
     // printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Plus sign is Pattern_Syntax: yes", "mjb_codepoint_is_pattern_syntax test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Plus sign is Pattern_Syntax: yes", "mjb_codepoint_is_pattern_syntax test failed"); // Added by the script
 }
 
 {
@@ -1091,7 +1091,7 @@ int test_example(void *arg) {
     // Space is Pattern_White_Space: yes
     // printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Space is Pattern_White_Space: %s", whitespace ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Space is Pattern_White_Space: yes", "mjb_codepoint_is_pattern_white_space test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Space is Pattern_White_Space: yes", "mjb_codepoint_is_pattern_white_space test failed"); // Added by the script
 }
 
 {
@@ -1105,7 +1105,7 @@ int test_example(void *arg) {
     // Valid identifier: yes
     // printf("Valid identifier: %s", valid ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Valid identifier: %s", valid ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Valid identifier: yes", "mjb_is_identifier test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Valid identifier: yes", "mjb_is_identifier test failed"); // Added by the script
 }
 
 #if MJB_FEATURE_SECURITY
@@ -1119,8 +1119,8 @@ int test_example(void *arg) {
 
     if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
         &kind) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_resolved_script_set test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_resolved_script_set test failed"); // Added by the script
+        return;
     }
 
     bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == MJB_SC_JPAN;
@@ -1128,7 +1128,7 @@ int test_example(void *arg) {
     // Japanese writing system: yes
     // printf("Japanese writing system: %s", japanese ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Japanese writing system: %s", japanese ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Japanese writing system: yes", "mjb_resolved_script_set test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Japanese writing system: yes", "mjb_resolved_script_set test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_SECURITY
 
@@ -1140,7 +1140,7 @@ int test_example(void *arg) {
     // Property: Alphabetic
     // printf("Property: %s", name);
     snprintf(test_buffer, sizeof(test_buffer), "Property: %s", name); // Added by the script
-    ATT_ASSERT(test_buffer, "Property: Alphabetic", "mjb_property_name test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Property: Alphabetic", "mjb_property_name test failed"); // Added by the script
 }
 
 #if MJB_FEATURE_SECURITY
@@ -1152,14 +1152,14 @@ int test_example(void *arg) {
 
     if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         &result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_confusable_skeleton test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton test failed"); // Added by the script
+        return;
     }
 
     // hello
     // printf("%.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
-    ATT_ASSERT(test_buffer, "hello", "mjb_confusable_skeleton test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "hello", "mjb_confusable_skeleton test failed"); // Added by the script
     mjb_result_free(&result);
 }
 #endif // MJB_FEATURE_SECURITY
@@ -1173,22 +1173,22 @@ int test_example(void *arg) {
 
     if(mjb_confusable_skeleton_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
         NULL, &output_size) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed"); // Added by the script
+        return;
     }
 
     char output[5];
 
     if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(input),
         MJB_ENC_UTF_8, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed"); // Added by the script
+        return;
     }
 
     // Skeleton payload (no terminator): hello
     // printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);
     snprintf(test_buffer, sizeof(test_buffer), "Skeleton payload (no terminator): %.*s", (int)output_size, output); // Added by the script
-    ATT_ASSERT(test_buffer, "Skeleton payload (no terminator): hello", "mjb_confusable_skeleton_into test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Skeleton payload (no terminator): hello", "mjb_confusable_skeleton_into test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_SECURITY
 
@@ -1202,14 +1202,14 @@ int test_example(void *arg) {
 
     if(mjb_confusable_match(latin, strlen(latin), MJB_ENC_UTF_8,
         mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_confusable_match test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_confusable_match test failed"); // Added by the script
+        return;
     }
 
     // Visually confusable: yes
     // printf("Visually confusable: %s", confusable ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Visually confusable: %s", confusable ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_confusable_match test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Visually confusable: yes", "mjb_confusable_match test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_SECURITY
 
@@ -1219,14 +1219,14 @@ int test_example(void *arg) {
     mjb_emoji_properties emoji;
 
     if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_codepoint_emoji_properties test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_emoji_properties test failed"); // Added by the script
+        return;
     }
 
     // U+1F600 has Emoji_Presentation: yes
     // printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1F600 has Emoji_Presentation: yes", "mjb_codepoint_emoji_properties test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+1F600 has Emoji_Presentation: yes", "mjb_codepoint_emoji_properties test failed"); // Added by the script
 }
 
 {
@@ -1238,7 +1238,7 @@ int test_example(void *arg) {
     // Number sign has the Emoji property: yes
     // printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Number sign has the Emoji property: %s", emoji ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Number sign has the Emoji property: yes", "mjb_codepoint_is_emoji test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Number sign has the Emoji property: yes", "mjb_codepoint_is_emoji test failed"); // Added by the script
 }
 
 {
@@ -1250,7 +1250,7 @@ int test_example(void *arg) {
     // Grinning face defaults to emoji presentation: yes
     // printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Grinning face defaults to emoji presentation: yes", "mjb_codepoint_is_emoji_presentation test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Grinning face defaults to emoji presentation: yes", "mjb_codepoint_is_emoji_presentation test failed"); // Added by the script
 }
 
 {
@@ -1262,7 +1262,7 @@ int test_example(void *arg) {
     // Medium skin tone is an emoji modifier: yes
     // printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Medium skin tone is an emoji modifier: yes", "mjb_codepoint_is_emoji_modifier test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Medium skin tone is an emoji modifier: yes", "mjb_codepoint_is_emoji_modifier test failed"); // Added by the script
 }
 
 {
@@ -1274,7 +1274,7 @@ int test_example(void *arg) {
     // Waving hand accepts an emoji modifier: yes
     // printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Waving hand accepts an emoji modifier: yes", "mjb_codepoint_is_emoji_modifier_base test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Waving hand accepts an emoji modifier: yes", "mjb_codepoint_is_emoji_modifier_base test failed"); // Added by the script
 }
 
 {
@@ -1286,7 +1286,7 @@ int test_example(void *arg) {
     // Zero-width joiner is an emoji component: yes
     // printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Zero-width joiner is an emoji component: %s", component ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Zero-width joiner is an emoji component: yes", "mjb_codepoint_is_emoji_component test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Zero-width joiner is an emoji component: yes", "mjb_codepoint_is_emoji_component test failed"); // Added by the script
 }
 
 {
@@ -1298,7 +1298,7 @@ int test_example(void *arg) {
     // Red heart is Extended_Pictographic: yes
     // printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Red heart is Extended_Pictographic: yes", "mjb_codepoint_is_extended_pictographic test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Red heart is Extended_Pictographic: yes", "mjb_codepoint_is_extended_pictographic test failed"); // Added by the script
 }
 
 {
@@ -1309,7 +1309,7 @@ int test_example(void *arg) {
     // U+1F600 is in the SMP: yes
     // printf("U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+1F600 is in the SMP: yes", "mjb_codepoint_plane test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+1F600 is in the SMP: yes", "mjb_codepoint_plane test failed"); // Added by the script
 }
 
 {
@@ -1318,7 +1318,7 @@ int test_example(void *arg) {
     // Plane 16 is valid: yes
     // printf("Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Plane 16 is valid: yes", "mjb_plane_is_valid test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Plane 16 is valid: yes", "mjb_plane_is_valid test failed"); // Added by the script
 }
 
 {
@@ -1327,7 +1327,7 @@ int test_example(void *arg) {
     // Plane: Basic Multilingual Plane
     // printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));
     snprintf(test_buffer, sizeof(test_buffer), "Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false)); // Added by the script
-    ATT_ASSERT(test_buffer, "Plane: Basic Multilingual Plane", "mjb_plane_name test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Plane: Basic Multilingual Plane", "mjb_plane_name test failed"); // Added by the script
 }
 
 {
@@ -1338,14 +1338,14 @@ int test_example(void *arg) {
 
     if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
         &emoji) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_emoji_sequence_info test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_emoji_sequence_info test failed"); // Added by the script
+        return;
     }
 
     // Sequence codepoints: 2
     // printf("Sequence codepoints: %zu", emoji.codepoint_count);
     snprintf(test_buffer, sizeof(test_buffer), "Sequence codepoints: %zu", emoji.codepoint_count); // Added by the script
-    ATT_ASSERT(test_buffer, "Sequence codepoints: 2", "mjb_emoji_sequence_info test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Sequence codepoints: 2", "mjb_emoji_sequence_info test failed"); // Added by the script
 }
 
 {
@@ -1358,7 +1358,7 @@ int test_example(void *arg) {
     // Listed emoji sequence: yes
     // printf("Listed emoji sequence: %s", listed ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Listed emoji sequence: %s", listed ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Listed emoji sequence: yes", "mjb_is_emoji_sequence test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Listed emoji sequence: yes", "mjb_is_emoji_sequence test failed"); // Added by the script
 }
 
 {
@@ -1371,7 +1371,7 @@ int test_example(void *arg) {
     // RGI emoji: yes
     // printf("RGI emoji: %s", rgi ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "RGI emoji: %s", rgi ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "RGI emoji: yes", "mjb_is_rgi_emoji test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "RGI emoji: yes", "mjb_is_rgi_emoji test failed"); // Added by the script
 }
 
 {
@@ -1380,14 +1380,14 @@ int test_example(void *arg) {
     char name[32];
 
     if(mjb_hangul_syllable_name(0xAC01, name, sizeof(name)) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_hangul_syllable_name test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_hangul_syllable_name test failed"); // Added by the script
+        return;
     }
 
     // Name: HANGUL SYLLABLE GAG
     // printf("Name: %s", name);
     snprintf(test_buffer, sizeof(test_buffer), "Name: %s", name); // Added by the script
-    ATT_ASSERT(test_buffer, "Name: HANGUL SYLLABLE GAG", "mjb_hangul_syllable_name test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Name: HANGUL SYLLABLE GAG", "mjb_hangul_syllable_name test failed"); // Added by the script
 }
 
 {
@@ -1397,14 +1397,14 @@ int test_example(void *arg) {
 
     if(mjb_hangul_syllable_decomposition(0xAC01,
         decomposition) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_hangul_syllable_decomposition test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_hangul_syllable_decomposition test failed"); // Added by the script
+        return;
     }
 
     // Decomposition starts with: U+1100
     // printf("Decomposition starts with: U+%04X", decomposition[0]);
     snprintf(test_buffer, sizeof(test_buffer), "Decomposition starts with: U+%04X", decomposition[0]); // Added by the script
-    ATT_ASSERT(test_buffer, "Decomposition starts with: U+1100", "mjb_hangul_syllable_decomposition test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Decomposition starts with: U+1100", "mjb_hangul_syllable_decomposition test failed"); // Added by the script
 }
 
 {
@@ -1420,7 +1420,7 @@ int test_example(void *arg) {
     // Composition: U+AC01
     // printf("Composition: U+%04X", length == 1 ? characters[0].codepoint : 0);
     snprintf(test_buffer, sizeof(test_buffer), "Composition: U+%04X", length == 1 ? characters[0].codepoint : 0); // Added by the script
-    ATT_ASSERT(test_buffer, "Composition: U+AC01", "mjb_hangul_syllable_composition test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Composition: U+AC01", "mjb_hangul_syllable_composition test failed"); // Added by the script
 }
 
 {
@@ -1429,14 +1429,14 @@ int test_example(void *arg) {
     mjb_east_asian_width width;
 
     if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
-        ATT_ASSERT(0, 1, "mjb_codepoint_east_asian_width test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_codepoint_east_asian_width test failed"); // Added by the script
+        return;
     }
 
     // U+754C is wide: yes
     // printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "U+754C is wide: yes", "mjb_codepoint_east_asian_width test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "U+754C is wide: yes", "mjb_codepoint_east_asian_width test failed"); // Added by the script
 }
 
 {
@@ -1447,14 +1447,14 @@ int test_example(void *arg) {
 
     if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_terminal_width test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_terminal_width test failed"); // Added by the script
+        return;
     }
 
     // Terminal cells: 3
     // printf("Terminal cells: %zu", width);
     snprintf(test_buffer, sizeof(test_buffer), "Terminal cells: %zu", width); // Added by the script
-    ATT_ASSERT(test_buffer, "Terminal cells: 3", "mjb_terminal_width test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Terminal cells: 3", "mjb_terminal_width test failed"); // Added by the script
 }
 
 {
@@ -1463,31 +1463,31 @@ int test_example(void *arg) {
     mjb_locale_id locale;
 
     if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_locale_parse test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_locale_parse test failed"); // Added by the script
+        return;
     }
 
     // Locale: sr Latn RS
     // printf("Locale: %s %s %s", locale.language, locale.script, locale.region);
     snprintf(test_buffer, sizeof(test_buffer), "Locale: %s %s %s", locale.language, locale.script, locale.region); // Added by the script
-    ATT_ASSERT(test_buffer, "Locale: sr Latn RS", "mjb_locale_parse test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Locale: sr Latn RS", "mjb_locale_parse test failed"); // Added by the script
 }
 
 {
     // Example for mjb_set_locale
     MJB_TEST_COVERAGE(mjb_set_locale); // Added by the script
     if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_set_locale test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_set_locale test failed"); // Added by the script
+        return;
     }
 
     // Turkish locale selected: yes
     // printf("Turkish locale selected: yes");
     snprintf(test_buffer, sizeof(test_buffer), "Turkish locale selected: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Turkish locale selected: yes", "mjb_set_locale test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Turkish locale selected: yes", "mjb_set_locale test failed"); // Added by the script
     if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_set_locale test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_set_locale test failed"); // Added by the script
+        return;
     }
 }
 
@@ -1499,15 +1499,15 @@ int test_example(void *arg) {
     // Current locale is English: yes
     // printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Current locale is English: yes", "mjb_get_locale test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Current locale is English: yes", "mjb_get_locale test failed"); // Added by the script
 }
 
 {
     // Example for mjb_reset_locale
     MJB_TEST_COVERAGE(mjb_reset_locale); // Added by the script
     if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_reset_locale test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_reset_locale test failed"); // Added by the script
+        return;
     }
 
     mjb_reset_locale();
@@ -1516,7 +1516,7 @@ int test_example(void *arg) {
     // Current locale reset to English: yes
     // printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Current locale reset to English: yes", "mjb_reset_locale test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Current locale reset to English: yes", "mjb_reset_locale test failed"); // Added by the script
 }
 
 {
@@ -1527,14 +1527,14 @@ int test_example(void *arg) {
     if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
         MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
         mjb_result_free(&result) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_result_free test failed") // Added by the script
-        return 1;
+        ATT_ASSERT(0, 1, "mjb_result_free test failed"); // Added by the script
+        return;
     }
 
     // Result released: yes
     // printf("Result released: %s", result.output == NULL ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Result released: %s", result.output == NULL ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Result released: yes", "mjb_result_free test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Result released: yes", "mjb_result_free test failed"); // Added by the script
 }
 
 {
@@ -1547,7 +1547,7 @@ int test_example(void *arg) {
     // 4: é
     // printf("%d: %s", required, buffer);
     snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
-    ATT_ASSERT(test_buffer, "4: é", "mjb_utf8_snprintf test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "4: é", "mjb_utf8_snprintf test failed"); // Added by the script
 }
 
 {
@@ -1560,7 +1560,7 @@ int test_example(void *arg) {
     // 5: A
     // printf("%d: %s", required, buffer);
     snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
-    ATT_ASSERT(test_buffer, "5: A", "mjb_utf8_grapheme_snprintf test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "5: A", "mjb_utf8_grapheme_snprintf test failed"); // Added by the script
 }
 
 {
@@ -1571,7 +1571,7 @@ int test_example(void *arg) {
     // Error message: One or more arguments are invalid or inconsistent with the requested operation
     // printf("Error message: %s", message);
     snprintf(test_buffer, sizeof(test_buffer), "Error message: %s", message); // Added by the script
-    ATT_ASSERT(test_buffer, "Error message: One or more arguments are invalid or inconsistent with the requested operation", "mjb_status_message test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Error message: One or more arguments are invalid or inconsistent with the requested operation", "mjb_status_message test failed"); // Added by the script
 }
 
 {
@@ -1582,7 +1582,7 @@ int test_example(void *arg) {
     // Version is available: yes
     // printf("Version is available: %s", version[0] != '\0' ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Version is available: %s", version[0] != '\0' ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Version is available: yes", "mjb_version test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Version is available: yes", "mjb_version test failed"); // Added by the script
 }
 
 {
@@ -1593,7 +1593,7 @@ int test_example(void *arg) {
     // Version number is positive: yes
     // printf("Version number is positive: %s", version > 0 ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "Version number is positive: %s", version > 0 ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Version number is positive: yes", "mjb_version_number test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Version number is positive: yes", "mjb_version_number test failed"); // Added by the script
 }
 
 {
@@ -1604,8 +1604,8 @@ int test_example(void *arg) {
     // Unicode version: 18.0.0
     // printf("Unicode version: %s", version);
     snprintf(test_buffer, sizeof(test_buffer), "Unicode version: %s", version); // Added by the script
-    ATT_ASSERT(test_buffer, "Unicode version: 18.0.0", "mjb_unicode_version test failed") // Added by the script
+    ATT_ASSERT(test_buffer, "Unicode version: 18.0.0", "mjb_unicode_version test failed"); // Added by the script
 }
-    return 0;
+    // End of generated examples.
 }
 // clang-format on
