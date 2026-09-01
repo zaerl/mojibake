@@ -64,7 +64,7 @@ static void read_bidi_class_test_file(const char *filename) {
     FILE *file = fopen(filename, "r");
 
     if(!file) {
-        ATT_ASSERT("Not opened", "Opened file", "BidiTest.txt")
+        ATT_ASSERT("Not opened", "Opened file", "BidiTest.txt");
 
         return;
     }
@@ -257,14 +257,12 @@ static void read_bidi_class_test_file(const char *filename) {
         snprintf(test_name, sizeof(test_name), "BidiTest #%u", current_line);
 
         MJB_TEST_COVERAGE(mjb_bidi_resolve);
-        ATT_ASSERT(total, successful, test_name)
+        ATT_ASSERT(total, successful, test_name);
     }
 
     fclose(file);
 }
 
-int test_bidi_class(void *arg) {
+ATT_TEST(bidi_class) {
     read_bidi_class_test_file("./utils/generate/unicode-data/UCD/BidiTest.txt");
-
-    return 0;
 }

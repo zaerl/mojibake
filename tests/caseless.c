@@ -14,49 +14,49 @@ static void check_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_e
     MJB_TEST_COVERAGE(mjb_caseless_match);
     ATT_ASSERT_STATUS(mjb_caseless_match(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
                           s2_encoding, mode, &matches),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT(matches, expected, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT(matches, expected, name);
 }
 
-int test_caseless(void *arg) {
+ATT_TEST(caseless) {
     bool matches = true;
 
     ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, "A", 1, MJB_ENC_UTF_8,
                           MJB_CASELESS_CANONICAL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL result")
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL result");
     ATT_ASSERT_STATUS(mjb_caseless_match(NULL, 1, MJB_ENC_UTF_8, "A", 1, MJB_ENC_UTF_8,
                           MJB_CASELESS_CANONICAL, &matches),
-        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL first input")
-    ATT_ASSERT(matches, false, "Caseless match clears its result after invalid first input")
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL first input");
+    ATT_ASSERT(matches, false, "Caseless match clears its result after invalid first input");
 
     matches = true;
     ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, NULL, 1, MJB_ENC_UTF_8,
                           MJB_CASELESS_CANONICAL, &matches),
-        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL second input")
-    ATT_ASSERT(matches, false, "Caseless match clears its result after invalid second input")
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL second input");
+    ATT_ASSERT(matches, false, "Caseless match clears its result after invalid second input");
 
     matches = true;
     ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, "A", 1, MJB_ENC_UTF_8,
                           (mjb_caseless_mode)99, &matches),
-        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects an invalid mode")
-    ATT_ASSERT(matches, false, "Caseless match clears its result after an invalid mode")
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects an invalid mode");
+    ATT_ASSERT(matches, false, "Caseless match clears its result after an invalid mode");
 
     matches = true;
     ATT_ASSERT_STATUS(mjb_caseless_match("\x80", 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
                           MJB_CASELESS_UNNORMALIZED, &matches),
-        MJB_STATUS_MALFORMED_INPUT, "Caseless match rejects malformed first input")
-    ATT_ASSERT(matches, false, "Caseless match clears its result after malformed first input")
+        MJB_STATUS_MALFORMED_INPUT, "Caseless match rejects malformed first input");
+    ATT_ASSERT(matches, false, "Caseless match clears its result after malformed first input");
 
     matches = true;
     ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, "\x80", 1, MJB_ENC_UTF_8,
                           MJB_CASELESS_UNNORMALIZED, &matches),
-        MJB_STATUS_MALFORMED_INPUT, "Caseless match rejects malformed second input")
-    ATT_ASSERT(matches, false, "Caseless match clears its result after malformed second input")
+        MJB_STATUS_MALFORMED_INPUT, "Caseless match rejects malformed second input");
+    ATT_ASSERT(matches, false, "Caseless match clears its result after malformed second input");
 
     const char utf16_without_bom[] = { 'A', '\0' };
     ATT_ASSERT_STATUS(mjb_caseless_match(utf16_without_bom, sizeof(utf16_without_bom),
                           MJB_ENC_UTF_16, "a", 1, MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches),
-        MJB_STATUS_INVALID_ENCODING, "Caseless match rejects generic UTF-16 without a BOM")
+        MJB_STATUS_INVALID_ENCODING, "Caseless match rejects generic UTF-16 without a BOM");
 
     check_match(NULL, 0, MJB_ENC_UTF_8, "", 0, MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, true,
         "Empty strings are a canonical caseless match");
@@ -107,13 +107,11 @@ int test_caseless(void *arg) {
         MJB_CASELESS_CANONICAL, true, "Caseless match compares different input encodings");
 
     ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK,
-        "Set Turkish locale for caseless matching")
+        "Set Turkish locale for caseless matching");
     check_match("I", 1, MJB_ENC_UTF_8, "i", 1, MJB_ENC_UTF_8, MJB_CASELESS_UNNORMALIZED, true,
         "Caseless matching always uses default non-Turkic folding");
     check_match("I", 1, MJB_ENC_UTF_8, "\xC4\xB1", 2, MJB_ENC_UTF_8, MJB_CASELESS_UNNORMALIZED,
         false, "Caseless matching does not use Turkic folding");
     ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK,
-        "Restore default locale after caseless matching")
-
-    return 0;
+        "Restore default locale after caseless matching");
 }

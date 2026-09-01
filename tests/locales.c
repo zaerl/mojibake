@@ -6,67 +6,67 @@
 
 #include "test.h"
 
-int test_locales(void *arg) {
+ATT_TEST(locales) {
     mjb_locale_id locale;
 
     ATT_ASSERT_STATUS(mjb_locale_parse(NULL, 1, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects NULL id")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects NULL id");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("en", 2, MJB_ENC_UTF_8, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects NULL locale output")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects NULL locale output");
 
     // \xC3\xA9 -> é
     ATT_ASSERT_STATUS(mjb_locale_parse("\xC3\xA9", 2, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects non-ASCII UTF-8")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects non-ASCII UTF-8");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("en", 2, MJB_ENC_UTF_16LE, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects input with wrong encoding")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects input with wrong encoding");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse language-script-region")
-    ATT_ASSERT(locale.language, "sr", "Parse language-script-region language")
-    ATT_ASSERT(locale.script, "Latn", "Parse language-script-region script")
-    ATT_ASSERT(locale.region, "RS", "Parse language-script-region region")
+        MJB_STATUS_OK, "Parse language-script-region");
+    ATT_ASSERT(locale.language, "sr", "Parse language-script-region language");
+    ATT_ASSERT(locale.script, "Latn", "Parse language-script-region script");
+    ATT_ASSERT(locale.region, "RS", "Parse language-script-region region");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("zh-cmn-Hans-CN", 14, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse extlang")
-    ATT_ASSERT(locale.language, "zh", "Parse extlang language")
-    ATT_ASSERT(locale.extlang, "cmn", "Parse extlang value")
-    ATT_ASSERT(locale.script, "Hans", "Parse extlang script")
-    ATT_ASSERT(locale.region, "CN", "Parse extlang region")
+        MJB_STATUS_OK, "Parse extlang");
+    ATT_ASSERT(locale.language, "zh", "Parse extlang language");
+    ATT_ASSERT(locale.extlang, "cmn", "Parse extlang value");
+    ATT_ASSERT(locale.script, "Hans", "Parse extlang script");
+    ATT_ASSERT(locale.region, "CN", "Parse extlang region");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("de-CH-1901", 10, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse variant")
-    ATT_ASSERT(locale.language, "de", "Parse variant language")
-    ATT_ASSERT(locale.region, "CH", "Parse variant region")
-    ATT_ASSERT(locale.variant, "1901", "Parse variant value")
+        MJB_STATUS_OK, "Parse variant");
+    ATT_ASSERT(locale.language, "de", "Parse variant language");
+    ATT_ASSERT(locale.region, "CH", "Parse variant region");
+    ATT_ASSERT(locale.variant, "1901", "Parse variant value");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("en-US-u-islamcal", 16, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse extension")
-    ATT_ASSERT(locale.language, "en", "Parse extension language")
-    ATT_ASSERT(locale.region, "US", "Parse extension region")
-    ATT_ASSERT(locale.extensions, "u-islamcal", "Parse extension value")
+        MJB_STATUS_OK, "Parse extension");
+    ATT_ASSERT(locale.language, "en", "Parse extension language");
+    ATT_ASSERT(locale.region, "US", "Parse extension region");
+    ATT_ASSERT(locale.extensions, "u-islamcal", "Parse extension value");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("de-CH-x-phonebk", 15, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse private use")
-    ATT_ASSERT(locale.language, "de", "Parse private use language")
-    ATT_ASSERT(locale.region, "CH", "Parse private use region")
-    ATT_ASSERT(locale.private_use, "x-phonebk", "Parse private use value")
+        MJB_STATUS_OK, "Parse private use");
+    ATT_ASSERT(locale.language, "de", "Parse private use language");
+    ATT_ASSERT(locale.region, "CH", "Parse private use region");
+    ATT_ASSERT(locale.private_use, "x-phonebk", "Parse private use value");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("i-enochian", 10, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse grandfathered tag")
-    ATT_ASSERT(locale.grandfathered, "i-enochian", "Parse grandfathered value")
+        MJB_STATUS_OK, "Parse grandfathered tag");
+    ATT_ASSERT(locale.grandfathered, "i-enochian", "Parse grandfathered value");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("x-whatever", 10, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_OK, "Parse private use only")
-    ATT_ASSERT(locale.private_use, "x-whatever", "Parse private use only value")
+        MJB_STATUS_OK, "Parse private use only");
+    ATT_ASSERT(locale.private_use, "x-whatever", "Parse private use only value");
 
     const char utf16le_locale[] = { 'e', '\0', 'n', '\0', '-', '\0', 'U', '\0', 'S', '\0' };
     ATT_ASSERT_STATUS(mjb_locale_parse(utf16le_locale, sizeof(utf16le_locale), MJB_ENC_UTF_16LE,
                           &locale),
-        MJB_STATUS_OK, "Parse UTF-16LE locale")
-    ATT_ASSERT(locale.language, "en", "Parse UTF-16LE locale language")
-    ATT_ASSERT(locale.region, "US", "Parse UTF-16LE locale region")
+        MJB_STATUS_OK, "Parse UTF-16LE locale");
+    ATT_ASSERT(locale.language, "en", "Parse UTF-16LE locale language");
+    ATT_ASSERT(locale.region, "US", "Parse UTF-16LE locale region");
 
     // Language tags listed in RFC 5646 Appendix A:
     // https://datatracker.ietf.org/doc/html/rfc5646#appendix-A
@@ -132,7 +132,7 @@ int test_locales(void *arg) {
 
         snprintf(description, sizeof(description), "Parse RFC 5646 Appendix A valid tag %s", tag);
         ATT_ASSERT_STATUS(mjb_locale_parse(tag, strlen(tag), MJB_ENC_UTF_8, &locale),
-            MJB_STATUS_OK, description)
+            MJB_STATUS_OK, description);
     }
 
     // Invalid language tags listed in RFC 5646 Appendix A:
@@ -152,38 +152,36 @@ int test_locales(void *arg) {
 
         snprintf(description, sizeof(description), "Parse RFC 5646 Appendix A invalid tag %s", tag);
         ATT_ASSERT_STATUS(mjb_locale_parse(tag, strlen(tag), MJB_ENC_UTF_8, &locale),
-            MJB_STATUS_INVALID_ARGUMENT, description)
+            MJB_STATUS_INVALID_ARGUMENT, description);
     }
 
     ATT_ASSERT_STATUS(mjb_locale_parse("de-419-DE", 9, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects duplicate region")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects duplicate region");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("a-DE", 4, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects one-character language")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects one-character language");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("ar-a-aaa-b-bbb-a-ccc", 20, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects duplicate extension")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects duplicate extension");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("de-1901-1901", 12, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects duplicate variant")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects duplicate variant");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("en-abcdefghi", 12, MJB_ENC_UTF_8, &locale),
-        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects long subtag")
+        MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects long subtag");
 
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale it_IT")
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT, "Get locale it_IT")
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale it_IT");
+    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT, "Get locale it_IT");
     ATT_ASSERT_STATUS(mjb_set_locale((mjb_locale)MJB_LOCALE_NUM), MJB_STATUS_INVALID_ARGUMENT,
-        "Set locale to unknown value")
+        "Set locale to unknown value");
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "Invalid locale does not change current locale")
+        "Invalid locale does not change current locale");
     ATT_ASSERT_STATUS(mjb_set_locale((mjb_locale)-1), MJB_STATUS_INVALID_ARGUMENT,
-        "Set locale to negative value")
+        "Set locale to negative value");
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "Negative locale does not change current locale")
-    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale")
+        "Negative locale does not change current locale");
+    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale");
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_EN,
-        "Reset locale restores English")
-    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale is idempotent")
-
-    return 0;
+        "Reset locale restores English");
+    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale is idempotent");
 }

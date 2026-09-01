@@ -86,7 +86,7 @@ static bool test_are_confusable(const char *s1, size_t s1_byte_length, mjb_encod
     mjb_status status = mjb_confusable_match(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
         s2_encoding, &confusable);
     MJB_TEST_COVERAGE(mjb_confusable_match);
-    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Confusable comparison succeeds")
+    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Confusable comparison succeeds");
 
     return confusable;
 }
@@ -95,7 +95,7 @@ static void run_intentional_confusable_file(const char *filename) {
     FILE *file = fopen(filename, "r");
 
     if(!file) {
-        ATT_ASSERT("Not opened", "Opened file", "intentional.txt")
+        ATT_ASSERT("Not opened", "Opened file", "intentional.txt");
 
         return;
     }
@@ -124,13 +124,13 @@ static void run_intentional_confusable_file(const char *filename) {
             ++failures;
             char test_name[128];
             snprintf(test_name, sizeof(test_name), "intentional.txt line %u", current_line);
-            ATT_ASSERT(0, 1, test_name)
+            ATT_ASSERT(0, 1, test_name);
 
             if(is_exit_on_error()) {
                 break;
             }
         } else {
-            ATT_ASSERT(0, 0, "intentional.txt confusable pair")
+            ATT_ASSERT(0, 0, "intentional.txt confusable pair");
         }
 
         ++tested;
@@ -141,8 +141,8 @@ static void run_intentional_confusable_file(const char *filename) {
     char summary[128];
     snprintf(summary, sizeof(summary), "intentional.txt: %u/%u pairs passed", tested - failures,
         tested);
-    ATT_ASSERT(tested > 0, true, "intentional.txt has confusable pairs")
-    ATT_ASSERT(failures, 0u, summary)
+    ATT_ASSERT(tested > 0, true, "intentional.txt has confusable pairs");
+    ATT_ASSERT(failures, 0u, summary);
 }
 
 static void check_skeleton(const char *input, size_t input_size, const char *expected,
@@ -151,32 +151,32 @@ static void check_skeleton(const char *input, size_t input_size, const char *exp
 
     MJB_TEST_COVERAGE(mjb_confusable_skeleton);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(input, input_size, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &skeleton), MJB_STATUS_OK, name)
-    ATT_ASSERT(skeleton.output_size, expected_size, name)
-    ATT_ASSERT((int)memcmp(skeleton.output, expected, expected_size), 0, name)
+        &skeleton), MJB_STATUS_OK, name);
+    ATT_ASSERT(skeleton.output_size, expected_size, name);
+    ATT_ASSERT((int)memcmp(skeleton.output, expected, expected_size), 0, name);
 
     size_t required = 0;
     MJB_TEST_COVERAGE(mjb_confusable_skeleton_into);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(input, input_size, MJB_ENC_UTF_8,
                           MJB_ENC_UTF_8, NULL, &required),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT(required, expected_size, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT(required, expected_size, name);
 
     char output[128];
-    ATT_ASSERT((int)(required < sizeof(output)), true, name)
+    ATT_ASSERT((int)(required < sizeof(output)), true, name);
 
     if(required < sizeof(output)) {
         memset(output, '#', sizeof(output));
         size_t output_size = required;
         ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(input, input_size, MJB_ENC_UTF_8,
                               MJB_ENC_UTF_8, output, &output_size),
-            MJB_STATUS_OK, name)
-        ATT_ASSERT(output_size, expected_size, name)
-        ATT_ASSERT((int)memcmp(output, expected, expected_size), 0, name)
-        ATT_ASSERT(output[output_size], '#', name)
+            MJB_STATUS_OK, name);
+        ATT_ASSERT(output_size, expected_size, name);
+        ATT_ASSERT((int)memcmp(output, expected, expected_size), 0, name);
+        ATT_ASSERT(output[output_size], '#', name);
     }
 
-    ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, name)
+    ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, name);
 }
 
 #if !defined(MJB_SHARED)
@@ -184,7 +184,7 @@ static void run_confusables_file(const char *filename) {
     FILE *file = fopen(filename, "r");
 
     if(file == NULL) {
-        ATT_ASSERT("Not opened", "Opened file", "confusables.txt")
+        ATT_ASSERT("Not opened", "Opened file", "confusables.txt");
         return;
     }
 
@@ -232,7 +232,7 @@ static void run_confusables_file(const char *filename) {
         const mjb_codepoint *mapping = NULL;
         uint8_t mapping_length = 0;
         ATT_ASSERT(mjb_unicode_confusable_lookup(source_cp, &mapping, &mapping_length), true,
-            test_name)
+            test_name);
 
         char actual[128];
         size_t actual_size = 0;
@@ -242,15 +242,15 @@ static void run_confusables_file(const char *filename) {
                 sizeof(actual) - actual_size, MJB_ENC_UTF_8);
         }
 
-        ATT_ASSERT(actual_size, target_size, test_name)
-        ATT_ASSERT((int)memcmp(actual, target, target_size), 0, test_name)
+        ATT_ASSERT(actual_size, target_size, test_name);
+        ATT_ASSERT((int)memcmp(actual, target, target_size), 0, test_name);
 
         ++tested;
     }
 
     fclose(file);
 
-    ATT_ASSERT(tested > 0, true, "confusables.txt has skeleton mappings")
+    ATT_ASSERT(tested > 0, true, "confusables.txt has skeleton mappings");
 }
 #endif
 
@@ -261,16 +261,16 @@ static void check_resolved_script_set(const char *input, size_t input_size, mjb_
     mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
 
     ATT_ASSERT_STATUS(mjb_resolved_script_set(input, input_size, encoding, NULL, &count, &kind),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT((int)kind, expected_kind, name)
-    ATT_ASSERT(count, expected_count, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT((int)kind, expected_kind, name);
+    ATT_ASSERT(count, expected_count, name);
 
     if(expected_count == 0) {
         return;
     }
 
     mjb_script scripts[8];
-    ATT_ASSERT(expected_count <= MJB_TEST_COUNT_OF(scripts), true, name)
+    ATT_ASSERT(expected_count <= MJB_TEST_COUNT_OF(scripts), true, name);
 
     if(expected_count > MJB_TEST_COUNT_OF(scripts)) {
         return;
@@ -278,13 +278,13 @@ static void check_resolved_script_set(const char *input, size_t input_size, mjb_
 
     count = MJB_TEST_COUNT_OF(scripts);
     ATT_ASSERT_STATUS(mjb_resolved_script_set(input, input_size, encoding, scripts, &count, &kind),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT((int)kind, expected_kind, name)
-    ATT_ASSERT(count, expected_count, name)
-    ATT_ASSERT((int)memcmp(scripts, expected, expected_count * sizeof(mjb_script)), 0, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT((int)kind, expected_kind, name);
+    ATT_ASSERT(count, expected_count, name);
+    ATT_ASSERT((int)memcmp(scripts, expected, expected_count * sizeof(mjb_script)), 0, name);
 }
 
-int test_security(void *arg) {
+ATT_TEST(security) {
     mjb_encoding enc = MJB_ENC_UTF_8;
 
     MJB_TEST_COVERAGE(mjb_resolved_script_set);
@@ -331,86 +331,86 @@ int test_security(void *arg) {
     size_t script_count = 9;
     mjb_script_set_kind script_kind = MJB_SCRIPT_SET_ALL;
     ATT_ASSERT_STATUS(mjb_resolved_script_set("A", 1, enc, NULL, NULL, &script_kind),
-        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL count")
+        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL count");
     ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_EMPTY,
-        "Resolved scripts clear kind after NULL count")
+        "Resolved scripts clear kind after NULL count");
 
     ATT_ASSERT_STATUS(mjb_resolved_script_set("A", 1, enc, NULL, &script_count, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL kind")
-    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after NULL kind")
+        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL kind");
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after NULL kind");
 
     script_count = 9;
     script_kind = MJB_SCRIPT_SET_ALL;
     ATT_ASSERT_STATUS(mjb_resolved_script_set(NULL, 1, enc, NULL, &script_count, &script_kind),
-        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL input")
-    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid input")
+        MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL input");
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid input");
     ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_EMPTY,
-        "Resolved scripts clear kind after invalid input")
+        "Resolved scripts clear kind after invalid input");
 
     script_count = 9;
     ATT_ASSERT_STATUS(
         mjb_resolved_script_set("A", 1, MJB_ENC_UNKNOWN, NULL, &script_count, &script_kind),
-        MJB_STATUS_INVALID_ENCODING, "Resolved scripts reject invalid encoding")
-    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid encoding")
+        MJB_STATUS_INVALID_ENCODING, "Resolved scripts reject invalid encoding");
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid encoding");
 
     const char malformed_script_input[] = { '\x80' };
     script_count = 9;
     ATT_ASSERT_STATUS(mjb_resolved_script_set(malformed_script_input,
                           sizeof(malformed_script_input), enc, NULL, &script_count, &script_kind),
-        MJB_STATUS_MALFORMED_INPUT, "Resolved scripts reject malformed input")
-    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "Resolved scripts reject malformed input");
+    ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after malformed input");
 
     mjb_script script_output = MJB_SC_ZZZZ;
     script_count = 0;
     ATT_ASSERT_STATUS(
         mjb_resolved_script_set("A", 1, enc, &script_output, &script_count, &script_kind),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "Resolved scripts report a small output buffer")
-    ATT_ASSERT(script_count, 1u, "Resolved scripts report required count")
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Resolved scripts report a small output buffer");
+    ATT_ASSERT(script_count, 1u, "Resolved scripts report required count");
     ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_RESOLVED,
-        "Resolved scripts preserve kind after a small output buffer")
+        "Resolved scripts preserve kind after a small output buffer");
     ATT_ASSERT((int)script_output, MJB_SC_ZZZZ,
-        "Resolved scripts leave a small output buffer untouched")
+        "Resolved scripts leave a small output buffer untouched");
 
     mjb_result skeleton;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(NULL, 1, enc, enc, &skeleton),
-        MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL input")
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL input");
     ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, enc, NULL), MJB_STATUS_INVALID_ARGUMENT,
-        "Skeleton rejects NULL result")
+        "Skeleton rejects NULL result");
     ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, MJB_ENC_UNKNOWN, enc, &skeleton),
-        MJB_STATUS_INVALID_ENCODING, "Skeleton rejects invalid input encoding")
+        MJB_STATUS_INVALID_ENCODING, "Skeleton rejects invalid input encoding");
 
     size_t into_size = 9;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(NULL, 1, enc, enc, NULL, &into_size),
-        MJB_STATUS_INVALID_ARGUMENT, "Skeleton into rejects NULL input")
-    ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after invalid input")
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton into rejects NULL input");
+    ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after invalid input");
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("A", 1, enc, enc, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Skeleton into rejects NULL size")
+        MJB_STATUS_INVALID_ARGUMENT, "Skeleton into rejects NULL size");
 
     into_size = 9;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("", 0, enc, enc, NULL, &into_size),
-        MJB_STATUS_OK, "Skeleton into measures empty input")
-    ATT_ASSERT(into_size, (size_t)0, "Skeleton into empty size")
+        MJB_STATUS_OK, "Skeleton into measures empty input");
+    ATT_ASSERT(into_size, (size_t)0, "Skeleton into empty size");
 
     const char *into_input = "h\xD0\xB5llo";
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(into_input, 6, enc, enc, NULL, &into_size),
-        MJB_STATUS_OK, "Skeleton into queries required size")
-    ATT_ASSERT(into_size, (size_t)5, "Skeleton into required size")
+        MJB_STATUS_OK, "Skeleton into queries required size");
+    ATT_ASSERT(into_size, (size_t)5, "Skeleton into required size");
 
     char into_output[6] = { '#', '#', '#', '#', '#', '#' };
     into_size = 4;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(into_input, 6, enc, enc, into_output,
                           &into_size),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "Skeleton into reports a small output buffer")
-    ATT_ASSERT(into_size, (size_t)5, "Skeleton into preserves required size")
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Skeleton into reports a small output buffer");
+    ATT_ASSERT(into_size, (size_t)5, "Skeleton into preserves required size");
     ATT_ASSERT((int)memcmp(into_output, "######", sizeof(into_output)), 0,
-        "Skeleton into leaves a small buffer untouched")
+        "Skeleton into leaves a small buffer untouched");
 
     into_size = 5;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(into_input, 6, enc, enc, into_output,
                           &into_size),
-        MJB_STATUS_OK, "Skeleton into writes into exact capacity")
-    ATT_ASSERT((int)memcmp(into_output, "hello", 5), 0, "Skeleton into output")
-    ATT_ASSERT(into_output[5], '#', "Skeleton into does not write a terminator")
+        MJB_STATUS_OK, "Skeleton into writes into exact capacity");
+    ATT_ASSERT((int)memcmp(into_output, "hello", 5), 0, "Skeleton into output");
+    ATT_ASSERT(into_output[5], '#', "Skeleton into does not write a terminator");
 
     check_skeleton("h\xD0\xB5llo", 6, "hello", 5, "Skeleton maps Cyrillic e");
     check_skeleton("a\xE2\x80\x8D"
@@ -424,128 +424,124 @@ int test_security(void *arg) {
         30, "Skeleton preserves full 18-codepoint expansion");
 
     ATT_ASSERT_STATUS(mjb_confusable_skeleton("A", 1, enc, MJB_ENC_UTF_16LE, &skeleton),
-        MJB_STATUS_OK, "Skeleton supports UTF-16 output")
-    ATT_ASSERT(skeleton.output_size, (size_t)2, "Skeleton UTF-16 output size")
-    ATT_ASSERT((int)memcmp(skeleton.output, "A\0", 2), 0, "Skeleton UTF-16 output")
-    ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, "Free UTF-16 skeleton")
+        MJB_STATUS_OK, "Skeleton supports UTF-16 output");
+    ATT_ASSERT(skeleton.output_size, (size_t)2, "Skeleton UTF-16 output size");
+    ATT_ASSERT((int)memcmp(skeleton.output, "A\0", 2), 0, "Skeleton UTF-16 output");
+    ATT_ASSERT_STATUS(mjb_result_free(&skeleton), MJB_STATUS_OK, "Free UTF-16 skeleton");
 
     char utf16_output[3] = { '#', '#', '#' };
     into_size = sizeof(utf16_output) - 1;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("A", 1, enc, MJB_ENC_UTF_16LE, utf16_output,
                           &into_size),
-        MJB_STATUS_OK, "Skeleton into supports UTF-16 output")
-    ATT_ASSERT(into_size, (size_t)2, "Skeleton into UTF-16 output size")
-    ATT_ASSERT((int)memcmp(utf16_output, "A\0", 2), 0, "Skeleton into UTF-16 output")
-    ATT_ASSERT(utf16_output[2], '#', "Skeleton into UTF-16 output has no terminator")
+        MJB_STATUS_OK, "Skeleton into supports UTF-16 output");
+    ATT_ASSERT(into_size, (size_t)2, "Skeleton into UTF-16 output size");
+    ATT_ASSERT((int)memcmp(utf16_output, "A\0", 2), 0, "Skeleton into UTF-16 output");
+    ATT_ASSERT(utf16_output[2], '#', "Skeleton into UTF-16 output has no terminator");
 
     bool confusable = true;
     ATT_ASSERT_STATUS(mjb_confusable_match(NULL, 1, enc, "A", 1, enc, &confusable),
-        MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL left string")
-    ATT_ASSERT(confusable, false, "Confusable clears output before failure")
+        MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL left string");
+    ATT_ASSERT(confusable, false, "Confusable clears output before failure");
     ATT_ASSERT_STATUS(mjb_confusable_match("A", 1, enc, "A", 1, enc, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL output")
+        MJB_STATUS_INVALID_ARGUMENT, "Confusable rejects NULL output");
 
     const unsigned char malformed_utf8[] = { 0x80 };
     const char *malformed_utf8_bytes = (const char *)malformed_utf8;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(
                           malformed_utf8_bytes, sizeof(malformed_utf8), enc, enc, &skeleton),
-        MJB_STATUS_MALFORMED_INPUT, "Skeleton reports malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "Skeleton reports malformed input");
     into_size = 9;
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into(malformed_utf8_bytes,
                           sizeof(malformed_utf8), enc, enc, NULL, &into_size),
-        MJB_STATUS_MALFORMED_INPUT, "Skeleton into reports malformed input")
-    ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "Skeleton into reports malformed input");
+    ATT_ASSERT(into_size, (size_t)0, "Skeleton into clears size after malformed input");
     ATT_ASSERT_STATUS(mjb_confusable_match(malformed_utf8_bytes, sizeof(malformed_utf8), enc, "A", 1,
                           enc, &confusable),
-        MJB_STATUS_MALFORMED_INPUT, "Confusable reports malformed input")
+        MJB_STATUS_MALFORMED_INPUT, "Confusable reports malformed input");
     ATT_ASSERT_STATUS(mjb_confusable_match("A", 1, MJB_ENC_UNKNOWN, "A", 1, enc, &confusable),
-        MJB_STATUS_INVALID_ENCODING, "Confusable rejects invalid encoding")
+        MJB_STATUS_INVALID_ENCODING, "Confusable rejects invalid encoding");
 
     // Cyrillic "А" (U+0410, UTF-8: 0xD0 0x90) is confusable with Latin "A"
     // Both have skeleton "A": skeleton("А")="A", skeleton("A")="A"
     ATT_ASSERT(test_are_confusable("\xD0\x90", 2, enc, "A", 1, enc), true,
-        "Cyrillic A confusable with Latin A")
+        "Cyrillic A confusable with Latin A");
 
     // Cyrillic "а" (U+0430) is confusable with Latin "a" (U+0061)
     // skeleton("а")="a", skeleton("a")="a"
     ATT_ASSERT(test_are_confusable("\xD0\xB0", 2, enc, "a", 1, enc), true,
-        "Cyrillic a confusable with Latin a")
+        "Cyrillic a confusable with Latin a");
 
     // "A" (Latin capital) is NOT confusable with "a" (Latin lowercase)
     // skeleton("A")="A", skeleton("a")="a" → different
-    ATT_ASSERT(test_are_confusable("A", 1, enc, "a", 1, enc), false, "A not confusable with a")
+    ATT_ASSERT(test_are_confusable("A", 1, enc, "a", 1, enc), false, "A not confusable with a");
 
     // "a" is not confusable with "b"
-    ATT_ASSERT(test_are_confusable("a", 1, enc, "b", 1, enc), false, "a not confusable with b")
+    ATT_ASSERT(test_are_confusable("a", 1, enc, "b", 1, enc), false, "a not confusable with b");
 
     // A string is confusable with itself
     ATT_ASSERT(test_are_confusable("hello", 5, enc, "hello", 5, enc), true,
-        "hello confusable with itself")
+        "hello confusable with itself");
 
     // "hello" vs "hеllo" (second 'e' is Cyrillic U+0435, UTF-8: 0xD0 0xB5)
     // skeleton("hello")="hello", skeleton("hеllo")="hello" → confusable
     ATT_ASSERT(test_are_confusable("hello", 5, enc, "h\xD0\xB5llo", 6, enc), true,
-        "hello confusable with h(Cyrillic e)llo")
+        "hello confusable with h(Cyrillic e)llo");
 
     // Empty strings: both have empty skeleton (output_size==0), returns false
     ATT_ASSERT(test_are_confusable("", 0, enc, "", 0, enc), false,
-        "empty strings not confusable")
+        "empty strings not confusable");
 
     // Different lengths with no possible match
     ATT_ASSERT(test_are_confusable("a", 1, enc, "ab", 2, enc), false,
-        "a not confusable with ab")
+        "a not confusable with ab");
 
     // Digit '1', capital 'I', and pipe '|' all map to skeleton 'l'
-    ATT_ASSERT(test_are_confusable("1", 1, enc, "l", 1, enc), true, "1 confusable with l")
-    ATT_ASSERT(test_are_confusable("I", 1, enc, "l", 1, enc), true, "I confusable with l")
-    ATT_ASSERT(test_are_confusable("|", 1, enc, "l", 1, enc), true, "| confusable with l")
-    ATT_ASSERT(test_are_confusable("1", 1, enc, "I", 1, enc), true, "1 confusable with I")
+    ATT_ASSERT(test_are_confusable("1", 1, enc, "l", 1, enc), true, "1 confusable with l");
+    ATT_ASSERT(test_are_confusable("I", 1, enc, "l", 1, enc), true, "I confusable with l");
+    ATT_ASSERT(test_are_confusable("|", 1, enc, "l", 1, enc), true, "| confusable with l");
+    ATT_ASSERT(test_are_confusable("1", 1, enc, "I", 1, enc), true, "1 confusable with I");
 
     // Digit '0' maps to skeleton 'O' (letter)
-    ATT_ASSERT(test_are_confusable("0", 1, enc, "O", 1, enc), true, "0 confusable with O")
+    ATT_ASSERT(test_are_confusable("0", 1, enc, "O", 1, enc), true, "0 confusable with O");
     ATT_ASSERT(test_are_confusable("0", 1, enc, "o", 1, enc), false,
-        "0 not confusable with o (O != o)")
+        "0 not confusable with o (O != o)");
 
     // 'm' maps to a two-codepoint skeleton "rn": skeleton("m") == skeleton("rn")
     ATT_ASSERT(test_are_confusable("m", 1, enc, "rn", 2, enc), true,
-        "m confusable with rn (multi-codepoint skeleton)")
+        "m confusable with rn (multi-codepoint skeleton)");
     ATT_ASSERT(test_are_confusable("mm", 2, enc, "rnrn", 4, enc), true,
-        "mm confusable with rnrn")
+        "mm confusable with rnrn");
 
     // Cyrillic р (U+0440, UTF-8: 0xD1 0x80) maps to Latin p
     // "рal" (with Cyrillic р) is confusable with "pal"
     ATT_ASSERT(test_are_confusable("рal", 4, enc, "pal", 3, enc), true,
-        "Cyrillic рal confusable with pal")
+        "Cyrillic рal confusable with pal");
 
     // Cyrillic С (U+0421, UTF-8: 0xD0 0xA1) maps to Latin C
     ATT_ASSERT(test_are_confusable("\xD0\xA1" "at", 4, enc, "Cat", 3, enc), true,
-        "Cyrillic С + at confusable with Cat")
+        "Cyrillic С + at confusable with Cat");
 
     // "gооd" (Cyrillic о U+043E, UTF-8: 0xD0 0xBE) confusable with "good"
     // skeleton(Cyrillic о) = Latin o -> both strings have skeleton "good"
     ATT_ASSERT(test_are_confusable("gооd", 6, enc, "good", 4, enc), true,
-        "g(Cyrillic o)(Cyrillic o)d confusable with good")
+        "g(Cyrillic o)(Cyrillic o)d confusable with good");
 
     ATT_ASSERT(test_are_confusable("gооd", 6, enc, "\0g\0o\0o\0d", 8, MJB_ENC_UTF_16BE), true,
-        "Confusable with different encodings")
+        "Confusable with different encodings");
 
     // Confusability is symmetric
     ATT_ASSERT(test_are_confusable("pal", 3, enc, "\xD1\x80" "al", 4, enc), true,
-        "confusability is symmetric")
+        "confusability is symmetric");
 
     run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
 #if !defined(MJB_SHARED)
     run_confusables_file("./utils/generate/unicode-data/security/confusables.txt");
 #endif
-
-    return 0;
 }
 
 #else
 
-int test_security(void *arg) {
-    (void)arg;
-
+ATT_TEST(security) {
     mjb_script script = MJB_SC_NOT_SET;
     size_t count = 1;
     mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
@@ -556,20 +552,18 @@ int test_security(void *arg) {
 
     MJB_TEST_COVERAGE(mjb_resolved_script_set);
     ATT_ASSERT_STATUS(mjb_resolved_script_set("a", 1, MJB_ENC_UTF_8, &script, &count, &kind),
-        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled resolved scripts report feature status")
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled resolved scripts report feature status");
     MJB_TEST_COVERAGE(mjb_confusable_skeleton);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &result),
-        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton reports feature status")
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton reports feature status");
     MJB_TEST_COVERAGE(mjb_confusable_skeleton_into);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton_into("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, output,
                           &output_size),
-        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton into reports feature status")
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton into reports feature status");
     MJB_TEST_COVERAGE(mjb_confusable_match);
     ATT_ASSERT_STATUS(mjb_confusable_match("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
                           &confusable),
-        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled confusable check reports feature status")
-
-    return 0;
+        MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled confusable check reports feature status");
 }
 
 #endif // MJB_FEATURE_SECURITY

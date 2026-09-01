@@ -16,21 +16,21 @@ static void assert_quick_check(const char *buffer, size_t byte_length, mjb_encod
     mjb_status status = mjb_normalization_quick_check(buffer, byte_length, encoding, form, &result);
     MJB_TEST_COVERAGE(mjb_normalization_quick_check);
 
-    ATT_ASSERT_STATUS(status, expected_status, message)
+    ATT_ASSERT_STATUS(status, expected_status, message);
 
     if(status == MJB_STATUS_OK) {
-        ATT_ASSERT((unsigned int)result, (unsigned int)expected_result, message)
+        ATT_ASSERT((unsigned int)result, (unsigned int)expected_result, message);
     } else {
         ATT_ASSERT((unsigned int)result, (unsigned int)MJB_QC_NO,
-            "Quick check clears output before failure")
+            "Quick check clears output before failure");
     }
 }
 
-int test_quick_check(void *arg) {
+ATT_TEST(quick_check) {
     mjb_encoding enc = MJB_ENC_UTF_8;
 
     ATT_ASSERT_STATUS(mjb_normalization_quick_check("a", 1, enc, MJB_NORMALIZATION_NFC, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NULL quick-check output")
+        MJB_STATUS_INVALID_ARGUMENT, "NULL quick-check output");
     assert_quick_check(NULL, 1, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ARGUMENT, MJB_QC_NO,
         "NULL quick-check input");
     assert_quick_check("a", 1, enc, (mjb_normalization)99, MJB_STATUS_INVALID_FORM, MJB_QC_NO,
@@ -73,6 +73,4 @@ int test_quick_check(void *arg) {
         "Composed e acute is not NFD");
     assert_quick_check("e\xCC\x81", 3, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_OK, MJB_QC_MAYBE,
         "Decomposed e acute NFC quick check is maybe");
-
-    return 0;
 }

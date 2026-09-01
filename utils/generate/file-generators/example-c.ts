@@ -19,8 +19,8 @@ function exampleSource(fn: MojibakeFunction): string {
     }
 
     if(line.startsWith('    return 1;')) {
-      output.push(`    ATT_ASSERT(0, 1, "${fn.name} test failed") // Added by the script`);
-      output.push(`    return 1;`);
+      output.push(`    ATT_ASSERT(0, 1, "${fn.name} test failed"); // Added by the script`);
+      output.push(`    return;`);
 
       continue;
     }
@@ -38,7 +38,7 @@ function exampleSource(fn: MojibakeFunction): string {
 
       output.push( `// ${line}`);
       output.push(`snprintf(test_buffer, sizeof(test_buffer), ${match[1]}); // Added by the script`);
-      output.push(`ATT_ASSERT(test_buffer, "${currentComment}", "${fn.name} test failed") // Added by the script`);
+      output.push(`ATT_ASSERT(test_buffer, "${currentComment}", "${fn.name} test failed"); // Added by the script`);
 
       continue;
     }
@@ -80,7 +80,7 @@ export function generateExampleC() {
   fileContent = substituteBlock(
     fileContent,
     '// This function is automatically generated. Do not edit.',
-    '    return 0;',
+    '    // End of generated examples.',
     generated
   );
 

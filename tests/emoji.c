@@ -124,7 +124,7 @@ static void run_emoji_test_file(const char *filename) {
     FILE *file = fopen(filename, "r");
 
     if(!file) {
-        ATT_ASSERT("Not opened", "Opened file", "emoji-test.txt")
+        ATT_ASSERT("Not opened", "Opened file", "emoji-test.txt");
 
         return;
     }
@@ -167,14 +167,14 @@ static void run_emoji_test_file(const char *filename) {
             char test_name[128];
             snprintf(test_name, sizeof(test_name), "emoji-test.txt sequence line %u", current_line);
             MJB_TEST_COVERAGE(mjb_emoji_sequence_info);
-            ATT_ASSERT(0, 1, test_name)
+            ATT_ASSERT(0, 1, test_name);
 
             if(is_exit_on_error()) {
                 break;
             }
         } else {
             MJB_TEST_COVERAGE(mjb_emoji_sequence_info);
-            ATT_ASSERT(0, 0, "emoji-test.txt sequence entry")
+            ATT_ASSERT(0, 0, "emoji-test.txt sequence entry");
         }
 
         ++tested_sequences;
@@ -195,14 +195,14 @@ static void run_emoji_test_file(const char *filename) {
             char test_name[128];
             snprintf(test_name, sizeof(test_name), "emoji-test.txt line %u", current_line);
             MJB_TEST_COVERAGE(mjb_codepoint_emoji_properties);
-            ATT_ASSERT(0, 1, test_name)
+            ATT_ASSERT(0, 1, test_name);
 
             if(is_exit_on_error()) {
                 break;
             }
         } else {
             MJB_TEST_COVERAGE(mjb_codepoint_emoji_properties);
-            ATT_ASSERT(0, 0, "emoji-test.txt single-codepoint entry")
+            ATT_ASSERT(0, 0, "emoji-test.txt single-codepoint entry");
         }
 
         ++tested_codepoints;
@@ -213,13 +213,13 @@ static void run_emoji_test_file(const char *filename) {
     char summary[128];
     snprintf(summary, sizeof(summary), "emoji-test.txt: %u/%u single-codepoint rows passed",
         tested_codepoints - codepoint_failures, tested_codepoints);
-    ATT_ASSERT(tested_codepoints > 0, true, "emoji-test.txt has single-codepoint rows")
-    ATT_ASSERT(codepoint_failures, 0u, summary)
+    ATT_ASSERT(tested_codepoints > 0, true, "emoji-test.txt has single-codepoint rows");
+    ATT_ASSERT(codepoint_failures, 0u, summary);
 
     snprintf(summary, sizeof(summary), "emoji-test.txt: %u/%u sequence rows passed",
         tested_sequences - sequence_failures, tested_sequences);
-    ATT_ASSERT(tested_sequences > 0, true, "emoji-test.txt has sequence rows")
-    ATT_ASSERT(sequence_failures, 0u, summary)
+    ATT_ASSERT(tested_sequences > 0, true, "emoji-test.txt has sequence rows");
+    ATT_ASSERT(sequence_failures, 0u, summary);
 }
 
 static void assert_emoji_sequence(const char *buffer, size_t byte_length,
@@ -228,50 +228,50 @@ static void assert_emoji_sequence(const char *buffer, size_t byte_length,
     mjb_emoji_sequence emoji;
 
     ATT_ASSERT_STATUS(mjb_emoji_sequence_info(buffer, byte_length, MJB_ENC_UTF_8, &emoji),
-        MJB_STATUS_OK, name)
-    ATT_ASSERT((int)emoji.type, (int)type, name)
-    ATT_ASSERT((int)emoji.qualification, (int)qualification, name)
-    ATT_ASSERT(emoji.codepoint_count, codepoint_count, name)
+        MJB_STATUS_OK, name);
+    ATT_ASSERT((int)emoji.type, (int)type, name);
+    ATT_ASSERT((int)emoji.qualification, (int)qualification, name);
+    ATT_ASSERT(emoji.codepoint_count, codepoint_count, name);
 }
 
-int test_emoji(void *arg) {
+ATT_TEST(emoji) {
     mjb_emoji_properties emoji;
 
     ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(MJB_CODEPOINT_MAX + 1, &emoji),
-        MJB_STATUS_INVALID_ARGUMENT, "Invalid codepoint")
+        MJB_STATUS_INVALID_ARGUMENT, "Invalid codepoint");
     ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x23, NULL), MJB_STATUS_INVALID_ARGUMENT,
-        "NULL emoji pointer")
+        "NULL emoji pointer");
 
-    ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x0, &emoji), MJB_STATUS_NOT_FOUND, "NULL")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x0, &emoji), MJB_STATUS_NOT_FOUND, "NULL");
 
-    ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x23, &emoji), MJB_STATUS_OK, "U+23: #")
-    ATT_ASSERT(emoji.codepoint, 0x23, "U+23: codepoint")
-    ATT_ASSERT(emoji.emoji, true, "U+23: emoji")
-    ATT_ASSERT(emoji.presentation, false, "U+23: presentation")
-    ATT_ASSERT(emoji.modifier, false, "U+23: modifier")
-    ATT_ASSERT(emoji.modifier_base, false, "U+23: modifier base")
-    ATT_ASSERT(emoji.component, true, "U+23: component")
-    ATT_ASSERT(emoji.extended_pictographic, false, "U+23: extended pictographic")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x23, &emoji), MJB_STATUS_OK, "U+23: #");
+    ATT_ASSERT(emoji.codepoint, 0x23, "U+23: codepoint");
+    ATT_ASSERT(emoji.emoji, true, "U+23: emoji");
+    ATT_ASSERT(emoji.presentation, false, "U+23: presentation");
+    ATT_ASSERT(emoji.modifier, false, "U+23: modifier");
+    ATT_ASSERT(emoji.modifier_base, false, "U+23: modifier base");
+    ATT_ASSERT(emoji.component, true, "U+23: component");
+    ATT_ASSERT(emoji.extended_pictographic, false, "U+23: extended pictographic");
 
-    ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x1F600, &emoji), MJB_STATUS_OK, "U+1F600: 😀")
-    ATT_ASSERT(emoji.codepoint, 0x1F600, "U+1F600: codepoint")
-    ATT_ASSERT(emoji.emoji, true, "U+1F600: emoji")
-    ATT_ASSERT(emoji.presentation, true, "U+1F600: presentation")
-    ATT_ASSERT(emoji.modifier, false, "U+1F600: modifier")
-    ATT_ASSERT(emoji.modifier_base, false, "U+1F600: modifier base")
-    ATT_ASSERT(emoji.component, false, "U+1F600: component")
-    ATT_ASSERT(emoji.extended_pictographic, true, "U+1F600: extended pictographic")
+    ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(0x1F600, &emoji), MJB_STATUS_OK, "U+1F600: 😀");
+    ATT_ASSERT(emoji.codepoint, 0x1F600, "U+1F600: codepoint");
+    ATT_ASSERT(emoji.emoji, true, "U+1F600: emoji");
+    ATT_ASSERT(emoji.presentation, true, "U+1F600: presentation");
+    ATT_ASSERT(emoji.modifier, false, "U+1F600: modifier");
+    ATT_ASSERT(emoji.modifier_base, false, "U+1F600: modifier base");
+    ATT_ASSERT(emoji.component, false, "U+1F600: component");
+    ATT_ASSERT(emoji.extended_pictographic, true, "U+1F600: extended pictographic");
 
-    ATT_ASSERT(mjb_codepoint_is_emoji(0x23), true, "U+23 is Emoji")
-    ATT_ASSERT(mjb_codepoint_is_emoji_presentation(0x23), false, "U+23 is not Emoji_Presentation")
-    ATT_ASSERT(mjb_codepoint_is_emoji_component(0x23), true, "U+23 is Emoji_Component")
-    ATT_ASSERT(mjb_codepoint_is_emoji_modifier(0x1F3FB), true, "U+1F3FB is Emoji_Modifier")
+    ATT_ASSERT(mjb_codepoint_is_emoji(0x23), true, "U+23 is Emoji");
+    ATT_ASSERT(mjb_codepoint_is_emoji_presentation(0x23), false, "U+23 is not Emoji_Presentation");
+    ATT_ASSERT(mjb_codepoint_is_emoji_component(0x23), true, "U+23 is Emoji_Component");
+    ATT_ASSERT(mjb_codepoint_is_emoji_modifier(0x1F3FB), true, "U+1F3FB is Emoji_Modifier");
     ATT_ASSERT(mjb_codepoint_is_emoji_modifier_base(0x1F44B), true,
-        "U+1F44B is Emoji_Modifier_Base")
+        "U+1F44B is Emoji_Modifier_Base");
     ATT_ASSERT(mjb_codepoint_is_extended_pictographic(0x1F600), true,
-        "U+1F600 is Extended_Pictographic")
+        "U+1F600 is Extended_Pictographic");
     ATT_ASSERT(mjb_codepoint_is_emoji(MJB_CODEPOINT_MAX + 1), false,
-        "Invalid codepoint is not Emoji")
+        "Invalid codepoint is not Emoji");
 
     // 😀
     assert_emoji_sequence("\xF0\x9F\x98\x80", 4, MJB_EMOJI_SEQUENCE_BASIC,
@@ -305,22 +305,20 @@ int test_emoji(void *arg) {
 
     // ☺
     ATT_ASSERT(mjb_is_emoji_sequence("\xE2\x98\xBA", 3, MJB_ENC_UTF_8), true,
-        "Unqualified emoji is a listed emoji sequence")
+        "Unqualified emoji is a listed emoji sequence");
     // ☺
     ATT_ASSERT(mjb_is_rgi_emoji("\xE2\x98\xBA", 3, MJB_ENC_UTF_8), false,
-        "Unqualified emoji is not RGI")
+        "Unqualified emoji is not RGI");
     // ☺️
     ATT_ASSERT(mjb_is_rgi_emoji("\xE2\x98\xBA\xEF\xB8\x8F", 6, MJB_ENC_UTF_8), true,
-        "Fully-qualified emoji is RGI")
+        "Fully-qualified emoji is RGI");
     // ⌚️
     ATT_ASSERT(mjb_is_rgi_emoji("\xE2\x8C\x9A\xEF\xB8\x8F", 6, MJB_ENC_UTF_8), false,
-        "Emoji variation sequence is not RGI by itself")
+        "Emoji variation sequence is not RGI by itself");
     ATT_ASSERT(mjb_is_emoji_sequence("ABC", 3, MJB_ENC_UTF_8), false,
-        "ASCII word is not an emoji sequence")
+        "ASCII word is not an emoji sequence");
     ATT_ASSERT_STATUS(mjb_emoji_sequence_info(NULL, 0, MJB_ENC_UTF_8, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NULL string emoji sequence")
+        MJB_STATUS_INVALID_ARGUMENT, "NULL string emoji sequence");
 
     run_emoji_test_file("./utils/generate/unicode-data/emoji/emoji-test.txt");
-
-    return 0;
 }
