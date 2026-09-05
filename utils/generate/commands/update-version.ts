@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { getVersion, substituteBlock } from '../utils';
 
@@ -55,15 +55,14 @@ export async function updateVersion() {
 
   // Find all SKILL.md files recursively under a directory
   function updateSkillMdFiles(dir: string) {
-    const entries = readdirSync(dir);
+    const entries = readdirSync(dir, { withFileTypes: true });
 
     for(const entry of entries) {
-      const full = path.join(dir, entry);
-      const stat = statSync(full);
+      const full = path.join(dir, entry.name);
 
-      if(stat.isDirectory()) {
+      if(entry.isDirectory()) {
         updateSkillMdFiles(full);
-      } else if(entry === 'SKILL.md') {
+      } else if(entry.name === 'SKILL.md') {
         fileContent = readFileSync(full, 'utf-8');
         fileContent = substituteBlock(fileContent, 'version: ', '\n', v.version);
         writeFileSync(full, fileContent);

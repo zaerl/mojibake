@@ -5,7 +5,7 @@
  */
 
 import { XMLParser } from 'fast-xml-parser';
-import { existsSync, mkdirSync, statSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, statSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import { downloadFile, downloadText } from '../utils';
@@ -132,12 +132,6 @@ async function availableLocales(): Promise<AvailableLocales> {
 // Generate a JSON file from the CLDR locale XML data for the specified locale name.
 export async function generateLocaleData(name: string, data: any) {
   const outputPath = `./locales/${name}.json`;
-
-  if(existsSync(outputPath)) {
-    console.log(`Removing old locale data '${outputPath}'`);
-
-    unlinkSync(outputPath);
-  }
 
   const tables = [
     ['languages', 'language'],
