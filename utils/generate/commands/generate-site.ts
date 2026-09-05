@@ -8,7 +8,7 @@ import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, rea
 import hljs from 'highlight.js/lib/core';
 import http from 'http';
 import markdownit from 'markdown-it';
-import { basename, extname, join, relative } from 'path';
+import { basename, extname, join, relative, resolve, sep } from 'path';
 import { Section } from '../functions';
 import { cfns } from '../html-function';
 import { getVersion, substituteBlock, substituteText } from '../utils';
@@ -339,9 +339,16 @@ function serveStatic(port = SERVE_PORT) {
       urlPath = `${API_ROUTE}index.js`;
     }
 
-    const filePath = urlPath.startsWith(API_ROUTE) ?
-      join(API_DIST_DIR, urlPath.slice(API_ROUTE.length)) :
-      join(BUILD_DIR, urlPath);
+    const rootDir = resolve(urlPath.startsWith(API_ROUTE) ? API_DIST_DIR : BUILD_DIR);
+    const relPath = urlPath.startsWith(API_ROUTE) ? urlPath.slice(API_ROUTE.length) : urlPath;
+    const filePath = resolve(join(rootDir, relPath));
+
+    // Reject paths that escape the served directory
+    if(!filePath.startsWith(rootDir + sep)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
 
     if(!existsSync(filePath) || !statSync(filePath).isFile()) {
       res.writeHead(404);
