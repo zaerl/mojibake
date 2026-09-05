@@ -489,19 +489,28 @@
 
         function parseCodepointCharacter(char) {
             let ret = `Codepoint <strong>${codepointToString(char.codepoint)}</strong>:<br>`;
-            ret += `Name: <span class="text-primary">${char.name}</span><br>`;
+            ret += `Name: <span class="text-primary">${escapeHTML(char.name)}</span><br>`;
             ret += `Category: <strong>${categories[char.category]}</strong><br>`;
             ret += `Combining: <strong>${char.combining}</strong><br>`;
-            ret += `Bidirectional: <strong>${char.bidirectional}</strong><br>`;
+            ret += `Bidirectional: <strong>${escapeHTML(char.bidirectional)}</strong><br>`;
             ret += `Decimal: <strong>${char.decimal === null ? 'N/A' : char.decimal}</strong><br>`;
             ret += `Digit: <strong>${char.digit === null ? 'N/A' : char.digit}</strong><br>`;
-            ret += `Numeric: <strong>${char.numeric === '' ? 'N/A' : char.numeric}</strong><br>`;
+            ret += `Numeric: <strong>${char.numeric === '' ? 'N/A' : escapeHTML(char.numeric)}</strong><br>`;
             ret += `Mirrored: <strong>${char.mirrored ? 'true' : 'false'}</strong><br>`;
             ret += `Uppercase: <strong>${codepointToString(char.uppercase, false)}</strong><br>`;
             ret += `Lowercase: <strong>${codepointToString(char.lowercase, false)}</strong><br>`;
             ret += `Titlecase: <strong>${codepointToString(char.titlecase, false)}</strong>`;
 
             return ret;
+        }
+
+        function escapeHTML(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         function outputUint8Array(array) {
@@ -512,7 +521,7 @@
         }
 
         function parseComposedString(result) {
-            let ret = `Javascript string: "<strong>${result.output}</strong>"<br>`;
+            let ret = `Javascript string: "<strong>${escapeHTML(result.output)}</strong>"<br>`;
             ret += `Raw bytes: <strong>${result.bytes === null ? 'N/A' : outputUint8Array(result.bytes)}</strong>`;
 
             return ret;
@@ -554,20 +563,20 @@
         }
 
         function parseLocale(result) {
-            let ret = `Language: <strong>${result.language}</strong><br>`;
-            ret += `Extended language: <strong>${result.extlang}</strong><br>`;
-            ret += `Script: <strong>${result.script}</strong><br>`;
-            ret += `Region: <strong>${result.region}</strong><br>`;
-            ret += `Variant: <strong>${result.variant}</strong><br>`;
-            ret += `Extensions: <strong>${result.extensions}</strong><br>`;
-            ret += `Private Use: <strong>${result.private_use}</strong><br>`;
-            ret += `Grandfathered: <strong>${result.grandfathered}</strong><br>`;
+            let ret = `Language: <strong>${escapeHTML(result.language)}</strong><br>`;
+            ret += `Extended language: <strong>${escapeHTML(result.extlang)}</strong><br>`;
+            ret += `Script: <strong>${escapeHTML(result.script)}</strong><br>`;
+            ret += `Region: <strong>${escapeHTML(result.region)}</strong><br>`;
+            ret += `Variant: <strong>${escapeHTML(result.variant)}</strong><br>`;
+            ret += `Extensions: <strong>${escapeHTML(result.extensions)}</strong><br>`;
+            ret += `Private Use: <strong>${escapeHTML(result.private_use)}</strong><br>`;
+            ret += `Grandfathered: <strong>${escapeHTML(result.grandfathered)}</strong><br>`;
 
             return ret;
         }
 
         function parseBlockInfo(result) {
-            let ret = `Block name: <strong>${result.name}</strong><br>`;
+            let ret = `Block name: <strong>${escapeHTML(result.name)}</strong><br>`;
             ret += `Start codepoint: <strong>${codepointToString(result.start)}</strong><br>`;
             ret += `End codepoint: <strong>${codepointToString(result.end)}</strong><br>`;
 
@@ -603,7 +612,7 @@
             let i = 0;
 
             for(const character of buffer) {
-                ret += character + getBreakSymbol(result[i++]);
+                ret += escapeHTML(character) + getBreakSymbol(result[i++]);
             }
 
             return ret;
@@ -689,7 +698,7 @@
         }
 
         function parseIDNAResult(value) {
-            let ret = `Result: <strong>${value.output}</strong><br>`;
+            let ret = `Result: <strong>${escapeHTML(value.output)}</strong><br>`;
             ret += `Valid: <strong>${value.valid ? 'Yes' : 'No'}</strong><br>`;
 
             if(value.errors) {
@@ -708,9 +717,9 @@
                 (functions[func].args.length === 1 && functions[func].args[0].type === 'void')) {
                 try {
                     const data = await callAPI(func);
-                    funcResults.innerHTML = data;
+                    funcResults.textContent = data;
                 } catch (error) {
-                    funcResults.innerHTML = error.message;
+                    funcResults.textContent = error.message;
                 }
 
                 funcResults.style.display = 'block';
@@ -759,7 +768,7 @@
                     value = readCodepoint(value);
 
                     if(value === -1) {
-                        funcResults.innerHTML = `Invalid codepoint: ${form.elements[`${func}-${arg.name}`].value}`;
+                        funcResults.textContent = `Invalid codepoint: ${form.elements[`${func}-${arg.name}`].value}`;
                         funcResults.style.display = 'block';
 
                         return;
@@ -780,7 +789,7 @@
             try {
                 data = callAPI(functions[func].wasmName, args);
             } catch (error) {
-                funcResults.innerHTML = error.message;
+                funcResults.textContent = error.message;
                 funcResults.style.display = 'block';
 
                 return;
