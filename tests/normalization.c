@@ -293,17 +293,31 @@ static void test_nfkc_casefold_file(void) {
             *comment = '\0';
         }
 
-        unsigned int start;
-        unsigned int end;
-        int matched = sscanf(line, "%X..%X", &start, &end);
+        char *range_cursor = NULL;
+        unsigned long parsed_start = strtoul(line, &range_cursor, 16);
 
-        if(matched == 1) {
-            end = start;
-        } else if(matched != 2) {
+        if(range_cursor == line || parsed_start > MJB_CODEPOINT_MAX) {
             ++current_line;
 
             continue;
         }
+
+        unsigned long parsed_end = parsed_start;
+
+        if(range_cursor[0] == '.' && range_cursor[1] == '.') {
+            char *range_start = range_cursor + 2;
+            parsed_end = strtoul(range_start, &range_cursor, 16);
+
+            if(range_cursor == range_start || parsed_end > MJB_CODEPOINT_MAX ||
+                parsed_end < parsed_start) {
+                ++current_line;
+
+                continue;
+            }
+        }
+
+        mjb_codepoint start = (mjb_codepoint)parsed_start;
+        mjb_codepoint end = (mjb_codepoint)parsed_end;
 
         char expected_mapping[128];
         size_t mapping_size = get_string_from_codepoints(second_semicolon + 1,
@@ -313,7 +327,7 @@ static void test_nfkc_casefold_file(void) {
                               MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &expected, NULL),
             MJB_STATUS_OK, "Normalize expected NFKC casefold mapping");
 
-        for(unsigned int codepoint = start; codepoint <= end; ++codepoint) {
+        for(mjb_codepoint codepoint = start; codepoint <= end; ++codepoint) {
             char source[8];
             unsigned int source_size = mjb_codepoint_encode(codepoint, source, sizeof(source),
                 MJB_ENC_UTF_8);
