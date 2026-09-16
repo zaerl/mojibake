@@ -10,7 +10,7 @@
 
 set -e
 
-UNICODE_VERSION="draft"
+UNICODE_VERSION="18.0.0"
 SECURITY_VERSION="18.0.0"
 IDNA_VERSION="18.0.0"
 GENERATOR_DIR=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)

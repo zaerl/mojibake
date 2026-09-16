@@ -11,8 +11,7 @@ pushd "%~dp0.." || (
     exit /b 1
 )
 
-REM TODO: change "draft" to 18.0.0 when the final version is released.
-set UNICODE_VERSION=draft
+set UNICODE_VERSION=18.0.0
 set SECURITY_VERSION=18.0.0
 set IDNA_VERSION=18.0.0
 set DATA_DIR=unicode-data

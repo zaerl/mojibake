@@ -231,7 +231,7 @@ the official tests included in the standard:
 9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/18.0.0/uca/CollationTest.zip)
 10. [emoji-test.txt](https://www.unicode.org/Public/18.0.0/emoji/emoji-test.txt)
 11. [IdnaTestV2.txt](https://www.unicode.org/Public/18.0.0/idna/IdnaTestV2.txt)
-12. [UTS #39 data (confusables.txt and intentional.txt)](https://www.unicode.org/Public/draft/security/uts39-data-18.0.0.zip)
+12. [UTS #39 data (confusables.txt and intentional.txt)](https://www.unicode.org/Public/18.0.0/security/uts39-data-18.0.0.zip)
 13. [NormalizationTest.txt](https://www.unicode.org/Public/18.0.0/ucd/NormalizationTest.txt)
 14. [SpecialCasing.txt](https://www.unicode.org/Public/18.0.0/ucd/SpecialCasing.txt)\n
 `;

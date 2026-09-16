@@ -5,7 +5,7 @@ documentation and test the functions by using WASM here:
 [https://mojibake.zaerl.com](https://mojibake.zaerl.com)
 
 > [!NOTE]
-> When we refer to "Unicode" or "Unicode 18" we refer to Unicode 18 **beta**
+> When we refer to "Unicode" or "Unicode 18" we refer to Unicode **18.0.0**
 
 ## Unicode glossary
 
