@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,541,267** C assertions and **149** JavaScript assertions, including all
+Mojibake runs a total of **4,541,203** C assertions and **149** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -14,7 +14,7 @@ the official tests included in the standard:
 9. [CollationTest/CollationTest_SHIFTED.txt](https://www.unicode.org/Public/18.0.0/uca/CollationTest.zip)
 10. [emoji-test.txt](https://www.unicode.org/Public/18.0.0/emoji/emoji-test.txt)
 11. [IdnaTestV2.txt](https://www.unicode.org/Public/18.0.0/idna/IdnaTestV2.txt)
-12. [UTS #39 data (confusables.txt and intentional.txt)](https://www.unicode.org/Public/draft/security/uts39-data-18.0.0.zip)
+12. [UTS #39 data (confusables.txt and intentional.txt)](https://www.unicode.org/Public/18.0.0/security/uts39-data-18.0.0.zip)
 13. [NormalizationTest.txt](https://www.unicode.org/Public/18.0.0/ucd/NormalizationTest.txt)
 14. [SpecialCasing.txt](https://www.unicode.org/Public/18.0.0/ucd/SpecialCasing.txt)
 
@@ -25,7 +25,7 @@ the official tests included in the standard:
 | `mjb_normalize_into`                       | 2823989     |
 | `mjb_bidi_resolve`                         | 582576      |
 | `mjb_normalize`                            | 424420      |
-| `mjb_collation_compare`                    | 424191      |
+| `mjb_collation_compare`                    | 424127      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_nfkc_casefold_into`                   | 74756       |
 | `mjb_nfkc_casefold`                        | 32047       |
@@ -129,7 +129,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4541267** |
+| **Total**                                  | **4541203** |
 
 ## JavaScript
 

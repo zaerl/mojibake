@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Updated to the final Unicode 18.0.0 release. The data downloads now use the released
+  `Public/18.0.0/` directory instead of `Public/draft/`, and the collation tables were
+  regenerated from the final DUCET.
 - **Breaking**: `mjb_count_codepoints` is now `mjb_codepoint_count`, matching the
   `mjb_grapheme_count`, `mjb_word_count`, and `mjb_sentence_count` naming. It now returns an
   `mjb_status` and stores the count in a `size_t *count` out parameter, and rejects invalid
