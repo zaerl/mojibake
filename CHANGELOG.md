@@ -5,25 +5,29 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-09-16
+Codename: [COMMERCIAL AT]
+
+### Added
+- Added "malformed policy" (stop, replace, skip)
+- Added `mjb_string_validate` function
+- Added `mjb_decode_next` function
+- Added `mjb_decode_previous` function
+- Added `mjb_word_count` function
+- Added support for Haiku R1/beta6
 
 ### Changed
-- Updated to the final Unicode 18.0.0 release. The data downloads now use the released
-  `Public/18.0.0/` directory instead of `Public/draft/`, and the collation tables were
-  regenerated from the final DUCET.
-- **Breaking**: `mjb_count_codepoints` is now `mjb_codepoint_count`, matching the
-  `mjb_grapheme_count`, `mjb_word_count`, and `mjb_sentence_count` naming. It now returns an
-  `mjb_status` and stores the count in a `size_t *count` out parameter, and rejects invalid
-  encodings with `MJB_STATUS_INVALID_ENCODING` instead of decoding with replacements. The C++
-  wrapper `mjb::length` is now `mjb::codepoint_count`, and the TypeScript API `countCodepoints`
-  is now `codepointCount`.
-- **Breaking**: replaced `mjb_set_memory_functions` with the context-aware `mjb_set_allocator`.
-  The allocator can be configured only once, before any other library call, and remains installed
-  for the process lifetime. The raw `mjb_alloc`, `mjb_realloc`, and `mjb_free` functions are now
-  private; callers must use `mjb_result_free` or the matching specialized destructor.
-- **Breaking**: renamed `mjb_reset` to `mjb_reset_locale` and moved its implementation to the
-  locale module, reflecting that it only restores the process-global locale. The C++ wrapper is
-  now `mjb::reset_locale`.
+- Updated to the final Unicode 18.0.0 release
+- Now all functions that parse text accept a malfomed policy
+- `mjb_count_codepoints` is now `mjb_codepoint_count`. It now returns an `mjb_status` and stores the
+  count in a `size_t *count` out parameter. C++ `mjb::length` is now `mjb::codepoint_count`
+- Renamed TypeScript API `countCodepoints` to `codepointCount`
+- Replaced `mjb_set_memory_functions` with the context-aware `mjb_set_allocator`
+- Renamed `mjb_reset` to `mjb_reset_locale`. C++ is now `mjb::reset_locale`
+- Updated Attractor
+
+### Fixed
+- Multiple S&Q fixes
 
 ## [0.3.6] - 2026-08-16
 Codename: [DIGIT SIX]
@@ -691,7 +695,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.3.6...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/zaerl/mojibake/compare/v0.3.6...v0.4.0
 [0.3.6]: https://github.com/zaerl/mojibake/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/zaerl/mojibake/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/zaerl/mojibake/compare/v0.3.3...v0.3.4
