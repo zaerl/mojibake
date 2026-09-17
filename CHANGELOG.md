@@ -18,7 +18,7 @@ Codename: [COMMERCIAL AT]
 
 ### Changed
 - Updated to the final Unicode 18.0.0 release
-- Now all functions that parse text accept a malfomed policy
+- Now all functions that parse text accept a malformed policy
 - `mjb_count_codepoints` is now `mjb_codepoint_count`. It now returns an `mjb_status` and stores the
   count in a `size_t *count` out parameter. C++ `mjb::length` is now `mjb::codepoint_count`
 - Renamed TypeScript API `countCodepoints` to `codepointCount`
