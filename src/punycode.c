@@ -35,7 +35,7 @@ static bool mjb_punycode_decode_digit(char character, uint64_t *digit) {
     }
 
     if(character >= '0' && character <= '9') {
-        *digit = (uint64_t)(character - '0' + 26);
+        *digit = (uint64_t)(character - '0') + 26;
         return true;
     }
 
