@@ -208,8 +208,7 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_le
         if((state->current == MJB_WBP_EXTEND || state->current == MJB_WBP_FORMAT ||
                state->current == MJB_WBP_ZWJ) &&
             state->previous != MJB_WBP_NOT_SET && // SOT exception
-            state->previous != MJB_WBP_CR && state->previous != MJB_WBP_LF &&
-            state->previous != MJB_WBP_NEWLINE) {
+            state->previous != MJB_WBP_LF && state->previous != MJB_WBP_NEWLINE) {
             // Re-map to the base class so subsequent calls see X as previous, not
             // Extend/Format/ZWJ.
             state->current = state->previous;
