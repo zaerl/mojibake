@@ -20,7 +20,7 @@ static inline uint8_t MJB_USED mjb_utf16_decode_step(uint8_t state, uint8_t unit
             *cpp = unit;
 
             return MJB_UTF_ACCEPT;
-        } else if(unit >= 0xD800 && unit <= 0xDBFF) {
+        } else if(unit <= 0xDBFF) {
             // High surrogate (U+D800 to U+DBFF). Expect low surrogate next
             *cpp = (uint32_t)(unit & 0x3FF) << 10;
 
