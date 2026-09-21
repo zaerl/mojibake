@@ -52,7 +52,7 @@ int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags) {
 
     unsigned int index = 0;
     // 5 bytes per codepoint is more than enough.
-    char *codepoints = (char *)malloc(argc * 5);
+    char *codepoints = (char *)malloc((size_t)argc * 5);
 
     for(int i = 0; i < argc; ++i) {
         mjb_codepoint codepoint = 0;

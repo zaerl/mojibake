@@ -88,10 +88,10 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
         mjb_codepoint ch = characters[i].codepoint;
 
         // 1. check to see if two current characters are L and V
-        int l_index = last - MJB_CP_HANGUL_L_BASE;
+        int l_index = (int)last - MJB_CP_HANGUL_L_BASE;
 
         if(l_index >= 0 && l_index < MJB_CP_HANGUL_L_COUNT) {
-            int v_index = ch - MJB_CP_HANGUL_V_BASE;
+            int v_index = (int)ch - MJB_CP_HANGUL_V_BASE;
 
             if(v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT) {
                 // make syllable of form LV
@@ -105,11 +105,11 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
         }
 
         // 2. check to see if two current characters are LV and T
-        int s_index = last - MJB_CP_HANGUL_S_BASE;
+        int s_index = (int)last - MJB_CP_HANGUL_S_BASE;
 
         if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT &&
             (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
-            int t_index = ch - MJB_CP_HANGUL_T_BASE;
+            int t_index = (int)ch - MJB_CP_HANGUL_T_BASE;
 
             if(t_index > 0 && t_index < MJB_CP_HANGUL_T_COUNT) {
                 // make syllable of form LVT
@@ -135,17 +135,17 @@ MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characte
 }
 
 MJB_EXPORT bool mjb_codepoint_is_hangul_leading_jamo(mjb_codepoint codepoint) {
-    int l_index = codepoint - MJB_CP_HANGUL_L_BASE;
+    int l_index = (int)codepoint - MJB_CP_HANGUL_L_BASE;
     return l_index >= 0 && l_index < MJB_CP_HANGUL_L_COUNT;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_hangul_vowel_jamo(mjb_codepoint codepoint) {
-    int v_index = codepoint - MJB_CP_HANGUL_V_BASE;
+    int v_index = (int)codepoint - MJB_CP_HANGUL_V_BASE;
     return v_index >= 0 && v_index < MJB_CP_HANGUL_V_COUNT;
 }
 
 MJB_EXPORT bool mjb_codepoint_is_hangul_trailing_jamo(mjb_codepoint codepoint) {
-    int t_index = codepoint - MJB_CP_HANGUL_T_BASE;
+    int t_index = (int)codepoint - MJB_CP_HANGUL_T_BASE;
 
     return t_index > 0 && t_index < MJB_CP_HANGUL_T_COUNT;
 }

@@ -200,7 +200,7 @@ static bool cea_append_blob(mjb_cea *cea, const uint8_t *blob, int blob_bytes) {
     }
 
     for(int i = 0; i < n; ++i) {
-        const uint8_t *element = &blob[i * 4];
+        const uint8_t *element = &blob[(size_t)i * 4];
         uint32_t packed = (uint32_t)element[0] | ((uint32_t)element[1] << 8) |
             ((uint32_t)element[2] << 16) | ((uint32_t)element[3] << 24);
         uint16_t p = (uint16_t)(packed & 0xFFFF);
@@ -337,7 +337,7 @@ static uint8_t ccc_of(mjb_codepoint cp) {
     mjb_n_character character;
 
     if(mjb_unicode_n_character_lookup(cp, &character)) {
-        return (uint8_t)character.combining;
+        return character.combining;
     }
 
     return 0;

@@ -478,7 +478,7 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
 
                     // Check if the syllable can accept a trailing consonant
                     mjb_codepoint syllable = characters_buffer[buffer_index - 1].codepoint;
-                    int s_index = syllable - MJB_CP_HANGUL_S_BASE;
+                    int s_index = (int)syllable - MJB_CP_HANGUL_S_BASE;
 
                     if(s_index >= 0 && s_index < MJB_CP_HANGUL_S_COUNT &&
                         (s_index % MJB_CP_HANGUL_T_COUNT) == 0) {
