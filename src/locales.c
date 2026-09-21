@@ -9,8 +9,6 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 typedef struct mjb_locale_subtag {
     const char *start;
     size_t length;

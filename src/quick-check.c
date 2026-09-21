@@ -7,8 +7,6 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 /**
  * Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
  * See: https://unicode.org/reports/tr15/#Detecting_Normalization_Forms

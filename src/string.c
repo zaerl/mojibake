@@ -10,8 +10,6 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 typedef struct mjb_output_copy_context {
     const void *buffer;
     size_t byte_length;

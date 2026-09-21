@@ -55,6 +55,9 @@ typedef struct mojibake {
     mjb_locale locale;
 } mojibake;
 
+// Process-wide library state, defined in mojibake.c.
+extern mojibake mjb_global;
+
 // Shared output sink for transformations that can allocate, measure, or write into a fixed
 // caller-provided buffer.
 typedef enum mjb_output_mode {
@@ -95,7 +98,7 @@ MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, 
 char *mjb_string_output(char *ret, const char *input, size_t input_size, size_t *output_index,
     size_t *output_size);
 
-char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t *output_index,
+char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *output, size_t *output_index,
     size_t *output_size, mjb_encoding encoding);
 
 void mjb_output_init_dynamic(mjb_output *output, char *buffer, size_t capacity);

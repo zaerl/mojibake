@@ -8,8 +8,6 @@
 #include "unicode-tables.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 typedef struct mjb_map_case_write_context {
     const char *buffer;
     size_t byte_length;
@@ -109,6 +107,8 @@ static bool mjb_maybe_has_special_casing(mjb_codepoint codepoint) {
         case 1415:   // U+0587 եւ ARMENIAN SMALL LIGATURE ECH YIWN
         case 122773: // U+1DF95 LATIN SMALL LIGATURE LONG S WITH DESCENDER S
             return true;
+        default:
+            break;
     }
 
     return (codepoint >= 7830 && codepoint <= 7834) || // U+1E96–U+1E9A

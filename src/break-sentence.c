@@ -9,8 +9,6 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 // Check if an SBP value blocks SB8 look-ahead.
 // The blocked set is: OLetter | Upper | ParaSep | SATerm
 // (Lower is NOT blocked here - it's the target; handled separately.)

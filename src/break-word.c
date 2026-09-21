@@ -9,8 +9,6 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 // Peek at the next codepoint's WBP (for look-ahead rules WB6, WB7b, WB12).
 // When skip_wb4 is true, Extend/Format/ZWJ characters are skipped (WB4 transparency).
 static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length, size_t peek_index,

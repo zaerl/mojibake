@@ -114,6 +114,8 @@ bool mjbsh_print_escaped_character(const char *buffer_utf8) {
         case '\t':
             printf("\\t");
             return true;
+        default:
+            break;
     }
 
     if(c <= 0x1F) {

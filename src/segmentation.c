@@ -10,8 +10,6 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-extern mojibake mjb_global;
-
 static inline void mjb_update_sequence_flags(mjb_next_state *state, const uint8_t *buffer) {
     // Update GB11: Extended_Pictographic + ZWJ sequences
     if(mjb_codepoint_properties_get(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {

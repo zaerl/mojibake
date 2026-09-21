@@ -7,8 +7,6 @@
 #include "mojibake-internal.h"
 #include "unicode.h"
 
-extern mojibake mjb_global;
-
 // Return the east asian width of a codepoint
 MJB_EXPORT mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
     mjb_east_asian_width *width) {
