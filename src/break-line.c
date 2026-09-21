@@ -407,7 +407,7 @@ MJB_EXPORT mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_le
         }
 
         // For LB15a, LB15b, and LB19: when current is QU we need its General_Category.
-        mjb_category qu_cur_cat = (mjb_category)0xFF; // Sentinel: not yet loaded
+        mjb_category qu_cur_cat = MJB_CATEGORY_CN;
 
         if(state->current == MJB_LBP_QU) {
             qu_cur_cat = mjb_lbp_category(codepoint);
