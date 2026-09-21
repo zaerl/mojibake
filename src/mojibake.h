@@ -223,7 +223,7 @@ typedef uint32_t mjb_codepoint;
 #define MJB_KHITAN_SMALL_SCRIPT_CHARACTER_END 0x18CFF
 
 // Numeric values, to be used when the decimal and digit mjb_character fields are not valid
-#define MJB_NUMBER_NOT_VALID -1
+#define MJB_NUMBER_NOT_VALID (-1)
 
 /**
  * Unicode encoding
