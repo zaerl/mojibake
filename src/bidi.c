@@ -419,8 +419,8 @@ static void pass2_explicit(mjb_bidi_work *work, size_t count, uint8_t para_level
     for(size_t i = 0; i < count; ++i) {
         mjb_bidi_class bc = work[i].bidi;
         uint8_t cur_level = stack[top].level;
-        uint8_t next_even = (uint8_t)(((cur_level + 2) & ~1)); // Next even >= cur + 1.
-        uint8_t next_odd = (uint8_t)(((cur_level + 1) | 1));   // Next odd >= cur + 1.
+        uint8_t next_even = (uint8_t)((cur_level + 2) & ~1); // Next even >= cur + 1.
+        uint8_t next_odd = (uint8_t)((cur_level + 1) | 1);   // Next odd >= cur + 1.
 
         if(bc == MJB_PR_BIDI_CLASS_RLE || bc == MJB_PR_BIDI_CLASS_RLO) {
             uint8_t new_level = next_odd;
