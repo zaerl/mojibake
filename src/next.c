@@ -34,6 +34,8 @@ MJB_EXPORT mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_len
     if(callback == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+#else
+    (void)callback;
 #endif
 
     mjb_codepoint codepoint = 0;
