@@ -51,6 +51,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends cppcheck
           cppcheck --version
 
+      - name: Use checked-in Unicode payload
+        run: touch src/unicode-data.h
+
       - name: Run cppcheck
         run: make tidy
 
