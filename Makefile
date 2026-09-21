@@ -9,6 +9,7 @@ CPP_BUILD_DIR ?= $(BUILD_DIR)-cpp
 SHARED_BUILD_DIR ?= $(BUILD_DIR)-shared
 ASAN_BUILD_DIR ?= $(BUILD_DIR)-asan
 UBSAN_BUILD_DIR ?= $(BUILD_DIR)-ubsan
+TIDY_BUILD_DIR ?= $(BUILD_DIR)-tidy
 
 # Build test directories
 TEST_BUILD_DIR ?= $(BUILD_DIR)-test
@@ -73,6 +74,10 @@ GENERATE_SOURCES = \
 	utils/generate/*.ts \
 
 UNICODE_DATA = src/unicode-data.h
+
+# Static analysis with cppcheck
+CPPCHECK ?= cppcheck
+CPPCHECK_JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
 
 all: configure build
 
@@ -183,26 +188,22 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: lint tidy
+.PHONY: lint tidy configure-tidy
 
 # Check C and C++ formatting with Apple's clang-format
 lint:
 	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' ':!tests/attractor.h' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
 
-# Static analysis of the library and CLI sources with cppcheck, using the compile database of the
-# default native build. Reports parameters and variables that could be const, always-true
-# conditions, and similar issues the compilers do not diagnose. Callback parameters whose signature
-# is fixed by a public function pointer type are suppressed inline in the sources. Set CPPCHECK to
-# use a specific binary.
-CPPCHECK ?= cppcheck
-CPPCHECK_JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+configure-tidy: $(UNICODE_DATA)
+	@cmake -S . -B $(TIDY_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) \
+		-DMJB_BUILD_TESTS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-tidy: configure
+tidy: configure-tidy
 	@command -v $(CPPCHECK) >/dev/null 2>&1 || { \
 		echo "cppcheck not found. Install it (brew install cppcheck, apt-get install cppcheck)" \
 			"or set CPPCHECK=/path/to/cppcheck."; exit 1; }
-	@$(CPPCHECK) --project=$(BUILD_DIR)/compile_commands.json --file-filter='*/src/*' \
+	@$(CPPCHECK) --project=$(TIDY_BUILD_DIR)/compile_commands.json \
 		--enable=style,warning --check-level=exhaustive --std=c11 --inline-suppr \
 		--suppress=constParameterCallback --error-exitcode=1 --quiet -j$(CPPCHECK_JOBS)
 
@@ -345,7 +346,7 @@ clean-native:
 		$(TEST_RELEASE_BUILD_DIR) $(TEST_CPP_RELEASE_BUILD_DIR) $(TEST_MINIMAL_BUILD_DIR) \
 		$(TEST_CPP_MINIMAL_BUILD_DIR) $(TEST_ASAN_BUILD_DIR) $(TEST_UBSAN_BUILD_DIR) \
 		$(TEST_NO_NAMES_BUILD_DIR) $(TEST_NO_COLLATION_BUILD_DIR) $(TEST_NO_IDNA_BUILD_DIR) \
-		$(TEST_NO_SECURITY_BUILD_DIR)
+		$(TEST_NO_SECURITY_BUILD_DIR) $(TIDY_BUILD_DIR)
 
 # Clean WASM build
 clean-wasm:
