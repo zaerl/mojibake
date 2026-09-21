@@ -18,7 +18,7 @@ typedef struct mjb_output_copy_context {
 } mjb_output_copy_context;
 
 // Internal function.
-char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
+char *mjb_string_output(char *ret, const char *input, size_t input_size, size_t *output_index,
     size_t *output_size) {
     if(ret == NULL || (input == NULL && input_size > 0) || output_index == NULL ||
         output_size == NULL) {

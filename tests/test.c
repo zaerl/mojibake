@@ -318,6 +318,7 @@ static void show_help(const char *executable, struct option options[], const cha
 }
 
 static void test_started(const char *name) {
+    (void)name;
     mjb_test_coverage_clear();
 }
 

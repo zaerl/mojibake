@@ -9,6 +9,8 @@
 #include "../shell.h"
 
 int mjbsh_codepoint_command(int argc, char *const argv[], unsigned int flags) {
+    (void)argc;
+
     char buffer[5];
     char *endptr = NULL;
 

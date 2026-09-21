@@ -788,6 +788,7 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
 
         const mjb_codepoint *mapping = NULL;
         uint8_t mapping_length = 0;
+        mjb_codepoint single_mapping[1];
 
         if(!mjb_unicode_case_folding_lookup(codepoint, &mapping, &mapping_length)) {
             mjb_unicode_case_mapping simple_mapping;
@@ -798,7 +799,8 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
                 codepoint = simple_mapping.lowercase;
             }
 
-            mapping = &codepoint;
+            single_mapping[0] = codepoint;
+            mapping = single_mapping;
             mapping_length = 1;
         }
 

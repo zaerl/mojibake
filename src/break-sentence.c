@@ -264,7 +264,7 @@ MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byt
             }
 
             // Current is in ¬(OLetter|Upper|Lower|ParaSep|SATerm): look ahead for Lower
-            if(!mjb_sbp_blocks_sb8(state->current) && state->current != MJB_SBP_LOWER) {
+            if(!mjb_sbp_blocks_sb8(state->current)) {
                 if(mjb_peek_lower_sentence(buffer, byte_length, state->index, encoding)) {
                     return MJB_BT_NO_BREAK;
                 }

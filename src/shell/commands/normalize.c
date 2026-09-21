@@ -7,6 +7,8 @@
 #include "../shell.h"
 
 int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int flags) {
+    (void)argc;
+
     mjb_result result;
     bool ret = true;
 

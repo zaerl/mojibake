@@ -11,6 +11,8 @@
 
 static void segmentation_callback(const char *buffer, size_t byte_length, unsigned int current_line,
     mjb_break_type *expected_types) {
+    (void)current_line;
+
     char test_name[256];
     mjb_break_type bt = MJB_BT_NOT_SET;
     mjb_next_state state;

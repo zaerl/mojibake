@@ -16,7 +16,11 @@ static void mjbsh_locale_field(const char *label, unsigned int nl, const char *v
     mjbsh_value(label, nl, "%s", value);
 }
 
+// cppcheck-suppress constParameter ; the signature is fixed by mjbsh_command_function
 int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags) {
+    (void)argc;
+    (void)flags;
+
     const char *input = argv[0];
     mjb_locale_id locale;
     mjb_status status = mjb_locale_parse(input, strlen(input), MJB_ENC_UTF_8, &locale);

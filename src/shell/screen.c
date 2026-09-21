@@ -82,7 +82,7 @@ static void mjbsh_restore_mode(terminal_state *term_state) {
     SetConsoleMode(term_state->h_stdin, term_state->orig_mode);
 }
 #else
-static void mjbsh_set_raw_mode(terminal_state *term_state) {
+static void mjbsh_set_raw_mode(const terminal_state *term_state) {
     terminal_state raw = *term_state;
     raw.c_lflag &= ~(ECHO | ICANON);
     raw.c_cc[VMIN] = 0;

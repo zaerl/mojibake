@@ -257,6 +257,10 @@ Commands are `bidi`, `break`, `char`, `codepoint`, `emoji`, `filter`, `locale`, 
 - Keep warnings clean under the flags in `CMakeLists.txt`.
 - `make lint` runs Apple's `xcrun clang-format` and is therefore a macOS convenience target. On
   other platforms, run the equivalent installed `clang-format --dry-run --Werror` command.
+- `make tidy` runs `cppcheck` over the library and CLI sources. Set `CPPCHECK=/path/to/cppcheck` to
+  select a specific binary.
+- Unused parameters are compiler errors under `MJB_WARNINGS_AS_ERRORS`. Mark intentionally unused
+  parameters with `(void)name;` at the start of the function body.
 - Typecheck generator changes with `(cd utils/generate && npm exec -- tsc --noEmit)`.
 - Typecheck API changes with `(cd src/api && npm run typecheck)`.
 - Do not regenerate unrelated outputs or include build products in a change.

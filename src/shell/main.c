@@ -16,7 +16,7 @@ static int mjbsh_show_version(void) {
     return 0;
 }
 
-static void mjbsh_show_help(struct option options[], const char *descriptions[],
+static void mjbsh_show_help(const struct option options[], const char *descriptions[],
     mjbsh_command commands[], const char *error) {
     FILE *stream = error ? stderr : stdout;
 

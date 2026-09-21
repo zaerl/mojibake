@@ -427,13 +427,13 @@ MJB_EXPORT mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_le
         // We track the Pi-QU context: set pi_qu_context when a Pi-QU character appears in that
         // context, and apply it to subsequent positions.
         if(state->current == MJB_LBP_QU && qu_cur_cat == MJB_CATEGORY_PI) {
-            // Check if previous is in the LB15a context set
+            // Check if previous is in the LB15a context set. GL is part of the set but LB12
+            // above already returned for it.
             bool in_ctx = (state->previous == MJB_LBP_NOT_SET || // sot
                 state->previous == MJB_LBP_BK || state->previous == MJB_LBP_CR ||
                 state->previous == MJB_LBP_LF || state->previous == MJB_LBP_NL ||
                 state->previous == MJB_LBP_OP || state->previous == MJB_LBP_QU ||
-                state->previous == MJB_LBP_GL || state->previous == MJB_LBP_SP ||
-                state->previous == MJB_LBP_ZW);
+                state->previous == MJB_LBP_SP || state->previous == MJB_LBP_ZW);
 
             if(!in_ctx) {
                 // Also check via pi_qu_context (SP* continuation after Pi-QU)

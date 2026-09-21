@@ -411,11 +411,11 @@ MJB_EXPORT mjb_status mjb_codepoint_script_extensions(mjb_codepoint codepoint, m
 
     const uint8_t *values = NULL;
     uint8_t value_count = 0;
-    uint8_t fallback = (uint8_t)MJB_SC_ZZZZ;
+    uint8_t fallback[1];
 
     if(!mjb_unicode_script_extensions_lookup(codepoint, &values, &value_count)) {
-        fallback = (uint8_t)mjb_codepoint_script(codepoint);
-        values = &fallback;
+        fallback[0] = (uint8_t)mjb_codepoint_script(codepoint);
+        values = fallback;
         value_count = 1;
     }
 

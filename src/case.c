@@ -255,7 +255,7 @@ static mjb_status mjb_locale_special_casing(mjb_codepoint codepoint, mjb_map_cas
     const mjb_map_case_context *context, const char *buffer, size_t byte_length, size_t i,
     uint8_t state, mjb_encoding encoding, mjb_encoding output_encoding, mjb_output *output,
     bool *handled) {
-    mjb_codepoint mapped[3];
+    mjb_codepoint mapped[3] = { 0 };
     uint8_t length = 0;
     bool turkic = mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ;
 

@@ -836,7 +836,7 @@ typedef struct {
     size_t close_irs; // IRS index of close bracket
 } mjb_bracket_pair;
 
-static void pass4_brackets(mjb_bidi_work *work, size_t count, uint8_t para_level) {
+static void pass4_brackets(mjb_bidi_work *work, size_t count) {
     size_t *irs_idx = (size_t *)mjb_alloc(count * sizeof(size_t));
     bool *done = (bool *)mjb_alloc(count * sizeof(bool));
 
@@ -1266,7 +1266,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
     pass3_weak(work, count, para_level);
 
     // Pass 4.
-    pass4_brackets(work, count, para_level);
+    pass4_brackets(work, count);
 
     // Pass 5.
     pass5_neutrals(work, count, para_level);

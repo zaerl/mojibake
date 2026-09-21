@@ -12,6 +12,7 @@
 #include "test.h"
 
 static bool next_codepoint(mjb_character *character, mjb_character_position type) {
+    (void)type;
     printf(" \x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);
 
     return true;
