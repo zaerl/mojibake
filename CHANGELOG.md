@@ -10,7 +10,7 @@ Codename: [LATIN CAPITAL LETTER A]
 
 ### Added
 - Added `make tidy`
-- Added Github static analysis job
+- Added GitHub static analysis job
 
 ### Changed
 - Removed `CLAUDE.md` (now deprecated)
