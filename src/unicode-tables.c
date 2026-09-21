@@ -654,7 +654,7 @@ bool mjb_unicode_bidi_lookup(mjb_codepoint codepoint, mjb_bidi_class *bidi, bool
     uint32_t entry = mjb_unicode_n_character_entries[entry_index];
     uint8_t bidirectional = (uint8_t)((entry >> 22) & 0x1F);
 
-    if(bidirectional <= 0 || bidirectional >= MJB_BIDI_CLASS_COUNT) {
+    if(bidirectional == 0 || bidirectional >= MJB_BIDI_CLASS_COUNT) {
         *bidi = MJB_PR_BIDI_CLASS_L;
     } else {
         *bidi = (mjb_bidi_class)bidirectional;
@@ -748,8 +748,8 @@ bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_map_case_typ
         if(codepoint < entry_codepoint ||
             (codepoint == entry_codepoint && case_type < entry_case_type)) {
             high = mid;
-        } else if(codepoint > entry_codepoint ||
-            (codepoint == entry_codepoint && case_type > entry_case_type)) {
+        } else if(codepoint > entry_codepoint || case_type > entry_case_type) {
+            // codepoint >= entry_codepoint here, so this is the greater-than case.
             low = mid + 1;
         } else {
             *values = &mjb_unicode_special_case_data[mjb_unicode_special_case_offsets[mid]];
@@ -1060,8 +1060,8 @@ mjb_codepoint mjb_unicode_compose_pair(mjb_codepoint starter, mjb_codepoint comb
 
         if(starter < entry_starter || (starter == entry_starter && combining < entry_combining)) {
             high = mid;
-        } else if(starter > entry_starter ||
-            (starter == entry_starter && combining > entry_combining)) {
+        } else if(starter > entry_starter || combining > entry_combining) {
+            // starter >= entry_starter here, so this is the greater-than case.
             low = mid + 1;
         } else {
             return entry_composite;

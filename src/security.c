@@ -145,10 +145,11 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_le
 
         const uint8_t *values = NULL;
         uint8_t value_count = 0;
-        uint8_t fallback = (uint8_t)mjb_codepoint_script(codepoint);
+        uint8_t fallback[1];
 
         if(!mjb_unicode_script_extensions_lookup(codepoint, &values, &value_count)) {
-            values = &fallback;
+            fallback[0] = (uint8_t)mjb_codepoint_script(codepoint);
+            values = fallback;
             value_count = 1;
         }
 
@@ -283,9 +284,11 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
 
         const mjb_codepoint *skeleton = NULL;
         uint8_t skel_count = 0;
+        mjb_codepoint single_skeleton[1];
 
         if(!mjb_unicode_confusable_lookup(cp, &skeleton, &skel_count)) {
-            skeleton = &cp;
+            single_skeleton[0] = cp;
+            skeleton = single_skeleton;
             skel_count = 1;
         }
 

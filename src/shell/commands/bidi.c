@@ -98,9 +98,6 @@ static int mjbsh_bidi_revolve(const char *input) {
 
     if(is_json) {
         printf("%s%s],%s", mjbsh_ji(), mjbsh_ji(), mjbsh_jnl());
-    }
-
-    if(is_json) {
         printf("%s%s\"visual_order\":%s[%s", mjbsh_ji(), mjbsh_ji(),
             cmd_json_indent == 0 ? "" : " ", mjbsh_green());
     } else {

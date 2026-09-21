@@ -330,7 +330,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
             }
             printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
         } else {
-            mjbsh_value(is_json ? name : label, true, "%s", result.output);
+            mjbsh_value(label, true, "%s", result.output);
         }
     } else {
         mjbsh_null(is_json ? name : label, 1);
