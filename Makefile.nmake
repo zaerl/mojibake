@@ -23,6 +23,10 @@ ASAN_BUILD_DIR=$(BUILD_DIR)-asan
 UBSAN_BUILD_DIR=$(BUILD_DIR)-ubsan
 !ENDIF
 
+!IFNDEF TIDY_BUILD_DIR
+TIDY_BUILD_DIR=$(BUILD_DIR)-tidy
+!ENDIF
+
 # Build test directories
 !IFNDEF TEST_BUILD_DIR
 TEST_BUILD_DIR=$(BUILD_DIR)-test
@@ -137,6 +141,24 @@ GENERATE_SOURCES = \
 
 UNICODE_DATA = src\unicode-data.h
 
+# Formatting check with clang-format (bundled with Visual Studio or LLVM)
+!IFNDEF CLANG_FORMAT
+CLANG_FORMAT=clang-format
+!ENDIF
+
+# Static analysis with cppcheck
+!IFNDEF CPPCHECK
+CPPCHECK=cppcheck
+!ENDIF
+
+!IFNDEF CPPCHECK_JOBS
+!IFDEF NUMBER_OF_PROCESSORS
+CPPCHECK_JOBS=$(NUMBER_OF_PROCESSORS)
+!ELSE
+CPPCHECK_JOBS=2
+!ENDIF
+!ENDIF
+
 # Aggregate
 all: configure build
 
@@ -238,6 +260,18 @@ watch-api: sync-api-wasm
 # Serve WASM site with live reload
 serve: wasm generate-site
 	@cd $(WASM_BUILD_DIR)\src && python -m http.server
+
+# Check C and C++ formatting with clang-format
+lint:
+	@for /F "delims=" %%f in ('git ls-files "*.c" "*.h" "*.cpp" "*.hpp" ":!tests/attractor.h"') do @$(CLANG_FORMAT) --dry-run --Werror "%%f" || exit 1
+
+configure-tidy: $(UNICODE_DATA)
+	@cmake -S . -B $(TIDY_BUILD_DIR) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) -DMJB_BUILD_TESTS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+# Run cppcheck static analysis on the library and CLI
+tidy: configure-tidy
+	@$(CPPCHECK) --version >NUL 2>&1 || (echo cppcheck not found. Install it with "winget install Cppcheck.Cppcheck" or set CPPCHECK=path\to\cppcheck.exe && exit 1)
+	@$(CPPCHECK) --project=$(TIDY_BUILD_DIR)\compile_commands.json --enable=style,warning --check-level=exhaustive --std=c11 --inline-suppr --suppress=constParameterCallback --error-exitcode=1 --quiet -j$(CPPCHECK_JOBS)
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -381,6 +415,7 @@ clean-native:
 	@if exist $(TEST_NO_COLLATION_BUILD_DIR) rmdir /S /Q $(TEST_NO_COLLATION_BUILD_DIR)
 	@if exist $(TEST_NO_IDNA_BUILD_DIR) rmdir /S /Q $(TEST_NO_IDNA_BUILD_DIR)
 	@if exist $(TEST_NO_SECURITY_BUILD_DIR) rmdir /S /Q $(TEST_NO_SECURITY_BUILD_DIR)
+	@if exist $(TIDY_BUILD_DIR) rmdir /S /Q $(TIDY_BUILD_DIR)
 
 clean-wasm:
 	@if exist $(WASM_BUILD_DIR) rmdir /S /Q $(WASM_BUILD_DIR)
@@ -413,6 +448,8 @@ help:
 	@echo   generate-locale         - Generate locale file
 	@echo   generate-site           - Generate site
 	@echo   generate-unicode-tables - Generate embedded Unicode lookup tables
+	@echo   lint                    - Check C and C++ formatting with clang-format
+	@echo   tidy                    - Run cppcheck static analysis on the library and CLI
 	@echo   sync-api-wasm           - Copy current WASM build artifacts into src\api
 	@echo   test                    - Build and run tests
 	@echo   test-all                - Build and run all local test configurations
