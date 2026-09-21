@@ -13,7 +13,7 @@
     "coverage": "tsx commands/coverage.ts"
   },
   "dependencies": {
-    "@types/node": "^26.5.1",
+    "@types/node": "^26.6.1",
     "fast-xml-parser": "^5.11.1",
     "highlight.js": "^11.12.0",
     "markdown-it": "^15.0.2",
