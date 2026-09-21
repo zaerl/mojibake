@@ -92,7 +92,7 @@ MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, 
     mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check,
     bool validate_full_input);
 
-char *mjb_string_output(char *ret, char *input, size_t input_size, size_t *output_index,
+char *mjb_string_output(char *ret, const char *input, size_t input_size, size_t *output_index,
     size_t *output_size);
 
 char *mjb_string_output_codepoint(mjb_codepoint codepoint, char *ret, size_t *output_index,

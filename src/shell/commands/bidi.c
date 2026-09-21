@@ -128,5 +128,8 @@ static int mjbsh_bidi_revolve(const char *input) {
 }
 
 int mjbsh_bidi_command(int argc, char *const argv[], unsigned int flags) {
+    (void)argc;
+    (void)flags;
+
     return mjbsh_bidi_revolve(argv[0]);
 }

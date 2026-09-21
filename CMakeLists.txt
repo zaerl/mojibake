@@ -96,7 +96,6 @@ function(mjb_configure_target target)
             ${target}
             PRIVATE
                 /W4
-                /wd4100
                 $<$<COMPILE_LANGUAGE:CXX>:/permissive->
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:/Zi>
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:/Od>
@@ -131,7 +130,6 @@ function(mjb_configure_target target)
                 -Wall
                 -Wextra
                 -pedantic
-                -Wno-unused-parameter
                 -Wtype-limits
                 -Wshadow
                 -Wundef

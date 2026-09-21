@@ -381,6 +381,8 @@ static void mjbsh_handle_key(mjbsh_key key) {
 }
 
 int mjbsh_break_command(int argc, char *const argv[], unsigned int flags) {
+    (void)flags;
+
     if(argc != 0) {
         mjbsh_break_mode mode = MJBSH_BREAK_MODE_ALL;
         const char *input = argv[0];

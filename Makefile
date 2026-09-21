@@ -183,12 +183,28 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 update-version:
 	@cd ./utils/generate && npm run generate -- update-version
 
-.PHONY: lint
+.PHONY: lint tidy
 
 # Check C and C++ formatting with Apple's clang-format
 lint:
 	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' ':!tests/attractor.h' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
+
+# Static analysis of the library and CLI sources with cppcheck, using the compile database of the
+# default native build. Reports parameters and variables that could be const, always-true
+# conditions, and similar issues the compilers do not diagnose. Callback parameters whose signature
+# is fixed by a public function pointer type are suppressed inline in the sources. Set CPPCHECK to
+# use a specific binary.
+CPPCHECK ?= cppcheck
+CPPCHECK_JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+
+tidy: configure
+	@command -v $(CPPCHECK) >/dev/null 2>&1 || { \
+		echo "cppcheck not found. Install it (brew install cppcheck, apt-get install cppcheck)" \
+			"or set CPPCHECK=/path/to/cppcheck."; exit 1; }
+	@$(CPPCHECK) --project=$(BUILD_DIR)/compile_commands.json --file-filter='*/src/*' \
+		--enable=style,warning --check-level=exhaustive --std=c11 --inline-suppr \
+		--suppress=constParameterCallback --error-exitcode=1 --quiet -j$(CPPCHECK_JOBS)
 
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
 	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
@@ -366,6 +382,7 @@ help:
 	@echo "  generate-site           - Generate site"
 	@echo "  generate-unicode-tables - Generate embedded Unicode lookup tables"
 	@echo "  lint                    - Check C and C++ formatting with Apple's clang-format"
+	@echo "  tidy                    - Run cppcheck static analysis on the library and CLI"
 	@echo "  sync-api-wasm           - Copy current WASM build artifacts into src/api"
 	@echo "  test                    - Build and run tests"
 	@echo "  test-all                - Build and run all local test configurations"

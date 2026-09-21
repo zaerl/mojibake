@@ -9,12 +9,16 @@
 static size_t mjb_test_count = 0;
 
 static bool next_character(mjb_character *character, mjb_character_position type) {
+    (void)character;
+    (void)type;
     ++mjb_test_count;
 
     return true;
 }
 
 static bool stop_next_character(mjb_character *character, mjb_character_position type) {
+    (void)character;
+    (void)type;
     ++mjb_test_count;
 
     return false;

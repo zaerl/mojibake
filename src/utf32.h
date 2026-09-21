@@ -12,6 +12,9 @@
 
 static inline uint8_t MJB_USED mjb_utf32_decode_step(uint8_t state, uint8_t unit_1, uint8_t unit_2,
     uint8_t unit_3, uint8_t unit_4, uint32_t *cpp, bool is_big_endian) {
+    // UTF-32 decoding is stateless. The parameter keeps the decoder signatures uniform.
+    (void)state;
+
     // The casts avoid shifting into the sign bit of the promoted int when a unit is >= 0x80.
     uint32_t codepoint = is_big_endian ?
         ((uint32_t)unit_1 << 24) | ((uint32_t)unit_2 << 16) | ((uint32_t)unit_3 << 8) | unit_4 :

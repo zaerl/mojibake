@@ -83,6 +83,7 @@ static void mjbsh_print_nl(unsigned int nl) {
 }
 
 static bool mjbsh_next_current_character(mjb_character *character, mjb_character_position type) {
+    (void)type;
     current_codepoint = character->codepoint;
 
     return false;

@@ -18,6 +18,8 @@ static const char *expected_character_name(mjb_codepoint codepoint, const char *
 
     return name;
 #else
+    (void)name;
+
     // When compiled without character names, return a generic string with the codepoint.
     snprintf(buffer, byte_length, "Codepoint U+%04X", (unsigned int)codepoint);
 

@@ -36,6 +36,24 @@ jobs:
           git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' ':!tests/attractor.h' |
             xargs -0 clang-format --dry-run --Werror
 
+  tidy:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Advisory while the check set settles. Remove this line to make the job gating.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cppcheck
+          cppcheck --version
+
+      - name: Run cppcheck
+        run: make tidy
+
   typecheck:
     name: TypeScript
     runs-on: ubuntu-latest
