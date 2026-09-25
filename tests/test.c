@@ -438,15 +438,12 @@ int main(int argc, char *const argv[]) {
         return 1;
     }
 
-    // Fail at startup, with a single clear message, when the resolved directory is not the
-    // repository root, instead of letting every data-driven test report a missing file.
     if(!test_data_available()) {
         fprintf(stderr,
-            "Unicode data files not found under \"%s\". Set the "
-            "MJB_TEST_SOURCE_DIR environment variable to the Mojibake repository root.\n",
+            "Warning: Unicode data files not found under \"%s\". Data-driven tests will fail. "
+            "Set the MJB_TEST_SOURCE_DIR environment variable to the Mojibake repository "
+            "root.\n",
             source_dir);
-
-        return 1;
     }
 
     if(!mjb_test_allocator_initialize()) {
