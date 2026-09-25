@@ -92,6 +92,9 @@ finishing:
 - `make test-all` - run all local native configurations
 - `make ctest` / `make ctest-cpp` - run the registered CMake tests, including embedded-project
   integration tests
+- `build-test/tests/mojibake-test` can be run from any directory: it changes into the data root
+  given by the `MJB_TEST_SOURCE_DIR` environment variable, else the repository root recorded at
+  build time, else the current directory. See "Testing" in `CONTRIBUTING.md`
 - `make test-docker` - build and test in the Alpine Linux container
 - `FUZZ_TIME=60 make fuzz` - fuzz the public API with libFuzzer in Docker
 

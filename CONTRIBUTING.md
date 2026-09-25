@@ -170,6 +170,17 @@ Docker:
 
 1. `make test-docker` run tests on Alpine Linux, using Docker
 
+Running the test binary by hand:
+
+The tests read the Unicode data files under `utils/generate/unicode-data/` with paths relative
+to the repository root, so at startup `mojibake-test` changes into that directory. It is resolved
+in this order: the `MJB_TEST_SOURCE_DIR` environment variable if set and non-empty, then the
+repository root recorded at build time by `tests/CMakeLists.txt`, then the current directory.
+
+```sh
+MJB_TEST_SOURCE_DIR=/path/to/mojibake /path/to/build-test/tests/mojibake-test -f normalization
+```
+
 Important information about testing when adding new code:
 
 - We "assert" something that is true, not something that is false

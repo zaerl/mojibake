@@ -38,7 +38,7 @@
 static att_test_callback error_callback = NULL;
 static bool exit_on_error = false;
 static bool coverage_enabled = false;
-static const char *coverage_output = NULL;
+static FILE *coverage_file = NULL;
 
 typedef struct mjb_test_allocator_state {
     size_t call_count;
@@ -250,39 +250,69 @@ static int attractor_test_callback(int test, const char *description, const char
     return 0;
 }
 
-static bool write_coverage_file(void) {
-    FILE *file;
-
-    if(!coverage_output) {
-        return true;
-    }
-
+// Open the coverage output file. This runs before the test binary changes into the data root, so
+// a relative path given with -C is resolved against the directory the binary was launched from.
+static bool open_coverage_file(const char *path) {
 #ifdef _WIN32
-    file = fopen(coverage_output, "w");
+    coverage_file = fopen(path, "w");
 #else
-    int fd = open(coverage_output, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
-    file = fd < 0 ? NULL : fdopen(fd, "w");
+    coverage_file = fd < 0 ? NULL : fdopen(fd, "w");
 
-    if(file == NULL && fd >= 0) {
+    if(coverage_file == NULL && fd >= 0) {
         close(fd);
     }
 #endif
 
-    if(file == NULL) {
+    if(coverage_file == NULL) {
         perror("coverage");
 
         return false;
     }
 
-    fputs("{\n  \"coverage\": [\n", file);
+    return true;
+}
 
-    for(size_t i = 0; i < coverage_entry_count; ++i) {
-        fprintf(file, "    { \"name\": \"%s\", \"count\": %llu }%s\n", coverage_entries[i].name,
-            coverage_entries[i].count, i + 1 == coverage_entry_count ? "" : ",");
+static void write_coverage_file(void) {
+    if(!coverage_file) {
+        return;
     }
 
-    fputs("  ]\n}\n", file);
+    fputs("{\n  \"coverage\": [\n", coverage_file);
+
+    for(size_t i = 0; i < coverage_entry_count; ++i) {
+        fprintf(coverage_file, "    { \"name\": \"%s\", \"count\": %llu }%s\n",
+            coverage_entries[i].name, coverage_entries[i].count,
+            i + 1 == coverage_entry_count ? "" : ",");
+    }
+
+    fputs("  ]\n}\n", coverage_file);
+    fclose(coverage_file);
+    coverage_file = NULL;
+}
+
+// Resolve the directory that holds the Unicode data files used by the tests. The
+// MJB_TEST_SOURCE_DIR environment variable wins, then the compile-time macro of the same name
+// (defined by tests/CMakeLists.txt), then the current directory.
+static const char *test_source_dir(void) {
+    const char *env = getenv("MJB_TEST_SOURCE_DIR");
+
+    if(env != NULL && env[0] != '\0') {
+        return env;
+    }
+
+    return MJB_TEST_SOURCE_DIR;
+}
+
+// Check that the current directory holds the Unicode data files the tests read.
+static bool test_data_available(void) {
+    FILE *file = fopen("./utils/generate/unicode-data/UCD/UnicodeData.txt", "r");
+
+    if(file == NULL) {
+        return false;
+    }
+
     fclose(file);
 
     return true;
@@ -334,8 +364,8 @@ int main(int argc, char *const argv[]) {
     int option = 0;
     int option_index = 0;
     char *filter = NULL;
-    bool is_ctest = getenv("CTEST_INTERACTIVE_DEBUG_MODE") != NULL ||
-        getenv("DASHBOARD_TEST_FROM_CTEST") != NULL;
+    const char *coverage_output = NULL;
+    const char *source_dir = test_source_dir();
 
     struct option long_options[] = { { "coverage", required_argument, NULL, 'C' },
         { "filter", required_argument, NULL, 'f' }, { "help", no_argument, NULL, 'h' },
@@ -346,13 +376,11 @@ int main(int argc, char *const argv[]) {
         "Verbose output. -vv for more verbosity", "Print version",
         "Exit immediately on first test failure" };
 
-    if(!is_ctest) {
 #ifdef _WIN32
-        QueryPerformanceCounter(&start);
+    QueryPerformanceCounter(&start);
 #else
-        clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(CLOCK_MONOTONIC, &start);
 #endif
-    }
 
     att_set_verbose(verbosity);
 
@@ -390,13 +418,33 @@ int main(int argc, char *const argv[]) {
         att_set_test_callback(attractor_test_callback);
     }
 
-    if(is_ctest) {
-        if(chdir(MJB_TEST_SOURCE_DIR) != 0) {
-            // If the test source directory is not found, print an error message and exit
-            perror("chdir");
+    // Open the coverage file before changing directory so a relative -C path is resolved against
+    // the directory the binary was launched from, not against the data root.
+    if(coverage_enabled && !open_coverage_file(coverage_output)) {
+        return 1;
+    }
 
-            return 1;
-        }
+    // The tests open the Unicode data files with paths relative to the repository root.
+    if(chdir(source_dir) != 0) {
+        // If the test source directory is not found, print an error message and exit
+        perror("chdir");
+        fprintf(stderr,
+            "Cannot change into the test source directory \"%s\". Set the "
+            "MJB_TEST_SOURCE_DIR environment variable to the Mojibake repository root.\n",
+            source_dir);
+
+        return 1;
+    }
+
+    // Fail at startup, with a single clear message, when the resolved directory is not the
+    // repository root, instead of letting every data-driven test report a missing file.
+    if(!test_data_available()) {
+        fprintf(stderr,
+            "Unicode data files not found under \"%s\". Set the "
+            "MJB_TEST_SOURCE_DIR environment variable to the Mojibake repository root.\n",
+            source_dir);
+
+        return 1;
     }
 
     if(!mjb_test_allocator_initialize()) {
@@ -410,20 +458,16 @@ int main(int argc, char *const argv[]) {
     att_run_tests(filter);
     bool all_valid = att_report() == 0;
 
-    if(coverage_enabled && !write_coverage_file()) {
-        return 1;
-    }
+    write_coverage_file();
 
-    if(!is_ctest) {
 #ifdef _WIN32
-        QueryPerformanceCounter(&end);
-        elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+    QueryPerformanceCounter(&end);
+    elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
 #else
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 #endif
-        printf("Execution time: %.4f seconds\n", elapsed);
-    }
+    printf("Execution time: %.4f seconds\n", elapsed);
 
     if(filter) {
         free(filter);
