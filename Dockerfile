@@ -25,9 +25,7 @@ COPY cmake/ cmake/
 # Copy test files
 COPY tests/ tests/
 COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt
-COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE_SHORT.txt
 COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt
-COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED_SHORT.txt
 COPY utils/generate/unicode-data/emoji/emoji-test.txt utils/generate/unicode-data/emoji/emoji-test.txt
 COPY utils/generate/unicode-data/idna/IdnaTestV2.txt utils/generate/unicode-data/idna/IdnaTestV2.txt
 COPY utils/generate/unicode-data/security/intentional.txt utils/generate/unicode-data/security/intentional.txt
