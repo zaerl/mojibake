@@ -167,13 +167,9 @@ ATT_TEST(properties) {
     ATT_ASSERT_STATUS(mjb_codepoint_script_extensions(0x41, scripts, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Script_Extensions rejects NULL count");
 
-    char aliases_path[512];
-    char extensions_path[512];
-
-    snprintf(aliases_path, sizeof(aliases_path),
-        "%s/utils/generate/unicode-data/UCD/PropertyValueAliases.txt", MJB_TEST_SOURCE_DIR);
-    snprintf(extensions_path, sizeof(extensions_path),
-        "%s/utils/generate/unicode-data/UCD/ScriptExtensions.txt", MJB_TEST_SOURCE_DIR);
+    // Paths are relative to the repository root, which tests/test.c changes into at startup.
+    const char *aliases_path = "./utils/generate/unicode-data/UCD/PropertyValueAliases.txt";
+    const char *extensions_path = "./utils/generate/unicode-data/UCD/ScriptExtensions.txt";
 
     test_script_alias aliases[MJB_SC_PROPERTY_COUNT];
     size_t alias_count = load_script_aliases(aliases_path, aliases, MJB_SC_PROPERTY_COUNT);
