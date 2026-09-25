@@ -305,9 +305,11 @@ static const char *test_source_dir(void) {
     return MJB_TEST_SOURCE_DIR;
 }
 
-// Check that the current directory holds the Unicode data files the tests read.
+// Check that the current directory holds the Unicode data files the tests read. The probe must be
+// one of the files fetched by utils/generate/scripts/download-test-data.sh, since CI downloads
+// only the files the test suite opens rather than the full UCD.
 static bool test_data_available(void) {
-    FILE *file = fopen("./utils/generate/unicode-data/UCD/UnicodeData.txt", "r");
+    FILE *file = fopen("./utils/generate/unicode-data/UCD/CaseFolding.txt", "r");
 
     if(file == NULL) {
         return false;
