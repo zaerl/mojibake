@@ -9,6 +9,9 @@ deploy*
 build
 build-*
 
+# Downloaded Unicode data (see utils/generate/scripts/generate.sh)
+/unicode-data
+
 # Swift / Xcode artifacts
 src/ui/**/.build/
 src/ui/**/DerivedData/
@@ -29,7 +32,6 @@ slow-unit-*
 
 # Utils artifacts
 utils/generate/node_modules
-utils/generate/unicode-data
 utils/generate/locales/*.xml
 utils/generate/locales/*.json
 utils/generate/locales/cldr/*

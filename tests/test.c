@@ -292,9 +292,7 @@ static void write_coverage_file(void) {
     coverage_file = NULL;
 }
 
-// Resolve the directory that holds the Unicode data files used by the tests. The
-// MJB_TEST_SOURCE_DIR environment variable wins, then the compile-time macro of the same name
-// (defined by tests/CMakeLists.txt), then the current directory.
+// Resolve the directory that holds the Unicode data files used by the tests.
 static const char *test_source_dir(void) {
     const char *env = getenv("MJB_TEST_SOURCE_DIR");
 
@@ -305,11 +303,9 @@ static const char *test_source_dir(void) {
     return MJB_TEST_SOURCE_DIR;
 }
 
-// Check that the current directory holds the Unicode data files the tests read. The probe must be
-// one of the files fetched by utils/generate/scripts/download-test-data.sh, since CI downloads
-// only the files the test suite opens rather than the full UCD.
+// Check that the current directory holds the Unicode data files the tests read.
 static bool test_data_available(void) {
-    FILE *file = fopen("./utils/generate/unicode-data/UCD/CaseFolding.txt", "r");
+    FILE *file = fopen("./unicode-data/UCD/CaseFolding.txt", "r");
 
     if(file == NULL) {
         return false;

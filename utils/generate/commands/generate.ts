@@ -61,7 +61,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const aliases = await readAliases();
 
   for await (const line of parsePropertyFile(
-    './unicode-data/UCD/UnicodeData.txt', [], ';', false
+    '../../unicode-data/UCD/UnicodeData.txt', [], ';', false
   )) {
     const split = line as UnicodeDataRow;
 
@@ -189,16 +189,16 @@ async function buildUnicodeTableData() {
 
   iLog('Parse collation data');
   const { entries: collationEntries, implicitRanges: collationImplicitRanges } =
-    await parseCollationAllKeys('./unicode-data/collation/allkeys.txt');
+    await parseCollationAllKeys('../../unicode-data/collation/allkeys.txt');
   addCollation(collationEntries, collationImplicitRanges);
 
   iLog('Parse confusables data');
-  const confusableEntries = await parseConfusables('./unicode-data/security/confusables.txt');
+  const confusableEntries = await parseConfusables('../../unicode-data/security/confusables.txt');
   addConfusables(confusableEntries);
 
   iLog('Parse IDNA mapping data');
   addIdnaMappings(await parseIdnaMappingTable(
-    './unicode-data/idna/IdnaMappingTable.txt'
+    '../../unicode-data/idna/IdnaMappingTable.txt'
   ));
 
   return { blocks, properties };

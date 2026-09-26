@@ -35,7 +35,7 @@ static int check_fold(const char *source, size_t source_size, const char *target
 static void test_case_folding_file(void) {
     char line[1024];
     unsigned int current_line = 1;
-    FILE *file = fopen("./utils/generate/unicode-data/UCD/CaseFolding.txt", "r");
+    FILE *file = fopen("./unicode-data/UCD/CaseFolding.txt", "r");
 
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid case folding test file");

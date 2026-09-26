@@ -423,7 +423,10 @@ clean-wasm:
 clean-amalgamation:
 	@if exist $(AMALGAMATION_BUILD_DIR) rmdir /S /Q $(AMALGAMATION_BUILD_DIR)
 
-clean: clean-native clean-wasm clean-amalgamation
+clean-unicode-data:
+	@if exist unicode-data rmdir /S /Q unicode-data
+
+clean: clean-native clean-wasm clean-amalgamation clean-unicode-data
 
 # Help
 help:
@@ -436,10 +439,11 @@ help:
 	@echo   build-ubsan             - Build the project with UndefinedBehaviorSanitizer
 	@echo   build-wasm              - Build the project for WebAssembly
 	@echo   build-api               - Build the JavaScript API library
-	@echo   clean                   - Remove build artifacts
+	@echo   clean                   - Remove build artifacts and downloaded Unicode data
 	@echo   clean-amalgamation      - Remove amalgamation build artifacts
 	@echo   clean-build             - Remove build artifacts
 	@echo   clean-native            - Remove all build artifacts
+	@echo   clean-unicode-data      - Remove downloaded Unicode data
 	@echo   clean-wasm              - Remove WASM build artifacts
 	@echo   coverage                - Run coverage analysis
 	@echo   ctest                   - Build and run tests using CTest

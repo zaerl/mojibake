@@ -22,7 +22,7 @@ export async function readScriptExtensions(properties: Property[]): Promise<Scri
 
   const rows: ScriptExtension[] = [];
 
-  for await (const fields of parsePropertyFile('./unicode-data/UCD/ScriptExtensions.txt')) {
+  for await (const fields of parsePropertyFile('../../unicode-data/UCD/ScriptExtensions.txt')) {
     const range = ucdCodepointRange(fields[0]);
     const scripts = fields[1].split(/\s+/).map(name => {
       const value = script.values[name];

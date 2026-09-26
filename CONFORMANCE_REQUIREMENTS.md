@@ -173,7 +173,7 @@ when a full normalization pass is required.
 the results of the conformance test specified in Unicode Standard Annex #15, “Unicode Normalization
 Forms.”
 
-✅ Satisfied. `tests/normalization.c` reads `utils/generate/unicode-data/UCD/NormalizationTest.txt`
+✅ Satisfied. `tests/normalization.c` reads `unicode-data/UCD/NormalizationTest.txt`
 and checks the full NFC/NFD/NFKC/NFKD closure rules against `mjb_normalize`.
 
 ### C16

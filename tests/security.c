@@ -533,9 +533,9 @@ ATT_TEST(security) {
     ATT_ASSERT(test_are_confusable("pal", 3, enc, "\xD1\x80" "al", 4, enc), true,
         "confusability is symmetric");
 
-    run_intentional_confusable_file("./utils/generate/unicode-data/security/intentional.txt");
+    run_intentional_confusable_file("./unicode-data/security/intentional.txt");
 #if !defined(MJB_SHARED)
-    run_confusables_file("./utils/generate/unicode-data/security/confusables.txt");
+    run_confusables_file("./unicode-data/security/confusables.txt");
 #endif
 }
 

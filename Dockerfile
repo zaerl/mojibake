@@ -24,24 +24,24 @@ COPY cmake/ cmake/
 
 # Copy test files
 COPY tests/ tests/
-COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt
-COPY utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt utils/generate/unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt
-COPY utils/generate/unicode-data/emoji/emoji-test.txt utils/generate/unicode-data/emoji/emoji-test.txt
-COPY utils/generate/unicode-data/idna/IdnaTestV2.txt utils/generate/unicode-data/idna/IdnaTestV2.txt
-COPY utils/generate/unicode-data/security/intentional.txt utils/generate/unicode-data/security/intentional.txt
-COPY utils/generate/unicode-data/security/confusables.txt utils/generate/unicode-data/security/confusables.txt
-COPY utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt
-COPY utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt
-COPY utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt
-COPY utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt
-COPY utils/generate/unicode-data/UCD/BidiCharacterTest.txt utils/generate/unicode-data/UCD/BidiCharacterTest.txt
-COPY utils/generate/unicode-data/UCD/BidiTest.txt utils/generate/unicode-data/UCD/BidiTest.txt
-COPY utils/generate/unicode-data/UCD/CaseFolding.txt utils/generate/unicode-data/UCD/CaseFolding.txt
-COPY utils/generate/unicode-data/UCD/DerivedNormalizationProps.txt utils/generate/unicode-data/UCD/DerivedNormalizationProps.txt
-COPY utils/generate/unicode-data/UCD/NormalizationTest.txt utils/generate/unicode-data/UCD/NormalizationTest.txt
-COPY utils/generate/unicode-data/UCD/PropertyValueAliases.txt utils/generate/unicode-data/UCD/PropertyValueAliases.txt
-COPY utils/generate/unicode-data/UCD/ScriptExtensions.txt utils/generate/unicode-data/UCD/ScriptExtensions.txt
-COPY utils/generate/unicode-data/UCD/SpecialCasing.txt utils/generate/unicode-data/UCD/SpecialCasing.txt
+COPY unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt
+COPY unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt
+COPY unicode-data/emoji/emoji-test.txt unicode-data/emoji/emoji-test.txt
+COPY unicode-data/idna/IdnaTestV2.txt unicode-data/idna/IdnaTestV2.txt
+COPY unicode-data/security/intentional.txt unicode-data/security/intentional.txt
+COPY unicode-data/security/confusables.txt unicode-data/security/confusables.txt
+COPY unicode-data/UCD/auxiliary/GraphemeBreakTest.txt unicode-data/UCD/auxiliary/GraphemeBreakTest.txt
+COPY unicode-data/UCD/auxiliary/LineBreakTest.txt unicode-data/UCD/auxiliary/LineBreakTest.txt
+COPY unicode-data/UCD/auxiliary/SentenceBreakTest.txt unicode-data/UCD/auxiliary/SentenceBreakTest.txt
+COPY unicode-data/UCD/auxiliary/WordBreakTest.txt unicode-data/UCD/auxiliary/WordBreakTest.txt
+COPY unicode-data/UCD/BidiCharacterTest.txt unicode-data/UCD/BidiCharacterTest.txt
+COPY unicode-data/UCD/BidiTest.txt unicode-data/UCD/BidiTest.txt
+COPY unicode-data/UCD/CaseFolding.txt unicode-data/UCD/CaseFolding.txt
+COPY unicode-data/UCD/DerivedNormalizationProps.txt unicode-data/UCD/DerivedNormalizationProps.txt
+COPY unicode-data/UCD/NormalizationTest.txt unicode-data/UCD/NormalizationTest.txt
+COPY unicode-data/UCD/PropertyValueAliases.txt unicode-data/UCD/PropertyValueAliases.txt
+COPY unicode-data/UCD/ScriptExtensions.txt unicode-data/UCD/ScriptExtensions.txt
+COPY unicode-data/UCD/SpecialCasing.txt unicode-data/UCD/SpecialCasing.txt
 
 # Build the project
 RUN cmake -S . -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \

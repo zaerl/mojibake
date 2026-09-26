@@ -12,7 +12,7 @@ cd "$GENERATOR_DIR"
 UNICODE_VERSION="18.0.0"
 SECURITY_VERSION="18.0.0"
 IDNA_VERSION="18.0.0"
-DATA_DIR="./unicode-data"
+DATA_DIR="../../unicode-data"
 
 mkdir -p "$DATA_DIR"
 

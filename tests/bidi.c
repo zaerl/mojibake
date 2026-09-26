@@ -377,5 +377,5 @@ ATT_TEST(bidi) {
 
     mjb_bidi_paragraph_free(&para);
 
-    read_bidi_test_file("./utils/generate/unicode-data/UCD/BidiCharacterTest.txt");
+    read_bidi_test_file("./unicode-data/UCD/BidiCharacterTest.txt");
 }

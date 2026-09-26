@@ -13,8 +13,8 @@ set -e
 UNICODE_VERSION="18.0.0"
 SECURITY_VERSION="18.0.0"
 IDNA_VERSION="18.0.0"
-GENERATOR_DIR=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
-DATA_DIR="$GENERATOR_DIR/unicode-data"
+REPO_ROOT=$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)
+DATA_DIR="$REPO_ROOT/unicode-data"
 
 fetch() {
     if [ ! -f "$2" ]; then

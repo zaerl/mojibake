@@ -199,6 +199,5 @@ static void test_word_count(void) {
 ATT_TEST(break_word) {
     test_truncate_word();
     test_word_count();
-    read_test_file("./utils/generate/unicode-data/UCD/auxiliary/WordBreakTest.txt",
-        &break_word_callback);
+    read_test_file("./unicode-data/UCD/auxiliary/WordBreakTest.txt", &break_word_callback);
 }

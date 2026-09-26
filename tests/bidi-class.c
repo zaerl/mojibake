@@ -264,5 +264,5 @@ static void read_bidi_class_test_file(const char *filename) {
 }
 
 ATT_TEST(bidi_class) {
-    read_bidi_class_test_file("./utils/generate/unicode-data/UCD/BidiTest.txt");
+    read_bidi_class_test_file("./unicode-data/UCD/BidiTest.txt");
 }
