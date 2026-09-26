@@ -104,7 +104,7 @@ jobs:
       - name: Cache Unicode generator data
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          path: utils/generate/unicode-data
+          path: unicode-data
           key: >-
             generator-data-${{ runner.os }}-${{
             hashFiles('utils/generate/scripts/generate.sh', 'src/unicode-data.h') }}

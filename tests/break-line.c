@@ -61,6 +61,5 @@ ATT_TEST(break_line) {
     ATT_ASSERT((uint8_t)mjb_next_line_break(hh_gl, sizeof(hh_gl) - 1, MJB_ENC_UTF_8, &state),
         (uint8_t)MJB_BT_ALLOWED, "Unicode 18 LB12a HH before GL");
 
-    read_test_file("./utils/generate/unicode-data/UCD/auxiliary/LineBreakTest.txt",
-        &break_line_callback);
+    read_test_file("./unicode-data/UCD/auxiliary/LineBreakTest.txt", &break_line_callback);
 }

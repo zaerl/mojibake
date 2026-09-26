@@ -108,7 +108,7 @@ static void test_conditional_case(void) {
 ATT_TEST(special_case) {
     char line[1024];
     unsigned int current_line = 1;
-    FILE *file = fopen("./utils/generate/unicode-data/UCD/SpecialCasing.txt", "r");
+    FILE *file = fopen("./unicode-data/UCD/SpecialCasing.txt", "r");
 
     // 256 characters is enough for any test.
     const char source[256] = { 0 };

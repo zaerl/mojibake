@@ -320,5 +320,5 @@ ATT_TEST(emoji) {
     ATT_ASSERT_STATUS(mjb_emoji_sequence_info(NULL, 0, MJB_ENC_UTF_8, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NULL string emoji sequence");
 
-    run_emoji_test_file("./utils/generate/unicode-data/emoji/emoji-test.txt");
+    run_emoji_test_file("./unicode-data/emoji/emoji-test.txt");
 }

@@ -172,7 +172,7 @@ Docker:
 
 Running the test binary by hand:
 
-The tests read the Unicode data files under `utils/generate/unicode-data/` with paths relative
+The tests read the Unicode data files under `unicode-data/` with paths relative
 to the repository root, so at startup `mojibake-test` changes into that directory. It is resolved
 in this order: the `MJB_TEST_SOURCE_DIR` environment variable if set and non-empty, then the
 repository root recorded at build time by `tests/CMakeLists.txt`, then the current directory.

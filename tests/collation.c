@@ -217,7 +217,7 @@ static void assert_collation_malformed_utf8(const unsigned char *buffer, size_t 
  * Each non-comment line contains a string (as hex codepoints).
  * Consecutive strings must be in non-descending collation order.
  */
-static void run_collation_test_file(const char *filename,
+static void run_collation_test(const char *filename,
     mjb_collation_variable_weighting variable_weighting, const char *test_name) {
     FILE *f = fopen(filename, "r");
 
@@ -650,12 +650,10 @@ ATT_TEST(collation) {
         "Collation: UTF-32LE apple < UTF-8 banana");
 
     // UCA conformance tests
-    run_collation_test_file("./utils/generate/unicode-data/collation/CollationTest/"
-                            "CollationTest_NON_IGNORABLE.txt",
+    run_collation_test("./unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt",
         MJB_COLLATION_NON_IGNORABLE, "NON_IGNORABLE");
 
-    run_collation_test_file("./utils/generate/unicode-data/collation/CollationTest/"
-                            "CollationTest_SHIFTED.txt",
+    run_collation_test("./unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt",
         MJB_COLLATION_SHIFTED, "SHIFTED");
 }
 

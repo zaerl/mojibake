@@ -14,7 +14,7 @@ pushd "%~dp0.." || (
 set UNICODE_VERSION=18.0.0
 set SECURITY_VERSION=18.0.0
 set IDNA_VERSION=18.0.0
-set DATA_DIR=unicode-data
+set DATA_DIR=..\..\unicode-data
 
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%" || goto :fail
 

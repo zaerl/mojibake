@@ -120,7 +120,7 @@ rewrites `TESTS.md`.
 ## Generated sources and Unicode data
 
 The generator lives in `utils/generate/` and reads ignored, downloaded inputs from
-`utils/generate/unicode-data/`. `make generate` invokes `utils/generate/scripts/generate.sh`; when
+`unicode-data/`. `make generate` invokes `utils/generate/scripts/generate.sh`; when
 the input directories are absent, that script downloads the UCD, Unihan, emoji, collation, and
 UTS #39 data before generating the checked-in outputs.
 
@@ -130,7 +130,7 @@ Important boundaries:
 - `src/unicode-tables.c` and `src/unicode-tables.h` are hand-maintained lookup and decoding code.
   Edit them when changing lookup behavior or the payload format.
 - `utils/generate/file-generators/unicode-data/` contains the table-specific emitters.
-- `utils/generate/unicode-data-store.ts` is the in-memory representation shared by those emitters.
+- `unicode-data-store.ts` is the in-memory representation shared by those emitters.
 - `utils/generate/functions.ts` is the source of truth for generated public function declarations
   and API documentation metadata.
 - `src/locales.h` carries a generated marker, but the current `make generate-locale` path refreshes

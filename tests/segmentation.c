@@ -289,6 +289,5 @@ ATT_TEST(segmentation) {
     test_basic_segmentation();
     test_truncate();
     test_grapheme_count();
-    read_test_file("./utils/generate/unicode-data/UCD/auxiliary/GraphemeBreakTest.txt",
-        &segmentation_callback);
+    read_test_file("./unicode-data/UCD/auxiliary/GraphemeBreakTest.txt", &segmentation_callback);
 }

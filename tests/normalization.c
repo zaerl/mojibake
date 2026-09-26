@@ -249,7 +249,7 @@ static void test_nfkc_casefold(void) {
 // each character and then applies NFC, so expected property values are normalized before
 // comparison.
 static void test_nfkc_casefold_file(void) {
-    FILE *file = fopen("./utils/generate/unicode-data/UCD/DerivedNormalizationProps.txt", "r");
+    FILE *file = fopen("./unicode-data/UCD/DerivedNormalizationProps.txt", "r");
 
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid NFKC casefold data file");
@@ -425,7 +425,7 @@ static void test_normalization_malformed_policies(void) {
 }
 
 /**
- * Run utils/generate/unicode-data/UCD/NormalizationTest.txt tests
+ * Run unicode-data/UCD/NormalizationTest.txt tests
  */
 ATT_TEST(normalization) {
     char line[1024];
@@ -547,7 +547,7 @@ ATT_TEST(normalization) {
     size_t nfkc_size = 0;
     size_t nfkd_size = 0;
 
-    FILE *file = fopen("./utils/generate/unicode-data/UCD/NormalizationTest.txt", "r");
+    FILE *file = fopen("./unicode-data/UCD/NormalizationTest.txt", "r");
 
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid normalization test file");

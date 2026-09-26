@@ -155,8 +155,6 @@ $(GENERATOR_BIN): $(GENERATOR_SOURCES)
 		-DMJB_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS)
 	@cmake --build $(GENERATOR_BUILD_DIR) --config $(BUILD_TYPE)
 
-# Generate source files with the C++ generator. Runs from utils/generate so it sees the same
-# unicode-data inputs as the TypeScript generator.
 generate-cpp: $(GENERATOR_BIN)
 	@cd ./utils/generate && ../../$(GENERATOR_BIN) $(ARGS)
 
@@ -353,7 +351,7 @@ fuzz:
 	docker build -f fuzz/Dockerfile -t mojibake-fuzz .
 	docker run --rm -e FUZZ_TIME=$(FUZZ_TIME) mojibake-fuzz
 
-.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean-generator clean
+.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean-generator clean-unicode-data clean
 
 # Clean targets
 clean-build:
@@ -380,7 +378,11 @@ clean-amalgamation:
 clean-generator:
 	@rm -rf $(GENERATOR_BUILD_DIR)
 
-clean: clean-native clean-wasm clean-amalgamation clean-generator
+# Clean downloaded Unicode data
+clean-unicode-data:
+	@rm -rf unicode-data
+
+clean: clean-native clean-wasm clean-amalgamation clean-generator clean-unicode-data
 
 .PHONY: help
 
@@ -394,11 +396,12 @@ help:
 	@echo "  build-ubsan             - Build the project with UndefinedBehaviorSanitizer"
 	@echo "  build-wasm              - Build the project for WebAssembly"
 	@echo "  build-api               - Build the JavaScript API library"
-	@echo "  clean                   - Remove build artifacts"
+	@echo "  clean                   - Remove build artifacts and downloaded Unicode data"
 	@echo "  clean-amalgamation      - Remove amalgamation build artifacts"
 	@echo "  clean-build             - Remove build artifacts"
 	@echo "  clean-generator         - Remove C++ generator build artifacts"
 	@echo "  clean-native            - Remove all build artifacts"
+	@echo "  clean-unicode-data      - Remove downloaded Unicode data"
 	@echo "  clean-wasm              - Remove WASM build artifacts"
 	@echo "  coverage                - Run coverage analysis"
 	@echo "  ctest                   - Build and run tests using CTest"

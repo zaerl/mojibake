@@ -203,12 +203,12 @@ export async function generateEmojiSequences() {
 
   const rows = new Map<string, EmojiSequence>();
 
-  await readEmojiSequenceTypes(rows, './unicode-data/emoji/emoji-sequences.txt');
-  await readEmojiSequenceTypes(rows, './unicode-data/emoji/emoji-zwj-sequences.txt');
-  await readEmojiQualifications(rows, './unicode-data/emoji/emoji-test.txt');
+  await readEmojiSequenceTypes(rows, '../../unicode-data/emoji/emoji-sequences.txt');
+  await readEmojiSequenceTypes(rows, '../../unicode-data/emoji/emoji-zwj-sequences.txt');
+  await readEmojiQualifications(rows, '../../unicode-data/emoji/emoji-test.txt');
   await readEmojiVariationSequences(
     rows,
-    './unicode-data/UCD/emoji/emoji-variation-sequences.txt'
+    '../../unicode-data/UCD/emoji/emoji-variation-sequences.txt'
   );
 
   return [...rows.values()].sort(compareSequences);

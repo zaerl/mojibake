@@ -130,7 +130,7 @@ static bool idna_check_result(const mjb_result *result, const char *expected,
 }
 
 static void test_idna_conformance(void) {
-    FILE *file = fopen("./utils/generate/unicode-data/idna/IdnaTestV2.txt", "r");
+    FILE *file = fopen("./unicode-data/idna/IdnaTestV2.txt", "r");
 
     if(file == NULL) {
         ATT_ASSERT("Not opened", "Opened file", "Valid IdnaTestV2.txt data file");

@@ -39,7 +39,7 @@ async function readPropertyNamesValues(): Promise<Property[]> {
 
   const properties: { [key: string]: Property } = {};
 
-  for await (const split of parsePropertyFile('./unicode-data/UCD/PropertyAliases.txt')) {
+  for await (const split of parsePropertyFile('../../unicode-data/UCD/PropertyAliases.txt')) {
     const property = split[0];
     const longName = split[1];
 
@@ -63,7 +63,7 @@ async function readPropertyNamesValues(): Promise<Property[]> {
 
   let valuesCount = 0;
 
-  for await (const split of parsePropertyFile('./unicode-data/UCD/PropertyValueAliases.txt')) {
+  for await (const split of parsePropertyFile('../../unicode-data/UCD/PropertyValueAliases.txt')) {
     const property = split[0];
     const value = split[1];
     const longValue = split[2];
@@ -132,16 +132,16 @@ export async function buildPropertyRanges(): Promise<{ propertyRanges: PropertyR
   }
 
   const files = [
-    './unicode-data/UCD/PropList.txt',
-    './unicode-data/UCD/DerivedCoreProperties.txt',
-    './unicode-data/UCD/EastAsianWidth.txt',
-    './unicode-data/UCD/LineBreak.txt',
-    './unicode-data/UCD/auxiliary/GraphemeBreakProperty.txt',
-    './unicode-data/UCD/auxiliary/WordBreakProperty.txt',
-    './unicode-data/UCD/auxiliary/SentenceBreakProperty.txt',
-    './unicode-data/UCD/emoji/emoji-data.txt',
-    './unicode-data/UCD/Scripts.txt',
-    './unicode-data/UCD/extracted/DerivedJoiningType.txt',
+    '../../unicode-data/UCD/PropList.txt',
+    '../../unicode-data/UCD/DerivedCoreProperties.txt',
+    '../../unicode-data/UCD/EastAsianWidth.txt',
+    '../../unicode-data/UCD/LineBreak.txt',
+    '../../unicode-data/UCD/auxiliary/GraphemeBreakProperty.txt',
+    '../../unicode-data/UCD/auxiliary/WordBreakProperty.txt',
+    '../../unicode-data/UCD/auxiliary/SentenceBreakProperty.txt',
+    '../../unicode-data/UCD/emoji/emoji-data.txt',
+    '../../unicode-data/UCD/Scripts.txt',
+    '../../unicode-data/UCD/extracted/DerivedJoiningType.txt',
   ];
 
   const defaultProperties = [

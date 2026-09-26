@@ -130,6 +130,5 @@ ATT_TEST(break_sentence) {
 
     test_sentence_count();
 
-    read_test_file("./utils/generate/unicode-data/UCD/auxiliary/SentenceBreakTest.txt",
-        &break_sentence_callback);
+    read_test_file("./unicode-data/UCD/auxiliary/SentenceBreakTest.txt", &break_sentence_callback);
 }

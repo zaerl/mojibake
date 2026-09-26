@@ -11,7 +11,7 @@ import { parsePropertyFile } from './utils';
 export async function readBidiMirroring(): Promise<BidiMirroringPair[]> {
   iLog('Parse Bidi Mirroring data');
 
-  const path = './unicode-data/UCD/BidiMirroring.txt';
+  const path = '../../unicode-data/UCD/BidiMirroring.txt';
   const pairs: BidiMirroringPair[] = [];
 
   for await (const split of parsePropertyFile(path)) {
