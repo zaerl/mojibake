@@ -229,9 +229,9 @@ static void run_confusables_file(const char *filename) {
         snprintf(test_name, sizeof(test_name), "confusables.txt line %u", current_line);
         mjb_codepoint source_cp = (mjb_codepoint)strtoul(trim_ascii(line), NULL, 16);
 
-        const mjb_codepoint *mapping = NULL;
+        mjb_codepoint mapping[MJB_UNICODE_SEQUENCE_MAX];
         uint8_t mapping_length = 0;
-        ATT_ASSERT(mjb_unicode_confusable_lookup(source_cp, &mapping, &mapping_length), true,
+        ATT_ASSERT(mjb_unicode_confusable_lookup(source_cp, mapping, &mapping_length), true,
             test_name);
 
         char actual[128];

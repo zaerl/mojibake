@@ -5,18 +5,18 @@
  */
 
 import { iLog } from '../../log';
+import { poolSequences, SequencePool } from '../../sequence-pool';
 import {
-  codepointPageBitsets, codepointPages, formatCodepoints, formatCompactIntegers,
-  formatHalfwords, formatLongWords, formatWords, indexedPages,
+  codepointPageBitsets, codepointPages, formatBitsetPages, formatCompactIntegers, formatHalfwords,
+  indexedPages,
 } from '../../utils';
 import { ConfusableRow } from '../types';
 
-// Emits indexed confusable skeleton mappings with shared skeleton payloads.
-export function generateConfusables(rows: ConfusableRow[]) {
+// Emits indexed confusable skeleton mappings. Skeletons live in an extension of the core
+// sequence pool, so single-codepoint and decomposition-like skeletons reuse existing units.
+export function generateConfusables(rows: ConfusableRow[], corePool: SequencePool) {
   iLog('Confusables');
 
-  const data: number[] = [];
-  const dataOffsets = new Map<string, { offset: number; length: number }>();
   const pages = indexedPages(codepointPages(rows), true);
   const pageBitsets = codepointPageBitsets(rows, pages.pages);
   const skeletons = rows.map((row) => {
@@ -34,97 +34,68 @@ export function generateConfusables(rows: ConfusableRow[]) {
     return values;
   });
 
-  const uniqueSkeletons = [...new Map(skeletons.map((values) => [values.join(','), values])).values()]
-    .sort((a, b) => b.length - a.length);
+  const pool = new SequencePool(corePool);
+  const pooled = poolSequences(pool, skeletons);
+  const entries: number[] = [];
+  const lengthNibbles: number[] = [];
+  const exceptionIndices: number[] = [];
+  const exceptionLengths: number[] = [];
 
-  // Lengths 1-8 fit directly in three bits. The longest skeleton is stored first at offset zero,
-  // allowing that one entry to share the length-8 encoding without widening every mapping.
-  const encodeLength = (offset: number, length: number) => {
-    if(length >= 1 && length <= 8) {
-      return length - 1;
+  pooled.forEach((entry, index) => {
+    if(entry.offset > 0xFFFF) {
+      throw new Error(`Confusable sequence offset is too large to pack: ${entry.offset}`);
     }
 
-    if(offset === 0) {
-      return 7;
-    }
+    entries.push(entry.offset);
 
-    throw new Error(`Confusable mapping length cannot be packed: ${length}`);
-  };
+    // Lengths 1..14 fit in a nibble; 15 escapes to a tiny exception table.
+    let nibble = entry.length;
 
-  // Finds an existing payload offset for a confusable skeleton.
-  const findDataOffset = (values: number[]) => {
-    for(let offset = 0; offset <= data.length - values.length; ++offset) {
-      let matches = true;
-
-      for(let i = 0; i < values.length; ++i) {
-        if(data[offset + i] !== values[i]) {
-          matches = false;
-          break;
-        }
+    if(entry.length >= 0xF) {
+      if(index > 0xFFFF || entry.length > 0xFF) {
+        throw new Error(`Confusable length exception is too large to pack: ${index}`);
       }
 
-      if(matches) {
-        return offset;
-      }
+      exceptionIndices.push(index);
+      exceptionLengths.push(entry.length);
+      nibble = 0xF;
     }
 
-    return -1;
-  };
-
-  for(const values of uniqueSkeletons) {
-    const key = values.join(',');
-    let offset = findDataOffset(values);
-
-    if(offset < 0) {
-      offset = data.length;
-      data.push(...values);
+    if((index & 1) === 0) {
+      lengthNibbles.push(nibble);
+    } else {
+      lengthNibbles[lengthNibbles.length - 1] |= nibble << 4;
     }
-
-    if(offset > 0x1FFF) {
-      throw new Error(`Confusable data offset is too large to pack: ${offset}`);
-    }
-
-    if(values.length > 0xFF) {
-      throw new Error(`Confusable length is too large to pack: ${values.length}`);
-    }
-
-    dataOffsets.set(key, { offset, length: values.length });
-  }
-
-  const entries = skeletons.map((values) => {
-    const entry = dataOffsets.get(values.join(','));
-
-    if(entry === undefined) {
-      throw new Error('Missing confusable skeleton entry');
-    }
-
-    return entry.offset | (encodeLength(entry.offset, values.length) << 13);
   });
 
-  return `#define MJB_UNICODE_CONFUSABLE_LONG_LENGTH ${uniqueSkeletons[0]?.length ?? 0}
+  return `enum { MJB_UNICODE_CONFUSABLE_EXCEPTION_COUNT = ${exceptionIndices.length} };
 
-static const mjb_codepoint mjb_unicode_confusable_data[] = {
-${formatCodepoints(data)}
+static const uint16_t mjb_unicode_confusable_sequence_units[] = {
+${formatHalfwords(pool.units.length === 0 ? [0] : pool.units, 12)}
 };
 
 static const uint16_t mjb_unicode_confusable_page_index[] = {
 ${formatHalfwords(pages.index)}
 };
 
-static const uint16_t mjb_unicode_confusable_page_starts[] = {
-${formatHalfwords(pages.pages.starts)}
-};
-
-static const uint64_t mjb_unicode_confusable_page_bits[] = {
-${formatLongWords(pageBitsets.data, 16)}
-};
-
-static const uint32_t mjb_unicode_confusable_page_ranks[] = {
-${formatWords(pageBitsets.ranks)}
+static const mjb_unicode_bitset_page mjb_unicode_confusable_pages[] = {
+${formatBitsetPages(pages.pages, pageBitsets)}
 };
 
 static const uint16_t mjb_unicode_confusables[] = {
 ${formatCompactIntegers(entries, 16)}
+};
+
+static const uint8_t mjb_unicode_confusable_lengths[] = {
+${formatCompactIntegers(lengthNibbles, 32)}
+};
+
+static const uint16_t mjb_unicode_confusable_exception_indices[] = {
+${formatCompactIntegers(exceptionIndices.length === 0 ? [0] : exceptionIndices, 16)}
+};
+
+static const uint8_t mjb_unicode_confusable_exception_lengths[] = {
+${formatCompactIntegers(exceptionLengths.length === 0 ? [0] : exceptionLengths, 16)}
 };
 `;
 }

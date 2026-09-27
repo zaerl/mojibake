@@ -35,62 +35,87 @@ static void mjb_copy_table_string(char *destination, size_t destination_size, co
 }
 
 #if MJB_FEATURE_CHARACTER_NAMES
-static size_t mjb_append_table_string(char *destination, size_t destination_size,
-    size_t destination_index, const uint8_t *source) {
-    if(destination_size == 0 || source == NULL) {
-        return destination_index;
+// Appends one character when it fits, leaving room for the terminator.
+static size_t mjb_unicode_name_append(char *name, size_t name_size, size_t index, char value) {
+    if(index + 1 < name_size) {
+        name[index] = value;
+
+        return index + 1;
     }
 
-    uint8_t byte = *source++;
-    bool terminated = false;
+    return index;
+}
 
-    while(byte != 0 && destination_index + 1 < destination_size) {
-        destination[destination_index++] = (char)byte;
+// Appends a word of the given length. With room for a whole word the copy is three fixed
+// 8-byte pieces (word tables are padded for that). Otherwise it is truncated to the room left.
+static size_t mjb_unicode_name_append_word(char *name, size_t name_size, size_t index,
+    const uint8_t *word, size_t length) {
+    size_t room = name_size - 1 - index;
 
-        if((byte & 0x80) != 0) {
-            terminated = true;
-            break;
+    if(room >= MJB_UNICODE_NAME_WORD_MAX) {
+        memcpy(name + index, word, 8);
+        memcpy(name + index + 8, word + 8, 8);
+        memcpy(name + index + 16, word + 16, 8);
+
+        return index + length;
+    }
+
+    if(length > room) {
+        length = room;
+    }
+
+    memcpy(name + index, word, length);
+
+    return index + length;
+}
+
+// Decodes a name token stream. Words are lexicon ids or spelled inline, and a space is implied
+// between two consecutive words; hyphens and explicit spaces carry no implied space.
+static size_t mjb_unicode_name_decode(const uint8_t *tokens, char *name, size_t name_size,
+    size_t index, bool *after_word) {
+    for(;;) {
+        uint8_t token = *tokens++;
+
+        if(token == MJB_UNICODE_NAME_TOKEN_END) {
+            return index;
         }
 
-        byte = *source++;
+        if(token < MJB_UNICODE_NAME_TOKEN_SPELL_FIRST) {
+            index = mjb_unicode_name_append(name, name_size, index,
+                token == MJB_UNICODE_NAME_TOKEN_HYPHEN ? '-' : ' ');
+            *after_word = false;
+
+            continue;
+        }
+
+        if(*after_word) {
+            index = mjb_unicode_name_append(name, name_size, index, ' ');
+        }
+
+        *after_word = true;
+
+        if(token < MJB_UNICODE_NAME_TOKEN_WORD_FIRST) {
+            size_t length = (size_t)(token - MJB_UNICODE_NAME_TOKEN_SPELL_FIRST) + 1;
+
+            index = mjb_unicode_name_append_word(name, name_size, index, tokens, length);
+            tokens += length;
+
+            continue;
+        }
+
+        size_t id;
+
+        if(token < MJB_UNICODE_NAME_TOKEN_LEAD_FIRST) {
+            id = (size_t)(token - MJB_UNICODE_NAME_TOKEN_WORD_FIRST);
+        } else {
+            id = (MJB_UNICODE_NAME_TOKEN_LEAD_FIRST - MJB_UNICODE_NAME_TOKEN_WORD_FIRST) +
+                (((size_t)(token - MJB_UNICODE_NAME_TOKEN_LEAD_FIRST) << 8) | *tokens++);
+        }
+
+        const uint8_t *word = &mjb_unicode_name_lexicon_data[mjb_unicode_name_lexicon_offsets[id]];
+
+        index = mjb_unicode_name_append_word(name, name_size, index, word + 1, word[0]);
     }
-
-    if(terminated) {
-        destination[destination_index - 1] &= 0x7F;
-    }
-
-    destination[destination_index] = '\0';
-
-    return destination_index;
-}
-
-static size_t mjb_append_table_string_unchecked(char *destination, size_t destination_index,
-    const uint8_t *source) {
-    uint8_t byte = *source++;
-
-    if(byte != 0) {
-        do {
-            destination[destination_index++] = (char)byte;
-
-            if((byte & 0x80) != 0) {
-                break;
-            }
-
-            byte = *source++;
-        } while(true);
-
-        destination[destination_index - 1] &= 0x7F;
-    }
-
-    destination[destination_index] = '\0';
-
-    return destination_index;
-}
-
-static const uint8_t *mjb_unicode_prefix_lookup(uint16_t prefix_start, uint8_t prefix) {
-    uint16_t offset = mjb_unicode_name_page_prefix_offsets[prefix_start + prefix];
-
-    return &mjb_unicode_prefix_data[offset];
 }
 #endif
 
@@ -138,9 +163,28 @@ static uint8_t mjb_unicode_popcount64(uint64_t value) {
     return (uint8_t)((value * UINT64_C(0x0101010101010101)) >> 56);
 }
 
-static bool mjb_unicode_page_bitset_lookup(const uint8_t *page_index, size_t page_count,
-    const uint16_t *page_starts, const uint64_t *page_bits, const uint32_t *page_ranks,
+// Finds the entry index of a codepoint in one populated page: the entries before its bitset
+// word, plus the set bits below it in that word.
+static bool mjb_unicode_bitset_page_lookup(const mjb_unicode_bitset_page *page,
     mjb_codepoint codepoint, size_t *index) {
+    uint8_t codepoint_low = (uint8_t)codepoint;
+    uint8_t word = codepoint_low >> 6;
+    uint8_t bit = codepoint_low & 0x3F;
+    uint64_t bits = page->bits[word];
+    uint64_t mask = (uint64_t)1 << bit;
+
+    if((bits & mask) == 0) {
+        return false;
+    }
+
+    uint8_t rank = (uint8_t)(page->ranks >> (word * 8));
+    *index = page->start + rank + mjb_unicode_popcount64(bits & (mask - 1));
+
+    return true;
+}
+
+static bool mjb_unicode_page_bitset_lookup(const uint8_t *page_index, size_t page_count,
+    const mjb_unicode_bitset_page *pages, mjb_codepoint codepoint, size_t *index) {
     size_t page = codepoint >> 8;
 
     if(page >= page_count) {
@@ -153,27 +197,13 @@ static bool mjb_unicode_page_bitset_lookup(const uint8_t *page_index, size_t pag
         return false;
     }
 
-    uint8_t codepoint_low = (uint8_t)codepoint;
-    uint8_t word = codepoint_low >> 6;
-    uint8_t bit = codepoint_low & 0x3F;
-    uint64_t bits = page_bits[(size_t)compact_page * 4 + word];
-    uint64_t mask = (uint64_t)1 << bit;
-
-    if((bits & mask) == 0) {
-        return false;
-    }
-
-    uint8_t rank = (uint8_t)(page_ranks[compact_page] >> (word * 8));
-    *index = page_starts[compact_page] + rank + mjb_unicode_popcount64(bits & (mask - 1));
-
-    return true;
+    return mjb_unicode_bitset_page_lookup(&pages[compact_page], codepoint, index);
 }
 
 #if MJB_FEATURE_SECURITY
 // Wide variant for tables with 255 or more populated pages; 0xFFFF marks an empty page.
 static bool mjb_unicode_page_bitset_lookup_wide(const uint16_t *page_index, size_t page_count,
-    const uint16_t *page_starts, const uint64_t *page_bits, const uint32_t *page_ranks,
-    mjb_codepoint codepoint, size_t *index) {
+    const mjb_unicode_bitset_page *pages, mjb_codepoint codepoint, size_t *index) {
     size_t page = codepoint >> 8;
 
     if(page >= page_count) {
@@ -186,54 +216,64 @@ static bool mjb_unicode_page_bitset_lookup_wide(const uint16_t *page_index, size
         return false;
     }
 
-    uint8_t codepoint_low = (uint8_t)codepoint;
-    uint8_t word = codepoint_low >> 6;
-    uint8_t bit = codepoint_low & 0x3F;
-    uint64_t bits = page_bits[(size_t)compact_page * 4 + word];
-    uint64_t mask = (uint64_t)1 << bit;
-
-    if((bits & mask) == 0) {
-        return false;
-    }
-
-    uint8_t rank = (uint8_t)(page_ranks[compact_page] >> (word * 8));
-    *index = page_starts[compact_page] + rank + mjb_unicode_popcount64(bits & (mask - 1));
-
-    return true;
+    return mjb_unicode_bitset_page_lookup(&pages[compact_page], codepoint, index);
 }
 #endif // MJB_FEATURE_SECURITY
 
 #if MJB_FEATURE_CHARACTER_NAMES
+// Finds a name entry and the compact index of its page.
 static bool mjb_unicode_name_entry_lookup(mjb_codepoint codepoint, size_t *index,
-    uint16_t *prefix_start) {
+    size_t *compact_page) {
     size_t page = codepoint >> 8;
 
     if(page >= MJB_COUNT_OF(mjb_unicode_name_page_index)) {
         return false;
     }
 
-    uint8_t compact_page = mjb_unicode_name_page_index[page];
+    uint8_t compact = mjb_unicode_name_page_index[page];
 
-    if(compact_page == 0xFF) {
+    if(compact == 0xFF) {
         return false;
     }
 
-    uint8_t codepoint_low = (uint8_t)codepoint;
-    uint8_t word = codepoint_low >> 6;
-    uint8_t bit = codepoint_low & 0x3F;
-    uint64_t bits = mjb_unicode_name_page_bits[(size_t)compact_page * 4 + word];
-    uint64_t mask = (uint64_t)1 << bit;
-
-    if((bits & mask) == 0) {
+    if(!mjb_unicode_bitset_page_lookup(&mjb_unicode_name_pages[compact], codepoint, index)) {
         return false;
     }
 
-    uint8_t rank = (uint8_t)(mjb_unicode_name_page_ranks[compact_page] >> (word * 8));
-    uint32_t starts = mjb_unicode_name_page_starts[compact_page];
-    *index = (starts & 0xFFFF) + rank + mjb_unicode_popcount64(bits & (mask - 1));
-    *prefix_start = (uint16_t)(starts >> 16);
+    *compact_page = compact;
 
     return true;
+}
+#endif
+
+// The generated tables must not exceed the caller buffer size promised by unicode-tables.h.
+typedef char
+    mjb_unicode_sequence_max_check[MJB_UNICODE_SEQUENCE_LONGEST <= MJB_UNICODE_SEQUENCE_MAX ? 1 :
+                                                                                              -1];
+
+// Decodes codepoints from 16-bit sequence units: BMP values directly, others as surrogate pairs.
+static void mjb_unicode_sequence_decode(const uint16_t *units, uint8_t count,
+    mjb_codepoint *values) {
+    for(uint8_t i = 0; i < count; ++i) {
+        uint32_t unit = *units++;
+
+        if((unit & 0xFC00) == 0xD800) {
+            uint32_t low = *units++;
+            unit = 0x10000 + ((unit - 0xD800) << 10) + (low - 0xDC00);
+        }
+
+        values[i] = (mjb_codepoint)unit;
+    }
+}
+
+#if MJB_FEATURE_IDNA || MJB_FEATURE_SECURITY
+// Resolves a virtual sequence offset: the core pool first, then a feature's extension pool.
+static const uint16_t *mjb_unicode_sequence_units_at(const uint16_t *extension, size_t offset) {
+    if(offset < MJB_COUNT_OF(mjb_unicode_sequence_units)) {
+        return &mjb_unicode_sequence_units[offset];
+    }
+
+    return &extension[offset - MJB_COUNT_OF(mjb_unicode_sequence_units)];
 }
 #endif
 
@@ -244,9 +284,9 @@ static bool mjb_unicode_bitset_get(const uint8_t *data, size_t index) {
 bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_size) {
 #if MJB_FEATURE_CHARACTER_NAMES
     size_t entry_index = 0;
-    uint16_t prefix_start = 0;
+    size_t compact_page = 0;
 
-    if(!mjb_unicode_name_entry_lookup(codepoint, &entry_index, &prefix_start)) {
+    if(!mjb_unicode_name_entry_lookup(codepoint, &entry_index, &compact_page)) {
         return false;
     }
 
@@ -254,23 +294,32 @@ bool mjb_unicode_name_lookup(mjb_codepoint codepoint, char *name, size_t name_si
         return true;
     }
 
-    name[0] = '\0';
+    // The prefix runs of the page give the local prefix of this entry, starting from the run
+    // indexed by the entry's 16-entry block.
+    const mjb_unicode_bitset_page *page = &mjb_unicode_name_pages[compact_page];
+    size_t local = entry_index - page->start;
+    size_t first_run = mjb_unicode_name_page_run_starts[compact_page];
+    const uint8_t *run = &mjb_unicode_name_prefix_runs[(first_run +
+                                                           mjb_unicode_name_run_block_starts
+                                                               [compact_page * 16 + (local >> 4)]) *
+        2];
+    const uint8_t *end = &mjb_unicode_name_prefix_runs
+                             [(size_t)mjb_unicode_name_page_run_starts[compact_page + 1] * 2];
 
-    size_t index = 0;
-    uint8_t tag = mjb_unicode_name_tags[entry_index];
-    uint32_t name_offset = mjb_unicode_name_offsets[entry_index] | ((uint32_t)(tag & 1) << 16);
-    uint8_t prefix = tag >> 1;
-
-    const uint8_t *prefix_data = mjb_unicode_prefix_lookup(prefix_start, prefix);
-    const uint8_t *name_data = &mjb_unicode_name_data[name_offset];
-
-    if(name_size >= 128) {
-        index = mjb_append_table_string_unchecked(name, index, prefix_data);
-        mjb_append_table_string_unchecked(name, index, name_data);
-    } else {
-        index = mjb_append_table_string(name, name_size, index, prefix_data);
-        mjb_append_table_string(name, name_size, index, name_data);
+    while(run + 2 < end && run[2] <= local) {
+        run += 2;
     }
+
+    const uint8_t *prefix = &mjb_unicode_name_prefix_data
+                                [mjb_unicode_name_page_prefix_offsets[page->extra + run[1]]];
+    size_t offset = mjb_unicode_name_offsets[entry_index] |
+        ((size_t)mjb_unicode_bitset_get(mjb_unicode_name_offset_high_bits, entry_index) << 16);
+    bool after_word = false;
+    size_t index = mjb_unicode_name_decode(prefix, name, name_size, 0, &after_word);
+
+    index = mjb_unicode_name_decode(&mjb_unicode_name_data[offset], name, name_size, index,
+        &after_word);
+    name[index] = '\0';
 
     return true;
 #else
@@ -404,112 +453,82 @@ bool mjb_unicode_emoji_sequence_lookup(const mjb_codepoint *codepoints, size_t c
     return true;
 }
 
-static bool mjb_unicode_blob_has_property(const uint8_t *blob, uint16_t blob_size,
-    mjb_property property, uint8_t *value) {
-    uint16_t offset = 0;
-    uint8_t bool_count = blob[offset++];
+// Finds the merged property record of a codepoint: page, then block, then a short run scan.
+static const uint8_t *mjb_unicode_property_record(mjb_codepoint codepoint) {
+    size_t page = codepoint >> 8;
 
-    for(uint8_t i = 0; i < bool_count && offset < blob_size; ++i) {
-        if(blob[offset++] == property) {
-            return true;
+    if(page >= MJB_COUNT_OF(mjb_unicode_property_page_index)) {
+        return NULL;
+    }
+
+    uint16_t compact_page = mjb_unicode_property_page_index[page];
+
+    if(compact_page == 0xFFFF) {
+        return NULL;
+    }
+
+    uint8_t codepoint_low = (uint8_t)codepoint;
+    size_t page_start = mjb_unicode_property_page_starts[compact_page];
+    size_t end = mjb_unicode_property_page_starts[compact_page + 1];
+    size_t run = page_start +
+        mjb_unicode_property_block_starts[(size_t)compact_page *
+                MJB_UNICODE_PROPERTY_BLOCKS_PER_PAGE +
+            (codepoint_low >> MJB_UNICODE_PROPERTY_BLOCK_SHIFT)];
+
+    for(; run < end; ++run) {
+        uint16_t range = mjb_unicode_property_runs[run];
+        uint8_t start = (uint8_t)range;
+
+        if(codepoint_low < start) {
+            return NULL;
+        }
+
+        if(codepoint_low <= (uint8_t)(start + (range >> 8))) {
+            return &mjb_unicode_property_records[mjb_unicode_property_run_records[run]];
         }
     }
 
-    if(offset >= blob_size) {
+    return NULL;
+}
+
+bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value) {
+    const uint8_t *record = mjb_unicode_property_record(codepoint);
+
+    if(record == NULL) {
         return false;
     }
 
-    uint8_t enum_count = blob[offset++];
+    // Boolean ids are sorted, so the scan stops at the first larger id.
+    uint8_t bool_count = *record++;
 
-    for(uint8_t i = 0; i < enum_count && (offset + 1) < blob_size; ++i) {
-        if(blob[offset] == property) {
+    for(uint8_t i = 0; i < bool_count; ++i) {
+        uint8_t id = record[i];
+
+        if(id == property) {
+            return true;
+        }
+
+        if(id > property) {
+            break;
+        }
+    }
+
+    record += bool_count;
+    uint8_t enum_count = *record++;
+
+    for(uint8_t i = 0; i < enum_count; ++i) {
+        uint8_t id = record[i * 2];
+
+        if(id == property) {
             if(value != NULL) {
-                *value = blob[offset + 1];
+                *value = record[i * 2 + 1];
             }
 
             return true;
         }
 
-        offset += 2;
-    }
-
-    return false;
-}
-
-static void mjb_unicode_decode_properties(const uint8_t *blob, uint16_t blob_size,
-    uint8_t *buffer) {
-    uint16_t offset = 0;
-    uint8_t bool_count = blob[offset++];
-
-    for(uint8_t i = 0; i < bool_count && offset < blob_size; ++i) {
-        buffer[blob[offset++]] = 1;
-    }
-
-    if(offset >= blob_size) {
-        return;
-    }
-
-    uint8_t enum_count = blob[offset++];
-
-    for(uint8_t i = 0; i < enum_count && (offset + 1) < blob_size; ++i) {
-        buffer[blob[offset]] = blob[offset + 1];
-        offset += 2;
-    }
-}
-
-static bool mjb_unicode_property_page_lookup(mjb_codepoint codepoint, size_t *start,
-    size_t *count) {
-    uint16_t page = (uint16_t)(codepoint >> 8);
-    size_t low = 0;
-    size_t high = MJB_COUNT_OF(mjb_unicode_property_page_numbers);
-
-    while(low < high) {
-        size_t mid = low + (high - low) / 2;
-        uint16_t entry_page = mjb_unicode_property_page_numbers[mid];
-
-        if(page < entry_page) {
-            high = mid;
-        } else if(page > entry_page) {
-            low = mid + 1;
-        } else {
-            *start = mjb_unicode_property_page_starts[mid];
-            *count = mjb_unicode_property_page_counts[mid];
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, uint8_t *value) {
-    size_t start_index = 0;
-    size_t count = 0;
-
-    if(!mjb_unicode_property_page_lookup(codepoint, &start_index, &count)) {
-        return false;
-    }
-
-    uint8_t codepoint_low = (uint8_t)codepoint;
-
-    for(size_t i = start_index; i < start_index + count; ++i) {
-        uint32_t entry = mjb_unicode_property_ranges[i];
-        uint8_t start = (uint8_t)(entry & 0xFF);
-        uint8_t end = start + (uint8_t)((entry >> 8) & 0xFF);
-        uint16_t offset = (uint16_t)(entry >> 16);
-        uint8_t length = mjb_unicode_property_data[offset];
-
-        if(start > codepoint_low) {
+        if(id > property) {
             break;
-        }
-
-        if(codepoint_low > end || length < 2) {
-            continue;
-        }
-
-        if(mjb_unicode_blob_has_property(&mjb_unicode_property_data[offset + 1], length, property,
-               value)) {
-            return true;
         }
     }
 
@@ -517,31 +536,23 @@ bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, ui
 }
 
 bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer) {
-    size_t start_index = 0;
-    size_t count = 0;
+    const uint8_t *record = mjb_unicode_property_record(codepoint);
 
-    if(!mjb_unicode_property_page_lookup(codepoint, &start_index, &count)) {
+    if(record == NULL) {
         return true;
     }
 
-    uint8_t codepoint_low = (uint8_t)codepoint;
+    uint8_t bool_count = *record++;
 
-    for(size_t i = start_index; i < start_index + count; ++i) {
-        uint32_t entry = mjb_unicode_property_ranges[i];
-        uint8_t start = (uint8_t)(entry & 0xFF);
-        uint8_t end = start + (uint8_t)((entry >> 8) & 0xFF);
-        uint16_t offset = (uint16_t)(entry >> 16);
-        uint8_t length = mjb_unicode_property_data[offset];
+    for(uint8_t i = 0; i < bool_count; ++i) {
+        buffer[record[i]] = 1;
+    }
 
-        if(start > codepoint_low) {
-            break;
-        }
+    record += bool_count;
+    uint8_t enum_count = *record++;
 
-        if(codepoint_low > end || length < 2) {
-            continue;
-        }
-
-        mjb_unicode_decode_properties(&mjb_unicode_property_data[offset + 1], length, buffer);
+    for(uint8_t i = 0; i < enum_count; ++i) {
+        buffer[record[i * 2]] = record[i * 2 + 1];
     }
 
     return true;
@@ -585,27 +596,33 @@ static bool mjb_unicode_n_character_entry_lookup(mjb_codepoint codepoint, size_t
         return false;
     }
 
-    size_t low = mjb_unicode_n_character_pages[compact_page].start;
-    size_t high = low + mjb_unicode_n_character_pages[compact_page].count;
+    // Scan the few runs of the codepoint's 16-codepoint block; runs are sorted and disjoint.
+    uint8_t codepoint_low = (uint8_t)codepoint;
+    size_t page_start = mjb_unicode_n_character_pages[compact_page].start;
+    size_t end = page_start + mjb_unicode_n_character_pages[compact_page].count;
+    size_t run = page_start +
+        mjb_unicode_n_character_block_starts[(size_t)compact_page * 16 + (codepoint_low >> 4)];
 
-    while(low < high) {
-        size_t mid = low + (high - low) / 2;
-        uint32_t range = mjb_unicode_n_character_ranges[mid];
-        mjb_codepoint start = range & 0x1FFFFF;
-        mjb_codepoint end = start + (range >> 21);
+    for(; run < end; ++run) {
+        uint16_t range = mjb_unicode_n_character_ranges[run];
+        uint8_t start = (uint8_t)range;
 
-        if(codepoint < start) {
-            high = mid;
-        } else if(codepoint > end) {
-            low = mid + 1;
-        } else {
-            *index = mid;
+        if(codepoint_low < start) {
+            return false;
+        }
+
+        if(codepoint_low <= (uint8_t)(start + (range >> 8))) {
+            *index = run;
 
             return true;
         }
     }
 
     return false;
+}
+
+static uint32_t mjb_unicode_n_character_entry(size_t index) {
+    return mjb_unicode_n_character_values[mjb_unicode_n_character_entries[index]];
 }
 
 bool mjb_unicode_n_character_lookup(mjb_codepoint codepoint, mjb_n_character *character) {
@@ -615,7 +632,7 @@ bool mjb_unicode_n_character_lookup(mjb_codepoint codepoint, mjb_n_character *ch
         return false;
     }
 
-    uint32_t entry = mjb_unicode_n_character_entries[entry_index];
+    uint32_t entry = mjb_unicode_n_character_entry(entry_index);
 
     character->codepoint = codepoint;
     character->combining = (uint8_t)((entry >> 14) & 0xFF);
@@ -632,7 +649,7 @@ bool mjb_unicode_category_lookup(mjb_codepoint codepoint, mjb_category *category
         return false;
     }
 
-    uint32_t entry = mjb_unicode_n_character_entries[entry_index];
+    uint32_t entry = mjb_unicode_n_character_entry(entry_index);
     *category = (mjb_category)((entry >> 9) & 0x1F);
 
     return true;
@@ -651,7 +668,7 @@ bool mjb_unicode_bidi_lookup(mjb_codepoint codepoint, mjb_bidi_class *bidi, bool
         return false;
     }
 
-    uint32_t entry = mjb_unicode_n_character_entries[entry_index];
+    uint32_t entry = mjb_unicode_n_character_entry(entry_index);
     uint8_t bidirectional = (uint8_t)((entry >> 22) & 0x1F);
 
     if(bidirectional == 0 || bidirectional >= MJB_BIDI_CLASS_COUNT) {
@@ -690,9 +707,8 @@ static bool mjb_unicode_simple_case_entry_lookup(mjb_codepoint codepoint, const 
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_bitset_lookup(mjb_unicode_simple_case_page_index,
-           MJB_COUNT_OF(mjb_unicode_simple_case_page_index), mjb_unicode_simple_case_page_starts,
-           mjb_unicode_simple_case_page_bits, mjb_unicode_simple_case_page_ranks, codepoint,
-           &entry_index)) {
+           MJB_COUNT_OF(mjb_unicode_simple_case_page_index), mjb_unicode_simple_case_pages,
+           codepoint, &entry_index)) {
         return false;
     }
 
@@ -714,7 +730,7 @@ bool mjb_unicode_case_lookup(mjb_codepoint codepoint, mjb_unicode_case_mapping *
         return false;
     }
 
-    uint32_t character = mjb_unicode_n_character_entries[character_index];
+    uint32_t character = mjb_unicode_n_character_entry(character_index);
     const uint64_t *entry = NULL;
     bool has_case_mapping = mjb_unicode_simple_case_entry_lookup(codepoint, &entry);
     uint64_t entry_data = has_case_mapping ? *entry : 0;
@@ -835,63 +851,117 @@ bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoi
 }
 
 #if MJB_FEATURE_SECURITY
-bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
+bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, mjb_codepoint *values,
     uint8_t *length) {
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_bitset_lookup_wide(mjb_unicode_confusable_page_index,
-           MJB_COUNT_OF(mjb_unicode_confusable_page_index), mjb_unicode_confusable_page_starts,
-           mjb_unicode_confusable_page_bits, mjb_unicode_confusable_page_ranks, codepoint,
+           MJB_COUNT_OF(mjb_unicode_confusable_page_index), mjb_unicode_confusable_pages, codepoint,
            &entry_index)) {
         return false;
     }
 
-    uint16_t entry = mjb_unicode_confusables[entry_index];
-    uint16_t offset = entry & 0x1FFF;
-    uint8_t encoded_length = (uint8_t)(entry >> 13);
+    uint8_t mapping_length = (uint8_t)((mjb_unicode_confusable_lengths[entry_index >> 1] >>
+                                           ((entry_index & 1) * 4)) &
+        0xF);
 
-    *values = &mjb_unicode_confusable_data[offset];
-    *length = encoded_length == 7 && offset == 0 ? MJB_UNICODE_CONFUSABLE_LONG_LENGTH :
-                                                   encoded_length + 1;
+    // Lengths of 15 and above are rare enough to live in a tiny exception table.
+    if(mapping_length == 0xF) {
+        for(size_t i = 0; i < MJB_UNICODE_CONFUSABLE_EXCEPTION_COUNT; ++i) {
+            if(mjb_unicode_confusable_exception_indices[i] == entry_index) {
+                mapping_length = mjb_unicode_confusable_exception_lengths[i];
+                break;
+            }
+        }
+    }
+
+    mjb_unicode_sequence_decode(mjb_unicode_sequence_units_at(mjb_unicode_confusable_sequence_units,
+                                    mjb_unicode_confusables[entry_index]),
+        mapping_length, values);
+    *length = mapping_length;
 
     return true;
 }
 #endif // MJB_FEATURE_SECURITY
 
 #if MJB_FEATURE_IDNA
-bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
-    const mjb_codepoint **mapping, uint8_t *length) {
+// Every codepoint has an IDNA range, so ranges store only their start and a lookup finds the last
+// range starting at or before the codepoint.
+static bool mjb_unicode_idna_range_lookup(mjb_codepoint codepoint, uint8_t *status,
+    uint16_t *mapping_id) {
     size_t low = 0;
-    size_t high = MJB_COUNT_OF(mjb_unicode_idna_ranges);
+
+    if(codepoint < MJB_UNICODE_IDNA_SUPPLEMENTARY_START) {
+        // The page index narrows the search to the ranges touching one 256-codepoint page: from
+        // the range covering the page start to the one covering the next page start.
+        size_t page = codepoint >> 8;
+        low = mjb_unicode_idna_page_firsts[page] + 1;
+        size_t high = (size_t)mjb_unicode_idna_page_firsts[page + 1] + 1;
+
+        while(low < high) {
+            size_t mid = low + (high - low) / 2;
+
+            if((mjb_unicode_idna_ranges[mid] & 0x1FFFF) <= codepoint) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+
+        uint32_t entry = mjb_unicode_idna_ranges[low - 1];
+        *status = (uint8_t)((entry >> 17) & 0x7);
+        *mapping_id = (uint16_t)(entry >> 20);
+
+        return true;
+    }
+
+    size_t high = MJB_COUNT_OF(mjb_unicode_idna_supplementary_ranges);
 
     while(low < high) {
         size_t mid = low + (high - low) / 2;
-        uint64_t entry = mjb_unicode_idna_ranges[mid];
-        mjb_codepoint start = (mjb_codepoint)(entry & 0x1FFFFF);
-        mjb_codepoint end = start + (mjb_codepoint)((entry >> 21) & 0x1FFFFF);
 
-        if(codepoint < start) {
-            high = mid;
-        } else if(codepoint > end) {
+        if((mjb_unicode_idna_supplementary_ranges[mid] & 0x1FFFFF) <= codepoint) {
             low = mid + 1;
         } else {
-            uint16_t mapping_id = (uint16_t)((entry >> 45) & 0x1FFF);
-            *status = (mjb_unicode_idna_status)((entry >> 42) & 0x7);
-            *mapping = NULL;
-            *length = 0;
-
-            if(mapping_id != 0) {
-                uint16_t mapping_start = mjb_unicode_idna_mapping_offsets[mapping_id - 1];
-                uint16_t mapping_end = mjb_unicode_idna_mapping_offsets[mapping_id];
-                *mapping = &mjb_unicode_idna_mapping_data[mapping_start];
-                *length = (uint8_t)(mapping_end - mapping_start);
-            }
-
-            return true;
+            high = mid;
         }
     }
 
-    return false;
+    if(low == 0) {
+        return false;
+    }
+
+    uint64_t entry = mjb_unicode_idna_supplementary_ranges[low - 1];
+    *status = (uint8_t)((entry >> 21) & 0x7);
+    *mapping_id = (uint16_t)((entry >> 24) & 0x1FFF);
+
+    return true;
+}
+
+bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
+    mjb_codepoint *mapping, uint8_t *length) {
+    uint8_t entry_status = 0;
+    uint16_t mapping_id = 0;
+
+    if(codepoint > MJB_CODEPOINT_MAX ||
+        !mjb_unicode_idna_range_lookup(codepoint, &entry_status, &mapping_id) ||
+        entry_status == MJB_UNICODE_IDNA_NONE) {
+        return false;
+    }
+
+    *status = (mjb_unicode_idna_status)entry_status;
+    *length = 0;
+
+    if(mapping_id != 0) {
+        uint8_t mapping_length = mjb_unicode_idna_mapping_lengths[mapping_id - 1];
+
+        mjb_unicode_sequence_decode(mjb_unicode_sequence_units_at(mjb_unicode_idna_sequence_units,
+                                        mjb_unicode_idna_mapping_offsets[mapping_id - 1]),
+            mapping_length, mapping);
+        *length = mapping_length;
+    }
+
+    return true;
 }
 #endif
 
@@ -913,34 +983,91 @@ bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *ba
     return false;
 }
 
-bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights) {
+// Rare secondary/tertiary combinations escape to a small table sorted by entry index.
+static uint32_t mjb_unicode_collation_combo_exception(size_t entry_index) {
+    size_t low = 0;
+    size_t high = MJB_UNICODE_COLLATION_COMBO_EXCEPTION_COUNT;
+
+    while(low < high) {
+        size_t mid = low + (high - low) / 2;
+        size_t mid_index = mjb_unicode_collation_combo_exception_indices[mid];
+
+        if(entry_index < mid_index) {
+            high = mid;
+        } else if(entry_index > mid_index) {
+            low = mid + 1;
+        } else {
+            return mjb_unicode_collation_combo_exception_values[mid];
+        }
+    }
+
+    return 0;
+}
+
+bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, uint32_t *first_weight,
+    const uint32_t **expansion) {
     size_t entry_index = 0;
 
     if(!mjb_unicode_page_bitset_lookup(mjb_unicode_collation_page_index,
-           MJB_COUNT_OF(mjb_unicode_collation_page_index), mjb_unicode_collation_page_starts,
-           mjb_unicode_collation_page_bits, mjb_unicode_collation_page_ranks, codepoint,
+           MJB_COUNT_OF(mjb_unicode_collation_page_index), mjb_unicode_collation_pages, codepoint,
            &entry_index)) {
         return false;
     }
 
-    *weights = &mjb_unicode_collation_first_weights[entry_index];
+    const uint8_t *entry = &mjb_unicode_collation_entries[entry_index * 3];
+    uint8_t combo_code = (uint8_t)(entry[2] & ~MJB_UNICODE_COLLATION_COMBO_EXPANSION_FLAG);
+    uint32_t combo = combo_code != MJB_UNICODE_COLLATION_COMBO_ESCAPE ?
+        mjb_unicode_collation_combo_values[combo_code] :
+        mjb_unicode_collation_combo_exception(entry_index);
+    uint32_t weight = (uint32_t)entry[0] | ((uint32_t)entry[1] << 8) | (combo << 16);
+
+    if((entry[2] & MJB_UNICODE_COLLATION_COMBO_EXPANSION_FLAG) != 0) {
+        uint64_t bits = mjb_unicode_collation_expansion_bits[entry_index >> 6];
+        uint64_t mask = (uint64_t)1 << (entry_index & 0x3F);
+        size_t rank = mjb_unicode_collation_expansion_ranks[entry_index >> 6] +
+            mjb_unicode_popcount64(bits & (mask - 1));
+
+        *expansion = &mjb_unicode_collation_expansion_weights
+                         [mjb_unicode_collation_expansion_offsets[rank]];
+    } else {
+        // Bit 31 marks a single-element entry, matching the expansion tail terminator.
+        weight |= UINT32_C(0x80000000);
+        *expansion = NULL;
+    }
+
+    *first_weight = weight;
 
     return true;
 }
 
-const uint32_t *mjb_unicode_collation_expansion_lookup(const uint32_t *entry) {
-    size_t entry_index = (size_t)(entry - mjb_unicode_collation_first_weights);
-    size_t group = entry_index >> MJB_UNICODE_COLLATION_EXPANSION_GROUP_SHIFT;
-    uint16_t group_start = mjb_unicode_collation_expansion_group_starts[group];
-    uint8_t local_offset = mjb_unicode_collation_expansion_offsets[entry_index];
+// Rejects codepoints that never start a contraction with one bitset test.
+static bool mjb_unicode_collation_contraction_may_start(mjb_codepoint first_codepoint) {
+    if(first_codepoint < MJB_UNICODE_COLLATION_CONTRACTION_LOW_LIMIT) {
+        return (mjb_unicode_collation_contraction_start_low_bits[first_codepoint >> 6] &
+                   ((uint64_t)1 << (first_codepoint & 0x3F))) != 0;
+    }
 
-    return &mjb_unicode_collation_expansion_weights[group_start + local_offset];
+    size_t page = first_codepoint >> 8;
+
+    if((page >> 6) >= MJB_COUNT_OF(mjb_unicode_collation_contraction_start_page_bits)) {
+        return false;
+    }
+
+    return (mjb_unicode_collation_contraction_start_page_bits[page >> 6] &
+               ((uint64_t)1 << (page & 0x3F))) != 0;
 }
 
 bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
     const mjb_unicode_collation_contraction_entry **entries, size_t *count) {
     size_t low = 0;
     size_t high = MJB_COUNT_OF(mjb_unicode_collation_contraction_first_codepoints);
+
+    if(!mjb_unicode_collation_contraction_may_start(first_codepoint)) {
+        *entries = NULL;
+        *count = 0;
+
+        return false;
+    }
 
     while(low < high) {
         size_t mid = low + (high - low) / 2;
@@ -991,14 +1118,12 @@ mjb_unicode_collation_contraction_weights(const mjb_unicode_collation_contractio
 #endif // MJB_FEATURE_COLLATION
 
 static bool mjb_unicode_decomposition_table_lookup(const uint8_t *page_index, size_t page_count,
-    const uint16_t *page_starts, const uint64_t *page_bits, const uint32_t *page_ranks,
-    const uint16_t *mappings, const uint16_t *exception_indices, const uint8_t *exception_lengths,
-    size_t exception_count, mjb_codepoint codepoint, const mjb_codepoint **values,
-    uint8_t *length) {
+    const mjb_unicode_bitset_page *pages, const uint16_t *mappings,
+    const uint16_t *exception_indices, const uint8_t *exception_lengths, size_t exception_count,
+    mjb_codepoint codepoint, mjb_codepoint *values, uint8_t *length) {
     size_t entry_index = 0;
 
-    if(!mjb_unicode_page_bitset_lookup(page_index, page_count, page_starts, page_bits, page_ranks,
-           codepoint, &entry_index)) {
+    if(!mjb_unicode_page_bitset_lookup(page_index, page_count, pages, codepoint, &entry_index)) {
         return false;
     }
 
@@ -1016,22 +1141,20 @@ static bool mjb_unicode_decomposition_table_lookup(const uint8_t *page_index, si
         }
     }
 
-    *values = &mjb_unicode_decomposition_data[mapping & 0x1FFF];
+    mjb_unicode_sequence_decode(&mjb_unicode_sequence_units[mapping & 0x1FFF], mapping_length,
+        values);
     *length = mapping_length;
 
     return true;
 }
 
 bool mjb_unicode_decomposition_lookup(mjb_codepoint codepoint, bool compatibility,
-    const mjb_codepoint **values, uint8_t *length) {
+    mjb_codepoint *values, uint8_t *length) {
     if(compatibility) {
         return mjb_unicode_decomposition_table_lookup(
             mjb_unicode_compatibility_decomposition_page_index,
             MJB_COUNT_OF(mjb_unicode_compatibility_decomposition_page_index),
-            mjb_unicode_compatibility_decomposition_page_starts,
-            mjb_unicode_compatibility_decomposition_page_bits,
-            mjb_unicode_compatibility_decomposition_page_ranks,
-            mjb_unicode_compatibility_decompositions,
+            mjb_unicode_compatibility_decomposition_pages, mjb_unicode_compatibility_decompositions,
             mjb_unicode_compatibility_decomposition_exception_indices,
             mjb_unicode_compatibility_decomposition_exception_lengths,
             MJB_UNICODE_COMPATIBILITY_DECOMPOSITION_EXCEPTION_COUNT, codepoint, values, length);
@@ -1039,9 +1162,7 @@ bool mjb_unicode_decomposition_lookup(mjb_codepoint codepoint, bool compatibilit
 
     return mjb_unicode_decomposition_table_lookup(mjb_unicode_canonical_decomposition_page_index,
         MJB_COUNT_OF(mjb_unicode_canonical_decomposition_page_index),
-        mjb_unicode_canonical_decomposition_page_starts,
-        mjb_unicode_canonical_decomposition_page_bits,
-        mjb_unicode_canonical_decomposition_page_ranks, mjb_unicode_canonical_decompositions,
+        mjb_unicode_canonical_decomposition_pages, mjb_unicode_canonical_decompositions,
         mjb_unicode_canonical_decomposition_exception_indices,
         mjb_unicode_canonical_decomposition_exception_lengths,
         MJB_UNICODE_CANONICAL_DECOMPOSITION_EXCEPTION_COUNT, codepoint, values, length);

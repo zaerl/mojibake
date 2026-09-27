@@ -6,10 +6,11 @@
 
 import { iLog } from '../../log';
 import {
-  codepointPageBitsets, codepointPages, compareBytes, formatBytes, formatCodepoints,
-  formatCompactIntegers, formatHalfwords, formatLongWords, formatWords, indexedPages,
-  packCodepointSequences,
+  codepointPageBitsets, codepointPages, compareBytes, formatBitsetPages, formatBytes,
+  formatCodepoints, formatCompactIntegers, formatHalfwords, formatLongWords, formatWords,
+  indexedPages, packCodepointSequences,
 } from '../../utils';
+import { SuffixAutomaton, suffixPrefixOverlap } from '../../sequence-pool';
 import { CollationContractionRow, CollationEntryRow, CollationImplicitRangeRow } from '../types';
 
 export function generateCollationImplicitRanges(rows: CollationImplicitRangeRow[]) {
@@ -39,120 +40,12 @@ ${values.join(',\n')}
 `;
 }
 
-// Finds how many bytes at the end of data overlap the start of bytes.
-function byteSuffixPrefixOverlap(data: number[], bytes: number[]) {
-  const max = Math.min(data.length, bytes.length - 1);
-
-  outer:
-  for(let length = max; length > 0; --length) {
-    const start = data.length - length;
-
-    for(let i = 0; i < length; ++i) {
-      if(data[start + i] !== bytes[i]) {
-        continue outer;
-      }
-    }
-
-    return length;
-  }
-
-  return 0;
-}
-
-type ByteSuffixState = {
-  length: number;
-  link: number;
-  transitions: Map<number, number>;
-  earliestEnd: number;
-};
-
-// Incrementally indexes every substring in a byte stream. Keeping the earliest end position on
-// each state makes find() match Buffer.indexOf() semantics without rescanning the packed data.
-class ByteSuffixAutomaton {
-  private states: ByteSuffixState[] = [{
-    length: 0,
-    link: -1,
-    transitions: new Map(),
-    earliestEnd: -1,
-  }];
-  private last = 0;
-  private dataLength = 0;
-
-  find(bytes: number[]) {
-    let state = 0;
-
-    for(const byte of bytes) {
-      const next = this.states[state].transitions.get(byte);
-
-      if(next === undefined) {
-        return -1;
-      }
-
-      state = next;
-    }
-
-    return this.states[state].earliestEnd - bytes.length + 1;
-  }
-
-  append(bytes: number[]) {
-    for(const byte of bytes) {
-      this.appendByte(byte);
-    }
-  }
-
-  private appendByte(byte: number) {
-    const end = this.dataLength++;
-    const current = this.states.length;
-    this.states.push({
-      length: this.states[this.last].length + 1,
-      link: 0,
-      transitions: new Map(),
-      earliestEnd: end,
-    });
-
-    let state = this.last;
-
-    while(state >= 0 && !this.states[state].transitions.has(byte)) {
-      this.states[state].transitions.set(byte, current);
-      state = this.states[state].link;
-    }
-
-    if(state < 0) {
-      this.states[current].link = 0;
-    } else {
-      const next = this.states[state].transitions.get(byte)!;
-
-      if(this.states[state].length + 1 === this.states[next].length) {
-        this.states[current].link = next;
-      } else {
-        const clone = this.states.length;
-        this.states.push({
-          length: this.states[state].length + 1,
-          link: this.states[next].link,
-          transitions: new Map(this.states[next].transitions),
-          earliestEnd: this.states[next].earliestEnd,
-        });
-
-        while(state >= 0 && this.states[state].transitions.get(byte) === next) {
-          this.states[state].transitions.set(byte, clone);
-          state = this.states[state].link;
-        }
-
-        this.states[next].link = clone;
-        this.states[current].link = clone;
-      }
-    }
-
-    this.last = current;
-  }
-}
-
 // Packs byte sequences by reusing duplicate, substring, and suffix-prefix overlaps.
 export function packByteSequences(sequences: number[][]) {
   const unique = new Map<string, number[]>();
   const offsets = new Array<number>(sequences.length);
   const data: number[] = [];
-  const substringIndex = new ByteSuffixAutomaton();
+  const substringIndex = new SuffixAutomaton();
 
   for(const bytes of sequences) {
     const buffer = Buffer.from(bytes);
@@ -172,7 +65,7 @@ export function packByteSequences(sequences: number[][]) {
     let offset = substringIndex.find(bytes);
 
     if(offset < 0) {
-      const overlap = byteSuffixPrefixOverlap(data, bytes);
+      const overlap = suffixPrefixOverlap(data, bytes);
       offset = data.length - overlap;
       const appended = bytes.slice(overlap);
       data.push(...appended);
@@ -212,7 +105,7 @@ function codepointsFromBlob(blob: Buffer) {
   return values;
 }
 
-// Emits indexed first collation weights with group-local shared expansion tails.
+// Emits three-byte first collation weights plus a sparse, bitset-ranked expansion index.
 export function generateCollationEntries(rows: CollationEntryRow[]) {
   iLog('Collation entries');
 
@@ -244,72 +137,128 @@ export function generateCollationEntries(rows: CollationEntryRow[]) {
     return elements;
   });
 
-  const expansionGroupShift = 7;
-  const expansionGroupSize = 1 << expansionGroupShift;
-  const firstWeights = weightsByRow.map((weights) => weights[0]);
-  const expansionWeights: number[] = [];
-  const expansionGroupStarts: number[] = [];
-  const expansionOffsets = new Array<number>(rows.length).fill(0);
   const pages = indexedPages(codepointPages(rows));
   const pageBitsets = codepointPageBitsets(rows, pages.pages);
+  const primaries = weightsByRow.map((weights) => weights[0] & 0xFFFF);
+  const combos = weightsByRow.map((weights) => (weights[0] >>> 16) & 0x7FFF);
+  const comboCounts = new Map<number, number>();
 
-  for(let start = 0; start < weightsByRow.length; start += expansionGroupSize) {
-    const groupRows = weightsByRow.slice(start, start + expansionGroupSize);
-    const expansions = groupRows
-      .map((weights, index) => ({ index, weights }))
-      .filter((entry) => entry.weights.length > 1);
-    const group = packCodepointSequences(expansions.map((entry) => entry.weights.slice(1)));
-
-    if(expansionWeights.length > 0xFFFF) {
-      throw new Error(`Collation expansion group start is too large: ${expansionWeights.length}`);
-    }
-
-    expansionGroupStarts.push(expansionWeights.length);
-    expansionWeights.push(...group.data);
-
-    group.entries.forEach((packed, index) => {
-      if(packed.offset > 0xFF) {
-        throw new Error(
-          `Collation group-local expansion offset is too large: ${packed.offset}`
-        );
-      }
-
-      expansionOffsets[start + expansions[index].index] = packed.offset;
-    });
+  for(const combo of combos) {
+    comboCounts.set(combo, (comboCounts.get(combo) ?? 0) + 1);
   }
 
-  return `enum { MJB_UNICODE_COLLATION_EXPANSION_GROUP_SHIFT = ${expansionGroupShift} };
+  const comboEscape = 0x7F;
+  const comboExpansionFlag = 0x80;
+  const comboValues = [...comboCounts.entries()]
+    .sort(([a, countA], [b, countB]) => countB - countA || a - b)
+    .slice(0, comboEscape)
+    .map(([combo]) => combo);
+  const comboCodes = new Map(comboValues.map((combo, code) => [combo, code]));
+  const comboExceptionIndices: number[] = [];
+  const comboExceptionValues: number[] = [];
+  const entryBytes: number[] = [];
 
-static const uint32_t mjb_unicode_collation_first_weights[] = {
-${formatWords(firstWeights)}
+  combos.forEach((combo, index) => {
+    let code = comboCodes.get(combo);
+
+    if(code === undefined) {
+      if(index > 0xFFFF) {
+        throw new Error(`Collation combination exception index is too large: ${index}`);
+      }
+
+      comboExceptionIndices.push(index);
+      comboExceptionValues.push(combo);
+      code = comboEscape;
+    }
+
+    if(weightsByRow[index].length > 1) {
+      code |= comboExpansionFlag;
+    }
+
+    entryBytes.push(primaries[index] & 0xFF, primaries[index] >> 8, code);
+  });
+
+  const expansions = weightsByRow
+    .map((weights, index) => ({ index, weights }))
+    .filter((entry) => entry.weights.length > 1);
+  const packedExpansions = packCodepointSequences(expansions.map((entry) => entry.weights.slice(1)));
+  const expansionWordCount = Math.ceil(rows.length / 64);
+  const expansionBits = new Array<bigint>(expansionWordCount).fill(0n);
+  const expansionWordCounts = new Array<number>(expansionWordCount).fill(0);
+  const expansionOffsets: number[] = [];
+
+  expansions.forEach((entry, index) => {
+    const offset = packedExpansions.entries[index].offset;
+
+    if(offset > 0xFFFF) {
+      throw new Error(`Collation expansion offset is too large: ${offset}`);
+    }
+
+    expansionBits[entry.index >> 6] |= 1n << BigInt(entry.index & 0x3F);
+    ++expansionWordCounts[entry.index >> 6];
+    expansionOffsets.push(offset);
+  });
+
+  const expansionRanks: number[] = [];
+  let expansionRank = 0;
+
+  for(let word = 0; word < expansionWordCount; ++word) {
+    if(expansionRank > 0xFFFF) {
+      throw new Error(`Collation expansion rank is too large: ${expansionRank}`);
+    }
+
+    expansionRanks.push(expansionRank);
+    expansionRank += expansionWordCounts[word];
+  }
+
+  // Exception tables are never empty in practice; a placeholder keeps the arrays well-formed.
+  const emittedExceptionIndices = comboExceptionIndices.length === 0 ? [0] : comboExceptionIndices;
+  const emittedExceptionValues = comboExceptionValues.length === 0 ? [0] : comboExceptionValues;
+
+  return `enum {
+    MJB_UNICODE_COLLATION_COMBO_ESCAPE = ${comboEscape},
+    MJB_UNICODE_COLLATION_COMBO_EXPANSION_FLAG = ${comboExpansionFlag},
+    MJB_UNICODE_COLLATION_COMBO_EXCEPTION_COUNT = ${comboExceptionIndices.length}
+};
+
+static const uint8_t mjb_unicode_collation_entries[] = {
+${formatCompactIntegers(entryBytes, 36)}
+};
+
+static const uint16_t mjb_unicode_collation_combo_values[] = {
+${formatHalfwords(comboValues, 12)}
+};
+
+static const uint16_t mjb_unicode_collation_combo_exception_indices[] = {
+${formatCompactIntegers(emittedExceptionIndices, 16)}
+};
+
+static const uint16_t mjb_unicode_collation_combo_exception_values[] = {
+${formatHalfwords(emittedExceptionValues, 12)}
 };
 
 static const uint8_t mjb_unicode_collation_page_index[] = {
 ${formatBytes(pages.index)}
 };
 
-static const uint16_t mjb_unicode_collation_page_starts[] = {
-${formatHalfwords(pages.pages.starts)}
+static const mjb_unicode_bitset_page mjb_unicode_collation_pages[] = {
+${formatBitsetPages(pages.pages, pageBitsets)}
 };
 
-static const uint64_t mjb_unicode_collation_page_bits[] = {
-${formatLongWords(pageBitsets.data, 16)}
+static const uint64_t mjb_unicode_collation_expansion_bits[] = {
+${formatLongWords(expansionBits, 16)}
 };
 
-static const uint32_t mjb_unicode_collation_page_ranks[] = {
-${formatWords(pageBitsets.ranks)}
+static const uint16_t mjb_unicode_collation_expansion_ranks[] = {
+${formatCompactIntegers(expansionRanks, 16)}
+};
+
+static const uint16_t mjb_unicode_collation_expansion_offsets[] = {
+${formatCompactIntegers(expansionOffsets, 16)}
 };
 
 static const uint32_t mjb_unicode_collation_expansion_weights[] = {
-${formatWords(expansionWeights)}
-};
-
-static const uint16_t mjb_unicode_collation_expansion_group_starts[] = {
-${formatHalfwords(expansionGroupStarts)}
-};
-
-static const uint8_t mjb_unicode_collation_expansion_offsets[] = {
-${formatCompactIntegers(expansionOffsets, 24)}
+${formatWords(packedExpansions.data)}
 };
 `;
 }
@@ -355,6 +304,21 @@ export function generateCollationContractions(rows: CollationContractionRow[]) {
     start = end;
   }
 
+  // Quick rejection bitsets: one bit per codepoint below U+1000 and one bit per 256-codepoint
+  // page above it, so text without contraction starters skips the first-codepoint search.
+  const lowLimit = 0x1000;
+  const startLowBits = new Array<bigint>(lowLimit / 64).fill(0n);
+  const startPageBits = new Array<bigint>(Math.ceil((0x110000 >> 8) / 64)).fill(0n);
+
+  for(const firstCodepoint of firstCodepoints) {
+    if(firstCodepoint < lowLimit) {
+      startLowBits[firstCodepoint >> 6] |= 1n << BigInt(firstCodepoint & 0x3F);
+    } else {
+      const page = firstCodepoint >> 8;
+      startPageBits[page >> 6] |= 1n << BigInt(page & 0x3F);
+    }
+  }
+
   rows.forEach((row, index) => {
     const sequence = sequences[index];
     const packedSequence = packedSequences.entries[index];
@@ -396,7 +360,17 @@ export function generateCollationContractions(rows: CollationContractionRow[]) {
       (weightLength << 22));
   });
 
-  return `static const mjb_codepoint mjb_unicode_collation_contraction_first_codepoints[] = {
+  return `enum { MJB_UNICODE_COLLATION_CONTRACTION_LOW_LIMIT = ${lowLimit} };
+
+static const uint64_t mjb_unicode_collation_contraction_start_low_bits[] = {
+${formatLongWords(startLowBits, 16)}
+};
+
+static const uint64_t mjb_unicode_collation_contraction_start_page_bits[] = {
+${formatLongWords(startPageBits, 16)}
+};
+
+static const mjb_codepoint mjb_unicode_collation_contraction_first_codepoints[] = {
 ${formatCodepoints(firstCodepoints)}
 };
 

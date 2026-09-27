@@ -426,10 +426,10 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
                 ++characters_decomposed;
             }
         } else if(should_decompose) {
-            const mjb_codepoint *decompositions = NULL;
+            mjb_codepoint decompositions[MJB_UNICODE_SEQUENCE_MAX];
             uint8_t decomposition_count = 0;
 
-            if(mjb_unicode_decomposition_lookup(codepoint, is_compatibility, &decompositions,
+            if(mjb_unicode_decomposition_lookup(codepoint, is_compatibility, decompositions,
                    &decomposition_count)) {
                 for(uint8_t decomposition_index = 0; decomposition_index < decomposition_count;
                     ++decomposition_index) {

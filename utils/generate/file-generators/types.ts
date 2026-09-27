@@ -13,15 +13,9 @@ export type BlockRow = {
   name: string;
 };
 
-export type PrefixRow = {
-  id: number;
-  name: string;
-};
-
 export type NameRow = {
   codepoint: number;
   name: string | null;
-  prefix: number | null;
 };
 
 export type EmojiRow = {

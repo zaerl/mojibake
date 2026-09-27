@@ -349,6 +349,24 @@ export function codepointPageBitsets(rows: { codepoint: number }[],
   return { data, ranks };
 }
 
+// Formats mjb_unicode_bitset_page initializers: four presence words, packed ranks, the first
+// entry index of the page, and an optional table-specific extra halfword.
+export function formatBitsetPages(pages: { starts: number[]; counts: number[] },
+  bitsets: { data: bigint[]; ranks: number[] }, extras: number[] = []) {
+  return pages.starts.map((start, page) => {
+    const extra = extras[page] ?? 0;
+
+    if(start > 0xFFFF || extra > 0xFFFF) {
+      throw new Error(`Bitset page values are too large to pack: start=${start}, extra=${extra}`);
+    }
+
+    const words = bitsets.data.slice(page * 4, page * 4 + 4).map((word) => formatHex64(word, 16));
+
+    return `    { { ${words.join(', ')} }, ${formatHex(bitsets.ranks[page], 8)}, ` +
+      `${formatHex(start, 4)}, ${formatHex(extra, 4)} },`;
+  }).join('\n');
+}
+
 // Packs boolean values into little-endian bitset bytes.
 export function bitset(values: boolean[]) {
   const data = new Array(Math.ceil(values.length / 8)).fill(0);

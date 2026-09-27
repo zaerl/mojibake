@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,541,203** C assertions and **149** JavaScript assertions, including all
+Mojibake runs a total of **4,623,799** C assertions and **149** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -27,6 +27,7 @@ the official tests included in the standard:
 | `mjb_normalize`                            | 424420      |
 | `mjb_collation_compare`                    | 424127      |
 | `mjb_bidi_reorder_line`                    | 91723       |
+| `mjb_codepoint_info`                       | 82678       |
 | `mjb_nfkc_casefold_into`                   | 74756       |
 | `mjb_nfkc_casefold`                        | 32047       |
 | `mjb_map_case_into`                        | 24758       |
@@ -47,7 +48,6 @@ the official tests included in the standard:
 | `mjb_codepoint_count`                      | 128         |
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_resolved_script_set`                  | 97          |
-| `mjb_codepoint_info`                       | 82          |
 | `mjb_locale_parse`                         | 75          |
 | `mjb_terminal_width`                       | 69          |
 | `mjb_collation_key`                        | 63          |
@@ -129,7 +129,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4541203** |
+| **Total**                                  | **4623799** |
 
 ## JavaScript
 

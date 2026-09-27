@@ -6,8 +6,8 @@
 
 import { iLog } from '../../log';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
-  formatHalfwords, formatLongWords, formatWords, indexedPages, packCodepointSequences
+  codepointPageBitsets, codepointPages, formatBitsetPages, formatBytes, formatCodepoints,
+  formatCompactIntegers, formatLongWords, formatWords, indexedPages, packCodepointSequences
 } from '../../utils';
 import { CaseFoldRow, CaseFoldSimpleRow, SimpleCaseRow, SpecialCaseRow } from '../types';
 
@@ -75,16 +75,8 @@ export function generateSimpleCaseMappings(rows: SimpleCaseRow[]) {
 ${formatBytes(pages.index)}
 };
 
-static const uint16_t mjb_unicode_simple_case_page_starts[] = {
-${formatHalfwords(pages.pages.starts)}
-};
-
-static const uint64_t mjb_unicode_simple_case_page_bits[] = {
-${formatLongWords(pageBitsets.data, 16)}
-};
-
-static const uint32_t mjb_unicode_simple_case_page_ranks[] = {
-${formatWords(pageBitsets.ranks)}
+static const mjb_unicode_bitset_page mjb_unicode_simple_case_pages[] = {
+${formatBitsetPages(pages.pages, pageBitsets)}
 };
 
 static const uint64_t mjb_unicode_simple_case_mapping_data[] = {

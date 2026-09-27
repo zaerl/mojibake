@@ -28,8 +28,8 @@ COPY unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt unicod
 COPY unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt
 COPY unicode-data/emoji/emoji-test.txt unicode-data/emoji/emoji-test.txt
 COPY unicode-data/idna/IdnaTestV2.txt unicode-data/idna/IdnaTestV2.txt
-COPY unicode-data/security/intentional.txt unicode-data/security/intentional.txt
 COPY unicode-data/security/confusables.txt unicode-data/security/confusables.txt
+COPY unicode-data/security/intentional.txt unicode-data/security/intentional.txt
 COPY unicode-data/UCD/auxiliary/GraphemeBreakTest.txt unicode-data/UCD/auxiliary/GraphemeBreakTest.txt
 COPY unicode-data/UCD/auxiliary/LineBreakTest.txt unicode-data/UCD/auxiliary/LineBreakTest.txt
 COPY unicode-data/UCD/auxiliary/SentenceBreakTest.txt unicode-data/UCD/auxiliary/SentenceBreakTest.txt
@@ -38,10 +38,12 @@ COPY unicode-data/UCD/BidiCharacterTest.txt unicode-data/UCD/BidiCharacterTest.t
 COPY unicode-data/UCD/BidiTest.txt unicode-data/UCD/BidiTest.txt
 COPY unicode-data/UCD/CaseFolding.txt unicode-data/UCD/CaseFolding.txt
 COPY unicode-data/UCD/DerivedNormalizationProps.txt unicode-data/UCD/DerivedNormalizationProps.txt
+COPY unicode-data/UCD/NameAliases.txt unicode-data/UCD/NameAliases.txt
 COPY unicode-data/UCD/NormalizationTest.txt unicode-data/UCD/NormalizationTest.txt
 COPY unicode-data/UCD/PropertyValueAliases.txt unicode-data/UCD/PropertyValueAliases.txt
 COPY unicode-data/UCD/ScriptExtensions.txt unicode-data/UCD/ScriptExtensions.txt
 COPY unicode-data/UCD/SpecialCasing.txt unicode-data/UCD/SpecialCasing.txt
+COPY unicode-data/UCD/UnicodeData.txt unicode-data/UCD/UnicodeData.txt
 
 # Build the project
 RUN cmake -S . -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
