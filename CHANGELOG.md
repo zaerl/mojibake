@@ -12,12 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `NameAliases.txt` control and correction aliases) against `mjb_codepoint_info`
 
 ### Changed
-- Reorganized the generated Unicode tables in `src/unicode-data.h` to be smaller and faster:
-  three-byte collation weights with a bitset-ranked expansion index, start-only IDNA ranges with
-  a page index, page-local character runs with block indexes and deduplicated pages, disjoint
-  merged property runs, and a shared 16-bit sequence pool for decompositions, IDNA mappings, and
-  confusable skeletons, and character names as page-prefixed token streams over a word lexicon
-  (the character-level prefix compressor is gone)
+- Added three-byte collation weights with a bitset-ranked expansion index
+- Start-only IDNA ranges with a page index
+- Page-local character runs with block indexes and deduplicated pages, disjoint
+  merged property runs
+- Shared 16-bit sequence pool for decompositions, IDNA mappings, and confusable skeletons
+- Character names as page-prefixed token streams over a word lexicon
 - Sequence lookups in `src/unicode-tables.h` now decode into caller buffers of
   `MJB_UNICODE_SEQUENCE_MAX` codepoints
 
