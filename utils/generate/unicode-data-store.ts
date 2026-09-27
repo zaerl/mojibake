@@ -14,11 +14,10 @@ import { ConfusableEntry } from './parse-ucd/confusables';
 import { EmojiSequence } from './parse-ucd/emoji-sequences';
 import { PropertyRange } from './parse-ucd/properties';
 import { NewCases } from './parse-ucd/special-casing';
-import { Prefix } from './prefix-compressor';
 import {
   BlockRow, CaseFoldRow, CaseFoldSimpleRow, CollationContractionRow, CollationEntryRow,
   CollationImplicitRangeRow, CompositionRow, ConfusableRow, DecompositionRow, EmojiRow,
-  EmojiSequenceRow, NameRow, NCharacterRow, NumericRow, PrefixRow, PropertyRangeRow, SimpleCaseRow,
+  EmojiSequenceRow, NameRow, NCharacterRow, NumericRow, PropertyRangeRow, SimpleCaseRow,
   SpecialCaseRow, IdnaMappingRow,
   ScriptExtensionRow,
 } from './file-generators/types';
@@ -26,7 +25,6 @@ import { Block, CalculatedDecomposition, CaseType, Composition } from './types';
 
 export type UnicodeTableData = {
   blocks: BlockRow[];
-  prefixes: PrefixRow[];
   names: NameRow[];
   emoji: EmojiRow[];
   properties: PropertyRangeRow[];
@@ -51,7 +49,6 @@ export type UnicodeTableData = {
 function emptyUnicodeTableData(): UnicodeTableData {
   return {
     blocks: [],
-    prefixes: [],
     names: [],
     emoji: [],
     properties: [],
@@ -98,7 +95,6 @@ export function resetUnicodeTableData() {
 export function getUnicodeTableData(): UnicodeTableData {
   return {
     blocks: [...unicodeTableData.blocks].sort((a, b) => a.start - b.start),
-    prefixes: [...unicodeTableData.prefixes].sort((a, b) => a.id - b.id),
     names: [...unicodeTableData.names].sort(byCodepoint),
     emoji: [...unicodeTableData.emoji].sort(byCodepoint),
     properties: sortPropertyRanges(unicodeTableData.properties),
@@ -171,14 +167,7 @@ export function addBlock(index: number, block: Block) {
 }
 
 // Add core character rows and derived name, numeric, and simple-case indexes.
-export function addCharacters(characters: Character[], prefixes: Prefix[]) {
-  for(let i = 1; i < prefixes.length; ++i) {
-    unicodeTableData.prefixes.push({
-      id: prefixes[i].id,
-      name: prefixes[i].prefix,
-    });
-  }
-
+export function addCharacters(characters: Character[]) {
   for(const char of characters) {
     unicodeTableData.nCharacters.push({
       codepoint: char.codepoint,
@@ -194,7 +183,6 @@ export function addCharacters(characters: Character[], prefixes: Prefix[]) {
       unicodeTableData.names.push({
         codepoint: char.codepoint,
         name: char.name,
-        prefix: char.prefix,
       });
     }
 

@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "test.h"
@@ -26,6 +27,149 @@ static const char *expected_character_name(mjb_codepoint codepoint, const char *
     return buffer;
 #endif
 }
+
+#if MJB_FEATURE_CHARACTER_NAMES
+typedef struct name_alias {
+    mjb_codepoint codepoint;
+    char name[128];
+} name_alias;
+
+// Loads the control and correction aliases of NameAliases.txt, which the generator applies over
+// UnicodeData.txt names. The last alias of a codepoint wins, as in the generator.
+static size_t read_name_aliases(const char *filename, name_alias *aliases, size_t capacity) {
+    FILE *file = fopen(filename, "r");
+
+    if(file == NULL) {
+        ATT_ASSERT("Not opened", "Opened file", "NameAliases.txt");
+        return 0;
+    }
+
+    char line[512];
+    size_t count = 0;
+
+    while(fgets(line, sizeof(line), file) != NULL) {
+        char *fields[3] = { NULL };
+        unsigned int field_count = 0;
+        char *cursor = line;
+
+        if(line[0] == '#') {
+            continue;
+        }
+
+        line[strcspn(line, "\r\n")] = '\0';
+
+        while(field_count < 3 && cursor != NULL) {
+            fields[field_count++] = cursor;
+            cursor = strchr(cursor, ';');
+
+            if(cursor != NULL) {
+                *cursor++ = '\0';
+            }
+        }
+
+        if(field_count < 3 ||
+            (strcmp(fields[2], "control") != 0 && strcmp(fields[2], "correction") != 0)) {
+            continue;
+        }
+
+        mjb_codepoint codepoint = (mjb_codepoint)strtoul(fields[0], NULL, 16);
+        size_t index = count;
+
+        for(size_t i = 0; i < count; ++i) {
+            if(aliases[i].codepoint == codepoint) {
+                index = i;
+                break;
+            }
+        }
+
+        if(index == count) {
+            if(count == capacity) {
+                ATT_ASSERT(count < capacity, true, "NameAliases.txt fits the alias table");
+                break;
+            }
+
+            ++count;
+        }
+
+        aliases[index].codepoint = codepoint;
+        snprintf(aliases[index].name, sizeof(aliases[index].name), "%s", fields[1]);
+    }
+
+    fclose(file);
+
+    return count;
+}
+
+// Checks every explicitly named codepoint of UnicodeData.txt against mjb_codepoint_info. Range
+// markers such as <CJK Ideograph, First> are skipped; aliases replace names as in the generator,
+// and remaining <control> entries expect their Unicode 1.0 name when they have one.
+static void run_unicode_data_names_file(const char *filename, const name_alias *aliases,
+    size_t alias_count) {
+    FILE *file = fopen(filename, "r");
+
+    if(file == NULL) {
+        ATT_ASSERT("Not opened", "Opened file", "UnicodeData.txt");
+        return;
+    }
+
+    char line[1024];
+    unsigned int current_line = 0;
+    unsigned int tested = 0;
+
+    while(fgets(line, sizeof(line), file) != NULL) {
+        ++current_line;
+
+        char *fields[15] = { NULL };
+        unsigned int field_count = 0;
+        char *cursor = line;
+
+        while(field_count < 15 && cursor != NULL) {
+            fields[field_count++] = cursor;
+            cursor = strchr(cursor, ';');
+
+            if(cursor != NULL) {
+                *cursor++ = '\0';
+            }
+        }
+
+        if(field_count < 11) {
+            continue;
+        }
+
+        mjb_codepoint codepoint = (mjb_codepoint)strtoul(fields[0], NULL, 16);
+        const char *expected = fields[1];
+
+        if(expected[0] == '<' && strcmp(expected, "<control>") != 0) {
+            continue;
+        }
+
+        for(size_t i = 0; i < alias_count; ++i) {
+            if(aliases[i].codepoint == codepoint) {
+                expected = aliases[i].name;
+                break;
+            }
+        }
+
+        if(expected[0] == '<' && fields[10][0] != '\0') {
+            expected = fields[10];
+        }
+
+        char test_name[128];
+        snprintf(test_name, sizeof(test_name), "UnicodeData.txt line %u", current_line);
+
+        mjb_character character;
+
+        ATT_ASSERT_STATUS(mjb_codepoint_info(codepoint, &character), MJB_STATUS_OK, test_name);
+        ATT_ASSERT((const char *)character.name, expected, test_name);
+
+        ++tested;
+    }
+
+    fclose(file);
+
+    ATT_ASSERT(tested > 0, true, "UnicodeData.txt has character names");
+}
+#endif
 
 #define ATT_ASSERT_CHARACTER_NAME(CODEPOINT, EXPECTED, NAME) \
     ATT_ASSERT((const char *)character.name, \
@@ -69,6 +213,15 @@ ATT_TEST(codepoint) {
     ATT_ASSERT_STATUS(mjb_codepoint_info(last_syllable, &character), MJB_STATUS_OK,
         "Last hangul syllable");
     ATT_ASSERT_CHARACTER_NAME(last_syllable, "HANGUL SYLLABLE HIH", "Last hangul syllable");
+
+#if MJB_FEATURE_CHARACTER_NAMES
+    static name_alias aliases[512];
+    size_t alias_count = read_name_aliases("./unicode-data/UCD/NameAliases.txt", aliases,
+        sizeof(aliases) / sizeof(aliases[0]));
+
+    ATT_ASSERT(alias_count > 0, true, "NameAliases.txt has control or correction aliases");
+    run_unicode_data_names_file("./unicode-data/UCD/UnicodeData.txt", aliases, alias_count);
+#endif
 
     mjb_block_info block;
 

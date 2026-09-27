@@ -282,13 +282,11 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
             continue;
         }
 
-        const mjb_codepoint *skeleton = NULL;
+        mjb_codepoint skeleton[MJB_UNICODE_SEQUENCE_MAX];
         uint8_t skel_count = 0;
-        mjb_codepoint single_skeleton[1];
 
-        if(!mjb_unicode_confusable_lookup(cp, &skeleton, &skel_count)) {
-            single_skeleton[0] = cp;
-            skeleton = single_skeleton;
+        if(!mjb_unicode_confusable_lookup(cp, skeleton, &skel_count)) {
+            skeleton[0] = cp;
             skel_count = 1;
         }
 

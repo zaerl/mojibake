@@ -15,6 +15,18 @@
 
 #include "mojibake.h"
 
+// One populated 256-codepoint page of a bitset-indexed table: four presence words, the packed
+// count of entries before each word, the first entry index, and a table-specific extra value.
+typedef struct mjb_unicode_bitset_page {
+    uint64_t bits[4];
+    uint32_t ranks;
+    uint16_t start;
+    uint16_t extra;
+} mjb_unicode_bitset_page;
+
+// Longest codepoint sequence any pooled-sequence lookup writes into a caller buffer.
+#define MJB_UNICODE_SEQUENCE_MAX 18
+
 typedef struct mjb_unicode_case_mapping {
     mjb_category category;
     mjb_codepoint uppercase;
@@ -32,8 +44,13 @@ typedef enum mjb_unicode_idna_status {
     MJB_UNICODE_IDNA_VALID,
     MJB_UNICODE_IDNA_IGNORED,
     MJB_UNICODE_IDNA_MAPPED,
-    MJB_UNICODE_IDNA_DEVIATION
+    MJB_UNICODE_IDNA_DEVIATION,
+    MJB_UNICODE_IDNA_NONE // Table placeholder for codepoints without a row; never returned
 } mjb_unicode_idna_status;
+
+enum {
+    MJB_UNICODE_IDNA_SUPPLEMENTARY_START = 0x20000
+};
 #endif
 
 bool mjb_unicode_block_lookup(mjb_codepoint codepoint, mjb_block_info *block);
@@ -56,19 +73,19 @@ bool mjb_unicode_special_casing_lookup(mjb_codepoint codepoint, mjb_map_case_typ
 bool mjb_unicode_case_folding_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
     uint8_t *length);
 bool mjb_unicode_case_folding_simple_lookup(mjb_codepoint codepoint, mjb_codepoint *value);
+
 #if MJB_FEATURE_SECURITY
-bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, const mjb_codepoint **values,
-    uint8_t *length);
+bool mjb_unicode_confusable_lookup(mjb_codepoint codepoint, mjb_codepoint *values, uint8_t *length);
 #endif
 
 #if MJB_FEATURE_IDNA
 bool mjb_unicode_idna_lookup(mjb_codepoint codepoint, mjb_unicode_idna_status *status,
-    const mjb_codepoint **mapping, uint8_t *length);
+    mjb_codepoint *mapping, uint8_t *length);
 #endif
 
 #if MJB_FEATURE_COLLATION
-bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, const uint32_t **weights);
-const uint32_t *mjb_unicode_collation_expansion_lookup(const uint32_t *entry);
+bool mjb_unicode_collation_entry_lookup(mjb_codepoint codepoint, uint32_t *first_weight,
+    const uint32_t **expansion);
 bool mjb_unicode_collation_implicit_lookup(mjb_codepoint codepoint, uint16_t *base,
     mjb_codepoint *offset);
 bool mjb_unicode_collation_contraction_range(mjb_codepoint first_codepoint,
@@ -82,7 +99,7 @@ mjb_unicode_collation_contraction_weights(const mjb_unicode_collation_contractio
 #endif
 
 bool mjb_unicode_decomposition_lookup(mjb_codepoint codepoint, bool compatibility,
-    const mjb_codepoint **values, uint8_t *length);
+    mjb_codepoint *values, uint8_t *length);
 mjb_codepoint mjb_unicode_compose_pair(mjb_codepoint starter, mjb_codepoint combining);
 
 #endif // MJB_UNICODE_TABLES_H

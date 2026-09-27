@@ -31,7 +31,6 @@ import { readNormalizationProps } from '../parse-ucd/quick-check';
 import { readScriptExtensions } from '../parse-ucd/script-extensions';
 import { readSpecialCasingProps } from '../parse-ucd/special-casing';
 import { parsePropertyFile, ucdBool, ucdInt, ucdString } from '../parse-ucd/utils';
-import { PrefixCompressor } from '../prefix-compressor';
 import {
   BidirectionalCategories, Block, categories, Categories,
   UnicodeDataRow
@@ -124,7 +123,6 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
       ucdInt(split[14], 16), // titlecase
       null, // quick check
       false, // extended pictographic
-      null, // prefix
     );
 
     characters.push(char);
@@ -140,10 +138,7 @@ async function readUnicodeData(blocks: Block[], exclusions: number[], stripSigns
   const emojis = await generateEmojiProperties(characters);
   const emojiSequences = await generateEmojiSequences();
 
-  const prefixCompressor = new PrefixCompressor(characters);
-  const prefixes = prefixCompressor.compress();
-
-  addCharacters(characters, prefixes);
+  addCharacters(characters);
 
   addDecompositions(generateDecomposition(characters));
   addDecompositions(generateDecomposition(characters, true), true);

@@ -241,21 +241,19 @@ static bool cea_append_packed_weight(mjb_cea *cea, uint32_t packed) {
     return true;
 }
 
-static bool cea_append_packed(mjb_cea *cea, const uint32_t *entry) {
-    uint32_t packed = *entry;
-
-    if(!cea_append_packed_weight(cea, packed)) {
+static bool cea_append_packed(mjb_cea *cea, uint32_t first_weight, const uint32_t *expansion) {
+    if(!cea_append_packed_weight(cea, first_weight)) {
         return false;
     }
 
-    if((packed & UINT32_C(0x80000000)) != 0) {
+    if(expansion == NULL) {
         return true;
     }
 
-    const uint32_t *weights = mjb_unicode_collation_expansion_lookup(entry);
+    uint32_t packed;
 
     do {
-        packed = *weights++;
+        packed = *expansion++;
 
         if(!cea_append_packed_weight(cea, packed)) {
             return false;
@@ -345,10 +343,11 @@ static uint8_t ccc_of(mjb_codepoint cp) {
 
 // Look up or synthesize CEs for a single codepoint and append to cea.
 static bool cea_lookup_or_implicit(mjb_cea *cea, mjb_codepoint cp) {
-    const uint32_t *weights = NULL;
+    uint32_t first_weight = 0;
+    const uint32_t *expansion = NULL;
 
-    if(mjb_unicode_collation_entry_lookup(cp, &weights)) {
-        return cea_append_packed(cea, weights);
+    if(mjb_unicode_collation_entry_lookup(cp, &first_weight, &expansion)) {
+        return cea_append_packed(cea, first_weight, expansion);
     } else {
         return cea_append_implicit(cea, cp);
     }

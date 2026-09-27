@@ -122,10 +122,10 @@ static mjb_status mjb_idna_map(const char *buffer, size_t byte_length, mjb_encod
         }
 
         mjb_unicode_idna_status mapping_status;
-        const mjb_codepoint *mapping;
+        mjb_codepoint mapping[MJB_UNICODE_SEQUENCE_MAX];
         uint8_t mapping_length;
 
-        if(!mjb_unicode_idna_lookup(codepoint, &mapping_status, &mapping, &mapping_length)) {
+        if(!mjb_unicode_idna_lookup(codepoint, &mapping_status, mapping, &mapping_length)) {
             status = MJB_STATUS_INVALID_CODEPOINT;
             goto fail;
         }
@@ -459,10 +459,10 @@ static mjb_status mjb_idna_validate_label(const char *label_buffer, size_t byte_
 
     for(size_t i = 0; i < label->count; ++i) {
         mjb_unicode_idna_status mapping_status;
-        const mjb_codepoint *mapping;
+        mjb_codepoint mapping[MJB_UNICODE_SEQUENCE_MAX];
         uint8_t mapping_length;
 
-        if(!mjb_unicode_idna_lookup(label->values[i], &mapping_status, &mapping, &mapping_length) ||
+        if(!mjb_unicode_idna_lookup(label->values[i], &mapping_status, mapping, &mapping_length) ||
             (mapping_status != MJB_UNICODE_IDNA_VALID &&
                 mapping_status != MJB_UNICODE_IDNA_DEVIATION)) {
             info->errors |= MJB_IDNA_ERROR_DISALLOWED;

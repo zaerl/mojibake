@@ -10,11 +10,6 @@ export interface CountBuffer {
   countTotal?: number;
 }
 
-export interface PrefixCalc {
-  name: string;
-  count: number;
-}
-
 export interface Numeric {
   name: string;
   value: number;

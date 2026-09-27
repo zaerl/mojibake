@@ -5,9 +5,10 @@
  */
 
 import { iLog } from '../../log';
+import { poolSequences, SEQUENCE_MAX_CODEPOINTS, SequencePool } from '../../sequence-pool';
 import {
-  codepointPageBitsets, codepointPages, formatBytes, formatCodepoints, formatCompactIntegers,
-  formatHalfwords, formatLongWords, formatWords, indexedPages,
+  codepointPageBitsets, codepointPages, formatBitsetPages, formatBytes, formatCompactIntegers,
+  formatHalfwords, formatLongWords, indexedPages,
 } from '../../utils';
 import { CompositionRow, DecompositionRow } from '../types';
 
@@ -41,39 +42,23 @@ function collectDecompositionGroups(rows: DecompositionRow[]) {
   return groups;
 }
 
-// Emits shared decomposition data, packed decomposition entries, and composition pairs.
+// Emits the core sequence pool holding every decomposition, packed decomposition entries, and
+// composition pairs. Optional tables extend the same pool so their payload can reuse it.
 export function generateDecompositionAndCompositionTables(
   canonicalRows: DecompositionRow[],
   compatibilityRows: DecompositionRow[],
   compositionRows: CompositionRow[],
+  pool: SequencePool,
 ) {
   iLog('Decomposition and composition');
 
   const canonicalGroups = collectDecompositionGroups(canonicalRows);
   const compatibilityGroups = collectDecompositionGroups(compatibilityRows);
-  const data: number[] = [];
-  const dataOffsets = new Map<string, number>();
-
-  // Interns a decomposition sequence and returns its shared data offset.
-  const addSequence = (values: number[]) => {
-    const key = values.join(',');
-    let offset = dataOffsets.get(key);
-
-    if(offset === undefined) {
-      offset = data.length;
-      data.push(...values);
-      dataOffsets.set(key, offset);
-    }
-
-    if(offset > 0xFFFF) {
-      throw new Error(`Decomposition data offset is too large to pack: ${offset}`);
-    }
-
-    return offset;
-  };
+  const pooled = poolSequences(pool,
+    [...canonicalGroups, ...compatibilityGroups].map((group) => group.values));
 
   // Emits one packed decomposition table for canonical or compatibility mappings.
-  const emitTable = (name: string, groups: typeof canonicalGroups) => {
+  const emitTable = (name: string, groups: typeof canonicalGroups, pooledStart: number) => {
     const pages = indexedPages(codepointPages(groups));
     const pageBitsets = codepointPageBitsets(groups, pages.pages);
     const mappings: number[] = [];
@@ -91,10 +76,10 @@ export function generateDecompositionAndCompositionTables(
         );
       }
 
-      const offset = addSequence(group.values);
+      const offset = pooled[pooledStart + index].offset;
 
       if(offset > 0x1FFF) {
-        throw new Error(`${name} decomposition data offset is too large to pack: ${offset}`);
+        throw new Error(`${name} decomposition sequence offset is too large to pack: ${offset}`);
       }
 
       // Lengths 1..8 fit in the upper three bits. Longer mappings are extremely rare and use a
@@ -122,16 +107,8 @@ static const uint8_t mjb_unicode_${name}_decomposition_page_index[] = {
 ${formatBytes(pages.index)}
 };
 
-static const uint16_t mjb_unicode_${name}_decomposition_page_starts[] = {
-${formatHalfwords(pages.pages.starts)}
-};
-
-static const uint64_t mjb_unicode_${name}_decomposition_page_bits[] = {
-${formatLongWords(pageBitsets.data, 16)}
-};
-
-static const uint32_t mjb_unicode_${name}_decomposition_page_ranks[] = {
-${formatWords(pageBitsets.ranks)}
+static const mjb_unicode_bitset_page mjb_unicode_${name}_decomposition_pages[] = {
+${formatBitsetPages(pages.pages, pageBitsets)}
 };
 
 static const uint16_t mjb_unicode_${name}_decompositions[] = {
@@ -160,13 +137,22 @@ ${formatBytes(emittedExceptionLengths)}
       (BigInt(row.composite_codepoint) << 42n);
   });
 
-  const canonicalTable = emitTable('canonical', canonicalGroups);
-  const compatibilityTable = emitTable('compatibility', compatibilityGroups);
+  const canonicalTable = emitTable('canonical', canonicalGroups, 0);
+  const compatibilityTable = emitTable('compatibility', compatibilityGroups,
+    canonicalGroups.length);
+
+  if(pool.units.length === 0) {
+    throw new Error('The core sequence pool is empty');
+  }
 
   return `typedef uint64_t mjb_unicode_composition_entry;
 
-static const mjb_codepoint mjb_unicode_decomposition_data[] = {
-${formatCodepoints(data)}
+// Longest pooled sequence in codepoints; the runtime buffer size is MJB_UNICODE_SEQUENCE_MAX.
+#define MJB_UNICODE_SEQUENCE_LONGEST ${SEQUENCE_MAX_CODEPOINTS}
+
+// 16-bit sequence units shared by decomposition and, through extension pools, optional tables.
+static const uint16_t mjb_unicode_sequence_units[] = {
+${formatHalfwords(pool.units, 12)}
 };
 
 ${canonicalTable}
