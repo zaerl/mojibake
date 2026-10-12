@@ -3603,6 +3603,54 @@ printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
     related: ['mjb_set_locale', 'mjb_reset_locale', 'mjb_map_case', 'mjb_map_case_into']
   },
   {
+    comment: 'Return the ISO 639-1 code of a locale, NULL if the locale is not valid.',
+    ret: 'const char *',
+    name: 'mjb_locale_code',
+    attributes: ['MJB_CONST'],
+    args: [
+      {
+        name: 'locale',
+        type: 'mjb_locale',
+        description: 'The locale',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.Utility,
+    details: 'Return the lowercase two-letter ISO 639-1 code that names `locale`, such as `tr` ' +
+      'for `MJB_LOCALE_TR`. `MJB_LOCALE_NOT_SET` yields an empty string.',
+    returns: [
+      { value: 'const char *', description: 'The ISO 639-1 code, or NULL if `locale` is not a valid `mjb_locale` value' }
+    ],
+    example: `// Locale code: tr
+printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));`,
+    related: ['mjb_locale_parse', 'mjb_set_locale', 'mjb_get_locale']
+  },
+  {
+    comment: 'Return the ISO 15924 code of a script, NULL if the script is not valid.',
+    ret: 'const char *',
+    name: 'mjb_script_code',
+    attributes: ['MJB_CONST'],
+    args: [
+      {
+        name: 'script',
+        type: 'mjb_script',
+        description: 'The script',
+        wasm_generated: false
+      }
+    ],
+    wasm: true,
+    section: Section.TextAnalysis,
+    details: 'Return the four-letter ISO 15924 code that names `script`, such as `Latn` for ' +
+      '`MJB_SC_LATN`. `MJB_SC_NOT_SET` yields an empty string.',
+    returns: [
+      { value: 'const char *', description: 'The ISO 15924 code, or NULL if `script` is not a valid `mjb_script` value' }
+    ],
+    example: `// Script code: Latn
+printf("Script code: %s", mjb_script_code(MJB_SC_LATN));`,
+    related: ['mjb_codepoint_script', 'mjb_codepoint_script_extensions']
+  },
+  {
     comment: 'Reset the process-global locale.',
     ret: 'void',
     name: 'mjb_reset_locale',

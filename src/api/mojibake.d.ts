@@ -179,6 +179,10 @@ export type MojibakeWasmModule = {
   _mjb_set_locale: (locale: number) => number;
   // Return the current process-global locale.
   _mjb_get_locale: () => number;
+  // Return the ISO 639-1 code of a locale, NULL if the locale is not valid.
+  _mjb_locale_code: (locale: number) => Pointer;
+  // Return the ISO 15924 code of a script, NULL if the script is not valid.
+  _mjb_script_code: (script: number) => Pointer;
   // Return a UTF-8 English-language message that describes a status code.
   _mjb_status_message: (status: number) => Pointer;
   // Output the current library version (MJB_VERSION).

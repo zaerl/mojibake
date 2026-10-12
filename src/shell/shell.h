@@ -60,6 +60,9 @@ typedef enum {
 
 typedef int (*mjbsh_command_function)(int argc, char *const argv[], unsigned int flags);
 
+// Normalize command flag for NFKC_Casefold, outside the mjb_normalization range
+#define MJBSH_NFKC_CASEFOLD 0x10
+
 typedef struct mjb_command {
     const char *name;
     const char *description;
@@ -75,6 +78,7 @@ extern unsigned int cmd_verbose;
 extern mjbsh_interpret_mode cmd_interpret_mode;
 extern mjbsh_output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
+extern mjb_direction cmd_direction;
 
 bool mjbsh_print_escaped_character(const char *buffer_utf8);
 void mjbsh_print_json_result(const char *output, size_t output_size);
@@ -114,6 +118,7 @@ const char *mjbsh_bidi_name(mjb_bidi_class bidi);
 const char *mjbsh_decomposition_name(mjb_decomposition decomposition);
 // const char *mjbsh_line_breaking_class_name(mjb_line_breaking_class line_breaking_class);
 const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width);
+bool mjbsh_parse_direction(const char *input, mjb_direction *direction);
 
 // Characters
 bool mjbsh_next_codepoint(mjb_character *character, mjb_character_position type);
@@ -135,6 +140,5 @@ int mjbsh_emoji_command(int argc, char *const argv[], unsigned int flags);
 int mjbsh_filter_command(int argc, char *const argv[], unsigned int flags);
 int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags);
 int mjbsh_normalize_command(int argc, char *const argv[], unsigned int flags);
-int mjbsh_normalize_string_command(int argc, char *const argv[], unsigned int flags);
 
 #endif // MJB_SHELL_H

@@ -354,6 +354,8 @@ typedef struct mjb_locale_id {
     char extensions[128];
     char private_use[128];
     char grandfathered[32];
+    char code[3];      // ISO 639-1 code of the matched locale, empty if unsupported
+    mjb_locale locale; // Matched locale, MJB_LOCALE_NOT_SET if unsupported
 } mjb_locale_id;
 
 typedef struct mjb_result {
@@ -910,6 +912,12 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_locale(mjb_locale locale);
 
 // Return the current process-global locale.
 MJB_EXPORT MJB_PURE mjb_locale mjb_get_locale(void);
+
+// Return the ISO 639-1 code of a locale, NULL if the locale is not valid.
+MJB_EXPORT MJB_CONST const char *mjb_locale_code(mjb_locale locale);
+
+// Return the ISO 15924 code of a script, NULL if the script is not valid.
+MJB_EXPORT MJB_CONST const char *mjb_script_code(mjb_script script);
 
 // Reset the process-global locale.
 MJB_EXPORT void mjb_reset_locale(void);

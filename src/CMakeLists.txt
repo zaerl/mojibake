@@ -122,7 +122,7 @@ if(MJB_BUILD_WASM)
         -Wno-dollar-in-identifier-extension
     )
 
-    # This is auto-generated, do not edit this array.
+    # This is automatically generated. Do not edit.
     set(EXPORTED_FUNCTIONS
         "\"_mjb_codepoint_info\""
         "\"_mjb_normalize\""
@@ -203,6 +203,8 @@ if(MJB_BUILD_WASM)
         "\"_mjb_locale_parse\""
         "\"_mjb_set_locale\""
         "\"_mjb_get_locale\""
+        "\"_mjb_locale_code\""
+        "\"_mjb_script_code\""
         "\"_mjb_status_message\""
         "\"_mjb_version\""
         "\"_mjb_version_number\""

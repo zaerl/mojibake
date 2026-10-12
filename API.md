@@ -3983,6 +3983,60 @@ printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
 
 See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_reset_locale`](#mjb_reset_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
 
+## `mjb_locale_code`
+
+Return the ISO 639-1 code of a locale, NULL if the locale is not valid.
+
+```c
+const char *mjb_locale_code(
+    mjb_locale locale
+);
+```
+
+Return the lowercase two-letter ISO 639-1 code that names `locale`, such as `tr` for `MJB_LOCALE_TR`. `MJB_LOCALE_NOT_SET` yields an empty string.
+
+- `locale` - The locale
+
+**Returns**
+
+- `const char *` - The ISO 639-1 code, or NULL if `locale` is not a valid `mjb_locale` value
+
+**Example**
+
+```c
+// Locale code: tr
+printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));
+```
+
+See also: [`mjb_locale_parse`](#mjb_locale_parse), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
+
+## `mjb_script_code`
+
+Return the ISO 15924 code of a script, NULL if the script is not valid.
+
+```c
+const char *mjb_script_code(
+    mjb_script script
+);
+```
+
+Return the four-letter ISO 15924 code that names `script`, such as `Latn` for `MJB_SC_LATN`. `MJB_SC_NOT_SET` yields an empty string.
+
+- `script` - The script
+
+**Returns**
+
+- `const char *` - The ISO 15924 code, or NULL if `script` is not a valid `mjb_script` value
+
+**Example**
+
+```c
+// Script code: Latn
+printf("Script code: %s", mjb_script_code(MJB_SC_LATN));
+```
+
+See also: [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions).
+
 ## `mjb_reset_locale`
 
 Reset the process-global locale.
