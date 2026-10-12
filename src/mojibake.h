@@ -429,7 +429,7 @@ typedef struct mjb_numeric_value {
 /**
  * Emoji data
  * [see: UTS #51, Unicode 18.0.0:
- * https://www.unicode.org/reports/tr51/tr51-30.html]
+ * https://www.unicode.org/reports/tr51/tr51-31.html]
  */
 typedef struct mjb_emoji_properties {
     mjb_codepoint codepoint;

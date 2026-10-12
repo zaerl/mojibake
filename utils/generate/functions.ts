@@ -67,21 +67,21 @@ export type MojibakeFunction = {
 const unicodeVersion = '18.0.0';
 
 const uaxRevisions: Record<number, number> = {
-  9: 51,
-  11: 45,
-  14: 56,
-  15: 57,
-  24: 40,
-  29: 48,
-  31: 44,
-  44: 36
+  9: 52,
+  11: 46,
+  14: 57,
+  15: 58,
+  24: 41,
+  29: 49,
+  31: 45,
+  44: 38
 };
 
 const utsRevisions: Record<number, number> = {
-  10: 54,
-  39: 33,
-  46: 35,
-  51: 30
+  10: 55,
+  39: 34,
+  46: 36,
+  51: 31
 };
 
 function buffer(description: string, name = 'buffer', isConst = true, wasm_generated = false): MojibakeArg {

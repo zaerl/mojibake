@@ -687,7 +687,7 @@ typedef enum mjb_plane {
 /**
  * Word_Break Property Values
  * UAX #29, Unicode 18.0.0:
- * https://www.unicode.org/reports/tr29/tr29-48.html#Table_Word_Break_Property_Values
+ * https://www.unicode.org/reports/tr29/tr29-49.html#Table_Word_Break_Property_Values
  */
 typedef enum mjb_wbp {
     MJB_WBP_NOT_SET, // 0 is "no value"
