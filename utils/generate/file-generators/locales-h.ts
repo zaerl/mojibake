@@ -4,7 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { getScriptEnumNames } from '../header';
 import { Property } from '../parse-ucd/properties';
 import { downloadText, substituteBlock } from '../utils';
@@ -33,11 +33,20 @@ interface Language {
 // Read the languages that have a two-letter ISO 639-1 code, ordered by their bibliographic
 // ISO 639-2 code, the same order used by the Library of Congress list.
 async function readLanguages(): Promise<Language[]> {
-  if(!existsSync(ISO_639_2_PATH)) {
-    writeFileSync(ISO_639_2_PATH, await downloadText(ISO_639_2_URL));
+  let text: string;
+
+  try {
+    text = readFileSync(ISO_639_2_PATH, 'utf-8');
+  } catch(error) {
+    if((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+
+    text = await downloadText(ISO_639_2_URL);
+    writeFileSync(ISO_639_2_PATH, text);
   }
 
-  const entries = JSON.parse(readFileSync(ISO_639_2_PATH, 'utf-8'))['639-2'] as Iso6392Entry[];
+  const entries = JSON.parse(text)['639-2'] as Iso6392Entry[];
   const sortKey = (entry: Iso6392Entry) => entry.bibliographic ?? entry.alpha_3;
 
   return entries
