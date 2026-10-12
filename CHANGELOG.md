@@ -5,30 +5,33 @@ All notable changes to Mojibake are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.2] - 2026-10-12
+Codename: [LATIN CAPITAL LETTER B]
 
 ### Added
 - Added a test checking every explicitly named codepoint of `UnicodeData.txt` (with
   `NameAliases.txt` control and correction aliases) against `mjb_codepoint_info`
-- `mjb_locale_id` now carries the matched `mjb_locale` and its ISO 639-1 code
-- `mjb_locale_code` and `mjb_script_code` return the ISO 639-1 and ISO 15924 codes
-- The `mjb_locale` and `mjb_script` code tables are generated into `src/locales.c`
-- CLI: `--locale` option (BCP 47 language tag) for the casing commands
-- CLI: `--direction` option (`ltr`, `rtl`, `auto`) for the `bidi` command, which now
-  also lists the visual level runs
-- CLI: `nfkc-casefold` command, and a quick check result in verbose normalization output
+- New data layout for codepoint names
+- New locale functions
+- Added `.clang-tidy`
+- CLI: added locale and direction
+- CLI: new `nfkc-casefold` command
 - CLI: `char` now prints the script in verbose mode
 
 ### Changed
-- `mjb_locale` gained `MJB_LOCALE_NOT_SET` as value 0, shifting the other values by one
-- Added three-byte collation weights with a bitset-ranked expansion index
-- Start-only IDNA ranges with a page index
-- Page-local character runs with block indexes and deduplicated pages, disjoint
-  merged property runs
-- Shared 16-bit sequence pool for decompositions, IDNA mappings, and confusable skeletons
+- `mjb_locale` gained `MJB_LOCALE_NOT_SET` as value 0
 - Character names as page-prefixed token streams over a word lexicon
 - Sequence lookups in `src/unicode-tables.h` now decode into caller buffers of
   `MJB_UNICODE_SEQUENCE_MAX` codepoints
+- Moved the `unicode-data` folder to project root
+- Forced CTest line
+- Moved `update-version` script to C++
+- Minor site UI changes
+
+### Fixed
+- Fixed all obsolete URLs
+- Removed obsolete files
+- Fixed multiple lint errors
 
 ## [0.4.1] - 2026-09-21
 Codename: [LATIN CAPITAL LETTER A]
@@ -734,7 +737,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/zaerl/mojibake/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zaerl/mojibake/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/zaerl/mojibake/compare/v0.3.6...v0.4.0
 [0.3.6]: https://github.com/zaerl/mojibake/compare/v0.3.5...v0.3.6
