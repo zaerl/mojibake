@@ -121,7 +121,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Normalization**: NFC/NFD/NFKC/NFKD (`mjb_normalize`, `mjb_normalize_into`),
   identifier-oriented NFKC case folding (`mjb_nfkc_casefold`, `mjb_nfkc_casefold_into`), plus a
   fast quick-check
-  (`mjb_normalization_quick_check`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-57.html))
+  (`mjb_normalization_quick_check`) ([UAX #15, Unicode 18.0.0](https://www.unicode.org/reports/tr15/tr15-58.html))
 - **Case conversion**: uppercase, lowercase, titlecase, and case folding with full special-casing
   and conditional mappings (`mjb_map_case`, `mjb_map_case_into`)
 - **Internationalized domain names**: strict nontransitional ToASCII and ToUnicode processing,
@@ -136,10 +136,10 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   Script_Extensions, block, plane, numeric value, name (`mjb_codepoint_info`,
   `mjb_codepoint_script_extensions`)
 - **Segmentation**: grapheme clusters, words, sentences, and line-break opportunities
-  ([UAX #29, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-48.html),
-  [UAX #14, Unicode 18.0.0](https://www.unicode.org/reports/tr14/tr14-56.html))
+  ([UAX #29, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html),
+  [UAX #14, Unicode 18.0.0](https://www.unicode.org/reports/tr14/tr14-57.html))
 - **Bidirectional text**: full Unicode Bidirectional Algorithm: paragraph resolution, line
-  reordering, runs ([UAX #9, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-51.html))
+  reordering, runs ([UAX #9, Unicode 18.0.0](https://www.unicode.org/reports/tr9/tr9-52.html))
 - **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
 - **Terminal width**: grapheme-aware terminal-cell estimates with explicit narrow or East Asian
   profiles, emoji-sequence handling, and width-aware truncation
@@ -153,18 +153,18 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Collation**: Unicode Collation Algorithm string comparison and sort keys, with primary through
   quaternary strengths and shifted or non-ignorable variable weighting (`mjb_collation_compare`,
   `mjb_collation_key`, `mjb_collation_key_into`,
-  [UTS #10, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-54.html))
+  [UTS #10, Unicode 18.0.0](https://www.unicode.org/reports/tr10/tr10-55.html))
 
 **Security**
 
 - **Mixed-script detection**: resolve a string to its augmented Unicode script set for
   identifier-policy checks (`mjb_resolved_script_set`,
-  [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
+  [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-34.html))
 - **Confusable detection**: generate reusable skeletons and check if strings are visually
   confusable (`mjb_confusable_skeleton`, `mjb_confusable_skeleton_into`, `mjb_confusable_match`,
-  [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-33.html))
+  [UTS #39, Unicode 18.0.0](https://www.unicode.org/reports/tr39/tr39-34.html))
 - **Identifier validation**: XID/ID checks for parser and compiler authors
-  (`mjb_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-44.html))
+  (`mjb_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-45.html))
 
 **Integration**
 
