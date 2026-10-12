@@ -10,6 +10,7 @@ import { Character } from '../character';
 import { characterDecomposition, generateComposition, generateDecomposition } from '../decomposition';
 import { generateAPI } from '../file-generators/api-md';
 import { generateExampleC } from '../file-generators/example-c';
+import { generateLocales } from '../file-generators/locales-h';
 import { generateUnicodeDataHeader } from '../file-generators/unicode-data-h';
 import { generateWasmDTS } from '../file-generators/wasm-d-ts';
 import { generateHeader } from '../header';
@@ -221,6 +222,7 @@ async function generate() {
   const bidiMirroring = await readBidiMirroring();
 
   await generateUnicodeDataHeader();
+  await generateLocales(properties);
   generateHeader(blocks, categories, properties, bidiBrackets, bidiMirroring);
   generateWASM();
   // generateData(characters);

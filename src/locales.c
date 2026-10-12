@@ -9,6 +9,383 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
+// The two tables below are automatically generated. Do not edit.
+
+// ISO 639-1 codes, in mjb_locale order.
+static const char *mjb_locale_codes[] = {
+    "",   // MJB_LOCALE_NOT_SET
+    "aa", // MJB_LOCALE_AA
+    "ab", // MJB_LOCALE_AB
+    "af", // MJB_LOCALE_AF
+    "ak", // MJB_LOCALE_AK
+    "sq", // MJB_LOCALE_SQ
+    "am", // MJB_LOCALE_AM
+    "ar", // MJB_LOCALE_AR
+    "an", // MJB_LOCALE_AN
+    "hy", // MJB_LOCALE_HY
+    "as", // MJB_LOCALE_AS
+    "av", // MJB_LOCALE_AV
+    "ae", // MJB_LOCALE_AE
+    "ay", // MJB_LOCALE_AY
+    "az", // MJB_LOCALE_AZ
+    "ba", // MJB_LOCALE_BA
+    "bm", // MJB_LOCALE_BM
+    "eu", // MJB_LOCALE_EU
+    "be", // MJB_LOCALE_BE
+    "bn", // MJB_LOCALE_BN
+    "bi", // MJB_LOCALE_BI
+    "bs", // MJB_LOCALE_BS
+    "br", // MJB_LOCALE_BR
+    "bg", // MJB_LOCALE_BG
+    "my", // MJB_LOCALE_MY
+    "ca", // MJB_LOCALE_CA
+    "ch", // MJB_LOCALE_CH
+    "ce", // MJB_LOCALE_CE
+    "zh", // MJB_LOCALE_ZH
+    "cu", // MJB_LOCALE_CU
+    "cv", // MJB_LOCALE_CV
+    "kw", // MJB_LOCALE_KW
+    "co", // MJB_LOCALE_CO
+    "cr", // MJB_LOCALE_CR
+    "cs", // MJB_LOCALE_CS
+    "da", // MJB_LOCALE_DA
+    "dv", // MJB_LOCALE_DV
+    "nl", // MJB_LOCALE_NL
+    "dz", // MJB_LOCALE_DZ
+    "en", // MJB_LOCALE_EN
+    "eo", // MJB_LOCALE_EO
+    "et", // MJB_LOCALE_ET
+    "ee", // MJB_LOCALE_EE
+    "fo", // MJB_LOCALE_FO
+    "fj", // MJB_LOCALE_FJ
+    "fi", // MJB_LOCALE_FI
+    "fr", // MJB_LOCALE_FR
+    "fy", // MJB_LOCALE_FY
+    "ff", // MJB_LOCALE_FF
+    "ka", // MJB_LOCALE_KA
+    "de", // MJB_LOCALE_DE
+    "gd", // MJB_LOCALE_GD
+    "ga", // MJB_LOCALE_GA
+    "gl", // MJB_LOCALE_GL
+    "gv", // MJB_LOCALE_GV
+    "el", // MJB_LOCALE_EL
+    "gn", // MJB_LOCALE_GN
+    "gu", // MJB_LOCALE_GU
+    "ht", // MJB_LOCALE_HT
+    "ha", // MJB_LOCALE_HA
+    "he", // MJB_LOCALE_HE
+    "hz", // MJB_LOCALE_HZ
+    "hi", // MJB_LOCALE_HI
+    "ho", // MJB_LOCALE_HO
+    "hr", // MJB_LOCALE_HR
+    "hu", // MJB_LOCALE_HU
+    "ig", // MJB_LOCALE_IG
+    "is", // MJB_LOCALE_IS
+    "io", // MJB_LOCALE_IO
+    "ii", // MJB_LOCALE_II
+    "iu", // MJB_LOCALE_IU
+    "ie", // MJB_LOCALE_IE
+    "ia", // MJB_LOCALE_IA
+    "id", // MJB_LOCALE_ID
+    "ik", // MJB_LOCALE_IK
+    "it", // MJB_LOCALE_IT
+    "jv", // MJB_LOCALE_JV
+    "ja", // MJB_LOCALE_JA
+    "kl", // MJB_LOCALE_KL
+    "kn", // MJB_LOCALE_KN
+    "ks", // MJB_LOCALE_KS
+    "kr", // MJB_LOCALE_KR
+    "kk", // MJB_LOCALE_KK
+    "km", // MJB_LOCALE_KM
+    "ki", // MJB_LOCALE_KI
+    "rw", // MJB_LOCALE_RW
+    "ky", // MJB_LOCALE_KY
+    "kv", // MJB_LOCALE_KV
+    "kg", // MJB_LOCALE_KG
+    "ko", // MJB_LOCALE_KO
+    "kj", // MJB_LOCALE_KJ
+    "ku", // MJB_LOCALE_KU
+    "lo", // MJB_LOCALE_LO
+    "la", // MJB_LOCALE_LA
+    "lv", // MJB_LOCALE_LV
+    "li", // MJB_LOCALE_LI
+    "ln", // MJB_LOCALE_LN
+    "lt", // MJB_LOCALE_LT
+    "lb", // MJB_LOCALE_LB
+    "lu", // MJB_LOCALE_LU
+    "lg", // MJB_LOCALE_LG
+    "mk", // MJB_LOCALE_MK
+    "mh", // MJB_LOCALE_MH
+    "ml", // MJB_LOCALE_ML
+    "mi", // MJB_LOCALE_MI
+    "mr", // MJB_LOCALE_MR
+    "ms", // MJB_LOCALE_MS
+    "mg", // MJB_LOCALE_MG
+    "mt", // MJB_LOCALE_MT
+    "mn", // MJB_LOCALE_MN
+    "na", // MJB_LOCALE_NA
+    "nv", // MJB_LOCALE_NV
+    "nr", // MJB_LOCALE_NR
+    "nd", // MJB_LOCALE_ND
+    "ng", // MJB_LOCALE_NG
+    "ne", // MJB_LOCALE_NE
+    "nn", // MJB_LOCALE_NN
+    "nb", // MJB_LOCALE_NB
+    "no", // MJB_LOCALE_NO
+    "ny", // MJB_LOCALE_NY
+    "oc", // MJB_LOCALE_OC
+    "oj", // MJB_LOCALE_OJ
+    "or", // MJB_LOCALE_OR
+    "om", // MJB_LOCALE_OM
+    "os", // MJB_LOCALE_OS
+    "pa", // MJB_LOCALE_PA
+    "fa", // MJB_LOCALE_FA
+    "pi", // MJB_LOCALE_PI
+    "pl", // MJB_LOCALE_PL
+    "pt", // MJB_LOCALE_PT
+    "ps", // MJB_LOCALE_PS
+    "qu", // MJB_LOCALE_QU
+    "rm", // MJB_LOCALE_RM
+    "ro", // MJB_LOCALE_RO
+    "rn", // MJB_LOCALE_RN
+    "ru", // MJB_LOCALE_RU
+    "sg", // MJB_LOCALE_SG
+    "sa", // MJB_LOCALE_SA
+    "si", // MJB_LOCALE_SI
+    "sk", // MJB_LOCALE_SK
+    "sl", // MJB_LOCALE_SL
+    "se", // MJB_LOCALE_SE
+    "sm", // MJB_LOCALE_SM
+    "sn", // MJB_LOCALE_SN
+    "sd", // MJB_LOCALE_SD
+    "so", // MJB_LOCALE_SO
+    "st", // MJB_LOCALE_ST
+    "es", // MJB_LOCALE_ES
+    "sc", // MJB_LOCALE_SC
+    "sr", // MJB_LOCALE_SR
+    "ss", // MJB_LOCALE_SS
+    "su", // MJB_LOCALE_SU
+    "sw", // MJB_LOCALE_SW
+    "sv", // MJB_LOCALE_SV
+    "ty", // MJB_LOCALE_TY
+    "ta", // MJB_LOCALE_TA
+    "tt", // MJB_LOCALE_TT
+    "te", // MJB_LOCALE_TE
+    "tg", // MJB_LOCALE_TG
+    "tl", // MJB_LOCALE_TL
+    "th", // MJB_LOCALE_TH
+    "bo", // MJB_LOCALE_BO
+    "ti", // MJB_LOCALE_TI
+    "to", // MJB_LOCALE_TO
+    "tn", // MJB_LOCALE_TN
+    "ts", // MJB_LOCALE_TS
+    "tk", // MJB_LOCALE_TK
+    "tr", // MJB_LOCALE_TR
+    "tw", // MJB_LOCALE_TW
+    "ug", // MJB_LOCALE_UG
+    "uk", // MJB_LOCALE_UK
+    "ur", // MJB_LOCALE_UR
+    "uz", // MJB_LOCALE_UZ
+    "ve", // MJB_LOCALE_VE
+    "vi", // MJB_LOCALE_VI
+    "vo", // MJB_LOCALE_VO
+    "cy", // MJB_LOCALE_CY
+    "wa", // MJB_LOCALE_WA
+    "wo", // MJB_LOCALE_WO
+    "xh", // MJB_LOCALE_XH
+    "yi", // MJB_LOCALE_YI
+    "yo", // MJB_LOCALE_YO
+    "za", // MJB_LOCALE_ZA
+    "zu"  // MJB_LOCALE_ZU
+};
+
+// ISO 15924 codes, in mjb_script order.
+static const char *mjb_script_codes[] = {
+    "",     // MJB_SC_NOT_SET
+    "Adlm", // MJB_SC_ADLM
+    "Aghb", // MJB_SC_AGHB
+    "Ahom", // MJB_SC_AHOM
+    "Arab", // MJB_SC_ARAB
+    "Armi", // MJB_SC_ARMI
+    "Armn", // MJB_SC_ARMN
+    "Avst", // MJB_SC_AVST
+    "Bali", // MJB_SC_BALI
+    "Bamu", // MJB_SC_BAMU
+    "Bass", // MJB_SC_BASS
+    "Batk", // MJB_SC_BATK
+    "Beng", // MJB_SC_BENG
+    "Berf", // MJB_SC_BERF
+    "Bhks", // MJB_SC_BHKS
+    "Bopo", // MJB_SC_BOPO
+    "Brah", // MJB_SC_BRAH
+    "Brai", // MJB_SC_BRAI
+    "Bugi", // MJB_SC_BUGI
+    "Buhd", // MJB_SC_BUHD
+    "Cakm", // MJB_SC_CAKM
+    "Cans", // MJB_SC_CANS
+    "Cari", // MJB_SC_CARI
+    "Cham", // MJB_SC_CHAM
+    "Cher", // MJB_SC_CHER
+    "Chrs", // MJB_SC_CHRS
+    "Copt", // MJB_SC_COPT
+    "Cpmn", // MJB_SC_CPMN
+    "Cprt", // MJB_SC_CPRT
+    "Cyrl", // MJB_SC_CYRL
+    "Deva", // MJB_SC_DEVA
+    "Diak", // MJB_SC_DIAK
+    "Dogr", // MJB_SC_DOGR
+    "Dsrt", // MJB_SC_DSRT
+    "Dupl", // MJB_SC_DUPL
+    "Egyp", // MJB_SC_EGYP
+    "Elba", // MJB_SC_ELBA
+    "Elym", // MJB_SC_ELYM
+    "Ethi", // MJB_SC_ETHI
+    "Gara", // MJB_SC_GARA
+    "Geor", // MJB_SC_GEOR
+    "Glag", // MJB_SC_GLAG
+    "Gong", // MJB_SC_GONG
+    "Gonm", // MJB_SC_GONM
+    "Goth", // MJB_SC_GOTH
+    "Gran", // MJB_SC_GRAN
+    "Grek", // MJB_SC_GREK
+    "Gujr", // MJB_SC_GUJR
+    "Gukh", // MJB_SC_GUKH
+    "Guru", // MJB_SC_GURU
+    "Hang", // MJB_SC_HANG
+    "Hani", // MJB_SC_HANI
+    "Hano", // MJB_SC_HANO
+    "Hatr", // MJB_SC_HATR
+    "Hebr", // MJB_SC_HEBR
+    "Hira", // MJB_SC_HIRA
+    "Hluw", // MJB_SC_HLUW
+    "Hmng", // MJB_SC_HMNG
+    "Hmnp", // MJB_SC_HMNP
+    "Hrkt", // MJB_SC_HRKT
+    "Hung", // MJB_SC_HUNG
+    "Ital", // MJB_SC_ITAL
+    "Java", // MJB_SC_JAVA
+    "Jurc", // MJB_SC_JURC
+    "Kali", // MJB_SC_KALI
+    "Kana", // MJB_SC_KANA
+    "Kawi", // MJB_SC_KAWI
+    "Khar", // MJB_SC_KHAR
+    "Khmr", // MJB_SC_KHMR
+    "Khoj", // MJB_SC_KHOJ
+    "Kits", // MJB_SC_KITS
+    "Knda", // MJB_SC_KNDA
+    "Krai", // MJB_SC_KRAI
+    "Kthi", // MJB_SC_KTHI
+    "Lana", // MJB_SC_LANA
+    "Laoo", // MJB_SC_LAOO
+    "Latn", // MJB_SC_LATN
+    "Lepc", // MJB_SC_LEPC
+    "Limb", // MJB_SC_LIMB
+    "Lina", // MJB_SC_LINA
+    "Linb", // MJB_SC_LINB
+    "Lisu", // MJB_SC_LISU
+    "Lyci", // MJB_SC_LYCI
+    "Lydi", // MJB_SC_LYDI
+    "Mahj", // MJB_SC_MAHJ
+    "Maka", // MJB_SC_MAKA
+    "Mand", // MJB_SC_MAND
+    "Mani", // MJB_SC_MANI
+    "Marc", // MJB_SC_MARC
+    "Medf", // MJB_SC_MEDF
+    "Mend", // MJB_SC_MEND
+    "Merc", // MJB_SC_MERC
+    "Mero", // MJB_SC_MERO
+    "Mlym", // MJB_SC_MLYM
+    "Modi", // MJB_SC_MODI
+    "Mong", // MJB_SC_MONG
+    "Mroo", // MJB_SC_MROO
+    "Mtei", // MJB_SC_MTEI
+    "Mult", // MJB_SC_MULT
+    "Mymr", // MJB_SC_MYMR
+    "Nagm", // MJB_SC_NAGM
+    "Nand", // MJB_SC_NAND
+    "Narb", // MJB_SC_NARB
+    "Nbat", // MJB_SC_NBAT
+    "Newa", // MJB_SC_NEWA
+    "Nkoo", // MJB_SC_NKOO
+    "Nshu", // MJB_SC_NSHU
+    "Ogam", // MJB_SC_OGAM
+    "Olck", // MJB_SC_OLCK
+    "Onao", // MJB_SC_ONAO
+    "Orkh", // MJB_SC_ORKH
+    "Orya", // MJB_SC_ORYA
+    "Osge", // MJB_SC_OSGE
+    "Osma", // MJB_SC_OSMA
+    "Ougr", // MJB_SC_OUGR
+    "Palm", // MJB_SC_PALM
+    "Pauc", // MJB_SC_PAUC
+    "Pcun", // MJB_SC_PCUN
+    "Perm", // MJB_SC_PERM
+    "Phag", // MJB_SC_PHAG
+    "Phli", // MJB_SC_PHLI
+    "Phlp", // MJB_SC_PHLP
+    "Phnx", // MJB_SC_PHNX
+    "Plrd", // MJB_SC_PLRD
+    "Prti", // MJB_SC_PRTI
+    "Rjng", // MJB_SC_RJNG
+    "Rohg", // MJB_SC_ROHG
+    "Runr", // MJB_SC_RUNR
+    "Samr", // MJB_SC_SAMR
+    "Sarb", // MJB_SC_SARB
+    "Saur", // MJB_SC_SAUR
+    "Seal", // MJB_SC_SEAL
+    "Sgnw", // MJB_SC_SGNW
+    "Shaw", // MJB_SC_SHAW
+    "Shrd", // MJB_SC_SHRD
+    "Sidd", // MJB_SC_SIDD
+    "Sidt", // MJB_SC_SIDT
+    "Sind", // MJB_SC_SIND
+    "Sinh", // MJB_SC_SINH
+    "Sogd", // MJB_SC_SOGD
+    "Sogo", // MJB_SC_SOGO
+    "Sora", // MJB_SC_SORA
+    "Soyo", // MJB_SC_SOYO
+    "Sund", // MJB_SC_SUND
+    "Sunu", // MJB_SC_SUNU
+    "Sylo", // MJB_SC_SYLO
+    "Syrc", // MJB_SC_SYRC
+    "Tagb", // MJB_SC_TAGB
+    "Takr", // MJB_SC_TAKR
+    "Tale", // MJB_SC_TALE
+    "Talu", // MJB_SC_TALU
+    "Taml", // MJB_SC_TAML
+    "Tang", // MJB_SC_TANG
+    "Tavt", // MJB_SC_TAVT
+    "Tayo", // MJB_SC_TAYO
+    "Telu", // MJB_SC_TELU
+    "Tfng", // MJB_SC_TFNG
+    "Tglg", // MJB_SC_TGLG
+    "Thaa", // MJB_SC_THAA
+    "Thai", // MJB_SC_THAI
+    "Tibt", // MJB_SC_TIBT
+    "Tirh", // MJB_SC_TIRH
+    "Tnsa", // MJB_SC_TNSA
+    "Todr", // MJB_SC_TODR
+    "Tols", // MJB_SC_TOLS
+    "Toto", // MJB_SC_TOTO
+    "Tutg", // MJB_SC_TUTG
+    "Ugar", // MJB_SC_UGAR
+    "Vaii", // MJB_SC_VAII
+    "Vith", // MJB_SC_VITH
+    "Wara", // MJB_SC_WARA
+    "Wcho", // MJB_SC_WCHO
+    "Xpeo", // MJB_SC_XPEO
+    "Xsux", // MJB_SC_XSUX
+    "Yezi", // MJB_SC_YEZI
+    "Yiii", // MJB_SC_YIII
+    "Zanb", // MJB_SC_ZANB
+    "Zinh", // MJB_SC_ZINH
+    "Zyyy", // MJB_SC_ZYYY
+    "Zzzz", // MJB_SC_ZZZZ
+    "Hanb", // MJB_SC_HANB
+    "Jpan", // MJB_SC_JPAN
+    "Kore"  // MJB_SC_KORE
+};
+
 typedef struct mjb_locale_subtag {
     const char *start;
     size_t length;
@@ -242,6 +619,18 @@ static bool mjb_locale_is_grandfathered(const mjb_locale_subtag *subtags, size_t
     return false;
 }
 
+// Resolve the lowercase two-letter language subtag to a supported locale, if any.
+static void mjb_locale_match(mjb_locale_id *locale) {
+    for(size_t i = MJB_LOCALE_NOT_SET + 1; i < MJB_LOCALE_NUM; ++i) {
+        if(strcmp(locale->language, mjb_locale_codes[i]) == 0) {
+            locale->locale = (mjb_locale)i;
+            memcpy(locale->code, mjb_locale_codes[i], sizeof(locale->code));
+
+            return;
+        }
+    }
+}
+
 static mjb_status mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size,
     mjb_locale_id *locale) {
     mjb_locale_subtag *subtags = NULL;
@@ -351,6 +740,10 @@ static mjb_status mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size
         if(!mjb_locale_copy_subtag(locale->language, sizeof(locale->language), language,
                MJB_LOCALE_CASE_LOWER)) {
             MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
+        }
+
+        if(language->length == 2) {
+            mjb_locale_match(locale);
         }
 
         ++index;
@@ -529,8 +922,24 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_set_locale(mjb_locale locale) {
+MJB_EXPORT const char *mjb_locale_code(mjb_locale locale) {
     if((unsigned int)locale >= MJB_LOCALE_NUM) {
+        return NULL;
+    }
+
+    return mjb_locale_codes[locale];
+}
+
+MJB_EXPORT const char *mjb_script_code(mjb_script script) {
+    if((unsigned int)script >= MJB_SC_COUNT) {
+        return NULL;
+    }
+
+    return mjb_script_codes[script];
+}
+
+MJB_EXPORT mjb_status mjb_set_locale(mjb_locale locale) {
+    if(locale == MJB_LOCALE_NOT_SET || (unsigned int)locale >= MJB_LOCALE_NUM) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 

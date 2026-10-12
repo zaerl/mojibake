@@ -56,7 +56,7 @@ function getPropertyTypes(properties: Property[]) {
   }).join('\n');
 }
 
-function getScriptEnumNames(properties: { [key: string]: number }, fn: (name: string) => string) {
+export function getScriptEnumNames(properties: { [key: string]: number }, fn: (name: string) => string) {
   const propertyEnums: string[] = [];
 
   /*

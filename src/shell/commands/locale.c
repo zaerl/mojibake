@@ -35,6 +35,13 @@ int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags) {
 
     mjbsh_value("Input", 1, "%s", input);
     mjbsh_locale_field("Language", 1, locale.language);
+
+    if(locale.locale == MJB_LOCALE_NOT_SET) {
+        mjbsh_null("Locale", 1);
+    } else {
+        mjbsh_id_name("Locale", locale.locale, locale.code, 1);
+    }
+
     mjbsh_locale_field("Extlang", 1, locale.extlang);
     mjbsh_locale_field("Script", 1, locale.script);
     mjbsh_locale_field("Region", 1, locale.region);

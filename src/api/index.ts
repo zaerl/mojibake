@@ -132,6 +132,8 @@ export type LocaleID = {
   extensions: string;    // 128
   private_use: string;   // 128
   grandfathered: string; // 32
+  code: string;          // 3
+  locale: Locale;
 }
 
 type ComposedString = {
@@ -1588,7 +1590,8 @@ export class Mojibake {
   // mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
   // mjb_locale_id *locale);
   localeParse(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
-    const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32;
+    // Eight strings, the code string, one byte of padding, then the 4-byte locale enum
+    const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32 + 3 + 1 + 4;
     const wasmInput = this.copyInput(id, options.encoding);
     const localePtr = this.malloc(localeStructSize);
 
@@ -1615,6 +1618,28 @@ export class Mojibake {
   // mjb_locale mjb_get_locale(void);
   getLocale(): Locale {
     return this.module._mjb_get_locale() as Locale;
+  }
+
+  // const char *mjb_locale_code(mjb_locale locale)
+  localeCode(locale: Locale): string | null {
+    const ptr = this.module._mjb_locale_code(locale);
+
+    if(ptr === 0) {
+      return null;
+    }
+
+    return this.decodeString(ptr, null, Encoding.UTF_8).output;
+  }
+
+  // const char *mjb_script_code(mjb_script script)
+  scriptCode(script: Script): string | null {
+    const ptr = this.module._mjb_script_code(script);
+
+    if(ptr === 0) {
+      return null;
+    }
+
+    return this.decodeString(ptr, null, Encoding.UTF_8).output;
   }
 
   // void mjb_reset_locale(void);
@@ -1697,7 +1722,9 @@ export class Mojibake {
       variant: reader.str(32),
       extensions: reader.str(128),
       private_use: reader.str(128),
-      grandfathered: reader.str(32)
+      grandfathered: reader.str(32),
+      code: reader.str(3),
+      locale: reader.u32() as Locale
     };
   }
 

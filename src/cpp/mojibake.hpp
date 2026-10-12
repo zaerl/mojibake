@@ -1223,6 +1223,14 @@ struct LocaleId {
     [[nodiscard]] std::string_view grandfathered() const noexcept {
         return std::string_view(data.grandfathered);
     }
+
+    [[nodiscard]] std::string_view code() const noexcept {
+        return std::string_view(data.code);
+    }
+
+    [[nodiscard]] mjb_locale locale() const noexcept {
+        return data.locale;
+    }
 };
 
 [[nodiscard]] inline LocaleId parse_locale(std::string_view id,
@@ -1247,6 +1255,18 @@ inline void set_locale(mjb_locale locale) {
 
 inline void reset_locale() noexcept {
     mjb_reset_locale();
+}
+
+[[nodiscard]] inline std::string_view locale_code(mjb_locale locale) noexcept {
+    const char *code = mjb_locale_code(locale);
+
+    return code == nullptr ? std::string_view{} : std::string_view(code);
+}
+
+[[nodiscard]] inline std::string_view script_code(mjb_script script) noexcept {
+    const char *code = mjb_script_code(script);
+
+    return code == nullptr ? std::string_view{} : std::string_view(code);
 }
 
 [[nodiscard]] inline std::string_view version() noexcept {

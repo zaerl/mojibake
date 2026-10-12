@@ -13,6 +13,7 @@ unsigned int cmd_verbose = 0;
 mjbsh_interpret_mode cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
 mjbsh_output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
 unsigned int cmd_json_indent = 0;
+mjb_direction cmd_direction = MJB_DIRECTION_AUTO;
 
 static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
 
@@ -470,6 +471,24 @@ mjb_codepoint mjbsh_control_picture_codepoint(mjb_codepoint codepoint) {
     }
 
     return codepoint;
+}
+
+bool mjbsh_parse_direction(const char *input, mjb_direction *direction) {
+    if(input == NULL || direction == NULL) {
+        return false;
+    }
+
+    if(strcmp(input, "ltr") == 0) {
+        *direction = MJB_DIRECTION_LTR;
+    } else if(strcmp(input, "rtl") == 0) {
+        *direction = MJB_DIRECTION_RTL;
+    } else if(strcmp(input, "auto") == 0) {
+        *direction = MJB_DIRECTION_AUTO;
+    } else {
+        return false;
+    }
+
+    return true;
 }
 
 bool mjbsh_property_is_bool(mjb_property property) {

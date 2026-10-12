@@ -55,17 +55,20 @@ int main(int argc, char *const argv[]) {
     // unsigned int columns = 80;
 
     struct option long_options[] = { { "codepoint", no_argument, NULL, 'c' },
-        { "help", no_argument, NULL, 'h' }, { "json-indent", required_argument, NULL, 'j' },
+        { "direction", required_argument, NULL, 'd' }, { "help", no_argument, NULL, 'h' },
+        { "json-indent", required_argument, NULL, 'j' }, { "locale", required_argument, NULL, 'l' },
         { "output", required_argument, NULL, 'o' },
         { "show-allowed-symbols", no_argument, NULL, 's' }, { "verbose", no_argument, NULL, 'v' },
         { "version", no_argument, NULL, 'V' }, { NULL, 0, NULL, 0 } };
 
-    const char *descriptions[] = { "Interpret input as a list of codepoints", "Print help",
+    const char *descriptions[] = { "Interpret input as a list of codepoints",
+        "Bidi base direction: ltr, rtl, auto. Default: auto", "Print help",
         "JSON indent level (0-10). Default: 0",
+        "Casing locale as a BCP 47 language tag (e.g. tr, az, lt). Default: en",
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",
-        "Show allowed symbols", "Verbose output", "Print version", "Width of output" };
+        "Show allowed symbols", "Verbose output", "Print version" };
 
     mjbsh_command commands[] = { { "bidi", "Resolve the bidirectional algorithm for the input",
                                      mjbsh_bidi_command, 0, 1, false },
@@ -90,6 +93,8 @@ int main(int argc, char *const argv[]) {
             true },
         { "nfkc", "Normalize the input to NFKC", mjbsh_normalize_command, MJB_NORMALIZATION_NFKC, 1,
             true },
+        { "nfkc-casefold", "Apply NFKC_Casefold to the input", mjbsh_normalize_command,
+            MJBSH_NFKC_CASEFOLD, 1, true },
         { "upper", "Convert the input to uppercase", mjbsh_case_command, MJB_CASE_UPPER, 1, false },
         { "lower", "Convert the input to lowercase", mjbsh_case_command, MJB_CASE_LOWER, 1, false },
         { "title", "Convert the input to titlecase", mjbsh_case_command, MJB_CASE_TITLE, 1, false },
@@ -148,7 +153,7 @@ int main(int argc, char *const argv[]) {
     }
 #endif
 
-    while((option = getopt_long(argc, argv, "hj:co:vVsw:", long_options, &option_index)) != -1) {
+    while((option = getopt_long(argc, argv, "cd:hj:l:o:svV", long_options, &option_index)) != -1) {
         char *endptr = NULL;
 
         switch(option) {
@@ -158,12 +163,36 @@ int main(int argc, char *const argv[]) {
             case 'c':
                 cmd_interpret_mode = INTERPRET_MODE_CODEPOINT;
                 break;
+            case 'd':
+                if(!mjbsh_parse_direction(optarg, &cmd_direction)) {
+                    fprintf(stderr, "Invalid direction: %s\n", optarg);
+                    mjbsh_show_help(long_options, descriptions, commands, NULL);
+
+                    return 1;
+                }
+
+                break;
             case 'j': {
                 endptr = NULL;
                 cmd_json_indent = strtoul(optarg, &endptr, 10);
 
                 if(endptr == optarg || *endptr != '\0' || cmd_json_indent > 10) {
                     fprintf(stderr, "JSON indent level must be a number between 0 and 10.\n");
+                    mjbsh_show_help(long_options, descriptions, commands, NULL);
+
+                    return 1;
+                }
+
+                break;
+            }
+            case 'l': {
+                mjb_locale_id locale;
+
+                if(mjb_locale_parse(optarg, strlen(optarg), MJB_ENC_UTF_8, &locale) !=
+                        MJB_STATUS_OK ||
+                    locale.locale == MJB_LOCALE_NOT_SET ||
+                    mjb_set_locale(locale.locale) != MJB_STATUS_OK) {
+                    fprintf(stderr, "Invalid or unsupported locale: %s\n", optarg);
                     mjbsh_show_help(long_options, descriptions, commands, NULL);
 
                     return 1;

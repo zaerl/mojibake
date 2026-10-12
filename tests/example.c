@@ -1503,6 +1503,24 @@ ATT_TEST(example) {
 }
 
 {
+    // Example for mjb_locale_code
+    MJB_TEST_COVERAGE(mjb_locale_code); // Added by the script
+    // Locale code: tr
+    // printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));
+    snprintf(test_buffer, sizeof(test_buffer), "Locale code: %s", mjb_locale_code(MJB_LOCALE_TR)); // Added by the script
+    ATT_ASSERT(test_buffer, "Locale code: tr", "mjb_locale_code test failed"); // Added by the script
+}
+
+{
+    // Example for mjb_script_code
+    MJB_TEST_COVERAGE(mjb_script_code); // Added by the script
+    // Script code: Latn
+    // printf("Script code: %s", mjb_script_code(MJB_SC_LATN));
+    snprintf(test_buffer, sizeof(test_buffer), "Script code: %s", mjb_script_code(MJB_SC_LATN)); // Added by the script
+    ATT_ASSERT(test_buffer, "Script code: Latn", "mjb_script_code test failed"); // Added by the script
+}
+
+{
     // Example for mjb_reset_locale
     MJB_TEST_COVERAGE(mjb_reset_locale); // Added by the script
     if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {

@@ -27,6 +27,9 @@ ATT_TEST(locales) {
     ATT_ASSERT(locale.language, "sr", "Parse language-script-region language");
     ATT_ASSERT(locale.script, "Latn", "Parse language-script-region script");
     ATT_ASSERT(locale.region, "RS", "Parse language-script-region region");
+    ATT_ASSERT((unsigned int)locale.locale, (unsigned int)MJB_LOCALE_SR,
+        "Parse language-script-region locale");
+    ATT_ASSERT(locale.code, "sr", "Parse language-script-region code");
 
     ATT_ASSERT_STATUS(mjb_locale_parse("zh-cmn-Hans-CN", 14, MJB_ENC_UTF_8, &locale),
         MJB_STATUS_OK, "Parse extlang");
@@ -60,6 +63,21 @@ ATT_TEST(locales) {
     ATT_ASSERT_STATUS(mjb_locale_parse("x-whatever", 10, MJB_ENC_UTF_8, &locale),
         MJB_STATUS_OK, "Parse private use only");
     ATT_ASSERT(locale.private_use, "x-whatever", "Parse private use only value");
+    ATT_ASSERT((unsigned int)locale.locale, (unsigned int)MJB_LOCALE_NOT_SET,
+        "Parse private use only has no locale");
+    ATT_ASSERT(locale.code, "", "Parse private use only has no code");
+
+    ATT_ASSERT_STATUS(mjb_locale_parse("cmn-Hans-CN", 11, MJB_ENC_UTF_8, &locale), MJB_STATUS_OK,
+        "Parse three-letter language");
+    ATT_ASSERT((unsigned int)locale.locale, (unsigned int)MJB_LOCALE_NOT_SET,
+        "Parse three-letter language has no locale");
+    ATT_ASSERT(locale.code, "", "Parse three-letter language has no code");
+
+    ATT_ASSERT_STATUS(mjb_locale_parse("TR-tr", 5, MJB_ENC_UTF_8, &locale), MJB_STATUS_OK,
+        "Parse uppercase language");
+    ATT_ASSERT((unsigned int)locale.locale, (unsigned int)MJB_LOCALE_TR,
+        "Parse uppercase language locale");
+    ATT_ASSERT(locale.code, "tr", "Parse uppercase language code");
 
     const char utf16le_locale[] = { 'e', '\0', 'n', '\0', '-', '\0', 'U', '\0', 'S', '\0' };
     ATT_ASSERT_STATUS(mjb_locale_parse(utf16le_locale, sizeof(utf16le_locale), MJB_ENC_UTF_16LE,
@@ -174,6 +192,10 @@ ATT_TEST(locales) {
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT, "Get locale it_IT");
     ATT_ASSERT_STATUS(mjb_set_locale((mjb_locale)MJB_LOCALE_NUM), MJB_STATUS_INVALID_ARGUMENT,
         "Set locale to unknown value");
+    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_NOT_SET), MJB_STATUS_INVALID_ARGUMENT,
+        "Set locale to not set");
+    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
+        "Not set locale does not change current locale");
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
         "Invalid locale does not change current locale");
     ATT_ASSERT_STATUS(mjb_set_locale((mjb_locale)-1), MJB_STATUS_INVALID_ARGUMENT,
@@ -184,4 +206,15 @@ ATT_TEST(locales) {
     ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_EN,
         "Reset locale restores English");
     ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale is idempotent");
+
+    ATT_ASSERT(mjb_locale_code(MJB_LOCALE_TR), "tr", "Locale code tr");
+    ATT_ASSERT(mjb_locale_code(MJB_LOCALE_ZU), "zu", "Locale code zu");
+    ATT_ASSERT(mjb_locale_code(MJB_LOCALE_NOT_SET), "", "Locale code not set");
+    ATT_ASSERT(mjb_locale_code((mjb_locale)MJB_LOCALE_NUM) == NULL, true, "Locale code invalid");
+    ATT_ASSERT(mjb_locale_code((mjb_locale)-1) == NULL, true, "Locale code negative");
+
+    ATT_ASSERT(mjb_script_code(MJB_SC_LATN), "Latn", "Script code Latn");
+    ATT_ASSERT(mjb_script_code(MJB_SC_KORE), "Kore", "Script code Kore");
+    ATT_ASSERT(mjb_script_code(MJB_SC_NOT_SET), "", "Script code not set");
+    ATT_ASSERT(mjb_script_code((mjb_script)MJB_SC_COUNT) == NULL, true, "Script code invalid");
 }

@@ -10,8 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added a test checking every explicitly named codepoint of `UnicodeData.txt` (with
   `NameAliases.txt` control and correction aliases) against `mjb_codepoint_info`
+- `mjb_locale_id` now carries the matched `mjb_locale` and its ISO 639-1 code
+- `mjb_locale_code` and `mjb_script_code` return the ISO 639-1 and ISO 15924 codes
+- The `mjb_locale` and `mjb_script` code tables are generated into `src/locales.c`
+- CLI: `--locale` option (BCP 47 language tag) for the casing commands
+- CLI: `--direction` option (`ltr`, `rtl`, `auto`) for the `bidi` command, which now
+  also lists the visual level runs
+- CLI: `nfkc-casefold` command, and a quick check result in verbose normalization output
+- CLI: `char` now prints the script in verbose mode
 
 ### Changed
+- `mjb_locale` gained `MJB_LOCALE_NOT_SET` as value 0, shifting the other values by one
 - Added three-byte collation weights with a bitset-ranked expansion index
 - Start-only IDNA ranges with a page index
 - Page-local character runs with block indexes and deduplicated pages, disjoint

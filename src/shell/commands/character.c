@@ -147,8 +147,10 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
             mjbsh_id_name("Block", block.id, block.name, 1);
         }
 
-        const char *d_name = mjbsh_decomposition_name(character->decomposition);
+        mjb_script script = mjb_codepoint_script(character->codepoint);
+        mjbsh_id_name("Script", script, mjb_script_code(script), 1);
 
+        const char *d_name = mjbsh_decomposition_name(character->decomposition);
         mjbsh_id_name("Decomposition", character->decomposition, d_name, 1);
     }
 
@@ -200,6 +202,12 @@ static bool mjbsh_output_next_character(mjb_character *character, mjb_character_
 
         for(size_t i = 0; i < MJB_PR_COUNT; ++i) {
             mjb_property property = (mjb_property)i;
+
+            // Already printed above with its name.
+            if(property == MJB_PR_SCRIPT) {
+                continue;
+            }
+
             bool is_bool = mjbsh_property_is_bool(property);
             bool binary_value = false;
             int32_t integer_value = 0;

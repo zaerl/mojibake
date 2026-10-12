@@ -33,8 +33,7 @@ static int mjbsh_bidi_revolve(const char *input) {
     bool is_json = (cmd_output_mode == OUTPUT_MODE_JSON);
 
     mjb_bidi_paragraph para;
-    mjb_status status = mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-        &para);
+    mjb_status status = mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, cmd_direction, &para);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));
@@ -56,10 +55,44 @@ static int mjbsh_bidi_revolve(const char *input) {
         return mjbsh_error("bidi: line reordering failed");
     }
 
+    // Visual level runs: count first, then fill.
+    size_t run_count = 0;
+    mjb_bidi_run *runs = NULL;
+
+    if(para.count > 0) {
+        if(mjb_bidi_line_runs(&para, visual_order, para.count, NULL, &run_count) != MJB_STATUS_OK) {
+            free(visual_order);
+            mjb_bidi_paragraph_free(&para);
+
+            return mjbsh_error("bidi: line runs failed");
+        }
+
+        runs = run_count > 0 ? (mjb_bidi_run *)malloc(run_count * sizeof(mjb_bidi_run)) : NULL;
+
+        if(run_count > 0 && runs == NULL) {
+            free(visual_order);
+            mjb_bidi_paragraph_free(&para);
+
+            return mjbsh_error("bidi: could not allocate runs");
+        }
+
+        if(run_count > 0 &&
+            mjb_bidi_line_runs(&para, visual_order, para.count, runs, &run_count) !=
+                MJB_STATUS_OK) {
+            free(runs);
+            free(visual_order);
+            mjb_bidi_paragraph_free(&para);
+
+            return mjbsh_error("bidi: line runs failed");
+        }
+    }
+
     if(is_json) {
         printf("{%s", mjbsh_jnl());
     }
 
+    mjbsh_value("Base direction", 1, "%s",
+        is_json ? bidi_dir_json(cmd_direction) : bidi_dir_name(cmd_direction));
     mjbsh_numeric("Paragraph level", 1, para.paragraph_level);
     mjbsh_value("Direction", 1, "%s",
         is_json ? bidi_dir_json(para.direction) : bidi_dir_name(para.direction));
@@ -115,9 +148,41 @@ static int mjbsh_bidi_revolve(const char *input) {
     printf("%s%s", mjbsh_reset(), is_json ? "]" : "");
 
     if(is_json) {
-        printf("%s}", mjbsh_jnl());
+        printf(",%s%s%s\"runs\":%s[%s", mjbsh_jnl(), mjbsh_ji(), mjbsh_ji(),
+            cmd_json_indent == 0 ? "" : " ", run_count > 0 ? mjbsh_jnl() : "");
+    } else {
+        puts("");
     }
 
+    for(size_t i = 0; i < run_count; ++i) {
+        if(is_json) {
+            printf("%s%s{%s", mjbsh_ji(), mjbsh_ji(), mjbsh_jnl());
+        } else {
+            puts("");
+        }
+
+        unsigned int previous_indent = cmd_json_indent;
+        cmd_json_indent *= 2;
+
+        mjbsh_numeric("Run", 1, (unsigned int)i);
+        mjbsh_numeric("Start", 1, (unsigned int)runs[i].start);
+        mjbsh_numeric("End", 1, (unsigned int)runs[i].end);
+        mjbsh_numeric("Level", 1, runs[i].level);
+        mjbsh_value("Direction", 0, "%s",
+            is_json ? bidi_dir_json(runs[i].direction) : bidi_dir_name(runs[i].direction));
+
+        cmd_json_indent = previous_indent;
+
+        if(is_json) {
+            printf("%s%s}%s%s", mjbsh_ji(), mjbsh_ji(), i != run_count - 1 ? "," : "", mjbsh_jnl());
+        }
+    }
+
+    if(is_json) {
+        printf("%s%s]%s}", mjbsh_ji(), mjbsh_ji(), mjbsh_jnl());
+    }
+
+    free(runs);
     free(visual_order);
     mjb_bidi_paragraph_free(&para);
 
