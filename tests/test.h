@@ -32,6 +32,8 @@ mjb_status mjb_test_allocator_install_status(void);
 void mjb_test_allocator_reset(void);
 void mjb_test_allocator_fail_after(size_t fail_after);
 size_t mjb_test_allocator_call_count(void);
+size_t mjb_test_allocator_allocation_count(void);
+size_t mjb_test_allocator_live_count(void);
 
 // Set the coverage for those ATT_ASSERT calls that not directly call a mjb_* function.
 #define MJB_TEST_COVERAGE(NAME) mjb_test_coverage_set(#NAME)

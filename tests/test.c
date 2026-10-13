@@ -44,9 +44,10 @@ typedef struct mjb_test_allocator_state {
     size_t call_count;
     size_t allocation_count;
     size_t fail_after;
+    size_t live_count;
 } mjb_test_allocator_state;
 
-static mjb_test_allocator_state allocator_state = { 0, 0, SIZE_MAX };
+static mjb_test_allocator_state allocator_state = { 0, 0, SIZE_MAX, 0 };
 static mjb_status allocator_invalid_status = MJB_STATUS_OK;
 static mjb_status allocator_install_status = MJB_STATUS_INVALID_ARGUMENT;
 
@@ -58,7 +59,13 @@ static void *mjb_test_alloc(void *context, size_t size) {
         return NULL;
     }
 
-    return malloc(size);
+    void *ptr = malloc(size);
+
+    if(ptr != NULL) {
+        ++state->live_count;
+    }
+
+    return ptr;
 }
 
 static void *mjb_test_realloc(void *context, void *ptr, size_t new_size) {
@@ -69,12 +76,23 @@ static void *mjb_test_realloc(void *context, void *ptr, size_t new_size) {
         return NULL;
     }
 
-    return realloc(ptr, new_size);
+    void *new_ptr = realloc(ptr, new_size);
+
+    if(ptr == NULL && new_ptr != NULL) {
+        ++state->live_count;
+    }
+
+    return new_ptr;
 }
 
 static void mjb_test_dealloc(void *context, void *ptr) {
     mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
     ++state->call_count;
+
+    if(ptr != NULL) {
+        --state->live_count;
+    }
+
     free(ptr);
 }
 
@@ -111,6 +129,14 @@ void mjb_test_allocator_fail_after(size_t fail_after) {
 
 size_t mjb_test_allocator_call_count(void) {
     return allocator_state.call_count;
+}
+
+size_t mjb_test_allocator_allocation_count(void) {
+    return allocator_state.allocation_count;
+}
+
+size_t mjb_test_allocator_live_count(void) {
+    return allocator_state.live_count;
 }
 
 typedef struct {

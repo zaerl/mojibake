@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,623,822** C assertions and **149** JavaScript assertions, including all
+Mojibake runs a total of **4,624,755** C assertions and **149** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -22,53 +22,55 @@ the official tests included in the standard:
 
 | Test                                       | Coverage    |
 | ------------------------------------------ | ----------- |
-| `mjb_normalize_into`                       | 2823989     |
-| `mjb_bidi_resolve`                         | 582576      |
-| `mjb_normalize`                            | 424420      |
-| `mjb_collation_compare`                    | 424127      |
+| `mjb_normalize_into`                       | 2824000     |
+| `mjb_bidi_resolve`                         | 582611      |
+| `mjb_normalize`                            | 424433      |
+| `mjb_collation_compare`                    | 424197      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_codepoint_info`                       | 82678       |
-| `mjb_nfkc_casefold_into`                   | 74756       |
-| `mjb_nfkc_casefold`                        | 32047       |
-| `mjb_map_case_into`                        | 24758       |
+| `mjb_nfkc_casefold_into`                   | 74801       |
+| `mjb_nfkc_casefold`                        | 32098       |
+| `mjb_map_case_into`                        | 24762       |
 | `mjb_next_line_break`                      | 19352       |
-| `mjb_result_free`                          | 14230       |
-| `mjb_idna_to_unicode`                      | 6408        |
-| `mjb_idna_to_ascii`                        | 6405        |
+| `mjb_result_free`                          | 14235       |
+| `mjb_idna_to_ascii`                        | 6460        |
+| `mjb_idna_to_unicode`                      | 6455        |
 | `mjb_emoji_sequence_info`                  | 5286        |
-| `mjb_map_case`                             | 3501        |
+| `mjb_map_case`                             | 3510        |
 | `mjb_next_word_break`                      | 1947        |
 | `mjb_codepoint_emoji_properties`           | 1429        |
 | `mjb_next_grapheme_break`                  | 880         |
 | `mjb_codepoint_script_extensions`          | 642         |
 | `mjb_next_sentence_break`                  | 515         |
-| `mjb_confusable_match`                     | 241         |
-| `mjb_filter`                               | 172         |
-| `mjb_convert_encoding`                     | 145         |
+| `mjb_confusable_match`                     | 351         |
+| `mjb_filter`                               | 192         |
+| `mjb_convert_encoding`                     | 154         |
+| `mjb_collation_key`                        | 137         |
 | `mjb_codepoint_count`                      | 128         |
+| `mjb_confusable_skeleton_into`             | 115         |
 | `mjb_codepoint_encode`                     | 106         |
+| `mjb_caseless_match`                       | 104         |
 | `mjb_resolved_script_set`                  | 97          |
-| `mjb_locale_parse`                         | 85          |
-| `mjb_terminal_width`                       | 69          |
-| `mjb_collation_key`                        | 63          |
-| `mjb_filter_into`                          | 58          |
-| `mjb_confusable_skeleton_into`             | 50          |
+| `mjb_locale_parse`                         | 91          |
+| `mjb_confusable_skeleton`                  | 87          |
+| `mjb_terminal_width`                       | 80          |
+| `mjb_collation_key_into`                   | 76          |
+| `mjb_filter_into`                          | 68          |
+| `mjb_idna_to_ascii_into`                   | 63          |
 | `mjb_hangul_syllable_composition`          | 50          |
 | `mjb_word_count`                           | 49          |
-| `mjb_caseless_match`                       | 45          |
 | `mjb_grapheme_count`                       | 45          |
+| `mjb_idna_to_unicode_into`                 | 43          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_normalization_quick_check`            | 36          |
 | `mjb_string_validate`                      | 36          |
 | `mjb_codepoint_east_asian_width`           | 35          |
 | `mjb_sentence_count`                       | 33          |
+| `mjb_utf8_grapheme_snprintf`               | 31          |
 | `mjb_decode_next`                          | 27          |
-| `mjb_utf8_grapheme_snprintf`               | 24          |
-| `mjb_collation_key_into`                   | 23          |
+| `mjb_convert_encoding_into`                | 22          |
 | `mjb_utf8_snprintf`                        | 21          |
 | `mjb_codepoint_numeric_value`              | 20          |
-| `mjb_confusable_skeleton`                  | 20          |
-| `mjb_convert_encoding_into`                | 19          |
 | `mjb_decode_previous`                      | 19          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_is_utf8`                              | 19          |
@@ -86,7 +88,6 @@ the official tests included in the standard:
 | `mjb_truncate_grapheme_width`              | 10          |
 | `mjb_plane_name`                           | 9           |
 | `mjb_codepoint_is_cjk_ideograph`           | 8           |
-| `mjb_idna_to_ascii_into`                   | 8           |
 | `mjb_truncate_word`                        | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
@@ -106,7 +107,6 @@ the official tests included in the standard:
 | `mjb_codepoint_is_pattern_syntax`          | 4           |
 | `mjb_codepoint_is_pattern_white_space`     | 4           |
 | `mjb_codepoint_plane`                      | 4           |
-| `mjb_idna_to_unicode_into`                 | 4           |
 | `mjb_is_rgi_emoji`                         | 4           |
 | `mjb_plane_is_valid`                       | 4           |
 | `mjb_status_message`                       | 4           |
@@ -131,7 +131,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4623822** |
+| **Total**                                  | **4624755** |
 
 ## JavaScript
 
