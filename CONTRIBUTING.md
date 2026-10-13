@@ -203,9 +203,9 @@ new assertion:
 
 ```c
 size_t count = 0;
-ATT_ASSERT_STATUS(mjb_codepoint_count("Hello, test", 11, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                      &count, NULL),
-    MJB_STATUS_OK, "UTF-8 Hello, test status")
+mjb_text text = mjb_text_utf8("Hello, test", 11);
+ATT_ASSERT_STATUS(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &count, NULL), MJB_STATUS_OK,
+    "UTF-8 Hello, test status")
 ATT_ASSERT(count, (size_t)11, "UTF-8 Hello, test")
 ```
 

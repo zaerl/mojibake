@@ -245,8 +245,9 @@ static mjb_status mjb_normalization_estimate(const char *buffer, size_t byte_len
     if(encoding == output_encoding) {
         *potential_output_size = byte_length;
     } else {
-        mjb_status count_status = mjb_codepoint_count(buffer, byte_length, encoding,
-            MJB_MALFORMED_STOP, potential_output_size, NULL);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        mjb_status count_status = mjb_codepoint_count(&text, MJB_MALFORMED_STOP,
+            potential_output_size, NULL);
 
         if(count_status != MJB_STATUS_OK) {
             return count_status;

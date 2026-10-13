@@ -37,9 +37,9 @@ static mjb_status test_output_failure_writer(mjb_output *output, const void *con
 // Return the codepoint count, or SIZE_MAX when mjb_codepoint_count reports a failure.
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
-        MJB_STATUS_OK) {
+    if(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 
@@ -131,16 +131,28 @@ ATT_TEST(string) {
     ATT_ASSERT(count_codepoints("Hello", 5, MJB_ENC_ASCII), 5, "ASCII length: Hello");
 
     size_t codepoint_count = 6251;
-    ATT_ASSERT_STATUS(mjb_codepoint_count("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, NULL, NULL),
+    mjb_text count_text = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&count_text, MJB_MALFORMED_STOP, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Codepoint count rejects NULL count");
-    ATT_ASSERT_STATUS(mjb_codepoint_count(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                          &codepoint_count, NULL),
+    count_text = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&count_text, MJB_MALFORMED_STOP, &codepoint_count, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Codepoint count rejects NULL buffer");
     ATT_ASSERT(codepoint_count, (size_t)0, "Codepoint count is zero after NULL buffer");
 
     codepoint_count = 6251;
-    ATT_ASSERT_STATUS(mjb_codepoint_count("Hello", 5, MJB_ENC_UNKNOWN, MJB_MALFORMED_STOP,
-                          &codepoint_count, NULL),
+    ATT_ASSERT_STATUS(mjb_codepoint_count(NULL, MJB_MALFORMED_STOP, &codepoint_count, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Codepoint count rejects NULL text");
+    ATT_ASSERT(codepoint_count, (size_t)0, "Codepoint count is zero after NULL text");
+
+    codepoint_count = 6251;
+    count_text = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&count_text, (mjb_malformed_policy)99, &codepoint_count,
+                          NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Codepoint count rejects an invalid malformed policy");
+
+    codepoint_count = 6251;
+    count_text = mjb_text_make("Hello", 5, MJB_ENC_UNKNOWN);
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&count_text, MJB_MALFORMED_STOP, &codepoint_count, NULL),
         MJB_STATUS_INVALID_ENCODING, "Codepoint count rejects an unknown encoding");
     ATT_ASSERT(codepoint_count, (size_t)0, "Codepoint count is zero after invalid encoding");
 

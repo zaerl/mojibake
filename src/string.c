@@ -180,9 +180,8 @@ mjb_status mjb_output_copy_into(const void *buffer, size_t byte_length, void *ou
 /**
  * Count the codepoints in a string.
  */
-MJB_EXPORT mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count,
-    mjb_diagnostic *diagnostic) {
+MJB_EXPORT mjb_status mjb_codepoint_count(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic) {
     if(count == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -190,9 +189,13 @@ MJB_EXPORT mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length
     *count = 0;
     mjb_diagnostic_reset(diagnostic);
 
-    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(!mjb_encoding_is_valid_input(encoding)) {
         return MJB_STATUS_INVALID_ENCODING;

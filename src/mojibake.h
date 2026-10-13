@@ -32,16 +32,6 @@
 extern "C" {
 #endif
 
-// Static assertions for important constants
-// clang-format off
-#if defined(__cplusplus)
-    static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
-    static_assert(sizeof(char) == 1, "char must be 1 byte");
-#else
-    _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
-    _Static_assert(sizeof(char) == 1, "char must be 1 byte");
-#endif
-
 #define MJB_VERSION_NUMBER 0x42 // MAJOR << 8 | MINOR << 4 | REVISION
 #define MJB_VERSION_MAJOR 0
 #define MJB_VERSION_MINOR 4
@@ -733,7 +723,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_next(const char *buffer, size_t b
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_previous(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic);
 
 // Count the codepoints in a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Run a callback for each codepoint of a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic);

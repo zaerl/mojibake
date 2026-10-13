@@ -28,6 +28,14 @@ class MjbResult(ctypes.Structure):
     ]
 
 
+class MjbText(ctypes.Structure):
+    _fields_ = [
+        ("buffer", ctypes.c_char_p),
+        ("byte_length", ctypes.c_size_t),
+        ("encoding", ctypes.c_int),
+    ]
+
+
 def library_path() -> Path:
     build_dir = Path(__file__).resolve().parent.parent / "build"
 
@@ -67,9 +75,7 @@ def load_mojibake() -> ctypes.CDLL:
     library.mjb_nfkc_casefold.restype = ctypes.c_int
 
     library.mjb_codepoint_count.argtypes = [
-        ctypes.c_char_p,
-        ctypes.c_size_t,
-        ctypes.c_int,
+        ctypes.POINTER(MjbText),
         ctypes.c_int,
         ctypes.POINTER(ctypes.c_size_t),
         ctypes.c_void_p,
@@ -153,8 +159,9 @@ def main() -> int:
 
     # Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
     codepoint_count = ctypes.c_size_t(0)
+    text = MjbText(mojibake, len(mojibake), MJB_ENC_UTF_8)
     status = library.mjb_codepoint_count(
-        mojibake, len(mojibake), MJB_ENC_UTF_8, 0, ctypes.byref(codepoint_count), None
+        ctypes.byref(text), 0, ctypes.byref(codepoint_count), None
     )
 
     if status != MJB_STATUS_OK:

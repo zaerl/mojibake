@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Breaking**: `mjb_string_validate(buffer, byte_length, encoding, diagnostic)` is now
   `mjb_validate_encoding(const mjb_text *text, diagnostic)`
+- **Breaking**: `mjb_codepoint_count` now takes a `const mjb_text *` instead of the buffer, byte
+  length, and encoding
 - `make tidy` now runs clang-tidy with `.clang-tidy` over the library, CLI, and tests, replacing
   cppcheck
 
@@ -26,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI: the interactive screen signal handler now restores the cursor and terminal using only
   async-signal-safe calls
 - Fixed all clang-tidy findings in the library, CLI, and tests
+- Site: the malformed policy is now passed through the API options, so the arguments that follow
+  it, such as the normalization form, are no longer shifted
 
 ## [0.4.2] - 2026-10-12
 Codename: [LATIN CAPITAL LETTER B]

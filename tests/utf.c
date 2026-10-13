@@ -10,9 +10,9 @@
 // Return the codepoint count, or SIZE_MAX when mjb_codepoint_count reports a failure.
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
-        MJB_STATUS_OK) {
+    if(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 

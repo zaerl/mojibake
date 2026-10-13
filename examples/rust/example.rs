@@ -12,6 +12,13 @@ const MJB_NORMALIZATION_NFC: c_int = 0;
 const MJB_MALFORMED_STOP: c_int = 0;
 
 #[repr(C)]
+struct MjbText {
+    buffer: *const c_char,
+    byte_length: usize,
+    encoding: c_int,
+}
+
+#[repr(C)]
 struct MjbResult {
     output: *mut c_char,
     output_size: usize,
@@ -67,9 +74,7 @@ extern "C" {
     ) -> c_int;
 
     fn mjb_codepoint_count(
-        buffer: *const c_char,
-        byte_length: usize,
-        encoding: c_int,
+        text: *const MjbText,
         malformed_policy: c_int,
         count: *mut usize,
         diagnostic: *mut std::ffi::c_void,
@@ -120,11 +125,14 @@ fn run() -> bool {
 
     // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
     let mut codepoint_count: usize = 0;
+    let text = MjbText {
+        buffer: mojibake.as_ptr().cast(),
+        byte_length: mojibake.len(),
+        encoding: MJB_ENC_UTF_8,
+    };
     let status = unsafe {
         mjb_codepoint_count(
-            mojibake.as_ptr().cast(),
-            mojibake.len(),
-            MJB_ENC_UTF_8,
+            &text,
             MJB_MALFORMED_STOP,
             &mut codepoint_count,
             std::ptr::null_mut(),

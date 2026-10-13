@@ -36,9 +36,9 @@ int main(int argc, char *const argv[]) {
 
     // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
     size_t codepoint_count = 0;
+    mjb_text text = mjb_text_utf8(mojibake, length);
 
-    if(mjb_codepoint_count(mojibake, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &codepoint_count,
-           NULL) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &codepoint_count, NULL) != MJB_STATUS_OK) {
         return 1;
     }
 

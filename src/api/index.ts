@@ -893,15 +893,16 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_codepoint_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_codepoint_count(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // size_t *count, mjb_diagnostic *diagnostic)
   codepointCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const countPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_codepoint_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
+      const status = this.module._mjb_codepoint_count(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -910,6 +911,7 @@ export class Mojibake {
       return null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(countPtr);
     }
   }
@@ -1950,6 +1952,19 @@ export class Mojibake {
       size: bytes.length,
       encoding
     };
+  }
+
+  // Write a mjb_text structure. On wasm32 it is three 32-bit fields: buffer, byte_length, and
+  // encoding. src/string.c checks this layout at compile time.
+  private copyText(input: WasmInput): Pointer {
+    const ptr = this.malloc(12, false);
+    const index = ptr / 4;
+
+    this.module.HEAP32[index] = input.ptr;
+    this.module.HEAP32[index + 1] = input.size;
+    this.module.HEAP32[index + 2] = input.encoding;
+
+    return ptr;
   }
 
   private encodeString(str: string, encoding = Encoding.UTF_8): Uint8Array {

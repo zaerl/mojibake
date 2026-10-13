@@ -40,6 +40,13 @@
 #define MJB_LOCAL
 #endif
 
+// Compile-time assertion usable from both C11 and C++17
+#if defined(__cplusplus)
+#define MJB_STATIC_ASSERT(condition, message) static_assert(condition, message)
+#else
+#define MJB_STATIC_ASSERT(condition, message) _Static_assert(condition, message)
+#endif
+
 #define MJB_UTF_ACCEPT 0
 #define MJB_UTF_PENDING_SURROGATE 0xD
 #define MJB_UTF_TERMINATED 0xE
