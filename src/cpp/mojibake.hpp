@@ -877,8 +877,9 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_filter(input.data(), input.size(), input_encoding,
-        malformed_policy, filters, output_encoding, detail::ResultAccess::out(result), diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_filter(&text, malformed_policy, filters, output_encoding,
+        detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "String filtering failed");
 }

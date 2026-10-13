@@ -12,8 +12,9 @@ static int mjbsh_print_filter_analysis(const char *input) {
     mjb_result result;
     size_t input_size = strlen(input);
 
-    mjb_status status = mjb_filter(input, input_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        filter_flags, MJB_ENC_UTF_8, &result, NULL);
+    mjb_text text = mjb_text_utf8(input, input_size);
+    mjb_status status = mjb_filter(&text, MJB_MALFORMED_STOP, filter_flags, MJB_ENC_UTF_8, &result,
+        NULL);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));

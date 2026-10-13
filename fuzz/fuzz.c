@@ -487,20 +487,24 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 6: { // String filtering, all filter combinations
             mjb_malformed_policy policy = (mjb_malformed_policy)(variant % 3);
 
-            if(mjb_filter(buffer, size, encoding, policy, (mjb_filter_flags)(variant & 0x1F),
-                   MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK) {
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            if(mjb_filter(&text, policy, (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8, &result,
+                   NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            size_t required = 0;
+            mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-            if(mjb_filter_into(buffer, size, encoding, policy, (mjb_filter_flags)(variant & 0x1F),
-                   MJB_ENC_UTF_8, NULL, &required, NULL) == MJB_STATUS_OK &&
-                required <= 4096) {
+            if(mjb_filter_into(&text, policy, (mjb_filter_flags)(variant & 0x1F), &into, NULL) ==
+                    MJB_STATUS_OK &&
+                into.size <= 4096) {
                 char output[4096];
-                size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
-                fuzz_sink += (size_t)mjb_filter_into(buffer, size, encoding, policy,
-                    (mjb_filter_flags)(variant & 0x1F), MJB_ENC_UTF_8, output, &capacity, NULL);
+                size_t required = into.size;
+                // Sometimes leave one byte short to exercise the too-small path
+                into = mjb_buffer_make(output,
+                    (variant & 0x80) != 0 && required > 0 ? required - 1 : required, MJB_ENC_UTF_8);
+                fuzz_sink += (size_t)mjb_filter_into(&text, policy,
+                    (mjb_filter_flags)(variant & 0x1F), &into, NULL);
             }
 
             break;

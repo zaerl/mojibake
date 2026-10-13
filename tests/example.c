@@ -86,12 +86,11 @@ ATT_TEST(example) {
 {
     // Example for mjb_filter
     MJB_TEST_COVERAGE(mjb_filter); // Added by the script
-    const char *mixed_whitespace = "Hello\t\t\n\nworld";
+    mjb_text mixed_whitespace = mjb_text_utf8("Hello\t\t\n\nworld", MJB_NUL_TERMINATED);
     mjb_result result;
 
-    if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result,
-        NULL) != MJB_STATUS_OK) {
+    if(mjb_filter(&mixed_whitespace, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8,
+        &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter test failed"); // Added by the script
         return;
     }
@@ -103,10 +102,10 @@ ATT_TEST(example) {
 
     mjb_result_free(&result);
 
-    const char *controls = "\x1\x2\t\n\v\f\r\x1f";
+    mjb_text controls = mjb_text_utf8("\x1\x2\t\n\v\f\r\x1f", MJB_NUL_TERMINATED);
 
-    if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+    if(mjb_filter(&controls, MJB_MALFORMED_STOP, MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter test failed"); // Added by the script
         return;
     }
@@ -122,28 +121,34 @@ ATT_TEST(example) {
 {
     // Example for mjb_filter_into
     MJB_TEST_COVERAGE(mjb_filter_into); // Added by the script
-    const char *input = "Hello\t\t\nworld";
-    size_t output_size = 0;
+    mjb_text input = mjb_text_utf8("Hello\t\t\nworld", MJB_NUL_TERMINATED);
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-    if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, NULL, &output_size,
+    // Query the required size
+    if(mjb_filter_into(&input, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, &output,
         NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter_into test failed"); // Added by the script
         return;
     }
 
-    char output[11];
+    char storage[11];
 
-    if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output,
-        &output_size, NULL) != MJB_STATUS_OK) {
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_filter_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+    if(mjb_filter_into(&input, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, &output,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_filter_into test failed"); // Added by the script
         return;
     }
 
     // Filtered payload (no terminator): Hello world
-    // printf("Filtered payload (no terminator): %.*s", (int)output_size, output);
-    snprintf(test_buffer, sizeof(test_buffer), "Filtered payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    // printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);
+    snprintf(test_buffer, sizeof(test_buffer), "Filtered payload (no terminator): %.*s", (int)output.size, storage); // Added by the script
     ATT_ASSERT(test_buffer, "Filtered payload (no terminator): Hello world", "mjb_filter_into test failed"); // Added by the script
 }
 

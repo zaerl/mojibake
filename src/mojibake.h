@@ -712,10 +712,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const mjb_text *text, mjb_malf
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Filter a string with the selected mjb_filter_flags.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Filter a string into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Apply the Unicode NFKC_Casefold transform to a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);

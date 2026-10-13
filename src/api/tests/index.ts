@@ -80,6 +80,9 @@ ATT_ASSERT(mojibake.normalize(malformedText, Normalization.NFC,
 ATT_ASSERT(mojibake.normalize(malformedText, Normalization.NFC,
   { malformedPolicy: MalformedPolicy.SKIP })?.output, 'AB',
   'normalize malformed skip policy');
+ATT_ASSERT(mojibake.filter('a\u00A0b', FilterFlags.SPACES,
+  { encoding: Encoding.UTF_16BE, outputEncoding: Encoding.UTF_32LE })?.output, 'a b',
+  'filter UTF-16BE input to UTF-32LE output');
 ATT_ASSERT(mojibake.filter(malformedText), null, 'filter malformed stop policy');
 ATT_ASSERT(mojibake.filter(malformedText, FilterFlags.NONE,
   { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'A\uFFFDB',

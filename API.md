@@ -594,9 +594,7 @@ Filter a string with the selected mjb_filter_flags.
 
 ```c
 mjb_status mjb_filter(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_filter_flags filters,
     mjb_encoding output_encoding,
@@ -607,9 +605,7 @@ mjb_status mjb_filter(
 
 `MJB_FILTER_LIMIT_COMBINING` removes combining marks after the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in an emitted run. This is useful for reducing Zalgo-style text while keeping ordinary accents and stacked marks. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`; `diagnostic` records the first one encountered.
 
-- `buffer` - The string to filter
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to filter
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
@@ -619,7 +615,7 @@ mjb_status mjb_filter(
 **Returns**
 
 - `MJB_STATUS_OK` - The filtered string was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
@@ -629,12 +625,11 @@ mjb_status mjb_filter(
 **Example**
 
 ```c
-const char *mixed_whitespace = "Hello\t\t\n\nworld";
+mjb_text mixed_whitespace = mjb_text_utf8("Hello\t\t\n\nworld", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_filter(mixed_whitespace, strlen(mixed_whitespace), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, &result,
-    NULL) != MJB_STATUS_OK) {
+if(mjb_filter(&mixed_whitespace, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8,
+    &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -643,10 +638,10 @@ printf("Filtered: %.*s", (int)result.output_size, result.output);
 
 mjb_result_free(&result);
 
-const char *controls = "\x1\x2\t\n\v\f\r\x1f";
+mjb_text controls = mjb_text_utf8("\x1\x2\t\n\v\f\r\x1f", MJB_NUL_TERMINATED);
 
-if(mjb_filter(controls, strlen(controls), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+if(mjb_filter(&controls, MJB_MALFORMED_STOP, MJB_FILTER_CONTROLS, MJB_ENC_UTF_8, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -664,34 +659,26 @@ Filter a string into a caller-provided buffer.
 
 ```c
 mjb_status mjb_filter_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_filter_flags filters,
-    mjb_encoding output_encoding,
-    void *output,
-    size_t *output_size,
+    mjb_buffer *output,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Apply the same filters as `mjb_filter` without allocating the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
-- `buffer` - The string to filter
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to filter
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
-- `output_encoding` - The output encoding of the string
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the filtered string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a filtered codepoint
@@ -702,25 +689,30 @@ Apply the same filters as `mjb_filter` without allocating the final output buffe
 **Example**
 
 ```c
-const char *input = "Hello\t\t\nworld";
-size_t output_size = 0;
+mjb_text input = mjb_text_utf8("Hello\t\t\nworld", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-if(mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, NULL, &output_size,
+// Query the required size
+if(mjb_filter_into(&input, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-char output[11];
+char storage[11];
 
-if(output_size > sizeof(output) || mjb_filter_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8, output,
-    &output_size, NULL) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_filter_into(&input, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, &output,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Filtered payload (no terminator): Hello world
-printf("Filtered payload (no terminator): %.*s", (int)output_size, output);
+printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
 See also: [`mjb_filter`](#mjb_filter), [`mjb_normalize`](#mjb_normalize).
