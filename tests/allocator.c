@@ -100,7 +100,8 @@ static mjb_status sweep_nfkc_casefold_into(bool *cleared) {
 
 static mjb_status sweep_filter(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_filter(sweep_text, sweep_text_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_filter(&text, MJB_MALFORMED_STOP,
         (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_COLLAPSE_SPACES |
             MJB_FILTER_LIMIT_COMBINING),
         MJB_ENC_UTF_8, &result, NULL);
@@ -110,12 +111,12 @@ static mjb_status sweep_filter(bool *cleared) {
 }
 
 static mjb_status sweep_filter_into(bool *cleared) {
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_filter_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES),
-        MJB_ENC_UTF_8, output, &output_size, NULL);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+    mjb_status status = mjb_filter_into(&text, MJB_MALFORMED_STOP,
+        (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES), &output, NULL);
+    *cleared = into_done(status, output.size);
 
     return status;
 }
@@ -360,11 +361,12 @@ static void no_allocation(void) {
     ATT_ASSERT(output_size, (size_t)1, "Caller-buffer case mapping output size");
     ATT_ASSERT((unsigned int)output[0], (unsigned int)'A', "Caller-buffer case mapping output");
 
-    output_size = sizeof(output);
-    ATT_ASSERT_STATUS(mjb_filter_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                          MJB_FILTER_NONE, MJB_ENC_UTF_8, output, &output_size, NULL),
+    mjb_text filter_text = mjb_text_utf8("a", 1);
+    mjb_buffer filter_output = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_filter_into(&filter_text, MJB_MALFORMED_STOP, MJB_FILTER_NONE,
+                          &filter_output, NULL),
         MJB_STATUS_OK, "Caller-buffer filtering does not allocate");
-    ATT_ASSERT(output_size, (size_t)1, "Caller-buffer filtering output size");
+    ATT_ASSERT(filter_output.size, (size_t)1, "Caller-buffer filtering output size");
     ATT_ASSERT((unsigned int)output[0], (unsigned int)'a', "Caller-buffer filtering output");
 
     mjb_text text = mjb_text_utf8("\xC3\xA9", 2);

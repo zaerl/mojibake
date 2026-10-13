@@ -654,20 +654,20 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, mjb_filter_flags filters,
-  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result,
+  // mjb_diagnostic *diagnostic)
   filter(input: MojibakeInput, filters = FilterFlags.NONE,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_filter(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, filters,
-        outputEncoding, resultPtr, 0);
+      const status = this.module._mjb_filter(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, filters, outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -682,6 +682,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }

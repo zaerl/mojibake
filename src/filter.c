@@ -140,13 +140,18 @@ static mjb_status mjb_filter_write(mjb_output *output, const void *context) {
     return mjb_filter_process((const mjb_filter_context *)context, output, NULL);
 }
 
-MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding,
-    mjb_result *result, mjb_diagnostic *diagnostic) {
-    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+MJB_EXPORT mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malformed_policy,
+    mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result,
+    mjb_diagnostic *diagnostic) {
+    if(result == NULL || text == NULL || (text->buffer == NULL && text->byte_length > 0) ||
         !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    // Normalization below replaces these with the normalized copy.
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     mjb_diagnostic_reset(diagnostic);
 
@@ -173,8 +178,8 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     if(filters & MJB_FILTER_NORMALIZE) {
         mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ? output_encoding :
                                                                                    encoding;
-        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFC,
+        mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_normalize(&resolved, malformed_policy, MJB_NORMALIZATION_NFC,
             normalize_output_encoding, result, diagnostic);
 
         if(status != MJB_STATUS_OK) {
@@ -243,12 +248,15 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding,
-    void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
-    if(output_size == NULL) {
+MJB_EXPORT mjb_status mjb_filter_into(const mjb_text *text, mjb_malformed_policy malformed_policy,
+    mjb_filter_flags filters, mjb_buffer *output, mjb_diagnostic *diagnostic) {
+    if(output == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    void *data = output->data;
+    size_t *output_size = &output->size;
+    mjb_encoding output_encoding = output->encoding;
 
     mjb_diagnostic_reset(diagnostic);
 
@@ -258,11 +266,16 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
+    if(text == NULL || (text->buffer == NULL && text->byte_length > 0)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    // Normalization below replaces these with the normalized copy.
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
         *output_size = 0;
@@ -279,26 +292,23 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
     }
 
     if(byte_length == 0) {
-        return mjb_output_copy_into(buffer, byte_length, output, output_size);
+        return mjb_output_copy_into(buffer, byte_length, data, output_size);
     }
 
     bool normalization_requested = (filters & MJB_FILTER_NORMALIZE) != 0;
 
     if(filters == MJB_FILTER_NORMALIZE) {
-        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        mjb_buffer output_buffer = mjb_buffer_make(output, *output_size, output_encoding);
-        status = mjb_normalize_into(&text, malformed_policy, MJB_NORMALIZATION_NFC, &output_buffer,
-            diagnostic);
-        *output_size = output_buffer.size;
+        mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
 
-        return status;
+        return mjb_normalize_into(&resolved, malformed_policy, MJB_NORMALIZATION_NFC, output,
+            diagnostic);
     }
 
     mjb_result normalized = { NULL, 0, false };
 
     if(normalization_requested) {
-        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFC, encoding,
+        mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_normalize(&resolved, malformed_policy, MJB_NORMALIZATION_NFC, encoding,
             &normalized, diagnostic);
 
         if(status != MJB_STATUS_OK) {
@@ -313,7 +323,7 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
 
     mjb_filter_context context = { buffer, byte_length, encoding, malformed_policy, filters,
         output_encoding, diagnostic };
-    status = mjb_output_into(output, output_size, mjb_filter_write, &context);
+    status = mjb_output_into(data, output_size, mjb_filter_write, &context);
 
     if(normalization_requested) {
         mjb_result_free(&normalized);
