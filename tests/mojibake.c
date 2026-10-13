@@ -36,8 +36,34 @@ static void test_text(void) {
         "Buffer text uses the buffer encoding");
 }
 
+static void test_result_chaining(void) {
+    mjb_text text = mjb_text_utf8("Ab", 2);
+    mjb_result result;
+
+    // An already normalized input is returned as-is, without allocating
+    ATT_ASSERT_STATUS(mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_UTF_8, &result, NULL),
+        MJB_STATUS_OK, "Normalize returns normalized input as-is");
+    ATT_ASSERT(result.owned, false, "Normalized input is not owned");
+    ATT_ASSERT(result.output == text.buffer, true, "Normalized input points into the input");
+
+    // Chain a result into another call: NFD of U+00E9 is U+0065 U+0301 in UTF-32BE.
+    text = mjb_text_utf8("\xC3\xA9", 2);
+    ATT_ASSERT_STATUS(mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFD,
+                          MJB_ENC_UTF_32BE, &result, NULL),
+        MJB_STATUS_OK, "Normalize a result to chain");
+    ATT_ASSERT(result.owned, true, "A converted result is owned");
+    mjb_text chained = mjb_text_make(result.output, result.output_size, MJB_ENC_UTF_32BE);
+    size_t chained_count = 0;
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&chained, MJB_MALFORMED_STOP, &chained_count, NULL),
+        MJB_STATUS_OK, "Count the chained result");
+    ATT_ASSERT(chained_count, (size_t)2, "Chained result has two codepoints");
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free the chained result");
+}
+
 ATT_TEST(mojibake) {
     test_text();
+    test_result_chaining();
 
     MJB_TEST_COVERAGE(mjb_set_allocator);
     ATT_ASSERT_STATUS(mjb_test_allocator_invalid_status(), MJB_STATUS_INVALID_ARGUMENT,
@@ -63,17 +89,17 @@ ATT_TEST(mojibake) {
     ATT_ASSERT(result.output == NULL, true, "Result output NULL after free");
     ATT_ASSERT(result.output_size, 0, "Result output size 0 after free");
 
-    // An untransformed result borrows the caller's input and must not be released.
+    // A result that does not own its output borrows the caller's input and must not be released.
     char borrowed[] = "A";
-    mjb_result untransformed = { borrowed, 1, false };
+    mjb_result borrowed_result = { borrowed, 1, false };
     mjb_test_allocator_reset();
-    ATT_ASSERT_STATUS(mjb_result_free(&untransformed), MJB_STATUS_OK,
-        "Free untransformed result");
-    size_t untransformed_calls = mjb_test_allocator_call_count();
-    ATT_ASSERT(untransformed_calls, (size_t)0, "Untransformed result is not freed");
-    ATT_ASSERT(untransformed.output == borrowed, true, "Untransformed result keeps its input");
-    ATT_ASSERT(untransformed.output_size, (size_t)1, "Untransformed result keeps its size");
-    ATT_ASSERT(untransformed.transformed, false, "Untransformed result stays untransformed");
+    ATT_ASSERT_STATUS(mjb_result_free(&borrowed_result), MJB_STATUS_OK,
+        "Free a result that does not own its output");
+    size_t borrowed_calls = mjb_test_allocator_call_count();
+    ATT_ASSERT(borrowed_calls, (size_t)0, "A borrowed output is not freed");
+    ATT_ASSERT(borrowed_result.output == borrowed, true, "A borrowed result keeps its input");
+    ATT_ASSERT(borrowed_result.output_size, (size_t)1, "A borrowed result keeps its size");
+    ATT_ASSERT(borrowed_result.owned, false, "A borrowed result stays unowned");
 
     mjb_test_allocator_reset();
 

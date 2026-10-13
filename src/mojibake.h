@@ -348,10 +348,18 @@ typedef struct mjb_locale_id {
     mjb_locale locale; // Matched locale, MJB_LOCALE_NOT_SET if unsupported
 } mjb_locale_id;
 
+/**
+ * The result of an allocating transformation.
+ */
 typedef struct mjb_result {
+    // The output bytes. Use `output_size`: an output that points into the input may not be
+    // NUL-terminated.
     char *output;
+    // The output size in bytes, excluding any terminator.
     size_t output_size;
-    bool transformed;
+    // True if the library allocated `output` and it must be freed with mjb_result_free. False if
+    // `output` points into the caller's input, which must outlive the result.
+    bool owned;
 } mjb_result;
 
 // UTS #46 processing errors. Processing can produce a best-effort result while setting one or

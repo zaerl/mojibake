@@ -102,8 +102,8 @@ class TextResult {
         return data.output_size;
     }
 
-    [[nodiscard]] bool transformed() const noexcept {
-        return data.transformed;
+    [[nodiscard]] bool owned() const noexcept {
+        return data.owned;
     }
 
     [[nodiscard]] std::string_view view() const noexcept {

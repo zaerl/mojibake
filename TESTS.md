@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,624,763** C assertions and **155** JavaScript assertions, including all
+Mojibake runs a total of **4,624,771** C assertions and **155** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -24,7 +24,7 @@ the official tests included in the standard:
 | ------------------------------------------ | ----------- |
 | `mjb_normalize_into`                       | 2824002     |
 | `mjb_bidi_resolve`                         | 582611      |
-| `mjb_normalize`                            | 424434      |
+| `mjb_normalize`                            | 424439      |
 | `mjb_collation_compare`                    | 424197      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_codepoint_info`                       | 82678       |
@@ -32,7 +32,7 @@ the official tests included in the standard:
 | `mjb_nfkc_casefold`                        | 32098       |
 | `mjb_map_case_into`                        | 24762       |
 | `mjb_next_line_break`                      | 19352       |
-| `mjb_result_free`                          | 14235       |
+| `mjb_result_free`                          | 14236       |
 | `mjb_idna_to_ascii`                        | 6460        |
 | `mjb_idna_to_unicode`                      | 6455        |
 | `mjb_emoji_sequence_info`                  | 5286        |
@@ -46,7 +46,7 @@ the official tests included in the standard:
 | `mjb_filter`                               | 192         |
 | `mjb_convert_encoding`                     | 154         |
 | `mjb_collation_key`                        | 137         |
-| `mjb_codepoint_count`                      | 133         |
+| `mjb_codepoint_count`                      | 135         |
 | `mjb_confusable_skeleton_into`             | 115         |
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_caseless_match`                       | 104         |
@@ -131,7 +131,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4624763** |
+| **Total**                                  | **4624771** |
 
 ## JavaScript
 

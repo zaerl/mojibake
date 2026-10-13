@@ -168,8 +168,9 @@ function result(description = 'The pointer to store the result'): MojibakeArg {
     type: 'mjb_result *',
     description,
     wasm_generated: true,
-    ownership: 'If `result->transformed` is true, `result->output` is library-allocated and ' +
-      'must be freed with `mjb_result_free(result)`'
+    ownership: 'If `result->owned` is true, `result->output` is library-allocated and must be ' +
+      'freed with `mjb_result_free(result)`. Otherwise it points into the input, which must ' +
+      'outlive the result'
   };
 }
 
@@ -267,7 +268,7 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
     section: Section.TextTransformation,
     details: 'Normalize a string to the requested Unicode normalization form. If the input is ' +
       'already normalized and no encoding conversion is needed, `text->buffer` is returned ' +
-      'as-is in `result->output` with `result->transformed` set to false, without allocating. ' +
+      'as-is in `result->output` with `result->owned` set to false, without allocating. ' +
       'Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The string was normalized (or already normal)' },

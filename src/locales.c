@@ -908,14 +908,14 @@ MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding
     status = mjb_locale_parse_ascii(ascii_id, ascii_size, locale);
 
     if(status != MJB_STATUS_OK) {
-        if(converted.transformed) {
+        if(converted.owned) {
             mjb_free(converted.output);
         }
 
         return status;
     }
 
-    if(converted.transformed) {
+    if(converted.owned) {
         mjb_free(converted.output);
     }
 

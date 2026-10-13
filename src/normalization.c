@@ -569,14 +569,14 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
-        result->transformed = false;
+        result->owned = false;
 
         return MJB_STATUS_OK;
     }
 
     result->output = NULL;
     result->output_size = 0;
-    result->transformed = false;
+    result->owned = false;
 
     mjb_result sanitized = { NULL, 0, false };
     mjb_quick_check_result is_normalized;
@@ -614,8 +614,8 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
 
         result->output = (char *)buffer;
         result->output_size = byte_length;
-        result->transformed = sanitized.transformed;
-        sanitized.transformed = false;
+        result->owned = sanitized.owned;
+        sanitized.owned = false;
 
         return MJB_STATUS_OK;
     }
@@ -656,7 +656,7 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
     output.buffer[output.size] = '\0';
     result->output = output.buffer;
     result->output_size = output.size;
-    result->transformed = true;
+    result->owned = true;
 
     return MJB_STATUS_OK;
 }
@@ -878,7 +878,7 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
         status = mjb_nfkc_casefold_pass(normalized.output, normalized.output_size, &folded,
             &folded_size);
 
-        if(normalized.transformed) {
+        if(normalized.owned) {
             mjb_free(normalized.output);
         }
 
@@ -921,7 +921,7 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
                 }
 
                 *result = normalized_result;
-                result->transformed = true;
+                result->owned = true;
 
                 return MJB_STATUS_OK;
             }
@@ -967,7 +967,7 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const char *buffer, size_t byte_length,
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
-        result->transformed = false;
+        result->owned = false;
 
         return MJB_STATUS_OK;
     }

@@ -221,7 +221,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         if(result != NULL) {
             result->output = (char *)buffer;
             result->output_size = 0;
-            result->transformed = false;
+            result->owned = false;
 
             return MJB_STATUS_OK;
         }
@@ -245,7 +245,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     char *mid = (char *)mjb_alloc(mid_size);
 
     if(!mid) {
-        if(nfd.transformed) {
+        if(nfd.owned) {
             mjb_free(nfd.output);
         }
 
@@ -270,7 +270,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         }
 
         if(dr == MJB_DECODE_ERROR) {
-            if(nfd.transformed) {
+            if(nfd.owned) {
                 mjb_free(nfd.output);
             }
 
@@ -296,7 +296,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
                 MJB_ENC_UTF_8);
 
             if(new_mid == NULL) {
-                if(nfd.transformed) {
+                if(nfd.owned) {
                     mjb_free(nfd.output);
                 }
 
@@ -309,7 +309,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         }
     }
 
-    if(nfd.transformed) {
+    if(nfd.owned) {
         mjb_free(nfd.output);
     }
 
@@ -321,8 +321,8 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
 
         // mjb_normalize may return result->output == mid when the string is already NFD.
         // In that case transfer ownership so the caller can free it via mjb_result_free.
-        if(status == MJB_STATUS_OK && !result->transformed) {
-            result->transformed = true;
+        if(status == MJB_STATUS_OK && !result->owned) {
+            result->owned = true;
         } else {
             mjb_free(mid);
         }
@@ -452,7 +452,7 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
         output_encoding, result, output, output_size);
 
     if(result != NULL && status == MJB_STATUS_OK && result->output == reordered) {
-        result->transformed = true;
+        result->owned = true;
     } else {
         mjb_free(reordered);
     }
@@ -469,7 +469,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
 
     result->output = NULL;
     result->output_size = 0;
-    result->transformed = false;
+    result->owned = false;
 
     return mjb_confusable_skeleton_process(buffer, byte_length, encoding, output_encoding, result,
         NULL, NULL);
@@ -524,7 +524,7 @@ MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length
     status = mjb_confusable_skeleton(s2, s2_byte_length, s2_encoding, MJB_ENC_UTF_8, &skel2);
 
     if(status != MJB_STATUS_OK) {
-        if(skel1.transformed) {
+        if(skel1.owned) {
             mjb_free(skel1.output);
         }
 
@@ -534,11 +534,11 @@ MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length
     *confusable = (skel1.output_size == skel2.output_size) && skel1.output_size > 0 &&
         (memcmp(skel1.output, skel2.output, skel1.output_size) == 0);
 
-    if(skel1.transformed) {
+    if(skel1.owned) {
         mjb_free(skel1.output);
     }
 
-    if(skel2.transformed) {
+    if(skel2.owned) {
         mjb_free(skel2.output);
     }
 

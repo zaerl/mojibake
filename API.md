@@ -478,13 +478,13 @@ mjb_status mjb_normalize(
 );
 ```
 
-Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, `text->buffer` is returned as-is in `result->output` with `result->transformed` set to false, without allocating. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, `text->buffer` is returned as-is in `result->output` with `result->owned` set to false, without allocating. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `text` - The text to normalize
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -613,7 +613,7 @@ mjb_status mjb_filter(
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `filters` - The filters to use
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -748,7 +748,7 @@ Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. Thi
 - `encoding` - The encoding of the string
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -868,7 +868,7 @@ Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, 
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the ASCII domain name
 - `info` - The UTS #46 validation errors to store
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 
 **Returns**
 
@@ -966,7 +966,7 @@ Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The fun
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the Unicode domain name
 - `info` - The UTS #46 validation errors to store
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 
 **Returns**
 
@@ -1654,7 +1654,7 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 - `encoding` - The input encoding of the string
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -1890,7 +1890,7 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
-- `result` - The pointer to store the binary sort key. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the binary sort key. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -2018,7 +2018,7 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
 - `output_encoding` - The output encoding of the string
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -3215,7 +3215,7 @@ Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional 
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
 - `encoding` - The encoding of the string
 - `output_encoding` - The output encoding of the skeleton
-- `result` - The pointer to store the result. If `result->transformed` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`
+- `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 
 **Returns**
 

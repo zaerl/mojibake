@@ -24,7 +24,7 @@ static const size_t sweep_text_size = sizeof(sweep_text) - 1;
 typedef mjb_status (*sweep_call)(bool *cleared);
 
 static bool result_cleared(const mjb_result *result) {
-    return result->output == NULL && result->output_size == 0 && !result->transformed;
+    return result->output == NULL && result->output_size == 0 && !result->owned;
 }
 
 static bool result_release(mjb_result *result) {

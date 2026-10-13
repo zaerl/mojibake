@@ -240,7 +240,7 @@ ATT_TEST(case) {
 
     ATT_ASSERT_STATUS(mjb_map_case("", 0, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
         MJB_STATUS_OK, "Case conversion accepts empty string");
-    ATT_ASSERT(guard_result.transformed, false, "Case conversion empty string not transformed");
+    ATT_ASSERT(guard_result.owned, false, "Case conversion empty string not owned");
     ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size");
 
     result = run_mjb_map_case("\xE1\x8E\xA0", 3, MJB_CASE_CASEFOLD, encoding); // U+13A0
@@ -253,14 +253,14 @@ ATT_TEST(case) {
 
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16LE, &guard_result, NULL),
         MJB_STATUS_OK, "Case conversion converts output encoding");
-    ATT_ASSERT(guard_result.transformed, true,
-        "Case conversion converted output encoding transformed");
+    ATT_ASSERT(guard_result.owned, true,
+        "Case conversion converted output encoding owned");
     ATT_ASSERT(guard_result.output_size, (size_t)2,
         "Case conversion converted output encoding size");
     ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
         "Case conversion converted output encoding bytes");
 
-    if(guard_result.transformed) {
+    if(guard_result.owned) {
         mjb_test_free(guard_result.output);
     }
 

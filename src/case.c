@@ -721,7 +721,7 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
 
     result->output = output.buffer;
     result->output_size = output.size;
-    result->transformed = true;
+    result->owned = true;
 
     return MJB_STATUS_OK;
 }
@@ -754,7 +754,7 @@ MJB_EXPORT mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_e
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
-        result->transformed = false;
+        result->owned = false;
 
         return MJB_STATUS_OK;
     }
@@ -813,7 +813,7 @@ mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_enco
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = 0;
-        result->transformed = false;
+        result->owned = false;
 
         return MJB_STATUS_OK;
     }

@@ -14,6 +14,9 @@
 MJB_STATIC_ASSERT(sizeof(mjb_text) == 12, "mjb_text must be 12 bytes on wasm32");
 MJB_STATIC_ASSERT(offsetof(mjb_text, byte_length) == 4, "mjb_text byte_length must be at 4");
 MJB_STATIC_ASSERT(offsetof(mjb_text, encoding) == 8, "mjb_text encoding must be at 8");
+// and reads mjb_result back as output, output_size, and the owned flag
+MJB_STATIC_ASSERT(sizeof(mjb_result) == 12, "mjb_result must be 12 bytes on wasm32");
+MJB_STATIC_ASSERT(offsetof(mjb_result, owned) == 8, "mjb_result owned must be at 8");
 #endif
 
 // These wrappers adapt the context-aware callback signatures. On MSVC they also avoid taking the
@@ -81,13 +84,13 @@ MJB_EXPORT mjb_status mjb_result_free(mjb_result *result) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(result->transformed && result->output != NULL) {
+    if(result->owned && result->output != NULL) {
         mjb_free(result->output);
         result->output = NULL;
         result->output_size = 0;
     }
 
-    result->transformed = false;
+    result->owned = false;
 
     return MJB_STATUS_OK;
 }

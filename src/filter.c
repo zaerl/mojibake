@@ -163,7 +163,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     if(byte_length == 0) {
         result->output = (char *)buffer;
         result->output_size = byte_length;
-        result->transformed = false;
+        result->owned = false;
 
         return MJB_STATUS_OK;
     }
@@ -181,7 +181,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
             return status;
         }
 
-        is_normalized = result->transformed;
+        is_normalized = result->owned;
     }
 
     if(filters == MJB_FILTER_NORMALIZE) {
@@ -227,7 +227,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
 
         result->output = (char *)buffer;
         result->output_size = byte_length;
-        result->transformed = false;
+        result->owned = false;
 
         return MJB_STATUS_OK;
     }
@@ -238,7 +238,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
 
     result->output = output.buffer;
     result->output_size = output.size;
-    result->transformed = true;
+    result->owned = true;
 
     return MJB_STATUS_OK;
 }
