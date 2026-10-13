@@ -310,12 +310,11 @@ ATT_TEST(example) {
     MJB_TEST_COVERAGE(mjb_codepoint_count); // Added by the script
     // The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
 
-    const char *utf8 = "H\xC3\xA9ll\xC3\xB6"; // 7 bytes
-    const char utf16le[] = "H\0\xE9\0l\0l\0\xF6\0"; // 10 bytes
+    mjb_text utf8 = mjb_text_utf8("H\xC3\xA9ll\xC3\xB6", 7); // 7 bytes
+    mjb_text utf16le = mjb_text_utf16le("H\0\xE9\0l\0l\0\xF6\0", 10); // 10 bytes
     size_t count;
 
-    if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        &count, NULL) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(&utf8, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_codepoint_count test failed"); // Added by the script
         return;
     }
@@ -325,8 +324,7 @@ ATT_TEST(example) {
     snprintf(test_buffer, sizeof(test_buffer), "%zu UTF-8 characters", count); // Added by the script
     ATT_ASSERT(test_buffer, "5 UTF-8 characters", "mjb_codepoint_count test failed"); // Added by the script
 
-    if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP,
-        &count, NULL) != MJB_STATUS_OK) {
+    if(mjb_codepoint_count(&utf16le, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_codepoint_count test failed"); // Added by the script
         return;
     }

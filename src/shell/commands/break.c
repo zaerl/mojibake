@@ -298,8 +298,9 @@ static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode)
     size_t input_size = strlen(input);
     size_t input_real_size = 0;
 
-    if(mjb_codepoint_count(input, input_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &input_real_size,
-           NULL) != MJB_STATUS_OK) {
+    mjb_text text = mjb_text_utf8(input, input_size);
+
+    if(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &input_real_size, NULL) != MJB_STATUS_OK) {
         input_real_size = 0;
     }
     size_t terminal_width = 0;

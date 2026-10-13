@@ -43,11 +43,10 @@ pub fn main(init: std.process.Init) !u8 {
 
         // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
         var codepoint_count: usize = 0;
+        const text = mjb.mjb_text_utf8(mojibake.ptr, mojibake.len);
 
         if(mjb.mjb_codepoint_count(
-            mojibake.ptr,
-            mojibake.len,
-            mjb.MJB_ENC_UTF_8,
+            &text,
             mjb.MJB_MALFORMED_STOP,
             &codepoint_count,
             null,

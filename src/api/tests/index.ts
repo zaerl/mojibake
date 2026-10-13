@@ -120,6 +120,14 @@ ATT_ASSERT(mojibake.convertEncoding(malformedText, Encoding.UTF_8,
   'convertEncoding malformed skip policy');
 ATT_ASSERT(mojibake.codepointCount('H\u00E9ll\u00F6'), 5, 'codepointCount');
 ATT_ASSERT(mojibake.codepointCount(''), 0, 'codepointCount empty');
+ATT_ASSERT(mojibake.codepointCount('H\u00E9ll\u00F6', { encoding: Encoding.UTF_16BE }), 5,
+  'codepointCount UTF-16BE');
+ATT_ASSERT(mojibake.codepointCount('\u{1F600}a', { encoding: Encoding.UTF_16LE }), 2,
+  'codepointCount UTF-16LE surrogate pair');
+ATT_ASSERT(mojibake.codepointCount('\u{1F600}a', { encoding: Encoding.UTF_32LE }), 2,
+  'codepointCount UTF-32LE');
+ATT_ASSERT(mojibake.codepointCount(new Uint8Array([0x41, 0x00, 0x00]),
+  { encoding: Encoding.UTF_16LE }), null, 'codepointCount truncated UTF-16LE bytes');
 ATT_ASSERT(mojibake.codepointCount(malformedText), null, 'codepointCount malformed stop policy');
 ATT_ASSERT(mojibake.codepointCount(malformedText,
   { malformedPolicy: MalformedPolicy.REPLACE }), 3, 'codepointCount malformed replace policy');

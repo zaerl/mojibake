@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,624,759** C assertions and **149** JavaScript assertions, including all
+Mojibake runs a total of **4,624,762** C assertions and **153** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -46,7 +46,7 @@ the official tests included in the standard:
 | `mjb_filter`                               | 192         |
 | `mjb_convert_encoding`                     | 154         |
 | `mjb_collation_key`                        | 137         |
-| `mjb_codepoint_count`                      | 128         |
+| `mjb_codepoint_count`                      | 131         |
 | `mjb_confusable_skeleton_into`             | 115         |
 | `mjb_codepoint_encode`                     | 106         |
 | `mjb_caseless_match`                       | 104         |
@@ -131,15 +131,15 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4624759** |
+| **Total**                                  | **4624762** |
 
 ## JavaScript
 
 | Test                                        | Coverage   |
 | ------------------------------------------- | ---------- |
 | `Mojibake.collationCompare`                 | 15         |
+| `Mojibake.codepointCount`                   | 9          |
 | `Mojibake.caselessMatch`                    | 5          |
-| `Mojibake.codepointCount`                   | 5          |
 | `Mojibake.collationKey`                     | 5          |
 | `Mojibake.filter`                           | 5          |
 | `Mojibake.graphemeCount`                    | 5          |
@@ -223,4 +223,4 @@ the official tests included in the standard:
 | `Mojibake.emojiSequenceInfo`                | 0          |
 | `Mojibake.localeCode`                       | 0          |
 | `Mojibake.scriptCode`                       | 0          |
-| **Total**                                   | **149**    |
+| **Total**                                   | **153**    |

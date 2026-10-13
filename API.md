@@ -1307,9 +1307,7 @@ Count the codepoints in a string.
 
 ```c
 mjb_status mjb_codepoint_count(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     size_t *count,
     mjb_diagnostic *diagnostic
@@ -1318,9 +1316,7 @@ mjb_status mjb_codepoint_count(
 
 Count the number of decoded Unicode codepoints in a string. Malformed subsequences are stopped, replaced, or skipped according to `malformed_policy`. A replacement counts as one codepoint. On failure, `count` is set to zero.
 
-- `buffer` - The string to count
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of codepoints to store; set to zero on failure
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -1328,8 +1324,8 @@ Count the number of decoded Unicode codepoints in a string. Malformed subsequenc
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ENCODING` - The text encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
@@ -1337,20 +1333,18 @@ Count the number of decoded Unicode codepoints in a string. Malformed subsequenc
 ```c
 // The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
 
-const char *utf8 = "H\xC3\xA9ll\xC3\xB6"; // 7 bytes
-const char utf16le[] = "H\0\xE9\0l\0l\0\xF6\0"; // 10 bytes
+mjb_text utf8 = mjb_text_utf8("H\xC3\xA9ll\xC3\xB6", 7); // 7 bytes
+mjb_text utf16le = mjb_text_utf16le("H\0\xE9\0l\0l\0\xF6\0", 10); // 10 bytes
 size_t count;
 
-if(mjb_codepoint_count(utf8, 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_codepoint_count(&utf8, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // 5 UTF-8 characters
 printf("%zu UTF-8 characters", count);
 
-if(mjb_codepoint_count(utf16le, 10, MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_codepoint_count(&utf16le, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 

@@ -711,8 +711,8 @@ struct NumericValue {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_codepoint_count(input.data(), input.size(), encoding, malformed_policy,
-                             &count, diagnostic),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_codepoint_count(&text, malformed_policy, &count, diagnostic),
         "Codepoint count failed");
 
     return count;

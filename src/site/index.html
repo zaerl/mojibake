@@ -749,6 +749,12 @@ the MIT License.</p>
                     gotOptions = true;
 
                     continue;
+                } else if(arg.type === 'mjb_malformed_policy') {
+                    // The TypeScript API reads the policy from the options
+                    options.malformedPolicy = parseInt(value, 10);
+                    gotOptions = true;
+
+                    continue;
                 } else if(arg.is_enum) {
                     value = parseInt(value, 10);
                 } else if(arg.type === 'mjb_codepoint') {

@@ -9,9 +9,9 @@
 // Return the codepoint count, or SIZE_MAX when mjb_codepoint_count reports a failure.
 static size_t count_codepoints(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t count = 0;
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
 
-    if(mjb_codepoint_count(buffer, byte_length, encoding, MJB_MALFORMED_STOP, &count, NULL) !=
-        MJB_STATUS_OK) {
+    if(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         return SIZE_MAX;
     }
 
@@ -243,16 +243,15 @@ static void test_validation_and_decoding(void) {
         MJB_STATUS_INVALID_ARGUMENT, "Generic UTF-16 rejects an offset inside its BOM");
 
     size_t count = 99;
-    ATT_ASSERT_STATUS(mjb_codepoint_count(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_STOP, &count, &diagnostic),
+    mjb_text malformed_text = mjb_text_utf8(malformed_utf8, sizeof(malformed_utf8));
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&malformed_text, MJB_MALFORMED_STOP, &count, &diagnostic),
         MJB_STATUS_MALFORMED_INPUT, "Codepoint count stop policy");
     ATT_ASSERT(count, (size_t)0, "Codepoint count is reset after malformed input");
-    ATT_ASSERT_STATUS(mjb_codepoint_count(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_REPLACE, &count, &diagnostic),
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&malformed_text, MJB_MALFORMED_REPLACE, &count,
+                          &diagnostic),
         MJB_STATUS_OK, "Codepoint count replace policy");
     ATT_ASSERT(count, (size_t)3, "Replacement counts as a codepoint");
-    ATT_ASSERT_STATUS(mjb_codepoint_count(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_SKIP, &count, &diagnostic),
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&malformed_text, MJB_MALFORMED_SKIP, &count, &diagnostic),
         MJB_STATUS_OK, "Codepoint count skip policy");
     ATT_ASSERT(count, (size_t)2, "Skipped malformed input is not counted");
 
@@ -799,8 +798,9 @@ ATT_TEST(encoding) {
         "Length generic UTF-32LE BOM consumes signature");
 
     size_t rejected_count = 6251;
-    ATT_ASSERT_STATUS(mjb_codepoint_count(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le,
-        MJB_MALFORMED_STOP, &rejected_count, NULL), MJB_STATUS_INVALID_ENCODING,
+    mjb_text detected_text = mjb_text_make(utf32le_bom_a, sizeof(utf32le_bom_a), detected_utf32le);
+    ATT_ASSERT_STATUS(mjb_codepoint_count(&detected_text, MJB_MALFORMED_STOP, &rejected_count, NULL),
+        MJB_STATUS_INVALID_ENCODING,
         "Codepoint count rejects a multi-encoding detection mask");
     ATT_ASSERT(rejected_count, (size_t)0, "Codepoint count is zero after a detection mask");
     ATT_ASSERT(count_codepoints(utf32le_bom_a, sizeof(utf32le_bom_a), MJB_ENC_UTF_32LE), (size_t)2,

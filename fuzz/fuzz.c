@@ -543,8 +543,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 9: { // Segmentation: grapheme, word and width truncation, segment counts
             size_t segment_count = 0;
-            fuzz_sink += (size_t)mjb_codepoint_count(buffer, size, encoding, MJB_MALFORMED_REPLACE,
-                &segment_count, NULL);
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_codepoint_count(&text, MJB_MALFORMED_REPLACE, &segment_count,
+                NULL);
             fuzz_sink += segment_count;
             mjb_truncate_grapheme(buffer, size, encoding, variant);
             mjb_truncate_word(buffer, size, encoding, variant);
