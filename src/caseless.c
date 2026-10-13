@@ -42,7 +42,7 @@ static void mjb_caseless_value_replace(mjb_caseless_value *value, const mjb_resu
     value->buffer = next->output;
     value->byte_length = next->output_size;
     value->encoding = MJB_ENC_UTF_8;
-    value->owned = next->transformed || (previous_owned && next->output == previous);
+    value->owned = next->owned || (previous_owned && next->output == previous);
 }
 
 static mjb_status mjb_caseless_normalize(mjb_caseless_value *value, mjb_normalization form) {

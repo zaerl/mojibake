@@ -19,5 +19,5 @@ mjb::TextResult result = mjb::normalize_result(text, mjb::NormalizationForm::NFC
 std::string_view normalized = result.view();
 ```
 
-An untransformed `TextResult` and the streaming breaker classes hold a non-owning view of their
-input, so that input must remain alive while those objects are used.
+A `TextResult` whose `owned()` is false and the streaming breaker classes hold a non-owning view
+of their input, so that input must remain alive while those objects are used.

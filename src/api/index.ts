@@ -141,11 +141,15 @@ type ComposedString = {
   output: string;
 }
 
+// mjb_result on wasm32: output, output_size, owned, and 3 bytes of padding. src/mojibake.c checks
+// this layout at compile time.
+const RESULT_SIZE = 12;
+
 // mjb_result pointer
 type RawResult = {
   output: Pointer;
   output_size: number;
-  transformed: boolean;
+  owned: boolean;
 };
 
 // mjb_result
@@ -464,7 +468,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
-    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -479,7 +483,7 @@ export class Mojibake {
 
       return this.rawResultToResult(result, outputEncoding);
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -496,7 +500,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const infoPtr = this.malloc(4);
-    const resultPtr = this.malloc(12);
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -516,7 +520,7 @@ export class Mojibake {
         valid: errors === IdnaError.NONE
       };
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -533,7 +537,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const infoPtr = this.malloc(4);
-    const resultPtr = this.malloc(12);
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -553,7 +557,7 @@ export class Mojibake {
         valid: errors === IdnaError.NONE
       };
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -569,7 +573,7 @@ export class Mojibake {
   nfkcCasefold(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
-    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -585,7 +589,7 @@ export class Mojibake {
 
       return this.rawResultToResult(result, outputEncoding);
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -657,7 +661,7 @@ export class Mojibake {
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
-    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -673,7 +677,7 @@ export class Mojibake {
 
       return this.rawResultToResult(result, outputEncoding);
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -869,7 +873,7 @@ export class Mojibake {
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     outputEncoding = this.resolveEncoding(outputEncoding);
-    const resultPtr = this.malloc(24);
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -885,7 +889,7 @@ export class Mojibake {
 
       return this.rawResultToResult(result, outputEncoding);
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -973,7 +977,7 @@ export class Mojibake {
     strength = CollationStrength.TERTIARY,
     options: TextInputOptions = {}): Uint8Array | null {
     const wasmInput = this.copyInput(input, options.encoding);
-    const resultPtr = this.malloc(24);
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -994,7 +998,7 @@ export class Mojibake {
       return new Uint8Array(this.module.HEAPU8.subarray(result.output,
         result.output + result.output_size));
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -1009,7 +1013,7 @@ export class Mojibake {
   mapCase(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
-    const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -1024,7 +1028,7 @@ export class Mojibake {
 
       return this.rawResultToResult(result, outputEncoding);
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -1391,7 +1395,7 @@ export class Mojibake {
   confusableSkeleton(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
-    const resultPtr = this.malloc(12);
+    const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
@@ -1405,7 +1409,7 @@ export class Mojibake {
       result = this.pointerToResult(resultPtr);
       return this.rawResultToResult(result, outputEncoding);
     } finally {
-      if(result?.transformed && result.output !== 0) {
+      if(result?.owned && result.output !== 0) {
         this.free(result.output);
       }
 
@@ -1805,7 +1809,7 @@ export class Mojibake {
     return {
       output: reader.u32(),
       output_size: reader.u32(),
-      transformed: reader.u8() !== 0
+      owned: reader.u8() !== 0
     };
   }
 
@@ -1816,7 +1820,7 @@ export class Mojibake {
       bytes: composed.bytes,
       output: composed.output,
       outputSize: raw.output_size,
-      transformed: raw.transformed
+      transformed: raw.owned
     }
   }
 

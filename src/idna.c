@@ -618,7 +618,7 @@ static mjb_status mjb_idna_finish_output(mjb_output *output, mjb_encoding output
     if(output_encoding == MJB_ENC_UTF_8) {
         result->output = output->buffer;
         result->output_size = output->size;
-        result->transformed = true;
+        result->owned = true;
         output->buffer = NULL;
         return MJB_STATUS_OK;
     }
@@ -628,7 +628,7 @@ static mjb_status mjb_idna_finish_output(mjb_output *output, mjb_encoding output
         output->buffer = NULL;
         result->output = NULL;
         result->output_size = 0;
-        result->transformed = false;
+        result->owned = false;
         return MJB_STATUS_OK;
     }
 
@@ -649,7 +649,7 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     info->errors = MJB_IDNA_ERROR_NONE;
     result->output = NULL;
     result->output_size = 0;
-    result->transformed = false;
+    result->owned = false;
 
     if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
         return MJB_STATUS_INVALID_ENCODING;

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   another call as input
 
 ### Changed
+- **Breaking**: `mjb_result.transformed` is now `mjb_result.owned`. It is true when the library
+  allocated `output`; when false, `output` points into the caller's input. The C++
+  `TextResult::transformed()` is now `owned()`
 - **Breaking**: `mjb_string_validate(buffer, byte_length, encoding, diagnostic)` is now
   `mjb_validate_encoding(const mjb_text *text, diagnostic)`
 - **Breaking**: `mjb_codepoint_count` now takes a `const mjb_text *` instead of the buffer, byte

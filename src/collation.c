@@ -948,7 +948,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
 
     result->output = NULL;
     result->output_size = 0;
-    result->transformed = false;
+    result->owned = false;
 
     mjb_sort_key sk = { 0, 0, 0 };
 
@@ -969,7 +969,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
     }
 
     if(byte_count == 0) {
-        result->transformed = true;
+        result->owned = true;
 
         return MJB_STATUS_OK;
     }
@@ -995,7 +995,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const char *buffer, size_t byte_length,
 
     result->output = (char *)bytes;
     result->output_size = byte_count;
-    result->transformed = true;
+    result->owned = true;
 
     return MJB_STATUS_OK;
 }

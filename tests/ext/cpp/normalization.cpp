@@ -129,14 +129,14 @@ ATT_TEST(cpp_normalization) {
 
     const std::string already_normalized("plain");
     auto view_result = mjb::normalize_result(already_normalized, mjb::NormalizationForm::NFC);
-    ATT_ASSERT(view_result.transformed(), false, "TextResult zero-copy result");
+    ATT_ASSERT(view_result.owned(), false, "TextResult zero-copy result");
     ATT_ASSERT(view_result.view().data() == already_normalized.data(), true,
-        "TextResult aliases untransformed input");
+        "TextResult aliases its input when not owned");
     ATT_ASSERT(view_result.str(), already_normalized, "TextResult::str");
 
     auto owned_result = mjb::normalize_result("e\xCC\x81", mjb::NormalizationForm::NFC);
-    ATT_ASSERT(owned_result.transformed(), true, "TextResult owns transformed result");
-    ATT_ASSERT(owned_result.str(), std::string("\xC3\xA9"), "TextResult transformed output");
+    ATT_ASSERT(owned_result.owned(), true, "TextResult owns a changed output");
+    ATT_ASSERT(owned_result.str(), std::string("\xC3\xA9"), "TextResult owned output");
 
     auto moved_result = std::move(owned_result);
     ATT_ASSERT(owned_result.empty(), true, "TextResult moved-from state");

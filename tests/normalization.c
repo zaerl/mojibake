@@ -103,13 +103,13 @@ static int check_normalization(char *source, size_t source_size, char *normalize
     // An ASCII string should not be normalized.
     if(is_ascii) {
         snprintf(test_name, 128, "#%u %s is ASCII and not normalized", current_line, step);
-        test_ret = ATT_ASSERT(result.transformed, false, test_name);
+        test_ret = ATT_ASSERT(result.owned, false, test_name);
     }
 
     if(form == MJB_NORMALIZATION_NFC && has_only_latin1(source, source_size)) {
         snprintf(test_name, 128, "#%u %s \"%s\" is Latin-1 and not normalized", current_line, step,
             source);
-        test_ret = ATT_ASSERT(result.transformed, false, test_name);
+        test_ret = ATT_ASSERT(result.owned, false, test_name);
     }
 
     MJB_TEST_COVERAGE(mjb_normalize_into);
@@ -172,7 +172,7 @@ static void check_nfkc_casefold(const char *source, size_t source_size, const ch
         MJB_STATUS_OK, name);
     ATT_ASSERT(result.output_size, expected_size, name);
     ATT_ASSERT((int)memcmp(result.output, expected, expected_size), 0, name);
-    ATT_ASSERT(result.transformed, true, name);
+    ATT_ASSERT(result.owned, true, name);
     check_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, &result, name);
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, name);
 }
@@ -186,7 +186,7 @@ static void test_nfkc_casefold(void) {
         MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL result");
     ATT_ASSERT_STATUS(mjb_nfkc_casefold("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, "NFKC casefold accepts empty input");
-    ATT_ASSERT(result.transformed, false, "NFKC casefold empty input is borrowed");
+    ATT_ASSERT(result.owned, false, "NFKC casefold empty input is borrowed");
 
     size_t into_size = 9;
     ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
@@ -346,7 +346,7 @@ static void test_nfkc_casefold_file(void) {
             ATT_ASSERT_STATUS(mjb_result_free(&actual), MJB_STATUS_OK, test_name);
         }
 
-        if(expected.transformed) {
+        if(expected.owned) {
             (void)mjb_result_free(&expected);
         }
         ++current_line;
@@ -462,13 +462,13 @@ ATT_TEST(normalization) {
     ATT_ASSERT_STATUS(mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE,
                           &guard_result, NULL),
         MJB_STATUS_OK, "Normalize converts output encoding for already-normalized input");
-    ATT_ASSERT(guard_result.transformed, true,
-        "Normalize converted already-normalized input transformed");
+    ATT_ASSERT(guard_result.owned, true,
+        "Normalize converted already-normalized input owned");
     ATT_ASSERT(guard_result.output_size, (size_t)2,
         "Normalize converted already-normalized input size");
     ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
         "Normalize converted already-normalized input bytes");
-    if(guard_result.transformed) {
+    if(guard_result.owned) {
         (void)mjb_result_free(&guard_result);
     }
 

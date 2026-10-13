@@ -29,7 +29,7 @@ static void assert_encoding_conversion(const char *input, size_t input_size,
     ATT_ASSERT(result.output_size, expected_size, message);
     ATT_ASSERT(memcmp(result.output, expected, expected_size), 0, message);
 
-    if(result.transformed) {
+    if(result.owned) {
         (void)mjb_result_free(&result);
     }
 }
@@ -685,7 +685,7 @@ ATT_TEST(encoding) {
                           MJB_ENC_UTF_16LE, MJB_MALFORMED_STOP, MJB_ENC_ASCII, &ascii_result,
                           NULL),
         MJB_STATUS_OK, "Convert UTF-16LE ASCII text to ASCII");
-    ATT_ASSERT(ascii_result.transformed, true, "Convert UTF-16LE ASCII text is transformed");
+    ATT_ASSERT(ascii_result.owned, true, "Convert UTF-16LE ASCII text is owned");
     ATT_ASSERT(ascii_result.output_size, (size_t)2, "Convert UTF-16LE ASCII text size");
     ATT_ASSERT(ascii_result.output, "en", "Convert UTF-16LE ASCII text output");
     (void)mjb_result_free(&ascii_result);
@@ -828,22 +828,22 @@ ATT_TEST(encoding) {
             ATT_ASSERT_STATUS(status, MJB_STATUS_OK, test_description);
 
             if(from == to) {
-                snprintf(test_description, 64, "%s to %s is not transformed",
-                    output_encodings[from], output_encodings[to]);
-                ATT_ASSERT(convert_result.transformed, false, test_description);
+                snprintf(test_description, 64, "%s to %s is not owned", output_encodings[from],
+                    output_encodings[to]);
+                ATT_ASSERT(convert_result.owned, false, test_description);
                 ATT_ASSERT((void *)convert_result.output, (void *)hello_strings[from],
                     test_description);
                 ATT_ASSERT(convert_result.output_size, hello_strings_sizes[from], test_description);
             } else {
-                snprintf(test_description, 64, "%s to %s is transformed", output_encodings[from],
+                snprintf(test_description, 64, "%s to %s is owned", output_encodings[from],
                     output_encodings[to]);
-                ATT_ASSERT(convert_result.transformed, true, test_description);
+                ATT_ASSERT(convert_result.owned, true, test_description);
                 ATT_ASSERT(memcmp(convert_result.output, hello_strings[to],
                                convert_result.output_size),
                     0, test_description);
             }
 
-            if(convert_result.transformed) {
+            if(convert_result.owned) {
                 (void)mjb_result_free(&convert_result);
             }
         }

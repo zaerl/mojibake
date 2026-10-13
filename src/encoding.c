@@ -902,7 +902,7 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
 
     result->output = NULL;
     result->output_size = 0;
-    result->transformed = false;
+    result->owned = false;
 
     size_t input_index = 0;
     mjb_encoding input_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
@@ -950,7 +950,7 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
 
     result->output = output.buffer;
     result->output_size = output.size;
-    result->transformed = true;
+    result->owned = true;
 
     return MJB_STATUS_OK;
 }
