@@ -45,16 +45,17 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Install cppcheck
+      - name: Install clang-tidy
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cppcheck
-          cppcheck --version
+          pipx install clang-tidy==22.1.8
+          pipx_bin_dir=$(pipx environment --value PIPX_BIN_DIR)
+          echo "$pipx_bin_dir" >> "$GITHUB_PATH"
+          "$pipx_bin_dir/clang-tidy" --version
 
       - name: Use checked-in Unicode payload
         run: touch src/unicode-data.h
 
-      - name: Run cppcheck
+      - name: Run clang-tidy
         run: make tidy
 
   typecheck:

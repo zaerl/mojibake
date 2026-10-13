@@ -161,6 +161,9 @@ ATT_TEST(special_case) {
                 case 3: // Upper
                     upper_size = get_string_from_codepoints(token, 256, (char *)upper);
                     break;
+
+                default:
+                    break;
             }
 
             // Skip trailing comments

@@ -84,9 +84,14 @@ GENERATOR_BIN = $(GENERATOR_BUILD_DIR)/generator
 
 UNICODE_DATA = src/unicode-data.h
 
-# Static analysis with cppcheck
-CPPCHECK ?= cppcheck
-CPPCHECK_JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+# Static analysis with clang-tidy, configured by .clang-tidy
+CLANG_TIDY ?= clang-tidy
+CLANG_TIDY_CMAKE_FLAGS ?=
+
+# CMake 4 no longer sets a default macOS SDK, which non-Apple clang-tidy builds need
+ifeq ($(shell uname -s 2>/dev/null),Darwin)
+CLANG_TIDY_CMAKE_FLAGS += -DCMAKE_OSX_SYSROOT=$(shell xcrun --show-sdk-path 2>/dev/null)
+endif
 
 all: configure build
 
@@ -214,16 +219,15 @@ lint:
 		xargs -0 xcrun clang-format --dry-run --Werror
 
 configure-tidy: $(UNICODE_DATA)
-	@cmake -S . -B $(TIDY_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(NATIVE_CMAKE_FLAGS) \
-		-DMJB_BUILD_TESTS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	@command -v $(CLANG_TIDY) >/dev/null 2>&1 || { \
+		echo "clang-tidy not found. Install LLVM (brew install llvm, apt-get install clang-tidy)" \
+			"or set CLANG_TIDY=/path/to/clang-tidy."; exit 1; }
+	@cmake -S . -B $(TIDY_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(NATIVE_CMAKE_FLAGS) \
+		-DMJB_BUILD_TESTS=ON -DCMAKE_C_CLANG_TIDY=$(CLANG_TIDY) $(CLANG_TIDY_CMAKE_FLAGS)
 
+# Run clang-tidy on the library, CLI, and tests while compiling them
 tidy: configure-tidy
-	@command -v $(CPPCHECK) >/dev/null 2>&1 || { \
-		echo "cppcheck not found. Install it (brew install cppcheck, apt-get install cppcheck)" \
-			"or set CPPCHECK=/path/to/cppcheck."; exit 1; }
-	@$(CPPCHECK) --project=$(TIDY_BUILD_DIR)/compile_commands.json \
-		--enable=style,warning --check-level=exhaustive --std=c11 --inline-suppr \
-		--suppress=constParameterCallback --error-exitcode=1 --quiet -j$(CPPCHECK_JOBS)
+	@cmake --build $(TIDY_BUILD_DIR) --config Release --parallel
 
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
 	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
@@ -412,7 +416,7 @@ help:
 	@echo "  generate-site           - Generate site"
 	@echo "  generate-unicode-tables - Generate embedded Unicode lookup tables"
 	@echo "  lint                    - Check C and C++ formatting with Apple's clang-format"
-	@echo "  tidy                    - Run cppcheck static analysis on the library and CLI"
+	@echo "  tidy                    - Run clang-tidy on the library, CLI, and tests"
 	@echo "  sync-api-wasm           - Copy current WASM build artifacts into src/api"
 	@echo "  test                    - Build and run tests"
 	@echo "  test-all                - Build and run all local test configurations"

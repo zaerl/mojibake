@@ -517,11 +517,11 @@ bool mjb_unicode_has_property(mjb_codepoint codepoint, mjb_property property, ui
     uint8_t enum_count = *record++;
 
     for(uint8_t i = 0; i < enum_count; ++i) {
-        uint8_t id = record[i * 2];
+        uint8_t id = record[(size_t)i * 2];
 
         if(id == property) {
             if(value != NULL) {
-                *value = record[i * 2 + 1];
+                *value = record[(size_t)i * 2 + 1];
             }
 
             return true;
@@ -552,7 +552,7 @@ bool mjb_unicode_properties(mjb_codepoint codepoint, uint8_t *buffer) {
     uint8_t enum_count = *record++;
 
     for(uint8_t i = 0; i < enum_count; ++i) {
-        buffer[record[i * 2]] = record[i * 2 + 1];
+        buffer[record[(size_t)i * 2]] = record[(size_t)i * 2 + 1];
     }
 
     return true;
