@@ -498,6 +498,7 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a normalized codepoint
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
@@ -761,7 +762,7 @@ Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. Thi
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
-- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize
+- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize, or the requested output encoding cannot represent a result codepoint
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
@@ -819,7 +820,7 @@ Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
-- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize
+- `MJB_STATUS_UNSUPPORTED` - The transform did not stabilize, or the requested output encoding cannot represent a result codepoint
 - `MJB_STATUS_NO_MEMORY` - Temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
 
@@ -1675,7 +1676,7 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 - `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
-- `MJB_STATUS_UNSUPPORTED` - The requested encoding conversion is not supported
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent an input codepoint
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
@@ -1731,7 +1732,7 @@ Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`
 - `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
-- `MJB_STATUS_UNSUPPORTED` - The requested encoding conversion is not supported
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent an input codepoint
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
 
@@ -2039,6 +2040,7 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 - `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, the malformed policy is invalid, or `type` is not a valid case type
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
+- `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 
 **Example**
@@ -3232,6 +3234,8 @@ Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional 
 
 - `MJB_STATUS_OK` - The confusable skeleton was returned
 - `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
+- `MJB_STATUS_UNSUPPORTED` - The output encoding cannot represent a skeleton codepoint
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
 - `MJB_STATUS_NO_MEMORY` - Allocation failed
 - `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_SECURITY=0`

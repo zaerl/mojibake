@@ -702,8 +702,7 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
     if(status != MJB_STATUS_OK) {
         mjb_free(output.buffer);
 
-        // Preserve the allocating API's historical status for unrepresentable output.
-        return status == MJB_STATUS_UNSUPPORTED ? MJB_STATUS_NO_MEMORY : status;
+        return status;
     }
 
     if(output.size >= output.capacity) {

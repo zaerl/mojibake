@@ -260,6 +260,8 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
       { value: 'MJB_STATUS_INVALID_FORM', description: '`form` is not NFC, NFD, NFKC, or NFKD' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent a normalized codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
@@ -539,7 +541,9 @@ printf("Filtered payload (no terminator): %.*s", (int)output_size, output);`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
-      { value: 'MJB_STATUS_UNSUPPORTED', description: 'The transform did not stabilize' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The transform did not stabilize, or the requested output encoding cannot represent a ' +
+        'result codepoint' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     example: `const char *input = "Stra\\xC3\\x9F" "e\\xC2\\xAD";
@@ -605,7 +609,9 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
-      { value: 'MJB_STATUS_UNSUPPORTED', description: 'The transform did not stabilize' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The transform did not stabilize, or the requested output encoding cannot represent a ' +
+        'result codepoint' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Temporary allocation failed' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
@@ -1445,7 +1451,8 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
-      { value: 'MJB_STATUS_UNSUPPORTED', description: 'The requested encoding conversion is not supported' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent an input codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
@@ -1507,7 +1514,7 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_UNSUPPORTED', description:
-        'The requested encoding conversion is not supported' },
+        'The requested output encoding cannot represent an input codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The required output size would overflow' },
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
@@ -1872,6 +1879,8 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The requested output encoding cannot represent a mapped codepoint' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
     example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
@@ -2930,6 +2939,9 @@ printf("Property: %s", name);`,
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The confusable skeleton was returned' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
+      { value: 'MJB_STATUS_UNSUPPORTED', description:
+        'The output encoding cannot represent a skeleton codepoint' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
