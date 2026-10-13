@@ -60,19 +60,21 @@ static mjb_status sweep_convert_encoding_into(bool *cleared) {
 
 static mjb_status sweep_normalize(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_normalize(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFKC, MJB_ENC_UTF_8, &result, NULL);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFKC,
+        MJB_ENC_UTF_8, &result, NULL);
     *cleared = result_done(status, &result);
 
     return status;
 }
 
 static mjb_status sweep_normalize_into(bool *cleared) {
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_normalize_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16BE, output, &output_size, NULL);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_16BE);
+    mjb_status status = mjb_normalize_into(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+        &output, NULL);
+    *cleared = into_done(status, output.size);
 
     return status;
 }
@@ -365,18 +367,20 @@ static void no_allocation(void) {
     ATT_ASSERT(output_size, (size_t)1, "Caller-buffer filtering output size");
     ATT_ASSERT((unsigned int)output[0], (unsigned int)'a', "Caller-buffer filtering output");
 
-    output_size = sizeof(output);
-    ATT_ASSERT_STATUS(mjb_normalize_into("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                          MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, output, &output_size, NULL),
+    mjb_text text = mjb_text_utf8("\xC3\xA9", 2);
+    mjb_buffer into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_normalize_into(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFD, &into,
+                          NULL),
         MJB_STATUS_OK, "Caller-buffer decomposition does not allocate");
-    ATT_ASSERT(output_size, (size_t)3, "Caller-buffer decomposition output size");
+    ATT_ASSERT(into.size, (size_t)3, "Caller-buffer decomposition output size");
     ATT_ASSERT((int)memcmp(output, "e\xCC\x81", 3), 0, "Caller-buffer decomposition output");
 
-    output_size = sizeof(output);
-    ATT_ASSERT_STATUS(mjb_normalize_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                          MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE, output, &output_size, NULL),
+    text = mjb_text_utf8("A", 1);
+    into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_16LE);
+    ATT_ASSERT_STATUS(mjb_normalize_into(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &into,
+                          NULL),
         MJB_STATUS_OK, "Caller-buffer normalized encoding conversion does not allocate");
-    ATT_ASSERT(output_size, (size_t)2, "Caller-buffer normalized encoding conversion output size");
+    ATT_ASSERT(into.size, (size_t)2, "Caller-buffer normalized encoding conversion output size");
     ATT_ASSERT((int)memcmp(output, "A\0", 2), 0,
         "Caller-buffer normalized encoding conversion output");
 

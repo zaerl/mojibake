@@ -469,9 +469,7 @@ Normalize a string to NFC/NFKC/NFD/NFKD form.
 
 ```c
 mjb_status mjb_normalize(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_normalization form,
     mjb_encoding output_encoding,
@@ -480,11 +478,9 @@ mjb_status mjb_normalize(
 );
 ```
 
-Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, the input buffer is returned as-is in `result->output` with `result->transformed` set to false, without allocating. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Normalize a string to the requested Unicode normalization form. If the input is already normalized and no encoding conversion is needed, `text->buffer` is returned as-is in `result->output` with `result->transformed` set to false, without allocating. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
-- `buffer` - The string to normalize
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to normalize
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
 - `output_encoding` - The output encoding of the string
@@ -494,7 +490,7 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 **Returns**
 
 - `MJB_STATUS_OK` - The string was normalized (or already normal)
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
@@ -505,11 +501,12 @@ Normalize a string to the requested Unicode normalization form. If the input is 
 **Example**
 
 ```c
-const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+// "Cafe" + U+0301 COMBINING ACUTE ACCENT
+mjb_text input = mjb_text_utf8("Cafe\xCC\x81", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+if(mjb_normalize(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -529,34 +526,26 @@ Normalize a string into a caller-provided buffer.
 
 ```c
 mjb_status mjb_normalize_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_normalization form,
-    mjb_encoding output_encoding,
-    void *output,
-    size_t *output_size,
+    mjb_buffer *output,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Normalize a string using the same Unicode normalization forms and encoding rules as `mjb_normalize`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. NFD and NFKD write without allocation. NFC and NFKC may allocate temporary composition storage, including during a size query.
+Normalize a string using the same Unicode normalization forms and encoding rules as `mjb_normalize`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. NFD and NFKD write without allocation. NFC and NFKC may allocate temporary composition storage, including during a size query.
 
-- `buffer` - The string to normalize
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to normalize
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `form` - The normalization form to use
-- `output_encoding` - The output encoding of the string
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the normalized string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
@@ -568,24 +557,31 @@ Normalize a string using the same Unicode normalization forms and encoding rules
 **Example**
 
 ```c
-const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
-size_t output_size = 0;
+const char *cafe = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+mjb_text input = mjb_text_utf8(cafe, strlen(cafe));
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-char output[5];
+char storage[5];
 
-if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size,
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // NFC payload (no terminator): Café
-printf("NFC payload (no terminator): %.*s", (int)output_size, output);
+printf("NFC payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
 See also: [`mjb_normalize`](#mjb_normalize), [`mjb_normalization_quick_check`](#mjb_normalization_quick_check), [`mjb_filter_into`](#mjb_filter_into), [`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into).
@@ -680,7 +676,7 @@ mjb_status mjb_filter_into(
 );
 ```
 
-Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Apply the same filters as `mjb_filter` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Filtering itself does not allocate, but `MJB_FILTER_NORMALIZE` may allocate temporary normalization storage. `MJB_FILTER_LIMIT_COMBINING` keeps the first `MJB_FILTER_MAX_COMBINING_MARKS` consecutive marks in each emitted run. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `buffer` - The string to filter
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -802,7 +798,7 @@ mjb_status mjb_nfkc_casefold_into(
 );
 ```
 
-Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
+Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
 
 - `buffer` - The string to transform
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -922,7 +918,7 @@ mjb_status mjb_idna_to_ascii_into(
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` to NULL to query the required byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The domain name to process
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -1020,7 +1016,7 @@ mjb_status mjb_idna_to_unicode_into(
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `output` to NULL to query the required byte count. No bytes are written if capacity is insufficient. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `output` to NULL to query the required byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The domain name to process
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -1706,7 +1702,7 @@ mjb_status mjb_convert_encoding_into(
 );
 ```
 
-Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. No bytes are written when capacity is insufficient.
+Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity.
 
 - `buffer` - The string to convert
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -1945,7 +1941,7 @@ mjb_status mjb_collation_key_into(
 );
 ```
 
-Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written, and no bytes are written when capacity is insufficient. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the key, but nothing is written past its capacity. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to generate the sort key for
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -2073,7 +2069,7 @@ mjb_status mjb_map_case_into(
 );
 ```
 
-Apply the same full, special, conditional, titlecase, locale-sensitive, and case folding mappings as `mjb_map_case` without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. No bytes are written when capacity is insufficient.
+Apply the same full, special, conditional, titlecase, locale-sensitive, and case folding mappings as `mjb_map_case` without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity.
 
 - `buffer` - The string to change case
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
@@ -3266,7 +3262,7 @@ mjb_status mjb_confusable_skeleton_into(
 );
 ```
 
-Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. No bytes are written when capacity is insufficient. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
 - `buffer` - The string to transform
 - `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit

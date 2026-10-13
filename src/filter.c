@@ -173,8 +173,9 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
     if(filters & MJB_FILTER_NORMALIZE) {
         mjb_encoding normalize_output_encoding = filters == MJB_FILTER_NORMALIZE ? output_encoding :
                                                                                    encoding;
-        status = mjb_normalize(buffer, byte_length, encoding, malformed_policy,
-            MJB_NORMALIZATION_NFC, normalize_output_encoding, result, diagnostic);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFC,
+            normalize_output_encoding, result, diagnostic);
 
         if(status != MJB_STATUS_OK) {
             return status;
@@ -284,8 +285,11 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
     bool normalization_requested = (filters & MJB_FILTER_NORMALIZE) != 0;
 
     if(filters == MJB_FILTER_NORMALIZE) {
-        status = mjb_normalize_into(buffer, byte_length, encoding, malformed_policy,
-            MJB_NORMALIZATION_NFC, output_encoding, output, output_size, diagnostic);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        mjb_buffer output_buffer = mjb_buffer_make(output, *output_size, output_encoding);
+        status = mjb_normalize_into(&text, malformed_policy, MJB_NORMALIZATION_NFC, &output_buffer,
+            diagnostic);
+        *output_size = output_buffer.size;
 
         return status;
     }
@@ -293,8 +297,9 @@ MJB_EXPORT mjb_status mjb_filter_into(const char *buffer, size_t byte_length, mj
     mjb_result normalized = { NULL, 0, false };
 
     if(normalization_requested) {
-        status = mjb_normalize(buffer, byte_length, encoding, malformed_policy,
-            MJB_NORMALIZATION_NFC, encoding, &normalized, diagnostic);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFC, encoding,
+            &normalized, diagnostic);
 
         if(status != MJB_STATUS_OK) {
             *output_size = 0;

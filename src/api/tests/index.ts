@@ -52,6 +52,11 @@ att_set_show_colors(showColors);
 ATT_ASSERT(mojibake instanceof Mojibake, true, 'create');
 ATT_ASSERT(mojibake.codepointInfo(0x41)?.name, 'LATIN CAPITAL LETTER A', 'codepointCharacter');
 ATT_ASSERT(mojibake.normalize('e\u0301')?.output, '\u00E9', 'normalize');
+ATT_ASSERT(mojibake.normalize('e\u0301', Normalization.NFC,
+  { encoding: Encoding.UTF_16BE })?.output, '\u00E9', 'normalize UTF-16BE input');
+ATT_ASSERT(mojibake.normalize('\u00E9', Normalization.NFD,
+  { encoding: Encoding.UTF_32LE, outputEncoding: Encoding.UTF_8 })?.output, 'e\u0301',
+  'normalize UTF-32LE input to UTF-8 output');
 ATT_ASSERT(mojibake.idnaToAscii('bücher.example')?.output, 'xn--bcher-kva.example', 'idnaToAscii');
 ATT_ASSERT(mojibake.idnaToUnicode('xn--bcher-kva.example')?.output, 'bücher.example', 'idnaToUnicode');
 ATT_ASSERT(mojibake.idnaToAscii('a..b')?.valid, false, 'idnaToAscii validation');

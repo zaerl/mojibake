@@ -26,6 +26,22 @@ static mjb_status test_output_writer(mjb_output *output, const void *context) {
     return mjb_output_codepoint(output, 0xE9, MJB_ENC_UTF_8);
 }
 
+// Write a chunk that overflows a capacity of 4 bytes, then one that would still fit.
+static mjb_status test_output_resume_writer(mjb_output *output, const void *context) {
+    (void)context;
+    mjb_status status = mjb_output_write(output, "ab", 2);
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_output_write(output, "cde", 3);
+    }
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_output_write(output, "f", 1);
+    }
+
+    return status;
+}
+
 static mjb_status test_output_failure_writer(mjb_output *output, const void *context) {
     (void)output;
     (void)context;
@@ -80,8 +96,16 @@ ATT_TEST(string) {
     ATT_ASSERT_STATUS(mjb_output_into(into_output, &into_size, test_output_writer, NULL),
         MJB_STATUS_OUTPUT_TOO_SMALL, "Output sink rejects insufficient capacity");
     ATT_ASSERT(into_size, (size_t)5, "Output sink preserves the required size");
-    ATT_ASSERT(memcmp(into_output, "######", sizeof(into_output)), 0,
-        "Output sink leaves a small buffer untouched");
+    ATT_ASSERT(memcmp(into_output, "abc###", sizeof(into_output)), 0,
+        "Output sink writes a prefix and does not split a codepoint");
+
+    char resumed_output[6] = { '#', '#', '#', '#', '#', '#' };
+    into_size = 4;
+    ATT_ASSERT_STATUS(mjb_output_into(resumed_output, &into_size, test_output_resume_writer, NULL),
+        MJB_STATUS_OUTPUT_TOO_SMALL, "Output sink rejects a chunk past its capacity");
+    ATT_ASSERT(into_size, (size_t)6, "Output sink counts every chunk after overflowing");
+    ATT_ASSERT(memcmp(resumed_output, "ab####", sizeof(resumed_output)), 0,
+        "Output sink does not resume writing after overflowing");
 
     into_size = 5;
     ATT_ASSERT_STATUS(mjb_output_into(into_output, &into_size, test_output_writer, NULL),

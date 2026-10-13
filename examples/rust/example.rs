@@ -53,9 +53,7 @@ impl Drop for MjbResult {
 
 extern "C" {
     fn mjb_normalize(
-        buffer: *const c_char,
-        byte_length: usize,
-        encoding: c_int,
+        text: *const MjbText,
         malformed_policy: c_int,
         form: c_int,
         output_encoding: c_int,
@@ -97,13 +95,16 @@ fn main() -> ExitCode {
 fn run() -> bool {
     let input = "Cafe\u{0301}".as_bytes();
     let mut normalized = MjbResult::new();
+    let input_text = MjbText {
+        buffer: input.as_ptr().cast(),
+        byte_length: input.len(),
+        encoding: MJB_ENC_UTF_8,
+    };
 
     // Normalize example: in NFC e + ◌́ -> é (U+00E9)
     if unsafe {
         mjb_normalize(
-            input.as_ptr().cast(),
-            input.len(),
-            MJB_ENC_UTF_8,
+            &input_text,
             MJB_MALFORMED_STOP,
             MJB_NORMALIZATION_NFC,
             MJB_ENC_UTF_8,

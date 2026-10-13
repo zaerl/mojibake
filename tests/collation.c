@@ -449,8 +449,9 @@ ATT_TEST(collation) {
 
         unsigned char untouched[sizeof(into_output)];
         memset(untouched, 0xA5, sizeof(untouched));
-        ATT_ASSERT((int)memcmp(into_output, untouched, sizeof(into_output)), 0,
-            "Key into leaves a small buffer untouched");
+        ATT_ASSERT((int)memcmp(into_output + into_size - 1, untouched + into_size - 1,
+                       sizeof(into_output) - (into_size - 1)),
+            0, "Key into is not written past its capacity");
 
         size_t exact_size = into_size;
         ATT_ASSERT_STATUS(mjb_collation_key_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,

@@ -50,9 +50,7 @@ def load_mojibake() -> ctypes.CDLL:
     library = ctypes.CDLL(str(library_path()))
 
     library.mjb_normalize.argtypes = [
-        ctypes.c_char_p,
-        ctypes.c_size_t,
-        ctypes.c_int,
+        ctypes.POINTER(MjbText),
         ctypes.c_int,
         ctypes.c_int,
         ctypes.c_int,
@@ -97,10 +95,9 @@ def copy_result(library: ctypes.CDLL, result: MjbResult) -> bytes:
 
 def normalize(library: ctypes.CDLL, input_bytes: bytes) -> bytes:
     result = MjbResult()
+    text = MjbText(input_bytes, len(input_bytes), MJB_ENC_UTF_8)
     status = library.mjb_normalize(
-        input_bytes,
-        len(input_bytes),
-        MJB_ENC_UTF_8,
+        ctypes.byref(text),
         MJB_MALFORMED_STOP,
         MJB_NORMALIZATION_NFC,
         MJB_ENC_UTF_8,

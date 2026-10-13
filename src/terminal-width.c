@@ -122,8 +122,9 @@ MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
     }
 
     mjb_result normalized = { NULL, 0, false };
-    status = mjb_normalize(buffer, byte_length, encoding, malformed_policy, MJB_NORMALIZATION_NFC,
-        MJB_ENC_UTF_8, &normalized, diagnostic);
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+    status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+        &normalized, diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;

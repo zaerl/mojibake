@@ -105,6 +105,14 @@ mjb_status mjb_output_write(mjb_output *output, const void *buffer, size_t byte_
         }
 
         memmove(output->buffer + output->size, buffer, byte_length);
+    } else if(output->mode == MJB_OUTPUT_BOUNDED) {
+        if(output->capacity - output->size < byte_length) {
+            // Stop writing at the first chunk that does not fit, so a codepoint is never split
+            // and the written bytes stay a prefix of the output. Keep counting the required size.
+            output->mode = MJB_OUTPUT_MEASURE;
+        } else {
+            memmove(output->buffer + output->size, buffer, byte_length);
+        }
     }
 
     output->size += byte_length;
@@ -133,33 +141,21 @@ mjb_status mjb_output_into(void *output, size_t *output_size, mjb_output_writer 
     size_t capacity = output == NULL ? 0 : *output_size;
     *output_size = 0;
 
-    mjb_output measured = { NULL, 0, 0, MJB_OUTPUT_MEASURE };
-    mjb_status status = writer(&measured, context);
+    // Single pass: write while the output fits and keep measuring after it is full. With a NULL
+    // output only measure.
+    mjb_output bounded = { (char *)output, 0, capacity,
+        output == NULL ? MJB_OUTPUT_MEASURE : MJB_OUTPUT_BOUNDED };
+    mjb_status status = writer(&bounded, context);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    *output_size = measured.size;
+    *output_size = bounded.size;
 
-    if(output == NULL) {
-        return MJB_STATUS_OK;
-    }
-
-    if(capacity < measured.size) {
+    if(output != NULL && bounded.size > capacity) {
         return MJB_STATUS_OUTPUT_TOO_SMALL;
     }
-
-    mjb_output fixed = { (char *)output, 0, capacity, MJB_OUTPUT_FIXED };
-    status = writer(&fixed, context);
-
-    if(status != MJB_STATUS_OK) {
-        *output_size = 0;
-
-        return status;
-    }
-
-    *output_size = fixed.size;
 
     return MJB_STATUS_OK;
 }

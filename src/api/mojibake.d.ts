@@ -24,7 +24,7 @@ export type MojibakeWasmModule = {
   // Return the codepoint character.
   _mjb_codepoint_info: (codepoint: Codepoint, character: Pointer) => number;
   // Normalize a string to NFC/NFKC/NFD/NFKD form.
-  _mjb_normalize: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, form: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
+  _mjb_normalize: (text: Pointer, malformed_policy: number, form: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Filter a string with the selected mjb_filter_flags.
   _mjb_filter: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, filters: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Apply the Unicode NFKC_Casefold transform to a string.

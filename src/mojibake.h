@@ -662,6 +662,35 @@ static inline mjb_text mjb_text_utf32be(const char *buffer, size_t byte_length) 
     return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_32BE);
 }
 
+/**
+ * The mjb_buffer structure describes caller-provided output storage and its encoding.
+ */
+typedef struct mjb_buffer {
+    // The output storage, or NULL to query the required size.
+    void *data;
+    // On input, the capacity of `data` in bytes. On return, the required or written byte count.
+    size_t size;
+    // The output encoding. ASCII, UTF-8, UTF-16LE/BE, UTF-32LE/BE.
+    mjb_encoding encoding;
+} mjb_buffer;
+
+// Make an output buffer object.
+static inline mjb_buffer mjb_buffer_make(void *data, size_t size, mjb_encoding encoding) {
+    mjb_buffer buffer;
+
+    buffer.data = data;
+    buffer.size = size;
+    buffer.encoding = encoding;
+
+    return buffer;
+}
+
+// View the bytes written to an output buffer as input text. Use it after a successful call, when
+// `size` is the written byte count.
+static inline mjb_text mjb_buffer_text(const mjb_buffer *buffer) {
+    return mjb_text_make((const char *)buffer->data, buffer->size, buffer->encoding);
+}
+
 // This functions list is automatically generated. Do not edit.
 // clang-format off
 
@@ -669,10 +698,10 @@ static inline mjb_text mjb_text_utf32be(const char *buffer, size_t byte_length) 
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_info(mjb_codepoint codepoint, mjb_character *character);
 
 // Normalize a string to NFC/NFKC/NFD/NFKD form.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Normalize a string into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalize_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Filter a string with the selected mjb_filter_flags.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_filter_flags filters, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
