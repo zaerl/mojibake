@@ -466,6 +466,16 @@ ATT_TEST(normalization) {
         (void)mjb_result_free(&guard_result);
     }
 
+    ATT_ASSERT_STATUS(mjb_normalize("\xC3\xA9", 2, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_ASCII, &guard_result, NULL),
+        MJB_STATUS_UNSUPPORTED, "Normalize rejects unrepresentable ASCII output for normalized input");
+    ATT_ASSERT_STATUS(mjb_normalize("e\xCC\x81", 3, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_ASCII, &guard_result, NULL),
+        MJB_STATUS_UNSUPPORTED, "Normalize rejects unrepresentable ASCII output while composing");
+    ATT_ASSERT_STATUS(mjb_normalize("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+                          (mjb_encoding)(MJB_ENC_UTF_8 | MJB_ENC_UTF_16LE), &guard_result, NULL),
+        MJB_STATUS_INVALID_ENCODING, "Normalize rejects combined output encoding flags");
+
     size_t into_size = 9;
     ATT_ASSERT_STATUS(mjb_normalize_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
                           MJB_ENC_UTF_8, NULL, &into_size, NULL),

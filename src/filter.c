@@ -216,8 +216,7 @@ MJB_EXPORT mjb_status mjb_filter(const char *buffer, size_t byte_length, mjb_enc
             mjb_result_free(result);
         }
 
-        // Preserve the allocating API's historical status for unrepresentable output.
-        return status == MJB_STATUS_UNSUPPORTED ? MJB_STATUS_NO_MEMORY : status;
+        return status;
     }
 
     // If no transformation occurred, not normalized and output encoding matches input encoding,

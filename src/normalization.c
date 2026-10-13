@@ -643,7 +643,7 @@ MJB_EXPORT mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_
         mjb_free(output.buffer);
         mjb_result_free(&sanitized);
 
-        return status == MJB_STATUS_UNSUPPORTED ? MJB_STATUS_NO_MEMORY : status;
+        return status;
     }
 
     mjb_result_free(&sanitized);

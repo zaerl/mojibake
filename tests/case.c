@@ -212,6 +212,20 @@ ATT_TEST(case) {
     ATT_ASSERT(into_size, (size_t)2, "Case into converted output size");
     ATT_ASSERT(memcmp(into_output, "A\0", 2), 0, "Case into converted output bytes");
 
+    ATT_ASSERT_STATUS(mjb_map_case("\xC3\xA9", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_ASCII,
+                          &guard_result, NULL),
+        MJB_STATUS_UNSUPPORTED, "Case conversion rejects unrepresentable ASCII output");
+    into_size = sizeof(into_output);
+    ATT_ASSERT_STATUS(mjb_map_case_into("\xC3\xA9", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_ASCII,
+                          into_output, &into_size, NULL),
+        MJB_STATUS_UNSUPPORTED, "Case into rejects unrepresentable ASCII output");
+    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16,
+                          &guard_result, NULL),
+        MJB_STATUS_INVALID_ENCODING, "Case conversion rejects output without byte order");
+    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UNKNOWN,
+                          &guard_result, NULL),
+        MJB_STATUS_INVALID_ENCODING, "Case conversion rejects unknown output encoding");
+
     ATT_ASSERT_STATUS(mjb_map_case(NULL, 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL buffer");
     ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL, NULL),

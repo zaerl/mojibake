@@ -148,6 +148,13 @@ ATT_TEST(filter) {
     ATT_ASSERT((int)memcmp(result.output, "A\0", 2), 0, "Filter normalize output encoding bytes");
     mjb_result_free(&result);
 
+    ATT_ASSERT_STATUS(mjb_filter("\xC3\xA9", 2, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, MJB_ENC_ASCII,
+                          &result, NULL),
+        MJB_STATUS_UNSUPPORTED, "Filter rejects unrepresentable ASCII output");
+    ATT_ASSERT_STATUS(mjb_filter("A", 1, enc, MJB_MALFORMED_REPLACE, MJB_FILTER_NONE, MJB_ENC_UTF_32,
+                          &result, NULL),
+        MJB_STATUS_INVALID_ENCODING, "Filter rejects output without byte order");
+
     // clang-format off
     const char *spaces = "\x20" // U+0020 SPACE
         "\xC2\xA0"      // U+00A0 NO-BREAK SPACE
