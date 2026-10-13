@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `mjb_text` input structure with the `mjb_text_make`, `mjb_text_utf8`, `mjb_text_utf16le`,
+  `mjb_text_utf16be`, `mjb_text_utf32le`, and `mjb_text_utf32be` helpers
+
 ### Changed
+- **Breaking**: `mjb_string_validate(buffer, byte_length, encoding, diagnostic)` is now
+  `mjb_validate_encoding(const mjb_text *text, diagnostic)`
 - `make tidy` now runs clang-tidy with `.clang-tidy` over the library, CLI, and tests, replacing
   cppcheck
 

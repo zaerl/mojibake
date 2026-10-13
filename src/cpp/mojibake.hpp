@@ -685,7 +685,9 @@ struct NumericValue {
 
 [[nodiscard]] inline mjb_status validate_string(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8, mjb_diagnostic *diagnostic = nullptr) noexcept {
-    return mjb_string_validate(input.data(), input.size(), encoding, diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+
+    return mjb_validate_encoding(&text, diagnostic);
 }
 
 [[nodiscard]] inline mjb_status decode_next(std::string_view input, size_t &offset,

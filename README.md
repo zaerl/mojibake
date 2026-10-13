@@ -170,7 +170,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
   strings, with detailed validation and explicit stop, replacement, or skip policies during
-  conversion (`mjb_string_validate`, `mjb_convert_encoding`, `mjb_convert_encoding_into`)
+  conversion (`mjb_validate_encoding`, `mjb_convert_encoding`, `mjb_convert_encoding_into`)
 - **Parsing and string functions**: forward and reverse decoding with malformed-input diagnostics
   (`mjb_decode_next`, `mjb_decode_previous`), codepoint callbacks (`mjb_for_each_codepoint`), and
   policy-aware codepoint counting (`mjb_codepoint_count`)

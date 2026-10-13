@@ -6,7 +6,31 @@
 
 #include "test.h"
 
+static void test_text(void) {
+    mjb_text text = mjb_text_utf8("Hello", 5);
+
+    ATT_ASSERT(text.buffer != NULL, true, "Text buffer is set");
+    ATT_ASSERT(text.byte_length, (size_t)5, "Text byte length is correct");
+    ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_8, "Text encoding is UTF-8");
+
+    text = mjb_text_utf16le("A\0", 2);
+    ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_16LE,
+        "Text encoding is UTF-16LE");
+    text = mjb_text_utf16be("\0A", 2);
+    ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_16BE,
+        "Text encoding is UTF-16BE");
+    text = mjb_text_utf32le("A\0\0\0", 4);
+    ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_32LE,
+        "Text encoding is UTF-32LE");
+    text = mjb_text_utf32be("\0\0\0A", 4);
+    ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_32BE,
+        "Text encoding is UTF-32BE");
+    ATT_ASSERT(text.byte_length, (size_t)4, "Text keeps the byte length");
+}
+
 ATT_TEST(mojibake) {
+    test_text();
+
     MJB_TEST_COVERAGE(mjb_set_allocator);
     ATT_ASSERT_STATUS(mjb_test_allocator_invalid_status(), MJB_STATUS_INVALID_ARGUMENT,
         "Reject incomplete allocator");

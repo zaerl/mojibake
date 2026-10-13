@@ -78,13 +78,25 @@ static mjb_status api_md_examples(void) {
 static void test_validation_and_decoding(void) {
     mjb_diagnostic diagnostic = { MJB_TEXT_ERROR_OUT_OF_RANGE, 99, 99, 99 };
 
-    MJB_TEST_COVERAGE(mjb_string_validate);
-    ATT_ASSERT_STATUS(mjb_string_validate(NULL, 0, MJB_ENC_UTF_8, &diagnostic), MJB_STATUS_OK,
+    MJB_TEST_COVERAGE(mjb_validate_encoding);
+    mjb_text text = mjb_text_utf8(NULL, 0);
+    ATT_ASSERT_STATUS(mjb_validate_encoding(&text, &diagnostic), MJB_STATUS_OK,
         "NULL with zero size is well-formed");
     ATT_ASSERT((unsigned int)diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
         "Successful validation clears the diagnostic");
-    ATT_ASSERT_STATUS(mjb_string_validate(NULL, 0, MJB_ENC_UNKNOWN, &diagnostic),
-        MJB_STATUS_INVALID_ENCODING, "Validation rejects an invalid encoding for empty input");
+    text = mjb_text_make(NULL, 0, MJB_ENC_UNKNOWN);
+    ATT_ASSERT_STATUS(mjb_validate_encoding(&text, &diagnostic), MJB_STATUS_INVALID_ENCODING,
+        "Validation rejects an invalid encoding for empty input");
+    text = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT_STATUS(mjb_validate_encoding(&text, &diagnostic), MJB_STATUS_INVALID_ARGUMENT,
+        "Validation rejects a NULL buffer with a non-zero size");
+    diagnostic.error = MJB_TEXT_ERROR_OUT_OF_RANGE;
+    ATT_ASSERT_STATUS(mjb_validate_encoding(NULL, &diagnostic), MJB_STATUS_INVALID_ARGUMENT,
+        "Validation rejects a NULL text");
+    ATT_ASSERT((unsigned int)diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Validation of a NULL text clears the diagnostic");
+    ATT_ASSERT_STATUS(mjb_validate_encoding(NULL, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "Validation accepts a NULL diagnostic");
 
     const char valid_utf8[] = { 'A', '\xC3', '\xA9', '\xF0', '\x9F', '\x99', '\x82' };
     size_t offset = 0;
@@ -208,8 +220,9 @@ static void test_validation_and_decoding(void) {
 
     for(size_t i = 0; i < sizeof(malformed_cases) / sizeof(malformed_cases[0]); ++i) {
         diagnostic.error = MJB_TEXT_ERROR_NONE;
-        ATT_ASSERT_STATUS(mjb_string_validate(malformed_cases[i].input, malformed_cases[i].size,
-                              malformed_cases[i].encoding, &diagnostic),
+        text = mjb_text_make(malformed_cases[i].input, malformed_cases[i].size,
+            malformed_cases[i].encoding);
+        ATT_ASSERT_STATUS(mjb_validate_encoding(&text, &diagnostic),
             MJB_STATUS_MALFORMED_INPUT, "Validation rejects malformed encoding case");
         ATT_ASSERT((unsigned int)diagnostic.error, (unsigned int)malformed_cases[i].error,
             "Validation reports precise malformed encoding kind");
