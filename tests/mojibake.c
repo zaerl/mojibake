@@ -26,6 +26,14 @@ static void test_text(void) {
     ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_32BE,
         "Text encoding is UTF-32BE");
     ATT_ASSERT(text.byte_length, (size_t)4, "Text keeps the byte length");
+
+    char storage[4] = { 'a', 'b', 'c', 'd' };
+    mjb_buffer buffer = mjb_buffer_make(storage, 3, MJB_ENC_UTF_16BE);
+    text = mjb_buffer_text(&buffer);
+    ATT_ASSERT(text.buffer == storage, true, "Buffer text points at the output storage");
+    ATT_ASSERT(text.byte_length, (size_t)3, "Buffer text uses the buffer size");
+    ATT_ASSERT((unsigned int)text.encoding, (unsigned int)MJB_ENC_UTF_16BE,
+        "Buffer text uses the buffer encoding");
 }
 
 ATT_TEST(mojibake) {

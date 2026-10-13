@@ -68,9 +68,10 @@ extern mojibake mjb_global;
 // Shared output sink for transformations that can allocate, measure, or write into a fixed
 // caller-provided buffer.
 typedef enum mjb_output_mode {
-    MJB_OUTPUT_DYNAMIC,
-    MJB_OUTPUT_MEASURE,
-    MJB_OUTPUT_FIXED
+    MJB_OUTPUT_DYNAMIC, // Grow the buffer as needed
+    MJB_OUTPUT_MEASURE, // Count bytes without writing
+    MJB_OUTPUT_FIXED,   // Write into a fixed buffer, fail with MJB_STATUS_OUTPUT_TOO_SMALL if full
+    MJB_OUTPUT_BOUNDED  // Write into a fixed buffer, then only count bytes once it is full
 } mjb_output_mode;
 
 typedef struct mjb_output {

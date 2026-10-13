@@ -10,12 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `mjb_text` input structure with the `mjb_text_make`, `mjb_text_utf8`, `mjb_text_utf16le`,
   `mjb_text_utf16be`, `mjb_text_utf32le`, and `mjb_text_utf32be` helpers
+- `mjb_buffer` output structure, holding caller-provided storage, its capacity or written size, and
+  its encoding, with the `mjb_buffer_make` helper and `mjb_buffer_text` to pass written output to
+  another call as input
 
 ### Changed
 - **Breaking**: `mjb_string_validate(buffer, byte_length, encoding, diagnostic)` is now
   `mjb_validate_encoding(const mjb_text *text, diagnostic)`
 - **Breaking**: `mjb_codepoint_count` now takes a `const mjb_text *` instead of the buffer, byte
   length, and encoding
+- **Breaking**: `mjb_normalize` and `mjb_normalize_into` now take a `const mjb_text *` instead of
+  the buffer, byte length, and encoding
+- **Breaking**: `mjb_normalize_into` now takes a `mjb_buffer *` instead of the output encoding,
+  output buffer, and output size: `mjb_normalize_into(text, malformed_policy, form, output,
+  diagnostic)`
+- **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
+  call with enough capacity runs about as fast as the allocating variant instead of nearly twice
+  as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold
+  a partial prefix of the result; nothing is written past its capacity
 - `make tidy` now runs clang-tidy with `.clang-tidy` over the library, CLI, and tests, replacing
   cppcheck
 

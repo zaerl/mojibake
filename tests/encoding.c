@@ -644,7 +644,8 @@ ATT_TEST(encoding) {
 
     unsigned char into_output[sizeof(into_expected) + 1];
     memset(into_output, 0xA5, sizeof(into_output));
-    into_size = sizeof(into_expected) - 1;
+    size_t small_capacity = sizeof(into_expected) - 1;
+    into_size = small_capacity;
 
     ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,
                           MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, into_output, &into_size, NULL),
@@ -653,8 +654,9 @@ ATT_TEST(encoding) {
 
     unsigned char untouched_output[sizeof(into_output)];
     memset(untouched_output, 0xA5, sizeof(untouched_output));
-    ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
-        "Small output buffer is not modified");
+    ATT_ASSERT(memcmp(into_output + small_capacity, untouched_output + small_capacity,
+                   sizeof(into_output) - small_capacity),
+        0, "Small output buffer is not written past its capacity");
 
     into_size = sizeof(into_expected);
     ATT_ASSERT_STATUS(mjb_convert_encoding_into(into_input, strlen(into_input), MJB_ENC_UTF_8,

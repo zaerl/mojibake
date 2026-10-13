@@ -789,9 +789,10 @@ enum class NormalizationForm {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_normalize(input.data(), input.size(), input_encoding,
-        malformed_policy, static_cast<mjb_normalization>(form), output_encoding,
-        detail::ResultAccess::out(result), diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_normalize(&text, malformed_policy,
+        static_cast<mjb_normalization>(form), output_encoding, detail::ResultAccess::out(result),
+        diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Normalization failed");
 }

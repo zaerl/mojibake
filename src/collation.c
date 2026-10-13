@@ -831,8 +831,9 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
     }
 
     mjb_result r;
-    status = mjb_normalize(buffer, byte_length, encoding, malformed_policy, MJB_NORMALIZATION_NFD,
-        MJB_ENC_UTF_8, &r, diagnostic);
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+    status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, &r,
+        diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;

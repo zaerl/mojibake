@@ -227,7 +227,8 @@ Allocation and ownership are part of the API contract:
 
 - allocating transforms return an `mjb_result`; release it with `mjb_result_free`
 - matching `_into` variants use caller-owned storage, permit `output == NULL` to measure, report
-  required byte size, and do not write partial output when capacity is insufficient
+  required byte size, and write in a single pass: when capacity is insufficient or another error
+  occurs, the output may hold a partial prefix, but nothing is written past its capacity
 - core library allocations must use the private `mjb_alloc`, `mjb_realloc`, and `mjb_free` helpers
   so the configured allocator remains effective; the standalone CLI may use the C allocator for
   its own storage

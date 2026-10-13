@@ -319,8 +319,9 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
 
     mjb_result result;
-    bool ret = mjb_normalize(buffer_utf8, utf8_length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, form,
-                   MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK;
+    mjb_text text = mjb_text_utf8(buffer_utf8, utf8_length);
+    bool ret = mjb_normalize(&text, MJB_MALFORMED_STOP, form, MJB_ENC_UTF_8, &result, NULL) ==
+        MJB_STATUS_OK;
 
     if(ret) {
         if(is_json) {

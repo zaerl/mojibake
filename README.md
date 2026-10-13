@@ -27,8 +27,10 @@ int main(int argc, char *const argv[]) {
     mjb_result result;
 
     // Normalize example: in NFC e + ◌́ -> é (U+00E9)
-    if(mjb_normalize(input, length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+    mjb_text input_text = mjb_text_utf8(input, length);
+
+    if(mjb_normalize(&input_text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
+        NULL) != MJB_STATUS_OK) {
         return 1;
     }
 

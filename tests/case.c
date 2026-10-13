@@ -190,14 +190,16 @@ ATT_TEST(case) {
     unsigned char untouched_output[sizeof(into_output)];
     memset(into_output, 0xA5, sizeof(into_output));
     memset(untouched_output, 0xA5, sizeof(untouched_output));
-    into_size = strlen(into_expected) - 1;
+    size_t small_capacity = strlen(into_expected) - 1;
+    into_size = small_capacity;
 
     ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
                           encoding, into_output, &into_size, NULL),
         MJB_STATUS_OUTPUT_TOO_SMALL, "Case into reports a small output buffer");
     ATT_ASSERT(into_size, strlen(into_expected), "Small case output reports required size");
-    ATT_ASSERT(memcmp(into_output, untouched_output, sizeof(into_output)), 0,
-        "Small case output buffer is not modified");
+    ATT_ASSERT(memcmp(into_output + small_capacity, untouched_output + small_capacity,
+                   sizeof(into_output) - small_capacity),
+        0, "Small case output is not written past its capacity");
 
     into_size = strlen(into_expected);
     ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,

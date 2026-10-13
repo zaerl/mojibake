@@ -17,12 +17,11 @@ pub fn main(init: std.process.Init) !u8 {
     const input = "Cafe\u{0301}";
     {
         var result: mjb.mjb_result = .{};
+        const input_text = mjb.mjb_text_utf8(input.ptr, input.len);
 
         // Normalize example: in NFC e + ◌́ -> é (U+00E9)
         if (mjb.mjb_normalize(
-            input.ptr,
-            input.len,
-            mjb.MJB_ENC_UTF_8,
+            &input_text,
             mjb.MJB_MALFORMED_STOP,
             mjb.MJB_NORMALIZATION_NFC,
             mjb.MJB_ENC_UTF_8,

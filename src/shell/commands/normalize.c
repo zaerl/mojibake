@@ -54,10 +54,11 @@ static int mjbsh_normalize_buffer(const char *buffer, size_t size, unsigned int 
     mjb_result result;
     bool ret = true;
 
-    mjb_status status = is_casefold ? mjb_nfkc_casefold(buffer, size, MJB_ENC_UTF_8,
-                                          MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL) :
-                                      mjb_normalize(buffer, size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                                          form, MJB_ENC_UTF_8, &result, NULL);
+    mjb_text text = mjb_text_utf8(buffer, size);
+    mjb_status status = is_casefold ?
+        mjb_nfkc_casefold(buffer, size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result,
+            NULL) :
+        mjb_normalize(&text, MJB_MALFORMED_STOP, form, MJB_ENC_UTF_8, &result, NULL);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));

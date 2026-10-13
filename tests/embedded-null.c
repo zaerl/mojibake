@@ -163,7 +163,8 @@ ATT_TEST(embedded_null) {
     // The normalization fast path must report the resolved payload length, not SIZE_MAX.
     const char normalized[] = { 'A', '\0', 'B', '\0' };
     mjb_result result;
-    ATT_ASSERT_STATUS(mjb_normalize(normalized, sizeof(normalized) - 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    mjb_text text = mjb_text_utf8(normalized, sizeof(normalized) - 1);
+    ATT_ASSERT_STATUS(mjb_normalize(&text, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, "Normalization with explicit embedded U+0000");
     ATT_ASSERT(result.output_size, sizeof(normalized) - 1,
@@ -171,7 +172,8 @@ ATT_TEST(embedded_null) {
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
         "Free explicit normalization result");
 
-    ATT_ASSERT_STATUS(mjb_normalize(normalized, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    text = mjb_text_utf8(normalized, MJB_NUL_TERMINATED);
+    ATT_ASSERT_STATUS(mjb_normalize(&text, MJB_MALFORMED_STOP,
                           MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, "Normalization with MJB_NUL_TERMINATED");
     ATT_ASSERT(result.output_size, (size_t)1,

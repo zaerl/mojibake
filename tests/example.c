@@ -30,11 +30,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_normalize
     MJB_TEST_COVERAGE(mjb_normalize); // Added by the script
-    const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    mjb_text input = mjb_text_utf8("Cafe\xCC\x81", MJB_NUL_TERMINATED);
     mjb_result result;
 
-    if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+    if(mjb_normalize(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize test failed"); // Added by the script
         return;
     }
@@ -50,27 +51,35 @@ ATT_TEST(example) {
 {
     // Example for mjb_normalize_into
     MJB_TEST_COVERAGE(mjb_normalize_into); // Added by the script
-    const char *input = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
-    size_t output_size = 0;
+    const char *cafe = "Cafe\xCC\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    mjb_text input = mjb_text_utf8(cafe, strlen(cafe));
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-    if(mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+    // Query the required size
+    if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize_into test failed"); // Added by the script
         return;
     }
 
-    char output[5];
+    char storage[5];
 
-    if(output_size > sizeof(output) || mjb_normalize_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, output, &output_size,
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_normalize_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+    if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output,
         NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalize_into test failed"); // Added by the script
         return;
     }
 
     // NFC payload (no terminator): Café
-    // printf("NFC payload (no terminator): %.*s", (int)output_size, output);
-    snprintf(test_buffer, sizeof(test_buffer), "NFC payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    // printf("NFC payload (no terminator): %.*s", (int)output.size, storage);
+    snprintf(test_buffer, sizeof(test_buffer), "NFC payload (no terminator): %.*s", (int)output.size, storage); // Added by the script
     ATT_ASSERT(test_buffer, "NFC payload (no terminator): Café", "mjb_normalize_into test failed"); // Added by the script
 }
 

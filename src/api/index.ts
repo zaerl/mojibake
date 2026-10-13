@@ -456,20 +456,20 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, mjb_normalization form,
-  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // mjb_normalization form, mjb_encoding output_encoding, mjb_result *result,
+  // mjb_diagnostic *diagnostic)
   normalize(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(12); // 4 + 4 + 1 + 3 padding for mjb_result
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_normalize(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, form,
-        outputEncoding, resultPtr, 0);
+      const status = this.module._mjb_normalize(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, form, outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -484,6 +484,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }

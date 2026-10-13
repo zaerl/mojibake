@@ -232,8 +232,9 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     // Step 1: NFD the input.
     mjb_result nfd;
 
-    mjb_status status = mjb_normalize(buffer, byte_length, encoding, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFD, MJB_ENC_UTF_8, &nfd, NULL);
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+    mjb_status status = mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFD,
+        MJB_ENC_UTF_8, &nfd, NULL);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -314,8 +315,9 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
 
     // Step 3: NFD the intermediate string into the selected final output.
     if(result != NULL) {
-        status = mjb_normalize(mid, mid_index, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-            MJB_NORMALIZATION_NFD, output_encoding, result, NULL);
+        text = mjb_text_utf8(mid, mid_index);
+        status = mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFD, output_encoding,
+            result, NULL);
 
         // mjb_normalize may return result->output == mid when the string is already NFD.
         // In that case transfer ownership so the caller can free it via mjb_result_free.
@@ -328,8 +330,11 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         return status;
     }
 
-    status = mjb_normalize_into(mid, mid_index, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFD, output_encoding, output, output_size, NULL);
+    text = mjb_text_utf8(mid, mid_index);
+    mjb_buffer output_buffer = mjb_buffer_make(output, *output_size, output_encoding);
+    status = mjb_normalize_into(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFD, &output_buffer,
+        NULL);
+    *output_size = output_buffer.size;
     mjb_free(mid);
 
     return status;

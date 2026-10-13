@@ -408,8 +408,9 @@ static bool mjb_idna_valid_contextj(const mjb_idna_codepoints *label) {
 
 static mjb_status mjb_idna_label_is_nfc(const char *label, size_t byte_length, bool *is_nfc) {
     mjb_result normalized;
-    mjb_status status = mjb_normalize(label, byte_length, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &normalized, NULL);
+    mjb_text text = mjb_text_utf8(label, byte_length);
+    mjb_status status = mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+        MJB_ENC_UTF_8, &normalized, NULL);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -682,8 +683,9 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     }
 
     mjb_result normalized;
-    status = mjb_normalize(mapped.buffer, mapped.size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &normalized, NULL);
+    mjb_text text = mjb_text_utf8(mapped.buffer, mapped.size);
+    status = mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+        &normalized, NULL);
 
     if(status != MJB_STATUS_OK) {
         mjb_free(mapped.buffer);

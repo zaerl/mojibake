@@ -381,22 +381,22 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     switch(selector % 23) {
         case 0: { // Normalization, all four forms
-            if(mjb_normalize(buffer, size, encoding, malformed_policy,
-                   (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, &result,
-                   NULL) == MJB_STATUS_OK) {
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+
+            if(mjb_normalize(&text, malformed_policy, (mjb_normalization)(variant % 4),
+                   MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            size_t required = 0;
+            mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-            if(mjb_normalize_into(buffer, size, encoding, malformed_policy,
-                   (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, NULL, &required,
+            if(mjb_normalize_into(&text, malformed_policy, (mjb_normalization)(variant % 4), &into,
                    NULL) == MJB_STATUS_OK &&
-                required <= 4096) {
+                into.size <= 4096) {
                 char output[4096];
-                size_t capacity = required;
-                fuzz_sink += (size_t)mjb_normalize_into(buffer, size, encoding, malformed_policy,
-                    (mjb_normalization)(variant % 4), MJB_ENC_UTF_8, output, &capacity, NULL);
+                into.data = output;
+                fuzz_sink += (size_t)mjb_normalize_into(&text, malformed_policy,
+                    (mjb_normalization)(variant % 4), &into, NULL);
             }
 
             break;
