@@ -86,22 +86,29 @@ MJB_EXPORT mjb_encoding mjb_detect_encoding(const char *buffer, size_t byte_leng
  * Return true if the string is encoded in UTF-8.
  */
 MJB_EXPORT bool mjb_is_utf8(const char *buffer, size_t byte_length) {
-    return mjb_string_validate(buffer, byte_length, MJB_ENC_UTF_8, NULL) == MJB_STATUS_OK;
+    mjb_text text = mjb_text_make(buffer, byte_length, MJB_ENC_UTF_8);
+
+    return mjb_validate_encoding(&text, NULL) == MJB_STATUS_OK;
 }
 
 /**
  * Return true if the string is encoded in ASCII.
  */
 MJB_EXPORT bool mjb_is_ascii(const char *buffer, size_t byte_length) {
-    return mjb_string_validate(buffer, byte_length, MJB_ENC_ASCII, NULL) == MJB_STATUS_OK;
+    mjb_text text = mjb_text_make(buffer, byte_length, MJB_ENC_ASCII);
+
+    return mjb_validate_encoding(&text, NULL) == MJB_STATUS_OK;
 }
 
 /**
  * Return true if the string is encoded in UTF-16BE or UTF-16LE.
  */
 MJB_EXPORT bool mjb_is_utf16(const char *buffer, size_t byte_length) {
-    return mjb_string_validate(buffer, byte_length, MJB_ENC_UTF_16BE, NULL) == MJB_STATUS_OK ||
-        mjb_string_validate(buffer, byte_length, MJB_ENC_UTF_16LE, NULL) == MJB_STATUS_OK;
+    mjb_text big_endian = mjb_text_make(buffer, byte_length, MJB_ENC_UTF_16BE);
+    mjb_text little_endian = mjb_text_make(buffer, byte_length, MJB_ENC_UTF_16LE);
+
+    return mjb_validate_encoding(&big_endian, NULL) == MJB_STATUS_OK ||
+        mjb_validate_encoding(&little_endian, NULL) == MJB_STATUS_OK;
 }
 
 static size_t mjb_encoding_code_unit_size(mjb_encoding encoding) {
@@ -657,9 +664,16 @@ MJB_EXPORT mjb_status mjb_decode_previous(const char *buffer, size_t byte_length
     }
 }
 
-MJB_EXPORT mjb_status mjb_string_validate(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_diagnostic *diagnostic) {
+MJB_EXPORT mjb_status mjb_validate_encoding(const mjb_text *text, mjb_diagnostic *diagnostic) {
     mjb_diagnostic_reset(diagnostic);
+
+    if(text == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(!mjb_encoding_is_valid_input(encoding)) {
         return MJB_STATUS_INVALID_ENCODING;
@@ -900,7 +914,8 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
 
     if(byte_length == 0 || encoding == output_encoding) {
         mjb_diagnostic validity;
-        status = mjb_string_validate(buffer, byte_length, encoding, &validity);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_validate_encoding(&text, &validity);
         mjb_diagnostic_record(diagnostic, &validity);
 
         if(status == MJB_STATUS_OK) {
@@ -987,7 +1002,8 @@ MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_
 
     if(byte_length == 0 || encoding == output_encoding) {
         mjb_diagnostic validity;
-        status = mjb_string_validate(buffer, byte_length, encoding, &validity);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_validate_encoding(&text, &validity);
         mjb_diagnostic_record(diagnostic, &validity);
 
         if(status == MJB_STATUS_OK) {

@@ -1191,30 +1191,26 @@ const char utf16be[] = "\xFE\xFF\0H\0i"; // BOM + "Hi" in UTF-16BE
 printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
 ```
 
-## `mjb_string_validate`
+## `mjb_validate_encoding`
 
 Validate a complete Unicode code-unit sequence.
 
 ```c
-mjb_status mjb_string_validate(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+mjb_status mjb_validate_encoding(
+    const mjb_text *text,
     mjb_diagnostic *diagnostic
 );
 ```
 
 Validate the complete input without producing output. Empty input is well-formed. On malformed input, `diagnostic` identifies the first maximal ill-formed subsequence. Generic UTF-16 and UTF-32 require a byte-order mark.
 
-- `buffer` - The string to validate
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to validate
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The complete input is well-formed
-- `MJB_STATUS_INVALID_ARGUMENT` - `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is unsupported, or generic UTF-16/UTF-32 has no byte-order mark
 - `MJB_STATUS_MALFORMED_INPUT` - The first malformed subsequence is described by `diagnostic`
 
@@ -1222,10 +1218,11 @@ Validate the complete input without producing output. Empty input is well-formed
 
 ```c
 const char invalid[] = "\xE2\x82";
+mjb_text text = mjb_text_utf8(invalid, sizeof(invalid) - 1);
 mjb_diagnostic diagnostic;
 
-if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
-    &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
+if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
+    diagnostic.byte_offset != 0) {
     return 1;
 }
 ```
@@ -1266,7 +1263,7 @@ Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed 
 - `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
 
-See also: [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_string_validate`](#mjb_string_validate), [`mjb_codepoint_count`](#mjb_codepoint_count).
+See also: [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
 
 ## `mjb_decode_previous`
 
@@ -1302,7 +1299,7 @@ Decode backward from `offset`, using the same malformed-input policies and diagn
 - `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
 
-See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_string_validate`](#mjb_string_validate), [`mjb_codepoint_count`](#mjb_codepoint_count).
+See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
 
 ## `mjb_codepoint_count`
 

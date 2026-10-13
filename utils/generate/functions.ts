@@ -104,6 +104,15 @@ function byte_length(description = 'The length of the string in bytes, or ' +
   };
 }
 
+function text(description: string, name = 'text'): MojibakeArg {
+  return {
+    name,
+    type: 'const mjb_text *',
+    description,
+    wasm_generated: false
+  };
+}
+
 function encoding(description = 'The encoding of the string', name = 'encoding'): MojibakeArg {
   return {
     name,
@@ -1001,12 +1010,10 @@ printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
   {
     comment: 'Validate a complete Unicode code-unit sequence.',
     ret: 'mjb_status',
-    name: 'mjb_string_validate',
+    name: 'mjb_validate_encoding',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to validate'),
-      byte_length(),
-      encoding(),
+      text('The text to validate'),
       diagnostic()
     ],
     wasm: false,
@@ -1017,17 +1024,18 @@ printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The complete input is well-formed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`buffer` is NULL with a non-zero size' },
+        '`text` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'The encoding is unsupported, or generic UTF-16/UTF-32 has no byte-order mark' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The first malformed subsequence is described by `diagnostic`' }
     ],
     example: `const char invalid[] = "\\xE2\\x82";
+mjb_text text = mjb_text_utf8(invalid, sizeof(invalid) - 1);
 mjb_diagnostic diagnostic;
 
-if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
-    &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
+if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
+    diagnostic.byte_offset != 0) {
     return 1;
 }`,
     related: ['mjb_decode_next', 'mjb_decode_previous', 'mjb_is_utf8']
@@ -1071,7 +1079,7 @@ if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
     ],
-    related: ['mjb_decode_previous', 'mjb_string_validate', 'mjb_codepoint_count']
+    related: ['mjb_decode_previous', 'mjb_validate_encoding', 'mjb_codepoint_count']
   },
   {
     comment: 'Decode the previous codepoint from a string.',
@@ -1110,7 +1118,7 @@ if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
     ],
-    related: ['mjb_decode_next', 'mjb_string_validate', 'mjb_codepoint_count']
+    related: ['mjb_decode_next', 'mjb_validate_encoding', 'mjb_codepoint_count']
   },
   {
     comment: 'Count the codepoints in a string.',

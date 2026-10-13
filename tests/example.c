@@ -292,14 +292,15 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_string_validate
-    MJB_TEST_COVERAGE(mjb_string_validate); // Added by the script
+    // Example for mjb_validate_encoding
+    MJB_TEST_COVERAGE(mjb_validate_encoding); // Added by the script
     const char invalid[] = "\xE2\x82";
+    mjb_text text = mjb_text_utf8(invalid, sizeof(invalid) - 1);
     mjb_diagnostic diagnostic;
 
-    if(mjb_string_validate(invalid, sizeof(invalid) - 1, MJB_ENC_UTF_8,
-        &diagnostic) != MJB_STATUS_MALFORMED_INPUT || diagnostic.byte_offset != 0) {
-        ATT_ASSERT(0, 1, "mjb_string_validate test failed"); // Added by the script
+    if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
+        diagnostic.byte_offset != 0) {
+        ATT_ASSERT(0, 1, "mjb_validate_encoding test failed"); // Added by the script
         return;
     }
 }

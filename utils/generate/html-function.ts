@@ -308,6 +308,21 @@ export class CFunction implements MojibakeFunction {
     return ret + '</div>';
   }
 
+  private getTextInput(arg: number): string {
+    const disabled = this.args[arg].wasm_generated;
+    const name = `${this.getName()}-${this.args[arg].name}-encoding`;
+    const options = encodings.map((encoding, i) =>
+      `<option value="${encodingValues[i]}">${encoding}</option>`).join('');
+
+    let ret = this.getInput(arg);
+    ret += `<div><label for="${name}"${disabled ? ' class="text-secondary"' : ''}>` +
+      `${this.getLabelName(arg)} encoding</label>`;
+    ret += `<select id="${name}" name="${name}" title="The encoding of the ${this.args[arg].name}" ` +
+      `${disabled ? 'disabled' : ''}>${options}</select>`;
+
+    return ret + '</div>';
+  }
+
   private getCheckbox(arg: number): string {
     const disabled = this.args[arg].wasm_generated;
     const name = `${this.getName()}-${this.args[arg].name}`;
@@ -372,6 +387,9 @@ export class CFunction implements MojibakeFunction {
           ret += this.getInput(i);
           break;
         // case 'const mjb_bidi_paragraph *':
+        case 'const mjb_text *':
+          ret += this.getTextInput(i);
+          break;
         // case 'const size_t *':
         // case 'int *':
         // case 'int32_t *':

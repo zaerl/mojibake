@@ -714,6 +714,7 @@ the MIT License.</p>
             }
 
             let gotOptions = false;
+            let textCount = 0;
             let args = [];
             let options = {
                 encoding: 0x2, // Default to UTF-8
@@ -761,6 +762,19 @@ the MIT License.</p>
                     }
                 } else if(arg.type === 'const char *' || arg.type === 'char *') {
                     // value = encodeString(value, options.encoding);
+                } else if(arg.type === 'const mjb_text *') {
+                    // The text is passed as a string, its encoding through the options
+                    const encoding = parseInt(
+                        form.elements[`${func}-${arg.name}-encoding`].value, 10);
+
+                    if(textCount === 0) {
+                        options.encoding = encoding;
+                    } else {
+                        options.additionalEncoding = encoding;
+                    }
+
+                    ++textCount;
+                    gotOptions = true;
                 }
 
                 args.push(value);
@@ -969,6 +983,16 @@ the MIT License.</p>
 
                 if(input) {
                     input.value = param;
+                }
+
+                if(arg.type === 'const mjb_text *') {
+                    const encodingParam = urlParams.get(arg.name + '_encoding');
+                    const encodingInput = document.getElementById(
+                        functionParam + '-' + arg.name + '-encoding');
+
+                    if(encodingParam !== null && encodingInput) {
+                        encodingInput.value = encodingParam;
+                    }
                 }
             }
 
