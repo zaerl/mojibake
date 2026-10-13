@@ -112,7 +112,7 @@ static void read_bidi_class_test_file(const char *filename) {
                     expected_levels[levels_count] = 0xFF;
                 } else {
                     is_removed[levels_count] = false;
-                    expected_levels[levels_count] = (uint8_t)atoi(tok);
+                    expected_levels[levels_count] = (uint8_t)strtol(tok, NULL, 10);
                     ++non_removed;
                 }
 
@@ -133,7 +133,7 @@ static void read_bidi_class_test_file(const char *filename) {
                     continue;
                 }
 
-                expected_order[order_count++] = (size_t)atoi(tok);
+                expected_order[order_count++] = (size_t)strtol(tok, NULL, 10);
             }
 
             continue;

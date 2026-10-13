@@ -106,6 +106,9 @@ static void test_case_folding_file(void) {
                     current_line, "T simple");
                 ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK, "Set locale en");
                 break;
+
+            default:
+                break;
         }
 
         ++current_line;

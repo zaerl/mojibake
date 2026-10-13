@@ -154,7 +154,7 @@ void read_test_file(const char *filename, test_file_callback callback) {
                 }
             }
 
-            mjb_codepoint codepoint = strtoul((const char *)(token), NULL, 16);
+            mjb_codepoint codepoint = strtoul((const char *)token, NULL, 16);
 
             unsigned int encoded_size = mjb_codepoint_encode(codepoint,
                 generated_input + generated_index, 1024 - generated_index, MJB_ENC_UTF_8);

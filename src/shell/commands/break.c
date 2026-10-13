@@ -368,16 +368,8 @@ static void mjbsh_display_break_output(const char *input) {
 }
 
 static void mjbsh_handle_key(mjbsh_key key) {
-    switch(key) {
-        case MJBSH_KEY_LEFT:
-            break;
-        case MJBSH_KEY_RIGHT:
-            break;
-        case MJBSH_KEY_UP:
-        case MJBSH_KEY_DOWN:
-        default:
-            break;
-    }
+    // The break view does not react to arrow keys yet.
+    (void)key;
 }
 
 int mjbsh_break_command(int argc, char *const argv[], unsigned int flags) {

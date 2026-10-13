@@ -56,6 +56,7 @@ static size_t read_name_aliases(const char *filename, name_alias *aliases, size_
             continue;
         }
 
+        // NOLINTNEXTLINE(clang-analyzer-security.ArrayBound): strcspn is below strlen(line)
         line[strcspn(line, "\r\n")] = '\0';
 
         while(field_count < 3 && cursor != NULL) {

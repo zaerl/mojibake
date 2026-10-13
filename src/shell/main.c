@@ -65,6 +65,7 @@ int main(int argc, char *const argv[]) {
         "Bidi base direction: ltr, rtl, auto. Default: auto", "Print help",
         "JSON indent level (0-10). Default: 0",
         "Casing locale as a BCP 47 language tag (e.g. tr, az, lt). Default: en",
+        // NOLINTNEXTLINE(bugprone-suspicious-missing-comma): one multi-line description
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
         "\t\tjson: print the result in JSON format",

@@ -100,13 +100,13 @@ static void read_bidi_test_file(const char *filename) {
         utf8_buf[utf8_len] = '\0';
 
         // Field 1: paragraph direction
-        int dir_v = atoi(fields[1]);
+        int dir_v = (int)strtol(fields[1], NULL, 10);
         mjb_direction dir = (dir_v == 1) ? MJB_DIRECTION_RTL :
             (dir_v == 2)                 ? MJB_DIRECTION_AUTO :
                                            MJB_DIRECTION_LTR;
 
         // Field 2: expected paragraph level
-        uint8_t expected_para_level = (uint8_t)atoi(fields[2]);
+        uint8_t expected_para_level = (uint8_t)strtol(fields[2], NULL, 10);
 
         // Field 3: expected resolved levels
         uint8_t expected_levels[256];
@@ -127,7 +127,7 @@ static void read_bidi_test_file(const char *filename) {
                 expected_levels[total_cp] = 0xFF;
             } else {
                 is_removed[total_cp] = false;
-                expected_levels[total_cp] = (uint8_t)atoi(lvl_tok);
+                expected_levels[total_cp] = (uint8_t)strtol(lvl_tok, NULL, 10);
                 ++non_removed;
             }
 
@@ -146,7 +146,7 @@ static void read_bidi_test_file(const char *filename) {
                 continue;
             }
 
-            expected_order[order_count++] = (size_t)atoi(ord_tok);
+            expected_order[order_count++] = (size_t)strtol(ord_tok, NULL, 10);
         }
 
         // Run algorithm

@@ -399,19 +399,12 @@ static inline bool MJB_USED mjb_encoding_is_valid_output(mjb_encoding encoding) 
 }
 
 /**
- * Resolve MJB_NUL_TERMINATED to an encoding-aware payload byte length. The terminator itself is not
- * included. Explicit byte lengths are left unchanged and may contain U+0000 codepoints.
+ * Scan for the encoding-aware terminator of a NUL-terminated string. Kept out of
+ * mjb_resolve_input_byte_length so that its unbounded loop does not stop static analyzers from
+ * following the common explicit-length path.
  */
-static inline mjb_status MJB_USED mjb_resolve_input_byte_length(const char *buffer,
+static inline mjb_status MJB_USED mjb_scan_nul_terminated_byte_length(const char *buffer,
     size_t *byte_length, mjb_encoding encoding) {
-    if(byte_length == NULL) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    if(*byte_length != MJB_NUL_TERMINATED) {
-        return MJB_STATUS_OK;
-    }
-
     if(buffer == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -450,4 +443,21 @@ static inline mjb_status MJB_USED mjb_resolve_input_byte_length(const char *buff
 
         index += code_unit_size;
     }
+}
+
+/**
+ * Resolve MJB_NUL_TERMINATED to an encoding-aware payload byte length. The terminator itself is not
+ * included. Explicit byte lengths are left unchanged and may contain U+0000 codepoints.
+ */
+static inline mjb_status MJB_USED mjb_resolve_input_byte_length(const char *buffer,
+    size_t *byte_length, mjb_encoding encoding) {
+    if(byte_length == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    if(*byte_length != MJB_NUL_TERMINATED) {
+        return MJB_STATUS_OK;
+    }
+
+    return mjb_scan_nul_terminated_byte_length(buffer, byte_length, encoding);
 }

@@ -48,6 +48,11 @@ static void test_basic_segmentation(void) {
 #define MJB_TEST_S \
     state.index = 0; \
     index = 0;
+// Read the next expected break, or MJB_BT_NOT_SET once the function returns more breaks than
+// expected, so the assertion fails instead of reading past the end of the array.
+#define MJB_TEST_EXPECTED(array) \
+    (index < sizeof(array) / sizeof((array)[0]) ? (uint8_t)(array)[index++] : \
+                                                  (++index, (uint8_t)MJB_BT_NOT_SET))
 
     ATT_ASSERT((uint8_t)mjb_next_grapheme_break(NULL, 1, MJB_ENC_UTF_8, &state),
         (uint8_t)MJB_BT_NOT_SET, "Segmentation rejects NULL buffer");
@@ -66,7 +71,7 @@ static void test_basic_segmentation(void) {
     MJB_TEST_COVERAGE(mjb_next_grapheme_break);
 
     while((bt = mjb_next_grapheme_break("A", 1, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_a[index++], "A test");
+        ATT_ASSERT((uint8_t)bt, MJB_TEST_EXPECTED(expected_a), "A test");
     }
 
     MJB_TEST_S
@@ -75,7 +80,7 @@ static void test_basic_segmentation(void) {
     MJB_TEST_COVERAGE(mjb_next_grapheme_break);
 
     while((bt = mjb_next_grapheme_break("AB", 2, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_ab[index++], "AB test");
+        ATT_ASSERT((uint8_t)bt, MJB_TEST_EXPECTED(expected_ab), "AB test");
     }
 
     ATT_ASSERT(index, 2, "AB test break index");
@@ -85,7 +90,7 @@ static void test_basic_segmentation(void) {
     MJB_TEST_COVERAGE(mjb_next_grapheme_break);
 
     while((bt = mjb_next_grapheme_break("ABC", 3, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_abc[index++], "AB test");
+        ATT_ASSERT((uint8_t)bt, MJB_TEST_EXPECTED(expected_abc), "AB test");
     }
 
     ATT_ASSERT(index, 3, "ABC test break index");
@@ -96,7 +101,7 @@ static void test_basic_segmentation(void) {
     MJB_TEST_COVERAGE(mjb_next_grapheme_break);
 
     while((bt = mjb_next_grapheme_break("A\r\nB", 4, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_brnl[index++], "A\\r\\nB test");
+        ATT_ASSERT((uint8_t)bt, MJB_TEST_EXPECTED(expected_brnl), "A\\r\\nB test");
     }
 
     ATT_ASSERT(index, 4, "A\\r\\nB test break index");
@@ -107,7 +112,7 @@ static void test_basic_segmentation(void) {
     MJB_TEST_COVERAGE(mjb_next_grapheme_break);
 
     while((bt = mjb_next_grapheme_break("🇮🇹🇮🇹", 16, MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
-        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_itit[index++], "ITIT test");
+        ATT_ASSERT((uint8_t)bt, MJB_TEST_EXPECTED(expected_itit), "ITIT test");
     }
 
     ATT_ASSERT(index, 4, "ITIT test break index");
@@ -122,12 +127,13 @@ static void test_basic_segmentation(void) {
 
     while((bt = mjb_next_grapheme_break(gb9c, sizeof(gb9c) - 1, MJB_ENC_UTF_8, &state)) !=
         MJB_BT_NOT_SET) {
-        ATT_ASSERT((uint8_t)bt, (uint8_t)expected_gb9c[index++], "Unicode 18 GB9c");
+        ATT_ASSERT((uint8_t)bt, MJB_TEST_EXPECTED(expected_gb9c), "Unicode 18 GB9c");
     }
 
     ATT_ASSERT(index, 3, "Unicode 18 GB9c break index");
 
 #undef MJB_TEST_S
+#undef MJB_TEST_EXPECTED
 }
 
 static void test_truncate(void) {

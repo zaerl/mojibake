@@ -605,6 +605,9 @@ ATT_TEST(normalization) {
                 case 4: // NFKD
                     nfkd_size = get_string_from_codepoints(token, 256, (char *)nfkd);
                     break;
+
+                default:
+                    break;
             }
 
             // Skip trailing comments

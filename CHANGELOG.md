@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `make tidy` now runs clang-tidy with `.clang-tidy` over the library, CLI, and tests, replacing
+  cppcheck
+
 ### Fixed
 - `mjb_map_case`, `mjb_filter`, and `mjb_normalize` now return `MJB_STATUS_UNSUPPORTED` instead of
   `MJB_STATUS_NO_MEMORY` when the output encoding cannot represent a result codepoint, matching
   their `_into` variants
 - Documented `MJB_STATUS_UNSUPPORTED` for every function whose output encoding can reject a
   codepoint, and `MJB_STATUS_INVALID_ENCODING` for `mjb_confusable_skeleton`
+- CLI: the interactive screen signal handler now restores the cursor and terminal using only
+  async-signal-safe calls
+- Fixed all clang-tidy findings in the library, CLI, and tests
 
 ## [0.4.2] - 2026-10-12
 Codename: [LATIN CAPITAL LETTER B]

@@ -23,24 +23,19 @@ typedef struct termios terminal_state;
 static bool in_raw_mode = false;
 static terminal_state *saved_term_state = NULL;
 
+#ifdef _WIN32
 // Cleanup function to restore terminal and show cursor
 static void mjbsh_cleanup_terminal(void) {
     if(in_raw_mode && saved_term_state != NULL) {
         mjbsh_show_cursor(true);
         fflush(stdout);
-
-#ifdef _WIN32
         SetConsoleMode(saved_term_state->h_stdin, saved_term_state->orig_mode);
-#else
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, saved_term_state);
-#endif
 
         in_raw_mode = false;
         saved_term_state = NULL;
     }
 }
 
-#ifdef _WIN32
 // Windows console control handler
 static BOOL WINAPI mjbsh_console_ctrl_handler(DWORD ctrl_type) {
     switch(ctrl_type) {
@@ -57,9 +52,15 @@ static BOOL WINAPI mjbsh_console_ctrl_handler(DWORD ctrl_type) {
     }
 }
 #else
-// POSIX signal handler
+// POSIX signal handler. Only async-signal-safe functions may be called here, so the cursor and
+// terminal are restored with write and tcsetattr instead of stdio.
 static void mjbsh_signal_handler(int signum) {
-    mjbsh_cleanup_terminal();
+    if(in_raw_mode && saved_term_state != NULL) {
+        static const char show_cursor[] = "\x1B[?25h";
+        ssize_t written = write(STDOUT_FILENO, show_cursor, sizeof(show_cursor) - 1);
+        (void)written;
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, saved_term_state);
+    }
 
     // Re-raise the signal with default handler
     signal(signum, SIG_DFL);

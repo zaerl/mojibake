@@ -46,7 +46,7 @@ char *mjb_string_output(char *ret, const char *input, size_t input_size, size_t 
         *output_size = new_output_size;
     }
 
-    memcpy((char *)ret + *output_index, input, input_size);
+    memcpy(ret + *output_index, input, input_size);
     *output_index += input_size;
 
     // Null-terminate the string. jemalloc reuses freed heap blocks without clearing them.

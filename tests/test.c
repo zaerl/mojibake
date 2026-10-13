@@ -253,6 +253,10 @@ static int attractor_test_callback(int test, const char *description, const char
 // Open the coverage output file. This runs before the test binary changes into the data root, so
 // a relative path given with -C is resolved against the directory the binary was launched from.
 static bool open_coverage_file(const char *path) {
+    if(path == NULL) {
+        return false;
+    }
+
 #ifdef _WIN32
     coverage_file = fopen(path, "w");
 #else
@@ -361,7 +365,7 @@ int main(int argc, char *const argv[]) {
     unsigned int verbosity = 1;
     int option = 0;
     int option_index = 0;
-    char *filter = NULL;
+    const char *filter = NULL;
     const char *coverage_output = NULL;
     const char *source_dir = test_source_dir();
 
@@ -389,7 +393,7 @@ int main(int argc, char *const argv[]) {
                 coverage_output = optarg;
                 break;
             case 'f':
-                filter = strdup(optarg);
+                filter = optarg;
                 break;
             case 'e':
                 exit_on_error = true;
@@ -460,13 +464,9 @@ int main(int argc, char *const argv[]) {
     elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
 #else
     clock_gettime(CLOCK_MONOTONIC, &end);
-    elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    elapsed = (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1e9;
 #endif
     printf("Execution time: %.4f seconds\n", elapsed);
-
-    if(filter) {
-        free(filter);
-    }
 
     return all_valid ? 0 : -1;
 }
