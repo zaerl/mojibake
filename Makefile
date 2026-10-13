@@ -88,11 +88,6 @@ UNICODE_DATA = src/unicode-data.h
 CLANG_TIDY ?= clang-tidy
 CLANG_TIDY_CMAKE_FLAGS ?=
 
-# CMake 4 no longer sets a default macOS SDK, which non-Apple clang-tidy builds need
-ifeq ($(shell uname -s 2>/dev/null),Darwin)
-CLANG_TIDY_CMAKE_FLAGS += -DCMAKE_OSX_SYSROOT=$(shell xcrun --show-sdk-path 2>/dev/null)
-endif
-
 all: configure build
 
 .PHONY: all configure configure-cpp configure-shared configure-asan configure-ubsan \
@@ -218,12 +213,17 @@ lint:
 	@git ls-files -z '*.c' '*.h' '*.cpp' '*.hpp' ':!tests/attractor.h' | \
 		xargs -0 xcrun clang-format --dry-run --Werror
 
+# CMake 4 no longer sets a default macOS SDK, which non-Apple clang-tidy builds need
 configure-tidy: $(UNICODE_DATA)
 	@command -v $(CLANG_TIDY) >/dev/null 2>&1 || { \
 		echo "clang-tidy not found. Install LLVM (brew install llvm, apt-get install clang-tidy)" \
 			"or set CLANG_TIDY=/path/to/clang-tidy."; exit 1; }
-	@cmake -S . -B $(TIDY_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(NATIVE_CMAKE_FLAGS) \
-		-DMJB_BUILD_TESTS=ON -DCMAKE_C_CLANG_TIDY=$(CLANG_TIDY) $(CLANG_TIDY_CMAKE_FLAGS)
+	@sysroot=""; \
+	if [ "$$(uname -s)" = Darwin ]; then \
+		sysroot="-DCMAKE_OSX_SYSROOT=$$(xcrun --show-sdk-path)"; \
+	fi; \
+	cmake -S . -B $(TIDY_BUILD_DIR) -DCMAKE_BUILD_TYPE=Release $(NATIVE_CMAKE_FLAGS) \
+		-DMJB_BUILD_TESTS=ON -DCMAKE_C_CLANG_TIDY=$(CLANG_TIDY) $$sysroot $(CLANG_TIDY_CMAKE_FLAGS)
 
 # Run clang-tidy on the library, CLI, and tests while compiling them
 tidy: configure-tidy
