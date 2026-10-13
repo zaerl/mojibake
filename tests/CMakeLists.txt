@@ -4,6 +4,7 @@
 
 set(TEST_SOURCES
     utils/utils.c
+    allocator.c
     bidi.c
     bidi-class.c
     break-line.c
@@ -94,6 +95,7 @@ function(mjb_add_test name filter line)
 endfunction()
 
 # Add test to CTest
+mjb_add_test("Allocator" allocator ${CMAKE_CURRENT_LIST_LINE})
 mjb_add_test("Bidi" bidi ${CMAKE_CURRENT_LIST_LINE})
 mjb_add_test("Bidi Class" bidi_class ${CMAKE_CURRENT_LIST_LINE})
 mjb_add_test("Break Line" break_line ${CMAKE_CURRENT_LIST_LINE})
