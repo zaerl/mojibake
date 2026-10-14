@@ -658,12 +658,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_emoji_string_apis(buffer, size, encoding);
             break;
 
-        case 16: // Raw boundary iterators and character callback API
+        case 16: { // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
             mjb_text text = mjb_text_make(buffer, size, encoding);
             fuzz_sink += (size_t)mjb_for_each_codepoint(&text, MJB_MALFORMED_REPLACE,
                 fuzz_next_codepoint, NULL);
             break;
+        }
 
         case 17: { // Identifier-oriented NFKC case folding
             mjb_text text = mjb_text_make(buffer, size, encoding);
