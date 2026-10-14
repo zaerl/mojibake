@@ -805,10 +805,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
 
 // Change string case.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Change string case into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Return true if the codepoint is valid.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);

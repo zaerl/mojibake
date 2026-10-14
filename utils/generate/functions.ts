@@ -1858,9 +1858,7 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
     name: 'mjb_map_case',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to change case'),
-      byte_length(),
-      encoding(),
+      text('The text to change case'),
       malformedPolicy(),
       {
         name: 'type',
@@ -1889,8 +1887,8 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The case conversion succeeded' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`result` is NULL, the buffer is invalid, the malformed policy is invalid, or `type` is ' +
-        'not a valid case type' },
+        '`result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed ' +
+        'policy is invalid, or `type` is not a valid case type' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1899,11 +1897,11 @@ printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
         'The requested output encoding cannot represent a mapped codepoint' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
+    example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
 mjb_result result;
 
-if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
-    MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1920,9 +1918,7 @@ mjb_result_free(&result);`,
     name: 'mjb_map_case_into',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to change case'),
-      byte_length(),
-      encoding(),
+      text('The text to change case'),
       malformedPolicy(),
       {
         name: 'type',
@@ -1930,37 +1926,24 @@ mjb_result_free(&result);`,
         description: 'The type of case change',
         wasm_generated: false
       },
-      encoding('The output encoding of the string', 'output_encoding'),
-      {
-        name: 'output',
-        type: 'void *',
-        description: 'The caller-provided output buffer, or NULL to query the required size',
-        wasm_generated: false,
-        ownership: 'The caller retains ownership'
-      },
-      {
-        name: 'output_size',
-        type: 'size_t *',
-        description: 'The input capacity and output required or written byte count',
-        wasm_generated: false
-      },
+      outputBuffer(),
       diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
     details: 'Apply the same full, special, conditional, titlecase, locale-sensitive, and case ' +
-      'folding mappings as `mjb_map_case` without allocating memory. Set `output` to NULL to ' +
-      'query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; ' +
-      'on return it contains the required size when the buffer is too small, or the written ' +
-      'size on success. Terminators are excluded from the byte count and are not written. If ' +
+      'folding mappings as `mjb_map_case` without allocating memory. `output->encoding` selects ' +
+      'the output encoding. Set `output->data` to NULL to query the required size. If ' +
+      '`output->data` is non-NULL, `output->size` supplies its capacity; on return it contains ' +
+      'the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If ' +
       'capacity is insufficient, or another error occurs, the output buffer may hold a partial ' +
       'prefix of the result, but nothing is written past its capacity.',
     returns: [
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the case-mapped string was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or ' +
-        '`type` is invalid' },
+        '`output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed ' +
+        'policy is invalid, or `type` is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1971,24 +1954,30 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `const char *input = "Stra\\xC3\\x9F""e"; // "Straße"
-size_t output_size = 0;
+    example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_CASE_UPPER, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-char output[7];
+char storage[7];
 
-if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size,
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Upper payload (no terminator): STRASSE
-printf("Upper payload (no terminator): %.*s", (int)output_size, output);`,
+printf("Upper payload (no terminator): %.*s", (int)output.size, storage);`,
     related: ['mjb_map_case', 'mjb_set_locale', 'mjb_get_locale'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },

@@ -1008,17 +1008,18 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, mjb_map_case_type type,
-  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result,
+  // mjb_diagnostic *diagnostic)
   mapCase(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_map_case(wasmInput.ptr, wasmInput.size, wasmInput.encoding,
+      const status = this.module._mjb_map_case(textPtr,
         options.malformedPolicy ?? MalformedPolicy.STOP, type, outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
@@ -1034,6 +1035,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }

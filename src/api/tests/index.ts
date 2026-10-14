@@ -199,6 +199,9 @@ ATT_ASSERT(mojibake.collationKey(malformedText, CollationVariableWeighting.NON_I
   CollationStrength.TERTIARY, { malformedPolicy: MalformedPolicy.SKIP }),
 mojibake.collationKey('AB'), 'collationKey malformed skip policy');
 ATT_ASSERT(mojibake.mapCase('hello', CaseType.UPPER)?.output, 'HELLO', 'mapCase');
+ATT_ASSERT(mojibake.mapCase('stra\u00DFe', CaseType.UPPER,
+  { encoding: Encoding.UTF_32BE, outputEncoding: Encoding.UTF_16LE })?.output, 'STRASSE',
+  'mapCase UTF-32BE input to UTF-16LE output');
 ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
   'mapCase casefold uppercase Cherokee');
 ATT_ASSERT(mojibake.mapCase(malformedText, CaseType.LOWER,

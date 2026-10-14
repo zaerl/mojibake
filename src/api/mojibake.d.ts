@@ -70,7 +70,7 @@ export type MojibakeWasmModule = {
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, variable_weighting: number, strength: number, result: Pointer, diagnostic: Pointer) => number;
   // Change string case.
-  _mjb_map_case: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, type: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
+  _mjb_map_case: (text: Pointer, malformed_policy: number, type: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Return true if the codepoint is valid.
   _mjb_codepoint_is_valid: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is graphic.

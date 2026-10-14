@@ -49,16 +49,16 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
-    if(mjb_map_case(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type, encoding, &result,
-           NULL) != MJB_STATUS_OK) {
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+    if(mjb_map_case(&text, MJB_MALFORMED_STOP, type, encoding, &result, NULL) != MJB_STATUS_OK) {
         return NULL;
     }
 
     MJB_TEST_COVERAGE(mjb_map_case_into);
 
-    size_t required = 0;
-    mjb_status status = mjb_map_case_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type,
-        encoding, NULL, &required, NULL);
+    mjb_buffer into = mjb_buffer_make(NULL, 0, encoding);
+    mjb_status status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, type, &into, NULL);
+    size_t required = into.size;
 
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into sizing matches allocating case mapping");
     ATT_ASSERT(required, result.output_size, "Case into required size matches allocated size");
@@ -75,12 +75,11 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     }
 
     memset(output, 0xA5, required + 1);
-    size_t output_size = required;
-    status = mjb_map_case_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP, type, encoding,
-        output, &output_size, NULL);
+    into = mjb_buffer_make(output, required, encoding);
+    status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, type, &into, NULL);
 
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into output matches allocating case mapping");
-    ATT_ASSERT(output_size, result.output_size, "Case into written size matches allocated size");
+    ATT_ASSERT(into.size, result.output_size, "Case into written size matches allocated size");
     ATT_ASSERT(memcmp(output, result.output, result.output_size), 0,
         "Case into bytes match allocating case mapping");
     ATT_ASSERT((unsigned int)output[required], 0xA5u, "Case into does not write a terminator");

@@ -990,8 +990,9 @@ class IdnaResult {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_map_case(input.data(), input.size(), input_encoding,
-        malformed_policy, type, output_encoding, detail::ResultAccess::out(result), diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_map_case(&text, malformed_policy, type, output_encoding,
+        detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Case mapping failed");
 }
