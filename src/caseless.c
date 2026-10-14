@@ -71,8 +71,8 @@ static mjb_status mjb_caseless_casefold(mjb_caseless_value *value) {
 
 static mjb_status mjb_caseless_nfkc_casefold(mjb_caseless_value *value) {
     mjb_result next;
-    mjb_status status = mjb_nfkc_casefold(value->buffer, value->byte_length, value->encoding,
-        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &next, NULL);
+    mjb_text text = mjb_text_make(value->buffer, value->byte_length, value->encoding);
+    mjb_status status = mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &next, NULL);
 
     if(status == MJB_STATUS_OK) {
         mjb_caseless_value_replace(value, &next);

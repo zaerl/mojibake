@@ -915,8 +915,9 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_nfkc_casefold(input.data(), input.size(), input_encoding,
-        malformed_policy, output_encoding, detail::ResultAccess::out(result), diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_nfkc_casefold(&text, malformed_policy, output_encoding,
+        detail::ResultAccess::out(result), diagnostic);
     return detail::ResultAccess::checked(std::move(result), status, "NFKC case folding failed");
 }
 

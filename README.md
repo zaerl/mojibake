@@ -57,8 +57,10 @@ int main(int argc, char *const argv[]) {
     const char *case_input = "Straße";
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
-    if(mjb_nfkc_casefold(case_input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+    mjb_text case_text = mjb_text_utf8(case_input, MJB_NUL_TERMINATED);
+
+    if(mjb_nfkc_casefold(&case_text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL) !=
+        MJB_STATUS_OK) {
         return 1;
     }
 

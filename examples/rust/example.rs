@@ -62,9 +62,7 @@ extern "C" {
     ) -> c_int;
 
     fn mjb_nfkc_casefold(
-        buffer: *const c_char,
-        byte_length: usize,
-        encoding: c_int,
+        text: *const MjbText,
         malformed_policy: c_int,
         output_encoding: c_int,
         result: *mut MjbResult,
@@ -147,13 +145,16 @@ fn run() -> bool {
 
     let case_input = "Straße";
     let mut casefolded = MjbResult::new();
+    let case_text = MjbText {
+        buffer: case_input.as_ptr().cast(),
+        byte_length: case_input.len(),
+        encoding: MJB_ENC_UTF_8,
+    };
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
     if unsafe {
         mjb_nfkc_casefold(
-            case_input.as_ptr().cast(),
-            case_input.len(),
-            MJB_ENC_UTF_8,
+            &case_text,
             MJB_MALFORMED_STOP,
             MJB_ENC_UTF_8,
             &mut casefolded,

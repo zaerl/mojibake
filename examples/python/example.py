@@ -61,9 +61,7 @@ def load_mojibake() -> ctypes.CDLL:
     library.mjb_normalize.restype = ctypes.c_int
 
     library.mjb_nfkc_casefold.argtypes = [
-        ctypes.c_char_p,
-        ctypes.c_size_t,
-        ctypes.c_int,
+        ctypes.POINTER(MjbText),
         ctypes.c_int,
         ctypes.c_int,
         ctypes.POINTER(MjbResult),
@@ -113,10 +111,9 @@ def normalize(library: ctypes.CDLL, input_bytes: bytes) -> bytes:
 
 def nfkc_casefold(library: ctypes.CDLL, input_bytes: bytes) -> bytes:
     result = MjbResult()
+    text = MjbText(input_bytes, len(input_bytes), MJB_ENC_UTF_8)
     status = library.mjb_nfkc_casefold(
-        input_bytes,
-        len(input_bytes),
-        MJB_ENC_UTF_8,
+        ctypes.byref(text),
         MJB_MALFORMED_STOP,
         MJB_ENC_UTF_8,
         ctypes.byref(result),

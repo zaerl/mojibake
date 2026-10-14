@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,624,779** C assertions and **157** JavaScript assertions, including all
+Mojibake runs a total of **4,624,782** C assertions and **158** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -28,8 +28,8 @@ the official tests included in the standard:
 | `mjb_collation_compare`                    | 424197      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_codepoint_info`                       | 82678       |
-| `mjb_nfkc_casefold_into`                   | 74797       |
-| `mjb_nfkc_casefold`                        | 32098       |
+| `mjb_nfkc_casefold_into`                   | 74799       |
+| `mjb_nfkc_casefold`                        | 32099       |
 | `mjb_map_case_into`                        | 24764       |
 | `mjb_next_line_break`                      | 19352       |
 | `mjb_result_free`                          | 14236       |
@@ -131,7 +131,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4624779** |
+| **Total**                                  | **4624782** |
 
 ## JavaScript
 
@@ -152,10 +152,10 @@ the official tests included in the standard:
 | `Mojibake.codepointPropertyBinary`          | 3          |
 | `Mojibake.confusableMatch`                  | 3          |
 | `Mojibake.idnaToAscii`                      | 3          |
+| `Mojibake.nfkcCasefold`                     | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.sentenceCount`                    | 3          |
 | `Mojibake.codepointPropertyInt`             | 2          |
-| `Mojibake.nfkcCasefold`                     | 2          |
 | `Mojibake.setLocale`                        | 2          |
 | `Mojibake.bidiResolve`                      | 1          |
 | `Mojibake.categoryIsCombining`              | 1          |
@@ -223,4 +223,4 @@ the official tests included in the standard:
 | `Mojibake.emojiSequenceInfo`                | 0          |
 | `Mojibake.localeCode`                       | 0          |
 | `Mojibake.scriptCode`                       | 0          |
-| **Total**                                   | **157**    |
+| **Total**                                   | **158**    |
