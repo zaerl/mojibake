@@ -30,9 +30,9 @@ export type MojibakeWasmModule = {
   // Apply the Unicode NFKC_Casefold transform to a string.
   _mjb_nfkc_casefold: (text: Pointer, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Convert a domain name to its UTS #46 nontransitional ASCII form.
-  _mjb_idna_to_ascii: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, info: Pointer, result: Pointer) => number;
+  _mjb_idna_to_ascii: (text: Pointer, output_encoding: number, info: Pointer, result: Pointer) => number;
   // Convert a domain name to its UTS #46 nontransitional Unicode form.
-  _mjb_idna_to_unicode: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, info: Pointer, result: Pointer) => number;
+  _mjb_idna_to_unicode: (text: Pointer, output_encoding: number, info: Pointer, result: Pointer) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
   _mjb_normalization_quick_check: (buffer: Pointer, byte_length: number, encoding: number, form: number, quick_check: Pointer) => number;
   // Return the string encoding (the most probable).

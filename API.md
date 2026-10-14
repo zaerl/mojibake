@@ -837,9 +837,7 @@ Convert a domain name to its UTS #46 nontransitional ASCII form.
 
 ```c
 mjb_status mjb_idna_to_ascii(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_encoding output_encoding,
     mjb_idna_info *info,
     mjb_result *result
@@ -848,9 +846,7 @@ mjb_status mjb_idna_to_ascii(
 
 Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, label-length, and domain-length checks enabled. Non-ASCII labels are encoded with Punycode. A successful operational status can still set `info->errors`; an errored ToASCII result must not be used for DNS lookup. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The domain name to process
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The domain name to process
 - `output_encoding` - The output encoding of the ASCII domain name
 - `info` - The UTS #46 validation errors to store
 - `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
@@ -858,7 +854,7 @@ Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, 
 **Returns**
 
 - `MJB_STATUS_OK` - Processing completed; inspect `info->errors` for validation failures
-- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `result` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -869,12 +865,13 @@ Apply UTS #46 nontransitional processing with STD3 ASCII, hyphen, joiner, bidi, 
 **Example**
 
 ```c
-const char *domain = "b\xC3\xBC" "cher.example"; // "bücher.example"
+// "bücher.example"
+mjb_text domain = mjb_text_utf8("b\xC3\xBC" "cher.example", MJB_NUL_TERMINATED);
 mjb_idna_info info;
 mjb_result result;
 
-if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+if(mjb_idna_to_ascii(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
     return 1;
 }
 
@@ -893,30 +890,22 @@ Convert a domain name to its UTS #46 nontransitional ASCII form into a caller-pr
 
 ```c
 mjb_status mjb_idna_to_ascii_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
-    mjb_encoding output_encoding,
+    const mjb_text *text,
     mjb_idna_info *info,
-    void *output,
-    size_t *output_size
+    mjb_buffer *output
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` to NULL to query the required byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required byte count; otherwise `output->size` supplies its capacity, and on return it contains the required or written byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The domain name to process
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
-- `output_encoding` - The output encoding of the ASCII domain name
+- `text` - The domain name to process
 - `info` - The UTS #46 validation errors to store
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the ASCII domain was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `output` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -935,9 +924,7 @@ Convert a domain name to its UTS #46 nontransitional Unicode form.
 
 ```c
 mjb_status mjb_idna_to_unicode(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_encoding output_encoding,
     mjb_idna_info *info,
     mjb_result *result
@@ -946,9 +933,7 @@ mjb_status mjb_idna_to_unicode(
 
 Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The function returns its best-effort converted string even when `info->errors` records a validation problem. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The domain name to process
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The domain name to process
 - `output_encoding` - The output encoding of the Unicode domain name
 - `info` - The UTS #46 validation errors to store
 - `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
@@ -956,7 +941,7 @@ Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The fun
 **Returns**
 
 - `MJB_STATUS_OK` - Processing completed; inspect `info->errors` for validation failures
-- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `result` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result
@@ -967,12 +952,12 @@ Apply UTS #46 nontransitional processing and decode valid `xn--` labels. The fun
 **Example**
 
 ```c
-const char *domain = "xn--bcher-kva.example";
+mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
 mjb_idna_info info;
 mjb_result result;
 
-if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+if(mjb_idna_to_unicode(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
     return 1;
 }
 
@@ -991,30 +976,22 @@ Convert a domain name to its UTS #46 nontransitional Unicode form into a caller-
 
 ```c
 mjb_status mjb_idna_to_unicode_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
-    mjb_encoding output_encoding,
+    const mjb_text *text,
     mjb_idna_info *info,
-    void *output,
-    size_t *output_size
+    mjb_buffer *output
 );
 ```
 
-Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set `output` to NULL to query the required byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required byte count; otherwise `output->size` supplies its capacity, and on return it contains the required or written byte count. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Processing uses temporary allocations even during a size query. If `MJB_FEATURE_IDNA=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The domain name to process
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
-- `output_encoding` - The output encoding of the Unicode domain name
+- `text` - The domain name to process
 - `info` - The UTS #46 validation errors to store
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the Unicode domain was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `text`, `info`, or `output` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent the result

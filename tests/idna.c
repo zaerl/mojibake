@@ -205,8 +205,9 @@ static void test_idna_conformance(void) {
         mjb_idna_info ascii_info = { 0 };
 
         MJB_TEST_COVERAGE(mjb_idna_to_unicode);
-        mjb_status unicode_status = mjb_idna_to_unicode(source, source_size, MJB_ENC_UTF_8,
-            MJB_ENC_UTF_8, &unicode_info, &unicode_result);
+        mjb_text text = mjb_text_utf8(source, source_size);
+        mjb_status unicode_status = mjb_idna_to_unicode(&text, MJB_ENC_UTF_8, &unicode_info,
+            &unicode_result);
 
         bool unicode_matches = unicode_status == MJB_STATUS_OK &&
             idna_check_result(&unicode_result, expected_unicode, expected_unicode_size) &&
@@ -216,8 +217,9 @@ static void test_idna_conformance(void) {
         ATT_ASSERT(unicode_matches, true, test_name);
 
         MJB_TEST_COVERAGE(mjb_idna_to_ascii);
-        mjb_status ascii_status = mjb_idna_to_ascii(source, source_size, MJB_ENC_UTF_8,
-            MJB_ENC_UTF_8, &ascii_info, &ascii_result);
+        text = mjb_text_utf8(source, source_size);
+        mjb_status ascii_status = mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &ascii_info,
+            &ascii_result);
         bool ascii_matches = ascii_status == MJB_STATUS_OK &&
             idna_check_result(&ascii_result, expected_ascii, expected_ascii_size) &&
             (ascii_info.errors != MJB_IDNA_ERROR_NONE) == ascii_error;
@@ -246,7 +248,8 @@ static void test_idna_api(void) {
     mjb_idna_info info;
     mjb_result result;
 
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii(unicode, strlen(unicode), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    mjb_text text = mjb_text_utf8(unicode, strlen(unicode));
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(&text, MJB_ENC_UTF_8,
                           &info, &result),
         MJB_STATUS_OK, "IDNA ToASCII succeeds");
     ATT_ASSERT(info.errors, (uint32_t)MJB_IDNA_ERROR_NONE, "IDNA ToASCII is valid");
@@ -254,7 +257,8 @@ static void test_idna_api(void) {
     ATT_ASSERT((int)memcmp(result.output, ascii, result.output_size), 0, "IDNA ToASCII Punycode");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA ToASCII result frees");
 
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode(ascii, strlen(ascii), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    text = mjb_text_utf8(ascii, strlen(ascii));
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(&text, MJB_ENC_UTF_8,
                           &info, &result),
         MJB_STATUS_OK, "IDNA ToUnicode succeeds");
     ATT_ASSERT(info.errors, (uint32_t)MJB_IDNA_ERROR_NONE, "IDNA ToUnicode is valid");
@@ -265,7 +269,8 @@ static void test_idna_api(void) {
 
     const char utf16le[] = { 'b', 0, '\xFC', 0, 'c', 0, 'h', 0, 'e', 0, 'r', 0, '.', 0, 'e', 0, 'x',
         0, 'a', 0, 'm', 0, 'p', 0, 'l', 0, 'e', 0 };
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode(ascii, strlen(ascii), MJB_ENC_ASCII,
+    text = mjb_text_make(ascii, strlen(ascii), MJB_ENC_ASCII);
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(&text,
                           MJB_ENC_UTF_16LE, &info, &result),
         MJB_STATUS_OK, "IDNA ToUnicode converts its output encoding");
     ATT_ASSERT(result.output_size, sizeof(utf16le), "IDNA UTF-16LE output size");
@@ -273,45 +278,56 @@ static void test_idna_api(void) {
         "IDNA UTF-16LE output");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA UTF-16LE result frees");
 
-    size_t output_size = 0;
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, strlen(unicode), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          &info, NULL, &output_size),
-        MJB_STATUS_OK, "IDNA ToASCII into measures");
-    ATT_ASSERT(output_size, strlen(ascii), "IDNA ToASCII into measured size");
+    text = mjb_text_utf8(unicode, strlen(unicode));
+    mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(&text, &info, &into), MJB_STATUS_OK,
+        "IDNA ToASCII into measures");
+    ATT_ASSERT(into.size, strlen(ascii), "IDNA ToASCII into measured size");
 
     char output[32];
     memset(output, '#', sizeof(output));
-    size_t small_size = output_size - 1;
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, strlen(unicode), MJB_ENC_UTF_8,
-                          MJB_ENC_UTF_8, &info, output, &small_size),
-        MJB_STATUS_OUTPUT_TOO_SMALL, "IDNA ToASCII into reports small buffer");
-    ATT_ASSERT(small_size, output_size, "IDNA ToASCII into returns required size");
-    ATT_ASSERT(output[0], '#', "IDNA ToASCII into leaves small buffer unchanged");
+    size_t required = into.size;
+    into = mjb_buffer_make(output, required - 1, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(&text, &info, &into), MJB_STATUS_OUTPUT_TOO_SMALL,
+        "IDNA ToASCII into reports small buffer");
+    ATT_ASSERT(into.size, required, "IDNA ToASCII into returns required size");
+    ATT_ASSERT(output[required - 1], '#', "IDNA ToASCII into is not written past its capacity");
 
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(unicode, strlen(unicode), MJB_ENC_UTF_8,
-                          MJB_ENC_UTF_8, &info, output, &output_size),
-        MJB_STATUS_OK, "IDNA ToASCII into writes");
-    ATT_ASSERT((int)memcmp(output, ascii, output_size), 0, "IDNA ToASCII into output");
-    ATT_ASSERT(output[output_size], '#', "IDNA ToASCII into omits terminator");
+    into = mjb_buffer_make(output, required, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(&text, &info, &into), MJB_STATUS_OK,
+        "IDNA ToASCII into writes");
+    ATT_ASSERT((int)memcmp(output, ascii, into.size), 0, "IDNA ToASCII into output");
+    ATT_ASSERT(output[into.size], '#', "IDNA ToASCII into omits terminator");
 
     memset(output, '#', sizeof(output));
-    output_size = sizeof(output);
     MJB_TEST_COVERAGE(mjb_idna_to_unicode_into);
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(ascii, strlen(ascii), MJB_ENC_ASCII, MJB_ENC_UTF_8,
-                          &info, output, &output_size),
-        MJB_STATUS_OK, "IDNA ToUnicode into writes");
-    ATT_ASSERT(output_size, strlen(unicode), "IDNA ToUnicode into output size");
-    ATT_ASSERT((int)memcmp(output, unicode, output_size), 0, "IDNA ToUnicode into output");
-    ATT_ASSERT(output[output_size], '#', "IDNA ToUnicode into omits terminator");
+    text = mjb_text_make(ascii, strlen(ascii), MJB_ENC_ASCII);
+    into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(&text, &info, &into), MJB_STATUS_OK,
+        "IDNA ToUnicode into writes");
+    ATT_ASSERT(into.size, strlen(unicode), "IDNA ToUnicode into output size");
+    ATT_ASSERT((int)memcmp(output, unicode, into.size), 0, "IDNA ToUnicode into output");
+    ATT_ASSERT(output[into.size], '#', "IDNA ToUnicode into omits terminator");
 
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii("a..b", 4, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info, &result),
+    into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(NULL, &info, &into), MJB_STATUS_INVALID_ARGUMENT,
+        "IDNA ToUnicode into rejects NULL text");
+    ATT_ASSERT(into.size, (size_t)0, "IDNA ToUnicode into resets size for NULL text");
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(&text, &info, NULL), MJB_STATUS_INVALID_ARGUMENT,
+        "IDNA ToUnicode into rejects NULL output");
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(NULL, MJB_ENC_UTF_8, &info, &result),
+        MJB_STATUS_INVALID_ARGUMENT, "IDNA ToASCII rejects NULL text");
+
+    text = mjb_text_utf8("a..b", 4);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_OK, "IDNA produces output with validation errors");
     ATT_ASSERT((info.errors & MJB_IDNA_ERROR_EMPTY_LABEL) != 0, true,
         "IDNA reports an empty label");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA errored result frees");
 
     const char embedded_nul[] = { 'a', '\0', 'b' };
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode(embedded_nul, sizeof(embedded_nul), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(embedded_nul, sizeof(embedded_nul));
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(&text,
                           MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_OK, "IDNA preserves an embedded NUL with an explicit byte length");
     ATT_ASSERT(result.output_size, sizeof(embedded_nul), "IDNA embedded-NUL output size");
@@ -322,18 +338,23 @@ static void test_idna_api(void) {
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "IDNA embedded-NUL result frees");
 
     const char malformed[] = { '\xC3' };
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode(malformed, sizeof(malformed), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(malformed, sizeof(malformed));
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(&text,
                           MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_MALFORMED_INPUT, "IDNA rejects malformed UTF-8");
     const char non_ascii[] = { '\xC3', '\xBC' };
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode(non_ascii, sizeof(non_ascii), MJB_ENC_ASCII,
+    text = mjb_text_make(non_ascii, sizeof(non_ascii), MJB_ENC_ASCII);
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(&text,
                           MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_MALFORMED_INPUT, "IDNA rejects non-ASCII input declared as ASCII");
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii(NULL, 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info, &result),
+    text = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_INVALID_ARGUMENT, "IDNA rejects a NULL input with nonzero size");
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, NULL, &result),
+    text = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, NULL, &result),
         MJB_STATUS_INVALID_ARGUMENT, "IDNA requires validation info");
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii("a", 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8, &info, NULL),
+    text = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "IDNA requires a result");
 }
 
@@ -344,19 +365,16 @@ static void test_idna_disabled(void) {
     mjb_idna_info info = { 0 };
     mjb_result result = { NULL, 0, false };
     char output[32] = { 0 };
-    size_t output_size = sizeof(output);
+    mjb_buffer into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
 
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          &info, &result),
+    mjb_text text = mjb_text_utf8(domain, strlen(domain));
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToASCII reports feature status");
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          &info, &result),
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode(&text, MJB_ENC_UTF_8, &info, &result),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToUnicode reports feature status");
-    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          &info, output, &output_size),
+    ATT_ASSERT_STATUS(mjb_idna_to_ascii_into(&text, &info, &into),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToASCII into reports feature status");
-    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-                          &info, output, &output_size),
+    ATT_ASSERT_STATUS(mjb_idna_to_unicode_into(&text, &info, &into),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled IDNA ToUnicode into reports feature status");
 }
 

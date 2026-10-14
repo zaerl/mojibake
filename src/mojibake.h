@@ -724,16 +724,16 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold(const mjb_text *text, mjb_
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_nfkc_casefold_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Convert a domain name to its UTS #46 nontransitional ASCII form.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii(const mjb_text *text, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
 
 // Convert a domain name to its UTS #46 nontransitional ASCII form into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_ascii_into(const mjb_text *text, mjb_idna_info *info, mjb_buffer *output);
 
 // Convert a domain name to its UTS #46 nontransitional Unicode form.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_unicode(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_unicode(const mjb_text *text, mjb_encoding output_encoding, mjb_idna_info *info, mjb_result *result);
 
 // Convert a domain name to its UTS #46 nontransitional Unicode form into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_unicode_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_idna_info *info, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_idna_to_unicode_into(const mjb_text *text, mjb_idna_info *info, mjb_buffer *output);
 
 // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check);

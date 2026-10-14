@@ -239,8 +239,8 @@ static mjb_status sweep_idna_to_ascii(bool *cleared) {
                                  "cher.\xE4\xBE\x8B\xE3\x81\x88.example";
     mjb_idna_info info;
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_idna_to_ascii(domain, sizeof(domain) - 1, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &info, &result);
+    mjb_text text = mjb_text_utf8(domain, sizeof(domain) - 1);
+    mjb_status status = mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, &result);
     *cleared = result_done(status, &result);
 
     return status;
@@ -250,11 +250,11 @@ static mjb_status sweep_idna_to_ascii_into(bool *cleared) {
     static const char domain[] = "B\xC3\xBC"
                                  "cher.\xE4\xBE\x8B\xE3\x81\x88.example";
     mjb_idna_info info;
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_idna_to_ascii_into(domain, sizeof(domain) - 1, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_8, &info, output, &output_size);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(domain, sizeof(domain) - 1);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+    mjb_status status = mjb_idna_to_ascii_into(&text, &info, &output);
+    *cleared = into_done(status, output.size);
 
     return status;
 }
@@ -263,8 +263,8 @@ static mjb_status sweep_idna_to_unicode(bool *cleared) {
     static const char domain[] = "xn--bcher-kva.xn--r8jz45g.example";
     mjb_idna_info info;
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_idna_to_unicode(domain, sizeof(domain) - 1, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_16LE, &info, &result);
+    mjb_text text = mjb_text_utf8(domain, sizeof(domain) - 1);
+    mjb_status status = mjb_idna_to_unicode(&text, MJB_ENC_UTF_16LE, &info, &result);
     *cleared = result_done(status, &result);
 
     return status;
@@ -273,11 +273,11 @@ static mjb_status sweep_idna_to_unicode(bool *cleared) {
 static mjb_status sweep_idna_to_unicode_into(bool *cleared) {
     static const char domain[] = "xn--bcher-kva.xn--r8jz45g.example";
     mjb_idna_info info;
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_idna_to_unicode_into(domain, sizeof(domain) - 1, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_8, &info, output, &output_size);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(domain, sizeof(domain) - 1);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+    mjb_status status = mjb_idna_to_unicode_into(&text, &info, &output);
+    *cleared = into_done(status, output.size);
 
     return status;
 }

@@ -59,6 +59,9 @@ ATT_ASSERT(mojibake.normalize('\u00E9', Normalization.NFD,
   'normalize UTF-32LE input to UTF-8 output');
 ATT_ASSERT(mojibake.idnaToAscii('bücher.example')?.output, 'xn--bcher-kva.example', 'idnaToAscii');
 ATT_ASSERT(mojibake.idnaToUnicode('xn--bcher-kva.example')?.output, 'bücher.example', 'idnaToUnicode');
+ATT_ASSERT(mojibake.idnaToAscii('b\u00FCcher.example', { encoding: Encoding.UTF_16LE,
+  outputEncoding: Encoding.UTF_32BE })?.output, 'xn--bcher-kva.example',
+  'idnaToAscii UTF-16LE input to UTF-32BE output');
 ATT_ASSERT(mojibake.idnaToAscii('a..b')?.valid, false, 'idnaToAscii validation');
 ATT_ASSERT((mojibake.idnaToAscii('a..b')?.errors ?? 0) & IdnaError.EMPTY_LABEL,
   IdnaError.EMPTY_LABEL, 'idnaToAscii error flags');

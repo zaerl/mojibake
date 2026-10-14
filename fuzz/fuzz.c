@@ -270,13 +270,13 @@ static void fuzz_idna_apis(const char *buffer, size_t byte_length, mjb_encoding 
     mjb_encoding output_encoding, uint8_t variant, bool to_ascii) {
     mjb_idna_info info = { 0 };
     mjb_result result = { 0 };
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
     mjb_status status;
 
     if(to_ascii) {
-        status = mjb_idna_to_ascii(buffer, byte_length, encoding, output_encoding, &info, &result);
+        status = mjb_idna_to_ascii(&text, output_encoding, &info, &result);
     } else {
-        status = mjb_idna_to_unicode(buffer, byte_length, encoding, output_encoding, &info,
-            &result);
+        status = mjb_idna_to_unicode(&text, output_encoding, &info, &result);
     }
 
     fuzz_sink += (size_t)status + info.errors;
@@ -285,36 +285,35 @@ static void fuzz_idna_apis(const char *buffer, size_t byte_length, mjb_encoding 
         mjb_result_free(&result);
     }
 
-    size_t required = 0;
+    mjb_buffer into = mjb_buffer_make(NULL, 0, output_encoding);
     info.errors = 0;
 
     if(to_ascii) {
-        status = mjb_idna_to_ascii_into(buffer, byte_length, encoding, output_encoding, &info, NULL,
-            &required);
+        status = mjb_idna_to_ascii_into(&text, &info, &into);
     } else {
-        status = mjb_idna_to_unicode_into(buffer, byte_length, encoding, output_encoding, &info,
-            NULL, &required);
+        status = mjb_idna_to_unicode_into(&text, &info, &into);
     }
 
-    fuzz_sink += (size_t)status + info.errors + required;
+    fuzz_sink += (size_t)status + info.errors + into.size;
 
-    if(status != MJB_STATUS_OK || required > 4096) {
+    if(status != MJB_STATUS_OK || into.size > 4096) {
         return;
     }
 
     char output[4096];
-    size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
+    size_t required = into.size;
+    // Sometimes leave one byte short to exercise the too-small path
+    into = mjb_buffer_make(output, (variant & 0x80) != 0 && required > 0 ? required - 1 : required,
+        output_encoding);
     info.errors = 0;
 
     if(to_ascii) {
-        status = mjb_idna_to_ascii_into(buffer, byte_length, encoding, output_encoding, &info,
-            output, &capacity);
+        status = mjb_idna_to_ascii_into(&text, &info, &into);
     } else {
-        status = mjb_idna_to_unicode_into(buffer, byte_length, encoding, output_encoding, &info,
-            output, &capacity);
+        status = mjb_idna_to_unicode_into(&text, &info, &into);
     }
 
-    fuzz_sink += (size_t)status + info.errors + capacity;
+    fuzz_sink += (size_t)status + info.errors + into.size;
 }
 
 static void fuzz_format_apis(const char *buffer, size_t byte_length, uint8_t variant) {
