@@ -217,20 +217,15 @@ private struct TerminalWidthAnalysis {
                 return .failure(clusterResult.errorMessage ?? "Grapheme analysis failed.")
             }
 
-            let graphemeBytes = mjb_truncate_grapheme_width(
+            let (graphemeBytes, wordBytes) = MojibakeText.with(
                 buffer.baseAddress,
-                byteLength,
-                MJB_ENC_UTF_8,
-                profile.value,
-                maxColumns
-            )
-            let wordBytes = mjb_truncate_word_width(
-                buffer.baseAddress,
-                byteLength,
-                MJB_ENC_UTF_8,
-                profile.value,
-                maxColumns
-            )
+                byteLength: byteLength
+            ) { text in
+                (
+                    mjb_truncate_grapheme_width(text, profile.value, maxColumns),
+                    mjb_truncate_word_width(text, profile.value, maxColumns)
+                )
+            }
             let previews = [
                 makeTruncation(
                     title: "Grapheme-Safe",
@@ -268,12 +263,12 @@ private struct TerminalWidthAnalysis {
 
         while byteStart < byteLength {
             let remainingBytes = byteLength - byteStart
-            let clusterLength = mjb_truncate_grapheme(
+            let clusterLength = MojibakeText.with(
                 buffer.baseAddress?.advanced(by: byteStart),
-                remainingBytes,
-                MJB_ENC_UTF_8,
-                1
-            )
+                byteLength: remainingBytes
+            ) { text in
+                mjb_truncate_grapheme(text, 1)
+            }
             let byteEnd = byteStart + clusterLength
 
             guard byteEnd > byteStart, byteEnd <= byteLength else {
@@ -342,15 +337,9 @@ private struct TerminalWidthAnalysis {
         profile: mjb_terminal_width_profile
     ) -> (width: Int?, errorMessage: String?) {
         var width = 0
-        let status = mjb_terminal_width(
-            buffer,
-            byteLength,
-            MJB_ENC_UTF_8,
-            MJB_MALFORMED_STOP,
-            profile,
-            &width,
-            nil
-        )
+        let status = MojibakeText.with(buffer, byteLength: byteLength) { text in
+            mjb_terminal_width(text, MJB_MALFORMED_STOP, profile, &width, nil)
+        }
 
         guard status == MJB_STATUS_OK else {
             return (

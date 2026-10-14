@@ -215,20 +215,16 @@ private struct SecurityResolution {
         _ first: String,
         with second: String
     ) -> (isConfusable: Bool?, errorMessage: String?) {
-        let firstUTF8 = first.utf8CString
-        let secondUTF8 = second.utf8CString
-
-        return firstUTF8.withUnsafeBufferPointer { firstBuffer in
-            secondUTF8.withUnsafeBufferPointer { secondBuffer in
+        return MojibakeText.with(first) { firstText in
+            MojibakeText.with(second) { secondText in
                 var isConfusable = false
                 let status = mjb_confusable_match(
-                    firstBuffer.baseAddress,
-                    firstBuffer.count - 1,
-                    MJB_ENC_UTF_8,
-                    secondBuffer.baseAddress,
-                    secondBuffer.count - 1,
-                    MJB_ENC_UTF_8,
-                    &isConfusable
+                    firstText,
+                    secondText,
+                    MJB_MALFORMED_STOP,
+                    &isConfusable,
+                    nil,
+                    nil
                 )
 
                 guard status == MJB_STATUS_OK else {
@@ -288,11 +284,9 @@ private struct SecurityTextAnalysis {
         _ input: String
     ) -> (analysis: SecurityTextAnalysis?, errorMessage: String?) {
         var skeletonStatus = MJB_STATUS_OK
-        let skeleton = MojibakeString.transform(input) { buffer, byteLength, result in
+        let skeleton = MojibakeString.transform(input) { text, result in
             skeletonStatus = mjb_confusable_skeleton(
-                buffer,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_ENC_UTF_8,
                 result
             )
@@ -309,21 +303,10 @@ private struct SecurityTextAnalysis {
             )
         }
 
-        let identifierResults = input.utf8CString.withUnsafeBufferPointer { buffer in
-            let byteLength = buffer.count - 1
-            return (
-                mjb_is_identifier(
-                    buffer.baseAddress,
-                    byteLength,
-                    MJB_ENC_UTF_8,
-                    MJB_IDENTIFIER_DEFAULT
-                ),
-                mjb_is_identifier(
-                    buffer.baseAddress,
-                    byteLength,
-                    MJB_ENC_UTF_8,
-                    MJB_IDENTIFIER_NFKC
-                )
+        let identifierResults = MojibakeText.with(input) { text in
+            (
+                mjb_is_identifier(text, MJB_IDENTIFIER_DEFAULT),
+                mjb_is_identifier(text, MJB_IDENTIFIER_NFKC)
             )
         }
 
@@ -375,20 +358,10 @@ private struct SecurityScriptSet {
     static func resolve(
         _ input: String
     ) -> (scriptSet: SecurityScriptSet?, errorMessage: String?) {
-        let utf8 = input.utf8CString
-
-        return utf8.withUnsafeBufferPointer { buffer in
-            let byteLength = buffer.count - 1
+        return MojibakeText.with(input) { text in
             var count = 0
             var kind = MJB_SCRIPT_SET_EMPTY
-            var status = mjb_resolved_script_set(
-                buffer.baseAddress,
-                byteLength,
-                MJB_ENC_UTF_8,
-                nil,
-                &count,
-                &kind
-            )
+            var status = mjb_resolved_script_set(text, nil, &count, &kind)
 
             guard status == MJB_STATUS_OK else {
                 return (
@@ -408,14 +381,7 @@ private struct SecurityScriptSet {
             var outputCount = scripts.count
 
             status = scripts.withUnsafeMutableBufferPointer { scriptsBuffer in
-                mjb_resolved_script_set(
-                    buffer.baseAddress,
-                    byteLength,
-                    MJB_ENC_UTF_8,
-                    scriptsBuffer.baseAddress,
-                    &outputCount,
-                    &kind
-                )
+                mjb_resolved_script_set(text, scriptsBuffer.baseAddress, &outputCount, &kind)
             }
 
             guard status == MJB_STATUS_OK else {

@@ -106,33 +106,59 @@ enum MojibakeCounting {
     private static func count(
         of value: String,
         using function: (
-            UnsafePointer<CChar>?,
-            Int,
-            mjb_encoding,
+            UnsafePointer<mjb_text>?,
             mjb_malformed_policy,
             UnsafeMutablePointer<Int>?,
             UnsafeMutablePointer<mjb_diagnostic>?
         ) -> mjb_status
     ) -> Int? {
-        let bytes = Array(value.utf8)
-
-        return bytes.withUnsafeBytes { rawBuffer in
-            let buffer = rawBuffer.bindMemory(to: CChar.self)
+        MojibakeText.with(value) { text in
             var count = 0
 
-            guard function(
-                buffer.baseAddress,
-                buffer.count,
-                MJB_ENC_UTF_8,
-                MJB_MALFORMED_STOP,
-                &count,
-                nil
-            ) == MJB_STATUS_OK else {
+            guard function(text, MJB_MALFORMED_STOP, &count, nil) == MJB_STATUS_OK else {
                 return nil
             }
 
             return count
         }
+    }
+}
+
+enum MojibakeText {
+    /// Calls `body` with a `mjb_text` that borrows the UTF-8 bytes of `value`.
+    static func with<Result>(
+        _ value: String,
+        _ body: (UnsafePointer<mjb_text>) -> Result
+    ) -> Result {
+        with(Array(value.utf8), encoding: MJB_ENC_UTF_8, body)
+    }
+
+    /// Calls `body` with a `mjb_text` that borrows `bytes`. The pointer is valid only inside `body`.
+    static func with<Result>(
+        _ bytes: [UInt8],
+        encoding: mjb_encoding,
+        _ body: (UnsafePointer<mjb_text>) -> Result
+    ) -> Result {
+        bytes.withUnsafeBytes { rawBuffer in
+            with(
+                rawBuffer.bindMemory(to: CChar.self).baseAddress,
+                byteLength: rawBuffer.count,
+                encoding: encoding,
+                body
+            )
+        }
+    }
+
+    /// Calls `body` with a `mjb_text` that borrows `byteLength` bytes starting at `buffer`.
+    static func with<Result>(
+        _ buffer: UnsafePointer<CChar>?,
+        byteLength: Int,
+        encoding: mjb_encoding = MJB_ENC_UTF_8,
+        _ body: (UnsafePointer<mjb_text>) -> Result
+    ) -> Result {
+        var text = mjb_text(buffer: buffer, byte_length: byteLength, encoding: encoding)
+
+        return withUnsafePointer(to: &text, body)
     }
 }
 
@@ -168,31 +194,19 @@ enum MojibakeFormatting {
 enum MojibakeBytes {
     static func transform(
         _ value: String,
-        operation: (
-            UnsafePointer<CChar>?,
-            Int,
-            UnsafeMutablePointer<mjb_result>
-        ) -> mjb_status
+        operation: (UnsafePointer<mjb_text>, UnsafeMutablePointer<mjb_result>) -> mjb_status
     ) -> [UInt8]? {
-        transform(Array(value.utf8), operation: operation)
+        transform(Array(value.utf8), encoding: MJB_ENC_UTF_8, operation: operation)
     }
 
     static func transform(
         _ bytes: [UInt8],
-        operation: (
-            UnsafePointer<CChar>?,
-            Int,
-            UnsafeMutablePointer<mjb_result>
-        ) -> mjb_status
+        encoding: mjb_encoding,
+        operation: (UnsafePointer<mjb_text>, UnsafeMutablePointer<mjb_result>) -> mjb_status
     ) -> [UInt8]? {
-        bytes.withUnsafeBytes { rawBuffer in
-            let inputBuffer = rawBuffer.bindMemory(to: CChar.self)
+        MojibakeText.with(bytes, encoding: encoding) { text in
             var result = mjb_result()
-            let status = operation(
-                inputBuffer.baseAddress,
-                inputBuffer.count,
-                &result
-            )
+            let status = operation(text, &result)
 
             guard status == MJB_STATUS_OK else {
                 return nil
@@ -215,11 +229,7 @@ enum MojibakeBytes {
 enum MojibakeString {
     static func transform(
         _ value: String,
-        operation: (
-            UnsafePointer<CChar>?,
-            Int,
-            UnsafeMutablePointer<mjb_result>
-        ) -> mjb_status
+        operation: (UnsafePointer<mjb_text>, UnsafeMutablePointer<mjb_result>) -> mjb_status
     ) -> String? {
         guard let bytes = MojibakeBytes.transform(value, operation: operation) else {
             return nil

@@ -176,29 +176,22 @@ struct BreaksView: View {
     }
 
     private func analyze() {
-        let utf8 = input.utf8CString
-
-        results = utf8.withUnsafeBufferPointer { buffer in
-            let byteLength = buffer.count - 1
-
-            return [
-                .grapheme: graphemeBreaks(buffer.baseAddress, byteLength: byteLength),
-                .word: wordBreaks(buffer.baseAddress, byteLength: byteLength),
-                .line: lineBreaks(buffer.baseAddress, byteLength: byteLength),
-                .sentence: sentenceBreaks(buffer.baseAddress, byteLength: byteLength),
+        results = MojibakeText.with(input) { text in
+            [
+                .grapheme: graphemeBreaks(text),
+                .word: wordBreaks(text),
+                .line: lineBreaks(text),
+                .sentence: sentenceBreaks(text),
             ]
         }
     }
 
-    private func graphemeBreaks(
-        _ buffer: UnsafePointer<CChar>?,
-        byteLength: Int
-    ) -> [BreakBoundary] {
+    private func graphemeBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
         var state = mjb_next_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_grapheme_break(buffer, byteLength, MJB_ENC_UTF_8, &state)
+            let type = mjb_next_grapheme_break(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries
@@ -210,15 +203,12 @@ struct BreaksView: View {
         }
     }
 
-    private func wordBreaks(
-        _ buffer: UnsafePointer<CChar>?,
-        byteLength: Int
-    ) -> [BreakBoundary] {
+    private func wordBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
         var state = mjb_next_word_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_word_break(buffer, byteLength, MJB_ENC_UTF_8, &state)
+            let type = mjb_next_word_break(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries
@@ -230,15 +220,12 @@ struct BreaksView: View {
         }
     }
 
-    private func lineBreaks(
-        _ buffer: UnsafePointer<CChar>?,
-        byteLength: Int
-    ) -> [BreakBoundary] {
+    private func lineBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
         var state = mjb_next_line_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_line_break(buffer, byteLength, MJB_ENC_UTF_8, &state)
+            let type = mjb_next_line_break(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries
@@ -250,15 +237,12 @@ struct BreaksView: View {
         }
     }
 
-    private func sentenceBreaks(
-        _ buffer: UnsafePointer<CChar>?,
-        byteLength: Int
-    ) -> [BreakBoundary] {
+    private func sentenceBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
         var state = mjb_next_sentence_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_sentence_break(buffer, byteLength, MJB_ENC_UTF_8, &state)
+            let type = mjb_next_sentence_break(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries

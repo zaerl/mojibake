@@ -152,14 +152,10 @@ private struct BidiAnalysis {
     }
 
     static func resolve(input: String, direction: mjb_direction) -> BidiResolution {
-        let utf8 = input.utf8CString
-
-        return utf8.withUnsafeBufferPointer { buffer in
+        return MojibakeText.with(input) { text in
             var paragraph = mjb_bidi_paragraph()
             let status = mjb_bidi_resolve(
-                buffer.baseAddress,
-                buffer.count - 1,
-                MJB_ENC_UTF_8,
+                text,
                 direction,
                 &paragraph
             )

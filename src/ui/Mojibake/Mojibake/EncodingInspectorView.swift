@@ -418,18 +418,10 @@ private struct EncodingResolution {
         _ bytes: [UInt8],
         encoding: mjb_encoding
     ) -> Int {
-        bytes.withUnsafeBytes { rawBuffer in
-            let buffer = rawBuffer.bindMemory(to: CChar.self)
+        MojibakeText.with(bytes, encoding: encoding) { text in
             var count = 0
 
-            guard mjb_codepoint_count(
-                buffer.baseAddress,
-                buffer.count,
-                encoding,
-                MJB_MALFORMED_STOP,
-                &count,
-                nil
-            ) == MJB_STATUS_OK else {
+            guard mjb_codepoint_count(text, MJB_MALFORMED_STOP, &count, nil) == MJB_STATUS_OK else {
                 return 0
             }
 
@@ -457,11 +449,9 @@ private struct EncodingConversion: Identifiable {
         to target: EncodingConversionTarget
     ) -> EncodingConversion {
         var status = MJB_STATUS_OK
-        let output = MojibakeBytes.transform(input) { buffer, byteLength, result in
+        let output = MojibakeBytes.transform(input, encoding: inputEncoding) { text, result in
             status = mjb_convert_encoding(
-                buffer,
-                byteLength,
-                inputEncoding,
+                text,
                 MJB_MALFORMED_STOP,
                 target.value,
                 result,

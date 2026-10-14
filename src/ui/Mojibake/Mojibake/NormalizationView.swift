@@ -268,16 +268,9 @@ struct NormalizationView: View {
     }
 
     private func runQuickCheck() {
-        let utf8 = input.utf8CString
         var result = MJB_QC_NO
-        let status = utf8.withUnsafeBufferPointer { buffer in
-            mjb_normalization_quick_check(
-                buffer.baseAddress,
-                buffer.count - 1,
-                MJB_ENC_UTF_8,
-                selectedForm.value,
-                &result
-            )
+        let status = MojibakeText.with(input) { text in
+            mjb_normalization_quick_check(text, selectedForm.value, &result)
         }
 
         guard status == MJB_STATUS_OK, let resolvedResult = QuickCheck(result) else {
@@ -312,11 +305,9 @@ struct NormalizationView: View {
     }
 
     private func normalized(_ value: String, form: mjb_normalization) -> String? {
-        MojibakeString.transform(value) { input, byteLength, result in
+        MojibakeString.transform(value) { text, result in
             mjb_normalize(
-                input,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_MALFORMED_STOP,
                 form,
                 MJB_ENC_UTF_8,
@@ -327,11 +318,9 @@ struct NormalizationView: View {
     }
 
     private func nfkcCasefolded(_ value: String) -> String? {
-        MojibakeString.transform(value) { input, byteLength, result in
+        MojibakeString.transform(value) { text, result in
             mjb_nfkc_casefold(
-                input,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_MALFORMED_STOP,
                 MJB_ENC_UTF_8,
                 result,
