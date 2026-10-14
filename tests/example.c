@@ -647,8 +647,8 @@ ATT_TEST(example) {
     mjb_text input = mjb_text_utf8("Stra\xC3\x9F""e", MJB_NUL_TERMINATED); // "Straße"
     mjb_result result;
 
-    if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result,
-        NULL) != MJB_STATUS_OK) {
+    if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, MJB_ENC_UTF_8,
+        &result, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case test failed"); // Added by the script
         return;
     }
@@ -657,7 +657,20 @@ ATT_TEST(example) {
     // printf("Upper: %.*s", (int)result.output_size, result.output);
     snprintf(test_buffer, sizeof(test_buffer), "Upper: %.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "Upper: STRASSE", "mjb_map_case test failed"); // Added by the script
+    mjb_result_free(&result);
 
+    mjb_text istanbul = mjb_text_utf8("istanbul", MJB_NUL_TERMINATED);
+
+    if(mjb_map_case(&istanbul, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_TR, MJB_ENC_UTF_8,
+        &result, NULL) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_map_case test failed"); // Added by the script
+        return;
+    }
+
+    // Turkish upper: \xC4\xB0STANBUL
+    // printf("Turkish upper: %.*s", (int)result.output_size, result.output);
+    snprintf(test_buffer, sizeof(test_buffer), "Turkish upper: %.*s", (int)result.output_size, result.output); // Added by the script
+    ATT_ASSERT(test_buffer, "Turkish upper: \xC4\xB0STANBUL", "mjb_map_case test failed"); // Added by the script
     mjb_result_free(&result);
 }
 
@@ -668,7 +681,7 @@ ATT_TEST(example) {
     mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
     // Query the required size
-    if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+    if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, &output,
         NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
         return;
@@ -683,7 +696,7 @@ ATT_TEST(example) {
 
     output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
 
-    if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+    if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, &output,
         NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
         return;
@@ -1511,35 +1524,6 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_set_locale
-    MJB_TEST_COVERAGE(mjb_set_locale); // Added by the script
-    if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_set_locale test failed"); // Added by the script
-        return;
-    }
-
-    // Turkish locale selected: yes
-    // printf("Turkish locale selected: yes");
-    snprintf(test_buffer, sizeof(test_buffer), "Turkish locale selected: yes"); // Added by the script
-    ATT_ASSERT(test_buffer, "Turkish locale selected: yes", "mjb_set_locale test failed"); // Added by the script
-    if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_set_locale test failed"); // Added by the script
-        return;
-    }
-}
-
-{
-    // Example for mjb_get_locale
-    MJB_TEST_COVERAGE(mjb_get_locale); // Added by the script
-    mjb_locale locale = mjb_get_locale();
-
-    // Current locale is English: yes
-    // printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Current locale is English: yes", "mjb_get_locale test failed"); // Added by the script
-}
-
-{
     // Example for mjb_locale_code
     MJB_TEST_COVERAGE(mjb_locale_code); // Added by the script
     // Locale code: tr
@@ -1555,23 +1539,6 @@ ATT_TEST(example) {
     // printf("Script code: %s", mjb_script_code(MJB_SC_LATN));
     snprintf(test_buffer, sizeof(test_buffer), "Script code: %s", mjb_script_code(MJB_SC_LATN)); // Added by the script
     ATT_ASSERT(test_buffer, "Script code: Latn", "mjb_script_code test failed"); // Added by the script
-}
-
-{
-    // Example for mjb_reset_locale
-    MJB_TEST_COVERAGE(mjb_reset_locale); // Added by the script
-    if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_reset_locale test failed"); // Added by the script
-        return;
-    }
-
-    mjb_reset_locale();
-    mjb_locale locale = mjb_get_locale();
-
-    // Current locale reset to English: yes
-    // printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "Current locale reset to English: yes", "mjb_reset_locale test failed"); // Added by the script
 }
 
 {

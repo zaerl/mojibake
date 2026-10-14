@@ -172,12 +172,8 @@ ATT_TEST(caseless) {
         7, MJB_ENC_UTF_8, utf16le_strasse, sizeof(utf16le_strasse), MJB_ENC_UTF_16LE,
         MJB_CASELESS_CANONICAL, true, "Caseless match compares different input encodings");
 
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_TR), MJB_STATUS_OK,
-        "Set Turkish locale for caseless matching");
     check_match("I", 1, MJB_ENC_UTF_8, "i", 1, MJB_ENC_UTF_8, MJB_CASELESS_UNNORMALIZED, true,
-        "Caseless matching always uses default non-Turkic folding");
+        "Caseless matching uses default non-Turkic folding");
     check_match("I", 1, MJB_ENC_UTF_8, "\xC4\xB1", 2, MJB_ENC_UTF_8, MJB_CASELESS_UNNORMALIZED,
         false, "Caseless matching does not use Turkic folding");
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_EN), MJB_STATUS_OK,
-        "Restore default locale after caseless matching");
 }

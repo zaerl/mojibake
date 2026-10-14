@@ -22,10 +22,22 @@ ATT_TEST(cpp_locales) {
     }
 
     ATT_ASSERT(locale_error, true, "LocaleError preserves status");
-    mjb::set_locale(MJB_LOCALE_IT);
-    ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "get_locale returns selected locale");
-    mjb::reset_locale();
-    ATT_ASSERT((unsigned int)mjb::get_locale(), (unsigned int)MJB_LOCALE_EN,
-        "reset_locale restores English");
+    ATT_ASSERT(mjb::uppercase("istanbul", MJB_LOCALE_TR), std::string("\xC4\xB0STANBUL"),
+        "uppercase applies the Turkish locale");
+    ATT_ASSERT(mjb::uppercase("istanbul"), std::string("ISTANBUL"),
+        "uppercase defaults to locale-independent mappings");
+    ATT_ASSERT(mjb::casefold("I", MJB_LOCALE_AZ), std::string("\xC4\xB1"),
+        "casefold applies Turkic folding for Azerbaijani");
+    ATT_ASSERT(mjb::lowercase("I\xCC\x80", MJB_LOCALE_LT), std::string("i\xCC\x87\xCC\x80"),
+        "lowercase applies the Lithuanian locale");
+
+    bool invalid_locale = false;
+
+    try {
+        (void)mjb::uppercase("i", (mjb_locale)MJB_LOCALE_NUM);
+    } catch(const mjb::LibraryError &error) {
+        invalid_locale = error.status() == MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    ATT_ASSERT(invalid_locale, true, "uppercase rejects an invalid locale");
 }

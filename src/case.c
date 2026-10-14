@@ -14,7 +14,7 @@ typedef struct mjb_map_case_write_context {
     mjb_encoding encoding;
     mjb_map_case_type type;
     mjb_encoding output_encoding;
-    bool turkic_case_folding;
+    mjb_locale locale;
 } mjb_map_case_write_context;
 
 // Casing context for the conditional mappings of SpecialCasing.txt. The flags describe the
@@ -25,6 +25,16 @@ typedef struct mjb_map_case_context {
     bool after_soft_dotted; // After_Soft_Dotted (lt): it was a Soft_Dotted character.
     bool track_locale;      // after_i and after_soft_dotted are only needed for tr, az and lt.
 } mjb_map_case_context;
+
+// MJB_LOCALE_NOT_SET selects the default, locale-independent mappings.
+static bool mjb_locale_is_valid(mjb_locale locale) {
+    return (unsigned int)locale < MJB_LOCALE_NUM;
+}
+
+// Only Turkish, Azerbaijani and Lithuanian have language-sensitive rules in SpecialCasing.txt.
+static bool mjb_locale_has_special_casing(mjb_locale locale) {
+    return locale == MJB_LOCALE_TR || locale == MJB_LOCALE_AZ || locale == MJB_LOCALE_LT;
+}
 
 // Cased: Lu, Ll and Lt plus Other_Uppercase and Other_Lowercase.
 static bool mjb_is_cased(mjb_codepoint codepoint) {
@@ -253,12 +263,12 @@ static bool mjb_before_dot(const char *buffer, size_t byte_length, size_t i, uin
 // and Azerbaijani (az). Final_Sigma is language-insensitive and handled in the casing loops.
 // Sets *handled when a rule matched; a matched rule may emit no output (removed character).
 static mjb_status mjb_locale_special_casing(mjb_codepoint codepoint, mjb_map_case_type type,
-    const mjb_map_case_context *context, const char *buffer, size_t byte_length, size_t i,
-    uint8_t state, mjb_encoding encoding, mjb_encoding output_encoding, mjb_output *output,
-    bool *handled) {
+    mjb_locale locale, const mjb_map_case_context *context, const char *buffer, size_t byte_length,
+    size_t i, uint8_t state, mjb_encoding encoding, mjb_encoding output_encoding,
+    mjb_output *output, bool *handled) {
     mjb_codepoint mapped[3] = { 0 };
     uint8_t length = 0;
-    bool turkic = mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ;
+    bool turkic = locale == MJB_LOCALE_TR || locale == MJB_LOCALE_AZ;
 
     *handled = false;
 
@@ -279,7 +289,7 @@ static mjb_status mjb_locale_special_casing(mjb_codepoint codepoint, mjb_map_cas
         } else {
             return MJB_STATUS_OK;
         }
-    } else if(mjb_global.locale == MJB_LOCALE_LT) {
+    } else if(locale == MJB_LOCALE_LT) {
         if(type == MJB_CASE_LOWER) {
             switch(codepoint) {
                 // Introduce an explicit dot above when there are more accents above.
@@ -334,12 +344,11 @@ static mjb_status mjb_locale_special_casing(mjb_codepoint codepoint, mjb_map_cas
  * See: https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G34078
  */
 static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_output *output) {
+    mjb_encoding encoding, mjb_locale locale, mjb_encoding output_encoding, mjb_output *output) {
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     mjb_codepoint codepoint = 0;
-    bool locale_sensitive = mjb_global.locale == MJB_LOCALE_TR ||
-        mjb_global.locale == MJB_LOCALE_AZ || mjb_global.locale == MJB_LOCALE_LT;
+    bool locale_sensitive = mjb_locale_has_special_casing(locale);
     mjb_map_case_context context = { false, false, false, locale_sensitive };
     mjb_next_word_state word_state;
     word_state.index = 0;
@@ -426,8 +435,9 @@ static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
         // Language-sensitive conditional rules.
         if(locale_sensitive) {
             bool handled = false;
-            mjb_status status = mjb_locale_special_casing(original, effective_type, &context,
-                buffer, byte_length, i, state, encoding, output_encoding, output, &handled);
+            mjb_status status = mjb_locale_special_casing(original, effective_type, locale,
+                &context, buffer, byte_length, i, state, encoding, output_encoding, output,
+                &handled);
 
             if(status != MJB_STATUS_OK) {
                 return status;
@@ -469,19 +479,20 @@ static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
 }
 
 static mjb_status mjb_map_case_process(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_map_case_type type, mjb_encoding output_encoding,
-    bool turkic_case_folding, mjb_output *output) {
+    mjb_encoding encoding, mjb_map_case_type type, mjb_locale locale, mjb_encoding output_encoding,
+    mjb_output *output) {
     if(type == MJB_CASE_TITLE) {
-        return mjb_titlecase_process(buffer, byte_length, encoding, output_encoding, output);
+        return mjb_titlecase_process(buffer, byte_length, encoding, locale, output_encoding,
+            output);
     }
 
     mjb_codepoint codepoint = 0;
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
     bool folding = type == MJB_CASE_CASEFOLD || type == MJB_CASE_CASEFOLD_SIMPLE;
-    bool locale_sensitive = !folding &&
-        (mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ ||
-            mjb_global.locale == MJB_LOCALE_LT);
+    bool locale_sensitive = !folding && mjb_locale_has_special_casing(locale);
+    // Turkic case folding uses the T entries of CaseFolding.txt for I and İ.
+    bool turkic_case_folding = folding && (locale == MJB_LOCALE_TR || locale == MJB_LOCALE_AZ);
     // The context is only needed for Final_Sigma (lowercase) and the language-sensitive rules.
     bool track_context = type == MJB_CASE_LOWER || locale_sensitive;
     mjb_map_case_context context = { false, false, false, locale_sensitive };
@@ -587,7 +598,7 @@ static mjb_status mjb_map_case_process(const char *buffer, size_t byte_length,
         // Language-sensitive conditional rules (SpecialCasing.txt "Conditional Mappings").
         if(locale_sensitive) {
             bool handled = false;
-            mjb_status status = mjb_locale_special_casing(codepoint, type, &context, buffer,
+            mjb_status status = mjb_locale_special_casing(codepoint, type, locale, &context, buffer,
                 byte_length, i, state, encoding, output_encoding, output, &handled);
 
             if(status != MJB_STATUS_OK) {
@@ -682,12 +693,11 @@ static mjb_status mjb_map_case_write(mjb_output *output, const void *context_poi
     const mjb_map_case_write_context *context = (const mjb_map_case_write_context *)context_pointer;
 
     return mjb_map_case_process(context->buffer, context->byte_length, context->encoding,
-        context->type, context->output_encoding, context->turkic_case_folding, output);
+        context->type, context->locale, context->output_encoding, output);
 }
 
 static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_map_case_type type, mjb_encoding output_encoding, bool turkic_case_folding,
-    mjb_result *result) {
+    mjb_map_case_type type, mjb_locale locale, mjb_encoding output_encoding, mjb_result *result) {
     char *allocated = (char *)mjb_alloc(byte_length);
 
     if(allocated == NULL) {
@@ -697,7 +707,7 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
     mjb_output output;
     mjb_output_init_dynamic(&output, allocated, byte_length);
     mjb_map_case_write_context context = { buffer, byte_length, encoding, type, output_encoding,
-        turkic_case_folding };
+        locale };
     mjb_status status = mjb_map_case_write(&output, &context);
 
     if(status != MJB_STATUS_OK) {
@@ -728,10 +738,10 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
 }
 
 MJB_EXPORT mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy,
-    mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result,
+    mjb_map_case_type type, mjb_locale locale, mjb_encoding output_encoding, mjb_result *result,
     mjb_diagnostic *diagnostic) {
     if(result == NULL || text == NULL || (text->buffer == NULL && text->byte_length > 0) ||
-        !mjb_malformed_policy_is_valid(malformed_policy)) {
+        !mjb_malformed_policy_is_valid(malformed_policy) || !mjb_locale_is_valid(locale)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -771,11 +781,8 @@ MJB_EXPORT mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy ma
         return status;
     }
 
-    bool turkic_case_folding = (type == MJB_CASE_CASEFOLD || type == MJB_CASE_CASEFOLD_SIMPLE) &&
-        (mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ);
-
-    status = mjb_map_case_result(buffer, byte_length, encoding, type, output_encoding,
-        turkic_case_folding, result);
+    status = mjb_map_case_result(buffer, byte_length, encoding, type, locale, output_encoding,
+        result);
 
     mjb_result sanitized = { NULL, 0, false };
 
@@ -790,8 +797,8 @@ MJB_EXPORT mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy ma
         }
 
         if(status == MJB_STATUS_OK) {
-            status = mjb_map_case_result(buffer, byte_length, encoding, type, output_encoding,
-                turkic_case_folding, result);
+            status = mjb_map_case_result(buffer, byte_length, encoding, type, locale,
+                output_encoding, result);
         }
     }
 
@@ -830,12 +837,12 @@ mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_enco
         return status;
     }
 
-    return mjb_map_case_result(buffer, byte_length, encoding, MJB_CASE_CASEFOLD, output_encoding,
-        false, result);
+    return mjb_map_case_result(buffer, byte_length, encoding, MJB_CASE_CASEFOLD, MJB_LOCALE_NOT_SET,
+        output_encoding, result);
 }
 
 MJB_EXPORT mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_policy malformed_policy,
-    mjb_map_case_type type, mjb_buffer *output, mjb_diagnostic *diagnostic) {
+    mjb_map_case_type type, mjb_locale locale, mjb_buffer *output, mjb_diagnostic *diagnostic) {
     if(output == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -847,7 +854,7 @@ MJB_EXPORT mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_poli
     mjb_diagnostic_reset(diagnostic);
 
     if(text == NULL || (text->buffer == NULL && text->byte_length > 0) ||
-        !mjb_malformed_policy_is_valid(malformed_policy)) {
+        !mjb_malformed_policy_is_valid(malformed_policy) || !mjb_locale_is_valid(locale)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -887,10 +894,8 @@ MJB_EXPORT mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_poli
         return status;
     }
 
-    bool turkic_case_folding = (type == MJB_CASE_CASEFOLD || type == MJB_CASE_CASEFOLD_SIMPLE) &&
-        (mjb_global.locale == MJB_LOCALE_TR || mjb_global.locale == MJB_LOCALE_AZ);
     mjb_map_case_write_context context = { buffer, byte_length, encoding, type, output_encoding,
-        turkic_case_folding };
+        locale };
 
     size_t output_capacity = *output_size;
     status = mjb_output_into(data, output_size, mjb_map_case_write, &context);

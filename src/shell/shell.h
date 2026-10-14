@@ -79,6 +79,7 @@ extern mjbsh_interpret_mode cmd_interpret_mode;
 extern mjbsh_output_mode cmd_output_mode;
 extern unsigned int cmd_json_indent;
 extern mjb_direction cmd_direction;
+extern mjb_locale cmd_locale;
 
 bool mjbsh_print_escaped_character(const char *buffer_utf8);
 void mjbsh_print_json_result(const char *output, size_t output_size);

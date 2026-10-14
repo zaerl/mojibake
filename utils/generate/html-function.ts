@@ -4,6 +4,7 @@
  * This file is distributed under the MIT License. See LICENSE for details.
  */
 
+import { readFileSync } from 'fs';
 import hljs from 'highlight.js/lib/core';
 import c from 'highlight.js/lib/languages/c';
 import functions, {
@@ -14,6 +15,12 @@ import {
   collationVariableWeightings, directions, encodings, encodingValues, filterFlags, filterFlagValues,
   identifierProfiles, malformedPolicies, normalizations, planes, planeValues, statuses, terminalWidthProfiles
 } from './types';
+
+// mjb_locale values in enum order, with their language names, read from src/locales.h.
+const localeNames = Array.from(
+  readFileSync('../../src/locales.h', 'utf-8').matchAll(/^\s+(MJB_LOCALE_\w+),?\s*\/\/ (.+)$/gm),
+  match => match[1] === 'MJB_LOCALE_NOT_SET' ? match[1] : `${match[1]} (${match[2].trim()})`
+);
 
 const mojibakeTypes = new Set<string>();
 
@@ -435,7 +442,7 @@ export class CFunction implements MojibakeFunction {
           break;
         // case 'mjb_idna_info *':
         case 'mjb_locale':
-          ret += this.getInput(i);
+          ret += this.getSelectInput(i, localeNames);
           break;
         case 'mjb_malformed_policy':
           ret += this.getSelectInput(i, malformedPolicies);

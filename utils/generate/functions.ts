@@ -1810,6 +1810,14 @@ printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`,
         wasm_generated: false,
         is_enum: true
       },
+      {
+        name: 'locale',
+        type: 'mjb_locale',
+        description: 'The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the ' +
+          'default mappings',
+        wasm_generated: false,
+        is_enum: true
+      },
       encoding('The output encoding of the string', 'output_encoding'),
       result(),
       diagnostic()
@@ -1820,18 +1828,20 @@ printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`,
       'Full case mappings are applied, including special casing and conditional mappings, so ' +
       'the output may have a different length than the input. Titlecase uses UAX #29 word ' +
       'boundaries: the first cased character in each word segment is titlecased, and ' +
-      'subsequent characters in that segment are lowercased. Casing is tailored by the ' +
-      'process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses ' +
-      'default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply ' +
-      'Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. ' +
-      '`MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains ' +
-      'the default non-Turkic mapping. Malformed subsequences follow `malformed_policy`, and ' +
+      'subsequent characters in that segment are lowercased. `locale` selects the ' +
+      'language-sensitive rules of SpecialCasing.txt for this call only; there is no global ' +
+      'locale, so concurrent calls with different locales do not interfere. `MJB_LOCALE_TR` and ' +
+      '`MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding ' +
+      'mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding ' +
+      'remains the default non-Turkic mapping. `MJB_LOCALE_NOT_SET` and every other valid ' +
+      'locale use the default mappings. Malformed subsequences follow `malformed_policy`, and ' +
       '`diagnostic` records the first one.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The case conversion succeeded' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
         '`result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed ' +
-        'policy is invalid, or `type` is not a valid case type' },
+        'policy is invalid, `type` is not a valid case type, or `locale` is not a valid ' +
+        '`mjb_locale` value' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1843,16 +1853,26 @@ printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`,
     example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
 mjb_result result;
 
-if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result,
-    NULL) != MJB_STATUS_OK) {
+if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, MJB_ENC_UTF_8,
+    &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Upper: STRASSE
 printf("Upper: %.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);
 
+mjb_text istanbul = mjb_text_utf8("istanbul", MJB_NUL_TERMINATED);
+
+if(mjb_map_case(&istanbul, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_TR, MJB_ENC_UTF_8,
+    &result, NULL) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Turkish upper: \\xC4\\xB0STANBUL
+printf("Turkish upper: %.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);`,
-    related: ['mjb_map_case_into', 'mjb_set_locale', 'mjb_get_locale'],
+    related: ['mjb_map_case_into', 'mjb_locale_parse', 'mjb_caseless_match'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
   {
@@ -1868,6 +1888,14 @@ mjb_result_free(&result);`,
         type: 'mjb_map_case_type',
         description: 'The type of case change',
         wasm_generated: false
+      },
+      {
+        name: 'locale',
+        type: 'mjb_locale',
+        description: 'The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the ' +
+          'default mappings',
+        wasm_generated: false,
+        is_enum: true
       },
       outputBuffer(),
       diagnostic()
@@ -1886,7 +1914,7 @@ mjb_result_free(&result);`,
         'The required size was returned or the case-mapped string was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
         '`output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed ' +
-        'policy is invalid, or `type` is invalid' },
+        'policy is invalid, `type` is invalid, or `locale` is not a valid `mjb_locale` value' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1901,7 +1929,7 @@ mjb_result_free(&result);`,
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
 // Query the required size
-if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
@@ -1914,14 +1942,14 @@ if(output.size > sizeof(storage)) {
 
 output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
 
-if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Upper payload (no terminator): STRASSE
 printf("Upper payload (no terminator): %.*s", (int)output.size, storage);`,
-    related: ['mjb_map_case', 'mjb_set_locale', 'mjb_get_locale'],
+    related: ['mjb_map_case', 'mjb_locale_parse'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
   {
@@ -3444,61 +3472,8 @@ if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
 
 // Locale: sr Latn RS
 printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
-    related: ['mjb_set_locale'],
+    related: ['mjb_locale_code', 'mjb_map_case'],
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
-  },
-  {
-    comment: 'Set the current process-global locale.',
-    ret: 'mjb_status',
-    name: 'mjb_set_locale',
-    attributes: ['MJB_NODISCARD'],
-    args: [
-      {
-        name: 'locale',
-        type: 'mjb_locale',
-        description: 'The locale to set',
-        wasm_generated: false
-      }
-    ],
-    wasm: true,
-    section: Section.Utility,
-    details: 'Set the process-global locale used by `mjb_map_case`. The default locale is ' +
-      '`MJB_LOCALE_EN`, and `mjb_reset_locale` resets it to `MJB_LOCALE_EN`. Only ' +
-      '`MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other ' +
-      'valid locale values are accepted but do not change Unicode algorithm behavior.',
-    returns: [
-      { value: 'MJB_STATUS_OK', description: 'The locale was set' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`locale` is not a valid `mjb_locale` value' }
-    ],
-    example: `if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-    return 1;
-}
-
-// Turkish locale selected: yes
-printf("Turkish locale selected: yes");
-if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
-    return 1;
-}`,
-    related: ['mjb_get_locale', 'mjb_reset_locale', 'mjb_map_case', 'mjb_map_case_into']
-  },
-  {
-    comment: 'Return the current process-global locale.',
-    ret: 'mjb_locale',
-    name: 'mjb_get_locale',
-    attributes: ['MJB_PURE'],
-    args: [],
-    wasm: true,
-    section: Section.Utility,
-    details: 'Return the process-global locale selected with `mjb_set_locale`. The default is ' +
-      '`MJB_LOCALE_EN`, and `mjb_reset_locale` restores that default.',
-    returns: [
-      { value: 'mjb_locale', description: 'The currently selected locale' }
-    ],
-    example: `mjb_locale locale = mjb_get_locale();
-
-// Current locale is English: yes
-printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");`,
-    related: ['mjb_set_locale', 'mjb_reset_locale', 'mjb_map_case', 'mjb_map_case_into']
   },
   {
     comment: 'Return the ISO 639-1 code of a locale, NULL if the locale is not valid.',
@@ -3522,7 +3497,7 @@ printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
     ],
     example: `// Locale code: tr
 printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));`,
-    related: ['mjb_locale_parse', 'mjb_set_locale', 'mjb_get_locale']
+    related: ['mjb_locale_parse', 'mjb_map_case']
   },
   {
     comment: 'Return the ISO 15924 code of a script, NULL if the script is not valid.',
@@ -3547,26 +3522,6 @@ printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));`,
     example: `// Script code: Latn
 printf("Script code: %s", mjb_script_code(MJB_SC_LATN));`,
     related: ['mjb_codepoint_script', 'mjb_codepoint_script_extensions']
-  },
-  {
-    comment: 'Reset the process-global locale.',
-    ret: 'void',
-    name: 'mjb_reset_locale',
-    attributes: [],
-    args: [],
-    wasm: false,
-    section: Section.Utility,
-    details: 'Restore the process-global locale to `MJB_LOCALE_EN`.',
-    example: `if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-    return 1;
-}
-
-mjb_reset_locale();
-mjb_locale locale = mjb_get_locale();
-
-// Current locale reset to English: yes
-printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");`,
-    related: ['mjb_set_locale', 'mjb_get_locale']
   },
   {
     comment: 'Free a mjb_result.',

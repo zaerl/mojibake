@@ -309,8 +309,8 @@ The [Unicode Collation Algorithm (UCA)](https://www.unicode.org/reports/tr10/tr1
 multi-level comparison for this purpose.
 
 [`mjb_collation_compare`](#mjb_collation_compare) implements UCA using the Default Unicode
-Collation Element Table (DUCET). It is locale-independent: `mjb_set_locale` does not affect
-collation, and Mojibake does not currently apply CLDR language-specific tailoring.
+Collation Element Table (DUCET). It is locale-independent: Mojibake does not currently apply CLDR
+language-specific tailoring.
 
 Define `MJB_FEATURE_COLLATION=0` when compiling the library to omit the implementation and DUCET
 tables. Collation functions then return `MJB_STATUS_FEATURE_NOT_ENABLED`.
@@ -1931,17 +1931,19 @@ mjb_status mjb_map_case(
     const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_map_case_type type,
+    mjb_locale locale,
     mjb_encoding output_encoding,
     mjb_result *result,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. Casing is tailored by the process-global locale set with `mjb_set_locale`: the default `MJB_LOCALE_EN` uses default non-Turkic mappings. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
+Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Full case mappings are applied, including special casing and conditional mappings, so the output may have a different length than the input. Titlecase uses UAX #29 word boundaries: the first cased character in each word segment is titlecased, and subsequent characters in that segment are lowercased. `locale` selects the language-sensitive rules of SpecialCasing.txt for this call only; there is no global locale, so concurrent calls with different locales do not interfere. `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply Turkish/Azerbaijani dotted-I casing and Turkic `T` case-folding mappings. `MJB_LOCALE_LT` applies Lithuanian dot-above casing rules, while case folding remains the default non-Turkic mapping. `MJB_LOCALE_NOT_SET` and every other valid locale use the default mappings. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
 - `text` - The text to change case
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
+- `locale` - The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the default mappings
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -1949,7 +1951,7 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 **Returns**
 
 - `MJB_STATUS_OK` - The case conversion succeeded
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, or `type` is not a valid case type
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, `type` is not a valid case type, or `locale` is not a valid `mjb_locale` value
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
@@ -1961,18 +1963,28 @@ Convert a string to uppercase, lowercase, titlecase, or its case-folded form. Fu
 mjb_text input = mjb_text_utf8("Stra\xC3\x9F""e", MJB_NUL_TERMINATED); // "StraÃŸe"
 mjb_result result;
 
-if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result,
-    NULL) != MJB_STATUS_OK) {
+if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, MJB_ENC_UTF_8,
+    &result, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Upper: STRASSE
 printf("Upper: %.*s", (int)result.output_size, result.output);
+mjb_result_free(&result);
 
+mjb_text istanbul = mjb_text_utf8("istanbul", MJB_NUL_TERMINATED);
+
+if(mjb_map_case(&istanbul, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_TR, MJB_ENC_UTF_8,
+    &result, NULL) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Turkish upper: \xC4\xB0STANBUL
+printf("Turkish upper: %.*s", (int)result.output_size, result.output);
 mjb_result_free(&result);
 ```
 
-See also: [`mjb_map_case_into`](#mjb_map_case_into), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
+See also: [`mjb_map_case_into`](#mjb_map_case_into), [`mjb_locale_parse`](#mjb_locale_parse), [`mjb_caseless_match`](#mjb_caseless_match).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
 
@@ -1985,6 +1997,7 @@ mjb_status mjb_map_case_into(
     const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_map_case_type type,
+    mjb_locale locale,
     mjb_buffer *output,
     mjb_diagnostic *diagnostic
 );
@@ -1995,13 +2008,14 @@ Apply the same full, special, conditional, titlecase, locale-sensitive, and case
 - `text` - The text to change case
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `type` - The type of case change
+- `locale` - The language whose casing rules apply, or `MJB_LOCALE_NOT_SET` for the default mappings
 - `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the case-mapped string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, or `type` is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, `type` is invalid, or `locale` is not a valid `mjb_locale` value
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent a mapped codepoint
@@ -2015,7 +2029,7 @@ mjb_text input = mjb_text_utf8("Stra\xC3\x9F""e", MJB_NUL_TERMINATED); // "StraÃ
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
 // Query the required size
-if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2028,7 +2042,7 @@ if(output.size > sizeof(storage)) {
 
 output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
 
-if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, &output,
     NULL) != MJB_STATUS_OK) {
     return 1;
 }
@@ -2037,7 +2051,7 @@ if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
 printf("Upper payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
-See also: [`mjb_map_case`](#mjb_map_case), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
+See also: [`mjb_map_case`](#mjb_map_case), [`mjb_locale_parse`](#mjb_locale_parse).
 
 Specifications: [The Unicode Standard, Version 18.0.0, Section 3.13: Default Case Algorithms](https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G33992).
 
@@ -3741,69 +3755,9 @@ if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
 printf("Locale: %s %s %s", locale.language, locale.script, locale.region);
 ```
 
-See also: [`mjb_set_locale`](#mjb_set_locale).
+See also: [`mjb_locale_code`](#mjb_locale_code), [`mjb_map_case`](#mjb_map_case).
 
 Specifications: [BCP 47: Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646).
-
-## `mjb_set_locale`
-
-Set the current process-global locale.
-
-```c
-mjb_status mjb_set_locale(
-    mjb_locale locale
-);
-```
-
-Set the process-global locale used by `mjb_map_case`. The default locale is `MJB_LOCALE_EN`, and `mjb_reset_locale` resets it to `MJB_LOCALE_EN`. Only `MJB_LOCALE_TR`, `MJB_LOCALE_AZ`, and `MJB_LOCALE_LT` currently tailor casing. Other valid locale values are accepted but do not change Unicode algorithm behavior.
-
-- `locale` - The locale to set
-
-**Returns**
-
-- `MJB_STATUS_OK` - The locale was set
-- `MJB_STATUS_INVALID_ARGUMENT` - `locale` is not a valid `mjb_locale` value
-
-**Example**
-
-```c
-if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-    return 1;
-}
-
-// Turkish locale selected: yes
-printf("Turkish locale selected: yes");
-if(mjb_set_locale(MJB_LOCALE_EN) != MJB_STATUS_OK) {
-    return 1;
-}
-```
-
-See also: [`mjb_get_locale`](#mjb_get_locale), [`mjb_reset_locale`](#mjb_reset_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
-
-## `mjb_get_locale`
-
-Return the current process-global locale.
-
-```c
-mjb_locale mjb_get_locale(void);
-```
-
-Return the process-global locale selected with `mjb_set_locale`. The default is `MJB_LOCALE_EN`, and `mjb_reset_locale` restores that default.
-
-**Returns**
-
-- `mjb_locale` - The currently selected locale
-
-**Example**
-
-```c
-mjb_locale locale = mjb_get_locale();
-
-// Current locale is English: yes
-printf("Current locale is English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
-```
-
-See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_reset_locale`](#mjb_reset_locale), [`mjb_map_case`](#mjb_map_case), [`mjb_map_case_into`](#mjb_map_case_into).
 
 ## `mjb_locale_code`
 
@@ -3830,7 +3784,7 @@ Return the lowercase two-letter ISO 639-1 code that names `locale`, such as `tr`
 printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));
 ```
 
-See also: [`mjb_locale_parse`](#mjb_locale_parse), [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
+See also: [`mjb_locale_parse`](#mjb_locale_parse), [`mjb_map_case`](#mjb_map_case).
 
 ## `mjb_script_code`
 
@@ -3858,32 +3812,6 @@ printf("Script code: %s", mjb_script_code(MJB_SC_LATN));
 ```
 
 See also: [`mjb_codepoint_script`](#mjb_codepoint_script), [`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions).
-
-## `mjb_reset_locale`
-
-Reset the process-global locale.
-
-```c
-void mjb_reset_locale(void);
-```
-
-Restore the process-global locale to `MJB_LOCALE_EN`.
-
-**Example**
-
-```c
-if(mjb_set_locale(MJB_LOCALE_TR) != MJB_STATUS_OK) {
-    return 1;
-}
-
-mjb_reset_locale();
-mjb_locale locale = mjb_get_locale();
-
-// Current locale reset to English: yes
-printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : "no");
-```
-
-See also: [`mjb_set_locale`](#mjb_set_locale), [`mjb_get_locale`](#mjb_get_locale).
 
 ## `mjb_result_free`
 
@@ -4173,12 +4101,11 @@ present, are informational or download links rather than normative conformance r
 Unless a function documents a tailoring, it uses the referenced Unicode 18.0.0 algorithm
 without higher-level protocol tailoring.
 
-- `mjb_map_case` is locale-sensitive through the process-global locale set by `mjb_set_locale`. The
-  default locale is `MJB_LOCALE_EN`. Turkish and Azerbaijani apply dotted-I casing rules and Turkic
-  case-folding mappings. Lithuanian applies dot-above casing rules; case folding remains the default
-  non-Turkic mapping.
-- `mjb_caseless_match` always uses full default (non-Turkic) case folding and is not affected by the
-  process-global locale.
+- `mjb_map_case` and `mjb_map_case_into` are locale-sensitive through their `locale` argument;
+  there is no process-global locale. `MJB_LOCALE_NOT_SET` selects the default mappings. Turkish and
+  Azerbaijani apply dotted-I casing rules and Turkic case-folding mappings. Lithuanian applies
+  dot-above casing rules; case folding remains the default non-Turkic mapping.
+- `mjb_caseless_match` always uses full default (non-Turkic) case folding.
 - `mjb_collation_compare` and `mjb_collation_key` use DUCET without locale collation tailoring.
   `mjb_collation_variable_weighting` selects the UCA variable weighting strategy, while
   `mjb_collation_strength` selects the maximum comparison level.

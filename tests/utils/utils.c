@@ -46,18 +46,19 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
  * Call mjb_map_case and return the output string, or NULL when the call fails.
  */
 char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type type,
-    mjb_encoding encoding) {
+    mjb_locale locale, mjb_encoding encoding) {
     mjb_result result = { NULL, 0, false };
 
     mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-    if(mjb_map_case(&text, MJB_MALFORMED_STOP, type, encoding, &result, NULL) != MJB_STATUS_OK) {
+    if(mjb_map_case(&text, MJB_MALFORMED_STOP, type, locale, encoding, &result, NULL) !=
+        MJB_STATUS_OK) {
         return NULL;
     }
 
     MJB_TEST_COVERAGE(mjb_map_case_into);
 
     mjb_buffer into = mjb_buffer_make(NULL, 0, encoding);
-    mjb_status status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, type, &into, NULL);
+    mjb_status status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, type, locale, &into, NULL);
     size_t required = into.size;
 
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into sizing matches allocating case mapping");
@@ -76,7 +77,7 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
 
     memset(output, 0xA5, required + 1);
     into = mjb_buffer_make(output, required, encoding);
-    status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, type, &into, NULL);
+    status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, type, locale, &into, NULL);
 
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Case into output matches allocating case mapping");
     ATT_ASSERT(into.size, result.output_size, "Case into written size matches allocated size");

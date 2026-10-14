@@ -357,24 +357,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     const char *buffer = (const char *)data + 2;
     size -= 2;
 
-    mjb_reset_locale();
-
     static const mjb_encoding encodings[] = { MJB_ENC_UTF_8, MJB_ENC_UTF_16LE, MJB_ENC_UTF_16BE,
         MJB_ENC_UTF_32LE, MJB_ENC_UTF_32BE, MJB_ENC_ASCII };
     mjb_encoding encoding = encodings[variant % 6];
     mjb_malformed_policy malformed_policy = (mjb_malformed_policy)(variant % 3);
 
     // Exercise the language-sensitive casing and folding paths too.
-    static const mjb_locale locales[] = { MJB_LOCALE_EN, MJB_LOCALE_TR, MJB_LOCALE_AZ,
-        MJB_LOCALE_LT };
-
-    if(mjb_set_locale(locales[(variant >> 3) % 4]) != MJB_STATUS_OK) {
-        mjb_reset_locale();
-
-        return 0;
-    }
-
-    fuzz_sink += (size_t)mjb_get_locale();
+    static const mjb_locale locales[] = { MJB_LOCALE_NOT_SET, MJB_LOCALE_EN, MJB_LOCALE_TR,
+        MJB_LOCALE_AZ, MJB_LOCALE_LT };
+    mjb_locale case_locale = locales[(variant >> 3) % 5];
 
     const char *version = mjb_version();
     const char *unicode_version = mjb_unicode_version();
@@ -419,14 +410,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 2: { // Case conversion and folding, all transforming types
             mjb_text text = mjb_text_make(buffer, size, encoding);
             if(mjb_map_case(&text, malformed_policy, (mjb_map_case_type)(1 + (variant % 5)),
-                   MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK) {
+                   case_locale, MJB_ENC_UTF_8, &result, NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
             mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
             if(mjb_map_case_into(&text, malformed_policy, (mjb_map_case_type)(1 + (variant % 5)),
-                   &into, NULL) == MJB_STATUS_OK &&
+                   case_locale, &into, NULL) == MJB_STATUS_OK &&
                 into.size <= 4096) {
                 char output[4096];
                 size_t required = into.size;
@@ -434,7 +425,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 into = mjb_buffer_make(output,
                     (variant & 0x80) != 0 && required > 0 ? required - 1 : required, MJB_ENC_UTF_8);
                 fuzz_sink += (size_t)mjb_map_case_into(&text, malformed_policy,
-                    (mjb_map_case_type)(1 + (variant % 5)), &into, NULL);
+                    (mjb_map_case_type)(1 + (variant % 5)), case_locale, &into, NULL);
             }
 
             break;
@@ -714,8 +705,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             (void)mjb_status_message((mjb_status)(variant % 256));
             break;
     }
-
-    mjb_reset_locale();
 
     return 0;
 }

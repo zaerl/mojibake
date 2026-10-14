@@ -211,25 +211,6 @@ ATT_TEST(locales) {
     ATT_ASSERT_STATUS(mjb_locale_parse(&text, &locale),
         MJB_STATUS_INVALID_ARGUMENT, "Parse locale rejects long subtag");
 
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_IT), MJB_STATUS_OK, "Set locale it_IT");
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT, "Get locale it_IT");
-    ATT_ASSERT_STATUS(mjb_set_locale((mjb_locale)MJB_LOCALE_NUM), MJB_STATUS_INVALID_ARGUMENT,
-        "Set locale to unknown value");
-    ATT_ASSERT_STATUS(mjb_set_locale(MJB_LOCALE_NOT_SET), MJB_STATUS_INVALID_ARGUMENT,
-        "Set locale to not set");
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "Not set locale does not change current locale");
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "Invalid locale does not change current locale");
-    ATT_ASSERT_STATUS(mjb_set_locale((mjb_locale)-1), MJB_STATUS_INVALID_ARGUMENT,
-        "Set locale to negative value");
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_IT,
-        "Negative locale does not change current locale");
-    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale");
-    ATT_ASSERT((unsigned int)mjb_get_locale(), (unsigned int)MJB_LOCALE_EN,
-        "Reset locale restores English");
-    ATT_ASSERT((mjb_reset_locale(), true), true, "Reset locale is idempotent");
-
     ATT_ASSERT(mjb_locale_code(MJB_LOCALE_TR), "tr", "Locale code tr");
     ATT_ASSERT(mjb_locale_code(MJB_LOCALE_ZU), "zu", "Locale code zu");
     ATT_ASSERT(mjb_locale_code(MJB_LOCALE_NOT_SET), "", "Locale code not set");

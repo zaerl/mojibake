@@ -240,6 +240,14 @@ ATT_ASSERT(mojibake.mapCase('\u13A0', CaseType.CASEFOLD)?.output, '\u13A0',
 ATT_ASSERT(mojibake.mapCase(malformedText, CaseType.LOWER,
   { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'a\uFFFDb',
   'mapCase malformed replace policy');
+ATT_ASSERT(mojibake.mapCase('istanbul', CaseType.UPPER, { locale: Locale.TR })?.output,
+  '\u0130STANBUL', 'mapCase Turkish locale');
+ATT_ASSERT(mojibake.mapCase('istanbul', CaseType.UPPER)?.output, 'ISTANBUL',
+  'mapCase default locale');
+ATT_ASSERT(mojibake.mapCase('I', CaseType.CASEFOLD, { locale: Locale.AZ })?.output, '\u0131',
+  'mapCase Azerbaijani casefold');
+ATT_ASSERT(mojibake.mapCase('i', CaseType.UPPER, { locale: 9999 as Locale }), null,
+  'mapCase rejects an invalid locale');
 ATT_ASSERT(mojibake.codepointIsValid(0x41), true, 'codepointIsValid');
 ATT_ASSERT(mojibake.codepointIsGraphic(0x23), true, 'codepointIsGraphic');
 ATT_ASSERT(mojibake.codepointIsCombining(0x0300), true, 'codepointIsCombining');
@@ -336,9 +344,6 @@ ATT_ASSERT(mojibake.terminalWidth(malformedText, TerminalWidthProfile.NARROW,
   { malformedPolicy: MalformedPolicy.SKIP }), 2,
   'terminalWidth malformed skip policy');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
-ATT_ASSERT(mojibake.setLocale(Locale.IT), true, 'setLocale');
-ATT_ASSERT(mojibake.getLocale(), Locale.IT, 'getLocale');
-ATT_ASSERT(mojibake.setLocale(Locale.EN), true, 'restore locale');
 ATT_ASSERT(mojibake.version(), '0.4.2-WASM', 'version');
 ATT_ASSERT(mojibake.versionNumber(), 0x42, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '18.0.0', 'unicodeVersion');

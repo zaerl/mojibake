@@ -14,6 +14,7 @@ mjbsh_interpret_mode cmd_interpret_mode = INTERPRET_MODE_CHARACTER;
 mjbsh_output_mode cmd_output_mode = OUTPUT_MODE_PLAIN;
 unsigned int cmd_json_indent = 0;
 mjb_direction cmd_direction = MJB_DIRECTION_AUTO;
+mjb_locale cmd_locale = MJB_LOCALE_NOT_SET;
 
 static mjb_codepoint current_codepoint = MJB_CODEPOINT_NOT_VALID;
 
