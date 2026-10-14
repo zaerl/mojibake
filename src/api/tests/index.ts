@@ -224,6 +224,8 @@ ATT_ASSERT(mojibake.codepointNumericValue(0x31), { decimal: 1, digit: 1, numeric
   'codepointNumericValue');
 ATT_ASSERT(mojibake.codepointBlock(0x41)?.id, Block.BASIC_LATIN, 'codepointBlock');
 ATT_ASSERT(mojibake.nfkcCasefold('Straße\u00AD')?.output, 'strasse', 'nfkcCasefold');
+ATT_ASSERT(mojibake.nfkcCasefold('Stra\u00DFe', { encoding: Encoding.UTF_16BE,
+  outputEncoding: Encoding.UTF_32LE })?.output, 'strasse', 'nfkcCasefold UTF-16BE input to UTF-32LE output');
 ATT_ASSERT(mojibake.nfkcCasefold(malformedText,
   { malformedPolicy: MalformedPolicy.SKIP })?.output, 'ab',
   'nfkcCasefold malformed skip policy');

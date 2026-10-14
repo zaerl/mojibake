@@ -723,9 +723,7 @@ Apply the Unicode NFKC_Casefold transform to a string.
 
 ```c
 mjb_status mjb_nfkc_casefold(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_encoding output_encoding,
     mjb_result *result,
@@ -735,9 +733,7 @@ mjb_status mjb_nfkc_casefold(
 
 Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. This transform performs compatibility folding, full default case folding, and removal of default-ignorable codepoints. It is intended for identifier comparison and is not locale-sensitive. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one.
 
-- `buffer` - The string to transform
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to transform
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
@@ -746,7 +742,7 @@ Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. Thi
 **Returns**
 
 - `MJB_STATUS_OK` - The transformed string was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
@@ -756,11 +752,11 @@ Apply the normative `NFKC_Casefold` mapping and normalize the result to NFC. Thi
 **Example**
 
 ```c
-const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
+mjb_text input = mjb_text_utf8("Stra\xC3\x9F" "e\xC2\xAD", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_nfkc_casefold(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+if(mjb_nfkc_casefold(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -779,32 +775,24 @@ Apply the Unicode NFKC_Casefold transform into a caller-provided buffer.
 
 ```c
 mjb_status mjb_nfkc_casefold_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
-    mjb_encoding output_encoding,
-    void *output,
-    size_t *output_size,
+    mjb_buffer *output,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
+Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded from the byte count and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. The final output uses caller-provided storage, but the normalization and folding passes require temporary allocations, including during a size query.
 
-- `buffer` - The string to transform
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to transform
 - `malformed_policy` - How malformed code-unit sequences are handled
-- `output_encoding` - The output encoding of the string
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the transformed string was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required output size would overflow
@@ -815,23 +803,28 @@ Apply the same normative `NFKC_Casefold` transform as `mjb_nfkc_casefold`. Set `
 **Example**
 
 ```c
-const char *input = "Stra\xC3\x9F" "e\xC2\xAD";
-size_t output_size = 0;
+mjb_text input = mjb_text_utf8("Stra\xC3\x9F" "e\xC2\xAD", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-if(mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_nfkc_casefold_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-char output[7];
+char storage[7];
 
-if(output_size > sizeof(output) || mjb_nfkc_casefold_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_ENC_UTF_8, output, &output_size, NULL) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_nfkc_casefold_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // NFKC casefold payload (no terminator): strasse
-printf("NFKC casefold payload (no terminator): %.*s", (int)output_size, output);
+printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
 See also: [`mjb_nfkc_casefold`](#mjb_nfkc_casefold), [`mjb_normalize`](#mjb_normalize), [`mjb_map_case`](#mjb_map_case), [`mjb_is_identifier`](#mjb_is_identifier).

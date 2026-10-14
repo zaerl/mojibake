@@ -641,20 +641,19 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             break;
 
         case 17: { // Identifier-oriented NFKC case folding
-            if(mjb_nfkc_casefold(buffer, size, encoding, malformed_policy, MJB_ENC_UTF_8, &result,
-                   NULL) == MJB_STATUS_OK) {
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            if(mjb_nfkc_casefold(&text, malformed_policy, MJB_ENC_UTF_8, &result, NULL) ==
+                MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            size_t required = 0;
+            mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-            if(mjb_nfkc_casefold_into(buffer, size, encoding, malformed_policy, MJB_ENC_UTF_8, NULL,
-                   &required, NULL) == MJB_STATUS_OK &&
-                required <= 4096) {
+            if(mjb_nfkc_casefold_into(&text, malformed_policy, &into, NULL) == MJB_STATUS_OK &&
+                into.size <= 4096) {
                 char output[4096];
-                size_t capacity = required;
-                fuzz_sink += (size_t)mjb_nfkc_casefold_into(buffer, size, encoding,
-                    malformed_policy, MJB_ENC_UTF_8, output, &capacity, NULL);
+                into.data = output;
+                fuzz_sink += (size_t)mjb_nfkc_casefold_into(&text, malformed_policy, &into, NULL);
             }
 
             break;

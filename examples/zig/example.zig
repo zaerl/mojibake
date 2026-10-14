@@ -64,10 +64,10 @@ pub fn main(init: std.process.Init) !u8 {
         var result: mjb.mjb_result = .{};
 
         // NFKC casefold example: in NFKC casefold, ß -> ss
+        const case_text = mjb.mjb_text_utf8(case_input.ptr, case_input.len);
+
         if (mjb.mjb_nfkc_casefold(
-            case_input.ptr,
-            case_input.len,
-            mjb.MJB_ENC_UTF_8,
+            &case_text,
             mjb.MJB_MALFORMED_STOP,
             mjb.MJB_ENC_UTF_8,
             &result,

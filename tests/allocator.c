@@ -81,19 +81,19 @@ static mjb_status sweep_normalize_into(bool *cleared) {
 
 static mjb_status sweep_nfkc_casefold(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_nfkc_casefold(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL);
     *cleared = result_done(status, &result);
 
     return status;
 }
 
 static mjb_status sweep_nfkc_casefold_into(bool *cleared) {
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_nfkc_casefold_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_ENC_UTF_8, output, &output_size, NULL);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+    mjb_status status = mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &output, NULL);
+    *cleared = into_done(status, output.size);
 
     return status;
 }

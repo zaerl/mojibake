@@ -138,29 +138,28 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
 static void check_nfkc_casefold_into(const char *source, size_t source_size,
     mjb_encoding output_encoding, const mjb_result *allocated, const char *name) {
-    size_t required = 0;
+    mjb_text text = mjb_text_utf8(source, source_size);
+    mjb_buffer into = mjb_buffer_make(NULL, 0, output_encoding);
 
     MJB_TEST_COVERAGE(mjb_nfkc_casefold_into);
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, output_encoding,
-                          NULL, &required, NULL),
-        MJB_STATUS_OK, name);
-    ATT_ASSERT(required, allocated->output_size, name);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL), MJB_STATUS_OK,
+        name);
+    ATT_ASSERT(into.size, allocated->output_size, name);
 
     char output[513];
-    ATT_ASSERT((int)(required < sizeof(output)), true, name);
+    ATT_ASSERT((int)(into.size < sizeof(output)), true, name);
 
-    if(required >= sizeof(output)) {
+    if(into.size >= sizeof(output)) {
         return;
     }
 
     memset(output, '#', sizeof(output));
-    size_t output_size = required;
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, output_encoding,
-                          output, &output_size, NULL),
-        MJB_STATUS_OK, name);
-    ATT_ASSERT(output_size, allocated->output_size, name);
-    ATT_ASSERT((int)memcmp(output, allocated->output, output_size), 0, name);
-    ATT_ASSERT(output[output_size], '#', name);
+    into = mjb_buffer_make(output, into.size, output_encoding);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL), MJB_STATUS_OK,
+        name);
+    ATT_ASSERT(into.size, allocated->output_size, name);
+    ATT_ASSERT((int)memcmp(output, allocated->output, into.size), 0, name);
+    ATT_ASSERT(output[into.size], '#', name);
 }
 
 static void check_nfkc_casefold(const char *source, size_t source_size, const char *expected,
@@ -168,7 +167,8 @@ static void check_nfkc_casefold(const char *source, size_t source_size, const ch
     mjb_result result = { NULL, 0, false };
 
     MJB_TEST_COVERAGE(mjb_nfkc_casefold);
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
+    mjb_text text = mjb_text_utf8(source, source_size);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, name);
     ATT_ASSERT(result.output_size, expected_size, name);
     ATT_ASSERT((int)memcmp(result.output, expected, expected_size), 0, name);
@@ -180,47 +180,56 @@ static void check_nfkc_casefold(const char *source, size_t source_size, const ch
 static void test_nfkc_casefold(void) {
     mjb_result result = { NULL, 0, false };
 
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
+    mjb_text text = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL buffer");
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL, NULL),
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(NULL, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL text");
+    text = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold rejects NULL result");
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
+    text = mjb_text_utf8("", 0);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
         MJB_STATUS_OK, "NFKC casefold accepts empty input");
     ATT_ASSERT(result.owned, false, "NFKC casefold empty input is borrowed");
 
-    size_t into_size = 9;
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(NULL, 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
-                          &into_size, NULL),
+    text = mjb_text_utf8(NULL, 1);
+    mjb_buffer into = mjb_buffer_make(NULL, 9, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL buffer");
-    ATT_ASSERT(into_size, (size_t)0, "NFKC casefold into clears size after invalid input");
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL size");
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into("", 0, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
-                          &into_size, NULL),
+    ATT_ASSERT(into.size, (size_t)0, "NFKC casefold into clears size after invalid input");
+    into = mjb_buffer_make(NULL, 9, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(NULL, MJB_MALFORMED_STOP, &into, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL text");
+    ATT_ASSERT(into.size, (size_t)0, "NFKC casefold into clears size after NULL text");
+    text = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "NFKC casefold into rejects NULL output");
+    text = mjb_text_utf8("", 0);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL),
         MJB_STATUS_OK, "NFKC casefold into measures empty input");
-    ATT_ASSERT(into_size, (size_t)0, "NFKC casefold into empty size");
+    ATT_ASSERT(into.size, (size_t)0, "NFKC casefold into empty size");
 
     const char *into_input = "Stra\xC3\x9F"
                              "e\xC2\xAD";
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(into_input, 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, NULL,
-                          &into_size, NULL),
+    text = mjb_text_utf8(into_input, 9);
+    into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL),
         MJB_STATUS_OK, "NFKC casefold into queries required size");
-    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into required size");
+    ATT_ASSERT(into.size, (size_t)7, "NFKC casefold into required size");
 
     char into_output[8] = { '#', '#', '#', '#', '#', '#', '#', '#' };
-    into_size = 6;
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(into_input, 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
-                          into_output, &into_size, NULL),
+    into = mjb_buffer_make(into_output, 6, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL),
         MJB_STATUS_OUTPUT_TOO_SMALL, "NFKC casefold into reports a small output buffer");
-    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into preserves required size");
-    ATT_ASSERT((int)memcmp(into_output, "########", sizeof(into_output)), 0,
-        "NFKC casefold into leaves a small buffer untouched");
+    ATT_ASSERT(into.size, (size_t)7, "NFKC casefold into preserves required size");
+    ATT_ASSERT((int)memcmp(into_output + 6, "##", 2), 0,
+        "NFKC casefold into is not written past its capacity");
 
-    into_size = 7;
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(into_input, 9, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
-                          into_output, &into_size, NULL),
+    into = mjb_buffer_make(into_output, 7, MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold_into(&text, MJB_MALFORMED_STOP, &into, NULL),
         MJB_STATUS_OK, "NFKC casefold into writes into exact capacity");
-    ATT_ASSERT(into_size, (size_t)7, "NFKC casefold into written size");
+    ATT_ASSERT(into.size, (size_t)7, "NFKC casefold into written size");
     ATT_ASSERT((int)memcmp(into_output, "strasse", 7), 0, "NFKC casefold into output");
     ATT_ASSERT(into_output[7], '#', "NFKC casefold into does not write a terminator");
 
@@ -235,7 +244,8 @@ static void test_nfkc_casefold(void) {
     check_nfkc_casefold("\xF0\x9F\x98\x80", 4, "\xF0\x9F\x98\x80", 4,
         "NFKC casefold safely preserves a supplementary codepoint");
 
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result, NULL),
+    text = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result, NULL),
         MJB_STATUS_OK, "NFKC casefold supports UTF-16 output");
     ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold UTF-16 output size");
     ATT_ASSERT((int)memcmp(result.output, "a\0", 2), 0, "NFKC casefold UTF-16 output bytes");
@@ -336,7 +346,8 @@ static void test_nfkc_casefold_file(void) {
             char test_name[128];
             snprintf(test_name, sizeof(test_name), "NFKC_CF #%u U+%04X", current_line, codepoint);
 
-            ATT_ASSERT_STATUS(mjb_nfkc_casefold(source, source_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
+            text = mjb_text_utf8(source, source_size);
+            ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8,
                                   &actual, NULL),
                 MJB_STATUS_OK, test_name);
             ATT_ASSERT(actual.output_size, expected.output_size, test_name);
@@ -401,8 +412,8 @@ static void test_normalization_malformed_policies(void) {
 
     const char malformed_casefold[] = "A\x80"
                                       "B";
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold(malformed_casefold, sizeof(malformed_casefold) - 1,
-                          MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE, MJB_ENC_UTF_8, &result,
+    text = mjb_text_utf8(malformed_casefold, sizeof(malformed_casefold) - 1);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_REPLACE, MJB_ENC_UTF_8, &result,
                           &diagnostic),
         MJB_STATUS_OK, "NFKC casefold replace policy accepts malformed input");
     ATT_ASSERT(result.output_size, (size_t)5, "NFKC casefold replacement output size");
@@ -413,8 +424,8 @@ static void test_normalization_malformed_policies(void) {
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
         "Free NFKC casefold replacement result");
 
-    ATT_ASSERT_STATUS(mjb_nfkc_casefold(malformed_casefold, sizeof(malformed_casefold) - 1,
-                          MJB_ENC_UTF_8, MJB_MALFORMED_SKIP, MJB_ENC_UTF_8, &result,
+    text = mjb_text_utf8(malformed_casefold, sizeof(malformed_casefold) - 1);
+    ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_SKIP, MJB_ENC_UTF_8, &result,
                           &diagnostic),
         MJB_STATUS_OK, "NFKC casefold skip policy accepts malformed input");
     ATT_ASSERT(result.output_size, (size_t)2, "NFKC casefold skip output size");

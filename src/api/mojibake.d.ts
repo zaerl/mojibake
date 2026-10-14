@@ -28,7 +28,7 @@ export type MojibakeWasmModule = {
   // Filter a string with the selected mjb_filter_flags.
   _mjb_filter: (text: Pointer, malformed_policy: number, filters: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Apply the Unicode NFKC_Casefold transform to a string.
-  _mjb_nfkc_casefold: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
+  _mjb_nfkc_casefold: (text: Pointer, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Convert a domain name to its UTS #46 nontransitional ASCII form.
   _mjb_idna_to_ascii: (buffer: Pointer, byte_length: number, encoding: number, output_encoding: number, info: Pointer, result: Pointer) => number;
   // Convert a domain name to its UTS #46 nontransitional Unicode form.
