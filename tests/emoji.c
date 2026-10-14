@@ -153,12 +153,13 @@ static void run_emoji_test_file(const char *filename) {
         mjb_emoji_qualification qualification = emoji_status_qualification(status);
         bool sequence_encoded = encode_emoji_test_sequence(codepoints, codepoint_count, sequence,
             sizeof(sequence), &sequence_size);
+        mjb_text text = mjb_text_utf8(sequence, sequence_size);
         bool sequence_found = sequence_encoded &&
-            mjb_emoji_sequence_info(sequence, sequence_size, MJB_ENC_UTF_8, &emoji_sequence) ==
-                MJB_STATUS_OK;
+            mjb_emoji_sequence_info(&text, &emoji_sequence) == MJB_STATUS_OK;
         bool sequence_ok = sequence_found && emoji_sequence.codepoint_count == codepoint_count &&
             emoji_sequence.qualification == qualification;
-        bool rgi = sequence_encoded && mjb_is_rgi_emoji(sequence, sequence_size, MJB_ENC_UTF_8);
+        text = mjb_text_utf8(sequence, sequence_size);
+        bool rgi = sequence_encoded && mjb_is_rgi_emoji(&text);
         bool should_be_rgi = qualification == MJB_EMOJI_QUALIFICATION_COMPONENT ||
             qualification == MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED;
 
@@ -227,7 +228,8 @@ static void assert_emoji_sequence(const char *buffer, size_t byte_length,
     const char *name) {
     mjb_emoji_sequence emoji;
 
-    ATT_ASSERT_STATUS(mjb_emoji_sequence_info(buffer, byte_length, MJB_ENC_UTF_8, &emoji),
+    mjb_text text = mjb_text_utf8(buffer, byte_length);
+    ATT_ASSERT_STATUS(mjb_emoji_sequence_info(&text, &emoji),
         MJB_STATUS_OK, name);
     ATT_ASSERT((int)emoji.type, (int)type, name);
     ATT_ASSERT((int)emoji.qualification, (int)qualification, name);
@@ -235,6 +237,14 @@ static void assert_emoji_sequence(const char *buffer, size_t byte_length,
 }
 
 ATT_TEST(emoji) {
+    {
+        mjb_emoji_sequence sequence;
+        ATT_ASSERT_STATUS(mjb_emoji_sequence_info(NULL, &sequence), MJB_STATUS_INVALID_ARGUMENT,
+            "Emoji sequence info rejects NULL text");
+        ATT_ASSERT(mjb_is_emoji_sequence(NULL), false, "Emoji sequence rejects NULL text");
+        ATT_ASSERT(mjb_is_rgi_emoji(NULL), false, "RGI emoji rejects NULL text");
+    }
+
     mjb_emoji_properties emoji;
 
     ATT_ASSERT_STATUS(mjb_codepoint_emoji_properties(MJB_CODEPOINT_MAX + 1, &emoji),
@@ -304,20 +314,26 @@ ATT_TEST(emoji) {
         "ZWJ emoji sequence");
 
     // ☺
-    ATT_ASSERT(mjb_is_emoji_sequence("\xE2\x98\xBA", 3, MJB_ENC_UTF_8), true,
+    mjb_text text = mjb_text_utf8("\xE2\x98\xBA", 3);
+    ATT_ASSERT(mjb_is_emoji_sequence(&text), true,
         "Unqualified emoji is a listed emoji sequence");
     // ☺
-    ATT_ASSERT(mjb_is_rgi_emoji("\xE2\x98\xBA", 3, MJB_ENC_UTF_8), false,
+    text = mjb_text_utf8("\xE2\x98\xBA", 3);
+    ATT_ASSERT(mjb_is_rgi_emoji(&text), false,
         "Unqualified emoji is not RGI");
     // ☺️
-    ATT_ASSERT(mjb_is_rgi_emoji("\xE2\x98\xBA\xEF\xB8\x8F", 6, MJB_ENC_UTF_8), true,
+    text = mjb_text_utf8("\xE2\x98\xBA\xEF\xB8\x8F", 6);
+    ATT_ASSERT(mjb_is_rgi_emoji(&text), true,
         "Fully-qualified emoji is RGI");
     // ⌚️
-    ATT_ASSERT(mjb_is_rgi_emoji("\xE2\x8C\x9A\xEF\xB8\x8F", 6, MJB_ENC_UTF_8), false,
+    text = mjb_text_utf8("\xE2\x8C\x9A\xEF\xB8\x8F", 6);
+    ATT_ASSERT(mjb_is_rgi_emoji(&text), false,
         "Emoji variation sequence is not RGI by itself");
-    ATT_ASSERT(mjb_is_emoji_sequence("ABC", 3, MJB_ENC_UTF_8), false,
+    text = mjb_text_utf8("ABC", 3);
+    ATT_ASSERT(mjb_is_emoji_sequence(&text), false,
         "ASCII word is not an emoji sequence");
-    ATT_ASSERT_STATUS(mjb_emoji_sequence_info(NULL, 0, MJB_ENC_UTF_8, NULL),
+    text = mjb_text_utf8(NULL, 0);
+    ATT_ASSERT_STATUS(mjb_emoji_sequence_info(&text, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NULL string emoji sequence");
 
     run_emoji_test_file("./unicode-data/emoji/emoji-test.txt");

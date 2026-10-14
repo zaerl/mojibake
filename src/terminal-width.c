@@ -10,9 +10,10 @@
 #include "utf.h"
 
 static bool mjb_terminal_cluster_is_wide_emoji(const char *buffer, size_t byte_length) {
+    mjb_text cluster = mjb_text_utf8(buffer, byte_length);
     mjb_emoji_sequence emoji;
 
-    if(mjb_emoji_sequence_info(buffer, byte_length, MJB_ENC_UTF_8, &emoji) != MJB_STATUS_OK) {
+    if(mjb_emoji_sequence_info(&cluster, &emoji) != MJB_STATUS_OK) {
         return false;
     }
 
@@ -85,9 +86,9 @@ static mjb_status mjb_terminal_cluster_width(const char *buffer, size_t byte_len
 /**
  * Return the estimated terminal-cell width of printable, single-line text.
  */
-MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
-    mjb_terminal_width_profile profile, size_t *width, mjb_diagnostic *diagnostic) {
+MJB_EXPORT mjb_status mjb_terminal_width(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, mjb_terminal_width_profile profile, size_t *width,
+    mjb_diagnostic *diagnostic) {
     if(width == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -95,9 +96,13 @@ MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
     *width = 0;
     mjb_diagnostic_reset(diagnostic);
 
-    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(profile != MJB_TERMINAL_WIDTH_NARROW && profile != MJB_TERMINAL_WIDTH_EAST_ASIAN) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -122,14 +127,15 @@ MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
     }
 
     mjb_result normalized = { NULL, 0, false };
-    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-    status = mjb_normalize(&text, malformed_policy, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+    status = mjb_normalize(&resolved, malformed_policy, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
         &normalized, diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
+    mjb_text normalized_text = mjb_text_utf8(normalized.output, normalized.output_size);
     mjb_next_state state;
     state.index = 0;
 
@@ -137,8 +143,7 @@ MJB_EXPORT mjb_status mjb_terminal_width(const char *buffer, size_t byte_length,
     size_t total_width = 0;
     size_t previous_break = 0;
 
-    while((break_type = mjb_next_grapheme_break(normalized.output, normalized.output_size,
-               MJB_ENC_UTF_8, &state)) != MJB_BT_NOT_SET) {
+    while((break_type = mjb_next_grapheme_break(&normalized_text, &state)) != MJB_BT_NOT_SET) {
         if(break_type == MJB_BT_NO_BREAK) {
             continue;
         }

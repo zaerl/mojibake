@@ -189,8 +189,8 @@ int main(int argc, char *const argv[]) {
             case 'l': {
                 mjb_locale_id locale;
 
-                if(mjb_locale_parse(optarg, strlen(optarg), MJB_ENC_UTF_8, &locale) !=
-                        MJB_STATUS_OK ||
+                mjb_text text = mjb_text_utf8(optarg, strlen(optarg));
+                if(mjb_locale_parse(&text, &locale) != MJB_STATUS_OK ||
                     locale.locale == MJB_LOCALE_NOT_SET ||
                     mjb_set_locale(locale.locale) != MJB_STATUS_OK) {
                     fprintf(stderr, "Invalid or unsupported locale: %s\n", optarg);

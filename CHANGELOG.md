@@ -69,6 +69,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first_diagnostic, second_diagnostic)`. They previously always stopped on malformed input. The
   C++ `caseless_match` and `confusable_match` and the TypeScript `caselessMatch` and
   `confusableMatch` accept the policy the same way as for collation comparison
+- **Breaking**: the remaining functions that read text take a `const mjb_text *` instead of the
+  buffer, byte length, and encoding: `mjb_normalization_quick_check`, `mjb_decode_next`,
+  `mjb_decode_previous`, `mjb_for_each_codepoint`, `mjb_next_line_break`, `mjb_next_word_break`,
+  `mjb_next_sentence_break`, `mjb_next_grapheme_break`, `mjb_sentence_count`,
+  `mjb_grapheme_count`, `mjb_word_count`, `mjb_truncate_grapheme`, `mjb_truncate_grapheme_width`,
+  `mjb_truncate_word`, `mjb_truncate_word_width`, `mjb_terminal_width`, `mjb_bidi_resolve`,
+  `mjb_is_identifier`, `mjb_resolved_script_set`, `mjb_emoji_sequence_info`,
+  `mjb_is_emoji_sequence`, `mjb_is_rgi_emoji`, and `mjb_locale_parse`. The break iterators still
+  require an explicit `byte_length`. `mjb_detect_encoding`, `mjb_is_ascii`, `mjb_is_utf8`, and
+  `mjb_is_utf16` keep their buffer and byte length because they have no input encoding
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold

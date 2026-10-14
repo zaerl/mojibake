@@ -72,9 +72,17 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_lengt
 
 // Sentence boundaries breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_next_sentence_state *state) {
-    if(buffer == NULL || state == NULL || byte_length == 0 || byte_length == MJB_NUL_TERMINATED) {
+MJB_EXPORT mjb_break_type mjb_next_sentence_break(const mjb_text *text,
+    mjb_next_sentence_state *state) {
+    if(text == NULL || state == NULL) {
+        return MJB_BT_NOT_SET;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
+
+    if(buffer == NULL || byte_length == 0 || byte_length == MJB_NUL_TERMINATED) {
         return MJB_BT_NOT_SET;
     }
 
@@ -319,13 +327,14 @@ static mjb_status mjb_sentence_count_process(const char *buffer, size_t byte_len
         return MJB_STATUS_OK;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_next_sentence_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t segment_count = 0;
 
-    while((bt = mjb_next_sentence_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_sentence_break(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt != MJB_BT_NO_BREAK) {
             ++segment_count;
         }
@@ -341,9 +350,8 @@ static mjb_status mjb_sentence_count_process(const char *buffer, size_t byte_len
 }
 
 // Count the sentence segments in a string.
-MJB_EXPORT mjb_status mjb_sentence_count(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count,
-    mjb_diagnostic *diagnostic) {
+MJB_EXPORT mjb_status mjb_sentence_count(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic) {
     if(count == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -351,9 +359,13 @@ MJB_EXPORT mjb_status mjb_sentence_count(const char *buffer, size_t byte_length,
     *count = 0;
     mjb_diagnostic_reset(diagnostic);
 
-    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(!mjb_encoding_is_valid_input(encoding)) {
         return MJB_STATUS_INVALID_ENCODING;

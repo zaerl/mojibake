@@ -70,16 +70,16 @@ static int check_normalization(char *source, size_t source_size, char *normalize
             mjb_status print_status;
 
             printf("\n%s: source:", test_name);
-            print_status = mjb_for_each_codepoint(source, source_size, MJB_ENC_UTF_8,
-                MJB_MALFORMED_STOP, next_codepoint, NULL);
+            text = mjb_text_utf8(source, source_size);
+            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL);
             (void)print_status; // we can ignore this.
             printf("\nExpected: ");
-            print_status = mjb_for_each_codepoint(normalized, normalized_size, MJB_ENC_UTF_8,
-                MJB_MALFORMED_STOP, next_codepoint, NULL);
+            text = mjb_text_utf8(normalized, normalized_size);
+            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL);
             (void)print_status; // we can ignore this.
             printf("\nGot: ");
-            print_status = mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-                MJB_MALFORMED_STOP, next_codepoint, NULL);
+            text = mjb_text_utf8(result.output, result.output_size);
+            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL);
             (void)print_status; // we can ignore this.
             puts("");
         }

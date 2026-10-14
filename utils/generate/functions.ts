@@ -851,9 +851,7 @@ mjb_result_free(&result);`,
     name: 'mjb_normalization_quick_check',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       {
         name: 'form',
         type: 'mjb_normalization',
@@ -875,16 +873,15 @@ mjb_result_free(&result);`,
       '`mjb_normalize` can decide.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`quick_check` contains `MJB_QC_YES`, `MJB_QC_NO`, or `MJB_QC_MAYBE`' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`quick_check` is NULL, or `buffer` is NULL with a non-zero size' },
-      { value: 'MJB_STATUS_INVALID_ENCODING', description: '`encoding` is invalid or a generic UTF-16/UTF-32 encoding has no byte-order information' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`quick_check` or `text` is NULL, or `text->buffer` is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The text encoding is invalid or a generic UTF-16/UTF-32 encoding has no byte-order information' },
       { value: 'MJB_STATUS_INVALID_FORM', description: '`form` is not NFC, NFD, NFKC, or NFKD' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'The input contains an ill-formed code-unit sequence' }
     ],
-    example: `const char *input = "caf\\xC3\\xA9";
+    example: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
 mjb_quick_check_result check;
 
-if(mjb_normalization_quick_check(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
+if(mjb_normalization_quick_check(&input, MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1015,9 +1012,7 @@ if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
     name: 'mjb_decode_next',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to decode'),
-      byte_length(),
-      encoding(),
+      text('The text to decode'),
       malformedPolicy(),
       {
         name: 'offset',
@@ -1056,9 +1051,7 @@ if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
     name: 'mjb_decode_previous',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to decode'),
-      byte_length(),
-      encoding(),
+      text('The text to decode'),
       malformedPolicy(),
       {
         name: 'offset',
@@ -1147,9 +1140,7 @@ printf("%zu UTF-16LE characters", count);`,
     name: 'mjb_for_each_codepoint',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       malformedPolicy(),
       {
         name: 'callback',
@@ -1167,15 +1158,15 @@ printf("%zu UTF-16LE characters", count);`,
     returns: [
       { value: 'MJB_STATUS_OK', description: 'Every decoded codepoint was visited' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        'The buffer, callback, or malformed policy is invalid' },
+        'The text, callback, or malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'The encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_CALLBACK_STOPPED', description: 'The callback returned false' }
     ],
-    example: `mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, NULL, NULL);
+    example: `mjb_text input = mjb_text_utf8("ABC", 3);
+mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -2094,9 +2085,7 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
     name: 'mjb_next_line_break',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length('The explicit length of the string, in bytes'),
-      encoding(),
+      text('The text to check'),
       {
         name: 'state',
         type: 'mjb_next_line_state *',
@@ -2106,9 +2095,10 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_next_line_state state;
+    example: `mjb_text input = mjb_text_utf8("Hello world", 11);
+mjb_next_line_state state;
 state.index = 0;
-mjb_break_type type = mjb_next_line_break("Hello world", 11, MJB_ENC_UTF_8, &state);
+mjb_break_type type = mjb_next_line_break(&input, &state);
 
 // First line-break result is set: yes
 printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");`,
@@ -2121,9 +2111,7 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
     name: 'mjb_next_word_break',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length('The explicit length of the string, in bytes'),
-      encoding(),
+      text('The text to check'),
       {
         name: 'state',
         type: 'mjb_next_word_state *',
@@ -2133,11 +2121,12 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_next_word_state state;
+    example: `mjb_text input = mjb_text_utf8("Hello world", 11);
+mjb_next_word_state state;
 state.index = 0;
 size_t boundaries = 0;
 
-while(mjb_next_word_break("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_word_break(&input, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
@@ -2152,9 +2141,7 @@ printf("Word-break positions: %zu", boundaries);`,
     name: 'mjb_next_sentence_break',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length('The explicit length of the string, in bytes'),
-      encoding(),
+      text('The text to check'),
       {
         name: 'state',
         type: 'mjb_next_sentence_state *',
@@ -2167,9 +2154,9 @@ printf("Word-break positions: %zu", boundaries);`,
     example: `mjb_next_sentence_state state;
 state.index = 0;
 size_t boundaries = 0;
-const char *input = "Hello. Goodbye.";
+mjb_text input = mjb_text_utf8("Hello. Goodbye.", 15);
 
-while(mjb_next_sentence_break(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_sentence_break(&input, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
@@ -2184,9 +2171,7 @@ printf("Sentence-break positions: %zu", boundaries);`,
     name: 'mjb_sentence_count',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to count'),
-      byte_length(),
-      encoding(),
+      text('The text to count'),
       malformedPolicy(),
       {
         name: 'count',
@@ -2205,16 +2190,15 @@ printf("Sentence-break positions: %zu", boundaries);`,
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`count` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+        '`count` is NULL, the text is invalid, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `const char *input = "Hello. How are you? Fine!";
+    example: `mjb_text input = mjb_text_utf8("Hello. How are you? Fine!", MJB_NUL_TERMINATED);
 size_t count;
 
-if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2229,9 +2213,7 @@ printf("Sentences: %zu", count);`,
     name: 'mjb_next_grapheme_break',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length('The explicit length of the string, in bytes'),
-      encoding(),
+      text('The text to check'),
       {
         name: 'state',
         type: 'mjb_next_state *',
@@ -2243,15 +2225,14 @@ printf("Sentences: %zu", count);`,
     section: Section.Segmentation,
     details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
       'Call repeatedly with the same state until it reports the end of the string. Stateful ' +
-      'break functions require an explicit length and do not accept `MJB_NUL_TERMINATED`; ' +
-      'determine the length once before iteration.',
-    example: `const char *input = "e\\xCC\\x81"; // e + combining acute accent
+      'break functions require an explicit `text->byte_length` and do not accept ' +
+      '`MJB_NUL_TERMINATED`; determine the length once before iteration.',
+    example: `mjb_text input = mjb_text_utf8("e\\xCC\\x81", 3); // e + combining acute accent
 mjb_next_state state;
 state.index = 0;
 size_t codepoints = 0;
 
-while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
-    &state) != MJB_BT_NOT_SET) {
+while(mjb_next_grapheme_break(&input, &state) != MJB_BT_NOT_SET) {
     ++codepoints;
 }
 
@@ -2266,9 +2247,7 @@ printf("Codepoints examined: %zu", codepoints);`,
     name: 'mjb_truncate_grapheme',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       {
         name: 'max_graphemes',
         type: 'size_t',
@@ -2278,8 +2257,8 @@ printf("Codepoints examined: %zu", codepoints);`,
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `const char *input = "A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z"; // A🇮🇹Z
-size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
+    example: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
+size_t bytes = mjb_truncate_grapheme(&input, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);`
@@ -2290,9 +2269,7 @@ printf("First two graphemes use %zu bytes", bytes);`
     name: 'mjb_grapheme_count',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to count'),
-      byte_length(),
-      encoding(),
+      text('The text to count'),
       malformedPolicy(),
       {
         name: 'count',
@@ -2310,16 +2287,15 @@ printf("First two graphemes use %zu bytes", bytes);`
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`count` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+        '`count` is NULL, the text is invalid, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `const char *input = "A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // A🇮🇹
+    example: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // A🇮🇹
 size_t count;
 
-if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2334,9 +2310,7 @@ printf("Grapheme clusters: %zu", count);`,
     name: 'mjb_truncate_grapheme_width',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       {
         name: 'profile',
         type: 'mjb_terminal_width_profile',
@@ -2356,9 +2330,8 @@ printf("Grapheme clusters: %zu", count);`,
     details: 'Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell ' +
       'policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed ' +
       'the budget or cannot be measured as printable, single-line terminal text.',
-    example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
-size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_TERMINAL_WIDTH_NARROW, 2);
+    example: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
+size_t bytes = mjb_truncate_grapheme_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);`
@@ -2369,9 +2342,7 @@ printf("Two columns include %zu byte", bytes);`
     name: 'mjb_truncate_word',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       {
         name: 'max_segments',
         type: 'size_t',
@@ -2381,8 +2352,8 @@ printf("Two columns include %zu byte", bytes);`
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `const char *input = "Hello world";
-size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
+    example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+size_t bytes = mjb_truncate_word(&input, 1);
 
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);`
@@ -2393,9 +2364,7 @@ printf("First word segment uses %zu bytes", bytes);`
     name: 'mjb_word_count',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to count'),
-      byte_length(),
-      encoding(),
+      text('The text to count'),
       malformedPolicy(),
       {
         name: 'count',
@@ -2420,16 +2389,15 @@ printf("First word segment uses %zu bytes", bytes);`
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The count was computed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`count` is NULL, the buffer is invalid, or the malformed policy is invalid' },
+        '`count` is NULL, the text is invalid, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `const char *input = "Hello, world! It works.";
+    example: `mjb_text input = mjb_text_utf8("Hello, world! It works.", MJB_NUL_TERMINATED);
 size_t count;
 
-if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2444,9 +2412,7 @@ printf("Words: %zu", count);`,
     name: 'mjb_truncate_word_width',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       {
         name: 'profile',
         type: 'mjb_terminal_width_profile',
@@ -2466,9 +2432,8 @@ printf("Words: %zu", count);`,
     details: 'Truncate only at word-break boundaries, using the same terminal-cell policy as ' +
       '`mjb_terminal_width`. The returned prefix stops before a segment that would exceed the ' +
       'budget or cannot be measured as printable, single-line terminal text.',
-    example: `const char *input = "Hello world";
-size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_TERMINAL_WIDTH_NARROW, 6);
+    example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+size_t bytes = mjb_truncate_word_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);`
@@ -2479,9 +2444,7 @@ printf("Six columns include %zu bytes", bytes);`
     name: 'mjb_bidi_resolve',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The input string'),
-      byte_length(),
-      encoding(),
+      text('The text to resolve'),
       {
         name: 'direction',
         type: 'mjb_direction',
@@ -2505,7 +2468,7 @@ printf("Six columns include %zu bytes", bytes);`
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The paragraph was resolved' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
-        description: '`result` is NULL, or `buffer` is NULL with a non-zero size' },
+        description: '`result` or `text` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'The input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -2513,11 +2476,10 @@ printf("Six columns include %zu bytes", bytes);`
       { value: 'MJB_STATUS_OVERFLOW', description: 'The paragraph size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `const char *input = "abc \\xD7\\x90\\xD7\\x91\\xD7\\x92"; // abc אבג
+    example: `mjb_text input = mjb_text_utf8("abc \\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // abc אבג
 mjb_bidi_paragraph paragraph;
 
-if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-    &paragraph) != MJB_STATUS_OK) {
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2561,12 +2523,11 @@ mjb_bidi_paragraph_free(&paragraph);`,
     ],
     wasm: false,
     section: Section.Bidirectional,
-    example: `const char *input = "\\xD7\\x90\\xD7\\x91\\xD7\\x92"; // אבג
+    example: `mjb_text input = mjb_text_utf8("\\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // אבג
 mjb_bidi_paragraph paragraph;
 size_t visual_order[3];
 
-if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-    &paragraph) != MJB_STATUS_OK ||
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK ||
     mjb_bidi_reorder_line(&paragraph, 0, paragraph.count,
         visual_order) != MJB_STATUS_OK) {
     return 1;
@@ -2617,12 +2578,12 @@ mjb_bidi_paragraph_free(&paragraph);`,
     ],
     wasm: false,
     section: Section.Bidirectional,
-    example: `mjb_bidi_paragraph paragraph;
+    example: `mjb_text input = mjb_text_utf8("abc", 3);
+mjb_bidi_paragraph paragraph;
 size_t visual_order[3];
 size_t run_count = 0;
 
-if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-    &paragraph) != MJB_STATUS_OK ||
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK ||
     mjb_bidi_reorder_line(&paragraph, 0, 3, visual_order) != MJB_STATUS_OK ||
     mjb_bidi_line_runs(&paragraph, visual_order, 3, NULL,
         &run_count) != MJB_STATUS_OK) {
@@ -2650,10 +2611,10 @@ mjb_bidi_paragraph_free(&paragraph);`,
     ],
     wasm: false,
     section: Section.Bidirectional,
-    example: `mjb_bidi_paragraph paragraph;
+    example: `mjb_text input = mjb_text_utf8("abc", 3);
+mjb_bidi_paragraph paragraph;
 
-if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-    &paragraph) != MJB_STATUS_OK) {
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2756,9 +2717,7 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
     name: 'mjb_is_identifier',
     attributes: [],
     args: [
-      buffer('The string to validate'),
-      byte_length(),
-      encoding(),
+      text('The text to validate'),
       {
         name: 'profile',
         type: 'mjb_identifier_profile',
@@ -2772,10 +2731,9 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
     details: 'Validate a string as a Unicode identifier: the first character must be a valid ' +
       'identifier start and the following ones valid identifier continuations, using ID_Start/' +
       'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
-    example: `const char *identifier = "delta_2";
+    example: `mjb_text identifier = mjb_text_utf8("delta_2", MJB_NUL_TERMINATED);
 
-bool valid = mjb_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
-    MJB_IDENTIFIER_NFKC);
+bool valid = mjb_is_identifier(&identifier, MJB_IDENTIFIER_NFKC);
 
 // Valid identifier: yes
 printf("Valid identifier: %s", valid ? "yes" : "no");`,
@@ -2789,9 +2747,7 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
     name: 'mjb_resolved_script_set',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to analyze'),
-      byte_length(),
-      encoding(),
+      text('The text to analyze'),
       {
         name: 'scripts',
         type: 'mjb_script *',
@@ -2825,7 +2781,7 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
       { value: 'MJB_STATUS_OK', description:
         'The required count and set kind were returned, or the resolved scripts were written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`count` or `kind` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`count`, `kind`, or `text` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'The input encoding is invalid or lacks required byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -2835,13 +2791,12 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
-    example: `const char *input = "\\xE3\\x81\\xAD\\xE3\\x82\\xAC"; // Hiragana + Katakana
+    example: `mjb_text input = mjb_text_utf8("\\xE3\\x81\\xAD\\xE3\\x82\\xAC", MJB_NUL_TERMINATED); // Hiragana + Katakana
 mjb_script scripts[1];
 size_t count = 1;
 mjb_script_set_kind kind;
 
-if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
-    &kind) != MJB_STATUS_OK) {
+if(mjb_resolved_script_set(&input, scripts, &count, &kind) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3223,9 +3178,7 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
     name: 'mjb_emoji_sequence_info',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding(),
+      text('The text to check'),
       {
         name: 'emoji',
         type: 'mjb_emoji_sequence *',
@@ -3235,11 +3188,10 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
     ],
     wasm: true,
     section: Section.Emoji,
-    example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
+    example: `mjb_text flag = mjb_text_utf8("\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 mjb_emoji_sequence emoji;
 
-if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
-    &emoji) != MJB_STATUS_OK) {
+if(mjb_emoji_sequence_info(&flag, &emoji) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3255,15 +3207,13 @@ printf("Sequence codepoints: %zu", emoji.codepoint_count);`,
     name: 'mjb_is_emoji_sequence',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding()
+      text('The text to check')
     ],
     section: Section.Emoji,
     wasm: true,
-    example: `const char *keycap = "1\\xEF\\xB8\\x8F\\xE2\\x83\\xA3"; // 1️⃣
+    example: `mjb_text keycap = mjb_text_utf8("1\\xEF\\xB8\\x8F\\xE2\\x83\\xA3", MJB_NUL_TERMINATED); // 1️⃣
 
-bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+bool listed = mjb_is_emoji_sequence(&keycap);
 
 // Listed emoji sequence: yes
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
@@ -3277,16 +3227,14 @@ printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
     name: 'mjb_is_rgi_emoji',
     attributes: [],
     args: [
-      buffer('The string to check'),
-      byte_length(),
-      encoding()
+      text('The text to check')
     ],
     wasm: true,
     wasmName: 'isRGIEmoji',
     section: Section.Emoji,
-    example: `const char *flag = "\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9"; // 🇮🇹
+    example: `mjb_text flag = mjb_text_utf8("\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 
-bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+bool rgi = mjb_is_rgi_emoji(&flag);
 
 // RGI emoji: yes
 printf("RGI emoji: %s", rgi ? "yes" : "no");`,
@@ -3409,9 +3357,7 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
     name: 'mjb_terminal_width',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The printable, single-line string to measure'),
-      byte_length(),
-      encoding(),
+      text('The printable, single-line text to measure'),
       malformedPolicy(),
       {
         name: 'profile',
@@ -3442,7 +3388,7 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The width was computed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`width` is NULL, the profile or malformed policy is invalid, or the buffer is invalid' },
+        '`width` is NULL, the profile or malformed policy is invalid, or the text is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is invalid or lacks required byte-order information' },
       { value: 'MJB_STATUS_UNSUPPORTED', description: 'The input contains a control, line separator, or paragraph separator' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'NFC normalization could not allocate memory' },
@@ -3450,10 +3396,10 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `const char *input = "A\\xE7\\x95\\x8C"; // A界
+    example: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
 size_t width;
 
-if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
     MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
     return 1;
 }
@@ -3471,25 +3417,7 @@ printf("Terminal cells: %zu", width);`,
     name: 'mjb_locale_parse',
     attributes: ['MJB_NODISCARD'],
     args: [
-      {
-        name: 'id',
-        type: 'const char *',
-        description: 'The BCP 47 language tag to parse',
-        wasm_generated: false
-      },
-      {
-        name: 'byte_length',
-        type: 'size_t',
-        description: 'The length of the locale identifier in bytes, or `MJB_NUL_TERMINATED`',
-        wasm_generated: true
-      },
-      {
-        name: 'encoding',
-        type: 'mjb_encoding',
-        description: 'The encoding of the locale identifier',
-        wasm_generated: false,
-        is_enum: true
-      },
+      text('The BCP 47 language tag to parse', 'id'),
       {
         name: 'locale',
         type: 'mjb_locale_id *',
@@ -3507,9 +3435,10 @@ printf("Terminal cells: %zu", width);`,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument is NULL or the tag is not a valid BCP 47 language tag' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `mjb_locale_id locale;
+    example: `mjb_text id = mjb_text_utf8("sr-Latn-RS", MJB_NUL_TERMINATED);
+mjb_locale_id locale;
 
-if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
+if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
     return 1;
 }
 

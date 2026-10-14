@@ -9,6 +9,9 @@
 #include "test.h"
 
 ATT_TEST(identifier) {
+    ATT_ASSERT(mjb_is_identifier(NULL, MJB_IDENTIFIER_DEFAULT), false,
+        "Identifier rejects NULL text");
+
     // mjb_codepoint_is_id_start
     ATT_ASSERT(mjb_codepoint_is_id_start(0x41), true, "ID_Start: U+0041 'A'");
     ATT_ASSERT(mjb_codepoint_is_id_start(0x5F), false, "ID_Start: U+005F '_' (continue only)");
@@ -44,32 +47,44 @@ ATT_TEST(identifier) {
     ATT_ASSERT(mjb_codepoint_is_pattern_white_space(0x41), false, "Pattern_White_Space: U+0041 'A'");
 
     // mjb_is_identifier - DEFAULT profile
-    ATT_ASSERT(mjb_is_identifier("", 0, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
+    mjb_text text = mjb_text_utf8("", 0);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: empty string");
-    ATT_ASSERT(mjb_is_identifier(NULL, 1, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
+    text = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: NULL string");
-    ATT_ASSERT(mjb_is_identifier("hello", 5, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), true,
+    text = mjb_text_utf8("hello", 5);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), true,
         "Identifier: 'hello'");
-    ATT_ASSERT(mjb_is_identifier("_x", 2, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
+    text = mjb_text_utf8("_x", 2);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: '_x' (_ not ID_Start)");
-    ATT_ASSERT(mjb_is_identifier("hello123", 8, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), true,
+    text = mjb_text_utf8("hello123", 8);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), true,
         "Identifier: 'hello123'");
-    ATT_ASSERT(mjb_is_identifier("hello_world", 11, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT),
+    text = mjb_text_utf8("hello_world", 11);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT),
         true, "Identifier: 'hello_world'");
-    ATT_ASSERT(mjb_is_identifier("123abc", 6, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
+    text = mjb_text_utf8("123abc", 6);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: '123abc' (digit start)");
-    ATT_ASSERT(mjb_is_identifier("hello world", 11, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT),
+    text = mjb_text_utf8("hello world", 11);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT),
         false, "Identifier: 'hello world' (space)");
-    ATT_ASSERT(mjb_is_identifier("a+b", 3, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT), false,
+    text = mjb_text_utf8("a+b", 3);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT), false,
         "Identifier: 'a+b' (syntax char)");
 
     // Multi-byte UTF-8: "café" = c a f U+00E9 (4 codepoints, 5 bytes)
-    ATT_ASSERT(mjb_is_identifier("caf\xC3\xA9", 5, MJB_ENC_UTF_8, MJB_IDENTIFIER_DEFAULT),
+    text = mjb_text_utf8("caf\xC3\xA9", 5);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_DEFAULT),
         true, "Identifier: 'café'");
 
     // mjb_is_identifier - NFKC profile
-    ATT_ASSERT(mjb_is_identifier("hello", 5, MJB_ENC_UTF_8, MJB_IDENTIFIER_NFKC), true,
+    text = mjb_text_utf8("hello", 5);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_NFKC), true,
         "Identifier NFKC: 'hello'");
-    ATT_ASSERT(mjb_is_identifier("123", 3, MJB_ENC_UTF_8, MJB_IDENTIFIER_NFKC), false,
+    text = mjb_text_utf8("123", 3);
+    ATT_ASSERT(mjb_is_identifier(&text, MJB_IDENTIFIER_NFKC), false,
         "Identifier NFKC: '123' (digit start)");
 }

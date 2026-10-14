@@ -202,8 +202,8 @@ static void read_bidi_class_test_file(const char *filename) {
 
             ++total;
 
-            if(mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, directions[d], &para) !=
-                MJB_STATUS_OK) {
+            mjb_text text = mjb_text_utf8(utf8_buf, utf8_len);
+            if(mjb_bidi_resolve(&text, directions[d], &para) != MJB_STATUS_OK) {
                 continue;
             }
 

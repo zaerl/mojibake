@@ -155,18 +155,19 @@ static mjb_status sweep_caseless_match(bool *cleared) {
 
 static mjb_status sweep_terminal_width(bool *cleared) {
     size_t width = SIZE_MAX;
-    mjb_status status = mjb_terminal_width(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_TERMINAL_WIDTH_NARROW, &width, NULL);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_terminal_width(&text, MJB_MALFORMED_STOP, MJB_TERMINAL_WIDTH_NARROW,
+        &width, NULL);
     *cleared = status == MJB_STATUS_OK ? width > 0 : width == 0;
 
     return status;
 }
 
 static mjb_status sweep_bidi_resolve(bool *cleared) {
-    static const char text[] = "abc \xD7\x90\xD7\x91\xD7\x92 123 (\xD8\xB9\xD8\xB1\xD8\xA8) def";
+    static const char input[] = "abc \xD7\x90\xD7\x91\xD7\x92 123 (\xD8\xB9\xD8\xB1\xD8\xA8) def";
     mjb_bidi_paragraph paragraph;
-    mjb_status status = mjb_bidi_resolve(text, sizeof(text) - 1, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-        &paragraph);
+    mjb_text text = mjb_text_utf8(input, sizeof(input) - 1);
+    mjb_status status = mjb_bidi_resolve(&text, MJB_DIRECTION_LTR, &paragraph);
 
     if(status == MJB_STATUS_OK) {
         *cleared = paragraph.chars != NULL && paragraph.count > 0;
@@ -181,7 +182,8 @@ static mjb_status sweep_bidi_resolve(bool *cleared) {
 static mjb_status sweep_locale_parse(bool *cleared) {
     static const char locale_id[] = "sr-Latn-RS-u-ca-gregory-x-private";
     mjb_locale_id locale;
-    mjb_status status = mjb_locale_parse(locale_id, sizeof(locale_id) - 1, MJB_ENC_UTF_8, &locale);
+    mjb_text text = mjb_text_utf8(locale_id, sizeof(locale_id) - 1);
+    mjb_status status = mjb_locale_parse(&text, &locale);
     *cleared = true;
 
     return status;

@@ -1183,9 +1183,17 @@ static void pass6_implicit(mjb_bidi_work *work, size_t count) {
 }
 
 // Resolve bidirectional text (TR9) for a paragraph.
-MJB_EXPORT mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_direction direction, mjb_bidi_paragraph *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direction,
+    mjb_bidi_paragraph *result) {
+    if(text == NULL || result == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
+
+    if(buffer == NULL && byte_length > 0) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 

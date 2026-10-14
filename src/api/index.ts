@@ -373,7 +373,7 @@ type WasmInput = {
 };
 
 // Used by collectBreaks callbacks
-type BreakFunction = (buffer: Pointer, size: number, encoding: number, state: Pointer) => number;
+type BreakFunction = (text: Pointer, state: Pointer) => number;
 
 // Emscripten exported function type
 type MojibakeModuleFactory = (options?: MojibakeModuleOptions) => Promise<MojibakeWasmModule>;
@@ -598,29 +598,31 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length,
-  // mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check)
+  // mjb_status mjb_normalization_quick_check(const mjb_text *text, mjb_normalization form,
+  // mjb_quick_check_result *quick_check)
   normalizationQuickCheck(input: MojibakeInput, form = Normalization.NFC,
     options: TextInputOptions = {}): QuickCheckResult | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const quickCheckPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_normalization_quick_check(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, form, quickCheckPtr);
+      const status = this.module._mjb_normalization_quick_check(textPtr, form, quickCheckPtr);
 
       return status === Status.OK ?
         this.module.HEAP32[quickCheckPtr / 4] as QuickCheckResult : null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(quickCheckPtr);
     }
   }
 
-  // mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length,
-  // mjb_encoding encoding, mjb_for_each_codepoint_fn callback)
+  // mjb_status mjb_for_each_codepoint(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic)
   forEachCodepoint(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const previousCallback = (globalThis as any)._mjbForEachCodepointCallback;
     const characters: NextCharacter[] = [];
 
@@ -635,8 +637,8 @@ export class Mojibake {
     };
 
     try {
-      const status = this.module._mjb_for_each_codepoint(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, 0, 0);
+      const status = this.module._mjb_for_each_codepoint(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, 0, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -651,6 +653,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
@@ -753,19 +756,19 @@ export class Mojibake {
     return this.module._mjb_codepoint_script(codepoint);
   }
 
-  // mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_length,
-  // mjb_encoding encoding, mjb_script *scripts, size_t *count, mjb_script_set_kind *kind)
+  // mjb_status mjb_resolved_script_set(const mjb_text *text, mjb_script *scripts, size_t *count,
+  // mjb_script_set_kind *kind)
   resolvedScriptSet(input: MojibakeInput,
     options: TextInputOptions = {}): ResolvedScriptSet | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const countPtr = this.malloc(4);
     const kindPtr = this.malloc(4);
     let scriptsPtr = 0;
 
     try {
       this.module.HEAP32[countPtr / 4] = 0;
-      let status = this.module._mjb_resolved_script_set(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, 0, countPtr, kindPtr);
+      let status = this.module._mjb_resolved_script_set(textPtr, 0, countPtr, kindPtr);
 
       if(status !== Status.OK) {
         return null;
@@ -780,8 +783,7 @@ export class Mojibake {
 
       scriptsPtr = this.malloc(count * 4);
       this.module.HEAP32[countPtr / 4] = count;
-      status = this.module._mjb_resolved_script_set(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, scriptsPtr, countPtr, kindPtr);
+      status = this.module._mjb_resolved_script_set(textPtr, scriptsPtr, countPtr, kindPtr);
 
       if(status !== Status.OK) {
         return null;
@@ -799,6 +801,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(countPtr);
       this.free(kindPtr);
     }
@@ -1142,80 +1145,78 @@ export class Mojibake {
     }
   }
 
-  // mjb_break_type mjb_next_line_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_next_line_state *state)
+  // mjb_break_type mjb_next_line_break(const mjb_text *text, mjb_next_line_state *state)
   nextLineBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_next_line_break, options);
   }
 
-  // mjb_break_type mjb_next_word_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_next_word_state *state)
+  // mjb_break_type mjb_next_word_break(const mjb_text *text, mjb_next_word_state *state)
   nextWordBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_next_word_break, options);
   }
 
-  // size_t mjb_truncate_word(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // size_t max_segments)
+  // size_t mjb_truncate_word(const mjb_text *text, size_t max_segments)
   truncateWord(input: MojibakeInput, maxSegments: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_word(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, maxSegments);
+      return this.module._mjb_truncate_word(textPtr, maxSegments);
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
-  // size_t mjb_truncate_word_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_terminal_width_profile profile, size_t max_columns)
+  // size_t mjb_truncate_word_width(const mjb_text *text, mjb_terminal_width_profile profile,
+  // size_t max_columns)
   truncateWordWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_word_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, profile, maxColumns);
+      return this.module._mjb_truncate_word_width(textPtr, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
-  // mjb_break_type mjb_next_sentence_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_next_sentence_state *state)
+  // mjb_break_type mjb_next_sentence_break(const mjb_text *text, mjb_next_sentence_state *state)
   nextSentenceBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_next_sentence_break, options);
   }
 
-  // mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_next_state *state)
+  // mjb_break_type mjb_next_grapheme_break(const mjb_text *text, mjb_next_state *state)
   nextGraphemeBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
     return this.collectBreaks(input, this.module._mjb_next_grapheme_break, options);
   }
 
-  // size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length, mjb_encoding encoding, size_t
-  // max_graphemes)
+  // size_t mjb_truncate_grapheme(const mjb_text *text, size_t max_graphemes)
   truncateGrapheme(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_grapheme(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, maxGraphemes);
+      return this.module._mjb_truncate_grapheme(textPtr, maxGraphemes);
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
-  // mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_grapheme_count(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // size_t *count, mjb_diagnostic *diagnostic)
   graphemeCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const countPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_grapheme_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
+      const status = this.module._mjb_grapheme_count(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -1224,19 +1225,21 @@ export class Mojibake {
       return null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(countPtr);
     }
   }
 
-  // mjb_status mjb_sentence_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_sentence_count(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // size_t *count, mjb_diagnostic *diagnostic)
   sentenceCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const countPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_sentence_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
+      const status = this.module._mjb_sentence_count(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -1245,19 +1248,21 @@ export class Mojibake {
       return null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(countPtr);
     }
   }
 
-  // mjb_status mjb_word_count(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic)
+  // mjb_status mjb_word_count(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // size_t *count, mjb_diagnostic *diagnostic)
   wordCount(input: MojibakeInput, options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const countPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_word_count(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
+      const status = this.module._mjb_word_count(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, countPtr, 0);
 
       if(status === Status.OK) {
         return this.module.HEAP32[countPtr / 4];
@@ -1266,35 +1271,37 @@ export class Mojibake {
       return null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(countPtr);
     }
   }
 
-  // size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_terminal_width_profile profile, size_t max_columns)
+  // size_t mjb_truncate_grapheme_width(const mjb_text *text, mjb_terminal_width_profile profile,
+  // size_t max_columns)
   truncateGraphemeWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_grapheme_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, profile, maxColumns);
+      return this.module._mjb_truncate_grapheme_width(textPtr, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
-  // mjb_status mjb_bidi_resolve(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_direction direction, mjb_bidi_paragraph *result)
+  // mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direction,
+  // mjb_bidi_paragraph *result)
   bidiResolve(input: MojibakeInput, direction = Direction.AUTO,
     options: TextInputOptions = {}): BidiParagraph | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const resultPtr = this.malloc(24);
     let charsPtr = 0;
 
     try {
-      const status = this.module._mjb_bidi_resolve(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, direction, resultPtr);
+      const status = this.module._mjb_bidi_resolve(textPtr, direction, resultPtr);
 
       if(status !== Status.OK) {
         return null;
@@ -1315,6 +1322,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }
@@ -1376,17 +1384,17 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_pattern_white_space(codepoint) ? true : false;
   }
 
-  // bool mjb_is_identifier(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_identifier_profile profile)
+  // bool mjb_is_identifier(const mjb_text *text, mjb_identifier_profile profile)
   isIdentifier(input: MojibakeInput, profile = IdentifierProfile.DEFAULT,
     options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_is_identifier(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, profile) ? true : false;
+      return this.module._mjb_is_identifier(textPtr, profile) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
@@ -1503,16 +1511,15 @@ export class Mojibake {
     return this.module._mjb_codepoint_is_extended_pictographic(codepoint) ? true : false;
   }
 
-  // mjb_status mjb_emoji_sequence_info(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_emoji_sequence *emoji)
+  // mjb_status mjb_emoji_sequence_info(const mjb_text *text, mjb_emoji_sequence *emoji)
   classifyEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): EmojiSequence | null {
     const structSize = 12;
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const ptr = this.malloc(structSize);
 
     try {
-      const status = this.module._mjb_emoji_sequence_info(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, ptr);
+      const status = this.module._mjb_emoji_sequence_info(textPtr, ptr);
 
       if(status !== Status.OK) {
         return null;
@@ -1521,31 +1528,34 @@ export class Mojibake {
       return this.pointerToEmojiSequence(ptr);
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(ptr);
     }
   }
 
-  // bool mjb_is_emoji_sequence(const char *buffer, size_t byte_length, mjb_encoding encoding)
+  // bool mjb_is_emoji_sequence(const mjb_text *text)
   isEmojiSequence(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_is_emoji_sequence(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding) ? true : false;
+      return this.module._mjb_is_emoji_sequence(textPtr) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
-  // bool mjb_is_rgi_emoji(const char *buffer, size_t byte_length, mjb_encoding encoding)
+  // bool mjb_is_rgi_emoji(const mjb_text *text)
   isRGIEmoji(input: MojibakeInput, options: TextInputOptions = {}): boolean {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_is_rgi_emoji(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding) ? true : false;
+      return this.module._mjb_is_rgi_emoji(textPtr) ? true : false;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
     }
   }
 
@@ -1586,17 +1596,17 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_terminal_width(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, mjb_terminal_width_profile profile,
-  // size_t *width, mjb_diagnostic *diagnostic);
+  // mjb_status mjb_terminal_width(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // mjb_terminal_width_profile profile, size_t *width, mjb_diagnostic *diagnostic)
   terminalWidth(input: MojibakeInput, profile = TerminalWidthProfile.NARROW,
     options: TextInputOptions = {}): number | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const widthPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_terminal_width(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP,
+      const status = this.module._mjb_terminal_width(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP,
         profile, widthPtr, 0);
 
       if(status === Status.OK) {
@@ -1606,21 +1616,21 @@ export class Mojibake {
       return null;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(widthPtr);
     }
   }
 
-  // mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
-  // mjb_locale_id *locale);
+  // mjb_status mjb_locale_parse(const mjb_text *id, mjb_locale_id *locale)
   localeParse(id: MojibakeInput, options: TextInputOptions = {}): LocaleID {
     // Eight strings, the code string, one byte of padding, then the 4-byte locale enum
     const localeStructSize = 9 + 12 + 5 + 4 + 32 + 128 + 128 + 32 + 3 + 1 + 4;
     const wasmInput = this.copyInput(id, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const localePtr = this.malloc(localeStructSize);
 
     try {
-      const status = this.module._mjb_locale_parse(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, localePtr);
+      const status = this.module._mjb_locale_parse(textPtr, localePtr);
 
       if(status === Status.OK) {
         return this.pointerToLocaleId(localePtr);
@@ -1629,6 +1639,7 @@ export class Mojibake {
       throw new Error(`Failed to parse locale`);
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(localePtr);
     }
   }
@@ -1931,12 +1942,13 @@ export class Mojibake {
   private collectBreaks(input: MojibakeInput, fn: BreakFunction,
     options: TextInputOptions = {}): number[] {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const statePtr = this.malloc(256);
     const breaks: number[] = [];
 
     try {
       for(;;) {
-        const type = fn(wasmInput.ptr, wasmInput.size, wasmInput.encoding, statePtr);
+        const type = fn(textPtr, statePtr);
 
         if(type === BreakType.NOT_SET) {
           break;
@@ -1948,6 +1960,7 @@ export class Mojibake {
       return breaks;
     } finally {
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(statePtr);
     }
   }
@@ -1976,7 +1989,7 @@ export class Mojibake {
   }
 
   // Write a mjb_text structure. On wasm32 it is three 32-bit fields: buffer, byte_length, and
-  // encoding. src/string.c checks this layout at compile time.
+  // encoding. src/mojibake.c checks this layout at compile time.
   private copyText(input: WasmInput): Pointer {
     const ptr = this.malloc(12, false);
     const index = ptr / 4;

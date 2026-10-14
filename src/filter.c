@@ -24,11 +24,12 @@ static mjb_status mjb_filter_process(const mjb_filter_context *context, mjb_outp
     bool last_was_whitespace = false;
     size_t combining_mark_count = 0;
     bool any_transformation = false;
+    mjb_text input = mjb_text_make(context->buffer, context->byte_length, context->encoding);
 
     for(size_t offset = 0;;) {
         mjb_diagnostic current;
-        mjb_status decode_status = mjb_decode_next(context->buffer, context->byte_length,
-            context->encoding, context->malformed_policy, &offset, &codepoint, &current);
+        mjb_status decode_status = mjb_decode_next(&input, context->malformed_policy, &offset,
+            &codepoint, &current);
 
         if(current.error != MJB_TEXT_ERROR_NONE) {
             any_transformation = true;

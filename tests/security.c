@@ -259,7 +259,8 @@ static void check_resolved_script_set(const char *input, size_t input_size, mjb_
     size_t count = 0;
     mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
 
-    ATT_ASSERT_STATUS(mjb_resolved_script_set(input, input_size, encoding, NULL, &count, &kind),
+    mjb_text text = mjb_text_make(input, input_size, encoding);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, NULL, &count, &kind),
         MJB_STATUS_OK, name);
     ATT_ASSERT((int)kind, expected_kind, name);
     ATT_ASSERT(count, expected_count, name);
@@ -276,7 +277,8 @@ static void check_resolved_script_set(const char *input, size_t input_size, mjb_
     }
 
     count = MJB_TEST_COUNT_OF(scripts);
-    ATT_ASSERT_STATUS(mjb_resolved_script_set(input, input_size, encoding, scripts, &count, &kind),
+    text = mjb_text_make(input, input_size, encoding);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, scripts, &count, &kind),
         MJB_STATUS_OK, name);
     ATT_ASSERT((int)kind, expected_kind, name);
     ATT_ASSERT(count, expected_count, name);
@@ -284,6 +286,16 @@ static void check_resolved_script_set(const char *input, size_t input_size, mjb_
 }
 
 ATT_TEST(security) {
+    {
+        size_t count = 9;
+        mjb_script_set_kind kind = MJB_SCRIPT_SET_ALL;
+        ATT_ASSERT_STATUS(mjb_resolved_script_set(NULL, NULL, &count, &kind),
+            MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL text");
+        ATT_ASSERT(count, (size_t)0, "Resolved scripts clear count after NULL text");
+        ATT_ASSERT((int)kind, (int)MJB_SCRIPT_SET_EMPTY,
+            "Resolved scripts clear kind after NULL text");
+    }
+
     mjb_encoding enc = MJB_ENC_UTF_8;
 
     MJB_TEST_COVERAGE(mjb_resolved_script_set);
@@ -329,40 +341,45 @@ ATT_TEST(security) {
 
     size_t script_count = 9;
     mjb_script_set_kind script_kind = MJB_SCRIPT_SET_ALL;
-    ATT_ASSERT_STATUS(mjb_resolved_script_set("A", 1, enc, NULL, NULL, &script_kind),
+    mjb_text text = mjb_text_make("A", 1, enc);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, NULL, NULL, &script_kind),
         MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL count");
     ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_EMPTY,
         "Resolved scripts clear kind after NULL count");
 
-    ATT_ASSERT_STATUS(mjb_resolved_script_set("A", 1, enc, NULL, &script_count, NULL),
+    text = mjb_text_make("A", 1, enc);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, NULL, &script_count, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL kind");
     ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after NULL kind");
 
     script_count = 9;
     script_kind = MJB_SCRIPT_SET_ALL;
-    ATT_ASSERT_STATUS(mjb_resolved_script_set(NULL, 1, enc, NULL, &script_count, &script_kind),
+    text = mjb_text_make(NULL, 1, enc);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, NULL, &script_count, &script_kind),
         MJB_STATUS_INVALID_ARGUMENT, "Resolved scripts reject NULL input");
     ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid input");
     ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_EMPTY,
         "Resolved scripts clear kind after invalid input");
 
     script_count = 9;
+    text = mjb_text_make("A", 1, MJB_ENC_UNKNOWN);
     ATT_ASSERT_STATUS(
-        mjb_resolved_script_set("A", 1, MJB_ENC_UNKNOWN, NULL, &script_count, &script_kind),
+        mjb_resolved_script_set(&text, NULL, &script_count, &script_kind),
         MJB_STATUS_INVALID_ENCODING, "Resolved scripts reject invalid encoding");
     ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after invalid encoding");
 
     const char malformed_script_input[] = { '\x80' };
     script_count = 9;
-    ATT_ASSERT_STATUS(mjb_resolved_script_set(malformed_script_input,
-                          sizeof(malformed_script_input), enc, NULL, &script_count, &script_kind),
+    text = mjb_text_make(malformed_script_input, sizeof(malformed_script_input), enc);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, NULL, &script_count, &script_kind),
         MJB_STATUS_MALFORMED_INPUT, "Resolved scripts reject malformed input");
     ATT_ASSERT(script_count, 0u, "Resolved scripts clear count after malformed input");
 
     mjb_script script_output = MJB_SC_ZZZZ;
     script_count = 0;
+    text = mjb_text_make("A", 1, enc);
     ATT_ASSERT_STATUS(
-        mjb_resolved_script_set("A", 1, enc, &script_output, &script_count, &script_kind),
+        mjb_resolved_script_set(&text, &script_output, &script_count, &script_kind),
         MJB_STATUS_OUTPUT_TOO_SMALL, "Resolved scripts report a small output buffer");
     ATT_ASSERT(script_count, 1u, "Resolved scripts report required count");
     ATT_ASSERT((int)script_kind, MJB_SCRIPT_SET_RESOLVED,
@@ -371,7 +388,7 @@ ATT_TEST(security) {
         "Resolved scripts leave a small output buffer untouched");
 
     mjb_result skeleton;
-    mjb_text text = mjb_text_make(NULL, 1, enc);
+    text = mjb_text_make(NULL, 1, enc);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(&text, enc, &skeleton),
         MJB_STATUS_INVALID_ARGUMENT, "Skeleton rejects NULL input");
     text = mjb_text_make("A", 1, enc);
@@ -604,10 +621,10 @@ ATT_TEST(security) {
     bool confusable = false;
 
     MJB_TEST_COVERAGE(mjb_resolved_script_set);
-    ATT_ASSERT_STATUS(mjb_resolved_script_set("a", 1, MJB_ENC_UTF_8, &script, &count, &kind),
+    mjb_text text = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_resolved_script_set(&text, &script, &count, &kind),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled resolved scripts report feature status");
     MJB_TEST_COVERAGE(mjb_confusable_skeleton);
-    mjb_text text = mjb_text_utf8("a", 1);
     ATT_ASSERT_STATUS(mjb_confusable_skeleton(&text, MJB_ENC_UTF_8, &result),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled skeleton reports feature status");
     MJB_TEST_COVERAGE(mjb_confusable_skeleton_into);

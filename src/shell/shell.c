@@ -327,9 +327,10 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
         if(is_json) {
             printf("%s%s\"%s\":%s\"%s", mjbsh_ji(), mjbsh_ji(), name,
                 cmd_json_indent == 0 ? "" : " ", mjbsh_green());
+            text = mjb_text_utf8(result.output, result.output_size);
             if(result.output_size > 0 &&
-                mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8,
-                    MJB_MALFORMED_STOP, mjbsh_next_escaped_character, NULL) != MJB_STATUS_OK) {
+                mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, mjbsh_next_escaped_character,
+                    NULL) != MJB_STATUS_OK) {
                 goto cleanup;
             }
             printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
@@ -349,8 +350,9 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
         printf("%s normalization: %s", label, mjbsh_green());
     }
 
+    text = mjb_text_utf8(result.output, result.output_size);
     if(result.output_size > 0 &&
-        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,
             is_json ? mjbsh_next_array_codepoint : mjbsh_next_codepoint, NULL) != MJB_STATUS_OK) {
         goto cleanup;
     }
@@ -427,8 +429,9 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
 
         return true;
     } else {
-        if(mjb_for_each_codepoint(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-               mjbsh_next_current_character, NULL) != MJB_STATUS_OK) {
+        mjb_text text = mjb_text_utf8(input, strlen(input));
+        if(mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, mjbsh_next_current_character, NULL) !=
+            MJB_STATUS_OK) {
             return false;
         }
 

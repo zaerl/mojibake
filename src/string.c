@@ -211,14 +211,15 @@ MJB_EXPORT mjb_status mjb_codepoint_count(const mjb_text *text,
         return status;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_codepoint codepoint = 0;
     size_t codepoint_count = 0;
     size_t offset = 0;
 
     for(;;) {
         mjb_diagnostic current;
-        mjb_status decode_status = mjb_decode_next(buffer, byte_length, encoding, malformed_policy,
-            &offset, &codepoint, &current);
+        mjb_status decode_status = mjb_decode_next(&resolved, malformed_policy, &offset, &codepoint,
+            &current);
         mjb_diagnostic_record(diagnostic, &current);
 
         if(decode_status == MJB_STATUS_END_OF_INPUT) {

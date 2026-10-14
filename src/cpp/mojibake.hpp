@@ -218,15 +218,15 @@ struct ResolvedScriptSet {
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     ResolvedScriptSet result;
     size_t count = 0;
-    detail::check_status(mjb_resolved_script_set(input.data(), input.size(), encoding, nullptr,
-                             &count, &result.kind),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_resolved_script_set(&text, nullptr, &count, &result.kind),
         "Unable to count resolved scripts");
 
     result.scripts.resize(count);
 
     if(count > 0) {
-        detail::check_status(mjb_resolved_script_set(input.data(), input.size(), encoding,
-                                 result.scripts.data(), &count, &result.kind),
+        detail::check_status(mjb_resolved_script_set(&text, result.scripts.data(), &count,
+                                 &result.kind),
             "Unable to read resolved scripts");
         result.scripts.resize(count);
     }
@@ -694,16 +694,16 @@ struct NumericValue {
     mjb_codepoint &codepoint, mjb_encoding encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) noexcept {
-    return mjb_decode_next(input.data(), input.size(), encoding, malformed_policy, &offset,
-        &codepoint, diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    return mjb_decode_next(&text, malformed_policy, &offset, &codepoint, diagnostic);
 }
 
 [[nodiscard]] inline mjb_status decode_previous(std::string_view input, size_t &offset,
     mjb_codepoint &codepoint, mjb_encoding encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) noexcept {
-    return mjb_decode_previous(input.data(), input.size(), encoding, malformed_policy, &offset,
-        &codepoint, diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    return mjb_decode_previous(&text, malformed_policy, &offset, &codepoint, diagnostic);
 }
 
 [[nodiscard]] inline size_t codepoint_count(std::string_view input,
@@ -722,8 +722,8 @@ struct NumericValue {
     mjb_for_each_codepoint_fn callback, mjb_encoding encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) noexcept {
-    return mjb_for_each_codepoint(input.data(), input.size(), encoding, malformed_policy, callback,
-        diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    return mjb_for_each_codepoint(&text, malformed_policy, callback, diagnostic);
 }
 
 [[nodiscard]] inline TextResult convert_encoding_result(std::string_view input,
@@ -750,7 +750,8 @@ struct NumericValue {
 [[nodiscard]] inline bool is_identifier(std::string_view input,
     mjb_identifier_profile profile = MJB_IDENTIFIER_DEFAULT,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_is_identifier(input.data(), input.size(), encoding, profile);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    return mjb_is_identifier(&text, profile);
 }
 
 [[nodiscard]] inline bool confusable_match(std::string_view s1, std::string_view s2,
@@ -847,8 +848,9 @@ enum class NormalizationForm {
 [[nodiscard]] inline mjb_quick_check_result normalization_quick_check(std::string_view input,
     NormalizationForm form, mjb_encoding encoding = MJB_ENC_UTF_8) {
     mjb_quick_check_result quick_check = MJB_QC_NO;
-    detail::check_status(mjb_normalization_quick_check(input.data(), input.size(), encoding,
-                             static_cast<mjb_normalization>(form), &quick_check),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_normalization_quick_check(&text, static_cast<mjb_normalization>(form),
+                             &quick_check),
         "Normalization quick-check failed");
 
     return quick_check;
@@ -1153,8 +1155,8 @@ struct EmojiSequence {
 [[nodiscard]] inline std::optional<EmojiSequence> emoji_sequence(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     EmojiSequence sequence;
-    const mjb_status status = mjb_emoji_sequence_info(input.data(), input.size(), encoding,
-        &sequence.data);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const mjb_status status = mjb_emoji_sequence_info(&text, &sequence.data);
 
     if(status == MJB_STATUS_NOT_FOUND) {
         return std::nullopt;
@@ -1167,12 +1169,14 @@ struct EmojiSequence {
 
 [[nodiscard]] inline bool is_emoji_sequence(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_is_emoji_sequence(input.data(), input.size(), encoding);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    return mjb_is_emoji_sequence(&text);
 }
 
 [[nodiscard]] inline bool is_rgi_emoji(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    return mjb_is_rgi_emoji(input.data(), input.size(), encoding);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    return mjb_is_rgi_emoji(&text);
 }
 
 [[nodiscard]] inline size_t terminal_width(std::string_view input,
@@ -1181,8 +1185,8 @@ struct EmojiSequence {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t width = 0;
-    detail::check_status(mjb_terminal_width(input.data(), input.size(), encoding, malformed_policy,
-                             profile, &width, diagnostic),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_terminal_width(&text, malformed_policy, profile, &width, diagnostic),
         "Terminal width calculation failed");
 
     return width;
@@ -1260,7 +1264,8 @@ struct LocaleId {
 [[nodiscard]] inline LocaleId parse_locale(std::string_view id,
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     LocaleId locale;
-    const mjb_status status = mjb_locale_parse(id.data(), id.size(), encoding, &locale.data);
+    const mjb_text text = mjb_text_make(id.data(), id.size(), encoding);
+    const mjb_status status = mjb_locale_parse(&text, &locale.data);
 
     if(status != MJB_STATUS_OK) {
         throw LocaleError(status, "Locale parsing failed");
@@ -1311,7 +1316,8 @@ inline void set_allocator(const mjb_allocator *allocator) {
 
 [[nodiscard]] inline std::string_view truncate_grapheme(std::string_view input,
     size_t max_graphemes, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_grapheme(input.data(), input.size(), encoding, max_graphemes);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const size_t n = mjb_truncate_grapheme(&text, max_graphemes);
 
     return input.substr(0, n);
 }
@@ -1321,8 +1327,8 @@ inline void set_allocator(const mjb_allocator *allocator) {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_grapheme_count(input.data(), input.size(), encoding, malformed_policy,
-                             &count, diagnostic),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_grapheme_count(&text, malformed_policy, &count, diagnostic),
         "Grapheme count failed");
 
     return count;
@@ -1333,8 +1339,8 @@ inline void set_allocator(const mjb_allocator *allocator) {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_sentence_count(input.data(), input.size(), encoding, malformed_policy,
-                             &count, diagnostic),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_sentence_count(&text, malformed_policy, &count, diagnostic),
         "Sentence count failed");
 
     return count;
@@ -1345,8 +1351,8 @@ inline void set_allocator(const mjb_allocator *allocator) {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    detail::check_status(mjb_word_count(input.data(), input.size(), encoding, malformed_policy,
-                             &count, diagnostic),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    detail::check_status(mjb_word_count(&text, malformed_policy, &count, diagnostic),
         "Word count failed");
 
     return count;
@@ -1355,15 +1361,16 @@ inline void set_allocator(const mjb_allocator *allocator) {
 [[nodiscard]] inline std::string_view truncate_grapheme_width(std::string_view input,
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_grapheme_width(input.data(), input.size(), encoding, profile,
-        max_columns);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const size_t n = mjb_truncate_grapheme_width(&text, profile, max_columns);
 
     return input.substr(0, n);
 }
 
 [[nodiscard]] inline std::string_view truncate_word(std::string_view input, size_t max_segments,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_word(input.data(), input.size(), encoding, max_segments);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const size_t n = mjb_truncate_word(&text, max_segments);
 
     return input.substr(0, n);
 }
@@ -1371,8 +1378,8 @@ inline void set_allocator(const mjb_allocator *allocator) {
 [[nodiscard]] inline std::string_view truncate_word_width(std::string_view input,
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const size_t n = mjb_truncate_word_width(input.data(), input.size(), encoding, profile,
-        max_columns);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const size_t n = mjb_truncate_word_width(&text, profile, max_columns);
 
     return input.substr(0, n);
 }
@@ -1383,8 +1390,8 @@ class BidiParagraph {
   public:
     explicit BidiParagraph(std::string_view input, mjb_direction direction = MJB_DIRECTION_AUTO,
         mjb_encoding encoding = MJB_ENC_UTF_8) {
-        detail::check_status(mjb_bidi_resolve(input.data(), input.size(), encoding, direction,
-                                 &data),
+        const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+        detail::check_status(mjb_bidi_resolve(&text, direction, &data),
             "Bidirectional paragraph resolution failed");
     }
 
@@ -1519,8 +1526,7 @@ struct BreakResult {
     }
 };
 
-template <typename State, mjb_break_type (*BreakFn)(const char *, size_t, mjb_encoding, State *)>
-class Breaker {
+template <typename State, mjb_break_type (*BreakFn)(const mjb_text *, State *)> class Breaker {
     std::string_view buffer;
     mjb_encoding encoding;
     State state{};
@@ -1536,7 +1542,8 @@ class Breaker {
             return std::nullopt;
         }
 
-        const mjb_break_type type = BreakFn(buffer.data(), buffer.size(), encoding, &state);
+        const mjb_text text = mjb_text_make(buffer.data(), buffer.size(), encoding);
+        const mjb_break_type type = BreakFn(&text, &state);
 
         if(type == MJB_BT_NOT_SET) {
             done = true;

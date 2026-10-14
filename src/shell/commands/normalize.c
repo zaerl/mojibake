@@ -23,8 +23,8 @@ static const char *mjbsh_quick_check_name(mjb_quick_check_result quick_check, bo
 static void mjbsh_print_quick_check(const char *buffer, size_t size, mjb_normalization form) {
     bool is_json = cmd_output_mode == OUTPUT_MODE_JSON;
     mjb_quick_check_result quick_check = MJB_QC_NO;
-    mjb_status status = mjb_normalization_quick_check(buffer, size, MJB_ENC_UTF_8, form,
-        &quick_check);
+    mjb_text text = mjb_text_utf8(buffer, size);
+    mjb_status status = mjb_normalization_quick_check(&text, form, &quick_check);
 
     if(is_json) {
         printf(",%s%s\"quick_check\":%s", mjbsh_jnl(), mjbsh_ji(), cmd_json_indent > 0 ? " " : "");
@@ -87,8 +87,9 @@ static int mjbsh_normalize_buffer(const char *buffer, size_t size, unsigned int 
         printf("%s", mjbsh_green());
     }
 
+    text = mjb_text_utf8(result.output, result.output_size);
     if(result.output_size > 0 &&
-        mjb_for_each_codepoint(result.output, result.output_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+        mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,
             as_string ? mjbsh_next_string_character : mjbsh_next_codepoint,
             NULL) != MJB_STATUS_OK) {
         ret = false;
