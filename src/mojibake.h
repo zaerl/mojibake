@@ -919,10 +919,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_resolved_script_set(const char *buffer, 
 MJB_EXPORT MJB_CONST const char *mjb_property_name(mjb_property property);
 
 // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const mjb_text *text, mjb_encoding output_encoding, mjb_result *result);
 
 // Compute a Unicode confusable skeleton into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton_into(const mjb_text *text, mjb_buffer *output);
 
 // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, bool *confusable);

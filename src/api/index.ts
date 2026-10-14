@@ -1394,17 +1394,17 @@ export class Mojibake {
     return this.decodeString(ptr, null, Encoding.UTF_8).output;
   }
 
-  // mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
-  // mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result)
+  // mjb_status mjb_confusable_skeleton(const mjb_text *text, mjb_encoding output_encoding,
+  // mjb_result *result)
   confusableSkeleton(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const outputEncoding = this.resolveEncoding(options.outputEncoding ?? wasmInput.encoding);
     const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_confusable_skeleton(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, outputEncoding, resultPtr);
+      const status = this.module._mjb_confusable_skeleton(textPtr, outputEncoding, resultPtr);
 
       if(status !== Status.OK) {
         return null;
@@ -1418,6 +1418,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }
