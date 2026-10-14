@@ -461,9 +461,9 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
 }
 
 // Compute the Unicode security skeleton of a string (UTS #39 Section 4).
-MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    if(result == NULL || (buffer == NULL && byte_length > 0)) {
+MJB_EXPORT mjb_status mjb_confusable_skeleton(const mjb_text *text, mjb_encoding output_encoding,
+    mjb_result *result) {
+    if(result == NULL || text == NULL || (text->buffer == NULL && text->byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -471,27 +471,26 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_le
     result->output_size = 0;
     result->owned = false;
 
-    return mjb_confusable_skeleton_process(buffer, byte_length, encoding, output_encoding, result,
-        NULL, NULL);
+    return mjb_confusable_skeleton_process(text->buffer, text->byte_length, text->encoding,
+        output_encoding, result, NULL, NULL);
 }
 
-MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
-    if(output_size == NULL) {
+MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const mjb_text *text, mjb_buffer *output) {
+    if(output == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
-        *output_size = 0;
+    if(text == NULL || (text->buffer == NULL && text->byte_length > 0)) {
+        output->size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_status status = mjb_confusable_skeleton_process(buffer, byte_length, encoding,
-        output_encoding, NULL, output, output_size);
+    mjb_status status = mjb_confusable_skeleton_process(text->buffer, text->byte_length,
+        text->encoding, output->encoding, NULL, output->data, &output->size);
 
     if(status != MJB_STATUS_OK && status != MJB_STATUS_OUTPUT_TOO_SMALL) {
-        *output_size = 0;
+        output->size = 0;
     }
 
     return status;
@@ -512,16 +511,17 @@ MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    mjb_text text1 = mjb_text_make(s1, s1_byte_length, s1_encoding);
+    mjb_text text2 = mjb_text_make(s2, s2_byte_length, s2_encoding);
     mjb_result skel1;
     mjb_result skel2;
-    mjb_status status = mjb_confusable_skeleton(s1, s1_byte_length, s1_encoding, MJB_ENC_UTF_8,
-        &skel1);
+    mjb_status status = mjb_confusable_skeleton(&text1, MJB_ENC_UTF_8, &skel1);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    status = mjb_confusable_skeleton(s2, s2_byte_length, s2_encoding, MJB_ENC_UTF_8, &skel2);
+    status = mjb_confusable_skeleton(&text2, MJB_ENC_UTF_8, &skel2);
 
     if(status != MJB_STATUS_OK) {
         if(skel1.owned) {
@@ -558,24 +558,17 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_le
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 
-MJB_EXPORT mjb_status mjb_confusable_skeleton(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, mjb_result *result) {
-    (void)buffer;
-    (void)byte_length;
-    (void)encoding;
+MJB_EXPORT mjb_status mjb_confusable_skeleton(const mjb_text *text, mjb_encoding output_encoding,
+    mjb_result *result) {
+    (void)text;
     (void)output_encoding;
     (void)result;
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 
-MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_encoding output_encoding, void *output, size_t *output_size) {
-    (void)buffer;
-    (void)byte_length;
-    (void)encoding;
-    (void)output_encoding;
+MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const mjb_text *text, mjb_buffer *output) {
+    (void)text;
     (void)output;
-    (void)output_size;
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 

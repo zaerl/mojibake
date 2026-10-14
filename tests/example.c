@@ -1179,11 +1179,11 @@ ATT_TEST(example) {
 {
     // Example for mjb_confusable_skeleton
     MJB_TEST_COVERAGE(mjb_confusable_skeleton); // Added by the script
-    const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
+    // Cyrillic U+0435 in place of e
+    mjb_text input = mjb_text_utf8("h\xD0\xB5llo", MJB_NUL_TERMINATED);
     mjb_result result;
 
-    if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &result) != MJB_STATUS_OK) {
+    if(mjb_confusable_skeleton(&input, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_confusable_skeleton test failed"); // Added by the script
         return;
     }
@@ -1200,26 +1200,33 @@ ATT_TEST(example) {
 {
     // Example for mjb_confusable_skeleton_into
     MJB_TEST_COVERAGE(mjb_confusable_skeleton_into); // Added by the script
-    const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
-    size_t output_size = 0;
+    // Cyrillic U+0435 in place of e
+    mjb_text input = mjb_text_utf8("h\xD0\xB5llo", MJB_NUL_TERMINATED);
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-    if(mjb_confusable_skeleton_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        NULL, &output_size) != MJB_STATUS_OK) {
+    // Query the required size
+    if(mjb_confusable_skeleton_into(&input, &output) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed"); // Added by the script
         return;
     }
 
-    char output[5];
+    char storage[5];
 
-    if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(input),
-        MJB_ENC_UTF_8, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+    if(mjb_confusable_skeleton_into(&input, &output) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_confusable_skeleton_into test failed"); // Added by the script
         return;
     }
 
     // Skeleton payload (no terminator): hello
-    // printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);
-    snprintf(test_buffer, sizeof(test_buffer), "Skeleton payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    // printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);
+    snprintf(test_buffer, sizeof(test_buffer), "Skeleton payload (no terminator): %.*s", (int)output.size, storage); // Added by the script
     ATT_ASSERT(test_buffer, "Skeleton payload (no terminator): hello", "mjb_confusable_skeleton_into test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_SECURITY

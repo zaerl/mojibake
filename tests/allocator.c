@@ -286,19 +286,19 @@ static mjb_status sweep_idna_to_unicode_into(bool *cleared) {
 #if MJB_FEATURE_SECURITY
 static mjb_status sweep_confusable_skeleton(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_confusable_skeleton(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_8, &result);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_confusable_skeleton(&text, MJB_ENC_UTF_8, &result);
     *cleared = result_done(status, &result);
 
     return status;
 }
 
 static mjb_status sweep_confusable_skeleton_into(bool *cleared) {
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_confusable_skeleton_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_ENC_UTF_16LE, output, &output_size);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_16LE);
+    mjb_status status = mjb_confusable_skeleton_into(&text, &output);
+    *cleared = into_done(status, output.size);
 
     return status;
 }

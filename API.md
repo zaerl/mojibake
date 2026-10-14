@@ -3149,9 +3149,7 @@ Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
 
 ```c
 mjb_status mjb_confusable_skeleton(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_encoding output_encoding,
     mjb_result *result
 );
@@ -3159,16 +3157,14 @@ mjb_status mjb_confusable_skeleton(
 
 Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional Algorithm through L4, then NFD, remove default-ignorables, substitute prototypes from `confusables.txt`, and reapply NFD. Skeletons can be stored or indexed so future confusable checks can compare them directly. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The string to transform
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to transform
 - `output_encoding` - The output encoding of the skeleton
 - `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
 
 **Returns**
 
 - `MJB_STATUS_OK` - The confusable skeleton was returned
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_UNSUPPORTED` - The output encoding cannot represent a skeleton codepoint
 - `MJB_STATUS_OVERFLOW` - The output size would overflow
@@ -3178,11 +3174,11 @@ Compute the UTS #39 `bidiSkeleton(LTR, input)`: apply the Unicode Bidirectional 
 **Example**
 
 ```c
-const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
+// Cyrillic U+0435 in place of e
+mjb_text input = mjb_text_utf8("h\xD0\xB5llo", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_confusable_skeleton(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &result) != MJB_STATUS_OK) {
+if(mjb_confusable_skeleton(&input, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3201,28 +3197,20 @@ Compute a Unicode confusable skeleton into a caller-provided buffer.
 
 ```c
 mjb_status mjb_confusable_skeleton_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
-    mjb_encoding output_encoding,
-    void *output,
-    size_t *output_size
+    const mjb_text *text,
+    mjb_buffer *output
 );
 ```
 
-Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton` without allocating the final output buffer. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. Terminators are excluded and are not written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity. Bidirectional resolution, normalization, and skeleton mapping still require temporary allocations, including during a size query. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The string to transform
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
-- `output_encoding` - The output encoding of the skeleton
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `text` - The text to transform
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the skeleton was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_UNSUPPORTED` - The output encoding cannot represent a skeleton codepoint
@@ -3234,23 +3222,29 @@ Compute the same UTS #39 `bidiSkeleton(LTR, input)` as `mjb_confusable_skeleton`
 **Example**
 
 ```c
-const char *input = "h\xD0\xB5llo"; // Cyrillic U+0435 in place of e
-size_t output_size = 0;
+// Cyrillic U+0435 in place of e
+mjb_text input = mjb_text_utf8("h\xD0\xB5llo", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-if(mjb_confusable_skeleton_into(input, strlen(input), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    NULL, &output_size) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_confusable_skeleton_into(&input, &output) != MJB_STATUS_OK) {
     return 1;
 }
 
-char output[5];
+char storage[5];
 
-if(output_size > sizeof(output) || mjb_confusable_skeleton_into(input, strlen(input),
-    MJB_ENC_UTF_8, MJB_ENC_UTF_8, output, &output_size) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_confusable_skeleton_into(&input, &output) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Skeleton payload (no terminator): hello
-printf("Skeleton payload (no terminator): %.*s", (int)output_size, output);
+printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);
 ```
 
 See also: [`mjb_confusable_skeleton`](#mjb_confusable_skeleton), [`mjb_confusable_match`](#mjb_confusable_match), [`mjb_is_identifier`](#mjb_is_identifier).

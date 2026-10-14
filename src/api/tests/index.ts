@@ -284,6 +284,8 @@ ATT_ASSERT(mojibake.confusableMatch(new Uint8Array([0x80]), 'A'), null,
   'areConfusable malformed input');
 ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo')?.output, 'hello',
   'confusableSkeleton');
+ATT_ASSERT(mojibake.confusableSkeleton('h\u0435llo', { encoding: Encoding.UTF_16BE,
+  outputEncoding: Encoding.UTF_32LE })?.output, 'hello', 'confusableSkeleton UTF-16BE to UTF-32LE');
 ATT_ASSERT(mojibake.codepointEmojiProperties(0x23)?.component, true, 'codepointEmojiProperties');
 ATT_ASSERT(mojibake.codepointIsEmoji(0x23), true, 'codepointIsEmoji');
 ATT_ASSERT(mojibake.codepointIsEmojiPresentation(0x23), false, 'codepointIsEmojiPresentation');

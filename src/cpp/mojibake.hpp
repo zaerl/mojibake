@@ -766,8 +766,9 @@ struct NumericValue {
 [[nodiscard]] inline TextResult confusable_skeleton_result(std::string_view input,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_confusable_skeleton(input.data(), input.size(), input_encoding,
-        output_encoding, detail::ResultAccess::out(result));
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_confusable_skeleton(&text, output_encoding,
+        detail::ResultAccess::out(result));
 
     return detail::ResultAccess::checked(std::move(result), status,
         "Confusable skeleton generation failed");

@@ -599,20 +599,17 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         }
 
         case 12: { // Confusable skeleton and pairwise detection
-            if(mjb_confusable_skeleton(buffer, size, encoding, MJB_ENC_UTF_8, &result) ==
-                MJB_STATUS_OK) {
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            if(mjb_confusable_skeleton(&text, MJB_ENC_UTF_8, &result) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            size_t required = 0;
+            mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-            if(mjb_confusable_skeleton_into(buffer, size, encoding, MJB_ENC_UTF_8, NULL,
-                   &required) == MJB_STATUS_OK &&
-                required <= 4096) {
+            if(mjb_confusable_skeleton_into(&text, &into) == MJB_STATUS_OK && into.size <= 4096) {
                 char output[4096];
-                size_t capacity = required;
-                fuzz_sink += (size_t)mjb_confusable_skeleton_into(buffer, size, encoding,
-                    MJB_ENC_UTF_8, output, &capacity);
+                into.data = output;
+                fuzz_sink += (size_t)mjb_confusable_skeleton_into(&text, &into);
             }
 
             bool confusable;
