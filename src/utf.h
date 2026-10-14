@@ -65,8 +65,9 @@ static inline mjb_status MJB_USED mjb_repair_text_input(const char **buffer, siz
         return MJB_STATUS_MALFORMED_INPUT;
     }
 
-    mjb_status status = mjb_convert_encoding(*buffer, *byte_length, *encoding, malformed_policy,
-        MJB_ENC_UTF_8, sanitized, diagnostic);
+    mjb_text text = mjb_text_make(*buffer, *byte_length, *encoding);
+    mjb_status status = mjb_convert_encoding(&text, malformed_policy, MJB_ENC_UTF_8, sanitized,
+        diagnostic);
 
     if(status == MJB_STATUS_OK) {
         *buffer = sanitized->output;

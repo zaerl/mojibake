@@ -118,12 +118,17 @@ ATT_ASSERT(mojibake.isUTF8('Hello'), true, 'isUTF8');
 ATT_ASSERT(mojibake.isUTF16(new Uint8Array([0x00, 0x48, 0x00, 0x69])), true, 'isUTF16');
 ATT_ASSERT(mojibake.isASCII('Hello'), true, 'isASCII');
 ATT_ASSERT(mojibake.codepointEncode(0x41)?.output, 'A', 'codepointEncode');
-ATT_ASSERT(mojibake.convertEncoding('A', Encoding.UTF_16LE)?.output, 'A', 'convertEncoding');
+ATT_ASSERT(mojibake.convertEncoding('A', { outputEncoding: Encoding.UTF_16LE })?.output, 'A',
+  'convertEncoding');
+ATT_ASSERT(mojibake.convertEncoding('\u{1F600}a', { encoding: Encoding.UTF_16BE,
+  outputEncoding: Encoding.UTF_32BE })?.output, '\u{1F600}a', 'convertEncoding UTF-16BE to UTF-32BE');
+ATT_ASSERT(mojibake.convertEncoding('A', { encoding: Encoding.UTF_16LE })?.bytes?.length, 1,
+  'convertEncoding defaults to UTF-8 output');
 ATT_ASSERT(mojibake.convertEncoding(malformedText), null, 'convertEncoding malformed stop policy');
-ATT_ASSERT(mojibake.convertEncoding(malformedText, Encoding.UTF_8,
+ATT_ASSERT(mojibake.convertEncoding(malformedText,
   { malformedPolicy: MalformedPolicy.REPLACE })?.output, 'A\uFFFDB',
   'convertEncoding malformed replace policy');
-ATT_ASSERT(mojibake.convertEncoding(malformedText, Encoding.UTF_8,
+ATT_ASSERT(mojibake.convertEncoding(malformedText,
   { malformedPolicy: MalformedPolicy.SKIP })?.output, 'AB',
   'convertEncoding malformed skip policy');
 ATT_ASSERT(mojibake.codepointCount('H\u00E9ll\u00F6'), 5, 'codepointCount');

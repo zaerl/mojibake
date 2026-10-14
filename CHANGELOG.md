@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and encoding, and `mjb_nfkc_casefold_into` also takes a `mjb_buffer *` instead of the output
   encoding, output buffer, and output size: `mjb_nfkc_casefold_into(text, malformed_policy, output,
   diagnostic)`
+- **Breaking**: the TypeScript `convertEncoding(input, outputEncoding, options)` is now
+  `convertEncoding(input, options)` and reads `options.outputEncoding` like the other
+  transformations. The output encoding still defaults to UTF-8
+- **Breaking**: `mjb_convert_encoding` takes a `const mjb_text *` instead of the buffer, byte
+  length, and encoding, and `mjb_convert_encoding_into` also takes a `mjb_buffer *` instead of the
+  output encoding, output buffer, and output size: `mjb_convert_encoding_into(text,
+  malformed_policy, output, diagnostic)`
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold
@@ -57,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed all clang-tidy findings in the library, CLI, and tests
 - Site: the malformed policy is now passed through the API options, so the arguments that follow
   it, such as the normalization form, are no longer shifted
+- Site: `mjb_convert_encoding` now uses the selected output encoding
 
 ## [0.4.2] - 2026-10-12
 Codename: [LATIN CAPITAL LETTER B]

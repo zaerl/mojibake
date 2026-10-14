@@ -77,7 +77,8 @@ ATT_TEST(mojibake) {
     ATT_ASSERT_STATUS(mjb_result_free(NULL), MJB_STATUS_INVALID_ARGUMENT, "Free NULL result");
 
     mjb_test_allocator_reset();
-    ATT_ASSERT_STATUS(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    mjb_text text = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_convert_encoding(&text, MJB_MALFORMED_STOP,
                           MJB_ENC_UTF_16LE, &result, NULL),
         MJB_STATUS_OK, "Allocate result through configured allocator");
     ATT_ASSERT((int)(mjb_test_allocator_call_count() > 0), true,

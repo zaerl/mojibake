@@ -731,8 +731,9 @@ struct NumericValue {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_convert_encoding(input.data(), input.size(), input_encoding,
-        malformed_policy, output_encoding, detail::ResultAccess::out(result), diagnostic);
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_convert_encoding(&text, malformed_policy, output_encoding,
+        detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Encoding conversion failed");
 }

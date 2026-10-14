@@ -1431,9 +1431,7 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
     name: 'mjb_convert_encoding',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to convert'),
-      byte_length(),
-      encoding('The input encoding of the string'),
+      text('The text to convert'),
       malformedPolicy(),
       encoding('The output encoding of the string', 'output_encoding'),
       result(),
@@ -1450,7 +1448,8 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The string was converted' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`result` is NULL, `buffer` is NULL with a non-zero size, or the malformed policy is invalid' },
+        '`result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the ' +
+        'malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1460,11 +1459,11 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `const char *input = "caf\\xC3\\xA9";
+    example: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
+if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1479,33 +1478,18 @@ mjb_result_free(&result);`,
     name: 'mjb_convert_encoding_into',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to convert'),
-      byte_length(),
-      encoding('The input encoding of the string'),
+      text('The text to convert'),
       malformedPolicy(),
-      encoding('The output encoding of the string', 'output_encoding'),
-      {
-        name: 'output',
-        type: 'void *',
-        description: 'The caller-provided output buffer, or NULL to query the required size',
-        wasm_generated: false,
-        ownership: 'The caller retains ownership'
-      },
-      {
-        name: 'output_size',
-        type: 'size_t *',
-        description: 'The input capacity and output required or written byte count',
-        wasm_generated: false
-      },
+      outputBuffer(),
       diagnostic()
     ],
     wasm: false,
     section: Section.TextTransformation,
     details: 'Convert a string using the same encoding and BOM rules as ' +
-      '`mjb_convert_encoding`, without allocating memory. Set `output` to NULL to query the ' +
-      'required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return ' +
-      'it contains the required size when the buffer is too small, or the written size on ' +
-      'success. The size is the encoded payload byte count: terminators are excluded, and ' +
+      '`mjb_convert_encoding`, without allocating memory. `output->encoding` selects the ' +
+      'output encoding. Set `output->data` to NULL to query the required size. If ' +
+      '`output->data` is non-NULL, `output->size` supplies its capacity; on return it contains ' +
+      'the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and ' +
       'this function does not write a terminator. If capacity is insufficient, or another ' +
       'error occurs, the output buffer may hold a partial prefix of the result, but nothing is ' +
       'written past its capacity.',
@@ -1513,7 +1497,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the string was converted' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the ' +
+        'malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1524,24 +1509,28 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `const char *input = "caf\\xC3\\xA9";
-size_t output_size = 0;
+    example: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_16LE);
 
-if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-unsigned char output[8];
+unsigned char storage[8];
 
-if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
-    MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
-    NULL) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_16LE);
+
+if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // UTF-16LE payload bytes (no terminator): 8
-printf("UTF-16LE payload bytes (no terminator): %zu", output_size);`,
+printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`,
     related: ['mjb_convert_encoding', 'mjb_detect_encoding', 'mjb_codepoint_encode']
   },
   {
@@ -3703,8 +3692,10 @@ printf("Current locale reset to English: %s", locale == MJB_LOCALE_EN ? "yes" : 
     ],
     example: `mjb_result result;
 
-if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
+mjb_text input = mjb_text_utf8("A", 1);
+
+if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+    NULL) != MJB_STATUS_OK ||
     mjb_result_free(&result) != MJB_STATUS_OK) {
     return 1;
 }

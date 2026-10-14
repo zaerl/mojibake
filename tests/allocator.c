@@ -41,19 +41,20 @@ static bool into_done(mjb_status status, size_t output_size) {
 
 static mjb_status sweep_convert_encoding(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_convert_encoding(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result, NULL);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_convert_encoding(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+        NULL);
     *cleared = result_done(status, &result);
 
     return status;
 }
 
 static mjb_status sweep_convert_encoding_into(bool *cleared) {
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_convert_encoding_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size, NULL);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_16LE);
+    mjb_status status = mjb_convert_encoding_into(&text, MJB_MALFORMED_STOP, &output, NULL);
+    *cleared = into_done(status, output.size);
 
     return status;
 }
