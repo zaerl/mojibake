@@ -128,29 +128,35 @@ ATT_TEST(case) {
 
     MJB_TEST_COVERAGE(mjb_map_case_into);
 
-    size_t into_size = 11;
-    ATT_ASSERT_STATUS(mjb_map_case_into(NULL, 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL,
-                          &into_size, NULL),
+    mjb_text into_text = mjb_text_make(NULL, 1, encoding);
+    mjb_buffer into = mjb_buffer_make(NULL, 11, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL buffer");
-    ATT_ASSERT(into_size, (size_t)0, "Case into resets size for invalid input");
-    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL, NULL, NULL),
-        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL output size");
-    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_NONE, encoding, NULL,
-                          &into_size, NULL),
+    ATT_ASSERT(into.size, (size_t)0, "Case into resets size for invalid input");
+    into = mjb_buffer_make(NULL, 11, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case_into(NULL, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL text");
+    ATT_ASSERT(into.size, (size_t)0, "Case into resets size for NULL text");
+    into_text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Case into rejects NULL output");
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_NONE, &into, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case into rejects MJB_CASE_NONE");
-    into_size = 11;
-    ATT_ASSERT_STATUS(mjb_map_case_into("A\x80", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_LOWER, encoding, NULL,
-                          &into_size, NULL),
+    into_text = mjb_text_make("A\x80", 2, encoding);
+    into = mjb_buffer_make(NULL, 11, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_LOWER, &into, NULL),
         MJB_STATUS_MALFORMED_INPUT, "Case into rejects malformed input");
-    ATT_ASSERT(into_size, (size_t)0, "Malformed case input resets output size");
-    ATT_ASSERT_STATUS(mjb_map_case("A\x80", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_LOWER, encoding,
+    ATT_ASSERT(into.size, (size_t)0, "Malformed case input resets output size");
+    mjb_text text = mjb_text_make("A\x80", 2, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_LOWER, encoding,
                           &guard_result, NULL),
         MJB_STATUS_MALFORMED_INPUT, "Case mapping rejects malformed input");
 
     const char malformed_case[] = "a\x80"
                                   "b";
     mjb_diagnostic diagnostic;
-    ATT_ASSERT_STATUS(mjb_map_case(malformed_case, sizeof(malformed_case) - 1, encoding,
+    text = mjb_text_make(malformed_case, sizeof(malformed_case) - 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text,
                           MJB_MALFORMED_REPLACE, MJB_CASE_UPPER, encoding, &guard_result,
                           &diagnostic),
         MJB_STATUS_OK, "Case mapping replaces malformed input");
@@ -163,7 +169,8 @@ ATT_TEST(case) {
     ATT_ASSERT_STATUS(mjb_result_free(&guard_result), MJB_STATUS_OK,
         "Free case replacement result");
 
-    ATT_ASSERT_STATUS(mjb_map_case(malformed_case, sizeof(malformed_case) - 1, encoding,
+    text = mjb_text_make(malformed_case, sizeof(malformed_case) - 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text,
                           MJB_MALFORMED_SKIP, MJB_CASE_UPPER, encoding, &guard_result,
                           &diagnostic),
         MJB_STATUS_OK, "Case mapping skips malformed input");
@@ -172,73 +179,82 @@ ATT_TEST(case) {
         "Case skip output");
     ATT_ASSERT_STATUS(mjb_result_free(&guard_result), MJB_STATUS_OK, "Free case skip result");
 
-    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, (mjb_malformed_policy)99,
+    text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, (mjb_malformed_policy)99,
                           MJB_CASE_UPPER, encoding, &guard_result, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case mapping rejects invalid malformed policy");
 
     const char *into_input = "Stra\xC3\x9F"
                              "e";
     const char *into_expected = "STRASSE";
-    into_size = 0;
+    into_text = mjb_text_make(into_input, strlen(into_input), encoding);
+    into = mjb_buffer_make(NULL, 0, encoding);
 
-    ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
-                          encoding, NULL, &into_size, NULL),
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
         MJB_STATUS_OK, "Query case-mapped output size");
-    ATT_ASSERT(into_size, strlen(into_expected), "Case into required payload size");
+    ATT_ASSERT(into.size, strlen(into_expected), "Case into required payload size");
 
     unsigned char into_output[8];
     unsigned char untouched_output[sizeof(into_output)];
     memset(into_output, 0xA5, sizeof(into_output));
     memset(untouched_output, 0xA5, sizeof(untouched_output));
     size_t small_capacity = strlen(into_expected) - 1;
-    into_size = small_capacity;
+    into = mjb_buffer_make(into_output, small_capacity, encoding);
 
-    ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
-                          encoding, into_output, &into_size, NULL),
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
         MJB_STATUS_OUTPUT_TOO_SMALL, "Case into reports a small output buffer");
-    ATT_ASSERT(into_size, strlen(into_expected), "Small case output reports required size");
+    ATT_ASSERT(into.size, strlen(into_expected), "Small case output reports required size");
     ATT_ASSERT(memcmp(into_output + small_capacity, untouched_output + small_capacity,
                    sizeof(into_output) - small_capacity),
         0, "Small case output is not written past its capacity");
 
-    into_size = strlen(into_expected);
-    ATT_ASSERT_STATUS(mjb_map_case_into(into_input, strlen(into_input), encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
-                          encoding, into_output, &into_size, NULL),
+    into = mjb_buffer_make(into_output, strlen(into_expected), encoding);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
         MJB_STATUS_OK, "Case into exact-size output buffer");
-    ATT_ASSERT(into_size, strlen(into_expected), "Case into written payload size");
-    ATT_ASSERT(memcmp(into_output, into_expected, into_size), 0, "Case into output bytes");
-    ATT_ASSERT((unsigned int)into_output[into_size], 0xA5u,
+    ATT_ASSERT(into.size, strlen(into_expected), "Case into written payload size");
+    ATT_ASSERT(memcmp(into_output, into_expected, into.size), 0, "Case into output bytes");
+    ATT_ASSERT((unsigned int)into_output[into.size], 0xA5u,
         "Case into does not write a terminator");
 
-    into_size = sizeof(into_output);
-    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16LE,
-                          into_output, &into_size, NULL),
+    into_text = mjb_text_make("a", 1, encoding);
+    into = mjb_buffer_make(into_output, sizeof(into_output), MJB_ENC_UTF_16LE);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
         MJB_STATUS_OK, "Case into converts output encoding");
-    ATT_ASSERT(into_size, (size_t)2, "Case into converted output size");
+    ATT_ASSERT(into.size, (size_t)2, "Case into converted output size");
     ATT_ASSERT(memcmp(into_output, "A\0", 2), 0, "Case into converted output bytes");
 
-    ATT_ASSERT_STATUS(mjb_map_case("\xC3\xA9", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_ASCII,
+    text = mjb_text_make("\xC3\xA9", 2, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_ASCII,
                           &guard_result, NULL),
         MJB_STATUS_UNSUPPORTED, "Case conversion rejects unrepresentable ASCII output");
-    into_size = sizeof(into_output);
-    ATT_ASSERT_STATUS(mjb_map_case_into("\xC3\xA9", 2, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_ASCII,
-                          into_output, &into_size, NULL),
+    into_text = mjb_text_make("\xC3\xA9", 2, encoding);
+    into = mjb_buffer_make(into_output, sizeof(into_output), MJB_ENC_ASCII);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&into_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &into, NULL),
         MJB_STATUS_UNSUPPORTED, "Case into rejects unrepresentable ASCII output");
-    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16,
+    text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16,
                           &guard_result, NULL),
         MJB_STATUS_INVALID_ENCODING, "Case conversion rejects output without byte order");
-    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UNKNOWN,
+    text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UNKNOWN,
                           &guard_result, NULL),
         MJB_STATUS_INVALID_ENCODING, "Case conversion rejects unknown output encoding");
 
-    ATT_ASSERT_STATUS(mjb_map_case(NULL, 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
+    text = mjb_text_make(NULL, 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL buffer");
-    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL, NULL),
+    ATT_ASSERT_STATUS(mjb_map_case(NULL, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding,
+                          &guard_result, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL text");
+    text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects NULL result");
-    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_NONE, encoding, &guard_result, NULL),
+    text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_NONE, encoding, &guard_result, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Case conversion rejects MJB_CASE_NONE");
 
-    ATT_ASSERT_STATUS(mjb_map_case("", 0, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
+    text = mjb_text_make("", 0, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, encoding, &guard_result, NULL),
         MJB_STATUS_OK, "Case conversion accepts empty string");
     ATT_ASSERT(guard_result.owned, false, "Case conversion empty string not owned");
     ATT_ASSERT(guard_result.output_size, (size_t)0, "Case conversion empty string size");
@@ -251,7 +267,8 @@ ATT_TEST(case) {
     ATT_ASSERT(result, "\xE1\x8E\xA0", "Lowercase Cherokee casefolds to uppercase");
     mjb_test_free(result);
 
-    ATT_ASSERT_STATUS(mjb_map_case("a", 1, encoding, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16LE, &guard_result, NULL),
+    text = mjb_text_make("a", 1, encoding);
+    ATT_ASSERT_STATUS(mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_16LE, &guard_result, NULL),
         MJB_STATUS_OK, "Case conversion converts output encoding");
     ATT_ASSERT(guard_result.owned, true,
         "Case conversion converted output encoding owned");

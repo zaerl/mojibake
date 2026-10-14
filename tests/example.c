@@ -626,11 +626,11 @@ ATT_TEST(example) {
 {
     // Example for mjb_map_case
     MJB_TEST_COVERAGE(mjb_map_case); // Added by the script
-    const char *input = "Stra\xC3\x9F""e"; // "Straße"
+    mjb_text input = mjb_text_utf8("Stra\xC3\x9F""e", MJB_NUL_TERMINATED); // "Straße"
     mjb_result result;
 
-    if(mjb_map_case(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
-        MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
+    if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, &result,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case test failed"); // Added by the script
         return;
     }
@@ -646,27 +646,34 @@ ATT_TEST(example) {
 {
     // Example for mjb_map_case_into
     MJB_TEST_COVERAGE(mjb_map_case_into); // Added by the script
-    const char *input = "Stra\xC3\x9F""e"; // "Straße"
-    size_t output_size = 0;
+    mjb_text input = mjb_text_utf8("Stra\xC3\x9F""e", MJB_NUL_TERMINATED); // "Straße"
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
-    if(mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_CASE_UPPER, MJB_ENC_UTF_8, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+    // Query the required size
+    if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
         return;
     }
 
-    char output[7];
+    char storage[7];
 
-    if(output_size > sizeof(output) || mjb_map_case_into(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size,
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+    if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, &output,
         NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_map_case_into test failed"); // Added by the script
         return;
     }
 
     // Upper payload (no terminator): STRASSE
-    // printf("Upper payload (no terminator): %.*s", (int)output_size, output);
-    snprintf(test_buffer, sizeof(test_buffer), "Upper payload (no terminator): %.*s", (int)output_size, output); // Added by the script
+    // printf("Upper payload (no terminator): %.*s", (int)output.size, storage);
+    snprintf(test_buffer, sizeof(test_buffer), "Upper payload (no terminator): %.*s", (int)output.size, storage); // Added by the script
     ATT_ASSERT(test_buffer, "Upper payload (no terminator): STRASSE", "mjb_map_case_into test failed"); // Added by the script
 }
 

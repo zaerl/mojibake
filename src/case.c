@@ -726,13 +726,18 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_map_case(const char *buffer, size_t byte_length, mjb_encoding encoding,
-    mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding,
-    mjb_result *result, mjb_diagnostic *diagnostic) {
-    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+MJB_EXPORT mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy,
+    mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result,
+    mjb_diagnostic *diagnostic) {
+    if(result == NULL || text == NULL || (text->buffer == NULL && text->byte_length > 0) ||
         !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    // Malformed input repair below replaces these with a sanitized copy.
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     mjb_diagnostic_reset(diagnostic);
 
@@ -828,20 +833,29 @@ mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_enco
         false, result);
 }
 
-MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_map_case_type type,
-    mjb_encoding output_encoding, void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
-    if(output_size == NULL) {
+MJB_EXPORT mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_policy malformed_policy,
+    mjb_map_case_type type, mjb_buffer *output, mjb_diagnostic *diagnostic) {
+    if(output == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
+    void *data = output->data;
+    size_t *output_size = &output->size;
+    mjb_encoding output_encoding = output->encoding;
+
     mjb_diagnostic_reset(diagnostic);
 
-    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
+    if(text == NULL || (text->buffer == NULL && text->byte_length > 0) ||
+        !mjb_malformed_policy_is_valid(malformed_policy)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    // Malformed input repair below replaces these with a sanitized copy.
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(type != MJB_CASE_UPPER && type != MJB_CASE_LOWER && type != MJB_CASE_TITLE &&
         type != MJB_CASE_CASEFOLD && type != MJB_CASE_CASEFOLD_SIMPLE) {
@@ -878,7 +892,7 @@ MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
         turkic_case_folding };
 
     size_t output_capacity = *output_size;
-    status = mjb_output_into(output, output_size, mjb_map_case_write, &context);
+    status = mjb_output_into(data, output_size, mjb_map_case_write, &context);
 
     mjb_result sanitized = { NULL, 0, false };
 
@@ -891,7 +905,7 @@ MJB_EXPORT mjb_status mjb_map_case_into(const char *buffer, size_t byte_length,
             context.buffer = buffer;
             context.byte_length = byte_length;
             context.encoding = encoding;
-            status = mjb_output_into(output, output_size, mjb_map_case_write, &context);
+            status = mjb_output_into(data, output_size, mjb_map_case_write, &context);
         }
     }
 

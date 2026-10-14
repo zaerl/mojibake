@@ -123,19 +123,20 @@ static mjb_status sweep_filter_into(bool *cleared) {
 
 static mjb_status sweep_map_case(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_map_case(sweep_text, sweep_text_size, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_CASE_UPPER, MJB_ENC_UTF_8, &result, NULL);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_ENC_UTF_8,
+        &result, NULL);
     *cleared = result_done(status, &result);
 
     return status;
 }
 
 static mjb_status sweep_map_case_into(bool *cleared) {
-    char output[SWEEP_OUTPUT_SIZE];
-    size_t output_size = sizeof(output);
-    mjb_status status = mjb_map_case_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_CASE_TITLE, MJB_ENC_UTF_8, output, &output_size, NULL);
-    *cleared = into_done(status, output_size);
+    char storage[SWEEP_OUTPUT_SIZE];
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+    mjb_status status = mjb_map_case_into(&text, MJB_MALFORMED_STOP, MJB_CASE_TITLE, &output, NULL);
+    *cleared = into_done(status, output.size);
 
     return status;
 }
@@ -351,14 +352,15 @@ static void sweep(const char *name, sweep_call call) {
 // Caller-buffer fast paths that must succeed without allocating.
 static void no_allocation(void) {
     char output[8];
-    size_t output_size = sizeof(output);
 
     mjb_test_allocator_fail_after(0);
 
-    ATT_ASSERT_STATUS(mjb_map_case_into("a", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-                          MJB_CASE_UPPER, MJB_ENC_UTF_8, output, &output_size, NULL),
+    mjb_text case_text = mjb_text_utf8("a", 1);
+    mjb_buffer case_output = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
+    ATT_ASSERT_STATUS(mjb_map_case_into(&case_text, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
+                          &case_output, NULL),
         MJB_STATUS_OK, "Caller-buffer case mapping does not allocate");
-    ATT_ASSERT(output_size, (size_t)1, "Caller-buffer case mapping output size");
+    ATT_ASSERT(case_output.size, (size_t)1, "Caller-buffer case mapping output size");
     ATT_ASSERT((unsigned int)output[0], (unsigned int)'A', "Caller-buffer case mapping output");
 
     mjb_text filter_text = mjb_text_utf8("a", 1);
