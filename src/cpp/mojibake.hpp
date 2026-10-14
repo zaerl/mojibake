@@ -1101,8 +1101,9 @@ enum class CollationVariableWeighting {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_status status = mjb_collation_key(input.data(), input.size(), encoding,
-        malformed_policy, static_cast<mjb_collation_variable_weighting>(variable_weighting),
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const mjb_status status = mjb_collation_key(&text, malformed_policy,
+        static_cast<mjb_collation_variable_weighting>(variable_weighting),
         static_cast<mjb_collation_strength>(strength), detail::ResultAccess::out(result),
         diagnostic);
 

@@ -68,7 +68,7 @@ export type MojibakeWasmModule = {
   // Compare two strings using UCA.
   _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, variable_weighting: number, strength: number, order: Pointer) => number;
   // Generate a UCA sort key for a string.
-  _mjb_collation_key: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, variable_weighting: number, strength: number, result: Pointer, diagnostic: Pointer) => number;
+  _mjb_collation_key: (text: Pointer, malformed_policy: number, variable_weighting: number, strength: number, result: Pointer, diagnostic: Pointer) => number;
   // Change string case.
   _mjb_map_case: (text: Pointer, malformed_policy: number, type: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Return true if the codepoint is valid.

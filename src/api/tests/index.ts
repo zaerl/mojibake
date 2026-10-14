@@ -193,6 +193,10 @@ ATT_ASSERT((mojibake.collationCompare('', '-', CollationVariableWeighting.SHIFTE
 ATT_ASSERT(mojibake.collationCompare(new Uint8Array([0x80]), 'a'), null,
   'collationCompare malformed input');
 ATT_ASSERT((mojibake.collationKey('a')?.length ?? 0) > 0, true, 'collationKey');
+ATT_ASSERT(Array.from(mojibake.collationKey('r\u00E9sum\u00E9', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.TERTIARY, { encoding: Encoding.UTF_16BE }) ?? []).join(),
+  Array.from(mojibake.collationKey('r\u00E9sum\u00E9') ?? []).join(),
+  'collationKey UTF-16BE input matches UTF-8 input');
 ATT_ASSERT(mojibake.collationKey('\u200B'), mojibake.collationKey(''),
   'collationKey completely ignorable equals empty');
 ATT_ASSERT(mojibake.collationKey('\u0301', CollationVariableWeighting.NON_IGNORABLE,

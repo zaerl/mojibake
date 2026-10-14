@@ -799,10 +799,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const char *s1, size_t s1
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, int *order);
 
 // Generate a UCA sort key for a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_result *result, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Generate a binary collation key into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const char *buffer, size_t byte_length, mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, void *output, size_t *output_size, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Change string case.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
