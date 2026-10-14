@@ -41,8 +41,7 @@ static void mjb_default_free(void *context, void *ptr) {
 
 // The default allocator is usable without explicit configuration. Custom configuration is copied
 // once before any other library call and remains immutable for the process lifetime.
-mojibake mjb_global = { { NULL, mjb_default_alloc, mjb_default_realloc, mjb_default_free }, false,
-    MJB_LOCALE_EN };
+mojibake mjb_global = { { NULL, mjb_default_alloc, mjb_default_realloc, mjb_default_free }, false };
 
 // Set the process-global allocator once, before any other library call.
 MJB_EXPORT mjb_status mjb_set_allocator(const mjb_allocator *allocator) {

@@ -6,7 +6,7 @@
 
 import mojibakeModule from './mojibake.js';
 import type { Codepoint, MojibakeWasmModule } from './mojibake.js';
-import type { Locale } from './locales.js';
+import { Locale } from './locales.js';
 import type { Script } from './unicode.js';
 
 export * from './locales.js';
@@ -339,6 +339,8 @@ export type TextInputOptions = {
   additionalEncoding?: Encoding;
   outputEncoding?: Encoding;
   malformedPolicy?: MalformedPolicy;
+  // Casing locale for mapCase. Locale.NOT_SET selects the default mappings
+  locale?: Locale;
 };
 
 // Used for preRun and postRun callbacks
@@ -1020,7 +1022,7 @@ export class Mojibake {
   }
 
   // mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy,
-  // mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result,
+  // mjb_map_case_type type, mjb_locale locale, mjb_encoding output_encoding, mjb_result *result,
   // mjb_diagnostic *diagnostic)
   mapCase(input: MojibakeInput, type: CaseType, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
@@ -1031,7 +1033,8 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_map_case(textPtr,
-        options.malformedPolicy ?? MalformedPolicy.STOP, type, outputEncoding, resultPtr, 0);
+        options.malformedPolicy ?? MalformedPolicy.STOP, type, options.locale ?? Locale.NOT_SET,
+        outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -1644,16 +1647,6 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_set_locale(mjb_locale locale);
-  setLocale(locale: Locale): boolean {
-    return this.module._mjb_set_locale(locale) === Status.OK;
-  }
-
-  // mjb_locale mjb_get_locale(void);
-  getLocale(): Locale {
-    return this.module._mjb_get_locale() as Locale;
-  }
-
   // const char *mjb_locale_code(mjb_locale locale)
   localeCode(locale: Locale): string | null {
     const ptr = this.module._mjb_locale_code(locale);
@@ -1675,8 +1668,6 @@ export class Mojibake {
 
     return this.decodeString(ptr, null, Encoding.UTF_8).output;
   }
-
-  // void mjb_reset_locale(void);
 
   // const char *mjb_status_message(mjb_status status);
   statusMessage(status: Status): string | null {

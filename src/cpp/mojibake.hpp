@@ -997,63 +997,70 @@ class IdnaResult {
 }
 
 [[nodiscard]] inline TextResult case_map_result(std::string_view input, mjb_map_case_type type,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
     const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
-    const mjb_status status = mjb_map_case(&text, malformed_policy, type, output_encoding,
+    const mjb_status status = mjb_map_case(&text, malformed_policy, type, locale, output_encoding,
         detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Case mapping failed");
 }
 
 [[nodiscard]] inline std::string case_map(std::string_view input, mjb_map_case_type type,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return case_map_result(input, type, input_encoding, output_encoding, malformed_policy,
+    return case_map_result(input, type, locale, input_encoding, output_encoding, malformed_policy,
         diagnostic)
         .str();
 }
 
 [[nodiscard]] inline std::string uppercase(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return case_map(input, MJB_CASE_UPPER, input_encoding, output_encoding, malformed_policy,
-        diagnostic);
+    return case_map(input, MJB_CASE_UPPER, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string lowercase(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return case_map(input, MJB_CASE_LOWER, input_encoding, output_encoding, malformed_policy,
-        diagnostic);
+    return case_map(input, MJB_CASE_LOWER, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string titlecase(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return case_map(input, MJB_CASE_TITLE, input_encoding, output_encoding, malformed_policy,
-        diagnostic);
+    return case_map(input, MJB_CASE_TITLE, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string casefold(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return case_map(input, MJB_CASE_CASEFOLD, input_encoding, output_encoding, malformed_policy,
-        diagnostic);
+    return case_map(input, MJB_CASE_CASEFOLD, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
 }
 
 [[nodiscard]] inline std::string casefold_simple(std::string_view input,
-    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, input_encoding, output_encoding,
+    return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, locale, input_encoding, output_encoding,
         malformed_policy, diagnostic);
 }
 
@@ -1272,18 +1279,6 @@ struct LocaleId {
     }
 
     return locale;
-}
-
-inline void set_locale(mjb_locale locale) {
-    detail::check_status(mjb_set_locale(locale), "Locale selection failed");
-}
-
-[[nodiscard]] inline mjb_locale get_locale() noexcept {
-    return mjb_get_locale();
-}
-
-inline void reset_locale() noexcept {
-    mjb_reset_locale();
 }
 
 [[nodiscard]] inline std::string_view locale_code(mjb_locale locale) noexcept {

@@ -103,7 +103,6 @@ struct CaseView: View {
     @State private var selectedLocale = CaseLocale.english
     @State private var outputs: [CaseMapping: String] = [:]
     @State private var failedMappings: Set<CaseMapping> = []
-    @State private var localeErrorMessage: String?
 
     var body: some View {
         ScrollView {
@@ -137,11 +136,6 @@ struct CaseView: View {
                     Text(selectedLocale.description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                }
-
-                if let localeErrorMessage {
-                    Label(localeErrorMessage, systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.red)
                 }
 
                 GroupBox {
@@ -211,27 +205,9 @@ struct CaseView: View {
     private func mapCases() {
         var newOutputs: [CaseMapping: String] = [:]
         var newFailures: Set<CaseMapping> = []
-        let previousLocale = mjb_get_locale()
-        let localeStatus = mjb_set_locale(selectedLocale.value)
-
-        guard localeStatus == MJB_STATUS_OK else {
-            outputs = [:]
-            failedMappings = Set(CaseMapping.allCases)
-            localeErrorMessage = MojibakeFormatting.statusMessage(
-                operation: "mjb_set_locale",
-                status: localeStatus
-            )
-            return
-        }
-
-        defer {
-            _ = mjb_set_locale(previousLocale)
-        }
-
-        localeErrorMessage = nil
 
         for mapping in CaseMapping.allCases {
-            guard let output = mapped(input, type: mapping.type) else {
+            guard let output = mapped(input, type: mapping.type, locale: selectedLocale.value) else {
                 newFailures.insert(mapping)
                 continue
             }
@@ -243,12 +219,17 @@ struct CaseView: View {
         failedMappings = newFailures
     }
 
-    private func mapped(_ value: String, type: mjb_map_case_type) -> String? {
+    private func mapped(
+        _ value: String,
+        type: mjb_map_case_type,
+        locale: mjb_locale
+    ) -> String? {
         MojibakeString.transform(value) { text, result in
             mjb_map_case(
                 text,
                 MJB_MALFORMED_STOP,
                 type,
+                locale,
                 MJB_ENC_UTF_8,
                 result,
                 nil

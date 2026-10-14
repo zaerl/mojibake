@@ -215,11 +215,11 @@ protocol. If a process that purports to implement a Unicode algorithm applies a 
 must be disclosed.
 
 ✅ Satisfied. `README.md`, `API.md` and `CONFORMANCE_REQUIREMENTS.md` include a Unicode tailoring
-section. It discloses that `mjb_map_case` is locale-sensitive through process-global
-`mjb_set_locale`, that `MJB_LOCALE_EN` is the default, that Turkish/Azerbaijani tailor dotted-I
-casing and Turkic case folding, that Lithuanian tailors dot-above casing only, and that the other
-advertised Unicode algorithms are not locale-tailored by Mojibake. Generated function metadata now
-carries the same disclosure on `mjb_map_case` and `mjb_set_locale`.
+section. It discloses that `mjb_map_case` and `mjb_map_case_into` are locale-sensitive through
+their per-call `locale` argument, that `MJB_LOCALE_NOT_SET` selects the default mappings, that
+Turkish/Azerbaijani tailor dotted-I casing and Turkic case folding, that Lithuanian tailors
+dot-above casing only, and that the other advertised Unicode algorithms are not locale-tailored by
+Mojibake. Generated function metadata carries the same disclosure on `mjb_map_case`.
 
 ### C20
 
@@ -242,8 +242,9 @@ does not expose a separate *Default Case Detection* API.
 Unless listed here, Mojibake applies the referenced Unicode 18.0.0 algorithms *without*
 higher-level protocol tailoring.
 
-- **Case conversion and case folding**: `mjb_map_case` is locale-sensitive through the
-  process-global locale set by `mjb_set_locale`. The default locale is `MJB_LOCALE_EN`.
+- **Case conversion and case folding**: `mjb_map_case` and `mjb_map_case_into` are
+  locale-sensitive through their `locale` argument. There is no process-global locale.
+  `MJB_LOCALE_NOT_SET`, and every locale other than the three below, selects the default mappings.
   `MJB_LOCALE_TR` and `MJB_LOCALE_AZ` apply the Turkish/Azerbaijani dotted-I rules from
   `SpecialCasing.txt` for uppercase, lowercase, and titlecase, and the Turkic `T` mappings from
   `CaseFolding.txt` for full and simple case folding. `MJB_LOCALE_LT` applies Lithuanian dot-above

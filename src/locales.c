@@ -944,21 +944,3 @@ MJB_EXPORT const char *mjb_script_code(mjb_script script) {
 
     return mjb_script_codes[script];
 }
-
-MJB_EXPORT mjb_status mjb_set_locale(mjb_locale locale) {
-    if(locale == MJB_LOCALE_NOT_SET || (unsigned int)locale >= MJB_LOCALE_NUM) {
-        return MJB_STATUS_INVALID_ARGUMENT;
-    }
-
-    mjb_global.locale = locale;
-
-    return MJB_STATUS_OK;
-}
-
-MJB_EXPORT mjb_locale mjb_get_locale(void) {
-    return mjb_global.locale;
-}
-
-MJB_EXPORT void mjb_reset_locale(void) {
-    mjb_global.locale = MJB_LOCALE_EN;
-}

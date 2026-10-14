@@ -70,7 +70,7 @@ export type MojibakeWasmModule = {
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (text: Pointer, malformed_policy: number, variable_weighting: number, strength: number, result: Pointer, diagnostic: Pointer) => number;
   // Change string case.
-  _mjb_map_case: (text: Pointer, malformed_policy: number, type: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
+  _mjb_map_case: (text: Pointer, malformed_policy: number, type: number, locale: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Return true if the codepoint is valid.
   _mjb_codepoint_is_valid: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is graphic.
@@ -175,10 +175,6 @@ export type MojibakeWasmModule = {
   _mjb_terminal_width: (text: Pointer, malformed_policy: number, profile: number, width: Pointer, diagnostic: Pointer) => number;
   // Parse a BCP 47 language tag.
   _mjb_locale_parse: (id: Pointer, locale: Pointer) => number;
-  // Set the current process-global locale.
-  _mjb_set_locale: (locale: number) => number;
-  // Return the current process-global locale.
-  _mjb_get_locale: () => number;
   // Return the ISO 639-1 code of a locale, NULL if the locale is not valid.
   _mjb_locale_code: (locale: number) => Pointer;
   // Return the ISO 15924 code of a script, NULL if the script is not valid.

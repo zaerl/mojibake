@@ -64,7 +64,7 @@ int main(int argc, char *const argv[]) {
     const char *descriptions[] = { "Interpret input as a list of codepoints",
         "Bidi base direction: ltr, rtl, auto. Default: auto", "Print help",
         "JSON indent level (0-10). Default: 0",
-        "Casing locale as a BCP 47 language tag (e.g. tr, az, lt). Default: en",
+        "Casing locale as a BCP 47 language tag (e.g. tr, az, lt). Default: none",
         // NOLINTNEXTLINE(bugprone-suspicious-missing-comma): one multi-line description
         "Output mode: plain, json. Default: plain\n"
         "\t\tplain: print the result in plain text\n"
@@ -191,13 +191,14 @@ int main(int argc, char *const argv[]) {
 
                 mjb_text text = mjb_text_utf8(optarg, strlen(optarg));
                 if(mjb_locale_parse(&text, &locale) != MJB_STATUS_OK ||
-                    locale.locale == MJB_LOCALE_NOT_SET ||
-                    mjb_set_locale(locale.locale) != MJB_STATUS_OK) {
+                    locale.locale == MJB_LOCALE_NOT_SET) {
                     fprintf(stderr, "Invalid or unsupported locale: %s\n", optarg);
                     mjbsh_show_help(long_options, descriptions, commands, NULL);
 
                     return 1;
                 }
+
+                cmd_locale = locale.locale;
 
                 break;
             }

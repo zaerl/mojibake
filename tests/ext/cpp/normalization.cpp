@@ -86,7 +86,7 @@ ATT_TEST(cpp_normalization) {
     ATT_ASSERT(mjb::nfkc_casefold(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
                    MJB_MALFORMED_SKIP),
         std::string("ab"), "nfkc_casefold skip policy");
-    ATT_ASSERT(mjb::uppercase(decodable, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb::uppercase(decodable, MJB_LOCALE_NOT_SET, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
                    MJB_MALFORMED_REPLACE),
         std::string("A\xEF\xBF\xBD"
                     "B"),

@@ -79,6 +79,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_is_emoji_sequence`, `mjb_is_rgi_emoji`, and `mjb_locale_parse`. The break iterators still
   require an explicit `byte_length`. `mjb_detect_encoding`, `mjb_is_ascii`, `mjb_is_utf8`, and
   `mjb_is_utf16` keep their buffer and byte length because they have no input encoding
+- **Breaking**: `mjb_map_case` and `mjb_map_case_into` take the casing locale as an argument after
+  `type`: `mjb_map_case(text, malformed_policy, type, locale, output_encoding, result,
+  diagnostic)`. `MJB_LOCALE_NOT_SET` selects the default mappings, and an invalid locale returns
+  `MJB_STATUS_INVALID_ARGUMENT`. Concurrent calls with different locales no longer interfere
+- **Breaking**: removed `mjb_set_locale`, `mjb_get_locale`, and `mjb_reset_locale`; the library no
+  longer has a process-global locale. The C++ `set_locale`, `get_locale`, and `reset_locale` and the
+  TypeScript `setLocale` and `getLocale` are removed too. The C++ casing functions take the locale
+  as the argument after the input (after `type` for `case_map`), the TypeScript `mapCase` reads
+  `options.locale`, and the CLI `--locale` option is passed to each casing call
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold

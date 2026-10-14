@@ -805,10 +805,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const mjb_text *text, mjb_
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Change string case.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_locale locale, mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic);
 
 // Change string case into a caller-provided buffer.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_buffer *output, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_map_case_type type, mjb_locale locale, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Return true if the codepoint is valid.
 MJB_EXPORT MJB_CONST bool mjb_codepoint_is_valid(mjb_codepoint codepoint);
@@ -984,20 +984,11 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_terminal_width(const mjb_text *text, mjb
 // Parse a BCP 47 language tag.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_locale_parse(const mjb_text *id, mjb_locale_id *locale);
 
-// Set the current process-global locale.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_locale(mjb_locale locale);
-
-// Return the current process-global locale.
-MJB_EXPORT MJB_PURE mjb_locale mjb_get_locale(void);
-
 // Return the ISO 639-1 code of a locale, NULL if the locale is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_locale_code(mjb_locale locale);
 
 // Return the ISO 15924 code of a script, NULL if the script is not valid.
 MJB_EXPORT MJB_CONST const char *mjb_script_code(mjb_script script);
-
-// Reset the process-global locale.
-MJB_EXPORT void mjb_reset_locale(void);
 
 // Free a mjb_result.
 MJB_EXPORT mjb_status mjb_result_free(mjb_result *result);

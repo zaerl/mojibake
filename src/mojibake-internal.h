@@ -59,7 +59,6 @@
 typedef struct mojibake {
     mjb_allocator allocator;
     bool allocator_configured;
-    mjb_locale locale;
 } mojibake;
 
 // Process-wide library state, defined in mojibake.c.

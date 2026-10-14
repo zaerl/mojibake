@@ -201,8 +201,6 @@ if(MJB_BUILD_WASM)
         "\"_mjb_codepoint_east_asian_width\""
         "\"_mjb_terminal_width\""
         "\"_mjb_locale_parse\""
-        "\"_mjb_set_locale\""
-        "\"_mjb_get_locale\""
         "\"_mjb_locale_code\""
         "\"_mjb_script_code\""
         "\"_mjb_status_message\""

@@ -47,7 +47,7 @@ typedef void (*test_file_callback)(const char *buffer, size_t byte_length,
 
 size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepoints);
 char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type type,
-    mjb_encoding encoding);
+    mjb_locale locale, mjb_encoding encoding);
 void mjb_test_free(void *output);
 void read_test_file(const char *filename, test_file_callback callback);
 
