@@ -79,26 +79,11 @@ private struct EmojiAnalysis {
     let characters: [EmojiCharacterAnalysis]
 
     init(input: String) {
-        let utf8 = input.utf8CString
-        let sequence = utf8.withUnsafeBufferPointer { buffer in
+        let sequence = MojibakeText.with(input) { text in
             var metadata = mjb_emoji_sequence()
-            let byteLength = buffer.count - 1
-            let isEmojiSequence = mjb_is_emoji_sequence(
-                buffer.baseAddress,
-                byteLength,
-                MJB_ENC_UTF_8
-            )
-            let isRGI = mjb_is_rgi_emoji(
-                buffer.baseAddress,
-                byteLength,
-                MJB_ENC_UTF_8
-            )
-            let hasMetadata = mjb_emoji_sequence_info(
-                buffer.baseAddress,
-                byteLength,
-                MJB_ENC_UTF_8,
-                &metadata
-            ) == MJB_STATUS_OK
+            let isEmojiSequence = mjb_is_emoji_sequence(text)
+            let isRGI = mjb_is_rgi_emoji(text)
+            let hasMetadata = mjb_emoji_sequence_info(text, &metadata) == MJB_STATUS_OK
 
             if !hasMetadata {
                 metadata.type = MJB_EMOJI_SEQUENCE_NONE

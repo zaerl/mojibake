@@ -219,22 +219,18 @@ private struct IDNAConversion {
     static func convert(_ input: String, direction: Direction) -> IDNAConversion {
         var info = mjb_idna_info()
         var status = MJB_STATUS_OK
-        let output = MojibakeString.transform(input) { buffer, byteLength, result in
+        let output = MojibakeString.transform(input) { text, result in
             switch direction {
             case .ascii:
                 status = mjb_idna_to_ascii(
-                    buffer,
-                    byteLength,
-                    MJB_ENC_UTF_8,
+                    text,
                     MJB_ENC_UTF_8,
                     &info,
                     result
                 )
             case .unicode:
                 status = mjb_idna_to_unicode(
-                    buffer,
-                    byteLength,
-                    MJB_ENC_UTF_8,
+                    text,
                     MJB_ENC_UTF_8,
                     &info,
                     result

@@ -147,21 +147,17 @@ private struct CaselessMatchResult: Identifiable {
         with second: String,
         mode: CaselessMatchMode
     ) -> CaselessMatchResult {
-        let firstUTF8 = first.utf8CString
-        let secondUTF8 = second.utf8CString
-
-        return firstUTF8.withUnsafeBufferPointer { firstBuffer in
-            secondUTF8.withUnsafeBufferPointer { secondBuffer in
+        return MojibakeText.with(first) { firstText in
+            MojibakeText.with(second) { secondText in
                 var matches = false
                 let status = mjb_caseless_match(
-                    firstBuffer.baseAddress,
-                    firstBuffer.count - 1,
-                    MJB_ENC_UTF_8,
-                    secondBuffer.baseAddress,
-                    secondBuffer.count - 1,
-                    MJB_ENC_UTF_8,
+                    firstText,
+                    secondText,
+                    MJB_MALFORMED_STOP,
                     mode.value,
-                    &matches
+                    &matches,
+                    nil,
+                    nil
                 )
 
                 guard status == MJB_STATUS_OK else {

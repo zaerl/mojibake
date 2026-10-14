@@ -244,11 +244,9 @@ struct CaseView: View {
     }
 
     private func mapped(_ value: String, type: mjb_map_case_type) -> String? {
-        MojibakeString.transform(value) { input, byteLength, result in
+        MojibakeString.transform(value) { text, result in
             mjb_map_case(
-                input,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_MALFORMED_STOP,
                 type,
                 MJB_ENC_UTF_8,

@@ -197,11 +197,9 @@ struct FilterView: View {
     }
 
     private func filtered(_ value: String, filters: mjb_filter_flags) -> String? {
-        MojibakeString.transform(value) { input, byteLength, result in
+        MojibakeString.transform(value) { text, result in
             mjb_filter(
-                input,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_MALFORMED_STOP,
                 filters,
                 MJB_ENC_UTF_8,

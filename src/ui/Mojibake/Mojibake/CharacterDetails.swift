@@ -389,11 +389,9 @@ private struct CharacterDetailsBuilder {
     }
 
     private func normalized(_ value: String, form: mjb_normalization) -> String? {
-        MojibakeString.transform(value) { input, byteLength, result in
+        MojibakeString.transform(value) { text, result in
             mjb_normalize(
-                input,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_MALFORMED_STOP,
                 form,
                 MJB_ENC_UTF_8,

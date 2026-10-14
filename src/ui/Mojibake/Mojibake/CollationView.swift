@@ -331,22 +331,18 @@ private struct CollationResolution {
         weighting: mjb_collation_variable_weighting,
         strength: mjb_collation_strength
     ) -> (order: Int?, errorMessage: String?) {
-        let firstUTF8 = first.utf8CString
-        let secondUTF8 = second.utf8CString
-
-        return firstUTF8.withUnsafeBufferPointer { firstBuffer in
-            secondUTF8.withUnsafeBufferPointer { secondBuffer in
+        return MojibakeText.with(first) { firstText in
+            MojibakeText.with(second) { secondText in
                 var order: Int32 = 0
                 let status = mjb_collation_compare(
-                    firstBuffer.baseAddress,
-                    firstBuffer.count - 1,
-                    MJB_ENC_UTF_8,
-                    secondBuffer.baseAddress,
-                    secondBuffer.count - 1,
-                    MJB_ENC_UTF_8,
+                    firstText,
+                    secondText,
+                    MJB_MALFORMED_STOP,
                     weighting,
                     strength,
-                    &order
+                    &order,
+                    nil,
+                    nil
                 )
 
                 guard status == MJB_STATUS_OK else {
@@ -370,11 +366,9 @@ private struct CollationResolution {
         strength: mjb_collation_strength
     ) -> (bytes: [UInt8]?, errorMessage: String?) {
         var status = MJB_STATUS_OK
-        let bytes = MojibakeBytes.transform(input) { buffer, byteLength, result in
+        let bytes = MojibakeBytes.transform(input) { text, result in
             status = mjb_collation_key(
-                buffer,
-                byteLength,
-                MJB_ENC_UTF_8,
+                text,
                 MJB_MALFORMED_STOP,
                 weighting,
                 strength,
