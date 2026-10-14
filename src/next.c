@@ -10,10 +10,18 @@
 /**
  * Run a callback for each codepoint in the string.
  */
-MJB_EXPORT mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
-    mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic) {
-    if((buffer == NULL && byte_length > 0) || !mjb_malformed_policy_is_valid(malformed_policy)) {
+MJB_EXPORT mjb_status mjb_for_each_codepoint(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback,
+    mjb_diagnostic *diagnostic) {
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
+
+    if(buffer == NULL && byte_length > 0) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -43,12 +51,13 @@ MJB_EXPORT mjb_status mjb_for_each_codepoint(const char *buffer, size_t byte_len
     bool has_previous_character = false;
     bool first_character = true;
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     size_t offset = 0;
 
     for(;;) {
         mjb_diagnostic current;
-        mjb_status result = mjb_decode_next(buffer, byte_length, encoding, malformed_policy,
-            &offset, &codepoint, &current);
+        mjb_status result = mjb_decode_next(&resolved, malformed_policy, &offset, &codepoint,
+            &current);
         mjb_diagnostic_record(diagnostic, &current);
 
         if(result == MJB_STATUS_END_OF_INPUT) {

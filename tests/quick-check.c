@@ -13,7 +13,8 @@ static void assert_quick_check(const char *buffer, size_t byte_length, mjb_encod
     mjb_normalization form, mjb_status expected_status, mjb_quick_check_result expected_result,
     const char *message) {
     mjb_quick_check_result result = MJB_QC_MAYBE;
-    mjb_status status = mjb_normalization_quick_check(buffer, byte_length, encoding, form, &result);
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+    mjb_status status = mjb_normalization_quick_check(&text, form, &result);
     MJB_TEST_COVERAGE(mjb_normalization_quick_check);
 
     ATT_ASSERT_STATUS(status, expected_status, message);
@@ -27,9 +28,17 @@ static void assert_quick_check(const char *buffer, size_t byte_length, mjb_encod
 }
 
 ATT_TEST(quick_check) {
+    {
+        mjb_quick_check_result check = MJB_QC_YES;
+        ATT_ASSERT_STATUS(mjb_normalization_quick_check(NULL, MJB_NORMALIZATION_NFC, &check),
+            MJB_STATUS_INVALID_ARGUMENT, "Quick check rejects NULL text");
+        ATT_ASSERT((int)check, (int)MJB_QC_NO, "Quick check clears result after NULL text");
+    }
+
     mjb_encoding enc = MJB_ENC_UTF_8;
 
-    ATT_ASSERT_STATUS(mjb_normalization_quick_check("a", 1, enc, MJB_NORMALIZATION_NFC, NULL),
+    mjb_text text = mjb_text_make("a", 1, enc);
+    ATT_ASSERT_STATUS(mjb_normalization_quick_check(&text, MJB_NORMALIZATION_NFC, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "NULL quick-check output");
     assert_quick_check(NULL, 1, enc, MJB_NORMALIZATION_NFC, MJB_STATUS_INVALID_ARGUMENT, MJB_QC_NO,
         "NULL quick-check input");

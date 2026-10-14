@@ -22,7 +22,8 @@ int mjbsh_locale_command(int argc, char *const argv[], unsigned int flags) {
 
     const char *input = argv[0];
     mjb_locale_id locale;
-    mjb_status status = mjb_locale_parse(input, strlen(input), MJB_ENC_UTF_8, &locale);
+    mjb_text text = mjb_text_utf8(input, strlen(input));
+    mjb_status status = mjb_locale_parse(&text, &locale);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));

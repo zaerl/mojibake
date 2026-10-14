@@ -251,11 +251,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_normalization_quick_check
     MJB_TEST_COVERAGE(mjb_normalization_quick_check); // Added by the script
-    const char *input = "caf\xC3\xA9";
+    mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
     mjb_quick_check_result check;
 
-    if(mjb_normalization_quick_check(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
+    if(mjb_normalization_quick_check(&input, MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_normalization_quick_check test failed"); // Added by the script
         return;
     }
@@ -359,8 +358,8 @@ ATT_TEST(example) {
 {
     // Example for mjb_for_each_codepoint
     MJB_TEST_COVERAGE(mjb_for_each_codepoint); // Added by the script
-    mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, NULL, NULL);
+    mjb_text input = mjb_text_utf8("ABC", 3);
+    mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL);
 
     // A callback is required: yes
     bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -813,9 +812,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_next_line_break
     MJB_TEST_COVERAGE(mjb_next_line_break); // Added by the script
+    mjb_text input = mjb_text_utf8("Hello world", 11);
     mjb_next_line_state state;
     state.index = 0;
-    mjb_break_type type = mjb_next_line_break("Hello world", 11, MJB_ENC_UTF_8, &state);
+    mjb_break_type type = mjb_next_line_break(&input, &state);
 
     // First line-break result is set: yes
     // printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
@@ -826,11 +826,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_next_word_break
     MJB_TEST_COVERAGE(mjb_next_word_break); // Added by the script
+    mjb_text input = mjb_text_utf8("Hello world", 11);
     mjb_next_word_state state;
     state.index = 0;
     size_t boundaries = 0;
 
-    while(mjb_next_word_break("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    while(mjb_next_word_break(&input, &state) != MJB_BT_NOT_SET) {
         ++boundaries;
     }
 
@@ -846,9 +847,9 @@ ATT_TEST(example) {
     mjb_next_sentence_state state;
     state.index = 0;
     size_t boundaries = 0;
-    const char *input = "Hello. Goodbye.";
+    mjb_text input = mjb_text_utf8("Hello. Goodbye.", 15);
 
-    while(mjb_next_sentence_break(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+    while(mjb_next_sentence_break(&input, &state) != MJB_BT_NOT_SET) {
         ++boundaries;
     }
 
@@ -861,11 +862,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_sentence_count
     MJB_TEST_COVERAGE(mjb_sentence_count); // Added by the script
-    const char *input = "Hello. How are you? Fine!";
+    mjb_text input = mjb_text_utf8("Hello. How are you? Fine!", MJB_NUL_TERMINATED);
     size_t count;
 
-    if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        &count, NULL) != MJB_STATUS_OK) {
+    if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_sentence_count test failed"); // Added by the script
         return;
     }
@@ -879,13 +879,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_next_grapheme_break
     MJB_TEST_COVERAGE(mjb_next_grapheme_break); // Added by the script
-    const char *input = "e\xCC\x81"; // e + combining acute accent
+    mjb_text input = mjb_text_utf8("e\xCC\x81", 3); // e + combining acute accent
     mjb_next_state state;
     state.index = 0;
     size_t codepoints = 0;
 
-    while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
-        &state) != MJB_BT_NOT_SET) {
+    while(mjb_next_grapheme_break(&input, &state) != MJB_BT_NOT_SET) {
         ++codepoints;
     }
 
@@ -898,8 +897,8 @@ ATT_TEST(example) {
 {
     // Example for mjb_truncate_grapheme
     MJB_TEST_COVERAGE(mjb_truncate_grapheme); // Added by the script
-    const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z"; // A🇮🇹Z
-    size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
+    mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
+    size_t bytes = mjb_truncate_grapheme(&input, 2);
 
     // First two graphemes use 9 bytes
     // printf("First two graphemes use %zu bytes", bytes);
@@ -910,11 +909,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_grapheme_count
     MJB_TEST_COVERAGE(mjb_grapheme_count); // Added by the script
-    const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // A🇮🇹
+    mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9", MJB_NUL_TERMINATED); // A🇮🇹
     size_t count;
 
-    if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        &count, NULL) != MJB_STATUS_OK) {
+    if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_grapheme_count test failed"); // Added by the script
         return;
     }
@@ -928,9 +926,8 @@ ATT_TEST(example) {
 {
     // Example for mjb_truncate_grapheme_width
     MJB_TEST_COVERAGE(mjb_truncate_grapheme_width); // Added by the script
-    const char *input = "A\xE7\x95\x8C"; // A界
-    size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_TERMINAL_WIDTH_NARROW, 2);
+    mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
+    size_t bytes = mjb_truncate_grapheme_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
     // Two columns include 1 byte
     // printf("Two columns include %zu byte", bytes);
@@ -941,8 +938,8 @@ ATT_TEST(example) {
 {
     // Example for mjb_truncate_word
     MJB_TEST_COVERAGE(mjb_truncate_word); // Added by the script
-    const char *input = "Hello world";
-    size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
+    mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+    size_t bytes = mjb_truncate_word(&input, 1);
 
     // First word segment uses 5 bytes
     // printf("First word segment uses %zu bytes", bytes);
@@ -953,11 +950,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_word_count
     MJB_TEST_COVERAGE(mjb_word_count); // Added by the script
-    const char *input = "Hello, world! It works.";
+    mjb_text input = mjb_text_utf8("Hello, world! It works.", MJB_NUL_TERMINATED);
     size_t count;
 
-    if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        &count, NULL) != MJB_STATUS_OK) {
+    if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_word_count test failed"); // Added by the script
         return;
     }
@@ -971,9 +967,8 @@ ATT_TEST(example) {
 {
     // Example for mjb_truncate_word_width
     MJB_TEST_COVERAGE(mjb_truncate_word_width); // Added by the script
-    const char *input = "Hello world";
-    size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
-        MJB_TERMINAL_WIDTH_NARROW, 6);
+    mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+    size_t bytes = mjb_truncate_word_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
     // Six columns include 6 bytes
     // printf("Six columns include %zu bytes", bytes);
@@ -984,11 +979,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_bidi_resolve
     MJB_TEST_COVERAGE(mjb_bidi_resolve); // Added by the script
-    const char *input = "abc \xD7\x90\xD7\x91\xD7\x92"; // abc אבג
+    mjb_text input = mjb_text_utf8("abc \xD7\x90\xD7\x91\xD7\x92", MJB_NUL_TERMINATED); // abc אבג
     mjb_bidi_paragraph paragraph;
 
-    if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-        &paragraph) != MJB_STATUS_OK) {
+    if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_bidi_resolve test failed"); // Added by the script
         return;
     }
@@ -1003,12 +997,11 @@ ATT_TEST(example) {
 {
     // Example for mjb_bidi_reorder_line
     MJB_TEST_COVERAGE(mjb_bidi_reorder_line); // Added by the script
-    const char *input = "\xD7\x90\xD7\x91\xD7\x92"; // אבג
+    mjb_text input = mjb_text_utf8("\xD7\x90\xD7\x91\xD7\x92", MJB_NUL_TERMINATED); // אבג
     mjb_bidi_paragraph paragraph;
     size_t visual_order[3];
 
-    if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-        &paragraph) != MJB_STATUS_OK ||
+    if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK ||
         mjb_bidi_reorder_line(&paragraph, 0, paragraph.count,
             visual_order) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_bidi_reorder_line test failed"); // Added by the script
@@ -1025,12 +1018,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_bidi_line_runs
     MJB_TEST_COVERAGE(mjb_bidi_line_runs); // Added by the script
+    mjb_text input = mjb_text_utf8("abc", 3);
     mjb_bidi_paragraph paragraph;
     size_t visual_order[3];
     size_t run_count = 0;
 
-    if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-        &paragraph) != MJB_STATUS_OK ||
+    if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK ||
         mjb_bidi_reorder_line(&paragraph, 0, 3, visual_order) != MJB_STATUS_OK ||
         mjb_bidi_line_runs(&paragraph, visual_order, 3, NULL,
             &run_count) != MJB_STATUS_OK) {
@@ -1048,10 +1041,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_bidi_paragraph_free
     MJB_TEST_COVERAGE(mjb_bidi_paragraph_free); // Added by the script
+    mjb_text input = mjb_text_utf8("abc", 3);
     mjb_bidi_paragraph paragraph;
 
-    if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-        &paragraph) != MJB_STATUS_OK) {
+    if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_bidi_paragraph_free test failed"); // Added by the script
         return;
     }
@@ -1136,10 +1129,9 @@ ATT_TEST(example) {
 {
     // Example for mjb_is_identifier
     MJB_TEST_COVERAGE(mjb_is_identifier); // Added by the script
-    const char *identifier = "delta_2";
+    mjb_text identifier = mjb_text_utf8("delta_2", MJB_NUL_TERMINATED);
 
-    bool valid = mjb_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
-        MJB_IDENTIFIER_NFKC);
+    bool valid = mjb_is_identifier(&identifier, MJB_IDENTIFIER_NFKC);
 
     // Valid identifier: yes
     // printf("Valid identifier: %s", valid ? "yes" : "no");
@@ -1151,13 +1143,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_resolved_script_set
     MJB_TEST_COVERAGE(mjb_resolved_script_set); // Added by the script
-    const char *input = "\xE3\x81\xAD\xE3\x82\xAC"; // Hiragana + Katakana
+    mjb_text input = mjb_text_utf8("\xE3\x81\xAD\xE3\x82\xAC", MJB_NUL_TERMINATED); // Hiragana + Katakana
     mjb_script scripts[1];
     size_t count = 1;
     mjb_script_set_kind kind;
 
-    if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
-        &kind) != MJB_STATUS_OK) {
+    if(mjb_resolved_script_set(&input, scripts, &count, &kind) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_resolved_script_set test failed"); // Added by the script
         return;
     }
@@ -1379,11 +1370,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_emoji_sequence_info
     MJB_TEST_COVERAGE(mjb_emoji_sequence_info); // Added by the script
-    const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
+    mjb_text flag = mjb_text_utf8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9", MJB_NUL_TERMINATED); // 🇮🇹
     mjb_emoji_sequence emoji;
 
-    if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
-        &emoji) != MJB_STATUS_OK) {
+    if(mjb_emoji_sequence_info(&flag, &emoji) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_emoji_sequence_info test failed"); // Added by the script
         return;
     }
@@ -1397,9 +1387,9 @@ ATT_TEST(example) {
 {
     // Example for mjb_is_emoji_sequence
     MJB_TEST_COVERAGE(mjb_is_emoji_sequence); // Added by the script
-    const char *keycap = "1\xEF\xB8\x8F\xE2\x83\xA3"; // 1️⃣
+    mjb_text keycap = mjb_text_utf8("1\xEF\xB8\x8F\xE2\x83\xA3", MJB_NUL_TERMINATED); // 1️⃣
 
-    bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+    bool listed = mjb_is_emoji_sequence(&keycap);
 
     // Listed emoji sequence: yes
     // printf("Listed emoji sequence: %s", listed ? "yes" : "no");
@@ -1410,9 +1400,9 @@ ATT_TEST(example) {
 {
     // Example for mjb_is_rgi_emoji
     MJB_TEST_COVERAGE(mjb_is_rgi_emoji); // Added by the script
-    const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
+    mjb_text flag = mjb_text_utf8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 
-    bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+    bool rgi = mjb_is_rgi_emoji(&flag);
 
     // RGI emoji: yes
     // printf("RGI emoji: %s", rgi ? "yes" : "no");
@@ -1488,10 +1478,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_terminal_width
     MJB_TEST_COVERAGE(mjb_terminal_width); // Added by the script
-    const char *input = "A\xE7\x95\x8C"; // A界
+    mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
     size_t width;
 
-    if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
         MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_terminal_width test failed"); // Added by the script
         return;
@@ -1506,9 +1496,10 @@ ATT_TEST(example) {
 {
     // Example for mjb_locale_parse
     MJB_TEST_COVERAGE(mjb_locale_parse); // Added by the script
+    mjb_text id = mjb_text_utf8("sr-Latn-RS", MJB_NUL_TERMINATED);
     mjb_locale_id locale;
 
-    if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
+    if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_locale_parse test failed"); // Added by the script
         return;
     }

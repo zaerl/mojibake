@@ -99,7 +99,8 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_state grapheme_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &grapheme_state);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        mjb_break_type bt = mjb_next_grapheme_break(&text, &grapheme_state);
         fuzz_sink += (size_t)bt + grapheme_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -114,7 +115,8 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
     mjb_next_word_state word_state;
     word_state.index = 0;
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_next_word_break(buffer, byte_length, encoding, &word_state);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        mjb_break_type bt = mjb_next_word_break(&text, &word_state);
         fuzz_sink += (size_t)bt + word_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -128,7 +130,8 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_line_state line_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_next_line_break(buffer, byte_length, encoding, &line_state);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        mjb_break_type bt = mjb_next_line_break(&text, &line_state);
         fuzz_sink += (size_t)bt + line_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -142,7 +145,8 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
 
     mjb_next_sentence_state sentence_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
-        mjb_break_type bt = mjb_next_sentence_break(buffer, byte_length, encoding, &sentence_state);
+        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+        mjb_break_type bt = mjb_next_sentence_break(&text, &sentence_state);
         fuzz_sink += (size_t)bt + sentence_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -250,12 +254,15 @@ static void fuzz_emoji_string_api_input(const char *buffer, size_t byte_length,
     mjb_encoding encoding) {
     mjb_emoji_sequence emoji;
 
-    if(mjb_emoji_sequence_info(buffer, byte_length, encoding, &emoji) == MJB_STATUS_OK) {
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
+    if(mjb_emoji_sequence_info(&text, &emoji) == MJB_STATUS_OK) {
         fuzz_sink += (size_t)emoji.type + (size_t)emoji.qualification + emoji.codepoint_count;
     }
 
-    fuzz_sink += (size_t)mjb_is_emoji_sequence(buffer, byte_length, encoding);
-    fuzz_sink += (size_t)mjb_is_rgi_emoji(buffer, byte_length, encoding);
+    text = mjb_text_make(buffer, byte_length, encoding);
+    fuzz_sink += (size_t)mjb_is_emoji_sequence(&text);
+    text = mjb_text_make(buffer, byte_length, encoding);
+    fuzz_sink += (size_t)mjb_is_rgi_emoji(&text);
 }
 
 static void fuzz_emoji_string_apis(const char *buffer, size_t byte_length, mjb_encoding encoding) {
@@ -403,7 +410,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 1: { // Normalization quick check
             mjb_quick_check_result quick_check;
-            fuzz_sink += (size_t)mjb_normalization_quick_check(buffer, size, encoding,
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_normalization_quick_check(&text,
                 (mjb_normalization)(variant % 4), &quick_check);
             break;
         }
@@ -436,7 +444,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             mjb_bidi_paragraph para;
             mjb_direction direction = (mjb_direction)(variant % 3);
 
-            if(mjb_bidi_resolve(buffer, size, encoding, direction, &para) == MJB_STATUS_OK) {
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            if(mjb_bidi_resolve(&text, direction, &para) == MJB_STATUS_OK) {
                 if(para.count > 0 && para.count <= 4096) {
                     size_t visual_order[4096];
 
@@ -561,28 +570,31 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_sink += (size_t)mjb_codepoint_count(&text, MJB_MALFORMED_REPLACE, &segment_count,
                 NULL);
             fuzz_sink += segment_count;
-            mjb_truncate_grapheme(buffer, size, encoding, variant);
-            mjb_truncate_word(buffer, size, encoding, variant);
-            mjb_truncate_grapheme_width(buffer, size, encoding,
-                (mjb_terminal_width_profile)(variant % 2), variant);
-            mjb_truncate_word_width(buffer, size, encoding,
-                (mjb_terminal_width_profile)(variant % 2), variant);
+            text = mjb_text_make(buffer, size, encoding);
+            mjb_truncate_grapheme(&text, variant);
+            text = mjb_text_make(buffer, size, encoding);
+            mjb_truncate_word(&text, variant);
+            text = mjb_text_make(buffer, size, encoding);
+            mjb_truncate_grapheme_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
+            text = mjb_text_make(buffer, size, encoding);
+            mjb_truncate_word_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
 
-            fuzz_sink += (size_t)mjb_grapheme_count(buffer, size, encoding, malformed_policy,
-                &segment_count, NULL);
+            text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_grapheme_count(&text, malformed_policy, &segment_count, NULL);
             fuzz_sink += segment_count;
-            fuzz_sink += (size_t)mjb_sentence_count(buffer, size, encoding, malformed_policy,
-                &segment_count, NULL);
+            text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_sentence_count(&text, malformed_policy, &segment_count, NULL);
             fuzz_sink += segment_count;
-            fuzz_sink += (size_t)mjb_word_count(buffer, size, encoding, malformed_policy,
-                &segment_count, NULL);
+            text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_word_count(&text, malformed_policy, &segment_count, NULL);
             fuzz_sink += segment_count;
             break;
         }
 
         case 10: { // Terminal width
             size_t width = 0;
-            mjb_status status = mjb_terminal_width(buffer, size, encoding, malformed_policy,
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            mjb_status status = mjb_terminal_width(&text, malformed_policy,
                 (mjb_terminal_width_profile)(variant % 2), &width, NULL);
             fuzz_sink += (size_t)status;
             if(status == MJB_STATUS_OK) {
@@ -592,14 +604,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         }
 
         case 11: { // Identifier validation and resolved scripts
-            mjb_is_identifier(buffer, size, encoding,
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            mjb_is_identifier(&text,
                 (variant & 0x10) ? MJB_IDENTIFIER_NFKC : MJB_IDENTIFIER_DEFAULT);
 
             mjb_script scripts[8];
             size_t script_count = variant % 9;
             mjb_script_set_kind kind;
-            fuzz_sink += (size_t)mjb_resolved_script_set(buffer, size, encoding, scripts,
-                &script_count, &kind);
+            text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_resolved_script_set(&text, scripts, &script_count, &kind);
             fuzz_sink += script_count + (size_t)kind;
             break;
         }
@@ -631,7 +644,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 13: { // BCP 47 locale parsing
             mjb_locale_id locale;
-            mjb_status locale_status = mjb_locale_parse(buffer, size, encoding, &locale);
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            mjb_status locale_status = mjb_locale_parse(&text, &locale);
             fuzz_sink += (size_t)locale_status;
             break;
         }
@@ -644,11 +658,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_emoji_string_apis(buffer, size, encoding);
             break;
 
-        case 16: // Raw boundary iterators and character callback API
+        case 16: { // Raw boundary iterators and character callback API
             fuzz_boundary_iterators(buffer, size, encoding);
-            fuzz_sink += (size_t)mjb_for_each_codepoint(buffer, size, encoding,
-                MJB_MALFORMED_REPLACE, fuzz_next_codepoint, NULL);
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            fuzz_sink += (size_t)mjb_for_each_codepoint(&text, MJB_MALFORMED_REPLACE,
+                fuzz_next_codepoint, NULL);
             break;
+        }
 
         case 17: { // Identifier-oriented NFKC case folding
             mjb_text text = mjb_text_make(buffer, size, encoding);

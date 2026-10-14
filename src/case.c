@@ -146,9 +146,10 @@ static mjb_status mjb_special_casing_codepoint(mjb_codepoint codepoint, mjb_outp
 
 static size_t mjb_titlecase_next_word_boundary(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_next_word_state *state, size_t previous) {
+    mjb_text text = mjb_text_make(buffer, byte_length, encoding);
     mjb_break_type bt;
 
-    while((bt = mjb_next_word_break(buffer, byte_length, encoding, state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_word_break(&text, state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }

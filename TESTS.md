@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,624,843** C assertions and **171** JavaScript assertions, including all
+Mojibake runs a total of **4,624,873** C assertions and **171** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -23,7 +23,7 @@ the official tests included in the standard:
 | Test                                       | Coverage    |
 | ------------------------------------------ | ----------- |
 | `mjb_normalize_into`                       | 2824002     |
-| `mjb_bidi_resolve`                         | 582611      |
+| `mjb_bidi_resolve`                         | 582612      |
 | `mjb_normalize`                            | 424439      |
 | `mjb_collation_compare`                    | 424217      |
 | `mjb_bidi_reorder_line`                    | 91723       |
@@ -31,17 +31,17 @@ the official tests included in the standard:
 | `mjb_nfkc_casefold_into`                   | 74799       |
 | `mjb_nfkc_casefold`                        | 32099       |
 | `mjb_map_case_into`                        | 24764       |
-| `mjb_next_line_break`                      | 19352       |
+| `mjb_next_line_break`                      | 19353       |
 | `mjb_result_free`                          | 14236       |
 | `mjb_idna_to_ascii`                        | 6461        |
 | `mjb_idna_to_unicode`                      | 6455        |
-| `mjb_emoji_sequence_info`                  | 5286        |
+| `mjb_emoji_sequence_info`                  | 5287        |
 | `mjb_map_case`                             | 3511        |
-| `mjb_next_word_break`                      | 1947        |
+| `mjb_next_word_break`                      | 1948        |
 | `mjb_codepoint_emoji_properties`           | 1429        |
-| `mjb_next_grapheme_break`                  | 880         |
+| `mjb_next_grapheme_break`                  | 881         |
 | `mjb_codepoint_script_extensions`          | 642         |
-| `mjb_next_sentence_break`                  | 515         |
+| `mjb_next_sentence_break`                  | 516         |
 | `mjb_confusable_match`                     | 362         |
 | `mjb_filter`                               | 192         |
 | `mjb_convert_encoding`                     | 155         |
@@ -50,48 +50,48 @@ the official tests included in the standard:
 | `mjb_caseless_match`                       | 119         |
 | `mjb_confusable_skeleton_into`             | 117         |
 | `mjb_codepoint_encode`                     | 106         |
-| `mjb_resolved_script_set`                  | 97          |
-| `mjb_locale_parse`                         | 91          |
+| `mjb_resolved_script_set`                  | 100         |
+| `mjb_locale_parse`                         | 92          |
 | `mjb_confusable_skeleton`                  | 88          |
-| `mjb_terminal_width`                       | 80          |
+| `mjb_terminal_width`                       | 82          |
 | `mjb_collation_key_into`                   | 78          |
 | `mjb_filter_into`                          | 73          |
 | `mjb_idna_to_ascii_into`                   | 63          |
+| `mjb_word_count`                           | 51          |
 | `mjb_hangul_syllable_composition`          | 50          |
-| `mjb_word_count`                           | 49          |
+| `mjb_grapheme_count`                       | 47          |
 | `mjb_idna_to_unicode_into`                 | 46          |
-| `mjb_grapheme_count`                       | 45          |
 | `mjb_codepoint_is_valid`                   | 40          |
 | `mjb_validate_encoding`                    | 40          |
-| `mjb_normalization_quick_check`            | 36          |
+| `mjb_normalization_quick_check`            | 38          |
 | `mjb_codepoint_east_asian_width`           | 35          |
-| `mjb_sentence_count`                       | 33          |
+| `mjb_sentence_count`                       | 35          |
 | `mjb_utf8_grapheme_snprintf`               | 31          |
-| `mjb_decode_next`                          | 27          |
+| `mjb_decode_next`                          | 28          |
 | `mjb_convert_encoding_into`                | 26          |
 | `mjb_utf8_snprintf`                        | 21          |
 | `mjb_codepoint_numeric_value`              | 20          |
-| `mjb_decode_previous`                      | 19          |
+| `mjb_decode_previous`                      | 20          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_is_utf8`                              | 19          |
 | `mjb_set_locale`                           | 18          |
 | `mjb_codepoint_is_cjk_extension_ideograph` | 17          |
+| `mjb_for_each_codepoint`                   | 17          |
 | `mjb_codepoint_block`                      | 16          |
-| `mjb_for_each_codepoint`                   | 16          |
 | `mjb_is_utf16`                             | 16          |
-| `mjb_is_identifier`                        | 13          |
+| `mjb_is_identifier`                        | 14          |
 | `mjb_bidi_line_runs`                       | 12          |
 | `mjb_detect_encoding`                      | 12          |
+| `mjb_truncate_grapheme`                    | 12          |
 | `mjb_is_ascii`                             | 11          |
-| `mjb_truncate_grapheme`                    | 11          |
+| `mjb_truncate_grapheme_width`              | 11          |
 | `mjb_codepoint_script`                     | 10          |
-| `mjb_truncate_grapheme_width`              | 10          |
 | `mjb_plane_name`                           | 9           |
+| `mjb_truncate_word`                        | 9           |
 | `mjb_codepoint_is_cjk_ideograph`           | 8           |
-| `mjb_truncate_word`                        | 8           |
+| `mjb_truncate_word_width`                  | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
-| `mjb_truncate_word_width`                  | 7           |
 | `mjb_codepoint_is_combining`               | 6           |
 | `mjb_codepoint_is_graphic`                 | 6           |
 | `mjb_codepoint_is_id_continue`             | 6           |
@@ -101,13 +101,14 @@ the official tests included in the standard:
 | `mjb_locale_code`                          | 6           |
 | `mjb_codepoint_is_hangul_jamo`             | 5           |
 | `mjb_codepoint_is_hangul_trailing_jamo`    | 5           |
+| `mjb_is_rgi_emoji`                         | 5           |
 | `mjb_script_code`                          | 5           |
 | `mjb_codepoint_is_hangul_leading_jamo`     | 4           |
 | `mjb_codepoint_is_hangul_vowel_jamo`       | 4           |
 | `mjb_codepoint_is_pattern_syntax`          | 4           |
 | `mjb_codepoint_is_pattern_white_space`     | 4           |
 | `mjb_codepoint_plane`                      | 4           |
-| `mjb_is_rgi_emoji`                         | 4           |
+| `mjb_is_emoji_sequence`                    | 4           |
 | `mjb_plane_is_valid`                       | 4           |
 | `mjb_status_message`                       | 4           |
 | `mjb_bidi_paragraph_free`                  | 3           |
@@ -116,7 +117,6 @@ the official tests included in the standard:
 | `mjb_codepoint_is_emoji`                   | 3           |
 | `mjb_codepoint_is_xid_continue`            | 3           |
 | `mjb_codepoint_is_xid_start`               | 3           |
-| `mjb_is_emoji_sequence`                    | 3           |
 | `mjb_property_name`                        | 3           |
 | `mjb_reset_locale`                         | 3           |
 | `mjb_codepoint_is_emoji_component`         | 2           |
@@ -131,7 +131,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4624843** |
+| **Total**                                  | **4624873** |
 
 ## JavaScript
 

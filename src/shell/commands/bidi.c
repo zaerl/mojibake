@@ -33,7 +33,8 @@ static int mjbsh_bidi_revolve(const char *input) {
     bool is_json = (cmd_output_mode == OUTPUT_MODE_JSON);
 
     mjb_bidi_paragraph para;
-    mjb_status status = mjb_bidi_resolve(input, input_size, MJB_ENC_UTF_8, cmd_direction, &para);
+    mjb_text text = mjb_text_utf8(input, input_size);
+    mjb_status status = mjb_bidi_resolve(&text, cmd_direction, &para);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));

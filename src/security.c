@@ -82,8 +82,8 @@ static void mjb_script_bits_augment(mjb_script_bits *set) {
     }
 }
 
-MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_script *scripts, size_t *count, mjb_script_set_kind *kind) {
+MJB_EXPORT mjb_status mjb_resolved_script_set(const mjb_text *text, mjb_script *scripts,
+    size_t *count, mjb_script_set_kind *kind) {
     if(count == NULL || kind == NULL) {
         if(count != NULL) {
             *count = 0;
@@ -99,6 +99,14 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_le
     size_t capacity = scripts == NULL ? 0 : *count;
     *count = 0;
     *kind = MJB_SCRIPT_SET_EMPTY;
+
+    if(text == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(buffer == NULL && byte_length > 0) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -353,8 +361,9 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
         return status;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_bidi_paragraph paragraph;
-    status = mjb_bidi_resolve(buffer, byte_length, encoding, MJB_DIRECTION_LTR, &paragraph);
+    status = mjb_bidi_resolve(&resolved, MJB_DIRECTION_LTR, &paragraph);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -588,11 +597,9 @@ MJB_EXPORT mjb_status mjb_confusable_match(const mjb_text *first, const mjb_text
 
 #else
 
-MJB_EXPORT mjb_status mjb_resolved_script_set(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_script *scripts, size_t *count, mjb_script_set_kind *kind) {
-    (void)buffer;
-    (void)byte_length;
-    (void)encoding;
+MJB_EXPORT mjb_status mjb_resolved_script_set(const mjb_text *text, mjb_script *scripts,
+    size_t *count, mjb_script_set_kind *kind) {
+    (void)text;
     (void)scripts;
     (void)count;
     (void)kind;

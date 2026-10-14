@@ -173,8 +173,16 @@ MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, 
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_normalization_quick_check(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check) {
-    return mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form, quick_check,
-        true);
+MJB_EXPORT mjb_status mjb_normalization_quick_check(const mjb_text *text, mjb_normalization form,
+    mjb_quick_check_result *quick_check) {
+    if(text == NULL) {
+        if(quick_check != NULL) {
+            *quick_check = MJB_QC_NO;
+        }
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    return mjb_normalization_quick_check_internal(text->buffer, text->byte_length, text->encoding,
+        form, quick_check, true);
 }

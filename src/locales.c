@@ -870,31 +870,38 @@ static mjb_status mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size
 
 // Parses a BCP 47 language tag and returns the corresponding locale ID.
 // language[-script][-region][-variant...][-extension...][-x-private...]
-MJB_EXPORT mjb_status mjb_locale_parse(const char *id, size_t size, mjb_encoding encoding,
-    mjb_locale_id *locale) {
-    if((id == NULL && size > 0) || locale == NULL) {
+MJB_EXPORT mjb_status mjb_locale_parse(const mjb_text *id, mjb_locale_id *locale) {
+    if(id == NULL || locale == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_status status = mjb_resolve_input_byte_length(id, &size, encoding);
+    const char *buffer = id->buffer;
+    size_t size = id->byte_length;
+    mjb_encoding encoding = id->encoding;
+
+    if(buffer == NULL && size > 0) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    mjb_status status = mjb_resolve_input_byte_length(buffer, &size, encoding);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    const char *ascii_id = id;
+    const char *ascii_id = buffer;
     size_t ascii_size = size;
     mjb_result converted = { NULL, 0, false };
 
     // Parse byte-oriented ASCII after validating or converting the input encoding.
     if(encoding == MJB_ENC_ASCII) {
-        if(!mjb_is_ascii(id, size)) {
+        if(!mjb_is_ascii(buffer, size)) {
             return MJB_STATUS_INVALID_ARGUMENT;
         }
-    } else if(encoding == MJB_ENC_UTF_8 && mjb_is_ascii(id, size)) {
+    } else if(encoding == MJB_ENC_UTF_8 && mjb_is_ascii(buffer, size)) {
         // Already suitable for the byte-oriented locale parser.
     } else {
-        mjb_text text = mjb_text_make(id, size, encoding);
+        mjb_text text = mjb_text_make(buffer, size, encoding);
         status = mjb_convert_encoding(&text, MJB_MALFORMED_STOP, MJB_ENC_ASCII, &converted, NULL);
 
         if(status == MJB_STATUS_OK) {

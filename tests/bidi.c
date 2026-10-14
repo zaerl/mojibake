@@ -151,7 +151,8 @@ static void read_bidi_test_file(const char *filename) {
 
         // Run algorithm
         mjb_bidi_paragraph para;
-        mjb_status status = mjb_bidi_resolve(utf8_buf, utf8_len, MJB_ENC_UTF_8, dir, &para);
+        mjb_text text = mjb_text_utf8(utf8_buf, utf8_len);
+        mjb_status status = mjb_bidi_resolve(&text, dir, &para);
 
         char test_name[64];
         snprintf(test_name, sizeof(test_name), "#%u", current_line);
@@ -229,27 +230,38 @@ static void read_bidi_test_file(const char *filename) {
 }
 
 ATT_TEST(bidi) {
+    {
+        mjb_bidi_paragraph paragraph;
+        ATT_ASSERT_STATUS(mjb_bidi_resolve(NULL, MJB_DIRECTION_AUTO, &paragraph),
+            MJB_STATUS_INVALID_ARGUMENT, "Bidi resolve rejects NULL text");
+    }
+
     mjb_bidi_paragraph para;
     mjb_status status;
 
-    ATT_ASSERT_STATUS(mjb_bidi_resolve(NULL, 1, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para),
+    mjb_text text = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT_STATUS(mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para),
         MJB_STATUS_INVALID_ARGUMENT, "resolve rejects NULL buffer");
-    ATT_ASSERT_STATUS(mjb_bidi_resolve("", 0, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, NULL),
+    text = mjb_text_utf8("", 0);
+    ATT_ASSERT_STATUS(mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "resolve rejects NULL result");
     mjb_bidi_paragraph_free(NULL);
 
-    status = mjb_bidi_resolve("", 0, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    text = mjb_text_utf8("", 0);
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "empty string resolve");
     ATT_ASSERT(para.count, (size_t)0, "empty string count");
     mjb_bidi_paragraph_free(&para);
 
-    status = mjb_bidi_resolve("A\x80", 2, MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    text = mjb_text_utf8("A\x80", 2);
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_MALFORMED_INPUT, "resolve rejects malformed input");
     ATT_ASSERT(para.chars, (mjb_bidi_char *)NULL, "malformed resolve leaves no characters");
     ATT_ASSERT(para.count, (size_t)0, "malformed resolve leaves a zero count");
 
     const char *ltr = "ABC";
-    status = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    text = mjb_text_utf8(ltr, strlen(ltr));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "LTR resolve ok");
     ATT_ASSERT(para.count, (size_t)3, "LTR count");
     ATT_ASSERT(para.paragraph_level, (uint8_t)0, "LTR paragraph level");
@@ -267,7 +279,8 @@ ATT_TEST(bidi) {
 
     MJB_TEST_COVERAGE(mjb_bidi_resolve);
     const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; // مرحبا
-    status = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    text = mjb_text_utf8(rtl, strlen(rtl));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "RTL resolve ok");
     ATT_ASSERT(para.paragraph_level, (uint8_t)1, "RTL paragraph level");
     ATT_ASSERT((unsigned int)para.direction, (unsigned int)MJB_DIRECTION_RTL, "RTL direction");
@@ -279,19 +292,22 @@ ATT_TEST(bidi) {
 
     mjb_bidi_paragraph_free(&para);
 
-    status = mjb_bidi_resolve(rtl, strlen(rtl), MJB_ENC_UTF_8, MJB_DIRECTION_LTR, &para);
+    text = mjb_text_utf8(rtl, strlen(rtl));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_LTR, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "explicit LTR dir resolve");
     ATT_ASSERT(para.paragraph_level, (uint8_t)0, "explicit LTR paragraph level");
     mjb_bidi_paragraph_free(&para);
 
-    status = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENC_UTF_8, MJB_DIRECTION_RTL, &para);
+    text = mjb_text_utf8(ltr, strlen(ltr));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_RTL, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "explicit RTL dir resolve");
     ATT_ASSERT(para.paragraph_level, (uint8_t)1, "explicit RTL paragraph level");
     mjb_bidi_paragraph_free(&para);
 
     // Hello مرحبا
     const char *mixed = "Hello \xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7";
-    status = mjb_bidi_resolve(mixed, strlen(mixed), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    text = mjb_text_utf8(mixed, strlen(mixed));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "mixed resolve ok");
     ATT_ASSERT(para.paragraph_level, (uint8_t)0, "mixed paragraph level LTR");
 
@@ -305,7 +321,8 @@ ATT_TEST(bidi) {
 
     mjb_bidi_paragraph_free(&para);
 
-    status = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENC_UTF_8, MJB_DIRECTION_LTR, &para);
+    text = mjb_text_utf8(ltr, strlen(ltr));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_LTR, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "reorder ltr resolve");
 
     if(para.count == 3) {
@@ -330,7 +347,8 @@ ATT_TEST(bidi) {
     mjb_bidi_paragraph_free(&para);
 
     const char *rtl3 = "\xD9\x85\xD8\xB1\xD8\xAD"; // مرح (3 Arabic chars)
-    status = mjb_bidi_resolve(rtl3, strlen(rtl3), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO, &para);
+    text = mjb_text_utf8(rtl3, strlen(rtl3));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "reorder rtl resolve");
 
     if(para.count == 3) {
@@ -345,7 +363,8 @@ ATT_TEST(bidi) {
 
     mjb_bidi_paragraph_free(&para);
 
-    status = mjb_bidi_resolve(ltr, strlen(ltr), MJB_ENC_UTF_8, MJB_DIRECTION_LTR, &para);
+    text = mjb_text_utf8(ltr, strlen(ltr));
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_LTR, &para);
 
     if(status == MJB_STATUS_OK && para.count == 3) {
         size_t order[3];

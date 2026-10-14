@@ -34,7 +34,7 @@ export type MojibakeWasmModule = {
   // Convert a domain name to its UTS #46 nontransitional Unicode form.
   _mjb_idna_to_unicode: (text: Pointer, output_encoding: number, info: Pointer, result: Pointer) => number;
   // Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
-  _mjb_normalization_quick_check: (buffer: Pointer, byte_length: number, encoding: number, form: number, quick_check: Pointer) => number;
+  _mjb_normalization_quick_check: (text: Pointer, form: number, quick_check: Pointer) => number;
   // Return the string encoding (the most probable).
   _mjb_detect_encoding: (buffer: Pointer, byte_length: number) => number;
   // Return true if the string is encoded in ASCII.
@@ -46,7 +46,7 @@ export type MojibakeWasmModule = {
   // Count the codepoints in a string.
   _mjb_codepoint_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Run a callback for each codepoint of a string.
-  _mjb_for_each_codepoint: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, callback: number, diagnostic: Pointer) => number;
+  _mjb_for_each_codepoint: (text: Pointer, malformed_policy: number, callback: number, diagnostic: Pointer) => number;
   // Return the value of a binary Unicode property.
   _mjb_codepoint_property_binary: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return the value of an enumerated or integer Unicode property.
@@ -96,29 +96,29 @@ export type MojibakeWasmModule = {
   // Return true if the category is combining.
   _mjb_category_is_combining: (category: number) => boolean;
   // Unicode line break algorithm.
-  _mjb_next_line_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_line_break: (text: Pointer, state: Pointer) => number;
   // Word cluster breaking.
-  _mjb_next_word_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_word_break: (text: Pointer, state: Pointer) => number;
   // Sentence boundaries breaking.
-  _mjb_next_sentence_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_sentence_break: (text: Pointer, state: Pointer) => number;
   // Count the sentence segments in a string.
-  _mjb_sentence_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
+  _mjb_sentence_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Grapheme cluster breaking.
-  _mjb_next_grapheme_break: (buffer: Pointer, byte_length: number, encoding: number, state: Pointer) => number;
+  _mjb_next_grapheme_break: (text: Pointer, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-  _mjb_truncate_grapheme: (buffer: Pointer, byte_length: number, encoding: number, max_graphemes: number) => number;
+  _mjb_truncate_grapheme: (text: Pointer, max_graphemes: number) => number;
   // Count the extended grapheme clusters in a string.
-  _mjb_grapheme_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
+  _mjb_grapheme_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-  _mjb_truncate_grapheme_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
+  _mjb_truncate_grapheme_width: (text: Pointer, profile: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
-  _mjb_truncate_word: (buffer: Pointer, byte_length: number, encoding: number, max_segments: number) => number;
+  _mjb_truncate_word: (text: Pointer, max_segments: number) => number;
   // Count the word-like segments in a string.
-  _mjb_word_count: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
+  _mjb_word_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-  _mjb_truncate_word_width: (buffer: Pointer, byte_length: number, encoding: number, profile: number, max_columns: number) => number;
+  _mjb_truncate_word_width: (text: Pointer, profile: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.
-  _mjb_bidi_resolve: (buffer: Pointer, byte_length: number, encoding: number, direction: number, result: Pointer) => number;
+  _mjb_bidi_resolve: (text: Pointer, direction: number, result: Pointer) => number;
   // Return true if the codepoint is a valid Unicode identifier start (Unicode 18.0.0 UAX #31 ID_Start).
   _mjb_codepoint_is_id_start: (codepoint: Codepoint) => boolean;
   // Return true if the codepoint is a valid Unicode identifier continuation (Unicode 18.0.0 UAX #31 ID_Continue).
@@ -132,9 +132,9 @@ export type MojibakeWasmModule = {
   // Return true if the codepoint is pattern whitespace (Unicode 18.0.0 UAX #31 Pattern_White_Space).
   _mjb_codepoint_is_pattern_white_space: (codepoint: Codepoint) => boolean;
   // Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31).
-  _mjb_is_identifier: (buffer: Pointer, byte_length: number, encoding: number, profile: number) => boolean;
+  _mjb_is_identifier: (text: Pointer, profile: number) => boolean;
   // Return the UTS #39 resolved script set of a string.
-  _mjb_resolved_script_set: (buffer: Pointer, byte_length: number, encoding: number, scripts: Pointer, count: Pointer, kind: Pointer) => number;
+  _mjb_resolved_script_set: (text: Pointer, scripts: Pointer, count: Pointer, kind: Pointer) => number;
   // Return the name of a property, NULL if the property specified is not valid.
   _mjb_property_name: (property: number) => Pointer;
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
@@ -162,19 +162,19 @@ export type MojibakeWasmModule = {
   // Return the name of a plane, NULL if the plane specified is not valid.
   _mjb_plane_name: (plane: number, abbreviation: boolean) => Pointer;
   // Return emoji sequence metadata for a complete string.
-  _mjb_emoji_sequence_info: (buffer: Pointer, byte_length: number, encoding: number, emoji: Pointer) => number;
+  _mjb_emoji_sequence_info: (text: Pointer, emoji: Pointer) => number;
   // Return true if the complete string is an emoji sequence listed by Unicode, including standardized emoji variation sequences.
-  _mjb_is_emoji_sequence: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
+  _mjb_is_emoji_sequence: (text: Pointer) => boolean;
   // Return true if the complete string is an RGI emoji sequence, excluding plain standardized variation sequences.
-  _mjb_is_rgi_emoji: (buffer: Pointer, byte_length: number, encoding: number) => boolean;
+  _mjb_is_rgi_emoji: (text: Pointer) => boolean;
   // Return hangul syllable name.
   _mjb_hangul_syllable_name: (codepoint: Codepoint, buffer: Pointer, byte_length: number) => number;
   // Return the east asian width of a codepoint.
   _mjb_codepoint_east_asian_width: (codepoint: Codepoint, width: Pointer) => number;
   // Return the estimated terminal-cell width of printable, single-line text.
-  _mjb_terminal_width: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, profile: number, width: Pointer, diagnostic: Pointer) => number;
+  _mjb_terminal_width: (text: Pointer, malformed_policy: number, profile: number, width: Pointer, diagnostic: Pointer) => number;
   // Parse a BCP 47 language tag.
-  _mjb_locale_parse: (id: Pointer, byte_length: number, encoding: number, locale: Pointer) => number;
+  _mjb_locale_parse: (id: Pointer, locale: Pointer) => number;
   // Set the current process-global locale.
   _mjb_set_locale: (locale: number) => number;
   // Return the current process-global locale.

@@ -102,49 +102,53 @@ static void test_validation_and_decoding(void) {
     mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
 
     MJB_TEST_COVERAGE(mjb_decode_next);
-    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode next ASCII");
     ATT_ASSERT((unsigned int)codepoint, 0x41u, "Decode next ASCII codepoint");
     ATT_ASSERT(offset, (size_t)1, "Decode next ASCII offset");
-    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode next two-byte UTF-8");
     ATT_ASSERT((unsigned int)codepoint, 0xE9u, "Decode next two-byte codepoint");
     ATT_ASSERT(offset, (size_t)3, "Decode next two-byte offset");
-    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode next four-byte UTF-8");
     ATT_ASSERT((unsigned int)codepoint, 0x1F642u, "Decode next four-byte codepoint");
     ATT_ASSERT(offset, sizeof(valid_utf8), "Decode next four-byte offset");
-    ATT_ASSERT_STATUS(mjb_decode_next(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_END_OF_INPUT, "Decode next distinguishes end of input");
 
     MJB_TEST_COVERAGE(mjb_decode_previous);
-    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode previous four-byte UTF-8");
     ATT_ASSERT((unsigned int)codepoint, 0x1F642u, "Decode previous four-byte codepoint");
     ATT_ASSERT(offset, (size_t)3, "Decode previous four-byte offset");
-    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode previous two-byte UTF-8");
     ATT_ASSERT((unsigned int)codepoint, 0xE9u, "Decode previous two-byte codepoint");
     ATT_ASSERT(offset, (size_t)1, "Decode previous two-byte offset");
-    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode previous ASCII");
     ATT_ASSERT((unsigned int)codepoint, 0x41u, "Decode previous ASCII codepoint");
     ATT_ASSERT(offset, (size_t)0, "Decode previous ASCII offset");
-    ATT_ASSERT_STATUS(mjb_decode_previous(valid_utf8, sizeof(valid_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(valid_utf8, sizeof(valid_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_END_OF_INPUT, "Decode previous distinguishes start of input");
 
     const char malformed_utf8[] = { 'A', '\x80', 'B' };
     offset = 1;
-    ATT_ASSERT_STATUS(mjb_decode_next(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_utf8(malformed_utf8, sizeof(malformed_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_MALFORMED_INPUT, "Stop policy reports malformed UTF-8");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
@@ -155,7 +159,8 @@ static void test_validation_and_decoding(void) {
     ATT_ASSERT(offset, (size_t)2, "Stop policy advances over malformed subsequence");
 
     offset = 1;
-    ATT_ASSERT_STATUS(mjb_decode_next(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(malformed_utf8, sizeof(malformed_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text,
                           MJB_MALFORMED_REPLACE, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Replace policy decodes malformed UTF-8");
     ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_REPLACEMENT,
@@ -165,8 +170,8 @@ static void test_validation_and_decoding(void) {
         "Replace policy retains the diagnostic");
 
     offset = 1;
-    ATT_ASSERT_STATUS(mjb_decode_next(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
-                          MJB_MALFORMED_SKIP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_utf8(malformed_utf8, sizeof(malformed_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_SKIP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Skip policy resumes after malformed UTF-8");
     ATT_ASSERT((unsigned int)codepoint, (unsigned int)'B', "Skip policy returns the next codepoint");
     ATT_ASSERT(offset, sizeof(malformed_utf8), "Skip policy advances through the next codepoint");
@@ -175,11 +180,13 @@ static void test_validation_and_decoding(void) {
         "Skip policy retains the diagnostic");
 
     offset = sizeof(malformed_utf8);
-    ATT_ASSERT_STATUS(mjb_decode_previous(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(malformed_utf8, sizeof(malformed_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode previous after malformed UTF-8");
     ATT_ASSERT((unsigned int)codepoint, (unsigned int)'B', "Decode previous trailing codepoint");
-    ATT_ASSERT_STATUS(mjb_decode_previous(malformed_utf8, sizeof(malformed_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(malformed_utf8, sizeof(malformed_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_REPLACE, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode previous replaces malformed UTF-8");
     ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_REPLACEMENT,
@@ -188,7 +195,8 @@ static void test_validation_and_decoding(void) {
 
     const char truncated_utf8[] = { '\xE2', '\x82' };
     offset = sizeof(truncated_utf8);
-    ATT_ASSERT_STATUS(mjb_decode_previous(truncated_utf8, sizeof(truncated_utf8), MJB_ENC_UTF_8,
+    text = mjb_text_utf8(truncated_utf8, sizeof(truncated_utf8));
+    ATT_ASSERT_STATUS(mjb_decode_previous(&text,
                           MJB_MALFORMED_REPLACE, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Decode previous replaces a complete truncated subsequence");
     ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_REPLACEMENT,
@@ -231,14 +239,14 @@ static void test_validation_and_decoding(void) {
 
     const char generic_utf16[] = { '\xFF', '\xFE', 'A', '\0' };
     offset = 0;
-    ATT_ASSERT_STATUS(mjb_decode_next(generic_utf16, sizeof(generic_utf16), MJB_ENC_UTF_16,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_make(generic_utf16, sizeof(generic_utf16), MJB_ENC_UTF_16);
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_OK, "Generic UTF-16 decoder consumes BOM");
     ATT_ASSERT((unsigned int)codepoint, (unsigned int)'A', "Generic UTF-16 decoded codepoint");
     ATT_ASSERT(offset, sizeof(generic_utf16), "Generic UTF-16 decoded offset");
     offset = 1;
-    ATT_ASSERT_STATUS(mjb_decode_next(generic_utf16, sizeof(generic_utf16), MJB_ENC_UTF_16,
-                          MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
+    text = mjb_text_make(generic_utf16, sizeof(generic_utf16), MJB_ENC_UTF_16);
+    ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, &diagnostic),
         MJB_STATUS_INVALID_ARGUMENT, "Generic UTF-16 rejects an offset inside its BOM");
 
     size_t count = 99;
@@ -281,6 +289,17 @@ static void test_validation_and_decoding(void) {
 }
 
 ATT_TEST(encoding) {
+    {
+        size_t offset = 0;
+        mjb_codepoint codepoint = 0;
+
+        ATT_ASSERT_STATUS(mjb_decode_next(NULL, MJB_MALFORMED_STOP, &offset, &codepoint, NULL),
+            MJB_STATUS_INVALID_ARGUMENT, "Decode next rejects NULL text");
+        ATT_ASSERT_STATUS(
+            mjb_decode_previous(NULL, MJB_MALFORMED_STOP, &offset, &codepoint, NULL),
+            MJB_STATUS_INVALID_ARGUMENT, "Decode previous rejects NULL text");
+    }
+
     test_validation_and_decoding();
 
     ATT_ASSERT((unsigned int)mjb_detect_encoding(0, 10), (unsigned int)MJB_ENC_UNKNOWN,

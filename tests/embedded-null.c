@@ -186,22 +186,27 @@ ATT_TEST(embedded_null) {
 
     mjb_next_state state;
     state.index = 0;
-    ATT_ASSERT((uint8_t)mjb_next_grapheme_break("A", MJB_NUL_TERMINATED, MJB_ENC_UTF_8, &state),
+    text = mjb_text_utf8("A", MJB_NUL_TERMINATED);
+    ATT_ASSERT((uint8_t)mjb_next_grapheme_break(&text, &state),
         (uint8_t)MJB_BT_NOT_SET, "Stateful segmentation requires an explicit byte length");
 
     size_t grapheme_count = 0;
-    ATT_ASSERT_STATUS(mjb_grapheme_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &grapheme_count, NULL),
+    text = mjb_text_utf8(utf8_with_nulls, 5);
+    ATT_ASSERT_STATUS(mjb_grapheme_count(&text, MJB_MALFORMED_STOP, &grapheme_count, NULL),
         MJB_STATUS_OK, "Explicit grapheme count with embedded U+0000");
     ATT_ASSERT(grapheme_count, (size_t)5, "UTF-8: A\\0B\\0C = 5 grapheme clusters");
-    ATT_ASSERT_STATUS(mjb_grapheme_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    text = mjb_text_utf8(utf8_with_nulls, MJB_NUL_TERMINATED);
+    ATT_ASSERT_STATUS(mjb_grapheme_count(&text, MJB_MALFORMED_STOP,
         &grapheme_count, NULL), MJB_STATUS_OK, "NUL-terminated grapheme count");
     ATT_ASSERT(grapheme_count, (size_t)1, "UTF-8: NUL-terminated A\\0B\\0C = 1 grapheme cluster");
 
     size_t word_count = 0;
-    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, &word_count, NULL),
+    text = mjb_text_utf8(utf8_with_nulls, 5);
+    ATT_ASSERT_STATUS(mjb_word_count(&text, MJB_MALFORMED_STOP, &word_count, NULL),
         MJB_STATUS_OK, "Explicit word count with embedded U+0000");
     ATT_ASSERT(word_count, (size_t)3, "UTF-8: A\\0B\\0C = 3 words");
-    ATT_ASSERT_STATUS(mjb_word_count(utf8_with_nulls, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+    text = mjb_text_utf8(utf8_with_nulls, MJB_NUL_TERMINATED);
+    ATT_ASSERT_STATUS(mjb_word_count(&text, MJB_MALFORMED_STOP,
         &word_count, NULL), MJB_STATUS_OK, "NUL-terminated word count");
     ATT_ASSERT(word_count, (size_t)1, "UTF-8: NUL-terminated A\\0B\\0C = 1 word");
 }

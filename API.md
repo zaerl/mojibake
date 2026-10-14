@@ -1010,9 +1010,7 @@ Check if a string is normalized to NFC/NFKC/NFD/NFKD form.
 
 ```c
 mjb_status mjb_normalization_quick_check(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_normalization form,
     mjb_quick_check_result *quick_check
 );
@@ -1020,28 +1018,25 @@ mjb_status mjb_normalization_quick_check(
 
 Run the normalization quick-check on a string without allocating. `MJB_QC_MAYBE` means the string may still be normalized, and only a full normalization pass with `mjb_normalize` can decide.
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `form` - The normalization form to check
 - `quick_check` - The quick-check result to store
 
 **Returns**
 
 - `MJB_STATUS_OK` - `quick_check` contains `MJB_QC_YES`, `MJB_QC_NO`, or `MJB_QC_MAYBE`
-- `MJB_STATUS_INVALID_ARGUMENT` - `quick_check` is NULL, or `buffer` is NULL with a non-zero size
-- `MJB_STATUS_INVALID_ENCODING` - `encoding` is invalid or a generic UTF-16/UTF-32 encoding has no byte-order information
+- `MJB_STATUS_INVALID_ARGUMENT` - `quick_check` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ENCODING` - The text encoding is invalid or a generic UTF-16/UTF-32 encoding has no byte-order information
 - `MJB_STATUS_INVALID_FORM` - `form` is not NFC, NFD, NFKC, or NFKD
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 
 **Example**
 
 ```c
-const char *input = "caf\xC3\xA9";
+mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
 mjb_quick_check_result check;
 
-if(mjb_normalization_quick_check(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
+if(mjb_normalization_quick_check(&input, MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1193,9 +1188,7 @@ Decode the next codepoint from a string.
 
 ```c
 mjb_status mjb_decode_next(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     size_t *offset,
     mjb_codepoint *codepoint,
@@ -1205,9 +1198,7 @@ mjb_status mjb_decode_next(
 
 Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed input returns `MJB_STATUS_MALFORMED_INPUT`; `offset` still advances over the malformed subsequence so decoding can resume. `MJB_MALFORMED_REPLACE` returns U+FFFD, while `MJB_MALFORMED_SKIP` advances until a valid codepoint or end of input. A diagnostic is reported for replacement and skipping even when the function returns success.
 
-- `buffer` - The string to decode
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to decode
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `offset` - The input byte offset and the byte offset following the decoded subsequence
 - `codepoint` - Where to store the decoded codepoint
@@ -1229,9 +1220,7 @@ Decode the previous codepoint from a string.
 
 ```c
 mjb_status mjb_decode_previous(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     size_t *offset,
     mjb_codepoint *codepoint,
@@ -1241,9 +1230,7 @@ mjb_status mjb_decode_previous(
 
 Decode backward from `offset`, using the same malformed-input policies and diagnostic contract as `mjb_decode_next`. On success, `offset` is the first byte of the decoded codepoint. Start with the input byte length to iterate from the end.
 
-- `buffer` - The string to decode
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to decode
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `offset` - The input byte offset and the start of the decoded subsequence
 - `codepoint` - Where to store the decoded codepoint
@@ -1318,9 +1305,7 @@ Run a callback for each codepoint of a string.
 
 ```c
 mjb_status mjb_for_each_codepoint(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_for_each_codepoint_fn callback,
     mjb_diagnostic *diagnostic
@@ -1329,9 +1314,7 @@ mjb_status mjb_for_each_codepoint(
 
 Decode the string according to `malformed_policy` and call the callback for every resulting codepoint. The first malformed subsequence is reported in `diagnostic` even when it is replaced or skipped.
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `callback` - The function to call for each codepoint
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -1339,7 +1322,7 @@ Decode the string according to `malformed_policy` and call the callback for ever
 **Returns**
 
 - `MJB_STATUS_OK` - Every decoded codepoint was visited
-- `MJB_STATUS_INVALID_ARGUMENT` - The buffer, callback, or malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - The text, callback, or malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_CALLBACK_STOPPED` - The callback returned false
@@ -1347,8 +1330,8 @@ Decode the string according to `malformed_policy` and call the callback for ever
 **Example**
 
 ```c
-mjb_status status = mjb_for_each_codepoint("ABC", 3, MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, NULL, NULL);
+mjb_text input = mjb_text_utf8("ABC", 3);
+mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
@@ -2298,24 +2281,21 @@ Unicode line break algorithm.
 
 ```c
 mjb_break_type mjb_next_line_break(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_next_line_state *state
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The explicit length of the string, in bytes
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `state` - The state to store the result
 
 **Example**
 
 ```c
+mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_next_line_state state;
 state.index = 0;
-mjb_break_type type = mjb_next_line_break("Hello world", 11, MJB_ENC_UTF_8, &state);
+mjb_break_type type = mjb_next_line_break(&input, &state);
 
 // First line-break result is set: yes
 printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
@@ -2331,26 +2311,23 @@ Word cluster breaking.
 
 ```c
 mjb_break_type mjb_next_word_break(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_next_word_state *state
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The explicit length of the string, in bytes
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `state` - The state to store the result
 
 **Example**
 
 ```c
+mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_next_word_state state;
 state.index = 0;
 size_t boundaries = 0;
 
-while(mjb_next_word_break("Hello world", 11, MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_word_break(&input, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
@@ -2368,16 +2345,12 @@ Sentence boundaries breaking.
 
 ```c
 mjb_break_type mjb_next_sentence_break(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_next_sentence_state *state
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The explicit length of the string, in bytes
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `state` - The state to store the result
 
 **Example**
@@ -2386,9 +2359,9 @@ mjb_break_type mjb_next_sentence_break(
 mjb_next_sentence_state state;
 state.index = 0;
 size_t boundaries = 0;
-const char *input = "Hello. Goodbye.";
+mjb_text input = mjb_text_utf8("Hello. Goodbye.", 15);
 
-while(mjb_next_sentence_break(input, strlen(input), MJB_ENC_UTF_8, &state) != MJB_BT_NOT_SET) {
+while(mjb_next_sentence_break(&input, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
@@ -2406,9 +2379,7 @@ Count the sentence segments in a string.
 
 ```c
 mjb_status mjb_sentence_count(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     size_t *count,
     mjb_diagnostic *diagnostic
@@ -2417,9 +2388,7 @@ mjb_status mjb_sentence_count(
 
 Count the sentence segments produced by the default Unicode sentence-boundary rules. The default rules carry no abbreviation list, so text such as `Dr. Smith` counts as two sentences. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
-- `buffer` - The string to count
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of sentence segments to store; set to zero on failure
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -2427,18 +2396,17 @@ Count the sentence segments produced by the default Unicode sentence-boundary ru
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
 ```c
-const char *input = "Hello. How are you? Fine!";
+mjb_text input = mjb_text_utf8("Hello. How are you? Fine!", MJB_NUL_TERMINATED);
 size_t count;
 
-if(mjb_sentence_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2456,30 +2424,25 @@ Grapheme cluster breaking.
 
 ```c
 mjb_break_type mjb_next_grapheme_break(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_next_state *state
 );
 ```
 
-Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string. Stateful break functions require an explicit length and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
+Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string. Stateful break functions require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
 
-- `buffer` - The string to check
-- `byte_length` - The explicit length of the string, in bytes
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `state` - The state to store the result
 
 **Example**
 
 ```c
-const char *input = "e\xCC\x81"; // e + combining acute accent
+mjb_text input = mjb_text_utf8("e\xCC\x81", 3); // e + combining acute accent
 mjb_next_state state;
 state.index = 0;
 size_t codepoints = 0;
 
-while(mjb_next_grapheme_break(input, strlen(input), MJB_ENC_UTF_8,
-    &state) != MJB_BT_NOT_SET) {
+while(mjb_next_grapheme_break(&input, &state) != MJB_BT_NOT_SET) {
     ++codepoints;
 }
 
@@ -2497,23 +2460,19 @@ Return the number of bytes that form the first `max_graphemes` grapheme cluster 
 
 ```c
 size_t mjb_truncate_grapheme(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     size_t max_graphemes
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `max_graphemes` - The maximum number of graphemes to return
 
 **Example**
 
 ```c
-const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z"; // A🇮🇹Z
-size_t bytes = mjb_truncate_grapheme(input, strlen(input), MJB_ENC_UTF_8, 2);
+mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
+size_t bytes = mjb_truncate_grapheme(&input, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);
@@ -2525,9 +2484,7 @@ Count the extended grapheme clusters in a string.
 
 ```c
 mjb_status mjb_grapheme_count(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     size_t *count,
     mjb_diagnostic *diagnostic
@@ -2536,9 +2493,7 @@ mjb_status mjb_grapheme_count(
 
 Count user-perceived characters: the number of extended grapheme cluster segments in the string. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
-- `buffer` - The string to count
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of grapheme clusters to store; set to zero on failure
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -2546,18 +2501,17 @@ Count user-perceived characters: the number of extended grapheme cluster segment
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
 ```c
-const char *input = "A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // A🇮🇹
+mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9", MJB_NUL_TERMINATED); // A🇮🇹
 size_t count;
 
-if(mjb_grapheme_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2575,9 +2529,7 @@ Return the number of bytes whose grapheme clusters fit within max_columns termin
 
 ```c
 size_t mjb_truncate_grapheme_width(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_terminal_width_profile profile,
     size_t max_columns
 );
@@ -2585,18 +2537,15 @@ size_t mjb_truncate_grapheme_width(
 
 Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed the budget or cannot be measured as printable, single-line terminal text.
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `profile` - The terminal-width profile
 - `max_columns` - The maximum number of columns to return
 
 **Example**
 
 ```c
-const char *input = "A\xE7\x95\x8C"; // A界
-size_t bytes = mjb_truncate_grapheme_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_TERMINAL_WIDTH_NARROW, 2);
+mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
+size_t bytes = mjb_truncate_grapheme_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);
@@ -2608,23 +2557,19 @@ Return the number of bytes that form the first max_segments word-break segments.
 
 ```c
 size_t mjb_truncate_word(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     size_t max_segments
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `max_segments` - The maximum number of segments to return
 
 **Example**
 
 ```c
-const char *input = "Hello world";
-size_t bytes = mjb_truncate_word(input, strlen(input), MJB_ENC_UTF_8, 1);
+mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+size_t bytes = mjb_truncate_word(&input, 1);
 
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);
@@ -2636,9 +2581,7 @@ Count the word-like segments in a string.
 
 ```c
 mjb_status mjb_word_count(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     size_t *count,
     mjb_diagnostic *diagnostic
@@ -2647,9 +2590,7 @@ mjb_status mjb_word_count(
 
 Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_truncate_word`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
-- `buffer` - The string to count
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `count` - The number of word-like segments to store; set to zero on failure
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
@@ -2657,18 +2598,17 @@ Count the words in a string: the word-break segments that contain at least one a
 **Returns**
 
 - `MJB_STATUS_OK` - The count was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the buffer is invalid, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `count` is NULL, the text is invalid, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is not a supported input encoding
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 
 **Example**
 
 ```c
-const char *input = "Hello, world! It works.";
+mjb_text input = mjb_text_utf8("Hello, world! It works.", MJB_NUL_TERMINATED);
 size_t count;
 
-if(mjb_word_count(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL) != MJB_STATUS_OK) {
+if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2686,9 +2626,7 @@ Return the number of bytes whose word-break segments fit within max_columns term
 
 ```c
 size_t mjb_truncate_word_width(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_terminal_width_profile profile,
     size_t max_columns
 );
@@ -2696,18 +2634,15 @@ size_t mjb_truncate_word_width(
 
 Truncate only at word-break boundaries, using the same terminal-cell policy as `mjb_terminal_width`. The returned prefix stops before a segment that would exceed the budget or cannot be measured as printable, single-line terminal text.
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `profile` - The terminal-width profile
 - `max_columns` - The maximum number of columns to return
 
 **Example**
 
 ```c
-const char *input = "Hello world";
-size_t bytes = mjb_truncate_word_width(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_TERMINAL_WIDTH_NARROW, 6);
+mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+size_t bytes = mjb_truncate_word_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);
@@ -2719,9 +2654,7 @@ Resolve bidirectional text (TR9) for a paragraph.
 
 ```c
 mjb_status mjb_bidi_resolve(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_direction direction,
     mjb_bidi_paragraph *result
 );
@@ -2729,16 +2662,14 @@ mjb_status mjb_bidi_resolve(
 
 Resolve the embedding levels of a paragraph following the Unicode Bidirectional Algorithm. The resolved paragraph can then be split into lines and reordered visually with `mjb_bidi_reorder_line` and `mjb_bidi_line_runs`.
 
-- `buffer` - The input string
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to resolve
 - `direction` - The base paragraph direction (LTR, RTL, or AUTO for P2/P3)
 - `result` - Output paragraph; chars is library-allocated. `result->chars` is library-allocated and must be freed with `mjb_bidi_paragraph_free()`
 
 **Returns**
 
 - `MJB_STATUS_OK` - The paragraph was resolved
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OVERFLOW` - The paragraph size would overflow
@@ -2747,11 +2678,10 @@ Resolve the embedding levels of a paragraph following the Unicode Bidirectional 
 **Example**
 
 ```c
-const char *input = "abc \xD7\x90\xD7\x91\xD7\x92"; // abc אבג
+mjb_text input = mjb_text_utf8("abc \xD7\x90\xD7\x91\xD7\x92", MJB_NUL_TERMINATED); // abc אבג
 mjb_bidi_paragraph paragraph;
 
-if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-    &paragraph) != MJB_STATUS_OK) {
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2785,12 +2715,11 @@ mjb_status mjb_bidi_reorder_line(
 **Example**
 
 ```c
-const char *input = "\xD7\x90\xD7\x91\xD7\x92"; // אבג
+mjb_text input = mjb_text_utf8("\xD7\x90\xD7\x91\xD7\x92", MJB_NUL_TERMINATED); // אבג
 mjb_bidi_paragraph paragraph;
 size_t visual_order[3];
 
-if(mjb_bidi_resolve(input, strlen(input), MJB_ENC_UTF_8, MJB_DIRECTION_AUTO,
-    &paragraph) != MJB_STATUS_OK ||
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK ||
     mjb_bidi_reorder_line(&paragraph, 0, paragraph.count,
         visual_order) != MJB_STATUS_OK) {
     return 1;
@@ -2828,12 +2757,12 @@ mjb_status mjb_bidi_line_runs(
 **Example**
 
 ```c
+mjb_text input = mjb_text_utf8("abc", 3);
 mjb_bidi_paragraph paragraph;
 size_t visual_order[3];
 size_t run_count = 0;
 
-if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-    &paragraph) != MJB_STATUS_OK ||
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK ||
     mjb_bidi_reorder_line(&paragraph, 0, 3, visual_order) != MJB_STATUS_OK ||
     mjb_bidi_line_runs(&paragraph, visual_order, 3, NULL,
         &run_count) != MJB_STATUS_OK) {
@@ -2864,10 +2793,10 @@ void mjb_bidi_paragraph_free(
 **Example**
 
 ```c
+mjb_text input = mjb_text_utf8("abc", 3);
 mjb_bidi_paragraph paragraph;
 
-if(mjb_bidi_resolve("abc", 3, MJB_ENC_UTF_8, MJB_DIRECTION_LTR,
-    &paragraph) != MJB_STATUS_OK) {
+if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3026,27 +2955,22 @@ Return true if the string is a valid Unicode identifier (Unicode 18.0.0 UAX #31)
 
 ```c
 bool mjb_is_identifier(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_identifier_profile profile
 );
 ```
 
 Validate a string as a Unicode identifier: the first character must be a valid identifier start and the following ones valid identifier continuations, using ID_Start/ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.
 
-- `buffer` - The string to validate
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to validate
 - `profile` - The identifier profile (DEFAULT or NFKC)
 
 **Example**
 
 ```c
-const char *identifier = "delta_2";
+mjb_text identifier = mjb_text_utf8("delta_2", MJB_NUL_TERMINATED);
 
-bool valid = mjb_is_identifier(identifier, strlen(identifier), MJB_ENC_UTF_8,
-    MJB_IDENTIFIER_NFKC);
+bool valid = mjb_is_identifier(&identifier, MJB_IDENTIFIER_NFKC);
 
 // Valid identifier: yes
 printf("Valid identifier: %s", valid ? "yes" : "no");
@@ -3062,9 +2986,7 @@ Return the UTS #39 resolved script set of a string.
 
 ```c
 mjb_status mjb_resolved_script_set(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_script *scripts,
     size_t *count,
     mjb_script_set_kind *kind
@@ -3073,9 +2995,7 @@ mjb_status mjb_resolved_script_set(
 
 Intersect the augmented Script_Extensions sets of every codepoint as specified by UTS #39. Common and Inherited resolve to ALL. Han, Hiragana, Katakana, Hangul, and Bopomofo are augmented with the Hanb, Jpan, and Kore writing-system values. Set `scripts` to NULL to query the required count. A mixed-script string returns EMPTY with a zero count; an empty string or a string containing only Common or Inherited characters returns ALL with a zero count. If `MJB_FEATURE_SECURITY=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The string to analyze
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to analyze
 - `scripts` - The caller-provided script buffer, or NULL to query the required count
 - `count` - The input capacity and output script count
 - `kind` - Whether the resolved set is empty, concrete, or ALL
@@ -3083,7 +3003,7 @@ Intersect the augmented Script_Extensions sets of every codepoint as specified b
 **Returns**
 
 - `MJB_STATUS_OK` - The required count and set kind were returned, or the resolved scripts were written
-- `MJB_STATUS_INVALID_ARGUMENT` - `count` or `kind` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `count`, `kind`, or `text` is NULL, or `text->buffer` is NULL with a non-zero size
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks required byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - The input contains an ill-formed code-unit sequence
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The script buffer capacity is smaller than the required count
@@ -3092,13 +3012,12 @@ Intersect the augmented Script_Extensions sets of every codepoint as specified b
 **Example**
 
 ```c
-const char *input = "\xE3\x81\xAD\xE3\x82\xAC"; // Hiragana + Katakana
+mjb_text input = mjb_text_utf8("\xE3\x81\xAD\xE3\x82\xAC", MJB_NUL_TERMINATED); // Hiragana + Katakana
 mjb_script scripts[1];
 size_t count = 1;
 mjb_script_set_kind kind;
 
-if(mjb_resolved_script_set(input, strlen(input), MJB_ENC_UTF_8, scripts, &count,
-    &kind) != MJB_STATUS_OK) {
+if(mjb_resolved_script_set(&input, scripts, &count, &kind) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3539,26 +3458,21 @@ Return emoji sequence metadata for a complete string.
 
 ```c
 mjb_status mjb_emoji_sequence_info(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_emoji_sequence *emoji
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 - `emoji` - The emoji sequence metadata to store the result
 
 **Example**
 
 ```c
-const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
+mjb_text flag = mjb_text_utf8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 mjb_emoji_sequence emoji;
 
-if(mjb_emoji_sequence_info(flag, strlen(flag), MJB_ENC_UTF_8,
-    &emoji) != MJB_STATUS_OK) {
+if(mjb_emoji_sequence_info(&flag, &emoji) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -3576,22 +3490,18 @@ Return true if the complete string is an emoji sequence listed by Unicode, inclu
 
 ```c
 bool mjb_is_emoji_sequence(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding
+    const mjb_text *text
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 
 **Example**
 
 ```c
-const char *keycap = "1\xEF\xB8\x8F\xE2\x83\xA3"; // 1️⃣
+mjb_text keycap = mjb_text_utf8("1\xEF\xB8\x8F\xE2\x83\xA3", MJB_NUL_TERMINATED); // 1️⃣
 
-bool listed = mjb_is_emoji_sequence(keycap, strlen(keycap), MJB_ENC_UTF_8);
+bool listed = mjb_is_emoji_sequence(&keycap);
 
 // Listed emoji sequence: yes
 printf("Listed emoji sequence: %s", listed ? "yes" : "no");
@@ -3607,22 +3517,18 @@ Return true if the complete string is an RGI emoji sequence, excluding plain sta
 
 ```c
 bool mjb_is_rgi_emoji(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding
+    const mjb_text *text
 );
 ```
 
-- `buffer` - The string to check
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to check
 
 **Example**
 
 ```c
-const char *flag = "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"; // 🇮🇹
+mjb_text flag = mjb_text_utf8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 
-bool rgi = mjb_is_rgi_emoji(flag, strlen(flag), MJB_ENC_UTF_8);
+bool rgi = mjb_is_rgi_emoji(&flag);
 
 // RGI emoji: yes
 printf("RGI emoji: %s", rgi ? "yes" : "no");
@@ -3754,9 +3660,7 @@ Return the estimated terminal-cell width of printable, single-line text.
 
 ```c
 mjb_status mjb_terminal_width(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_terminal_width_profile profile,
     size_t *width,
@@ -3766,9 +3670,7 @@ mjb_status mjb_terminal_width(
 
 Estimate the number of fixed terminal cells occupied by printable, single-line text. The input is normalized to NFC so canonically equivalent text has the same width. Combining and format characters occupy no additional cells, listed emoji-presentation sequences occupy two cells, and text-presentation sequences retain their East Asian Width. This is a deterministic terminal policy, not a measurement of proportional glyph advances. Use grapheme boundaries for cursor movement, selection, deletion, and user-perceived character counts. Controls, line separators, and paragraph separators are rejected because their effect depends on terminal state. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `width` is set to zero.
 
-- `buffer` - The printable, single-line string to measure
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The printable, single-line text to measure
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `profile` - The terminal-width profile for ambiguous-width characters
 - `width` - The number of terminal cells to store; set to zero on failure
@@ -3777,7 +3679,7 @@ Estimate the number of fixed terminal cells occupied by printable, single-line t
 **Returns**
 
 - `MJB_STATUS_OK` - The width was computed
-- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile or malformed policy is invalid, or the buffer is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `width` is NULL, the profile or malformed policy is invalid, or the text is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding is invalid or lacks required byte-order information
 - `MJB_STATUS_UNSUPPORTED` - The input contains a control, line separator, or paragraph separator
 - `MJB_STATUS_NO_MEMORY` - NFC normalization could not allocate memory
@@ -3787,10 +3689,10 @@ Estimate the number of fixed terminal cells occupied by printable, single-line t
 **Example**
 
 ```c
-const char *input = "A\xE7\x95\x8C"; // A界
+mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
 size_t width;
 
-if(mjb_terminal_width(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
+if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
     MJB_TERMINAL_WIDTH_NARROW, &width, NULL) != MJB_STATUS_OK) {
     return 1;
 }
@@ -3809,9 +3711,7 @@ Parse a BCP 47 language tag.
 
 ```c
 mjb_status mjb_locale_parse(
-    const char *id,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *id,
     mjb_locale_id *locale
 );
 ```
@@ -3819,8 +3719,6 @@ mjb_status mjb_locale_parse(
 Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language, extended language, script, region, variant, extensions, private use, and grandfathered tags. Parsing is strict: malformed tags are rejected.
 
 - `id` - The BCP 47 language tag to parse
-- `byte_length` - The length of the locale identifier in bytes, or `MJB_NUL_TERMINATED`
-- `encoding` - The encoding of the locale identifier
 - `locale` - The locale structure to store the result
 
 **Returns**
@@ -3832,9 +3730,10 @@ Parse a BCP 47 language tag, such as `sr-Latn-RS`, into its components: language
 **Example**
 
 ```c
+mjb_text id = mjb_text_utf8("sr-Latn-RS", MJB_NUL_TERMINATED);
 mjb_locale_id locale;
 
-if(mjb_locale_parse("sr-Latn-RS", 10, MJB_ENC_UTF_8, &locale) != MJB_STATUS_OK) {
+if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
     return 1;
 }
 

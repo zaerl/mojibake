@@ -37,9 +37,16 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, const uint8_
 
 // Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_next_state *state) {
-    if(buffer == NULL || state == NULL || byte_length == 0 || byte_length == MJB_NUL_TERMINATED) {
+MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const mjb_text *text, mjb_next_state *state) {
+    if(text == NULL || state == NULL) {
+        return MJB_BT_NOT_SET;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
+
+    if(buffer == NULL || byte_length == 0 || byte_length == MJB_NUL_TERMINATED) {
         return MJB_BT_NOT_SET;
     }
 
@@ -270,13 +277,14 @@ size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_enc
         return byte_length;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_next_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t last_break = 0;
 
-    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -295,8 +303,15 @@ size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_enc
 }
 
 // Return the number of bytes that form the first max_graphemes grapheme clusters.
-MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, size_t max_graphemes) {
+MJB_EXPORT size_t mjb_truncate_grapheme(const mjb_text *text, size_t max_graphemes) {
+    if(text == NULL) {
+        return 0;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
+
     if(buffer == NULL || byte_length == 0 || max_graphemes == 0) {
         return 0;
     }
@@ -306,6 +321,7 @@ MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length,
         return 0;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_next_state state;
     state.index = 0;
 
@@ -313,7 +329,7 @@ MJB_EXPORT size_t mjb_truncate_grapheme(const char *buffer, size_t byte_length,
     size_t cluster_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -338,13 +354,14 @@ static mjb_status mjb_grapheme_count_process(const char *buffer, size_t byte_len
         return MJB_STATUS_OK;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_next_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t cluster_count = 0;
 
-    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt != MJB_BT_NO_BREAK) {
             ++cluster_count;
         }
@@ -360,9 +377,8 @@ static mjb_status mjb_grapheme_count_process(const char *buffer, size_t byte_len
 }
 
 // Count the extended grapheme clusters in a string.
-MJB_EXPORT mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy, size_t *count,
-    mjb_diagnostic *diagnostic) {
+MJB_EXPORT mjb_status mjb_grapheme_count(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic) {
     if(count == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
@@ -370,9 +386,13 @@ MJB_EXPORT mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length,
     *count = 0;
     mjb_diagnostic_reset(diagnostic);
 
-    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(!mjb_encoding_is_valid_input(encoding)) {
         return MJB_STATUS_INVALID_ENCODING;
@@ -416,8 +436,16 @@ MJB_EXPORT mjb_status mjb_grapheme_count(const char *buffer, size_t byte_length,
 }
 
 // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_terminal_width_profile profile, size_t max_columns) {
+MJB_EXPORT size_t mjb_truncate_grapheme_width(const mjb_text *text,
+    mjb_terminal_width_profile profile, size_t max_columns) {
+    if(text == NULL) {
+        return 0;
+    }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
+
     if(buffer == NULL || byte_length == 0 || max_columns == 0) {
         return 0;
     }
@@ -427,6 +455,7 @@ MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_le
         return 0;
     }
 
+    mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     mjb_next_state state;
     state.index = 0;
 
@@ -434,7 +463,7 @@ MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_le
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_next_grapheme_break(buffer, byte_length, encoding, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -443,8 +472,10 @@ MJB_EXPORT size_t mjb_truncate_grapheme_width(const char *buffer, size_t byte_le
             state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
         size_t cluster_width = 0;
 
-        if(mjb_terminal_width(buffer + prev_break, break_pos - prev_break, encoding,
-               MJB_MALFORMED_STOP, profile, &cluster_width, NULL) != MJB_STATUS_OK) {
+        mjb_text segment = mjb_text_make(buffer + prev_break, break_pos - prev_break, encoding);
+
+        if(mjb_terminal_width(&segment, MJB_MALFORMED_STOP, profile, &cluster_width, NULL) !=
+            MJB_STATUS_OK) {
             return prev_break;
         }
 
