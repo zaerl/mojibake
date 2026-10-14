@@ -970,8 +970,7 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_collation_key(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy,
+  // mjb_status mjb_collation_key(const mjb_text *text, mjb_malformed_policy malformed_policy,
   // mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
   // mjb_result *result, mjb_diagnostic *diagnostic)
   collationKey(input: MojibakeInput,
@@ -979,13 +978,13 @@ export class Mojibake {
     strength = CollationStrength.TERTIARY,
     options: TextInputOptions = {}): Uint8Array | null {
     const wasmInput = this.copyInput(input, options.encoding);
+    const textPtr = this.copyText(wasmInput);
     const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_collation_key(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP,
-        variableWeighting, strength, resultPtr, 0);
+      const status = this.module._mjb_collation_key(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, variableWeighting, strength, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -1005,6 +1004,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }

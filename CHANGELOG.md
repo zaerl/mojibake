@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   length, and encoding: `mjb_confusable_skeleton(text, output_encoding, result)`, and
   `mjb_confusable_skeleton_into(text, output)` also takes a `mjb_buffer *` instead of the output
   encoding, output buffer, and output size
+- **Breaking**: `mjb_collation_key` takes a `const mjb_text *` instead of the buffer, byte length,
+  and encoding, and `mjb_collation_key_into` also takes a `mjb_buffer *` instead of the output
+  buffer and output size. A collation key is binary, so `output->encoding` is ignored
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold

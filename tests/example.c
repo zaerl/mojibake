@@ -587,11 +587,11 @@ ATT_TEST(example) {
 {
     // Example for mjb_collation_key
     MJB_TEST_COVERAGE(mjb_collation_key); // Added by the script
+    mjb_text input = mjb_text_utf8("r\xC3\xA9sum\xC3\xA9", 8);
     mjb_result key;
 
-    if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
-        NULL) != MJB_STATUS_OK) {
+    if(mjb_collation_key(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &key, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key test failed"); // Added by the script
         return;
     }
@@ -608,29 +608,35 @@ ATT_TEST(example) {
 {
     // Example for mjb_collation_key_into
     MJB_TEST_COVERAGE(mjb_collation_key_into); // Added by the script
-    const char *input = "r\xC3\xA9sum\xC3\xA9";
-    size_t output_size = 0;
+    mjb_text input = mjb_text_utf8("r\xC3\xA9sum\xC3\xA9", 8);
+    // A collation key is binary, so the buffer encoding is ignored
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UNKNOWN);
 
-    if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
-        NULL) != MJB_STATUS_OK) {
+    // Query the required size
+    if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &output, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key_into test failed"); // Added by the script
         return;
     }
 
-    unsigned char output[64];
+    unsigned char storage[64];
 
-    if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP,
-        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-        &output_size, NULL) != MJB_STATUS_OK) {
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_collation_key_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UNKNOWN);
+
+    if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &output, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_key_into test failed"); // Added by the script
         return;
     }
 
     // Sort key is non-empty: yes
-    // printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");
-    snprintf(test_buffer, sizeof(test_buffer), "Sort key is non-empty: %s", output_size > 0 ? "yes" : "no"); // Added by the script
+    // printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");
+    snprintf(test_buffer, sizeof(test_buffer), "Sort key is non-empty: %s", output.size > 0 ? "yes" : "no"); // Added by the script
     ATT_ASSERT(test_buffer, "Sort key is non-empty: yes", "mjb_collation_key_into test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_COLLATION

@@ -517,24 +517,25 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         case 7: { // Collation key
             mjb_collation_strength strength = (mjb_collation_strength)((variant >> 5) % 4);
 
-            if(mjb_collation_key(buffer, size, encoding, malformed_policy,
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            if(mjb_collation_key(&text, malformed_policy,
                    (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE, strength,
                    &result, NULL) == MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            size_t required = 0;
             mjb_collation_variable_weighting variable_weighting = (variant & 0x10) ?
                 MJB_COLLATION_SHIFTED :
                 MJB_COLLATION_NON_IGNORABLE;
+            mjb_buffer into = mjb_buffer_make(NULL, 0, MJB_ENC_UNKNOWN);
 
-            if(mjb_collation_key_into(buffer, size, encoding, malformed_policy, variable_weighting,
-                   strength, NULL, &required, NULL) == MJB_STATUS_OK &&
-                required <= 4096) {
+            if(mjb_collation_key_into(&text, malformed_policy, variable_weighting, strength, &into,
+                   NULL) == MJB_STATUS_OK &&
+                into.size <= 4096) {
                 char output[4096];
-                size_t capacity = required;
-                fuzz_sink += (size_t)mjb_collation_key_into(buffer, size, encoding,
-                    malformed_policy, variable_weighting, strength, output, &capacity, NULL);
+                into.data = output;
+                fuzz_sink += (size_t)mjb_collation_key_into(&text, malformed_policy,
+                    variable_weighting, strength, &into, NULL);
             }
 
             break;

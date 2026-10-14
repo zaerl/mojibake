@@ -1825,9 +1825,7 @@ Generate a UCA sort key for a string.
 
 ```c
 mjb_status mjb_collation_key(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_collation_variable_weighting variable_weighting,
     mjb_collation_strength strength,
@@ -1838,9 +1836,7 @@ mjb_status mjb_collation_key(
 
 Generate a binary sort key for a string. Sort keys of different strings can be compared with `memcmp` and yield the same order as `mjb_collation_compare` when both use the same variable weighting and strength. Useful when the same strings are compared many times, such as sorting or database indexing. Empty input and non-empty input with no effective weights at the selected strength both produce a zero-length key. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The string to generate the sort key for
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to generate the sort key for
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
@@ -1850,7 +1846,7 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 **Returns**
 
 - `MJB_STATUS_OK` - The sort key was generated
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, the buffer is invalid, the malformed policy is invalid, or a collation option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, or a collation option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The sort key size would overflow
@@ -1860,11 +1856,11 @@ Generate a binary sort key for a string. Sort keys of different strings can be c
 **Example**
 
 ```c
+mjb_text input = mjb_text_utf8("r\xC3\xA9sum\xC3\xA9", 8);
 mjb_result key;
 
-if(mjb_collation_key("r\xC3\xA9sum\xC3\xA9", 8, MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
-    NULL) != MJB_STATUS_OK) {
+if(mjb_collation_key(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &key, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1883,34 +1879,28 @@ Generate a binary collation key into a caller-provided buffer.
 
 ```c
 mjb_status mjb_collation_key_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_collation_variable_weighting variable_weighting,
     mjb_collation_strength strength,
-    void *output,
-    size_t *output_size,
+    mjb_buffer *output,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output` to NULL to query the required byte count. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: no terminator is included or written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the key, but nothing is written past its capacity. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
+Generate the same binary sort key as `mjb_collation_key` without allocating the final key buffer. Set `output->data` to NULL to query the required byte count. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. A collation key is binary: `output->encoding` is ignored, and no terminator is included or written. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the key, but nothing is written past its capacity. Collation processing still uses temporary allocations, including during a size query. Empty input and non-empty input with no effective weights at the selected strength both require zero bytes. If `MJB_FEATURE_COLLATION=0` the function always returns `MJB_STATUS_FEATURE_NOT_ENABLED`.
 
-- `buffer` - The string to generate the sort key for
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The encoding of the string
+- `text` - The text to generate the sort key for
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `variable_weighting` - The variable weighting strategy
 - `strength` - The maximum collation level to include
-- `output` - The caller-provided binary output buffer, or NULL to query its size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage and its capacity. The key is binary: `output->encoding` is ignored. The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the binary sort key was written
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or a collation option is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed policy is invalid, or a collation option is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The input encoding is invalid
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_OVERFLOW` - The required key size would overflow
@@ -1921,26 +1911,31 @@ Generate the same binary sort key as `mjb_collation_key` without allocating the 
 **Example**
 
 ```c
-const char *input = "r\xC3\xA9sum\xC3\xA9";
-size_t output_size = 0;
+mjb_text input = mjb_text_utf8("r\xC3\xA9sum\xC3\xA9", 8);
+// A collation key is binary, so the buffer encoding is ignored
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UNKNOWN);
 
-if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
-    NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-unsigned char output[64];
+unsigned char storage[64];
 
-if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP,
-    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-    &output_size, NULL) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UNKNOWN);
+
+if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Sort key is non-empty: yes
-printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");
+printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");
 ```
 
 See also: [`mjb_collation_key`](#mjb_collation_key), [`mjb_collation_compare`](#mjb_collation_compare).

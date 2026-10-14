@@ -1650,9 +1650,7 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
     name: 'mjb_collation_key',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to generate the sort key for'),
-      byte_length(),
-      encoding(),
+      text('The text to generate the sort key for'),
       malformedPolicy(),
       {
         name: 'variable_weighting',
@@ -1686,8 +1684,8 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       { value: 'MJB_STATUS_OK', description: 'The sort key was generated' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
         description:
-          '`result` is NULL, the buffer is invalid, the malformed policy is invalid, or a ' +
-          'collation option is invalid' },
+          '`result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the ' +
+          'malformed policy is invalid, or a collation option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'The input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
@@ -1697,11 +1695,11 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
-    example: `mjb_result key;
+    example: `mjb_text input = mjb_text_utf8("r\\xC3\\xA9sum\\xC3\\xA9", 8);
+mjb_result key;
 
-if(mjb_collation_key("r\\xC3\\xA9sum\\xC3\\xA9", 8, MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &key,
-    NULL) != MJB_STATUS_OK) {
+if(mjb_collation_key(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &key, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1717,9 +1715,7 @@ mjb_result_free(&key);`,
     name: 'mjb_collation_key_into',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The string to generate the sort key for'),
-      byte_length(),
-      encoding(),
+      text('The text to generate the sort key for'),
       malformedPolicy(),
       {
         name: 'variable_weighting',
@@ -1735,29 +1731,19 @@ mjb_result_free(&key);`,
         wasm_generated: false,
         is_enum: true
       },
-      {
-        name: 'output',
-        type: 'void *',
-        description: 'The caller-provided binary output buffer, or NULL to query its size',
-        wasm_generated: false,
-        ownership: 'The caller retains ownership'
-      },
-      {
-        name: 'output_size',
-        type: 'size_t *',
-        description: 'The input capacity and output required or written byte count',
-        wasm_generated: false
-      },
+      outputBuffer('The output storage and its capacity. The key is binary: `output->encoding` ' +
+        'is ignored'),
       diagnostic()
     ],
     wasm: false,
     section: Section.SortingComparison,
     exampleFeature: 'MJB_FEATURE_COLLATION',
     details: 'Generate the same binary sort key as `mjb_collation_key` without allocating the ' +
-      'final key buffer. Set `output` to NULL to query the required byte count. If `output` is ' +
-      'non-NULL, `*output_size` supplies its capacity; on return it contains the required size ' +
-      'when the buffer is too small, or the written size on success. A collation key is binary: ' +
-      'no terminator is included or written. If capacity is insufficient, or another error ' +
+      'final key buffer. Set `output->data` to NULL to query the required byte count. If ' +
+      '`output->data` is non-NULL, `output->size` supplies its capacity; on return it contains ' +
+      'the required size when the buffer is too small, or the written size on success. A ' +
+      'collation key is binary: `output->encoding` is ignored, and no terminator is included ' +
+      'or written. If capacity is insufficient, or another error ' +
       'occurs, the output buffer may hold a partial prefix of the key, but nothing is written ' +
       'past its capacity. Collation processing still uses temporary allocations, including ' +
       'during a ' +
@@ -1768,8 +1754,8 @@ mjb_result_free(&key);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the binary sort key was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`output_size` is NULL, the buffer is invalid, the malformed policy is invalid, or a ' +
-        'collation option is invalid' },
+        '`output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, the malformed ' +
+        'policy is invalid, or a collation option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The input encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
@@ -1780,26 +1766,31 @@ mjb_result_free(&key);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
-    example: `const char *input = "r\\xC3\\xA9sum\\xC3\\xA9";
-size_t output_size = 0;
+    example: `mjb_text input = mjb_text_utf8("r\\xC3\\xA9sum\\xC3\\xA9", 8);
+// A collation key is binary, so the buffer encoding is ignored
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UNKNOWN);
 
-if(mjb_collation_key_into(input, 8, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
-    NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-unsigned char output[64];
+unsigned char storage[64];
 
-if(output_size > sizeof(output) || mjb_collation_key_into(input, 8, MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP,
-    MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, output,
-    &output_size, NULL) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UNKNOWN);
+
+if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Sort key is non-empty: yes
-printf("Sort key is non-empty: %s", output_size > 0 ? "yes" : "no");`,
+printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`,
     related: ['mjb_collation_key', 'mjb_collation_compare'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },

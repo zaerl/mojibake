@@ -204,19 +204,20 @@ static mjb_status sweep_utf8_grapheme_snprintf(bool *cleared) {
 #if MJB_FEATURE_COLLATION
 static mjb_status sweep_collation_key(bool *cleared) {
     mjb_result result = { NULL, 0, false };
-    mjb_status status = mjb_collation_key(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED, MJB_COLLATION_QUATERNARY, &result, NULL);
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_collation_key(&text, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
+        MJB_COLLATION_QUATERNARY, &result, NULL);
     *cleared = result_done(status, &result);
 
     return status;
 }
 
 static mjb_status sweep_collation_key_into(bool *cleared) {
-    size_t output_size = 0;
-    mjb_status status = mjb_collation_key_into(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, &output_size,
-        NULL);
-    *cleared = status == MJB_STATUS_OK ? output_size > 0 : output_size == 0;
+    mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UNKNOWN);
+    mjb_status status = mjb_collation_key_into(&text, MJB_MALFORMED_STOP,
+        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &output, NULL);
+    *cleared = status == MJB_STATUS_OK ? output.size > 0 : output.size == 0;
 
     return status;
 }
