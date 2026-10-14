@@ -969,8 +969,9 @@ class IdnaResult {
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
     mjb_idna_info info{};
-    const mjb_status status = mjb_idna_to_ascii(input.data(), input.size(), input_encoding,
-        output_encoding, &info, detail::ResultAccess::out(result));
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_idna_to_ascii(&text, output_encoding, &info,
+        detail::ResultAccess::out(result));
 
     result = detail::ResultAccess::checked(std::move(result), status, "IDNA ToASCII failed");
     return IdnaResult(std::move(result), info.errors);
@@ -980,8 +981,9 @@ class IdnaResult {
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     TextResult result = detail::ResultAccess::create();
     mjb_idna_info info{};
-    const mjb_status status = mjb_idna_to_unicode(input.data(), input.size(), input_encoding,
-        output_encoding, &info, detail::ResultAccess::out(result));
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    const mjb_status status = mjb_idna_to_unicode(&text, output_encoding, &info,
+        detail::ResultAccess::out(result));
 
     result = detail::ResultAccess::checked(std::move(result), status, "IDNA ToUnicode failed");
     return IdnaResult(std::move(result), info.errors);

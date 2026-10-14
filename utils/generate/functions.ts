@@ -648,9 +648,7 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage)
     name: 'mjb_idna_to_ascii',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The domain name to process'),
-      byte_length(),
-      encoding(),
+      text('The domain name to process'),
       encoding('The output encoding of the ASCII domain name', 'output_encoding'),
       {
         name: 'info',
@@ -672,7 +670,7 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage)
       { value: 'MJB_STATUS_OK', description:
         'Processing completed; inspect `info->errors` for validation failures' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`info` or `result` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`text`, `info`, or `result` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },
@@ -683,12 +681,13 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage)
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
-    example: `const char *domain = "b\\xC3\\xBC" "cher.example"; // "bücher.example"
+    example: `// "bücher.example"
+mjb_text domain = mjb_text_utf8("b\\xC3\\xBC" "cher.example", MJB_NUL_TERMINATED);
 mjb_idna_info info;
 mjb_result result;
 
-if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+if(mjb_idna_to_ascii(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
     return 1;
 }
 
@@ -705,34 +704,21 @@ mjb_result_free(&result);`,
     name: 'mjb_idna_to_ascii_into',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The domain name to process'),
-      byte_length(),
-      encoding(),
-      encoding('The output encoding of the ASCII domain name', 'output_encoding'),
+      text('The domain name to process'),
       {
         name: 'info',
         type: 'mjb_idna_info *',
         description: 'The UTS #46 validation errors to store',
         wasm_generated: false
       },
-      {
-        name: 'output',
-        type: 'void *',
-        description: 'The caller-provided output buffer, or NULL to query the required size',
-        wasm_generated: false,
-        ownership: 'The caller retains ownership'
-      },
-      {
-        name: 'output_size',
-        type: 'size_t *',
-        description: 'The input capacity and output required or written byte count',
-        wasm_generated: false
-      }
+      outputBuffer()
     ],
     wasm: false,
     section: Section.TextTransformation,
-    details: 'Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. Set `output` ' +
-      'to NULL to query the required byte count. If capacity is insufficient, or another ' +
+    details: 'Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. ' +
+      '`output->encoding` selects the output encoding. Set `output->data` to NULL to query the ' +
+      'required byte count; otherwise `output->size` supplies its capacity, and on return it ' +
+      'contains the required or written byte count. If capacity is insufficient, or another ' +
       'error occurs, the output buffer may hold a partial prefix of the result, but nothing is ' +
       'written past its capacity. Processing uses temporary allocations even during a size ' +
       'query. If ' +
@@ -741,7 +727,7 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the ASCII domain was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`text`, `info`, or `output` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },
@@ -764,9 +750,7 @@ mjb_result_free(&result);`,
     name: 'mjb_idna_to_unicode',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The domain name to process'),
-      byte_length(),
-      encoding(),
+      text('The domain name to process'),
       encoding('The output encoding of the Unicode domain name', 'output_encoding'),
       {
         name: 'info',
@@ -787,7 +771,7 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'Processing completed; inspect `info->errors` for validation failures' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`info` or `result` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`text`, `info`, or `result` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },
@@ -798,12 +782,12 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
-    example: `const char *domain = "xn--bcher-kva.example";
+    example: `mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
 mjb_idna_info info;
 mjb_result result;
 
-if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-    &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+if(mjb_idna_to_unicode(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
     return 1;
 }
 
@@ -820,34 +804,21 @@ mjb_result_free(&result);`,
     name: 'mjb_idna_to_unicode_into',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The domain name to process'),
-      byte_length(),
-      encoding(),
-      encoding('The output encoding of the Unicode domain name', 'output_encoding'),
+      text('The domain name to process'),
       {
         name: 'info',
         type: 'mjb_idna_info *',
         description: 'The UTS #46 validation errors to store',
         wasm_generated: false
       },
-      {
-        name: 'output',
-        type: 'void *',
-        description: 'The caller-provided output buffer, or NULL to query the required size',
-        wasm_generated: false,
-        ownership: 'The caller retains ownership'
-      },
-      {
-        name: 'output_size',
-        type: 'size_t *',
-        description: 'The input capacity and output required or written byte count',
-        wasm_generated: false
-      }
+      outputBuffer()
     ],
     wasm: false,
     section: Section.TextTransformation,
-    details: 'Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. Set ' +
-      '`output` to NULL to query the required byte count. If capacity is insufficient, or ' +
+    details: 'Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. ' +
+      '`output->encoding` selects the output encoding. Set `output->data` to NULL to query the ' +
+      'required byte count; otherwise `output->size` supplies its capacity, and on return it ' +
+      'contains the required or written byte count. If capacity is insufficient, or ' +
       'another error occurs, the output buffer may hold a partial prefix of the result, but ' +
       'nothing is written past its capacity. Processing uses temporary allocations even during ' +
       'a size query. If ' +
@@ -856,7 +827,7 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OK', description:
         'The required size was returned or the Unicode domain was written' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`info` or `output_size` is NULL, or `buffer` is NULL with a non-zero size' },
+        '`text`, `info`, or `output` is NULL, or `text->buffer` is NULL with a non-zero size' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An encoding is invalid' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The input contains an ill-formed code-unit sequence' },

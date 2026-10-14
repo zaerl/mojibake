@@ -207,12 +207,13 @@ ATT_TEST(example) {
 {
     // Example for mjb_idna_to_ascii
     MJB_TEST_COVERAGE(mjb_idna_to_ascii); // Added by the script
-    const char *domain = "b\xC3\xBC" "cher.example"; // "bücher.example"
+    // "bücher.example"
+    mjb_text domain = mjb_text_utf8("b\xC3\xBC" "cher.example", MJB_NUL_TERMINATED);
     mjb_idna_info info;
     mjb_result result;
 
-    if(mjb_idna_to_ascii(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+    if(mjb_idna_to_ascii(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
+        info.errors != MJB_IDNA_ERROR_NONE) {
         ATT_ASSERT(0, 1, "mjb_idna_to_ascii test failed"); // Added by the script
         return;
     }
@@ -229,12 +230,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_idna_to_unicode
     MJB_TEST_COVERAGE(mjb_idna_to_unicode); // Added by the script
-    const char *domain = "xn--bcher-kva.example";
+    mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
     mjb_idna_info info;
     mjb_result result;
 
-    if(mjb_idna_to_unicode(domain, strlen(domain), MJB_ENC_UTF_8, MJB_ENC_UTF_8,
-        &info, &result) != MJB_STATUS_OK || info.errors != MJB_IDNA_ERROR_NONE) {
+    if(mjb_idna_to_unicode(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
+        info.errors != MJB_IDNA_ERROR_NONE) {
         ATT_ASSERT(0, 1, "mjb_idna_to_unicode test failed"); // Added by the script
         return;
     }

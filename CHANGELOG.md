@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   length, and encoding, and `mjb_convert_encoding_into` also takes a `mjb_buffer *` instead of the
   output encoding, output buffer, and output size: `mjb_convert_encoding_into(text,
   malformed_policy, output, diagnostic)`
+- **Breaking**: `mjb_idna_to_ascii` and `mjb_idna_to_unicode` take a `const mjb_text *` instead
+  of the buffer, byte length, and encoding: `mjb_idna_to_ascii(text, output_encoding, info,
+  result)`. Their `_into` variants also take a `mjb_buffer *` instead of the output encoding,
+  output buffer, and output size: `mjb_idna_to_ascii_into(text, info, output)`
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold
