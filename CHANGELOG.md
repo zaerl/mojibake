@@ -57,6 +57,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: `mjb_collation_key` takes a `const mjb_text *` instead of the buffer, byte length,
   and encoding, and `mjb_collation_key_into` also takes a `mjb_buffer *` instead of the output
   buffer and output size. A collation key is binary, so `output->encoding` is ignored
+- **Breaking**: `mjb_caseless_match`, `mjb_collation_compare`, and `mjb_confusable_match` take two
+  `const mjb_text *` instead of two buffer, byte length, and encoding triples
+- **Breaking**: `mjb_collation_compare` takes a `malformed_policy` and a diagnostic for each text,
+  like `mjb_collation_key`: `mjb_collation_compare(first, second, malformed_policy,
+  variable_weighting, strength, order, first_diagnostic, second_diagnostic)`. It previously always
+  stopped on malformed input. The C++ `compare` and TypeScript `collationCompare` accept the policy
+  as an optional trailing argument and through `options.malformedPolicy`
+- **Breaking**: `mjb_caseless_match` and `mjb_confusable_match` also take a `malformed_policy` and
+  a diagnostic for each text: `mjb_caseless_match(first, second, malformed_policy, mode, matches,
+  first_diagnostic, second_diagnostic)`. They previously always stopped on malformed input. The
+  C++ `caseless_match` and `confusable_match` and the TypeScript `caselessMatch` and
+  `confusableMatch` accept the policy the same way as for collation comparison
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold
@@ -76,6 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Site: the malformed policy is now passed through the API options, so the arguments that follow
   it, such as the normalization form, are no longer shifted
 - Site: `mjb_convert_encoding` now uses the selected output encoding
+- Tests: the `CollationTest_SHIFTED.txt` conformance check compared each string with itself since
+  the `mjb_collation_key` conversion, so it could not fail; it now compares the two strings again
 
 ## [0.4.2] - 2026-10-12
 Codename: [LATIN CAPITAL LETTER B]

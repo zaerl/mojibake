@@ -150,6 +150,22 @@ ATT_ASSERT(mojibake.codepointCount(malformedText,
 ATT_ASSERT(mojibake.codepointCount(malformedText,
   { malformedPolicy: MalformedPolicy.SKIP }), 2, 'codepointCount malformed skip policy');
 ATT_ASSERT(mojibake.caselessMatch('Straße', 'STRASSE'), true, 'caselessMatch');
+ATT_ASSERT(mojibake.caselessMatch(new Uint8Array([0x61, 0x80, 0x62]), 'AB'), null,
+  'caselessMatch malformed stop policy');
+ATT_ASSERT(mojibake.caselessMatch(new Uint8Array([0x61, 0x80, 0x62]), 'AB', CaselessMode.CANONICAL,
+  { malformedPolicy: MalformedPolicy.SKIP }), true, 'caselessMatch malformed skip policy');
+ATT_ASSERT(mojibake.confusableMatch(new Uint8Array([0x68, 0x80, 0x69]), 'hi',
+  { malformedPolicy: MalformedPolicy.SKIP }), true, 'confusableMatch malformed skip policy');
+// Each side has its own encoding, so swapped or shared texts would fail
+ATT_ASSERT(mojibake.caselessMatch('Stra\u00DFe', 'STRASSE', CaselessMode.CANONICAL,
+  { encoding: Encoding.UTF_16LE, additionalEncoding: Encoding.UTF_32BE }), true,
+  'caselessMatch with different encodings');
+ATT_ASSERT((mojibake.collationCompare('apple', 'banana', CollationVariableWeighting.NON_IGNORABLE,
+  CollationStrength.TERTIARY, { encoding: Encoding.UTF_16BE, additionalEncoding: Encoding.UTF_8 })
+  ?? 0) < 0, true, 'collationCompare with different encodings');
+ATT_ASSERT(mojibake.confusableMatch('h\u0435llo', 'hello',
+  { encoding: Encoding.UTF_32LE, additionalEncoding: Encoding.UTF_16BE }), true,
+  'confusableMatch with different encodings');
 ATT_ASSERT(mojibake.caselessMatch('\u00C5', 'A\u030A', CaselessMode.UNNORMALIZED), false,
   'caselessMatch unnormalized');
 ATT_ASSERT(mojibake.caselessMatch('\u00C5', 'A\u030A', CaselessMode.CANONICAL), true,
@@ -159,6 +175,11 @@ ATT_ASSERT(mojibake.caselessMatch('ab\u00AD', 'ab', CaselessMode.IDENTIFIER), tr
 ATT_ASSERT(mojibake.caselessMatch(new Uint8Array([0x80]), 'a'), null,
   'caselessMatch malformed input');
 ATT_ASSERT(mojibake.collationCompare('hello', 'hello'), 0, 'collationCompare');
+ATT_ASSERT(mojibake.collationCompare(new Uint8Array([0x63, 0x80, 0x74]), 'ct'), null,
+  'collationCompare malformed stop policy');
+ATT_ASSERT(mojibake.collationCompare(new Uint8Array([0x63, 0x80, 0x74]), 'ct',
+  CollationVariableWeighting.NON_IGNORABLE, CollationStrength.TERTIARY,
+  { malformedPolicy: MalformedPolicy.SKIP }), 0, 'collationCompare malformed skip policy');
 ATT_ASSERT((mojibake.collationCompare('a', 'b') ?? 0) < 0, true,
   'collationCompare negative order');
 ATT_ASSERT(mojibake.collationCompare('A', 'a', CollationVariableWeighting.NON_IGNORABLE,

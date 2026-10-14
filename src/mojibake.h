@@ -793,10 +793,10 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding(const mjb_text *text, m
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_convert_encoding_into(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_buffer *output, mjb_diagnostic *diagnostic);
 
 // Compare two strings using a Unicode caseless matching relation.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_caseless_mode mode, bool *matches);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_caseless_match(const mjb_text *first, const mjb_text *second, mjb_malformed_policy malformed_policy, mjb_caseless_mode mode, bool *matches, mjb_diagnostic *first_diagnostic, mjb_diagnostic *second_diagnostic);
 
 // Compare two strings using UCA.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, int *order);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_compare(const mjb_text *first, const mjb_text *second, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, int *order, mjb_diagnostic *first_diagnostic, mjb_diagnostic *second_diagnostic);
 
 // Generate a UCA sort key for a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_collation_key(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength, mjb_result *result, mjb_diagnostic *diagnostic);
@@ -925,7 +925,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton(const mjb_text *text
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_skeleton_into(const mjb_text *text, mjb_buffer *output);
 
 // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding, bool *confusable);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_confusable_match(const mjb_text *first, const mjb_text *second, mjb_malformed_policy malformed_policy, bool *confusable, mjb_diagnostic *first_diagnostic, mjb_diagnostic *second_diagnostic);
 
 // Return the emoji properties.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_emoji_properties(mjb_codepoint codepoint, mjb_emoji_properties *emoji);

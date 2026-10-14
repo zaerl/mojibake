@@ -64,9 +64,9 @@ export type MojibakeWasmModule = {
   // Convert from one encoding to another.
   _mjb_convert_encoding: (text: Pointer, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Compare two strings using a Unicode caseless matching relation.
-  _mjb_caseless_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, matches: Pointer) => number;
+  _mjb_caseless_match: (first: Pointer, second: Pointer, malformed_policy: number, mode: number, matches: Pointer, first_diagnostic: Pointer, second_diagnostic: Pointer) => number;
   // Compare two strings using UCA.
-  _mjb_collation_compare: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, variable_weighting: number, strength: number, order: Pointer) => number;
+  _mjb_collation_compare: (first: Pointer, second: Pointer, malformed_policy: number, variable_weighting: number, strength: number, order: Pointer, first_diagnostic: Pointer, second_diagnostic: Pointer) => number;
   // Generate a UCA sort key for a string.
   _mjb_collation_key: (text: Pointer, malformed_policy: number, variable_weighting: number, strength: number, result: Pointer, diagnostic: Pointer) => number;
   // Change string case.
@@ -140,7 +140,7 @@ export type MojibakeWasmModule = {
   // Compute a Unicode confusable skeleton (Unicode 18.0.0 UTS #39 Section 4).
   _mjb_confusable_skeleton: (text: Pointer, output_encoding: number, result: Pointer) => number;
   // Determine whether two strings are visually confusable (Unicode 18.0.0 UTS #39 Section 4): skeleton(s1) == skeleton(s2).
-  _mjb_confusable_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, confusable: Pointer) => number;
+  _mjb_confusable_match: (first: Pointer, second: Pointer, malformed_policy: number, confusable: Pointer, first_diagnostic: Pointer, second_diagnostic: Pointer) => number;
   // Return the emoji properties.
   _mjb_codepoint_emoji_properties: (codepoint: Codepoint, emoji: Pointer) => number;
   // Return true if the codepoint has the Unicode Emoji property.

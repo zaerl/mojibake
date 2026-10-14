@@ -923,49 +923,56 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
-  // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-  // mjb_caseless_mode mode, bool *matches)
+  // mjb_status mjb_caseless_match(const mjb_text *first, const mjb_text *second,
+  // mjb_malformed_policy malformed_policy, mjb_caseless_mode mode, bool *matches,
+  // mjb_diagnostic *first_diagnostic, mjb_diagnostic *second_diagnostic)
   caselessMatch(first: MojibakeInput, second: MojibakeInput,
     mode = CaselessMode.CANONICAL, options: TextInputOptions = {}): boolean | null {
     const firstInput = this.copyInput(first, options.encoding);
     const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
+    const firstPtr = this.copyText(firstInput);
+    const secondPtr = this.copyText(secondInput);
     const matchesPtr = this.malloc(1);
 
     try {
-      const status = this.module._mjb_caseless_match(firstInput.ptr, firstInput.size,
-        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding, mode,
-        matchesPtr);
+      const status = this.module._mjb_caseless_match(firstPtr, secondPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, mode, matchesPtr, 0, 0);
 
       return status === Status.OK ? this.module.HEAPU8[matchesPtr] !== 0 : null;
     } finally {
       this.free(firstInput.ptr);
       this.free(secondInput.ptr);
+      this.free(firstPtr);
+      this.free(secondPtr);
       this.free(matchesPtr);
     }
   }
 
-  // mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
-  // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-  // mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
-  // int *order)
+  // mjb_status mjb_collation_compare(const mjb_text *first, const mjb_text *second,
+  // mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting,
+  // mjb_collation_strength strength, int *order, mjb_diagnostic *first_diagnostic,
+  // mjb_diagnostic *second_diagnostic)
   collationCompare(first: MojibakeInput, second: MojibakeInput,
     variableWeighting = CollationVariableWeighting.NON_IGNORABLE,
     strength = CollationStrength.TERTIARY,
     options: TextInputOptions = {}): number | null {
     const firstInput = this.copyInput(first, options.encoding);
     const secondInput = this.copyInput(second, options.additionalEncoding ?? options.encoding);
+    const firstPtr = this.copyText(firstInput);
+    const secondPtr = this.copyText(secondInput);
     const orderPtr = this.malloc(4);
 
     try {
-      const status = this.module._mjb_collation_compare(firstInput.ptr, firstInput.size,
-        firstInput.encoding, secondInput.ptr, secondInput.size, secondInput.encoding,
-        variableWeighting, strength, orderPtr);
+      const status = this.module._mjb_collation_compare(firstPtr, secondPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, variableWeighting, strength, orderPtr, 0,
+        0);
 
       return status === Status.OK ? this.module.HEAP32[orderPtr / 4] : null;
     } finally {
       this.free(firstInput.ptr);
       this.free(secondInput.ptr);
+      this.free(firstPtr);
+      this.free(secondPtr);
       this.free(orderPtr);
     }
   }
@@ -1423,23 +1430,27 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length,
-  // mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-  // bool *confusable)
+  // mjb_status mjb_confusable_match(const mjb_text *first, const mjb_text *second,
+  // mjb_malformed_policy malformed_policy, bool *confusable, mjb_diagnostic *first_diagnostic,
+  // mjb_diagnostic *second_diagnostic)
   confusableMatch(s1: MojibakeInput, s2: MojibakeInput,
     options: TextInputOptions = {}): boolean | null {
     const wasmInput1 = this.copyInput(s1, options.encoding);
     const wasmInput2 = this.copyInput(s2, options.additionalEncoding ?? options.encoding);
+    const firstPtr = this.copyText(wasmInput1);
+    const secondPtr = this.copyText(wasmInput2);
     const confusablePtr = this.malloc(1);
 
     try {
-      const status = this.module._mjb_confusable_match(wasmInput1.ptr, wasmInput1.size,
-        wasmInput1.encoding, wasmInput2.ptr, wasmInput2.size, wasmInput2.encoding, confusablePtr);
+      const status = this.module._mjb_confusable_match(firstPtr, secondPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, confusablePtr, 0, 0);
 
       return status === Status.OK ? this.module.HEAPU8[confusablePtr] !== 0 : null;
     } finally {
       this.free(wasmInput1.ptr);
       this.free(wasmInput2.ptr);
+      this.free(firstPtr);
+      this.free(secondPtr);
       this.free(confusablePtr);
     }
   }

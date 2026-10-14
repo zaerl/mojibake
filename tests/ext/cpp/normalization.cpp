@@ -35,6 +35,9 @@ ATT_TEST(cpp_normalization) {
     ATT_ASSERT(mjb::casefold_simple("\xE1\xBA\x9E"), std::string("\xC3\x9F"),
         "casefold_simple");
     ATT_ASSERT(mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE"), true, "caseless_match");
+    ATT_ASSERT(mjb::caseless_match("Stra\x80\xC3\x9F" "e", "STRASSE", mjb::CaselessMode::Canonical,
+                   MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
+        true, "caseless_match skips malformed input");
     ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A", mjb::CaselessMode::Unnormalized),
         false, "caseless_match unnormalized");
     ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A"), true,
@@ -107,6 +110,10 @@ ATT_TEST(cpp_normalization) {
                    mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
         mjb::collation_key("AB"), "collation_key skip policy");
     ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare");
+    ATT_ASSERT(mjb::compare("ca\x80t", "cat", mjb::CollationVariableWeighting::NonIgnorable,
+                   mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                   MJB_MALFORMED_SKIP),
+        0, "compare skips malformed input");
     ATT_ASSERT(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Secondary),
         0, "compare secondary ignores case");

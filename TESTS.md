@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,624,797** C assertions and **163** JavaScript assertions, including all
+Mojibake runs a total of **4,624,843** C assertions and **171** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -25,7 +25,7 @@ the official tests included in the standard:
 | `mjb_normalize_into`                       | 2824002     |
 | `mjb_bidi_resolve`                         | 582611      |
 | `mjb_normalize`                            | 424439      |
-| `mjb_collation_compare`                    | 424197      |
+| `mjb_collation_compare`                    | 424217      |
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_codepoint_info`                       | 82678       |
 | `mjb_nfkc_casefold_into`                   | 74799       |
@@ -42,14 +42,14 @@ the official tests included in the standard:
 | `mjb_next_grapheme_break`                  | 880         |
 | `mjb_codepoint_script_extensions`          | 642         |
 | `mjb_next_sentence_break`                  | 515         |
-| `mjb_confusable_match`                     | 351         |
+| `mjb_confusable_match`                     | 362         |
 | `mjb_filter`                               | 192         |
 | `mjb_convert_encoding`                     | 155         |
 | `mjb_collation_key`                        | 138         |
 | `mjb_codepoint_count`                      | 135         |
+| `mjb_caseless_match`                       | 119         |
 | `mjb_confusable_skeleton_into`             | 117         |
 | `mjb_codepoint_encode`                     | 106         |
-| `mjb_caseless_match`                       | 104         |
 | `mjb_resolved_script_set`                  | 97          |
 | `mjb_locale_parse`                         | 91          |
 | `mjb_confusable_skeleton`                  | 88          |
@@ -131,19 +131,20 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4624797** |
+| **Total**                                  | **4624843** |
 
 ## JavaScript
 
 | Test                                        | Coverage   |
 | ------------------------------------------- | ---------- |
-| `Mojibake.collationCompare`                 | 15         |
+| `Mojibake.collationCompare`                 | 18         |
 | `Mojibake.codepointCount`                   | 9          |
+| `Mojibake.caselessMatch`                    | 8          |
 | `Mojibake.collationKey`                     | 6          |
 | `Mojibake.convertEncoding`                  | 6          |
 | `Mojibake.filter`                           | 6          |
 | `Mojibake.normalize`                        | 6          |
-| `Mojibake.caselessMatch`                    | 5          |
+| `Mojibake.confusableMatch`                  | 5          |
 | `Mojibake.graphemeCount`                    | 5          |
 | `Mojibake.resolvedScriptSet`                | 5          |
 | `Mojibake.wordCount`                        | 5          |
@@ -151,7 +152,6 @@ the official tests included in the standard:
 | `Mojibake.mapCase`                          | 4          |
 | `Mojibake.terminalWidth`                    | 4          |
 | `Mojibake.codepointPropertyBinary`          | 3          |
-| `Mojibake.confusableMatch`                  | 3          |
 | `Mojibake.nfkcCasefold`                     | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.sentenceCount`                    | 3          |
@@ -223,4 +223,4 @@ the official tests included in the standard:
 | `Mojibake.emojiSequenceInfo`                | 0          |
 | `Mojibake.localeCode`                       | 0          |
 | `Mojibake.scriptCode`                       | 0          |
-| **Total**                                   | **163**    |
+| **Total**                                   | **171**    |
