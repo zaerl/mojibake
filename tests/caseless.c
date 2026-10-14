@@ -12,8 +12,9 @@ static void check_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_e
     bool matches = !expected;
 
     MJB_TEST_COVERAGE(mjb_caseless_match);
-    ATT_ASSERT_STATUS(mjb_caseless_match(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
-                          s2_encoding, mode, &matches),
+    mjb_text left = mjb_text_make(s1, s1_byte_length, s1_encoding);
+    mjb_text right = mjb_text_make(s2, s2_byte_length, s2_encoding);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, mode, &matches, NULL, NULL),
         MJB_STATUS_OK, name);
     ATT_ASSERT(matches, expected, name);
 }
@@ -21,41 +22,106 @@ static void check_match(const char *s1, size_t s1_byte_length, mjb_encoding s1_e
 ATT_TEST(caseless) {
     bool matches = true;
 
-    ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, "A", 1, MJB_ENC_UTF_8,
-                          MJB_CASELESS_CANONICAL, NULL),
+    mjb_text left = mjb_text_utf8("a", 1);
+    mjb_text right = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, NULL, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL result");
-    ATT_ASSERT_STATUS(mjb_caseless_match(NULL, 1, MJB_ENC_UTF_8, "A", 1, MJB_ENC_UTF_8,
-                          MJB_CASELESS_CANONICAL, &matches),
+    left = mjb_text_utf8(NULL, 1);
+    right = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL first input");
     ATT_ASSERT(matches, false, "Caseless match clears its result after invalid first input");
 
     matches = true;
-    ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, NULL, 1, MJB_ENC_UTF_8,
-                          MJB_CASELESS_CANONICAL, &matches),
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8(NULL, 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL second input");
     ATT_ASSERT(matches, false, "Caseless match clears its result after invalid second input");
+    ATT_ASSERT_STATUS(mjb_caseless_match(NULL, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL first text");
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, NULL, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects a NULL second text");
+
+    // Malformed input: the policy applies to both texts, each with its own diagnostic
+    mjb_diagnostic first_diagnostic;
+    mjb_diagnostic second_diagnostic;
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("A", 1);
+    matches = true;
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, (mjb_malformed_policy)99,
+                          MJB_CASELESS_CANONICAL, &matches, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects an invalid malformed policy");
+    ATT_ASSERT(matches, false, "Caseless match clears its result after an invalid policy");
+
+    left = mjb_text_utf8("Stra\xC3\x9F"
+                         "e",
+        7);
+    right = mjb_text_utf8("STR\x80SSE", 7);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP,
+                          MJB_CASELESS_CANONICAL, &matches, &first_diagnostic, &second_diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Caseless match stops on a malformed second text");
+    ATT_ASSERT((unsigned int)first_diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Caseless match leaves the well-formed first diagnostic clear");
+    ATT_ASSERT(second_diagnostic.byte_offset, (size_t)3,
+        "Caseless match second diagnostic is relative to the second text");
+
+    left = mjb_text_utf8("\x80", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP,
+                          MJB_CASELESS_CANONICAL, &matches, &first_diagnostic, &second_diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Caseless match stops on a malformed first text");
+    ATT_ASSERT((unsigned int)first_diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "Caseless match first diagnostic reports the malformed byte");
+    ATT_ASSERT((unsigned int)second_diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Caseless match does not examine the second text after the first stops");
+
+    left = mjb_text_utf8("a\x80"
+                         "b",
+        3);
+    right = mjb_text_utf8("A\xEF\xBF\xBD"
+                          "B",
+        5);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_REPLACE,
+                          MJB_CASELESS_CANONICAL, &matches, &first_diagnostic, &second_diagnostic),
+        MJB_STATUS_OK, "Caseless match replaces malformed input");
+    ATT_ASSERT(matches, true, "A replaced byte matches U+FFFD");
+    ATT_ASSERT(first_diagnostic.byte_offset, (size_t)1, "Caseless match replacement offset");
+
+    left = mjb_text_utf8("Stra\x80\xC3\x9F"
+                         "e",
+        8);
+    right = mjb_text_utf8("STRASSE", 7);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_SKIP, MJB_CASELESS_CANONICAL,
+                          &matches, NULL, NULL),
+        MJB_STATUS_OK, "Caseless match skips malformed input");
+    ATT_ASSERT(matches, true, "A skipped byte does not affect the match");
 
     matches = true;
-    ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, "A", 1, MJB_ENC_UTF_8,
-                          (mjb_caseless_mode)99, &matches),
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("A", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, (mjb_caseless_mode)99, &matches, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Caseless match rejects an invalid mode");
     ATT_ASSERT(matches, false, "Caseless match clears its result after an invalid mode");
 
     matches = true;
-    ATT_ASSERT_STATUS(mjb_caseless_match("\x80", 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
-                          MJB_CASELESS_UNNORMALIZED, &matches),
+    left = mjb_text_utf8("\x80", 1);
+    right = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_UNNORMALIZED, &matches, NULL, NULL),
         MJB_STATUS_MALFORMED_INPUT, "Caseless match rejects malformed first input");
     ATT_ASSERT(matches, false, "Caseless match clears its result after malformed first input");
 
     matches = true;
-    ATT_ASSERT_STATUS(mjb_caseless_match("a", 1, MJB_ENC_UTF_8, "\x80", 1, MJB_ENC_UTF_8,
-                          MJB_CASELESS_UNNORMALIZED, &matches),
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("\x80", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_UNNORMALIZED, &matches, NULL, NULL),
         MJB_STATUS_MALFORMED_INPUT, "Caseless match rejects malformed second input");
     ATT_ASSERT(matches, false, "Caseless match clears its result after malformed second input");
 
     const char utf16_without_bom[] = { 'A', '\0' };
-    ATT_ASSERT_STATUS(mjb_caseless_match(utf16_without_bom, sizeof(utf16_without_bom),
-                          MJB_ENC_UTF_16, "a", 1, MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches),
+    left = mjb_text_make(utf16_without_bom, sizeof(utf16_without_bom), MJB_ENC_UTF_16);
+    right = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL, NULL),
         MJB_STATUS_INVALID_ENCODING, "Caseless match rejects generic UTF-16 without a BOM");
 
     check_match(NULL, 0, MJB_ENC_UTF_8, "", 0, MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, true,

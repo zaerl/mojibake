@@ -547,12 +547,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_caseless_match
     MJB_TEST_COVERAGE(mjb_caseless_match); // Added by the script
-    const char *left = "Stra\xC3\x9F" "e";
-    const char *right = "STRASSE";
+    mjb_text left = mjb_text_utf8("Stra\xC3\x9F" "e", MJB_NUL_TERMINATED);
+    mjb_text right = mjb_text_utf8("STRASSE", MJB_NUL_TERMINATED);
     bool matches;
 
-    if(mjb_caseless_match(left, strlen(left), MJB_ENC_UTF_8,
-        right, strlen(right), MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches) != MJB_STATUS_OK) {
+    if(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_caseless_match test failed"); // Added by the script
         return;
     }
@@ -567,11 +567,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_collation_compare
     MJB_TEST_COVERAGE(mjb_collation_compare); // Added by the script
+    mjb_text apple = mjb_text_utf8("apple", 5);
+    mjb_text banana = mjb_text_utf8("banana", 6);
     int order;
 
-    if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-        "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-        MJB_COLLATION_TERTIARY, &order) != MJB_STATUS_OK) {
+    if(mjb_collation_compare(&apple, &banana, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+        MJB_COLLATION_TERTIARY, &order, NULL, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_collation_compare test failed"); // Added by the script
         return;
     }
@@ -1241,12 +1242,12 @@ ATT_TEST(example) {
 {
     // Example for mjb_confusable_match
     MJB_TEST_COVERAGE(mjb_confusable_match); // Added by the script
-    const char *latin = "hello";
-    const char *mixed = "h\xD0\xB5llo"; // Cyrillic е
+    mjb_text latin = mjb_text_utf8("hello", MJB_NUL_TERMINATED);
+    mjb_text mixed = mjb_text_utf8("h\xD0\xB5llo", MJB_NUL_TERMINATED); // Cyrillic е
     bool confusable;
 
-    if(mjb_confusable_match(latin, strlen(latin), MJB_ENC_UTF_8,
-        mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
+    if(mjb_confusable_match(&latin, &mixed, MJB_MALFORMED_STOP, &confusable, NULL,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_confusable_match test failed"); // Added by the script
         return;
     }

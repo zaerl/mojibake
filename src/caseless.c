@@ -135,8 +135,7 @@ static mjb_status mjb_caseless_transform(mjb_caseless_value *value, mjb_caseless
     return MJB_STATUS_INVALID_ARGUMENT;
 }
 
-MJB_EXPORT mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+static mjb_status mjb_caseless_match_texts(const mjb_text *first, const mjb_text *second,
     mjb_caseless_mode mode, bool *matches) {
     if(matches == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -144,10 +143,18 @@ MJB_EXPORT mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
 
     *matches = false;
 
-    if(!mjb_caseless_mode_is_valid(mode) || (s1 == NULL && s1_byte_length > 0) ||
-        (s2 == NULL && s2_byte_length > 0)) {
+    if(!mjb_caseless_mode_is_valid(mode) || first == NULL || second == NULL ||
+        (first->buffer == NULL && first->byte_length > 0) ||
+        (second->buffer == NULL && second->byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *s1 = first->buffer;
+    size_t s1_byte_length = first->byte_length;
+    mjb_encoding s1_encoding = first->encoding;
+    const char *s2 = second->buffer;
+    size_t s2_byte_length = second->byte_length;
+    mjb_encoding s2_encoding = second->encoding;
 
     // First string.
     mjb_status status = mjb_resolve_input_byte_length(s1, &s1_byte_length, s1_encoding);
@@ -194,6 +201,49 @@ MJB_EXPORT mjb_status mjb_caseless_match(const char *s1, size_t s1_byte_length,
 
     mjb_caseless_value_free(&right);
     mjb_caseless_value_free(&left);
+
+    return status;
+}
+
+MJB_EXPORT mjb_status mjb_caseless_match(const mjb_text *first, const mjb_text *second,
+    mjb_malformed_policy malformed_policy, mjb_caseless_mode mode, bool *matches,
+    mjb_diagnostic *first_diagnostic, mjb_diagnostic *second_diagnostic) {
+    mjb_diagnostic_reset(first_diagnostic);
+    mjb_diagnostic_reset(second_diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        if(matches != NULL) {
+            *matches = false;
+        }
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    // Well-formed input is compared directly, malformed input is validated and repaired only then.
+    mjb_status status = mjb_caseless_match_texts(first, second, mode, matches);
+
+    if(status != MJB_STATUS_MALFORMED_INPUT) {
+        return status;
+    }
+
+    mjb_text first_prepared;
+    mjb_text second_prepared;
+    mjb_result first_sanitized = { NULL, 0, false };
+    mjb_result second_sanitized = { NULL, 0, false };
+    status = mjb_prepare_text_input(first, malformed_policy, first_diagnostic, &first_prepared,
+        &first_sanitized);
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_prepare_text_input(second, malformed_policy, second_diagnostic,
+            &second_prepared, &second_sanitized);
+    }
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_caseless_match_texts(&first_prepared, &second_prepared, mode, matches);
+    }
+
+    mjb_result_free(&first_sanitized);
+    mjb_result_free(&second_sanitized);
 
     return status;
 }

@@ -144,8 +144,10 @@ static mjb_status sweep_map_case_into(bool *cleared) {
 
 static mjb_status sweep_caseless_match(bool *cleared) {
     bool matches = false;
-    mjb_status status = mjb_caseless_match(sweep_text, sweep_text_size, MJB_ENC_UTF_8, sweep_text,
-        sweep_text_size, MJB_ENC_UTF_8, MJB_CASELESS_COMPATIBILITY, &matches);
+    mjb_text left = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_text right = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_status status = mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP,
+        MJB_CASELESS_COMPATIBILITY, &matches, NULL, NULL);
     *cleared = status != MJB_STATUS_OK || matches;
 
     return status;
@@ -224,10 +226,12 @@ static mjb_status sweep_collation_key_into(bool *cleared) {
 
 static mjb_status sweep_collation_compare(bool *cleared) {
     int order = 0;
-    mjb_status status = mjb_collation_compare(sweep_text, sweep_text_size, MJB_ENC_UTF_8,
-        "Stra\xC3\x9F"
-        "e",
-        7, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order);
+    mjb_text left = mjb_text_utf8(sweep_text, sweep_text_size);
+    mjb_text right = mjb_text_utf8("Stra\xC3\x9F"
+                                   "e",
+        7);
+    mjb_status status = mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP,
+        MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL);
     *cleared = status != MJB_STATUS_OK || order != 0;
 
     return status;
@@ -306,8 +310,10 @@ static mjb_status sweep_confusable_skeleton_into(bool *cleared) {
 
 static mjb_status sweep_confusable_match(bool *cleared) {
     bool confusable = false;
-    mjb_status status = mjb_confusable_match("pa\xD1\x83pal", 7, MJB_ENC_UTF_8, "paypal", 6,
-        MJB_ENC_UTF_8, &confusable);
+    mjb_text left = mjb_text_utf8("pa\xD1\x83pal", 7);
+    mjb_text right = mjb_text_utf8("paypal", 6);
+    mjb_status status = mjb_confusable_match(&left, &right, MJB_MALFORMED_STOP, &confusable, NULL,
+        NULL);
     *cleared = status != MJB_STATUS_OK || confusable;
 
     return status;

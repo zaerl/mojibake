@@ -1042,21 +1042,32 @@ MJB_EXPORT mjb_status mjb_collation_key_into(const mjb_text *text,
     return status;
 }
 
-MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
-    int *order) {
+MJB_EXPORT mjb_status mjb_collation_compare(const mjb_text *first, const mjb_text *second,
+    mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, int *order, mjb_diagnostic *first_diagnostic,
+    mjb_diagnostic *second_diagnostic) {
     if(order == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     *order = 0;
+    mjb_diagnostic_reset(first_diagnostic);
+    mjb_diagnostic_reset(second_diagnostic);
 
-    if(!mjb_collation_variable_weighting_is_valid(variable_weighting) ||
-        !mjb_collation_strength_is_valid(strength) || (s1 == NULL && s1_byte_length > 0) ||
-        (s2 == NULL && s2_byte_length > 0)) {
+    if(!mjb_malformed_policy_is_valid(malformed_policy) ||
+        !mjb_collation_variable_weighting_is_valid(variable_weighting) ||
+        !mjb_collation_strength_is_valid(strength) || first == NULL || second == NULL ||
+        (first->buffer == NULL && first->byte_length > 0) ||
+        (second->buffer == NULL && second->byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *s1 = first->buffer;
+    size_t s1_byte_length = first->byte_length;
+    mjb_encoding s1_encoding = first->encoding;
+    const char *s2 = second->buffer;
+    size_t s2_byte_length = second->byte_length;
+    mjb_encoding s2_encoding = second->encoding;
 
     mjb_status status = mjb_resolve_input_byte_length(s1, &s1_byte_length, s1_encoding);
 
@@ -1077,15 +1088,15 @@ MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_lengt
     mjb_sort_key sk1 = { 0, 0, 0 };
     mjb_sort_key sk2 = { 0, 0, 0 };
 
-    status = compute_sort_key(s1, s1_byte_length, s1_encoding, MJB_MALFORMED_STOP,
-        variable_weighting, strength, &sk1, NULL);
+    status = compute_sort_key(s1, s1_byte_length, s1_encoding, malformed_policy, variable_weighting,
+        strength, &sk1, first_diagnostic);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    status = compute_sort_key(s2, s2_byte_length, s2_encoding, MJB_MALFORMED_STOP,
-        variable_weighting, strength, &sk2, NULL);
+    status = compute_sort_key(s2, s2_byte_length, s2_encoding, malformed_policy, variable_weighting,
+        strength, &sk2, second_diagnostic);
 
     if(status != MJB_STATUS_OK) {
         sk_free(&sk1);
@@ -1127,16 +1138,15 @@ MJB_EXPORT mjb_status mjb_collation_key_into(const mjb_text *text,
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 
-MJB_EXPORT mjb_status mjb_collation_compare(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-    mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength,
-    int *order) {
-    (void)s1;
-    (void)s1_byte_length;
-    (void)s1_encoding;
-    (void)s2;
-    (void)s2_byte_length;
-    (void)s2_encoding;
+MJB_EXPORT mjb_status mjb_collation_compare(const mjb_text *first, const mjb_text *second,
+    mjb_malformed_policy malformed_policy, mjb_collation_variable_weighting variable_weighting,
+    mjb_collation_strength strength, int *order, mjb_diagnostic *first_diagnostic,
+    mjb_diagnostic *second_diagnostic) {
+    (void)first;
+    (void)second;
+    (void)malformed_policy;
+    (void)first_diagnostic;
+    (void)second_diagnostic;
     (void)variable_weighting;
     (void)strength;
     (void)order;

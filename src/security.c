@@ -498,8 +498,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const mjb_text *text, mjb_buf
 
 // Determine whether two strings are visually confusable (UTS#39 §4). They are confusable if their
 // skeletons are identical.
-MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
+static mjb_status mjb_confusable_match_texts(const mjb_text *first, const mjb_text *second,
     bool *confusable) {
     if(confusable == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -507,21 +506,20 @@ MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length
 
     *confusable = false;
 
-    if((s1 == NULL && s1_byte_length > 0) || (s2 == NULL && s2_byte_length > 0)) {
+    if(first == NULL || second == NULL || (first->buffer == NULL && first->byte_length > 0) ||
+        (second->buffer == NULL && second->byte_length > 0)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    mjb_text text1 = mjb_text_make(s1, s1_byte_length, s1_encoding);
-    mjb_text text2 = mjb_text_make(s2, s2_byte_length, s2_encoding);
     mjb_result skel1;
     mjb_result skel2;
-    mjb_status status = mjb_confusable_skeleton(&text1, MJB_ENC_UTF_8, &skel1);
+    mjb_status status = mjb_confusable_skeleton(first, MJB_ENC_UTF_8, &skel1);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
-    status = mjb_confusable_skeleton(&text2, MJB_ENC_UTF_8, &skel2);
+    status = mjb_confusable_skeleton(second, MJB_ENC_UTF_8, &skel2);
 
     if(status != MJB_STATUS_OK) {
         if(skel1.owned) {
@@ -543,6 +541,49 @@ MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length
     }
 
     return MJB_STATUS_OK;
+}
+
+MJB_EXPORT mjb_status mjb_confusable_match(const mjb_text *first, const mjb_text *second,
+    mjb_malformed_policy malformed_policy, bool *confusable, mjb_diagnostic *first_diagnostic,
+    mjb_diagnostic *second_diagnostic) {
+    mjb_diagnostic_reset(first_diagnostic);
+    mjb_diagnostic_reset(second_diagnostic);
+
+    if(!mjb_malformed_policy_is_valid(malformed_policy)) {
+        if(confusable != NULL) {
+            *confusable = false;
+        }
+
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    // Well-formed input is compared directly, malformed input is validated and repaired only then.
+    mjb_status status = mjb_confusable_match_texts(first, second, confusable);
+
+    if(status != MJB_STATUS_MALFORMED_INPUT) {
+        return status;
+    }
+
+    mjb_text first_prepared;
+    mjb_text second_prepared;
+    mjb_result first_sanitized = { NULL, 0, false };
+    mjb_result second_sanitized = { NULL, 0, false };
+    status = mjb_prepare_text_input(first, malformed_policy, first_diagnostic, &first_prepared,
+        &first_sanitized);
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_prepare_text_input(second, malformed_policy, second_diagnostic,
+            &second_prepared, &second_sanitized);
+    }
+
+    if(status == MJB_STATUS_OK) {
+        status = mjb_confusable_match_texts(&first_prepared, &second_prepared, confusable);
+    }
+
+    mjb_result_free(&first_sanitized);
+    mjb_result_free(&second_sanitized);
+
+    return status;
 }
 
 #else
@@ -572,16 +613,15 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton_into(const mjb_text *text, mjb_buf
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 
-MJB_EXPORT mjb_status mjb_confusable_match(const char *s1, size_t s1_byte_length,
-    mjb_encoding s1_encoding, const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
-    bool *confusable) {
-    (void)s1;
-    (void)s1_byte_length;
-    (void)s1_encoding;
-    (void)s2;
-    (void)s2_byte_length;
-    (void)s2_encoding;
+MJB_EXPORT mjb_status mjb_confusable_match(const mjb_text *first, const mjb_text *second,
+    mjb_malformed_policy malformed_policy, bool *confusable, mjb_diagnostic *first_diagnostic,
+    mjb_diagnostic *second_diagnostic) {
+    (void)first;
+    (void)second;
+    (void)malformed_policy;
     (void)confusable;
+    (void)first_diagnostic;
+    (void)second_diagnostic;
     return MJB_STATUS_FEATURE_NOT_ENABLED;
 }
 

@@ -101,8 +101,10 @@ static int test_collation_compare(const char *s1, size_t s1_byte_length, mjb_enc
     const char *s2, size_t s2_byte_length, mjb_encoding s2_encoding,
     mjb_collation_variable_weighting variable_weighting, mjb_collation_strength strength) {
     int order = 0;
-    mjb_status status = mjb_collation_compare(s1, s1_byte_length, s1_encoding, s2, s2_byte_length,
-        s2_encoding, variable_weighting, strength, &order);
+    mjb_text left = mjb_text_make(s1, s1_byte_length, s1_encoding);
+    mjb_text right = mjb_text_make(s2, s2_byte_length, s2_encoding);
+    mjb_status status = mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, variable_weighting,
+        strength, &order, NULL, NULL);
     MJB_TEST_COVERAGE(mjb_collation_compare);
     ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Collation comparison succeeds");
 
@@ -139,11 +141,12 @@ static int compare_shifted_test_strings(const char *left, size_t left_len, const
     mjb_result left_key = { NULL, 0, false };
     mjb_result right_key = { NULL, 0, false };
 
-    mjb_text text = mjb_text_utf8(left, left_len);
-    text = mjb_text_utf8(right, right_len);
-    if(mjb_collation_key(&text, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED, MJB_COLLATION_QUATERNARY,
-           &left_key, NULL) != MJB_STATUS_OK ||
-        mjb_collation_key(&text, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
+    mjb_text left_text = mjb_text_utf8(left, left_len);
+    mjb_text right_text = mjb_text_utf8(right, right_len);
+
+    if(mjb_collation_key(&left_text, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
+           MJB_COLLATION_QUATERNARY, &left_key, NULL) != MJB_STATUS_OK ||
+        mjb_collation_key(&right_text, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
             MJB_COLLATION_QUATERNARY, &right_key, NULL) != MJB_STATUS_OK) {
         mjb_result_free(&left_key);
         mjb_result_free(&right_key);
@@ -209,9 +212,9 @@ static void assert_collation_malformed_utf8(const unsigned char *buffer, size_t 
     ATT_ASSERT_STATUS(mjb_collation_key(&text, MJB_MALFORMED_STOP,
                           MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &result, NULL),
         MJB_STATUS_MALFORMED_INPUT, message);
-    ATT_ASSERT_STATUS(mjb_collation_compare(bytes, byte_length, MJB_ENC_UTF_8, bytes, byte_length,
-                          MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY,
-                          &order),
+    mjb_text left = mjb_text_utf8(bytes, byte_length);
+    mjb_text right = mjb_text_utf8(bytes, byte_length);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
         MJB_STATUS_MALFORMED_INPUT, message);
     ATT_ASSERT(order, 0, "Compare clears order before malformed-input failure");
 }
@@ -261,9 +264,10 @@ static void run_collation_test(const char *filename,
             if(variable_weighting == MJB_COLLATION_SHIFTED) {
                 cmp = compare_shifted_test_strings(prev_utf8, prev_len, curr_utf8, curr_len);
             } else {
-                mjb_status status = mjb_collation_compare(prev_utf8, prev_len, MJB_ENC_UTF_8,
-                    curr_utf8, curr_len, MJB_ENC_UTF_8, variable_weighting, MJB_COLLATION_TERTIARY,
-                    &cmp);
+                mjb_text left = mjb_text_utf8(prev_utf8, prev_len);
+                mjb_text right = mjb_text_utf8(curr_utf8, curr_len);
+                mjb_status status = mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP,
+                    variable_weighting, MJB_COLLATION_TERTIARY, &cmp, NULL, NULL);
                 MJB_TEST_COVERAGE(mjb_collation_compare);
 
                 if(status != MJB_STATUS_OK) {
@@ -343,25 +347,90 @@ ATT_TEST(collation) {
         MJB_STATUS_OK, "Key into measures empty input");
     ATT_ASSERT(into.size, (size_t)0, "Key into empty size");
     int order = 42;
-    ATT_ASSERT_STATUS(mjb_collation_compare(NULL, 1, MJB_ENC_UTF_8, "a", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
+    mjb_text left = mjb_text_utf8(NULL, 1);
+    mjb_text right = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Compare rejects NULL left");
     ATT_ASSERT(order, 0, "Compare clears order before invalid-argument failure");
-    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL),
+    ATT_ASSERT_STATUS(mjb_collation_compare(NULL, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Compare rejects a NULL first text");
+    ATT_ASSERT_STATUS(mjb_collation_compare(&right, NULL, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Compare rejects a NULL second text");
+    ATT_ASSERT_STATUS(mjb_collation_compare(&right, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
+        MJB_STATUS_OK, "Compare accepts the same text twice");
+    ATT_ASSERT(order, 0, "A text compares equal to itself");
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("b", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, NULL, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Compare rejects NULL order");
-    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UNKNOWN, "b", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
+    left = mjb_text_make("a", 1, MJB_ENC_UNKNOWN);
+    right = mjb_text_utf8("b", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
         MJB_STATUS_INVALID_ENCODING, "Compare rejects invalid encoding");
 
     order = 42;
-    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
-                          (mjb_collation_variable_weighting)99, MJB_COLLATION_TERTIARY, &order),
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("b", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, (mjb_collation_variable_weighting)99, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Compare rejects invalid variable weighting");
     ATT_ASSERT(order, 0, "Compare clears order after invalid variable weighting");
-    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, (mjb_collation_strength)99, &order),
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("b", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, (mjb_collation_strength)99, &order, NULL, NULL),
         MJB_STATUS_INVALID_ARGUMENT, "Compare rejects invalid strength");
+
+    // Malformed input: the policy applies to both texts, each with its own diagnostic
+    mjb_diagnostic first_diagnostic;
+    mjb_diagnostic second_diagnostic;
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("a", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, (mjb_malformed_policy)99,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
+        MJB_STATUS_INVALID_ARGUMENT, "Compare rejects invalid malformed policy");
+
+    left = mjb_text_utf8("a", 1);
+    right = mjb_text_utf8("b\x80", 2);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order,
+                          &first_diagnostic, &second_diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Compare stops on malformed second text");
+    ATT_ASSERT((unsigned int)first_diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Well-formed first text has a clear diagnostic");
+    ATT_ASSERT((unsigned int)second_diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "Second diagnostic reports the malformed byte");
+    ATT_ASSERT(second_diagnostic.byte_offset, (size_t)1,
+        "Second diagnostic offset is relative to the second text");
+
+    left = mjb_text_utf8("\x80", 1);
+    right = mjb_text_utf8("\x80", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order,
+                          &first_diagnostic, &second_diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Compare stops on malformed first text");
+    ATT_ASSERT((unsigned int)first_diagnostic.error,
+        (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
+        "First diagnostic reports the malformed byte");
+    ATT_ASSERT((unsigned int)second_diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Second text is not read after the first stops");
+
+    left = mjb_text_utf8("ca\x80t", 4);
+    right = mjb_text_utf8("ca\xEF\xBF\xBDt", 6);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_REPLACE,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order,
+                          &first_diagnostic, &second_diagnostic),
+        MJB_STATUS_OK, "Compare replaces malformed input");
+    ATT_ASSERT(order, 0, "A replaced byte compares equal to U+FFFD");
+    ATT_ASSERT(first_diagnostic.byte_offset, (size_t)2, "Replacement diagnostic offset");
+    ATT_ASSERT((unsigned int)second_diagnostic.error, (unsigned int)MJB_TEXT_ERROR_NONE,
+        "Well-formed second text has a clear diagnostic");
+
+    left = mjb_text_utf8("ca\x80t", 4);
+    right = mjb_text_utf8("cat", 3);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_SKIP,
+                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
+        MJB_STATUS_OK, "Compare skips malformed input");
+    ATT_ASSERT(order, 0, "A skipped byte does not affect the order");
     text = mjb_text_utf8("a", 1);
     ATT_ASSERT_STATUS(mjb_collation_key(&text, MJB_MALFORMED_STOP,
                           (mjb_collation_variable_weighting)99, MJB_COLLATION_TERTIARY, &ka, NULL),
@@ -692,6 +761,11 @@ ATT_TEST(collation) {
     run_collation_test("./unicode-data/collation/CollationTest/CollationTest_NON_IGNORABLE.txt",
         MJB_COLLATION_NON_IGNORABLE, "NON_IGNORABLE");
 
+    // The shifted conformance check compares two different strings, never one with itself
+    ATT_ASSERT(compare_shifted_test_strings("a", 1, "b", 1) < 0, true,
+        "Shifted test comparison orders a before b");
+    ATT_ASSERT(compare_shifted_test_strings("b", 1, "a", 1) > 0, true,
+        "Shifted test comparison orders b after a");
     run_collation_test("./unicode-data/collation/CollationTest/CollationTest_SHIFTED.txt",
         MJB_COLLATION_SHIFTED, "SHIFTED");
 }
@@ -711,8 +785,9 @@ ATT_TEST(collation) {
     ATT_ASSERT_STATUS(mjb_collation_key_into(&text, MJB_MALFORMED_STOP,
                           MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &into, NULL),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation key into reports feature status");
-    ATT_ASSERT_STATUS(mjb_collation_compare("a", 1, MJB_ENC_UTF_8, "b", 1, MJB_ENC_UTF_8,
-                          MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order),
+    mjb_text left = mjb_text_utf8("a", 1);
+    mjb_text right = mjb_text_utf8("b", 1);
+    ATT_ASSERT_STATUS(mjb_collation_compare(&left, &right, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &order, NULL, NULL),
         MJB_STATUS_FEATURE_NOT_ENABLED, "Disabled collation comparison reports feature status");
 }
 

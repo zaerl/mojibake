@@ -754,10 +754,14 @@ struct NumericValue {
 }
 
 [[nodiscard]] inline bool confusable_match(std::string_view s1, std::string_view s2,
-    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *s1_diagnostic = nullptr, mjb_diagnostic *s2_diagnostic = nullptr) {
     bool confusable = false;
-    detail::check_status(mjb_confusable_match(s1.data(), s1.size(), s1_encoding, s2.data(),
-                             s2.size(), s2_encoding, &confusable),
+    const mjb_text first = mjb_text_make(s1.data(), s1.size(), s1_encoding);
+    const mjb_text second = mjb_text_make(s2.data(), s2.size(), s2_encoding);
+    detail::check_status(mjb_confusable_match(&first, &second, malformed_policy, &confusable,
+                             s1_diagnostic, s2_diagnostic),
         "Confusable comparison failed");
 
     return confusable;
@@ -1060,10 +1064,15 @@ enum class CaselessMode {
 
 [[nodiscard]] inline bool caseless_match(std::string_view s1, std::string_view s2,
     CaselessMode mode = CaselessMode::Canonical, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
-    mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding s2_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *s1_diagnostic = nullptr, mjb_diagnostic *s2_diagnostic = nullptr) {
     bool matches = false;
-    detail::check_status(mjb_caseless_match(s1.data(), s1.size(), s1_encoding, s2.data(), s2.size(),
-                             s2_encoding, static_cast<mjb_caseless_mode>(mode), &matches),
+    const mjb_text first = mjb_text_make(s1.data(), s1.size(), s1_encoding);
+    const mjb_text second = mjb_text_make(s2.data(), s2.size(), s2_encoding);
+    detail::check_status(mjb_caseless_match(&first, &second, malformed_policy,
+                             static_cast<mjb_caseless_mode>(mode), &matches, s1_diagnostic,
+                             s2_diagnostic),
         "Caseless matching failed");
 
     return matches;
@@ -1084,12 +1093,16 @@ enum class CollationVariableWeighting {
 [[nodiscard]] inline int compare(std::string_view s1, std::string_view s2,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
     CollationStrength strength = CollationStrength::Tertiary,
-    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8) {
+    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *s1_diagnostic = nullptr, mjb_diagnostic *s2_diagnostic = nullptr) {
     int order = 0;
-    detail::check_status(mjb_collation_compare(s1.data(), s1.size(), s1_encoding, s2.data(),
-                             s2.size(), s2_encoding,
+    const mjb_text first = mjb_text_make(s1.data(), s1.size(), s1_encoding);
+    const mjb_text second = mjb_text_make(s2.data(), s2.size(), s2_encoding);
+    detail::check_status(mjb_collation_compare(&first, &second, malformed_policy,
                              static_cast<mjb_collation_variable_weighting>(variable_weighting),
-                             static_cast<mjb_collation_strength>(strength), &order),
+                             static_cast<mjb_collation_strength>(strength), &order, s1_diagnostic,
+                             s2_diagnostic),
         "Collation comparison failed");
 
     return order;

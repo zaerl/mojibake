@@ -144,9 +144,10 @@ function malformedPolicy(description = 'How malformed code-unit sequences are ha
   };
 }
 
-function diagnostic(description = 'Where to store the first malformed-input diagnostic, or NULL'): MojibakeArg {
+function diagnostic(description = 'Where to store the first malformed-input diagnostic, or NULL',
+  name = 'diagnostic'): MojibakeArg {
   return {
-    name: 'diagnostic',
+    name,
     type: 'mjb_diagnostic *',
     description,
     wasm_generated: true
@@ -1510,14 +1511,9 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`,
     name: 'mjb_caseless_match',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The first string to compare', 's1'),
-      byte_length('The length of the first string in bytes, or `MJB_NUL_TERMINATED`',
-        's1_byte_length'),
-      encoding('The encoding of the first string', 's1_encoding'),
-      buffer('The second string to compare', 's2'),
-      byte_length('The length of the second string in bytes, or `MJB_NUL_TERMINATED`',
-        's2_byte_length'),
-      encoding('The encoding of the second string', 's2_encoding'),
+      text('The first text to compare', 'first'),
+      text('The second text to compare', 'second'),
+      malformedPolicy(),
       {
         name: 'mode',
         type: 'mjb_caseless_mode',
@@ -1530,7 +1526,11 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`,
         type: 'bool *',
         description: 'Whether the strings are a caseless match',
         wasm_generated: true
-      }
+      },
+      diagnostic('Where to store the first malformed-input diagnostic of `first`, or NULL',
+        'first_diagnostic'),
+      diagnostic('Where to store the first malformed-input diagnostic of `second`, or NULL',
+        'second_diagnostic')
     ],
     wasm: true,
     section: Section.SortingComparison,
@@ -1539,26 +1539,31 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`,
       'Unnormalized mode implements D144 without normalization. Compatibility mode implements ' +
       'the iterated folding and compatibility normalization required by D146. Identifier mode ' +
       'implements D147 by applying NFD before `mjb_nfkc_casefold`; it removes default-ignorable ' +
-      'codepoints but does not validate identifier syntax.',
+      'codepoints but does not validate identifier syntax.' +
+      ' Malformed subsequences follow `malformed_policy`. `first_diagnostic` and ' +
+      '`second_diagnostic` each record the first malformed subsequence of their own text, with ' +
+      'offsets into that text; when `first` stops on malformed input, `second` is not examined ' +
+      'and `second_diagnostic` stays clear.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`matches` contains the comparison result' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`matches` is NULL, an input buffer is NULL with a non-zero size, or `mode` is invalid' },
+        '`matches`, `first`, or `second` is NULL, a text buffer is NULL with a non-zero size, ' +
+        '`mode` is invalid, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description:
         'An input encoding is invalid or lacks byte-order information' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
-        'An input contains an ill-formed code-unit sequence' },
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The identifier case-folding transform did not converge' }
     ],
-    example: `const char *left = "Stra\\xC3\\x9F" "e";
-const char *right = "STRASSE";
+    example: `mjb_text left = mjb_text_utf8("Stra\\xC3\\x9F" "e", MJB_NUL_TERMINATED);
+mjb_text right = mjb_text_utf8("STRASSE", MJB_NUL_TERMINATED);
 bool matches;
 
-if(mjb_caseless_match(left, strlen(left), MJB_ENC_UTF_8,
-    right, strlen(right), MJB_ENC_UTF_8, MJB_CASELESS_CANONICAL, &matches) != MJB_STATUS_OK) {
+if(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL, &matches, NULL,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1577,14 +1582,9 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
     name: 'mjb_collation_compare',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The first string to compare', 's1'),
-      byte_length('The length of the first string in bytes, or `MJB_NUL_TERMINATED`',
-        's1_byte_length'),
-      encoding('The encoding of the first string', 's1_encoding'),
-      buffer('The second string to compare', 's2'),
-      byte_length('The length of the second string in bytes, or `MJB_NUL_TERMINATED`',
-        's2_byte_length'),
-      encoding('The encoding of the second string', 's2_encoding'),
+      text('The first text to compare', 'first'),
+      text('The second text to compare', 'second'),
+      malformedPolicy(),
       {
         name: 'variable_weighting',
         type: 'mjb_collation_variable_weighting',
@@ -1604,7 +1604,11 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
         type: 'int *',
         description: 'The strcmp-style comparison result to store',
         wasm_generated: true
-      }
+      },
+      diagnostic('Where to store the first malformed-input diagnostic of `first`, or NULL',
+        'first_diagnostic'),
+      diagnostic('Where to store the first malformed-input diagnostic of `second`, or NULL',
+        'second_diagnostic')
     ],
     wasm: true,
     section: Section.SortingComparison,
@@ -1616,26 +1620,32 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
       'also compares variable elements moved to level 4 by `MJB_COLLATION_SHIFTED`; with ' +
       '`MJB_COLLATION_NON_IGNORABLE`, it is equivalent to tertiary strength. Collation equality ' +
       'at a selected strength is not Unicode caseless matching; use `mjb_caseless_match` when ' +
-      'case-insensitive equality is the intended operation. See ' +
+      'case-insensitive equality is the intended operation. Malformed subsequences follow ' +
+      '`malformed_policy`. `first_diagnostic` and `second_diagnostic` each record the first ' +
+      'malformed subsequence of their own text, with offsets into that text; when `first` stops ' +
+      'on malformed input, `second` is not read and `second_diagnostic` stays clear. See ' +
       '[Unicode collation](#unicode-collation) for the comparison process and configuration ' +
       'guidance. If `MJB_FEATURE_COLLATION=0` the function always returns ' +
       '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`order` is negative, zero, or positive according to the collation order' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
-        '`order` is NULL, an input buffer is NULL with a non-zero size, or an option is invalid' },
+        '`order`, `first`, or `second` is NULL, a text buffer is NULL with a non-zero size, the ' +
+        'malformed policy is invalid, or an option is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
-      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
-    example: `int order;
+    example: `mjb_text apple = mjb_text_utf8("apple", 5);
+mjb_text banana = mjb_text_utf8("banana", 6);
+int order;
 
-if(mjb_collation_compare("apple", 5, MJB_ENC_UTF_8,
-    "banana", 6, MJB_ENC_UTF_8, MJB_COLLATION_NON_IGNORABLE,
-    MJB_COLLATION_TERTIARY, &order) != MJB_STATUS_OK) {
+if(mjb_collation_compare(&apple, &banana, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
+    MJB_COLLATION_TERTIARY, &order, NULL, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -2981,20 +2991,19 @@ printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);`,
     name: 'mjb_confusable_match',
     attributes: ['MJB_NODISCARD'],
     args: [
-      buffer('The first string', 's1'),
-      byte_length('The length of the first string in bytes, or `MJB_NUL_TERMINATED`',
-        's1_byte_length'),
-      encoding('The encoding of the first string', 's1_encoding'),
-      buffer('The second string', 's2'),
-      byte_length('The length of the second string in bytes, or `MJB_NUL_TERMINATED`',
-        's2_byte_length'),
-      encoding('The encoding of the second string', 's2_encoding'),
+      text('The first text', 'first'),
+      text('The second text', 'second'),
+      malformedPolicy(),
       {
         name: 'confusable',
         type: 'bool *',
         description: 'Whether the strings are visually confusable',
         wasm_generated: true
-      }
+      },
+      diagnostic('Where to store the first malformed-input diagnostic of `first`, or NULL',
+        'first_diagnostic'),
+      diagnostic('Where to store the first malformed-input diagnostic of `second`, or NULL',
+        'second_diagnostic')
     ],
     wasm: true,
     section: Section.Security,
@@ -3002,23 +3011,30 @@ printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);`,
     details: 'Compute the confusable skeleton of both strings and store true when the ' +
       'skeletons are equal, meaning the two strings are visually confusable, such as ' +
       '"good" and "gооd" with Cyrillic о. If `MJB_FEATURE_SECURITY=0` the function always returns ' +
-      '`MJB_STATUS_FEATURE_NOT_ENABLED`.',
+      '`MJB_STATUS_FEATURE_NOT_ENABLED`.' +
+      ' Malformed subsequences follow `malformed_policy`. `first_diagnostic` and ' +
+      '`second_diagnostic` each record the first malformed subsequence of their own text, with ' +
+      'offsets into that text; when `first` stops on malformed input, `second` is not examined ' +
+      'and `second_diagnostic` stays clear.',
     returns: [
       { value: 'MJB_STATUS_OK', description: '`confusable` contains the comparison result' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`confusable` is NULL, or an input buffer is NULL with a non-zero size' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`confusable`, `first`, or `second` is NULL, a text buffer is NULL with a non-zero ' +
+        'size, or the malformed policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'An input encoding is invalid or lacks byte-order information' },
-      { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'An input contains an ill-formed code-unit sequence' },
+      { value: 'MJB_STATUS_MALFORMED_INPUT', description:
+        'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_OVERFLOW', description: 'An intermediate size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' },
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
-    example: `const char *latin = "hello";
-const char *mixed = "h\\xD0\\xB5llo"; // Cyrillic е
+    example: `mjb_text latin = mjb_text_utf8("hello", MJB_NUL_TERMINATED);
+mjb_text mixed = mjb_text_utf8("h\\xD0\\xB5llo", MJB_NUL_TERMINATED); // Cyrillic е
 bool confusable;
 
-if(mjb_confusable_match(latin, strlen(latin), MJB_ENC_UTF_8,
-    mixed, strlen(mixed), MJB_ENC_UTF_8, &confusable) != MJB_STATUS_OK) {
+if(mjb_confusable_match(&latin, &mixed, MJB_MALFORMED_STOP, &confusable, NULL,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 

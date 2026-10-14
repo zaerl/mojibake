@@ -78,6 +78,38 @@ static inline mjb_status MJB_USED mjb_repair_text_input(const char **buffer, siz
     return status;
 }
 
+/**
+ * Validate one input of a function that failed with MJB_STATUS_MALFORMED_INPUT. A well-formed text
+ * is used as-is. A malformed one records its diagnostic, then stops or, with MJB_MALFORMED_REPLACE
+ * and MJB_MALFORMED_SKIP, is repaired into a UTF-8 copy owned by `sanitized`.
+ */
+static inline mjb_status MJB_USED mjb_prepare_text_input(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, mjb_diagnostic *diagnostic, mjb_text *prepared,
+    mjb_result *sanitized) {
+    *prepared = *text;
+
+    mjb_diagnostic validity;
+    mjb_status status = mjb_validate_encoding(text, &validity);
+
+    if(status != MJB_STATUS_MALFORMED_INPUT) {
+        return status;
+    }
+
+    mjb_diagnostic_record(diagnostic, &validity);
+
+    if(malformed_policy == MJB_MALFORMED_STOP) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
+    status = mjb_convert_encoding(text, malformed_policy, MJB_ENC_UTF_8, sanitized, NULL);
+
+    if(status == MJB_STATUS_OK) {
+        *prepared = mjb_text_utf8(sanitized->output, sanitized->output_size);
+    }
+
+    return status;
+}
+
 static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
     return state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT;
 }

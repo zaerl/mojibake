@@ -543,10 +543,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 8: { // Collation comparison, input split in two halves
             int order;
-            fuzz_sink += (size_t)mjb_collation_compare(buffer, size / 2, encoding,
-                buffer + size / 2, size - size / 2, encoding,
+            mjb_text left = mjb_text_make(buffer, size / 2, encoding);
+            mjb_text right = mjb_text_make(buffer + size / 2, size - size / 2, encoding);
+            mjb_diagnostic first_diagnostic;
+            mjb_diagnostic second_diagnostic;
+            fuzz_sink += (size_t)mjb_collation_compare(&left, &right, malformed_policy,
                 (variant & 0x10) ? MJB_COLLATION_SHIFTED : MJB_COLLATION_NON_IGNORABLE,
-                (mjb_collation_strength)((variant >> 5) % 4), &order);
+                (mjb_collation_strength)((variant >> 5) % 4), &order, &first_diagnostic,
+                &second_diagnostic);
+            fuzz_sink += first_diagnostic.byte_offset + second_diagnostic.byte_offset;
             break;
         }
 
@@ -614,8 +619,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             }
 
             bool confusable;
-            fuzz_sink += (size_t)mjb_confusable_match(buffer, size / 2, encoding, buffer + size / 2,
-                size - size / 2, encoding, &confusable);
+            mjb_text left = mjb_text_make(buffer, size / 2, encoding);
+            mjb_text right = mjb_text_make(buffer + size / 2, size - size / 2, encoding);
+            mjb_diagnostic first_diagnostic;
+            mjb_diagnostic second_diagnostic;
+            fuzz_sink += (size_t)mjb_confusable_match(&left, &right, malformed_policy, &confusable,
+                &first_diagnostic, &second_diagnostic);
+            fuzz_sink += first_diagnostic.byte_offset + second_diagnostic.byte_offset;
             break;
         }
 
@@ -669,8 +679,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         case 20: { // Unicode caseless matching, input split in two halves
             bool matches = false;
-            fuzz_sink += (size_t)mjb_caseless_match(buffer, size / 2, encoding, buffer + size / 2,
-                size - size / 2, encoding, (mjb_caseless_mode)(variant % 4), &matches);
+            mjb_text left = mjb_text_make(buffer, size / 2, encoding);
+            mjb_text right = mjb_text_make(buffer + size / 2, size - size / 2, encoding);
+            mjb_diagnostic first_diagnostic;
+            mjb_diagnostic second_diagnostic;
+            fuzz_sink += (size_t)mjb_caseless_match(&left, &right, malformed_policy,
+                (mjb_caseless_mode)(variant % 4), &matches, &first_diagnostic, &second_diagnostic);
+            fuzz_sink += first_diagnostic.byte_offset + second_diagnostic.byte_offset;
             fuzz_sink += (size_t)matches;
             break;
         }
