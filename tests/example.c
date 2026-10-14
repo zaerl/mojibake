@@ -495,11 +495,11 @@ ATT_TEST(example) {
 {
     // Example for mjb_convert_encoding
     MJB_TEST_COVERAGE(mjb_convert_encoding); // Added by the script
-    const char *input = "caf\xC3\xA9";
+    mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
     mjb_result result;
 
-    if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
+    if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+        NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_convert_encoding test failed"); // Added by the script
         return;
     }
@@ -514,27 +514,32 @@ ATT_TEST(example) {
 {
     // Example for mjb_convert_encoding_into
     MJB_TEST_COVERAGE(mjb_convert_encoding_into); // Added by the script
-    const char *input = "caf\xC3\xA9";
-    size_t output_size = 0;
+    mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_16LE);
 
-    if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+    // Query the required size
+    if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed"); // Added by the script
         return;
     }
 
-    unsigned char output[8];
+    unsigned char storage[8];
 
-    if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
-        MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
-        NULL) != MJB_STATUS_OK) {
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_16LE);
+
+    if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_convert_encoding_into test failed"); // Added by the script
         return;
     }
 
     // UTF-16LE payload bytes (no terminator): 8
-    // printf("UTF-16LE payload bytes (no terminator): %zu", output_size);
-    snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE payload bytes (no terminator): %zu", output_size); // Added by the script
+    // printf("UTF-16LE payload bytes (no terminator): %zu", output.size);
+    snprintf(test_buffer, sizeof(test_buffer), "UTF-16LE payload bytes (no terminator): %zu", output.size); // Added by the script
     ATT_ASSERT(test_buffer, "UTF-16LE payload bytes (no terminator): 8", "mjb_convert_encoding_into test failed"); // Added by the script
 }
 
@@ -1568,8 +1573,10 @@ ATT_TEST(example) {
     MJB_TEST_COVERAGE(mjb_result_free); // Added by the script
     mjb_result result;
 
-    if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-        MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
+    mjb_text input = mjb_text_utf8("A", 1);
+
+    if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+        NULL) != MJB_STATUS_OK ||
         mjb_result_free(&result) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_result_free test failed"); // Added by the script
         return;

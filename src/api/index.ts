@@ -867,20 +867,20 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length, mjb_encoding encoding,
-  // mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, mjb_result *result,
-  // mjb_diagnostic *diagnostic)
-  convertEncoding(input: MojibakeInput, outputEncoding = Encoding.UTF_8,
-    options: TextInputOptions = {}): Result | null {
+  // mjb_status mjb_convert_encoding(const mjb_text *text, mjb_malformed_policy malformed_policy,
+  // mjb_encoding output_encoding, mjb_result *result, mjb_diagnostic *diagnostic)
+  // Unlike the other transformations, the output encoding defaults to UTF-8 rather than the input
+  // encoding, since converting to the same encoding is rarely the intent.
+  convertEncoding(input: MojibakeInput, options: TextInputOptions = {}): Result | null {
     const wasmInput = this.copyInput(input, options.encoding);
-    outputEncoding = this.resolveEncoding(outputEncoding);
+    const textPtr = this.copyText(wasmInput);
+    const outputEncoding = this.resolveEncoding(options.outputEncoding ?? Encoding.UTF_8);
     const resultPtr = this.malloc(RESULT_SIZE);
     let result: RawResult | null = null;
 
     try {
-      const status = this.module._mjb_convert_encoding(wasmInput.ptr, wasmInput.size,
-        wasmInput.encoding, options.malformedPolicy ?? MalformedPolicy.STOP, outputEncoding,
-        resultPtr, 0);
+      const status = this.module._mjb_convert_encoding(textPtr,
+        options.malformedPolicy ?? MalformedPolicy.STOP, outputEncoding, resultPtr, 0);
 
       if(status !== Status.OK) {
         return null;
@@ -895,6 +895,7 @@ export class Mojibake {
       }
 
       this.free(wasmInput.ptr);
+      this.free(textPtr);
       this.free(resultPtr);
     }
   }

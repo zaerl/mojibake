@@ -467,20 +467,23 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
             mjb_malformed_policy policy = (mjb_malformed_policy)(variant % 3);
 
-            if(mjb_convert_encoding(buffer, size, encoding, policy, output_encoding, &result,
-                   NULL) == MJB_STATUS_OK) {
+            mjb_text text = mjb_text_make(buffer, size, encoding);
+            if(mjb_convert_encoding(&text, policy, output_encoding, &result, NULL) ==
+                MJB_STATUS_OK) {
                 mjb_result_free(&result);
             }
 
-            size_t required = 0;
+            mjb_buffer into = mjb_buffer_make(NULL, 0, output_encoding);
 
-            if(mjb_convert_encoding_into(buffer, size, encoding, policy, output_encoding, NULL,
-                   &required, NULL) == MJB_STATUS_OK &&
-                required <= 4096) {
+            if(mjb_convert_encoding_into(&text, policy, &into, NULL) == MJB_STATUS_OK &&
+                into.size <= 4096) {
                 char output[4096];
-                size_t capacity = (variant & 0x80) != 0 && required > 0 ? required - 1 : required;
-                fuzz_sink += (size_t)mjb_convert_encoding_into(buffer, size, encoding, policy,
-                    output_encoding, output, &capacity, NULL);
+                size_t required = into.size;
+                // Sometimes leave one byte short to exercise the too-small path
+                into = mjb_buffer_make(output,
+                    (variant & 0x80) != 0 && required > 0 ? required - 1 : required,
+                    output_encoding);
+                fuzz_sink += (size_t)mjb_convert_encoding_into(&text, policy, &into, NULL);
             }
 
             break;

@@ -1622,9 +1622,7 @@ Convert from one encoding to another.
 
 ```c
 mjb_status mjb_convert_encoding(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_encoding output_encoding,
     mjb_result *result,
@@ -1634,9 +1632,7 @@ mjb_status mjb_convert_encoding(
 
 Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/BE). Generic UTF-16/UTF-32 input consumes a leading BOM as the encoding scheme signature and uses it to resolve byte order. Explicit-endian input preserves an initial U+FEFF as text. Generic UTF-16/UTF-32 without a BOM, and generic UTF-16/UTF-32 output, are rejected because the byte order is not specified. Malformed source subsequences are stopped, replaced, or skipped according to `malformed_policy`.
 
-- `buffer` - The string to convert
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The input encoding of the string
+- `text` - The text to convert
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `output_encoding` - The output encoding of the string
 - `result` - The pointer to store the result. If `result->owned` is true, `result->output` is library-allocated and must be freed with `mjb_result_free(result)`. Otherwise it points into the input, which must outlive the result
@@ -1645,7 +1641,7 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 **Returns**
 
 - `MJB_STATUS_OK` - The string was converted
-- `MJB_STATUS_INVALID_ARGUMENT` - `result` is NULL, `buffer` is NULL with a non-zero size, or the malformed policy is invalid
+- `MJB_STATUS_INVALID_ARGUMENT` - `result` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent an input codepoint
@@ -1655,11 +1651,11 @@ Convert a string between the supported encodings (UTF-8, UTF-16LE/BE, UTF-32LE/B
 **Example**
 
 ```c
-const char *input = "caf\xC3\xA9";
+mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_convert_encoding(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
+if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+    NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
@@ -1676,32 +1672,24 @@ Convert from one encoding to another into a caller-provided buffer.
 
 ```c
 mjb_status mjb_convert_encoding_into(
-    const char *buffer,
-    size_t byte_length,
-    mjb_encoding encoding,
+    const mjb_text *text,
     mjb_malformed_policy malformed_policy,
-    mjb_encoding output_encoding,
-    void *output,
-    size_t *output_size,
+    mjb_buffer *output,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. Set `output` to NULL to query the required size. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity.
+Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`, without allocating memory. `output->encoding` selects the output encoding. Set `output->data` to NULL to query the required size. If `output->data` is non-NULL, `output->size` supplies its capacity; on return it contains the required size when the buffer is too small, or the written size on success. The size is the encoded payload byte count: terminators are excluded, and this function does not write a terminator. If capacity is insufficient, or another error occurs, the output buffer may hold a partial prefix of the result, but nothing is written past its capacity.
 
-- `buffer` - The string to convert
-- `byte_length` - The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an encoding-aware NUL code unit
-- `encoding` - The input encoding of the string
+- `text` - The text to convert
 - `malformed_policy` - How malformed code-unit sequences are handled
-- `output_encoding` - The output encoding of the string
-- `output` - The caller-provided output buffer, or NULL to query the required size. The caller retains ownership
-- `output_size` - The input capacity and output required or written byte count
+- `output` - The output storage, its capacity, and its encoding. The caller retains ownership of `output->data`
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
 
 - `MJB_STATUS_OK` - The required size was returned or the string was converted
-- `MJB_STATUS_INVALID_ARGUMENT` - `output_size` is NULL, or `buffer` is NULL with a non-zero size
+- `MJB_STATUS_INVALID_ARGUMENT` - `output` or `text` is NULL, `text->buffer` is NULL with a non-zero size, or the malformed policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - An encoding is invalid or lacks byte-order information
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_UNSUPPORTED` - The requested output encoding cannot represent an input codepoint
@@ -1711,24 +1699,28 @@ Convert a string using the same encoding and BOM rules as `mjb_convert_encoding`
 **Example**
 
 ```c
-const char *input = "caf\xC3\xA9";
-size_t output_size = 0;
+mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_16LE);
 
-if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_16LE, NULL, &output_size, NULL) != MJB_STATUS_OK) {
+// Query the required size
+if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-unsigned char output[8];
+unsigned char storage[8];
 
-if(output_size > sizeof(output) || mjb_convert_encoding_into(input, strlen(input),
-    MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &output_size,
-    NULL) != MJB_STATUS_OK) {
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_16LE);
+
+if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
 // UTF-16LE payload bytes (no terminator): 8
-printf("UTF-16LE payload bytes (no terminator): %zu", output_size);
+printf("UTF-16LE payload bytes (no terminator): %zu", output.size);
 ```
 
 See also: [`mjb_convert_encoding`](#mjb_convert_encoding), [`mjb_detect_encoding`](#mjb_detect_encoding), [`mjb_codepoint_encode`](#mjb_codepoint_encode).
@@ -4057,8 +4049,10 @@ Free the memory allocated for a `mjb_result`. The `result` pointer is set to NUL
 ```c
 mjb_result result;
 
-if(mjb_convert_encoding("A", 1, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK ||
+mjb_text input = mjb_text_utf8("A", 1);
+
+if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
+    NULL) != MJB_STATUS_OK ||
     mjb_result_free(&result) != MJB_STATUS_OK) {
     return 1;
 }

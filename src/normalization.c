@@ -605,8 +605,9 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
 
     if(is_normalized == MJB_QC_YES) {
         if(encoding != output_encoding) {
-            status = mjb_convert_encoding(buffer, byte_length, encoding, MJB_MALFORMED_STOP,
-                output_encoding, result, NULL);
+            mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+            status = mjb_convert_encoding(&resolved, MJB_MALFORMED_STOP, output_encoding, result,
+                NULL);
             mjb_result_free(&sanitized);
 
             return status;
@@ -740,8 +741,8 @@ MJB_EXPORT mjb_status mjb_normalize_into(const mjb_text *text,
 
     if(is_normalized == MJB_QC_YES) {
         if(encoding != output_encoding) {
-            status = mjb_convert_encoding_into(buffer, byte_length, encoding, MJB_MALFORMED_STOP,
-                output_encoding, data, output_size, NULL);
+            mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+            status = mjb_convert_encoding_into(&resolved, MJB_MALFORMED_STOP, output, NULL);
         } else {
             status = mjb_output_copy_into(buffer, byte_length, data, output_size);
         }

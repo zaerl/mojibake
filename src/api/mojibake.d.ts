@@ -62,7 +62,7 @@ export type MojibakeWasmModule = {
   // Encode a codepoint to a string.
   _mjb_codepoint_encode: (codepoint: Codepoint, buffer: Pointer, byte_length: number, encoding: number) => number;
   // Convert from one encoding to another.
-  _mjb_convert_encoding: (buffer: Pointer, byte_length: number, encoding: number, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
+  _mjb_convert_encoding: (text: Pointer, malformed_policy: number, output_encoding: number, result: Pointer, diagnostic: Pointer) => number;
   // Compare two strings using a Unicode caseless matching relation.
   _mjb_caseless_match: (s1: Pointer, s1_byte_length: number, s1_encoding: number, s2: Pointer, s2_byte_length: number, s2_encoding: number, mode: number, matches: Pointer) => number;
   // Compare two strings using UCA.

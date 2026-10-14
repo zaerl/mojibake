@@ -632,8 +632,9 @@ static mjb_status mjb_idna_finish_output(mjb_output *output, mjb_encoding output
         return MJB_STATUS_OK;
     }
 
-    mjb_status status = mjb_convert_encoding(output->buffer, output->size, MJB_ENC_UTF_8,
-        MJB_MALFORMED_STOP, output_encoding, result, NULL);
+    mjb_text text = mjb_text_utf8(output->buffer, output->size);
+    mjb_status status = mjb_convert_encoding(&text, MJB_MALFORMED_STOP, output_encoding, result,
+        NULL);
     mjb_free(output->buffer);
     output->buffer = NULL;
 

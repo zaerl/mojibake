@@ -880,13 +880,17 @@ static mjb_status mjb_convert_encoding_write(mjb_output *output, const void *con
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
-    mjb_result *result, mjb_diagnostic *diagnostic) {
-    if(result == NULL || (buffer == NULL && byte_length > 0) ||
+MJB_EXPORT mjb_status mjb_convert_encoding(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, mjb_encoding output_encoding, mjb_result *result,
+    mjb_diagnostic *diagnostic) {
+    if(result == NULL || text == NULL || (text->buffer == NULL && text->byte_length > 0) ||
         !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     mjb_diagnostic_reset(diagnostic);
 
@@ -914,8 +918,8 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
 
     if(byte_length == 0 || encoding == output_encoding) {
         mjb_diagnostic validity;
-        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        status = mjb_validate_encoding(&text, &validity);
+        mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_validate_encoding(&resolved, &validity);
         mjb_diagnostic_record(diagnostic, &validity);
 
         if(status == MJB_STATUS_OK) {
@@ -955,12 +959,15 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const char *buffer, size_t byte_lengt
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy, mjb_encoding output_encoding,
-    void *output, size_t *output_size, mjb_diagnostic *diagnostic) {
-    if(output_size == NULL) {
+MJB_EXPORT mjb_status mjb_convert_encoding_into(const mjb_text *text,
+    mjb_malformed_policy malformed_policy, mjb_buffer *output, mjb_diagnostic *diagnostic) {
+    if(output == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    void *data = output->data;
+    size_t *output_size = &output->size;
+    mjb_encoding output_encoding = output->encoding;
 
     mjb_diagnostic_reset(diagnostic);
 
@@ -970,11 +977,15 @@ MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    if(buffer == NULL && byte_length > 0) {
+    if(text == NULL || (text->buffer == NULL && text->byte_length > 0)) {
         *output_size = 0;
 
         return MJB_STATUS_INVALID_ARGUMENT;
     }
+
+    const char *buffer = text->buffer;
+    size_t byte_length = text->byte_length;
+    mjb_encoding encoding = text->encoding;
 
     if(!mjb_encoding_is_valid_output(output_encoding)) {
         *output_size = 0;
@@ -1002,12 +1013,12 @@ MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_
 
     if(byte_length == 0 || encoding == output_encoding) {
         mjb_diagnostic validity;
-        mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        status = mjb_validate_encoding(&text, &validity);
+        mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
+        status = mjb_validate_encoding(&resolved, &validity);
         mjb_diagnostic_record(diagnostic, &validity);
 
         if(status == MJB_STATUS_OK) {
-            return mjb_output_copy_into(buffer, byte_length, output, output_size);
+            return mjb_output_copy_into(buffer, byte_length, data, output_size);
         }
 
         if(status != MJB_STATUS_MALFORMED_INPUT || malformed_policy == MJB_MALFORMED_STOP) {
@@ -1020,5 +1031,5 @@ MJB_EXPORT mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_
     mjb_convert_encoding_context context = { buffer, byte_length, input_index, input_encoding,
         malformed_policy, output_encoding, diagnostic };
 
-    return mjb_output_into(output, output_size, mjb_convert_encoding_write, &context);
+    return mjb_output_into(data, output_size, mjb_convert_encoding_write, &context);
 }
