@@ -15,6 +15,7 @@
 typedef struct mjb_idna_codepoints {
     mjb_codepoint *values;
     size_t count;
+    size_t capacity; // Allocated length of values
 } mjb_idna_codepoints;
 
 typedef enum mjb_idna_joining_type {
@@ -26,15 +27,17 @@ typedef enum mjb_idna_joining_type {
 } mjb_idna_joining_type;
 
 static void mjb_idna_codepoints_free(mjb_idna_codepoints *codepoints) {
-    mjb_free(codepoints->values);
+    mjb_free(codepoints->values, codepoints->capacity * sizeof(mjb_codepoint));
     codepoints->values = NULL;
     codepoints->count = 0;
+    codepoints->capacity = 0;
 }
 
 static mjb_status mjb_idna_decode_utf8(const char *buffer, size_t byte_length,
     mjb_idna_codepoints *codepoints) {
     codepoints->values = NULL;
     codepoints->count = 0;
+    codepoints->capacity = 0;
 
     if(byte_length == 0) {
         return MJB_STATUS_OK;
@@ -49,6 +52,8 @@ static mjb_status mjb_idna_decode_utf8(const char *buffer, size_t byte_length,
     if(codepoints->values == NULL) {
         return MJB_STATUS_NO_MEMORY;
     }
+
+    codepoints->capacity = byte_length;
 
     uint8_t state = MJB_UTF_ACCEPT;
     bool in_error = false;
@@ -154,7 +159,7 @@ static mjb_status mjb_idna_map(const char *buffer, size_t byte_length, mjb_encod
     return MJB_STATUS_OK;
 
 fail:
-    mjb_free(mapped->buffer);
+    mjb_free(mapped->buffer, mapped->capacity);
     mapped->buffer = NULL;
     return status;
 }
@@ -172,6 +177,8 @@ static mjb_status mjb_idna_decode_label(const char *label, size_t byte_length, m
 
     mjb_codepoint *decoded = NULL;
     size_t count = 0;
+    // mjb_punycode_decode allocates one codepoint per input byte.
+    size_t decoded_size = (byte_length - 4) * sizeof(mjb_codepoint);
     mjb_status status = mjb_punycode_decode(label + 4, byte_length - 4, &decoded, &count);
 
     if(status == MJB_STATUS_NO_MEMORY || status == MJB_STATUS_OVERFLOW) {
@@ -180,13 +187,13 @@ static mjb_status mjb_idna_decode_label(const char *label, size_t byte_length, m
 
     if(status != MJB_STATUS_OK) {
         info->errors |= MJB_IDNA_ERROR_PUNYCODE;
-        mjb_free(decoded);
+        mjb_free(decoded, decoded_size);
         return mjb_output_write(unicode, label, byte_length);
     }
 
     if(count == 0) {
         info->errors |= MJB_IDNA_ERROR_PUNYCODE;
-        mjb_free(decoded);
+        mjb_free(decoded, decoded_size);
 
         if(byte_length == 4) {
             return MJB_STATUS_OK;
@@ -202,7 +209,7 @@ static mjb_status mjb_idna_decode_label(const char *label, size_t byte_length, m
         status = mjb_output_codepoint(unicode, decoded[i], MJB_ENC_UTF_8);
 
         if(status != MJB_STATUS_OK) {
-            mjb_free(decoded);
+            mjb_free(decoded, decoded_size);
             return status;
         }
     }
@@ -211,7 +218,7 @@ static mjb_status mjb_idna_decode_label(const char *label, size_t byte_length, m
         info->errors |= MJB_IDNA_ERROR_PUNYCODE;
     }
 
-    mjb_free(decoded);
+    mjb_free(decoded, decoded_size);
     return MJB_STATUS_OK;
 }
 
@@ -233,7 +240,7 @@ static mjb_status mjb_idna_decode_domain(const char *buffer, size_t byte_length,
         status = mjb_idna_decode_label(buffer + label_start, i - label_start, unicode, info);
 
         if(status != MJB_STATUS_OK) {
-            mjb_free(unicode->buffer);
+            mjb_free(unicode->buffer, unicode->capacity);
             unicode->buffer = NULL;
             return status;
         }
@@ -242,7 +249,7 @@ static mjb_status mjb_idna_decode_domain(const char *buffer, size_t byte_length,
             status = mjb_output_write(unicode, ".", 1);
 
             if(status != MJB_STATUS_OK) {
-                mjb_free(unicode->buffer);
+                mjb_free(unicode->buffer, unicode->capacity);
                 unicode->buffer = NULL;
                 return status;
             }
@@ -608,7 +615,7 @@ static mjb_status mjb_idna_encode_domain(const char *buffer, size_t byte_length,
     return MJB_STATUS_OK;
 
 fail:
-    mjb_free(ascii->buffer);
+    mjb_free(ascii->buffer, ascii->capacity);
     ascii->buffer = NULL;
     return status;
 }
@@ -616,26 +623,22 @@ fail:
 static mjb_status mjb_idna_finish_output(mjb_output *output, mjb_encoding output_encoding,
     mjb_result *result) {
     if(output_encoding == MJB_ENC_UTF_8) {
-        result->output = output->buffer;
-        result->output_size = output->size;
-        result->owned = true;
+        mjb_result_own(result, output->buffer, output->size, output->capacity);
         output->buffer = NULL;
         return MJB_STATUS_OK;
     }
 
     if(output->size == 0) {
-        mjb_free(output->buffer);
+        mjb_free(output->buffer, output->capacity);
         output->buffer = NULL;
-        result->output = NULL;
-        result->output_size = 0;
-        result->owned = false;
+        mjb_result_borrow(result, NULL, 0);
         return MJB_STATUS_OK;
     }
 
     mjb_text text = mjb_text_utf8(output->buffer, output->size);
     mjb_status status = mjb_convert_encoding(&text, MJB_MALFORMED_STOP, output_encoding, result,
         NULL);
-    mjb_free(output->buffer);
+    mjb_free(output->buffer, output->capacity);
     output->buffer = NULL;
 
     return status;
@@ -648,9 +651,7 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     }
 
     info->errors = MJB_IDNA_ERROR_NONE;
-    result->output = NULL;
-    result->output_size = 0;
-    result->owned = false;
+    mjb_result_borrow(result, NULL, 0);
 
     if(!mjb_encoding_is_valid_input(encoding) || !mjb_encoding_is_valid_output(output_encoding)) {
         return MJB_STATUS_INVALID_ENCODING;
@@ -689,7 +690,7 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
         &normalized, NULL);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(mapped.buffer);
+        mjb_free(mapped.buffer, mapped.capacity);
         return status;
     }
 
@@ -698,7 +699,7 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     mjb_output unicode;
     status = mjb_idna_decode_domain(normalized_buffer, normalized_size, &unicode, info);
     mjb_result_free(&normalized);
-    mjb_free(mapped.buffer);
+    mjb_free(mapped.buffer, mapped.capacity);
 
     if(status != MJB_STATUS_OK) {
         return status;
@@ -707,26 +708,26 @@ static mjb_status mjb_idna_process(const char *buffer, size_t byte_length, mjb_e
     status = mjb_idna_validate_domain(unicode.buffer, unicode.size, info);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(unicode.buffer);
+        mjb_free(unicode.buffer, unicode.capacity);
         return status;
     }
 
     if(!to_ascii) {
         status = mjb_idna_finish_output(&unicode, output_encoding, result);
-        mjb_free(unicode.buffer);
+        mjb_free(unicode.buffer, unicode.capacity);
         return status;
     }
 
     mjb_output ascii;
     status = mjb_idna_encode_domain(unicode.buffer, unicode.size, &ascii, info);
-    mjb_free(unicode.buffer);
+    mjb_free(unicode.buffer, unicode.capacity);
 
     if(status != MJB_STATUS_OK) {
         return status;
     }
 
     status = mjb_idna_finish_output(&ascii, output_encoding, result);
-    mjb_free(ascii.buffer);
+    mjb_free(ascii.buffer, ascii.capacity);
     return status;
 }
 #endif // MJB_FEATURE_IDNA

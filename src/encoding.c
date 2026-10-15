@@ -912,9 +912,7 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const mjb_text *text,
         return status;
     }
 
-    result->output = NULL;
-    result->output_size = 0;
-    result->owned = false;
+    mjb_result_borrow(result, NULL, 0);
 
     size_t input_index = 0;
     mjb_encoding input_encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding,
@@ -931,8 +929,7 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const mjb_text *text,
         mjb_diagnostic_record(diagnostic, &validity);
 
         if(status == MJB_STATUS_OK) {
-            result->output = (char *)buffer;
-            result->output_size = byte_length;
+            mjb_result_borrow(result, buffer, byte_length);
 
             return MJB_STATUS_OK;
         }
@@ -955,14 +952,12 @@ MJB_EXPORT mjb_status mjb_convert_encoding(const mjb_text *text,
     status = mjb_convert_encoding_write(&output, &context);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(output.buffer);
+        mjb_free(output.buffer, output.capacity);
 
         return status;
     }
 
-    result->output = output.buffer;
-    result->output_size = output.size;
-    result->owned = true;
+    mjb_result_own(result, output.buffer, output.size, output.capacity);
 
     return MJB_STATUS_OK;
 }

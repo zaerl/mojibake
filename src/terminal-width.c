@@ -126,7 +126,7 @@ MJB_EXPORT mjb_status mjb_terminal_width(const mjb_text *text,
         return status;
     }
 
-    mjb_result normalized = { NULL, 0, false };
+    mjb_result normalized = { NULL, 0, 0, false };
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
     status = mjb_normalize(&resolved, malformed_policy, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8,
         &normalized, diagnostic);

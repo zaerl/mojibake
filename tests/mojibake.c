@@ -73,7 +73,7 @@ ATT_TEST(mojibake) {
     ATT_ASSERT_STATUS(mjb_set_allocator(NULL), MJB_STATUS_INVALID_ARGUMENT,
         "Reject repeated allocator configuration");
 
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     ATT_ASSERT_STATUS(mjb_result_free(NULL), MJB_STATUS_INVALID_ARGUMENT, "Free NULL result");
 
     mjb_test_allocator_reset();
@@ -92,7 +92,7 @@ ATT_TEST(mojibake) {
 
     // A result that does not own its output borrows the caller's input and must not be released.
     char borrowed[] = "A";
-    mjb_result borrowed_result = { borrowed, 1, false };
+    mjb_result borrowed_result = { borrowed, 1, 0, false };
     mjb_test_allocator_reset();
     ATT_ASSERT_STATUS(mjb_result_free(&borrowed_result), MJB_STATUS_OK,
         "Free a result that does not own its output");

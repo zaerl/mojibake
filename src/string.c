@@ -36,7 +36,7 @@ char *mjb_string_output(char *ret, const char *input, size_t input_size, size_t 
         size_t required = *output_index + input_size + 1;
         size_t doubled = *output_size > SIZE_MAX / 2 ? SIZE_MAX : *output_size * 2;
         size_t new_output_size = (doubled > required) ? doubled : required;
-        char *new_ret = (char *)mjb_realloc(ret, new_output_size);
+        char *new_ret = (char *)mjb_realloc(ret, *output_size, new_output_size);
 
         if(new_ret == NULL) {
             return NULL;

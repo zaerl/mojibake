@@ -138,8 +138,8 @@ static bool shifted_test_key_next(const mjb_result *key, size_t *index, unsigned
 
 static int compare_shifted_test_strings(const char *left, size_t left_len, const char *right,
     size_t right_len) {
-    mjb_result left_key = { NULL, 0, false };
-    mjb_result right_key = { NULL, 0, false };
+    mjb_result left_key = { NULL, 0, 0, false };
+    mjb_result right_key = { NULL, 0, 0, false };
 
     mjb_text left_text = mjb_text_utf8(left, left_len);
     mjb_text right_text = mjb_text_utf8(right, right_len);
@@ -189,7 +189,7 @@ static void assert_collation_primaries(mjb_codepoint codepoint, uint16_t first, 
     const char *message) {
     char utf8[5];
     size_t length = mjb_codepoint_encode(codepoint, utf8, sizeof(utf8), MJB_ENC_UTF_8);
-    mjb_result key = { NULL, 0, false };
+    mjb_result key = { NULL, 0, 0, false };
 
     mjb_text text = mjb_text_utf8(utf8, length);
     ATT_ASSERT_STATUS(mjb_collation_key(&text, MJB_MALFORMED_STOP,
@@ -311,6 +311,18 @@ static void run_collation_test(const char *filename,
 ATT_TEST(collation) {
     // mjb_collation_key
     mjb_result ka, kb, kc, kd;
+
+    // Skipping every malformed byte leaves no collation elements. Shifted keys must not request a
+    // zero-size scratch allocation for it.
+    {
+        mjb_result skipped = { NULL, 0, 0, false };
+        mjb_text malformed = mjb_text_utf8("\x80", 1);
+        ATT_ASSERT_STATUS(mjb_collation_key(&malformed, MJB_MALFORMED_SKIP, MJB_COLLATION_SHIFTED,
+                              MJB_COLLATION_QUATERNARY, &skipped, NULL),
+            MJB_STATUS_OK, "Shifted key of input with only skipped malformed bytes");
+        ATT_ASSERT_STATUS(mjb_result_free(&skipped), MJB_STATUS_OK,
+            "Free shifted key of input with only skipped malformed bytes");
+    }
 
     mjb_text text = mjb_text_utf8(NULL, 1);
     ATT_ASSERT_STATUS(mjb_collation_key(&text, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
@@ -469,8 +481,8 @@ ATT_TEST(collation) {
     const char malformed_key_input[] = "a\x80"
                                        "b";
     mjb_diagnostic diagnostic;
-    mjb_result recovered_key = { NULL, 0, false };
-    mjb_result expected_key = { NULL, 0, false };
+    mjb_result recovered_key = { NULL, 0, 0, false };
+    mjb_result expected_key = { NULL, 0, 0, false };
     text = mjb_text_utf8(malformed_key_input, sizeof(malformed_key_input) - 1);
     ATT_ASSERT_STATUS(mjb_collation_key(&text, MJB_MALFORMED_REPLACE,
                           MJB_COLLATION_NON_IGNORABLE, MJB_COLLATION_TERTIARY, &recovered_key,
@@ -773,7 +785,7 @@ ATT_TEST(collation) {
 #else
 
 ATT_TEST(collation) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     unsigned char output[16] = { 0 };
     int order = 0;
 

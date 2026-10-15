@@ -94,9 +94,14 @@ typedef mjb_status (*mjb_output_writer)(mjb_output *output, const void *context)
 // Internal functions
 MJB_LOCAL void *mjb_alloc(size_t size);
 
-MJB_LOCAL void *mjb_realloc(void *ptr, size_t new_size);
+MJB_LOCAL void *mjb_realloc(void *ptr, size_t old_size, size_t new_size);
 
-MJB_LOCAL void mjb_free(void *ptr);
+MJB_LOCAL void mjb_free(void *ptr, size_t size);
+
+// Set the fields of a result that owns `output`, or that borrows it from the caller's input.
+MJB_LOCAL void mjb_result_own(mjb_result *result, char *output, size_t output_size,
+    size_t capacity);
+MJB_LOCAL void mjb_result_borrow(mjb_result *result, const char *output, size_t output_size);
 
 MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, size_t byte_length,
     mjb_encoding encoding, mjb_normalization form, mjb_quick_check_result *quick_check,

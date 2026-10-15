@@ -14,9 +14,10 @@
 MJB_STATIC_ASSERT(sizeof(mjb_text) == 12, "mjb_text must be 12 bytes on wasm32");
 MJB_STATIC_ASSERT(offsetof(mjb_text, byte_length) == 4, "mjb_text byte_length must be at 4");
 MJB_STATIC_ASSERT(offsetof(mjb_text, encoding) == 8, "mjb_text encoding must be at 8");
-// and reads mjb_result back as output, output_size, and the owned flag
-MJB_STATIC_ASSERT(sizeof(mjb_result) == 12, "mjb_result must be 12 bytes on wasm32");
-MJB_STATIC_ASSERT(offsetof(mjb_result, owned) == 8, "mjb_result owned must be at 8");
+// and reads mjb_result back as output, output_size, capacity, and the owned flag
+MJB_STATIC_ASSERT(sizeof(mjb_result) == 16, "mjb_result must be 16 bytes on wasm32");
+MJB_STATIC_ASSERT(offsetof(mjb_result, capacity) == 8, "mjb_result capacity must be at 8");
+MJB_STATIC_ASSERT(offsetof(mjb_result, owned) == 12, "mjb_result owned must be at 12");
 #endif
 
 // These wrappers adapt the context-aware callback signatures. On MSVC they also avoid taking the
@@ -27,14 +28,17 @@ static void *mjb_default_alloc(void *context, size_t size) {
     return malloc(size);
 }
 
-static void *mjb_default_realloc(void *context, void *ptr, size_t new_size) {
+// The C library tracks block sizes itself, so the default allocator ignores the passed sizes.
+static void *mjb_default_realloc(void *context, void *ptr, size_t old_size, size_t new_size) {
     (void)context;
+    (void)old_size;
 
     return realloc(ptr, new_size);
 }
 
-static void mjb_default_free(void *context, void *ptr) {
+static void mjb_default_free(void *context, void *ptr, size_t size) {
     (void)context;
+    (void)size;
 
     free(ptr);
 }
@@ -67,14 +71,34 @@ MJB_LOCAL void *mjb_alloc(size_t size) {
     return mjb_global.allocator.alloc(mjb_global.allocator.context, size);
 }
 
-// Reallocate memory
-MJB_LOCAL void *mjb_realloc(void *ptr, size_t new_size) {
-    return mjb_global.allocator.realloc(mjb_global.allocator.context, ptr, new_size);
+// Reallocate memory. `old_size` is the size of the block at `ptr`, or 0 when `ptr` is NULL.
+MJB_LOCAL void *mjb_realloc(void *ptr, size_t old_size, size_t new_size) {
+    return mjb_global.allocator.realloc(mjb_global.allocator.context, ptr,
+        ptr == NULL ? 0 : old_size, new_size);
 }
 
-// Free memory
-MJB_LOCAL void mjb_free(void *ptr) {
-    mjb_global.allocator.free(mjb_global.allocator.context, ptr);
+// Free memory. `size` is the size of the block at `ptr`. Freeing NULL does nothing.
+MJB_LOCAL void mjb_free(void *ptr, size_t size) {
+    if(ptr != NULL) {
+        mjb_global.allocator.free(mjb_global.allocator.context, ptr, size);
+    }
+}
+
+// Make `output` an owned result. `capacity` is the size of the allocation behind `output`.
+MJB_LOCAL void mjb_result_own(mjb_result *result, char *output, size_t output_size,
+    size_t capacity) {
+    result->output = output;
+    result->output_size = output_size;
+    result->capacity = capacity;
+    result->owned = true;
+}
+
+// Make `output` a result that borrows the caller's input.
+MJB_LOCAL void mjb_result_borrow(mjb_result *result, const char *output, size_t output_size) {
+    result->output = (char *)output;
+    result->output_size = output_size;
+    result->capacity = 0;
+    result->owned = false;
 }
 
 // Free a mjb_result.
@@ -84,11 +108,12 @@ MJB_EXPORT mjb_status mjb_result_free(mjb_result *result) {
     }
 
     if(result->owned && result->output != NULL) {
-        mjb_free(result->output);
+        mjb_free(result->output, result->capacity);
         result->output = NULL;
         result->output_size = 0;
     }
 
+    result->capacity = 0;
     result->owned = false;
 
     return MJB_STATUS_OK;

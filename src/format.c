@@ -109,7 +109,7 @@ MJB_EXPORT int mjb_utf8_grapheme_vsnprintf(char *buffer, size_t buffer_size, con
     va_end(complete_args);
 
     if(complete_required != required) {
-        mjb_free(complete);
+        mjb_free(complete, complete_size);
 
         if(complete_required >= 0) {
             errno = EINVAL;
@@ -123,7 +123,7 @@ MJB_EXPORT int mjb_utf8_grapheme_vsnprintf(char *buffer, size_t buffer_size, con
         buffer_size - 1);
     memcpy(buffer, complete, prefix_length);
     buffer[prefix_length] = '\0';
-    mjb_free(complete);
+    mjb_free(complete, complete_size);
 
     return required;
 }

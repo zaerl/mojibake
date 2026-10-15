@@ -13,6 +13,7 @@ typedef struct mjb_caseless_value {
     const char *buffer;
     size_t byte_length;
     mjb_encoding encoding;
+    size_t capacity; // Allocation size of an owned buffer
     bool owned;
 } mjb_caseless_value;
 
@@ -23,11 +24,12 @@ static bool mjb_caseless_mode_is_valid(mjb_caseless_mode mode) {
 
 static void mjb_caseless_value_free(mjb_caseless_value *value) {
     if(value->owned) {
-        mjb_free((void *)value->buffer);
+        mjb_free((void *)value->buffer, value->capacity);
     }
 
     value->buffer = NULL;
     value->byte_length = 0;
+    value->capacity = 0;
     value->owned = false;
 }
 
@@ -36,13 +38,17 @@ static void mjb_caseless_value_replace(mjb_caseless_value *value, const mjb_resu
     bool previous_owned = value->owned;
 
     if(previous_owned && next->output != previous) {
-        mjb_free((void *)previous);
+        mjb_free((void *)previous, value->capacity);
     }
+
+    // A borrowed result that points into an owned previous buffer keeps that buffer's ownership.
+    bool keeps_previous = !next->owned && previous_owned && next->output == previous;
 
     value->buffer = next->output;
     value->byte_length = next->output_size;
     value->encoding = MJB_ENC_UTF_8;
-    value->owned = next->owned || (previous_owned && next->output == previous);
+    value->capacity = next->owned ? next->capacity : (keeps_previous ? value->capacity : 0);
+    value->owned = next->owned || keeps_previous;
 }
 
 static mjb_status mjb_caseless_normalize(mjb_caseless_value *value, mjb_normalization form) {
@@ -186,8 +192,8 @@ static mjb_status mjb_caseless_match_texts(const mjb_text *first, const mjb_text
         return status;
     }
 
-    mjb_caseless_value left = { s1, s1_byte_length, s1_encoding, false };
-    mjb_caseless_value right = { s2, s2_byte_length, s2_encoding, false };
+    mjb_caseless_value left = { s1, s1_byte_length, s1_encoding, 0, false };
+    mjb_caseless_value right = { s2, s2_byte_length, s2_encoding, 0, false };
     status = mjb_caseless_transform(&left, mode);
 
     if(status == MJB_STATUS_OK) {
@@ -228,8 +234,8 @@ MJB_EXPORT mjb_status mjb_caseless_match(const mjb_text *first, const mjb_text *
 
     mjb_text first_prepared;
     mjb_text second_prepared;
-    mjb_result first_sanitized = { NULL, 0, false };
-    mjb_result second_sanitized = { NULL, 0, false };
+    mjb_result first_sanitized = { NULL, 0, 0, false };
+    mjb_result second_sanitized = { NULL, 0, 0, false };
     status = mjb_prepare_text_input(first, malformed_policy, first_diagnostic, &first_prepared,
         &first_sanitized);
 

@@ -141,9 +141,9 @@ type ComposedString = {
   output: string;
 }
 
-// mjb_result on wasm32: output, output_size, owned, and 3 bytes of padding. src/mojibake.c checks
-// this layout at compile time.
-const RESULT_SIZE = 12;
+// mjb_result on wasm32: output, output_size, capacity, owned, and 3 bytes of padding.
+// src/mojibake.c checks this layout at compile time.
+const RESULT_SIZE = 16;
 
 // mjb_result pointer
 type RawResult = {
@@ -1824,11 +1824,11 @@ export class Mojibake {
   private pointerToResult(ptr: Pointer): RawResult {
     const reader = this.struct(ptr);
 
-    return {
-      output: reader.u32(),
-      output_size: reader.u32(),
-      owned: reader.u8() !== 0
-    };
+    const output = reader.u32();
+    const output_size = reader.u32();
+    reader.u32(); // capacity: the WASM build frees owned outputs with free(), which ignores it
+
+    return { output, output_size, owned: reader.u8() !== 0 };
   }
 
   private rawResultToResult(raw: RawResult, outputEncoding: Encoding): Result {

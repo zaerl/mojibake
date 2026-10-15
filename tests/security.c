@@ -615,7 +615,7 @@ ATT_TEST(security) {
     mjb_script script = MJB_SC_NOT_SET;
     size_t count = 1;
     mjb_script_set_kind kind = MJB_SCRIPT_SET_EMPTY;
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     unsigned char output[16] = { 0 };
     mjb_buffer into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
     bool confusable = false;

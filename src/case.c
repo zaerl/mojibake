@@ -711,28 +711,26 @@ static mjb_status mjb_map_case_result(const char *buffer, size_t byte_length, mj
     mjb_status status = mjb_map_case_write(&output, &context);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(output.buffer);
+        mjb_free(output.buffer, output.capacity);
 
         return status;
     }
 
     if(output.size >= output.capacity) {
-        char *new_output = (char *)mjb_realloc(output.buffer, output.capacity + 1);
+        char *new_output = (char *)mjb_realloc(output.buffer, output.capacity, output.capacity + 1);
 
         if(new_output == NULL) {
-            mjb_free(output.buffer);
+            mjb_free(output.buffer, output.capacity);
 
             return MJB_STATUS_NO_MEMORY;
         }
 
         output.buffer = new_output;
+        ++output.capacity;
     }
 
     output.buffer[output.size] = '\0';
-
-    result->output = output.buffer;
-    result->output_size = output.size;
-    result->owned = true;
+    mjb_result_own(result, output.buffer, output.size, output.capacity);
 
     return MJB_STATUS_OK;
 }
@@ -768,9 +766,7 @@ MJB_EXPORT mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy ma
     }
 
     if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->owned = false;
+        mjb_result_borrow(result, buffer, 0);
 
         return MJB_STATUS_OK;
     }
@@ -784,7 +780,7 @@ MJB_EXPORT mjb_status mjb_map_case(const mjb_text *text, mjb_malformed_policy ma
     status = mjb_map_case_result(buffer, byte_length, encoding, type, locale, output_encoding,
         result);
 
-    mjb_result sanitized = { NULL, 0, false };
+    mjb_result sanitized = { NULL, 0, 0, false };
 
     if(status == MJB_STATUS_MALFORMED_INPUT) {
         status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,
@@ -824,9 +820,7 @@ mjb_status mjb_casefold_default(const char *buffer, size_t byte_length, mjb_enco
     }
 
     if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->owned = false;
+        mjb_result_borrow(result, buffer, 0);
 
         return MJB_STATUS_OK;
     }
@@ -900,7 +894,7 @@ MJB_EXPORT mjb_status mjb_map_case_into(const mjb_text *text, mjb_malformed_poli
     size_t output_capacity = *output_size;
     status = mjb_output_into(data, output_size, mjb_map_case_write, &context);
 
-    mjb_result sanitized = { NULL, 0, false };
+    mjb_result sanitized = { NULL, 0, 0, false };
 
     if(status == MJB_STATUS_MALFORMED_INPUT) {
         status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,

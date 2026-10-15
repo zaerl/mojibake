@@ -232,6 +232,10 @@ Allocation and ownership are part of the API contract:
 - core library allocations must use the private `mjb_alloc`, `mjb_realloc`, and `mjb_free` helpers
   so the configured allocator remains effective; the standalone CLI may use the C allocator for
   its own storage
+- `mjb_realloc` and `mjb_free` take the block's exact size, which is the size most recently
+  requested for it; requested sizes are never 0. Track the capacity of every growable buffer,
+  and hand allocated output to callers with `mjb_result_own` so `mjb_result.capacity` is set.
+  The test allocator and the fuzzer check every size the library passes
 - free specialized owned structures with their matching API, such as
   `mjb_bidi_paragraph_free`
 

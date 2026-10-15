@@ -45,55 +45,113 @@ typedef struct mjb_test_allocator_state {
     size_t allocation_count;
     size_t fail_after;
     size_t live_count;
+    size_t violation_count;
 } mjb_test_allocator_state;
 
-static mjb_test_allocator_state allocator_state = { 0, 0, SIZE_MAX, 0 };
+static mjb_test_allocator_state allocator_state = { 0, 0, SIZE_MAX, 0, 0 };
 static mjb_status allocator_invalid_status = MJB_STATUS_OK;
 static mjb_status allocator_install_status = MJB_STATUS_INVALID_ARGUMENT;
+static const char *allocator_current_test = "(none)";
+
+// Every block starts with a header that records the size the library requested, so realloc and
+// free can check the size the library passes back. The union keeps the payload aligned.
+typedef union mjb_test_block_header {
+    size_t size;
+    long double long_double_alignment;
+    long long long_long_alignment;
+    void *pointer_alignment;
+} mjb_test_block_header;
+
+static void mjb_test_allocator_violation(const char *what, size_t expected, size_t actual) {
+    if(allocator_state.violation_count++ < 10) {
+        fprintf(stderr, "Allocator contract violation in %s: %s (expected %zu, got %zu)\n",
+            allocator_current_test, what, expected, actual);
+    }
+}
+
+static void *mjb_test_block_payload(mjb_test_block_header *header) {
+    return header == NULL ? NULL : (void *)(header + 1);
+}
+
+static mjb_test_block_header *mjb_test_block_header_of(void *ptr) {
+    return ptr == NULL ? NULL : (mjb_test_block_header *)ptr - 1;
+}
 
 static void *mjb_test_alloc(void *context, size_t size) {
     mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
     ++state->call_count;
 
-    if(state->allocation_count++ >= state->fail_after) {
-        return NULL;
+    if(size == 0) {
+        mjb_test_allocator_violation("alloc requested 0 bytes", 1, 0);
     }
-
-    void *ptr = malloc(size);
-
-    if(ptr != NULL) {
-        ++state->live_count;
-    }
-
-    return ptr;
-}
-
-static void *mjb_test_realloc(void *context, void *ptr, size_t new_size) {
-    mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
-    ++state->call_count;
 
     if(state->allocation_count++ >= state->fail_after) {
         return NULL;
     }
 
-    void *new_ptr = realloc(ptr, new_size);
+    mjb_test_block_header *header = (mjb_test_block_header *)malloc(sizeof(*header) + size);
 
-    if(ptr == NULL && new_ptr != NULL) {
+    if(header == NULL) {
+        return NULL;
+    }
+
+    header->size = size;
+    ++state->live_count;
+
+    return mjb_test_block_payload(header);
+}
+
+static void *mjb_test_realloc(void *context, void *ptr, size_t old_size, size_t new_size) {
+    mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
+    mjb_test_block_header *header = mjb_test_block_header_of(ptr);
+    ++state->call_count;
+
+    if(new_size == 0) {
+        mjb_test_allocator_violation("realloc requested 0 bytes", 1, 0);
+    }
+
+    if(header == NULL ? old_size != 0 : header->size != old_size) {
+        mjb_test_allocator_violation("realloc old_size", header == NULL ? 0 : header->size,
+            old_size);
+    }
+
+    if(state->allocation_count++ >= state->fail_after) {
+        return NULL;
+    }
+
+    mjb_test_block_header *new_header = (mjb_test_block_header *)realloc(header,
+        sizeof(*new_header) + new_size);
+
+    if(new_header == NULL) {
+        return NULL;
+    }
+
+    new_header->size = new_size;
+
+    if(header == NULL) {
         ++state->live_count;
     }
 
-    return new_ptr;
+    return mjb_test_block_payload(new_header);
 }
 
-static void mjb_test_dealloc(void *context, void *ptr) {
+static void mjb_test_dealloc(void *context, void *ptr, size_t size) {
     mjb_test_allocator_state *state = (mjb_test_allocator_state *)context;
+    mjb_test_block_header *header = mjb_test_block_header_of(ptr);
     ++state->call_count;
 
-    if(ptr != NULL) {
-        --state->live_count;
+    if(header == NULL) {
+        mjb_test_allocator_violation("free received NULL", 0, 0);
+
+        return;
     }
 
-    free(ptr);
+    if(header->size != size) {
+        mjb_test_allocator_violation("free size", header->size, size);
+    }
+
+    --state->live_count;
+    free(header);
 }
 
 bool mjb_test_allocator_initialize(void) {
@@ -137,6 +195,10 @@ size_t mjb_test_allocator_allocation_count(void) {
 
 size_t mjb_test_allocator_live_count(void) {
     return allocator_state.live_count;
+}
+
+size_t mjb_test_allocator_violation_count(void) {
+    return allocator_state.violation_count;
 }
 
 typedef struct {
@@ -376,7 +438,7 @@ static void show_help(const char *executable, struct option options[], const cha
 }
 
 static void test_started(const char *name) {
-    (void)name;
+    allocator_current_test = name;
     mjb_test_coverage_clear();
 }
 
@@ -482,6 +544,11 @@ int main(int argc, char *const argv[]) {
     printf("Running tests with %s\n", filter ? filter : "no filter");
     att_run_tests(filter);
     bool all_valid = att_report() == 0;
+
+    if(allocator_state.violation_count > 0) {
+        fprintf(stderr, "%zu allocator contract violations\n", allocator_state.violation_count);
+        all_valid = false;
+    }
 
     write_coverage_file();
 

@@ -634,12 +634,11 @@ static void mjb_locale_match(mjb_locale_id *locale) {
 static mjb_status mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size,
     mjb_locale_id *locale) {
     mjb_locale_subtag *subtags = NULL;
+    size_t subtag_capacity = 0;
 
 #define MJB_LOCALE_PARSE_RETURN(status) \
     do { \
-        if(subtags != NULL) { \
-            mjb_free(subtags); \
-        } \
+        mjb_free(subtags, subtag_capacity * sizeof(*subtags)); \
         return (status); \
     } while(0)
 
@@ -647,7 +646,7 @@ static mjb_status mjb_locale_parse_ascii(const char *ascii_id, size_t ascii_size
         MJB_LOCALE_PARSE_RETURN(MJB_STATUS_INVALID_ARGUMENT);
     }
 
-    size_t subtag_capacity = ascii_size / 2 + 1;
+    subtag_capacity = ascii_size / 2 + 1;
     subtags = (mjb_locale_subtag *)mjb_alloc(subtag_capacity * sizeof(*subtags));
 
     if(subtags == NULL) {
@@ -891,7 +890,7 @@ MJB_EXPORT mjb_status mjb_locale_parse(const mjb_text *id, mjb_locale_id *locale
 
     const char *ascii_id = buffer;
     size_t ascii_size = size;
-    mjb_result converted = { NULL, 0, false };
+    mjb_result converted = { NULL, 0, 0, false };
 
     // Parse byte-oriented ASCII after validating or converting the input encoding.
     if(encoding == MJB_ENC_ASCII) {
@@ -914,19 +913,9 @@ MJB_EXPORT mjb_status mjb_locale_parse(const mjb_text *id, mjb_locale_id *locale
 
     status = mjb_locale_parse_ascii(ascii_id, ascii_size, locale);
 
-    if(status != MJB_STATUS_OK) {
-        if(converted.owned) {
-            mjb_free(converted.output);
-        }
+    mjb_result_free(&converted);
 
-        return status;
-    }
-
-    if(converted.owned) {
-        mjb_free(converted.output);
-    }
-
-    return MJB_STATUS_OK;
+    return status;
 }
 
 MJB_EXPORT const char *mjb_locale_code(mjb_locale locale) {

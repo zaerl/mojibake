@@ -62,7 +62,7 @@ static bool cea_grow(mjb_cea *a, size_t need) {
         return false;
     }
 
-    mjb_ce *p = (mjb_ce *)mjb_realloc(a->data, new_cap * sizeof(mjb_ce));
+    mjb_ce *p = (mjb_ce *)mjb_realloc(a->data, a->cap * sizeof(mjb_ce), new_cap * sizeof(mjb_ce));
 
     if(!p) {
         return false;
@@ -91,7 +91,7 @@ static bool cea_push(mjb_cea *a, uint16_t p, uint16_t s, uint16_t t, bool var) {
 }
 
 static void cea_free(mjb_cea *a) {
-    mjb_free(a->data);
+    mjb_free(a->data, a->cap * sizeof(mjb_ce));
     a->data = NULL;
     a->count = 0;
     a->cap = 0;
@@ -109,7 +109,8 @@ static bool sk_push(mjb_sort_key *sk, uint16_t w) {
             return false;
         }
 
-        uint16_t *p = (uint16_t *)mjb_realloc(sk->data, new_cap * sizeof(uint16_t));
+        uint16_t *p = (uint16_t *)mjb_realloc(sk->data, sk->cap * sizeof(uint16_t),
+            new_cap * sizeof(uint16_t));
 
         if(!p) {
             return false;
@@ -125,7 +126,7 @@ static bool sk_push(mjb_sort_key *sk, uint16_t w) {
 }
 
 static void sk_free(mjb_sort_key *sk) {
-    mjb_free(sk->data);
+    mjb_free(sk->data, sk->cap * sizeof(uint16_t));
 
     sk->data = NULL;
     sk->count = 0;
@@ -322,7 +323,15 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
         }
     }
 
-    *out_count = j;
+    // Both passes decode the same input, so they find the same number of codepoints. The caller
+    // frees the array with *out_count, which must be its allocated length.
+    if(j != count) {
+        mjb_free(arr, count * sizeof(mjb_codepoint));
+
+        return false;
+    }
+
+    *out_count = count;
     *out_codepoints = arr;
 
     return true;
@@ -597,12 +606,12 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
 
         if(have_match) {
             if(!cea_append_blob(cea, best_w, best_bytes)) {
-                mjb_free(used);
+                mjb_free(used, len * sizeof(bool));
 
                 return false;
             }
         } else if(!cea_lookup_or_implicit(cea, cps[i])) {
-            mjb_free(used);
+            mjb_free(used, len * sizeof(bool));
 
             return false;
         }
@@ -610,7 +619,7 @@ static bool build_cea(const mjb_codepoint *cps, size_t len, mjb_cea *cea) {
         i += cons_advance;
     }
 
-    mjb_free(used);
+    mjb_free(used, len * sizeof(bool));
 
     return true;
 }
@@ -671,17 +680,19 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_collation_strength st
     }
 
     // We need adjusted weights; avoid dynamic allocation by iterating twice. Compute L1/L2/L3 and
-    // L4 in three passes: first collect into a scratch array (malloc), then emit.
-    uint16_t *l1 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l2 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l3 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
-    uint16_t *l4 = (uint16_t *)mjb_alloc(n * sizeof(uint16_t));
+    // L4 in three passes: first collect into a scratch array (malloc), then emit. An empty array
+    // still allocates one element, because allocation sizes are never 0.
+    size_t scratch_size = (n == 0 ? 1 : n) * sizeof(uint16_t);
+    uint16_t *l1 = (uint16_t *)mjb_alloc(scratch_size);
+    uint16_t *l2 = (uint16_t *)mjb_alloc(scratch_size);
+    uint16_t *l3 = (uint16_t *)mjb_alloc(scratch_size);
+    uint16_t *l4 = (uint16_t *)mjb_alloc(scratch_size);
 
     if(!l1 || !l2 || !l3 || !l4) {
-        mjb_free(l1);
-        mjb_free(l2);
-        mjb_free(l3);
-        mjb_free(l4);
+        mjb_free(l1, scratch_size);
+        mjb_free(l2, scratch_size);
+        mjb_free(l3, scratch_size);
+        mjb_free(l4, scratch_size);
 
         return false;
     }
@@ -777,18 +788,18 @@ static bool build_sort_key_shifted(const mjb_cea *cea, mjb_collation_strength st
     }
 
 success:
-    mjb_free(l1);
-    mjb_free(l2);
-    mjb_free(l3);
-    mjb_free(l4);
+    mjb_free(l1, scratch_size);
+    mjb_free(l2, scratch_size);
+    mjb_free(l3, scratch_size);
+    mjb_free(l4, scratch_size);
 
     return true;
 
 fail:
-    mjb_free(l1);
-    mjb_free(l2);
-    mjb_free(l3);
-    mjb_free(l4);
+    mjb_free(l1, scratch_size);
+    mjb_free(l2, scratch_size);
+    mjb_free(l3, scratch_size);
+    mjb_free(l4, scratch_size);
 
     return false;
 }
@@ -852,14 +863,14 @@ static mjb_status compute_sort_key(const char *buffer, size_t byte_length, mjb_e
 
     if(len > 0) {
         if(!build_cea(cps, len, &cea)) {
-            mjb_free(cps);
+            mjb_free(cps, len * sizeof(mjb_codepoint));
             cea_free(&cea);
 
             return MJB_STATUS_NO_MEMORY;
         }
     }
 
-    mjb_free(cps);
+    mjb_free(cps, len * sizeof(mjb_codepoint));
 
     bool key_ok = false;
 
@@ -945,9 +956,7 @@ MJB_EXPORT mjb_status mjb_collation_key(const mjb_text *text, mjb_malformed_poli
 
     mjb_diagnostic_reset(diagnostic);
 
-    result->output = NULL;
-    result->output_size = 0;
-    result->owned = false;
+    mjb_result_borrow(result, NULL, 0);
 
     mjb_sort_key sk = { 0, 0, 0 };
 
@@ -968,7 +977,8 @@ MJB_EXPORT mjb_status mjb_collation_key(const mjb_text *text, mjb_malformed_poli
     }
 
     if(byte_count == 0) {
-        result->owned = true;
+        sk_free(&sk);
+        mjb_result_own(result, NULL, 0, 0);
 
         return MJB_STATUS_OK;
     }
@@ -984,17 +994,14 @@ MJB_EXPORT mjb_status mjb_collation_key(const mjb_text *text, mjb_malformed_poli
     status = mjb_collation_key_write(&output, &sk);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(bytes);
+        mjb_free(bytes, byte_count);
         sk_free(&sk);
 
         return status;
     }
 
     sk_free(&sk);
-
-    result->output = (char *)bytes;
-    result->output_size = byte_count;
-    result->owned = true;
+    mjb_result_own(result, (char *)bytes, byte_count, byte_count);
 
     return MJB_STATUS_OK;
 }

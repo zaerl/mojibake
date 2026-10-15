@@ -44,7 +44,7 @@ static bool has_only_latin1(const char *source, size_t source_size) {
 
 static int check_normalization(char *source, size_t source_size, char *normalized,
     size_t normalized_size, mjb_normalization form, unsigned int current_line, const char *step) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     char test_name[128];
 
     MJB_TEST_COVERAGE(mjb_normalize);
@@ -164,7 +164,7 @@ static void check_nfkc_casefold_into(const char *source, size_t source_size,
 
 static void check_nfkc_casefold(const char *source, size_t source_size, const char *expected,
     size_t expected_size, const char *name) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
 
     MJB_TEST_COVERAGE(mjb_nfkc_casefold);
     mjb_text text = mjb_text_utf8(source, source_size);
@@ -178,7 +178,7 @@ static void check_nfkc_casefold(const char *source, size_t source_size, const ch
 }
 
 static void test_nfkc_casefold(void) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
 
     mjb_text text = mjb_text_utf8(NULL, 1);
     ATT_ASSERT_STATUS(mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL),
@@ -370,7 +370,7 @@ static void test_normalization_malformed_policies(void) {
     const char malformed[] = "A\x80"
                              "e\xCC\x81";
     mjb_diagnostic diagnostic;
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
 
     mjb_text text = mjb_text_utf8(malformed, sizeof(malformed) - 1);
     ATT_ASSERT_STATUS(mjb_normalize(&text,

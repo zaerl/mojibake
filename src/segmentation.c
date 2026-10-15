@@ -419,7 +419,7 @@ MJB_EXPORT mjb_status mjb_grapheme_count(const mjb_text *text,
     }
 
     status = mjb_grapheme_count_process(buffer, byte_length, encoding, count);
-    mjb_result sanitized = { NULL, 0, false };
+    mjb_result sanitized = { NULL, 0, 0, false };
 
     if(status == MJB_STATUS_MALFORMED_INPUT) {
         status = mjb_repair_text_input(&buffer, &byte_length, &encoding, malformed_policy,

@@ -210,7 +210,7 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
 
     for(size_t i = 0; i < byte_length; ++i) {
         if((uint8_t)buffer[i] >= 0x80) {
-            mjb_free(decoded);
+            mjb_free(decoded, byte_length * sizeof(mjb_codepoint));
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
@@ -240,7 +240,7 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
 
         for(uint64_t k = MJB_PUNYCODE_BASE;; k += MJB_PUNYCODE_BASE) {
             if(input_index >= byte_length) {
-                mjb_free(decoded);
+                mjb_free(decoded, byte_length * sizeof(mjb_codepoint));
                 *count = 0;
                 return MJB_STATUS_MALFORMED_INPUT;
             }
@@ -249,7 +249,7 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
 
             if(!mjb_punycode_decode_digit(buffer[input_index++], &digit) ||
                 digit > (UINT64_MAX - index) / weight) {
-                mjb_free(decoded);
+                mjb_free(decoded, byte_length * sizeof(mjb_codepoint));
                 *count = 0;
                 return MJB_STATUS_MALFORMED_INPUT;
             }
@@ -264,7 +264,7 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
             uint64_t factor = MJB_PUNYCODE_BASE - threshold;
 
             if(weight > UINT64_MAX / factor) {
-                mjb_free(decoded);
+                mjb_free(decoded, byte_length * sizeof(mjb_codepoint));
                 *count = 0;
                 return MJB_STATUS_MALFORMED_INPUT;
             }
@@ -276,7 +276,7 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
         bias = mjb_punycode_adapt(index - old_index, points, old_index == 0);
 
         if(index / points > UINT64_MAX - n) {
-            mjb_free(decoded);
+            mjb_free(decoded, byte_length * sizeof(mjb_codepoint));
             *count = 0;
             return MJB_STATUS_MALFORMED_INPUT;
         }
@@ -285,7 +285,7 @@ mjb_status mjb_punycode_decode(const char *buffer, size_t byte_length, mjb_codep
         index %= points;
 
         if(n > MJB_CODEPOINT_MAX || (n >= 0xD800 && n <= 0xDFFF)) {
-            mjb_free(decoded);
+            mjb_free(decoded, byte_length * sizeof(mjb_codepoint));
             *count = 0;
             return MJB_STATUS_MALFORMED_INPUT;
         }

@@ -660,8 +660,8 @@ static void pass3_weak(mjb_bidi_work *work, size_t count, uint8_t para_level) {
     bool *done = (bool *)mjb_alloc(count * sizeof(bool));
 
     if(!irs_idx || !done) {
-        mjb_free(irs_idx);
-        mjb_free(done);
+        mjb_free(irs_idx, count * sizeof(size_t));
+        mjb_free(done, count * sizeof(bool));
 
         return;
     }
@@ -823,8 +823,8 @@ static void pass3_weak(mjb_bidi_work *work, size_t count, uint8_t para_level) {
         ++scan;
     }
 
-    mjb_free(done);
-    mjb_free(irs_idx);
+    mjb_free(done, count * sizeof(bool));
+    mjb_free(irs_idx, count * sizeof(size_t));
 }
 
 // Pass 4: N0, bracket pairs (per Isolating Run Sequence).
@@ -841,8 +841,8 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count) {
     bool *done = (bool *)mjb_alloc(count * sizeof(bool));
 
     if(!irs_idx || !done) {
-        mjb_free(irs_idx);
-        mjb_free(done);
+        mjb_free(irs_idx, count * sizeof(size_t));
+        mjb_free(done, count * sizeof(bool));
 
         return;
     }
@@ -1040,8 +1040,8 @@ static void pass4_brackets(mjb_bidi_work *work, size_t count) {
         ++scan;
     }
 
-    mjb_free(done);
-    mjb_free(irs_idx);
+    mjb_free(done, count * sizeof(bool));
+    mjb_free(irs_idx, count * sizeof(size_t));
 }
 
 /**
@@ -1052,8 +1052,8 @@ static void pass5_neutrals(mjb_bidi_work *work, size_t count, uint8_t para_level
     bool *done = (bool *)mjb_alloc(count * sizeof(bool));
 
     if(!irs_idx || !done) {
-        mjb_free(irs_idx);
-        mjb_free(done);
+        mjb_free(irs_idx, count * sizeof(size_t));
+        mjb_free(done, count * sizeof(bool));
 
         return;
     }
@@ -1151,8 +1151,8 @@ static void pass5_neutrals(mjb_bidi_work *work, size_t count, uint8_t para_level
         ++scan;
     }
 
-    mjb_free(done);
-    mjb_free(irs_idx);
+    mjb_free(done, count * sizeof(bool));
+    mjb_free(irs_idx, count * sizeof(size_t));
 }
 
 // Pass 6: I1/I2, implicit levels.
@@ -1241,13 +1241,13 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direc
         &count);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(work);
+        mjb_free(work, byte_length * sizeof(mjb_bidi_work));
 
         return status;
     }
 
     if(count == 0) {
-        mjb_free(work);
+        mjb_free(work, byte_length * sizeof(mjb_bidi_work));
 
         return MJB_STATUS_OK;
     }
@@ -1346,7 +1346,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direc
 
     if(out_count > 0) {
         if(out_count > SIZE_MAX / sizeof(mjb_bidi_char)) {
-            mjb_free(work);
+            mjb_free(work, byte_length * sizeof(mjb_bidi_work));
 
             return MJB_STATUS_OVERFLOW;
         }
@@ -1354,7 +1354,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direc
         out = (mjb_bidi_char *)mjb_alloc(out_count * sizeof(mjb_bidi_char));
 
         if(!out) {
-            mjb_free(work);
+            mjb_free(work, byte_length * sizeof(mjb_bidi_work));
 
             return MJB_STATUS_NO_MEMORY;
         }
@@ -1380,7 +1380,7 @@ MJB_EXPORT mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direc
         }
     }
 
-    mjb_free(work);
+    mjb_free(work, byte_length * sizeof(mjb_bidi_work));
 
     result->chars = out;
     result->count = out_count;
@@ -1397,7 +1397,7 @@ MJB_EXPORT void mjb_bidi_paragraph_free(mjb_bidi_paragraph *paragraph) {
     }
 
     if(paragraph->chars) {
-        mjb_free(paragraph->chars);
+        mjb_free(paragraph->chars, paragraph->count * sizeof(mjb_bidi_char));
     }
 
     paragraph->chars = NULL;
@@ -1464,7 +1464,7 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
     // L2: reverse substrings from max_level down to min_odd. If no odd levels exist (min_odd==255)
     // there is nothing to reverse.
     if(min_odd == 255) {
-        mjb_free(levels);
+        mjb_free(levels, n * sizeof(uint8_t));
 
         return MJB_STATUS_OK;
     }
@@ -1501,7 +1501,7 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
         }
     }
 
-    mjb_free(levels);
+    mjb_free(levels, n * sizeof(uint8_t));
 
     return MJB_STATUS_OK;
 }

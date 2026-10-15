@@ -121,10 +121,16 @@ extern "C" {
 
 // clang-format on
 
-// Memory allocator callbacks. They must follow the corresponding C standard library semantics.
+// Memory allocator callbacks. The library passes the size of every block it reallocates or frees,
+// so an allocator does not need to record sizes itself:
+// - `size` and `old_size` are the size most recently requested for `ptr`, by `alloc` or by the
+//   last successful `realloc`. Requested sizes are never 0.
+// - `realloc` receives `ptr == NULL` with `old_size == 0` when a block is first allocated. It
+//   returns NULL on failure and leaves the old block valid, as C `realloc` does.
+// - `free` is never called with NULL.
 typedef void *(*mjb_alloc_fn)(void *context, size_t size);
-typedef void *(*mjb_realloc_fn)(void *context, void *ptr, size_t new_size);
-typedef void (*mjb_free_fn)(void *context, void *ptr);
+typedef void *(*mjb_realloc_fn)(void *context, void *ptr, size_t old_size, size_t new_size);
+typedef void (*mjb_free_fn)(void *context, void *ptr, size_t size);
 
 // A process-global allocator installed once, before any other library call. The context remains
 // caller-owned and must stay valid for the lifetime of all Mojibake allocations.
@@ -357,6 +363,9 @@ typedef struct mjb_result {
     char *output;
     // The output size in bytes, excluding any terminator.
     size_t output_size;
+    // The size of the allocation behind an owned `output`, which can exceed `output_size`.
+    // mjb_result_free passes it to the allocator's free function; do not modify it.
+    size_t capacity;
     // True if the library allocated `output` and it must be freed with mjb_result_free. False if
     // `output` points into the caller's input, which must outlive the result.
     bool owned;
