@@ -155,7 +155,9 @@ static mjb_codepoint fuzz_codepoint(const uint8_t *data, size_t size, uint8_t va
     }
 }
 
-static bool fuzz_next_codepoint(mjb_character *character, mjb_character_position type) {
+static bool fuzz_next_codepoint(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     if(character != NULL) {
         fuzz_sink += (size_t)character->codepoint;
         fuzz_sink += (size_t)type;
@@ -725,7 +727,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzz_boundary_iterators(buffer, size, encoding);
             mjb_text text = mjb_text_make(buffer, size, encoding);
             fuzz_sink += (size_t)mjb_for_each_codepoint(&text, MJB_MALFORMED_REPLACE,
-                fuzz_next_codepoint, NULL);
+                fuzz_next_codepoint, NULL, NULL);
             break;
         }
 

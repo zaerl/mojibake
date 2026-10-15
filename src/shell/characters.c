@@ -6,20 +6,26 @@
 
 #include "shell.h"
 
-bool mjbsh_next_codepoint(mjb_character *character, mjb_character_position type) {
+bool mjbsh_next_codepoint(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     printf("%sU+%04X%s%s", mjbsh_green(), (unsigned int)character->codepoint, mjbsh_reset(),
         (type & MJB_POSITION_LAST) ? "" : " ");
 
     return true;
 }
 
-bool mjbsh_next_array_codepoint(mjb_character *character, mjb_character_position type) {
+bool mjbsh_next_array_codepoint(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     printf("%u%s", character->codepoint, (type & MJB_POSITION_LAST) ? "" : ", ");
 
     return true;
 }
 
-bool mjbsh_next_string_character(mjb_character *character, mjb_character_position type) {
+bool mjbsh_next_string_character(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     (void)type;
     char buffer_utf8[5];
     size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);
@@ -33,7 +39,9 @@ bool mjbsh_next_string_character(mjb_character *character, mjb_character_positio
     return true;
 }
 
-bool mjbsh_next_escaped_character(mjb_character *character, mjb_character_position type) {
+bool mjbsh_next_escaped_character(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     (void)type;
     char buffer_utf8[5];
     size_t size = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5, MJB_ENC_UTF_8);

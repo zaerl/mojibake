@@ -6,7 +6,9 @@
 
 #include "../shell.h"
 
-static bool mjbsh_output_next_character(mjb_character *character, mjb_character_position type) {
+static bool mjbsh_output_next_character(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     char buffer_utf8[5];
     unsigned int utf8_length = mjb_codepoint_encode(character->codepoint, buffer_utf8, 5,
         MJB_ENC_UTF_8);
@@ -289,7 +291,7 @@ int mjbsh_character_command(int argc, char *const argv[], unsigned int flags) {
 
     mjb_text text = mjb_text_utf8(argv[0], strlen(argv[0]));
     mjb_status status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,
-        mjbsh_output_next_character, NULL);
+        mjbsh_output_next_character, NULL, NULL);
 
     if(status != MJB_STATUS_OK) {
         return mjbsh_error("%s", mjb_status_message(status));

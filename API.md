@@ -1308,15 +1308,17 @@ mjb_status mjb_for_each_codepoint(
     const mjb_text *text,
     mjb_malformed_policy malformed_policy,
     mjb_for_each_codepoint_fn callback,
+    void *context,
     mjb_diagnostic *diagnostic
 );
 ```
 
-Decode the string according to `malformed_policy` and call the callback for every resulting codepoint. The first malformed subsequence is reported in `diagnostic` even when it is replaced or skipped.
+Decode the string according to `malformed_policy` and call the callback for every resulting codepoint, with its position in the string and `context`. Use `context` to give the callback its own state, such as a counter or an output buffer, without global variables. The first malformed subsequence is reported in `diagnostic` even when it is replaced or skipped.
 
 - `text` - The text to check
 - `malformed_policy` - How malformed code-unit sequences are handled
 - `callback` - The function to call for each codepoint
+- `context` - A caller-owned pointer passed unchanged to every `callback` call, or NULL
 - `diagnostic` - Where to store the first malformed-input diagnostic, or NULL
 
 **Returns**
@@ -1331,7 +1333,7 @@ Decode the string according to `malformed_policy` and call the callback for ever
 
 ```c
 mjb_text input = mjb_text_utf8("ABC", 3);
-mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL);
+mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;

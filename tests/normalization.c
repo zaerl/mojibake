@@ -11,7 +11,9 @@
 #include "../src/utf8.h"
 #include "test.h"
 
-static bool next_codepoint(mjb_character *character, mjb_character_position type) {
+static bool next_codepoint(const mjb_character *character, mjb_character_position type,
+    void *context) {
+    (void)context;
     (void)type;
     printf(" \x1B[31mU+%04X\x1B[0m", (unsigned int)character->codepoint);
 
@@ -71,15 +73,18 @@ static int check_normalization(char *source, size_t source_size, char *normalize
 
             printf("\n%s: source:", test_name);
             text = mjb_text_utf8(source, source_size);
-            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL);
+            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL,
+                NULL);
             (void)print_status; // we can ignore this.
             printf("\nExpected: ");
             text = mjb_text_utf8(normalized, normalized_size);
-            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL);
+            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL,
+                NULL);
             (void)print_status; // we can ignore this.
             printf("\nGot: ");
             text = mjb_text_utf8(result.output, result.output_size);
-            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL);
+            print_status = mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, next_codepoint, NULL,
+                NULL);
             (void)print_status; // we can ignore this.
             puts("");
         }

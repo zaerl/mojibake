@@ -566,7 +566,10 @@ typedef struct mjb_sentence_break_state {
     bool sat_is_aterm;
 } mjb_sentence_break_state;
 
-typedef bool (*mjb_for_each_codepoint_fn)(mjb_character *character, mjb_character_position type);
+// Called by mjb_for_each_codepoint for each codepoint. `context` is the pointer passed to
+// mjb_for_each_codepoint, for the caller's own state. Return false to stop the iteration.
+typedef bool (*mjb_for_each_codepoint_fn)(const mjb_character *character,
+    mjb_character_position position, void *context);
 
 typedef enum mjb_direction {
     MJB_DIRECTION_LTR = 0,
@@ -766,7 +769,7 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_previous(const mjb_text *text, mj
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Run a callback for each codepoint of a string.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_codepoint(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic);
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_for_each_codepoint(const mjb_text *text, mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback, void *context, mjb_diagnostic *diagnostic);
 
 // Return the value of a binary Unicode property.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_property_binary(mjb_codepoint codepoint, mjb_property property, bool *value);

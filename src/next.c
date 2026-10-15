@@ -11,7 +11,7 @@
  * Run a callback for each codepoint in the string.
  */
 MJB_EXPORT mjb_status mjb_for_each_codepoint(const mjb_text *text,
-    mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback,
+    mjb_malformed_policy malformed_policy, mjb_for_each_codepoint_fn callback, void *context,
     mjb_diagnostic *diagnostic) {
     if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -71,15 +71,16 @@ MJB_EXPORT mjb_status mjb_for_each_codepoint(const mjb_text *text,
         if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
             bool asm_result = EM_ASM_INT(
-                { return _mjbForEachCodepointCallback($0, $1); }, &character,
-                first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE);
+                { return _mjbForEachCodepointCallback($0, $1, $2); }, &character,
+                first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE, context);
 
             if(!asm_result) {
                 return MJB_STATUS_CALLBACK_STOPPED;
             }
 #else
             // Call the callback function.
-            if(!callback(&character, first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE)) {
+            if(!callback(&character, first_character ? MJB_POSITION_FIRST : MJB_POSITION_NONE,
+                   context)) {
                 return MJB_STATUS_CALLBACK_STOPPED;
             }
 #endif
@@ -99,8 +100,8 @@ MJB_EXPORT mjb_status mjb_for_each_codepoint(const mjb_text *text,
     if(has_previous_character) {
 #ifdef __EMSCRIPTEN__
         bool asm_result = EM_ASM_INT(
-            { return _mjbForEachCodepointCallback($0, $1); }, &character,
-            first_character ? MJB_POSITION_FIRST | MJB_POSITION_LAST : MJB_POSITION_LAST);
+            { return _mjbForEachCodepointCallback($0, $1, $2); }, &character,
+            first_character ? MJB_POSITION_FIRST | MJB_POSITION_LAST : MJB_POSITION_LAST, context);
 
         if(!asm_result) {
             return MJB_STATUS_CALLBACK_STOPPED;
@@ -109,7 +110,8 @@ MJB_EXPORT mjb_status mjb_for_each_codepoint(const mjb_text *text,
         // Call the callback function.
         if(!callback(&character,
                first_character ? (mjb_character_position)(MJB_POSITION_FIRST | MJB_POSITION_LAST) :
-                                 MJB_POSITION_LAST)) {
+                                 MJB_POSITION_LAST,
+               context)) {
             return MJB_STATUS_CALLBACK_STOPPED;
         }
 #endif

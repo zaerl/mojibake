@@ -84,7 +84,9 @@ static void mjbsh_print_nl(unsigned int nl) {
     }
 }
 
-static bool mjbsh_next_current_character(mjb_character *character, mjb_character_position type) {
+static bool mjbsh_next_current_character(const mjb_character *character,
+    mjb_character_position type, void *context) {
+    (void)context;
     (void)type;
     current_codepoint = character->codepoint;
 
@@ -331,7 +333,7 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
             text = mjb_text_utf8(result.output, result.output_size);
             if(result.output_size > 0 &&
                 mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, mjbsh_next_escaped_character,
-                    NULL) != MJB_STATUS_OK) {
+                    NULL, NULL) != MJB_STATUS_OK) {
                 goto cleanup;
             }
             printf("%s\",%s", mjbsh_reset(), mjbsh_jnl());
@@ -354,7 +356,8 @@ void mjbsh_normalization(const char *buffer_utf8, size_t utf8_length, mjb_normal
     text = mjb_text_utf8(result.output, result.output_size);
     if(result.output_size > 0 &&
         mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,
-            is_json ? mjbsh_next_array_codepoint : mjbsh_next_codepoint, NULL) != MJB_STATUS_OK) {
+            is_json ? mjbsh_next_array_codepoint : mjbsh_next_codepoint, NULL,
+            NULL) != MJB_STATUS_OK) {
         goto cleanup;
     }
 
@@ -431,8 +434,8 @@ bool mjbsh_parse_codepoint(const char *input, mjb_codepoint *codepoint) {
         return true;
     } else {
         mjb_text text = mjb_text_utf8(input, strlen(input));
-        if(mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, mjbsh_next_current_character, NULL) !=
-            MJB_STATUS_OK) {
+        if(mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP, mjbsh_next_current_character, NULL,
+               NULL) != MJB_STATUS_OK) {
             return false;
         }
 

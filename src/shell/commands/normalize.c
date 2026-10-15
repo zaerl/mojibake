@@ -90,7 +90,7 @@ static int mjbsh_normalize_buffer(const char *buffer, size_t size, unsigned int 
     text = mjb_text_utf8(result.output, result.output_size);
     if(result.output_size > 0 &&
         mjb_for_each_codepoint(&text, MJB_MALFORMED_STOP,
-            as_string ? mjbsh_next_string_character : mjbsh_next_codepoint,
+            as_string ? mjbsh_next_string_character : mjbsh_next_codepoint, NULL,
             NULL) != MJB_STATUS_OK) {
         ret = false;
     }

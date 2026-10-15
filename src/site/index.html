@@ -116,6 +116,7 @@ the MIT License.</p>
 
         // C: mjb_category
         const categories = [
+            'Other, not assigned', // MJB_CATEGORY_CN is 0
             'Letter, uppercase',
             'Letter, lowercase',
             'Letter, titlecase',
@@ -144,8 +145,7 @@ the MIT License.</p>
             'Other, control',
             'Other, format',
             'Other, surrogate',
-            'Other, private use',
-            'Other, not assigned',
+            'Other, private use'
         ];
 
         const scripts = [
@@ -533,19 +533,13 @@ the MIT License.</p>
             return ret;
         }
 
+        // forEachCodepoint returns one { character, type } entry per codepoint, or null
         function parseNextCharacter(result) {
-            let ret = '';
-
-            // Use an index and add a <br> if it's not the last one
-            for(let i = 0; i < result.characters.length; ++i) {
-                ret += parseCodepointCharacter(result.characters[i]);
-
-                if(i !== result.characters.length - 1) {
-                    ret += '<br><br>';
-                }
+            if(result === null) {
+                return 'Iteration failed';
             }
 
-            return ret;
+            return result.map(entry => parseCodepointCharacter(entry.character)).join('<br><br>');
         }
 
         function parseLocale(result) {

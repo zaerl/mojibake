@@ -51,7 +51,7 @@ ATT_TEST(cpp_normalization) {
     const std::string utf16le("a\0b\0", 4);
     ATT_ASSERT(mjb::is_utf16(utf16le), true, "is_utf16");
     mjb_diagnostic diagnostic;
-    ATT_ASSERT_STATUS(mjb::validate_string("A\x80", MJB_ENC_UTF_8, &diagnostic),
+    ATT_ASSERT_STATUS(mjb::validate_encoding("A\x80", MJB_ENC_UTF_8, &diagnostic),
         MJB_STATUS_MALFORMED_INPUT, "validate_string malformed input");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
@@ -109,26 +109,26 @@ ATT_TEST(cpp_normalization) {
                    mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
         mjb::collation_key("AB"), "collation_key skip policy");
-    ATT_ASSERT(mjb::compare("a", "b") < 0, true, "compare");
-    ATT_ASSERT(mjb::compare("ca\x80t", "cat", mjb::CollationVariableWeighting::NonIgnorable,
+    ATT_ASSERT(mjb::collation_compare("a", "b") < 0, true, "compare");
+    ATT_ASSERT(mjb::collation_compare("ca\x80t", "cat", mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
                    MJB_MALFORMED_SKIP),
         0, "compare skips malformed input");
-    ATT_ASSERT(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
+    ATT_ASSERT(mjb::collation_compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Secondary),
         0, "compare secondary ignores case");
-    ATT_ASSERT((int)(mjb::compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
+    ATT_ASSERT((int)(mjb::collation_compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,
                         mjb::CollationStrength::Tertiary) != 0),
         1, "compare tertiary compares case");
-    ATT_ASSERT(mjb::compare("", "\xE2\x80\x8B"), 0,
+    ATT_ASSERT(mjb::collation_compare("", "\xE2\x80\x8B"), 0,
         "compare completely ignorable string with empty");
-    ATT_ASSERT(mjb::compare("\xE2\x80\x8B", ""), 0,
+    ATT_ASSERT(mjb::collation_compare("\xE2\x80\x8B", ""), 0,
         "compare completely ignorable string with empty in reverse order");
-    ATT_ASSERT(mjb::compare("", "\xCC\x81",
+    ATT_ASSERT(mjb::collation_compare("", "\xCC\x81",
                    mjb::CollationVariableWeighting::NonIgnorable,
                    mjb::CollationStrength::Primary),
         0, "compare primary-ignorable accent with empty");
-    ATT_ASSERT((int)(mjb::compare("", "\xCC\x81",
+    ATT_ASSERT((int)(mjb::collation_compare("", "\xCC\x81",
                         mjb::CollationVariableWeighting::NonIgnorable,
                         mjb::CollationStrength::Secondary) != 0),
         1, "compare accent with empty at secondary strength");
@@ -151,13 +151,22 @@ ATT_TEST(cpp_normalization) {
 
     bool caught = false;
 
+    std::string error_message;
+
     try {
         (void)mjb::Character(static_cast<mjb_codepoint>(MJB_CODEPOINT_NOT_VALID));
     } catch(const mjb::LibraryError &error) {
         caught = error.status() == MJB_STATUS_INVALID_ARGUMENT;
+        error_message = error.what();
     }
 
     ATT_ASSERT(caught, true, "LibraryError preserves mjb_status");
+    ATT_ASSERT(error_message,
+        std::string("Unable to read codepoint character: ") +
+            std::string(mjb::status_message(MJB_STATUS_INVALID_ARGUMENT)),
+        "LibraryError appends the library status message");
+    ATT_ASSERT(std::string(mjb::status_message(MJB_STATUS_OK)),
+        std::string("The operation completed successfully"), "status_message");
 
     const std::string malformed_utf8("\x80", 1);
     caught = false;
@@ -173,7 +182,7 @@ ATT_TEST(cpp_normalization) {
 #if MJB_FEATURE_COLLATION
     caught = false;
     try {
-        (void)mjb::compare(malformed_utf8, "a");
+        (void)mjb::collation_compare(malformed_utf8, "a");
     } catch(const mjb::LibraryError &error) {
         caught = error.status() == MJB_STATUS_MALFORMED_INPUT;
     }

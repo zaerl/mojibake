@@ -359,7 +359,7 @@ ATT_TEST(example) {
     // Example for mjb_for_each_codepoint
     MJB_TEST_COVERAGE(mjb_for_each_codepoint); // Added by the script
     mjb_text input = mjb_text_utf8("ABC", 3);
-    mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL);
+    mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL, NULL);
 
     // A callback is required: yes
     bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
