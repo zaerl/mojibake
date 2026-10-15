@@ -64,9 +64,9 @@ static void test_basic_segmentation(void) {
     ATT_ASSERT((uint8_t)mjb_grapheme_break_next(&text, &state),
         (uint8_t)MJB_BT_NOT_SET, "Empty string");
     text = mjb_text_utf8(NULL, 1);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 1), (size_t)0, "Truncate rejects NULL buffer");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 1), (size_t)0, "Truncate rejects NULL buffer");
     text = mjb_text_utf8(NULL, 1);
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
         "Truncate width rejects NULL buffer");
 
     MJB_TEST_S
@@ -146,65 +146,65 @@ static void test_basic_segmentation(void) {
 }
 
 static void test_truncate(void) {
-    // mjb_grapheme_truncate: empty / zero
+    // mjb_grapheme_prefix_length: empty / zero
     mjb_text text = mjb_text_utf8("", 0);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 3), (size_t)0, "Truncate: empty string");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 3), (size_t)0, "Truncate: empty string");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 0), (size_t)0, "Truncate: 0 graphemes");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 0), (size_t)0, "Truncate: 0 graphemes");
 
     // ASCII: each byte is one grapheme cluster
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 1), (size_t)1, "Truncate: ABC to 1");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 1), (size_t)1, "Truncate: ABC to 1");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 2), (size_t)2, "Truncate: ABC to 2");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 2), (size_t)2, "Truncate: ABC to 2");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 3), (size_t)3, "Truncate: ABC to 3 (no-op)");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 3), (size_t)3, "Truncate: ABC to 3 (no-op)");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 5), (size_t)3, "Truncate: ABC to 5 (no-op)");
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 5), (size_t)3, "Truncate: ABC to 5 (no-op)");
 
     // Multi-byte: "aé" = 0x61 0xC3 0xA9 = 3 bytes, 2 grapheme clusters
     text = mjb_text_utf8("a\xC3\xA9", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 1), (size_t)1,
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 1), (size_t)1,
         "Truncate: aé to 1 grapheme");
     text = mjb_text_utf8("a\xC3\xA9", 3);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 2), (size_t)3,
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 2), (size_t)3,
         "Truncate: aé to 2 graphemes (no-op)");
 
     // Flag emoji 🇺🇸 = two RI codepoints (4+4=8 bytes), one grapheme cluster
     text = mjb_text_utf8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8", 8);
-    ATT_ASSERT(mjb_grapheme_truncate(&text, 1), (size_t)8,
+    ATT_ASSERT(mjb_grapheme_prefix_length(&text, 1), (size_t)8,
         "Truncate: flag emoji to 1 grapheme (no-op)");
 
-    // mjb_grapheme_truncate_width
+    // mjb_grapheme_prefix_length_for_width
     text = mjb_text_utf8("", 0);
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 5), (size_t)0,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 5), (size_t)0,
         "Truncate width: empty string");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 0), (size_t)0,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 0), (size_t)0,
         "Truncate width: 0 columns");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 2), (size_t)2,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 2), (size_t)2,
         "Truncate width: ABC to 2 columns");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 3), (size_t)3,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 3), (size_t)3,
         "Truncate width: ABC to 3 columns (no-op)");
     text = mjb_text_utf8("ABC", 3);
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 10),
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 10),
         (size_t)3, "Truncate width: ABC to 10 columns (no-op)");
 
     const char malformed_utf8_width[] = { 'a', '\x17', '\xCE', '\x08', 's', 't' };
 
     text = mjb_text_utf8(malformed_utf8_width, sizeof(malformed_utf8_width));
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 114), (size_t)1,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text, MJB_TERMINAL_WIDTH_NARROW, 114), (size_t)1,
         "Truncate width stops before malformed or stateful terminal input");
 
     const char *kiss = "\xf0\x9f\x91\xa8\xf0\x9f\x8f\xbb\xe2\x80\x8d\xe2\x9d\xa4\xef\xb8\x8f"
                        "\xe2\x80\x8d\xf0\x9f\x92\x8b\xe2\x80\x8d\xf0\x9f\x91\xa8\xf0\x9f\x8f\xbb";
     text = mjb_text_utf8(kiss, strlen(kiss));
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text,
         MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0, "Emoji does not fit in one terminal cell");
     text = mjb_text_utf8(kiss, strlen(kiss));
-    ATT_ASSERT(mjb_grapheme_truncate_width(&text,
+    ATT_ASSERT(mjb_grapheme_prefix_length_for_width(&text,
         MJB_TERMINAL_WIDTH_NARROW, 2), strlen(kiss), "Emoji fits in two terminal cells");
 }
 
@@ -338,9 +338,9 @@ ATT_TEST(segmentation) {
         size_t count = 9;
         ATT_ASSERT((int)mjb_grapheme_break_next(NULL, &state), (int)MJB_BT_NOT_SET,
             "Grapheme break rejects NULL text");
-        ATT_ASSERT(mjb_grapheme_truncate(NULL, 1), (size_t)0,
+        ATT_ASSERT(mjb_grapheme_prefix_length(NULL, 1), (size_t)0,
             "Truncate grapheme rejects NULL text");
-        ATT_ASSERT(mjb_grapheme_truncate_width(NULL, MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
+        ATT_ASSERT(mjb_grapheme_prefix_length_for_width(NULL, MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
             "Truncate grapheme width rejects NULL text");
         ATT_ASSERT_STATUS(mjb_grapheme_count(NULL, MJB_MALFORMED_STOP, &count, NULL),
             MJB_STATUS_INVALID_ARGUMENT, "Grapheme count rejects NULL text");

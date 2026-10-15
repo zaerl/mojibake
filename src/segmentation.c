@@ -268,7 +268,7 @@ MJB_EXPORT mjb_break_type mjb_grapheme_break_next(const mjb_text *text,
 }
 
 // Return the largest prefix no longer than max_bytes that ends at a grapheme boundary.
-// See: mjb_grapheme_truncate
+// See: mjb_grapheme_prefix_length
 size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_encoding encoding,
     size_t max_bytes) {
     if(buffer == NULL || byte_length == 0 || max_bytes == 0) {
@@ -305,7 +305,7 @@ size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_enc
 }
 
 // Return the number of bytes that form the first max_graphemes grapheme clusters.
-MJB_EXPORT size_t mjb_grapheme_truncate(const mjb_text *text, size_t max_graphemes) {
+MJB_EXPORT size_t mjb_grapheme_prefix_length(const mjb_text *text, size_t max_graphemes) {
     if(text == NULL) {
         return 0;
     }
@@ -438,7 +438,7 @@ MJB_EXPORT mjb_status mjb_grapheme_count(const mjb_text *text,
 }
 
 // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_grapheme_truncate_width(const mjb_text *text,
+MJB_EXPORT size_t mjb_grapheme_prefix_length_for_width(const mjb_text *text,
     mjb_terminal_width_profile profile, size_t max_columns) {
     if(text == NULL) {
         return 0;

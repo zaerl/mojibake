@@ -147,7 +147,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Emoji**: codepoint properties, sequence analysis, RGI emoji detection
 - **Terminal width**: grapheme-aware terminal-cell estimates with explicit narrow or East Asian
   profiles, emoji-sequence handling, and width-aware truncation
-  (`mjb_terminal_width`, `mjb_grapheme_truncate_width`)
+  (`mjb_terminal_width`, `mjb_grapheme_prefix_length_for_width`)
 
 **Sorting and comparison**
 

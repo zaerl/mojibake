@@ -1158,29 +1158,29 @@ export class Mojibake {
     return this.collectBreaks(input, this.module._mjb_word_break_next, options);
   }
 
-  // size_t mjb_word_truncate(const mjb_text *text, size_t max_segments)
-  wordTruncate(input: MojibakeInput, maxSegments: number,
+  // size_t mjb_word_prefix_length(const mjb_text *text, size_t max_segments)
+  wordPrefixLength(input: MojibakeInput, maxSegments: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_word_truncate(textPtr, maxSegments);
+      return this.module._mjb_word_prefix_length(textPtr, maxSegments);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
     }
   }
 
-  // size_t mjb_word_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile,
-  // size_t max_columns)
-  wordTruncateWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
-    options: TextInputOptions = {}): number {
+  // size_t mjb_word_prefix_length_for_width(const mjb_text *text,
+  // mjb_terminal_width_profile profile, size_t max_columns)
+  wordPrefixLengthForWidth(input: MojibakeInput, profile: TerminalWidthProfile,
+    maxColumns: number, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_word_truncate_width(textPtr, profile, maxColumns);
+      return this.module._mjb_word_prefix_length_for_width(textPtr, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
@@ -1197,13 +1197,14 @@ export class Mojibake {
     return this.collectBreaks(input, this.module._mjb_grapheme_break_next, options);
   }
 
-  // size_t mjb_grapheme_truncate(const mjb_text *text, size_t max_graphemes)
-  graphemeTruncate(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
+  // size_t mjb_grapheme_prefix_length(const mjb_text *text, size_t max_graphemes)
+  graphemePrefixLength(input: MojibakeInput, maxGraphemes: number,
+    options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_grapheme_truncate(textPtr, maxGraphemes);
+      return this.module._mjb_grapheme_prefix_length(textPtr, maxGraphemes);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
@@ -1279,15 +1280,15 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_grapheme_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile,
-  // size_t max_columns)
-  graphemeTruncateWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
-    options: TextInputOptions = {}): number {
+  // size_t mjb_grapheme_prefix_length_for_width(const mjb_text *text,
+  // mjb_terminal_width_profile profile, size_t max_columns)
+  graphemePrefixLengthForWidth(input: MojibakeInput, profile: TerminalWidthProfile,
+    maxColumns: number, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_grapheme_truncate_width(textPtr, profile, maxColumns);
+      return this.module._mjb_grapheme_prefix_length_for_width(textPtr, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);

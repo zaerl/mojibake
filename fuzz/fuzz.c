@@ -632,13 +632,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 NULL);
             fuzz_sink += segment_count;
             text = mjb_text_make(buffer, size, encoding);
-            mjb_grapheme_truncate(&text, variant);
+            mjb_grapheme_prefix_length(&text, variant);
             text = mjb_text_make(buffer, size, encoding);
-            mjb_word_truncate(&text, variant);
+            mjb_word_prefix_length(&text, variant);
             text = mjb_text_make(buffer, size, encoding);
-            mjb_grapheme_truncate_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
+            mjb_grapheme_prefix_length_for_width(&text, (mjb_terminal_width_profile)(variant % 2),
+                variant);
             text = mjb_text_make(buffer, size, encoding);
-            mjb_word_truncate_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
+            mjb_word_prefix_length_for_width(&text, (mjb_terminal_width_profile)(variant % 2),
+                variant);
 
             text = mjb_text_make(buffer, size, encoding);
             fuzz_sink += (size_t)mjb_grapheme_count(&text, malformed_policy, &segment_count, NULL);

@@ -106,17 +106,17 @@ export type MojibakeWasmModule = {
   // Grapheme cluster breaking.
   _mjb_grapheme_break_next: (text: Pointer, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-  _mjb_grapheme_truncate: (text: Pointer, max_graphemes: number) => number;
+  _mjb_grapheme_prefix_length: (text: Pointer, max_graphemes: number) => number;
   // Count the extended grapheme clusters in a string.
   _mjb_grapheme_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-  _mjb_grapheme_truncate_width: (text: Pointer, profile: number, max_columns: number) => number;
+  _mjb_grapheme_prefix_length_for_width: (text: Pointer, profile: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
-  _mjb_word_truncate: (text: Pointer, max_segments: number) => number;
+  _mjb_word_prefix_length: (text: Pointer, max_segments: number) => number;
   // Count the word-like segments in a string.
   _mjb_word_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-  _mjb_word_truncate_width: (text: Pointer, profile: number, max_columns: number) => number;
+  _mjb_word_prefix_length_for_width: (text: Pointer, profile: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.
   _mjb_bidi_resolve: (text: Pointer, direction: number, result: Pointer) => number;
   // Return true if the codepoint is a valid Unicode identifier start (Unicode 18.0.0 UAX #31 ID_Start).

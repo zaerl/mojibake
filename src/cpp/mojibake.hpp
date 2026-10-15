@@ -1313,7 +1313,7 @@ inline void set_allocator(const mjb_allocator *allocator) {
 [[nodiscard]] inline std::string_view grapheme_truncate(std::string_view input,
     size_t max_graphemes, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_grapheme_truncate(&text, max_graphemes);
+    const size_t n = mjb_grapheme_prefix_length(&text, max_graphemes);
 
     return input.substr(0, n);
 }
@@ -1358,7 +1358,7 @@ inline void set_allocator(const mjb_allocator *allocator) {
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_grapheme_truncate_width(&text, profile, max_columns);
+    const size_t n = mjb_grapheme_prefix_length_for_width(&text, profile, max_columns);
 
     return input.substr(0, n);
 }
@@ -1366,7 +1366,7 @@ inline void set_allocator(const mjb_allocator *allocator) {
 [[nodiscard]] inline std::string_view word_truncate(std::string_view input, size_t max_segments,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_word_truncate(&text, max_segments);
+    const size_t n = mjb_word_prefix_length(&text, max_segments);
 
     return input.substr(0, n);
 }
@@ -1375,7 +1375,7 @@ inline void set_allocator(const mjb_allocator *allocator) {
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_word_truncate_width(&text, profile, max_columns);
+    const size_t n = mjb_word_prefix_length_for_width(&text, profile, max_columns);
 
     return input.substr(0, n);
 }

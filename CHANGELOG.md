@@ -102,11 +102,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_sentence_break_next`, and `mjb_line_break_next`; their states `mjb_next_state`,
   `mjb_next_word_state`, `mjb_next_sentence_state`, and `mjb_next_line_state` are now
   `mjb_grapheme_break_state`, `mjb_word_break_state`, `mjb_sentence_break_state`, and
-  `mjb_line_break_state`; and `mjb_truncate_grapheme`, `mjb_truncate_grapheme_width`,
-  `mjb_truncate_word`, and `mjb_truncate_word_width` are now `mjb_grapheme_truncate`,
-  `mjb_grapheme_truncate_width`, `mjb_word_truncate`, and `mjb_word_truncate_width`. The C++
-  wrapper and TypeScript API follow: `mjb::grapheme_truncate`, `graphemeBreakNext`,
-  `graphemeTruncate`, and so on
+  `mjb_line_break_state`. The TypeScript API follows: `graphemeBreakNext` and so on
+- **Breaking**: the truncation functions are named after what they return, the byte length of a
+  prefix, since they do not modify their input: `mjb_truncate_grapheme`,
+  `mjb_truncate_grapheme_width`, `mjb_truncate_word`, and `mjb_truncate_word_width` are now
+  `mjb_grapheme_prefix_length`, `mjb_grapheme_prefix_length_for_width`, `mjb_word_prefix_length`,
+  and `mjb_word_prefix_length_for_width`, and the TypeScript methods are now
+  `graphemePrefixLength` and so on. The C++ wrappers return the truncated `std::string_view`, so
+  they are named `mjb::grapheme_truncate`, `mjb::grapheme_truncate_width`, `mjb::word_truncate`,
+  and `mjb::word_truncate_width`
 - **Breaking**: `mjb_hangul_syllable_composition`, which composed an array of the internal
   `mjb_buffer_character` type in place, is no longer public, and `mjb_buffer_character` moved out
   of `mojibake.h`. The new `mjb_hangul_syllable_compose(leading, vowel, trailing, syllable)`

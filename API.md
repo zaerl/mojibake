@@ -2349,7 +2349,7 @@ while(mjb_word_break_next(&input, &state) != MJB_BT_NOT_SET) {
 printf("Word-break positions: %zu", boundaries);
 ```
 
-See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_word_truncate`](#mjb_word_truncate).
+See also: [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_word_prefix_length`](#mjb_word_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -2464,16 +2464,16 @@ while(mjb_grapheme_break_next(&input, &state) != MJB_BT_NOT_SET) {
 printf("Codepoints examined: %zu", codepoints);
 ```
 
-See also: [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_line_break_next`](#mjb_line_break_next), [`mjb_grapheme_truncate`](#mjb_grapheme_truncate).
+See also: [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_sentence_break_next`](#mjb_sentence_break_next), [`mjb_line_break_next`](#mjb_line_break_next), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
-## `mjb_grapheme_truncate`
+## `mjb_grapheme_prefix_length`
 
 Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
 
 ```c
-size_t mjb_grapheme_truncate(
+size_t mjb_grapheme_prefix_length(
     const mjb_text *text,
     size_t max_graphemes
 );
@@ -2486,7 +2486,7 @@ size_t mjb_grapheme_truncate(
 
 ```c
 mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
-size_t bytes = mjb_grapheme_truncate(&input, 2);
+size_t bytes = mjb_grapheme_prefix_length(&input, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);
@@ -2533,16 +2533,16 @@ if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 printf("Grapheme clusters: %zu", count);
 ```
 
-See also: [`mjb_grapheme_truncate`](#mjb_grapheme_truncate), [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_terminal_width`](#mjb_terminal_width).
+See also: [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length), [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_terminal_width`](#mjb_terminal_width).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
-## `mjb_grapheme_truncate_width`
+## `mjb_grapheme_prefix_length_for_width`
 
 Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
 
 ```c
-size_t mjb_grapheme_truncate_width(
+size_t mjb_grapheme_prefix_length_for_width(
     const mjb_text *text,
     mjb_terminal_width_profile profile,
     size_t max_columns
@@ -2559,18 +2559,18 @@ Truncate only at extended grapheme-cluster boundaries, using the same terminal-c
 
 ```c
 mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
-size_t bytes = mjb_grapheme_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
+size_t bytes = mjb_grapheme_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);
 ```
 
-## `mjb_word_truncate`
+## `mjb_word_prefix_length`
 
 Return the number of bytes that form the first max_segments word-break segments.
 
 ```c
-size_t mjb_word_truncate(
+size_t mjb_word_prefix_length(
     const mjb_text *text,
     size_t max_segments
 );
@@ -2583,7 +2583,7 @@ size_t mjb_word_truncate(
 
 ```c
 mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-size_t bytes = mjb_word_truncate(&input, 1);
+size_t bytes = mjb_word_prefix_length(&input, 1);
 
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);
@@ -2602,7 +2602,7 @@ mjb_status mjb_word_count(
 );
 ```
 
-Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_word_truncate`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
+Count the words in a string: the word-break segments that contain at least one alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, matching the default Unicode word-boundary rules. Unlike `mjb_word_prefix_length`, whose `max_segments` counts every raw segment, this function skips non-word segments. For scripts segmented by dictionary lookup in other implementations, such as Chinese, Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: Mojibake does not use frequency dictionaries to keep the size of the library small. Malformed subsequences follow `malformed_policy`, and `diagnostic` records the first one. On failure, `count` is set to zero.
 
 - `text` - The text to count
 - `malformed_policy` - How malformed code-unit sequences are handled
@@ -2630,16 +2630,16 @@ if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
 printf("Words: %zu", count);
 ```
 
-See also: [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_word_truncate`](#mjb_word_truncate), [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_sentence_count`](#mjb_sentence_count).
+See also: [`mjb_word_break_next`](#mjb_word_break_next), [`mjb_word_prefix_length`](#mjb_word_prefix_length), [`mjb_grapheme_count`](#mjb_grapheme_count), [`mjb_sentence_count`](#mjb_sentence_count).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
-## `mjb_word_truncate_width`
+## `mjb_word_prefix_length_for_width`
 
 Return the number of bytes whose word-break segments fit within max_columns terminal cells.
 
 ```c
-size_t mjb_word_truncate_width(
+size_t mjb_word_prefix_length_for_width(
     const mjb_text *text,
     mjb_terminal_width_profile profile,
     size_t max_columns
@@ -2656,7 +2656,7 @@ Truncate only at word-break boundaries, using the same terminal-cell policy as `
 
 ```c
 mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-size_t bytes = mjb_word_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
+size_t bytes = mjb_word_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);
@@ -3738,7 +3738,7 @@ if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
 printf("Terminal cells: %zu", width);
 ```
 
-See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_grapheme_truncate_width`](#mjb_grapheme_truncate_width), [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
+See also: [`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width), [`mjb_grapheme_prefix_length_for_width`](#mjb_grapheme_prefix_length_for_width), [`mjb_grapheme_break_next`](#mjb_grapheme_break_next), [`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji).
 
 Specifications: [UAX #11: East Asian Width, Unicode 18.0.0](https://www.unicode.org/reports/tr11/tr11-46.html), [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html), [UTS #51: Unicode Emoji, Unicode 18.0.0](https://www.unicode.org/reports/tr51/tr51-31.html).
 
@@ -3971,7 +3971,7 @@ int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
 printf("%d: %s", required, buffer);
 ```
 
-See also: [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_grapheme_truncate`](#mjb_grapheme_truncate).
+See also: [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -4000,7 +4000,7 @@ The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same graph
 - `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
 - `A negative value` - Formatting failed or the complete result could not be obtained
 
-See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_grapheme_truncate`](#mjb_grapheme_truncate).
+See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
 Specifications: [UAX #29: Unicode Text Segmentation, Unicode 18.0.0](https://www.unicode.org/reports/tr29/tr29-49.html).
 
@@ -4162,4 +4162,4 @@ policy. The table below maps the advertised Unicode algorithm and data claims to
 | Resolved-script and mixed-script detection | `mjb_resolved_script_set` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | UTS #39 resolved-script examples, augmented writing-system values, encodings, embedded NULs, and error handling in `tests/security.c`. |
 | Confusable skeleton generation and matching | `mjb_confusable_skeleton`, `mjb_confusable_match` | [UTS #39](https://www.unicode.org/reports/tr39/tr39-33.html) | Every mapping in `confusables.txt`, every pair in `intentional.txt`, and `tests/security.c`. |
 | Emoji properties and sequence data | Emoji property predicates, `mjb_emoji_sequence_info`, RGI checks | [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `emoji-data.txt`, `emoji-sequences.txt`, `emoji-zwj-sequences.txt`, `emoji-variation-sequences.txt`, `emoji-test.txt`, and `tests/emoji.c`. |
-| Terminal-cell width policy | `mjb_terminal_width`, `mjb_grapheme_truncate_width`, `mjb_word_truncate_width`; consumes `mjb_codepoint_east_asian_width`, grapheme boundaries, normalization, and emoji-sequence data | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `EastAsianWidth.txt`, emoji sequence data, normalization data, `tests/east-asian-width.c`, `tests/terminal-width.c`, `tests/segmentation.c`, and `tests/break-word.c`; terminal cell counts are a documented local policy, not font or renderer measurements. |
+| Terminal-cell width policy | `mjb_terminal_width`, `mjb_grapheme_prefix_length_for_width`, `mjb_word_prefix_length_for_width`; consumes `mjb_codepoint_east_asian_width`, grapheme boundaries, normalization, and emoji-sequence data | [UAX #11](https://www.unicode.org/reports/tr11/tr11-45.html), [UAX #29](https://www.unicode.org/reports/tr29/tr29-48.html), [UTS #51](https://www.unicode.org/reports/tr51/tr51-30.html) | `EastAsianWidth.txt`, emoji sequence data, normalization data, `tests/east-asian-width.c`, `tests/terminal-width.c`, `tests/segmentation.c`, and `tests/break-word.c`; terminal cell counts are a documented local policy, not font or renderer measurements. |
