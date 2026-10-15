@@ -12,10 +12,80 @@
 
 #include "../src/mojibake.h"
 
+int LLVMFuzzerInitialize(int *argc, char ***argv);
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
 // Keeps calls to pure functions from being discarded.
 static volatile size_t fuzz_sink;
+
+// An allocator that records each requested size in a header and aborts when the library passes a
+// different size back to realloc or free, so the fuzzer reports every allocator contract violation.
+typedef union fuzz_block_header {
+    size_t size;
+    long double long_double_alignment;
+    long long long_long_alignment;
+    void *pointer_alignment;
+} fuzz_block_header;
+
+static void *fuzz_alloc(void *context, size_t size) {
+    (void)context;
+
+    if(size == 0) {
+        abort();
+    }
+
+    fuzz_block_header *header = (fuzz_block_header *)malloc(sizeof(*header) + size);
+
+    if(header == NULL) {
+        return NULL;
+    }
+
+    header->size = size;
+
+    return header + 1;
+}
+
+static void *fuzz_realloc(void *context, void *ptr, size_t old_size, size_t new_size) {
+    (void)context;
+    fuzz_block_header *header = ptr == NULL ? NULL : (fuzz_block_header *)ptr - 1;
+
+    if(new_size == 0 || (header == NULL ? old_size != 0 : header->size != old_size)) {
+        abort();
+    }
+
+    fuzz_block_header *new_header = (fuzz_block_header *)realloc(header,
+        sizeof(*new_header) + new_size);
+
+    if(new_header == NULL) {
+        return NULL;
+    }
+
+    new_header->size = new_size;
+
+    return new_header + 1;
+}
+
+static void fuzz_free(void *context, void *ptr, size_t size) {
+    (void)context;
+
+    if(ptr == NULL || ((fuzz_block_header *)ptr - 1)->size != size) {
+        abort();
+    }
+
+    free((fuzz_block_header *)ptr - 1);
+}
+
+int LLVMFuzzerInitialize(int *argc, char ***argv) {
+    (void)argc;
+    (void)argv;
+    mjb_allocator allocator = { NULL, fuzz_alloc, fuzz_realloc, fuzz_free };
+
+    if(mjb_set_allocator(&allocator) != MJB_STATUS_OK) {
+        abort();
+    }
+
+    return 0;
+}
 
 static uint32_t fuzz_u32(const uint8_t *data, size_t size, uint8_t variant) {
     uint32_t value = variant;

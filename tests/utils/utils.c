@@ -42,12 +42,30 @@ size_t get_string_from_codepoints(char *buffer, size_t byte_length, char *codepo
     return index;
 }
 
+// Copy a result into a NUL-terminated buffer owned by the test, then free the result.
+static char *mjb_test_take_result(mjb_result *result) {
+    char *copy = (char *)malloc(result->output_size + 1);
+
+    if(copy != NULL) {
+        if(result->output_size > 0) {
+            memcpy(copy, result->output, result->output_size);
+        }
+
+        copy[result->output_size] = '\0';
+    }
+
+    ATT_ASSERT_STATUS(mjb_result_free(result), MJB_STATUS_OK, "Free test result");
+
+    return copy;
+}
+
 /**
- * Call mjb_map_case and return the output string, or NULL when the call fails.
+ * Call mjb_map_case and return a copy of the output string, or NULL when the call fails. Free the
+ * copy with mjb_test_free.
  */
 char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type type,
     mjb_locale locale, mjb_encoding encoding) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
 
     mjb_text text = mjb_text_make(buffer, byte_length, encoding);
     if(mjb_map_case(&text, MJB_MALFORMED_STOP, type, locale, encoding, &result, NULL) !=
@@ -65,14 +83,14 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     ATT_ASSERT(required, result.output_size, "Case into required size matches allocated size");
 
     if(status != MJB_STATUS_OK || required != result.output_size) {
-        return result.output;
+        return mjb_test_take_result(&result);
     }
 
     unsigned char *output = (unsigned char *)malloc(required + 1);
     ATT_ASSERT(output != NULL, true, "Allocate case into comparison buffer");
 
     if(output == NULL) {
-        return result.output;
+        return mjb_test_take_result(&result);
     }
 
     memset(output, 0xA5, required + 1);
@@ -87,12 +105,11 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
 
     free(output);
 
-    return result.output;
+    return mjb_test_take_result(&result);
 }
 
 void mjb_test_free(void *output) {
-    mjb_result result = { (char *)output, 0, true };
-    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free test result");
+    free(output);
 }
 
 void read_test_file(const char *filename, test_file_callback callback) {

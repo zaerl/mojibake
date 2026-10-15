@@ -3847,10 +3847,14 @@ printf("Unicode version: %s", version);`,
     section: Section.Utility,
     details: 'Install the allocator used for internal allocations and owned result buffers. ' +
       'The allocator is copied and must provide all three callbacks, which receive its context ' +
-      'pointer and follow the corresponding C standard library semantics. The context remains ' +
-      'caller-owned and must stay valid for the lifetime of all Mojibake allocations. Pass NULL ' +
-      'to explicitly select the default allocator. This process-global configuration may be ' +
-      'set only once and must happen before any other library call or concurrent library use.',
+      'pointer. The library passes the size of every block it reallocates or frees, so arena, ' +
+      'pool, and accounting allocators do not need to record sizes themselves: `old_size` and ' +
+      '`size` are the size most recently requested for that block, requested sizes are never 0, ' +
+      '`realloc` receives NULL with an `old_size` of 0 for a new block and leaves the old block ' +
+      'valid on failure, and `free` is never called with NULL. The context remains caller-owned ' +
+      'and must stay valid for the lifetime of all Mojibake allocations. Pass NULL to explicitly ' +
+      'select the default allocator. This process-global configuration may be set only once and ' +
+      'must happen before any other library call or concurrent library use.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'The allocator was installed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT',

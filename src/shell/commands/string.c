@@ -9,7 +9,7 @@
 int mjbsh_case_command(int argc, char *const argv[], unsigned int flags) {
     (void)argc;
 
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(argv[0], strlen(argv[0]));
     mjb_status status = mjb_map_case(&text, MJB_MALFORMED_STOP, (mjb_map_case_type)flags,
         cmd_locale, MJB_ENC_UTF_8, &result, NULL);

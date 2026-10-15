@@ -22,6 +22,7 @@ struct MjbText {
 struct MjbResult {
     output: *mut c_char,
     output_size: usize,
+    capacity: usize,
     owned: bool,
 }
 
@@ -30,6 +31,7 @@ impl MjbResult {
         Self {
             output: std::ptr::null_mut(),
             output_size: 0,
+            capacity: 0,
             owned: false,
         }
     }

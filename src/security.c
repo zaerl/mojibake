@@ -227,9 +227,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     size_t *output_size) {
     if(byte_length == 0) {
         if(result != NULL) {
-            result->output = (char *)buffer;
-            result->output_size = 0;
-            result->owned = false;
+            mjb_result_borrow(result, buffer, 0);
 
             return MJB_STATUS_OK;
         }
@@ -253,9 +251,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     char *mid = (char *)mjb_alloc(mid_size);
 
     if(!mid) {
-        if(nfd.owned) {
-            mjb_free(nfd.output);
-        }
+        mjb_result_free(&nfd);
 
         return MJB_STATUS_NO_MEMORY;
     }
@@ -278,11 +274,9 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         }
 
         if(dr == MJB_DECODE_ERROR) {
-            if(nfd.owned) {
-                mjb_free(nfd.output);
-            }
+            mjb_result_free(&nfd);
 
-            mjb_free(mid);
+            mjb_free(mid, mid_size);
 
             return MJB_STATUS_MALFORMED_INPUT;
         }
@@ -304,11 +298,9 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
                 MJB_ENC_UTF_8);
 
             if(new_mid == NULL) {
-                if(nfd.owned) {
-                    mjb_free(nfd.output);
-                }
+                mjb_result_free(&nfd);
 
-                mjb_free(mid);
+                mjb_free(mid, mid_size);
 
                 return MJB_STATUS_NO_MEMORY;
             }
@@ -317,9 +309,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
         }
     }
 
-    if(nfd.owned) {
-        mjb_free(nfd.output);
-    }
+    mjb_result_free(&nfd);
 
     // Step 3: NFD the intermediate string into the selected final output.
     if(result != NULL) {
@@ -329,10 +319,10 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
 
         // mjb_normalize may return result->output == mid when the string is already NFD.
         // In that case transfer ownership so the caller can free it via mjb_result_free.
-        if(status == MJB_STATUS_OK && !result->owned) {
-            result->owned = true;
+        if(status == MJB_STATUS_OK && !result->owned && result->output == mid) {
+            mjb_result_own(result, mid, result->output_size, mid_size);
         } else {
-            mjb_free(mid);
+            mjb_free(mid, mid_size);
         }
 
         return status;
@@ -343,7 +333,7 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     status = mjb_normalize_into(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFD, &output_buffer,
         NULL);
     *output_size = output_buffer.size;
-    mjb_free(mid);
+    mjb_free(mid, mid_size);
 
     return status;
 }
@@ -385,7 +375,7 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
         visual_order = (size_t *)mjb_alloc(paragraph.count * sizeof(size_t));
 
         if(visual_order == NULL) {
-            mjb_free(reordered);
+            mjb_free(reordered, reordered_capacity);
             mjb_bidi_paragraph_free(&paragraph);
 
             return MJB_STATUS_NO_MEMORY;
@@ -394,8 +384,8 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
         status = mjb_bidi_reorder_line(&paragraph, 0, paragraph.count, visual_order);
 
         if(status != MJB_STATUS_OK) {
-            mjb_free(visual_order);
-            mjb_free(reordered);
+            mjb_free(visual_order, paragraph.count * sizeof(size_t));
+            mjb_free(reordered, reordered_capacity);
             mjb_bidi_paragraph_free(&paragraph);
 
             return status;
@@ -443,8 +433,8 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
                 &reordered_capacity, MJB_ENC_UTF_8);
 
             if(new_reordered == NULL) {
-                mjb_free(visual_order);
-                mjb_free(reordered);
+                mjb_free(visual_order, paragraph.count * sizeof(size_t));
+                mjb_free(reordered, reordered_capacity);
                 mjb_bidi_paragraph_free(&paragraph);
 
                 return MJB_STATUS_NO_MEMORY;
@@ -454,16 +444,16 @@ static mjb_status mjb_confusable_skeleton_process(const char *buffer, size_t byt
         }
     }
 
-    mjb_free(visual_order);
+    mjb_free(visual_order, paragraph.count * sizeof(size_t));
     mjb_bidi_paragraph_free(&paragraph);
 
     status = mjb_confusable_skeleton_finish(reordered, reordered_size, MJB_ENC_UTF_8,
         output_encoding, result, output, output_size);
 
     if(result != NULL && status == MJB_STATUS_OK && result->output == reordered) {
-        result->owned = true;
+        mjb_result_own(result, reordered, result->output_size, reordered_capacity);
     } else {
-        mjb_free(reordered);
+        mjb_free(reordered, reordered_capacity);
     }
 
     return status;
@@ -476,9 +466,7 @@ MJB_EXPORT mjb_status mjb_confusable_skeleton(const mjb_text *text, mjb_encoding
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    result->output = NULL;
-    result->output_size = 0;
-    result->owned = false;
+    mjb_result_borrow(result, NULL, 0);
 
     return mjb_confusable_skeleton_process(text->buffer, text->byte_length, text->encoding,
         output_encoding, result, NULL, NULL);
@@ -531,9 +519,7 @@ static mjb_status mjb_confusable_match_texts(const mjb_text *first, const mjb_te
     status = mjb_confusable_skeleton(second, MJB_ENC_UTF_8, &skel2);
 
     if(status != MJB_STATUS_OK) {
-        if(skel1.owned) {
-            mjb_free(skel1.output);
-        }
+        mjb_result_free(&skel1);
 
         return status;
     }
@@ -541,13 +527,9 @@ static mjb_status mjb_confusable_match_texts(const mjb_text *first, const mjb_te
     *confusable = (skel1.output_size == skel2.output_size) && skel1.output_size > 0 &&
         (memcmp(skel1.output, skel2.output, skel1.output_size) == 0);
 
-    if(skel1.owned) {
-        mjb_free(skel1.output);
-    }
+    mjb_result_free(&skel1);
 
-    if(skel2.owned) {
-        mjb_free(skel2.output);
-    }
+    mjb_result_free(&skel2);
 
     return MJB_STATUS_OK;
 }
@@ -575,8 +557,8 @@ MJB_EXPORT mjb_status mjb_confusable_match(const mjb_text *first, const mjb_text
 
     mjb_text first_prepared;
     mjb_text second_prepared;
-    mjb_result first_sanitized = { NULL, 0, false };
-    mjb_result second_sanitized = { NULL, 0, false };
+    mjb_result first_sanitized = { NULL, 0, 0, false };
+    mjb_result second_sanitized = { NULL, 0, 0, false };
     status = mjb_prepare_text_input(first, malformed_policy, first_diagnostic, &first_prepared,
         &first_sanitized);
 

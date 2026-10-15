@@ -199,8 +199,8 @@ static void test_idna_conformance(void) {
             strcmp(idna_trim(fields[2]), "[]") != 0;
         bool ascii_error = *idna_trim(fields[4]) == '\0' ? unicode_error :
                                                            strcmp(idna_trim(fields[4]), "[]") != 0;
-        mjb_result unicode_result = { NULL, 0, false };
-        mjb_result ascii_result = { NULL, 0, false };
+        mjb_result unicode_result = { NULL, 0, 0, false };
+        mjb_result ascii_result = { NULL, 0, 0, false };
         mjb_idna_info unicode_info = { 0 };
         mjb_idna_info ascii_info = { 0 };
 
@@ -363,7 +363,7 @@ static void test_idna_api(void) {
 static void test_idna_disabled(void) {
     const char *domain = "example.com";
     mjb_idna_info info = { 0 };
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     char output[32] = { 0 };
     mjb_buffer into = mjb_buffer_make(output, sizeof(output), MJB_ENC_UTF_8);
 

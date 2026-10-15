@@ -179,9 +179,9 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   (`mjb_decode_next`, `mjb_decode_previous`), codepoint callbacks (`mjb_for_each_codepoint`), and
   policy-aware codepoint counting (`mjb_codepoint_count`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
-- **Embeddable**: context-aware custom allocators (`mjb_set_allocator`), build-time feature flags
-  to trim table size, a C++17 wrapper (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a
-  WASM + TypeScript API (`src/api`)
+- **Embeddable**: context-aware custom allocators that receive block sizes
+  (`mjb_set_allocator`), build-time feature flags to trim table size, a C++17 wrapper
+  (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a WASM + TypeScript API (`src/api`)
 - **Tested**: Mojibake uses [Attractor](https://github.com/zaerl/attractor/) as test suite and run
   [1.5M+ assertions](https://github.com/zaerl/mojibake/blob/main/TESTS.md) including the
   official Unicode conformance suites for supported algorithms

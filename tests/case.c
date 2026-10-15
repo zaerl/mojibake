@@ -123,7 +123,7 @@ ATT_TEST(case) {
     MJB_TEST_COVERAGE(mjb_map_case);
     char *result = NULL;
 
-    mjb_result guard_result = { NULL, 0, false };
+    mjb_result guard_result = { NULL, 0, 0, false };
 
     MJB_TEST_COVERAGE(mjb_map_case_into);
 
@@ -317,9 +317,8 @@ ATT_TEST(case) {
     ATT_ASSERT((int)memcmp(guard_result.output, "A\0", 2), 0,
         "Case conversion converted output encoding bytes");
 
-    if(guard_result.owned) {
-        mjb_test_free(guard_result.output);
-    }
+    ATT_ASSERT_STATUS(mjb_result_free(&guard_result), MJB_STATUS_OK,
+        "Free converted output encoding result");
 
     // Test uppercase conversion
     result = run_mjb_map_case("hello", 5, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, encoding);

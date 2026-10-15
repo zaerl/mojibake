@@ -96,6 +96,7 @@ static mjb_status mjb_flush_c_buffer(mjb_n_character *characters_buffer, size_t 
             }
 
             mjb_buffer_character *new_output = (mjb_buffer_character *)mjb_realloc(*output,
+                *output_size * sizeof(mjb_buffer_character),
                 new_output_size * sizeof(mjb_buffer_character));
 
             if(new_output == NULL) {
@@ -520,14 +521,14 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
         }
     }
 
-    mjb_free(composition_buffer);
+    mjb_free(composition_buffer, composition_capacity * sizeof(mjb_buffer_character));
 
 #undef MJB_NORMALIZE_FLUSH_BUFFER
 
     return MJB_STATUS_OK;
 
 fail:
-    mjb_free(composition_buffer);
+    mjb_free(composition_buffer, composition_capacity * sizeof(mjb_buffer_character));
 
 #undef MJB_NORMALIZE_FLUSH_BUFFER
 
@@ -567,18 +568,14 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
     }
 
     if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->owned = false;
+        mjb_result_borrow(result, buffer, 0);
 
         return MJB_STATUS_OK;
     }
 
-    result->output = NULL;
-    result->output_size = 0;
-    result->owned = false;
+    mjb_result_borrow(result, NULL, 0);
 
-    mjb_result sanitized = { NULL, 0, false };
+    mjb_result sanitized = { NULL, 0, 0, false };
     mjb_quick_check_result is_normalized;
     status = mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form,
         &is_normalized, false);
@@ -613,10 +610,13 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
             return status;
         }
 
-        result->output = (char *)buffer;
-        result->output_size = byte_length;
-        result->owned = sanitized.owned;
-        sanitized.owned = false;
+        // A repaired input is returned as is: the result takes over the repaired copy.
+        if(sanitized.owned) {
+            mjb_result_own(result, (char *)buffer, byte_length, sanitized.capacity);
+            sanitized.owned = false;
+        } else {
+            mjb_result_borrow(result, buffer, byte_length);
+        }
 
         return MJB_STATUS_OK;
     }
@@ -647,7 +647,7 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
 
     if(status != MJB_STATUS_OK) {
         mjb_diagnose_malformed_input(buffer, byte_length, encoding, status, diagnostic);
-        mjb_free(output.buffer);
+        mjb_free(output.buffer, output.capacity);
         mjb_result_free(&sanitized);
 
         return status;
@@ -655,9 +655,7 @@ MJB_EXPORT mjb_status mjb_normalize(const mjb_text *text, mjb_malformed_policy m
 
     mjb_result_free(&sanitized);
     output.buffer[output.size] = '\0';
-    result->output = output.buffer;
-    result->output_size = output.size;
-    result->owned = true;
+    mjb_result_own(result, output.buffer, output.size, output.capacity);
 
     return MJB_STATUS_OK;
 }
@@ -711,7 +709,7 @@ MJB_EXPORT mjb_status mjb_normalize_into(const mjb_text *text,
         return mjb_output_copy_into(buffer, byte_length, data, output_size);
     }
 
-    mjb_result sanitized = { NULL, 0, false };
+    mjb_result sanitized = { NULL, 0, 0, false };
     mjb_quick_check_result is_normalized;
     status = mjb_normalization_quick_check_internal(buffer, byte_length, encoding, form,
         &is_normalized, false);
@@ -774,7 +772,7 @@ MJB_EXPORT mjb_status mjb_normalize_into(const mjb_text *text,
 
 // Apply full default case folding and remove Default_Ignorable_Code_Point characters.
 static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length, char **output,
-    size_t *output_size) {
+    size_t *output_size, size_t *output_capacity) {
     size_t capacity = byte_length == 0 ? 1 : byte_length;
     char *folded = (char *)mjb_alloc(capacity);
 
@@ -826,7 +824,7 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
                 &capacity, MJB_ENC_UTF_8);
 
             if(new_folded == NULL) {
-                mjb_free(folded);
+                mjb_free(folded, capacity);
 
                 return MJB_STATUS_NO_MEMORY;
             }
@@ -836,7 +834,7 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
     }
 
     if(output_index >= capacity) {
-        mjb_free(folded);
+        mjb_free(folded, capacity);
 
         return MJB_STATUS_OVERFLOW;
     }
@@ -844,6 +842,7 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
     folded[output_index] = '\0';
     *output = folded;
     *output_size = output_index;
+    *output_capacity = capacity;
 
     return MJB_STATUS_OK;
 }
@@ -854,6 +853,7 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
     const char *current = buffer;
     size_t current_size = byte_length;
     mjb_encoding current_encoding = encoding;
+    size_t current_capacity = 0;
     bool current_owned = false;
 
     // DerivedNormalizationProps specifies repeating NFKC, full case folding, and removal of
@@ -868,7 +868,7 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
 
         if(status != MJB_STATUS_OK) {
             if(current_owned) {
-                mjb_free((void *)current);
+                mjb_free((void *)current, current_capacity);
             }
 
             return status;
@@ -876,16 +876,14 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
 
         char *folded = NULL;
         size_t folded_size = 0;
+        size_t folded_capacity = 0;
         status = mjb_nfkc_casefold_pass(normalized.output, normalized.output_size, &folded,
-            &folded_size);
-
-        if(normalized.owned) {
-            mjb_free(normalized.output);
-        }
+            &folded_size, &folded_capacity);
+        mjb_result_free(&normalized);
 
         if(status != MJB_STATUS_OK) {
             if(current_owned) {
-                mjb_free((void *)current);
+                mjb_free((void *)current, current_capacity);
             }
 
             return status;
@@ -895,12 +893,13 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
             memcmp(current, folded, current_size) == 0;
 
         if(current_owned) {
-            mjb_free((void *)current);
+            mjb_free((void *)current, current_capacity);
         }
 
         current = folded;
         current_size = folded_size;
         current_encoding = MJB_ENC_UTF_8;
+        current_capacity = folded_capacity;
         current_owned = true;
 
         if(stable) {
@@ -912,30 +911,31 @@ static mjb_status mjb_nfkc_casefold_transform(const char *buffer, size_t byte_le
                     output_encoding, &normalized_result, NULL);
 
                 if(status != MJB_STATUS_OK) {
-                    mjb_free((void *)current);
+                    mjb_free((void *)current, current_capacity);
 
                     return status;
                 }
 
-                if(normalized_result.output != current) {
-                    mjb_free((void *)current);
+                if(normalized_result.output == current) {
+                    // Already NFC in UTF-8: the result takes over the folded buffer.
+                    mjb_result_own(result, (char *)current, current_size, current_capacity);
+                } else {
+                    mjb_free((void *)current, current_capacity);
+                    *result = normalized_result;
                 }
-
-                *result = normalized_result;
-                result->owned = true;
 
                 return MJB_STATUS_OK;
             }
 
             status = mjb_normalize_into(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, output,
                 NULL);
-            mjb_free((void *)current);
+            mjb_free((void *)current, current_capacity);
 
             return status;
         }
     }
 
-    mjb_free((void *)current);
+    mjb_free((void *)current, current_capacity);
 
     return MJB_STATUS_UNSUPPORTED;
 }
@@ -967,9 +967,7 @@ MJB_EXPORT mjb_status mjb_nfkc_casefold(const mjb_text *text, mjb_malformed_poli
     }
 
     if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = 0;
-        result->owned = false;
+        mjb_result_borrow(result, buffer, 0);
 
         return MJB_STATUS_OK;
     }

@@ -32,6 +32,21 @@ static void assert_filter_into_matches(const char *input, size_t input_size, mjb
 }
 
 ATT_TEST(filter) {
+    // Normalizing input made only of skipped malformed bytes leaves nothing to filter. The filter
+    // output must not request a zero-size allocation for it.
+    {
+        mjb_result skipped = { NULL, 0, 0, false };
+        mjb_text malformed = mjb_text_utf8("\x80", 1);
+        ATT_ASSERT_STATUS(mjb_filter(&malformed, MJB_MALFORMED_SKIP,
+                              (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_SPACES),
+                              MJB_ENC_UTF_8, &skipped, NULL),
+            MJB_STATUS_OK, "Filter input with only skipped malformed bytes");
+        ATT_ASSERT(skipped.output_size, (size_t)0,
+            "Filter input with only skipped malformed bytes is empty");
+        ATT_ASSERT_STATUS(mjb_result_free(&skipped), MJB_STATUS_OK,
+            "Free filter result of input with only skipped malformed bytes");
+    }
+
     mjb_result result;
     mjb_encoding enc = MJB_ENC_UTF_8;
 

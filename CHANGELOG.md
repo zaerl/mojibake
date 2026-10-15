@@ -88,6 +88,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   TypeScript `setLocale` and `getLocale` are removed too. The C++ casing functions take the locale
   as the argument after the input (after `type` for `case_map`), the TypeScript `mapCase` reads
   `options.locale`, and the CLI `--locale` option is passed to each casing call
+- **Breaking**: allocator callbacks receive block sizes, so arena, pool, and accounting allocators
+  no longer need to record them: `mjb_realloc_fn` is now `(context, ptr, old_size, new_size)` and
+  `mjb_free_fn` is now `(context, ptr, size)`. The size passed is the one most recently requested
+  for the block; requested sizes are never 0, `realloc` receives NULL with an `old_size` of 0 for a
+  new block, and `free` is never called with NULL
+- **Breaking**: `mjb_result` has a new `capacity` field, between `output_size` and `owned`, that
+  records the allocation size of an owned `output` for `mjb_result_free`. It is 16 bytes on wasm32
+  and 32 bytes on 64-bit targets. Bindings that declare `mjb_result` themselves must add the field
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold

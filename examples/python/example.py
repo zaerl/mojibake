@@ -24,6 +24,7 @@ class MjbResult(ctypes.Structure):
     _fields_ = [
         ("output", ctypes.c_void_p),
         ("output_size", ctypes.c_size_t),
+        ("capacity", ctypes.c_size_t),
         ("owned", ctypes.c_bool),
     ]
 

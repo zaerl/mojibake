@@ -167,9 +167,7 @@ MJB_EXPORT mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malf
     }
 
     if(byte_length == 0) {
-        result->output = (char *)buffer;
-        result->output_size = byte_length;
-        result->owned = false;
+        mjb_result_borrow(result, buffer, byte_length);
 
         return MJB_STATUS_OK;
     }
@@ -199,7 +197,10 @@ MJB_EXPORT mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malf
         byte_length = result->output_size;
     }
 
-    char *allocated = (char *)mjb_alloc(byte_length);
+    // Normalization can leave nothing, for example when every byte was malformed and skipped.
+    // Allocation sizes are never 0.
+    size_t capacity = byte_length == 0 ? 1 : byte_length;
+    char *allocated = (char *)mjb_alloc(capacity);
 
     if(allocated == NULL) {
         if(is_normalized) {
@@ -210,14 +211,14 @@ MJB_EXPORT mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malf
     }
 
     mjb_output output;
-    mjb_output_init_dynamic(&output, allocated, byte_length);
+    mjb_output_init_dynamic(&output, allocated, capacity);
     mjb_filter_context context = { buffer, byte_length, encoding, malformed_policy, filters,
         output_encoding, diagnostic };
     bool transformed = false;
     status = mjb_filter_process(&context, &output, &transformed);
 
     if(status != MJB_STATUS_OK) {
-        mjb_free(output.buffer);
+        mjb_free(output.buffer, output.capacity);
 
         if(is_normalized) {
             mjb_result_free(result);
@@ -229,11 +230,9 @@ MJB_EXPORT mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malf
     // If no transformation occurred, not normalized and output encoding matches input encoding,
     // return original buffer.
     if(!transformed && !is_normalized && encoding == output_encoding) {
-        mjb_free(output.buffer);
+        mjb_free(output.buffer, output.capacity);
 
-        result->output = (char *)buffer;
-        result->output_size = byte_length;
-        result->owned = false;
+        mjb_result_borrow(result, buffer, byte_length);
 
         return MJB_STATUS_OK;
     }
@@ -242,9 +241,7 @@ MJB_EXPORT mjb_status mjb_filter(const mjb_text *text, mjb_malformed_policy malf
         mjb_result_free(result);
     }
 
-    result->output = output.buffer;
-    result->output_size = output.size;
-    result->owned = true;
+    mjb_result_own(result, output.buffer, output.size, output.capacity);
 
     return MJB_STATUS_OK;
 }
@@ -305,7 +302,7 @@ MJB_EXPORT mjb_status mjb_filter_into(const mjb_text *text, mjb_malformed_policy
             diagnostic);
     }
 
-    mjb_result normalized = { NULL, 0, false };
+    mjb_result normalized = { NULL, 0, 0, false };
 
     if(normalization_requested) {
         mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);

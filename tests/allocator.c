@@ -40,7 +40,7 @@ static bool into_done(mjb_status status, size_t output_size) {
 }
 
 static mjb_status sweep_convert_encoding(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_convert_encoding(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
         NULL);
@@ -60,7 +60,7 @@ static mjb_status sweep_convert_encoding_into(bool *cleared) {
 }
 
 static mjb_status sweep_normalize(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_normalize(&text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFKC,
         MJB_ENC_UTF_8, &result, NULL);
@@ -81,7 +81,7 @@ static mjb_status sweep_normalize_into(bool *cleared) {
 }
 
 static mjb_status sweep_nfkc_casefold(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_nfkc_casefold(&text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL);
     *cleared = result_done(status, &result);
@@ -100,7 +100,7 @@ static mjb_status sweep_nfkc_casefold_into(bool *cleared) {
 }
 
 static mjb_status sweep_filter(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_filter(&text, MJB_MALFORMED_STOP,
         (mjb_filter_flags)(MJB_FILTER_NORMALIZE | MJB_FILTER_COLLAPSE_SPACES |
@@ -123,7 +123,7 @@ static mjb_status sweep_filter_into(bool *cleared) {
 }
 
 static mjb_status sweep_map_case(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_map_case(&text, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET,
         MJB_ENC_UTF_8, &result, NULL);
@@ -208,7 +208,7 @@ static mjb_status sweep_utf8_grapheme_snprintf(bool *cleared) {
 
 #if MJB_FEATURE_COLLATION
 static mjb_status sweep_collation_key(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_collation_key(&text, MJB_MALFORMED_STOP, MJB_COLLATION_SHIFTED,
         MJB_COLLATION_QUATERNARY, &result, NULL);
@@ -246,7 +246,7 @@ static mjb_status sweep_idna_to_ascii(bool *cleared) {
     static const char domain[] = "B\xC3\xBC"
                                  "cher.\xE4\xBE\x8B\xE3\x81\x88.example";
     mjb_idna_info info;
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(domain, sizeof(domain) - 1);
     mjb_status status = mjb_idna_to_ascii(&text, MJB_ENC_UTF_8, &info, &result);
     *cleared = result_done(status, &result);
@@ -270,7 +270,7 @@ static mjb_status sweep_idna_to_ascii_into(bool *cleared) {
 static mjb_status sweep_idna_to_unicode(bool *cleared) {
     static const char domain[] = "xn--bcher-kva.xn--r8jz45g.example";
     mjb_idna_info info;
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(domain, sizeof(domain) - 1);
     mjb_status status = mjb_idna_to_unicode(&text, MJB_ENC_UTF_16LE, &info, &result);
     *cleared = result_done(status, &result);
@@ -293,7 +293,7 @@ static mjb_status sweep_idna_to_unicode_into(bool *cleared) {
 
 #if MJB_FEATURE_SECURITY
 static mjb_status sweep_confusable_skeleton(bool *cleared) {
-    mjb_result result = { NULL, 0, false };
+    mjb_result result = { NULL, 0, 0, false };
     mjb_text text = mjb_text_utf8(sweep_text, sweep_text_size);
     mjb_status status = mjb_confusable_skeleton(&text, MJB_ENC_UTF_8, &result);
     *cleared = result_done(status, &result);
