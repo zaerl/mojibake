@@ -365,7 +365,7 @@ MJB_EXPORT mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_bre
 }
 
 // Return the number of bytes that form the first max_segments word-break segments.
-MJB_EXPORT size_t mjb_word_truncate(const mjb_text *text, size_t max_segments) {
+MJB_EXPORT size_t mjb_word_prefix_length(const mjb_text *text, size_t max_segments) {
     if(text == NULL) {
         return 0;
     }
@@ -547,8 +547,8 @@ MJB_EXPORT mjb_status mjb_word_count(const mjb_text *text, mjb_malformed_policy 
 }
 
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_word_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile,
-    size_t max_columns) {
+MJB_EXPORT size_t mjb_word_prefix_length_for_width(const mjb_text *text,
+    mjb_terminal_width_profile profile, size_t max_columns) {
     if(text == NULL) {
         return 0;
     }

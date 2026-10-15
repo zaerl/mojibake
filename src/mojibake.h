@@ -865,22 +865,22 @@ MJB_EXPORT MJB_NODISCARD mjb_status mjb_sentence_count(const mjb_text *text, mjb
 MJB_EXPORT mjb_break_type mjb_grapheme_break_next(const mjb_text *text, mjb_grapheme_break_state *state);
 
 // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-MJB_EXPORT size_t mjb_grapheme_truncate(const mjb_text *text, size_t max_graphemes);
+MJB_EXPORT size_t mjb_grapheme_prefix_length(const mjb_text *text, size_t max_graphemes);
 
 // Count the extended grapheme clusters in a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_grapheme_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_grapheme_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
+MJB_EXPORT size_t mjb_grapheme_prefix_length_for_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
 
 // Return the number of bytes that form the first max_segments word-break segments.
-MJB_EXPORT size_t mjb_word_truncate(const mjb_text *text, size_t max_segments);
+MJB_EXPORT size_t mjb_word_prefix_length(const mjb_text *text, size_t max_segments);
 
 // Count the word-like segments in a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_word_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_word_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
+MJB_EXPORT size_t mjb_word_prefix_length_for_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direction, mjb_bidi_paragraph *result);

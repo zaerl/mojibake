@@ -274,10 +274,10 @@ ATT_ASSERT(mojibake.lineBreakNext('A'), [BreakType.ALLOWED], 'lineBreakNext');
 ATT_ASSERT(mojibake.wordBreakNext('A'), [BreakType.ALLOWED], 'wordBreakNext');
 ATT_ASSERT(mojibake.sentenceBreakNext('A'), [BreakType.ALLOWED], 'sentenceBreakNext');
 ATT_ASSERT(mojibake.graphemeBreakNext('A'), [BreakType.ALLOWED], 'graphemeBreakNext');
-ATT_ASSERT(mojibake.wordTruncate('Hello World', 1), 5, 'wordTruncate');
-ATT_ASSERT(mojibake.wordTruncateWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
-  'wordTruncateWidth');
-ATT_ASSERT(mojibake.graphemeTruncate('ABC', 2), 2, 'graphemeTruncate');
+ATT_ASSERT(mojibake.wordPrefixLength('Hello World', 1), 5, 'wordPrefixLength');
+ATT_ASSERT(mojibake.wordPrefixLengthForWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
+  'wordPrefixLengthForWidth');
+ATT_ASSERT(mojibake.graphemePrefixLength('ABC', 2), 2, 'graphemePrefixLength');
 ATT_ASSERT(mojibake.graphemeCount('ABC'), 3, 'graphemeCount');
 ATT_ASSERT(mojibake.graphemeCount(''), 0, 'graphemeCount empty');
 ATT_ASSERT(mojibake.graphemeCount('🇮🇹'), 1, 'graphemeCount flag emoji');
@@ -297,8 +297,8 @@ ATT_ASSERT(mojibake.wordCount(''), 0, 'wordCount empty');
 ATT_ASSERT(mojibake.wordCount(malformedText,
   { malformedPolicy: MalformedPolicy.REPLACE }), 2,
   'wordCount malformed replace policy');
-ATT_ASSERT(mojibake.graphemeTruncateWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
-  'graphemeTruncateWidth');
+ATT_ASSERT(mojibake.graphemePrefixLengthForWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
+  'graphemePrefixLengthForWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');
 ATT_ASSERT(mojibake.codepointPlane(0xFFFD), Plane.BMP, 'codepointPlane');
 ATT_ASSERT(mojibake.planeIsValid(Plane.SMP), true, 'planeIsValid');

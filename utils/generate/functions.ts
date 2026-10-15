@@ -2160,7 +2160,7 @@ while(mjb_word_break_next(&input, &state) != MJB_BT_NOT_SET) {
 
 // Word-break positions: 11
 printf("Word-break positions: %zu", boundaries);`,
-    related: ['mjb_grapheme_break_next', 'mjb_sentence_break_next', 'mjb_word_truncate'],
+    related: ['mjb_grapheme_break_next', 'mjb_sentence_break_next', 'mjb_word_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
@@ -2266,13 +2266,13 @@ while(mjb_grapheme_break_next(&input, &state) != MJB_BT_NOT_SET) {
 
 // Codepoints examined: 2
 printf("Codepoints examined: %zu", codepoints);`,
-    related: ['mjb_word_break_next', 'mjb_sentence_break_next', 'mjb_line_break_next', 'mjb_grapheme_truncate'],
+    related: ['mjb_word_break_next', 'mjb_sentence_break_next', 'mjb_line_break_next', 'mjb_grapheme_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.',
     ret: 'size_t',
-    name: 'mjb_grapheme_truncate',
+    name: 'mjb_grapheme_prefix_length',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2286,7 +2286,7 @@ printf("Codepoints examined: %zu", codepoints);`,
     wasm: true,
     section: Section.Segmentation,
     example: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
-size_t bytes = mjb_grapheme_truncate(&input, 2);
+size_t bytes = mjb_grapheme_prefix_length(&input, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);`
@@ -2329,13 +2329,13 @@ if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 
 // Grapheme clusters: 2
 printf("Grapheme clusters: %zu", count);`,
-    related: ['mjb_grapheme_truncate', 'mjb_grapheme_break_next', 'mjb_terminal_width'],
+    related: ['mjb_grapheme_prefix_length', 'mjb_grapheme_break_next', 'mjb_terminal_width'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.',
     ret: 'size_t',
-    name: 'mjb_grapheme_truncate_width',
+    name: 'mjb_grapheme_prefix_length_for_width',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2359,7 +2359,7 @@ printf("Grapheme clusters: %zu", count);`,
       'policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed ' +
       'the budget or cannot be measured as printable, single-line terminal text.',
     example: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
-size_t bytes = mjb_grapheme_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
+size_t bytes = mjb_grapheme_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);`
@@ -2367,7 +2367,7 @@ printf("Two columns include %zu byte", bytes);`
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments.',
     ret: 'size_t',
-    name: 'mjb_word_truncate',
+    name: 'mjb_word_prefix_length',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2381,7 +2381,7 @@ printf("Two columns include %zu byte", bytes);`
     wasm: true,
     section: Section.Segmentation,
     example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-size_t bytes = mjb_word_truncate(&input, 1);
+size_t bytes = mjb_word_prefix_length(&input, 1);
 
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);`
@@ -2407,7 +2407,7 @@ printf("First word segment uses %zu bytes", bytes);`
     details: 'Count the words in a string: the word-break segments that contain at least one ' +
       'alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not ' +
       'counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, ' +
-      'matching the default Unicode word-boundary rules. Unlike `mjb_word_truncate`, whose ' +
+      'matching the default Unicode word-boundary rules. Unlike `mjb_word_prefix_length`, whose ' +
       '`max_segments` counts every raw segment, this function skips non-word segments. For ' +
       'scripts segmented by dictionary lookup in other implementations, such as Chinese, ' +
       'Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: ' +
@@ -2431,13 +2431,13 @@ if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
 
 // Words: 4
 printf("Words: %zu", count);`,
-    related: ['mjb_word_break_next', 'mjb_word_truncate', 'mjb_grapheme_count', 'mjb_sentence_count'],
+    related: ['mjb_word_break_next', 'mjb_word_prefix_length', 'mjb_grapheme_count', 'mjb_sentence_count'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes whose word-break segments fit within max_columns terminal cells.',
     ret: 'size_t',
-    name: 'mjb_word_truncate_width',
+    name: 'mjb_word_prefix_length_for_width',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2461,7 +2461,7 @@ printf("Words: %zu", count);`,
       '`mjb_terminal_width`. The returned prefix stops before a segment that would exceed the ' +
       'budget or cannot be measured as printable, single-line terminal text.',
     example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-size_t bytes = mjb_word_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
+size_t bytes = mjb_word_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);`
@@ -3464,7 +3464,7 @@ if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
 
 // Terminal cells: 3
 printf("Terminal cells: %zu", width);`,
-    related: ['mjb_codepoint_east_asian_width', 'mjb_grapheme_truncate_width',
+    related: ['mjb_codepoint_east_asian_width', 'mjb_grapheme_prefix_length_for_width',
       'mjb_grapheme_break_next', 'mjb_is_rgi_emoji'],
     specs: [uax(11, 'East Asian Width'), uax(29, 'Unicode Text Segmentation'),
       uts(51, 'Unicode Emoji')]
@@ -3739,7 +3739,7 @@ int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
 // 5: A
 printf("%d: %s", required, buffer);`,
     related: ['mjb_utf8_grapheme_vsnprintf', 'mjb_utf8_snprintf',
-      'mjb_grapheme_truncate'],
+      'mjb_grapheme_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
@@ -3790,7 +3790,7 @@ printf("%d: %s", required, buffer);`,
       }
     ],
     related: ['mjb_utf8_grapheme_snprintf', 'mjb_utf8_vsnprintf',
-      'mjb_grapheme_truncate'],
+      'mjb_grapheme_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {

@@ -908,15 +908,15 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_grapheme_truncate
-    MJB_TEST_COVERAGE(mjb_grapheme_truncate); // Added by the script
+    // Example for mjb_grapheme_prefix_length
+    MJB_TEST_COVERAGE(mjb_grapheme_prefix_length); // Added by the script
     mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
-    size_t bytes = mjb_grapheme_truncate(&input, 2);
+    size_t bytes = mjb_grapheme_prefix_length(&input, 2);
 
     // First two graphemes use 9 bytes
     // printf("First two graphemes use %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First two graphemes use %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_grapheme_truncate test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_grapheme_prefix_length test failed"); // Added by the script
 }
 
 {
@@ -937,27 +937,27 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_grapheme_truncate_width
-    MJB_TEST_COVERAGE(mjb_grapheme_truncate_width); // Added by the script
+    // Example for mjb_grapheme_prefix_length_for_width
+    MJB_TEST_COVERAGE(mjb_grapheme_prefix_length_for_width); // Added by the script
     mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
-    size_t bytes = mjb_grapheme_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
+    size_t bytes = mjb_grapheme_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
     // Two columns include 1 byte
     // printf("Two columns include %zu byte", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Two columns include %zu byte", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_grapheme_truncate_width test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_grapheme_prefix_length_for_width test failed"); // Added by the script
 }
 
 {
-    // Example for mjb_word_truncate
-    MJB_TEST_COVERAGE(mjb_word_truncate); // Added by the script
+    // Example for mjb_word_prefix_length
+    MJB_TEST_COVERAGE(mjb_word_prefix_length); // Added by the script
     mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-    size_t bytes = mjb_word_truncate(&input, 1);
+    size_t bytes = mjb_word_prefix_length(&input, 1);
 
     // First word segment uses 5 bytes
     // printf("First word segment uses %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First word segment uses %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First word segment uses 5 bytes", "mjb_word_truncate test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "First word segment uses 5 bytes", "mjb_word_prefix_length test failed"); // Added by the script
 }
 
 {
@@ -978,15 +978,15 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_word_truncate_width
-    MJB_TEST_COVERAGE(mjb_word_truncate_width); // Added by the script
+    // Example for mjb_word_prefix_length_for_width
+    MJB_TEST_COVERAGE(mjb_word_prefix_length_for_width); // Added by the script
     mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-    size_t bytes = mjb_word_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
+    size_t bytes = mjb_word_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
     // Six columns include 6 bytes
     // printf("Six columns include %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Six columns include %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Six columns include 6 bytes", "mjb_word_truncate_width test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Six columns include 6 bytes", "mjb_word_prefix_length_for_width test failed"); // Added by the script
 }
 
 {
