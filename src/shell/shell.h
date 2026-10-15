@@ -122,10 +122,14 @@ const char *mjbsh_east_asian_width_name(mjb_east_asian_width east_asian_width);
 bool mjbsh_parse_direction(const char *input, mjb_direction *direction);
 
 // Characters
-bool mjbsh_next_codepoint(mjb_character *character, mjb_character_position type);
-bool mjbsh_next_array_codepoint(mjb_character *character, mjb_character_position type);
-bool mjbsh_next_string_character(mjb_character *character, mjb_character_position type);
-bool mjbsh_next_escaped_character(mjb_character *character, mjb_character_position type);
+bool mjbsh_next_codepoint(const mjb_character *character, mjb_character_position type,
+    void *context);
+bool mjbsh_next_array_codepoint(const mjb_character *character, mjb_character_position type,
+    void *context);
+bool mjbsh_next_string_character(const mjb_character *character, mjb_character_position type,
+    void *context);
+bool mjbsh_next_escaped_character(const mjb_character *character, mjb_character_position type,
+    void *context);
 
 // Screen
 void mjbsh_clear_screen(void);

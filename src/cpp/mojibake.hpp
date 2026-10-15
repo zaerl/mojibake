@@ -13,26 +13,48 @@
 
 #include <array>
 #include <cstddef>
+#include <exception>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace mjb {
 
+[[nodiscard]] inline std::string_view status_message(mjb_status status) noexcept {
+    const char *message = mjb_status_message(status);
+
+    return message == nullptr ? std::string_view{} : std::string_view(message);
+}
+
 /**
  * An error reported by the C library.
  *
- * The status is retained so callers do not have to parse the diagnostic text.
+ * what() describes the failed operation followed by the library's message for the status, for
+ * example "Normalization failed: The normalization form is invalid". The status is retained so
+ * callers do not have to parse that text.
  */
 class LibraryError : public std::runtime_error {
     mjb_status error_status;
 
+    [[nodiscard]] static std::string describe(mjb_status status, std::string_view message) {
+        std::string text(message);
+        const std::string_view detail = status_message(status);
+
+        if(!detail.empty()) {
+            text += ": ";
+            text += detail;
+        }
+
+        return text;
+    }
+
   public:
     LibraryError(mjb_status status, std::string_view message)
-        : std::runtime_error(std::string(message)), error_status(status) {
+        : std::runtime_error(describe(status, message)), error_status(status) {
     }
 
     explicit LibraryError(std::string_view message)
@@ -59,10 +81,19 @@ inline void check_status(mjb_status status, std::string_view message) {
 
 struct ResultAccess;
 
+// True for a temporary std::string passed by value: a TextResult that borrows it would dangle.
+template <typename T>
+inline constexpr bool is_temporary_string_v = std::is_same_v<std::remove_const_t<T>, std::string>;
+
 } // namespace detail
 
 /**
- * See the mbj_result struct for details.
+ * The result of an allocating transformation. See the mjb_result struct for details.
+ *
+ * When the output equals the input, the result borrows it instead of copying: owned() is false
+ * and view() points into the input, which must outlive the result. Functions that can borrow
+ * reject a temporary std::string at compile time; a std::string_view over temporary storage is
+ * still the caller's responsibility.
  */
 class TextResult {
     mjb_result data{};
@@ -333,15 +364,15 @@ class Character {
         return mjb_codepoint_is_hangul_syllable(data.codepoint);
     }
 
-    [[nodiscard]] bool is_hangul_l() const noexcept {
+    [[nodiscard]] bool is_hangul_leading_jamo() const noexcept {
         return mjb_codepoint_is_hangul_leading_jamo(data.codepoint);
     }
 
-    [[nodiscard]] bool is_hangul_v() const noexcept {
+    [[nodiscard]] bool is_hangul_vowel_jamo() const noexcept {
         return mjb_codepoint_is_hangul_vowel_jamo(data.codepoint);
     }
 
-    [[nodiscard]] bool is_hangul_t() const noexcept {
+    [[nodiscard]] bool is_hangul_trailing_jamo() const noexcept {
         return mjb_codepoint_is_hangul_trailing_jamo(data.codepoint);
     }
 
@@ -353,7 +384,7 @@ class Character {
         return mjb_codepoint_is_cjk_ideograph(data.codepoint);
     }
 
-    [[nodiscard]] bool is_cjk_extension() const noexcept {
+    [[nodiscard]] bool is_cjk_extension_ideograph() const noexcept {
         return mjb_codepoint_is_cjk_extension_ideograph(data.codepoint);
     }
 
@@ -528,15 +559,15 @@ struct EmojiProperties {
     return mjb_category_is_combining(category);
 }
 
-[[nodiscard]] inline bool is_hangul_l(mjb_codepoint codepoint) noexcept {
+[[nodiscard]] inline bool is_hangul_leading_jamo(mjb_codepoint codepoint) noexcept {
     return mjb_codepoint_is_hangul_leading_jamo(codepoint);
 }
 
-[[nodiscard]] inline bool is_hangul_v(mjb_codepoint codepoint) noexcept {
+[[nodiscard]] inline bool is_hangul_vowel_jamo(mjb_codepoint codepoint) noexcept {
     return mjb_codepoint_is_hangul_vowel_jamo(codepoint);
 }
 
-[[nodiscard]] inline bool is_hangul_t(mjb_codepoint codepoint) noexcept {
+[[nodiscard]] inline bool is_hangul_trailing_jamo(mjb_codepoint codepoint) noexcept {
     return mjb_codepoint_is_hangul_trailing_jamo(codepoint);
 }
 
@@ -552,7 +583,7 @@ struct EmojiProperties {
     return mjb_codepoint_is_cjk_ideograph(codepoint);
 }
 
-[[nodiscard]] inline bool is_cjk_extension(mjb_codepoint codepoint) noexcept {
+[[nodiscard]] inline bool is_cjk_extension_ideograph(mjb_codepoint codepoint) noexcept {
     return mjb_codepoint_is_cjk_extension_ideograph(codepoint);
 }
 
@@ -659,7 +690,7 @@ struct NumericValue {
     }
 };
 
-[[nodiscard]] inline NumericValue codepoint_numeric_value(mjb_codepoint codepoint) {
+[[nodiscard]] inline NumericValue numeric_value(mjb_codepoint codepoint) {
     NumericValue value;
     detail::check_status(mjb_codepoint_numeric_value(codepoint, &value.data),
         "Unable to read numeric value");
@@ -683,7 +714,7 @@ struct NumericValue {
     return mjb_is_utf16(input.data(), input.size());
 }
 
-[[nodiscard]] inline mjb_status validate_string(std::string_view input,
+[[nodiscard]] inline mjb_status validate_encoding(std::string_view input,
     mjb_encoding encoding = MJB_ENC_UTF_8, mjb_diagnostic *diagnostic = nullptr) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
 
@@ -719,11 +750,62 @@ struct NumericValue {
 }
 
 [[nodiscard]] inline mjb_status for_each_codepoint(std::string_view input,
-    mjb_for_each_codepoint_fn callback, mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_for_each_codepoint_fn callback, void *context = nullptr,
+    mjb_encoding encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    return mjb_for_each_codepoint(&text, malformed_policy, callback, diagnostic);
+    return mjb_for_each_codepoint(&text, malformed_policy, callback, context, diagnostic);
+}
+
+namespace detail {
+
+template <typename Fn> struct CodepointVisitor {
+    Fn *fn;
+    std::exception_ptr error;
+};
+
+// Exceptions must not unwind through the C library, so they are caught here and rethrown by
+// for_each_codepoint once the C call has returned.
+template <typename Fn>
+bool visit_codepoint(const mjb_character *character, mjb_character_position position,
+    void *context) noexcept {
+    auto *visitor = static_cast<CodepointVisitor<Fn> *>(context);
+
+    try {
+        return static_cast<bool>((*visitor->fn)(*character, position));
+    } catch(...) {
+        visitor->error = std::current_exception();
+
+        return false;
+    }
+}
+
+} // namespace detail
+
+/**
+ * Call `fn(const mjb_character &, mjb_character_position)` for each codepoint. `fn` can be any
+ * callable, including a lambda with captures; returning false stops the iteration with
+ * MJB_STATUS_CALLBACK_STOPPED. An exception thrown by `fn` stops the iteration and is rethrown.
+ */
+template <typename Fn,
+    std::enable_if_t<
+        std::is_invocable_r_v<bool, Fn &, const mjb_character &, mjb_character_position>, int> = 0>
+[[nodiscard]] mjb_status for_each_codepoint(std::string_view input, Fn &&fn,
+    mjb_encoding encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    using Callable = std::remove_reference_t<Fn>;
+    detail::CodepointVisitor<Callable> visitor{ &fn, nullptr };
+    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
+    const mjb_status status = mjb_for_each_codepoint(&text, malformed_policy,
+        detail::visit_codepoint<Callable>, &visitor, diagnostic);
+
+    if(visitor.error) {
+        std::rethrow_exception(visitor.error);
+    }
+
+    return status;
 }
 
 [[nodiscard]] inline TextResult convert_encoding_result(std::string_view input,
@@ -737,6 +819,10 @@ struct NumericValue {
 
     return detail::ResultAccess::checked(std::move(result), status, "Encoding conversion failed");
 }
+
+// The result can borrow the input, so a temporary std::string would leave it dangling.
+template <typename T, typename... Args, std::enable_if_t<detail::is_temporary_string_v<T>, int> = 0>
+TextResult convert_encoding_result(T &&input, Args &&...args) = delete;
 
 [[nodiscard]] inline std::string convert_encoding(std::string_view input,
     mjb_encoding input_encoding, mjb_encoding output_encoding,
@@ -803,6 +889,10 @@ enum class NormalizationForm {
 
     return detail::ResultAccess::checked(std::move(result), status, "Normalization failed");
 }
+
+// The result can borrow the input, so a temporary std::string would leave it dangling.
+template <typename T, typename... Args, std::enable_if_t<detail::is_temporary_string_v<T>, int> = 0>
+TextResult normalize_result(T &&input, Args &&...args) = delete;
 
 [[nodiscard]] inline std::string normalize(std::string_view input, NormalizationForm form,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
@@ -908,6 +998,10 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return filter_result(input, static_cast<mjb_filter_flags>(filters), input_encoding,
         output_encoding, malformed_policy, diagnostic);
 }
+
+// The result can borrow the input, so a temporary std::string would leave it dangling.
+template <typename T, typename... Args, std::enable_if_t<detail::is_temporary_string_v<T>, int> = 0>
+TextResult filter_result(T &&input, Args &&...args) = delete;
 
 [[nodiscard]] inline std::string filter(std::string_view input, Filter filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
@@ -1099,7 +1193,7 @@ enum class CollationVariableWeighting {
     Shifted = MJB_COLLATION_SHIFTED
 };
 
-[[nodiscard]] inline int compare(std::string_view s1, std::string_view s2,
+[[nodiscard]] inline int collation_compare(std::string_view s1, std::string_view s2,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
     CollationStrength strength = CollationStrength::Tertiary,
     mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8,
@@ -1269,7 +1363,7 @@ struct LocaleId {
     }
 };
 
-[[nodiscard]] inline LocaleId parse_locale(std::string_view id,
+[[nodiscard]] inline LocaleId locale_parse(std::string_view id,
     mjb_encoding encoding = MJB_ENC_UTF_8) {
     LocaleId locale;
     const mjb_text text = mjb_text_make(id.data(), id.size(), encoding);

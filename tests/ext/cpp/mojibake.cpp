@@ -7,17 +7,38 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
-static size_t cpp_each_character_count = 0;
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
 
-static bool cpp_each_character(mjb_character *character, mjb_character_position position) {
+// A C callback that counts through `context`, as a C caller would.
+static bool cpp_each_character(const mjb_character *character, mjb_character_position position,
+    void *context) {
     (void)position;
 
     if(character != nullptr) {
-        ++cpp_each_character_count;
+        ++*static_cast<size_t *>(context);
     }
 
     return true;
 }
+
+// The result of normalize_result can borrow its input, so a temporary std::string is rejected.
+template <typename T, typename = void> struct can_normalize_result : std::false_type {};
+
+template <typename T>
+struct can_normalize_result<T,
+    std::void_t<decltype(mjb::normalize_result(std::declval<T>(), mjb::NormalizationForm::NFC))>>
+    : std::true_type {};
+
+static_assert(!can_normalize_result<std::string>::value,
+    "normalize_result rejects a temporary std::string");
+static_assert(can_normalize_result<std::string &>::value,
+    "normalize_result accepts a std::string lvalue");
+static_assert(can_normalize_result<std::string_view>::value,
+    "normalize_result accepts a std::string_view");
+static_assert(can_normalize_result<const char *>::value, "normalize_result accepts a literal");
 
 ATT_TEST(cpp_mojibake) {
     ATT_ASSERT(mjb::property_binary(U'A', MJB_PR_ALPHABETIC).value_or(false), true,
@@ -154,14 +175,14 @@ ATT_TEST(cpp_mojibake) {
 
     // NumericValue and codepoint_numeric_value
     // U+0031 = '1'
-    auto num1 = mjb::codepoint_numeric_value('1');
+    auto num1 = mjb::numeric_value('1');
     ATT_ASSERT(num1.decimal().has_value(), true, "numeric_value '1': decimal has_value");
     ATT_ASSERT(*num1.decimal(), 1, "numeric_value '1': decimal");
     ATT_ASSERT(*num1.digit(), 1, "numeric_value '1': digit");
     ATT_ASSERT(std::string(num1.numeric()), std::string("1"), "numeric_value '1': numeric");
 
     // U+00BD = '½': only numeric string
-    auto num_half = mjb::codepoint_numeric_value(0x00BD);
+    auto num_half = mjb::numeric_value(0x00BD);
     ATT_ASSERT(num_half.decimal().has_value(), false, "numeric_value ½: no decimal");
     ATT_ASSERT(std::string(num_half.numeric()), std::string("1/2"), "numeric_value ½: numeric");
 
@@ -235,13 +256,13 @@ ATT_TEST(cpp_mojibake) {
     ATT_ASSERT(mjb::is_combining(0x0301), true, "is_combining");
     ATT_ASSERT(mjb::category_is_graphic(MJB_CATEGORY_LL), true, "category_is_graphic");
     ATT_ASSERT(mjb::category_is_combining(MJB_CATEGORY_MN), true, "category_is_combining");
-    ATT_ASSERT(mjb::is_hangul_l(0x1100), true, "is_hangul_l");
-    ATT_ASSERT(mjb::is_hangul_v(0x1161), true, "is_hangul_v");
-    ATT_ASSERT(mjb::is_hangul_t(0x11A8), true, "is_hangul_t");
+    ATT_ASSERT(mjb::is_hangul_leading_jamo(0x1100), true, "is_hangul_l");
+    ATT_ASSERT(mjb::is_hangul_vowel_jamo(0x1161), true, "is_hangul_v");
+    ATT_ASSERT(mjb::is_hangul_trailing_jamo(0x11A8), true, "is_hangul_t");
     ATT_ASSERT(mjb::is_hangul_jamo(0x1100), true, "is_hangul_jamo");
     ATT_ASSERT(mjb::is_hangul_syllable(0xAC00), true, "is_hangul_syllable");
     ATT_ASSERT(mjb::is_cjk_ideograph(0x4E00), true, "is_cjk_ideograph");
-    ATT_ASSERT(mjb::is_cjk_extension(0x3400), true, "is_cjk_extension");
+    ATT_ASSERT(mjb::is_cjk_extension_ideograph(0x3400), true, "is_cjk_extension");
     ATT_ASSERT(mjb::is_emoji(0x1F642), true, "is_emoji codepoint");
     ATT_ASSERT(mjb::is_emoji_presentation(0x1F642), true, "is_emoji_presentation");
     ATT_ASSERT(mjb::is_extended_pictographic(0x1F642), true,
@@ -257,10 +278,43 @@ ATT_TEST(cpp_mojibake) {
     ATT_ASSERT((int)mjb::east_asian_width('A'), MJB_EAW_NARROW, "east_asian_width");
     ATT_ASSERT(mjb::encode(0x1F642), std::string("\xF0\x9F\x99\x82"), "encode");
 
-    cpp_each_character_count = 0;
-    ATT_ASSERT_STATUS(mjb::for_each_codepoint("ABC", cpp_each_character), MJB_STATUS_OK,
-        "for_each_character");
-    ATT_ASSERT(cpp_each_character_count, 3u, "each_character count");
+    size_t c_callback_count = 0;
+    ATT_ASSERT_STATUS(mjb::for_each_codepoint("ABC", cpp_each_character, &c_callback_count),
+        MJB_STATUS_OK, "for_each_codepoint with a C callback");
+    ATT_ASSERT(c_callback_count, 3u, "for_each_codepoint passes the context to a C callback");
+
+    std::u32string visited;
+    ATT_ASSERT_STATUS(mjb::for_each_codepoint("A\xC3\xA9" "B",
+                          [&visited](const mjb_character &each, mjb_character_position) {
+                              visited += static_cast<char32_t>(each.codepoint);
+
+                              return true;
+                          }),
+        MJB_STATUS_OK, "for_each_codepoint with a capturing lambda");
+    ATT_ASSERT(visited == U"A\u00E9B", true, "for_each_codepoint lambda sees every codepoint");
+
+    size_t stopped_after = 0;
+    ATT_ASSERT_STATUS(mjb::for_each_codepoint("ABC",
+                          [&stopped_after](const mjb_character &, mjb_character_position) { return ++stopped_after < 2;
+                          }),
+        MJB_STATUS_CALLBACK_STOPPED, "for_each_codepoint lambda can stop the iteration");
+    ATT_ASSERT(stopped_after, 2u, "for_each_codepoint stops when the lambda returns false");
+
+    bool rethrown = false;
+    size_t calls_before_throw = 0;
+
+    try {
+        (void)mjb::for_each_codepoint("ABC",
+            [&calls_before_throw](const mjb_character &, mjb_character_position) -> bool {
+                ++calls_before_throw;
+                throw std::runtime_error("stop here");
+            });
+    } catch(const std::runtime_error &error) {
+        rethrown = std::string(error.what()) == "stop here";
+    }
+
+    ATT_ASSERT(rethrown, true, "for_each_codepoint rethrows the lambda exception");
+    ATT_ASSERT(calls_before_throw, 1u, "for_each_codepoint stops at the lambda exception");
 
     const auto sequence = mjb::emoji_sequence("\xF0\x9F\x99\x82");
     ATT_ASSERT(sequence.has_value(), true, "emoji_sequence has value");

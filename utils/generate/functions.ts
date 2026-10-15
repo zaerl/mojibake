@@ -1148,13 +1148,21 @@ printf("%zu UTF-16LE characters", count);`,
         description: 'The function to call for each codepoint',
         wasm_generated: true
       },
+      {
+        name: 'context',
+        type: 'void *',
+        description: 'A caller-owned pointer passed unchanged to every `callback` call, or NULL',
+        wasm_generated: true
+      },
       diagnostic()
     ],
     wasm: true,
     section: Section.TextAnalysis,
     details: 'Decode the string according to `malformed_policy` and call the callback for every ' +
-      'resulting codepoint. The first malformed subsequence is reported in `diagnostic` even ' +
-      'when it is replaced or skipped.',
+      'resulting codepoint, with its position in the string and `context`. Use `context` to ' +
+      'give the callback its own state, such as a counter or an output buffer, without global ' +
+      'variables. The first malformed subsequence is reported in `diagnostic` even when it is ' +
+      'replaced or skipped.',
     returns: [
       { value: 'MJB_STATUS_OK', description: 'Every decoded codepoint was visited' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
@@ -1166,7 +1174,7 @@ printf("%zu UTF-16LE characters", count);`,
       { value: 'MJB_STATUS_CALLBACK_STOPPED', description: 'The callback returned false' }
     ],
     example: `mjb_text input = mjb_text_utf8("ABC", 3);
-mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL);
+mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL, NULL);
 
 // A callback is required: yes
 bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;

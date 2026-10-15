@@ -621,14 +621,15 @@ export class Mojibake {
   }
 
   // mjb_status mjb_for_each_codepoint(const mjb_text *text, mjb_malformed_policy malformed_policy,
-  // mjb_for_each_codepoint_fn callback, mjb_diagnostic *diagnostic)
+  // mjb_for_each_codepoint_fn callback, void *context, mjb_diagnostic *diagnostic)
   forEachCodepoint(input: MojibakeInput, options: TextInputOptions = {}): NextCharacter[] | null {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
     const previousCallback = (globalThis as any)._mjbForEachCodepointCallback;
     const characters: NextCharacter[] = [];
 
-    // See mjb_for_each_codepoint function
+    // The WASM build calls this global instead of a C callback; see mjb_for_each_codepoint. It
+    // also receives the context pointer, which is unused here.
     (globalThis as any)._mjbForEachCodepointCallback = (character: Pointer, type: number) => {
       characters.push({
         character: this.pointerToCharacter(character),
@@ -640,7 +641,7 @@ export class Mojibake {
 
     try {
       const status = this.module._mjb_for_each_codepoint(textPtr,
-        options.malformedPolicy ?? MalformedPolicy.STOP, 0, 0);
+        options.malformedPolicy ?? MalformedPolicy.STOP, 0, 0, 0);
 
       if(status !== Status.OK) {
         return null;

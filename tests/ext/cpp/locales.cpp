@@ -8,7 +8,7 @@
 #include "../../test.h"
 
 ATT_TEST(cpp_locales) {
-    const auto locale = mjb::parse_locale("sr-Latn-RS");
+    const auto locale = mjb::locale_parse("sr-Latn-RS");
     ATT_ASSERT(std::string(locale.language()), std::string("sr"), "parse_locale language");
     ATT_ASSERT(std::string(locale.script()), std::string("Latn"), "parse_locale script");
     ATT_ASSERT(std::string(locale.region()), std::string("RS"), "parse_locale region");
@@ -16,7 +16,7 @@ ATT_TEST(cpp_locales) {
     bool locale_error = false;
 
     try {
-        (void)mjb::parse_locale("not_a_locale");
+        (void)mjb::locale_parse("not_a_locale");
     } catch(const mjb::LocaleError &error) {
         locale_error = error.status() == MJB_STATUS_INVALID_ARGUMENT;
     }

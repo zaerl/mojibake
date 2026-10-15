@@ -111,6 +111,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `graphemePrefixLength` and so on. The C++ wrappers return the truncated `std::string_view`, so
   they are named `mjb::grapheme_truncate`, `mjb::grapheme_truncate_width`, `mjb::word_truncate`,
   and `mjb::word_truncate_width`
+- **Breaking**: `mjb_for_each_codepoint` takes a `void *context` after the callback and passes it
+  to every call, so callbacks can keep their own state without global variables:
+  `mjb_for_each_codepoint(text, malformed_policy, callback, context, diagnostic)`. The callback
+  type is now `bool (*)(const mjb_character *character, mjb_character_position position,
+  void *context)`; the character is `const` because callbacks only read it
+- **Breaking**: C++ wrapper changes:
+  - `mjb::for_each_codepoint` accepts any callable, including a lambda with captures, taking
+    `(const mjb_character &, mjb_character_position)`; an exception it throws stops the iteration
+    and is rethrown. The C-callback overload takes the `context` pointer after the callback
+  - `normalize_result`, `filter_result`, and `convert_encoding_result` reject a temporary
+    `std::string` at compile time, because their `TextResult` can borrow the input
+  - `LibraryError::what()` appends the library's message for the status, and
+    `mjb::status_message` exposes `mjb_status_message`
+  - renamed to match the C API: `validate_string` to `validate_encoding`; `is_hangul_l`,
+    `is_hangul_v`, and `is_hangul_t` to `is_hangul_leading_jamo`, `is_hangul_vowel_jamo`, and
+    `is_hangul_trailing_jamo`; `is_cjk_extension` to `is_cjk_extension_ideograph` (also on
+    `Character`); `codepoint_numeric_value` to `numeric_value`; `parse_locale` to
+    `locale_parse`; and `compare` to `collation_compare`
 - **Breaking**: `mjb_hangul_syllable_composition`, which composed an array of the internal
   `mjb_buffer_character` type in place, is no longer public, and `mjb_buffer_character` moved out
   of `mojibake.h`. The new `mjb_hangul_syllable_compose(leading, vowel, trailing, syllable)`

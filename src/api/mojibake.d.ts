@@ -46,7 +46,7 @@ export type MojibakeWasmModule = {
   // Count the codepoints in a string.
   _mjb_codepoint_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Run a callback for each codepoint of a string.
-  _mjb_for_each_codepoint: (text: Pointer, malformed_policy: number, callback: number, diagnostic: Pointer) => number;
+  _mjb_for_each_codepoint: (text: Pointer, malformed_policy: number, callback: number, context: Pointer, diagnostic: Pointer) => number;
   // Return the value of a binary Unicode property.
   _mjb_codepoint_property_binary: (codepoint: Codepoint, property: number, value: Pointer) => number;
   // Return the value of an enumerated or integer Unicode property.
