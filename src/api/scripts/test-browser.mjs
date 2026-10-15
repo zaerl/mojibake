@@ -106,7 +106,11 @@ async function runBrowser(command) {
     };
     const timeout = setTimeout(() => {
       child.kill('SIGKILL');
-      finish(rejectRun)(new Error(`Browser runtime test timed out with ${command}`));
+
+      const error = new Error(`Browser runtime test timed out with ${command}`);
+      error.timedOut = true;
+      error.stderr = stderr;
+      finish(rejectRun)(error);
     }, 30000);
 
     child.stdout.setEncoding('utf8');
@@ -118,16 +122,42 @@ async function runBrowser(command) {
   });
 }
 
+// Headless Chrome occasionally hangs instead of exiting after --dump-dom, which has failed CI
+// runs whose tests all passed. Retry a timed-out run once and show what the browser printed.
+const browserAttempts = 2;
+
+async function runBrowserWithRetry(command) {
+  for(let attempt = 1; ; ++attempt) {
+    try {
+      return await runBrowser(command);
+    } catch(error) {
+      if(!(error instanceof Error) || error.timedOut !== true || attempt >= browserAttempts) {
+        throw error;
+      }
+
+      console.warn(`${error.message} (attempt ${attempt} of ${browserAttempts}), retrying`);
+
+      if(error.stderr) {
+        console.warn(error.stderr.trimEnd());
+      }
+    }
+  }
+}
+
 let browserResult = null;
 let browserCommand = '';
 
 try {
   for(const candidate of browserCandidates) {
     try {
-      browserResult = await runBrowser(candidate);
+      browserResult = await runBrowserWithRetry(candidate);
       browserCommand = candidate;
       break;
     } catch(error) {
+      if(error instanceof Error && error.timedOut === true && error.stderr) {
+        console.error(error.stderr.trimEnd());
+      }
+
       if(!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') {
         throw error;
       }
