@@ -285,8 +285,8 @@ ATT_TEST(cpp_mojibake) {
 
     std::u32string visited;
     ATT_ASSERT_STATUS(mjb::for_each_codepoint("A\xC3\xA9" "B",
-                          [&visited](const mjb_character &character, mjb_character_position) {
-                              visited += static_cast<char32_t>(character.codepoint);
+                          [&visited](const mjb_character &each, mjb_character_position) {
+                              visited += static_cast<char32_t>(each.codepoint);
 
                               return true;
                           }),
