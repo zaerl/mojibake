@@ -96,6 +96,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: `mjb_result` has a new `capacity` field, between `output_size` and `owned`, that
   records the allocation size of an owned `output` for `mjb_result_free`. It is 16 bytes on wasm32
   and 32 bytes on 64-bit targets. Bindings that declare `mjb_result` themselves must add the field
+- **Breaking**: the segmentation functions are named after their unit, so each unit's functions
+  sort together: `mjb_next_grapheme_break`, `mjb_next_word_break`, `mjb_next_sentence_break`, and
+  `mjb_next_line_break` are now `mjb_grapheme_break_next`, `mjb_word_break_next`,
+  `mjb_sentence_break_next`, and `mjb_line_break_next`; their states `mjb_next_state`,
+  `mjb_next_word_state`, `mjb_next_sentence_state`, and `mjb_next_line_state` are now
+  `mjb_grapheme_break_state`, `mjb_word_break_state`, `mjb_sentence_break_state`, and
+  `mjb_line_break_state`; and `mjb_truncate_grapheme`, `mjb_truncate_grapheme_width`,
+  `mjb_truncate_word`, and `mjb_truncate_word_width` are now `mjb_grapheme_truncate`,
+  `mjb_grapheme_truncate_width`, `mjb_word_truncate`, and `mjb_word_truncate_width`. The C++
+  wrapper and TypeScript API follow: `mjb::grapheme_truncate`, `graphemeBreakNext`,
+  `graphemeTruncate`, and so on
+- **Breaking**: `mjb_hangul_syllable_composition`, which composed an array of the internal
+  `mjb_buffer_character` type in place, is no longer public, and `mjb_buffer_character` moved out
+  of `mojibake.h`. The new `mjb_hangul_syllable_compose(leading, vowel, trailing, syllable)`
+  composes a syllable from its jamo, and `mjb_hangul_syllable_decomposition` is now
+  `mjb_hangul_syllable_decompose`. The C++ wrapper follows with `hangul_syllable_compose` and
+  `hangul_syllable_decompose`
 - **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
   call with enough capacity runs about as fast as the allocating variant instead of nearly twice
   as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold

@@ -29,13 +29,13 @@ struct BreaksView: View {
         var functionName: String {
             switch self {
             case .grapheme:
-                "mjb_next_grapheme_break"
+                "mjb_grapheme_break_next"
             case .word:
-                "mjb_next_word_break"
+                "mjb_word_break_next"
             case .line:
-                "mjb_next_line_break"
+                "mjb_line_break_next"
             case .sentence:
-                "mjb_next_sentence_break"
+                "mjb_sentence_break_next"
             }
         }
 
@@ -187,11 +187,11 @@ struct BreaksView: View {
     }
 
     private func graphemeBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
-        var state = mjb_next_state()
+        var state = mjb_grapheme_break_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_grapheme_break(text, &state)
+            let type = mjb_grapheme_break_next(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries
@@ -204,11 +204,11 @@ struct BreaksView: View {
     }
 
     private func wordBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
-        var state = mjb_next_word_state()
+        var state = mjb_word_break_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_word_break(text, &state)
+            let type = mjb_word_break_next(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries
@@ -221,11 +221,11 @@ struct BreaksView: View {
     }
 
     private func lineBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
-        var state = mjb_next_line_state()
+        var state = mjb_line_break_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_line_break(text, &state)
+            let type = mjb_line_break_next(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries
@@ -238,11 +238,11 @@ struct BreaksView: View {
     }
 
     private func sentenceBreaks(_ text: UnsafePointer<mjb_text>) -> [BreakBoundary] {
-        var state = mjb_next_sentence_state()
+        var state = mjb_sentence_break_state()
         var boundaries: [BreakBoundary] = []
 
         while true {
-            let type = mjb_next_sentence_break(text, &state)
+            let type = mjb_sentence_break_next(text, &state)
 
             guard type != MJB_BT_NOT_SET else {
                 return boundaries

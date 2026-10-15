@@ -88,7 +88,7 @@ static inline bool mjb_is_lb15b_follower(mjb_lbp lbp) {
 
 // Line breaking algorithm
 // see: https://www.unicode.org/reports/tr14
-MJB_EXPORT mjb_break_type mjb_next_line_break(const mjb_text *text, mjb_next_line_state *state) {
+MJB_EXPORT mjb_break_type mjb_line_break_next(const mjb_text *text, mjb_line_break_state *state) {
     if(text == NULL || state == NULL) {
         return MJB_BT_NOT_SET;
     }

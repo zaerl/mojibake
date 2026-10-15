@@ -270,14 +270,14 @@ ATT_ASSERT(mojibake.nfkcCasefold('Stra\u00DFe', { encoding: Encoding.UTF_16BE,
 ATT_ASSERT(mojibake.nfkcCasefold(malformedText,
   { malformedPolicy: MalformedPolicy.SKIP })?.output, 'ab',
   'nfkcCasefold malformed skip policy');
-ATT_ASSERT(mojibake.nextLineBreak('A'), [BreakType.ALLOWED], 'nextLineBreak');
-ATT_ASSERT(mojibake.nextWordBreak('A'), [BreakType.ALLOWED], 'nextWordBreak');
-ATT_ASSERT(mojibake.nextSentenceBreak('A'), [BreakType.ALLOWED], 'nextSentenceBreak');
-ATT_ASSERT(mojibake.nextGraphemeBreak('A'), [BreakType.ALLOWED], 'nextGraphemeBreak');
-ATT_ASSERT(mojibake.truncateWord('Hello World', 1), 5, 'truncateWord');
-ATT_ASSERT(mojibake.truncateWordWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
-  'truncateWordWidth');
-ATT_ASSERT(mojibake.truncateGrapheme('ABC', 2), 2, 'truncateGrapheme');
+ATT_ASSERT(mojibake.lineBreakNext('A'), [BreakType.ALLOWED], 'lineBreakNext');
+ATT_ASSERT(mojibake.wordBreakNext('A'), [BreakType.ALLOWED], 'wordBreakNext');
+ATT_ASSERT(mojibake.sentenceBreakNext('A'), [BreakType.ALLOWED], 'sentenceBreakNext');
+ATT_ASSERT(mojibake.graphemeBreakNext('A'), [BreakType.ALLOWED], 'graphemeBreakNext');
+ATT_ASSERT(mojibake.wordTruncate('Hello World', 1), 5, 'wordTruncate');
+ATT_ASSERT(mojibake.wordTruncateWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
+  'wordTruncateWidth');
+ATT_ASSERT(mojibake.graphemeTruncate('ABC', 2), 2, 'graphemeTruncate');
 ATT_ASSERT(mojibake.graphemeCount('ABC'), 3, 'graphemeCount');
 ATT_ASSERT(mojibake.graphemeCount(''), 0, 'graphemeCount empty');
 ATT_ASSERT(mojibake.graphemeCount('🇮🇹'), 1, 'graphemeCount flag emoji');
@@ -297,8 +297,8 @@ ATT_ASSERT(mojibake.wordCount(''), 0, 'wordCount empty');
 ATT_ASSERT(mojibake.wordCount(malformedText,
   { malformedPolicy: MalformedPolicy.REPLACE }), 2,
   'wordCount malformed replace policy');
-ATT_ASSERT(mojibake.truncateGraphemeWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
-  'truncateGraphemeWidth');
+ATT_ASSERT(mojibake.graphemeTruncateWidth('ABC', TerminalWidthProfile.NARROW, 2), 2,
+  'graphemeTruncateWidth');
 ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR, 'bidiResolve');
 ATT_ASSERT(mojibake.codepointPlane(0xFFFD), Plane.BMP, 'codepointPlane');
 ATT_ASSERT(mojibake.planeIsValid(Plane.SMP), true, 'planeIsValid');

@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-#include "mojibake.h"
+#include "mojibake-internal.h"
 
 // See: https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G61399
 
@@ -44,7 +44,7 @@ MJB_EXPORT mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *bu
 }
 
 // Hangul syllable decomposition
-MJB_EXPORT mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
+MJB_EXPORT mjb_status mjb_hangul_syllable_decompose(mjb_codepoint codepoint,
     mjb_codepoint *codepoints) {
     if(codepoints == NULL) {
         return MJB_STATUS_INVALID_ARGUMENT;
@@ -72,7 +72,31 @@ MJB_EXPORT mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
     return MJB_STATUS_OK;
 }
 
-MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters,
+// Hangul syllable composition: L + V (+ T) jamo to a precomposed syllable
+MJB_EXPORT mjb_status mjb_hangul_syllable_compose(mjb_codepoint leading, mjb_codepoint vowel,
+    mjb_codepoint trailing, mjb_codepoint *syllable) {
+    if(syllable == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *syllable = MJB_CODEPOINT_NOT_VALID;
+
+    if(!mjb_codepoint_is_hangul_leading_jamo(leading) ||
+        !mjb_codepoint_is_hangul_vowel_jamo(vowel) ||
+        (trailing != 0 && !mjb_codepoint_is_hangul_trailing_jamo(trailing))) {
+        return MJB_STATUS_NOT_FOUND;
+    }
+
+    mjb_codepoint l_index = leading - MJB_CP_HANGUL_L_BASE;
+    mjb_codepoint v_index = vowel - MJB_CP_HANGUL_V_BASE;
+    mjb_codepoint t_index = trailing == 0 ? 0 : trailing - MJB_CP_HANGUL_T_BASE;
+    *syllable = MJB_CP_HANGUL_S_BASE +
+        (l_index * MJB_CP_HANGUL_V_COUNT + v_index) * MJB_CP_HANGUL_T_COUNT + t_index;
+
+    return MJB_STATUS_OK;
+}
+
+MJB_LOCAL size_t mjb_hangul_compose_buffer(mjb_buffer_character *characters,
     size_t characters_len) {
     if(characters == NULL || characters_len == 0) {
         return 0;

@@ -222,21 +222,21 @@ private struct TerminalWidthAnalysis {
                 byteLength: byteLength
             ) { text in
                 (
-                    mjb_truncate_grapheme_width(text, profile.value, maxColumns),
-                    mjb_truncate_word_width(text, profile.value, maxColumns)
+                    mjb_grapheme_truncate_width(text, profile.value, maxColumns),
+                    mjb_word_truncate_width(text, profile.value, maxColumns)
                 )
             }
             let previews = [
                 makeTruncation(
                     title: "Grapheme-Safe",
-                    functionName: "mjb_truncate_grapheme_width",
+                    functionName: "mjb_grapheme_truncate_width",
                     buffer: buffer,
                     byteCount: graphemeBytes,
                     profile: profile.value
                 ),
                 makeTruncation(
                     title: "Word-Safe",
-                    functionName: "mjb_truncate_word_width",
+                    functionName: "mjb_word_truncate_width",
                     buffer: buffer,
                     byteCount: wordBytes,
                     profile: profile.value
@@ -267,12 +267,12 @@ private struct TerminalWidthAnalysis {
                 buffer.baseAddress?.advanced(by: byteStart),
                 byteLength: remainingBytes
             ) { text in
-                mjb_truncate_grapheme(text, 1)
+                mjb_grapheme_truncate(text, 1)
             }
             let byteEnd = byteStart + clusterLength
 
             guard byteEnd > byteStart, byteEnd <= byteLength else {
-                return (nil, "mjb_truncate_grapheme returned an invalid byte boundary.")
+                return (nil, "mjb_grapheme_truncate returned an invalid byte boundary.")
             }
 
             let value = string(from: buffer, range: byteStart ..< byteEnd)

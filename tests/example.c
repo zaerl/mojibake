@@ -823,53 +823,53 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_next_line_break
-    MJB_TEST_COVERAGE(mjb_next_line_break); // Added by the script
+    // Example for mjb_line_break_next
+    MJB_TEST_COVERAGE(mjb_line_break_next); // Added by the script
     mjb_text input = mjb_text_utf8("Hello world", 11);
-    mjb_next_line_state state;
+    mjb_line_break_state state;
     state.index = 0;
-    mjb_break_type type = mjb_next_line_break(&input, &state);
+    mjb_break_type type = mjb_line_break_next(&input, &state);
 
     // First line-break result is set: yes
     // printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");
     snprintf(test_buffer, sizeof(test_buffer), "First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no"); // Added by the script
-    ATT_ASSERT(test_buffer, "First line-break result is set: yes", "mjb_next_line_break test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "First line-break result is set: yes", "mjb_line_break_next test failed"); // Added by the script
 }
 
 {
-    // Example for mjb_next_word_break
-    MJB_TEST_COVERAGE(mjb_next_word_break); // Added by the script
+    // Example for mjb_word_break_next
+    MJB_TEST_COVERAGE(mjb_word_break_next); // Added by the script
     mjb_text input = mjb_text_utf8("Hello world", 11);
-    mjb_next_word_state state;
+    mjb_word_break_state state;
     state.index = 0;
     size_t boundaries = 0;
 
-    while(mjb_next_word_break(&input, &state) != MJB_BT_NOT_SET) {
+    while(mjb_word_break_next(&input, &state) != MJB_BT_NOT_SET) {
         ++boundaries;
     }
 
     // Word-break positions: 11
     // printf("Word-break positions: %zu", boundaries);
     snprintf(test_buffer, sizeof(test_buffer), "Word-break positions: %zu", boundaries); // Added by the script
-    ATT_ASSERT(test_buffer, "Word-break positions: 11", "mjb_next_word_break test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Word-break positions: 11", "mjb_word_break_next test failed"); // Added by the script
 }
 
 {
-    // Example for mjb_next_sentence_break
-    MJB_TEST_COVERAGE(mjb_next_sentence_break); // Added by the script
-    mjb_next_sentence_state state;
+    // Example for mjb_sentence_break_next
+    MJB_TEST_COVERAGE(mjb_sentence_break_next); // Added by the script
+    mjb_sentence_break_state state;
     state.index = 0;
     size_t boundaries = 0;
     mjb_text input = mjb_text_utf8("Hello. Goodbye.", 15);
 
-    while(mjb_next_sentence_break(&input, &state) != MJB_BT_NOT_SET) {
+    while(mjb_sentence_break_next(&input, &state) != MJB_BT_NOT_SET) {
         ++boundaries;
     }
 
     // Sentence-break positions: 15
     // printf("Sentence-break positions: %zu", boundaries);
     snprintf(test_buffer, sizeof(test_buffer), "Sentence-break positions: %zu", boundaries); // Added by the script
-    ATT_ASSERT(test_buffer, "Sentence-break positions: 15", "mjb_next_sentence_break test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Sentence-break positions: 15", "mjb_sentence_break_next test failed"); // Added by the script
 }
 
 {
@@ -890,33 +890,33 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_next_grapheme_break
-    MJB_TEST_COVERAGE(mjb_next_grapheme_break); // Added by the script
+    // Example for mjb_grapheme_break_next
+    MJB_TEST_COVERAGE(mjb_grapheme_break_next); // Added by the script
     mjb_text input = mjb_text_utf8("e\xCC\x81", 3); // e + combining acute accent
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
     size_t codepoints = 0;
 
-    while(mjb_next_grapheme_break(&input, &state) != MJB_BT_NOT_SET) {
+    while(mjb_grapheme_break_next(&input, &state) != MJB_BT_NOT_SET) {
         ++codepoints;
     }
 
     // Codepoints examined: 2
     // printf("Codepoints examined: %zu", codepoints);
     snprintf(test_buffer, sizeof(test_buffer), "Codepoints examined: %zu", codepoints); // Added by the script
-    ATT_ASSERT(test_buffer, "Codepoints examined: 2", "mjb_next_grapheme_break test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Codepoints examined: 2", "mjb_grapheme_break_next test failed"); // Added by the script
 }
 
 {
-    // Example for mjb_truncate_grapheme
-    MJB_TEST_COVERAGE(mjb_truncate_grapheme); // Added by the script
+    // Example for mjb_grapheme_truncate
+    MJB_TEST_COVERAGE(mjb_grapheme_truncate); // Added by the script
     mjb_text input = mjb_text_utf8("A\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
-    size_t bytes = mjb_truncate_grapheme(&input, 2);
+    size_t bytes = mjb_grapheme_truncate(&input, 2);
 
     // First two graphemes use 9 bytes
     // printf("First two graphemes use %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First two graphemes use %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_truncate_grapheme test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "First two graphemes use 9 bytes", "mjb_grapheme_truncate test failed"); // Added by the script
 }
 
 {
@@ -937,27 +937,27 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_truncate_grapheme_width
-    MJB_TEST_COVERAGE(mjb_truncate_grapheme_width); // Added by the script
+    // Example for mjb_grapheme_truncate_width
+    MJB_TEST_COVERAGE(mjb_grapheme_truncate_width); // Added by the script
     mjb_text input = mjb_text_utf8("A\xE7\x95\x8C", MJB_NUL_TERMINATED); // A界
-    size_t bytes = mjb_truncate_grapheme_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
+    size_t bytes = mjb_grapheme_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
     // Two columns include 1 byte
     // printf("Two columns include %zu byte", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Two columns include %zu byte", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_truncate_grapheme_width test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Two columns include 1 byte", "mjb_grapheme_truncate_width test failed"); // Added by the script
 }
 
 {
-    // Example for mjb_truncate_word
-    MJB_TEST_COVERAGE(mjb_truncate_word); // Added by the script
+    // Example for mjb_word_truncate
+    MJB_TEST_COVERAGE(mjb_word_truncate); // Added by the script
     mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-    size_t bytes = mjb_truncate_word(&input, 1);
+    size_t bytes = mjb_word_truncate(&input, 1);
 
     // First word segment uses 5 bytes
     // printf("First word segment uses %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "First word segment uses %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "First word segment uses 5 bytes", "mjb_truncate_word test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "First word segment uses 5 bytes", "mjb_word_truncate test failed"); // Added by the script
 }
 
 {
@@ -978,15 +978,15 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_truncate_word_width
-    MJB_TEST_COVERAGE(mjb_truncate_word_width); // Added by the script
+    // Example for mjb_word_truncate_width
+    MJB_TEST_COVERAGE(mjb_word_truncate_width); // Added by the script
     mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-    size_t bytes = mjb_truncate_word_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
+    size_t bytes = mjb_word_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
     // Six columns include 6 bytes
     // printf("Six columns include %zu bytes", bytes);
     snprintf(test_buffer, sizeof(test_buffer), "Six columns include %zu bytes", bytes); // Added by the script
-    ATT_ASSERT(test_buffer, "Six columns include 6 bytes", "mjb_truncate_word_width test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Six columns include 6 bytes", "mjb_word_truncate_width test failed"); // Added by the script
 }
 
 {
@@ -1440,36 +1440,36 @@ ATT_TEST(example) {
 }
 
 {
-    // Example for mjb_hangul_syllable_decomposition
-    MJB_TEST_COVERAGE(mjb_hangul_syllable_decomposition); // Added by the script
+    // Example for mjb_hangul_syllable_decompose
+    MJB_TEST_COVERAGE(mjb_hangul_syllable_decompose); // Added by the script
     mjb_codepoint decomposition[3];
 
-    if(mjb_hangul_syllable_decomposition(0xAC01,
-        decomposition) != MJB_STATUS_OK) {
-        ATT_ASSERT(0, 1, "mjb_hangul_syllable_decomposition test failed"); // Added by the script
+    if(mjb_hangul_syllable_decompose(0xAC01, decomposition) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_hangul_syllable_decompose test failed"); // Added by the script
         return;
     }
 
     // Decomposition starts with: U+1100
     // printf("Decomposition starts with: U+%04X", decomposition[0]);
     snprintf(test_buffer, sizeof(test_buffer), "Decomposition starts with: U+%04X", decomposition[0]); // Added by the script
-    ATT_ASSERT(test_buffer, "Decomposition starts with: U+1100", "mjb_hangul_syllable_decomposition test failed"); // Added by the script
+    ATT_ASSERT(test_buffer, "Decomposition starts with: U+1100", "mjb_hangul_syllable_decompose test failed"); // Added by the script
 }
 
 {
-    // Example for mjb_hangul_syllable_composition
-    MJB_TEST_COVERAGE(mjb_hangul_syllable_composition); // Added by the script
-    mjb_buffer_character characters[] = {
-        { 0x1100, 0 }, // choseong kiyeok
-        { 0x1161, 0 }, // jungseong a
-        { 0x11A8, 0 }  // jongseong kiyeok
-    };
-    size_t length = mjb_hangul_syllable_composition(characters, 3);
+    // Example for mjb_hangul_syllable_compose
+    MJB_TEST_COVERAGE(mjb_hangul_syllable_compose); // Added by the script
+    mjb_codepoint syllable;
 
-    // Composition: U+AC01
-    // printf("Composition: U+%04X", length == 1 ? characters[0].codepoint : 0);
-    snprintf(test_buffer, sizeof(test_buffer), "Composition: U+%04X", length == 1 ? characters[0].codepoint : 0); // Added by the script
-    ATT_ASSERT(test_buffer, "Composition: U+AC01", "mjb_hangul_syllable_composition test failed"); // Added by the script
+    // Choseong kiyeok, jungseong a, jongseong kiyeok
+    if(mjb_hangul_syllable_compose(0x1100, 0x1161, 0x11A8, &syllable) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_hangul_syllable_compose test failed"); // Added by the script
+        return;
+    }
+
+    // Syllable: U+AC01
+    // printf("Syllable: U+%04X", syllable);
+    snprintf(test_buffer, sizeof(test_buffer), "Syllable: U+%04X", syllable); // Added by the script
+    ATT_ASSERT(test_buffer, "Syllable: U+AC01", "mjb_hangul_syllable_compose test failed"); // Added by the script
 }
 
 {

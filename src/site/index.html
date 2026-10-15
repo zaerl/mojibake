@@ -837,12 +837,12 @@ the MIT License.</p>
                 case 'mjb_normalization_quick_check':
                     data = quickCheckResultToString(data);
                     break;
-                case 'mjb_next_line_break':
-                case 'mjb_next_word_break':
-                case 'mjb_next_sentence_break':
-                case 'mjb_next_grapheme_break':
-                    // mjb_next_line_break has a MJB_BT_NO_BREAK type as first break, by standard.
-                    data = parseBreakResult(data, args[0], func === 'mjb_next_line_break' ? 2 : 3);
+                case 'mjb_line_break_next':
+                case 'mjb_word_break_next':
+                case 'mjb_sentence_break_next':
+                case 'mjb_grapheme_break_next':
+                    // mjb_line_break_next has a MJB_BT_NO_BREAK type as first break, by standard.
+                    data = parseBreakResult(data, args[0], func === 'mjb_line_break_next' ? 2 : 3);
                     break;
                 case 'mjb_resolved_script_set':
                     data = parseResolvedScriptSet(data);

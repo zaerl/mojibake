@@ -137,7 +137,7 @@ static mjb_status mjb_recompose(mjb_output *output, size_t codepoints_count,
     }
 
     if(has_hangul) {
-        codepoints_count = mjb_hangul_syllable_composition(composition_buffer, codepoints_count);
+        codepoints_count = mjb_hangul_compose_buffer(composition_buffer, codepoints_count);
     }
 
     size_t i = 0;
@@ -401,7 +401,7 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
             (form == MJB_NORMALIZATION_NFD || form == MJB_NORMALIZATION_NFKD)) {
             mjb_codepoint codepoints[3];
 
-            if(mjb_hangul_syllable_decomposition(codepoint, codepoints) != MJB_STATUS_OK) {
+            if(mjb_hangul_syllable_decompose(codepoint, codepoints) != MJB_STATUS_OK) {
                 continue;
             }
 

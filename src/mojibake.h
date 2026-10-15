@@ -481,12 +481,6 @@ typedef enum mjb_break_type {
     MJB_BT_ALLOWED    // ÷
 } mjb_break_type;
 
-// Buffer character used in composition phase
-typedef struct mjb_buffer_character {
-    uint32_t codepoint;
-    uint16_t combining;
-} mjb_buffer_character;
-
 // Position of a character in a string, used for callbacks
 typedef enum mjb_character_position {
     MJB_POSITION_NONE,
@@ -500,7 +494,7 @@ typedef enum mjb_terminal_width_profile {
     MJB_TERMINAL_WIDTH_EAST_ASIAN // Treat ambiguous characters as two terminal cells
 } mjb_terminal_width_profile;
 
-typedef struct mjb_next_state {
+typedef struct mjb_grapheme_break_state {
     uint8_t state;
     size_t index;
     unsigned int previous;
@@ -514,9 +508,9 @@ typedef struct mjb_next_state {
     bool ext_pict_seen;
     bool zwj_seen;
     bool incb_linker_seen;
-} mjb_next_state;
+} mjb_grapheme_break_state;
 
-typedef struct mjb_next_line_state {
+typedef struct mjb_line_break_state {
     uint8_t state;
     size_t index;
     mjb_lbp previous;
@@ -536,9 +530,9 @@ typedef struct mjb_next_line_state {
     bool pi_qu_context;
     bool cm_merged;
     bool zwj_absorbed;
-} mjb_next_line_state;
+} mjb_line_break_state;
 
-typedef struct mjb_next_word_state {
+typedef struct mjb_word_break_state {
     uint8_t state;
     size_t index;
     mjb_wbp previous;
@@ -553,9 +547,9 @@ typedef struct mjb_next_word_state {
     bool wb4_merged;
     bool zwj_pending;
     bool prev_was_zwj;
-} mjb_next_word_state;
+} mjb_word_break_state;
 
-typedef struct mjb_next_sentence_state {
+typedef struct mjb_sentence_break_state {
     uint8_t state;
     size_t index;
     mjb_sbp previous;
@@ -570,7 +564,7 @@ typedef struct mjb_next_sentence_state {
     bool in_sat;
     bool sat_has_sp;
     bool sat_is_aterm;
-} mjb_next_sentence_state;
+} mjb_sentence_break_state;
 
 typedef bool (*mjb_for_each_codepoint_fn)(mjb_character *character, mjb_character_position type);
 
@@ -856,37 +850,37 @@ MJB_EXPORT MJB_CONST bool mjb_category_is_graphic(mjb_category category);
 MJB_EXPORT MJB_CONST bool mjb_category_is_combining(mjb_category category);
 
 // Unicode line break algorithm.
-MJB_EXPORT mjb_break_type mjb_next_line_break(const mjb_text *text, mjb_next_line_state *state);
+MJB_EXPORT mjb_break_type mjb_line_break_next(const mjb_text *text, mjb_line_break_state *state);
 
 // Word cluster breaking.
-MJB_EXPORT mjb_break_type mjb_next_word_break(const mjb_text *text, mjb_next_word_state *state);
+MJB_EXPORT mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_break_state *state);
 
 // Sentence boundaries breaking.
-MJB_EXPORT mjb_break_type mjb_next_sentence_break(const mjb_text *text, mjb_next_sentence_state *state);
+MJB_EXPORT mjb_break_type mjb_sentence_break_next(const mjb_text *text, mjb_sentence_break_state *state);
 
 // Count the sentence segments in a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_sentence_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Grapheme cluster breaking.
-MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const mjb_text *text, mjb_next_state *state);
+MJB_EXPORT mjb_break_type mjb_grapheme_break_next(const mjb_text *text, mjb_grapheme_break_state *state);
 
 // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-MJB_EXPORT size_t mjb_truncate_grapheme(const mjb_text *text, size_t max_graphemes);
+MJB_EXPORT size_t mjb_grapheme_truncate(const mjb_text *text, size_t max_graphemes);
 
 // Count the extended grapheme clusters in a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_grapheme_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_truncate_grapheme_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
+MJB_EXPORT size_t mjb_grapheme_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
 
 // Return the number of bytes that form the first max_segments word-break segments.
-MJB_EXPORT size_t mjb_truncate_word(const mjb_text *text, size_t max_segments);
+MJB_EXPORT size_t mjb_word_truncate(const mjb_text *text, size_t max_segments);
 
 // Count the word-like segments in a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_word_count(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *count, mjb_diagnostic *diagnostic);
 
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_truncate_word_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
+MJB_EXPORT size_t mjb_word_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile, size_t max_columns);
 
 // Resolve bidirectional text (TR9) for a paragraph.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_bidi_resolve(const mjb_text *text, mjb_direction direction, mjb_bidi_paragraph *result);
@@ -978,11 +972,11 @@ MJB_EXPORT bool mjb_is_rgi_emoji(const mjb_text *text);
 // Return hangul syllable name.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_hangul_syllable_name(mjb_codepoint codepoint, char *buffer, size_t byte_length);
 
-// Hangul syllable decomposition.
-MJB_EXPORT MJB_NODISCARD mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint, mjb_codepoint *codepoints);
+// Decompose a Hangul syllable into its jamo.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_hangul_syllable_decompose(mjb_codepoint codepoint, mjb_codepoint *codepoints);
 
-// Hangul syllable composition.
-MJB_EXPORT size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len);
+// Compose Hangul jamo into a syllable.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_hangul_syllable_compose(mjb_codepoint leading, mjb_codepoint vowel, mjb_codepoint trailing, mjb_codepoint *syllable);
 
 // Return the east asian width of a codepoint.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint, mjb_east_asian_width *width);

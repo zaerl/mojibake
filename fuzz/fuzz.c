@@ -167,10 +167,10 @@ static bool fuzz_next_codepoint(mjb_character *character, mjb_character_position
 static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_encoding encoding) {
     size_t guard_limit = (byte_length + 8) * 4;
 
-    mjb_next_state grapheme_state = { 0 };
+    mjb_grapheme_break_state grapheme_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        mjb_break_type bt = mjb_next_grapheme_break(&text, &grapheme_state);
+        mjb_break_type bt = mjb_grapheme_break_next(&text, &grapheme_state);
         fuzz_sink += (size_t)bt + grapheme_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -182,11 +182,11 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
         }
     }
 
-    mjb_next_word_state word_state;
+    mjb_word_break_state word_state;
     word_state.index = 0;
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        mjb_break_type bt = mjb_next_word_break(&text, &word_state);
+        mjb_break_type bt = mjb_word_break_next(&text, &word_state);
         fuzz_sink += (size_t)bt + word_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -198,10 +198,10 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
         }
     }
 
-    mjb_next_line_state line_state = { 0 };
+    mjb_line_break_state line_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        mjb_break_type bt = mjb_next_line_break(&text, &line_state);
+        mjb_break_type bt = mjb_line_break_next(&text, &line_state);
         fuzz_sink += (size_t)bt + line_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -213,10 +213,10 @@ static void fuzz_boundary_iterators(const char *buffer, size_t byte_length, mjb_
         }
     }
 
-    mjb_next_sentence_state sentence_state = { 0 };
+    mjb_sentence_break_state sentence_state = { 0 };
     for(size_t guard = 0; guard < guard_limit; ++guard) {
         mjb_text text = mjb_text_make(buffer, byte_length, encoding);
-        mjb_break_type bt = mjb_next_sentence_break(&text, &sentence_state);
+        mjb_break_type bt = mjb_sentence_break_next(&text, &sentence_state);
         fuzz_sink += (size_t)bt + sentence_state.index;
 
         if(bt == MJB_BT_NOT_SET) {
@@ -308,14 +308,14 @@ static void fuzz_codepoint_apis(mjb_codepoint codepoint, uint8_t variant) {
     }
 
     fuzz_sink += (size_t)mjb_hangul_syllable_name(codepoint, hangul_name, sizeof(hangul_name));
-    fuzz_sink += (size_t)mjb_hangul_syllable_decomposition(codepoint, decomposition);
+    fuzz_sink += (size_t)mjb_hangul_syllable_decompose(codepoint, decomposition);
 
-    mjb_buffer_character composition[] = { { codepoint, 0 },
-        { MJB_CP_HANGUL_L_BASE + (variant % MJB_CP_HANGUL_L_COUNT), 0 },
-        { MJB_CP_HANGUL_V_BASE + (variant % MJB_CP_HANGUL_V_COUNT), 0 },
-        { MJB_CP_HANGUL_T_BASE + (variant % MJB_CP_HANGUL_T_COUNT), 0 } };
-    fuzz_sink += mjb_hangul_syllable_composition(composition,
-        sizeof(composition) / sizeof(composition[0]));
+    mjb_codepoint syllable = 0;
+    // The fuzzed codepoint is the trailing jamo, so invalid trailing values are exercised too.
+    fuzz_sink += (size_t)mjb_hangul_syllable_compose(MJB_CP_HANGUL_L_BASE +
+            (variant % MJB_CP_HANGUL_L_COUNT),
+        MJB_CP_HANGUL_V_BASE + (variant % MJB_CP_HANGUL_V_COUNT), codepoint, &syllable);
+    fuzz_sink += syllable;
     fuzz_sink += mjb_codepoint_encode(codepoint, encoded, sizeof(encoded),
         encodings[(variant >> 2) % 6]);
 }
@@ -632,13 +632,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 NULL);
             fuzz_sink += segment_count;
             text = mjb_text_make(buffer, size, encoding);
-            mjb_truncate_grapheme(&text, variant);
+            mjb_grapheme_truncate(&text, variant);
             text = mjb_text_make(buffer, size, encoding);
-            mjb_truncate_word(&text, variant);
+            mjb_word_truncate(&text, variant);
             text = mjb_text_make(buffer, size, encoding);
-            mjb_truncate_grapheme_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
+            mjb_grapheme_truncate_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
             text = mjb_text_make(buffer, size, encoding);
-            mjb_truncate_word_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
+            mjb_word_truncate_width(&text, (mjb_terminal_width_profile)(variant % 2), variant);
 
             text = mjb_text_make(buffer, size, encoding);
             fuzz_sink += (size_t)mjb_grapheme_count(&text, malformed_policy, &segment_count, NULL);

@@ -184,10 +184,10 @@ ATT_TEST(embedded_null) {
     ATT_ASSERT((unsigned int)mjb_detect_encoding("A", MJB_NUL_TERMINATED),
         (unsigned int)MJB_ENC_UNKNOWN, "Encoding detection requires an explicit byte length");
 
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
     text = mjb_text_utf8("A", MJB_NUL_TERMINATED);
-    ATT_ASSERT((uint8_t)mjb_next_grapheme_break(&text, &state),
+    ATT_ASSERT((uint8_t)mjb_grapheme_break_next(&text, &state),
         (uint8_t)MJB_BT_NOT_SET, "Stateful segmentation requires an explicit byte length");
 
     size_t grapheme_count = 0;
