@@ -2110,13 +2110,13 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
   {
     comment: 'Unicode line break algorithm.',
     ret: 'mjb_break_type',
-    name: 'mjb_next_line_break',
+    name: 'mjb_line_break_next',
     attributes: [],
     args: [
       text('The text to check'),
       {
         name: 'state',
-        type: 'mjb_next_line_state *',
+        type: 'mjb_line_break_state *',
         description: 'The state to store the result',
         wasm_generated: true
       }
@@ -2124,25 +2124,25 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
     wasm: true,
     section: Section.Segmentation,
     example: `mjb_text input = mjb_text_utf8("Hello world", 11);
-mjb_next_line_state state;
+mjb_line_break_state state;
 state.index = 0;
-mjb_break_type type = mjb_next_line_break(&input, &state);
+mjb_break_type type = mjb_line_break_next(&input, &state);
 
 // First line-break result is set: yes
 printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");`,
-    related: ['mjb_next_grapheme_break', 'mjb_next_word_break', 'mjb_next_sentence_break'],
+    related: ['mjb_grapheme_break_next', 'mjb_word_break_next', 'mjb_sentence_break_next'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
   {
     comment: 'Word cluster breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_next_word_break',
+    name: 'mjb_word_break_next',
     attributes: [],
     args: [
       text('The text to check'),
       {
         name: 'state',
-        type: 'mjb_next_word_state *',
+        type: 'mjb_word_break_state *',
         description: 'The state to store the result',
         wasm_generated: true
       }
@@ -2150,47 +2150,47 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
     wasm: true,
     section: Section.Segmentation,
     example: `mjb_text input = mjb_text_utf8("Hello world", 11);
-mjb_next_word_state state;
+mjb_word_break_state state;
 state.index = 0;
 size_t boundaries = 0;
 
-while(mjb_next_word_break(&input, &state) != MJB_BT_NOT_SET) {
+while(mjb_word_break_next(&input, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
 // Word-break positions: 11
 printf("Word-break positions: %zu", boundaries);`,
-    related: ['mjb_next_grapheme_break', 'mjb_next_sentence_break', 'mjb_truncate_word'],
+    related: ['mjb_grapheme_break_next', 'mjb_sentence_break_next', 'mjb_word_truncate'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Sentence boundaries breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_next_sentence_break',
+    name: 'mjb_sentence_break_next',
     attributes: [],
     args: [
       text('The text to check'),
       {
         name: 'state',
-        type: 'mjb_next_sentence_state *',
+        type: 'mjb_sentence_break_state *',
         description: 'The state to store the result',
         wasm_generated: true
       }
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_next_sentence_state state;
+    example: `mjb_sentence_break_state state;
 state.index = 0;
 size_t boundaries = 0;
 mjb_text input = mjb_text_utf8("Hello. Goodbye.", 15);
 
-while(mjb_next_sentence_break(&input, &state) != MJB_BT_NOT_SET) {
+while(mjb_sentence_break_next(&input, &state) != MJB_BT_NOT_SET) {
     ++boundaries;
 }
 
 // Sentence-break positions: 15
 printf("Sentence-break positions: %zu", boundaries);`,
-    related: ['mjb_next_grapheme_break', 'mjb_next_word_break'],
+    related: ['mjb_grapheme_break_next', 'mjb_word_break_next'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
@@ -2232,19 +2232,19 @@ if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 
 // Sentences: 3
 printf("Sentences: %zu", count);`,
-    related: ['mjb_next_sentence_break', 'mjb_grapheme_count', 'mjb_word_count'],
+    related: ['mjb_sentence_break_next', 'mjb_grapheme_count', 'mjb_word_count'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Grapheme cluster breaking.',
     ret: 'mjb_break_type',
-    name: 'mjb_next_grapheme_break',
+    name: 'mjb_grapheme_break_next',
     attributes: [],
     args: [
       text('The text to check'),
       {
         name: 'state',
-        type: 'mjb_next_state *',
+        type: 'mjb_grapheme_break_state *',
         description: 'The state to store the result',
         wasm_generated: true
       }
@@ -2256,23 +2256,23 @@ printf("Sentences: %zu", count);`,
       'break functions require an explicit `text->byte_length` and do not accept ' +
       '`MJB_NUL_TERMINATED`; determine the length once before iteration.',
     example: `mjb_text input = mjb_text_utf8("e\\xCC\\x81", 3); // e + combining acute accent
-mjb_next_state state;
+mjb_grapheme_break_state state;
 state.index = 0;
 size_t codepoints = 0;
 
-while(mjb_next_grapheme_break(&input, &state) != MJB_BT_NOT_SET) {
+while(mjb_grapheme_break_next(&input, &state) != MJB_BT_NOT_SET) {
     ++codepoints;
 }
 
 // Codepoints examined: 2
 printf("Codepoints examined: %zu", codepoints);`,
-    related: ['mjb_next_word_break', 'mjb_next_sentence_break', 'mjb_next_line_break', 'mjb_truncate_grapheme'],
+    related: ['mjb_word_break_next', 'mjb_sentence_break_next', 'mjb_line_break_next', 'mjb_grapheme_truncate'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.',
     ret: 'size_t',
-    name: 'mjb_truncate_grapheme',
+    name: 'mjb_grapheme_truncate',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2286,7 +2286,7 @@ printf("Codepoints examined: %zu", codepoints);`,
     wasm: true,
     section: Section.Segmentation,
     example: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
-size_t bytes = mjb_truncate_grapheme(&input, 2);
+size_t bytes = mjb_grapheme_truncate(&input, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);`
@@ -2329,13 +2329,13 @@ if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 
 // Grapheme clusters: 2
 printf("Grapheme clusters: %zu", count);`,
-    related: ['mjb_truncate_grapheme', 'mjb_next_grapheme_break', 'mjb_terminal_width'],
+    related: ['mjb_grapheme_truncate', 'mjb_grapheme_break_next', 'mjb_terminal_width'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.',
     ret: 'size_t',
-    name: 'mjb_truncate_grapheme_width',
+    name: 'mjb_grapheme_truncate_width',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2359,7 +2359,7 @@ printf("Grapheme clusters: %zu", count);`,
       'policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed ' +
       'the budget or cannot be measured as printable, single-line terminal text.',
     example: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
-size_t bytes = mjb_truncate_grapheme_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
+size_t bytes = mjb_grapheme_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);`
@@ -2367,7 +2367,7 @@ printf("Two columns include %zu byte", bytes);`
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments.',
     ret: 'size_t',
-    name: 'mjb_truncate_word',
+    name: 'mjb_word_truncate',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2381,7 +2381,7 @@ printf("Two columns include %zu byte", bytes);`
     wasm: true,
     section: Section.Segmentation,
     example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-size_t bytes = mjb_truncate_word(&input, 1);
+size_t bytes = mjb_word_truncate(&input, 1);
 
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);`
@@ -2407,7 +2407,7 @@ printf("First word segment uses %zu bytes", bytes);`
     details: 'Count the words in a string: the word-break segments that contain at least one ' +
       'alphabetic or numeric character. Punctuation, whitespace, and symbol segments are not ' +
       'counted, so `Hello, world!` counts as two words. Hyphenated compounds count each part, ' +
-      'matching the default Unicode word-boundary rules. Unlike `mjb_truncate_word`, whose ' +
+      'matching the default Unicode word-boundary rules. Unlike `mjb_word_truncate`, whose ' +
       '`max_segments` counts every raw segment, this function skips non-word segments. For ' +
       'scripts segmented by dictionary lookup in other implementations, such as Chinese, ' +
       'Japanese, Thai, Lao, Khmer, and Burmese, the count approximates one word per character: ' +
@@ -2431,13 +2431,13 @@ if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
 
 // Words: 4
 printf("Words: %zu", count);`,
-    related: ['mjb_next_word_break', 'mjb_truncate_word', 'mjb_grapheme_count', 'mjb_sentence_count'],
+    related: ['mjb_word_break_next', 'mjb_word_truncate', 'mjb_grapheme_count', 'mjb_sentence_count'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
     comment: 'Return the number of bytes whose word-break segments fit within max_columns terminal cells.',
     ret: 'size_t',
-    name: 'mjb_truncate_word_width',
+    name: 'mjb_word_truncate_width',
     attributes: [],
     args: [
       text('The text to check'),
@@ -2461,7 +2461,7 @@ printf("Words: %zu", count);`,
       '`mjb_terminal_width`. The returned prefix stops before a segment that would exceed the ' +
       'budget or cannot be measured as printable, single-line terminal text.',
     example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
-size_t bytes = mjb_truncate_word_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
+size_t bytes = mjb_word_truncate_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);`
@@ -3296,61 +3296,91 @@ if(mjb_hangul_syllable_name(0xAC01, name, sizeof(name)) != MJB_STATUS_OK) {
 printf("Name: %s", name);`
   },
   {
-    comment: 'Hangul syllable decomposition.',
+    comment: 'Decompose a Hangul syllable into its jamo.',
     ret: 'mjb_status',
-    name: 'mjb_hangul_syllable_decomposition',
+    name: 'mjb_hangul_syllable_decompose',
     attributes: ['MJB_NODISCARD'],
     args: [
       codepoint(),
       {
         name: 'codepoints',
         type: 'mjb_codepoint *',
-        description: 'The codepoints to store the result',
+        description: 'Three codepoints to store the leading, vowel, and trailing jamo; the ' +
+          'trailing jamo is 0 when the syllable has none',
         wasm_generated: true
       }
     ],
     wasm: false,
     section: Section.HangulLanguage,
+    details: 'Apply the arithmetic Hangul syllable decomposition of Unicode Section 3.12, the ' +
+      'inverse of `mjb_hangul_syllable_compose`.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The syllable was decomposed' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`codepoints` is NULL' },
+      { value: 'MJB_STATUS_NOT_FOUND', description: '`codepoint` is not a Hangul syllable' }
+    ],
     example: `mjb_codepoint decomposition[3];
 
-if(mjb_hangul_syllable_decomposition(0xAC01,
-    decomposition) != MJB_STATUS_OK) {
+if(mjb_hangul_syllable_decompose(0xAC01, decomposition) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Decomposition starts with: U+1100
-printf("Decomposition starts with: U+%04X", decomposition[0]);`
+printf("Decomposition starts with: U+%04X", decomposition[0]);`,
+    related: ['mjb_hangul_syllable_compose', 'mjb_hangul_syllable_name']
   },
   {
-    comment: 'Hangul syllable composition.',
-    ret: 'size_t',
-    name: 'mjb_hangul_syllable_composition',
-    attributes: [],
+    comment: 'Compose Hangul jamo into a syllable.',
+    ret: 'mjb_status',
+    name: 'mjb_hangul_syllable_compose',
+    attributes: ['MJB_NODISCARD'],
     args: [
       {
-        name: 'characters',
-        type: 'mjb_buffer_character *',
-        description: 'The characters to compose',
+        name: 'leading',
+        type: 'mjb_codepoint',
+        description: 'The leading consonant jamo (L), U+1100 to U+1112',
         wasm_generated: false
       },
       {
-        name: 'characters_len',
-        type: 'size_t',
-        description: 'The length of the characters',
+        name: 'vowel',
+        type: 'mjb_codepoint',
+        description: 'The vowel jamo (V), U+1161 to U+1175',
         wasm_generated: false
+      },
+      {
+        name: 'trailing',
+        type: 'mjb_codepoint',
+        description: 'The trailing consonant jamo (T), U+11A8 to U+11C2, or 0 for none',
+        wasm_generated: false
+      },
+      {
+        name: 'syllable',
+        type: 'mjb_codepoint *',
+        description: 'The composed syllable; set to `MJB_CODEPOINT_NOT_VALID` on failure',
+        wasm_generated: true
       }
     ],
     wasm: false,
     section: Section.HangulLanguage,
-    example: `mjb_buffer_character characters[] = {
-    { 0x1100, 0 }, // choseong kiyeok
-    { 0x1161, 0 }, // jungseong a
-    { 0x11A8, 0 }  // jongseong kiyeok
-};
-size_t length = mjb_hangul_syllable_composition(characters, 3);
+    details: 'Apply the arithmetic Hangul syllable composition of Unicode Section 3.12, the ' +
+      'inverse of `mjb_hangul_syllable_decompose`. Normalization composes Hangul automatically; ' +
+      'use this function to build a syllable from individual jamo.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The syllable was composed' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`syllable` is NULL' },
+      { value: 'MJB_STATUS_NOT_FOUND', description:
+        'A jamo is outside its range, so the jamo do not form a syllable' }
+    ],
+    example: `mjb_codepoint syllable;
 
-// Composition: U+AC01
-printf("Composition: U+%04X", length == 1 ? characters[0].codepoint : 0);`
+// Choseong kiyeok, jungseong a, jongseong kiyeok
+if(mjb_hangul_syllable_compose(0x1100, 0x1161, 0x11A8, &syllable) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Syllable: U+AC01
+printf("Syllable: U+%04X", syllable);`,
+    related: ['mjb_hangul_syllable_decompose', 'mjb_normalize']
   },
   {
     comment: 'Return the east asian width of a codepoint.',
@@ -3434,8 +3464,8 @@ if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
 
 // Terminal cells: 3
 printf("Terminal cells: %zu", width);`,
-    related: ['mjb_codepoint_east_asian_width', 'mjb_truncate_grapheme_width',
-      'mjb_next_grapheme_break', 'mjb_is_rgi_emoji'],
+    related: ['mjb_codepoint_east_asian_width', 'mjb_grapheme_truncate_width',
+      'mjb_grapheme_break_next', 'mjb_is_rgi_emoji'],
     specs: [uax(11, 'East Asian Width'), uax(29, 'Unicode Text Segmentation'),
       uts(51, 'Unicode Emoji')]
   },
@@ -3709,7 +3739,7 @@ int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
 // 5: A
 printf("%d: %s", required, buffer);`,
     related: ['mjb_utf8_grapheme_vsnprintf', 'mjb_utf8_snprintf',
-      'mjb_truncate_grapheme'],
+      'mjb_grapheme_truncate'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {
@@ -3760,7 +3790,7 @@ printf("%d: %s", required, buffer);`,
       }
     ],
     related: ['mjb_utf8_grapheme_snprintf', 'mjb_utf8_vsnprintf',
-      'mjb_truncate_grapheme'],
+      'mjb_grapheme_truncate'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
   {

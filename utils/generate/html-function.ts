@@ -451,10 +451,10 @@ export class CFunction implements MojibakeFunction {
         case 'mjb_map_case_type':
           ret += this.getSelectInput(i, caseType, caseTypeValues);
           break;
-        // case 'mjb_next_line_state *':
-        // case 'mjb_next_sentence_state *':
-        // case 'mjb_next_state *':
-        // case 'mjb_next_word_state *':
+        // case 'mjb_line_break_state *':
+        // case 'mjb_sentence_break_state *':
+        // case 'mjb_grapheme_break_state *':
+        // case 'mjb_word_break_state *':
         case 'mjb_normalization':
           ret += this.getSelectInput(i, normalizations);
           break;

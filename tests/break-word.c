@@ -14,13 +14,13 @@ static void break_word_callback(const char *buffer, size_t byte_length, unsigned
     mjb_break_type *expected_types) {
     char test_name[256];
     mjb_break_type bt = MJB_BT_NOT_SET;
-    mjb_next_word_state state;
+    mjb_word_break_state state;
     state.index = 0;
     size_t index = 0;
     size_t successful_count = 0;
 
     mjb_text text = mjb_text_utf8(buffer, byte_length);
-    while((bt = mjb_next_word_break(&text, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_word_break_next(&text, &state)) != MJB_BT_NOT_SET) {
         snprintf(test_name, 256, "#%u index %zu", current_line, index);
 
         if(bt == MJB_BT_MANDATORY) {
@@ -34,69 +34,69 @@ static void break_word_callback(const char *buffer, size_t byte_length, unsigned
         }
     }
 
-    MJB_TEST_COVERAGE(mjb_next_word_break);
+    MJB_TEST_COVERAGE(mjb_word_break_next);
     ATT_ASSERT(index, successful_count, test_name);
 }
 
-static void test_truncate_word(void) {
-    mjb_next_word_state state;
+static void test_word_truncate(void) {
+    mjb_word_break_state state;
     state.index = 0;
 
     mjb_text text = mjb_text_utf8(NULL, 1);
-    ATT_ASSERT((uint8_t)mjb_next_word_break(&text, &state), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_word_break_next(&text, &state), (uint8_t)MJB_BT_NOT_SET,
         "Word break rejects NULL buffer");
     text = mjb_text_utf8("A", 1);
-    ATT_ASSERT((uint8_t)mjb_next_word_break(&text, NULL), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_word_break_next(&text, NULL), (uint8_t)MJB_BT_NOT_SET,
         "Word break rejects NULL state");
 
     // Edge cases
     text = mjb_text_utf8("", 0);
-    ATT_ASSERT(mjb_truncate_word(&text, 3), (size_t)0, "Truncate word: empty string");
+    ATT_ASSERT(mjb_word_truncate(&text, 3), (size_t)0, "Truncate word: empty string");
     text = mjb_text_utf8(NULL, 1);
-    ATT_ASSERT(mjb_truncate_word(&text, 3), (size_t)0,
+    ATT_ASSERT(mjb_word_truncate(&text, 3), (size_t)0,
         "Truncate word: NULL string");
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word(&text, 0), (size_t)0,
+    ATT_ASSERT(mjb_word_truncate(&text, 0), (size_t)0,
         "Truncate word: 0 segments");
 
     // "Hello World": breaks at 5 (after Hello), 6 (after space), 11 (end)
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word(&text, 1), (size_t)5,
+    ATT_ASSERT(mjb_word_truncate(&text, 1), (size_t)5,
         "Truncate word: 1 segment");
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word(&text, 2), (size_t)6,
+    ATT_ASSERT(mjb_word_truncate(&text, 2), (size_t)6,
         "Truncate word: 2 segments");
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word(&text, 3), (size_t)11,
+    ATT_ASSERT(mjb_word_truncate(&text, 3), (size_t)11,
         "Truncate word: 3 segments (no-op)");
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word(&text, 5), (size_t)11,
+    ATT_ASSERT(mjb_word_truncate(&text, 5), (size_t)11,
         "Truncate word: 5 segments (no-op)");
 
     text = mjb_text_utf8("", 0);
-    ATT_ASSERT(mjb_truncate_word_width(&text, MJB_TERMINAL_WIDTH_NARROW, 10),
+    ATT_ASSERT(mjb_word_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 10),
         (size_t)0, "Truncate word width: empty string");
     text = mjb_text_utf8(NULL, 1);
-    ATT_ASSERT(mjb_truncate_word_width(&text, MJB_TERMINAL_WIDTH_NARROW, 10),
+    ATT_ASSERT(mjb_word_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW, 10),
         (size_t)0, "Truncate word width: NULL string");
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word_width(&text, MJB_TERMINAL_WIDTH_NARROW,
+    ATT_ASSERT(mjb_word_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW,
                    0),
         (size_t)0, "Truncate word width: 0 columns");
 
     // "Hello"=5 cols, " "=1 col would exceed 5
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word_width(&text, MJB_TERMINAL_WIDTH_NARROW,
+    ATT_ASSERT(mjb_word_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW,
                    5),
         (size_t)5, "Truncate word width: 5 columns");
 
     // "Hello " = 6 cols, "World" would exceed 6
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word_width(&text, MJB_TERMINAL_WIDTH_NARROW,
+    ATT_ASSERT(mjb_word_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW,
                    6),
         (size_t)6, "Truncate word width: 6 columns");
     text = mjb_text_utf8("Hello World", 11);
-    ATT_ASSERT(mjb_truncate_word_width(&text, MJB_TERMINAL_WIDTH_NARROW,
+    ATT_ASSERT(mjb_word_truncate_width(&text, MJB_TERMINAL_WIDTH_NARROW,
                    11),
         (size_t)11, "Truncate word width: 11 columns (no-op)");
 }
@@ -228,20 +228,20 @@ static void test_word_count(void) {
 
 ATT_TEST(break_word) {
     {
-        mjb_next_word_state state;
+        mjb_word_break_state state;
         state.index = 0;
         size_t count = 9;
-        ATT_ASSERT((int)mjb_next_word_break(NULL, &state), (int)MJB_BT_NOT_SET,
+        ATT_ASSERT((int)mjb_word_break_next(NULL, &state), (int)MJB_BT_NOT_SET,
             "Word break rejects NULL text");
-        ATT_ASSERT(mjb_truncate_word(NULL, 1), (size_t)0, "Truncate word rejects NULL text");
-        ATT_ASSERT(mjb_truncate_word_width(NULL, MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
+        ATT_ASSERT(mjb_word_truncate(NULL, 1), (size_t)0, "Truncate word rejects NULL text");
+        ATT_ASSERT(mjb_word_truncate_width(NULL, MJB_TERMINAL_WIDTH_NARROW, 1), (size_t)0,
             "Truncate word width rejects NULL text");
         ATT_ASSERT_STATUS(mjb_word_count(NULL, MJB_MALFORMED_STOP, &count, NULL),
             MJB_STATUS_INVALID_ARGUMENT, "Word count rejects NULL text");
         ATT_ASSERT(count, (size_t)0, "Word count clears count after NULL text");
     }
 
-    test_truncate_word();
+    test_word_truncate();
     test_word_count();
     read_test_file("./unicode-data/UCD/auxiliary/WordBreakTest.txt", &break_word_callback);
 }

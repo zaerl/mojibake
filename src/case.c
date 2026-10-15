@@ -155,11 +155,11 @@ static mjb_status mjb_special_casing_codepoint(mjb_codepoint codepoint, mjb_outp
 }
 
 static size_t mjb_titlecase_next_word_boundary(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_next_word_state *state, size_t previous) {
+    mjb_encoding encoding, mjb_word_break_state *state, size_t previous) {
     mjb_text text = mjb_text_make(buffer, byte_length, encoding);
     mjb_break_type bt;
 
-    while((bt = mjb_next_word_break(&text, state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_word_break_next(&text, state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -350,7 +350,7 @@ static mjb_status mjb_titlecase_process(const char *buffer, size_t byte_length,
     mjb_codepoint codepoint = 0;
     bool locale_sensitive = mjb_locale_has_special_casing(locale);
     mjb_map_case_context context = { false, false, false, locale_sensitive };
-    mjb_next_word_state word_state;
+    mjb_word_break_state word_state;
     word_state.index = 0;
     size_t segment_end = mjb_titlecase_next_word_boundary(buffer, byte_length, encoding,
         &word_state, 0);

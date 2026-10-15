@@ -96,27 +96,27 @@ export type MojibakeWasmModule = {
   // Return true if the category is combining.
   _mjb_category_is_combining: (category: number) => boolean;
   // Unicode line break algorithm.
-  _mjb_next_line_break: (text: Pointer, state: Pointer) => number;
+  _mjb_line_break_next: (text: Pointer, state: Pointer) => number;
   // Word cluster breaking.
-  _mjb_next_word_break: (text: Pointer, state: Pointer) => number;
+  _mjb_word_break_next: (text: Pointer, state: Pointer) => number;
   // Sentence boundaries breaking.
-  _mjb_next_sentence_break: (text: Pointer, state: Pointer) => number;
+  _mjb_sentence_break_next: (text: Pointer, state: Pointer) => number;
   // Count the sentence segments in a string.
   _mjb_sentence_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Grapheme cluster breaking.
-  _mjb_next_grapheme_break: (text: Pointer, state: Pointer) => number;
+  _mjb_grapheme_break_next: (text: Pointer, state: Pointer) => number;
   // Return the number of bytes that form the first `max_graphemes` grapheme cluster segments.
-  _mjb_truncate_grapheme: (text: Pointer, max_graphemes: number) => number;
+  _mjb_grapheme_truncate: (text: Pointer, max_graphemes: number) => number;
   // Count the extended grapheme clusters in a string.
   _mjb_grapheme_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-  _mjb_truncate_grapheme_width: (text: Pointer, profile: number, max_columns: number) => number;
+  _mjb_grapheme_truncate_width: (text: Pointer, profile: number, max_columns: number) => number;
   // Return the number of bytes that form the first max_segments word-break segments.
-  _mjb_truncate_word: (text: Pointer, max_segments: number) => number;
+  _mjb_word_truncate: (text: Pointer, max_segments: number) => number;
   // Count the word-like segments in a string.
   _mjb_word_count: (text: Pointer, malformed_policy: number, count: Pointer, diagnostic: Pointer) => number;
   // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-  _mjb_truncate_word_width: (text: Pointer, profile: number, max_columns: number) => number;
+  _mjb_word_truncate_width: (text: Pointer, profile: number, max_columns: number) => number;
   // Resolve bidirectional text (TR9) for a paragraph.
   _mjb_bidi_resolve: (text: Pointer, direction: number, result: Pointer) => number;
   // Return true if the codepoint is a valid Unicode identifier start (Unicode 18.0.0 UAX #31 ID_Start).

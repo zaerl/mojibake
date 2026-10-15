@@ -53,7 +53,7 @@ static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length,
 
 // Word cluster breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_next_word_break(const mjb_text *text, mjb_next_word_state *state) {
+MJB_EXPORT mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_break_state *state) {
     if(text == NULL || state == NULL) {
         return MJB_BT_NOT_SET;
     }
@@ -365,7 +365,7 @@ MJB_EXPORT mjb_break_type mjb_next_word_break(const mjb_text *text, mjb_next_wor
 }
 
 // Return the number of bytes that form the first max_segments word-break segments.
-MJB_EXPORT size_t mjb_truncate_word(const mjb_text *text, size_t max_segments) {
+MJB_EXPORT size_t mjb_word_truncate(const mjb_text *text, size_t max_segments) {
     if(text == NULL) {
         return 0;
     }
@@ -384,14 +384,14 @@ MJB_EXPORT size_t mjb_truncate_word(const mjb_text *text, size_t max_segments) {
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_word_state state;
+    mjb_word_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t segment_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_next_word_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_word_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -452,14 +452,14 @@ static mjb_status mjb_word_count_process(const char *buffer, size_t byte_length,
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_word_state state;
+    mjb_word_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t word_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_next_word_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_word_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -547,7 +547,7 @@ MJB_EXPORT mjb_status mjb_word_count(const mjb_text *text, mjb_malformed_policy 
 }
 
 // Return the number of bytes whose word-break segments fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_truncate_word_width(const mjb_text *text, mjb_terminal_width_profile profile,
+MJB_EXPORT size_t mjb_word_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile,
     size_t max_columns) {
     if(text == NULL) {
         return 0;
@@ -567,14 +567,14 @@ MJB_EXPORT size_t mjb_truncate_word_width(const mjb_text *text, mjb_terminal_wid
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_word_state state;
+    mjb_word_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_next_word_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_word_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }

@@ -80,6 +80,12 @@ typedef struct mjb_output {
     mjb_output_mode mode;
 } mjb_output;
 
+// Buffer character used in the normalization composition phase
+typedef struct mjb_buffer_character {
+    uint32_t codepoint;
+    uint16_t combining;
+} mjb_buffer_character;
+
 // A smaller version of mjb_character that only contains the information needed for the
 // normalization process.
 typedef struct mjb_n_character {
@@ -97,6 +103,10 @@ MJB_LOCAL void *mjb_alloc(size_t size);
 MJB_LOCAL void *mjb_realloc(void *ptr, size_t old_size, size_t new_size);
 
 MJB_LOCAL void mjb_free(void *ptr, size_t size);
+
+// Compose Hangul L V (T) jamo sequences in place during normalization. Returns the new length;
+// slots past it are set to MJB_CODEPOINT_NOT_VALID.
+MJB_LOCAL size_t mjb_hangul_compose_buffer(mjb_buffer_character *characters, size_t count);
 
 // Set the fields of a result that owns `output`, or that borrows it from the caller's input.
 MJB_LOCAL void mjb_result_own(mjb_result *result, char *output, size_t output_size,

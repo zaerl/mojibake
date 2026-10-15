@@ -14,13 +14,13 @@ static void break_sentence_callback(const char *buffer, size_t byte_length,
     unsigned int current_line, mjb_break_type *expected_types) {
     char test_name[256];
     mjb_break_type bt = MJB_BT_NOT_SET;
-    mjb_next_sentence_state state;
+    mjb_sentence_break_state state;
     state.index = 0;
     size_t index = 0;
     size_t successful_count = 0;
 
     mjb_text text = mjb_text_utf8(buffer, byte_length);
-    while((bt = mjb_next_sentence_break(&text, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_sentence_break_next(&text, &state)) != MJB_BT_NOT_SET) {
         snprintf(test_name, 256, "#%u index %zu", current_line, index);
 
         if(bt == MJB_BT_MANDATORY) {
@@ -34,7 +34,7 @@ static void break_sentence_callback(const char *buffer, size_t byte_length,
         }
     }
 
-    MJB_TEST_COVERAGE(mjb_next_sentence_break);
+    MJB_TEST_COVERAGE(mjb_sentence_break_next);
     ATT_ASSERT(index, successful_count, test_name);
 }
 
@@ -136,24 +136,24 @@ static void test_sentence_count(void) {
 
 ATT_TEST(break_sentence) {
     {
-        mjb_next_sentence_state state;
+        mjb_sentence_break_state state;
         state.index = 0;
         size_t count = 9;
-        ATT_ASSERT((int)mjb_next_sentence_break(NULL, &state), (int)MJB_BT_NOT_SET,
+        ATT_ASSERT((int)mjb_sentence_break_next(NULL, &state), (int)MJB_BT_NOT_SET,
             "Sentence break rejects NULL text");
         ATT_ASSERT_STATUS(mjb_sentence_count(NULL, MJB_MALFORMED_STOP, &count, NULL),
             MJB_STATUS_INVALID_ARGUMENT, "Sentence count rejects NULL text");
         ATT_ASSERT(count, (size_t)0, "Sentence count clears count after NULL text");
     }
 
-    mjb_next_sentence_state state;
+    mjb_sentence_break_state state;
     state.index = 0;
 
     mjb_text text = mjb_text_utf8(NULL, 1);
-    ATT_ASSERT((uint8_t)mjb_next_sentence_break(&text, &state), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_sentence_break_next(&text, &state), (uint8_t)MJB_BT_NOT_SET,
         "Sentence break rejects NULL buffer");
     text = mjb_text_utf8("A", 1);
-    ATT_ASSERT((uint8_t)mjb_next_sentence_break(&text, NULL), (uint8_t)MJB_BT_NOT_SET,
+    ATT_ASSERT((uint8_t)mjb_sentence_break_next(&text, NULL), (uint8_t)MJB_BT_NOT_SET,
         "Sentence break rejects NULL state");
 
     test_sentence_count();

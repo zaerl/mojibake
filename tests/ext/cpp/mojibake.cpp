@@ -198,11 +198,11 @@ ATT_TEST(cpp_mojibake) {
 #endif
 
     // truncate
-    ATT_ASSERT(std::string(mjb::truncate_grapheme("hello", 3)), std::string("hel"), "truncate: 3 graphemes");
-    ATT_ASSERT(std::string(mjb::truncate_grapheme("hello", 10)), std::string("hello"),
+    ATT_ASSERT(std::string(mjb::grapheme_truncate("hello", 3)), std::string("hel"), "truncate: 3 graphemes");
+    ATT_ASSERT(std::string(mjb::grapheme_truncate("hello", 10)), std::string("hello"),
         "truncate: beyond length");
-    ATT_ASSERT(std::string(mjb::truncate_word("hello world", 1)), std::string("hello"),
-        "truncate_word: 1 segment");
+    ATT_ASSERT(std::string(mjb::word_truncate("hello world", 1)), std::string("hello"),
+        "word_truncate: 1 segment");
 
     ATT_ASSERT(mjb::grapheme_count("hello"), (size_t)5, "grapheme_count: ASCII");
     ATT_ASSERT(mjb::grapheme_count(""), (size_t)0, "grapheme_count: empty");
@@ -273,15 +273,15 @@ ATT_TEST(cpp_mojibake) {
 
     ATT_ASSERT(mjb::hangul_syllable_name(0xAC00), std::string("HANGUL SYLLABLE GA"),
         "hangul_syllable_name");
-    const auto decomposition = mjb::hangul_syllable_decomposition(0xAC00);
+    const auto decomposition = mjb::hangul_syllable_decompose(0xAC00);
     ATT_ASSERT(decomposition[0], (mjb_codepoint)0x1100, "hangul decomposition L");
     ATT_ASSERT(decomposition[1], (mjb_codepoint)0x1161, "hangul decomposition V");
     ATT_ASSERT(decomposition[2], (mjb_codepoint)0, "hangul decomposition T");
 
-    const auto composition = mjb::hangul_syllable_composition(std::vector<mjb_buffer_character>{
-        { 0x1100, 0 }, { 0x1161, 0 } });
-    ATT_ASSERT(composition.size(), 1u, "hangul composition size");
-    ATT_ASSERT(composition[0].codepoint, (mjb_codepoint)0xAC00, "hangul composition codepoint");
+    ATT_ASSERT(mjb::hangul_syllable_compose(0x1100, 0x1161), (mjb_codepoint)0xAC00,
+        "hangul composition LV");
+    ATT_ASSERT(mjb::hangul_syllable_compose(0x1100, 0x1161, 0x11A8), (mjb_codepoint)0xAC01,
+        "hangul composition LVT");
 
     ATT_ASSERT(std::string(mjb::version()), std::string(MJB_VERSION), "version");
     ATT_ASSERT(mjb::version_number(), (unsigned int)MJB_VERSION_NUMBER, "version_number");

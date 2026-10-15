@@ -1208,20 +1208,21 @@ struct EmojiSequence {
 }
 
 [[nodiscard]] inline std::array<mjb_codepoint, 3>
-hangul_syllable_decomposition(mjb_codepoint codepoint) {
+hangul_syllable_decompose(mjb_codepoint codepoint) {
     std::array<mjb_codepoint, 3> codepoints{};
-    detail::check_status(mjb_hangul_syllable_decomposition(codepoint, codepoints.data()),
+    detail::check_status(mjb_hangul_syllable_decompose(codepoint, codepoints.data()),
         "Hangul syllable decomposition failed");
 
     return codepoints;
 }
 
-[[nodiscard]] inline std::vector<mjb_buffer_character>
-hangul_syllable_composition(std::vector<mjb_buffer_character> characters) {
-    const size_t size = mjb_hangul_syllable_composition(characters.data(), characters.size());
-    characters.resize(size);
+[[nodiscard]] inline mjb_codepoint hangul_syllable_compose(mjb_codepoint leading,
+    mjb_codepoint vowel, mjb_codepoint trailing = 0) {
+    mjb_codepoint syllable = MJB_CODEPOINT_NOT_VALID;
+    detail::check_status(mjb_hangul_syllable_compose(leading, vowel, trailing, &syllable),
+        "Hangul syllable composition failed");
 
-    return characters;
+    return syllable;
 }
 
 struct LocaleId {
@@ -1309,10 +1310,10 @@ inline void set_allocator(const mjb_allocator *allocator) {
     detail::check_status(mjb_set_allocator(allocator), "Allocator selection failed");
 }
 
-[[nodiscard]] inline std::string_view truncate_grapheme(std::string_view input,
+[[nodiscard]] inline std::string_view grapheme_truncate(std::string_view input,
     size_t max_graphemes, mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_truncate_grapheme(&text, max_graphemes);
+    const size_t n = mjb_grapheme_truncate(&text, max_graphemes);
 
     return input.substr(0, n);
 }
@@ -1353,28 +1354,28 @@ inline void set_allocator(const mjb_allocator *allocator) {
     return count;
 }
 
-[[nodiscard]] inline std::string_view truncate_grapheme_width(std::string_view input,
+[[nodiscard]] inline std::string_view grapheme_truncate_width(std::string_view input,
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_truncate_grapheme_width(&text, profile, max_columns);
+    const size_t n = mjb_grapheme_truncate_width(&text, profile, max_columns);
 
     return input.substr(0, n);
 }
 
-[[nodiscard]] inline std::string_view truncate_word(std::string_view input, size_t max_segments,
+[[nodiscard]] inline std::string_view word_truncate(std::string_view input, size_t max_segments,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_truncate_word(&text, max_segments);
+    const size_t n = mjb_word_truncate(&text, max_segments);
 
     return input.substr(0, n);
 }
 
-[[nodiscard]] inline std::string_view truncate_word_width(std::string_view input,
+[[nodiscard]] inline std::string_view word_truncate_width(std::string_view input,
     size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
     mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
     const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const size_t n = mjb_truncate_word_width(&text, profile, max_columns);
+    const size_t n = mjb_word_truncate_width(&text, profile, max_columns);
 
     return input.substr(0, n);
 }
@@ -1576,10 +1577,10 @@ template <typename State, mjb_break_type (*BreakFn)(const mjb_text *, State *)> 
     }
 };
 
-using WordBreaker = Breaker<mjb_next_word_state, mjb_next_word_break>;
-using SentenceBreaker = Breaker<mjb_next_sentence_state, mjb_next_sentence_break>;
-using LineBreaker = Breaker<mjb_next_line_state, mjb_next_line_break>;
-using GraphemeBreaker = Breaker<mjb_next_state, mjb_next_grapheme_break>;
+using WordBreaker = Breaker<mjb_word_break_state, mjb_word_break_next>;
+using SentenceBreaker = Breaker<mjb_sentence_break_state, mjb_sentence_break_next>;
+using LineBreaker = Breaker<mjb_line_break_state, mjb_line_break_next>;
+using GraphemeBreaker = Breaker<mjb_grapheme_break_state, mjb_grapheme_break_next>;
 
 } // namespace mjb
 

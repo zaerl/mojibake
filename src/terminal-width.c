@@ -136,14 +136,14 @@ MJB_EXPORT mjb_status mjb_terminal_width(const mjb_text *text,
     }
 
     mjb_text normalized_text = mjb_text_utf8(normalized.output, normalized.output_size);
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
 
     mjb_break_type break_type;
     size_t total_width = 0;
     size_t previous_break = 0;
 
-    while((break_type = mjb_next_grapheme_break(&normalized_text, &state)) != MJB_BT_NOT_SET) {
+    while((break_type = mjb_grapheme_break_next(&normalized_text, &state)) != MJB_BT_NOT_SET) {
         if(break_type == MJB_BT_NO_BREAK) {
             continue;
         }

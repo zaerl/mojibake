@@ -10,7 +10,8 @@
 #include "mojibake-internal.h"
 #include "utf.h"
 
-static inline void mjb_update_sequence_flags(mjb_next_state *state, const uint8_t *buffer) {
+static inline void mjb_update_sequence_flags(mjb_grapheme_break_state *state,
+    const uint8_t *buffer) {
     // Update GB11: Extended_Pictographic + ZWJ sequences
     if(mjb_codepoint_properties_get(buffer, MJB_PR_EXTENDED_PICTOGRAPHIC)) {
         // Start of new Extended_Pictographic sequence
@@ -37,7 +38,8 @@ static inline void mjb_update_sequence_flags(mjb_next_state *state, const uint8_
 
 // Grapheme Cluster Breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const mjb_text *text, mjb_next_state *state) {
+MJB_EXPORT mjb_break_type mjb_grapheme_break_next(const mjb_text *text,
+    mjb_grapheme_break_state *state) {
     if(text == NULL || state == NULL) {
         return MJB_BT_NOT_SET;
     }
@@ -266,7 +268,7 @@ MJB_EXPORT mjb_break_type mjb_next_grapheme_break(const mjb_text *text, mjb_next
 }
 
 // Return the largest prefix no longer than max_bytes that ends at a grapheme boundary.
-// See: mjb_truncate_grapheme
+// See: mjb_grapheme_truncate
 size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_encoding encoding,
     size_t max_bytes) {
     if(buffer == NULL || byte_length == 0 || max_bytes == 0) {
@@ -278,13 +280,13 @@ size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_enc
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t last_break = 0;
 
-    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_grapheme_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -303,7 +305,7 @@ size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_enc
 }
 
 // Return the number of bytes that form the first max_graphemes grapheme clusters.
-MJB_EXPORT size_t mjb_truncate_grapheme(const mjb_text *text, size_t max_graphemes) {
+MJB_EXPORT size_t mjb_grapheme_truncate(const mjb_text *text, size_t max_graphemes) {
     if(text == NULL) {
         return 0;
     }
@@ -322,14 +324,14 @@ MJB_EXPORT size_t mjb_truncate_grapheme(const mjb_text *text, size_t max_graphem
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t cluster_count = 0;
     size_t last_break = 0;
 
-    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_grapheme_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
@@ -355,13 +357,13 @@ static mjb_status mjb_grapheme_count_process(const char *buffer, size_t byte_len
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t cluster_count = 0;
 
-    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_grapheme_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt != MJB_BT_NO_BREAK) {
             ++cluster_count;
         }
@@ -436,7 +438,7 @@ MJB_EXPORT mjb_status mjb_grapheme_count(const mjb_text *text,
 }
 
 // Return the number of bytes whose grapheme clusters fit within max_columns terminal cells.
-MJB_EXPORT size_t mjb_truncate_grapheme_width(const mjb_text *text,
+MJB_EXPORT size_t mjb_grapheme_truncate_width(const mjb_text *text,
     mjb_terminal_width_profile profile, size_t max_columns) {
     if(text == NULL) {
         return 0;
@@ -456,14 +458,14 @@ MJB_EXPORT size_t mjb_truncate_grapheme_width(const mjb_text *text,
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_state state;
+    mjb_grapheme_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t total_width = 0;
     size_t prev_break = 0;
 
-    while((bt = mjb_next_grapheme_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_grapheme_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }

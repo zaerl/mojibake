@@ -72,8 +72,8 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_lengt
 
 // Sentence boundaries breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_next_sentence_break(const mjb_text *text,
-    mjb_next_sentence_state *state) {
+MJB_EXPORT mjb_break_type mjb_sentence_break_next(const mjb_text *text,
+    mjb_sentence_break_state *state) {
     if(text == NULL || state == NULL) {
         return MJB_BT_NOT_SET;
     }
@@ -328,13 +328,13 @@ static mjb_status mjb_sentence_count_process(const char *buffer, size_t byte_len
     }
 
     mjb_text resolved = mjb_text_make(buffer, byte_length, encoding);
-    mjb_next_sentence_state state;
+    mjb_sentence_break_state state;
     state.index = 0;
 
     mjb_break_type bt;
     size_t segment_count = 0;
 
-    while((bt = mjb_next_sentence_break(&resolved, &state)) != MJB_BT_NOT_SET) {
+    while((bt = mjb_sentence_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt != MJB_BT_NO_BREAK) {
             ++segment_count;
         }

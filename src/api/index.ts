@@ -261,10 +261,10 @@ export enum TerminalWidthProfile {
   EAST_ASIAN
 };
 
-// mjb_next_state
-// mjb_next_line_state
-// mjb_next_word_state
-// mjb_next_sentence_state
+// mjb_grapheme_break_state
+// mjb_line_break_state
+// mjb_word_break_state
+// mjb_sentence_break_state
 // mjb_for_each_codepoint_fn
 
 // mjb_direction
@@ -1148,62 +1148,62 @@ export class Mojibake {
     }
   }
 
-  // mjb_break_type mjb_next_line_break(const mjb_text *text, mjb_next_line_state *state)
-  nextLineBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_next_line_break, options);
+  // mjb_break_type mjb_line_break_next(const mjb_text *text, mjb_line_break_state *state)
+  lineBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_line_break_next, options);
   }
 
-  // mjb_break_type mjb_next_word_break(const mjb_text *text, mjb_next_word_state *state)
-  nextWordBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_next_word_break, options);
+  // mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_break_state *state)
+  wordBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_word_break_next, options);
   }
 
-  // size_t mjb_truncate_word(const mjb_text *text, size_t max_segments)
-  truncateWord(input: MojibakeInput, maxSegments: number,
+  // size_t mjb_word_truncate(const mjb_text *text, size_t max_segments)
+  wordTruncate(input: MojibakeInput, maxSegments: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_word(textPtr, maxSegments);
+      return this.module._mjb_word_truncate(textPtr, maxSegments);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
     }
   }
 
-  // size_t mjb_truncate_word_width(const mjb_text *text, mjb_terminal_width_profile profile,
+  // size_t mjb_word_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile,
   // size_t max_columns)
-  truncateWordWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
+  wordTruncateWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_word_width(textPtr, profile, maxColumns);
+      return this.module._mjb_word_truncate_width(textPtr, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
     }
   }
 
-  // mjb_break_type mjb_next_sentence_break(const mjb_text *text, mjb_next_sentence_state *state)
-  nextSentenceBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_next_sentence_break, options);
+  // mjb_break_type mjb_sentence_break_next(const mjb_text *text, mjb_sentence_break_state *state)
+  sentenceBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_sentence_break_next, options);
   }
 
-  // mjb_break_type mjb_next_grapheme_break(const mjb_text *text, mjb_next_state *state)
-  nextGraphemeBreak(input: MojibakeInput, options: TextInputOptions = {}): number[] {
-    return this.collectBreaks(input, this.module._mjb_next_grapheme_break, options);
+  // mjb_break_type mjb_grapheme_break_next(const mjb_text *text, mjb_grapheme_break_state *state)
+  graphemeBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+    return this.collectBreaks(input, this.module._mjb_grapheme_break_next, options);
   }
 
-  // size_t mjb_truncate_grapheme(const mjb_text *text, size_t max_graphemes)
-  truncateGrapheme(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
+  // size_t mjb_grapheme_truncate(const mjb_text *text, size_t max_graphemes)
+  graphemeTruncate(input: MojibakeInput, maxGraphemes: number, options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_grapheme(textPtr, maxGraphemes);
+      return this.module._mjb_grapheme_truncate(textPtr, maxGraphemes);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
@@ -1279,15 +1279,15 @@ export class Mojibake {
     }
   }
 
-  // size_t mjb_truncate_grapheme_width(const mjb_text *text, mjb_terminal_width_profile profile,
+  // size_t mjb_grapheme_truncate_width(const mjb_text *text, mjb_terminal_width_profile profile,
   // size_t max_columns)
-  truncateGraphemeWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
+  graphemeTruncateWidth(input: MojibakeInput, profile: TerminalWidthProfile, maxColumns: number,
     options: TextInputOptions = {}): number {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
 
     try {
-      return this.module._mjb_truncate_grapheme_width(textPtr, profile, maxColumns);
+      return this.module._mjb_grapheme_truncate_width(textPtr, profile, maxColumns);
     } finally {
       this.free(wasmInput.ptr);
       this.free(textPtr);
@@ -1577,9 +1577,9 @@ export class Mojibake {
     }
   }
 
-  // mjb_status mjb_hangul_syllable_decomposition(mjb_codepoint codepoint,
-  // mjb_codepoint *codepoints)
-  // size_t mjb_hangul_syllable_composition(mjb_buffer_character *characters, size_t characters_len)
+  // mjb_status mjb_hangul_syllable_decompose(mjb_codepoint codepoint, mjb_codepoint *codepoints)
+  // mjb_status mjb_hangul_syllable_compose(mjb_codepoint leading, mjb_codepoint vowel,
+  // mjb_codepoint trailing, mjb_codepoint *syllable)
 
   // mjb_status mjb_codepoint_east_asian_width(mjb_codepoint codepoint,
   // mjb_east_asian_width *width);
