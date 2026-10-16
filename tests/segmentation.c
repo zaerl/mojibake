@@ -19,6 +19,9 @@ static void segmentation_callback(const char *buffer, size_t byte_length, unsign
     state.index = 0;
     size_t index = 0;
     size_t successful_count = 0;
+    size_t starts[1025];
+    size_t start_count = mjb_test_codepoint_starts(buffer, byte_length, starts, 1025);
+    size_t position_mismatches = 0;
 
     mjb_text text = mjb_text_utf8(buffer, byte_length);
     while((bt = mjb_grapheme_break_next(&text, &state)) != MJB_BT_NOT_SET) {
@@ -26,6 +29,12 @@ static void segmentation_callback(const char *buffer, size_t byte_length, unsign
 
         if(bt == MJB_BT_MANDATORY) {
             bt = MJB_BT_ALLOWED;
+        }
+
+        // There is no event for the start of the text: event i is the boundary after codepoint
+        // i, at the start of codepoint i + 1, and the last one is the end of the text.
+        if(index < start_count && state.position != starts[index + 1]) {
+            ++position_mismatches;
         }
 
         if((uint8_t)bt == (uint8_t)expected_types[index++]) {
@@ -37,6 +46,7 @@ static void segmentation_callback(const char *buffer, size_t byte_length, unsign
 
     MJB_TEST_COVERAGE(mjb_grapheme_break_next);
     ATT_ASSERT(index, successful_count, test_name);
+    ATT_ASSERT(position_mismatches, (size_t)0, "Break positions are codepoint starts");
 }
 
 static void test_basic_segmentation(void) {
@@ -332,6 +342,41 @@ static void test_grapheme_count(void) {
 }
 
 ATT_TEST(segmentation) {
+    {
+        // state.position is the byte offset of each reported position. A malformed byte counts
+        // as one position; an incomplete sequence at the end ends the iteration before it.
+        const size_t expected_middle[] = { 1, 2, 3, 4, 5 };
+        mjb_text middle = mjb_text_utf8("ab\x80"
+                                        "cd",
+            5);
+        mjb_grapheme_break_state state;
+        state.index = 0;
+        size_t count = 0;
+        bool positions_match = true;
+
+        while(mjb_grapheme_break_next(&middle, &state) != MJB_BT_NOT_SET) {
+            positions_match = positions_match && count < 5 &&
+                state.position == expected_middle[count];
+            ++count;
+        }
+
+        ATT_ASSERT(count, (size_t)5, "Grapheme positions around a malformed byte");
+        ATT_ASSERT(positions_match, true, "Grapheme positions skip nothing around a malformed byte");
+
+        mjb_text tail = mjb_text_utf8("ab\xE2\x82", 4);
+        state.index = 0;
+        size_t last_position = 0;
+        count = 0;
+
+        while(mjb_grapheme_break_next(&tail, &state) != MJB_BT_NOT_SET) {
+            last_position = state.position;
+            ++count;
+        }
+
+        ATT_ASSERT(count, (size_t)2, "Grapheme iteration ends before an incomplete tail");
+        ATT_ASSERT(last_position, (size_t)2, "Grapheme last position precedes an incomplete tail");
+    }
+
     {
         mjb_grapheme_break_state state;
         state.index = 0;

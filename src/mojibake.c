@@ -18,6 +18,18 @@ MJB_STATIC_ASSERT(offsetof(mjb_text, encoding) == 8, "mjb_text encoding must be 
 MJB_STATIC_ASSERT(sizeof(mjb_result) == 16, "mjb_result must be 16 bytes on wasm32");
 MJB_STATIC_ASSERT(offsetof(mjb_result, capacity) == 8, "mjb_result capacity must be at 8");
 MJB_STATIC_ASSERT(offsetof(mjb_result, owned) == 12, "mjb_result owned must be at 12");
+// and reads the 32-bit state.position of every break state at byte 8 of a 256-byte state
+MJB_STATIC_ASSERT(offsetof(mjb_grapheme_break_state, position) == 8,
+    "mjb_grapheme_break_state position must be at 8");
+MJB_STATIC_ASSERT(offsetof(mjb_line_break_state, position) == 8,
+    "mjb_line_break_state position must be at 8");
+MJB_STATIC_ASSERT(offsetof(mjb_word_break_state, position) == 8,
+    "mjb_word_break_state position must be at 8");
+MJB_STATIC_ASSERT(offsetof(mjb_sentence_break_state, position) == 8,
+    "mjb_sentence_break_state position must be at 8");
+MJB_STATIC_ASSERT(sizeof(mjb_grapheme_break_state) <= 256 && sizeof(mjb_line_break_state) <= 256 &&
+        sizeof(mjb_word_break_state) <= 256 && sizeof(mjb_sentence_break_state) <= 256,
+    "break states must fit in 256 bytes");
 #endif
 
 // These wrappers adapt the context-aware callback signatures. On MSVC they also avoid taking the

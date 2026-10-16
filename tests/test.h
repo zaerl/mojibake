@@ -51,6 +51,8 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     mjb_locale locale, mjb_encoding encoding);
 void mjb_test_free(void *output);
 void read_test_file(const char *filename, test_file_callback callback);
+size_t mjb_test_codepoint_starts(const char *buffer, size_t byte_length, size_t *starts,
+    size_t capacity);
 
 char *mjb_test_strsep(char **stringp, const char *delim);
 

@@ -270,10 +270,60 @@ ATT_ASSERT(mojibake.nfkcCasefold('Stra\u00DFe', { encoding: Encoding.UTF_16BE,
 ATT_ASSERT(mojibake.nfkcCasefold(malformedText,
   { malformedPolicy: MalformedPolicy.SKIP })?.output, 'ab',
   'nfkcCasefold malformed skip policy');
-ATT_ASSERT(mojibake.lineBreakNext('A'), [BreakType.ALLOWED], 'lineBreakNext');
-ATT_ASSERT(mojibake.wordBreakNext('A'), [BreakType.ALLOWED], 'wordBreakNext');
-ATT_ASSERT(mojibake.sentenceBreakNext('A'), [BreakType.ALLOWED], 'sentenceBreakNext');
-ATT_ASSERT(mojibake.graphemeBreakNext('A'), [BreakType.ALLOWED], 'graphemeBreakNext');
+ATT_ASSERT(mojibake.lineBreakNext('A'), [{ position: 1, type: BreakType.ALLOWED }],
+  'lineBreakNext');
+ATT_ASSERT(mojibake.wordBreakNext('A'), [{ position: 1, type: BreakType.ALLOWED }],
+  'wordBreakNext');
+ATT_ASSERT(mojibake.sentenceBreakNext('A'), [{ position: 1, type: BreakType.ALLOWED }],
+  'sentenceBreakNext');
+ATT_ASSERT(mojibake.graphemeBreakNext('A'), [{ position: 1, type: BreakType.ALLOWED }],
+  'graphemeBreakNext');
+ATT_ASSERT(mojibake.graphemeBreakNext(''), [], 'graphemeBreakNext empty');
+// Positions are UTF-8 byte offsets, also after SB5 and WB4 absorb a format or extend character
+ATT_ASSERT(mojibake.sentenceBreakNext('a\u200Bb'), [
+  { position: 1, type: BreakType.NO_BREAK },
+  { position: 4, type: BreakType.NO_BREAK },
+  { position: 5, type: BreakType.ALLOWED },
+], 'sentenceBreakNext positions with U+200B');
+ATT_ASSERT(mojibake.wordBreakNext('e\u0301x'), [
+  { position: 1, type: BreakType.NO_BREAK },
+  { position: 3, type: BreakType.NO_BREAK },
+  { position: 4, type: BreakType.ALLOWED },
+], 'wordBreakNext positions with U+0301');
+ATT_ASSERT(mojibake.lineBreakNext('a b'), [
+  { position: 1, type: BreakType.NO_BREAK },
+  { position: 2, type: BreakType.ALLOWED },
+  { position: 3, type: BreakType.MANDATORY },
+], 'lineBreakNext positions');
+// and bytes in the selected encoding
+ATT_ASSERT(mojibake.graphemeBreakNext('A\u{1F642}', { encoding: Encoding.UTF_16LE }), [
+  { position: 2, type: BreakType.ALLOWED },
+  { position: 6, type: BreakType.ALLOWED },
+], 'graphemeBreakNext UTF-16LE positions');
+ATT_ASSERT(mojibake.graphemeBreakNext(new Uint8Array([0x61, 0x80, 0x62])).map(b => b.position),
+  [1, 2, 3], 'graphemeBreakNext a malformed byte is one position');
+// Segments are slices of the input, so they join back to it
+ATT_ASSERT(mojibake.graphemeSegments('e\u0301\u{1F1EE}\u{1F1F9}x'),
+  ['e\u0301', '\u{1F1EE}\u{1F1F9}', 'x'], 'graphemeSegments');
+ATT_ASSERT(mojibake.graphemeSegments(''), [], 'graphemeSegments empty');
+ATT_ASSERT(mojibake.wordSegments('Hello, world'), ['Hello', ',', ' ', 'world'], 'wordSegments');
+ATT_ASSERT(mojibake.wordSegments('a\u200Bb'), ['a', '\u200B', 'b'], 'wordSegments U+200B');
+ATT_ASSERT(mojibake.sentenceSegments('Hi. Bye.'), ['Hi. ', 'Bye.'], 'sentenceSegments');
+ATT_ASSERT(mojibake.sentenceSegments('a\u200Bb'), ['a\u200Bb'], 'sentenceSegments keeps U+200B');
+ATT_ASSERT(mojibake.lineSegments('foo bar\nbaz'), ['foo ', 'bar\n', 'baz'], 'lineSegments');
+// The encoding option does not change how a string is split
+ATT_ASSERT(mojibake.wordSegments('Hello world', { encoding: Encoding.UTF_32BE }),
+  ['Hello', ' ', 'world'], 'wordSegments ignores the encoding of a string');
+// Bytes are split into views in the selected encoding
+ATT_ASSERT(mojibake.graphemeSegments(new Uint8Array([0x41, 0xC3, 0xA9])).map(s => Array.from(s)),
+  [[0x41], [0xC3, 0xA9]], 'graphemeSegments UTF-8 bytes');
+ATT_ASSERT(mojibake.wordSegments(new Uint8Array([0, 0x61, 0, 0x20, 0, 0x62]),
+  { encoding: Encoding.UTF_16BE }).map(s => Array.from(s)), [[0, 0x61], [0, 0x20], [0, 0x62]],
+  'wordSegments UTF-16BE bytes');
+ATT_ASSERT(mojibake.graphemeSegments(malformedText).map(s => Array.from(s)),
+  [[0x41], [0x80], [0x42]], 'graphemeSegments a malformed byte is a segment');
+ATT_ASSERT(mojibake.graphemeSegments(new Uint8Array([0x61, 0xE2, 0x82])).map(s => Array.from(s)),
+  [[0x61], [0xE2, 0x82]], 'graphemeSegments keeps an incomplete sequence at the end');
 ATT_ASSERT(mojibake.wordPrefixLength('Hello World', 1), 5, 'wordPrefixLength');
 ATT_ASSERT(mojibake.wordPrefixLengthForWidth('Hello World', TerminalWidthProfile.NARROW, 5), 5,
   'wordPrefixLengthForWidth');

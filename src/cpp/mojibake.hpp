@@ -13,7 +13,9 @@
 
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include <exception>
+#include <iterator>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -86,6 +88,115 @@ template <typename T>
 inline constexpr bool is_temporary_string_v = std::is_same_v<std::remove_const_t<T>, std::string>;
 
 } // namespace detail
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
+    __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+inline constexpr mjb_encoding native_utf16_encoding = MJB_ENC_UTF_16BE;
+inline constexpr mjb_encoding native_utf32_encoding = MJB_ENC_UTF_32BE;
+#else
+// MSVC, and every compiler that does not define __BYTE_ORDER__, targets little-endian platforms.
+inline constexpr mjb_encoding native_utf16_encoding = MJB_ENC_UTF_16LE;
+inline constexpr mjb_encoding native_utf32_encoding = MJB_ENC_UTF_32LE;
+#endif
+
+namespace detail {
+
+// The code unit type of a UTF-16 or UTF-32 string argument; other types are not unit strings.
+template <typename T, typename = void> struct unit_char {};
+
+template <typename T>
+struct unit_char<T, std::enable_if_t<std::is_convertible_v<const T &, std::u16string_view>>> {
+    using type = char16_t;
+};
+
+template <typename T>
+struct unit_char<T, std::enable_if_t<std::is_convertible_v<const T &, std::u32string_view>>> {
+    using type = char32_t;
+};
+
+template <typename T> using unit_char_t = typename unit_char<T>::type;
+
+// The code unit type of any text argument: char for UTF-8, then char16_t or char32_t.
+template <typename T, typename = void> struct text_char : unit_char<T> {};
+
+template <typename T>
+struct text_char<T, std::enable_if_t<std::is_convertible_v<const T &, std::string_view>>> {
+    using type = char;
+};
+
+template <typename T> using text_char_t = typename text_char<T>::type;
+
+template <typename CharT>
+inline constexpr mjb_encoding unit_encoding = std::is_same_v<CharT, char16_t> ?
+    native_utf16_encoding :
+    native_utf32_encoding;
+
+template <typename CharT>
+inline constexpr mjb_encoding text_encoding = std::is_same_v<CharT, char> ? MJB_ENC_UTF_8 :
+                                                                            unit_encoding<CharT>;
+
+template <typename CharT>
+[[nodiscard]] std::string_view as_bytes(std::basic_string_view<CharT> units) noexcept {
+    return std::string_view(reinterpret_cast<const char *>(units.data()),
+        units.size() * sizeof(CharT));
+}
+
+template <typename CharT>
+[[nodiscard]] std::basic_string<CharT> units_from_bytes(std::string_view bytes) {
+    std::basic_string<CharT> units(bytes.size() / sizeof(CharT), CharT());
+
+    if(!units.empty()) {
+        std::memcpy(&units[0], bytes.data(), units.size() * sizeof(CharT));
+    }
+
+    return units;
+}
+
+} // namespace detail
+
+/**
+ * A view of text and its encoding, the C++ counterpart of mjb_text.
+ *
+ * It converts implicitly from UTF-8 strings (std::string, std::string_view, and literals) and from
+ * UTF-16 and UTF-32 strings (std::u16string, u"...", and so on) in the platform's byte order, so
+ * analysis functions take any of them. Pass an explicit encoding for other byte orders or for
+ * bytes read from a file: mjb::Text(bytes, MJB_ENC_UTF_16BE). Like std::string_view, it does not
+ * own the text, which must outlive it.
+ */
+class Text {
+    mjb_text data;
+
+    template <typename CharT>
+    [[nodiscard]] static mjb_text make(std::basic_string_view<CharT> units,
+        mjb_encoding encoding) noexcept {
+        const std::string_view bytes = detail::as_bytes(units);
+
+        return mjb_text_make(bytes.data(), bytes.size(), encoding);
+    }
+
+  public:
+    template <typename T, typename CharT = detail::text_char_t<T>>
+    Text(const T &input) noexcept // NOLINT(google-explicit-constructor): implicit by design
+        : data(make(std::basic_string_view<CharT>(input), detail::text_encoding<CharT>)) {
+    }
+
+    template <typename T, typename CharT = detail::text_char_t<T>>
+    Text(const T &input, mjb_encoding encoding) noexcept
+        : data(make(std::basic_string_view<CharT>(input), encoding)) {
+    }
+
+    [[nodiscard]] const mjb_text *get() const noexcept {
+        return &data;
+    }
+
+    [[nodiscard]] std::string_view bytes() const noexcept {
+        return std::string_view(data.buffer, data.byte_length);
+    }
+
+    [[nodiscard]] mjb_encoding encoding() const noexcept {
+        return data.encoding;
+    }
+};
 
 /**
  * The result of an allocating transformation. See the mjb_result struct for details.
@@ -245,18 +356,16 @@ struct ResolvedScriptSet {
     }
 };
 
-[[nodiscard]] inline ResolvedScriptSet resolved_script_set(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+[[nodiscard]] inline ResolvedScriptSet resolved_script_set(Text input) {
     ResolvedScriptSet result;
     size_t count = 0;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_resolved_script_set(&text, nullptr, &count, &result.kind),
+    detail::check_status(mjb_resolved_script_set(input.get(), nullptr, &count, &result.kind),
         "Unable to count resolved scripts");
 
     result.scripts.resize(count);
 
     if(count > 0) {
-        detail::check_status(mjb_resolved_script_set(&text, result.scripts.data(), &count,
+        detail::check_status(mjb_resolved_script_set(input.get(), result.scripts.data(), &count,
                                  &result.kind),
             "Unable to read resolved scripts");
         result.scripts.resize(count);
@@ -714,11 +823,9 @@ struct NumericValue {
     return mjb_is_utf16(input.data(), input.size());
 }
 
-[[nodiscard]] inline mjb_status validate_encoding(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8, mjb_diagnostic *diagnostic = nullptr) noexcept {
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-
-    return mjb_validate_encoding(&text, diagnostic);
+[[nodiscard]] inline mjb_status validate_encoding(Text input,
+    mjb_diagnostic *diagnostic = nullptr) noexcept {
+    return mjb_validate_encoding(input.get(), diagnostic);
 }
 
 [[nodiscard]] inline mjb_status decode_next(std::string_view input, size_t &offset,
@@ -737,25 +844,20 @@ struct NumericValue {
     return mjb_decode_previous(&text, malformed_policy, &offset, &codepoint, diagnostic);
 }
 
-[[nodiscard]] inline size_t codepoint_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
+[[nodiscard]] inline size_t codepoint_count(Text input,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_codepoint_count(&text, malformed_policy, &count, diagnostic),
+    detail::check_status(mjb_codepoint_count(input.get(), malformed_policy, &count, diagnostic),
         "Codepoint count failed");
 
     return count;
 }
 
-[[nodiscard]] inline mjb_status for_each_codepoint(std::string_view input,
-    mjb_for_each_codepoint_fn callback, void *context = nullptr,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
-    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+[[nodiscard]] inline mjb_status for_each_codepoint(Text input, mjb_for_each_codepoint_fn callback,
+    void *context = nullptr, mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) noexcept {
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    return mjb_for_each_codepoint(&text, malformed_policy, callback, context, diagnostic);
+    return mjb_for_each_codepoint(input.get(), malformed_policy, callback, context, diagnostic);
 }
 
 namespace detail {
@@ -791,14 +893,12 @@ bool visit_codepoint(const mjb_character *character, mjb_character_position posi
 template <typename Fn,
     std::enable_if_t<
         std::is_invocable_r_v<bool, Fn &, const mjb_character &, mjb_character_position>, int> = 0>
-[[nodiscard]] mjb_status for_each_codepoint(std::string_view input, Fn &&fn,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
+[[nodiscard]] mjb_status for_each_codepoint(Text input, Fn &&fn,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     using Callable = std::remove_reference_t<Fn>;
     detail::CodepointVisitor<Callable> visitor{ &fn, nullptr };
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const mjb_status status = mjb_for_each_codepoint(&text, malformed_policy,
+    const mjb_status status = mjb_for_each_codepoint(input.get(), malformed_policy,
         detail::visit_codepoint<Callable>, &visitor, diagnostic);
 
     if(visitor.error) {
@@ -833,21 +933,16 @@ TextResult convert_encoding_result(T &&input, Args &&...args) = delete;
         .str();
 }
 
-[[nodiscard]] inline bool is_identifier(std::string_view input,
-    mjb_identifier_profile profile = MJB_IDENTIFIER_DEFAULT,
-    mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    return mjb_is_identifier(&text, profile);
+[[nodiscard]] inline bool is_identifier(Text input,
+    mjb_identifier_profile profile = MJB_IDENTIFIER_DEFAULT) noexcept {
+    return mjb_is_identifier(input.get(), profile);
 }
 
-[[nodiscard]] inline bool confusable_match(std::string_view s1, std::string_view s2,
-    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8,
+[[nodiscard]] inline bool confusable_match(Text s1, Text s2,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *s1_diagnostic = nullptr, mjb_diagnostic *s2_diagnostic = nullptr) {
     bool confusable = false;
-    const mjb_text first = mjb_text_make(s1.data(), s1.size(), s1_encoding);
-    const mjb_text second = mjb_text_make(s2.data(), s2.size(), s2_encoding);
-    detail::check_status(mjb_confusable_match(&first, &second, malformed_policy, &confusable,
+    detail::check_status(mjb_confusable_match(s1.get(), s2.get(), malformed_policy, &confusable,
                              s1_diagnostic, s2_diagnostic),
         "Confusable comparison failed");
 
@@ -935,12 +1030,11 @@ TextResult normalize_result(T &&input, Args &&...args) = delete;
         malformed_policy, diagnostic);
 }
 
-[[nodiscard]] inline mjb_quick_check_result normalization_quick_check(std::string_view input,
-    NormalizationForm form, mjb_encoding encoding = MJB_ENC_UTF_8) {
+[[nodiscard]] inline mjb_quick_check_result normalization_quick_check(Text input,
+    NormalizationForm form) {
     mjb_quick_check_result quick_check = MJB_QC_NO;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_normalization_quick_check(&text, static_cast<mjb_normalization>(form),
-                             &quick_check),
+    detail::check_status(mjb_normalization_quick_check(input.get(),
+                             static_cast<mjb_normalization>(form), &quick_check),
         "Normalization quick-check failed");
 
     return quick_check;
@@ -1165,15 +1259,12 @@ enum class CaselessMode {
     Identifier = MJB_CASELESS_IDENTIFIER
 };
 
-[[nodiscard]] inline bool caseless_match(std::string_view s1, std::string_view s2,
-    CaselessMode mode = CaselessMode::Canonical, mjb_encoding s1_encoding = MJB_ENC_UTF_8,
-    mjb_encoding s2_encoding = MJB_ENC_UTF_8,
+[[nodiscard]] inline bool caseless_match(Text s1, Text s2,
+    CaselessMode mode = CaselessMode::Canonical,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *s1_diagnostic = nullptr, mjb_diagnostic *s2_diagnostic = nullptr) {
     bool matches = false;
-    const mjb_text first = mjb_text_make(s1.data(), s1.size(), s1_encoding);
-    const mjb_text second = mjb_text_make(s2.data(), s2.size(), s2_encoding);
-    detail::check_status(mjb_caseless_match(&first, &second, malformed_policy,
+    detail::check_status(mjb_caseless_match(s1.get(), s2.get(), malformed_policy,
                              static_cast<mjb_caseless_mode>(mode), &matches, s1_diagnostic,
                              s2_diagnostic),
         "Caseless matching failed");
@@ -1193,16 +1284,13 @@ enum class CollationVariableWeighting {
     Shifted = MJB_COLLATION_SHIFTED
 };
 
-[[nodiscard]] inline int collation_compare(std::string_view s1, std::string_view s2,
+[[nodiscard]] inline int collation_compare(Text s1, Text s2,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
     CollationStrength strength = CollationStrength::Tertiary,
-    mjb_encoding s1_encoding = MJB_ENC_UTF_8, mjb_encoding s2_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *s1_diagnostic = nullptr, mjb_diagnostic *s2_diagnostic = nullptr) {
     int order = 0;
-    const mjb_text first = mjb_text_make(s1.data(), s1.size(), s1_encoding);
-    const mjb_text second = mjb_text_make(s2.data(), s2.size(), s2_encoding);
-    detail::check_status(mjb_collation_compare(&first, &second, malformed_policy,
+    detail::check_status(mjb_collation_compare(s1.get(), s2.get(), malformed_policy,
                              static_cast<mjb_collation_variable_weighting>(variable_weighting),
                              static_cast<mjb_collation_strength>(strength), &order, s1_diagnostic,
                              s2_diagnostic),
@@ -1211,14 +1299,15 @@ enum class CollationVariableWeighting {
     return order;
 }
 
-[[nodiscard]] inline TextResult collation_key_result(std::string_view input,
+// The key is always newly allocated: unlike the other _result functions, it never borrows the
+// input, so it can take a Text.
+[[nodiscard]] inline TextResult collation_key_result(Text input,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
-    CollationStrength strength = CollationStrength::Tertiary, mjb_encoding encoding = MJB_ENC_UTF_8,
+    CollationStrength strength = CollationStrength::Tertiary,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     TextResult result = detail::ResultAccess::create();
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const mjb_status status = mjb_collation_key(&text, malformed_policy,
+    const mjb_status status = mjb_collation_key(input.get(), malformed_policy,
         static_cast<mjb_collation_variable_weighting>(variable_weighting),
         static_cast<mjb_collation_strength>(strength), detail::ResultAccess::out(result),
         diagnostic);
@@ -1227,13 +1316,12 @@ enum class CollationVariableWeighting {
         "Collation key generation failed");
 }
 
-[[nodiscard]] inline std::string collation_key(std::string_view input,
+[[nodiscard]] inline std::string collation_key(Text input,
     CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
-    CollationStrength strength = CollationStrength::Tertiary, mjb_encoding encoding = MJB_ENC_UTF_8,
+    CollationStrength strength = CollationStrength::Tertiary,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
-    return collation_key_result(input, variable_weighting, strength, encoding, malformed_policy,
-        diagnostic)
+    return collation_key_result(input, variable_weighting, strength, malformed_policy, diagnostic)
         .str();
 }
 
@@ -1253,11 +1341,9 @@ struct EmojiSequence {
     }
 };
 
-[[nodiscard]] inline std::optional<EmojiSequence> emoji_sequence(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+[[nodiscard]] inline std::optional<EmojiSequence> emoji_sequence(Text input) {
     EmojiSequence sequence;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    const mjb_status status = mjb_emoji_sequence_info(&text, &sequence.data);
+    const mjb_status status = mjb_emoji_sequence_info(input.get(), &sequence.data);
 
     if(status == MJB_STATUS_NOT_FOUND) {
         return std::nullopt;
@@ -1268,26 +1354,21 @@ struct EmojiSequence {
     return sequence;
 }
 
-[[nodiscard]] inline bool is_emoji_sequence(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    return mjb_is_emoji_sequence(&text);
+[[nodiscard]] inline bool is_emoji_sequence(Text input) noexcept {
+    return mjb_is_emoji_sequence(input.get());
 }
 
-[[nodiscard]] inline bool is_rgi_emoji(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8) noexcept {
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    return mjb_is_rgi_emoji(&text);
+[[nodiscard]] inline bool is_rgi_emoji(Text input) noexcept {
+    return mjb_is_rgi_emoji(input.get());
 }
 
-[[nodiscard]] inline size_t terminal_width(std::string_view input,
+[[nodiscard]] inline size_t terminal_width(Text input,
     mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t width = 0;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_terminal_width(&text, malformed_policy, profile, &width, diagnostic),
+    detail::check_status(mjb_terminal_width(input.get(), malformed_policy, profile, &width,
+                             diagnostic),
         "Terminal width calculation failed");
 
     return width;
@@ -1363,11 +1444,9 @@ struct LocaleId {
     }
 };
 
-[[nodiscard]] inline LocaleId locale_parse(std::string_view id,
-    mjb_encoding encoding = MJB_ENC_UTF_8) {
+[[nodiscard]] inline LocaleId locale_parse(Text id) {
     LocaleId locale;
-    const mjb_text text = mjb_text_make(id.data(), id.size(), encoding);
-    const mjb_status status = mjb_locale_parse(&text, &locale.data);
+    const mjb_status status = mjb_locale_parse(id.get(), &locale.data);
 
     if(status != MJB_STATUS_OK) {
         throw LocaleError(status, "Locale parsing failed");
@@ -1412,37 +1491,31 @@ inline void set_allocator(const mjb_allocator *allocator) {
     return input.substr(0, n);
 }
 
-[[nodiscard]] inline size_t grapheme_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
+[[nodiscard]] inline size_t grapheme_count(Text input,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_grapheme_count(&text, malformed_policy, &count, diagnostic),
+    detail::check_status(mjb_grapheme_count(input.get(), malformed_policy, &count, diagnostic),
         "Grapheme count failed");
 
     return count;
 }
 
-[[nodiscard]] inline size_t sentence_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
+[[nodiscard]] inline size_t sentence_count(Text input,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_sentence_count(&text, malformed_policy, &count, diagnostic),
+    detail::check_status(mjb_sentence_count(input.get(), malformed_policy, &count, diagnostic),
         "Sentence count failed");
 
     return count;
 }
 
-[[nodiscard]] inline size_t word_count(std::string_view input,
-    mjb_encoding encoding = MJB_ENC_UTF_8,
+[[nodiscard]] inline size_t word_count(Text input,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     size_t count = 0;
-    const mjb_text text = mjb_text_make(input.data(), input.size(), encoding);
-    detail::check_status(mjb_word_count(&text, malformed_policy, &count, diagnostic),
+    detail::check_status(mjb_word_count(input.get(), malformed_policy, &count, diagnostic),
         "Word count failed");
 
     return count;
@@ -1595,7 +1668,11 @@ class BidiParagraph {
 };
 
 struct BreakResult {
-    size_t index;
+    // Byte offset of the reported position: the start of `codepoint`, or the text length at the
+    // end. Positions start after the first codepoint; there is none for the start of the text.
+    size_t position;
+    // The codepoint that starts at `position`: U+FFFD for a malformed subsequence, and
+    // MJB_CODEPOINT_NOT_VALID at the end of the text.
     mjb_codepoint codepoint;
     mjb_break_type type;
 
@@ -1616,15 +1693,31 @@ struct BreakResult {
     }
 };
 
+/**
+ * A low-level break iterator that reports every position and its break type. To iterate the
+ * segments themselves, use graphemes(), words(), sentences(), or line_segments() instead.
+ */
 template <typename State, mjb_break_type (*BreakFn)(const mjb_text *, State *)> class Breaker {
-    std::string_view buffer;
-    mjb_encoding encoding;
+    Text text;
     State state{};
     bool done = false;
 
+    // Decode at the reported position rather than reading the state's current codepoint, which
+    // the iterators leave unchanged when a rule absorbs a character (SB5, WB4).
+    [[nodiscard]] mjb_codepoint codepoint_at(size_t position) const noexcept {
+        size_t offset = position;
+        mjb_codepoint codepoint = MJB_CODEPOINT_NOT_VALID;
+
+        if(mjb_decode_next(text.get(), MJB_MALFORMED_REPLACE, &offset, &codepoint, nullptr) !=
+            MJB_STATUS_OK) {
+            return MJB_CODEPOINT_NOT_VALID;
+        }
+
+        return codepoint;
+    }
+
   public:
-    explicit Breaker(std::string_view input, mjb_encoding input_encoding = MJB_ENC_UTF_8) noexcept
-        : buffer(input), encoding(input_encoding) {
+    explicit Breaker(Text input) noexcept : text(input) {
     }
 
     [[nodiscard]] std::optional<BreakResult> next() noexcept {
@@ -1632,15 +1725,14 @@ template <typename State, mjb_break_type (*BreakFn)(const mjb_text *, State *)> 
             return std::nullopt;
         }
 
-        const mjb_text text = mjb_text_make(buffer.data(), buffer.size(), encoding);
-        const mjb_break_type type = BreakFn(&text, &state);
+        const mjb_break_type type = BreakFn(text.get(), &state);
 
         if(type == MJB_BT_NOT_SET) {
             done = true;
             return std::nullopt;
         }
 
-        return BreakResult{ state.index, state.current_codepoint, type };
+        return BreakResult{ state.position, codepoint_at(state.position), type };
     }
 
     void reset() noexcept {
@@ -1653,11 +1745,11 @@ template <typename State, mjb_break_type (*BreakFn)(const mjb_text *, State *)> 
     }
 
     [[nodiscard]] std::string_view input() const noexcept {
-        return buffer;
+        return text.bytes();
     }
 
     [[nodiscard]] mjb_encoding input_encoding() const noexcept {
-        return encoding;
+        return text.encoding();
     }
 
     [[nodiscard]] const State &raw_state() const noexcept {
@@ -1675,6 +1767,471 @@ using WordBreaker = Breaker<mjb_word_break_state, mjb_word_break_next>;
 using SentenceBreaker = Breaker<mjb_sentence_break_state, mjb_sentence_break_next>;
 using LineBreaker = Breaker<mjb_line_break_state, mjb_line_break_next>;
 using GraphemeBreaker = Breaker<mjb_grapheme_break_state, mjb_grapheme_break_next>;
+
+namespace detail {
+
+// True for a temporary std::string, std::u16string, or std::u32string: a range over it would
+// dangle, because a range-based for loop destroys temporaries in its range expression before the
+// loop body runs.
+template <typename T> struct is_owning_string : std::false_type {};
+
+template <typename CharT, typename Traits, typename Allocator>
+struct is_owning_string<std::basic_string<CharT, Traits, Allocator>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_temporary_owning_string_v = !std::is_lvalue_reference_v<T> &&
+    is_owning_string<std::remove_cv_t<std::remove_reference_t<T>>>::value;
+
+} // namespace detail
+
+/**
+ * The segments of a text, as views of the input counted in its code units. Iterate with a
+ * range-based for loop. A malformed subsequence counts as one codepoint, and an incomplete
+ * subsequence at the end forms the last segment. The range and its segments are views: the
+ * input must outlive them.
+ */
+template <typename CharT, typename State, mjb_break_type (*BreakFn)(const mjb_text *, State *)>
+class SegmentRange {
+    std::basic_string_view<CharT> units;
+    Text text;
+
+  public:
+    class iterator {
+        const SegmentRange *range = nullptr;
+        State state{};
+        size_t start = 0;
+        size_t end = 0;
+        bool done = true;
+
+        void advance() noexcept {
+            start = end;
+            const size_t length = range->text.bytes().size();
+            mjb_break_type type;
+
+            while((type = BreakFn(range->text.get(), &state)) != MJB_BT_NOT_SET) {
+                if(type != MJB_BT_NO_BREAK && state.position > start) {
+                    end = state.position;
+
+                    return;
+                }
+            }
+
+            // The iterator stops early before an incomplete subsequence at the end of the text,
+            // which forms the last segment.
+            if(start < length) {
+                end = length;
+
+                return;
+            }
+
+            done = true;
+        }
+
+      public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = std::basic_string_view<CharT>;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const value_type *;
+        using reference = value_type;
+
+        iterator() noexcept = default;
+
+        explicit iterator(const SegmentRange *segments) noexcept : range(segments), done(false) {
+            advance();
+        }
+
+        [[nodiscard]] value_type operator*() const noexcept {
+            return range->units.substr(start / sizeof(CharT), (end - start) / sizeof(CharT));
+        }
+
+        iterator &operator++() noexcept {
+            advance();
+
+            return *this;
+        }
+
+        iterator operator++(int) noexcept {
+            iterator previous = *this;
+            advance();
+
+            return previous;
+        }
+
+        // Iterators of one range are equal when both are finished or both are at the same
+        // segment.
+        [[nodiscard]] bool operator==(const iterator &other) const noexcept {
+            return done == other.done && (done || end == other.end);
+        }
+
+        [[nodiscard]] bool operator!=(const iterator &other) const noexcept {
+            return !(*this == other);
+        }
+    };
+
+    SegmentRange(std::basic_string_view<CharT> input, Text input_text) noexcept
+        : units(input), text(input_text) {
+    }
+
+    [[nodiscard]] iterator begin() const noexcept {
+        return iterator(this);
+    }
+
+    [[nodiscard]] iterator end() const noexcept {
+        return iterator();
+    }
+};
+
+template <typename CharT>
+using GraphemeRange = SegmentRange<CharT, mjb_grapheme_break_state, mjb_grapheme_break_next>;
+template <typename CharT>
+using WordRange = SegmentRange<CharT, mjb_word_break_state, mjb_word_break_next>;
+template <typename CharT>
+using SentenceRange = SegmentRange<CharT, mjb_sentence_break_state, mjb_sentence_break_next>;
+template <typename CharT>
+using LineSegmentRange = SegmentRange<CharT, mjb_line_break_state, mjb_line_break_next>;
+
+// The extended grapheme clusters (user-perceived characters). UTF-8, UTF-16, and UTF-32 strings
+// give views of their own type; an mjb::Text with an explicit encoding gives byte views.
+template <typename T, typename CharT = detail::text_char_t<T>,
+    std::enable_if_t<!detail::is_temporary_owning_string_v<T>, int> = 0>
+[[nodiscard]] GraphemeRange<CharT> graphemes(T &&input) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return GraphemeRange<CharT>(units, Text(units));
+}
+
+[[nodiscard]] inline GraphemeRange<char> graphemes(Text input) noexcept {
+    return GraphemeRange<char>(input.bytes(), input);
+}
+
+template <typename T, std::enable_if_t<detail::is_temporary_owning_string_v<T>, int> = 0>
+void graphemes(T &&input) = delete;
+
+// The word segments of UAX #29, including the spaces and punctuation between words. UTF-8, UTF-16,
+// and UTF-32 strings give views of their own type; an mjb::Text with an explicit encoding gives
+// byte views.
+template <typename T, typename CharT = detail::text_char_t<T>,
+    std::enable_if_t<!detail::is_temporary_owning_string_v<T>, int> = 0>
+[[nodiscard]] WordRange<CharT> words(T &&input) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return WordRange<CharT>(units, Text(units));
+}
+
+[[nodiscard]] inline WordRange<char> words(Text input) noexcept {
+    return WordRange<char>(input.bytes(), input);
+}
+
+template <typename T, std::enable_if_t<detail::is_temporary_owning_string_v<T>, int> = 0>
+void words(T &&input) = delete;
+
+// The sentences of UAX #29. UTF-8, UTF-16, and UTF-32 strings give views of their own type; an
+// mjb::Text with an explicit encoding gives byte views.
+template <typename T, typename CharT = detail::text_char_t<T>,
+    std::enable_if_t<!detail::is_temporary_owning_string_v<T>, int> = 0>
+[[nodiscard]] SentenceRange<CharT> sentences(T &&input) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return SentenceRange<CharT>(units, Text(units));
+}
+
+[[nodiscard]] inline SentenceRange<char> sentences(Text input) noexcept {
+    return SentenceRange<char>(input.bytes(), input);
+}
+
+template <typename T, std::enable_if_t<detail::is_temporary_owning_string_v<T>, int> = 0>
+void sentences(T &&input) = delete;
+
+// The line segments of UAX #14: each one ends at a line break opportunity and keeps its trailing
+// spaces. UTF-8, UTF-16, and UTF-32 strings give views of their own type; an mjb::Text with an
+// explicit encoding gives byte views.
+template <typename T, typename CharT = detail::text_char_t<T>,
+    std::enable_if_t<!detail::is_temporary_owning_string_v<T>, int> = 0>
+[[nodiscard]] LineSegmentRange<CharT> line_segments(T &&input) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return LineSegmentRange<CharT>(units, Text(units));
+}
+
+[[nodiscard]] inline LineSegmentRange<char> line_segments(Text input) noexcept {
+    return LineSegmentRange<char>(input.bytes(), input);
+}
+
+template <typename T, std::enable_if_t<detail::is_temporary_owning_string_v<T>, int> = 0>
+void line_segments(T &&input) = delete;
+
+/**
+ * The codepoints of a text, decoded on the fly. A malformed subsequence follows
+ * `malformed_policy`: the default replaces it with U+FFFD, because the range has no other way to
+ * report it; MJB_MALFORMED_STOP ends the iteration and MJB_MALFORMED_SKIP drops it. The range is a
+ * view: the input must outlive it.
+ */
+class CodepointRange {
+    Text text;
+    mjb_malformed_policy policy;
+
+  public:
+    class iterator {
+        const CodepointRange *range = nullptr;
+        size_t offset = 0;
+        char32_t current = 0;
+        bool done = true;
+
+        void advance() noexcept {
+            mjb_codepoint codepoint = 0;
+            const mjb_status status = mjb_decode_next(range->text.get(), range->policy, &offset,
+                &codepoint, nullptr);
+
+            if(status != MJB_STATUS_OK) {
+                done = true;
+
+                return;
+            }
+
+            current = static_cast<char32_t>(codepoint);
+        }
+
+      public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = char32_t;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const char32_t *;
+        using reference = char32_t;
+
+        iterator() noexcept = default;
+
+        explicit iterator(const CodepointRange *codepoints) noexcept
+            : range(codepoints), done(false) {
+            advance();
+        }
+
+        [[nodiscard]] char32_t operator*() const noexcept {
+            return current;
+        }
+
+        iterator &operator++() noexcept {
+            advance();
+
+            return *this;
+        }
+
+        iterator operator++(int) noexcept {
+            iterator previous = *this;
+            advance();
+
+            return previous;
+        }
+
+        [[nodiscard]] bool operator==(const iterator &other) const noexcept {
+            return done == other.done && (done || offset == other.offset);
+        }
+
+        [[nodiscard]] bool operator!=(const iterator &other) const noexcept {
+            return !(*this == other);
+        }
+    };
+
+    CodepointRange(Text input, mjb_malformed_policy malformed_policy) noexcept
+        : text(input), policy(malformed_policy) {
+    }
+
+    [[nodiscard]] iterator begin() const noexcept {
+        return iterator(this);
+    }
+
+    [[nodiscard]] iterator end() const noexcept {
+        return iterator();
+    }
+};
+
+[[nodiscard]] inline CodepointRange codepoints(Text input,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_REPLACE) noexcept {
+    return CodepointRange(input, malformed_policy);
+}
+
+template <typename T, std::enable_if_t<detail::is_temporary_owning_string_v<T>, int> = 0>
+void codepoints(T &&input, mjb_malformed_policy malformed_policy = MJB_MALFORMED_REPLACE) = delete;
+
+/**
+ * UTF-16 and UTF-32 transforms and prefixes.
+ *
+ * Analysis functions take an mjb::Text, which already accepts UTF-16 and UTF-32 strings. These
+ * functions return text, so they are templates that return the input's own string type: for
+ * example nfc(u"...") returns a std::u16string, and grapheme_truncate(u"...") a std::u16string_view
+ * counted in code units. Text is in the platform's byte order.
+ */
+// UTF-16 and UTF-32 transforms: the output has the input's string type and byte order
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> normalize(const T &input, NormalizationForm form,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return detail::units_from_bytes<
+        CharT>(normalize_result(detail::as_bytes(std::basic_string_view<CharT>(input)), form,
+        detail::unit_encoding<CharT>, detail::unit_encoding<CharT>, malformed_policy, diagnostic)
+            .view());
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> nfc(const T &input,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFC, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> nfd(const T &input,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFD, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> nfkc(const T &input,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFKC, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> nfkd(const T &input,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return normalize(input, NormalizationForm::NFKD, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> filter(const T &input, mjb_filter_flags filters,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return detail::units_from_bytes<
+        CharT>(filter_result(detail::as_bytes(std::basic_string_view<CharT>(input)), filters,
+        detail::unit_encoding<CharT>, detail::unit_encoding<CharT>, malformed_policy, diagnostic)
+            .view());
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> filter(const T &input, Filter filters,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return filter(input, static_cast<mjb_filter_flags>(filters), malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> nfkc_casefold(const T &input,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return detail::units_from_bytes<
+        CharT>(nfkc_casefold_result(detail::as_bytes(std::basic_string_view<CharT>(input)),
+        detail::unit_encoding<CharT>, detail::unit_encoding<CharT>, malformed_policy, diagnostic)
+            .view());
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> confusable_skeleton(const T &input) {
+    return detail::units_from_bytes<
+        CharT>(confusable_skeleton_result(detail::as_bytes(std::basic_string_view<CharT>(input)),
+        detail::unit_encoding<CharT>, detail::unit_encoding<CharT>)
+            .view());
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> case_map(const T &input, mjb_map_case_type type,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return detail::units_from_bytes<
+        CharT>(case_map_result(detail::as_bytes(std::basic_string_view<CharT>(input)), type, locale,
+        detail::unit_encoding<CharT>, detail::unit_encoding<CharT>, malformed_policy, diagnostic)
+            .view());
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> uppercase(const T &input,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_UPPER, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> lowercase(const T &input,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_LOWER, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> titlecase(const T &input,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_TITLE, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> casefold(const T &input,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_CASEFOLD, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string<CharT> casefold_simple(const T &input,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, locale, malformed_policy, diagnostic);
+}
+
+// UTF-16 and UTF-32 prefixes: the returned view is counted in code units
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string_view<CharT> grapheme_truncate(const T &input,
+    size_t max_graphemes) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return units.substr(0,
+        grapheme_truncate(detail::as_bytes(units), max_graphemes, detail::unit_encoding<CharT>)
+                .size() /
+            sizeof(CharT));
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string_view<CharT> grapheme_truncate_width(const T &input,
+    size_t max_columns, mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return units.substr(0,
+        grapheme_truncate_width(detail::as_bytes(units), max_columns, profile,
+            detail::unit_encoding<CharT>)
+                .size() /
+            sizeof(CharT));
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string_view<CharT> word_truncate(const T &input,
+    size_t max_segments) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return units.substr(0,
+        word_truncate(detail::as_bytes(units), max_segments, detail::unit_encoding<CharT>).size() /
+            sizeof(CharT));
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+[[nodiscard]] std::basic_string_view<CharT> word_truncate_width(const T &input, size_t max_columns,
+    mjb_terminal_width_profile profile = MJB_TERMINAL_WIDTH_NARROW) noexcept {
+    const std::basic_string_view<CharT> units(input);
+
+    return units.substr(0,
+        word_truncate_width(detail::as_bytes(units), max_columns, profile,
+            detail::unit_encoding<CharT>)
+                .size() /
+            sizeof(CharT));
+}
 
 } // namespace mjb
 

@@ -58,31 +58,44 @@ static bool mjbsh_break_should_print(mjbsh_break_mode selected, mjbsh_break_mode
     return selected == MJBSH_BREAK_MODE_ALL || selected == current;
 }
 
+// Return the next break type and store the byte offset it refers to in position.
 typedef mjb_break_type (*mjbsh_break_function)(const char *input, size_t input_size,
-    mjbsh_break_state *state);
+    mjbsh_break_state *state, size_t *position);
 
 static mjb_break_type mjbsh_next_grapheme_break(const char *input, size_t input_size,
-    mjbsh_break_state *state) {
+    mjbsh_break_state *state, size_t *position) {
     mjb_text text = mjb_text_utf8(input, input_size);
-    return mjb_grapheme_break_next(&text, &state->grapheme);
+    mjb_break_type type = mjb_grapheme_break_next(&text, &state->grapheme);
+    *position = state->grapheme.position;
+
+    return type;
 }
 
 static mjb_break_type mjbsh_next_word_break(const char *input, size_t input_size,
-    mjbsh_break_state *state) {
+    mjbsh_break_state *state, size_t *position) {
     mjb_text text = mjb_text_utf8(input, input_size);
-    return mjb_word_break_next(&text, &state->word);
+    mjb_break_type type = mjb_word_break_next(&text, &state->word);
+    *position = state->word.position;
+
+    return type;
 }
 
 static mjb_break_type mjbsh_next_line_break(const char *input, size_t input_size,
-    mjbsh_break_state *state) {
+    mjbsh_break_state *state, size_t *position) {
     mjb_text text = mjb_text_utf8(input, input_size);
-    return mjb_line_break_next(&text, &state->line);
+    mjb_break_type type = mjb_line_break_next(&text, &state->line);
+    *position = state->line.position;
+
+    return type;
 }
 
 static mjb_break_type mjbsh_next_sentence_break(const char *input, size_t input_size,
-    mjbsh_break_state *state) {
+    mjbsh_break_state *state, size_t *position) {
     mjb_text text = mjb_text_utf8(input, input_size);
-    return mjb_sentence_break_next(&text, &state->sentence);
+    mjb_break_type type = mjb_sentence_break_next(&text, &state->sentence);
+    *position = state->sentence.position;
+
+    return type;
 }
 
 static const char *mjbsh_break_type_name(mjb_break_type type) {
@@ -110,13 +123,14 @@ static void mjbsh_print_break_json_array(const char *name, const char *input, si
     mjbsh_break_state state;
     bool first_break = true;
     mjb_break_type type;
+    size_t position = 0;
 
     memset(&state, 0, sizeof(state));
 
     mjbsh_print_break_json_field(name, first_field);
     putchar('[');
 
-    while((type = next_break(input, input_size, &state)) != MJB_BT_NOT_SET) {
+    while((type = next_break(input, input_size, &state, &position)) != MJB_BT_NOT_SET) {
         printf("%s%s\"%s\"", first_break ? "" : ",", first_break || cmd_json_indent == 0 ? "" : " ",
             mjbsh_break_type_name(type));
         first_break = false;
@@ -178,124 +192,38 @@ static void mjbsh_print_break_json(const char *input, size_t input_size, size_t 
     printf("%s}\n", mjbsh_jnl());
 }
 
-static void mjbsh_print_first_iteration(mjb_break_type first_bt, mjb_break_type bt, bool is_eot,
-    mjb_codepoint previous_codepoint, mjb_codepoint current_codepoint) {
+// Print the codepoints of input[start, end), with U+FFFD for malformed bytes.
+static void mjbsh_print_break_segment(const char *input, size_t start, size_t end) {
+    mjb_text text = mjb_text_utf8(input + start, end - start);
+    size_t offset = 0;
+    mjb_codepoint codepoint;
+
+    while(mjb_decode_next(&text, MJB_MALFORMED_REPLACE, &offset, &codepoint, NULL) ==
+        MJB_STATUS_OK) {
+        mjbsh_print_codepoint(codepoint);
+    }
+}
+
+// Print the input with the break type of each position between its codepoints.
+static void mjbsh_print_breaks(const char *title, const char *input, size_t input_size,
+    mjbsh_break_function next_break, mjb_break_type first_bt) {
+    mjbsh_break_state state;
+    mjb_break_type bt;
+    size_t previous = 0;
+    size_t position = 0;
+
+    memset(&state, 0, sizeof(state));
+    printf("\n\n%s:\n", title);
     mjbsh_print_break_symbol(first_bt);
 
-    // First iteration: print the starting codepoint
-    mjbsh_print_codepoint(previous_codepoint != MJB_CODEPOINT_NOT_VALID ? previous_codepoint :
-                                                                          current_codepoint);
-
-    mjbsh_print_break_symbol(bt);
-
-    // If previous was valid, print current; if not, we already printed current
-    if(previous_codepoint != MJB_CODEPOINT_NOT_VALID && !is_eot) {
-        mjbsh_print_codepoint(current_codepoint);
+    while((bt = next_break(input, input_size, &state, &position)) != MJB_BT_NOT_SET) {
+        mjbsh_print_break_segment(input, previous, position);
+        mjbsh_print_break_symbol(bt);
+        previous = position;
     }
-}
 
-static void mjbsh_print_iteration(bool is_eot, mjb_break_type bt, mjb_codepoint current_codepoint) {
-    mjbsh_print_break_symbol(bt);
-
-    if(!is_eot) {
-        mjbsh_print_codepoint(current_codepoint);
-    }
-}
-
-static void mjbsh_print_grapheme_breaks(const char *input, size_t input_size) {
-    bool first = true;
-    mjb_break_type bt;
-
-    printf("\n\nGrapheme cluster segmentation:\n");
-
-    mjb_grapheme_break_state segment_state;
-    segment_state.index = 0;
-
-    mjb_text text = mjb_text_utf8(input, input_size);
-    while((bt = mjb_grapheme_break_next(&text, &segment_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (segment_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot,
-                segment_state.previous_codepoint, segment_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, segment_state.current_codepoint);
-        }
-    }
-}
-
-static void mjbsh_print_word_breaks(const char *input, size_t input_size) {
-    bool first = true;
-    mjb_break_type bt;
-
-    printf("\n\nWord breaking:\n");
-
-    mjb_word_break_state word_state;
-    word_state.index = 0;
-
-    mjb_text text = mjb_text_utf8(input, input_size);
-    while((bt = mjb_word_break_next(&text, &word_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (word_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot, word_state.previous_codepoint,
-                word_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, word_state.current_codepoint);
-        }
-    }
-}
-
-static void mjbsh_print_line_breaks(const char *input, size_t input_size) {
-    bool first = true;
-    mjb_break_type bt;
-
-    printf("\n\nLine breaking:\n");
-
-    mjb_line_break_state line_state;
-    line_state.index = 0;
-
-    mjb_text text = mjb_text_utf8(input, input_size);
-    while((bt = mjb_line_break_next(&text, &line_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (line_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_NO_BREAK, bt, is_eot, line_state.previous_codepoint,
-                line_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, line_state.current_codepoint);
-        }
-    }
-}
-
-static void mjbsh_print_sentence_breaks(const char *input, size_t input_size) {
-    bool first = true;
-    mjb_break_type bt;
-
-    printf("\n\nSentence breaking:\n");
-
-    mjb_sentence_break_state sentence_state;
-    sentence_state.index = 0;
-
-    mjb_text text = mjb_text_utf8(input, input_size);
-    while((bt = mjb_sentence_break_next(&text, &sentence_state)) != MJB_BT_NOT_SET) {
-        bool is_eot = (sentence_state.index > input_size);
-
-        if(first) {
-            mjbsh_print_first_iteration(MJB_BT_ALLOWED, bt, is_eot,
-                sentence_state.previous_codepoint, sentence_state.current_codepoint);
-
-            first = false;
-        } else {
-            mjbsh_print_iteration(is_eot, bt, sentence_state.current_codepoint);
-        }
-    }
+    // An incomplete sequence at the end of the input has no break position.
+    mjbsh_print_break_segment(input, previous, input_size);
 }
 
 static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode) {
@@ -342,19 +270,23 @@ static void mjbsh_print_break_analysis(const char *input, mjbsh_break_mode mode)
     }
 
     if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_GRAPHEME)) {
-        mjbsh_print_grapheme_breaks(input, input_size);
+        mjbsh_print_breaks("Grapheme cluster segmentation", input, input_size,
+            mjbsh_next_grapheme_break, MJB_BT_ALLOWED);
     }
 
     if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_WORD)) {
-        mjbsh_print_word_breaks(input, input_size);
+        mjbsh_print_breaks("Word breaking", input, input_size, mjbsh_next_word_break,
+            MJB_BT_ALLOWED);
     }
 
     if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_LINE)) {
-        mjbsh_print_line_breaks(input, input_size);
+        mjbsh_print_breaks("Line breaking", input, input_size, mjbsh_next_line_break,
+            MJB_BT_NO_BREAK);
     }
 
     if(mjbsh_break_should_print(mode, MJBSH_BREAK_MODE_SENTENCE)) {
-        mjbsh_print_sentence_breaks(input, input_size);
+        mjbsh_print_breaks("Sentence breaking", input, input_size, mjbsh_next_sentence_break,
+            MJB_BT_ALLOWED);
     }
 }
 

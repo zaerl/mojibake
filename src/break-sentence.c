@@ -72,7 +72,7 @@ static inline bool mjb_peek_lower_sentence(const char *buffer, size_t byte_lengt
 
 // Sentence boundaries breaking
 // See: https://unicode.org/reports/tr29/
-MJB_EXPORT mjb_break_type mjb_sentence_break_next(const mjb_text *text,
+static mjb_break_type mjb_sentence_break_step(const mjb_text *text,
     mjb_sentence_break_state *state) {
     if(text == NULL || state == NULL) {
         return MJB_BT_NOT_SET;
@@ -317,6 +317,30 @@ MJB_EXPORT mjb_break_type mjb_sentence_break_next(const mjb_text *text,
 
     // SB2 Any ÷ eot.
     return MJB_BT_ALLOWED;
+}
+
+MJB_EXPORT mjb_break_type mjb_sentence_break_next(const mjb_text *text,
+    mjb_sentence_break_state *state) {
+    if(state == NULL) {
+        return MJB_BT_NOT_SET;
+    }
+
+    size_t start = state->index;
+
+    // A new iteration: initialize what callers read even if the iterator returns early, before
+    // it sets up the rest of the state.
+    if(start == 0) {
+        state->state = MJB_UTF_ACCEPT;
+        state->position = 0;
+    }
+
+    mjb_break_type type = mjb_sentence_break_step(text, state);
+
+    if(type != MJB_BT_NOT_SET) {
+        state->position = mjb_break_position(text, start);
+    }
+
+    return type;
 }
 
 static mjb_status mjb_sentence_count_process(const char *buffer, size_t byte_length,

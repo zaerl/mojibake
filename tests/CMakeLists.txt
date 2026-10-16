@@ -49,6 +49,7 @@ if(MJB_BUILD_CPP)
     list(APPEND TEST_SOURCES ext/cpp/locales.cpp)
     list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)
     list(APPEND TEST_SOURCES ext/cpp/normalization.cpp)
+    list(APPEND TEST_SOURCES ext/cpp/strings.cpp)
 endif()
 
 # Add getopt compatibility for Windows
@@ -136,6 +137,23 @@ if(MJB_BUILD_CPP)
     mjb_add_test("C++ Break" cpp_break ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Mojibake" cpp_mojibake ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Normalization" cpp_normalization ${CMAKE_CURRENT_LIST_LINE})
+    mjb_add_test("C++ Strings" cpp_strings ${CMAKE_CURRENT_LIST_LINE})
+endif()
+
+# The CLI tests pass UTF-8 arguments, which the MSVC runtime decodes with the ANSI code page.
+if(MJB_BUILD_CLI AND NOT WIN32)
+    function(mjb_add_shell_test name script)
+        add_test(
+            NAME "${name}"
+            COMMAND
+                ${CMAKE_COMMAND}
+                "-DMJB_SHELL=$<TARGET_FILE:mojibake>"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/shell/${script}"
+        )
+    endfunction()
+
+    mjb_add_shell_test("CLI Break JSON" break-json.cmake)
+    mjb_add_shell_test("CLI Break" break-plain.cmake)
 endif()
 
 set(MJB_CMAKE_TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run-embedded-test.cmake")
