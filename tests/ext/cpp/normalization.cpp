@@ -35,8 +35,7 @@ ATT_TEST(cpp_normalization) {
     ATT_ASSERT(mjb::casefold_simple("\xE1\xBA\x9E"), std::string("\xC3\x9F"),
         "casefold_simple");
     ATT_ASSERT(mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE"), true, "caseless_match");
-    ATT_ASSERT(mjb::caseless_match("Stra\x80\xC3\x9F" "e", "STRASSE", mjb::CaselessMode::Canonical,
-                   MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
+    ATT_ASSERT(mjb::caseless_match("Stra\x80\xC3\x9F" "e", "STRASSE", mjb::CaselessMode::Canonical, MJB_MALFORMED_SKIP),
         true, "caseless_match skips malformed input");
     ATT_ASSERT(mjb::caseless_match("\xC3\x85", "A\xCC\x8A", mjb::CaselessMode::Unnormalized),
         false, "caseless_match unnormalized");
@@ -51,7 +50,7 @@ ATT_TEST(cpp_normalization) {
     const std::string utf16le("a\0b\0", 4);
     ATT_ASSERT(mjb::is_utf16(utf16le), true, "is_utf16");
     mjb_diagnostic diagnostic;
-    ATT_ASSERT_STATUS(mjb::validate_encoding("A\x80", MJB_ENC_UTF_8, &diagnostic),
+    ATT_ASSERT_STATUS(mjb::validate_encoding("A\x80", &diagnostic),
         MJB_STATUS_MALFORMED_INPUT, "validate_string malformed input");
     ATT_ASSERT((unsigned int)diagnostic.error,
         (unsigned int)MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION,
@@ -91,13 +90,13 @@ ATT_TEST(cpp_normalization) {
         std::string("A\xEF\xBF\xBD"
                     "B"),
         "uppercase replacement policy");
-    ATT_ASSERT(mjb::grapheme_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE),
+    ATT_ASSERT(mjb::grapheme_count(decodable, MJB_MALFORMED_REPLACE),
         (size_t)3, "grapheme_count replacement policy");
-    ATT_ASSERT(mjb::sentence_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP), (size_t)1,
+    ATT_ASSERT(mjb::sentence_count(decodable, MJB_MALFORMED_SKIP), (size_t)1,
         "sentence_count skip policy");
-    ATT_ASSERT(mjb::word_count(decodable, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE), (size_t)2,
+    ATT_ASSERT(mjb::word_count(decodable, MJB_MALFORMED_REPLACE), (size_t)2,
         "word_count replacement policy");
-    ATT_ASSERT(mjb::terminal_width(decodable, MJB_TERMINAL_WIDTH_NARROW, MJB_ENC_UTF_8,
+    ATT_ASSERT(mjb::terminal_width(decodable, MJB_TERMINAL_WIDTH_NARROW,
                    MJB_MALFORMED_SKIP),
         (size_t)2, "terminal_width skip policy");
 
@@ -107,11 +106,11 @@ ATT_TEST(cpp_normalization) {
 #if MJB_FEATURE_COLLATION
     ATT_ASSERT(mjb::collation_key(decodable,
                    mjb::CollationVariableWeighting::NonIgnorable,
-                   mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_MALFORMED_SKIP),
+                   mjb::CollationStrength::Tertiary, MJB_MALFORMED_SKIP),
         mjb::collation_key("AB"), "collation_key skip policy");
     ATT_ASSERT(mjb::collation_compare("a", "b") < 0, true, "compare");
     ATT_ASSERT(mjb::collation_compare("ca\x80t", "cat", mjb::CollationVariableWeighting::NonIgnorable,
-                   mjb::CollationStrength::Tertiary, MJB_ENC_UTF_8, MJB_ENC_UTF_8,
+                   mjb::CollationStrength::Tertiary,
                    MJB_MALFORMED_SKIP),
         0, "compare skips malformed input");
     ATT_ASSERT(mjb::collation_compare("A", "a", mjb::CollationVariableWeighting::NonIgnorable,

@@ -11,7 +11,15 @@
 
 // clang-format off
 #if defined(__cplusplus)
-    #if __cplusplus < 201703L
+    // MSVC reports __cplusplus as 199711L unless /Zc:__cplusplus is passed, while _MSVC_LANG
+    // always holds the selected standard. Use whichever is newer.
+    #if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
+        #define MJB_CPLUSPLUS _MSVC_LANG
+    #else
+        #define MJB_CPLUSPLUS __cplusplus
+    #endif
+
+    #if MJB_CPLUSPLUS < 201703L
         #error "C++17 or a later version is required"
     #endif
 #else
@@ -99,7 +107,7 @@ extern "C" {
         __attribute__((format(printf, FORMAT_INDEX, FIRST_ARGUMENT)))
     #define MJB_PURE __attribute__((pure))
     #define MJB_CONST __attribute__((const))
-#elif defined(__cplusplus) && __cplusplus >= 201703L
+#elif defined(MJB_CPLUSPLUS) && MJB_CPLUSPLUS >= 201703L
     #define MJB_NODISCARD [[nodiscard]]
     #define MJB_NONNULL(...)
     #define MJB_PRINTF_FORMAT(FORMAT_INDEX, FIRST_ARGUMENT)
@@ -497,6 +505,9 @@ typedef enum mjb_terminal_width_profile {
 typedef struct mjb_grapheme_break_state {
     uint8_t state;
     size_t index;
+    // Byte offset of the position the last returned break type refers to: the start of the
+    // current codepoint, or the text length at the end. Set by the iterator.
+    size_t position;
     unsigned int previous;
     unsigned int current;
     mjb_codepoint previous_codepoint;
@@ -513,6 +524,9 @@ typedef struct mjb_grapheme_break_state {
 typedef struct mjb_line_break_state {
     uint8_t state;
     size_t index;
+    // Byte offset of the position the last returned break type refers to: the start of the
+    // current codepoint, or the text length at the end. Set by the iterator.
+    size_t position;
     mjb_lbp previous;
     mjb_lbp current;
     mjb_codepoint previous_codepoint;
@@ -535,6 +549,9 @@ typedef struct mjb_line_break_state {
 typedef struct mjb_word_break_state {
     uint8_t state;
     size_t index;
+    // Byte offset of the position the last returned break type refers to: the start of the
+    // current codepoint, or the text length at the end. Set by the iterator.
+    size_t position;
     mjb_wbp previous;
     mjb_wbp current;
     mjb_codepoint previous_codepoint;
@@ -552,6 +569,9 @@ typedef struct mjb_word_break_state {
 typedef struct mjb_sentence_break_state {
     uint8_t state;
     size_t index;
+    // Byte offset of the position the last returned break type refers to: the start of the
+    // current codepoint, or the text length at the end. Set by the iterator.
+    size_t position;
     mjb_sbp previous;
     mjb_sbp current;
     mjb_codepoint previous_codepoint;

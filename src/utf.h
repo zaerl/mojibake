@@ -419,6 +419,29 @@ static inline size_t MJB_USED mjb_monotonic_boundary_position(size_t index, size
     return position < previous ? previous : position;
 }
 
+/**
+ * The byte offset of the boundary a break iterator just reported, from the iterator index before
+ * the call. The first call decodes the first two codepoints and reports the boundary between
+ * them; every later call decodes one more codepoint, or reaches the end of the text, and reports
+ * the boundary in front of it. Iterators have no event for the start of the text.
+ */
+static inline size_t MJB_USED mjb_break_position(const mjb_text *text, size_t start) {
+    if(start > 0) {
+        return start < text->byte_length ? start : text->byte_length;
+    }
+
+    size_t offset = 0;
+    mjb_codepoint codepoint;
+    mjb_status status = mjb_decode_next(text, MJB_MALFORMED_STOP, &offset, &codepoint, NULL);
+
+    // A malformed first subsequence still advances the offset past it.
+    if(status == MJB_STATUS_END_OF_INPUT || offset > text->byte_length) {
+        return text->byte_length;
+    }
+
+    return offset;
+}
+
 static inline bool MJB_USED mjb_encoding_is_valid_input(mjb_encoding encoding) {
     return encoding == MJB_ENC_ASCII || encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_UTF_16 ||
         encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE ||

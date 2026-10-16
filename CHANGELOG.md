@@ -8,11 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- TypeScript `graphemeSegments`, `wordSegments`, `sentenceSegments`, and `lineSegments` split the
+  input at its boundaries: a string into strings and bytes into `Uint8Array` views in the selected
+  encoding. Joining the segments gives back the input
 - `mjb_text` input structure with the `mjb_text_make`, `mjb_text_utf8`, `mjb_text_utf16le`,
   `mjb_text_utf16be`, `mjb_text_utf32le`, and `mjb_text_utf32be` helpers
 - `mjb_buffer` output structure, holding caller-provided storage, its capacity or written size, and
   its encoding, with the `mjb_buffer_make` helper and `mjb_buffer_text` to pass written output to
   another call as input
+- C++ support for UTF-16 and UTF-32 text in the platform's byte order
+  (`mjb::native_utf16_encoding` and `mjb::native_utf32_encoding`):
+  - `mjb::Text`, the C++ counterpart of `mjb_text`, converts implicitly from UTF-8, UTF-16, and
+    UTF-32 strings, or takes an explicit encoding: `mjb::Text(bytes, MJB_ENC_UTF_16BE)`
+  - transforms accept UTF-16 and UTF-32 strings and return the same string type, for example
+    `mjb::nfc(u"e\u0301")` returns a `std::u16string`, and the truncation helpers return views
+    counted in code units
+  - `mjb::graphemes`, `mjb::words`, `mjb::sentences`, and `mjb::line_segments` iterate segments
+    as views of the input in its own string type, and `mjb::codepoints` iterates decoded
+    codepoints: `for(std::string_view cluster : mjb::graphemes(text))`. They reject a temporary
+    string, which a range-based for loop would destroy before the loop body
+- `position` in `mjb_grapheme_break_state`, `mjb_word_break_state`, `mjb_sentence_break_state`,
+  and `mjb_line_break_state`: the break iterators store the byte offset of each position they
+  report, so a segment runs from one break position to the next. `index` is internal iterator
+  state and is not a boundary offset
 
 ### Changed
 - **Breaking**: `mjb_result.transformed` is now `mjb_result.owned`. It is true when the library
@@ -39,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and encoding, and `mjb_nfkc_casefold_into` also takes a `mjb_buffer *` instead of the output
   encoding, output buffer, and output size: `mjb_nfkc_casefold_into(text, malformed_policy, output,
   diagnostic)`
+- **Breaking**: the TypeScript `graphemeBreakNext`, `wordBreakNext`, `sentenceBreakNext`, and
+  `lineBreakNext` return `BreakPosition[]`, a `{ position, type }` entry for each position, instead
+  of the break types alone. `position` is the byte offset in the input's encoding, read from the
+  iterator's `state.position`. The site places its break symbols by position
 - **Breaking**: the TypeScript `convertEncoding(input, outputEncoding, options)` is now
   `convertEncoding(input, options)` and reads `options.outputEncoding` like the other
   transformations. The output encoding still defaults to UTF-8
@@ -124,6 +146,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `std::string` at compile time, because their `TextResult` can borrow the input
   - `LibraryError::what()` appends the library's message for the status, and
     `mjb::status_message` exposes `mjb_status_message`
+  - `mjb::BreakResult::index` is now `position`, the byte offset of the reported position. It
+    held the iterator's internal `index`, which is not a boundary offset. `BreakResult::codepoint`
+    is decoded at `position`, U+FFFD for a malformed subsequence and `MJB_CODEPOINT_NOT_VALID` at
+    the end of the text; it was the iterator's internal current codepoint, which is the previous
+    character after a rule absorbs a format or extend character, such as U+200B (SB5) or U+0301
+    (WB4), and at the end of the text. The breaker classes take an `mjb::Text`
+  - analysis functions take an `mjb::Text` instead of a `std::string_view` and an encoding
+    parameter: `validate_encoding`, `codepoint_count`, `for_each_codepoint`, `grapheme_count`,
+    `word_count`, `sentence_count`, `terminal_width`, `is_identifier`, `normalization_quick_check`,
+    `resolved_script_set`, `emoji_sequence`, `is_emoji_sequence`, `is_rgi_emoji`, `locale_parse`,
+    `caseless_match`, `confusable_match`, `collation_compare`, `collation_key`, and
+    `collation_key_result`. UTF-8 callers drop the encoding argument; for another encoding, pass
+    `mjb::Text(bytes, encoding)`
   - renamed to match the C API: `validate_string` to `validate_encoding`; `is_hangul_l`,
     `is_hangul_v`, and `is_hangul_t` to `is_hangul_leading_jamo`, `is_hangul_vowel_jamo`, and
     `is_hangul_trailing_jamo`; `is_cjk_extension` to `is_cjk_extension_ideograph` (also on
@@ -143,6 +178,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cppcheck
 
 ### Fixed
+- `mojibake.h` accepts C++17 on MSVC without `/Zc:__cplusplus`. MSVC reports `__cplusplus` as
+  `199711L` unless that flag is set, so projects including the header from C++ hit the "C++17 or a
+  later version is required" error and lost `[[nodiscard]]`; the check now also reads
+  `_MSVC_LANG`, which holds the selected standard
 - `mjb_map_case`, `mjb_filter`, and `mjb_normalize` now return `MJB_STATUS_UNSUPPORTED` instead of
   `MJB_STATUS_NO_MEMORY` when the output encoding cannot represent a result codepoint, matching
   their `_into` variants
@@ -150,6 +189,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   codepoint, and `MJB_STATUS_INVALID_ENCODING` for `mjb_confusable_skeleton`
 - CLI: the interactive screen signal handler now restores the cursor and terminal using only
   async-signal-safe calls
+- CLI: `break` now prints the input bytes between the break positions the iterators report, so a
+  format or extend character that a rule absorbs, such as U+200B in `break sentence "a<U+200B>b"`,
+  no longer replaces itself with a copy of the previous character (`÷aab÷`)
+- Tests: the CLI tests in `tests/shell/` now run under CTest; their `assert-command.cmake` helper
+  was missing, so `break-json.cmake` never ran
 - Fixed all clang-tidy findings in the library, CLI, and tests
 - Site: the malformed policy is now passed through the API options, so the arguments that follow
   it, such as the normalization form, are no longer shifted

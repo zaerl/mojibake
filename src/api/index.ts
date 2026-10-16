@@ -261,6 +261,14 @@ export enum TerminalWidthProfile {
   EAST_ASIAN
 };
 
+// One position reported by a break iterator. position is the byte offset of the position in the
+// encoded input (state.position): segments run from one position to the next, starting at 0.
+// The last position is the input's byte length.
+export type BreakPosition = {
+  position: number;
+  type: BreakType;
+}
+
 // mjb_grapheme_break_state
 // mjb_line_break_state
 // mjb_word_break_state
@@ -1150,12 +1158,12 @@ export class Mojibake {
   }
 
   // mjb_break_type mjb_line_break_next(const mjb_text *text, mjb_line_break_state *state)
-  lineBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+  lineBreakNext(input: MojibakeInput, options: TextInputOptions = {}): BreakPosition[] {
     return this.collectBreaks(input, this.module._mjb_line_break_next, options);
   }
 
   // mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_break_state *state)
-  wordBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+  wordBreakNext(input: MojibakeInput, options: TextInputOptions = {}): BreakPosition[] {
     return this.collectBreaks(input, this.module._mjb_word_break_next, options);
   }
 
@@ -1189,13 +1197,44 @@ export class Mojibake {
   }
 
   // mjb_break_type mjb_sentence_break_next(const mjb_text *text, mjb_sentence_break_state *state)
-  sentenceBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+  sentenceBreakNext(input: MojibakeInput, options: TextInputOptions = {}): BreakPosition[] {
     return this.collectBreaks(input, this.module._mjb_sentence_break_next, options);
   }
 
   // mjb_break_type mjb_grapheme_break_next(const mjb_text *text, mjb_grapheme_break_state *state)
-  graphemeBreakNext(input: MojibakeInput, options: TextInputOptions = {}): number[] {
+  graphemeBreakNext(input: MojibakeInput, options: TextInputOptions = {}): BreakPosition[] {
     return this.collectBreaks(input, this.module._mjb_grapheme_break_next, options);
+  }
+
+  // Split the input at its grapheme cluster boundaries. A string is split into strings; bytes are
+  // split into views of the input in options.encoding. Joining the segments gives back the input.
+  graphemeSegments(input: string, options?: TextInputOptions): string[];
+  graphemeSegments(input: ArrayBuffer | ArrayBufferView, options?: TextInputOptions): Uint8Array[];
+  graphemeSegments(input: MojibakeInput, options: TextInputOptions = {}): string[] | Uint8Array[] {
+    return this.collectSegments(input, this.module._mjb_grapheme_break_next, options);
+  }
+
+  // Split the input at its word boundaries, like graphemeSegments. Spaces and punctuation are
+  // segments of their own.
+  wordSegments(input: string, options?: TextInputOptions): string[];
+  wordSegments(input: ArrayBuffer | ArrayBufferView, options?: TextInputOptions): Uint8Array[];
+  wordSegments(input: MojibakeInput, options: TextInputOptions = {}): string[] | Uint8Array[] {
+    return this.collectSegments(input, this.module._mjb_word_break_next, options);
+  }
+
+  // Split the input at its sentence boundaries, like graphemeSegments.
+  sentenceSegments(input: string, options?: TextInputOptions): string[];
+  sentenceSegments(input: ArrayBuffer | ArrayBufferView, options?: TextInputOptions): Uint8Array[];
+  sentenceSegments(input: MojibakeInput, options: TextInputOptions = {}): string[] | Uint8Array[] {
+    return this.collectSegments(input, this.module._mjb_sentence_break_next, options);
+  }
+
+  // Split the input at its line break opportunities, like graphemeSegments. Each segment keeps
+  // its trailing spaces and mandatory break.
+  lineSegments(input: string, options?: TextInputOptions): string[];
+  lineSegments(input: ArrayBuffer | ArrayBufferView, options?: TextInputOptions): Uint8Array[];
+  lineSegments(input: MojibakeInput, options: TextInputOptions = {}): string[] | Uint8Array[] {
+    return this.collectSegments(input, this.module._mjb_line_break_next, options);
   }
 
   // size_t mjb_grapheme_prefix_length(const mjb_text *text, size_t max_graphemes)
@@ -1933,11 +1972,13 @@ export class Mojibake {
   }
 
   private collectBreaks(input: MojibakeInput, fn: BreakFunction,
-    options: TextInputOptions = {}): number[] {
+    options: TextInputOptions = {}): BreakPosition[] {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
+    // Zeroed, so state.index starts at 0. On wasm32 every break state stores the 32-bit
+    // state.position at byte 8; src/mojibake.c checks this layout at compile time.
     const statePtr = this.malloc(256);
-    const breaks: number[] = [];
+    const breaks: BreakPosition[] = [];
 
     try {
       for(;;) {
@@ -1947,7 +1988,7 @@ export class Mojibake {
           break;
         }
 
-        breaks.push(type);
+        breaks.push({ position: this.module.HEAP32[(statePtr + 8) / 4] >>> 0, type });
       }
 
       return breaks;
@@ -1956,6 +1997,42 @@ export class Mojibake {
       this.free(textPtr);
       this.free(statePtr);
     }
+  }
+
+  // Segments end at every position that is not NO_BREAK. The iterator stops before an incomplete
+  // subsequence at the end of byte input, so the last segment runs to the end of the input.
+  private collectSegments(input: MojibakeInput, fn: BreakFunction,
+    options: TextInputOptions): string[] | Uint8Array[] {
+    if(typeof input === 'string') {
+      // A string is well formed, so iterate it as UTF-16: each byte position halved is a string
+      // index. The encoding option does not apply.
+      const ends = this.segmentEnds(this.collectBreaks(input, fn, { encoding: Encoding.UTF_16LE }),
+        input.length * 2);
+
+      return ends.map((end, i) => input.slice(i === 0 ? 0 : ends[i - 1] / 2, end / 2));
+    }
+
+    const bytes = ArrayBuffer.isView(input) ?
+      new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input);
+    const ends = this.segmentEnds(this.collectBreaks(bytes, fn, options), bytes.length);
+
+    return ends.map((end, i) => bytes.subarray(i === 0 ? 0 : ends[i - 1], end));
+  }
+
+  private segmentEnds(breaks: BreakPosition[], length: number): number[] {
+    const ends: number[] = [];
+
+    for(const entry of breaks) {
+      if(entry.type !== BreakType.NO_BREAK && entry.position > (ends[ends.length - 1] ?? 0)) {
+        ends.push(entry.position);
+      }
+    }
+
+    if(length > (ends[ends.length - 1] ?? 0)) {
+      ends.push(length);
+    }
+
+    return ends;
   }
 
   private copyInput(input: MojibakeInput, encoding: Encoding = Encoding.UTF_8): WasmInput {

@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,624,868** C assertions and **172** JavaScript assertions, including all
+Mojibake runs a total of **4,647,523** C assertions and **172** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -29,19 +29,19 @@ the official tests included in the standard:
 | `mjb_bidi_reorder_line`                    | 91723       |
 | `mjb_codepoint_info`                       | 82678       |
 | `mjb_nfkc_casefold_into`                   | 74799       |
+| `mjb_line_break_next`                      | 38699       |
 | `mjb_nfkc_casefold`                        | 32099       |
 | `mjb_map_case_into`                        | 24757       |
-| `mjb_line_break_next`                      | 19353       |
 | `mjb_result_free`                          | 14295       |
 | `mjb_idna_to_ascii`                        | 6461        |
 | `mjb_idna_to_unicode`                      | 6455        |
 | `mjb_emoji_sequence_info`                  | 5287        |
+| `mjb_word_break_next`                      | 3892        |
 | `mjb_map_case`                             | 3514        |
-| `mjb_word_break_next`                      | 1948        |
+| `mjb_grapheme_break_next`                  | 1734        |
 | `mjb_codepoint_emoji_properties`           | 1429        |
-| `mjb_grapheme_break_next`                  | 881         |
+| `mjb_sentence_break_next`                  | 1028        |
 | `mjb_codepoint_script_extensions`          | 642         |
-| `mjb_sentence_break_next`                  | 516         |
 | `mjb_confusable_match`                     | 362         |
 | `mjb_filter`                               | 194         |
 | `mjb_convert_encoding`                     | 155         |
@@ -128,7 +128,7 @@ the official tests included in the standard:
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
 | `mjb_set_allocator`                        | 1           |
-| **Total**                                  | **4624868** |
+| **Total**                                  | **4647523** |
 
 ## JavaScript
 

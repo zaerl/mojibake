@@ -18,6 +18,9 @@ static void break_line_callback(const char *buffer, size_t byte_length, unsigned
     state.index = 0;
     size_t index = 0;
     size_t successful_count = 0;
+    size_t starts[1025];
+    size_t start_count = mjb_test_codepoint_starts(buffer, byte_length, starts, 1025);
+    size_t position_mismatches = 0;
 
     mjb_text text = mjb_text_utf8(buffer, byte_length);
     while((bt = mjb_line_break_next(&text, &state)) != MJB_BT_NOT_SET) {
@@ -25,6 +28,12 @@ static void break_line_callback(const char *buffer, size_t byte_length, unsigned
 
         if(bt == MJB_BT_MANDATORY) {
             bt = MJB_BT_ALLOWED;
+        }
+
+        // There is no event for the start of the text: event i is the boundary after codepoint
+        // i, at the start of codepoint i + 1, and the last one is the end of the text.
+        if(index < start_count && state.position != starts[index + 1]) {
+            ++position_mismatches;
         }
 
         if((uint8_t)bt == (uint8_t)expected_types[index++]) {
@@ -36,6 +45,7 @@ static void break_line_callback(const char *buffer, size_t byte_length, unsigned
 
     MJB_TEST_COVERAGE(mjb_line_break_next);
     ATT_ASSERT(index, successful_count, test_name);
+    ATT_ASSERT(position_mismatches, (size_t)0, "Break positions are codepoint starts");
 }
 
 ATT_TEST(break_line) {

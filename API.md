@@ -2302,6 +2302,8 @@ mjb_break_type mjb_line_break_next(
 );
 ```
 
+Iterate the line break opportunities of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it. Stateful break functions require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
+
 - `text` - The text to check
 - `state` - The state to store the result
 
@@ -2331,6 +2333,8 @@ mjb_break_type mjb_word_break_next(
     mjb_word_break_state *state
 );
 ```
+
+Iterate the word boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it. Stateful break functions require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
 
 - `text` - The text to check
 - `state` - The state to store the result
@@ -2365,6 +2369,8 @@ mjb_break_type mjb_sentence_break_next(
     mjb_sentence_break_state *state
 );
 ```
+
+Iterate the sentence boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it. Stateful break functions require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
 
 - `text` - The text to check
 - `state` - The state to store the result
@@ -2445,7 +2451,7 @@ mjb_break_type mjb_grapheme_break_next(
 );
 ```
 
-Iterate the grapheme cluster (user-perceived character) boundaries of a string. Call repeatedly with the same state until it reports the end of the string. Stateful break functions require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
+Iterate the grapheme cluster (user-perceived character) boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one position, from the boundary after the first codepoint to the end of the text, and stores its byte offset in `state.position`, so each segment runs from one break position to the next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete subsequence at the end of the text ends the iteration at the position before it. Stateful break functions require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; determine the length once before iteration.
 
 - `text` - The text to check
 - `state` - The state to store the result

@@ -2131,6 +2131,15 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
     ],
     wasm: true,
     section: Section.Segmentation,
+    details: 'Iterate the line break opportunities of a string. Start with `state.index` set to 0 and call repeatedly with the same ' +
+      'state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one ' +
+      'position, from the boundary after the first codepoint to the end of the text, and stores ' +
+      'its byte offset in `state.position`, so each segment runs from one break position to the ' +
+      'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
+      'subsequence at the end of the text ends the iteration at the position before it. ' +
+      'Stateful break functions ' +
+      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
+      'determine the length once before iteration.',
     example: `mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_line_break_state state;
 state.index = 0;
@@ -2157,6 +2166,15 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
     ],
     wasm: true,
     section: Section.Segmentation,
+    details: 'Iterate the word boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same ' +
+      'state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one ' +
+      'position, from the boundary after the first codepoint to the end of the text, and stores ' +
+      'its byte offset in `state.position`, so each segment runs from one break position to the ' +
+      'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
+      'subsequence at the end of the text ends the iteration at the position before it. ' +
+      'Stateful break functions ' +
+      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
+      'determine the length once before iteration.',
     example: `mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_word_break_state state;
 state.index = 0;
@@ -2187,6 +2205,15 @@ printf("Word-break positions: %zu", boundaries);`,
     ],
     wasm: true,
     section: Section.Segmentation,
+    details: 'Iterate the sentence boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same ' +
+      'state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one ' +
+      'position, from the boundary after the first codepoint to the end of the text, and stores ' +
+      'its byte offset in `state.position`, so each segment runs from one break position to the ' +
+      'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
+      'subsequence at the end of the text ends the iteration at the position before it. ' +
+      'Stateful break functions ' +
+      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
+      'determine the length once before iteration.',
     example: `mjb_sentence_break_state state;
 state.index = 0;
 size_t boundaries = 0;
@@ -2259,10 +2286,15 @@ printf("Sentences: %zu", count);`,
     ],
     wasm: true,
     section: Section.Segmentation,
-    details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. ' +
-      'Call repeatedly with the same state until it reports the end of the string. Stateful ' +
-      'break functions require an explicit `text->byte_length` and do not accept ' +
-      '`MJB_NUL_TERMINATED`; determine the length once before iteration.',
+    details: 'Iterate the grapheme cluster (user-perceived character) boundaries of a string. Start with `state.index` set to 0 and call repeatedly with the same ' +
+      'state until it returns `MJB_BT_NOT_SET`. Each call returns the break type of one ' +
+      'position, from the boundary after the first codepoint to the end of the text, and stores ' +
+      'its byte offset in `state.position`, so each segment runs from one break position to the ' +
+      'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
+      'subsequence at the end of the text ends the iteration at the position before it. ' +
+      'Stateful break functions ' +
+      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
+      'determine the length once before iteration.',
     example: `mjb_text input = mjb_text_utf8("e\\xCC\\x81", 3); // e + combining acute accent
 mjb_grapheme_break_state state;
 state.index = 0;

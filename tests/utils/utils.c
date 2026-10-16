@@ -108,6 +108,25 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     return mjb_test_take_result(&result);
 }
 
+/**
+ * Store the byte offset of every codepoint of a valid UTF-8 string, followed by its length, and
+ * return the number of codepoints.
+ */
+size_t mjb_test_codepoint_starts(const char *buffer, size_t byte_length, size_t *starts,
+    size_t capacity) {
+    size_t count = 0;
+
+    for(size_t i = 0; i < byte_length && count + 1 < capacity; ++i) {
+        if(((unsigned char)buffer[i] & 0xC0) != 0x80) {
+            starts[count++] = i;
+        }
+    }
+
+    starts[count] = byte_length;
+
+    return count;
+}
+
 void mjb_test_free(void *output) {
     free(output);
 }
