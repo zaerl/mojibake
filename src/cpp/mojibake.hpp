@@ -11,6 +11,7 @@
 
 #include "mojibake.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstring>
@@ -294,6 +295,41 @@ struct ResultAccess {
         return result;
     }
 };
+
+/**
+ * Write the output of a C _into function into out, reusing its capacity. write(buffer) calls the
+ * function with buffer. The first call offers out's capacity, or 1.5 * size_hint bytes if that is
+ * larger; when the output does not fit, the second call offers the required size it reported. On
+ * failure out is left empty and LibraryError is thrown.
+ */
+template <typename CharT, typename Write>
+void write_into(std::basic_string<CharT> &out, mjb_encoding encoding, size_t size_hint,
+    Write &&write, std::string_view message) {
+    // Half again the hint covers the usual growth, such as NFD of accented letters or "ß" to "SS",
+    // so a second, full pass is rare
+    const size_t bytes = size_hint + size_hint / 2;
+    size_t units = std::max(out.capacity(), (bytes + sizeof(CharT) - 1) / sizeof(CharT));
+
+    for(int attempt = 0;; ++attempt) {
+        // resize() leaves a writable, non-null buffer even for 0 units
+        out.resize(std::max<size_t>(units, 1));
+        mjb_buffer buffer = mjb_buffer_make(&out[0], out.size() * sizeof(CharT), encoding);
+        const mjb_status status = write(&buffer);
+
+        if(status == MJB_STATUS_OK) {
+            out.resize(buffer.size / sizeof(CharT));
+
+            return;
+        }
+
+        if(status != MJB_STATUS_OUTPUT_TOO_SMALL || attempt != 0) {
+            out.clear();
+            check_status(status, message);
+        }
+
+        units = (buffer.size + sizeof(CharT) - 1) / sizeof(CharT);
+    }
+}
 
 } // namespace detail
 
@@ -924,6 +960,24 @@ template <typename Fn,
 template <typename T, typename... Args, std::enable_if_t<detail::is_temporary_string_v<T>, int> = 0>
 TextResult convert_encoding_result(T &&input, Args &&...args) = delete;
 
+/**
+ * The _into transforms write into out instead of returning a new string, reusing its capacity: call
+ * them in a loop with the same string to avoid an allocation per call. out is replaced, not
+ * appended to, and is left empty when they throw.
+ */
+inline void convert_encoding_into(std::string_view input, mjb_encoding input_encoding,
+    mjb_encoding output_encoding, std::string &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_convert_encoding_into(&text, malformed_policy, buffer, diagnostic);
+        },
+        "Encoding conversion failed");
+}
+
 [[nodiscard]] inline std::string convert_encoding(std::string_view input,
     mjb_encoding input_encoding, mjb_encoding output_encoding,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
@@ -960,6 +1014,15 @@ TextResult convert_encoding_result(T &&input, Args &&...args) = delete;
         "Confusable skeleton generation failed");
 }
 
+inline void confusable_skeleton_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) { return mjb_confusable_skeleton_into(&text, buffer); },
+        "Confusable skeleton generation failed");
+}
+
 [[nodiscard]] inline std::string confusable_skeleton(std::string_view input,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
     return confusable_skeleton_result(input, input_encoding, output_encoding).str();
@@ -988,6 +1051,52 @@ enum class NormalizationForm {
 // The result can borrow the input, so a temporary std::string would leave it dangling.
 template <typename T, typename... Args, std::enable_if_t<detail::is_temporary_string_v<T>, int> = 0>
 TextResult normalize_result(T &&input, Args &&...args) = delete;
+
+inline void normalize_into(std::string_view input, NormalizationForm form, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_normalize_into(&text, malformed_policy, static_cast<mjb_normalization>(form),
+                buffer, diagnostic);
+        },
+        "Normalization failed");
+}
+
+inline void nfc_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFC, out, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void nfd_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFD, out, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void nfkc_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFKC, out, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void nfkd_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFKD, out, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
 
 [[nodiscard]] inline std::string normalize(std::string_view input, NormalizationForm form,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
@@ -1076,6 +1185,19 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
     return detail::ResultAccess::checked(std::move(result), status, "String filtering failed");
 }
 
+inline void filter_into(std::string_view input, mjb_filter_flags filters, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_filter_into(&text, malformed_policy, filters, buffer, diagnostic);
+        },
+        "String filtering failed");
+}
+
 [[nodiscard]] inline std::string filter(std::string_view input, mjb_filter_flags filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
@@ -1097,6 +1219,14 @@ constexpr Filter &operator|=(Filter &left, Filter right) noexcept {
 template <typename T, typename... Args, std::enable_if_t<detail::is_temporary_string_v<T>, int> = 0>
 TextResult filter_result(T &&input, Args &&...args) = delete;
 
+inline void filter_into(std::string_view input, Filter filters, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    filter_into(input, static_cast<mjb_filter_flags>(filters), out, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
 [[nodiscard]] inline std::string filter(std::string_view input, Filter filters,
     mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
@@ -1115,6 +1245,19 @@ TextResult filter_result(T &&input, Args &&...args) = delete;
     const mjb_status status = mjb_nfkc_casefold(&text, malformed_policy, output_encoding,
         detail::ResultAccess::out(result), diagnostic);
     return detail::ResultAccess::checked(std::move(result), status, "NFKC case folding failed");
+}
+
+inline void nfkc_casefold_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_nfkc_casefold_into(&text, malformed_policy, buffer, diagnostic);
+        },
+        "NFKC case folding failed");
 }
 
 [[nodiscard]] inline std::string nfkc_casefold(std::string_view input,
@@ -1184,6 +1327,32 @@ class IdnaResult {
     return IdnaResult(std::move(result), info.errors);
 }
 
+// Write the ASCII form of a domain name into out and return its mjb_idna_error flags.
+[[nodiscard]] inline uint32_t idna_to_ascii_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_idna_info info{};
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) { return mjb_idna_to_ascii_into(&text, &info, buffer); },
+        "IDNA ToASCII failed");
+
+    return info.errors;
+}
+
+// Write the Unicode form of a domain name into out and return its mjb_idna_error flags.
+[[nodiscard]] inline uint32_t idna_to_unicode_into(std::string_view input, std::string &out,
+    mjb_encoding input_encoding = MJB_ENC_UTF_8, mjb_encoding output_encoding = MJB_ENC_UTF_8) {
+    mjb_idna_info info{};
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) { return mjb_idna_to_unicode_into(&text, &info, buffer); },
+        "IDNA ToUnicode failed");
+
+    return info.errors;
+}
+
 [[nodiscard]] inline TextResult case_map_result(std::string_view input, mjb_map_case_type type,
     mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
     mjb_encoding output_encoding = MJB_ENC_UTF_8,
@@ -1195,6 +1364,20 @@ class IdnaResult {
         detail::ResultAccess::out(result), diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status, "Case mapping failed");
+}
+
+inline void case_map_into(std::string_view input, mjb_map_case_type type, std::string &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const mjb_text text = mjb_text_make(input.data(), input.size(), input_encoding);
+    detail::write_into(
+        out, output_encoding, input.size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_map_case_into(&text, malformed_policy, type, locale, buffer, diagnostic);
+        },
+        "Case mapping failed");
 }
 
 [[nodiscard]] inline std::string case_map(std::string_view input, mjb_map_case_type type,
@@ -1249,6 +1432,51 @@ class IdnaResult {
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     return case_map(input, MJB_CASE_CASEFOLD_SIMPLE, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void uppercase_into(std::string_view input, std::string &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_UPPER, out, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void lowercase_into(std::string_view input, std::string &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_LOWER, out, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void titlecase_into(std::string_view input, std::string &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_TITLE, out, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void casefold_into(std::string_view input, std::string &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_CASEFOLD, out, locale, input_encoding, output_encoding,
+        malformed_policy, diagnostic);
+}
+
+inline void casefold_simple_into(std::string_view input, std::string &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET, mjb_encoding input_encoding = MJB_ENC_UTF_8,
+    mjb_encoding output_encoding = MJB_ENC_UTF_8,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_CASEFOLD_SIMPLE, out, locale, input_encoding, output_encoding,
         malformed_policy, diagnostic);
 }
 
@@ -1313,6 +1541,23 @@ enum class CollationVariableWeighting {
         diagnostic);
 
     return detail::ResultAccess::checked(std::move(result), status,
+        "Collation key generation failed");
+}
+
+// Write the binary sort key into out. A key needs a few bytes per codepoint for each level, so the
+// first attempt offers about 6 bytes per input byte to avoid computing it twice.
+inline void collation_key_into(Text input, std::string &out,
+    CollationVariableWeighting variable_weighting = CollationVariableWeighting::NonIgnorable,
+    CollationStrength strength = CollationStrength::Tertiary,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    detail::write_into(
+        out, MJB_ENC_UTF_8, input.bytes().size() * 4,
+        [&](mjb_buffer *buffer) {
+            return mjb_collation_key_into(input.get(), malformed_policy,
+                static_cast<mjb_collation_variable_weighting>(variable_weighting),
+                static_cast<mjb_collation_strength>(strength), buffer, diagnostic);
+        },
         "Collation key generation failed");
 }
 
@@ -2059,8 +2304,55 @@ void codepoints(T &&input, mjb_malformed_policy malformed_policy = MJB_MALFORMED
  * functions return text, so they are templates that return the input's own string type: for
  * example nfc(u"...") returns a std::u16string, and grapheme_truncate(u"...") a std::u16string_view
  * counted in code units. Text is in the platform's byte order.
+ *
+ * The _into templates name their output type through detail::unit_char_t<T> so that it cannot be
+ * deduced from out: a deduced character type would skip unit_char_t, and the template would then
+ * also match UTF-8 input and take over from the std::string_view overloads.
  */
 // UTF-16 and UTF-32 transforms: the output has the input's string type and byte order
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void normalize_into(const T &input, NormalizationForm form,
+    std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const Text text(input);
+    detail::write_into(
+        out, detail::unit_encoding<CharT>, text.bytes().size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_normalize_into(text.get(), malformed_policy,
+                static_cast<mjb_normalization>(form), buffer, diagnostic);
+        },
+        "Normalization failed");
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void nfc_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFC, out, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void nfd_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFD, out, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void nfkc_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFKC, out, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void nfkd_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    normalize_into(input, NormalizationForm::NFKD, out, malformed_policy, diagnostic);
+}
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> normalize(const T &input, NormalizationForm form,
@@ -2101,6 +2393,27 @@ template <typename T, typename CharT = detail::unit_char_t<T>>
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
+void filter_into(const T &input, mjb_filter_flags filters,
+    std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const Text text(input);
+    detail::write_into(
+        out, detail::unit_encoding<CharT>, text.bytes().size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_filter_into(text.get(), malformed_policy, filters, buffer, diagnostic);
+        },
+        "String filtering failed");
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void filter_into(const T &input, Filter filters, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    filter_into(input, static_cast<mjb_filter_flags>(filters), out, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> filter(const T &input, mjb_filter_flags filters,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
@@ -2118,6 +2431,19 @@ template <typename T, typename CharT = detail::unit_char_t<T>>
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
+void nfkc_casefold_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const Text text(input);
+    detail::write_into(
+        out, detail::unit_encoding<CharT>, text.bytes().size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_nfkc_casefold_into(text.get(), malformed_policy, buffer, diagnostic);
+        },
+        "NFKC case folding failed");
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> nfkc_casefold(const T &input,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
@@ -2128,11 +2454,35 @@ template <typename T, typename CharT = detail::unit_char_t<T>>
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
+void confusable_skeleton_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out) {
+    const Text text(input);
+    detail::write_into(
+        out, detail::unit_encoding<CharT>, text.bytes().size(),
+        [&](mjb_buffer *buffer) { return mjb_confusable_skeleton_into(text.get(), buffer); },
+        "Confusable skeleton generation failed");
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> confusable_skeleton(const T &input) {
     return detail::units_from_bytes<
         CharT>(confusable_skeleton_result(detail::as_bytes(std::basic_string_view<CharT>(input)),
         detail::unit_encoding<CharT>, detail::unit_encoding<CharT>)
             .view());
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void case_map_into(const T &input, mjb_map_case_type type,
+    std::basic_string<detail::unit_char_t<T>> &out, mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    const Text text(input);
+    detail::write_into(
+        out, detail::unit_encoding<CharT>, text.bytes().size(),
+        [&](mjb_buffer *buffer) {
+            return mjb_map_case_into(text.get(), malformed_policy, type, locale, buffer,
+                diagnostic);
+        },
+        "Case mapping failed");
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
@@ -2147,11 +2497,27 @@ template <typename T, typename CharT = detail::unit_char_t<T>>
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
+void uppercase_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_UPPER, out, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> uppercase(const T &input,
     mjb_locale locale = MJB_LOCALE_NOT_SET,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     return case_map(input, MJB_CASE_UPPER, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void lowercase_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_LOWER, out, locale, malformed_policy, diagnostic);
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
@@ -2163,6 +2529,14 @@ template <typename T, typename CharT = detail::unit_char_t<T>>
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
+void titlecase_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_TITLE, out, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> titlecase(const T &input,
     mjb_locale locale = MJB_LOCALE_NOT_SET,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
@@ -2171,11 +2545,27 @@ template <typename T, typename CharT = detail::unit_char_t<T>>
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>
+void casefold_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_CASEFOLD, out, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
 [[nodiscard]] std::basic_string<CharT> casefold(const T &input,
     mjb_locale locale = MJB_LOCALE_NOT_SET,
     mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
     mjb_diagnostic *diagnostic = nullptr) {
     return case_map(input, MJB_CASE_CASEFOLD, locale, malformed_policy, diagnostic);
+}
+
+template <typename T, typename CharT = detail::unit_char_t<T>>
+void casefold_simple_into(const T &input, std::basic_string<detail::unit_char_t<T>> &out,
+    mjb_locale locale = MJB_LOCALE_NOT_SET,
+    mjb_malformed_policy malformed_policy = MJB_MALFORMED_STOP,
+    mjb_diagnostic *diagnostic = nullptr) {
+    case_map_into(input, MJB_CASE_CASEFOLD_SIMPLE, out, locale, malformed_policy, diagnostic);
 }
 
 template <typename T, typename CharT = detail::unit_char_t<T>>

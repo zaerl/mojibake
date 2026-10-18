@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript `graphemeSegments`, `wordSegments`, `sentenceSegments`, and `lineSegments` split the
   input at its boundaries: a string into strings and bytes into `Uint8Array` views in the selected
   encoding. Joining the segments gives back the input
+- C++ `_into` transforms that write into a caller's string and reuse its capacity, for the
+  `std::string` and the UTF-16 and UTF-32 overloads: `normalize_into`, `nfc_into`, `nfd_into`,
+  `nfkc_into`, `nfkd_into`, `filter_into`, `nfkc_casefold_into`, `case_map_into`,
+  `uppercase_into`, `lowercase_into`, `titlecase_into`, `casefold_into`, `casefold_simple_into`,
+  and `confusable_skeleton_into`, plus `convert_encoding_into`, `collation_key_into`,
+  `idna_to_ascii_into`, and `idna_to_unicode_into`, which return the IDNA error flags. They wrap
+  the C `_into` functions, which write in a single pass, and replace the content of the string,
+  which is left empty when they throw. Calling one in a loop with the same string avoids an
+  allocation per call
 - `mjb_text` input structure with the `mjb_text_make`, `mjb_text_utf8`, `mjb_text_utf16le`,
   `mjb_text_utf16be`, `mjb_text_utf32le`, and `mjb_text_utf32be` helpers
 - `mjb_buffer` output structure, holding caller-provided storage, its capacity or written size, and

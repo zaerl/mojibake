@@ -46,6 +46,7 @@ set(TEST_SOURCES
 if(MJB_BUILD_CPP)
     # Add C++ test sources
     list(APPEND TEST_SOURCES ext/cpp/break.cpp)
+    list(APPEND TEST_SOURCES ext/cpp/into.cpp)
     list(APPEND TEST_SOURCES ext/cpp/locales.cpp)
     list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)
     list(APPEND TEST_SOURCES ext/cpp/normalization.cpp)
@@ -135,6 +136,7 @@ mjb_add_test("Version" version ${CMAKE_CURRENT_LIST_LINE})
 
 if(MJB_BUILD_CPP)
     mjb_add_test("C++ Break" cpp_break ${CMAKE_CURRENT_LIST_LINE})
+    mjb_add_test("C++ Into" cpp_into ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Mojibake" cpp_mojibake ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Normalization" cpp_normalization ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Strings" cpp_strings ${CMAKE_CURRENT_LIST_LINE})
