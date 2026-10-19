@@ -8,38 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- TypeScript `graphemeSegments`, `wordSegments`, `sentenceSegments`, and `lineSegments` split the
-  input at its boundaries: a string into strings and bytes into `Uint8Array` views in the selected
-  encoding. Joining the segments gives back the input
-- C++ `_into` transforms that write into a caller's string and reuse its capacity, for the
+
+### Changed
+
+### Fixed
+
+## [0.5.0]
+Codename: [LATIN CAPITAL LETTER P]
+
+### Added
+- TypeScript: `graphemeSegments`, `wordSegments`, `sentenceSegments`, and `lineSegments` split the
+  input at its boundaries
+- C++: `_into` transforms that write into a caller's string and reuse its capacity, for the
   `std::string` and the UTF-16 and UTF-32 overloads: `normalize_into`, `nfc_into`, `nfd_into`,
   `nfkc_into`, `nfkd_into`, `filter_into`, `nfkc_casefold_into`, `case_map_into`,
   `uppercase_into`, `lowercase_into`, `titlecase_into`, `casefold_into`, `casefold_simple_into`,
   and `confusable_skeleton_into`, plus `convert_encoding_into`, `collation_key_into`,
-  `idna_to_ascii_into`, and `idna_to_unicode_into`, which return the IDNA error flags. They wrap
-  the C `_into` functions, which write in a single pass, and replace the content of the string,
-  which is left empty when they throw. Calling one in a loop with the same string avoids an
-  allocation per call
+  `idna_to_ascii_into`, and `idna_to_unicode_into`, which return the IDNA error flags
 - `mjb_text` input structure with the `mjb_text_make`, `mjb_text_utf8`, `mjb_text_utf16le`,
   `mjb_text_utf16be`, `mjb_text_utf32le`, and `mjb_text_utf32be` helpers
 - `mjb_buffer` output structure, holding caller-provided storage, its capacity or written size, and
   its encoding, with the `mjb_buffer_make` helper and `mjb_buffer_text` to pass written output to
   another call as input
-- C++ support for UTF-16 and UTF-32 text in the platform's byte order
-  (`mjb::native_utf16_encoding` and `mjb::native_utf32_encoding`):
-  - `mjb::Text`, the C++ counterpart of `mjb_text`, converts implicitly from UTF-8, UTF-16, and
-    UTF-32 strings, or takes an explicit encoding: `mjb::Text(bytes, MJB_ENC_UTF_16BE)`
-  - transforms accept UTF-16 and UTF-32 strings and return the same string type, for example
-    `mjb::nfc(u"e\u0301")` returns a `std::u16string`, and the truncation helpers return views
-    counted in code units
-  - `mjb::graphemes`, `mjb::words`, `mjb::sentences`, and `mjb::line_segments` iterate segments
-    as views of the input in its own string type, and `mjb::codepoints` iterates decoded
-    codepoints: `for(std::string_view cluster : mjb::graphemes(text))`. They reject a temporary
-    string, which a range-based for loop would destroy before the loop body
+- C++ support for UTF-16 and UTF-32 text in the platform's byte order (`mjb::native_utf16_encoding`
+  and `mjb::native_utf32_encoding`
 - `position` in `mjb_grapheme_break_state`, `mjb_word_break_state`, `mjb_sentence_break_state`,
   and `mjb_line_break_state`: the break iterators store the byte offset of each position they
-  report, so a segment runs from one break position to the next. `index` is internal iterator
-  state and is not a boundary offset
+  report, so a segment runs from one break position to the next
 
 ### Changed
 - **Breaking**: `mjb_result.transformed` is now `mjb_result.owned`. It is true when the library
@@ -47,25 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `TextResult::transformed()` is now `owned()`
 - **Breaking**: `mjb_string_validate(buffer, byte_length, encoding, diagnostic)` is now
   `mjb_validate_encoding(const mjb_text *text, diagnostic)`
-- **Breaking**: `mjb_codepoint_count` now takes a `const mjb_text *` instead of the buffer, byte
-  length, and encoding
-- **Breaking**: `mjb_normalize` and `mjb_normalize_into` now take a `const mjb_text *` instead of
-  the buffer, byte length, and encoding
-- **Breaking**: `mjb_normalize_into` now takes a `mjb_buffer *` instead of the output encoding,
-  output buffer, and output size: `mjb_normalize_into(text, malformed_policy, form, output,
-  diagnostic)`
-- **Breaking**: `mjb_filter` takes a `const mjb_text *` instead of the buffer, byte length, and
-  encoding, and `mjb_filter_into` also takes a `mjb_buffer *` instead of the output encoding,
-  output buffer, and output size: `mjb_filter_into(text, malformed_policy, filters, output,
-  diagnostic)`
-- **Breaking**: `mjb_map_case` takes a `const mjb_text *` instead of the buffer, byte length, and
-  encoding, and `mjb_map_case_into` also takes a `mjb_buffer *` instead of the output encoding,
-  output buffer, and output size: `mjb_map_case_into(text, malformed_policy, type, output,
-  diagnostic)`
-- **Breaking**: `mjb_nfkc_casefold` takes a `const mjb_text *` instead of the buffer, byte length,
-  and encoding, and `mjb_nfkc_casefold_into` also takes a `mjb_buffer *` instead of the output
-  encoding, output buffer, and output size: `mjb_nfkc_casefold_into(text, malformed_policy, output,
-  diagnostic)`
+- **Breaking**: all the functions that took a buffer, byte length, and encoding now takes a
+  `const mjb_text*`
+- **Breaking**: all the functions that took the output encoding, output buffer, and output size now
+  takes a `mjb_buffer*`
 - **Breaking**: the TypeScript `graphemeBreakNext`, `wordBreakNext`, `sentenceBreakNext`, and
   `lineBreakNext` return `BreakPosition[]`, a `{ position, type }` entry for each position, instead
   of the break types alone. `position` is the byte offset in the input's encoding, read from the
@@ -73,46 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: the TypeScript `convertEncoding(input, outputEncoding, options)` is now
   `convertEncoding(input, options)` and reads `options.outputEncoding` like the other
   transformations. The output encoding still defaults to UTF-8
-- **Breaking**: `mjb_convert_encoding` takes a `const mjb_text *` instead of the buffer, byte
-  length, and encoding, and `mjb_convert_encoding_into` also takes a `mjb_buffer *` instead of the
-  output encoding, output buffer, and output size: `mjb_convert_encoding_into(text,
-  malformed_policy, output, diagnostic)`
-- **Breaking**: `mjb_idna_to_ascii` and `mjb_idna_to_unicode` take a `const mjb_text *` instead
-  of the buffer, byte length, and encoding: `mjb_idna_to_ascii(text, output_encoding, info,
-  result)`. Their `_into` variants also take a `mjb_buffer *` instead of the output encoding,
-  output buffer, and output size: `mjb_idna_to_ascii_into(text, info, output)`
-- **Breaking**: `mjb_confusable_skeleton` takes a `const mjb_text *` instead of the buffer, byte
-  length, and encoding: `mjb_confusable_skeleton(text, output_encoding, result)`, and
-  `mjb_confusable_skeleton_into(text, output)` also takes a `mjb_buffer *` instead of the output
-  encoding, output buffer, and output size
-- **Breaking**: `mjb_collation_key` takes a `const mjb_text *` instead of the buffer, byte length,
-  and encoding, and `mjb_collation_key_into` also takes a `mjb_buffer *` instead of the output
-  buffer and output size. A collation key is binary, so `output->encoding` is ignored
 - **Breaking**: `mjb_caseless_match`, `mjb_collation_compare`, and `mjb_confusable_match` take two
   `const mjb_text *` instead of two buffer, byte length, and encoding triples
-- **Breaking**: `mjb_collation_compare` takes a `malformed_policy` and a diagnostic for each text,
-  like `mjb_collation_key`: `mjb_collation_compare(first, second, malformed_policy,
-  variable_weighting, strength, order, first_diagnostic, second_diagnostic)`. It previously always
-  stopped on malformed input. The C++ `compare` and TypeScript `collationCompare` accept the policy
-  as an optional trailing argument and through `options.malformedPolicy`
-- **Breaking**: `mjb_caseless_match` and `mjb_confusable_match` also take a `malformed_policy` and
-  a diagnostic for each text: `mjb_caseless_match(first, second, malformed_policy, mode, matches,
-  first_diagnostic, second_diagnostic)`. They previously always stopped on malformed input. The
-  C++ `caseless_match` and `confusable_match` and the TypeScript `caselessMatch` and
-  `confusableMatch` accept the policy the same way as for collation comparison
-- **Breaking**: the remaining functions that read text take a `const mjb_text *` instead of the
-  buffer, byte length, and encoding: `mjb_normalization_quick_check`, `mjb_decode_next`,
-  `mjb_decode_previous`, `mjb_for_each_codepoint`, `mjb_next_line_break`, `mjb_next_word_break`,
-  `mjb_next_sentence_break`, `mjb_next_grapheme_break`, `mjb_sentence_count`,
-  `mjb_grapheme_count`, `mjb_word_count`, `mjb_truncate_grapheme`, `mjb_truncate_grapheme_width`,
-  `mjb_truncate_word`, `mjb_truncate_word_width`, `mjb_terminal_width`, `mjb_bidi_resolve`,
-  `mjb_is_identifier`, `mjb_resolved_script_set`, `mjb_emoji_sequence_info`,
-  `mjb_is_emoji_sequence`, `mjb_is_rgi_emoji`, and `mjb_locale_parse`. The break iterators still
-  require an explicit `byte_length`. `mjb_detect_encoding`, `mjb_is_ascii`, `mjb_is_utf8`, and
-  `mjb_is_utf16` keep their buffer and byte length because they have no input encoding
+- **Breaking**: `mjb_collation_compare`, `mjb_caseless_match` and `mjb_confusable_match` now takes a
+  `malformed_policy` and a diagnostic
 - **Breaking**: `mjb_map_case` and `mjb_map_case_into` take the casing locale as an argument after
-  `type`: `mjb_map_case(text, malformed_policy, type, locale, output_encoding, result,
-  diagnostic)`. `MJB_LOCALE_NOT_SET` selects the default mappings, and an invalid locale returns
+  `type`
+- **Breaking**: `MJB_LOCALE_NOT_SET` selects the default mappings, and an invalid locale returns
   `MJB_STATUS_INVALID_ARGUMENT`. Concurrent calls with different locales no longer interfere
 - **Breaking**: removed `mjb_set_locale`, `mjb_get_locale`, and `mjb_reset_locale`; the library no
   longer has a process-global locale. The C++ `set_locale`, `get_locale`, and `reset_locale` and the
@@ -124,9 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_free_fn` is now `(context, ptr, size)`. The size passed is the one most recently requested
   for the block; requested sizes are never 0, `realloc` receives NULL with an `old_size` of 0 for a
   new block, and `free` is never called with NULL
-- **Breaking**: `mjb_result` has a new `capacity` field, between `output_size` and `owned`, that
-  records the allocation size of an owned `output` for `mjb_result_free`. It is 16 bytes on wasm32
-  and 32 bytes on 64-bit targets. Bindings that declare `mjb_result` themselves must add the field
+- **Breaking**: `mjb_result` has a new `capacity` field that records the allocation size of an owned
+  `output` for `mjb_result_free`
 - **Breaking**: the segmentation functions are named after their unit, so each unit's functions
   sort together: `mjb_next_grapheme_break`, `mjb_next_word_break`, `mjb_next_sentence_break`, and
   `mjb_next_line_break` are now `mjb_grapheme_break_next`, `mjb_word_break_next`,
@@ -173,18 +119,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `is_hangul_trailing_jamo`; `is_cjk_extension` to `is_cjk_extension_ideograph` (also on
     `Character`); `codepoint_numeric_value` to `numeric_value`; `parse_locale` to
     `locale_parse`; and `compare` to `collation_compare`
-- **Breaking**: `mjb_hangul_syllable_composition`, which composed an array of the internal
-  `mjb_buffer_character` type in place, is no longer public, and `mjb_buffer_character` moved out
-  of `mojibake.h`. The new `mjb_hangul_syllable_compose(leading, vowel, trailing, syllable)`
+- **Breaking**: `mjb_hangul_syllable_composition` is no longer public, and `mjb_buffer_character`
+  moved out of `mojibake.h`
+- **Breaking**: The new `mjb_hangul_syllable_compose(leading, vowel, trailing, syllable)`
   composes a syllable from its jamo, and `mjb_hangul_syllable_decomposition` is now
   `mjb_hangul_syllable_decompose`. The C++ wrapper follows with `hangul_syllable_compose` and
   `hangul_syllable_decompose`
-- **Breaking**: the `_into` functions now write in a single pass instead of measuring first, so a
-  call with enough capacity runs about as fast as the allocating variant instead of nearly twice
-  as slow. When capacity is insufficient, or another error occurs, the output buffer may now hold
-  a partial prefix of the result; nothing is written past its capacity
+- **Breaking**: the `_into` functions now write in a single pass instead of measuring first
 - `make tidy` now runs clang-tidy with `.clang-tidy` over the library, CLI, and tests, replacing
-  cppcheck
+  `cppcheck`
 
 ### Fixed
 - `mojibake.h` accepts C++17 on MSVC without `/Zc:__cplusplus`. MSVC reports `__cplusplus` as
@@ -942,7 +885,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/zaerl/mojibake/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/zaerl/mojibake/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zaerl/mojibake/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/zaerl/mojibake/compare/v0.3.6...v0.4.0

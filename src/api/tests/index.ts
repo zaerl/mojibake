@@ -394,8 +394,8 @@ ATT_ASSERT(mojibake.terminalWidth(malformedText, TerminalWidthProfile.NARROW,
   { malformedPolicy: MalformedPolicy.SKIP }), 2,
   'terminalWidth malformed skip policy');
 ATT_ASSERT(mojibake.localeParse('sr-Latn-RS').region, 'RS', 'localeParse');
-ATT_ASSERT(mojibake.version(), '0.4.2-WASM', 'version');
-ATT_ASSERT(mojibake.versionNumber(), 0x42, 'versionNumber');
+ATT_ASSERT(mojibake.version(), '0.5.0-WASM', 'version');
+ATT_ASSERT(mojibake.versionNumber(), 0x50, 'versionNumber');
 ATT_ASSERT(mojibake.unicodeVersion(), '18.0.0', 'unicodeVersion');
 ATT_ASSERT(mojibake.statusMessage(Status.OK), 'The operation completed successfully',
   'statusMessage');

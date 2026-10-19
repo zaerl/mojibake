@@ -40,15 +40,15 @@
 extern "C" {
 #endif
 
-#define MJB_VERSION_NUMBER 0x42 // MAJOR << 8 | MINOR << 4 | REVISION
+#define MJB_VERSION_NUMBER 0x50 // MAJOR << 8 | MINOR << 4 | REVISION
 #define MJB_VERSION_MAJOR 0
-#define MJB_VERSION_MINOR 4
-#define MJB_VERSION_REVISION 2
+#define MJB_VERSION_MINOR 5
+#define MJB_VERSION_REVISION 0
 
 #ifdef __EMSCRIPTEN__
-    #define MJB_VERSION "0.4.2-WASM"
+    #define MJB_VERSION "0.5.0-WASM"
 #else
-    #define MJB_VERSION "0.4.2"
+    #define MJB_VERSION "0.5.0"
 #endif
 
 #define MJB_UNICODE_VERSION "18.0.0"
