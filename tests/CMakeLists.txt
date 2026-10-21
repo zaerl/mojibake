@@ -43,7 +43,47 @@ set(TEST_SOURCES
     version.c
 )
 
+# The C++ wrapper needs C++20 with concepts and <ranges>. The library itself stays C11 and C++17,
+# so an older C++17 compiler still builds and tests it, only without the wrapper tests.
+set(MJB_TEST_CPP_WRAPPER OFF)
+
 if(MJB_BUILD_CPP)
+    include(CheckCXXSourceCompiles)
+
+    # check_cxx_source_compiles builds with CMAKE_CXX_STANDARD, so set it for the check only
+    set(_mjb_had_cxx_standard OFF)
+    if(DEFINED CMAKE_CXX_STANDARD)
+        set(_mjb_had_cxx_standard ON)
+        set(_mjb_saved_cxx_standard "${CMAKE_CXX_STANDARD}")
+    endif()
+    set(CMAKE_CXX_STANDARD 20)
+    check_cxx_source_compiles("
+        #include <bit>
+        #include <concepts>
+        #include <ranges>
+        #include <span>
+        struct empty_view : std::ranges::view_interface<empty_view> {
+            const int *begin() const { return nullptr; }
+            const int *end() const { return nullptr; }
+        };
+        template <std::integral T> constexpr bool integral_v = true;
+        static_assert(std::ranges::view<empty_view> && integral_v<int>);
+        int main() { return std::endian::native == std::endian::big ? 1 : 0; }
+    " MJB_CXX_HAS_CPP20_WRAPPER_SUPPORT)
+    if(_mjb_had_cxx_standard)
+        set(CMAKE_CXX_STANDARD "${_mjb_saved_cxx_standard}")
+    else()
+        unset(CMAKE_CXX_STANDARD)
+    endif()
+
+    if(MJB_CXX_HAS_CPP20_WRAPPER_SUPPORT)
+        set(MJB_TEST_CPP_WRAPPER ON)
+    else()
+        message(STATUS "Mojibake: C++20 is not available, skipping the C++ wrapper tests")
+    endif()
+endif()
+
+if(MJB_TEST_CPP_WRAPPER)
     # Add C++ test sources
     list(APPEND TEST_SOURCES ext/cpp/break.cpp)
     list(APPEND TEST_SOURCES ext/cpp/into.cpp)
@@ -75,6 +115,10 @@ if(MJB_BUILD_CPP)
         CXX_STANDARD_REQUIRED ON
     )
     set_source_files_properties(${TEST_SOURCES} PROPERTIES LANGUAGE CXX)
+
+    if(MJB_TEST_CPP_WRAPPER)
+        set_target_properties(mojibake-test PROPERTIES CXX_STANDARD 20)
+    endif()
 endif()
 
 if(MSVC)
@@ -134,9 +178,10 @@ mjb_add_test("String" string ${CMAKE_CURRENT_LIST_LINE})
 mjb_add_test("UTF" utf ${CMAKE_CURRENT_LIST_LINE})
 mjb_add_test("Version" version ${CMAKE_CURRENT_LIST_LINE})
 
-if(MJB_BUILD_CPP)
+if(MJB_TEST_CPP_WRAPPER)
     mjb_add_test("C++ Break" cpp_break ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Into" cpp_into ${CMAKE_CURRENT_LIST_LINE})
+    mjb_add_test("C++ Locales" cpp_locales ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Mojibake" cpp_mojibake ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Normalization" cpp_normalization ${CMAKE_CURRENT_LIST_LINE})
     mjb_add_test("C++ Strings" cpp_strings ${CMAKE_CURRENT_LIST_LINE})

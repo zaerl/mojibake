@@ -17,24 +17,24 @@ ATT_TEST(cpp_locales) {
 
     try {
         (void)mjb::locale_parse("not_a_locale");
-    } catch(const mjb::LocaleError &error) {
+    } catch(const mjb::LibraryError &error) {
         locale_error = error.status() == MJB_STATUS_INVALID_ARGUMENT;
     }
 
-    ATT_ASSERT(locale_error, true, "LocaleError preserves status");
-    ATT_ASSERT(mjb::uppercase("istanbul", MJB_LOCALE_TR), std::string("\xC4\xB0STANBUL"),
-        "uppercase applies the Turkish locale");
+    ATT_ASSERT(locale_error, true, "locale_parse preserves the status");
+    ATT_ASSERT(mjb::uppercase("istanbul", { .locale = MJB_LOCALE_TR }),
+        std::string("\xC4\xB0STANBUL"), "uppercase applies the Turkish locale");
     ATT_ASSERT(mjb::uppercase("istanbul"), std::string("ISTANBUL"),
         "uppercase defaults to locale-independent mappings");
-    ATT_ASSERT(mjb::casefold("I", MJB_LOCALE_AZ), std::string("\xC4\xB1"),
+    ATT_ASSERT(mjb::casefold("I", { .locale = MJB_LOCALE_AZ }), std::string("\xC4\xB1"),
         "casefold applies Turkic folding for Azerbaijani");
-    ATT_ASSERT(mjb::lowercase("I\xCC\x80", MJB_LOCALE_LT), std::string("i\xCC\x87\xCC\x80"),
-        "lowercase applies the Lithuanian locale");
+    ATT_ASSERT(mjb::lowercase("I\xCC\x80", { .locale = MJB_LOCALE_LT }),
+        std::string("i\xCC\x87\xCC\x80"), "lowercase applies the Lithuanian locale");
 
     bool invalid_locale = false;
 
     try {
-        (void)mjb::uppercase("i", (mjb_locale)MJB_LOCALE_NUM);
+        (void)mjb::uppercase("i", { .locale = (mjb_locale)MJB_LOCALE_NUM });
     } catch(const mjb::LibraryError &error) {
         invalid_locale = error.status() == MJB_STATUS_INVALID_ARGUMENT;
     }

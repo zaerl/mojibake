@@ -8,8 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- C++: `char8_t` input and output, so `u8"..."` literals and `std::u8string` work with every
+  function
+- C++: option structs for designated initializers: `mjb::Options`, `mjb::CaseOptions`,
+  `mjb::MatchOptions`, and `mjb::CollationOptions`
+- C++: `grapheme_breaks`, `word_breaks`, `sentence_breaks`, and `line_breaks` ranges of
+  `mjb::BreakResult`
+- C++: `mjb::encoded(bytes, encoding)` output for transforms that write bytes in any encoding, and
+  `convert_encoding<CharT>(input)`
+- C++: `mjb::error_category()` and `mjb::make_error_code` for `mjb_status`
+- C++: `BidiParagraph::chars()` as a `std::span`
 
 ### Changed
+- C++: the wrapper requires C++20. The library still builds as C11 and C++17
+- C++: every transform has two forms, `mjb::nfc(input, options)` and `mjb::nfc(input, out,
+  options)`, which replace the `_into` and `_result` functions and `mjb::TextResult`. Transforms
+  return the input's string type and encoding, and write the encoding of the output's string type.
+  Optional arguments moved from positional parameters to the option structs, and the input and
+  output encoding parameters were removed in favour of `mjb::Text` and `mjb::encoded`
+- C++: segment and codepoint ranges are `std::ranges` forward, borrowed views with
+  `std::default_sentinel_t` ends, so they compose with standard algorithms and adaptors. The
+  `Breaker` classes were replaced by the break position ranges
+- C++: functions that return views, including the truncation functions, are constrained by the
+  `mjb::borrowed_text` concept, and Clang warns about a `Text` or view that outlives its input
+- C++: `mjb::LibraryError` derives from `std::system_error`; `mjb::LocaleError` was removed
+- C++: codepoint predicates are free functions only, and `Character::to_utf8` was removed in
+  favour of `mjb::encode`. The C callback overload of `for_each_codepoint` and the
+  `mjb_filter_flags` overloads of `filter` were removed
+- C++: the native UTF-16 and UTF-32 encodings come from `std::endian::native`
 
 ### Fixed
 

@@ -1,13 +1,16 @@
-# Mojibake C++17 wrapper
+# Mojibake C++20 wrapper
 
-`mojibake.hpp` is a header-only C++17 interface over the Mojibake C library. It adds string and
-view types, RAII ownership, ranges for segments and codepoints, and exceptions that keep the
-library's `mjb_status`. Everything is in the `mjb` namespace.
+`mojibake.hpp` is a header-only C++20 interface over the Mojibake C library. It adds string and
+view types, RAII ownership, standard ranges for segments and codepoints, and exceptions that keep
+the library's `mjb_status`. Everything is in the `mjb` namespace.
 
 ## Setup
 
-The wrapper needs a C++17 compiler and the Mojibake library. Link the `Mojibake::mojibake` CMake
-target (see the main [README](../../README.md#cmake-dependency)), then include the header:
+The wrapper needs a C++20 compiler and standard library with concepts and `<ranges>`, such as GCC
+10 or later, a recent Clang or Apple Clang, or MSVC 19.30 (Visual Studio 2022), and the Mojibake
+library. The library itself still builds as C11 or C++17; the test suite skips the wrapper tests
+when the compiler lacks C++20 support. Link the `Mojibake::mojibake` CMake target (see the main
+[README](../../README.md#cmake-dependency)), then include the header:
 
 ```cpp
 #include <mojibake.hpp>     // installed: the header is copied next to mojibake.h
@@ -18,7 +21,7 @@ MSVC needs no extra flags: the headers read `_MSVC_LANG`, so `/Zc:__cplusplus` i
 
 ```cpp
 std::string text = mjb::nfc("Cafe\xCC\x81"); // "Caf\xC3\xA9"
-std::string folded = mjb::casefold("Stra\xC3\x9F" "e"); // "strasse"
+std::u8string folded = mjb::casefold(u8"Straße"); // u8"strasse"
 size_t clusters = mjb::grapheme_count(u"A\U0001F1EE\U0001F1F9"); // 2
 
 for(std::string_view word : mjb::words(text)) {
@@ -28,96 +31,96 @@ for(std::string_view word : mjb::words(text)) {
 
 ## Text input
 
-Functions that read text without producing new text take an `mjb::Text`: a non-owning view of the
-bytes and their encoding, the C++ counterpart of `mjb_text`. It converts implicitly from:
+Functions that read text take any `mjb::text_like` string in the platform's byte order:
 
-- UTF-8: `std::string`, `std::string_view`, `const char *`, and string literals
+- UTF-8: `std::string`, `std::string_view`, `const char *`, and `"..."` literals
+- UTF-8: `std::u8string`, `std::u8string_view`, and `u8"..."` literals
 - UTF-16: `std::u16string`, `std::u16string_view`, and `u"..."`
 - UTF-32: `std::u32string`, `std::u32string_view`, and `U"..."`
 
-UTF-16 and UTF-32 use the platform's byte order, which `mjb::native_utf16_encoding` and
-`mjb::native_utf32_encoding` name. For any other encoding or byte order, such as bytes read from
-a file, construct the `Text` with an explicit encoding:
+Those that only read it take an `mjb::Text`, a non-owning view of the bytes and their encoding
+that converts implicitly from all of these. `mjb::native_utf16_encoding` and
+`mjb::native_utf32_encoding` name the platform's byte order. For any other encoding or byte order,
+such as bytes read from a file, construct the `Text` with an explicit encoding:
 
 ```cpp
 // UTF-16BE bytes, for example read from a file: "AB"
 const std::string_view file_bytes("\0A\0B", 4);
 size_t count = mjb::codepoint_count(mjb::Text(file_bytes, MJB_ENC_UTF_16BE)); // 2
 
-bool same = mjb::caseless_match(u"Stra\u00DFe", "STRASSE"); // any two text types
+bool same = mjb::caseless_match(u"Straße", "STRASSE"); // any two text types
 ```
 
-## Transforms
+## Options
 
-Transforms return new text. Each has a `std::string_view` overload with input and output
-encodings, UTF-8 by default, that returns a `std::string` of output bytes, and a template that
-takes a UTF-16 or UTF-32 string and returns the same string type:
+Optional arguments are passed as a struct with designated initializers, so a call names only what
+it changes:
 
-| Transform | Functions |
-| --- | --- |
-| Normalization | `normalize`, `nfc`, `nfd`, `nfkc`, `nfkd` |
-| Case mapping | `case_map`, `uppercase`, `lowercase`, `titlecase`, `casefold`, `casefold_simple` |
-| Folding and filtering | `nfkc_casefold`, `filter` |
-| Security | `confusable_skeleton` |
-| Encoding | `convert_encoding` (`std::string_view` only) |
+| Struct | Fields, in declaration order | Used by |
+| --- | --- | --- |
+| `Options` | `malformed`, `diagnostic` | transforms, counts, decoding |
+| `CaseOptions` | `locale`, `malformed`, `diagnostic` | case mapping |
+| `MatchOptions` | `malformed`, `diagnostic`, `other_diagnostic` | `caseless_match`, `confusable_match` |
+| `CollationOptions` | `strength`, `variable_weighting`, `malformed`, `diagnostic`, `other_diagnostic` | `collation_compare`, `collation_key` |
 
 ```cpp
-std::string upper = mjb::uppercase("istanbul", MJB_LOCALE_TR); // "\xC4\xB0STANBUL"
-std::u16string upper16 = mjb::uppercase(u"stra\u00DFe"); // u"STRASSE"
-std::u32string nfd32 = mjb::nfd(U"\u00E9"); // U"e\u0301"
-
-std::string utf16le = mjb::nfc("e\xCC\x81", MJB_ENC_UTF_8, MJB_ENC_UTF_16LE); // "\xE9\0"
-std::string cleaned = mjb::filter("a\x01  b", mjb::Filter::Controls | mjb::Filter::CollapseSpaces);
-std::string replaced = mjb::nfc("a\x80", MJB_ENC_UTF_8, MJB_ENC_UTF_8, MJB_MALFORMED_REPLACE);
+mjb_diagnostic diagnostic;
+std::string replaced = mjb::nfc("a\x80", { .malformed = MJB_MALFORMED_REPLACE });
+std::string upper = mjb::uppercase("istanbul", { .locale = MJB_LOCALE_TR }); // "\xC4\xB0STANBUL"
+size_t width = mjb::terminal_width("a\x80", { .malformed = MJB_MALFORMED_SKIP, .diagnostic = &diagnostic });
+int order = mjb::collation_compare("a", "A", { .strength = mjb::CollationStrength::Primary }); // 0
 ```
 
 Malformed input throws with the default `MJB_MALFORMED_STOP` policy; `MJB_MALFORMED_REPLACE`
-substitutes U+FFFD and `MJB_MALFORMED_SKIP` drops the malformed bytes. Functions that take a
-policy also take an optional `mjb_diagnostic *` that reports where the first malformed sequence
-is.
+substitutes U+FFFD and `MJB_MALFORMED_SKIP` drops the malformed bytes. `diagnostic` reports where
+the first malformed sequence is, and `other_diagnostic` does the same for the second text of a
+comparison.
 
-### Reusing output with `_into`
+## Transforms
 
-Every transform has an `_into` variant that writes into a string you pass, after the required
-arguments, instead of returning a new one: `nfc_into(input, out)`,
-`normalize_into(input, form, out)`, `uppercase_into(input, out, locale)`,
-`convert_encoding_into(input, from, to, out)`, and so on. `collation_key_into`,
-`idna_to_ascii_into`, and `idna_to_unicode_into` exist too; the IDNA ones return the error flags.
-
-The content of `out` is replaced, and its capacity is reused, so calling an `_into` function in a
-loop with the same string avoids an allocation per call. If the function throws, `out` is left
-empty.
+Every transform has the same two forms. Given only the input, it returns a new string of the
+input's own type and encoding. Given an output, it writes there instead:
 
 ```cpp
+std::u16string upper16 = mjb::uppercase(u"straße"); // u"STRASSE"
+std::u32string nfd32 = mjb::nfd(U"é"); // U"é"
+
 std::string out;
+mjb::nfc(u"é", out); // UTF-16 in, UTF-8 out: the output's type selects its encoding
+mjb::nfc("e\xCC\x81", mjb::encoded(out, MJB_ENC_UTF_16LE)); // "\xE9\0": bytes in any encoding
+```
+
+| Transform | Functions |
+| --- | --- |
+| Normalization | `nfc`, `nfd`, `nfkc`, `nfkd`, `normalize(input, form)` |
+| Case mapping | `uppercase`, `lowercase`, `titlecase`, `casefold`, `casefold_simple`, `case_map(input, type)` |
+| Folding and filtering | `nfkc_casefold`, `filter(input, mjb::Filter::...)` |
+| Security | `confusable_skeleton` |
+| Encoding | `convert_encoding(input, out)`, `convert_encoding<char16_t>(input)`, `convert_encoding(input, encoding)` |
+
+```cpp
+std::string cleaned = mjb::filter("a\x01  b", mjb::Filter::Controls | mjb::Filter::CollapseSpaces);
+std::u16string utf16 = mjb::convert_encoding<char16_t>("caf\xC3\xA9"); // u"café"
+std::string utf32be = mjb::convert_encoding("A", MJB_ENC_UTF_32BE); // "\0\0\0A"
+```
+
+The output can be a `std::string` (UTF-8), `std::u8string`, `std::u16string`, or `std::u32string`
+lvalue, or an `mjb::encoded(bytes, encoding)` for bytes in another encoding. Its content is
+replaced, and its capacity is reused, so calling a transform in a loop with the same string avoids
+an allocation per call. If the transform throws, the output is left empty.
+
+```cpp
+std::string line_out;
 const std::string_view lines[] = { "Cafe\xCC\x81", "na\xC3\xAFve" };
 
 for(std::string_view line : lines) {
-    mjb::nfc_into(line, out);
-    // use out
+    mjb::nfc(line, line_out);
+    // use line_out
 }
-
-std::u16string out16;
-mjb::uppercase_into(u"stra\u00DFe", out16); // UTF-16 input writes a std::u16string
 ```
 
-### Zero-copy results
-
-The `_result` functions, such as `normalize_result` and `case_map_result`, return the C library's
-output as an `mjb::TextResult`, with `view()` and `str()` accessors, instead of copying it into a
-`std::string`. `normalize_result`, `filter_result`, and `convert_encoding_result` go further: when
-the output equals the input, they do not copy it at all, `owned()` is false, and `view()` points
-into the input.
-
-```cpp
-const std::string input = "already NFC";
-mjb::TextResult result = mjb::normalize_result(input, mjb::NormalizationForm::NFC);
-std::string_view normalized = result.view(); // points into input: owned() is false
-std::string copy = result.str();
-```
-
-Because their result can borrow the input, those three reject a temporary `std::string` at compile
-time.
+`nfc`, `uppercase`, and the other fixed transforms are function objects, so they can be passed to
+algorithms that take a callable.
 
 ## Analysis
 
@@ -137,7 +140,8 @@ mjb_quick_check_result quick =
 bool rgi = mjb::is_rgi_emoji("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"); // true: the Italian flag
 std::optional<mjb::EmojiSequence> sequence = mjb::emoji_sequence("\xF0\x9F\x99\x82");
 
-bool caseless = mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE", mjb::CaselessMode::Canonical);
+bool caseless = mjb::caseless_match("Stra\xC3\x9F" "e", "STRASSE"); // true
+bool compatible = mjb::caseless_match("\xEF\xAC\x81", "FI", mjb::CaselessMode::Compatibility);
 int order = mjb::collation_compare("apple", "banana"); // negative
 std::string key = mjb::collation_key("apple"); // binary sort key, compares like the text
 bool confusable = mjb::confusable_match("h\xD0\xB5llo", "hello"); // true: Cyrillic U+0435
@@ -148,9 +152,15 @@ std::string_view region = locale.region(); // "RS"
 
 The counts and comparisons throw on malformed input with the default policy. The predicates, such
 as `is_identifier` and `is_rgi_emoji`, are `noexcept` and return false for input they cannot
-accept.
+accept. A collation key is bytes whatever the input's encoding, so `collation_key` always returns
+or writes a `std::string`.
 
 ## Iteration and segmentation
+
+All ranges are C++20 views (`std::ranges::view` and `std::ranges::forward_range`), so they work
+with range-based `for`, `std::ranges` algorithms, and adaptors such as `std::views::take`. They are
+also borrowed ranges: an iterator stays valid after its range is destroyed, as long as the input
+lives.
 
 ### Segments
 
@@ -165,8 +175,8 @@ for(std::string_view sentence : mjb::sentences(text)) {
     // "Hello, world. ", "Bye."
 }
 
-for(std::u16string_view word : mjb::words(u"Hello, world")) {
-    // u"Hello", u",", u" ", u"world"
+for(std::u16string_view word : mjb::words(u"Hello, world") | std::views::take(2)) {
+    // u"Hello", u","
 }
 
 for(std::string_view line : mjb::line_segments("foo bar\nbaz")) {
@@ -179,12 +189,12 @@ the loop body runs.
 
 To cut text to a limit without splitting a segment, use `grapheme_truncate`,
 `grapheme_truncate_width`, `word_truncate`, and `word_truncate_width`. They return a prefix view of
-the input in its own code units:
+the input in its own code units, and also reject a temporary string:
 
 ```cpp
 std::string_view prefix = mjb::grapheme_truncate("e\xCC\x81" "abc", 2); // "e\xCC\x81" "a"
 std::string_view fits = mjb::word_truncate_width("Hello world", 6); // "Hello "
-std::u16string_view flags = mjb::grapheme_truncate(u"A\U0001F1EE\U0001F1F9Z", 2); // 3 code units
+std::u16string_view flags = mjb::grapheme_truncate(u"A\U0001F1EE\U0001F1F9Z", 2); // 5 code units
 ```
 
 ### Codepoints
@@ -212,33 +222,36 @@ mjb_status status = mjb::for_each_codepoint("e\xCC\x81",
     });
 ```
 
-`decode_next` and `decode_previous` step through a string one codepoint at a time from a byte
+`decode_next` and `decode_previous` step through a text one codepoint at a time from a byte
 offset.
 
 ### Break positions
 
-The breaker classes, `GraphemeBreaker`, `WordBreaker`, `SentenceBreaker`, and `LineBreaker`,
-report every position between codepoints with its break type. `position` is a byte offset in the
-input, and `codepoint` is the codepoint that starts there, `MJB_CODEPOINT_NOT_VALID` at the end of
-the text. Use them when you need the no-break positions or the break types; to iterate the
-segments themselves, use the ranges.
+`grapheme_breaks`, `word_breaks`, `sentence_breaks`, and `line_breaks` return ranges of
+`mjb::BreakResult`: every position between codepoints with its break type. `position` is a byte
+offset in the input, and `codepoint` is the codepoint that starts there, `MJB_CODEPOINT_NOT_VALID`
+at the end of the text. Use them when you need the no-break positions or the break types; to
+iterate the segments themselves, use the segment ranges.
 
 ```cpp
-mjb::LineBreaker breaker("a b");
-
-while(std::optional<mjb::BreakResult> result = breaker.next()) {
-    if(result->is_mandatory()) {
-        // a mandatory break at result->position
+for(const mjb::BreakResult &result : mjb::line_breaks("a b")) {
+    if(result.is_mandatory()) {
+        // a mandatory break at result.position
     }
 }
+
+auto opportunities = std::ranges::count_if(mjb::line_breaks("a b"),
+    [](const mjb::BreakResult &result) { return result.is_break(); }); // 2
 ```
 
 ## Characters and properties
 
+Codepoint predicates are free functions; `Character` holds the full record that
+`mjb_codepoint_info` reads.
+
 ```cpp
 mjb::Character character(0x00E9);
 std::string_view name = character.name(); // "LATIN SMALL LETTER E WITH ACUTE"
-std::string utf8 = character.to_utf8(); // "\xC3\xA9"
 std::optional<mjb_codepoint> upper = character.uppercase();
 std::optional<mjb::Character> unassigned = mjb::Character::from(0x0378); // std::nullopt
 
@@ -247,7 +260,8 @@ std::optional<bool> alphabetic = mjb::property_binary(0x0041, MJB_PR_ALPHABETIC)
 mjb_script script = mjb::script(0x0041);
 bool emoji = mjb::is_emoji(0x1F642);
 
-std::string encoded = mjb::encode(0x1F642, MJB_ENC_UTF_16LE); // 4 bytes: a surrogate pair
+std::string utf8 = mjb::encode(0x00E9); // "\xC3\xA9"
+std::string utf16 = mjb::encode(0x1F642, MJB_ENC_UTF_16LE); // 4 bytes: a surrogate pair
 std::array<mjb_codepoint, 3> jamo = mjb::hangul_syllable_decompose(0xD55C); // U+1112 U+1161 U+11AB
 ```
 
@@ -257,21 +271,26 @@ returns a placeholder such as `Codepoint U+00E9`.
 
 ## Bidirectional text
 
-`BidiParagraph` resolves the embedding levels of a paragraph (UAX #9) and owns the result:
+`BidiParagraph` resolves the embedding levels of a paragraph (UAX #9) and owns the result. It
+takes any `Text`, and `chars()` returns its characters as a `std::span`:
 
 ```cpp
 mjb::BidiParagraph paragraph("English \xD7\xA2\xD7\x91\xD7\xA8\xD7\x99\xD7\xAA");
 std::vector<size_t> visual_order = paragraph.visual_order(); // logical indices in display order
 std::vector<mjb_bidi_run> runs = paragraph.line_runs();
-uint8_t level = paragraph[0].level;
+uint8_t level = paragraph.chars()[0].level;
 ```
 
 ## Internationalized domain names
 
+`idna_to_ascii` and `idna_to_unicode` return an `IdnaResult` with the domain name, in the input's
+string type, and its `mjb_idna_error` flags. Given an output, they write there and return the
+flags.
+
 ```cpp
 mjb::IdnaResult ascii = mjb::idna_to_ascii("b\xC3\xBC" "cher.example");
 if(ascii.valid()) {
-    std::string domain = ascii.str(); // "xn--bcher-kva.example"
+    std::string domain = ascii.text; // "xn--bcher-kva.example"
 }
 
 bool empty_label = mjb::idna_to_ascii("a..b").has_error(MJB_IDNA_ERROR_EMPTY_LABEL); // true
@@ -279,10 +298,10 @@ bool empty_label = mjb::idna_to_ascii("a..b").has_error(MJB_IDNA_ERROR_EMPTY_LAB
 
 ## Errors
 
-Failures throw `mjb::LibraryError`, a `std::runtime_error`. `status()` returns the original
-`mjb_status`, and `what()` names the failed operation followed by the library's message for that
-status. `locale_parse` throws `mjb::LocaleError`, which derives from it, and
-`mjb::status_message` returns the library's message for any status.
+Failures throw `mjb::LibraryError`, a `std::system_error` whose `code()` is in
+`mjb::error_category()`. `status()` returns the original `mjb_status`, and `what()` names the
+failed operation followed by the library's message for that status. `mjb::make_error_code` turns
+any status into a `std::error_code`, and `mjb::status_message` returns the library's message.
 
 ```cpp
 try {
@@ -299,17 +318,17 @@ Functions for a feature the library was built without, such as collation with
 
 ## Lifetimes
 
-`mjb::Text`, the segment and codepoint ranges and their elements, the breakers, the truncation
-results, and a `TextResult` whose `owned()` is false are views: the input must outlive them, as
-with `std::string_view`. The functions that would always leave a dangling view reject a temporary
-`std::string` at compile time, but a view of other temporary storage is still the caller's
-responsibility.
+`mjb::Text`, the ranges, their elements, and the truncation results are views: the input must
+outlive them, as with `std::string_view`. The functions that return a view reject a temporary
+`std::string` at compile time, and Clang's `-Wdangling` warns about a `Text` or a view kept past
+the end of its input, but a view of other temporary storage is still the caller's responsibility.
+Transforms return or write owned strings, so they have no lifetime requirements.
 
 ## Allocation and versions
 
 `mjb::set_allocator` installs custom allocation functions for the C library, which allocates the
-`TextResult` output, `BidiParagraph` data, and temporary buffers. The strings that the wrapper
-returns use the standard allocator.
+`BidiParagraph` data and temporary buffers. The strings that the wrapper returns use the standard
+allocator.
 
 `mjb::version()`, `mjb::version_number()`, and `mjb::unicode_version()` report the library and
 Unicode versions.

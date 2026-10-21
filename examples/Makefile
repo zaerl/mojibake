@@ -96,7 +96,7 @@ example: $(EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
 
 # Compile the C++ example program
 example-cpp: $(CPP_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)
-	$(CXX) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CXXFLAGS) -std=c++17 -x c++ \
+	$(CXX) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CXXFLAGS) -std=c++20 -x c++ \
 		-I $(AMALGAMATION_DIR) -o $(CPP_EXAMPLE) $(CPP_EXAMPLE_SOURCE) \
 		$(AMALGAMATION_SOURCE)
 

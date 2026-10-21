@@ -9,36 +9,6 @@
 
 #include <stdexcept>
 #include <string>
-#include <type_traits>
-#include <utility>
-
-// A C callback that counts through `context`, as a C caller would.
-static bool cpp_each_character(const mjb_character *character, mjb_character_position position,
-    void *context) {
-    (void)position;
-
-    if(character != nullptr) {
-        ++*static_cast<size_t *>(context);
-    }
-
-    return true;
-}
-
-// The result of normalize_result can borrow its input, so a temporary std::string is rejected.
-template <typename T, typename = void> struct can_normalize_result : std::false_type {};
-
-template <typename T>
-struct can_normalize_result<T,
-    std::void_t<decltype(mjb::normalize_result(std::declval<T>(), mjb::NormalizationForm::NFC))>>
-    : std::true_type {};
-
-static_assert(!can_normalize_result<std::string>::value,
-    "normalize_result rejects a temporary std::string");
-static_assert(can_normalize_result<std::string &>::value,
-    "normalize_result accepts a std::string lvalue");
-static_assert(can_normalize_result<std::string_view>::value,
-    "normalize_result accepts a std::string_view");
-static_assert(can_normalize_result<const char *>::value, "normalize_result accepts a literal");
 
 ATT_TEST(cpp_mojibake) {
     ATT_ASSERT(mjb::property_binary(U'A', MJB_PR_ALPHABETIC).value_or(false), true,
@@ -92,8 +62,14 @@ ATT_TEST(cpp_mojibake) {
     // U+1F642 = 🙂
     auto character3 = mjb::Character((mjb_codepoint)0x1F642);
 
-    ATT_ASSERT(character.to_utf8(), std::string("\xF0\x9F\x99\x82"), "Character::to_utf8");
-    ATT_ASSERT(character2.to_utf8(), std::string("\xF0\x9F\x99\x83"), "Character::to_utf8");
+#if MJB_FEATURE_CHARACTER_NAMES
+    ATT_ASSERT(std::string(character.name()), std::string("SLIGHTLY SMILING FACE"),
+        "Character::name");
+#else
+    ATT_ASSERT(std::string(character.name()), std::string("Codepoint U+1F642"),
+        "Character::name placeholder without character names");
+#endif
+    ATT_ASSERT((int)character.category(), MJB_CATEGORY_SO, "Character::category");
 
     ATT_ASSERT(mjb::Character::from(0x1F642).has_value(), true, "Character::from valid codepoint");
     ATT_ASSERT(mjb::Character::from(MJB_CODEPOINT_NOT_VALID).has_value(), false,
@@ -106,20 +82,18 @@ ATT_TEST(cpp_mojibake) {
     ATT_ASSERT(character3 == character, true, "Character::operator==");
     ATT_ASSERT(character3 != character2, true, "Character::operator!=");
 
-    // Identifier properties on Character
+    // Identifier properties are free functions of the codepoint
     // U+0041 = 'A': valid ID_Start and ID_Continue
-    auto char_a = mjb::Character((mjb_codepoint)'A');
-    ATT_ASSERT(char_a.is_id_start(), true, "A: is_id_start");
-    ATT_ASSERT(char_a.is_id_continue(), true, "A: is_id_continue");
-    ATT_ASSERT(char_a.is_xid_start(), true, "A: is_xid_start");
-    ATT_ASSERT(char_a.is_xid_continue(), true, "A: is_xid_continue");
-    ATT_ASSERT(char_a.is_pattern_syntax(), false, "A: is_pattern_syntax");
-    ATT_ASSERT(char_a.is_pattern_white_space(), false, "A: is_pattern_white_space");
+    ATT_ASSERT(mjb::is_id_start('A'), true, "A: is_id_start");
+    ATT_ASSERT(mjb::is_id_continue('A'), true, "A: is_id_continue");
+    ATT_ASSERT(mjb::is_xid_start('A'), true, "A: is_xid_start");
+    ATT_ASSERT(mjb::is_xid_continue('A'), true, "A: is_xid_continue");
+    ATT_ASSERT(mjb::is_pattern_syntax('A'), false, "A: is_pattern_syntax");
+    ATT_ASSERT(mjb::is_pattern_white_space('A'), false, "A: is_pattern_white_space");
 
     // U+0021 = '!': pattern syntax
-    auto char_bang = mjb::Character((mjb_codepoint)'!');
-    ATT_ASSERT(char_bang.is_id_start(), false, "!: is_id_start");
-    ATT_ASSERT(char_bang.is_pattern_syntax(), true, "!: is_pattern_syntax");
+    ATT_ASSERT(mjb::is_id_start('!'), false, "!: is_id_start");
+    ATT_ASSERT(mjb::is_pattern_syntax('!'), true, "!: is_pattern_syntax");
 
     // is_identifier free function
     ATT_ASSERT(mjb::is_identifier("hello"), true, "is_identifier: hello");
@@ -149,11 +123,11 @@ ATT_TEST(cpp_mojibake) {
     const auto idna_ascii = mjb::idna_to_ascii("b\xC3\xBC"
                                                "cher.example");
     ATT_ASSERT(idna_ascii.valid(), true, "C++ IDNA ToASCII valid");
-    ATT_ASSERT(idna_ascii.str(), std::string("xn--bcher-kva.example"), "C++ IDNA ToASCII");
+    ATT_ASSERT(idna_ascii.text, std::string("xn--bcher-kva.example"), "C++ IDNA ToASCII");
 
     const auto idna_unicode = mjb::idna_to_unicode("xn--bcher-kva.example");
     ATT_ASSERT(idna_unicode.valid(), true, "C++ IDNA ToUnicode valid");
-    ATT_ASSERT(idna_unicode.str(), std::string("b\xC3\xBC"
+    ATT_ASSERT(idna_unicode.text, std::string("b\xC3\xBC"
                                               "cher.example"),
         "C++ IDNA ToUnicode");
 
@@ -195,16 +169,11 @@ ATT_TEST(cpp_mojibake) {
     ATT_ASSERT(mjb::collation_key(""), std::string(""), "collation_key: empty");
     ATT_ASSERT(mjb::collation_key("\xE2\x80\x8B"), mjb::collation_key(""),
         "collation_key: completely ignorable equals empty");
-    ATT_ASSERT(mjb::collation_key("\xCC\x81",
-                   mjb::CollationVariableWeighting::NonIgnorable,
-                   mjb::CollationStrength::Primary),
-        mjb::collation_key("", mjb::CollationVariableWeighting::NonIgnorable,
-            mjb::CollationStrength::Primary),
+    ATT_ASSERT(mjb::collation_key("\xCC\x81", { .strength = mjb::CollationStrength::Primary }),
+        mjb::collation_key("", { .strength = mjb::CollationStrength::Primary }),
         "collation_key: primary-ignorable accent equals empty");
-    ATT_ASSERT(mjb::collation_key("A", mjb::CollationVariableWeighting::NonIgnorable,
-                   mjb::CollationStrength::Secondary),
-        mjb::collation_key("a", mjb::CollationVariableWeighting::NonIgnorable,
-            mjb::CollationStrength::Secondary),
+    ATT_ASSERT(mjb::collation_key("A", { .strength = mjb::CollationStrength::Secondary }),
+        mjb::collation_key("a", { .strength = mjb::CollationStrength::Secondary }),
         "collation_key: secondary ignores case");
 #else
     bool collation_disabled = false;
@@ -277,11 +246,6 @@ ATT_TEST(cpp_mojibake) {
         "plane_name");
     ATT_ASSERT((int)mjb::east_asian_width('A'), MJB_EAW_NARROW, "east_asian_width");
     ATT_ASSERT(mjb::encode(0x1F642), std::string("\xF0\x9F\x99\x82"), "encode");
-
-    size_t c_callback_count = 0;
-    ATT_ASSERT_STATUS(mjb::for_each_codepoint("ABC", cpp_each_character, &c_callback_count),
-        MJB_STATUS_OK, "for_each_codepoint with a C callback");
-    ATT_ASSERT(c_callback_count, 3u, "for_each_codepoint passes the context to a C callback");
 
     std::u32string visited;
     ATT_ASSERT_STATUS(mjb::for_each_codepoint("A\xC3\xA9" "B",
