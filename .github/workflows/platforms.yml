@@ -157,14 +157,26 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      # Package downloads from the Ubuntu mirrors are intermittently very slow, so keep the .debs
+      - name: Cache apt packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/apt-archives
+          key: apt-focal-${{ matrix.label }}-v1
+
       - name: Build and smoke-test C11 and C++17 modes
         run: |
-          docker run --rm -v "$PWD:/src:ro" ubuntu:20.04 sh -ec '
+          mkdir -p ~/apt-archives
+          docker run --rm -v "$PWD:/src:ro" -v "$HOME/apt-archives:/var/cache/apt/archives" \
+            ubuntu:20.04 sh -ec '
             export DEBIAN_FRONTEND=noninteractive
             # The default archive.ubuntu.com mirror is often slow from GitHub runners
             sed -i "s|http://archive.ubuntu.com|http://azure.archive.ubuntu.com|" /etc/apt/sources.list
+            # Keep downloaded packages in the mounted cache directory
+            rm -f /etc/apt/apt.conf.d/docker-clean
             apt-get update
             apt-get install -y --no-install-recommends cmake make ${{ matrix.packages }}
+            chmod -R a+rX /var/cache/apt/archives
 
             version="$(${{ matrix.cc }} -dumpversion)"
             case "$version" in
