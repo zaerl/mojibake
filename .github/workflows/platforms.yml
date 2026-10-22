@@ -157,12 +157,32 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      # The Ubuntu mirrors are intermittently very slow or unreachable from GitHub runners, so keep
+      # the package lists and .debs. A cache hit installs without any network access.
+      - name: Cache apt packages
+        id: apt-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/apt-cache
+          key: apt-focal-${{ matrix.label }}-v2
+
       - name: Build and smoke-test C11 and C++17 modes
         run: |
-          docker run --rm -v "$PWD:/src:ro" ubuntu:20.04 sh -ec '
+          mkdir -p ~/apt-cache/archives ~/apt-cache/lists
+          docker run --rm -v "$PWD:/src:ro" \
+            -v "$HOME/apt-cache/archives:/var/cache/apt/archives" \
+            -v "$HOME/apt-cache/lists:/var/lib/apt/lists" \
+            -e APT_CACHE_HIT=${{ steps.apt-cache.outputs.cache-hit }} \
+            ubuntu:20.04 sh -ec '
             export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y cmake make ${{ matrix.packages }}
+            # Keep downloaded packages in the mounted cache directory
+            rm -f /etc/apt/apt.conf.d/docker-clean
+            if [ "$APT_CACHE_HIT" != "true" ]; then
+              apt-get -o Acquire::Retries=3 update
+            fi
+            apt-get install -y --no-install-recommends -o Acquire::Retries=3 \
+              cmake make ${{ matrix.packages }}
+            chmod -R a+rX /var/cache/apt/archives /var/lib/apt/lists
 
             version="$(${{ matrix.cc }} -dumpversion)"
             case "$version" in

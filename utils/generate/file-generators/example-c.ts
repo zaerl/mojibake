@@ -32,7 +32,6 @@ function exampleSource(fn: MojibakeFunction): string {
         continue;
       }
 
-      const parameters = match[1].split(', ');
       let currentComment = output[output.length - 1] || '';
       currentComment = currentComment.replace(/^\/\/ /, '');
 

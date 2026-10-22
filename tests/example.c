@@ -16,15 +16,18 @@ ATT_TEST(example) {
     MJB_TEST_COVERAGE(mjb_codepoint_info); // Added by the script
     mjb_character character;
 
-    if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
+    // U+0665 ARABIC-INDIC DIGIT FIVE
+    if(mjb_codepoint_info(0x0665, &character) != MJB_STATUS_OK) {
         ATT_ASSERT(0, 1, "mjb_codepoint_info test failed"); // Added by the script
         return;
     }
 
-    // U+022A lowercase: U+022B
-    // printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);
-    snprintf(test_buffer, sizeof(test_buffer), "U+%04X lowercase: U+%04X", character.codepoint, character.lowercase); // Added by the script
-    ATT_ASSERT(test_buffer, "U+022A lowercase: U+022B", "mjb_codepoint_info test failed"); // Added by the script
+    bool is_digit = character.category == MJB_CATEGORY_ND;
+
+    // Decimal digit: yes, value: 5
+    // printf("Decimal digit: %s, value: %d", is_digit ? "yes" : "no", character.decimal);
+    snprintf(test_buffer, sizeof(test_buffer), "Decimal digit: %s, value: %d", is_digit ? "yes" : "no", character.decimal); // Added by the script
+    ATT_ASSERT(test_buffer, "Decimal digit: yes, value: 5", "mjb_codepoint_info test failed"); // Added by the script
 }
 
 {

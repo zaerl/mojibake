@@ -42,6 +42,7 @@ export enum Section {
 
 export type MojibakeExamples = {
   c?: string;
+  cpp?: string;
 };
 
 export type MojibakeFunction = {
@@ -241,12 +242,27 @@ export default [
     examples: {
       c: `mjb_character character;
 
-if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
+// U+0665 ARABIC-INDIC DIGIT FIVE
+if(mjb_codepoint_info(0x0665, &character) != MJB_STATUS_OK) {
     return 1;
 }
 
-// U+022A lowercase: U+022B
-printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`
+bool is_digit = character.category == MJB_CATEGORY_ND;
+
+// Decimal digit: yes, value: 5
+printf("Decimal digit: %s, value: %d", is_digit ? "yes" : "no", character.decimal);`,
+      cpp: `// U+0665 ARABIC-INDIC DIGIT FIVE
+auto character = mjb::Character::from(0x0665);
+
+if(!character) {
+    return 1;
+}
+
+bool is_digit = character->category() == MJB_CATEGORY_ND;
+
+// Decimal digit: yes, value: 5
+std::cout << "Decimal digit: " << (is_digit ? "yes" : "no") << ", value: "
+    << character->decimal_value().value_or(-1) << std::endl;`
     },
     related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_binary',
       'mjb_codepoint_property_int'],
