@@ -629,7 +629,12 @@ if(mjb_nfkc_casefold(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result,
 
 // strasse
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`
+mjb_result_free(&result);`,
+      cpp: `// "Straße" + U+00AD SOFT HYPHEN
+std::string input = "Stra\\xC3\\x9F" "e\\xC2\\xAD";
+
+// strasse
+std::cout << mjb::nfkc_casefold(input) << std::endl;`
     },
     related: ['mjb_nfkc_casefold_into', 'mjb_normalize', 'mjb_map_case', 'mjb_is_identifier'],
     specs: [
@@ -701,7 +706,16 @@ if(mjb_nfkc_casefold_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STAT
 }
 
 // NFKC casefold payload (no terminator): strasse
-printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage);`
+printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage);`,
+      cpp: `// "Straße" + U+00AD SOFT HYPHEN
+std::string input = "Stra\\xC3\\x9F" "e\\xC2\\xAD";
+std::string output;
+
+// Replaces the content of output and reuses its capacity on later calls
+mjb::nfkc_casefold(input, output);
+
+// NFKC casefold: strasse
+std::cout << "NFKC casefold: " << output << std::endl;`
     },
     related: ['mjb_nfkc_casefold', 'mjb_normalize', 'mjb_map_case', 'mjb_is_identifier'],
     specs: [
@@ -762,7 +776,16 @@ if(mjb_idna_to_ascii(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
 
 // xn--bcher-kva.example
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`
+mjb_result_free(&result);`,
+      cpp: `// "bücher.example"
+auto domain = mjb::idna_to_ascii("b\\xC3\\xBC" "cher.example");
+
+if(!domain.valid()) {
+    return 1;
+}
+
+// xn--bcher-kva.example
+std::cout << domain.text << std::endl;`
     },
     related: ['mjb_idna_to_ascii_into', 'mjb_idna_to_unicode',
       'mjb_idna_to_unicode_into'],
@@ -810,6 +833,20 @@ mjb_result_free(&result);`
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
+    exampleFeature: 'MJB_FEATURE_IDNA',
+    examples: {
+      cpp: `// "bücher.example"
+std::string domain = "b\\xC3\\xBC" "cher.example";
+std::string output;
+
+// Returns the mjb_idna_error flags
+if(mjb::idna_to_ascii(domain, output) != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// xn--bcher-kva.example
+std::cout << output << std::endl;`
+    },
     related: ['mjb_idna_to_ascii', 'mjb_idna_to_unicode',
       'mjb_idna_to_unicode_into'],
     specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
@@ -864,7 +901,15 @@ if(mjb_idna_to_unicode(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK 
 
 // bücher.example
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`
+mjb_result_free(&result);`,
+      cpp: `auto domain = mjb::idna_to_unicode("xn--bcher-kva.example");
+
+if(!domain.valid()) {
+    return 1;
+}
+
+// bücher.example
+std::cout << domain.text << std::endl;`
     },
     related: ['mjb_idna_to_unicode_into', 'mjb_idna_to_ascii',
       'mjb_idna_to_ascii_into'],
@@ -912,6 +957,19 @@ mjb_result_free(&result);`
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
+    exampleFeature: 'MJB_FEATURE_IDNA',
+    examples: {
+      cpp: `std::string domain = "xn--bcher-kva.example";
+std::string output;
+
+// Returns the mjb_idna_error flags
+if(mjb::idna_to_unicode(domain, output) != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// bücher.example
+std::cout << output << std::endl;`
+    },
     related: ['mjb_idna_to_unicode', 'mjb_idna_to_ascii',
       'mjb_idna_to_ascii_into'],
     specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
