@@ -32,16 +32,12 @@ function exampleSource(fn: MojibakeFunction): string {
     if(line.startsWith('std::cout << ')) {
       currentComment = output[output.length - 1] || '';
       currentComment = currentComment.replace(/^\/\/ /, '');
-
-      stdout.push(line.replace(/^std::cout/, 'oss') + ' // Added by the script');
-      commentedStdout.push(`// ${line}`);
       inOutput = true;
-
-      continue;
     }
 
+    // A std::cout statement may span multiple lines and ends with a semicolon.
     if(inOutput) {
-      stdout.push(line + ' // Added by the script');
+      stdout.push(line.replace(/^std::cout/, 'oss') + ' // Added by the script');
       commentedStdout.push(`// ${line}`);
 
       if(line.endsWith(';')) {
@@ -54,9 +50,9 @@ function exampleSource(fn: MojibakeFunction): string {
         stdout = [];
 
         output.push(`ATT_ASSERT(oss.str(), "${currentComment}\\n", "${fn.name} test failed"); // Added by the script`)
-
-        continue;
       }
+
+      continue;
     }
 
     output.push(line);
@@ -76,6 +72,7 @@ ${featureStart}\
 ${generated}
     oss.str("");
     oss.clear();
+    oss.copyfmt(std::ostringstream());
 }
 ${featureEnd}\
 `;

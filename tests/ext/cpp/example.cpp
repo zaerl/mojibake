@@ -7,7 +7,6 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
-#include <format>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -20,21 +19,25 @@ ATT_TEST(cpp_example) {
 {
     // Example for mjb_codepoint_info
     MJB_TEST_COVERAGE(mjb_codepoint_info); // Added by the script
-    auto character = mjb::Character::from(0x022A);
+    // U+0665 ARABIC-INDIC DIGIT FIVE
+    auto character = mjb::Character::from(0x0665);
 
-    if(!character || !character->lowercase()) {
+    if(!character) {
         ATT_ASSERT(0, 1, "mjb_codepoint_info test failed"); // Added by the script
         return;
     }
 
-    // U+022A lowercase: U+022B
-    // std::cout << std::format("U+{:04X} lowercase: U+{:04X}", character->codepoint(),
-    //     *character->lowercase()) << std::endl;
-    oss << std::format("U+{:04X} lowercase: U+{:04X}", character->codepoint(), // Added by the script
-        *character->lowercase()) << std::endl; // Added by the script
-    ATT_ASSERT(oss.str(), "U+022A lowercase: U+022B\n", "mjb_codepoint_info test failed"); // Added by the script
+    bool is_digit = character->category() == MJB_CATEGORY_ND;
+
+    // Decimal digit: yes, value: 5
+    // std::cout << "Decimal digit: " << (is_digit ? "yes" : "no") << ", value: "
+    //     << character->decimal_value().value_or(-1) << std::endl;
+    oss << "Decimal digit: " << (is_digit ? "yes" : "no") << ", value: " // Added by the script
+        << character->decimal_value().value_or(-1) << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "Decimal digit: yes, value: 5\n", "mjb_codepoint_info test failed"); // Added by the script
     oss.str("");
     oss.clear();
+    oss.copyfmt(std::ostringstream());
 }
     // End of generated examples.
 }
