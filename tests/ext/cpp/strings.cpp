@@ -7,6 +7,7 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
+#include <cstddef>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -19,6 +20,9 @@ static_assert(std::is_convertible_v<std::u16string, mjb::Text>, "Text from std::
 static_assert(std::is_convertible_v<const char32_t *, mjb::Text>, "Text from a UTF-32 literal");
 static_assert(!std::is_convertible_v<int, mjb::Text>, "No Text from an integer");
 static_assert(!std::is_convertible_v<std::wstring, mjb::Text>, "No Text from std::wstring");
+static_assert(std::is_convertible_v<const char8_t *, mjb::Text>, "Text from a UTF-8 literal");
+static_assert(std::is_convertible_v<std::u8string, mjb::Text>, "Text from std::u8string");
+static_assert(!std::is_convertible_v<std::nullptr_t, mjb::Text>, "No Text from nullptr");
 
 // UTF-16 and UTF-32 strings in the platform's byte order. Attractor does not print char16_t or
 // char32_t strings, so results are compared with == and asserted as booleans.
@@ -56,7 +60,7 @@ ATT_TEST(cpp_strings) {
     ATT_ASSERT(mjb::nfkc(u"\uFB01") == u"fi", true, "UTF-16 nfkc");
     ATT_ASSERT(mjb::nfkd(U"\u00C5") == U"A\u030A", true, "UTF-32 nfkd");
     ATT_ASSERT(mjb::uppercase(u"stra\u00DFe") == u"STRASSE", true, "UTF-16 uppercase");
-    ATT_ASSERT(mjb::uppercase(U"istanbul", MJB_LOCALE_TR) == U"\u0130STANBUL", true,
+    ATT_ASSERT(mjb::uppercase(U"istanbul", { .locale = MJB_LOCALE_TR }) == U"\u0130STANBUL", true,
         "UTF-32 uppercase with a locale");
     ATT_ASSERT(mjb::lowercase(u"HELLO") == u"hello", true, "UTF-16 lowercase");
     ATT_ASSERT(mjb::titlecase(U"hello world") == U"Hello World", true, "UTF-32 titlecase");
@@ -70,6 +74,17 @@ ATT_TEST(cpp_strings) {
     ATT_ASSERT(mjb::confusable_skeleton(u"h\u0435llo") == mjb::confusable_skeleton(u"hello"), true,
         "UTF-16 confusable_skeleton");
 #endif
+
+    // UTF-8 in char8_t strings, the type of u8"..." literals since C++20
+    ATT_ASSERT(mjb::nfc(u8"Cafe\u0301") == u8"Caf\u00E9", true, "char8_t nfc");
+    ATT_ASSERT(mjb::grapheme_count(u8"caf\u00E9"), (size_t)4, "char8_t grapheme_count");
+    ATT_ASSERT(mjb::Text(u8"a").encoding() == MJB_ENC_UTF_8, true, "Text from char8_t is UTF-8");
+
+    // An explicit encoding returns bytes in that encoding
+    ATT_ASSERT(mjb::nfc(mjb::Text(std::string_view("\0e\x03\x01", 4), MJB_ENC_UTF_16BE)),
+        std::string("\0\xE9", 2), "nfc of explicit UTF-16BE bytes keeps the encoding");
+    ATT_ASSERT(mjb::convert_encoding<char32_t>(u"A\U0001F642") == U"A\U0001F642", true,
+        "convert_encoding to a new std::u32string");
 
     const std::u16string owned_input(u"e\u0301");
     ATT_ASSERT(mjb::nfc(owned_input) == u"\u00E9", true, "UTF-16 nfc from a std::u16string");

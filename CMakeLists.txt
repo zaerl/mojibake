@@ -96,6 +96,9 @@ function(mjb_configure_target target)
             ${target}
             PRIVATE
                 /W4
+                # Read sources as UTF-8 like GCC and Clang, not in the system code page, which
+                # mangles non-ASCII characters in u8"", u"", and U"" literals
+                /utf-8
                 $<$<COMPILE_LANGUAGE:CXX>:/permissive->
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:/Zi>
                 $<$<OR:$<CONFIG:Debug>,$<CONFIG:Test>>:/Od>

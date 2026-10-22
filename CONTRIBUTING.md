@@ -19,8 +19,9 @@ you see "This file/enum/function is automatically generated. Do not edit", don't
 
 ### Requirements
 
-Mojibake requires a C11 compiler. Building the C sources as C++, including the header-only C++
-wrapper, requires C++17. The minimum supported compiler versions are:
+Mojibake requires a C11 compiler. Building the C sources as C++ requires C++17, and the
+header-only C++ wrapper requires C++20 with concepts and `<ranges>`. The minimum supported compiler
+versions for the library are:
 
 | Toolchain | Minimum version | Language modes |
 | --- | --- | --- |
@@ -30,6 +31,9 @@ wrapper, requires C++17. The minimum supported compiler versions are:
 | MSVC | 19.30 (Visual Studio 2022) | C11 and C++17 |
 
 CI builds and smoke-tests both language modes with the exact GCC 9 and LLVM Clang 10 baselines.
+Those compilers lack C++20 support, so the test suite skips the C++ wrapper tests there. A C++
+job runs them only when its compiler passes the C++20 check in `tests/CMakeLists.txt` (GCC 10 and
+later do; Clang 14 with libstdc++ does not).
 The macOS and Windows jobs continuously test the supported Apple Clang and MSVC families using the
 hosted platform toolchains. MinGW-w64 and Emscripten are also tested as rolling compatibility
 targets.

@@ -180,7 +180,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   policy-aware codepoint counting (`mjb_codepoint_count`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
 - **Embeddable**: context-aware custom allocators that receive block sizes
-  (`mjb_set_allocator`), build-time feature flags to trim table size, a C++17 wrapper
+  (`mjb_set_allocator`), build-time feature flags to trim table size, a C++20 wrapper
   (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a WASM + TypeScript API (`src/api`)
 - **Tested**: Mojibake uses [Attractor](https://github.com/zaerl/attractor/) as test suite and run
   [1.5M+ assertions](https://github.com/zaerl/mojibake/blob/main/TESTS.md) including the
@@ -191,8 +191,8 @@ byte input
 
 ## Minimum requirements
 
-Mojibake requires a C11 compiler. Building the sources as C++, including the header-only C++
-wrapper, requires C++17. The minimum supported compiler versions are:
+Mojibake requires a C11 compiler. Building the sources as C++ requires C++17, and the header-only
+C++ wrapper requires C++20. The minimum supported compiler versions are:
 
 | Toolchain   | Minimum version            |
 | ----------- | -------------------------- |
@@ -247,9 +247,10 @@ Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WA
 
 Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
 
-### C++17 wrapper
+### C++20 wrapper
 
-Mojibake also has a tiny C++ wrapper. Check here for details:
+Mojibake also has a header-only C++20 wrapper with standard ranges, option structs, and
+`std::system_error` exceptions. Check here for details:
 [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md)
 
 ### Build-time features

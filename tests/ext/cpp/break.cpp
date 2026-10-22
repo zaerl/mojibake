@@ -7,10 +7,11 @@
 #include "../../../src/cpp/mojibake.hpp"
 #include "../../test.h"
 
+#include <algorithm>
 #include <iterator>
+#include <ranges>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -29,17 +30,32 @@ static bool same(const std::vector<std::string> &actual, const std::vector<std::
     return actual == expected;
 }
 
-// A range over a temporary string would dangle in a range-based for loop, so it is rejected.
-template <typename T, typename = void> struct can_segment : std::false_type {};
+// A range or a prefix over a temporary string would dangle, so it is rejected.
+template <typename T>
+concept can_segment = requires(T &&input) { mjb::graphemes(std::forward<T>(input)); };
 
 template <typename T>
-struct can_segment<T, std::void_t<decltype(mjb::graphemes(std::declval<T>()))>> : std::true_type {};
+concept can_truncate = requires(T &&input) { mjb::grapheme_truncate(std::forward<T>(input), 1); };
 
-static_assert(!can_segment<std::string>::value, "graphemes rejects a temporary std::string");
-static_assert(!can_segment<std::u16string>::value, "graphemes rejects a temporary std::u16string");
-static_assert(can_segment<std::string &>::value, "graphemes accepts a std::string lvalue");
-static_assert(can_segment<std::string_view>::value, "graphemes accepts a std::string_view");
-static_assert(can_segment<const char *>::value, "graphemes accepts a literal");
+static_assert(!can_segment<std::string>, "graphemes rejects a temporary std::string");
+static_assert(!can_segment<std::u16string>, "graphemes rejects a temporary std::u16string");
+static_assert(can_segment<std::string &>, "graphemes accepts a std::string lvalue");
+static_assert(can_segment<std::string_view>, "graphemes accepts a std::string_view");
+static_assert(can_segment<const char (&)[4]>, "graphemes accepts a literal");
+static_assert(!can_truncate<std::u32string>, "grapheme_truncate rejects a temporary string");
+static_assert(can_truncate<const std::string &>, "grapheme_truncate accepts a std::string lvalue");
+
+// The ranges are C++20 views whose iterators outlive the range
+static_assert(std::ranges::view<mjb::GraphemeRange<char>>, "GraphemeRange is a view");
+static_assert(std::ranges::forward_range<mjb::WordRange<char16_t>>, "WordRange is forward");
+static_assert(std::ranges::borrowed_range<mjb::SentenceRange<char32_t>>,
+    "SentenceRange is borrowed");
+static_assert(std::ranges::view<mjb::CodepointRange>, "CodepointRange is a view");
+static_assert(std::ranges::forward_range<mjb::LineBreaks>, "LineBreaks is forward");
+
+template <typename Range> static size_t count_of(const Range &range) {
+    return static_cast<size_t>(std::ranges::distance(range));
+}
 
 ATT_TEST(cpp_break) {
     mjb::BreakResult r1{ 1, 0x41, MJB_BT_MANDATORY };
@@ -59,136 +75,73 @@ ATT_TEST(cpp_break) {
     ATT_ASSERT(r3.is_mandatory(), false, "BreakResult::is_no_break => !is_mandatory");
     ATT_ASSERT(r3.is_allowed(), false, "BreakResult::is_no_break => !is_allowed");
     ATT_ASSERT(r3.is_break(), false, "BreakResult::is_no_break => !is_break");
+    ATT_ASSERT(r1 == r1 && !(r1 == r2), true, "BreakResult equality");
 
-    mjb::WordBreaker wb("Hello world");
-    ATT_ASSERT(wb.is_done(), false, "WordBreaker::is_done initial");
+    // Every codepoint after the first reports a position, the last one at the end of the text
+    ATT_ASSERT(count_of(mjb::word_breaks("Hello world")), (size_t)11, "word_breaks count");
+    ATT_ASSERT(count_of(mjb::sentence_breaks("Hello world. Goodbye.")), (size_t)21,
+        "sentence_breaks count");
+    ATT_ASSERT(count_of(mjb::line_breaks("foo bar")), (size_t)7, "line_breaks count");
+    ATT_ASSERT(count_of(mjb::grapheme_breaks("abc")), (size_t)3, "grapheme_breaks count");
+    ATT_ASSERT(mjb::word_breaks("").empty(), true, "word_breaks of empty text");
 
-    int count = 0;
+    // A range can be iterated again from the start
+    const auto words_breaks = mjb::word_breaks("Hello world");
+    ATT_ASSERT(count_of(words_breaks), count_of(words_breaks), "break ranges are multi-pass");
 
-    while(wb.next()) {
-        ++count;
-    }
-
-    ATT_ASSERT(wb.is_done(), true, "WordBreaker::is_done after exhaustion");
-    ATT_ASSERT(wb.next().has_value(), false, "WordBreaker::next after done returns nullopt");
-
-    wb.reset();
-    ATT_ASSERT(wb.is_done(), false, "WordBreaker::is_done after reset");
-
-    int count2 = 0;
-    wb.for_each([&](const mjb::BreakResult &) { ++count2; });
-    ATT_ASSERT(count, count2, "WordBreaker: for_each gives same count as manual next()");
-
-    // Test SentenceBreaker
-    mjb::SentenceBreaker sb("Hello world. Goodbye.");
-    count = 0;
-    while(sb.next()) {
-        ++count;
-    }
-    ATT_ASSERT(sb.is_done(), true, "SentenceBreaker::is_done after exhaustion");
-
-    sb.reset();
-    count2 = 0;
-    sb.for_each([&](const mjb::BreakResult &) { ++count2; });
-    ATT_ASSERT(count, count2, "SentenceBreaker: for_each gives same count as manual next()");
-
-    // Test LineBreaker
-    mjb::LineBreaker lb("foo bar");
-    count = 0;
-
-    while(lb.next()) {
-        ++count;
-    }
-
-    ATT_ASSERT(lb.is_done(), true, "LineBreaker::is_done after exhaustion");
-
-    lb.reset();
-    count2 = 0;
-    lb.for_each([&](const mjb::BreakResult &) { ++count2; });
-    ATT_ASSERT(count, count2, "LineBreaker: for_each gives same count as manual next()");
-
-    // Test GraphemeBreaker
-    mjb::GraphemeBreaker gb("abc");
-    count = 0;
-    while(gb.next()) {
-        ++count;
-    }
-    ATT_ASSERT(gb.is_done(), true, "GraphemeBreaker::is_done after exhaustion");
-
-    gb.reset();
-    count2 = 0;
-    gb.for_each([&](const mjb::BreakResult &) { ++count2; });
-
-    ATT_ASSERT(count, count2, "GraphemeBreaker: for_each gives same count as manual next()");
+    const auto line_opportunities = mjb::line_breaks("foo bar");
+    const auto allowed = std::ranges::count_if(line_opportunities,
+        [](const mjb::BreakResult &result) { return result.is_break(); });
+    ATT_ASSERT((size_t)allowed, (size_t)2, "line_breaks works with standard algorithms");
 
     // The codepoint is the one that starts at the position, also after a rule absorbs U+200B
     const std::string_view zwsp("a\xE2\x80\x8B"
                                 "b");
-    mjb::SentenceBreaker zwsp_sentences(zwsp);
-    auto zwsp_first = zwsp_sentences.next();
-    ATT_ASSERT(zwsp_first.has_value() && zwsp_first->position == 1, true,
-        "SentenceBreaker: first position before U+200B");
-    ATT_ASSERT(zwsp_first->codepoint, (mjb_codepoint)0x200B,
-        "SentenceBreaker: codepoint after SB5 absorption");
-    auto zwsp_second = zwsp_sentences.next();
-    ATT_ASSERT(zwsp_second.has_value() && zwsp_second->position == 4, true,
-        "SentenceBreaker: second position before b");
-    ATT_ASSERT(zwsp_second->codepoint, (mjb_codepoint)'b', "SentenceBreaker: codepoint b");
-    auto zwsp_end = zwsp_sentences.next();
-    ATT_ASSERT(zwsp_end.has_value() && zwsp_end->position == zwsp.size(), true,
-        "SentenceBreaker: end position");
-    ATT_ASSERT(zwsp_end->codepoint, MJB_CODEPOINT_NOT_VALID,
-        "SentenceBreaker: no codepoint at the end");
+    auto zwsp_sentences = mjb::sentence_breaks(zwsp).begin();
+    ATT_ASSERT(zwsp_sentences->position, (size_t)1, "sentence_breaks: first position before U+200B");
+    ATT_ASSERT(zwsp_sentences->codepoint, (mjb_codepoint)0x200B,
+        "sentence_breaks: codepoint after SB5 absorption");
+    ++zwsp_sentences;
+    ATT_ASSERT(zwsp_sentences->position, (size_t)4, "sentence_breaks: second position before b");
+    ATT_ASSERT(zwsp_sentences->codepoint, (mjb_codepoint)'b', "sentence_breaks: codepoint b");
+    ++zwsp_sentences;
+    ATT_ASSERT(zwsp_sentences->position, zwsp.size(), "sentence_breaks: end position");
+    ATT_ASSERT(zwsp_sentences->codepoint, MJB_CODEPOINT_NOT_VALID,
+        "sentence_breaks: no codepoint at the end");
+    ++zwsp_sentences;
+    ATT_ASSERT(zwsp_sentences == std::default_sentinel, true, "sentence_breaks: exhausted");
 
-    mjb::WordBreaker extend_words("e\xCC\x81x");
-    auto extend_first = extend_words.next();
-    ATT_ASSERT(extend_first.has_value() && extend_first->position == 1, true,
-        "WordBreaker: first position before U+0301");
-    ATT_ASSERT(extend_first->codepoint, (mjb_codepoint)0x0301,
-        "WordBreaker: codepoint after WB4 absorption");
+    const auto extend_first = *mjb::word_breaks("e\xCC\x81x").begin();
+    ATT_ASSERT(extend_first.position, (size_t)1, "word_breaks: first position before U+0301");
+    ATT_ASSERT(extend_first.codepoint, (mjb_codepoint)0x0301,
+        "word_breaks: codepoint after WB4 absorption");
 
     // Positions are bytes in the input's encoding, here UTF-16
-    mjb::GraphemeBreaker utf16_graphemes(u"A\U0001F642");
-    auto utf16_first = utf16_graphemes.next();
-    ATT_ASSERT(utf16_first.has_value() && utf16_first->position == 2, true,
-        "GraphemeBreaker: UTF-16 position in bytes");
-    ATT_ASSERT(utf16_first->codepoint, (mjb_codepoint)0x1F642,
-        "GraphemeBreaker: UTF-16 surrogate pair codepoint");
+    const auto utf16_first = *mjb::grapheme_breaks(u"A\U0001F642").begin();
+    ATT_ASSERT(utf16_first.position, (size_t)2, "grapheme_breaks: UTF-16 position in bytes");
+    ATT_ASSERT(utf16_first.codepoint, (mjb_codepoint)0x1F642,
+        "grapheme_breaks: UTF-16 surrogate pair codepoint");
 
-    mjb::GraphemeBreaker malformed_graphemes("a\x80"
-                                             "b");
-    auto malformed_first = malformed_graphemes.next();
-    ATT_ASSERT(malformed_first.has_value() && malformed_first->codepoint == 0xFFFD, true,
-        "GraphemeBreaker: U+FFFD for a malformed byte");
-
-    // Test for_each continues from current position (does not reset)
-    mjb::WordBreaker wb2("Hello");
-    (void)wb2.next(); // advance one step
-
-    int after_one = 0;
-    wb2.for_each([&](const mjb::BreakResult &) { ++after_one; });
-
-    wb2.reset();
-    int total = 0;
-    wb2.for_each([&](const mjb::BreakResult &) { ++total; });
-
-    ATT_ASSERT(after_one + 1, total, "WordBreaker::for_each continues from current position");
+    const auto malformed_first = *mjb::grapheme_breaks("a\x80"
+                                                       "b")
+                                      .begin();
+    ATT_ASSERT(malformed_first.codepoint, (mjb_codepoint)0xFFFD,
+        "grapheme_breaks: U+FFFD for a malformed byte");
 
     // A single character has one position, the end of the text, where no codepoint starts
-    mjb::GraphemeBreaker gb2("a");
-    auto result = gb2.next();
-    ATT_ASSERT(result.has_value(), true, "GraphemeBreaker::next returns value for single char");
-    ATT_ASSERT(result->position, (size_t)1, "GraphemeBreaker: end position after 'a'");
-    ATT_ASSERT(result->codepoint, MJB_CODEPOINT_NOT_VALID, "GraphemeBreaker: no codepoint at end");
-    ATT_ASSERT(gb2.next().has_value(), false, "GraphemeBreaker: exhausted after single char");
+    auto single = mjb::grapheme_breaks("a").begin();
+    ATT_ASSERT(single->position, (size_t)1, "grapheme_breaks: end position after 'a'");
+    ATT_ASSERT(single->codepoint, MJB_CODEPOINT_NOT_VALID, "grapheme_breaks: no codepoint at end");
+    ATT_ASSERT(++single == std::default_sentinel, true,
+        "grapheme_breaks: exhausted after a single character");
 
-    // Test empty string
-    mjb::WordBreaker wb3("");
-    ATT_ASSERT(wb3.next().has_value(), false, "WordBreaker::next on empty string returns nullopt");
-    ATT_ASSERT(wb3.is_done(), true, "WordBreaker::is_done on empty string");
-
-    ATT_ASSERT(std::string(wb.input()), std::string("Hello world"), "Breaker::input");
-    ATT_ASSERT((int)wb.input_encoding(), MJB_ENC_UTF_8, "Breaker::input_encoding");
+    // BreakResult reports the byte offset of each position
+    auto two_byte = mjb::grapheme_breaks("a\xC3\xA9"
+                                         "b")
+                        .begin();
+    ATT_ASSERT(two_byte->position, (size_t)1, "BreakResult position after the first codepoint");
+    ++two_byte;
+    ATT_ASSERT(two_byte->position, (size_t)3, "BreakResult position after a two-byte codepoint");
 
     mjb::BidiParagraph paragraph("abc");
     ATT_ASSERT(paragraph.empty(), false, "BidiParagraph::empty");
@@ -196,6 +149,15 @@ ATT_TEST(cpp_break) {
     ATT_ASSERT((int)paragraph.direction(), MJB_DIRECTION_LTR, "BidiParagraph::direction");
     ATT_ASSERT(paragraph[0].codepoint, (mjb_codepoint)'a', "BidiParagraph::operator[]");
     ATT_ASSERT(paragraph.at(2).codepoint, (mjb_codepoint)'c', "BidiParagraph::at");
+    ATT_ASSERT(paragraph.chars().size(), (size_t)3, "BidiParagraph::chars");
+
+    size_t bidi_chars = 0;
+
+    for(const mjb_bidi_char &bidi_char : paragraph) {
+        bidi_chars += bidi_char.level == 0 ? 1 : 0;
+    }
+
+    ATT_ASSERT(bidi_chars, (size_t)3, "BidiParagraph iterates its characters");
 
     const auto order = paragraph.visual_order();
     ATT_ASSERT(order.size(), 3u, "BidiParagraph::visual_order size");
@@ -215,15 +177,8 @@ ATT_TEST(cpp_break) {
     ATT_ASSERT((int)rtl.direction(), MJB_DIRECTION_RTL, "BidiParagraph RTL direction");
     ATT_ASSERT(rtl_order[0], 2u, "BidiParagraph RTL visual order");
 
-    // BreakResult reports the byte offset of each position
-    mjb::GraphemeBreaker grapheme_breaker("a\xC3\xA9"
-                                          "b");
-    const auto first_position = grapheme_breaker.next();
-    const auto second_position = grapheme_breaker.next();
-    ATT_ASSERT(first_position.has_value() && first_position->position == 1, true,
-        "BreakResult position after the first codepoint");
-    ATT_ASSERT(second_position.has_value() && second_position->position == 3, true,
-        "BreakResult position after a two-byte codepoint");
+    mjb::BidiParagraph utf16_paragraph(u"\u05D0b");
+    ATT_ASSERT(utf16_paragraph.size(), (size_t)2, "BidiParagraph of UTF-16 text");
 
     // Segment ranges
     ATT_ASSERT((same(collect(mjb::graphemes("Ae\xCC\x81\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9")),
@@ -248,8 +203,24 @@ ATT_TEST(cpp_break) {
     ATT_ASSERT(owned_count, (size_t)2, "graphemes over a std::string lvalue");
 
     const auto clusters = mjb::graphemes(owned);
-    ATT_ASSERT((size_t)std::distance(clusters.begin(), clusters.end()), mjb::grapheme_count(owned),
+    ATT_ASSERT(count_of(clusters), mjb::grapheme_count(owned),
         "graphemes works with standard algorithms");
+
+    // Views compose with the standard range adaptors
+    std::vector<std::string> first_words;
+
+    for(const std::string_view word : mjb::words("one two three") | std::views::take(3)) {
+        first_words.emplace_back(word);
+    }
+
+    ATT_ASSERT((same(first_words, { "one", " ", "two" })), true, "words with std::views::take");
+
+    // A borrowed range's iterator stays valid after the range is gone
+    const std::string_view flag_text("x\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9");
+    const auto flag = std::ranges::find_if(mjb::graphemes(flag_text),
+        [](std::string_view cluster) { return cluster.size() > 1; });
+    ATT_ASSERT(std::string(*flag), std::string("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"),
+        "graphemes iterator outlives a temporary range");
 
     std::vector<std::u16string> utf16_clusters;
 

@@ -8,7 +8,7 @@ Mojibake is a small, portable Unicode library. The core is strict C11 and is als
 C++17 to catch C/C++ compatibility regressions. The repository contains:
 
 - the C library and public headers in `src/`
-- a header-only C++ wrapper in `src/cpp/mojibake.hpp`
+- a header-only C++20 wrapper in `src/cpp/mojibake.hpp`
 - a native command-line client in `src/shell/`
 - an Emscripten/WASM module and TypeScript API in `src/api/`
 - a generated single-file distribution in `build-amalgamation/`
@@ -16,7 +16,8 @@ C++17 to catch C/C++ compatibility regressions. The repository contains:
 
 CMake is the underlying build system; the root `Makefile` is the normal POSIX entry point.
 `Makefile.nmake` provides the corresponding Windows/MSVC entry points. The public C API requires a
-C11 compiler, and builds with `MJB_BUILD_CPP=ON` require C++17.
+C11 compiler, and builds with `MJB_BUILD_CPP=ON` require C++17. The C++ wrapper and its tests
+require C++20; `tests/CMakeLists.txt` skips the wrapper tests when the compiler lacks it.
 
 The checked-in data currently targets Unicode 18. Take the authoritative library and Unicode
 versions from `CMakeLists.txt`, `src/mojibake.h`, and the generator scripts rather than duplicating
@@ -80,7 +81,8 @@ finishing:
 - `make test ARGS="-f normalization"` - run C tests whose registered name contains
   `normalization`
 - `make test` - run the full C test executable
-- `make test-cpp` - compile all C sources and C tests as C++17 and run the C++ wrapper tests
+- `make test-cpp` - compile the library as C++17 and the tests as C++20, then run them with the
+  C++ wrapper tests
 - `make test-asan` - run the C tests with AddressSanitizer
 - `make test-ubsan` - run the C tests with UndefinedBehaviorSanitizer
 - `make test-no-names` - test with character-name tables disabled
