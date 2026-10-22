@@ -8,7 +8,7 @@ import { readFileSync } from 'fs';
 import hljs from 'highlight.js/lib/core';
 import c from 'highlight.js/lib/languages/c';
 import functions, {
-  MojibakeArg, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef, Section
+  MojibakeArg, MojibakeExamples, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef, Section
 } from './functions';
 import {
   caseModes, caseType, caseTypeValues, categories, collationStrengths,
@@ -53,7 +53,7 @@ export class CFunction implements MojibakeFunction {
   public section: Section;
   public details?: string;
   public returns?: MojibakeReturnCase[];
-  public example?: string;
+  public examples?: MojibakeExamples;
   public related?: string[];
   public specs?: MojibakeSpecRef[];
 
@@ -69,7 +69,7 @@ export class CFunction implements MojibakeFunction {
     this.section = fn.section;
     this.details = fn.details;
     this.returns = fn.returns;
-    this.example = fn.example;
+    this.examples = fn.examples;
     this.related = fn.related;
     this.specs = fn.specs;
 
@@ -152,8 +152,8 @@ export class CFunction implements MojibakeFunction {
       ).join('\n');
     }
 
-    if(this.example) {
-      ret += `\n\n**Example**\n\n\`\`\`c\n${this.example}\n\`\`\``;
+    if(this.examples?.c) {
+      ret += `\n\n**Example**\n\n\`\`\`c\n${this.examples.c}\n\`\`\``;
     }
 
     if(this.related?.length) {
@@ -183,7 +183,7 @@ export class CFunction implements MojibakeFunction {
       section: this.section,
       details: this.details,
       returns: this.returns,
-      example: this.example,
+      examples: this.examples,
       related: this.related,
       specs: this.specs,
     });
@@ -253,10 +253,10 @@ export class CFunction implements MojibakeFunction {
       ret += '\n          </ul>';
     }
 
-    if(this.example) {
+    if(this.examples?.c) {
       ret += '\n          <h3>Example</h3>' +
         `\n          <pre><code class="hljs language-c">${
-          hljs.highlight(this.example, { language: 'c' }).value
+          hljs.highlight(this.examples.c, { language: 'c' }).value
         }</code></pre>`;
     }
 

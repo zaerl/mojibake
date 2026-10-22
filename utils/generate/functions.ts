@@ -40,6 +40,10 @@ export enum Section {
   Utility
 }
 
+export type MojibakeExamples = {
+  c?: string;
+};
+
 export type MojibakeFunction = {
   comment: string;
   ret: string;
@@ -54,8 +58,8 @@ export type MojibakeFunction = {
   details?: string;
   // Documented return values.
   returns?: MojibakeReturnCase[];
-  // Compilable C example. See utils/generate/generate-examples.ts
-  example?: string;
+  // Examples by language.
+  examples?: MojibakeExamples;
   // Preprocessor feature required to compile and run the example.
   exampleFeature?: string;
   // Names of related public functions.
@@ -234,14 +238,16 @@ export default [
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`character` is NULL or the codepoint is not valid' },
       { value: 'MJB_STATUS_NOT_FOUND', description: 'The codepoint is not assigned' }
     ],
-    example: `mjb_character character;
+    examples: {
+      c: `mjb_character character;
 
 if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
     return 1;
 }
 
 // U+022A lowercase: U+022B
-printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
+printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`
+    },
     related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_binary',
       'mjb_codepoint_property_int'],
     specs: [uax(44, 'Unicode Character Database')]
@@ -286,7 +292,8 @@ printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `// "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    examples: {
+      c: `// "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_text input = mjb_text_utf8("Cafe\\xCC\\x81", MJB_NUL_TERMINATED);
 mjb_result result;
 
@@ -298,7 +305,8 @@ if(mjb_normalize(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_
 // NFC: Café
 printf("NFC: %.*s", (int)result.output_size, result.output);
 
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_normalize_into', 'mjb_normalization_quick_check', 'mjb_filter',
       'mjb_filter_into'],
     specs: [uax(15, 'Unicode Normalization Forms')]
@@ -352,7 +360,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `const char *cafe = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    examples: {
+      c: `const char *cafe = "Cafe\\xCC\\x81"; // "Cafe" + U+0301 COMBINING ACUTE ACCENT
 mjb_text input = mjb_text_utf8(cafe, strlen(cafe));
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
@@ -376,7 +385,8 @@ if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output
 }
 
 // NFC payload (no terminator): Café
-printf("NFC payload (no terminator): %.*s", (int)output.size, storage);`,
+printf("NFC payload (no terminator): %.*s", (int)output.size, storage);`
+    },
     related: ['mjb_normalize', 'mjb_normalization_quick_check', 'mjb_filter_into',
       'mjb_nfkc_casefold_into'],
     specs: [uax(15, 'Unicode Normalization Forms')]
@@ -420,7 +430,8 @@ printf("NFC payload (no terminator): %.*s", (int)output.size, storage);`,
     ],
     wasm: true,
     section: Section.TextTransformation,
-    example: `mjb_text mixed_whitespace = mjb_text_utf8("Hello\\t\\t\\n\\nworld", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text mixed_whitespace = mjb_text_utf8("Hello\\t\\t\\n\\nworld", MJB_NUL_TERMINATED);
 mjb_result result;
 
 if(mjb_filter(&mixed_whitespace, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, MJB_ENC_UTF_8,
@@ -443,7 +454,8 @@ if(mjb_filter(&controls, MJB_MALFORMED_STOP, MJB_FILTER_CONTROLS, MJB_ENC_UTF_8,
 // Filtered: \\t\\n\\v\\f\\r
 printf("Filtered: %.*s", (int)result.output_size, result.output);
 
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_filter_into', 'mjb_normalize']
   },
   {
@@ -495,7 +507,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Hello\\t\\t\\nworld", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello\\t\\t\\nworld", MJB_NUL_TERMINATED);
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
 // Query the required size
@@ -518,7 +531,8 @@ if(mjb_filter_into(&input, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, &outp
 }
 
 // Filtered payload (no terminator): Hello world
-printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);`,
+printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);`
+    },
     related: ['mjb_filter', 'mjb_normalize']
   },
   {
@@ -555,7 +569,8 @@ printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);`,
         'result codepoint' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F" "e\\xC2\\xAD", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F" "e\\xC2\\xAD", MJB_NUL_TERMINATED);
 mjb_result result;
 
 if(mjb_nfkc_casefold(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result,
@@ -565,7 +580,8 @@ if(mjb_nfkc_casefold(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result,
 
 // strasse
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_nfkc_casefold_into', 'mjb_normalize', 'mjb_map_case', 'mjb_is_identifier'],
     specs: [
       unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992'),
@@ -614,7 +630,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F" "e\\xC2\\xAD", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F" "e\\xC2\\xAD", MJB_NUL_TERMINATED);
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
 // Query the required size
@@ -635,7 +652,8 @@ if(mjb_nfkc_casefold_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STAT
 }
 
 // NFKC casefold payload (no terminator): strasse
-printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage);`,
+printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage);`
+    },
     related: ['mjb_nfkc_casefold', 'mjb_normalize', 'mjb_map_case', 'mjb_is_identifier'],
     specs: [
       unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992'),
@@ -682,7 +700,8 @@ printf("NFKC casefold payload (no terminator): %.*s", (int)output.size, storage)
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
-    example: `// "bücher.example"
+    examples: {
+      c: `// "bücher.example"
 mjb_text domain = mjb_text_utf8("b\\xC3\\xBC" "cher.example", MJB_NUL_TERMINATED);
 mjb_idna_info info;
 mjb_result result;
@@ -694,7 +713,8 @@ if(mjb_idna_to_ascii(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK ||
 
 // xn--bcher-kva.example
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_idna_to_ascii_into', 'mjb_idna_to_unicode',
       'mjb_idna_to_unicode_into'],
     specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
@@ -783,7 +803,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_IDNA=0`' }
     ],
-    example: `mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
 mjb_idna_info info;
 mjb_result result;
 
@@ -794,7 +815,8 @@ if(mjb_idna_to_unicode(&domain, MJB_ENC_UTF_8, &info, &result) != MJB_STATUS_OK 
 
 // bücher.example
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_idna_to_unicode_into', 'mjb_idna_to_ascii',
       'mjb_idna_to_ascii_into'],
     specs: [uts(46, 'Unicode IDNA Compatibility Processing')]
@@ -878,7 +900,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_INVALID_FORM', description: '`form` is not NFC, NFD, NFKC, or NFKD' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description: 'The input contains an ill-formed code-unit sequence' }
     ],
-    example: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
 mjb_quick_check_result check;
 
 if(mjb_normalization_quick_check(&input, MJB_NORMALIZATION_NFC, &check) != MJB_STATUS_OK) {
@@ -886,7 +909,8 @@ if(mjb_normalization_quick_check(&input, MJB_NORMALIZATION_NFC, &check) != MJB_S
 }
 
 // NFC normalized: yes
-printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
+printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`
+    },
     related: ['mjb_normalize'],
     specs: [uax(15, 'Unicode Normalization Forms')]
   },
@@ -909,12 +933,14 @@ printf("NFC normalized: %s", check == MJB_QC_YES ? "yes" : "no");`,
       'an initial U+FEFF as text. When flags overlap, as with a UTF-32LE BOM that also has the ' +
       'UTF-16LE BOM prefix, decoding gives UTF-32 precedence. `MJB_NUL_TERMINATED` is not ' +
       'accepted because the encoding, and therefore the NUL code-unit width, is unknown.',
-    example: `const char utf16le[] = "\\xFF\\xFEH\\0i\\0";
+    examples: {
+      c: `const char utf16le[] = "\\xFF\\xFEH\\0i\\0";
 mjb_encoding detected = mjb_detect_encoding(utf16le, sizeof(utf16le) - 1);
 bool is_utf16le = detected == (MJB_ENC_UTF_16 | MJB_ENC_UTF_16LE);
 
 // UTF-16LE detected: yes
 printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the string is encoded in ASCII.',
@@ -930,10 +956,12 @@ printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");`
     wasm: true,
     wasmName: 'isASCII',
     section: Section.TextAnalysis,
-    example: `const char *input = "Plain ASCII";
+    examples: {
+      c: `const char *input = "Plain ASCII";
 
 // ASCII: yes
 printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the string is encoded in UTF-8.',
@@ -949,10 +977,12 @@ printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");`
     wasm: true,
     wasmName: 'isUTF8',
     section: Section.TextAnalysis,
-    example: `const char *input = "caf\\xC3\\xA9";
+    examples: {
+      c: `const char *input = "caf\\xC3\\xA9";
 
 // Valid UTF-8: yes
 printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the string is encoded in UTF-16BE or UTF-16LE.',
@@ -968,10 +998,12 @@ printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`
     wasm: true,
     wasmName: 'isUTF16',
     section: Section.TextAnalysis,
-    example: `const char utf16be[] = "\\xFE\\xFF\\0H\\0i"; // BOM + "Hi" in UTF-16BE
+    examples: {
+      c: `const char utf16be[] = "\\xFE\\xFF\\0H\\0i"; // BOM + "Hi" in UTF-16BE
 
 // UTF-16: yes
 printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Validate a complete Unicode code-unit sequence.',
@@ -996,14 +1028,16 @@ printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'The first malformed subsequence is described by `diagnostic`' }
     ],
-    example: `const char invalid[] = "\\xE2\\x82";
+    examples: {
+      c: `const char invalid[] = "\\xE2\\x82";
 mjb_text text = mjb_text_utf8(invalid, sizeof(invalid) - 1);
 mjb_diagnostic diagnostic;
 
 if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
     diagnostic.byte_offset != 0) {
     return 1;
-}`,
+}`
+    },
     related: ['mjb_decode_next', 'mjb_decode_previous', 'mjb_is_utf8']
   },
   {
@@ -1113,7 +1147,8 @@ if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `// The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
+    examples: {
+      c: `// The "Héllö" string is five Unicode characters, but has different byte lengths in different encodings.
 
 mjb_text utf8 = mjb_text_utf8("H\\xC3\\xA9ll\\xC3\\xB6", 7); // 7 bytes
 mjb_text utf16le = mjb_text_utf16le("H\\0\\xE9\\0l\\0l\\0\\xF6\\0", 10); // 10 bytes
@@ -1131,7 +1166,8 @@ if(mjb_codepoint_count(&utf16le, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS
 }
 
 // 5 UTF-16LE characters
-printf("%zu UTF-16LE characters", count);`,
+printf("%zu UTF-16LE characters", count);`
+    },
     related: ['mjb_grapheme_count', 'mjb_word_count', 'mjb_sentence_count']
   },
   {
@@ -1173,7 +1209,8 @@ printf("%zu UTF-16LE characters", count);`,
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
       { value: 'MJB_STATUS_CALLBACK_STOPPED', description: 'The callback returned false' }
     ],
-    example: `mjb_text input = mjb_text_utf8("ABC", 3);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("ABC", 3);
 mjb_status status = mjb_for_each_codepoint(&input, MJB_MALFORMED_STOP, NULL, NULL, NULL);
 
 // A callback is required: yes
@@ -1181,6 +1218,7 @@ bool callback_required = status == MJB_STATUS_INVALID_ARGUMENT;
 
 // A callback is required: yes
 printf("A callback is required: %s", callback_required ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return the value of a binary Unicode property.',
@@ -1207,7 +1245,8 @@ printf("A callback is required: %s", callback_required ? "yes" : "no");`
     details: 'Return `true` when the codepoint has the binary property and `false` when it does ' +
       'not. Passing an enumerated property is a type mismatch and returns ' +
       '`MJB_STATUS_INVALID_ARGUMENT`.',
-    example: `bool is_alphabetic;
+    examples: {
+      c: `bool is_alphabetic;
 
 if(mjb_codepoint_property_binary('A', MJB_PR_ALPHABETIC,
     &is_alphabetic) != MJB_STATUS_OK) {
@@ -1215,7 +1254,8 @@ if(mjb_codepoint_property_binary('A', MJB_PR_ALPHABETIC,
 }
 
 // U+0041 is alphabetic: yes
-printf("U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no");`,
+printf("U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no");`
+    },
     related: ['mjb_codepoint_property_int'],
     specs: [uax(44, 'Unicode Character Database')]
   },
@@ -1244,14 +1284,16 @@ printf("U+0041 is alphabetic: %s", is_alphabetic ? "yes" : "no");`,
     details: 'Passing a binary property is a type mismatch and returns ' +
       '`MJB_STATUS_INVALID_ARGUMENT`. `MJB_STATUS_NOT_FOUND` means that the codepoint has no ' +
       'stored value for the requested property.',
-    example: `int32_t script;
+    examples: {
+      c: `int32_t script;
 
 if(mjb_codepoint_property_int('A', MJB_PR_SCRIPT, &script) != MJB_STATUS_OK) {
     return 1;
 }
 
 // U+0041 uses the Latin script: yes
-printf("U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no");`,
+printf("U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no");`
+    },
     related: ['mjb_codepoint_property_binary'],
     specs: [uax(44, 'Unicode Character Database')]
   },
@@ -1277,7 +1319,8 @@ printf("U+0041 uses the Latin script: %s", script == MJB_SC_LATN ? "yes" : "no")
       { value: 'MJB_STATUS_OK', description: 'The character was found and filled' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`value` is NULL or the codepoint is not valid' },
     ],
-    example: `mjb_numeric_value num;
+    examples: {
+      c: `mjb_numeric_value num;
 
 if(mjb_codepoint_numeric_value(0x0031, &num) != MJB_STATUS_OK) { // U+0031 = 1
     return 1;
@@ -1291,7 +1334,8 @@ if(mjb_codepoint_numeric_value(0x00BD, &num) != MJB_STATUS_OK) { // U+00BD = '½
 }
 
 // decimal=-1, digit=-1, numeric=1/2
-printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`,
+printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);`
+    },
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -1310,14 +1354,16 @@ printf("decimal=%d, digit=%d, numeric=%s", num.decimal, num.digit, num.numeric);
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `mjb_block_info block;
+    examples: {
+      c: `mjb_block_info block;
 
 if(mjb_codepoint_block('A', &block) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Block: Basic Latin
-printf("Block: %s", block.name);`,
+printf("Block: %s", block.name);`
+    },
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -1328,10 +1374,12 @@ printf("Block: %s", block.name);`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `mjb_script script = mjb_codepoint_script(0x03A9); // Greek capital omega
+    examples: {
+      c: `mjb_script script = mjb_codepoint_script(0x03A9); // Greek capital omega
 
 // Greek script: yes
-printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");`,
+printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");`
+    },
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -1359,7 +1407,8 @@ printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");`,
     details: 'Return the explicit Script_Extensions set, or the ordinary Script value when the ' +
       'codepoint has no explicit Script_Extensions entry. Call first with `scripts` set to NULL ' +
       'to obtain the required count.',
-    example: `size_t count = 0;
+    examples: {
+      c: `size_t count = 0;
 
 if(mjb_codepoint_script_extensions(0x30FC, NULL, &count) != MJB_STATUS_OK) {
     return 1;
@@ -1373,7 +1422,8 @@ if(count > 3 || mjb_codepoint_script_extensions(0x30FC, scripts,
 }
 
 // U+30FC has 2 Script_Extensions
-printf("U+30FC has %zu Script_Extensions", count);`,
+printf("U+30FC has %zu Script_Extensions", count);`
+    },
     related: ['mjb_codepoint_script'],
     specs: [uax(24, 'Unicode Script Property')]
   },
@@ -1390,11 +1440,13 @@ printf("U+30FC has %zu Script_Extensions", count);`,
     ],
     wasm: true,
     section: Section.TextTransformation,
-    example: `char encoded[4];
+    examples: {
+      c: `char encoded[4];
 unsigned int size = mjb_codepoint_encode(0x20AC, encoded, sizeof(encoded), MJB_ENC_UTF_8);
 
 // € sign uses 3 UTF-8 bytes
 printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
+    }
   },
   {
     comment: 'Convert from one encoding to another.',
@@ -1430,7 +1482,8 @@ printf("%.*s sign uses %u UTF-8 bytes", (int)size, encoded, size);`
       { value: 'MJB_STATUS_OVERFLOW', description: 'The output size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
 mjb_result result;
 
 if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
@@ -1440,7 +1493,8 @@ if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
 
 // UTF-16LE bytes: 8
 printf("UTF-16LE bytes: %zu", result.output_size);
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_convert_encoding_into', 'mjb_detect_encoding', 'mjb_codepoint_encode']
   },
   {
@@ -1480,7 +1534,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("caf\\xC3\\xA9", MJB_NUL_TERMINATED);
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_16LE);
 
 // Query the required size
@@ -1501,7 +1556,8 @@ if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_S
 }
 
 // UTF-16LE payload bytes (no terminator): 8
-printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`,
+printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`
+    },
     related: ['mjb_convert_encoding', 'mjb_detect_encoding', 'mjb_codepoint_encode']
   },
   {
@@ -1557,7 +1613,8 @@ printf("UTF-16LE payload bytes (no terminator): %zu", output.size);`,
       { value: 'MJB_STATUS_UNSUPPORTED', description:
         'The identifier case-folding transform did not converge' }
     ],
-    example: `mjb_text left = mjb_text_utf8("Stra\\xC3\\x9F" "e", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text left = mjb_text_utf8("Stra\\xC3\\x9F" "e", MJB_NUL_TERMINATED);
 mjb_text right = mjb_text_utf8("STRASSE", MJB_NUL_TERMINATED);
 bool matches;
 
@@ -1567,7 +1624,8 @@ if(mjb_caseless_match(&left, &right, MJB_MALFORMED_STOP, MJB_CASELESS_CANONICAL,
 }
 
 // Canonical caseless match: yes
-printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
+printf("Canonical caseless match: %s", matches ? "yes" : "no");`
+    },
     related: ['mjb_map_case', 'mjb_nfkc_casefold', 'mjb_normalize',
       'mjb_collation_compare', 'mjb_is_identifier'],
     specs: [
@@ -1639,7 +1697,8 @@ printf("Canonical caseless match: %s", matches ? "yes" : "no");`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
-    example: `mjb_text apple = mjb_text_utf8("apple", 5);
+    examples: {
+      c: `mjb_text apple = mjb_text_utf8("apple", 5);
 mjb_text banana = mjb_text_utf8("banana", 6);
 int order;
 
@@ -1649,7 +1708,8 @@ if(mjb_collation_compare(&apple, &banana, MJB_MALFORMED_STOP, MJB_COLLATION_NON_
 }
 
 // apple sorts before banana: yes
-printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
+printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`
+    },
     related: ['mjb_collation_key', 'mjb_collation_key_into', 'mjb_caseless_match'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
@@ -1704,7 +1764,8 @@ printf("apple sorts before banana: %s", order < 0 ? "yes" : "no");`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("r\\xC3\\xA9sum\\xC3\\xA9", 8);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("r\\xC3\\xA9sum\\xC3\\xA9", 8);
 mjb_result key;
 
 if(mjb_collation_key(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
@@ -1714,7 +1775,8 @@ if(mjb_collation_key(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABLE,
 
 // Sort key is non-empty: yes
 printf("Sort key is non-empty: %s", key.output_size > 0 ? "yes" : "no");
-mjb_result_free(&key);`,
+mjb_result_free(&key);`
+    },
     related: ['mjb_collation_key_into', 'mjb_collation_compare'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
@@ -1775,7 +1837,8 @@ mjb_result_free(&key);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_COLLATION=0`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("r\\xC3\\xA9sum\\xC3\\xA9", 8);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("r\\xC3\\xA9sum\\xC3\\xA9", 8);
 // A collation key is binary, so the buffer encoding is ignored
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UNKNOWN);
 
@@ -1799,7 +1862,8 @@ if(mjb_collation_key_into(&input, MJB_MALFORMED_STOP, MJB_COLLATION_NON_IGNORABL
 }
 
 // Sort key is non-empty: yes
-printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`,
+printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`
+    },
     related: ['mjb_collation_key', 'mjb_collation_compare'],
     specs: [uts(10, 'Unicode Collation Algorithm')]
   },
@@ -1858,7 +1922,8 @@ printf("Sort key is non-empty: %s", output.size > 0 ? "yes" : "no");`,
         'The requested output encoding cannot represent a mapped codepoint' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
 mjb_result result;
 
 if(mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_SET, MJB_ENC_UTF_8,
@@ -1879,7 +1944,8 @@ if(mjb_map_case(&istanbul, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_TR, MJ
 
 // Turkish upper: \\xC4\\xB0STANBUL
 printf("Turkish upper: %.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_map_case_into', 'mjb_locale_parse', 'mjb_caseless_match'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
@@ -1933,7 +1999,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_OUTPUT_TOO_SMALL', description:
         'The output capacity is smaller than the required byte count' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Stra\\xC3\\x9F""e", MJB_NUL_TERMINATED); // "Straße"
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
 // Query the required size
@@ -1956,7 +2023,8 @@ if(mjb_map_case_into(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER, MJB_LOCALE_NOT_
 }
 
 // Upper payload (no terminator): STRASSE
-printf("Upper payload (no terminator): %.*s", (int)output.size, storage);`,
+printf("Upper payload (no terminator): %.*s", (int)output.size, storage);`
+    },
     related: ['mjb_map_case', 'mjb_locale_parse'],
     specs: [unicodeCore('Section 3.13', 'Default Case Algorithms', 'G33992')]
   },
@@ -1968,8 +2036,10 @@ printf("Upper payload (no terminator): %.*s", (int)output.size, storage);`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// U+10FFFD valid: yes
+    examples: {
+      c: `// U+10FFFD valid: yes
 printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the codepoint is graphic.',
@@ -1979,8 +2049,10 @@ printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");`
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Letter A is graphic: yes
+    examples: {
+      c: `// Letter A is graphic: yes
 printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the codepoint is combining.',
@@ -1990,8 +2062,10 @@ printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// U+0301 is combining: yes
+    examples: {
+      c: `// U+0301 is combining: yes
 printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is a hangul L.',
@@ -2001,8 +2075,10 @@ printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "
     args: [codepoint()],
     wasm: true,
     section: Section.HangulLanguage,
-    example: `// U+1100 is a leading Jamo: yes
+    examples: {
+      c: `// U+1100 is a leading Jamo: yes
 printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is a hangul V.',
@@ -2012,8 +2088,10 @@ printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x11
     args: [codepoint()],
     wasm: true,
     section: Section.HangulLanguage,
-    example: `// U+1161 is a vowel Jamo: yes
+    examples: {
+      c: `// U+1161 is a vowel Jamo: yes
 printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is a hangul T.',
@@ -2023,8 +2101,10 @@ printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) 
     args: [codepoint()],
     wasm: true,
     section: Section.HangulLanguage,
-    example: `// U+11A8 is a trailing Jamo: yes
+    examples: {
+      c: `// U+11A8 is a trailing Jamo: yes
 printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is a hangul jamo.',
@@ -2034,8 +2114,10 @@ printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x
     args: [codepoint()],
     wasm: true,
     section: Section.HangulLanguage,
-    example: `// U+1100 is Hangul Jamo: yes
+    examples: {
+      c: `// U+1100 is Hangul Jamo: yes
 printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is a hangul syllable.',
@@ -2045,8 +2127,10 @@ printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes"
     args: [codepoint()],
     wasm: true,
     section: Section.HangulLanguage,
-    example: `// U+AC00 is a Hangul syllable: yes
+    examples: {
+      c: `// U+AC00 is a Hangul syllable: yes
 printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is CJK ideograph.',
@@ -2056,8 +2140,10 @@ printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC0
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// U+4E00 is a CJK ideograph: yes
+    examples: {
+      c: `// U+4E00 is a CJK ideograph: yes
 printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return if the codepoint is CJK extension.',
@@ -2068,8 +2154,10 @@ printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ?
     wasm: true,
     wasmName: 'codepointIsCJKExtensionIdeograph',
     section: Section.TextAnalysis,
-    example: `// U+20000 is a CJK extension ideograph: yes
+    examples: {
+      c: `// U+20000 is a CJK extension ideograph: yes
 printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the category is graphic.',
@@ -2087,11 +2175,13 @@ printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extensio
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Uppercase letters are graphic: yes
+    examples: {
+      c: `// Uppercase letters are graphic: yes
 bool graphic = mjb_category_is_graphic(MJB_CATEGORY_LU);
 
 // Uppercase letters are graphic: yes
 printf("Uppercase letters are graphic: %s", graphic ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the category is combining.',
@@ -2109,11 +2199,13 @@ printf("Uppercase letters are graphic: %s", graphic ? "yes" : "no");`
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Nonspacing marks are combining: yes
+    examples: {
+      c: `// Nonspacing marks are combining: yes
 bool combining = mjb_category_is_combining(MJB_CATEGORY_MN);
 
 // Nonspacing marks are combining: yes
 printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
+    }
   },
   {
     comment: 'Unicode line break algorithm.',
@@ -2140,13 +2232,15 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
       'Stateful break functions ' +
       'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
       'determine the length once before iteration.',
-    example: `mjb_text input = mjb_text_utf8("Hello world", 11);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_line_break_state state;
 state.index = 0;
 mjb_break_type type = mjb_line_break_next(&input, &state);
 
 // First line-break result is set: yes
-printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");`,
+printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "no");`
+    },
     related: ['mjb_grapheme_break_next', 'mjb_word_break_next', 'mjb_sentence_break_next'],
     specs: [uax(14, 'Unicode Line Breaking Algorithm')]
   },
@@ -2175,7 +2269,8 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
       'Stateful break functions ' +
       'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
       'determine the length once before iteration.',
-    example: `mjb_text input = mjb_text_utf8("Hello world", 11);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_word_break_state state;
 state.index = 0;
 size_t boundaries = 0;
@@ -2185,7 +2280,8 @@ while(mjb_word_break_next(&input, &state) != MJB_BT_NOT_SET) {
 }
 
 // Word-break positions: 11
-printf("Word-break positions: %zu", boundaries);`,
+printf("Word-break positions: %zu", boundaries);`
+    },
     related: ['mjb_grapheme_break_next', 'mjb_sentence_break_next', 'mjb_word_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -2214,7 +2310,8 @@ printf("Word-break positions: %zu", boundaries);`,
       'Stateful break functions ' +
       'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
       'determine the length once before iteration.',
-    example: `mjb_sentence_break_state state;
+    examples: {
+      c: `mjb_sentence_break_state state;
 state.index = 0;
 size_t boundaries = 0;
 mjb_text input = mjb_text_utf8("Hello. Goodbye.", 15);
@@ -2224,7 +2321,8 @@ while(mjb_sentence_break_next(&input, &state) != MJB_BT_NOT_SET) {
 }
 
 // Sentence-break positions: 15
-printf("Sentence-break positions: %zu", boundaries);`,
+printf("Sentence-break positions: %zu", boundaries);`
+    },
     related: ['mjb_grapheme_break_next', 'mjb_word_break_next'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -2258,7 +2356,8 @@ printf("Sentence-break positions: %zu", boundaries);`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Hello. How are you? Fine!", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello. How are you? Fine!", MJB_NUL_TERMINATED);
 size_t count;
 
 if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
@@ -2266,7 +2365,8 @@ if(mjb_sentence_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 }
 
 // Sentences: 3
-printf("Sentences: %zu", count);`,
+printf("Sentences: %zu", count);`
+    },
     related: ['mjb_sentence_break_next', 'mjb_grapheme_count', 'mjb_word_count'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -2295,7 +2395,8 @@ printf("Sentences: %zu", count);`,
       'Stateful break functions ' +
       'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
       'determine the length once before iteration.',
-    example: `mjb_text input = mjb_text_utf8("e\\xCC\\x81", 3); // e + combining acute accent
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("e\\xCC\\x81", 3); // e + combining acute accent
 mjb_grapheme_break_state state;
 state.index = 0;
 size_t codepoints = 0;
@@ -2305,7 +2406,8 @@ while(mjb_grapheme_break_next(&input, &state) != MJB_BT_NOT_SET) {
 }
 
 // Codepoints examined: 2
-printf("Codepoints examined: %zu", codepoints);`,
+printf("Codepoints examined: %zu", codepoints);`
+    },
     related: ['mjb_word_break_next', 'mjb_sentence_break_next', 'mjb_line_break_next', 'mjb_grapheme_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -2325,11 +2427,13 @@ printf("Codepoints examined: %zu", codepoints);`,
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9Z", MJB_NUL_TERMINATED); // A🇮🇹Z
 size_t bytes = mjb_grapheme_prefix_length(&input, 2);
 
 // First two graphemes use 9 bytes
 printf("First two graphemes use %zu bytes", bytes);`
+    }
   },
   {
     comment: 'Count the extended grapheme clusters in a string.',
@@ -2360,7 +2464,8 @@ printf("First two graphemes use %zu bytes", bytes);`
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // A🇮🇹
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("A\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // A🇮🇹
 size_t count;
 
 if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
@@ -2368,7 +2473,8 @@ if(mjb_grapheme_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK
 }
 
 // Grapheme clusters: 2
-printf("Grapheme clusters: %zu", count);`,
+printf("Grapheme clusters: %zu", count);`
+    },
     related: ['mjb_grapheme_prefix_length', 'mjb_grapheme_break_next', 'mjb_terminal_width'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -2398,11 +2504,13 @@ printf("Grapheme clusters: %zu", count);`,
     details: 'Truncate only at extended grapheme-cluster boundaries, using the same terminal-cell ' +
       'policy as `mjb_terminal_width`. The returned prefix stops before a cluster that would exceed ' +
       'the budget or cannot be measured as printable, single-line terminal text.',
-    example: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
 size_t bytes = mjb_grapheme_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 2);
 
 // Two columns include 1 byte
 printf("Two columns include %zu byte", bytes);`
+    }
   },
   {
     comment: 'Return the number of bytes that form the first max_segments word-break segments.',
@@ -2420,11 +2528,13 @@ printf("Two columns include %zu byte", bytes);`
     ],
     wasm: true,
     section: Section.Segmentation,
-    example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
 size_t bytes = mjb_word_prefix_length(&input, 1);
 
 // First word segment uses 5 bytes
 printf("First word segment uses %zu bytes", bytes);`
+    }
   },
   {
     comment: 'Count the word-like segments in a string.',
@@ -2462,7 +2572,8 @@ printf("First word segment uses %zu bytes", bytes);`
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("Hello, world! It works.", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello, world! It works.", MJB_NUL_TERMINATED);
 size_t count;
 
 if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
@@ -2470,7 +2581,8 @@ if(mjb_word_count(&input, MJB_MALFORMED_STOP, &count, NULL) != MJB_STATUS_OK) {
 }
 
 // Words: 4
-printf("Words: %zu", count);`,
+printf("Words: %zu", count);`
+    },
     related: ['mjb_word_break_next', 'mjb_word_prefix_length', 'mjb_grapheme_count', 'mjb_sentence_count'],
     specs: [uax(29, 'Unicode Text Segmentation')]
   },
@@ -2500,11 +2612,13 @@ printf("Words: %zu", count);`,
     details: 'Truncate only at word-break boundaries, using the same terminal-cell policy as ' +
       '`mjb_terminal_width`. The returned prefix stops before a segment that would exceed the ' +
       'budget or cannot be measured as printable, single-line terminal text.',
-    example: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("Hello world", MJB_NUL_TERMINATED);
 size_t bytes = mjb_word_prefix_length_for_width(&input, MJB_TERMINAL_WIDTH_NARROW, 6);
 
 // Six columns include 6 bytes
 printf("Six columns include %zu bytes", bytes);`
+    }
   },
   {
     comment: 'Resolve bidirectional text (TR9) for a paragraph.',
@@ -2544,7 +2658,8 @@ printf("Six columns include %zu bytes", bytes);`
       { value: 'MJB_STATUS_OVERFLOW', description: 'The paragraph size would overflow' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `mjb_text input = mjb_text_utf8("abc \\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // abc אבג
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("abc \\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // abc אבג
 mjb_bidi_paragraph paragraph;
 
 if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK) {
@@ -2553,7 +2668,8 @@ if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK) {
 
 // Paragraph codepoints: 7
 printf("Paragraph codepoints: %zu", paragraph.count);
-mjb_bidi_paragraph_free(&paragraph);`,
+mjb_bidi_paragraph_free(&paragraph);`
+    },
     related: ['mjb_bidi_paragraph_free', 'mjb_bidi_reorder_line', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -2591,7 +2707,8 @@ mjb_bidi_paragraph_free(&paragraph);`,
     ],
     wasm: false,
     section: Section.Bidirectional,
-    example: `mjb_text input = mjb_text_utf8("\\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // אבג
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("\\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // אבג
 mjb_bidi_paragraph paragraph;
 size_t visual_order[3];
 
@@ -2603,7 +2720,8 @@ if(mjb_bidi_resolve(&input, MJB_DIRECTION_AUTO, &paragraph) != MJB_STATUS_OK ||
 
 // First visual index: 2
 printf("First visual index: %zu", visual_order[0]);
-mjb_bidi_paragraph_free(&paragraph);`,
+mjb_bidi_paragraph_free(&paragraph);`
+    },
     related: ['mjb_bidi_resolve', 'mjb_bidi_line_runs'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -2646,7 +2764,8 @@ mjb_bidi_paragraph_free(&paragraph);`,
     ],
     wasm: false,
     section: Section.Bidirectional,
-    example: `mjb_text input = mjb_text_utf8("abc", 3);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("abc", 3);
 mjb_bidi_paragraph paragraph;
 size_t visual_order[3];
 size_t run_count = 0;
@@ -2660,7 +2779,8 @@ if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK ||
 
 // Visual runs: 1
 printf("Visual runs: %zu", run_count);
-mjb_bidi_paragraph_free(&paragraph);`,
+mjb_bidi_paragraph_free(&paragraph);`
+    },
     related: ['mjb_bidi_resolve', 'mjb_bidi_reorder_line'],
     specs: [uax(9, 'Unicode Bidirectional Algorithm')]
   },
@@ -2679,7 +2799,8 @@ mjb_bidi_paragraph_free(&paragraph);`,
     ],
     wasm: false,
     section: Section.Bidirectional,
-    example: `mjb_text input = mjb_text_utf8("abc", 3);
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("abc", 3);
 mjb_bidi_paragraph paragraph;
 
 if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK) {
@@ -2689,7 +2810,8 @@ if(mjb_bidi_resolve(&input, MJB_DIRECTION_LTR, &paragraph) != MJB_STATUS_OK) {
 mjb_bidi_paragraph_free(&paragraph);
 
 // Paragraph released: yes
-printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`,
+printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`
+    },
     related: ['mjb_bidi_resolve']
   },
   {
@@ -2700,11 +2822,13 @@ printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Greek alpha starts an identifier: yes
+    examples: {
+      c: `// Greek alpha starts an identifier: yes
 bool starts = mjb_codepoint_is_id_start(0x03B1);
 
 // Greek alpha starts an identifier: yes
-printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`,
+printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`
+    },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -2715,11 +2839,13 @@ printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Digit 7 continues an identifier: yes
+    examples: {
+      c: `// Digit 7 continues an identifier: yes
 bool continues = mjb_codepoint_is_id_continue('7');
 
 // Digit 7 continues an identifier: yes
-printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`,
+printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`
+    },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -2730,8 +2856,10 @@ printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Letter A is XID_Start: yes
-printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");`,
+    examples: {
+      c: `// Letter A is XID_Start: yes
+printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");`
+    },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -2742,11 +2870,13 @@ printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "n
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Underscore is XID_Continue: yes
+    examples: {
+      c: `// Underscore is XID_Continue: yes
 bool continues = mjb_codepoint_is_xid_continue('_');
 
 // Underscore is XID_Continue: yes
-printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`,
+printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`
+    },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -2757,11 +2887,13 @@ printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Plus sign is Pattern_Syntax: yes
+    examples: {
+      c: `// Plus sign is Pattern_Syntax: yes
 bool syntax = mjb_codepoint_is_pattern_syntax('+');
 
 // Plus sign is Pattern_Syntax: yes
-printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`,
+printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`
+    },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -2772,11 +2904,13 @@ printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Space is Pattern_White_Space: yes
+    examples: {
+      c: `// Space is Pattern_White_Space: yes
 bool whitespace = mjb_codepoint_is_pattern_white_space(' ');
 
 // Space is Pattern_White_Space: yes
-printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
+printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`
+    },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
   {
@@ -2799,12 +2933,14 @@ printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
     details: 'Validate a string as a Unicode identifier: the first character must be a valid ' +
       'identifier start and the following ones valid identifier continuations, using ID_Start/' +
       'ID_Continue for the DEFAULT profile or XID_Start/XID_Continue for the NFKC profile.',
-    example: `mjb_text identifier = mjb_text_utf8("delta_2", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text identifier = mjb_text_utf8("delta_2", MJB_NUL_TERMINATED);
 
 bool valid = mjb_is_identifier(&identifier, MJB_IDENTIFIER_NFKC);
 
 // Valid identifier: yes
-printf("Valid identifier: %s", valid ? "yes" : "no");`,
+printf("Valid identifier: %s", valid ? "yes" : "no");`
+    },
     related: ['mjb_codepoint_is_id_start', 'mjb_codepoint_is_id_continue',
       'mjb_codepoint_is_xid_start', 'mjb_codepoint_is_xid_continue'],
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
@@ -2859,7 +2995,8 @@ printf("Valid identifier: %s", valid ? "yes" : "no");`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("\\xE3\\x81\\xAD\\xE3\\x82\\xAC", MJB_NUL_TERMINATED); // Hiragana + Katakana
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("\\xE3\\x81\\xAD\\xE3\\x82\\xAC", MJB_NUL_TERMINATED); // Hiragana + Katakana
 mjb_script scripts[1];
 size_t count = 1;
 mjb_script_set_kind kind;
@@ -2871,7 +3008,8 @@ if(mjb_resolved_script_set(&input, scripts, &count, &kind) != MJB_STATUS_OK) {
 bool japanese = kind == MJB_SCRIPT_SET_RESOLVED && count == 1 && scripts[0] == MJB_SC_JPAN;
 
 // Japanese writing system: yes
-printf("Japanese writing system: %s", japanese ? "yes" : "no");`,
+printf("Japanese writing system: %s", japanese ? "yes" : "no");`
+    },
     related: ['mjb_codepoint_script_extensions', 'mjb_is_identifier',
       'mjb_confusable_skeleton', 'mjb_confusable_match'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
@@ -2891,10 +3029,12 @@ printf("Japanese writing system: %s", japanese ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.Utility,
-    example: `const char *name = mjb_property_name(MJB_PR_ALPHABETIC);
+    examples: {
+      c: `const char *name = mjb_property_name(MJB_PR_ALPHABETIC);
 
 // Property: Alphabetic
-printf("Property: %s", name);`,
+printf("Property: %s", name);`
+    },
     specs: [uax(44, 'Unicode Character Database')]
   },
   {
@@ -2927,7 +3067,8 @@ printf("Property: %s", name);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
-    example: `// Cyrillic U+0435 in place of e
+    examples: {
+      c: `// Cyrillic U+0435 in place of e
 mjb_text input = mjb_text_utf8("h\\xD0\\xB5llo", MJB_NUL_TERMINATED);
 mjb_result result;
 
@@ -2937,7 +3078,8 @@ if(mjb_confusable_skeleton(&input, MJB_ENC_UTF_8, &result) != MJB_STATUS_OK) {
 
 // hello
 printf("%.*s", (int)result.output_size, result.output);
-mjb_result_free(&result);`,
+mjb_result_free(&result);`
+    },
     related: ['mjb_confusable_skeleton_into', 'mjb_confusable_match', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
@@ -2982,7 +3124,8 @@ mjb_result_free(&result);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
-    example: `// Cyrillic U+0435 in place of e
+    examples: {
+      c: `// Cyrillic U+0435 in place of e
 mjb_text input = mjb_text_utf8("h\\xD0\\xB5llo", MJB_NUL_TERMINATED);
 mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
 
@@ -3004,7 +3147,8 @@ if(mjb_confusable_skeleton_into(&input, &output) != MJB_STATUS_OK) {
 }
 
 // Skeleton payload (no terminator): hello
-printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);`,
+printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);`
+    },
     related: ['mjb_confusable_skeleton', 'mjb_confusable_match', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
@@ -3052,7 +3196,8 @@ printf("Skeleton payload (no terminator): %.*s", (int)output.size, storage);`,
       { value: 'MJB_STATUS_FEATURE_NOT_ENABLED', description:
         'The library was compiled with `MJB_FEATURE_SECURITY=0`' }
     ],
-    example: `mjb_text latin = mjb_text_utf8("hello", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text latin = mjb_text_utf8("hello", MJB_NUL_TERMINATED);
 mjb_text mixed = mjb_text_utf8("h\\xD0\\xB5llo", MJB_NUL_TERMINATED); // Cyrillic е
 bool confusable;
 
@@ -3062,7 +3207,8 @@ if(mjb_confusable_match(&latin, &mixed, MJB_MALFORMED_STOP, &confusable, NULL,
 }
 
 // Visually confusable: yes
-printf("Visually confusable: %s", confusable ? "yes" : "no");`,
+printf("Visually confusable: %s", confusable ? "yes" : "no");`
+    },
     related: ['mjb_confusable_skeleton', 'mjb_confusable_skeleton_into', 'mjb_is_identifier'],
     specs: [uts(39, 'Unicode Security Mechanisms')]
   },
@@ -3082,14 +3228,16 @@ printf("Visually confusable: %s", confusable ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.Emoji,
-    example: `mjb_emoji_properties emoji;
+    examples: {
+      c: `mjb_emoji_properties emoji;
 
 if(mjb_codepoint_emoji_properties(0x1F600, &emoji) != MJB_STATUS_OK) {
     return 1;
 }
 
 // U+1F600 has Emoji_Presentation: yes
-printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");`,
+printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");`
+    },
     related: ['mjb_emoji_sequence_info', 'mjb_codepoint_is_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3101,11 +3249,13 @@ printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
-    example: `// Number sign has the Emoji property: yes
+    examples: {
+      c: `// Number sign has the Emoji property: yes
 bool emoji = mjb_codepoint_is_emoji('#');
 
 // Number sign has the Emoji property: yes
-printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`,
+printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`
+    },
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -3116,11 +3266,13 @@ printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
-    example: `// Grinning face defaults to emoji presentation: yes
+    examples: {
+      c: `// Grinning face defaults to emoji presentation: yes
 bool presentation = mjb_codepoint_is_emoji_presentation(0x1F600);
 
 // Grinning face defaults to emoji presentation: yes
-printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");`,
+printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");`
+    },
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -3131,11 +3283,13 @@ printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" 
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
-    example: `// Medium skin tone is an emoji modifier: yes
+    examples: {
+      c: `// Medium skin tone is an emoji modifier: yes
 bool modifier = mjb_codepoint_is_emoji_modifier(0x1F3FD);
 
 // Medium skin tone is an emoji modifier: yes
-printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`,
+printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`
+    },
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -3146,11 +3300,13 @@ printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
-    example: `// Waving hand accepts an emoji modifier: yes
+    examples: {
+      c: `// Waving hand accepts an emoji modifier: yes
 bool modifier_base = mjb_codepoint_is_emoji_modifier_base(0x1F44B);
 
 // Waving hand accepts an emoji modifier: yes
-printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");`,
+printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");`
+    },
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -3161,11 +3317,13 @@ printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no"
     args: [codepoint()],
     wasm: true,
     section: Section.Emoji,
-    example: `// Zero-width joiner is an emoji component: yes
+    examples: {
+      c: `// Zero-width joiner is an emoji component: yes
 bool component = mjb_codepoint_is_emoji_component(0x200D);
 
 // Zero-width joiner is an emoji component: yes
-printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");`,
+printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");`
+    },
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -3176,11 +3334,13 @@ printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Red heart is Extended_Pictographic: yes
+    examples: {
+      c: `// Red heart is Extended_Pictographic: yes
 bool pictographic = mjb_codepoint_is_extended_pictographic(0x2764);
 
 // Red heart is Extended_Pictographic: yes
-printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");`,
+printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");`
+    },
     specs: [uts(51, 'Unicode Emoji')]
   },
   {
@@ -3191,10 +3351,12 @@ printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");`,
     args: [codepoint()],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `mjb_plane plane = mjb_codepoint_plane(0x1F600);
+    examples: {
+      c: `mjb_plane plane = mjb_codepoint_plane(0x1F600);
 
 // U+1F600 is in the SMP: yes
 printf("U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return true if the plane is valid.',
@@ -3212,8 +3374,10 @@ printf("U+1F600 is in the SMP: %s", plane == MJB_PLANE_SMP ? "yes" : "no");`
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Plane 16 is valid: yes
+    examples: {
+      c: `// Plane 16 is valid: yes
 printf("Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "no");`
+    }
   },
   {
     comment: 'Return the name of a plane, NULL if the plane specified is not valid.',
@@ -3237,8 +3401,10 @@ printf("Plane 16 is valid: %s", mjb_plane_is_valid(MJB_PLANE_PUA_B) ? "yes" : "n
     ],
     wasm: true,
     section: Section.TextAnalysis,
-    example: `// Plane: Basic Multilingual Plane
+    examples: {
+      c: `// Plane: Basic Multilingual Plane
 printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
+    }
   },
   {
     comment: 'Return emoji sequence metadata for a complete string.',
@@ -3256,7 +3422,8 @@ printf("Plane: %s", mjb_plane_name(MJB_PLANE_BMP, false));`
     ],
     wasm: true,
     section: Section.Emoji,
-    example: `mjb_text flag = mjb_text_utf8("\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // 🇮🇹
+    examples: {
+      c: `mjb_text flag = mjb_text_utf8("\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 mjb_emoji_sequence emoji;
 
 if(mjb_emoji_sequence_info(&flag, &emoji) != MJB_STATUS_OK) {
@@ -3264,7 +3431,8 @@ if(mjb_emoji_sequence_info(&flag, &emoji) != MJB_STATUS_OK) {
 }
 
 // Sequence codepoints: 2
-printf("Sequence codepoints: %zu", emoji.codepoint_count);`,
+printf("Sequence codepoints: %zu", emoji.codepoint_count);`
+    },
     related: ['mjb_is_emoji_sequence', 'mjb_is_rgi_emoji'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3279,12 +3447,14 @@ printf("Sequence codepoints: %zu", emoji.codepoint_count);`,
     ],
     section: Section.Emoji,
     wasm: true,
-    example: `mjb_text keycap = mjb_text_utf8("1\\xEF\\xB8\\x8F\\xE2\\x83\\xA3", MJB_NUL_TERMINATED); // 1️⃣
+    examples: {
+      c: `mjb_text keycap = mjb_text_utf8("1\\xEF\\xB8\\x8F\\xE2\\x83\\xA3", MJB_NUL_TERMINATED); // 1️⃣
 
 bool listed = mjb_is_emoji_sequence(&keycap);
 
 // Listed emoji sequence: yes
-printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
+printf("Listed emoji sequence: %s", listed ? "yes" : "no");`
+    },
     related: ['mjb_is_rgi_emoji', 'mjb_emoji_sequence_info'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3300,12 +3470,14 @@ printf("Listed emoji sequence: %s", listed ? "yes" : "no");`,
     wasm: true,
     wasmName: 'isRGIEmoji',
     section: Section.Emoji,
-    example: `mjb_text flag = mjb_text_utf8("\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // 🇮🇹
+    examples: {
+      c: `mjb_text flag = mjb_text_utf8("\\xF0\\x9F\\x87\\xAE\\xF0\\x9F\\x87\\xB9", MJB_NUL_TERMINATED); // 🇮🇹
 
 bool rgi = mjb_is_rgi_emoji(&flag);
 
 // RGI emoji: yes
-printf("RGI emoji: %s", rgi ? "yes" : "no");`,
+printf("RGI emoji: %s", rgi ? "yes" : "no");`
+    },
     related: ['mjb_is_emoji_sequence', 'mjb_emoji_sequence_info'],
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3326,7 +3498,8 @@ printf("RGI emoji: %s", rgi ? "yes" : "no");`,
     ],
     wasm: true,
     section: Section.HangulLanguage,
-    example: `char name[32];
+    examples: {
+      c: `char name[32];
 
 if(mjb_hangul_syllable_name(0xAC01, name, sizeof(name)) != MJB_STATUS_OK) {
     return 1;
@@ -3334,6 +3507,7 @@ if(mjb_hangul_syllable_name(0xAC01, name, sizeof(name)) != MJB_STATUS_OK) {
 
 // Name: HANGUL SYLLABLE GAG
 printf("Name: %s", name);`
+    }
   },
   {
     comment: 'Decompose a Hangul syllable into its jamo.',
@@ -3359,14 +3533,16 @@ printf("Name: %s", name);`
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`codepoints` is NULL' },
       { value: 'MJB_STATUS_NOT_FOUND', description: '`codepoint` is not a Hangul syllable' }
     ],
-    example: `mjb_codepoint decomposition[3];
+    examples: {
+      c: `mjb_codepoint decomposition[3];
 
 if(mjb_hangul_syllable_decompose(0xAC01, decomposition) != MJB_STATUS_OK) {
     return 1;
 }
 
 // Decomposition starts with: U+1100
-printf("Decomposition starts with: U+%04X", decomposition[0]);`,
+printf("Decomposition starts with: U+%04X", decomposition[0]);`
+    },
     related: ['mjb_hangul_syllable_compose', 'mjb_hangul_syllable_name']
   },
   {
@@ -3411,7 +3587,8 @@ printf("Decomposition starts with: U+%04X", decomposition[0]);`,
       { value: 'MJB_STATUS_NOT_FOUND', description:
         'A jamo is outside its range, so the jamo do not form a syllable' }
     ],
-    example: `mjb_codepoint syllable;
+    examples: {
+      c: `mjb_codepoint syllable;
 
 // Choseong kiyeok, jungseong a, jongseong kiyeok
 if(mjb_hangul_syllable_compose(0x1100, 0x1161, 0x11A8, &syllable) != MJB_STATUS_OK) {
@@ -3419,7 +3596,8 @@ if(mjb_hangul_syllable_compose(0x1100, 0x1161, 0x11A8, &syllable) != MJB_STATUS_
 }
 
 // Syllable: U+AC01
-printf("Syllable: U+%04X", syllable);`,
+printf("Syllable: U+%04X", syllable);`
+    },
     related: ['mjb_hangul_syllable_decompose', 'mjb_normalize']
   },
   {
@@ -3438,14 +3616,16 @@ printf("Syllable: U+%04X", syllable);`,
     ],
     wasm: true,
     section: Section.TerminalWidth,
-    example: `mjb_east_asian_width width;
+    examples: {
+      c: `mjb_east_asian_width width;
 
 if(mjb_codepoint_east_asian_width(0x754C, &width) != MJB_STATUS_OK) { // 界
     return 1;
 }
 
 // U+754C is wide: yes
-printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
+printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`
+    },
     related: ['mjb_terminal_width'],
     specs: [uax(11, 'East Asian Width')]
   },
@@ -3494,7 +3674,8 @@ printf("U+754C is wide: %s", width == MJB_EAW_WIDE ? "yes" : "no");`,
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' }
     ],
-    example: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
+    examples: {
+      c: `mjb_text input = mjb_text_utf8("A\\xE7\\x95\\x8C", MJB_NUL_TERMINATED); // A界
 size_t width;
 
 if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
@@ -3503,7 +3684,8 @@ if(mjb_terminal_width(&input, MJB_MALFORMED_STOP,
 }
 
 // Terminal cells: 3
-printf("Terminal cells: %zu", width);`,
+printf("Terminal cells: %zu", width);`
+    },
     related: ['mjb_codepoint_east_asian_width', 'mjb_grapheme_prefix_length_for_width',
       'mjb_grapheme_break_next', 'mjb_is_rgi_emoji'],
     specs: [uax(11, 'East Asian Width'), uax(29, 'Unicode Text Segmentation'),
@@ -3533,7 +3715,8 @@ printf("Terminal cells: %zu", width);`,
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument is NULL or the tag is not a valid BCP 47 language tag' },
       { value: 'MJB_STATUS_NO_MEMORY', description: 'Allocation failed' }
     ],
-    example: `mjb_text id = mjb_text_utf8("sr-Latn-RS", MJB_NUL_TERMINATED);
+    examples: {
+      c: `mjb_text id = mjb_text_utf8("sr-Latn-RS", MJB_NUL_TERMINATED);
 mjb_locale_id locale;
 
 if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
@@ -3541,7 +3724,8 @@ if(mjb_locale_parse(&id, &locale) != MJB_STATUS_OK) {
 }
 
 // Locale: sr Latn RS
-printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
+printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`
+    },
     related: ['mjb_locale_code', 'mjb_map_case'],
     specs: [{ name: 'BCP 47: Tags for Identifying Languages', url: 'https://www.rfc-editor.org/rfc/rfc5646' }]
   },
@@ -3565,8 +3749,10 @@ printf("Locale: %s %s %s", locale.language, locale.script, locale.region);`,
     returns: [
       { value: 'const char *', description: 'The ISO 639-1 code, or NULL if `locale` is not a valid `mjb_locale` value' }
     ],
-    example: `// Locale code: tr
-printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));`,
+    examples: {
+      c: `// Locale code: tr
+printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));`
+    },
     related: ['mjb_locale_parse', 'mjb_map_case']
   },
   {
@@ -3589,8 +3775,10 @@ printf("Locale code: %s", mjb_locale_code(MJB_LOCALE_TR));`,
     returns: [
       { value: 'const char *', description: 'The ISO 15924 code, or NULL if `script` is not a valid `mjb_script` value' }
     ],
-    example: `// Script code: Latn
-printf("Script code: %s", mjb_script_code(MJB_SC_LATN));`,
+    examples: {
+      c: `// Script code: Latn
+printf("Script code: %s", mjb_script_code(MJB_SC_LATN));`
+    },
     related: ['mjb_codepoint_script', 'mjb_codepoint_script_extensions']
   },
   {
@@ -3613,7 +3801,8 @@ printf("Script code: %s", mjb_script_code(MJB_SC_LATN));`,
       { value: 'MJB_STATUS_OK', description: 'The result was freed' },
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`result` is NULL' }
     ],
-    example: `mjb_result result;
+    examples: {
+      c: `mjb_result result;
 
 mjb_text input = mjb_text_utf8("A", 1);
 
@@ -3625,6 +3814,7 @@ if(mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, &result,
 
 // Result released: yes
 printf("Result released: %s", result.output == NULL ? "yes" : "no");`
+    }
   },
   {
     comment: 'Format a UTF-8 string without leaving an incomplete trailing codepoint.',
@@ -3669,12 +3859,14 @@ printf("Result released: %s", result.output == NULL ? "yes" : "no");`
         description: 'The underlying `vsnprintf` reported an encoding error'
       }
     ],
-    example: `char buffer[4];
+    examples: {
+      c: `char buffer[4];
 int required = mjb_utf8_snprintf(buffer, sizeof(buffer), "%s",
     "\\xC3\\xA9\\xC3\\xA9"); // éé
 
 // 4: é
-printf("%d: %s", required, buffer);`,
+printf("%d: %s", required, buffer);`
+    },
     related: ['mjb_utf8_vsnprintf', 'mjb_utf8_grapheme_snprintf', 'mjb_is_utf8']
   },
   {
@@ -3772,12 +3964,14 @@ printf("%d: %s", required, buffer);`,
         description: 'Formatting failed or the complete result could not be obtained'
       }
     ],
-    example: `char buffer[4];
+    examples: {
+      c: `char buffer[4];
 int required = mjb_utf8_grapheme_snprintf(buffer, sizeof(buffer), "%s",
     "Ae\\xCC\\x81" "B"); // A, e + combining acute accent, B
 
 // 5: A
-printf("%d: %s", required, buffer);`,
+printf("%d: %s", required, buffer);`
+    },
     related: ['mjb_utf8_grapheme_vsnprintf', 'mjb_utf8_snprintf',
       'mjb_grapheme_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
@@ -3849,10 +4043,12 @@ printf("%d: %s", required, buffer);`,
     wasm: true,
     section: Section.Utility,
     details: 'Return a static English-language message of at most 100 characters.',
-    example: `const char *message = mjb_status_message(MJB_STATUS_INVALID_ARGUMENT);
+    examples: {
+      c: `const char *message = mjb_status_message(MJB_STATUS_INVALID_ARGUMENT);
 
 // Error message: One or more arguments are invalid or inconsistent with the requested operation
-printf("Error message: %s", message);`,
+printf("Error message: %s", message);`
+    },
     related: []
   },
   {
@@ -3864,10 +4060,12 @@ printf("Error message: %s", message);`,
     wasm: true,
     section: Section.Utility,
     details: 'Output the current library version as a string, such as "1.0.0".',
-    example: `const char *version = mjb_version();
+    examples: {
+      c: `const char *version = mjb_version();
 
 // Version is available: yes
-printf("Version is available: %s", version[0] != '\\0' ? "yes" : "no");`,
+printf("Version is available: %s", version[0] != '\\0' ? "yes" : "no");`
+    },
     related: ['mjb_version_number', 'mjb_unicode_version']
   },
   {
@@ -3879,10 +4077,12 @@ printf("Version is available: %s", version[0] != '\\0' ? "yes" : "no");`,
     wasm: true,
     section: Section.Utility,
     details: 'Output the current library version number as an unsigned integer.',
-    example: `unsigned int version = mjb_version_number();
+    examples: {
+      c: `unsigned int version = mjb_version_number();
 
 // Version number is positive: yes
-printf("Version number is positive: %s", version > 0 ? "yes" : "no");`,
+printf("Version number is positive: %s", version > 0 ? "yes" : "no");`
+    },
     related: ['mjb_version', 'mjb_unicode_version']
   },
   {
@@ -3894,10 +4094,12 @@ printf("Version number is positive: %s", version > 0 ? "yes" : "no");`,
     wasm: true,
     section: Section.Utility,
     details: 'Output the current supported Unicode version as a string, such as "15.0.0".',
-    example: `const char *version = mjb_unicode_version();
+    examples: {
+      c: `const char *version = mjb_unicode_version();
 
 // Unicode version: 18.0.0
-printf("Unicode version: %s", version);`,
+printf("Unicode version: %s", version);`
+    },
     related: ['mjb_version', 'mjb_version_number']
   },
   {

@@ -9,7 +9,7 @@ import functions, { MojibakeFunction } from '../functions';
 import { substituteBlock } from '../utils';
 
 function exampleSource(fn: MojibakeFunction): string {
-  const body = (fn.example as string).split('\n');
+  const body = (fn.examples?.c as string).split('\n');
   let output: string[] = [];
 
   for(const line of body) {
@@ -71,7 +71,7 @@ export function generateExampleC() {
   let generated = '';
 
   for(const fn of functions) {
-    if(!fn.example) {
+    if(!fn.examples?.c) {
       continue;
     }
     generated += exampleSource(fn);
