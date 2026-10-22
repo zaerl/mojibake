@@ -50,6 +50,7 @@ function exampleSource(fn: MojibakeFunction): string {
         stdout = [];
 
         output.push(`ATT_ASSERT(oss.str(), "${currentComment}\\n", "${fn.name} test failed"); // Added by the script`)
+        output.push('oss.str(""); // Added by the script');
       }
 
       continue;
@@ -70,7 +71,6 @@ ${featureStart}\
     // Example for ${fn.name}
     MJB_TEST_COVERAGE(${fn.name}); // Added by the script
 ${generated}
-    oss.str("");
     oss.clear();
     oss.copyfmt(std::ostringstream());
 }
