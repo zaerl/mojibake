@@ -7,6 +7,7 @@
 import { readFileSync } from 'fs';
 import hljs from 'highlight.js/lib/core';
 import c from 'highlight.js/lib/languages/c';
+import cpp from 'highlight.js/lib/languages/cpp';
 import functions, {
   MojibakeArg, MojibakeExamples, MojibakeFunction, MojibakeReturnCase, MojibakeSpecRef, Section
 } from './functions';
@@ -40,6 +41,21 @@ hljs.registerLanguage('c', api => {
 
   return language;
 });
+
+hljs.registerLanguage('cpp', api => {
+  const language = cpp(api);
+  const keywords = language.keywords as Record<string, string[]>;
+
+  keywords.type.push(...mojibakeTypes);
+
+  return language;
+});
+
+// Display names of the example languages, in tab order.
+const exampleLanguages: Record<keyof MojibakeExamples, string> = {
+  c: 'C',
+  cpp: 'C++',
+};
 
 export class CFunction implements MojibakeFunction {
   public comment: string;
@@ -253,12 +269,7 @@ export class CFunction implements MojibakeFunction {
       ret += '\n          </ul>';
     }
 
-    if(this.examples?.c) {
-      ret += '\n          <h3>Example</h3>' +
-        `\n          <pre><code class="hljs language-c">${
-          hljs.highlight(this.examples.c, { language: 'c' }).value
-        }</code></pre>`;
-    }
+    ret += this.examplesHTML();
 
     if(this.related?.length) {
       ret += '\n          <h3>Related</h3>\n          <ul>';
@@ -292,6 +303,43 @@ export class CFunction implements MojibakeFunction {
     }
 
     return `<div class="function-docs">${ret}\n        </div>`;
+  }
+
+  private examplesHTML(): string {
+    const languages = (Object.keys(exampleLanguages) as (keyof MojibakeExamples)[])
+      .filter(language => this.examples?.[language]);
+
+    if(!languages.length) {
+      return '';
+    }
+
+    const code = (language: keyof MojibakeExamples) =>
+      `<pre><code class="hljs language-${language}">${
+        hljs.highlight(this.examples?.[language] as string, { language }).value
+      }</code></pre>`;
+
+    if(languages.length === 1) {
+      return `\n          <h3>Example</h3>\n          ${code(languages[0])}`;
+    }
+
+    const id = (language: string) => `${this.getName()}-example-${language}`;
+    let tabs = '';
+    let panels = '';
+
+    languages.forEach((language, index) => {
+      const selected = index === 0;
+
+      tabs += `\n            <button type="button" role="tab" class="example-tab" ` +
+        `id="${id(language)}-tab" aria-controls="${id(language)}" ` +
+        `aria-selected="${selected}" tabindex="${selected ? 0 : -1}" ` +
+        `onclick="selectExampleTab(this)">${exampleLanguages[language]}</button>`;
+      panels += `\n          <div role="tabpanel" class="example-panel" id="${id(language)}" ` +
+        `aria-labelledby="${id(language)}-tab"${selected ? '' : ' hidden'}>${code(language)}</div>`;
+    });
+
+    return '\n          <h3>Examples</h3>' +
+      `\n          <div class="example-tabs" role="tablist" aria-label="${this.getName()} examples" ` +
+      `onkeydown="moveExampleTab(event)">${tabs}\n          </div>${panels}`;
   }
 
   private getDescription(arg: number): string {

@@ -86,6 +86,7 @@ endif()
 if(MJB_TEST_CPP_WRAPPER)
     # Add C++ test sources
     list(APPEND TEST_SOURCES ext/cpp/break.cpp)
+    list(APPEND TEST_SOURCES ext/cpp/example.cpp)
     list(APPEND TEST_SOURCES ext/cpp/into.cpp)
     list(APPEND TEST_SOURCES ext/cpp/locales.cpp)
     list(APPEND TEST_SOURCES ext/cpp/mojibake.cpp)

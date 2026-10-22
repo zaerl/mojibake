@@ -42,6 +42,7 @@ export enum Section {
 
 export type MojibakeExamples = {
   c?: string;
+  cpp?: string;
 };
 
 export type MojibakeFunction = {
@@ -246,7 +247,16 @@ if(mjb_codepoint_info(0x022A, &character) != MJB_STATUS_OK) {
 }
 
 // U+022A lowercase: U+022B
-printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`
+printf("U+%04X lowercase: U+%04X", character.codepoint, character.lowercase);`,
+      cpp: `auto character = mjb::Character::from(0x022A);
+
+if(!character || !character->lowercase()) {
+    return 1;
+}
+
+// U+022A lowercase: U+022B
+std::cout << std::format("U+{:04X} lowercase: U+{:04X}", character->codepoint(),
+    *character->lowercase()) << std::endl;`
     },
     related: ['mjb_codepoint_block', 'mjb_codepoint_script', 'mjb_codepoint_property_binary',
       'mjb_codepoint_property_int'],

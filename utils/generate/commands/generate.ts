@@ -10,6 +10,7 @@ import { Character } from '../character';
 import { characterDecomposition, generateComposition, generateDecomposition } from '../decomposition';
 import { generateAPI } from '../file-generators/api-md';
 import { generateExampleC } from '../file-generators/example-c';
+import { generateExampleCPP } from '../file-generators/example-cpp';
 import { generateLocales } from '../file-generators/locales-h';
 import { generateUnicodeDataHeader } from '../file-generators/unicode-data-h';
 import { generateWasmDTS } from '../file-generators/wasm-d-ts';
@@ -24,9 +25,9 @@ import { generateCasefold } from '../parse-ucd/casefold';
 import { parseCollationAllKeys } from '../parse-ucd/collation';
 import { readCompositionExclusions } from '../parse-ucd/compositition-exclusion';
 import { parseConfusables } from '../parse-ucd/confusables';
-import { parseIdnaMappingTable } from '../parse-ucd/idna';
 import { generateEmojiProperties } from '../parse-ucd/emoji-properties';
 import { generateEmojiSequences } from '../parse-ucd/emoji-sequences';
+import { parseIdnaMappingTable } from '../parse-ucd/idna';
 import { buildPropertyRanges, Property } from '../parse-ucd/properties';
 import { readNormalizationProps } from '../parse-ucd/quick-check';
 import { readScriptExtensions } from '../parse-ucd/script-extensions';
@@ -228,6 +229,7 @@ async function generate() {
   // generateData(characters);
   generateAPI();
   generateExampleC();
+  generateExampleCPP();
 
   // const summary = unicodeTableDataSummary();
   // iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);

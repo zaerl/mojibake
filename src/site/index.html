@@ -447,6 +447,32 @@ the MIT License.</p>
             return 'Unknown';
         }
 
+        window.selectExampleTab = (tab) => {
+            for(const other of tab.parentElement.querySelectorAll('[role="tab"]')) {
+                const selected = other === tab;
+
+                other.setAttribute('aria-selected', selected.toString());
+                other.tabIndex = selected ? 0 : -1;
+                document.getElementById(other.getAttribute('aria-controls')).hidden = !selected;
+            }
+        };
+
+        window.moveExampleTab = (event) => {
+            const tabs = Array.from(event.currentTarget.querySelectorAll('[role="tab"]'));
+            const index = tabs.indexOf(document.activeElement);
+            const offsets = { ArrowLeft: -1, ArrowRight: 1 };
+
+            if(index === -1 || !(event.key in offsets)) {
+                return;
+            }
+
+            const tab = tabs[(index + offsets[event.key] + tabs.length) % tabs.length];
+
+            event.preventDefault();
+            tab.focus();
+            selectExampleTab(tab);
+        };
+
         window.toggleFunctionCall = (func) => {
             const funcDiv = document.getElementById(func);
             const selected = funcDiv.classList.toggle('selected');

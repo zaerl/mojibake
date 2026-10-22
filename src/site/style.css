@@ -807,6 +807,40 @@ main > section {
     padding-left: 1.25rem;
 }
 
+.example-tabs {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.example-tab {
+    position: relative;
+    z-index: 1;
+    margin-bottom: -1px;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid transparent;
+    border-radius: 3px 3px 0 0;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.example-tab:hover {
+    color: var(--primary);
+}
+
+.example-tab[aria-selected="true"] {
+    border-color: var(--border);
+    border-bottom-color: var(--code-bg);
+    background: var(--code-bg);
+    color: var(--text);
+}
+
+.example-panel pre {
+    margin-top: 0;
+    border-top-left-radius: 0;
+}
+
 .function-form {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
