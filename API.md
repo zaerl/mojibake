@@ -1,305 +1,418 @@
 # API
 
-Welcome to the Unicode world. Before starting, you can find a demo site where you can find the API
-documentation and test the functions by using WASM here:
-[https://mojibake.zaerl.com](https://mojibake.zaerl.com)
+This is the reference for the Mojibake C API. It starts with the handful of conventions every
+function shares, then lists each public function with its parameters, return values, and an
+example. The same reference, with functions you can run in the browser, is on the
+[demo site](https://mojibake.zaerl.com).
 
 > [!NOTE]
-> When we refer to "Unicode" or "Unicode 18" we refer to Unicode **18.0.0**
+> "Unicode" and "Unicode 18" always mean the Unicode Standard, Version **18.0.0**, and the Unicode
+> Character Database 18.0.0.
+
+- [Getting started](#getting-started)
+- [Unicode glossary](#unicode-glossary)
+- [Core concepts](#core-concepts): [text input](#text-input), [status codes](#status-codes),
+  [malformed input](#malformed-input), [allocating output](#allocating-output),
+  [caller-provided output](#caller-provided-output), [global configuration](#global-configuration),
+  [optional features](#optional-features)
+- [Function index](#function-index)
+- [Unicode collation](#unicode-collation)
+- [Functions](#functions)
+- [Unicode references](#unicode-references), [tailoring](#unicode-tailoring), and
+  [conformance inventory](#unicode-conformance-inventory)
+
+## Getting started
+
+Include `mojibake.h` and compile `mojibake.c` with your program. This converts a string to
+uppercase:
+
+```c
+#include <stdio.h>
+
+#include "mojibake.h"
+
+int main(void) {
+    // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    mjb_text input = mjb_text_utf8("Cafe\xCC\x81", MJB_NUL_TERMINATED);
+    mjb_result result;
+
+    mjb_status status = mjb_map_case(&input, MJB_MALFORMED_STOP, MJB_CASE_UPPER,
+        MJB_LOCALE_NOT_SET, MJB_ENC_UTF_8, &result, NULL);
+
+    if(status != MJB_STATUS_OK) {
+        fprintf(stderr, "mjb_map_case: %s\n", mjb_status_message(status));
+        return 1;
+    }
+
+    printf("%.*s\n", (int)result.output_size, result.output); // CAFÉ
+    mjb_result_free(&result);
+
+    return 0;
+}
+```
+
+Almost every string function has this shape:
+
+1. an input `mjb_text`, which carries the bytes, their length, and their encoding
+2. a `mjb_malformed_policy` for ill-formed input
+3. the arguments specific to the function, here the case and the locale
+4. the output encoding and an `mjb_result` to receive the output, or an `mjb_buffer` for `_into`
+   variants
+5. an optional `mjb_diagnostic` that receives the first malformed sequence
+
+Codepoint functions, such as [`mjb_codepoint_info`](#mjb_codepoint_info), take an `mjb_codepoint`
+and a pointer to fill. Predicates, such as [`mjb_codepoint_is_valid`](#mjb_codepoint_is_valid) and
+[`mjb_is_utf8`](#mjb_is_utf8), return a `bool`.
 
 ## Unicode glossary
 
-You will need to have a basic glossary to understand the terminology.
+A **codepoint** (`mjb_codepoint`, a `uint32_t`) is an integer from `0` to `0x10FFFF` that
+identifies a Unicode character. For example, `U+20AC` is the euro sign, €.
 
-A **Code Point** (`typedef uint32_t mjb_codepoint` in the code) in Unicode is an integer from 0 to
-0x10FFFF. It's used to identify a **Character** in the list. For example `U+20A0`, the € currency.
+A **character** (`mjb_character`) is the "smallest component of written language that has
+semantic value". In Mojibake, `mjb_character` is the struct that holds the Unicode Character
+Database properties of a codepoint. It is unrelated to the C `char` type, which is one byte of
+memory. For example, [`mjb_codepoint_info`](#mjb_codepoint_info) reports this for `U+00BD`, ½:
 
-A **Character** (`typedef struct mjb_character`) is the "smallest component of written language that
-has semantic value". In Mojibake, an `mjb_character` is a struct with all the associated values.
-Keep in mind that a Character in Unicode is not a C character (`char`) which is just the
-name of one byte of the memory allocated for a string. To avoid confusion I will always use the
-Character word with an uppercase C.
+```c
+mjb_character character;
 
-An example of Unicode Character, `U+00BD` (**½**):
-
-```
-Codepoint: U+U+00BD
-Name: VULGAR FRACTION ONE HALF
-Category: [11] Number, other
-Combining: [0] Not Reordered
-Bidirectional: [14] Other neutrals
-Decomposition: [6] Fraction
-Decimal: N/A
-Digit: N/A
-Numeric: 1/2
-Mirrored: N
-Simple Uppercase Mapping: N/A
-Simple Lowercase Mapping: N/A
-Simple Titlecase Mapping: N/A
+if(mjb_codepoint_info(0x00BD, &character) == MJB_STATUS_OK) {
+    // U+00BD VULGAR FRACTION ONE HALF, numeric value 1/2
+    printf("U+%04X %s, numeric value %s\n", character.codepoint, character.name,
+        character.numeric);
+}
 ```
 
-An **encoding** is a way of storing a list of codepoints in memory. Nowadays, the UTF-8 encoding is
-by far the most used one when we are talking about moving data around, but there are important
-contexts where, for example, UTF-16 is used, such as: Windows APIs, Java, .NET, JavaScript, and
-others.
+A **grapheme cluster** is what a reader perceives as a single character. It can span several
+codepoints: the flag 🇮🇹 is two regional-indicator codepoints, and `e` followed by `U+0301`
+COMBINING ACUTE ACCENT displays as é. Use the segmentation functions to work with grapheme
+clusters, words, sentences, and lines rather than with codepoints.
+
+An **encoding form** stores codepoints in memory as code units. UTF-8 uses one to four bytes per
+codepoint and is the usual choice for files and networks. UTF-16 and UTF-32 use two-byte and
+four-byte code units, in little-endian (`LE`) or big-endian (`BE`) byte order. UTF-16 is common in
+Windows APIs, Java, .NET, and JavaScript.
+
+**Normalization** is the "process of removing alternate representations of equivalent sequences
+from textual data". For example, `U+00C0` LATIN CAPITAL LETTER A WITH GRAVE is a single codepoint
+in NFC and two in NFD: `U+0041` LATIN CAPITAL LETTER A + `U+0300` COMBINING GRAVE ACCENT. Normalize
+text before comparing or storing it when different representations of it must be treated as equal.
+
+## Core concepts
+
+### Text input
+
+Every string argument is an `mjb_text`: a pointer to the bytes, their length **in bytes**, and
+their encoding. Mojibake has no default encoding, so you always state it. The inline helpers
+`mjb_text_utf8`, `mjb_text_utf16le`, `mjb_text_utf16be`, `mjb_text_utf32le`, and
+`mjb_text_utf32be` build one; `mjb_text_make` accepts any `mjb_encoding`.
+
+```c
+// "Hi" in UTF-8, UTF-16LE, and UTF-32BE
+mjb_text utf8 = mjb_text_utf8("Hi", 2);
+mjb_text utf16 = mjb_text_utf16le("H\0i\0", 4);
+mjb_text utf32 = mjb_text_utf32be("\0\0\0H\0\0\0i", 8);
+
+// The length is found by scanning for a NUL code unit, here two bytes wide
+mjb_text terminated = mjb_text_utf16le("H\0i\0\0\0", MJB_NUL_TERMINATED);
+
+// With an explicit length, U+0000 is an ordinary codepoint: this text has 3 codepoints
+mjb_text with_nul = mjb_text_utf8("a\0b", 3);
+```
+
+Lengths are always byte counts, never codepoint or code-unit counts: a UTF-16 string of five code
+units is 10 bytes long. An explicit length makes the input binary-safe. `MJB_NUL_TERMINATED`
+instead scans for a terminator one, two, or four bytes wide according to the encoding, and excludes
+it from the input. As with the C string functions, the buffer must then be correctly terminated.
+
+`MJB_ENC_UTF_8` is the right choice unless you interface with a UTF-16 or UTF-32 API. The input
+and output encodings of a function are independent, so a single call can, for example, normalize
+UTF-8 input into UTF-16LE output.
 
 > [!NOTE]
-> In Mojibake `MJB_ENC_UTF_16` doesn't mean `MJB_ENC_UTF_16LE` (`LE` stands for "Little Endian",
-> used by all modern CPUs) by default. To follow the [C8 requirement](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md#c8),
-> if you declare a generic `UTF-16` this means that the algorithm will check if there is a BOM at
-> the start of the string and decide whether to use Little Endian or Big Endian. Usually it's not a
-> good idea; use the generic `MJB_ENC_UTF_16` only if you are reading a file that you know has a
-> BOM. Otherwise use `MJB_ENC_UTF_8` or `MJB_ENC_UTF_16LE`.
+> The generic `MJB_ENC_UTF_16` and `MJB_ENC_UTF_32` do not default to little-endian. Following
+> the [C8 requirement](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md#c8),
+> they read the byte order from a leading byte order mark, which is consumed as a signature. Without
+> one, the call fails with `MJB_STATUS_INVALID_ENCODING`. Use them only for data that you know
+> starts with a BOM, and an explicit `LE` or `BE` encoding otherwise.
 
-A **normalization** is the "process of removing alternate representations of equivalent sequences
-from textual data". This means transforming a string to another one called its normalized form by
-replacing parts with others. For example, `U+00C0` (LATIN CAPITAL LETTER A WITH GRAVE) is normalized
-in _NFD_ as a list of two characters: `U+0041` (LATIN CAPITAL LETTER A) + `U+0300` (COMBINING GRAVE
-ACCENT). Usually, Mojibake takes care of this kind of transformations by selecting the best for you.
+### Status codes
 
-## Basis
-
-Here is the basis for using the library:
-
-### Mojibake does not have a default input encoding or output decoding
-You must decide what to use. Always use `MJB_ENC_UTF_8` if you don't need to interface for things
-like the Windows API.
-
-### Input and output encodings can be different
-Mojibake is encoding agnostic. It can accept and output `uint8_t` (ASCII, UTF-8),
-`uint16_t` (UTF-16), `uint32_t` (UTF-32) bytes of memory. The output strings can have different
-encodings of the input strings.
-
-This means that you can specify UTF-8 in input but have UTF-16 in output. Using the same encoding is
-the best approach if you don't want to change it. So this is ok:
+Functions that can fail return an `mjb_status` and are marked `MJB_NODISCARD`. Success is
+`MJB_STATUS_OK`, which is **zero**, so test for it explicitly:
 
 ```c
-// See, the output is UTF-16.
-mjb_filter("Hello", 5, MJB_ENC_UTF_8, MJB_MALFORMED_STOP, MJB_FILTER_SPACES,
-    MJB_ENC_UTF_16LE, &result, NULL);
+if(mjb_normalize(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
+       NULL) != MJB_STATUS_OK) {
+    // Handle the error
+}
 ```
 
-### Every string passed is simply a stream of bytes
-Mojibake handles different encodings, so the string you pass can be:
+[`mjb_status_message`](#mjb_status_message) returns a description of any status. Each function's
+reference lists the statuses it can return. Predicates return `bool` because the truth value is the
+result.
 
-1. A stream of bytes (`char`), in UTF-8. The classic C strings
-2. A stream of `uint16_t` in UTF-16LE, UTF-16BE.
-3. A stream of `uint32_t` in UTF-32LE, UTF-32BE.
+### Malformed input
 
-Specify its exact byte length to process `U+0000` (`NULL`) like any other codepoint, or pass
-`MJB_NUL_TERMINATED` when the input has an encoding-aware NUL terminator.
+Real-world text can contain ill-formed sequences: a stray UTF-8 continuation byte, an unpaired
+UTF-16 surrogate, a truncated code unit. Functions that decode text take an `mjb_malformed_policy`:
 
-`MJB_NUL_TERMINATED` scans one-byte code units for ASCII/UTF-8, two-byte code units for UTF-16, and
-four-byte code units for UTF-32. The terminator is excluded from the input. As with standard C
-string functions, the caller must provide a correctly terminated buffer. These function calls are
-equivalent:
+- `MJB_MALFORMED_STOP` fails with `MJB_STATUS_MALFORMED_INPUT`
+- `MJB_MALFORMED_REPLACE` substitutes one `U+FFFD` REPLACEMENT CHARACTER for each maximal ill-formed
+  subsequence
+- `MJB_MALFORMED_SKIP` drops each ill-formed subsequence
+
+Pass an `mjb_diagnostic` to learn what went wrong and where. It records the first ill-formed
+subsequence, also when replacing or skipping lets the call succeed. Pass `NULL` if you do not need
+it.
 
 ```c
-const char *hello = "Hello";
-mjb_encoding enc = MJB_ENC_UTF_8;
+// "a", a lone continuation byte, "b"
+mjb_text input = mjb_text_utf8("a\x80" "b", 3);
+mjb_result result;
+mjb_diagnostic diagnostic;
 
-mjb_normalize(hello, 5, enc, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, enc, &result,
-    NULL);
-mjb_normalize(hello, MJB_NUL_TERMINATED, enc, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, enc, &result, NULL);
+// Fails with MJB_STATUS_MALFORMED_INPUT. diagnostic.error is
+// MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION, diagnostic.byte_offset is 1
+mjb_status status = mjb_convert_encoding(&input, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result,
+    &diagnostic);
 
-const char hello_16[] = {
-    0x48, 0x00,  0x65, 0x00,  0x6C, 0x00,
-    0x6C, 0x00,  0x6F, 0x00,
-    0x00, 0x00,
-};
-
-enc = MJB_ENC_UTF_16LE;
-
-// sizeof(uint16_t) is 2
-mjb_normalize(hello_16, 5 * sizeof(uint16_t), enc, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, enc, &result, NULL);
-mjb_normalize(hello_16, MJB_NUL_TERMINATED, enc, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, enc, &result, NULL);
+// Succeeds with "a" U+FFFD "b", 5 bytes. diagnostic.byte_offset is still 1
+status = mjb_convert_encoding(&input, MJB_MALFORMED_REPLACE, MJB_ENC_UTF_8, &result, &diagnostic);
 ```
 
-### Status return
+To check text without transforming it, use [`mjb_validate_encoding`](#mjb_validate_encoding), or
+[`mjb_is_utf8`](#mjb_is_utf8) and its siblings for a yes-or-no answer.
 
-The major part of the functions return a `mjb_status` and should be checked against the
-`MJB_STATUS_OK` constant.
+### Allocating output
 
-> [!IMPORTANT]
-> `mjb_status` is an enum and if a function **succeeds** returns
-> [MJB_STATUS_OK](https://github.com/zaerl/mojibake/blob/main/src/mojibake.h#L265) that is _zero_,
-> so _false_. Always check for that value `if(mjb_normalize(...) == MJB_STATUS_OK)`. I've chosen
-> this to follow other libraries' de facto standards.
+Transforming functions such as [`mjb_normalize`](#mjb_normalize) and
+[`mjb_map_case`](#mjb_map_case) fill an `mjb_result`:
 
-Predicate APIs, such as `mjb_is_utf8` and `mjb_codepoint_is_valid`, return `bool` because the
-boolean is the result.
+- `output` and `output_size` hold the bytes, in the requested output encoding. Output is never
+  terminated, so always use `output_size`, for example with `printf("%.*s", ...)`
+- `owned` tells whether the library allocated `output`. Some functions avoid the work and the
+  allocation when the input is already in the requested form: then `owned` is false and `output`
+  points into your input, which must outlive the result
 
-## API signatures
-
-All functions follow the same signature. And there are a few sets of types together with other very
-specialized functions you will find in the API list below.
-
-### Functions that handle strings
-
-The functions return a `_mjb_status_` and accept these arguments:
-
-1. The input string
-2. The _length_ of the input string (`byte_length`)
-3. The encoding of the input string (`encoding`)
-4. A malformed-input policy when the operation can recover malformed text
-5. The needed _arguments_ of the function, if any
-6. The encoding you want to be used for the output string
-7. A `mjb_result` pointer to store the result
-8. An optional `mjb_diagnostic` pointer for the first malformed input sequence
-
-See for example the [`mjb_normalize`](#mjb_normalize), [`mjb_filter`](#mjb_filter)
-functions.
-
-### Functions that handle a codepoint
-
-The functions return a `mjb_status` and accept these arguments:
-
-1. The codepoint to check
-2. The needed _arguments_ of the function, if any
-3. A pointer to a structure to save the result
-
-See for example [`mjb_codepoint_info`](#mjb_codepoint_info),
-[`mjb_codepoint_numeric_value`](#mjb_codepoint_numeric_value).
-
-### Predicate functions
-
-Those are the `mjb_(something)_is_(this)` kind of functions, which return a `bool`.
-
-1. The thing to check
-2. The needed _arguments_ of the function, if any
-
-See for example [`mjb_is_utf8`](#mjb_is_utf8),
-[`mjb_codepoint_is_valid`](#mjb_codepoint_is_valid).
-
-## Strings encoding and generation
-
-Example of the [`mjb_normalize`](#mjb_normalize) function.
+Call [`mjb_result_free`](#mjb_result_free) when you are done with a successful result. It handles
+both cases, so you never need to check `owned` first. On failure there is nothing to free.
 
 ```c
-mjb_status mjb_normalize(const char *buffer, size_t byte_length, mjb_encoding encoding,
-mjb_malformed_policy malformed_policy, mjb_normalization form, mjb_encoding output_encoding,
-mjb_result *result, mjb_diagnostic *diagnostic);
-```
-
-1. `buffer`: a block of memory, `uint8_t` (ASCII, UTF-8), `uint16_t` (UTF-16), `uint32_t` (UTF-32)
-2. `byte_length`: the length in _bytes_ of `buffer`
-3. `encoding`: the encoding of `buffer`
-4. `malformed_policy`: whether malformed input stops, is replaced, or is skipped
-5. `form`: the normalization
-6. `output_encoding`: the encoding of _output_ you want
-7. `result`: a pointer to a struct the function will fill
-8. `diagnostic`: an optional pointer that receives the first malformed input sequence
-
-If you want to normalize the UTF-8 encoded `Cafe\xCC\x81` string to `NFC`, this is what you need to
-do:
-
-```c
-const char *input = "Cafe\xCC\x81"; // UTF-8 string of: "Cafe" + U+0301 COMBINING ACUTE ACCENT
-
+mjb_text input = mjb_text_utf8("plain ASCII", MJB_NUL_TERMINATED);
 mjb_result result;
 
-if(mjb_normalize(input, MJB_NUL_TERMINATED, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result, NULL) != MJB_STATUS_OK) {
-    return 1;
-}
-
-printf("%s -> %.*s\n", (int)result.output_size, result.output);
-
-mjb_result_free(&result);
-```
-
-The function can potentially return something different from `MJB_STATUS_OK`. In this situation,
-you don't need to do anything. If a function fails, it will never leave data behind.
-
-If the output string has been `transformed`, it means the function has allocated a result, and
-you need to `mjb_result_free` it.
-
-This way the output buffer will be encoded in UTF-16LE.
-
-```c
-if(mjb_normalize(input, strlen(input), MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    MJB_NORMALIZATION_NFC, MJB_ENC_UTF_16LE, &result, NULL) != MJB_STATUS_OK) {
-    return 1;
+if(mjb_normalize(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
+       NULL) == MJB_STATUS_OK) {
+    // Already NFC: result.owned is false and result.output points into input.buffer
+    mjb_result_free(&result);
 }
 ```
 
-A summary for `Héllö`, encoded this way:
+### Caller-provided output
 
-- UTF-8: `H\xC3\xA9ll\xC3\xB6`, 7 bytes
-- UTF-16LE: `H\0\xE9\0l\0l\0\xF6\0`, 10 bytes
-- UTF-16BE: `\0H\0\xE9\0l\0l\0\xF6`, 10 bytes
-- UTF-32LE: `H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0`, 20 bytes
-- UTF-32BE: `\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6`, 20 bytes
+Most transforming functions have an `_into` variant, such as
+[`mjb_normalize_into`](#mjb_normalize_into), that writes into storage you own. It takes an
+`mjb_buffer`, built with `mjb_buffer_make`, which holds the storage pointer, its size, and the
+output encoding. The rules are the same for every `_into` function:
 
-To count the Unicode codepoints, use `mjb_codepoint_count`.
-
-```c
-size_t count = 0;
-
-mjb_codepoint_count("H\xC3\xA9ll\xC3\xB6", 7, MJB_ENC_UTF_8, MJB_MALFORMED_STOP,
-    &count, NULL); // 5 characters
-mjb_codepoint_count("H\0\xE9\0l\0l\0\xF6\0", 10, MJB_ENC_UTF_16LE,
-    MJB_MALFORMED_STOP, &count, NULL); // 5 characters
-mjb_codepoint_count("\0H\0\xE9\0l\0l\0\xF6", 10, MJB_ENC_UTF_16BE,
-    MJB_MALFORMED_STOP, &count, NULL); // 5 characters
-mjb_codepoint_count("H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6\0\0\0", 20,
-    MJB_ENC_UTF_32LE, MJB_MALFORMED_STOP, &count, NULL); // 5 characters
-mjb_codepoint_count("\0\0\0H\0\0\0\xE9\0\0\0l\0\0\0l\0\0\0\xF6", 20,
-    MJB_ENC_UTF_32BE, MJB_MALFORMED_STOP, &count, NULL); // 5 characters
-```
-
-Functions that handle a string, as `mjb_normalize`, `mjb_convert_encoding` has always a `_into(...)`
-alternative that do not allocate the results for you, but you provide the buffer.
-
-Example for the function:
+1. Set `data` to `NULL` to measure: on return, `size` holds the required byte count
+2. Otherwise `size` is the capacity of `data`. On success it becomes the written byte count. If the
+   buffer is too small, the call returns `MJB_STATUS_OUTPUT_TOO_SMALL` and `size` holds the
+   required byte count
+3. Sizes never include a terminator, and none is written
+4. After a failure `data` may hold a partial prefix of the output, but nothing is written past its
+   capacity
 
 ```c
-mjb_status mjb_convert_encoding_into(const char *buffer, size_t byte_length,
-    mjb_encoding encoding, mjb_malformed_policy malformed_policy,
-    mjb_encoding output_encoding, void *output, size_t *output_size,
-    mjb_diagnostic *diagnostic);
-```
+mjb_text input = mjb_text_utf8("caf\xC3\xA9", MJB_NUL_TERMINATED);
 
-These are the rules, all the functions are equal:
+// Measure
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_16LE);
 
-1. Set `output` to NULL to query the required size you will get back stored in the  `output_size`
-  pointer
-2. If `output` is non-NULL, `*output_size` supplies its capacity; on return it contains the required
-   size when the buffer is too small (`MJB_STATUS_OUTPUT_TOO_SMALL`), or the written size on success
-3. **Terminators are excluded from the byte count and are not written**
-4. No bytes are written when capacity is insufficient
-
-> [!IMPORTANT]
-> Explicitly sized Mojibake inputs are length-delimited and binary-safe. Output sizes never include
-> a terminator, and `_into` functions do not write one. `MJB_NUL_TERMINATED` changes input length
-> discovery only; it does not change output semantics.
-
-```c
-const char *input = "caf\xC3\xA9";
-size_t required = 0;
-
-// Get the length.
-if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, NULL, &required, NULL) != MJB_STATUS_OK) {
+if(mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
     return 1;
 }
 
-char *output = (char *)malloc(required);
-size_t capacity = required;
+// Write
+output.data = malloc(output.size);
 
-if(mjb_convert_encoding_into(input, strlen(input), MJB_ENC_UTF_8,
-    MJB_MALFORMED_STOP, MJB_ENC_UTF_16LE, output, &capacity, NULL) != MJB_STATUS_OK) {
+if(output.data == NULL ||
+    mjb_convert_encoding_into(&input, MJB_MALFORMED_STOP, &output, NULL) != MJB_STATUS_OK) {
+    free(output.data);
     return 1;
 }
 
-// UTF-16LE payload bytes (no terminator): 8
-printf("UTF-16LE payload bytes (no terminator): %zu", capacity);
-
-free(output);
+// output.size is 8: four UTF-16LE code units, no terminator
+free(output.data);
 ```
+
+A fixed stack buffer works too: try it first, and allocate only when the call reports
+`MJB_STATUS_OUTPUT_TOO_SMALL`. After a successful call, `mjb_buffer_text` turns the buffer into an
+`mjb_text`, ready to pass to the next function. `_into` functions do not allocate the output, but
+some, such as NFC normalization and collation, still allocate temporary storage. Each function's
+reference says so.
+
+### Global configuration
+
+Functions take all of their options as arguments: there is no global locale or encoding. The one
+process-wide setting is the memory allocator. [`mjb_set_allocator`](#mjb_set_allocator) installs
+custom allocation callbacks, and must be called once, before any other library call. Output in an
+owned `mjb_result` comes from this allocator, which is why it must be released with
+`mjb_result_free` rather than `free`.
+
+### Optional features
+
+The library can be compiled without some features to reduce its size: see
+[Build-time features](https://github.com/zaerl/mojibake/blob/main/README.md#build-time-features).
+The API stays the same in every build: the functions of a disabled feature are still declared,
+and return `MJB_STATUS_FEATURE_NOT_ENABLED`.
+
+- `MJB_FEATURE_COLLATION=0` disables the `mjb_collation_*` functions
+- `MJB_FEATURE_IDNA=0` disables the `mjb_idna_*` functions
+- `MJB_FEATURE_SECURITY=0` disables [`mjb_resolved_script_set`](#mjb_resolved_script_set) and the
+  `mjb_confusable_*` functions
+- `MJB_FEATURE_CHARACTER_NAMES=0` disables no function: [`mjb_codepoint_info`](#mjb_codepoint_info)
+  reports every name as `Codepoint U+XXXX`
+
+## Function index
+
+**Encodings and decoding**:
+[`mjb_detect_encoding`](#mjb_detect_encoding),
+[`mjb_is_ascii`](#mjb_is_ascii),
+[`mjb_is_utf8`](#mjb_is_utf8),
+[`mjb_is_utf16`](#mjb_is_utf16),
+[`mjb_validate_encoding`](#mjb_validate_encoding),
+[`mjb_convert_encoding`](#mjb_convert_encoding),
+[`mjb_convert_encoding_into`](#mjb_convert_encoding_into),
+[`mjb_decode_next`](#mjb_decode_next),
+[`mjb_decode_previous`](#mjb_decode_previous),
+[`mjb_codepoint_encode`](#mjb_codepoint_encode),
+[`mjb_codepoint_count`](#mjb_codepoint_count),
+[`mjb_for_each_codepoint`](#mjb_for_each_codepoint)
+
+**Normalization**:
+[`mjb_normalize`](#mjb_normalize),
+[`mjb_normalize_into`](#mjb_normalize_into),
+[`mjb_normalization_quick_check`](#mjb_normalization_quick_check)
+
+**Case**:
+[`mjb_map_case`](#mjb_map_case),
+[`mjb_map_case_into`](#mjb_map_case_into),
+[`mjb_nfkc_casefold`](#mjb_nfkc_casefold),
+[`mjb_nfkc_casefold_into`](#mjb_nfkc_casefold_into),
+[`mjb_caseless_match`](#mjb_caseless_match)
+
+**Filtering and formatting**:
+[`mjb_filter`](#mjb_filter),
+[`mjb_filter_into`](#mjb_filter_into),
+[`mjb_utf8_snprintf`](#mjb_utf8_snprintf),
+[`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf),
+[`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf),
+[`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf)
+
+**Segmentation**:
+[`mjb_grapheme_break_next`](#mjb_grapheme_break_next),
+[`mjb_grapheme_count`](#mjb_grapheme_count),
+[`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length),
+[`mjb_word_break_next`](#mjb_word_break_next),
+[`mjb_word_count`](#mjb_word_count),
+[`mjb_word_prefix_length`](#mjb_word_prefix_length),
+[`mjb_sentence_break_next`](#mjb_sentence_break_next),
+[`mjb_sentence_count`](#mjb_sentence_count),
+[`mjb_line_break_next`](#mjb_line_break_next)
+
+**Terminal width**:
+[`mjb_terminal_width`](#mjb_terminal_width),
+[`mjb_grapheme_prefix_length_for_width`](#mjb_grapheme_prefix_length_for_width),
+[`mjb_word_prefix_length_for_width`](#mjb_word_prefix_length_for_width),
+[`mjb_codepoint_east_asian_width`](#mjb_codepoint_east_asian_width)
+
+**Bidirectional text**:
+[`mjb_bidi_resolve`](#mjb_bidi_resolve),
+[`mjb_bidi_reorder_line`](#mjb_bidi_reorder_line),
+[`mjb_bidi_line_runs`](#mjb_bidi_line_runs),
+[`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free)
+
+**Collation**:
+[`mjb_collation_compare`](#mjb_collation_compare),
+[`mjb_collation_key`](#mjb_collation_key),
+[`mjb_collation_key_into`](#mjb_collation_key_into)
+
+**Character properties**:
+[`mjb_codepoint_info`](#mjb_codepoint_info),
+[`mjb_codepoint_property_binary`](#mjb_codepoint_property_binary),
+[`mjb_codepoint_property_int`](#mjb_codepoint_property_int),
+[`mjb_property_name`](#mjb_property_name),
+[`mjb_codepoint_numeric_value`](#mjb_codepoint_numeric_value),
+[`mjb_codepoint_block`](#mjb_codepoint_block),
+[`mjb_codepoint_script`](#mjb_codepoint_script),
+[`mjb_codepoint_script_extensions`](#mjb_codepoint_script_extensions),
+[`mjb_script_code`](#mjb_script_code),
+[`mjb_codepoint_plane`](#mjb_codepoint_plane),
+[`mjb_plane_is_valid`](#mjb_plane_is_valid),
+[`mjb_plane_name`](#mjb_plane_name),
+[`mjb_codepoint_is_valid`](#mjb_codepoint_is_valid),
+[`mjb_codepoint_is_graphic`](#mjb_codepoint_is_graphic),
+[`mjb_codepoint_is_combining`](#mjb_codepoint_is_combining),
+[`mjb_category_is_graphic`](#mjb_category_is_graphic),
+[`mjb_category_is_combining`](#mjb_category_is_combining),
+[`mjb_codepoint_is_cjk_ideograph`](#mjb_codepoint_is_cjk_ideograph),
+[`mjb_codepoint_is_cjk_extension_ideograph`](#mjb_codepoint_is_cjk_extension_ideograph)
+
+**Hangul**:
+[`mjb_codepoint_is_hangul_leading_jamo`](#mjb_codepoint_is_hangul_leading_jamo),
+[`mjb_codepoint_is_hangul_vowel_jamo`](#mjb_codepoint_is_hangul_vowel_jamo),
+[`mjb_codepoint_is_hangul_trailing_jamo`](#mjb_codepoint_is_hangul_trailing_jamo),
+[`mjb_codepoint_is_hangul_jamo`](#mjb_codepoint_is_hangul_jamo),
+[`mjb_codepoint_is_hangul_syllable`](#mjb_codepoint_is_hangul_syllable),
+[`mjb_hangul_syllable_name`](#mjb_hangul_syllable_name),
+[`mjb_hangul_syllable_decompose`](#mjb_hangul_syllable_decompose),
+[`mjb_hangul_syllable_compose`](#mjb_hangul_syllable_compose)
+
+**Emoji**:
+[`mjb_codepoint_emoji_properties`](#mjb_codepoint_emoji_properties),
+[`mjb_codepoint_is_emoji`](#mjb_codepoint_is_emoji),
+[`mjb_codepoint_is_emoji_presentation`](#mjb_codepoint_is_emoji_presentation),
+[`mjb_codepoint_is_emoji_modifier`](#mjb_codepoint_is_emoji_modifier),
+[`mjb_codepoint_is_emoji_modifier_base`](#mjb_codepoint_is_emoji_modifier_base),
+[`mjb_codepoint_is_emoji_component`](#mjb_codepoint_is_emoji_component),
+[`mjb_codepoint_is_extended_pictographic`](#mjb_codepoint_is_extended_pictographic),
+[`mjb_emoji_sequence_info`](#mjb_emoji_sequence_info),
+[`mjb_is_emoji_sequence`](#mjb_is_emoji_sequence),
+[`mjb_is_rgi_emoji`](#mjb_is_rgi_emoji)
+
+**Identifiers and security**:
+[`mjb_codepoint_is_id_start`](#mjb_codepoint_is_id_start),
+[`mjb_codepoint_is_id_continue`](#mjb_codepoint_is_id_continue),
+[`mjb_codepoint_is_xid_start`](#mjb_codepoint_is_xid_start),
+[`mjb_codepoint_is_xid_continue`](#mjb_codepoint_is_xid_continue),
+[`mjb_codepoint_is_pattern_syntax`](#mjb_codepoint_is_pattern_syntax),
+[`mjb_codepoint_is_pattern_white_space`](#mjb_codepoint_is_pattern_white_space),
+[`mjb_is_identifier`](#mjb_is_identifier),
+[`mjb_resolved_script_set`](#mjb_resolved_script_set),
+[`mjb_confusable_skeleton`](#mjb_confusable_skeleton),
+[`mjb_confusable_skeleton_into`](#mjb_confusable_skeleton_into),
+[`mjb_confusable_match`](#mjb_confusable_match)
+
+**Internationalized domain names**:
+[`mjb_idna_to_ascii`](#mjb_idna_to_ascii),
+[`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into),
+[`mjb_idna_to_unicode`](#mjb_idna_to_unicode),
+[`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into)
+
+**Locales**:
+[`mjb_locale_parse`](#mjb_locale_parse),
+[`mjb_locale_code`](#mjb_locale_code)
+
+**Library**:
+[`mjb_result_free`](#mjb_result_free),
+[`mjb_status_message`](#mjb_status_message),
+[`mjb_set_allocator`](#mjb_set_allocator),
+[`mjb_version`](#mjb_version),
+[`mjb_version_number`](#mjb_version_number),
+[`mjb_unicode_version`](#mjb_unicode_version)
 
 ## Unicode collation
 
