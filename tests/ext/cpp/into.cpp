@@ -70,8 +70,8 @@ ATT_TEST(cpp_into) {
     // The output's string type selects its encoding, whatever the input's
     std::u16string converted16;
     mjb::convert_encoding("A\xC3\xA9", converted16);
-    ATT_ASSERT(converted16 == u"Aé", true, "convert_encoding into a std::u16string");
-    mjb::nfc(U"é", out);
+    ATT_ASSERT(converted16 == u"A\u00E9", true, "convert_encoding into a std::u16string");
+    mjb::nfc(U"e\u0301", out);
     ATT_ASSERT(out, std::string("\xC3\xA9"), "nfc of UTF-32 into a UTF-8 std::string");
 
     // Output that outgrows the first attempt takes a second pass: Hangul NFD triples UTF-8
@@ -143,46 +143,46 @@ ATT_TEST(cpp_into) {
     std::u16string out16(u"previous");
     std::u32string out32;
 
-    mjb::nfc(u"é", out16);
-    ATT_ASSERT(out16 == u"é", true, "UTF-16 nfc into");
-    mjb::nfd(U"é", out32);
-    ATT_ASSERT(out32 == U"é", true, "UTF-32 nfd into");
-    mjb::nfkc(u"ﬁ", out16);
+    mjb::nfc(u"e\u0301", out16);
+    ATT_ASSERT(out16 == u"\u00E9", true, "UTF-16 nfc into");
+    mjb::nfd(U"\u00E9", out32);
+    ATT_ASSERT(out32 == U"e\u0301", true, "UTF-32 nfd into");
+    mjb::nfkc(u"\uFB01", out16);
     ATT_ASSERT(out16 == u"fi", true, "UTF-16 nfkc into");
-    mjb::nfkd(U"Å", out32);
-    ATT_ASSERT(out32 == U"Å", true, "UTF-32 nfkd into");
-    mjb::normalize(u"é", mjb::NormalizationForm::NFC, out16);
-    ATT_ASSERT(out16 == u"é", true, "UTF-16 normalize into");
-    mjb::uppercase(u"straße", out16);
+    mjb::nfkd(U"\u00C5", out32);
+    ATT_ASSERT(out32 == U"A\u030A", true, "UTF-32 nfkd into");
+    mjb::normalize(u"e\u0301", mjb::NormalizationForm::NFC, out16);
+    ATT_ASSERT(out16 == u"\u00E9", true, "UTF-16 normalize into");
+    mjb::uppercase(u"stra\u00DFe", out16);
     ATT_ASSERT(out16 == u"STRASSE", true, "UTF-16 uppercase into");
     mjb::uppercase(U"istanbul", out32, { .locale = MJB_LOCALE_TR });
-    ATT_ASSERT(out32 == U"İSTANBUL", true, "UTF-32 uppercase into with a locale");
+    ATT_ASSERT(out32 == U"\u0130STANBUL", true, "UTF-32 uppercase into with a locale");
     mjb::lowercase(u"HELLO", out16);
     ATT_ASSERT(out16 == u"hello", true, "UTF-16 lowercase into");
     mjb::titlecase(U"hello world", out32);
     ATT_ASSERT(out32 == U"Hello World", true, "UTF-32 titlecase into");
-    mjb::casefold(u"Straße", out16);
+    mjb::casefold(u"Stra\u00DFe", out16);
     ATT_ASSERT(out16 == u"strasse", true, "UTF-16 casefold into");
-    mjb::casefold_simple(U"ẞ", out32);
-    ATT_ASSERT(out32 == U"ß", true, "UTF-32 casefold_simple into");
+    mjb::casefold_simple(U"\u1E9E", out32);
+    ATT_ASSERT(out32 == U"\u00DF", true, "UTF-32 casefold_simple into");
     mjb::case_map(u"abc", MJB_CASE_UPPER, out16);
     ATT_ASSERT(out16 == u"ABC", true, "UTF-16 case_map into");
-    mjb::filter(u"é", mjb::Filter::Normalize, out16);
-    ATT_ASSERT(out16 == u"é", true, "UTF-16 filter into");
+    mjb::filter(u"e\u0301", mjb::Filter::Normalize, out16);
+    ATT_ASSERT(out16 == u"\u00E9", true, "UTF-16 filter into");
     mjb::filter(U"a  b", mjb::Filter::CollapseSpaces, out32);
     ATT_ASSERT(out32 == U"a b", true, "UTF-32 filter into");
-    mjb::nfkc_casefold(u"Straße­", out16);
+    mjb::nfkc_casefold(u"Stra\u00DFe\u00AD", out16);
     ATT_ASSERT(out16 == u"strasse", true, "UTF-16 nfkc_casefold into");
     mjb::nfc(u"A\U0001F642", out16);
     ATT_ASSERT(out16 == u"A\U0001F642", true, "UTF-16 nfc into keeps surrogate pairs");
 #if MJB_FEATURE_SECURITY
-    mjb::confusable_skeleton(u"hеllo", out16);
+    mjb::confusable_skeleton(u"h\u0435llo", out16);
     ATT_ASSERT(out16 == mjb::confusable_skeleton(u"hello"), true, "UTF-16 confusable_skeleton into");
 #endif
 
     std::u8string out8;
-    mjb::nfc(u8"Café", out8);
-    ATT_ASSERT(out8 == u8"Café", true, "char8_t nfc into a std::u8string");
+    mjb::nfc(u8"Cafe\u0301", out8);
+    ATT_ASSERT(out8 == u8"Caf\u00E9", true, "char8_t nfc into a std::u8string");
 
     std::u16string failed16(u"unchanged?");
 

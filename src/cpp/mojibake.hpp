@@ -399,8 +399,8 @@ namespace detail {
 template <code_unit CharT, typename Allocator, typename Write>
 void write_into(std::basic_string<CharT, std::char_traits<CharT>, Allocator> &out,
     mjb_encoding encoding, size_t size_hint, const Write &write, const char *operation) {
-    // Half again the hint covers the usual growth, such as NFD of accented letters or "ß" to "SS",
-    // so a second, full pass is rare
+    // Half again the hint covers the usual growth, such as NFD of accented letters or U+00DF to
+    // "SS", so a second, full pass is rare
     const size_t bytes = size_hint + size_hint / 2;
     size_t units = std::max(out.capacity(), (bytes + sizeof(CharT) - 1) / sizeof(CharT));
 
