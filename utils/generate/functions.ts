@@ -321,7 +321,13 @@ if(mjb_normalize(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_
 // NFC: Café
 printf("NFC: %.*s", (int)result.output_size, result.output);
 
-mjb_result_free(&result);`
+mjb_result_free(&result);`,
+      cpp: `// "Cafe" + U+0301 COMBINING ACUTE ACCENT
+std::string input = "Cafe\\xCC\\x81";
+std::string output = mjb::normalize(input, mjb::NormalizationForm::NFC);
+
+// NFC: Café
+std::cout << "NFC: " << output << std::endl;`
     },
     related: ['mjb_normalize_into', 'mjb_normalization_quick_check', 'mjb_filter',
       'mjb_filter_into'],
@@ -401,7 +407,16 @@ if(mjb_normalize_into(&input, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, &output
 }
 
 // NFC payload (no terminator): Café
-printf("NFC payload (no terminator): %.*s", (int)output.size, storage);`
+printf("NFC payload (no terminator): %.*s", (int)output.size, storage);`,
+      cpp: `// "Cafe" + U+0301 COMBINING ACUTE ACCENT
+std::string input = "Cafe\\xCC\\x81";
+std::string output;
+
+// Replaces the content of output and reuses its capacity on later calls
+mjb::normalize(input, mjb::NormalizationForm::NFC, output);
+
+// NFC: Café
+std::cout << "NFC: " << output << std::endl;`
     },
     related: ['mjb_normalize', 'mjb_normalization_quick_check', 'mjb_filter_into',
       'mjb_nfkc_casefold_into'],
