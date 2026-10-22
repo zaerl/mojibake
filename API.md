@@ -917,6 +917,36 @@ Apply the same strict nontransitional profile as `mjb_idna_to_ascii`. `output->e
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
 - `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
 
+**Example**
+
+```c
+// "bücher.example"
+mjb_text domain = mjb_text_utf8("b\xC3\xBC" "cher.example", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+mjb_idna_info info;
+
+// Query the required size
+if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char storage[21];
+
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// ASCII payload (no terminator): xn--bcher-kva.example
+printf("ASCII payload (no terminator): %.*s", (int)output.size, storage);
+```
+
 See also: [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_unicode_into`](#mjb_idna_to_unicode_into).
 
 Specifications: [UTS #46: Unicode IDNA Compatibility Processing, Unicode 18.0.0](https://www.unicode.org/reports/tr46/tr46-36.html).
@@ -1002,6 +1032,35 @@ Apply the same strict nontransitional profile as `mjb_idna_to_unicode`. `output-
 - `MJB_STATUS_NO_MEMORY` - A temporary allocation failed
 - `MJB_STATUS_OUTPUT_TOO_SMALL` - The output capacity is smaller than the required byte count
 - `MJB_STATUS_FEATURE_NOT_ENABLED` - The library was compiled with `MJB_FEATURE_IDNA=0`
+
+**Example**
+
+```c
+mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+mjb_idna_info info;
+
+// Query the required size
+if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char storage[15];
+
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// Unicode payload (no terminator): bücher.example
+printf("Unicode payload (no terminator): %.*s", (int)output.size, storage);
+```
 
 See also: [`mjb_idna_to_unicode`](#mjb_idna_to_unicode), [`mjb_idna_to_ascii`](#mjb_idna_to_ascii), [`mjb_idna_to_ascii_into`](#mjb_idna_to_ascii_into).
 
@@ -1215,6 +1274,29 @@ Decode one codepoint and advance `offset`. With `MJB_MALFORMED_STOP`, malformed 
 - `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
 
+**Example**
+
+```c
+// "été"
+mjb_text input = mjb_text_utf8("\xC3\xA9t\xC3\xA9", MJB_NUL_TERMINATED);
+size_t offset = 0;
+size_t count = 0;
+mjb_codepoint codepoint;
+mjb_status status;
+
+while((status = mjb_decode_next(&input, MJB_MALFORMED_STOP, &offset, &codepoint, NULL)) ==
+    MJB_STATUS_OK) {
+    ++count;
+}
+
+if(status != MJB_STATUS_END_OF_INPUT) {
+    return 1;
+}
+
+// 3 codepoints in 5 bytes
+printf("%zu codepoints in %zu bytes", count, offset);
+```
+
 See also: [`mjb_decode_previous`](#mjb_decode_previous), [`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
 
 ## `mjb_decode_previous`
@@ -1246,6 +1328,24 @@ Decode backward from `offset`, using the same malformed-input policies and diagn
 - `MJB_STATUS_MALFORMED_INPUT` - Malformed input was encountered with `MJB_MALFORMED_STOP`
 - `MJB_STATUS_INVALID_ARGUMENT` - An argument or policy is invalid
 - `MJB_STATUS_INVALID_ENCODING` - The encoding cannot be decoded
+
+**Example**
+
+```c
+// "été"
+const char *word = "\xC3\xA9t\xC3\xA9";
+mjb_text input = mjb_text_utf8(word, strlen(word));
+size_t offset = strlen(word); // Start at the end
+mjb_codepoint codepoint;
+
+if(mjb_decode_previous(&input, MJB_MALFORMED_STOP, &offset, &codepoint,
+    NULL) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Last codepoint: U+00E9 at byte 3
+printf("Last codepoint: U+%04X at byte %zu", (unsigned)codepoint, offset);
+```
 
 See also: [`mjb_decode_next`](#mjb_decode_next), [`mjb_validate_encoding`](#mjb_validate_encoding), [`mjb_codepoint_count`](#mjb_codepoint_count).
 
@@ -3945,6 +4045,26 @@ The `va_list` counterpart of `mjb_utf8_snprintf`. It has the same UTF-8 input re
 - `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
 - `A negative value` - The underlying `vsnprintf` reported an encoding error
 
+**Example**
+
+```c
+// A printf-style function of your own that never ends with a partial codepoint
+static int format_utf8(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+char buffer[4];
+int required = format_utf8(buffer, sizeof(buffer), "%s", "\xC3\xA9\xC3\xA9"); // éé
+
+// 4: é
+printf("%d: %s", required, buffer);
+```
+
 See also: [`mjb_utf8_snprintf`](#mjb_utf8_snprintf), [`mjb_utf8_grapheme_vsnprintf`](#mjb_utf8_grapheme_vsnprintf), [`mjb_is_utf8`](#mjb_is_utf8).
 
 ## `mjb_utf8_grapheme_snprintf`
@@ -4010,6 +4130,27 @@ The `va_list` counterpart of `mjb_utf8_grapheme_snprintf`. It has the same graph
 
 - `A nonnegative value` - The number of bytes the complete result requires, excluding the terminating NULL
 - `A negative value` - Formatting failed or the complete result could not be obtained
+
+**Example**
+
+```c
+// A printf-style function of your own that never splits a grapheme cluster
+static int format_graphemes(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_grapheme_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+char buffer[4];
+int required = format_graphemes(buffer, sizeof(buffer), "%s",
+    "Ae\xCC\x81" "B"); // A, e + combining acute accent, B
+
+// 5: A
+printf("%d: %s", required, buffer);
+```
 
 See also: [`mjb_utf8_grapheme_snprintf`](#mjb_utf8_grapheme_snprintf), [`mjb_utf8_vsnprintf`](#mjb_utf8_vsnprintf), [`mjb_grapheme_prefix_length`](#mjb_grapheme_prefix_length).
 
@@ -4119,6 +4260,44 @@ Install the allocator used for internal allocations and owned result buffers. Th
 
 - `MJB_STATUS_OK` - The allocator was installed
 - `MJB_STATUS_INVALID_ARGUMENT` - A callback is NULL, or the allocator was already configured
+
+**Example**
+
+```c
+// An allocator that counts the bytes in use. The context points to the counter.
+static void *counting_alloc(void *context, size_t size) {
+    void *ptr = malloc(size);
+
+    if(ptr) {
+        *(size_t *)context += size;
+    }
+
+    return ptr;
+}
+
+static void *counting_realloc(void *context, void *ptr, size_t old_size, size_t new_size) {
+    void *new_ptr = realloc(ptr, new_size);
+
+    if(new_ptr) {
+        *(size_t *)context = *(size_t *)context - old_size + new_size;
+    }
+
+    return new_ptr;
+}
+
+static void counting_free(void *context, void *ptr, size_t size) {
+    *(size_t *)context -= size;
+    free(ptr);
+}
+
+static size_t bytes_in_use = 0;
+mjb_allocator allocator = { &bytes_in_use, counting_alloc, counting_realloc, counting_free };
+
+// Install it once, before any other library call
+if(mjb_set_allocator(&allocator) != MJB_STATUS_OK) {
+    return 1;
+}
+```
 
 See also: [`mjb_result_free`](#mjb_result_free), [`mjb_bidi_paragraph_free`](#mjb_bidi_paragraph_free).
 

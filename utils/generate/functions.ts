@@ -63,6 +63,9 @@ export type MojibakeFunction = {
   examples?: MojibakeExamples;
   // Preprocessor feature required to compile and run the example.
   exampleFeature?: string;
+  // The C example is compiled by the tests but not run, for example because it changes
+  // process-global state the tests depend on.
+  exampleCompileOnly?: boolean;
   // Names of related public functions.
   related?: string[];
   // Unicode specifications implemented or referenced by the function.
@@ -835,6 +838,31 @@ std::cout << domain.text << std::endl;`
     ],
     exampleFeature: 'MJB_FEATURE_IDNA',
     examples: {
+      c: `// "bücher.example"
+mjb_text domain = mjb_text_utf8("b\\xC3\\xBC" "cher.example", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+mjb_idna_info info;
+
+// Query the required size
+if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char storage[21];
+
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// ASCII payload (no terminator): xn--bcher-kva.example
+printf("ASCII payload (no terminator): %.*s", (int)output.size, storage);`,
       cpp: `// "bücher.example"
 std::string domain = "b\\xC3\\xBC" "cher.example";
 std::string output;
@@ -959,6 +987,30 @@ std::cout << domain.text << std::endl;`
     ],
     exampleFeature: 'MJB_FEATURE_IDNA',
     examples: {
+      c: `mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
+mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+mjb_idna_info info;
+
+// Query the required size
+if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK) {
+    return 1;
+}
+
+char storage[15];
+
+if(output.size > sizeof(storage)) {
+    return 1;
+}
+
+output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK ||
+    info.errors != MJB_IDNA_ERROR_NONE) {
+    return 1;
+}
+
+// Unicode payload (no terminator): bücher.example
+printf("Unicode payload (no terminator): %.*s", (int)output.size, storage);`,
       cpp: `std::string domain = "xn--bcher-kva.example";
 std::string output;
 
@@ -1184,6 +1236,26 @@ if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
     ],
+    examples: {
+      c: `// "été"
+mjb_text input = mjb_text_utf8("\\xC3\\xA9t\\xC3\\xA9", MJB_NUL_TERMINATED);
+size_t offset = 0;
+size_t count = 0;
+mjb_codepoint codepoint;
+mjb_status status;
+
+while((status = mjb_decode_next(&input, MJB_MALFORMED_STOP, &offset, &codepoint, NULL)) ==
+    MJB_STATUS_OK) {
+    ++count;
+}
+
+if(status != MJB_STATUS_END_OF_INPUT) {
+    return 1;
+}
+
+// 3 codepoints in 5 bytes
+printf("%zu codepoints in %zu bytes", count, offset);`
+    },
     related: ['mjb_decode_previous', 'mjb_validate_encoding', 'mjb_codepoint_count']
   },
   {
@@ -1221,6 +1293,21 @@ if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
       { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
     ],
+    examples: {
+      c: `// "été"
+const char *word = "\\xC3\\xA9t\\xC3\\xA9";
+mjb_text input = mjb_text_utf8(word, strlen(word));
+size_t offset = strlen(word); // Start at the end
+mjb_codepoint codepoint;
+
+if(mjb_decode_previous(&input, MJB_MALFORMED_STOP, &offset, &codepoint,
+    NULL) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Last codepoint: U+00E9 at byte 3
+printf("Last codepoint: U+%04X at byte %zu", (unsigned)codepoint, offset);`
+    },
     related: ['mjb_decode_next', 'mjb_validate_encoding', 'mjb_codepoint_count']
   },
   {
@@ -4023,6 +4110,23 @@ printf("%d: %s", required, buffer);`
         description: 'The underlying `vsnprintf` reported an encoding error'
       }
     ],
+    examples: {
+      c: `// A printf-style function of your own that never ends with a partial codepoint
+static int format_utf8(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+char buffer[4];
+int required = format_utf8(buffer, sizeof(buffer), "%s", "\\xC3\\xA9\\xC3\\xA9"); // éé
+
+// 4: é
+printf("%d: %s", required, buffer);`
+    },
     related: ['mjb_utf8_snprintf', 'mjb_utf8_grapheme_vsnprintf', 'mjb_is_utf8']
   },
   {
@@ -4130,6 +4234,24 @@ printf("%d: %s", required, buffer);`
         description: 'Formatting failed or the complete result could not be obtained'
       }
     ],
+    examples: {
+      c: `// A printf-style function of your own that never splits a grapheme cluster
+static int format_graphemes(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_grapheme_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+char buffer[4];
+int required = format_graphemes(buffer, sizeof(buffer), "%s",
+    "Ae\\xCC\\x81" "B"); // A, e + combining acute accent, B
+
+// 5: A
+printf("%d: %s", required, buffer);`
+    },
     related: ['mjb_utf8_grapheme_snprintf', 'mjb_utf8_vsnprintf',
       'mjb_grapheme_prefix_length'],
     specs: [uax(29, 'Unicode Text Segmentation')]
@@ -4239,6 +4361,42 @@ printf("Unicode version: %s", version);`
       { value: 'MJB_STATUS_INVALID_ARGUMENT',
         description: 'A callback is NULL, or the allocator was already configured' }
     ],
+    exampleCompileOnly: true,
+    examples: {
+      c: `// An allocator that counts the bytes in use. The context points to the counter.
+static void *counting_alloc(void *context, size_t size) {
+    void *ptr = malloc(size);
+
+    if(ptr) {
+        *(size_t *)context += size;
+    }
+
+    return ptr;
+}
+
+static void *counting_realloc(void *context, void *ptr, size_t old_size, size_t new_size) {
+    void *new_ptr = realloc(ptr, new_size);
+
+    if(new_ptr) {
+        *(size_t *)context = *(size_t *)context - old_size + new_size;
+    }
+
+    return new_ptr;
+}
+
+static void counting_free(void *context, void *ptr, size_t size) {
+    *(size_t *)context -= size;
+    free(ptr);
+}
+
+static size_t bytes_in_use = 0;
+mjb_allocator allocator = { &bytes_in_use, counting_alloc, counting_realloc, counting_free };
+
+// Install it once, before any other library call
+if(mjb_set_allocator(&allocator) != MJB_STATUS_OK) {
+    return 1;
+}`
+    },
     related: ['mjb_result_free', 'mjb_bidi_paragraph_free']
   }
 ] as MojibakeFunction[];
