@@ -200,8 +200,8 @@ function processIndexHtml() {
   fileContent = substituteText(fileContent, '[VERSION]', version.version);
 
   let readme = readFileSync('../../README.md', 'utf-8');
-  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
-  readme = substituteBlock(readme, 'CONFORMANCE_REQUIREMENTS.md)\n', '## Feature highlights', '');
+  // Drop README blocks that only make sense outside the site
+  readme = readme.replace(/<!-- site-skip -->[\s\S]*?<!-- \/site-skip -->\n*/g, '');
 
   const md = markdownit({
     highlight: function (str, lang) {

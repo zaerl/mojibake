@@ -3,122 +3,106 @@
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
-**Mojibake** is a small, fast, self-contained Unicode library written in C11. It is released under
-the MIT License.
+**Mojibake** is a small, fast, self-contained Unicode library written in C11. It gives C and C++
+programs normalization, case mapping, segmentation, bidirectional text, collation, IDNA, emoji,
+confusable detection, and the full Unicode Character Database, all in one source file and one
+header, with zero dependencies. It is released under the MIT License.
 
-## Usage
+[Live demo and API reference](https://mojibake.zaerl.com) ·
+[API.md](https://github.com/zaerl/mojibake/blob/main/API.md) ·
+[C++ wrapper](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md) ·
+[Changelog](https://github.com/zaerl/mojibake/blob/main/CHANGELOG.md) ·
+[Roadmap](https://github.com/zaerl/mojibake/blob/main/ROADMAP.md)
+
+## Why Mojibake
+
+- **Drop-in.** Add `mojibake.c` and `mojibake.h` to your project and compile. No build system,
+  no generated files, no runtime data to ship.
+- **Complete.** Implements the Unicode algorithms most programs need, targeting Unicode 18.0.0.
+- **Correct.** Passes the official Unicode conformance test suites for every supported algorithm,
+  with millions of assertions run on every change. See the
+  [conformance notes](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md)
+- **Encoding-agnostic.** Reads and writes UTF-8, UTF-16LE/BE, and UTF-32LE/BE, with explicit
+  policies for malformed input and full support for embedded `U+0000`.
+- **Embeddable.** Custom allocators, caller-owned output buffers, and build-time switches to drop
+  tables you do not need.
+- **Portable.** Builds as C11 and C++17 on Linux, macOS, Windows, the BSDs, Haiku, Android, and
+  WebAssembly.
+
+## Quick start
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
 C/C++ project. Download it here [mojibake-amalgamation-050.zip](https://github.com/zaerl/mojibake/releases/download/v0.5.0/mojibake-amalgamation-050.zip).
 
-Examples of normalization, characters count and NFKC casefold.
-
 ```c
 #include <stdio.h>
-#include <string.h>
 
 #include "mojibake.h"
 
-void print_string(const char *input, size_t length);
-
-int main(int argc, char *const argv[]) {
-    const char *input = "Cafe\xCC\x81";
-    size_t length = strlen(input);
+int main(void) {
     mjb_result result;
 
-    // Normalize example: in NFC e + ◌́ -> é (U+00E9)
-    mjb_text input_text = mjb_text_utf8(input, length);
+    // "Cafe" + U+0301 COMBINING ACUTE ACCENT (6 bytes) -> "Café" with U+00E9 (5 bytes)
+    mjb_text cafe = mjb_text_utf8("Cafe\xCC\x81", 6);
 
-    if(mjb_normalize(&input_text, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
-        NULL) != MJB_STATUS_OK) {
-        return 1;
+    if(mjb_normalize(&cafe, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC, MJB_ENC_UTF_8, &result,
+           NULL) == MJB_STATUS_OK) {
+        printf("NFC: %.*s (%zu bytes)\n", (int)result.output_size, result.output,
+            result.output_size);
+        mjb_result_free(&result);
     }
 
-    // Cafe + ◌́ (U+0301, COMBINING ACUTE ACCENT) -> Café
-    print_string(input, length);
+    // One flag, two codepoints, eight bytes
+    mjb_text flag = mjb_text_utf8("🇮🇹", MJB_NUL_TERMINATED);
+    size_t codepoints = 0;
+    size_t graphemes = 0;
 
-    // Caf + é (U+00E9, LATIN SMALL LETTER E WITH ACUTE) -> Café
-    print_string(result.output, result.output_size);
-
-    const char *mojibake = "文字化け";
-    length = strlen(mojibake);
-
-    // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
-    size_t codepoint_count = 0;
-    mjb_text text = mjb_text_utf8(mojibake, length);
-
-    if(mjb_codepoint_count(&text, MJB_MALFORMED_STOP, &codepoint_count, NULL) == MJB_STATUS_OK) {
-        printf("\"%s\" encoded in UTF-8 is %zu bytes long, and %zu codepoints long\n",
-            mojibake, length, codepoint_count);
+    if(mjb_codepoint_count(&flag, MJB_MALFORMED_STOP, &codepoints, NULL) == MJB_STATUS_OK &&
+        mjb_grapheme_count(&flag, MJB_MALFORMED_STOP, &graphemes, NULL) == MJB_STATUS_OK) {
+        printf("🇮🇹: %zu codepoints, %zu grapheme\n", codepoints, graphemes);
     }
 
-    mjb_result_free(&result);
+    // Caseless identifier matching: "Straße" -> "strasse"
+    mjb_text street = mjb_text_utf8("Straße", MJB_NUL_TERMINATED);
 
-    const char *case_input = "Straße";
-
-    // NFKC casefold example: in NFKC casefold, ß -> ss
-    mjb_text case_text = mjb_text_utf8(case_input, MJB_NUL_TERMINATED);
-
-    if(mjb_nfkc_casefold(&case_text, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL) !=
+    if(mjb_nfkc_casefold(&street, MJB_MALFORMED_STOP, MJB_ENC_UTF_8, &result, NULL) ==
         MJB_STATUS_OK) {
-        return 1;
+        printf("Straße -> %.*s\n", (int)result.output_size, result.output);
+        mjb_result_free(&result);
     }
-
-    printf("%s -> %.*s\n", case_input, (int)result.output_size, result.output);
-    mjb_result_free(&result);
 
     return 0;
 }
-
-void print_string(const char *input, size_t length) {
-    for(size_t i = 0; i < length; ++i) {
-        unsigned char byte = (unsigned char)input[i];
-
-        if(byte >= 0x21 && byte <= 0x7E) {
-            printf("%c", byte);
-        } else {
-            printf("<%02X>", byte);
-        }
-    }
-
-    printf("\n");
-}
 ```
 
-This output:
+```bash
+cc -std=c11 example.c mojibake.c -o example
+./example
+```
 
 ```
-Cafe<CC><81>
-Caf<C3><A9>
-"文字化け" encoded in UTF-8 is 12 bytes long, and 4 characters long
+NFC: Café (5 bytes)
+🇮🇹: 2 codepoints, 1 grapheme
 Straße -> strasse
 ```
 
-Pass an exact byte length when the input may contain `U+0000`. For a properly terminated input, pass
-`MJB_NUL_TERMINATED`; Mojibake scans one-, two-, or four-byte code units according to the declared
-encoding and excludes the terminator.
+A few conventions apply across the whole API:
 
-Mojibake aims to be:
+- Functions return `mjb_status`, and **`MJB_STATUS_OK` is zero**: always compare against it.
+  Predicates such as `mjb_is_utf8` return `bool`.
+- Lengths are **byte counts**. Pass an exact length when the input may contain `U+0000`, or
+  `MJB_NUL_TERMINATED` to scan for a terminator sized for the declared encoding.
+- Allocating functions fill an `mjb_result` that you release with `mjb_result_free`. Their `_into`
+  variants write into a buffer you own instead, and can measure the required size first.
 
-1. Small
-2. Easy to use
-3. Fast
-4. Self-contained
+[API.md](https://github.com/zaerl/mojibake/blob/main/API.md) explains these rules in depth.
 
-Mojibake do:
-
-1. Run in all modern OSes
-2. Pass the official Unicode test suites for supported algorithms
-3. Implement all Unicode standard algorithms
-4. Satisfy all [Unicode Conformance Requirements](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md)
-
-You can find a demo site where you can find the API documentation and test the functions by using
-WASM here: [https://mojibake.zaerl.com](https://mojibake.zaerl.com).
+<!-- site-skip -->
+Every function can also be tried in the browser on the [demo site](https://mojibake.zaerl.com),
+which runs the library compiled to WebAssembly.
+<!-- /site-skip -->
 
 ## Feature highlights
-
-All the C files, together with the Unicode data tables, are concatenated into a single large file
-and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 
 **Text transformation**
 
@@ -170,7 +154,7 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
 - **Identifier validation**: XID/ID checks for parser and compiler authors
   (`mjb_is_identifier`, [UAX #31, Unicode 18.0.0](https://www.unicode.org/reports/tr31/tr31-45.html))
 
-**Integration**
+**Encodings and parsing**
 
 - **Encodings**: the API accepts and outputs UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
   strings, with detailed validation and explicit stop, replacement, or skip policies during
@@ -179,42 +163,36 @@ and header: `mojibake.c` and `mojibake.h`. Zero dependencies.
   (`mjb_decode_next`, `mjb_decode_previous`), codepoint callbacks (`mjb_for_each_codepoint`), and
   policy-aware codepoint counting (`mjb_codepoint_count`)
 - **Locales**: strict BCP 47 language tag parsing (`mjb_locale_parse`)
-- **Embeddable**: context-aware custom allocators that receive block sizes
-  (`mjb_set_allocator`), build-time feature flags to trim table size, a C++20 wrapper
-  (`src/cpp/mojibake.hpp`), a CLI tool (`src/shell`), and a WASM + TypeScript API (`src/api`)
-- **Tested**: Mojibake uses [Attractor](https://github.com/zaerl/attractor/) as test suite and run
-  [1.5M+ assertions](https://github.com/zaerl/mojibake/blob/main/TESTS.md) including the
+
+**Quality**
+
+- **Tested**: Mojibake uses [Attractor](https://github.com/zaerl/attractor/) as test suite and runs
+  [millions of assertions](https://github.com/zaerl/mojibake/blob/main/TESTS.md), including the
   official Unicode conformance suites for supported algorithms
-- **Fuzz** Mojibake is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html) over untrusted
-byte input
-- `AddressSanitizer` and `UBSan` clean
+- **Fuzzed**: the public API is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html) over
+  untrusted byte input
+- **Sanitized**: the test suite runs clean under AddressSanitizer and UndefinedBehaviorSanitizer
 
-## Minimum requirements
+## Unicode conformance
 
-Mojibake requires a C11 compiler. Building the sources as C++ requires C++17, and the header-only
-C++ wrapper requires C++20. The minimum supported compiler versions are:
+Unicode references in Mojibake are to the Unicode Standard, Version 18.0.0, and the Unicode
+Character Database 18.0.0. Each advertised algorithm is checked against the official Unicode test
+data where it exists; the full inventory is in
+[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md).
 
-| Toolchain   | Minimum version            |
-| ----------- | -------------------------- |
-| GCC         | 9                          |
-| LLVM Clang  | 10                         |
-| Apple Clang | 10                         |
-| MSVC        | 19.30 (Visual Studio 2022) |
+Tailoring: `mjb_map_case` and `mjb_map_case_into` take a per-call `locale`. `MJB_LOCALE_NOT_SET`
+selects the default Unicode mappings; Turkish and Azerbaijani tailor dotted-I casing and Turkic
+case folding, and Lithuanian tailors dot-above casing. No other algorithm is locale-tailored:
+collation uses the untailored DUCET.
 
-MinGW-w64 and Emscripten (WASM) are also tested as rolling compatibility targets.
+## Using Mojibake
 
-Mojibake is tested on:
+### Amalgamation
 
-1. Ubuntu Linux (gcc, g++, clang, clang++)
-2. Ubuntu Linux ARM64 (gcc, g++)
-3. Ubuntu Linux (Android NDK / ARM64)
-4. Alpine Linux (musl x86_64, musl i386, musl s390x)
-5. macOS (clang, clang++)
-6. FreeBSD 15.1 (clang, clang++)
-7. OpenBSD 7.9 (clang, clang++)
-8. NetBSD 10.1 (clang, clang++)
-9. Haiku R1/beta6 (clang, clang++)
-10. Windows 11 (MSVC, MinGW-w64)
+The [release](https://github.com/zaerl/mojibake/releases) zip contains `mojibake.c` and
+`mojibake.h`, which hold every C source file and the Unicode data tables. Compile `mojibake.c`
+with the rest of your project; any C11 or C++17 compiler works. The zip also contains `shell.c`,
+an amalgamation of the CLI.
 
 ### CMake dependency
 
@@ -235,25 +213,53 @@ target_link_libraries(your-target PRIVATE Mojibake::mojibake)
 ```
 
 Tests, the CLI, and installation rules default to enabled for a standalone build and disabled when
-Mojibake is embedded. They can be controlled with:
-
-1. `MJB_BUILD_TESTS`
-2. `MJB_BUILD_CLI`
-3. `MJB_INSTALL`
-
-Other project options use the same `MJB_` prefix: `MJB_BUILD_CPP`, `MJB_BUILD_WASM`, `MJB_USE_ASAN`,
-`MJB_USE_UBSAN`, `MJB_FEATURE_CHARACTER_NAMES`, `MJB_FEATURE_COLLATION`, `MJB_FEATURE_IDNA`, and
-`MJB_FEATURE_SECURITY`.
-
-Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static library.
+Mojibake is embedded. They can be controlled with `MJB_BUILD_TESTS`, `MJB_BUILD_CLI`, and
+`MJB_INSTALL`. Use CMake's standard `BUILD_SHARED_LIBS` option to select a shared or static
+library. To install Mojibake as a package for `find_package(Mojibake CONFIG REQUIRED)`, see
+[INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md).
 
 ### C++20 wrapper
 
-Mojibake also has a header-only C++20 wrapper with standard ranges, option structs, and
-`std::system_error` exceptions. Check here for details:
-[src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md)
+The header-only wrapper `src/cpp/mojibake.hpp` adds string and view types, RAII ownership, standard
+ranges for segments and codepoints, and `std::system_error` exceptions:
 
-### Build-time features
+```cpp
+std::string text = mjb::nfc("Cafe\xCC\x81"); // "Caf\xC3\xA9"
+std::u8string folded = mjb::casefold(u8"Straße"); // u8"strasse"
+size_t clusters = mjb::grapheme_count(u"A\U0001F1EE\U0001F1F9"); // 2
+```
+
+See [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md) for details.
+
+### WebAssembly and TypeScript
+
+`src/api` packages the library compiled with Emscripten behind a typed TypeScript API for Node and
+browsers. It powers the [demo site](https://mojibake.zaerl.com).
+
+### Other languages
+
+Mojibake has a plain C ABI, so any language with a C FFI can use it. The
+[examples](https://github.com/zaerl/mojibake/tree/main/examples) directory has small programs in C,
+C++, Python, Rust, and Zig.
+
+### CLI
+
+The `src/shell` directory builds the `mojibake` command-line tool, handy for inspecting text:
+
+```bash
+# Normalize to NFC: e + ◌́ -> é
+mojibake nfc $'Café'
+
+# Describe an emoji sequence: U+263A U+FE0F, basic and fully qualified
+mojibake emoji "☺️"
+
+# Show word boundaries
+mojibake break word "Hello World"
+```
+
+Run `mojibake --help` for the full list of commands.
+
+## Build-time features
 
 Mojibake can compile out optional implementations and tables to reduce binary size. Features
 default to enabled. CMake and the root Makefiles use the boolean values `ON` and `OFF`; when
@@ -262,8 +268,8 @@ invoking a C or C++ compiler directly, define the corresponding preprocessor mac
 
 - `MJB_FEATURE_CHARACTER_NAMES` controls the Unicode character-name tables used by
   `mjb_codepoint_info(...)` to fill `mjb_character.name`. When disabled, the tables are not
-  compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This will reduce the output
-  of ~30%.
+  compiled and `mjb_character.name` is reported as `Codepoint U+XXXX`. This reduces the compiled
+  size by about 30%.
 - `MJB_FEATURE_COLLATION` controls the Unicode Collation Algorithm implementation and DUCET
   tables. The `mjb_collation_*` functions return `MJB_STATUS_FEATURE_NOT_ENABLED` when support is
   disabled.
@@ -274,6 +280,13 @@ invoking a C or C++ compiler directly, define the corresponding preprocessor mac
   confusable mapping tables. The `mjb_resolved_script_set`, `mjb_confusable_skeleton`,
   `mjb_confusable_skeleton_into`, and `mjb_confusable_match` functions return
   `MJB_STATUS_FEATURE_NOT_ENABLED` when support is disabled.
+
+When compiling the amalgamation directly:
+
+```bash
+cc -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_COLLATION=0 -DMJB_FEATURE_IDNA=0 \
+  -DMJB_FEATURE_SECURITY=0 example.c mojibake.c -o example
+```
 
 With CMake:
 
@@ -291,51 +304,59 @@ With the provided Makefile:
 ```bash
 make build BUILD_DIR=build-minimal FEATURE_CHARACTER_NAMES=OFF FEATURE_COLLATION=OFF \
   FEATURE_IDNA=OFF FEATURE_SECURITY=OFF
-make test-no-names
-make test-no-collation
-make test-no-idna
-make test-no-security
 ```
 
-When compiling the amalgamation directly:
+## Platform support
 
-```bash
-cc -DMJB_FEATURE_CHARACTER_NAMES=0 -DMJB_FEATURE_COLLATION=0 -DMJB_FEATURE_IDNA=0 \
-  -DMJB_FEATURE_SECURITY=0 example.c mojibake.c -o example
-```
+Mojibake requires a C11 compiler. Building the sources as C++ requires C++17, and the header-only
+C++ wrapper requires C++20. The minimum supported compiler versions are:
 
-### API documentation
+| Toolchain   | Minimum version            |
+| ----------- | -------------------------- |
+| GCC         | 9                          |
+| LLVM Clang  | 10                         |
+| Apple Clang | 10                         |
+| MSVC        | 19.30 (Visual Studio 2022) |
 
-See [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) or the site for the detailed
-documentation.
+MinGW-w64 and Emscripten (WASM) are also tested as rolling compatibility targets.
 
-### CLI
+Continuous integration covers:
 
-The `src/shell` directory builds the `mojibake` CLI used to test the library. Example usage:
+1. Ubuntu Linux (gcc, g++, clang, clang++)
+2. Ubuntu Linux ARM64 (gcc, g++)
+3. Ubuntu Linux (Android NDK / ARM64)
+4. Alpine Linux (musl x86_64, musl i386, musl s390x)
+5. macOS (clang, clang++)
+6. FreeBSD 15.1 (clang, clang++)
+7. OpenBSD 7.9 (clang, clang++)
+8. NetBSD 10.1 (clang, clang++)
+9. Haiku R1/beta6 (clang, clang++)
+10. Windows 11 (MSVC, MinGW-w64)
 
-```bash
-# This outputs "NFC: Café", e + ◌́ -> é
-mojibake nfc $'Cafe\u0301'
+## Documentation
 
-# The output an emoji sequence [1] Basic, [2] Fully-qualified of two characters U+263A U+FE0F
-mojibake emoji "☺️"
-```
+- [API.md](https://github.com/zaerl/mojibake/blob/main/API.md): concepts, conventions, and every
+  public function
+- [mojibake.zaerl.com](https://mojibake.zaerl.com): the same reference with live WASM examples
+- [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md): the C++20
+  wrapper
+- [INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md): installing as a CMake package
+- [TESTS.md](https://github.com/zaerl/mojibake/blob/main/TESTS.md): test coverage and the Unicode
+  test files used
+- [CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md):
+  how Mojibake meets the Unicode conformance requirements
 
-The amalgamation .zip also contains an amalgamation of the shell called `shell.c`.
+## Contributing
 
-## Building from source and contributing
+Bug reports and pull requests are welcome. See
+[CONTRIBUTING.md](https://github.com/zaerl/mojibake/blob/main/CONTRIBUTING.md) for build and test
+instructions, and [SECURITY.md](https://github.com/zaerl/mojibake/blob/main/SECURITY.md) to report
+a vulnerability.
 
-See [CONTRIBUTING.md](https://github.com/zaerl/mojibake/blob/main/CONTRIBUTING.md) for instructions.
+## License
 
-## Licenses
-
-Mojibake is released under the MIT License (see [LICENSE](https://github.com/zaerl/mojibake/blob/main/LICENSE)).
-
-## Legalese
-
-Here you can find the very detailed and boring informations needed to have this library conformant
-to the Unicode standard, or at least what I got, at
-[CONFORMANCE_REQUIREMENTS.md](https://github.com/zaerl/mojibake/blob/main/CONFORMANCE_REQUIREMENTS.md).
+Mojibake is released under the MIT License (see
+[LICENSE](https://github.com/zaerl/mojibake/blob/main/LICENSE)).
 
 ## Thanks
 
