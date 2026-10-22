@@ -7,6 +7,59 @@
 #include "test.h"
 
 // clang-format off
+// Example definitions are automatically generated. Do not edit.
+
+// Example definitions for mjb_utf8_vsnprintf
+// A printf-style function of your own that never ends with a partial codepoint
+static int format_utf8(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+// Example definitions for mjb_utf8_grapheme_vsnprintf
+// A printf-style function of your own that never splits a grapheme cluster
+static int format_graphemes(char *buffer, size_t buffer_size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int required = mjb_utf8_grapheme_vsnprintf(buffer, buffer_size, format, args);
+    va_end(args);
+
+    return required;
+}
+
+// Example definitions for mjb_set_allocator
+// An allocator that counts the bytes in use. The context points to the counter.
+static void *counting_alloc(void *context, size_t size) {
+    void *ptr = malloc(size);
+
+    if(ptr) {
+        *(size_t *)context += size;
+    }
+
+    return ptr;
+}
+
+static void *counting_realloc(void *context, void *ptr, size_t old_size, size_t new_size) {
+    void *new_ptr = realloc(ptr, new_size);
+
+    if(new_ptr) {
+        *(size_t *)context = *(size_t *)context - old_size + new_size;
+    }
+
+    return new_ptr;
+}
+
+static void counting_free(void *context, void *ptr, size_t size) {
+    *(size_t *)context -= size;
+    free(ptr);
+}
+
+// End of generated example definitions.
+
 ATT_TEST(example) {
     char test_buffer[256];
 
@@ -231,6 +284,43 @@ ATT_TEST(example) {
 
 #if MJB_FEATURE_IDNA
 {
+    // Example for mjb_idna_to_ascii_into
+    MJB_TEST_COVERAGE(mjb_idna_to_ascii_into); // Added by the script
+    // "bücher.example"
+    mjb_text domain = mjb_text_utf8("b\xC3\xBC" "cher.example", MJB_NUL_TERMINATED);
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+    mjb_idna_info info;
+
+    // Query the required size
+    if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii_into test failed"); // Added by the script
+        return;
+    }
+
+    char storage[21];
+
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+    if(mjb_idna_to_ascii_into(&domain, &info, &output) != MJB_STATUS_OK ||
+        info.errors != MJB_IDNA_ERROR_NONE) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii_into test failed"); // Added by the script
+        return;
+    }
+
+    // ASCII payload (no terminator): xn--bcher-kva.example
+    // printf("ASCII payload (no terminator): %.*s", (int)output.size, storage);
+    snprintf(test_buffer, sizeof(test_buffer), "ASCII payload (no terminator): %.*s", (int)output.size, storage); // Added by the script
+    ATT_ASSERT(test_buffer, "ASCII payload (no terminator): xn--bcher-kva.example", "mjb_idna_to_ascii_into test failed"); // Added by the script
+}
+#endif // MJB_FEATURE_IDNA
+
+#if MJB_FEATURE_IDNA
+{
     // Example for mjb_idna_to_unicode
     MJB_TEST_COVERAGE(mjb_idna_to_unicode); // Added by the script
     mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
@@ -248,6 +338,42 @@ ATT_TEST(example) {
     snprintf(test_buffer, sizeof(test_buffer), "%.*s", (int)result.output_size, result.output); // Added by the script
     ATT_ASSERT(test_buffer, "bücher.example", "mjb_idna_to_unicode test failed"); // Added by the script
     mjb_result_free(&result);
+}
+#endif // MJB_FEATURE_IDNA
+
+#if MJB_FEATURE_IDNA
+{
+    // Example for mjb_idna_to_unicode_into
+    MJB_TEST_COVERAGE(mjb_idna_to_unicode_into); // Added by the script
+    mjb_text domain = mjb_text_utf8("xn--bcher-kva.example", MJB_NUL_TERMINATED);
+    mjb_buffer output = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
+    mjb_idna_info info;
+
+    // Query the required size
+    if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode_into test failed"); // Added by the script
+        return;
+    }
+
+    char storage[15];
+
+    if(output.size > sizeof(storage)) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode_into test failed"); // Added by the script
+        return;
+    }
+
+    output = mjb_buffer_make(storage, sizeof(storage), MJB_ENC_UTF_8);
+
+    if(mjb_idna_to_unicode_into(&domain, &info, &output) != MJB_STATUS_OK ||
+        info.errors != MJB_IDNA_ERROR_NONE) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode_into test failed"); // Added by the script
+        return;
+    }
+
+    // Unicode payload (no terminator): bücher.example
+    // printf("Unicode payload (no terminator): %.*s", (int)output.size, storage);
+    snprintf(test_buffer, sizeof(test_buffer), "Unicode payload (no terminator): %.*s", (int)output.size, storage); // Added by the script
+    ATT_ASSERT(test_buffer, "Unicode payload (no terminator): bücher.example", "mjb_idna_to_unicode_into test failed"); // Added by the script
 }
 #endif // MJB_FEATURE_IDNA
 
@@ -326,6 +452,53 @@ ATT_TEST(example) {
         ATT_ASSERT(0, 1, "mjb_validate_encoding test failed"); // Added by the script
         return;
     }
+}
+
+{
+    // Example for mjb_decode_next
+    MJB_TEST_COVERAGE(mjb_decode_next); // Added by the script
+    // "été"
+    mjb_text input = mjb_text_utf8("\xC3\xA9t\xC3\xA9", MJB_NUL_TERMINATED);
+    size_t offset = 0;
+    size_t count = 0;
+    mjb_codepoint codepoint;
+    mjb_status status;
+
+    while((status = mjb_decode_next(&input, MJB_MALFORMED_STOP, &offset, &codepoint, NULL)) ==
+        MJB_STATUS_OK) {
+        ++count;
+    }
+
+    if(status != MJB_STATUS_END_OF_INPUT) {
+        ATT_ASSERT(0, 1, "mjb_decode_next test failed"); // Added by the script
+        return;
+    }
+
+    // 3 codepoints in 5 bytes
+    // printf("%zu codepoints in %zu bytes", count, offset);
+    snprintf(test_buffer, sizeof(test_buffer), "%zu codepoints in %zu bytes", count, offset); // Added by the script
+    ATT_ASSERT(test_buffer, "3 codepoints in 5 bytes", "mjb_decode_next test failed"); // Added by the script
+}
+
+{
+    // Example for mjb_decode_previous
+    MJB_TEST_COVERAGE(mjb_decode_previous); // Added by the script
+    // "été"
+    const char *word = "\xC3\xA9t\xC3\xA9";
+    mjb_text input = mjb_text_utf8(word, strlen(word));
+    size_t offset = strlen(word); // Start at the end
+    mjb_codepoint codepoint;
+
+    if(mjb_decode_previous(&input, MJB_MALFORMED_STOP, &offset, &codepoint,
+        NULL) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_decode_previous test failed"); // Added by the script
+        return;
+    }
+
+    // Last codepoint: U+00E9 at byte 3
+    // printf("Last codepoint: U+%04X at byte %zu", (unsigned)codepoint, offset);
+    snprintf(test_buffer, sizeof(test_buffer), "Last codepoint: U+%04X at byte %zu", (unsigned)codepoint, offset); // Added by the script
+    ATT_ASSERT(test_buffer, "Last codepoint: U+00E9 at byte 3", "mjb_decode_previous test failed"); // Added by the script
 }
 
 {
@@ -1578,6 +1751,18 @@ ATT_TEST(example) {
 }
 
 {
+    // Example for mjb_utf8_vsnprintf
+    MJB_TEST_COVERAGE(mjb_utf8_vsnprintf); // Added by the script
+    char buffer[4];
+    int required = format_utf8(buffer, sizeof(buffer), "%s", "\xC3\xA9\xC3\xA9"); // éé
+
+    // 4: é
+    // printf("%d: %s", required, buffer);
+    snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
+    ATT_ASSERT(test_buffer, "4: é", "mjb_utf8_vsnprintf test failed"); // Added by the script
+}
+
+{
     // Example for mjb_utf8_grapheme_snprintf
     MJB_TEST_COVERAGE(mjb_utf8_grapheme_snprintf); // Added by the script
     char buffer[4];
@@ -1588,6 +1773,19 @@ ATT_TEST(example) {
     // printf("%d: %s", required, buffer);
     snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
     ATT_ASSERT(test_buffer, "5: A", "mjb_utf8_grapheme_snprintf test failed"); // Added by the script
+}
+
+{
+    // Example for mjb_utf8_grapheme_vsnprintf
+    MJB_TEST_COVERAGE(mjb_utf8_grapheme_vsnprintf); // Added by the script
+    char buffer[4];
+    int required = format_graphemes(buffer, sizeof(buffer), "%s",
+        "Ae\xCC\x81" "B"); // A, e + combining acute accent, B
+
+    // 5: A
+    // printf("%d: %s", required, buffer);
+    snprintf(test_buffer, sizeof(test_buffer), "%d: %s", required, buffer); // Added by the script
+    ATT_ASSERT(test_buffer, "5: A", "mjb_utf8_grapheme_vsnprintf test failed"); // Added by the script
 }
 
 {
@@ -1632,6 +1830,23 @@ ATT_TEST(example) {
     // printf("Unicode version: %s", version);
     snprintf(test_buffer, sizeof(test_buffer), "Unicode version: %s", version); // Added by the script
     ATT_ASSERT(test_buffer, "Unicode version: 18.0.0", "mjb_unicode_version test failed"); // Added by the script
+}
+
+{
+    // Example for mjb_set_allocator
+    MJB_TEST_COVERAGE(mjb_set_allocator); // Added by the script
+    volatile bool run_example = false; // Added by the script
+
+    if(run_example) { // Added by the script
+        static size_t bytes_in_use = 0;
+        mjb_allocator allocator = { &bytes_in_use, counting_alloc, counting_realloc, counting_free };
+
+        // Install it once, before any other library call
+        if(mjb_set_allocator(&allocator) != MJB_STATUS_OK) {
+            ATT_ASSERT(0, 1, "mjb_set_allocator test failed"); // Added by the script
+            return;
+        }
+    } // Added by the script
 }
     // End of generated examples.
 }
