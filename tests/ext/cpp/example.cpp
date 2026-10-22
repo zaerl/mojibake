@@ -39,6 +39,41 @@ ATT_TEST(cpp_example) {
     oss.clear();
     oss.copyfmt(std::ostringstream());
 }
+
+{
+    // Example for mjb_normalize
+    MJB_TEST_COVERAGE(mjb_normalize); // Added by the script
+    // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    std::string input = "Cafe\xCC\x81";
+    std::string output = mjb::normalize(input, mjb::NormalizationForm::NFC);
+
+    // NFC: Café
+    // std::cout << "NFC: " << output << std::endl;
+    oss << "NFC: " << output << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "NFC: Café\n", "mjb_normalize test failed"); // Added by the script
+    oss.str("");
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+
+{
+    // Example for mjb_normalize_into
+    MJB_TEST_COVERAGE(mjb_normalize_into); // Added by the script
+    // "Cafe" + U+0301 COMBINING ACUTE ACCENT
+    std::string input = "Cafe\xCC\x81";
+    std::string output;
+
+    // Replaces the content of output and reuses its capacity on later calls
+    mjb::normalize(input, mjb::NormalizationForm::NFC, output);
+
+    // NFC: Café
+    // std::cout << "NFC: " << output << std::endl;
+    oss << "NFC: " << output << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "NFC: Café\n", "mjb_normalize_into test failed"); // Added by the script
+    oss.str("");
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
     // End of generated examples.
 }
 // clang-format on
