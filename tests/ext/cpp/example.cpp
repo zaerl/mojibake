@@ -116,6 +116,130 @@ ATT_TEST(cpp_example) {
     oss.clear();
     oss.copyfmt(std::ostringstream());
 }
+
+{
+    // Example for mjb_nfkc_casefold
+    MJB_TEST_COVERAGE(mjb_nfkc_casefold); // Added by the script
+    // "Straße" + U+00AD SOFT HYPHEN
+    std::string input = "Stra\xC3\x9F" "e\xC2\xAD";
+
+    // strasse
+    // std::cout << mjb::nfkc_casefold(input) << std::endl;
+    oss << mjb::nfkc_casefold(input) << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "strasse\n", "mjb_nfkc_casefold test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+
+{
+    // Example for mjb_nfkc_casefold_into
+    MJB_TEST_COVERAGE(mjb_nfkc_casefold_into); // Added by the script
+    // "Straße" + U+00AD SOFT HYPHEN
+    std::string input = "Stra\xC3\x9F" "e\xC2\xAD";
+    std::string output;
+
+    // Replaces the content of output and reuses its capacity on later calls
+    mjb::nfkc_casefold(input, output);
+
+    // NFKC casefold: strasse
+    // std::cout << "NFKC casefold: " << output << std::endl;
+    oss << "NFKC casefold: " << output << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "NFKC casefold: strasse\n", "mjb_nfkc_casefold_into test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+
+#if MJB_FEATURE_IDNA
+{
+    // Example for mjb_idna_to_ascii
+    MJB_TEST_COVERAGE(mjb_idna_to_ascii); // Added by the script
+    // "bücher.example"
+    auto domain = mjb::idna_to_ascii("b\xC3\xBC" "cher.example");
+
+    if(!domain.valid()) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii test failed"); // Added by the script
+        return;
+    }
+
+    // xn--bcher-kva.example
+    // std::cout << domain.text << std::endl;
+    oss << domain.text << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "xn--bcher-kva.example\n", "mjb_idna_to_ascii test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+#endif // MJB_FEATURE_IDNA
+
+#if MJB_FEATURE_IDNA
+{
+    // Example for mjb_idna_to_ascii_into
+    MJB_TEST_COVERAGE(mjb_idna_to_ascii_into); // Added by the script
+    // "bücher.example"
+    std::string domain = "b\xC3\xBC" "cher.example";
+    std::string output;
+
+    // Returns the mjb_idna_error flags
+    if(mjb::idna_to_ascii(domain, output) != MJB_IDNA_ERROR_NONE) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_ascii_into test failed"); // Added by the script
+        return;
+    }
+
+    // xn--bcher-kva.example
+    // std::cout << output << std::endl;
+    oss << output << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "xn--bcher-kva.example\n", "mjb_idna_to_ascii_into test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+#endif // MJB_FEATURE_IDNA
+
+#if MJB_FEATURE_IDNA
+{
+    // Example for mjb_idna_to_unicode
+    MJB_TEST_COVERAGE(mjb_idna_to_unicode); // Added by the script
+    auto domain = mjb::idna_to_unicode("xn--bcher-kva.example");
+
+    if(!domain.valid()) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode test failed"); // Added by the script
+        return;
+    }
+
+    // bücher.example
+    // std::cout << domain.text << std::endl;
+    oss << domain.text << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "bücher.example\n", "mjb_idna_to_unicode test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+#endif // MJB_FEATURE_IDNA
+
+#if MJB_FEATURE_IDNA
+{
+    // Example for mjb_idna_to_unicode_into
+    MJB_TEST_COVERAGE(mjb_idna_to_unicode_into); // Added by the script
+    std::string domain = "xn--bcher-kva.example";
+    std::string output;
+
+    // Returns the mjb_idna_error flags
+    if(mjb::idna_to_unicode(domain, output) != MJB_IDNA_ERROR_NONE) {
+        ATT_ASSERT(0, 1, "mjb_idna_to_unicode_into test failed"); // Added by the script
+        return;
+    }
+
+    // bücher.example
+    // std::cout << output << std::endl;
+    oss << output << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "bücher.example\n", "mjb_idna_to_unicode_into test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    oss.clear();
+    oss.copyfmt(std::ostringstream());
+}
+#endif // MJB_FEATURE_IDNA
     // End of generated examples.
 }
 // clang-format on
