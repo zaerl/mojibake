@@ -485,7 +485,17 @@ if(mjb_filter(&controls, MJB_MALFORMED_STOP, MJB_FILTER_CONTROLS, MJB_ENC_UTF_8,
 // Filtered: \\t\\n\\v\\f\\r
 printf("Filtered: %.*s", (int)result.output_size, result.output);
 
-mjb_result_free(&result);`
+mjb_result_free(&result);`,
+      cpp: `std::string mixed_whitespace = "Hello\\t\\t\\n\\nworld";
+
+// Filtered: Hello world
+std::cout << "Filtered: " << mjb::filter(mixed_whitespace, mjb::Filter::CollapseSpaces)
+    << std::endl;
+
+std::string controls = "\\x1\\x2\\t\\n\\v\\f\\r\\x1f";
+
+// Filtered: \\t\\n\\v\\f\\r
+std::cout << "Filtered: " << mjb::filter(controls, mjb::Filter::Controls) << std::endl;`
     },
     related: ['mjb_filter_into', 'mjb_normalize']
   },
@@ -562,7 +572,15 @@ if(mjb_filter_into(&input, MJB_MALFORMED_STOP, MJB_FILTER_COLLAPSE_SPACES, &outp
 }
 
 // Filtered payload (no terminator): Hello world
-printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);`
+printf("Filtered payload (no terminator): %.*s", (int)output.size, storage);`,
+      cpp: `std::string input = "Hello\\t\\t\\nworld";
+std::string output;
+
+// Replaces the content of output and reuses its capacity on later calls
+mjb::filter(input, mjb::Filter::CollapseSpaces, output);
+
+// Filtered: Hello world
+std::cout << "Filtered: " << output << std::endl;`
     },
     related: ['mjb_filter', 'mjb_normalize']
   },
