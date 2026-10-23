@@ -32,7 +32,7 @@ header, with zero dependencies. It is released under the MIT License.
 ## Quick start
 
 You don't need to install anything. There are two files (`mojibake.c`, `mojibake.h`) to add to your
-C/C++ project. Download it here [mojibake-amalgamation-050.zip](https://github.com/zaerl/mojibake/releases/download/v0.5.0/mojibake-amalgamation-050.zip).
+C/C++ project. Download it here [mojibake-amalgamation-051.zip](https://github.com/zaerl/mojibake/releases/download/v0.5.1/mojibake-amalgamation-051.zip).
 
 ```c
 #include <stdio.h>

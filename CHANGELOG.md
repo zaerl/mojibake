@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.5.1]
+Codename: [LATIN CAPITAL LETTER Q]
+
+### Added
+- Added C++ examples
 - C++: `char8_t` input and output, so `u8"..."` literals and `std::u8string` work with every
   function
 - C++: option structs for designated initializers: `mjb::Options`, `mjb::CaseOptions`,
@@ -20,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - C++: `BidiParagraph::chars()` as a `std::span`
 
 ### Changed
+- New README.md
+- New API.md
 - C++: the wrapper requires C++20. The library still builds as C11 and C++17
 - C++: every transform has two forms, `mjb::nfc(input, options)` and `mjb::nfc(input, out,
   options)`, which replace the `_into` and `_result` functions and `mjb::TextResult`. Transforms
@@ -38,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - C++: the native UTF-16 and UTF-32 encodings come from `std::endian::native`
 
 ### Fixed
+- Removed obsolete header file
 
 ## [0.5.0]
 Codename: [LATIN CAPITAL LETTER P]
@@ -911,7 +924,8 @@ Codename [START OF HEADING]
 - WASM build support
 - Docker-based test environment
 
-[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/zaerl/mojibake/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/zaerl/mojibake/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/zaerl/mojibake/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/zaerl/mojibake/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zaerl/mojibake/compare/v0.4.0...v0.4.1
