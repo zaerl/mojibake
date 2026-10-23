@@ -21,9 +21,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "buffer.h"
-#include "locales.h"
-
 #include "mojibake.h"
 
 #if defined(_MSC_VER)
