@@ -1210,7 +1210,16 @@ mjb_diagnostic diagnostic;
 if(mjb_validate_encoding(&text, &diagnostic) != MJB_STATUS_MALFORMED_INPUT ||
     diagnostic.byte_offset != 0) {
     return 1;
-}`
+}`,
+      cpp: `std::string invalid = "\\xE2\\x82"; // A truncated three-byte sequence
+mjb_diagnostic diagnostic{};
+
+if(mjb::validate_encoding(invalid, &diagnostic) != MJB_STATUS_MALFORMED_INPUT) {
+    return 1;
+}
+
+// Malformed input at byte 0
+std::cout << "Malformed input at byte " << diagnostic.byte_offset << std::endl;`
     },
     related: ['mjb_decode_next', 'mjb_decode_previous', 'mjb_is_utf8']
   },
@@ -1571,7 +1580,15 @@ if(mjb_codepoint_block('A', &block) != MJB_STATUS_OK) {
 }
 
 // Block: Basic Latin
-printf("Block: %s", block.name);`
+printf("Block: %s", block.name);`,
+      cpp: `auto block = mjb::block_info('A');
+
+if(!block) {
+    return 1;
+}
+
+// Block: Basic Latin
+std::cout << "Block: " << block->name() << std::endl;`
     },
     specs: [uax(44, 'Unicode Character Database')]
   },
@@ -1587,7 +1604,11 @@ printf("Block: %s", block.name);`
       c: `mjb_script script = mjb_codepoint_script(0x03A9); // Greek capital omega
 
 // Greek script: yes
-printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");`
+printf("Greek script: %s", script == MJB_SC_GREK ? "yes" : "no");`,
+      cpp: `mjb_script script = mjb::script(0x03A9); // Greek capital omega
+
+// Greek script: yes
+std::cout << "Greek script: " << (script == MJB_SC_GREK ? "yes" : "no") << std::endl;`
     },
     specs: [uax(44, 'Unicode Character Database')]
   },
@@ -1631,7 +1652,12 @@ if(count > 3 || mjb_codepoint_script_extensions(0x30FC, scripts,
 }
 
 // U+30FC has 2 Script_Extensions
-printf("U+30FC has %zu Script_Extensions", count);`
+printf("U+30FC has %zu Script_Extensions", count);`,
+      cpp: `// Throws mjb::LibraryError on failure
+std::vector<mjb_script> scripts = mjb::script_extensions(0x30FC);
+
+// U+30FC has 2 Script_Extensions
+std::cout << "U+30FC has " << scripts.size() << " Script_Extensions" << std::endl;`
     },
     related: ['mjb_codepoint_script'],
     specs: [uax(24, 'Unicode Script Property')]
@@ -2247,7 +2273,9 @@ printf("Upper payload (no terminator): %.*s", (int)output.size, storage);`
     section: Section.TextAnalysis,
     examples: {
       c: `// U+10FFFD valid: yes
-printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");`
+printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");`,
+      cpp: `// U+10FFFD valid: yes
+std::cout << "U+10FFFD valid: " << (mjb::is_valid(0x10FFFD) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2260,7 +2288,9 @@ printf("U+10FFFD valid: %s", mjb_codepoint_is_valid(0x10FFFD) ? "yes" : "no");`
     section: Section.TextAnalysis,
     examples: {
       c: `// Letter A is graphic: yes
-printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");`
+printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");`,
+      cpp: `// Letter A is graphic: yes
+std::cout << "Letter A is graphic: " << (mjb::is_graphic('A') ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2273,7 +2303,9 @@ printf("Letter A is graphic: %s", mjb_codepoint_is_graphic('A') ? "yes" : "no");
     section: Section.TextAnalysis,
     examples: {
       c: `// U+0301 is combining: yes
-printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");`
+printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "no");`,
+      cpp: `// U+0301 is combining: yes
+std::cout << "U+0301 is combining: " << (mjb::is_combining(0x0301) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2286,7 +2318,10 @@ printf("U+0301 is combining: %s", mjb_codepoint_is_combining(0x0301) ? "yes" : "
     section: Section.HangulLanguage,
     examples: {
       c: `// U+1100 is a leading Jamo: yes
-printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no");`
+printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x1100) ? "yes" : "no");`,
+      cpp: `// U+1100 is a leading Jamo: yes
+std::cout << "U+1100 is a leading Jamo: "
+    << (mjb::is_hangul_leading_jamo(0x1100) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2299,7 +2334,10 @@ printf("U+1100 is a leading Jamo: %s", mjb_codepoint_is_hangul_leading_jamo(0x11
     section: Section.HangulLanguage,
     examples: {
       c: `// U+1161 is a vowel Jamo: yes
-printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no");`
+printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) ? "yes" : "no");`,
+      cpp: `// U+1161 is a vowel Jamo: yes
+std::cout << "U+1161 is a vowel Jamo: "
+    << (mjb::is_hangul_vowel_jamo(0x1161) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2312,7 +2350,10 @@ printf("U+1161 is a vowel Jamo: %s", mjb_codepoint_is_hangul_vowel_jamo(0x1161) 
     section: Section.HangulLanguage,
     examples: {
       c: `// U+11A8 is a trailing Jamo: yes
-printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no");`
+printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x11A8) ? "yes" : "no");`,
+      cpp: `// U+11A8 is a trailing Jamo: yes
+std::cout << "U+11A8 is a trailing Jamo: "
+    << (mjb::is_hangul_trailing_jamo(0x11A8) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2325,7 +2366,9 @@ printf("U+11A8 is a trailing Jamo: %s", mjb_codepoint_is_hangul_trailing_jamo(0x
     section: Section.HangulLanguage,
     examples: {
       c: `// U+1100 is Hangul Jamo: yes
-printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");`
+printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes" : "no");`,
+      cpp: `// U+1100 is Hangul Jamo: yes
+std::cout << "U+1100 is Hangul Jamo: " << (mjb::is_hangul_jamo(0x1100) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2338,7 +2381,10 @@ printf("U+1100 is Hangul Jamo: %s", mjb_codepoint_is_hangul_jamo(0x1100) ? "yes"
     section: Section.HangulLanguage,
     examples: {
       c: `// U+AC00 is a Hangul syllable: yes
-printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no");`
+printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC00) ? "yes" : "no");`,
+      cpp: `// U+AC00 is a Hangul syllable: yes
+std::cout << "U+AC00 is a Hangul syllable: "
+    << (mjb::is_hangul_syllable(0xAC00) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2351,7 +2397,10 @@ printf("U+AC00 is a Hangul syllable: %s", mjb_codepoint_is_hangul_syllable(0xAC0
     section: Section.TextAnalysis,
     examples: {
       c: `// U+4E00 is a CJK ideograph: yes
-printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");`
+printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ? "yes" : "no");`,
+      cpp: `// U+4E00 is a CJK ideograph: yes
+std::cout << "U+4E00 is a CJK ideograph: "
+    << (mjb::is_cjk_ideograph(0x4E00) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -2365,7 +2414,10 @@ printf("U+4E00 is a CJK ideograph: %s", mjb_codepoint_is_cjk_ideograph(0x4E00) ?
     section: Section.TextAnalysis,
     examples: {
       c: `// U+20000 is a CJK extension ideograph: yes
-printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");`
+printf("U+20000 is a CJK extension ideograph: %s", mjb_codepoint_is_cjk_extension_ideograph(0x20000) ? "yes" : "no");`,
+      cpp: `// U+20000 is a CJK extension ideograph: yes
+std::cout << "U+20000 is a CJK extension ideograph: "
+    << (mjb::is_cjk_extension_ideograph(0x20000) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -3036,7 +3088,10 @@ printf("Paragraph released: %s", paragraph.chars == NULL ? "yes" : "no");`
 bool starts = mjb_codepoint_is_id_start(0x03B1);
 
 // Greek alpha starts an identifier: yes
-printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`
+printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`,
+      cpp: `// Greek alpha starts an identifier: yes
+std::cout << "Greek alpha starts an identifier: "
+    << (mjb::is_id_start(0x03B1) ? "yes" : "no") << std::endl;`
     },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
@@ -3053,7 +3108,10 @@ printf("Greek alpha starts an identifier: %s", starts ? "yes" : "no");`
 bool continues = mjb_codepoint_is_id_continue('7');
 
 // Digit 7 continues an identifier: yes
-printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`
+printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`,
+      cpp: `// Digit 7 continues an identifier: yes
+std::cout << "Digit 7 continues an identifier: "
+    << (mjb::is_id_continue('7') ? "yes" : "no") << std::endl;`
     },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
@@ -3067,7 +3125,9 @@ printf("Digit 7 continues an identifier: %s", continues ? "yes" : "no");`
     section: Section.TextAnalysis,
     examples: {
       c: `// Letter A is XID_Start: yes
-printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");`
+printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "no");`,
+      cpp: `// Letter A is XID_Start: yes
+std::cout << "Letter A is XID_Start: " << (mjb::is_xid_start('A') ? "yes" : "no") << std::endl;`
     },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
@@ -3084,7 +3144,10 @@ printf("Letter A is XID_Start: %s", mjb_codepoint_is_xid_start('A') ? "yes" : "n
 bool continues = mjb_codepoint_is_xid_continue('_');
 
 // Underscore is XID_Continue: yes
-printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`
+printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`,
+      cpp: `// Underscore is XID_Continue: yes
+std::cout << "Underscore is XID_Continue: "
+    << (mjb::is_xid_continue('_') ? "yes" : "no") << std::endl;`
     },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
@@ -3101,7 +3164,10 @@ printf("Underscore is XID_Continue: %s", continues ? "yes" : "no");`
 bool syntax = mjb_codepoint_is_pattern_syntax('+');
 
 // Plus sign is Pattern_Syntax: yes
-printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`
+printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`,
+      cpp: `// Plus sign is Pattern_Syntax: yes
+std::cout << "Plus sign is Pattern_Syntax: "
+    << (mjb::is_pattern_syntax('+') ? "yes" : "no") << std::endl;`
     },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
@@ -3118,7 +3184,10 @@ printf("Plus sign is Pattern_Syntax: %s", syntax ? "yes" : "no");`
 bool whitespace = mjb_codepoint_is_pattern_white_space(' ');
 
 // Space is Pattern_White_Space: yes
-printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`
+printf("Space is Pattern_White_Space: %s", whitespace ? "yes" : "no");`,
+      cpp: `// Space is Pattern_White_Space: yes
+std::cout << "Space is Pattern_White_Space: "
+    << (mjb::is_pattern_white_space(' ') ? "yes" : "no") << std::endl;`
     },
     specs: [uax(31, 'Unicode Identifiers and Syntax')]
   },
@@ -3463,7 +3532,10 @@ printf("U+1F600 has Emoji_Presentation: %s", emoji.presentation ? "yes" : "no");
 bool emoji = mjb_codepoint_is_emoji('#');
 
 // Number sign has the Emoji property: yes
-printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`
+printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`,
+      cpp: `// Number sign has the Emoji property: yes
+std::cout << "Number sign has the Emoji property: "
+    << (mjb::is_emoji('#') ? "yes" : "no") << std::endl;`
     },
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3480,7 +3552,10 @@ printf("Number sign has the Emoji property: %s", emoji ? "yes" : "no");`
 bool presentation = mjb_codepoint_is_emoji_presentation(0x1F600);
 
 // Grinning face defaults to emoji presentation: yes
-printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");`
+printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" : "no");`,
+      cpp: `// Grinning face defaults to emoji presentation: yes
+std::cout << "Grinning face defaults to emoji presentation: "
+    << (mjb::is_emoji_presentation(0x1F600) ? "yes" : "no") << std::endl;`
     },
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3497,7 +3572,10 @@ printf("Grinning face defaults to emoji presentation: %s", presentation ? "yes" 
 bool modifier = mjb_codepoint_is_emoji_modifier(0x1F3FD);
 
 // Medium skin tone is an emoji modifier: yes
-printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`
+printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`,
+      cpp: `// Medium skin tone is an emoji modifier: yes
+std::cout << "Medium skin tone is an emoji modifier: "
+    << (mjb::is_emoji_modifier(0x1F3FD) ? "yes" : "no") << std::endl;`
     },
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3514,7 +3592,10 @@ printf("Medium skin tone is an emoji modifier: %s", modifier ? "yes" : "no");`
 bool modifier_base = mjb_codepoint_is_emoji_modifier_base(0x1F44B);
 
 // Waving hand accepts an emoji modifier: yes
-printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");`
+printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no");`,
+      cpp: `// Waving hand accepts an emoji modifier: yes
+std::cout << "Waving hand accepts an emoji modifier: "
+    << (mjb::is_emoji_modifier_base(0x1F44B) ? "yes" : "no") << std::endl;`
     },
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3531,7 +3612,10 @@ printf("Waving hand accepts an emoji modifier: %s", modifier_base ? "yes" : "no"
 bool component = mjb_codepoint_is_emoji_component(0x200D);
 
 // Zero-width joiner is an emoji component: yes
-printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");`
+printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");`,
+      cpp: `// Zero-width joiner is an emoji component: yes
+std::cout << "Zero-width joiner is an emoji component: "
+    << (mjb::is_emoji_component(0x200D) ? "yes" : "no") << std::endl;`
     },
     specs: [uts(51, 'Unicode Emoji')]
   },
@@ -3548,7 +3632,10 @@ printf("Zero-width joiner is an emoji component: %s", component ? "yes" : "no");
 bool pictographic = mjb_codepoint_is_extended_pictographic(0x2764);
 
 // Red heart is Extended_Pictographic: yes
-printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");`
+printf("Red heart is Extended_Pictographic: %s", pictographic ? "yes" : "no");`,
+      cpp: `// Red heart is Extended_Pictographic: yes
+std::cout << "Red heart is Extended_Pictographic: "
+    << (mjb::is_extended_pictographic(0x2764) ? "yes" : "no") << std::endl;`
     },
     specs: [uts(51, 'Unicode Emoji')]
   },
