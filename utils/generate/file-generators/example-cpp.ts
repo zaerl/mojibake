@@ -71,8 +71,7 @@ ${featureStart}\
     // Example for ${fn.name}
     MJB_TEST_COVERAGE(${fn.name}); // Added by the script
 ${generated}
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 ${featureEnd}\
 `;

@@ -15,6 +15,10 @@
 ATT_TEST(cpp_example) {
     std::ostringstream oss;
 
+#define RESET_STATE() \
+    oss.clear(); \
+    oss.copyfmt(std::ostringstream());
+
     // This function is automatically generated. Do not edit.
 {
     // Example for mjb_codepoint_info
@@ -36,8 +40,7 @@ ATT_TEST(cpp_example) {
         << character->decimal_value().value_or(-1) << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "Decimal digit: yes, value: 5\n", "mjb_codepoint_info test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 {
@@ -52,8 +55,7 @@ ATT_TEST(cpp_example) {
     oss << "NFC: " << output << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "NFC: Café\n", "mjb_normalize test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 {
@@ -71,8 +73,7 @@ ATT_TEST(cpp_example) {
     oss << "NFC: " << output << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "NFC: Café\n", "mjb_normalize_into test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 {
@@ -95,8 +96,7 @@ ATT_TEST(cpp_example) {
     oss << "Filtered: " << mjb::filter(controls, mjb::Filter::Controls) << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "Filtered: \t\n\v\f\r\n", "mjb_filter test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 {
@@ -113,8 +113,7 @@ ATT_TEST(cpp_example) {
     oss << "Filtered: " << output << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "Filtered: Hello world\n", "mjb_filter_into test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 {
@@ -128,8 +127,7 @@ ATT_TEST(cpp_example) {
     oss << mjb::nfkc_casefold(input) << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "strasse\n", "mjb_nfkc_casefold test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 {
@@ -147,8 +145,7 @@ ATT_TEST(cpp_example) {
     oss << "NFKC casefold: " << output << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "NFKC casefold: strasse\n", "mjb_nfkc_casefold_into test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 
 #if MJB_FEATURE_IDNA
@@ -168,8 +165,7 @@ ATT_TEST(cpp_example) {
     oss << domain.text << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "xn--bcher-kva.example\n", "mjb_idna_to_ascii test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 #endif // MJB_FEATURE_IDNA
 
@@ -192,8 +188,7 @@ ATT_TEST(cpp_example) {
     oss << output << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "xn--bcher-kva.example\n", "mjb_idna_to_ascii_into test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 #endif // MJB_FEATURE_IDNA
 
@@ -213,8 +208,7 @@ ATT_TEST(cpp_example) {
     oss << domain.text << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "bücher.example\n", "mjb_idna_to_unicode test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 #endif // MJB_FEATURE_IDNA
 
@@ -236,10 +230,52 @@ ATT_TEST(cpp_example) {
     oss << output << std::endl; // Added by the script
     ATT_ASSERT(oss.str(), "bücher.example\n", "mjb_idna_to_unicode_into test failed"); // Added by the script
     oss.str(""); // Added by the script
-    oss.clear();
-    oss.copyfmt(std::ostringstream());
+    RESET_STATE()
 }
 #endif // MJB_FEATURE_IDNA
+
+{
+    // Example for mjb_is_ascii
+    MJB_TEST_COVERAGE(mjb_is_ascii); // Added by the script
+    std::string input = "Plain ASCII";
+
+    // ASCII: yes
+    // std::cout << "ASCII: " << (mjb::is_ascii(input) ? "yes" : "no") << std::endl;
+    oss << "ASCII: " << (mjb::is_ascii(input) ? "yes" : "no") << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "ASCII: yes\n", "mjb_is_ascii test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    RESET_STATE()
+}
+
+{
+    // Example for mjb_is_utf8
+    MJB_TEST_COVERAGE(mjb_is_utf8); // Added by the script
+    std::string input = "caf\xC3\xA9";
+
+    // Valid UTF-8: yes
+    // std::cout << "Valid UTF-8: " << (mjb::is_utf8(input) ? "yes" : "no") << std::endl;
+    oss << "Valid UTF-8: " << (mjb::is_utf8(input) ? "yes" : "no") << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "Valid UTF-8: yes\n", "mjb_is_utf8 test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    RESET_STATE()
+}
+
+{
+    // Example for mjb_is_utf16
+    MJB_TEST_COVERAGE(mjb_is_utf16); // Added by the script
+    using namespace std::string_view_literals;
+
+    // BOM + "Hi" in UTF-16BE. The sv suffix keeps the embedded NUL bytes.
+    auto utf16be = "\xFE\xFF\0H\0i"sv;
+
+    // UTF-16: yes
+    // std::cout << "UTF-16: " << (mjb::is_utf16(utf16be) ? "yes" : "no") << std::endl;
+    oss << "UTF-16: " << (mjb::is_utf16(utf16be) ? "yes" : "no") << std::endl; // Added by the script
+    ATT_ASSERT(oss.str(), "UTF-16: yes\n", "mjb_is_utf16 test failed"); // Added by the script
+    oss.str(""); // Added by the script
+    RESET_STATE()
+}
     // End of generated examples.
+#undef RESET_STATE
 }
 // clang-format on

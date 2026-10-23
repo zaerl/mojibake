@@ -1119,7 +1119,11 @@ printf("UTF-16LE detected: %s", is_utf16le ? "yes" : "no");`
       c: `const char *input = "Plain ASCII";
 
 // ASCII: yes
-printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");`
+printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");`,
+      cpp: `std::string input = "Plain ASCII";
+
+// ASCII: yes
+std::cout << "ASCII: " << (mjb::is_ascii(input) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -1140,7 +1144,11 @@ printf("ASCII: %s", mjb_is_ascii(input, strlen(input)) ? "yes" : "no");`
       c: `const char *input = "caf\\xC3\\xA9";
 
 // Valid UTF-8: yes
-printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`
+printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`,
+      cpp: `std::string input = "caf\\xC3\\xA9";
+
+// Valid UTF-8: yes
+std::cout << "Valid UTF-8: " << (mjb::is_utf8(input) ? "yes" : "no") << std::endl;`
     }
   },
   {
@@ -1161,7 +1169,14 @@ printf("Valid UTF-8: %s", mjb_is_utf8(input, strlen(input)) ? "yes" : "no");`
       c: `const char utf16be[] = "\\xFE\\xFF\\0H\\0i"; // BOM + "Hi" in UTF-16BE
 
 // UTF-16: yes
-printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`
+printf("UTF-16: %s", mjb_is_utf16(utf16be, sizeof(utf16be) - 1) ? "yes" : "no");`,
+      cpp: `using namespace std::string_view_literals;
+
+// BOM + "Hi" in UTF-16BE. The sv suffix keeps the embedded NUL bytes.
+auto utf16be = "\\xFE\\xFF\\0H\\0i"sv;
+
+// UTF-16: yes
+std::cout << "UTF-16: " << (mjb::is_utf16(utf16be) ? "yes" : "no") << std::endl;`
     }
   },
   {
