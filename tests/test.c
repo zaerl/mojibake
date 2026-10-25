@@ -255,7 +255,8 @@ static bool coverage_name_from_expression(const char *expression, char *name, si
             ++next;
         }
 
-        if(*next == '(' && length > 0 && length < size) {
+        // Skip the mjb_test_* helpers, they are not library functions.
+        if(*next == '(' && length > 0 && length < size && strncmp(found, "mjb_test_", 9) != 0) {
             memcpy(name, found, length);
             name[length] = '\0';
 

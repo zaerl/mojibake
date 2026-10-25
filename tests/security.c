@@ -230,8 +230,11 @@ static void run_confusables_file(const char *filename) {
 
         mjb_codepoint mapping[MJB_UNICODE_SEQUENCE_MAX];
         uint8_t mapping_length = 0;
-        ATT_ASSERT(mjb_unicode_confusable_lookup(source_cp, mapping, &mapping_length), true,
-            test_name);
+        bool found = mjb_unicode_confusable_lookup(source_cp, mapping, &mapping_length);
+
+        // The table is validated directly, count it under its public consumer.
+        MJB_TEST_COVERAGE(mjb_confusable_skeleton);
+        ATT_ASSERT(found, true, test_name);
 
         char actual[128];
         size_t actual_size = 0;
