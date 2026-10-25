@@ -59,6 +59,14 @@ static char *mjb_test_take_result(mjb_result *result) {
     return copy;
 }
 
+// Take the result and attribute the caller's following assertions to mjb_map_case.
+static char *run_mjb_map_case_take(mjb_result *result) {
+    char *copy = mjb_test_take_result(result);
+    MJB_TEST_COVERAGE(mjb_map_case);
+
+    return copy;
+}
+
 /**
  * Call mjb_map_case and return a copy of the output string, or NULL when the call fails. Free the
  * copy with mjb_test_free.
@@ -83,14 +91,14 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
     ATT_ASSERT(required, result.output_size, "Case into required size matches allocated size");
 
     if(status != MJB_STATUS_OK || required != result.output_size) {
-        return mjb_test_take_result(&result);
+        return run_mjb_map_case_take(&result);
     }
 
     unsigned char *output = (unsigned char *)malloc(required + 1);
     ATT_ASSERT(output != NULL, true, "Allocate case into comparison buffer");
 
     if(output == NULL) {
-        return mjb_test_take_result(&result);
+        return run_mjb_map_case_take(&result);
     }
 
     memset(output, 0xA5, required + 1);
@@ -105,7 +113,7 @@ char *run_mjb_map_case(const char *buffer, size_t byte_length, mjb_map_case_type
 
     free(output);
 
-    return mjb_test_take_result(&result);
+    return run_mjb_map_case_take(&result);
 }
 
 /**

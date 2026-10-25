@@ -343,6 +343,8 @@ static void test_grapheme_count(void) {
 
 ATT_TEST(segmentation) {
     {
+        MJB_TEST_COVERAGE(mjb_grapheme_break_next);
+
         // state.position is the byte offset of each reported position. A malformed byte counts
         // as one position; an incomplete sequence at the end ends the iteration before it.
         const size_t expected_middle[] = { 1, 2, 3, 4, 5 };
