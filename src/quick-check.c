@@ -55,11 +55,9 @@ MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, 
     }
 
     mjb_quick_check_result result = MJB_QC_YES;
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
     mjb_canonical_combining_class last_canonical_class = MJB_CCC_NOT_REORDERED;
     mjb_n_character current_character;
-    bool in_error = false;
 
 #define MJB_QUICK_CHECK_NO() \
     do { \
@@ -70,20 +68,16 @@ MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, 
         } \
     } while(0)
 
-    for(size_t i = 0;;) {
+    for(size_t i = resolved_index;;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            encoding, &codepoint, &in_error);
+        mjb_status decode_status = mjb_decode_next_raw(buffer, byte_length, resolved_encoding, &i,
+            &codepoint, NULL);
 
-        if(decode_status == MJB_DECODE_END) {
+        if(decode_status == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(decode_status == MJB_DECODE_ERROR) {
+        if(decode_status != MJB_STATUS_OK) {
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
@@ -160,10 +154,6 @@ MJB_LOCAL mjb_status mjb_normalization_quick_check_internal(const char *buffer, 
         }
 
         last_canonical_class = (mjb_canonical_combining_class)current_character.combining;
-    }
-
-    if(mjb_utf_state_is_incomplete(state)) {
-        return MJB_STATUS_MALFORMED_INPUT;
     }
 
     *quick_check = result;

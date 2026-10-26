@@ -71,23 +71,22 @@ static mjb_status mjb_emoji_decode_sequence(const char *buffer, size_t byte_leng
 
     *count = 0;
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
+    size_t i = 0;
 
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result result = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
+    if(!mjb_decode_begin(buffer, byte_length, &encoding, &i)) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
 
-        if(result == MJB_DECODE_END) {
+    for(;;) {
+        mjb_status result = mjb_decode_next_raw(buffer, byte_length, encoding, &i, &codepoint,
+            NULL);
+
+        if(result == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(result == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(result == MJB_DECODE_ERROR) {
+        if(result != MJB_STATUS_OK) {
             return MJB_STATUS_MALFORMED_INPUT;
         }
 

@@ -1976,7 +1976,7 @@ export class Mojibake {
     const wasmInput = this.copyInput(input, options.encoding);
     const textPtr = this.copyText(wasmInput);
     // Zeroed, so state.index starts at 0. On wasm32 every break state stores the 32-bit
-    // state.position at byte 8; src/mojibake.c checks this layout at compile time.
+    // state.position at byte 4; src/mojibake.c checks this layout at compile time.
     const statePtr = this.malloc(256);
     const breaks: BreakPosition[] = [];
 
@@ -1988,7 +1988,7 @@ export class Mojibake {
           break;
         }
 
-        breaks.push({ position: this.module.HEAP32[(statePtr + 8) / 4] >>> 0, type });
+        breaks.push({ position: this.module.HEAP32[(statePtr + 4) / 4] >>> 0, type });
       }
 
       return breaks;

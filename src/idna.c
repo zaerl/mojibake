@@ -55,26 +55,22 @@ static mjb_status mjb_idna_decode_utf8(const char *buffer, size_t byte_length,
 
     codepoints->capacity = byte_length;
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
 
     for(size_t index = 0;;) {
-        mjb_decode_result decoded = mjb_next_codepoint(buffer, byte_length, &state, &index,
-            MJB_ENC_UTF_8, &codepoint, &in_error);
+        mjb_status decoded = mjb_decode_next_raw(buffer, byte_length, MJB_ENC_UTF_8, &index,
+            &codepoint, NULL);
 
-        if(decoded == MJB_DECODE_END) {
+        if(decoded == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decoded == MJB_DECODE_ERROR) {
+        if(decoded != MJB_STATUS_OK) {
             mjb_idna_codepoints_free(codepoints);
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
-        if(decoded == MJB_DECODE_OK) {
-            codepoints->values[codepoints->count++] = codepoint;
-        }
+        codepoints->values[codepoints->count++] = codepoint;
     }
 
     return MJB_STATUS_OK;
@@ -105,23 +101,23 @@ static mjb_status mjb_idna_map(const char *buffer, size_t byte_length, mjb_encod
         return status;
     }
 
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
+    size_t index = 0;
 
-    for(size_t index = 0;;) {
-        mjb_decode_result decoded = mjb_next_codepoint(buffer, byte_length, &state, &index,
-            encoding, &codepoint, &in_error);
+    if(!mjb_decode_begin(buffer, byte_length, &encoding, &index)) {
+        status = MJB_STATUS_MALFORMED_INPUT;
+        goto fail;
+    }
 
-        if(decoded == MJB_DECODE_END) {
+    for(;;) {
+        mjb_status decoded = mjb_decode_next_raw(buffer, byte_length, encoding, &index, &codepoint,
+            NULL);
+
+        if(decoded == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decoded == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(decoded == MJB_DECODE_ERROR) {
+        if(decoded != MJB_STATUS_OK) {
             status = MJB_STATUS_MALFORMED_INPUT;
             goto fail;
         }

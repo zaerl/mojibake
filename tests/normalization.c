@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../src/utf8.h"
+#include "../src/utf.h"
 #include "test.h"
 
 static bool next_codepoint(const mjb_character *character, mjb_character_position type,
@@ -21,22 +21,19 @@ static bool next_codepoint(const mjb_character *character, mjb_character_positio
 }
 
 static bool has_only_latin1(const char *source, size_t source_size) {
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint current_codepoint = 0;
+    size_t length = strnlen(source, source_size);
 
-    for(size_t i = 0; i < source_size && source[i]; ++i) {
+    for(size_t i = 0;;) {
         // Find next codepoint.
-        state = mjb_utf8_decode_step(state, source[i], &current_codepoint);
+        mjb_status status = mjb_decode_next_raw(source, length, MJB_ENC_UTF_8, &i,
+            &current_codepoint, NULL);
 
-        if(state == MJB_UTF_REJECT) {
-            return false;
+        if(status == MJB_STATUS_END_OF_INPUT) {
+            break;
         }
 
-        if(state != MJB_UTF_ACCEPT) {
-            continue;
-        }
-
-        if(current_codepoint >= 0x100) {
+        if(status != MJB_STATUS_OK || current_codepoint >= 0x100) {
             return false;
         }
     }

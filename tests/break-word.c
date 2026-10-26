@@ -159,6 +159,35 @@ static void test_word_count(void) {
         MJB_STATUS_OK, "Word count skips malformed input");
     ATT_ASSERT(count, (size_t)1, "Skipping malformed input joins adjacent letters");
 
+    // Each maximal subpart of a malformed subsequence decodes to its own U+FFFD, so the run 80 80
+    // has two positions. The iterator used to merge a malformed run into one.
+    {
+        const size_t expected[] = { 1, 2, 3, 4 };
+        const char malformed_run[] = "a\x80\x80"
+                                     "b";
+        text = mjb_text_utf8(malformed_run, sizeof(malformed_run) - 1);
+        mjb_word_break_state state;
+        state.index = 0;
+        size_t positions = 0;
+        bool positions_match = true;
+
+        while(mjb_word_break_next(&text, &state) != MJB_BT_NOT_SET) {
+            positions_match = positions_match && positions < 4 &&
+                state.position == expected[positions];
+            ++positions;
+        }
+
+        ATT_ASSERT(positions, (size_t)4, "Word positions: one per malformed subpart");
+        ATT_ASSERT(positions_match, true, "Word positions: malformed subpart offsets");
+        ATT_ASSERT(mjb_word_prefix_length(&text, 1), (size_t)1,
+            "Word prefix ends before a malformed run");
+    }
+
+    // A truncated UTF-16 unit at the end is a segment of its own, after the word "ab".
+    text = mjb_text_utf16le("a\0b\0c", 5);
+    ATT_ASSERT(mjb_word_prefix_length(&text, 1), (size_t)4,
+        "Word prefix stops before a truncated code unit");
+
     // Punctuation, whitespace, and symbol segments are not counted
     text = mjb_text_utf8("Hello, world! It works.", 23);
     ATT_ASSERT_STATUS(mjb_word_count(&text, MJB_MALFORMED_STOP, &count, NULL),

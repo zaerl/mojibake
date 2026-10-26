@@ -306,7 +306,6 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
     mjb_encoding encoding = context->encoding;
     mjb_normalization form = context->form;
     mjb_encoding output_encoding = context->output_encoding;
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
     mjb_n_character current_character;
 
@@ -354,22 +353,24 @@ static mjb_status mjb_normalize_write(mjb_output *output, const void *context_po
     } while(0)
 
     // Loop through the string.
-    bool in_error = false;
+    size_t i = 0;
 
-    for(size_t i = 0;;) {
+    if(!mjb_decode_begin(buffer, byte_length, &encoding, &i)) {
+        status = MJB_STATUS_MALFORMED_INPUT;
+
+        goto fail;
+    }
+
+    for(;;) {
         // Find next codepoint.
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            encoding, &codepoint, &in_error);
+        mjb_status decode_status = mjb_decode_next_raw(buffer, byte_length, encoding, &i,
+            &codepoint, NULL);
 
-        if(decode_status == MJB_DECODE_END) {
+        if(decode_status == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(decode_status == MJB_DECODE_ERROR) {
+        if(decode_status != MJB_STATUS_OK) {
             status = MJB_STATUS_MALFORMED_INPUT;
 
             goto fail;
@@ -781,21 +782,11 @@ static mjb_status mjb_nfkc_casefold_pass(const char *buffer, size_t byte_length,
     }
 
     size_t output_index = 0;
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
-    bool in_error = false;
 
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            MJB_ENC_UTF_8, &codepoint, &in_error);
-
-        if(decode_status == MJB_DECODE_END) {
-            break;
-        }
-
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
+    // Malformed subsequences decode to U+FFFD and are folded like any other codepoint.
+    for(size_t i = 0; mjb_decode_next_raw(buffer, byte_length, MJB_ENC_UTF_8, &i, &codepoint,
+                          NULL) != MJB_STATUS_END_OF_INPUT;) {
 
         if(mjb_codepoint_has_binary_property(codepoint, MJB_PR_DEFAULT_IGNORABLE_CODE_POINT)) {
             continue;

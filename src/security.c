@@ -131,23 +131,22 @@ MJB_EXPORT mjb_status mjb_resolved_script_set(const mjb_text *text, mjb_script *
     mjb_script_bits resolved;
     mjb_script_bits_fill(&resolved);
     bool is_all = true;
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
+    size_t i = 0;
 
-    for(size_t i = 0;;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            encoding, &codepoint, &in_error);
+    if(!mjb_decode_begin(buffer, byte_length, &encoding, &i)) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
 
-        if(decode_status == MJB_DECODE_END) {
+    for(;;) {
+        mjb_status decode_status = mjb_decode_next_raw(buffer, byte_length, encoding, &i,
+            &codepoint, NULL);
+
+        if(decode_status == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(decode_status == MJB_DECODE_ERROR) {
+        if(decode_status != MJB_STATUS_OK) {
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
@@ -257,23 +256,17 @@ static mjb_status mjb_confusable_skeleton_finish(const char *buffer, size_t byte
     }
 
     size_t mid_index = 0;
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint cp = 0;
-    bool in_error = false;
 
-    for(size_t i = 0; i < nfd.output_size;) {
-        mjb_decode_result dr = mjb_next_codepoint(nfd.output, nfd.output_size, &state, &i,
-            MJB_ENC_UTF_8, &cp, &in_error);
+    for(size_t i = 0;;) {
+        mjb_status dr = mjb_decode_next_raw(nfd.output, nfd.output_size, MJB_ENC_UTF_8, &i, &cp,
+            NULL);
 
-        if(dr == MJB_DECODE_END) {
+        if(dr == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(dr == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(dr == MJB_DECODE_ERROR) {
+        if(dr != MJB_STATUS_OK) {
             mjb_result_free(&nfd);
 
             mjb_free(mid, mid_size);

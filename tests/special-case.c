@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../src/utf8.h"
 #include "test.h"
 
 static int check_case(char *source, size_t source_size, char *target, size_t target_size,

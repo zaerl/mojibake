@@ -6,16 +6,7 @@
 
 #pragma once
 
-#include "utf16.h"
-#include "utf32.h"
-#include "utf8.h"
-
-typedef enum {
-    MJB_DECODE_OK,         // Successfully decoded a codepoint
-    MJB_DECODE_INCOMPLETE, // Still accumulating bytes for multi-byte sequence
-    MJB_DECODE_END,        // Reached end of string
-    MJB_DECODE_ERROR       // Invalid sequence (codepoint set to MJB_CODEPOINT_REPLACEMENT "�")
-} mjb_decode_result;
+#include "mojibake-internal.h"
 
 static inline bool MJB_USED mjb_malformed_policy_is_valid(mjb_malformed_policy policy) {
     return policy == MJB_MALFORMED_STOP || policy == MJB_MALFORMED_REPLACE ||
@@ -108,10 +99,6 @@ static inline mjb_status MJB_USED mjb_prepare_text_input(const mjb_text *text,
     }
 
     return status;
-}
-
-static inline bool MJB_USED mjb_utf_state_is_incomplete(uint8_t state) {
-    return state != MJB_UTF_ACCEPT && state != MJB_UTF_REJECT;
 }
 
 static inline bool MJB_USED mjb_starts_with_utf8_bom(const char *buffer, size_t byte_length) {
@@ -210,246 +197,322 @@ static inline mjb_status MJB_USED mjb_check_input_encoding_byte_order(const char
     return MJB_STATUS_OK;
 }
 
-static inline bool MJB_USED mjb_decode_step(const char *buffer, size_t byte_length, uint8_t *state,
-    size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint) {
-    if(encoding == MJB_ENC_ASCII) {
-        uint8_t byte = (uint8_t)buffer[*index];
-        *codepoint = byte;
-        *state = byte <= 0x7F ? MJB_UTF_ACCEPT : MJB_UTF_REJECT;
-        ++*index;
-    } else if(encoding == MJB_ENC_UTF_8) {
-        *state = mjb_utf8_decode_step(*state, buffer[*index], codepoint);
-        ++*index; // Increment by 1 byte
-    } else if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
-        if(*index + 1 >= byte_length) {
-            // Truncated trailing unit: consume it, or decoding would never terminate.
-            *state = MJB_UTF_REJECT;
-            *index = byte_length;
-        } else {
-            *state = mjb_utf16_decode_step(*state, buffer[*index], buffer[*index + 1], codepoint,
-                encoding == MJB_ENC_UTF_16BE);
-            *index += 2; // Increment by 2 bytes (full code unit)
-        }
-    } else if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
-        if(*index + 3 >= byte_length) {
-            // Truncated trailing unit: consume it, or decoding would never terminate.
-            *state = MJB_UTF_REJECT;
-            *index = byte_length;
-        } else {
-            *state = mjb_utf32_decode_step(*state, buffer[*index], buffer[*index + 1],
-                buffer[*index + 2], buffer[*index + 3], codepoint, encoding == MJB_ENC_UTF_32BE);
-            *index += 4; // Increment by 4 bytes (full code unit)
-        }
-    } else {
-        *codepoint = MJB_CODEPOINT_REPLACEMENT;
-        *state = MJB_UTF_ACCEPT;
-        ++*index;
+static inline bool MJB_USED mjb_codepoint_is_surrogate(mjb_codepoint codepoint) {
+    return codepoint >= 0xD800 && codepoint <= 0xDFFF;
+}
+
+static inline size_t MJB_USED mjb_encoding_code_unit_size(mjb_encoding encoding) {
+    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
+        return 2;
     }
 
-    return true;
+    if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
+        return 4;
+    }
+
+    return 1;
+}
+
+static inline void MJB_USED mjb_set_diagnostic(mjb_diagnostic *diagnostic, mjb_text_error error,
+    size_t byte_offset, size_t byte_length, mjb_encoding encoding) {
+    if(diagnostic == NULL) {
+        return;
+    }
+
+    diagnostic->error = error;
+    diagnostic->byte_offset = byte_offset;
+    diagnostic->byte_length = byte_length;
+    diagnostic->code_unit_offset = byte_offset / mjb_encoding_code_unit_size(encoding);
+}
+
+static inline uint16_t MJB_USED mjb_read_utf16_unit(const char *buffer, size_t offset,
+    bool big_endian) {
+    uint16_t first = (uint8_t)buffer[offset];
+    uint16_t second = (uint8_t)buffer[offset + 1];
+
+    return big_endian ? (uint16_t)((first << 8) | second) : (uint16_t)(first | (second << 8));
+}
+
+static inline uint32_t MJB_USED mjb_read_utf32_unit(const char *buffer, size_t offset,
+    bool big_endian) {
+    uint32_t b0 = (uint8_t)buffer[offset];
+    uint32_t b1 = (uint8_t)buffer[offset + 1];
+    uint32_t b2 = (uint8_t)buffer[offset + 2];
+    uint32_t b3 = (uint8_t)buffer[offset + 3];
+
+    if(big_endian) {
+        return (b0 << 24) | (b1 << 16) | (b2 << 8) | b3;
+    }
+
+    return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
 }
 
 /**
- * Get the next codepoint from a string.
+ * Decode the scalar value at |*offset| and advance past it. |buffer| and |byte_length| are already
+ * resolved: no MJB_NUL_TERMINATED, and |encoding| is a concrete byte order (see
+ * mjb_decode_begin()). A malformed subsequence returns MJB_STATUS_MALFORMED_INPUT, sets
+ * |*codepoint| to U+FFFD, and advances past one maximal subpart. Returns MJB_STATUS_END_OF_INPUT at
+ * the end and MJB_STATUS_INVALID_ENCODING, without advancing, for an unsupported encoding.
  */
-static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, size_t byte_length,
-    uint8_t *state, size_t *index, mjb_encoding encoding, mjb_codepoint *codepoint,
-    bool *in_error) {
-    mjb_encoding requested_encoding = encoding;
-    encoding = mjb_resolve_input_encoding(buffer, byte_length, encoding, index);
+static inline mjb_status MJB_USED mjb_decode_next_raw(const char *buffer, size_t byte_length,
+    mjb_encoding encoding, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic) {
+    size_t start = *offset;
 
-    if(*index >= byte_length) {
-        // Check if we have an incomplete sequence at end of buffer
-        if(mjb_utf_state_is_incomplete(*state)) {
-            *codepoint = MJB_CODEPOINT_REPLACEMENT;
-            *state = MJB_UTF_ACCEPT;
-
-            return MJB_DECODE_ERROR;
-        }
-
-        return MJB_DECODE_END;
+    if(start >= byte_length) {
+        return MJB_STATUS_END_OF_INPUT;
     }
 
-    if((requested_encoding == MJB_ENC_UTF_16 || requested_encoding == MJB_ENC_UTF_32) &&
-        encoding == requested_encoding) {
+    if(encoding == MJB_ENC_ASCII) {
+        uint8_t byte = (uint8_t)buffer[start];
+        *offset = start + 1;
+
+        if(byte <= 0x7F) {
+            *codepoint = byte;
+
+            return MJB_STATUS_OK;
+        }
+
         *codepoint = MJB_CODEPOINT_REPLACEMENT;
-        *state = MJB_UTF_ACCEPT;
-        *index = byte_length;
-        *in_error = true;
+        mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_NON_ASCII, start, 1, encoding);
 
-        return MJB_DECODE_ERROR;
+        return MJB_STATUS_MALFORMED_INPUT;
     }
 
-    uint8_t prev_state = *state;
-    size_t prev_index = *index;
+    if(encoding == MJB_ENC_UTF_8) {
+        uint8_t first = (uint8_t)buffer[start];
 
-    if(!mjb_decode_step(buffer, byte_length, state, index, encoding, codepoint)) {
-        // Check if we have an incomplete sequence at end
-        if(mjb_utf_state_is_incomplete(*state)) {
-            *codepoint = MJB_CODEPOINT_REPLACEMENT;
-            *state = MJB_UTF_ACCEPT;
+        if(first <= 0x7F) {
+            *offset = start + 1;
+            *codepoint = first;
 
-            return MJB_DECODE_ERROR;
+            return MJB_STATUS_OK;
         }
 
-        return MJB_DECODE_END;
-    }
+        // 0x80..0xBF: a continuation byte cannot start a sequence.
+        if(first <= 0xBF) {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNEXPECTED_CONTINUATION, start, 1,
+                encoding);
 
-    if(*state == MJB_UTF_REJECT) {
-        // Check if the byte is valid standalone (like ASCII) that caused rejection
-        // We need to reprocess it after emitting replacement for previous bytes
-        // Note: index has been incremented, so the byte just processed is at [*index - 1]
-        bool should_reprocess = (encoding == MJB_ENC_UTF_8 && prev_state != MJB_UTF_ACCEPT &&
-            *index > 0 && (unsigned char)buffer[*index - 1] < 0x80);
-        // A UTF-16 unit that follows an unpaired high surrogate is never a low surrogate. Rewind
-        // the whole unit so that it is decoded on its own, unless it was a truncated trailing byte.
-        size_t rewind_bytes = 1;
-
-        if((encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) &&
-            prev_state == MJB_UTF_PENDING_SURROGATE && *index == prev_index + 2) {
-            should_reprocess = true;
-            rewind_bytes = 2;
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
-        // Emit MJB_CODEPOINT_REPLACEMENT only once per ill-formed subsequence
-        if(!*in_error) {
+        if(first == 0xC0 || first == 0xC1) {
+            *offset = start + 1;
             *codepoint = MJB_CODEPOINT_REPLACEMENT;
-            *in_error = true;
-            *state = MJB_UTF_ACCEPT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_OVERLONG_SEQUENCE, start, 1, encoding);
 
-            if(should_reprocess) {
-                *index -= rewind_bytes;
-                *in_error = false;
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        size_t required;
+
+        if(first <= 0xDF) {
+            required = 2;
+        } else if(first <= 0xEF) {
+            required = 3;
+        } else if(first <= 0xF4) {
+            required = 4;
+        } else {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic,
+                first <= 0xF7 ? MJB_TEXT_ERROR_OUT_OF_RANGE : MJB_TEXT_ERROR_INVALID_LEADING_BYTE,
+                start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        size_t remaining = byte_length - start;
+
+        if(remaining < 2) {
+            *offset = byte_length;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start, remaining,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        uint8_t second = (uint8_t)buffer[start + 1];
+
+        if((second & 0xC0) != 0x80) {
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_MISSING_CONTINUATION, start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        mjb_text_error constrained_error = MJB_TEXT_ERROR_NONE;
+
+        if((first == 0xE0 && second < 0xA0) || (first == 0xF0 && second < 0x90)) {
+            constrained_error = MJB_TEXT_ERROR_OVERLONG_SEQUENCE;
+        } else if(first == 0xED && second >= 0xA0) {
+            constrained_error = MJB_TEXT_ERROR_SURROGATE;
+        } else if(first == 0xF4 && second >= 0x90) {
+            constrained_error = MJB_TEXT_ERROR_OUT_OF_RANGE;
+        }
+
+        if(constrained_error != MJB_TEXT_ERROR_NONE) {
+            // Only the lead byte is a maximal subpart when the second byte violates the
+            // well-formed UTF-8 range for that lead byte.
+            *offset = start + 1;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, constrained_error, start, 1, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        mjb_codepoint decoded;
+
+        if(required == 2) {
+            decoded = (mjb_codepoint)(first & 0x1F);
+        } else if(required == 3) {
+            decoded = (mjb_codepoint)(first & 0x0F);
+        } else {
+            decoded = (mjb_codepoint)(first & 0x07);
+        }
+
+        decoded = (decoded << 6) | ((mjb_codepoint)second & 0x3F);
+
+        for(size_t i = 2; i < required; ++i) {
+            if(i >= remaining) {
+                *offset = byte_length;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_SEQUENCE, start, remaining,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
             }
 
-            return MJB_DECODE_ERROR;
+            uint8_t continuation = (uint8_t)buffer[start + i];
+
+            if((continuation & 0xC0) != 0x80) {
+                *offset = start + i;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_MISSING_CONTINUATION, start, i,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+
+            decoded = (decoded << 6) | ((mjb_codepoint)continuation & 0x3F);
         }
 
-        // Already in error sequence
-        if(should_reprocess) {
-            // This is a valid standalone byte that broke the sequence. Reprocess it as new
-            *index -= rewind_bytes;
-            *in_error = false;
-            *state = MJB_UTF_ACCEPT;
+        *codepoint = decoded;
+        *offset = start + required;
 
-            return MJB_DECODE_INCOMPLETE;
+        return MJB_STATUS_OK;
+    }
+
+    if(encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) {
+        size_t remaining = byte_length - start;
+
+        if(remaining < 2) {
+            *offset = byte_length;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, start, remaining,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
         }
 
-        *state = MJB_UTF_ACCEPT;
+        bool big_endian = encoding == MJB_ENC_UTF_16BE;
+        uint16_t first = mjb_read_utf16_unit(buffer, start, big_endian);
 
-        return MJB_DECODE_INCOMPLETE;
+        if(first >= 0xD800 && first <= 0xDBFF) {
+            if(remaining < 4) {
+                *offset = start + 2;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+
+            uint16_t second = mjb_read_utf16_unit(buffer, start + 2, big_endian);
+
+            if(second < 0xDC00 || second > 0xDFFF) {
+                *offset = start + 2;
+                *codepoint = MJB_CODEPOINT_REPLACEMENT;
+                mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2,
+                    encoding);
+
+                return MJB_STATUS_MALFORMED_INPUT;
+            }
+
+            *codepoint = 0x10000 + (((mjb_codepoint)first - 0xD800) << 10) +
+                ((mjb_codepoint)second - 0xDC00);
+            *offset = start + 4;
+
+            return MJB_STATUS_OK;
+        }
+
+        *offset = start + 2;
+
+        if(first >= 0xDC00 && first <= 0xDFFF) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_UNPAIRED_SURROGATE, start, 2, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        *codepoint = first;
+
+        return MJB_STATUS_OK;
     }
 
-    if(*state == MJB_UTF_ACCEPT) {
-        *in_error = false;
+    if(encoding == MJB_ENC_UTF_32BE || encoding == MJB_ENC_UTF_32LE) {
+        size_t remaining = byte_length - start;
 
-        return MJB_DECODE_OK;
+        if(remaining < 4) {
+            *offset = byte_length;
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_TRUNCATED_CODE_UNIT, start, remaining,
+                encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        mjb_codepoint decoded = mjb_read_utf32_unit(buffer, start, encoding == MJB_ENC_UTF_32BE);
+        *offset = start + 4;
+
+        if(mjb_codepoint_is_surrogate(decoded)) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_SURROGATE, start, 4, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        if(decoded > MJB_CODEPOINT_MAX) {
+            *codepoint = MJB_CODEPOINT_REPLACEMENT;
+            mjb_set_diagnostic(diagnostic, MJB_TEXT_ERROR_OUT_OF_RANGE, start, 4, encoding);
+
+            return MJB_STATUS_MALFORMED_INPUT;
+        }
+
+        *codepoint = decoded;
+
+        return MJB_STATUS_OK;
     }
 
-    return MJB_DECODE_INCOMPLETE;
+    return MJB_STATUS_INVALID_ENCODING;
 }
 
 /**
- * Return the number of encoded bytes a codepoint occupies in the given encoding.
- * UTF-8:  1–4 bytes depending on codepoint value (ASCII shares the UTF-8 decode path).
- * UTF-16: 2 bytes for BMP (U+0000–U+FFFF), 4 bytes for supplementary planes.
- * UTF-32: always 4 bytes.
+ * Prepare a buffer for mjb_decode_next_raw(). Pick the concrete byte order of generic UTF-16 and
+ * UTF-32 input and, when |index| is 0, skip its byte order mark. Return false when a non-empty
+ * generic input has no byte order mark: its byte order is unknown, so the input is malformed.
  */
-static inline size_t MJB_USED mjb_codepoint_encoded_bytes(mjb_codepoint cp, mjb_encoding encoding) {
-    if(encoding == MJB_ENC_UTF_8 || encoding == MJB_ENC_ASCII) {
-        if(cp < 0x80) {
-            return 1;
-        }
+static inline bool MJB_USED mjb_decode_begin(const char *buffer, size_t byte_length,
+    mjb_encoding *encoding, size_t *index) {
+    mjb_encoding requested = *encoding;
+    *encoding = mjb_resolve_input_encoding(buffer, byte_length, requested, index);
 
-        if(cp < 0x800) {
-            return 2;
-        }
-
-        if(cp < 0x10000) {
-            return 3;
-        }
-
-        return 4;
-    }
-
-    if((encoding & MJB_ENC_UTF_32) || (encoding & MJB_ENC_UTF_32BE) ||
-        (encoding & MJB_ENC_UTF_32LE)) {
-        return 4;
-    }
-
-    if((encoding & MJB_ENC_UTF_16) || (encoding & MJB_ENC_UTF_16BE) ||
-        (encoding & MJB_ENC_UTF_16LE)) {
-        return cp >= 0x10000 ? 4 : 2;
-    }
-
-    return 4;
-}
-
-/**
- * Byte offset at which the codepoint most recently decoded into |index| begins. Guards against
- * underflow when a replacement codepoint reports more encoded bytes than were consumed from a
- * malformed sequence.
- */
-static inline size_t MJB_USED mjb_cluster_start(size_t index, size_t size, mjb_codepoint cp,
-    mjb_encoding encoding) {
-    if(index > size) {
-        return size;
-    }
-
-    size_t encoded = mjb_codepoint_encoded_bytes(cp, encoding);
-
-    return encoded > index ? 0 : index - encoded;
-}
-
-static inline void MJB_USED mjb_mark_decode_terminated(uint8_t *state, size_t *index,
-    mjb_codepoint *current_codepoint, mjb_encoding encoding) {
-    if(*current_codepoint == MJB_CODEPOINT_NOT_VALID) {
-        *current_codepoint = 0;
-    }
-
-    *index += mjb_codepoint_encoded_bytes(*current_codepoint, encoding);
-    *state = MJB_UTF_TERMINATED;
-}
-
-static inline size_t MJB_USED mjb_boundary_position(size_t index, size_t size, mjb_codepoint cp,
-    mjb_encoding encoding, bool terminated) {
-    if(terminated) {
-        size_t encoded = mjb_codepoint_encoded_bytes(cp, encoding);
-
-        return encoded > index ? 0 : index - encoded;
-    }
-
-    return mjb_cluster_start(index, size, cp, encoding);
-}
-
-static inline size_t MJB_USED mjb_monotonic_boundary_position(size_t index, size_t size,
-    mjb_codepoint cp, mjb_encoding encoding, bool terminated, size_t previous) {
-    size_t position = mjb_boundary_position(index, size, cp, encoding, terminated);
-
-    return position < previous ? previous : position;
-}
-
-/**
- * The byte offset of the boundary a break iterator just reported, from the iterator index before
- * the call. The first call decodes the first two codepoints and reports the boundary between
- * them; every later call decodes one more codepoint, or reaches the end of the text, and reports
- * the boundary in front of it. Iterators have no event for the start of the text.
- */
-static inline size_t MJB_USED mjb_break_position(const mjb_text *text, size_t start) {
-    if(start > 0) {
-        return start < text->byte_length ? start : text->byte_length;
-    }
-
-    size_t offset = 0;
-    mjb_codepoint codepoint;
-    mjb_status status = mjb_decode_next(text, MJB_MALFORMED_STOP, &offset, &codepoint, NULL);
-
-    // A malformed first subsequence still advances the offset past it.
-    if(status == MJB_STATUS_END_OF_INPUT || offset > text->byte_length) {
-        return text->byte_length;
-    }
-
-    return offset;
+    return byte_length == 0 ||
+        !((requested == MJB_ENC_UTF_16 || requested == MJB_ENC_UTF_32) && *encoding == requested);
 }
 
 static inline bool MJB_USED mjb_encoding_is_valid_input(mjb_encoding encoding) {
