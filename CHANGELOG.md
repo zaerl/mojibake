@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+- Out-of-range and surrogate UTF-32 code units were silently dropped instead of being reported as
+  malformed input, so functions such as `mjb_normalize` accepted them or passed them through
+- A UTF-16 code unit following an unpaired high surrogate was swallowed together with the
+  surrogate instead of being decoded on its own
 
 ## [0.5.1]
 Codename: [LATIN CAPITAL LETTER Q]
