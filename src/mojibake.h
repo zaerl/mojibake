@@ -645,48 +645,11 @@ typedef struct mjb_text {
     // The text buffer containing the string data.
     const char *buffer;
     // The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an
-    // encoding-aware NUL code unit
+    // encoding-aware NUL code unit. The mjb_text_make() family resolves it on creation.
     size_t byte_length;
     // The encoding of the string. ASCII, UTF-8, UTF-16LE/BE, UTF-32LE/BE.
     mjb_encoding encoding;
 } mjb_text;
-
-// Make a text object.
-static inline mjb_text mjb_text_make(const char *buffer, size_t byte_length,
-    mjb_encoding encoding) {
-    mjb_text text;
-
-    text.buffer = buffer;
-    text.byte_length = byte_length;
-    text.encoding = encoding;
-
-    return text;
-}
-
-// Make a UTF-8 text object.
-static inline mjb_text mjb_text_utf8(const char *buffer, size_t byte_length) {
-    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_8);
-}
-
-// Make a UTF-16 little-endian text object.
-static inline mjb_text mjb_text_utf16le(const char *buffer, size_t byte_length) {
-    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_16LE);
-}
-
-// Make a UTF-16 big-endian text object.
-static inline mjb_text mjb_text_utf16be(const char *buffer, size_t byte_length) {
-    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_16BE);
-}
-
-// Make a UTF-32 little-endian text object.
-static inline mjb_text mjb_text_utf32le(const char *buffer, size_t byte_length) {
-    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_32LE);
-}
-
-// Make a UTF-32 big-endian text object.
-static inline mjb_text mjb_text_utf32be(const char *buffer, size_t byte_length) {
-    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_32BE);
-}
 
 /**
  * The mjb_buffer structure describes caller-provided output storage and its encoding.
@@ -709,12 +672,6 @@ static inline mjb_buffer mjb_buffer_make(void *data, size_t size, mjb_encoding e
     buffer.encoding = encoding;
 
     return buffer;
-}
-
-// View the bytes written to an output buffer as input text. Use it after a successful call, when
-// `size` is the written byte count.
-static inline mjb_text mjb_buffer_text(const mjb_buffer *buffer) {
-    return mjb_text_make((const char *)buffer->data, buffer->size, buffer->encoding);
 }
 
 // This functions list is automatically generated. Do not edit.
@@ -770,6 +727,9 @@ MJB_EXPORT MJB_PURE bool mjb_is_utf16(const char *buffer, size_t byte_length);
 
 // Validate a complete Unicode code-unit sequence.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_validate_encoding(const mjb_text *text, mjb_diagnostic *diagnostic);
+
+// Return the byte length of a string that ends at its first NUL code unit.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_nul_terminated_length(const char *buffer, mjb_encoding encoding, size_t *byte_length);
 
 // Decode the next codepoint from a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_next(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic);
@@ -1039,6 +999,56 @@ MJB_EXPORT MJB_CONST const char *mjb_unicode_version(void);
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_set_allocator(const mjb_allocator *allocator);
 
 // clang-format on
+
+// Make a text object.
+static inline mjb_text mjb_text_make(const char *buffer, size_t byte_length,
+    mjb_encoding encoding) {
+    mjb_text text;
+
+    text.buffer = buffer;
+    text.byte_length = byte_length;
+    text.encoding = encoding;
+
+    // Resolve the length once. When it cannot be resolved, MJB_NUL_TERMINATED is kept.
+    if(byte_length == MJB_NUL_TERMINATED &&
+        mjb_nul_terminated_length(buffer, encoding, &byte_length) == MJB_STATUS_OK) {
+        text.byte_length = byte_length;
+    }
+
+    return text;
+}
+
+// Make a UTF-8 text object.
+static inline mjb_text mjb_text_utf8(const char *buffer, size_t byte_length) {
+    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_8);
+}
+
+// Make a UTF-16 little-endian text object.
+static inline mjb_text mjb_text_utf16le(const char *buffer, size_t byte_length) {
+    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_16LE);
+}
+
+// Make a UTF-16 big-endian text object.
+static inline mjb_text mjb_text_utf16be(const char *buffer, size_t byte_length) {
+    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_16BE);
+}
+
+// Make a UTF-32 little-endian text object.
+static inline mjb_text mjb_text_utf32le(const char *buffer, size_t byte_length) {
+    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_32LE);
+}
+
+// Make a UTF-32 big-endian text object.
+static inline mjb_text mjb_text_utf32be(const char *buffer, size_t byte_length) {
+    return mjb_text_make(buffer, byte_length, MJB_ENC_UTF_32BE);
+}
+
+// View the bytes written to an output buffer as input text. Use it after a successful call, when
+// `size` is the written byte count.
+static inline mjb_text mjb_buffer_text(const mjb_buffer *buffer) {
+    return mjb_text_make((const char *)buffer->data, buffer->size, buffer->encoding);
+}
+
 #ifdef __cplusplus
 }
 #endif

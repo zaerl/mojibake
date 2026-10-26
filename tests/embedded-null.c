@@ -186,9 +186,15 @@ ATT_TEST(embedded_null) {
 
     mjb_grapheme_break_state state;
     state.index = 0;
-    text = mjb_text_utf8("A", MJB_NUL_TERMINATED);
-    ATT_ASSERT((uint8_t)mjb_grapheme_break_next(&text, &state),
+    mjb_text unresolved = { "A", MJB_NUL_TERMINATED, MJB_ENC_UTF_8 };
+    ATT_ASSERT((uint8_t)mjb_grapheme_break_next(&unresolved, &state),
         (uint8_t)MJB_BT_NOT_SET, "Stateful segmentation requires an explicit byte length");
+
+    // The constructors resolve the length, so the iterator gets an explicit one.
+    state.index = 0;
+    text = mjb_text_utf8("A", MJB_NUL_TERMINATED);
+    ATT_ASSERT((uint8_t)mjb_grapheme_break_next(&text, &state), (uint8_t)MJB_BT_ALLOWED,
+        "Stateful segmentation of a resolved NUL-terminated text");
 
     size_t grapheme_count = 0;
     text = mjb_text_utf8(utf8_with_nulls, 5);

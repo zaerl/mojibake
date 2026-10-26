@@ -298,6 +298,96 @@ ATT_TEST(encoding) {
         ATT_ASSERT_STATUS(
             mjb_decode_previous(NULL, MJB_MALFORMED_STOP, &offset, &codepoint, NULL),
             MJB_STATUS_INVALID_ARGUMENT, "Decode previous rejects NULL text");
+
+        // A NUL-terminated text would be rescanned on every call. The constructors resolve the
+        // length, so build the texts directly.
+        mjb_text text = { "A\xC3\xA9", MJB_NUL_TERMINATED, MJB_ENC_UTF_8 };
+        ATT_ASSERT_STATUS(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, NULL),
+            MJB_STATUS_INVALID_ARGUMENT, "Decode next rejects a NUL-terminated text");
+        ATT_ASSERT(offset, (size_t)0, "Decode next leaves the offset of a NUL-terminated text");
+        ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_NOT_VALID,
+            "Decode next invalidates the codepoint of a NUL-terminated text");
+
+        mjb_text utf16 = { "A\0\0\0", MJB_NUL_TERMINATED, MJB_ENC_UTF_16LE };
+        ATT_ASSERT_STATUS(mjb_decode_next(&utf16, MJB_MALFORMED_REPLACE, &offset, &codepoint,
+                              NULL),
+            MJB_STATUS_INVALID_ARGUMENT, "Decode next rejects a NUL-terminated UTF-16 text");
+
+        offset = 1;
+        codepoint = 0;
+        ATT_ASSERT_STATUS(
+            mjb_decode_previous(&text, MJB_MALFORMED_STOP, &offset, &codepoint, NULL),
+            MJB_STATUS_INVALID_ARGUMENT, "Decode previous rejects a NUL-terminated text");
+        ATT_ASSERT(offset, (size_t)1, "Decode previous leaves the offset of a NUL-terminated text");
+        ATT_ASSERT((unsigned int)codepoint, (unsigned int)MJB_CODEPOINT_NOT_VALID,
+            "Decode previous invalidates the codepoint of a NUL-terminated text");
+    }
+
+    {
+        size_t byte_length = 0;
+
+        MJB_TEST_COVERAGE(mjb_nul_terminated_length);
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("A\xC3\xA9", MJB_ENC_UTF_8, &byte_length),
+            MJB_STATUS_OK, "NUL-terminated length of UTF-8");
+        ATT_ASSERT(byte_length, (size_t)3, "NUL-terminated length of UTF-8 bytes");
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("", MJB_ENC_ASCII, &byte_length),
+            MJB_STATUS_OK, "NUL-terminated length of an empty string");
+        ATT_ASSERT(byte_length, (size_t)0, "NUL-terminated length of an empty string bytes");
+        // Zero bytes inside a code unit do not terminate the string.
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("H\0i\0\0\0", MJB_ENC_UTF_16LE, &byte_length),
+            MJB_STATUS_OK, "NUL-terminated length of UTF-16LE");
+        ATT_ASSERT(byte_length, (size_t)4, "NUL-terminated length of UTF-16LE bytes");
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("\xFE\xFF\0H\0\0", MJB_ENC_UTF_16,
+                              &byte_length),
+            MJB_STATUS_OK, "NUL-terminated length of UTF-16 with a byte order mark");
+        ATT_ASSERT(byte_length, (size_t)4, "NUL-terminated length of UTF-16 bytes");
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("H\0\0\0\0\0\0\0", MJB_ENC_UTF_32LE,
+                              &byte_length),
+            MJB_STATUS_OK, "NUL-terminated length of UTF-32LE");
+        ATT_ASSERT(byte_length, (size_t)4, "NUL-terminated length of UTF-32LE bytes");
+
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length(NULL, MJB_ENC_UTF_8, &byte_length),
+            MJB_STATUS_INVALID_ARGUMENT, "NUL-terminated length rejects a NULL buffer");
+        ATT_ASSERT(byte_length, (size_t)MJB_NUL_TERMINATED,
+            "NUL-terminated length of a NULL buffer keeps the sentinel");
+        byte_length = 0;
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("A", MJB_ENC_UNKNOWN, &byte_length),
+            MJB_STATUS_INVALID_ENCODING, "NUL-terminated length rejects an invalid encoding");
+        ATT_ASSERT(byte_length, (size_t)MJB_NUL_TERMINATED,
+            "NUL-terminated length of an invalid encoding keeps the sentinel");
+        ATT_ASSERT_STATUS(mjb_nul_terminated_length("A", MJB_ENC_UTF_8, NULL),
+            MJB_STATUS_INVALID_ARGUMENT, "NUL-terminated length rejects a NULL length");
+
+        // The constructors resolve the length once.
+        mjb_text text = mjb_text_utf8("A\xC3\xA9", MJB_NUL_TERMINATED);
+        ATT_ASSERT(text.byte_length, (size_t)3, "Text make resolves a UTF-8 length");
+        text = mjb_text_utf16le("H\0i\0\0\0", MJB_NUL_TERMINATED);
+        ATT_ASSERT(text.byte_length, (size_t)4, "Text make resolves a UTF-16LE length");
+        text = mjb_text_utf32be("\0\0\0H\0\0\0\0", MJB_NUL_TERMINATED);
+        ATT_ASSERT(text.byte_length, (size_t)4, "Text make resolves a UTF-32BE length");
+        text = mjb_text_make("A", 1, MJB_ENC_UTF_8);
+        ATT_ASSERT(text.byte_length, (size_t)1, "Text make keeps an explicit length");
+        text = mjb_text_make(NULL, MJB_NUL_TERMINATED, MJB_ENC_UTF_8);
+        ATT_ASSERT(text.byte_length, (size_t)MJB_NUL_TERMINATED,
+            "Text make keeps the sentinel of a NULL buffer");
+        ATT_ASSERT_STATUS(mjb_validate_encoding(&text, NULL), MJB_STATUS_INVALID_ARGUMENT,
+            "A NULL NUL-terminated text is reported by the function taking it");
+        text = mjb_text_make("A", MJB_NUL_TERMINATED, MJB_ENC_UNKNOWN);
+        ATT_ASSERT(text.byte_length, (size_t)MJB_NUL_TERMINATED,
+            "Text make keeps the sentinel of an invalid encoding");
+
+        // A resolved text can be iterated.
+        text = mjb_text_utf8("A\xC3\xA9", MJB_NUL_TERMINATED);
+        size_t offset = 0;
+        size_t count = 0;
+        mjb_codepoint codepoint;
+
+        while(mjb_decode_next(&text, MJB_MALFORMED_STOP, &offset, &codepoint, NULL) ==
+            MJB_STATUS_OK) {
+            ++count;
+        }
+
+        ATT_ASSERT(count, (size_t)2, "Decode next iterates a resolved NUL-terminated text");
     }
 
     test_validation_and_decoding();
