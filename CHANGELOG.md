@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_sentence_break_state`, and `mjb_line_break_state` are removed. Callers only set `index`
 
 ### Fixed
+- The Windows CLI interactive mode stopped accepting input after an unpaired surrogate key event.
+  It decodes key events with `mjb_decode_next` and skips malformed surrogates. The internal
+  `mjb_utf16_decode_step` helper and `src/utf16.h` are removed
 - `mjb_grapheme_prefix_length`, `mjb_word_prefix_length`, and their `_for_width` variants
   estimated boundary offsets from the replacement codepoint and could cut at the wrong byte in
   malformed text. They use the exact offsets of the iterator

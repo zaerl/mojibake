@@ -18,7 +18,6 @@
 // clang-format off
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
-    #include "../utf16.h"
     #include "getopt/getopt.h"
     #include <io.h>
     #include <windows.h>

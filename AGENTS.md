@@ -262,7 +262,7 @@ Core modules in `src/`:
 - `case.c`, `caseless.c` - full/simple casing, case folding, NFKC casefold, and caseless matching
 - `collation.c` - locale-independent DUCET comparison and sort keys (UTS #10)
 - `codepoint.c`, `properties.c`, `plane.c`, `cjk.c` - character and property queries
-- `encoding.c`, `utf.h`, `utf8.h`, `utf16.h`, `utf32.h` - validation, iteration, and conversion
+- `encoding.c`, `utf.h` - validation, iteration, and conversion
 - `normalization.c`, `quick-check.c`, `hangul.c`, `buffer.c` - normalization and Hangul support
 - `emoji.c`, `terminal-width.c`, `east-asian-width.c` - emoji classification and terminal width
 - `idna.c`, `punycode.c/.h` - UTS #46 IDNA processing and Punycode

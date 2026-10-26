@@ -44,10 +44,6 @@
 #define MJB_STATIC_ASSERT(condition, message) _Static_assert(condition, message)
 #endif
 
-#define MJB_UTF_ACCEPT 0
-#define MJB_UTF_PENDING_SURROGATE 0xD
-#define MJB_UTF_REJECT 0xF
-
 /**
  * Internal mojibake structure
  * This contains the internal state of the library
