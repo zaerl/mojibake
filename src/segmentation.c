@@ -264,6 +264,7 @@ MJB_EXPORT mjb_break_type mjb_grapheme_break_next(const mjb_text *text,
     // it sets up the rest of the state.
     if(state->index == 0) {
         state->position = 0;
+        state->had_error = false;
     }
 
     return mjb_grapheme_break_step(text, state);

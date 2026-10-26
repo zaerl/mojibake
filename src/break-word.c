@@ -350,6 +350,7 @@ MJB_EXPORT mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_bre
     // it sets up the rest of the state.
     if(state->index == 0) {
         state->position = 0;
+        state->had_error = false;
     }
 
     return mjb_word_break_step(text, state);
