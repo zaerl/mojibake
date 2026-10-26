@@ -345,8 +345,9 @@ ATT_TEST(segmentation) {
     {
         MJB_TEST_COVERAGE(mjb_grapheme_break_next);
 
-        // state.position is the byte offset of each reported position. A malformed byte counts
-        // as one position; an incomplete sequence at the end ends the iteration before it.
+        // state.position is the byte offset of each reported position. Each maximal subpart of a
+        // malformed subsequence decodes to one U+FFFD and counts as one position, both in the
+        // middle of the text and in an incomplete sequence at its end.
         const size_t expected_middle[] = { 1, 2, 3, 4, 5 };
         mjb_text middle = mjb_text_utf8("ab\x80"
                                         "cd",
@@ -375,8 +376,26 @@ ATT_TEST(segmentation) {
             ++count;
         }
 
-        ATT_ASSERT(count, (size_t)2, "Grapheme iteration ends before an incomplete tail");
-        ATT_ASSERT(last_position, (size_t)2, "Grapheme last position precedes an incomplete tail");
+        // b ÷ U+FFFD at 2, then U+FFFD ÷ eot at 4: the incomplete tail E2 82 is one subpart.
+        ATT_ASSERT(count, (size_t)3, "Grapheme iteration covers an incomplete tail");
+        ATT_ASSERT(last_position, (size_t)4, "Grapheme last position follows an incomplete tail");
+
+        // The first cluster ends before the malformed run, at its exact start offset.
+        mjb_text run = mjb_text_utf8("a\x80\x80"
+                                     "b",
+            4);
+        ATT_ASSERT(mjb_grapheme_prefix_length(&run, 1), (size_t)1,
+            "Grapheme prefix ends before a malformed run");
+        ATT_ASSERT(mjb_grapheme_prefix_length(&run, 2), (size_t)2,
+            "Grapheme prefix: each malformed subpart is a cluster");
+
+        // An unknown encoding cannot be segmented.
+        mjb_text unknown = mjb_text_make("ab", 2, MJB_ENC_UNKNOWN);
+        state.index = 0;
+        ATT_ASSERT((int)mjb_grapheme_break_next(&unknown, &state), (int)MJB_BT_NOT_SET,
+            "Grapheme break rejects an unknown encoding");
+        ATT_ASSERT(mjb_grapheme_prefix_length(&unknown, 1), (size_t)0,
+            "Grapheme prefix of an unknown encoding is empty");
     }
 
     {

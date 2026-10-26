@@ -46,7 +46,6 @@
 
 #define MJB_UTF_ACCEPT 0
 #define MJB_UTF_PENDING_SURROGATE 0xD
-#define MJB_UTF_TERMINATED 0xE
 #define MJB_UTF_REJECT 0xF
 
 /**

@@ -332,26 +332,23 @@ static bool bidi_query(mjb_codepoint cp, mjb_bidi_class *out_class, bool *out_mi
 static mjb_status pass1_decode(const char *buffer, size_t byte_length, mjb_encoding encoding,
     mjb_bidi_work *work, size_t capacity, uint8_t *out_level, mjb_direction base_dir,
     size_t *out_count) {
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint cp = 0;
     size_t count = 0;
     size_t i = 0;
 
+    if(!mjb_decode_begin(buffer, byte_length, &encoding, &i)) {
+        return MJB_STATUS_MALFORMED_INPUT;
+    }
+
     while(count < capacity) {
         size_t byte_offset = i;
-        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding, &cp,
-            &in_error);
+        mjb_status dr = mjb_decode_next_raw(buffer, byte_length, encoding, &i, &cp, NULL);
 
-        if(dr == MJB_DECODE_END) {
+        if(dr == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(dr == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(dr == MJB_DECODE_ERROR) {
+        if(dr != MJB_STATUS_OK) {
             return MJB_STATUS_MALFORMED_INPUT;
         }
 

@@ -96,6 +96,26 @@ static void test_sentence_count(void) {
         MJB_STATUS_OK, "Sentence count skips malformed input");
     ATT_ASSERT(count, (size_t)1, "Skipping malformed input remains one sentence");
 
+    // The incomplete tail E2 82 is one maximal subpart: one U+FFFD with a position of its own,
+    // where the iterator used to drop the tail and end at its start.
+    {
+        const size_t expected[] = { 1, 2, 4 };
+        text = mjb_text_utf8("ab\xE2\x82", 4);
+        mjb_sentence_break_state state;
+        state.index = 0;
+        size_t positions = 0;
+        bool positions_match = true;
+
+        while(mjb_sentence_break_next(&text, &state) != MJB_BT_NOT_SET) {
+            positions_match = positions_match && positions < 3 &&
+                state.position == expected[positions];
+            ++positions;
+        }
+
+        ATT_ASSERT(positions, (size_t)3, "Sentence positions: incomplete tail is one subpart");
+        ATT_ASSERT(positions_match, true, "Sentence positions: incomplete tail offsets");
+    }
+
     // Text without a terminator is a single segment
     text = mjb_text_utf8("One sentence", 12);
     ATT_ASSERT_STATUS(mjb_sentence_count(&text, MJB_MALFORMED_STOP, &count, NULL),

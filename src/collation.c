@@ -271,23 +271,13 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
     *out_count = 0;
 
     // First pass: count
+    // A malformed subsequence decodes to U+FFFD and counts as one codepoint.
     size_t count = 0;
     size_t i = 0;
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint cp = 0;
 
-    while(i < len) {
-        mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i, MJB_ENC_UTF_8, &cp,
-            &in_error);
-
-        if(dr == MJB_DECODE_END) {
-            break;
-        }
-
-        if(dr != MJB_DECODE_INCOMPLETE) {
-            ++count;
-        }
+    while(mjb_decode_next_raw(buf, len, MJB_ENC_UTF_8, &i, &cp, NULL) != MJB_STATUS_END_OF_INPUT) {
+        ++count;
     }
 
     if(count == 0) {
@@ -306,21 +296,11 @@ static bool utf8_to_codepoints(const char *buf, size_t len, mjb_codepoint **out_
 
     // Second pass: fill
     i = 0;
-    state = MJB_UTF_ACCEPT;
-    in_error = false;
     size_t j = 0;
 
-    while(i < len && j < count) {
-        mjb_decode_result dr = mjb_next_codepoint(buf, len, &state, &i, MJB_ENC_UTF_8, &cp,
-            &in_error);
-
-        if(dr == MJB_DECODE_END) {
-            break;
-        }
-
-        if(dr != MJB_DECODE_INCOMPLETE) {
-            arr[j++] = cp;
-        }
+    while(j < count &&
+        mjb_decode_next_raw(buf, len, MJB_ENC_UTF_8, &i, &cp, NULL) != MJB_STATUS_END_OF_INPUT) {
+        arr[j++] = cp;
     }
 
     // Both passes decode the same input, so they find the same number of codepoints. The caller

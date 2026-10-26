@@ -10,8 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- All internal decoding uses the whole-scalar decoder of `mjb_decode_next`, inlined. The streaming
+  DFA decoder is removed. Decoding valid text is faster: about 2.4x for UTF-8, 2x for UTF-16 and
+  1.4x for UTF-32 in a 2 MB mixed-script loop
+- Break iterators on malformed input: each maximal subpart of a malformed subsequence is one
+  U+FFFD with a position of its own, as in `mjb_decode_next`. A run of malformed bytes used to be
+  merged into one U+FFFD, and an incomplete sequence at the end of the text was dropped
+- Break iterators return `MJB_BT_NOT_SET` for an invalid encoding and for generic UTF-16 or UTF-32
+  text without a byte order mark, instead of iterating over replacement characters
+- The `state` and `in_error` members of `mjb_grapheme_break_state`, `mjb_word_break_state`,
+  `mjb_sentence_break_state`, and `mjb_line_break_state` are removed. Callers only set `index`
 
 ### Fixed
+- `mjb_grapheme_prefix_length`, `mjb_word_prefix_length`, and their `_for_width` variants
+  estimated boundary offsets from the replacement codepoint and could cut at the wrong byte in
+  malformed text. They use the exact offsets of the iterator
+- The line break iterator now reports the LB3 mandatory break at the end of a text that holds only
+  a byte order mark
+- `mjb_bidi_resolve` byte offsets of multi-byte UTF-8 characters, and of the first character after a
+  byte order mark, are the offset of the first byte
 - Out-of-range and surrogate UTF-32 code units were silently dropped instead of being reported as
   malformed input, so functions such as `mjb_normalize` accepted them or passed them through
 - A UTF-16 code unit following an unpaired high surrogate was swallowed together with the

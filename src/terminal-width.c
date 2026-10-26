@@ -25,24 +25,18 @@ static bool mjb_terminal_cluster_is_wide_emoji(const char *buffer, size_t byte_l
 
 static mjb_status mjb_terminal_cluster_width(const char *buffer, size_t byte_length,
     mjb_terminal_width_profile profile, size_t *width) {
-    uint8_t state = MJB_UTF_ACCEPT;
-    bool in_error = false;
     mjb_codepoint codepoint = 0;
     size_t scalar_width = 0;
 
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state, &i,
-            MJB_ENC_UTF_8, &codepoint, &in_error);
+    for(size_t i = 0;;) {
+        mjb_status decode_status = mjb_decode_next_raw(buffer, byte_length, MJB_ENC_UTF_8, &i,
+            &codepoint, NULL);
 
-        if(decode_status == MJB_DECODE_END) {
+        if(decode_status == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(decode_status == MJB_DECODE_ERROR) {
+        if(decode_status != MJB_STATUS_OK) {
             return MJB_STATUS_MALFORMED_INPUT;
         }
 
@@ -148,9 +142,7 @@ MJB_EXPORT mjb_status mjb_terminal_width(const mjb_text *text,
             continue;
         }
 
-        size_t break_position = mjb_monotonic_boundary_position(state.index, normalized.output_size,
-            state.current_codepoint, MJB_ENC_UTF_8, state.state == MJB_UTF_TERMINATED,
-            previous_break);
+        size_t break_position = state.position;
         size_t cluster_width = 0;
         status = mjb_terminal_cluster_width(normalized.output + previous_break,
             break_position - previous_break, profile, &cluster_width);

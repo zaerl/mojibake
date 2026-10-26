@@ -503,7 +503,6 @@ typedef enum mjb_terminal_width_profile {
 } mjb_terminal_width_profile;
 
 typedef struct mjb_grapheme_break_state {
-    uint8_t state;
     size_t index;
     // Byte offset of the position the last returned break type refers to: the start of the
     // current codepoint, or the text length at the end. Set by the iterator.
@@ -512,7 +511,6 @@ typedef struct mjb_grapheme_break_state {
     unsigned int current;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
-    bool in_error;
     bool had_error;
     unsigned short ri_count;
     // Grapheme break-specific members
@@ -522,7 +520,6 @@ typedef struct mjb_grapheme_break_state {
 } mjb_grapheme_break_state;
 
 typedef struct mjb_line_break_state {
-    uint8_t state;
     size_t index;
     // Byte offset of the position the last returned break type refers to: the start of the
     // current codepoint, or the text length at the end. Set by the iterator.
@@ -531,7 +528,6 @@ typedef struct mjb_line_break_state {
     mjb_lbp current;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
-    bool in_error;
     unsigned short ri_count;
     // Line break-specific members
     mjb_codepoint prev_prev_codepoint;
@@ -547,7 +543,6 @@ typedef struct mjb_line_break_state {
 } mjb_line_break_state;
 
 typedef struct mjb_word_break_state {
-    uint8_t state;
     size_t index;
     // Byte offset of the position the last returned break type refers to: the start of the
     // current codepoint, or the text length at the end. Set by the iterator.
@@ -556,7 +551,6 @@ typedef struct mjb_word_break_state {
     mjb_wbp current;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
-    bool in_error;
     bool had_error;
     unsigned short ri_count;
     // Word break-specific members
@@ -567,7 +561,6 @@ typedef struct mjb_word_break_state {
 } mjb_word_break_state;
 
 typedef struct mjb_sentence_break_state {
-    uint8_t state;
     size_t index;
     // Byte offset of the position the last returned break type refers to: the start of the
     // current codepoint, or the text length at the end. Set by the iterator.
@@ -576,7 +569,6 @@ typedef struct mjb_sentence_break_state {
     mjb_sbp current;
     mjb_codepoint previous_codepoint;
     mjb_codepoint current_codepoint;
-    bool in_error;
     bool had_error;
     // Sentence break-specific members
     mjb_sbp prev_prev;

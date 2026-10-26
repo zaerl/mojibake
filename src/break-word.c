@@ -13,39 +13,29 @@
 // When skip_wb4 is true, Extend/Format/ZWJ characters are skipped (WB4 transparency).
 static inline mjb_wbp mjb_peek_next_word(const char *buffer, size_t byte_length, size_t peek_index,
     mjb_encoding encoding, bool skip_wb4) {
-    uint8_t peek_state = MJB_UTF_ACCEPT;
     mjb_codepoint peek_cp = 0;
-    bool peek_error = false;
-    size_t i = peek_index;
 
-    for(; i < byte_length;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &peek_state, &peek_index,
-            encoding, &peek_cp, &peek_error);
+    // A malformed subsequence decodes to U+FFFD, as it does in the iterator.
+    while(mjb_decode_next_raw(buffer, byte_length, encoding, &peek_index, &peek_cp, NULL) !=
+        MJB_STATUS_END_OF_INPUT) {
+        uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
-        if(dr == MJB_DECODE_END) {
+        if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
             return MJB_WBP_NOT_SET;
         }
 
-        if(dr == MJB_DECODE_OK) {
-            uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
+        mjb_wbp wbp = (mjb_wbp)mjb_codepoint_properties_get(cpb, MJB_PR_WORD_BREAK);
 
-            if(mjb_codepoint_properties_lookup(peek_cp, cpb) != MJB_STATUS_OK) {
-                return MJB_WBP_NOT_SET;
-            }
-
-            mjb_wbp wbp = (mjb_wbp)mjb_codepoint_properties_get(cpb, MJB_PR_WORD_BREAK);
-
-            if(wbp == MJB_WBP_NOT_SET) {
-                wbp = MJB_WBP_OTHER;
-            }
-
-            // Skip WB4-transparent characters (Extend, Format, ZWJ).
-            if(skip_wb4 && (wbp == MJB_WBP_EXTEND || wbp == MJB_WBP_FORMAT || wbp == MJB_WBP_ZWJ)) {
-                continue;
-            }
-
-            return wbp;
+        if(wbp == MJB_WBP_NOT_SET) {
+            wbp = MJB_WBP_OTHER;
         }
+
+        // Skip WB4-transparent characters (Extend, Format, ZWJ).
+        if(skip_wb4 && (wbp == MJB_WBP_EXTEND || wbp == MJB_WBP_FORMAT || wbp == MJB_WBP_ZWJ)) {
+            continue;
+        }
+
+        return wbp;
     }
 
     return MJB_WBP_NOT_SET;
@@ -68,12 +58,10 @@ static mjb_break_type mjb_word_break_step(const mjb_text *text, mjb_word_break_s
 
     if(state->index == 0) {
         // Initialize the state.
-        state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_WBP_NOT_SET;
         state->current = MJB_WBP_NOT_SET;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
-        state->in_error = false;
         state->had_error = false;
         state->ri_count = 0;
         state->prev_prev_wbp = MJB_WBP_NOT_SET;
@@ -82,16 +70,18 @@ static mjb_break_type mjb_word_break_step(const mjb_text *text, mjb_word_break_s
         state->prev_was_zwj = false;
     }
 
-    if(state->state == MJB_UTF_TERMINATED) {
+    bool first_codepoint = state->index == 0;
+
+    // Resolve the byte order of generic UTF-16 and UTF-32 input and skip a leading byte order
+    // mark. Without one, the byte order of generic input is unknown.
+    if(!mjb_encoding_is_valid_input(encoding) ||
+        !mjb_decode_begin(buffer, byte_length, &encoding, &state->index)) {
         return MJB_BT_NOT_SET;
     }
 
     if(state->index == byte_length) {
         // Reached end of string.
-        if(mjb_utf_state_is_incomplete(state->state)) {
-            state->had_error = true;
-        }
-
+        state->position = byte_length;
         ++state->index;
 
         // WB2 Any ÷ eot
@@ -102,26 +92,16 @@ static mjb_break_type mjb_word_break_step(const mjb_text *text, mjb_word_break_s
     }
 
     mjb_codepoint codepoint = 0;
-    bool first_codepoint = state->index == 0;
     uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
     for(; state->index < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
-            &state->index, encoding, &codepoint, &state->in_error);
+        // The boundary in front of the codepoint, reported when the step returns on it.
+        state->position = state->index;
 
-        if(decode_status == MJB_DECODE_ERROR) {
+        // A malformed subsequence decodes to one U+FFFD for each maximal subpart.
+        if(mjb_decode_next_raw(buffer, byte_length, encoding, &state->index, &codepoint, NULL) !=
+            MJB_STATUS_OK) {
             state->had_error = true;
-        }
-
-        if(decode_status == MJB_DECODE_END) {
-            mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
-                encoding);
-
-            return MJB_BT_ALLOWED;
-        }
-
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
         }
 
         // Break at the start and end of text, unless the text is empty.
@@ -355,10 +335,7 @@ static mjb_break_type mjb_word_break_step(const mjb_text *text, mjb_word_break_s
         return MJB_BT_ALLOWED;
     }
 
-    if(mjb_utf_state_is_incomplete(state->state)) {
-        state->had_error = true;
-    }
-
+    state->position = byte_length;
     ++state->index;
 
     return MJB_BT_ALLOWED;
@@ -369,22 +346,13 @@ MJB_EXPORT mjb_break_type mjb_word_break_next(const mjb_text *text, mjb_word_bre
         return MJB_BT_NOT_SET;
     }
 
-    size_t start = state->index;
-
     // A new iteration: initialize what callers read even if the iterator returns early, before
     // it sets up the rest of the state.
-    if(start == 0) {
-        state->state = MJB_UTF_ACCEPT;
+    if(state->index == 0) {
         state->position = 0;
     }
 
-    mjb_break_type type = mjb_word_break_step(text, state);
-
-    if(type != MJB_BT_NOT_SET) {
-        state->position = mjb_break_position(text, start);
-    }
-
-    return type;
+    return mjb_word_break_step(text, state);
 }
 
 // Return the number of bytes that form the first max_segments word-break segments.
@@ -412,45 +380,29 @@ MJB_EXPORT size_t mjb_word_prefix_length(const mjb_text *text, size_t max_segmen
 
     mjb_break_type bt;
     size_t segment_count = 0;
-    size_t last_break = 0;
 
     while((bt = mjb_word_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
-            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
-        last_break = break_pos;
-
         if(++segment_count >= max_segments) {
-            return break_pos;
+            return state.position;
         }
     }
 
-    return state.state == MJB_UTF_TERMINATED ? last_break : byte_length;
+    return state.position;
 }
 
 // A segment is word-like when it contains at least one alphabetic or numeric codepoint.
 static bool mjb_segment_is_word_like(const char *buffer, size_t byte_length,
     mjb_encoding encoding) {
-    uint8_t state = MJB_UTF_ACCEPT;
     size_t index = 0;
     mjb_codepoint codepoint = 0;
-    bool in_error = false;
 
-    while(index < byte_length) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &index, encoding,
-            &codepoint, &in_error);
-
-        if(dr == MJB_DECODE_END) {
-            break;
-        }
-
-        if(dr != MJB_DECODE_OK) {
-            continue;
-        }
-
+    // A malformed subsequence decodes to U+FFFD, which is neither alphabetic nor numeric.
+    while(mjb_decode_next_raw(buffer, byte_length, encoding, &index, &codepoint, NULL) !=
+        MJB_STATUS_END_OF_INPUT) {
         uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
         if(mjb_codepoint_properties_lookup(codepoint, cpb) != MJB_STATUS_OK) {
@@ -481,17 +433,25 @@ static mjb_status mjb_word_count_process(const char *buffer, size_t byte_length,
     mjb_break_type bt;
     size_t word_count = 0;
     size_t last_break = 0;
+    // Segments after the first do not start with the byte order mark, so decode them with the
+    // resolved byte order.
+    size_t data_start = 0;
+    mjb_encoding segment_encoding = encoding;
+
+    if(!mjb_decode_begin(buffer, byte_length, &segment_encoding, &data_start)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
 
     while((bt = mjb_word_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
-            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
+        size_t break_pos = state.position;
 
         if(break_pos > last_break &&
-            mjb_segment_is_word_like(buffer + last_break, break_pos - last_break, encoding)) {
+            mjb_segment_is_word_like(buffer + last_break, break_pos - last_break,
+                segment_encoding)) {
             ++word_count;
         }
 
@@ -602,8 +562,7 @@ MJB_EXPORT size_t mjb_word_prefix_length_for_width(const mjb_text *text,
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
-            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
+        size_t break_pos = state.position;
         size_t segment_width = 0;
 
         mjb_text segment = mjb_text_make(buffer + prev_break, break_pos - prev_break, encoding);
@@ -621,5 +580,5 @@ MJB_EXPORT size_t mjb_word_prefix_length_for_width(const mjb_text *text,
         prev_break = break_pos;
     }
 
-    return state.state == MJB_UTF_TERMINATED ? prev_break : byte_length;
+    return prev_break;
 }

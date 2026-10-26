@@ -54,12 +54,10 @@ static mjb_break_type mjb_grapheme_break_step(const mjb_text *text,
 
     if(state->index == 0) {
         // Initialize the state.
-        state->state = MJB_UTF_ACCEPT;
         state->previous = MJB_GBP_NOT_SET;
         state->current = MJB_GBP_NOT_SET;
         state->previous_codepoint = MJB_CODEPOINT_NOT_VALID;
         state->current_codepoint = MJB_CODEPOINT_NOT_VALID;
-        state->in_error = false;
         state->had_error = false;
         state->ri_count = 0;
         state->ext_pict_seen = false;
@@ -67,16 +65,18 @@ static mjb_break_type mjb_grapheme_break_step(const mjb_text *text,
         state->incb_linker_seen = false;
     }
 
-    if(state->state == MJB_UTF_TERMINATED) {
+    bool first_codepoint = state->index == 0;
+
+    // Resolve the byte order of generic UTF-16 and UTF-32 input and skip a leading byte order
+    // mark. Without one, the byte order of generic input is unknown.
+    if(!mjb_encoding_is_valid_input(encoding) ||
+        !mjb_decode_begin(buffer, byte_length, &encoding, &state->index)) {
         return MJB_BT_NOT_SET;
     }
 
     if(state->index == byte_length) {
         // Reached end of string.
-        if(mjb_utf_state_is_incomplete(state->state)) {
-            state->had_error = true;
-        }
-
+        state->position = byte_length;
         ++state->index;
 
         // GB2 Any ÷ eot
@@ -87,26 +87,16 @@ static mjb_break_type mjb_grapheme_break_step(const mjb_text *text,
     }
 
     mjb_codepoint codepoint = 0;
-    bool first_codepoint = state->index == 0;
     uint8_t cpb[MJB_PR_BUFFER_SIZE] = { 0 };
 
     for(; state->index < byte_length;) {
-        mjb_decode_result decode_status = mjb_next_codepoint(buffer, byte_length, &state->state,
-            &state->index, encoding, &codepoint, &state->in_error);
+        // The boundary in front of the codepoint, reported when the step returns on it.
+        state->position = state->index;
 
-        if(decode_status == MJB_DECODE_ERROR) {
+        // A malformed subsequence decodes to one U+FFFD for each maximal subpart.
+        if(mjb_decode_next_raw(buffer, byte_length, encoding, &state->index, &codepoint, NULL) !=
+            MJB_STATUS_OK) {
             state->had_error = true;
-        }
-
-        if(decode_status == MJB_DECODE_END) {
-            mjb_mark_decode_terminated(&state->state, &state->index, &state->current_codepoint,
-                encoding);
-
-            return MJB_BT_ALLOWED;
-        }
-
-        if(decode_status == MJB_DECODE_INCOMPLETE) {
-            continue;
         }
 
         // Break at the start and end of text, unless the text is empty.
@@ -258,10 +248,7 @@ static mjb_break_type mjb_grapheme_break_step(const mjb_text *text,
         return MJB_BT_ALLOWED;
     }
 
-    if(mjb_utf_state_is_incomplete(state->state)) {
-        state->had_error = true;
-    }
-
+    state->position = byte_length;
     ++state->index;
 
     return MJB_BT_ALLOWED;
@@ -273,22 +260,13 @@ MJB_EXPORT mjb_break_type mjb_grapheme_break_next(const mjb_text *text,
         return MJB_BT_NOT_SET;
     }
 
-    size_t start = state->index;
-
     // A new iteration: initialize what callers read even if the iterator returns early, before
     // it sets up the rest of the state.
-    if(start == 0) {
-        state->state = MJB_UTF_ACCEPT;
+    if(state->index == 0) {
         state->position = 0;
     }
 
-    mjb_break_type type = mjb_grapheme_break_step(text, state);
-
-    if(type != MJB_BT_NOT_SET) {
-        state->position = mjb_break_position(text, start);
-    }
-
-    return type;
+    return mjb_grapheme_break_step(text, state);
 }
 
 // Return the largest prefix no longer than max_bytes that ends at a grapheme boundary.
@@ -315,8 +293,7 @@ size_t mjb_grapheme_prefix_bytes(const char *buffer, size_t byte_length, mjb_enc
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
-            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
+        size_t break_pos = state.position;
 
         if(break_pos > max_bytes) {
             return last_break;
@@ -353,23 +330,18 @@ MJB_EXPORT size_t mjb_grapheme_prefix_length(const mjb_text *text, size_t max_gr
 
     mjb_break_type bt;
     size_t cluster_count = 0;
-    size_t last_break = 0;
 
     while((bt = mjb_grapheme_break_next(&resolved, &state)) != MJB_BT_NOT_SET) {
         if(bt == MJB_BT_NO_BREAK) {
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
-            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, last_break);
-        last_break = break_pos;
-
         if(++cluster_count >= max_graphemes) {
-            return break_pos;
+            return state.position;
         }
     }
 
-    return state.state == MJB_UTF_TERMINATED ? last_break : byte_length;
+    return state.position;
 }
 
 static mjb_status mjb_grapheme_count_process(const char *buffer, size_t byte_length,
@@ -494,8 +466,7 @@ MJB_EXPORT size_t mjb_grapheme_prefix_length_for_width(const mjb_text *text,
             continue;
         }
 
-        size_t break_pos = mjb_monotonic_boundary_position(state.index, byte_length,
-            state.current_codepoint, encoding, state.state == MJB_UTF_TERMINATED, prev_break);
+        size_t break_pos = state.position;
         size_t cluster_width = 0;
 
         mjb_text segment = mjb_text_make(buffer + prev_break, break_pos - prev_break, encoding);
@@ -513,5 +484,5 @@ MJB_EXPORT size_t mjb_grapheme_prefix_length_for_width(const mjb_text *text,
         prev_break = break_pos;
     }
 
-    return state.state == MJB_UTF_TERMINATED ? prev_break : byte_length;
+    return prev_break;
 }

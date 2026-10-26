@@ -277,6 +277,34 @@ ATT_TEST(bidi) {
     ATT_ASSERT((mjb_bidi_paragraph_free(&para), (void *)para.chars), (void *)NULL, "free clears chars");
     ATT_ASSERT((mjb_bidi_paragraph_free(&para), para.count), (size_t)0, "free clears count");
 
+    // byte_offset is the offset of the first byte of each character.
+    const char multibyte[] = "a\xC3\xA9\xD7\x90"
+                             "b"; // a é א b
+    text = mjb_text_utf8(multibyte, sizeof(multibyte) - 1);
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
+    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "Multi-byte resolve ok");
+    ATT_ASSERT(para.count, (size_t)4, "Multi-byte count");
+
+    if(para.count == 4) {
+        ATT_ASSERT(para.chars[1].byte_offset, (size_t)1, "Two-byte character offset");
+        ATT_ASSERT(para.chars[2].byte_offset, (size_t)3, "Two-byte RTL character offset");
+        ATT_ASSERT(para.chars[3].byte_offset, (size_t)5, "Character offset after RTL");
+    }
+
+    mjb_bidi_paragraph_free(&para);
+
+    text = mjb_text_make("\xFF\xFE"
+                         "a\0",
+        4, MJB_ENC_UTF_16);
+    status = mjb_bidi_resolve(&text, MJB_DIRECTION_AUTO, &para);
+    ATT_ASSERT_STATUS(status, MJB_STATUS_OK, "UTF-16 BOM resolve ok");
+
+    if(para.count == 1) {
+        ATT_ASSERT(para.chars[0].byte_offset, (size_t)2, "Offset follows the byte order mark");
+    }
+
+    mjb_bidi_paragraph_free(&para);
+
     MJB_TEST_COVERAGE(mjb_bidi_resolve);
     const char *rtl = "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"; // مرحبا
     text = mjb_text_utf8(rtl, strlen(rtl));

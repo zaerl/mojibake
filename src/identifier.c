@@ -32,24 +32,22 @@ MJB_EXPORT bool mjb_is_identifier(const mjb_text *text, mjb_identifier_profile p
         MJB_PR_ID_CONTINUE;
     // clang-format on
 
-    uint8_t state = MJB_UTF_ACCEPT;
     mjb_codepoint codepoint = 0;
-    bool in_error = false;
     bool first = true;
+    size_t i = 0;
 
-    for(size_t i = 0; i < byte_length;) {
-        mjb_decode_result dr = mjb_next_codepoint(buffer, byte_length, &state, &i, encoding,
-            &codepoint, &in_error);
+    if(!mjb_decode_begin(buffer, byte_length, &encoding, &i)) {
+        return false;
+    }
 
-        if(dr == MJB_DECODE_END) {
+    for(;;) {
+        mjb_status dr = mjb_decode_next_raw(buffer, byte_length, encoding, &i, &codepoint, NULL);
+
+        if(dr == MJB_STATUS_END_OF_INPUT) {
             break;
         }
 
-        if(dr == MJB_DECODE_INCOMPLETE) {
-            continue;
-        }
-
-        if(dr == MJB_DECODE_ERROR) {
+        if(dr != MJB_STATUS_OK) {
             return false;
         }
 
