@@ -517,7 +517,9 @@ static void test_grapheme_differential(void) {
     static const mjb_codepoint pool[] = { 'a', 0x0D, 0x0A, 0x01, 0x1100, 0x1161, 0x11A8, 0xAC00,
         0xAC01, 0x0600, 0x0903, 0x0300, 0x200D, 0x1F468, 0x1F3FB, 0x2764, 0xFE0F, 0x1F1EE, 0x1F1F9,
         0x0915, 0x094D, 0x0924, 0x093C, 0xFFFD };
-    static const char *const malformed[] = { "\x80", "\xE2\x82", "\xF0\x9F" };
+    // A lone continuation byte and two truncated sequences, with explicit sizes.
+    static const char malformed[3][2] = { { '\x80', 0 }, { '\xE2', '\x82' }, { '\xF0', '\x9F' } };
+    static const size_t malformed_sizes[3] = { 1, 2, 2 };
     const size_t pool_size = sizeof(pool) / sizeof(pool[0]);
     uint32_t seed = 0x6D6A6221;
     size_t mismatches = 0;
@@ -534,10 +536,11 @@ static void test_grapheme_differential(void) {
             if(pick < pool_size) {
                 length += mjb_codepoint_encode(pool[pick], buffer + length, 4, MJB_ENC_UTF_8);
             } else {
-                const char *bytes = malformed[pick - pool_size];
-                size_t size = strlen(bytes);
-                memcpy(buffer + length, bytes, size);
-                length += size;
+                size_t which = pick - pool_size;
+
+                for(size_t k = 0; k < malformed_sizes[which]; ++k) {
+                    buffer[length++] = malformed[which][k];
+                }
             }
         }
 
