@@ -455,10 +455,28 @@ ATT_TEST(example) {
 }
 
 {
+    // Example for mjb_nul_terminated_length
+    MJB_TEST_COVERAGE(mjb_nul_terminated_length); // Added by the script
+    const char utf16le[] = "H\0i\0\0\0"; // "Hi" in UTF-16LE
+    size_t byte_length;
+
+    if(mjb_nul_terminated_length(utf16le, MJB_ENC_UTF_16LE, &byte_length) != MJB_STATUS_OK) {
+        ATT_ASSERT(0, 1, "mjb_nul_terminated_length test failed"); // Added by the script
+        return;
+    }
+
+    // Byte length: 4
+    // printf("Byte length: %zu", byte_length);
+    snprintf(test_buffer, sizeof(test_buffer), "Byte length: %zu", byte_length); // Added by the script
+    ATT_ASSERT(test_buffer, "Byte length: 4", "mjb_nul_terminated_length test failed"); // Added by the script
+}
+
+{
     // Example for mjb_decode_next
     MJB_TEST_COVERAGE(mjb_decode_next); // Added by the script
     // "été"
-    mjb_text input = mjb_text_utf8("\xC3\xA9t\xC3\xA9", MJB_NUL_TERMINATED);
+    const char *word = "\xC3\xA9t\xC3\xA9";
+    mjb_text input = mjb_text_utf8(word, strlen(word));
     size_t offset = 0;
     size_t count = 0;
     mjb_codepoint codepoint;

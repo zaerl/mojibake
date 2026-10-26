@@ -8,8 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `mjb_nul_terminated_length` returns the byte length of a string that ends at its first NUL code
+  unit, in any input encoding
 
 ### Changed
+- `mjb_text_make` and the `mjb_text_*` helpers resolve a `MJB_NUL_TERMINATED` length when the text
+  is created, so it is scanned once. The sentinel is kept when the buffer is NULL or the encoding is
+  invalid, and the function that takes the text reports the error
+- `mjb_decode_next` and `mjb_decode_previous` return `MJB_STATUS_INVALID_ARGUMENT` for a text whose
+  `byte_length` is `MJB_NUL_TERMINATED`, like the break iterators. They rescanned the whole string
+  for its terminator on every call, so iterating took quadratic time
 - All internal decoding uses the whole-scalar decoder of `mjb_decode_next`, inlined. The streaming
   DFA decoder is removed. Decoding valid text is faster: about 2.4x for UTF-8, 2x for UTF-16 and
   1.4x for UTF-32 in a 2 MB mixed-script loop

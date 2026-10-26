@@ -107,24 +107,36 @@ MJB_EXPORT bool mjb_is_utf16(const char *buffer, size_t byte_length) {
         mjb_validate_encoding(&little_endian, NULL) == MJB_STATUS_OK;
 }
 
-static mjb_status mjb_resolve_decode_input(const char *buffer, size_t *byte_length,
+/**
+ * Return the byte length of a string that ends at its first NUL code unit.
+ */
+MJB_EXPORT mjb_status mjb_nul_terminated_length(const char *buffer, mjb_encoding encoding,
+    size_t *byte_length) {
+    if(byte_length == NULL) {
+        return MJB_STATUS_INVALID_ARGUMENT;
+    }
+
+    *byte_length = MJB_NUL_TERMINATED;
+
+    if(!mjb_encoding_is_valid_input(encoding)) {
+        return MJB_STATUS_INVALID_ENCODING;
+    }
+
+    return mjb_scan_nul_terminated_byte_length(buffer, byte_length, encoding);
+}
+
+static mjb_status mjb_resolve_decode_input(const char *buffer, size_t byte_length,
     mjb_encoding requested_encoding, size_t *offset, mjb_encoding *resolved_encoding) {
     if(!mjb_encoding_is_valid_input(requested_encoding)) {
         return MJB_STATUS_INVALID_ENCODING;
     }
 
-    mjb_status status = mjb_resolve_input_byte_length(buffer, byte_length, requested_encoding);
-
-    if(status != MJB_STATUS_OK) {
-        return status;
-    }
-
-    if((buffer == NULL && *byte_length > 0) || *offset > *byte_length) {
+    if((buffer == NULL && byte_length > 0) || *offset > byte_length) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
     size_t data_start = 0;
-    *resolved_encoding = mjb_resolve_input_encoding(buffer, *byte_length, requested_encoding,
+    *resolved_encoding = mjb_resolve_input_encoding(buffer, byte_length, requested_encoding,
         &data_start);
 
     if((requested_encoding == MJB_ENC_UTF_16 || requested_encoding == MJB_ENC_UTF_32) &&
@@ -152,7 +164,9 @@ MJB_EXPORT mjb_status mjb_decode_next(const mjb_text *text, mjb_malformed_policy
     mjb_diagnostic_reset(diagnostic);
     *codepoint = MJB_CODEPOINT_NOT_VALID;
 
-    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
+    // A NUL-terminated text would be rescanned on every call, making iteration quadratic.
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy) ||
+        text->byte_length == MJB_NUL_TERMINATED) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -161,7 +175,7 @@ MJB_EXPORT mjb_status mjb_decode_next(const mjb_text *text, mjb_malformed_policy
     mjb_encoding encoding = text->encoding;
 
     mjb_encoding resolved_encoding;
-    mjb_status status = mjb_resolve_decode_input(buffer, &byte_length, encoding, offset,
+    mjb_status status = mjb_resolve_decode_input(buffer, byte_length, encoding, offset,
         &resolved_encoding);
 
     if(status != MJB_STATUS_OK) {
@@ -318,7 +332,9 @@ MJB_EXPORT mjb_status mjb_decode_previous(const mjb_text *text,
     mjb_diagnostic_reset(diagnostic);
     *codepoint = MJB_CODEPOINT_NOT_VALID;
 
-    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy)) {
+    // A NUL-terminated text would be rescanned on every call, making iteration quadratic.
+    if(text == NULL || !mjb_malformed_policy_is_valid(malformed_policy) ||
+        text->byte_length == MJB_NUL_TERMINATED) {
         return MJB_STATUS_INVALID_ARGUMENT;
     }
 
@@ -328,12 +344,6 @@ MJB_EXPORT mjb_status mjb_decode_previous(const mjb_text *text,
 
     if(!mjb_encoding_is_valid_input(encoding)) {
         return MJB_STATUS_INVALID_ENCODING;
-    }
-
-    mjb_status status = mjb_resolve_input_byte_length(buffer, &byte_length, encoding);
-
-    if(status != MJB_STATUS_OK) {
-        return status;
     }
 
     if((buffer == NULL && byte_length > 0) || *offset > byte_length) {
@@ -356,8 +366,8 @@ MJB_EXPORT mjb_status mjb_decode_previous(const mjb_text *text,
     for(;;) {
         mjb_diagnostic current;
         mjb_diagnostic_reset(&current);
-        status = mjb_decode_previous_raw(buffer, data_start, resolved_encoding, offset, codepoint,
-            &current);
+        mjb_status status = mjb_decode_previous_raw(buffer, data_start, resolved_encoding, offset,
+            codepoint, &current);
         mjb_diagnostic_record(diagnostic, &current);
 
         if(status != MJB_STATUS_MALFORMED_INPUT) {

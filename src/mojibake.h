@@ -645,7 +645,7 @@ typedef struct mjb_text {
     // The text buffer containing the string data.
     const char *buffer;
     // The length of the string in bytes, or `MJB_NUL_TERMINATED` to determine it from an
-    // encoding-aware NUL code unit
+    // encoding-aware NUL code unit. The mjb_text_make() family resolves it on creation.
     size_t byte_length;
     // The encoding of the string. ASCII, UTF-8, UTF-16LE/BE, UTF-32LE/BE.
     mjb_encoding encoding;
@@ -659,6 +659,12 @@ static inline mjb_text mjb_text_make(const char *buffer, size_t byte_length,
     text.buffer = buffer;
     text.byte_length = byte_length;
     text.encoding = encoding;
+
+    // Resolve the length once. When it cannot be resolved, MJB_NUL_TERMINATED is kept.
+    if(byte_length == MJB_NUL_TERMINATED &&
+        mjb_nul_terminated_length(buffer, encoding, &byte_length) == MJB_STATUS_OK) {
+        text.byte_length = byte_length;
+    }
 
     return text;
 }
@@ -770,6 +776,9 @@ MJB_EXPORT MJB_PURE bool mjb_is_utf16(const char *buffer, size_t byte_length);
 
 // Validate a complete Unicode code-unit sequence.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_validate_encoding(const mjb_text *text, mjb_diagnostic *diagnostic);
+
+// Return the byte length of a string that ends at its first NUL code unit.
+MJB_EXPORT MJB_NODISCARD mjb_status mjb_nul_terminated_length(const char *buffer, mjb_encoding encoding, size_t *byte_length);
 
 // Decode the next codepoint from a string.
 MJB_EXPORT MJB_NODISCARD mjb_status mjb_decode_next(const mjb_text *text, mjb_malformed_policy malformed_policy, size_t *offset, mjb_codepoint *codepoint, mjb_diagnostic *diagnostic);

@@ -1224,6 +1224,44 @@ std::cout << "Malformed input at byte " << diagnostic.byte_offset << std::endl;`
     related: ['mjb_decode_next', 'mjb_decode_previous', 'mjb_is_utf8']
   },
   {
+    comment: 'Return the byte length of a string that ends at its first NUL code unit.',
+    ret: 'mjb_status',
+    name: 'mjb_nul_terminated_length',
+    attributes: ['MJB_NODISCARD'],
+    args: [
+      buffer('The NUL-terminated string'),
+      encoding(),
+      {
+        name: 'byte_length',
+        type: 'size_t *',
+        description: 'Where to store the byte length, excluding the terminator',
+        wasm_generated: false
+      }
+    ],
+    wasm: false,
+    section: Section.TextAnalysis,
+    details: 'Scan for the terminator of the encoding: a zero byte for ASCII and UTF-8, a zero ' +
+      '16-bit code unit for UTF-16, and a zero 32-bit code unit for UTF-32. Code units are ' +
+      'aligned to the start of `buffer`.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The length was computed' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: '`buffer` or `byte_length` is NULL' },
+      { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding is not a supported input encoding' }
+    ],
+    examples: {
+      c: `const char utf16le[] = "H\\0i\\0\\0\\0"; // "Hi" in UTF-16LE
+size_t byte_length;
+
+if(mjb_nul_terminated_length(utf16le, MJB_ENC_UTF_16LE, &byte_length) != MJB_STATUS_OK) {
+    return 1;
+}
+
+// Byte length: 4
+printf("Byte length: %zu", byte_length);`
+    },
+    related: ['mjb_decode_next', 'mjb_decode_previous']
+  },
+  {
     comment: 'Decode the next codepoint from a string.',
     ret: 'mjb_status',
     name: 'mjb_decode_next',
@@ -1257,12 +1295,14 @@ std::cout << "Malformed input at byte " << diagnostic.byte_offset << std::endl;`
       { value: 'MJB_STATUS_END_OF_INPUT', description: 'No codepoint remains' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        'An argument or policy is invalid, or the text is `MJB_NUL_TERMINATED`' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
     ],
     examples: {
       c: `// "été"
-mjb_text input = mjb_text_utf8("\\xC3\\xA9t\\xC3\\xA9", MJB_NUL_TERMINATED);
+const char *word = "\\xC3\\xA9t\\xC3\\xA9";
+mjb_text input = mjb_text_utf8(word, strlen(word));
 size_t offset = 0;
 size_t count = 0;
 mjb_codepoint codepoint;
@@ -1314,7 +1354,8 @@ printf("%zu codepoints in %zu bytes", count, offset);`
       { value: 'MJB_STATUS_END_OF_INPUT', description: 'No codepoint precedes `offset`' },
       { value: 'MJB_STATUS_MALFORMED_INPUT', description:
         'Malformed input was encountered with `MJB_MALFORMED_STOP`' },
-      { value: 'MJB_STATUS_INVALID_ARGUMENT', description: 'An argument or policy is invalid' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        'An argument or policy is invalid, or the text is `MJB_NUL_TERMINATED`' },
       { value: 'MJB_STATUS_INVALID_ENCODING', description: 'The encoding cannot be decoded' }
     ],
     examples: {
@@ -2489,10 +2530,7 @@ printf("Nonspacing marks are combining: %s", combining ? "yes" : "no");`
       'position, from the boundary after the first codepoint to the end of the text, and stores ' +
       'its byte offset in `state.position`, so each segment runs from one break position to the ' +
       'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
-      'subsequence at the end of the text ends the iteration at the position before it. ' +
-      'Stateful break functions ' +
-      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
-      'determine the length once before iteration.',
+      'subsequence at the end of the text ends the iteration at the position before it.',
     examples: {
       c: `mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_line_break_state state;
@@ -2526,10 +2564,7 @@ printf("First line-break result is set: %s", type != MJB_BT_NOT_SET ? "yes" : "n
       'position, from the boundary after the first codepoint to the end of the text, and stores ' +
       'its byte offset in `state.position`, so each segment runs from one break position to the ' +
       'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
-      'subsequence at the end of the text ends the iteration at the position before it. ' +
-      'Stateful break functions ' +
-      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
-      'determine the length once before iteration.',
+      'subsequence at the end of the text ends the iteration at the position before it.',
     examples: {
       c: `mjb_text input = mjb_text_utf8("Hello world", 11);
 mjb_word_break_state state;
@@ -2567,10 +2602,7 @@ printf("Word-break positions: %zu", boundaries);`
       'position, from the boundary after the first codepoint to the end of the text, and stores ' +
       'its byte offset in `state.position`, so each segment runs from one break position to the ' +
       'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
-      'subsequence at the end of the text ends the iteration at the position before it. ' +
-      'Stateful break functions ' +
-      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
-      'determine the length once before iteration.',
+      'subsequence at the end of the text ends the iteration at the position before it.',
     examples: {
       c: `mjb_sentence_break_state state;
 state.index = 0;
@@ -2652,10 +2684,7 @@ printf("Sentences: %zu", count);`
       'position, from the boundary after the first codepoint to the end of the text, and stores ' +
       'its byte offset in `state.position`, so each segment runs from one break position to the ' +
       'next. A malformed subsequence counts as one position, like U+FFFD, but an incomplete ' +
-      'subsequence at the end of the text ends the iteration at the position before it. ' +
-      'Stateful break functions ' +
-      'require an explicit `text->byte_length` and do not accept `MJB_NUL_TERMINATED`; ' +
-      'determine the length once before iteration.',
+      'subsequence at the end of the text ends the iteration at the position before it.',
     examples: {
       c: `mjb_text input = mjb_text_utf8("e\\xCC\\x81", 3); // e + combining acute accent
 mjb_grapheme_break_state state;
