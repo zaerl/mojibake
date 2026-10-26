@@ -79,7 +79,6 @@ export async function generateAmalgamation() {
     'unicode-tables.h',
     'unicode-data.h',
     'mojibake.c',
-    'utf16.h',
     'utf.h',
     ...cFiles,
   ];

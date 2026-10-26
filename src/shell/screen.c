@@ -136,9 +136,8 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
     mjbsh_show_cursor(false);
 
 #ifdef _WIN32
-    // UTF-16 decode state for surrogate pair tracking across key events
-    uint8_t utf16_state = MJB_UTF_ACCEPT;
-    mjb_codepoint utf16_cp = 0;
+    // High surrogate waiting for its low surrogate in the next key event
+    WCHAR pending_high = 0;
 #endif
 
     while(1) {
@@ -190,14 +189,32 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
                         fn(input_buffer);
                     }
                 }
+            } else if(wc >= 0xD800 && wc <= 0xDBFF) {
+                // High surrogate: the low surrogate arrives in the next key event
+                pending_high = wc;
             } else {
-                // Decode UTF-16 unit to codepoint; handles surrogate pairs across events
-                utf16_state = mjb_utf16_decode_step(utf16_state, (uint8_t)(wc & 0xFF),
-                    (uint8_t)((wc >> 8) & 0xFF), &utf16_cp, false);
+                // Decode the UTF-16 units; malformed surrogates are skipped
+                char units[4];
+                size_t units_len = 0;
 
-                if(utf16_state == MJB_UTF_ACCEPT) {
+                if(pending_high != 0) {
+                    units[units_len++] = (char)(pending_high & 0xFF);
+                    units[units_len++] = (char)((pending_high >> 8) & 0xFF);
+                    pending_high = 0;
+                }
+
+                units[units_len++] = (char)(wc & 0xFF);
+                units[units_len++] = (char)((wc >> 8) & 0xFF);
+
+                mjb_text text = { units, units_len, MJB_ENC_UTF_16LE };
+                size_t offset = 0;
+                mjb_codepoint codepoint;
+
+                while(offset < units_len &&
+                    mjb_decode_next(&text, MJB_MALFORMED_SKIP, &offset, &codepoint, NULL) ==
+                        MJB_STATUS_OK) {
                     char utf8[5] = { 0 };
-                    unsigned int utf8_len = mjb_codepoint_encode(utf16_cp, utf8, 5, MJB_ENC_UTF_8);
+                    unsigned int utf8_len = mjb_codepoint_encode(codepoint, utf8, 5, MJB_ENC_UTF_8);
 
                     if(utf8_len > 0 && buffer_pos + utf8_len < sizeof(input_buffer) - 1) {
                         for(unsigned int i = 0; i < utf8_len; i++) {
