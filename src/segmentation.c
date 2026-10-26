@@ -17,10 +17,10 @@ static inline void mjb_update_sequence_flags(mjb_grapheme_break_state *state,
         // Start of new Extended_Pictographic sequence
         state->ext_pict_seen = true;
         state->zwj_seen = false;
-    } else if(state->current == MJB_GBP_ZWJ && state->ext_pict_seen) {
+    } else if(state->current == MJB_GBP_ZWJ && state->ext_pict_seen && !state->zwj_seen) {
         // ZWJ after Extended_Pictographic, mark sequence as ExtPict...ZWJ
         state->zwj_seen = true;
-    } else if(state->current != MJB_GBP_EXTEND) {
+    } else if(state->current != MJB_GBP_EXTEND || state->zwj_seen) {
         // Break in sequence (not Extend, not ZWJ, not ExtPict)
         state->ext_pict_seen = false;
         state->zwj_seen = false;
@@ -133,6 +133,10 @@ static mjb_break_type mjb_grapheme_break_step(const mjb_text *text,
         state->current_codepoint = codepoint;
 
         bool prev_ext_pict_zwj = state->ext_pict_seen && state->zwj_seen;
+
+        if(state->current != MJB_GBP_REGIONAL_INDICATOR) {
+            state->ri_count = 0;
+        }
 
         // Do not break between a CR and LF. Otherwise, break before and after controls.
         // GB3 CR × LF
