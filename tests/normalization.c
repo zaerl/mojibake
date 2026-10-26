@@ -409,6 +409,34 @@ static void test_normalization_malformed_policies(void) {
         "Normalize skip output");
     ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK, "Free normalization skip result");
 
+    // Out-of-range UTF-32 units and UTF-16 units after an unpaired high surrogate.
+    const char malformed_utf32[] = { '\x00', '\x00', '\x11', '\x00', 'A', '\0', '\0', '\0' };
+    mjb_text text_utf32 = mjb_text_utf32le(malformed_utf32, sizeof(malformed_utf32));
+    ATT_ASSERT_STATUS(mjb_normalize(&text_utf32, MJB_MALFORMED_STOP, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_UTF_32LE, &result, &diagnostic),
+        MJB_STATUS_MALFORMED_INPUT, "Normalize stop policy rejects out-of-range UTF-32");
+    ATT_ASSERT_STATUS(mjb_normalize(&text_utf32, MJB_MALFORMED_REPLACE, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_UTF_32LE, &result, &diagnostic),
+        MJB_STATUS_OK, "Normalize replace policy repairs out-of-range UTF-32");
+    ATT_ASSERT(result.output_size, (size_t)8, "Normalize UTF-32 replacement output size");
+    ATT_ASSERT((int)memcmp(result.output, "\xFD\xFF\0\0A\0\0\0", result.output_size), 0,
+        "Normalize UTF-32 replacement output");
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
+        "Free normalization UTF-32 replacement result");
+
+    const char malformed_utf16[] = { '\x00', '\xD8', 'A', '\0' };
+    mjb_text text_utf16 = mjb_text_utf16le(malformed_utf16, sizeof(malformed_utf16));
+    ATT_ASSERT_STATUS(mjb_normalize(&text_utf16, MJB_MALFORMED_REPLACE, MJB_NORMALIZATION_NFC,
+                          MJB_ENC_UTF_8, &result, &diagnostic),
+        MJB_STATUS_OK, "Normalize replace policy repairs unpaired UTF-16 surrogate");
+    ATT_ASSERT(result.output_size, (size_t)4, "Normalize UTF-16 replacement output size");
+    ATT_ASSERT((int)memcmp(result.output, "\xEF\xBF\xBD"
+                                          "A",
+                   result.output_size),
+        0, "Normalize UTF-16 replacement keeps the unit after the surrogate");
+    ATT_ASSERT_STATUS(mjb_result_free(&result), MJB_STATUS_OK,
+        "Free normalization UTF-16 replacement result");
+
     mjb_buffer measure = mjb_buffer_make(NULL, 0, MJB_ENC_UTF_8);
     ATT_ASSERT_STATUS(mjb_normalize_into(&text, MJB_MALFORMED_REPLACE, MJB_NORMALIZATION_NFC,
                           &measure, &diagnostic),

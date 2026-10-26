@@ -224,6 +224,106 @@ ATT_TEST(utf) {
     ATT_ASSERT(index, 4, "UTF-16LE surrogate: index 4");
     ATT_ASSERT(in_error, false, "UTF-16LE surrogate: not error state");
 
+    // A unit that breaks an unpaired high surrogate is decoded on its own.
+    const char buffer_utf16le_unpaired[] = { '\xDB', '\xDB', '\xFE', '\xF4' };
+
+    RESET_STATE()
+
+    result = mjb_next_codepoint(buffer_utf16le_unpaired, sizeof(buffer_utf16le_unpaired), &state,
+        &index, MJB_ENC_UTF_16LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_INCOMPLETE, "UTF-16LE unpaired: high surrogate pending");
+
+    result = mjb_next_codepoint(buffer_utf16le_unpaired, sizeof(buffer_utf16le_unpaired), &state,
+        &index, MJB_ENC_UTF_16LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_ERROR, "UTF-16LE unpaired: MJB_DECODE_ERROR");
+    ATT_ASSERT(codepoint, MJB_CODEPOINT_REPLACEMENT, "UTF-16LE unpaired: replacement");
+    ATT_ASSERT(index, 2, "UTF-16LE unpaired: rewound to the breaking unit");
+
+    result = mjb_next_codepoint(buffer_utf16le_unpaired, sizeof(buffer_utf16le_unpaired), &state,
+        &index, MJB_ENC_UTF_16LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16LE unpaired: next unit MJB_DECODE_OK");
+    ATT_ASSERT(codepoint, 0xF4FE, "UTF-16LE unpaired: next unit U+F4FE");
+    ATT_ASSERT(index, 4, "UTF-16LE unpaired: index 4");
+
+    // An unpaired high surrogate followed by a valid surrogate pair keeps the pair.
+    const char buffer_utf16be_unpaired_pair[] = { '\xD8', '\x00', '\xD8', '\x3D', '\xDE', '\x42' };
+
+    RESET_STATE()
+
+    do {
+        result = mjb_next_codepoint(buffer_utf16be_unpaired_pair,
+            sizeof(buffer_utf16be_unpaired_pair), &state, &index, MJB_ENC_UTF_16BE, &codepoint,
+            &in_error);
+    } while(result == MJB_DECODE_INCOMPLETE);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_ERROR, "UTF-16BE unpaired pair: MJB_DECODE_ERROR");
+    ATT_ASSERT(index, 2, "UTF-16BE unpaired pair: rewound to the second high surrogate");
+
+    do {
+        result = mjb_next_codepoint(buffer_utf16be_unpaired_pair,
+            sizeof(buffer_utf16be_unpaired_pair), &state, &index, MJB_ENC_UTF_16BE, &codepoint,
+            &in_error);
+    } while(result == MJB_DECODE_INCOMPLETE);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-16BE unpaired pair: pair MJB_DECODE_OK");
+    ATT_ASSERT(codepoint, 0x1F642, "UTF-16BE unpaired pair: U+1F642");
+    ATT_ASSERT(index, 6, "UTF-16BE unpaired pair: index 6");
+
+    // A high surrogate followed by a truncated byte is not rewound.
+    const char buffer_utf16le_unpaired_truncated[] = { '\x00', '\xD8', 'A' };
+
+    RESET_STATE()
+
+    do {
+        result = mjb_next_codepoint(buffer_utf16le_unpaired_truncated,
+            sizeof(buffer_utf16le_unpaired_truncated), &state, &index, MJB_ENC_UTF_16LE, &codepoint,
+            &in_error);
+    } while(result == MJB_DECODE_INCOMPLETE);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_ERROR, "UTF-16LE unpaired truncated: MJB_DECODE_ERROR");
+    ATT_ASSERT(index, sizeof(buffer_utf16le_unpaired_truncated),
+        "UTF-16LE unpaired truncated: consumed input");
+
+    result = mjb_next_codepoint(buffer_utf16le_unpaired_truncated,
+        sizeof(buffer_utf16le_unpaired_truncated), &state, &index, MJB_ENC_UTF_16LE, &codepoint,
+        &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_END, "UTF-16LE unpaired truncated: MJB_DECODE_END");
+
+    // Out-of-range and surrogate UTF-32 units are rejected, not silently dropped.
+    const char buffer_utf32le_out_of_range[] = { '\x00', '\x00', '\x11', '\x00', 'A', '\0', '\0',
+        '\0' };
+
+    RESET_STATE()
+
+    result = mjb_next_codepoint(buffer_utf32le_out_of_range, sizeof(buffer_utf32le_out_of_range),
+        &state, &index, MJB_ENC_UTF_32LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_ERROR, "UTF-32LE out of range: MJB_DECODE_ERROR");
+    ATT_ASSERT(codepoint, MJB_CODEPOINT_REPLACEMENT, "UTF-32LE out of range: replacement");
+    ATT_ASSERT((int)state, (int)MJB_UTF_ACCEPT, "UTF-32LE out of range: MJB_UTF_ACCEPT");
+    ATT_ASSERT(index, 4, "UTF-32LE out of range: index 4");
+
+    result = mjb_next_codepoint(buffer_utf32le_out_of_range, sizeof(buffer_utf32le_out_of_range),
+        &state, &index, MJB_ENC_UTF_32LE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_OK, "UTF-32LE out of range: next unit MJB_DECODE_OK");
+    ATT_ASSERT(codepoint, 0x41, "UTF-32LE out of range: next unit U+0041");
+
+    const char buffer_utf32be_surrogate[] = { '\0', '\0', '\xD8', '\x00' };
+
+    RESET_STATE()
+
+    result = mjb_next_codepoint(buffer_utf32be_surrogate, sizeof(buffer_utf32be_surrogate), &state,
+        &index, MJB_ENC_UTF_32BE, &codepoint, &in_error);
+
+    ATT_ASSERT((int)result, (int)MJB_DECODE_ERROR, "UTF-32BE surrogate: MJB_DECODE_ERROR");
+    ATT_ASSERT(codepoint, MJB_CODEPOINT_REPLACEMENT, "UTF-32BE surrogate: replacement");
+    ATT_ASSERT(index, 4, "UTF-32BE surrogate: index 4");
+
     // Strict codepoint counting rejects truncated trailing code units.
     MJB_TEST_COVERAGE(mjb_codepoint_count);
 

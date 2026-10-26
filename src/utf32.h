@@ -23,7 +23,7 @@ static inline uint8_t MJB_USED mjb_utf32_decode_step(uint8_t state, uint8_t unit
     if(codepoint > 0x10FFFF || (codepoint >= 0xD800 && codepoint <= 0xDFFF)) {
         *cpp = MJB_CODEPOINT_REPLACEMENT;
 
-        return 2;
+        return MJB_UTF_REJECT;
     }
 
     *cpp = codepoint;

@@ -281,6 +281,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
     }
 
     uint8_t prev_state = *state;
+    size_t prev_index = *index;
 
     if(!mjb_decode_step(buffer, byte_length, state, index, encoding, codepoint)) {
         // Check if we have an incomplete sequence at end
@@ -300,6 +301,15 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
         // Note: index has been incremented, so the byte just processed is at [*index - 1]
         bool should_reprocess = (encoding == MJB_ENC_UTF_8 && prev_state != MJB_UTF_ACCEPT &&
             *index > 0 && (unsigned char)buffer[*index - 1] < 0x80);
+        // A UTF-16 unit that follows an unpaired high surrogate is never a low surrogate. Rewind
+        // the whole unit so that it is decoded on its own, unless it was a truncated trailing byte.
+        size_t rewind_bytes = 1;
+
+        if((encoding == MJB_ENC_UTF_16BE || encoding == MJB_ENC_UTF_16LE) &&
+            prev_state == MJB_UTF_PENDING_SURROGATE && *index == prev_index + 2) {
+            should_reprocess = true;
+            rewind_bytes = 2;
+        }
 
         // Emit MJB_CODEPOINT_REPLACEMENT only once per ill-formed subsequence
         if(!*in_error) {
@@ -308,7 +318,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
             *state = MJB_UTF_ACCEPT;
 
             if(should_reprocess) {
-                (*index)--;
+                *index -= rewind_bytes;
                 *in_error = false;
             }
 
@@ -318,7 +328,7 @@ static inline mjb_decode_result MJB_USED mjb_next_codepoint(const char *buffer, 
         // Already in error sequence
         if(should_reprocess) {
             // This is a valid standalone byte that broke the sequence. Reprocess it as new
-            (*index)--;
+            *index -= rewind_bytes;
             *in_error = false;
             *state = MJB_UTF_ACCEPT;
 
