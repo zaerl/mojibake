@@ -214,8 +214,7 @@ void mjbsh_screen_mode(mjbsh_screen_fn fn, mjbsh_key_fn key_fn) {
                     mjb_decode_next(&text, MJB_MALFORMED_SKIP, &offset, &codepoint, NULL) ==
                         MJB_STATUS_OK) {
                     char utf8[5] = { 0 };
-                    unsigned int utf8_len = mjb_codepoint_encode(codepoint, utf8, 5,
-                        MJB_ENC_UTF_8);
+                    unsigned int utf8_len = mjb_codepoint_encode(codepoint, utf8, 5, MJB_ENC_UTF_8);
 
                     if(utf8_len > 0 && buffer_pos + utf8_len < sizeof(input_buffer) - 1) {
                         for(unsigned int i = 0; i < utf8_len; i++) {
