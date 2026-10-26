@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_sentence_break_state`, and `mjb_line_break_state` are removed. Callers only set `index`
 
 ### Fixed
+- Grapheme segmentation split an emoji flag that followed another flag and a control, CR, or LF:
+  `"🇮🇹\n🇮🇹"` gave four clusters instead of three. The regional indicator count now restarts at
+  every codepoint that is not a regional indicator (GB12, GB13)
+- Grapheme segmentation joined an Extended_Pictographic to a preceding ZWJ that was followed by
+  Extend characters or another ZWJ, as in U+1F468 U+200D U+0308 U+1F468. GB11 requires the ZWJ to
+  immediately precede the Extended_Pictographic
 - The Windows CLI interactive mode stopped accepting input after an unpaired surrogate key event.
   It decodes key events with `mjb_decode_next` and skips malformed surrogates. The internal
   `mjb_utf16_decode_step` helper and `src/utf16.h` are removed

@@ -341,6 +341,247 @@ static void test_grapheme_count(void) {
     ATT_ASSERT(count, (size_t)2, "Count: UTF-16LE AB");
 }
 
+static size_t grapheme_count_of(const char *buffer, size_t byte_length) {
+    mjb_text text = mjb_text_utf8(buffer, byte_length);
+    size_t count = 0;
+
+    if(mjb_grapheme_count(&text, MJB_MALFORMED_REPLACE, &count, NULL) != MJB_STATUS_OK) {
+        return 0;
+    }
+
+    return count;
+}
+
+static void test_grapheme_regressions(void) {
+    // GB12/13: the regional indicator count restarts after a control. Two flags separated by a
+    // line break used to split the second flag.
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9\n\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9",
+                   17),
+        (size_t)3, "Flag, LF, flag");
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9\r\n\xF0\x9F\x87\xAE"
+                                 "\xF0\x9F\x87\xB9",
+                   18),
+        (size_t)3, "Flag, CR LF, flag");
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9\x01\xF0\x9F\x87\xAE"
+                                 "\xF0\x9F\x87\xB9",
+                   17),
+        (size_t)3, "Flag, control, flag");
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9\n\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"
+                                 "\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9",
+                   25),
+        (size_t)4, "Flag, LF, two flags");
+
+    // GB11: ZWJ must immediately precede the Extended_Pictographic. U+1F468 MAN, U+200D ZWJ,
+    // U+0308 COMBINING DIAERESIS.
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8", 11), (size_t)1,
+        "ExtPict ZWJ ExtPict");
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x91\xA8\xCC\x88\xE2\x80\x8D\xF0\x9F\x91\xA8", 13),
+        (size_t)1, "ExtPict Extend ZWJ ExtPict");
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x91\xA8\xE2\x80\x8D\xCC\x88\xF0\x9F\x91\xA8", 13),
+        (size_t)2, "ExtPict ZWJ Extend ExtPict");
+    ATT_ASSERT(grapheme_count_of("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x80\x8D\xF0\x9F\x91\xA8", 14),
+        (size_t)2, "ExtPict ZWJ ZWJ ExtPict");
+}
+
+typedef struct grapheme_props {
+    int32_t gcb;
+    int32_t incb;
+    bool ext_pict;
+} grapheme_props;
+
+static grapheme_props grapheme_props_of(mjb_codepoint codepoint) {
+    grapheme_props props;
+    int32_t value = 0;
+    bool binary = false;
+
+    props.gcb = MJB_GBP_OTHER;
+    props.incb = MJB_INCB_NOT_SET;
+    props.ext_pict = false;
+
+    if(mjb_codepoint_property_int(codepoint, MJB_PR_GRAPHEME_CLUSTER_BREAK, &value) ==
+            MJB_STATUS_OK &&
+        value != MJB_GBP_NOT_SET) {
+        props.gcb = value;
+    }
+
+    if(mjb_codepoint_property_int(codepoint, MJB_PR_INDIC_CONJUNCT_BREAK, &value) ==
+        MJB_STATUS_OK) {
+        props.incb = value;
+    }
+
+    if(mjb_codepoint_property_binary(codepoint, MJB_PR_EXTENDED_PICTOGRAPHIC, &binary) ==
+        MJB_STATUS_OK) {
+        props.ext_pict = binary;
+    }
+
+    return props;
+}
+
+static bool grapheme_is_control(int32_t gcb) {
+    return gcb == MJB_GBP_CONTROL || gcb == MJB_GBP_CR || gcb == MJB_GBP_LF;
+}
+
+// True when there is a grapheme boundary between b and c whatever precedes b. The rules that need
+// more context (GB9c, GB11, GB12/13) can only join c to b in the three pairs excluded at the end.
+static bool grapheme_is_safe_break(grapheme_props b, grapheme_props c) {
+    if(b.gcb == MJB_GBP_CR && c.gcb == MJB_GBP_LF) {
+        return false;
+    }
+
+    if(grapheme_is_control(b.gcb) || grapheme_is_control(c.gcb)) {
+        return true;
+    }
+
+    if((b.gcb == MJB_GBP_L &&
+           (c.gcb == MJB_GBP_L || c.gcb == MJB_GBP_V || c.gcb == MJB_GBP_LV ||
+               c.gcb == MJB_GBP_LVT)) ||
+        ((b.gcb == MJB_GBP_LV || b.gcb == MJB_GBP_V) &&
+            (c.gcb == MJB_GBP_V || c.gcb == MJB_GBP_T)) ||
+        ((b.gcb == MJB_GBP_LVT || b.gcb == MJB_GBP_T) && c.gcb == MJB_GBP_T) ||
+        c.gcb == MJB_GBP_EXTEND || c.gcb == MJB_GBP_ZWJ || c.gcb == MJB_GBP_SPACING_MARK ||
+        b.gcb == MJB_GBP_PREPEND) {
+        return false;
+    }
+
+    return !((c.incb == MJB_INCB_CONSONANT &&
+                 (b.incb == MJB_INCB_LINKER || b.incb == MJB_INCB_EXTEND)) ||
+        (c.ext_pict && b.gcb == MJB_GBP_ZWJ) ||
+        (c.gcb == MJB_GBP_REGIONAL_INDICATOR && b.gcb == MJB_GBP_REGIONAL_INDICATOR));
+}
+
+// Find the last grapheme boundary before offset by walking back to a safe boundary with
+// mjb_decode_previous, then replaying the forward iterator from there. It shares no state with the
+// forward iterator, so the two must agree.
+static size_t grapheme_previous_boundary(const char *buffer, size_t byte_length, size_t offset) {
+    mjb_text text = mjb_text_utf8(buffer, byte_length);
+    size_t position = offset;
+    size_t safe = 0;
+    mjb_codepoint codepoint;
+
+    if(mjb_decode_previous(&text, MJB_MALFORMED_REPLACE, &position, &codepoint, NULL) !=
+        MJB_STATUS_OK) {
+        return 0;
+    }
+
+    grapheme_props c = grapheme_props_of(codepoint);
+
+    while(position > 0) {
+        size_t before = position;
+
+        if(mjb_decode_previous(&text, MJB_MALFORMED_REPLACE, &before, &codepoint, NULL) !=
+            MJB_STATUS_OK) {
+            break;
+        }
+
+        grapheme_props b = grapheme_props_of(codepoint);
+
+        if(grapheme_is_safe_break(b, c)) {
+            safe = position;
+            break;
+        }
+
+        position = before;
+        c = b;
+    }
+
+    mjb_text tail = mjb_text_utf8(buffer + safe, byte_length - safe);
+    mjb_grapheme_break_state state;
+    state.index = 0;
+    size_t last = safe;
+    mjb_break_type bt;
+
+    while((bt = mjb_grapheme_break_next(&tail, &state)) != MJB_BT_NOT_SET &&
+        safe + state.position < offset) {
+        if(bt != MJB_BT_NO_BREAK) {
+            last = safe + state.position;
+        }
+    }
+
+    return last;
+}
+
+static uint32_t grapheme_random_next(uint32_t *seed) {
+    // xorshift32: deterministic on every platform.
+    uint32_t x = *seed;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    *seed = x;
+
+    return x;
+}
+
+// Compare the forward iterator with an independent backward search on random strings built from
+// codepoints that exercise every rule, plus malformed bytes.
+static void test_grapheme_differential(void) {
+    static const mjb_codepoint pool[] = { 'a', 0x0D, 0x0A, 0x01, 0x1100, 0x1161, 0x11A8, 0xAC00,
+        0xAC01, 0x0600, 0x0903, 0x0300, 0x200D, 0x1F468, 0x1F3FB, 0x2764, 0xFE0F, 0x1F1EE, 0x1F1F9,
+        0x0915, 0x094D, 0x0924, 0x093C, 0xFFFD };
+    // A lone continuation byte and two truncated sequences, with explicit sizes.
+    static const char malformed[3][2] = { { '\x80', 0 }, { '\xE2', '\x82' }, { '\xF0', '\x9F' } };
+    static const size_t malformed_sizes[3] = { 1, 2, 2 };
+    const size_t pool_size = sizeof(pool) / sizeof(pool[0]);
+    uint32_t seed = 0x6D6A6221;
+    size_t mismatches = 0;
+    size_t checked = 0;
+
+    for(size_t round = 0; round < 20000; ++round) {
+        char buffer[256];
+        size_t length = 0;
+        size_t items = (size_t)(grapheme_random_next(&seed) % 32) + 1;
+
+        for(size_t i = 0; i < items; ++i) {
+            uint32_t pick = grapheme_random_next(&seed) % (uint32_t)(pool_size + 3);
+
+            if(pick < pool_size) {
+                length += mjb_codepoint_encode(pool[pick], buffer + length, 4, MJB_ENC_UTF_8);
+            } else {
+                size_t which = pick - pool_size;
+
+                for(size_t k = 0; k < malformed_sizes[which]; ++k) {
+                    buffer[length++] = malformed[which][k];
+                }
+            }
+        }
+
+        // Forward: every codepoint position, and which of them are boundaries.
+        size_t positions[256];
+        bool is_boundary[256];
+        size_t position_count = 1;
+        positions[0] = 0;
+        is_boundary[0] = true;
+
+        mjb_text text = mjb_text_utf8(buffer, length);
+        mjb_grapheme_break_state state;
+        state.index = 0;
+        mjb_break_type bt;
+
+        while((bt = mjb_grapheme_break_next(&text, &state)) != MJB_BT_NOT_SET &&
+            position_count < 256) {
+            positions[position_count] = state.position;
+            is_boundary[position_count++] = bt != MJB_BT_NO_BREAK;
+        }
+
+        // Backward: the last boundary before every position must match.
+        size_t expected = 0;
+
+        for(size_t i = 1; i < position_count; ++i) {
+            if(grapheme_previous_boundary(buffer, length, positions[i]) != expected) {
+                ++mismatches;
+            }
+
+            if(is_boundary[i]) {
+                expected = positions[i];
+            }
+
+            ++checked;
+        }
+    }
+
+    ATT_ASSERT(checked > 0, true, "Grapheme differential checked positions");
+    ATT_ASSERT(mismatches, (size_t)0, "Grapheme forward and backward boundaries agree");
+}
+
 ATT_TEST(segmentation) {
     {
         MJB_TEST_COVERAGE(mjb_grapheme_break_next);
@@ -416,5 +657,7 @@ ATT_TEST(segmentation) {
     test_basic_segmentation();
     test_truncate();
     test_grapheme_count();
+    test_grapheme_regressions();
+    test_grapheme_differential();
     read_test_file("./unicode-data/UCD/auxiliary/GraphemeBreakTest.txt", &segmentation_callback);
 }
