@@ -303,9 +303,55 @@ private struct BreakResultView: View {
                 Text(mode.functionName)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
+
+                Button {
+                    copyVisualization()
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                }
+                .buttonStyle(.borderless)
+                .disabled(input.isEmpty)
+                .accessibilityLabel("Copy \(mode.rawValue)")
+                .help("Copy the boundaries as text")
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private var visualization: String {
+        var tokens: [String] = []
+
+        switch outputStyle {
+        case .codepoints:
+            for index in scalars.indices {
+                if let boundary = boundary(before: index) {
+                    tokens.append(boundary.symbol)
+                }
+
+                tokens.append(ScalarToken.displayValue(for: scalars[index]))
+            }
+        case .noBreakBlocks:
+            for block in noBreakBlocks {
+                tokens.append(block.leadingBoundary.symbol)
+                tokens.append(
+                    scalars[block.range]
+                        .map { ScalarToken.displayValue(for: $0) }
+                        .joined(separator: " ")
+                )
+            }
+        }
+
+        if let lastIndex = scalars.indices.last, let boundary = boundary(after: lastIndex) {
+            tokens.append(boundary.symbol)
+        }
+
+        return tokens.joined(separator: " ")
+    }
+
+    private func copyVisualization() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(visualization, forType: .string)
     }
 
     @ViewBuilder
@@ -572,6 +618,10 @@ private struct ScalarToken: View {
     }
 
     private var displayValue: String {
+        Self.displayValue(for: scalar)
+    }
+
+    static func displayValue(for scalar: Unicode.Scalar) -> String {
         switch scalar.value {
         case 0x09:
             return "⇥"
@@ -584,7 +634,7 @@ private struct ScalarToken: View {
         case 0x200D:
             return "ZWJ"
         default:
-            if let variationSelectorNumber {
+            if let variationSelectorNumber = variationSelectorNumber(for: scalar) {
                 return "VS\(variationSelectorNumber)"
             }
 
@@ -593,14 +643,14 @@ private struct ScalarToken: View {
             }
 
             if !mjb_codepoint_is_graphic(scalar.value) {
-                return codepoint
+                return MojibakeFormatting.codepoint(scalar.value)
             }
 
             return String(scalar)
         }
     }
 
-    private var variationSelectorNumber: UInt32? {
+    private static func variationSelectorNumber(for scalar: Unicode.Scalar) -> UInt32? {
         switch scalar.value {
         case 0xFE00 ... 0xFE0F:
             scalar.value - 0xFE00 + 1
