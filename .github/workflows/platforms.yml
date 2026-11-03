@@ -19,7 +19,7 @@ concurrency:
 jobs:
   test-bsd:
     name: Test (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -78,7 +78,7 @@ jobs:
 
   strict-c11:
     name: Strict C11 (source and amalgamation)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -138,7 +138,7 @@ jobs:
 
   minimum-compilers:
     name: Minimum compiler (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -235,7 +235,7 @@ jobs:
 
   portable-linux:
     name: Platform (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -277,7 +277,7 @@ jobs:
 
   cross-android:
     name: Cross-compile (Android NDK / ARM64)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

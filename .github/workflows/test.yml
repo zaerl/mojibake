@@ -57,7 +57,7 @@ jobs:
 
   features:
     name: Test (optional features)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     env:
       CC: gcc
@@ -72,7 +72,7 @@ jobs:
 
   sanitizers:
     name: Test (sanitizers / Clang)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     env:
       CC: clang
@@ -153,7 +153,7 @@ jobs:
 
   wasm:
     name: WASM (Node and browser)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -193,7 +193,7 @@ jobs:
 
   fuzz:
     name: Fuzz (smoke)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
