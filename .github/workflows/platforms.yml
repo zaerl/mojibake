@@ -19,7 +19,10 @@ concurrency:
 jobs:
   test-bsd:
     name: Test (${{ matrix.label }})
-    runs-on: namespace-profile-zaerl
+    # The VM action attaches a loop device, which needs a privileged container.
+    runs-on:
+      - nscloud-ubuntu-24.04-amd64-4x8-with-features
+      - namespace-features:container.privileged=true
     timeout-minutes: 15
     strategy:
       fail-fast: false
