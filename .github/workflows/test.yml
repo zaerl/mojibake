@@ -26,15 +26,15 @@ jobs:
       matrix:
         include:
           - label: Linux / GCC
-            os: ubuntu-latest
+            os: namespace-profile-zaerl
             cc: gcc
             cxx: g++
           - label: Linux / Clang
-            os: ubuntu-latest
+            os: namespace-profile-zaerl
             cc: clang
             cxx: clang++
           - label: Linux ARM64 / GCC
-            os: ubuntu-24.04-arm
+            os: namespace-profile-zaerl-arm
             cc: gcc
             cxx: g++
           - label: macOS / Clang
