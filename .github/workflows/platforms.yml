@@ -66,6 +66,10 @@ jobs:
           fi
           echo "Free loop device: $(sudo losetup -f)"
           ls -l /dev/kvm || true
+          # The resource disk is FAT32 and mounted on the host.
+          sudo modprobe vfat || echo "modprobe vfat failed"
+          echo "Kernel: $(uname -r)"
+          grep -E 'fat|msdos' /proc/filesystems || echo "No FAT support in /proc/filesystems"
 
       - name: Start ${{ matrix.label }} VM
         uses: cross-platform-actions/action@82668f1fbd89d9c99487604f822cbf6716f124d3 # v1.7.0
