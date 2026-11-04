@@ -66,10 +66,24 @@ jobs:
           fi
           echo "Free loop device: $(sudo losetup -f)"
           ls -l /dev/kvm || true
-          # The resource disk is FAT32 and mounted on the host.
-          sudo modprobe vfat || echo "modprobe vfat failed"
+          # The resource disk is FAT32 and mounted on the host. Diagnose mounting it.
           echo "Kernel: $(uname -r)"
           grep -E 'fat|msdos' /proc/filesystems || echo "No FAT support in /proc/filesystems"
+          ls /sys/module | grep -iE 'nls|fat' || true
+          truncate -s 40m /tmp/fat-test.raw
+          dev=$(sudo losetup -f --show /tmp/fat-test.raw)
+          sudo mkfs.fat -F32 "$dev" >/dev/null
+          mkdir -p /tmp/fat-test
+          for opts in "uid=1001" "uid=1001,iocharset=utf8" "uid=1001,codepage=437,iocharset=ascii" \
+            "uid=1001,iocharset=iso8859-1"; do
+            if sudo mount -t vfat -o "$opts" "$dev" /tmp/fat-test 2>/tmp/fat-err; then
+              echo "mount OK with: $opts"; sudo umount /tmp/fat-test
+            else
+              echo "mount FAILED with: $opts: $(cat /tmp/fat-err)"
+            fi
+          done
+          sudo dmesg 2>/dev/null | tail -n 15 || echo "dmesg unavailable"
+          sudo losetup -d "$dev"
 
       - name: Start ${{ matrix.label }} VM
         uses: cross-platform-actions/action@82668f1fbd89d9c99487604f822cbf6716f124d3 # v1.7.0
