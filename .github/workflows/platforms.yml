@@ -45,45 +45,63 @@ jobs:
 
       - uses: ./.github/actions/setup-unicode-test-data
 
-      # cross-platform-actions builds its resource disk with fdisk, mkfs.fat and a
-      # loop device. The Namespace runner image ships without the first two and
-      # without /dev/loop* nodes, so provide them before starting the VM.
+      # cross-platform-actions passes the SSH key to the VM on a FAT32 disk that it
+      # builds with fdisk, mkfs.fat, a loop device and a kernel mount. Namespace's
+      # image lacks fdisk, dosfstools and /dev/loop* nodes, and its kernel cannot
+      # mount FAT (no cp437 codepage). Provide the tools, and replace the mount of
+      # that one disk with mtools, which writes FAT in userspace. Other mount and
+      # umount calls go to the real commands.
       - name: Prepare host for VM resource disk
         run: |
           packages=""
           command -v fdisk >/dev/null 2>&1 || packages="$packages fdisk"
           command -v mkfs.fat >/dev/null 2>&1 || packages="$packages dosfstools"
+          command -v mcopy >/dev/null 2>&1 || packages="$packages mtools"
           if [ -n "$packages" ]; then
             sudo apt-get update -qq
             sudo apt-get install -y --no-install-recommends $packages
           fi
-          sudo modprobe loop 2>/dev/null || true
           if ! sudo losetup -f >/dev/null 2>&1; then
             [ -e /dev/loop-control ] || sudo mknod -m 660 /dev/loop-control c 10 237
             for i in 0 1 2 3 4 5 6 7; do
               [ -e "/dev/loop$i" ] || sudo mknod -m 660 "/dev/loop$i" b 7 "$i"
             done
           fi
-          echo "Free loop device: $(sudo losetup -f)"
-          ls -l /dev/kvm || true
-          # The resource disk is FAT32 and mounted on the host. Diagnose mounting it.
-          echo "Kernel: $(uname -r)"
-          grep -E 'fat|msdos' /proc/filesystems || echo "No FAT support in /proc/filesystems"
-          ls /sys/module | grep -iE 'nls|fat' || true
-          truncate -s 40m /tmp/fat-test.raw
-          dev=$(sudo losetup -f --show /tmp/fat-test.raw)
-          sudo mkfs.fat -F32 "$dev" >/dev/null
-          mkdir -p /tmp/fat-test
-          for opts in "uid=1001" "uid=1001,iocharset=utf8" "uid=1001,codepage=437,iocharset=ascii" \
-            "uid=1001,iocharset=iso8859-1"; do
-            if sudo mount -t vfat -o "$opts" "$dev" /tmp/fat-test 2>/tmp/fat-err; then
-              echo "mount OK with: $opts"; sudo umount /tmp/fat-test
-            else
-              echo "mount FAILED with: $opts: $(cat /tmp/fat-err)"
+
+          # The action runs: sudo mount -o uid=N /dev/loopX <temp>/mount/RES
+          sudo tee /usr/local/sbin/mount >/dev/null <<'EOF'
+          #!/bin/sh
+          if [ "$#" -eq 4 ] && [ "$1" = "-o" ]; then
+            case "$3:$4" in
+              /dev/loop*:*/mount/RES)
+                mkdir -p /tmp/cpa-fat
+                printf '%s\n' "$3" > "/tmp/cpa-fat/$(printf '%s' "$4" | tr / _)"
+                exit 0
+                ;;
+            esac
+          fi
+          exec /usr/bin/mount "$@"
+          EOF
+
+          # The action runs: sudo umount <temp>/mount/RES
+          sudo tee /usr/local/sbin/umount >/dev/null <<'EOF'
+          #!/bin/sh
+          if [ "$#" -eq 1 ]; then
+            state="/tmp/cpa-fat/$(printf '%s' "$1" | tr / _)"
+            if [ -f "$state" ]; then
+              dev=$(cat "$state")
+              export MTOOLS_SKIP_CHECK=1
+              mcopy -s -o -i "$dev" "$1"/* ::/ || exit 1
+              mdir -i "$dev" ::/
+              rm -f "$state"
+              exit 0
             fi
-          done
-          sudo dmesg 2>/dev/null | tail -n 15 || echo "dmesg unavailable"
-          sudo losetup -d "$dev"
+          fi
+          exec /usr/bin/umount "$@"
+          EOF
+
+          sudo chmod 755 /usr/local/sbin/mount /usr/local/sbin/umount
+          echo "sudo resolves: $(sudo sh -c 'command -v mount; command -v umount' | tr '\n' ' ')"
 
       - name: Start ${{ matrix.label }} VM
         uses: cross-platform-actions/action@82668f1fbd89d9c99487604f822cbf6716f124d3 # v1.7.0
