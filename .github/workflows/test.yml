@@ -179,6 +179,9 @@ jobs:
         working-directory: src/api
         run: npm ci
 
+      - name: Use checked-in Unicode payload
+        run: touch src/unicode-data.h
+
       - name: Build WASM
         run: make sync-api-wasm WARNINGS_AS_ERRORS=ON
 
