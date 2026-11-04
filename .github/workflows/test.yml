@@ -38,7 +38,7 @@ jobs:
             cc: gcc
             cxx: g++
           - label: macOS / Clang
-            os: macos-latest
+            os: namespace-profile-zaerl-macos
             cc: clang
             cxx: clang++
     env:
