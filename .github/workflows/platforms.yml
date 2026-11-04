@@ -42,6 +42,28 @@ jobs:
 
       - uses: ./.github/actions/setup-unicode-test-data
 
+      # cross-platform-actions builds its resource disk with fdisk, mkfs.fat and a
+      # loop device. The Namespace runner image ships without the first two and
+      # without /dev/loop* nodes, so provide them before starting the VM.
+      - name: Prepare host for VM resource disk
+        run: |
+          packages=""
+          command -v fdisk >/dev/null 2>&1 || packages="$packages fdisk"
+          command -v mkfs.fat >/dev/null 2>&1 || packages="$packages dosfstools"
+          if [ -n "$packages" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends $packages
+          fi
+          sudo modprobe loop 2>/dev/null || true
+          if ! sudo losetup -f >/dev/null 2>&1; then
+            [ -e /dev/loop-control ] || sudo mknod -m 660 /dev/loop-control c 10 237
+            for i in 0 1 2 3 4 5 6 7; do
+              [ -e "/dev/loop$i" ] || sudo mknod -m 660 "/dev/loop$i" b 7 "$i"
+            done
+          fi
+          echo "Free loop device: $(sudo losetup -f)"
+          ls -l /dev/kvm || true
+
       - name: Start ${{ matrix.label }} VM
         uses: cross-platform-actions/action@82668f1fbd89d9c99487604f822cbf6716f124d3 # v1.7.0
         with:
