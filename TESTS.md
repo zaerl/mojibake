@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,667,780** C assertions and **178** JavaScript assertions, including all
+Mojibake runs a total of **4,667,793** C assertions and **180** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -75,6 +75,7 @@ the official tests included in the standard:
 | `mjb_codepoint_numeric_value`              | 20          |
 | `mjb_hangul_syllable_name`                 | 19          |
 | `mjb_is_utf8`                              | 19          |
+| `mjb_plane_name`                           | 19          |
 | `mjb_codepoint_is_cjk_extension_ideograph` | 17          |
 | `mjb_for_each_codepoint`                   | 17          |
 | `mjb_codepoint_block`                      | 16          |
@@ -88,10 +89,10 @@ the official tests included in the standard:
 | `mjb_word_prefix_length`                   | 11          |
 | `mjb_bidi_paragraph_free`                  | 10          |
 | `mjb_codepoint_script`                     | 10          |
-| `mjb_plane_name`                           | 9           |
 | `mjb_codepoint_is_cjk_ideograph`           | 8           |
 | `mjb_word_prefix_length_for_width`         | 8           |
 | `mjb_codepoint_is_id_start`                | 7           |
+| `mjb_codepoint_plane`                      | 7           |
 | `mjb_codepoint_property_binary`            | 7           |
 | `mjb_codepoint_is_combining`               | 6           |
 | `mjb_codepoint_is_graphic`                 | 6           |
@@ -107,7 +108,6 @@ the official tests included in the standard:
 | `mjb_codepoint_is_hangul_vowel_jamo`       | 4           |
 | `mjb_codepoint_is_pattern_syntax`          | 4           |
 | `mjb_codepoint_is_pattern_white_space`     | 4           |
-| `mjb_codepoint_plane`                      | 4           |
 | `mjb_is_emoji_sequence`                    | 4           |
 | `mjb_plane_is_valid`                       | 4           |
 | `mjb_status_message`                       | 4           |
@@ -129,7 +129,7 @@ the official tests included in the standard:
 | `mjb_unicode_version`                      | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4667780** |
+| **Total**                                  | **4667793** |
 
 ## JavaScript
 
@@ -154,9 +154,11 @@ the official tests included in the standard:
 | `Mojibake.nfkcCasefold`                     | 3          |
 | `Mojibake.normalizationQuickCheck`          | 3          |
 | `Mojibake.sentenceCount`                    | 3          |
+| `Mojibake.codepointPlane`                   | 2          |
 | `Mojibake.codepointPropertyInt`             | 2          |
 | `Mojibake.confusableSkeleton`               | 2          |
 | `Mojibake.lineBreakNext`                    | 2          |
+| `Mojibake.planeName`                        | 2          |
 | `Mojibake.sentenceBreakNext`                | 2          |
 | `Mojibake.wordBreakNext`                    | 2          |
 | `Mojibake.bidiResolve`                      | 1          |
@@ -190,7 +192,6 @@ the official tests included in the standard:
 | `Mojibake.codepointIsXidContinue`           | 1          |
 | `Mojibake.codepointIsXidStart`              | 1          |
 | `Mojibake.codepointNumericValue`            | 1          |
-| `Mojibake.codepointPlane`                   | 1          |
 | `Mojibake.codepointScript`                  | 1          |
 | `Mojibake.codepointScriptExtensions`        | 1          |
 | `Mojibake.create`                           | 1          |
@@ -208,7 +209,6 @@ the official tests included in the standard:
 | `Mojibake.isUTF8`                           | 1          |
 | `Mojibake.localeParse`                      | 1          |
 | `Mojibake.planeIsValid`                     | 1          |
-| `Mojibake.planeName`                        | 1          |
 | `Mojibake.propertyName`                     | 1          |
 | `Mojibake.statusMessage`                    | 1          |
 | `Mojibake.unicodeVersion`                   | 1          |
@@ -219,4 +219,4 @@ the official tests included in the standard:
 | `Mojibake.emojiSequenceInfo`                | 0          |
 | `Mojibake.localeCode`                       | 0          |
 | `Mojibake.scriptCode`                       | 0          |
-| **Total**                                   | **178**    |
+| **Total**                                   | **180**    |
