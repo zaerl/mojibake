@@ -119,6 +119,34 @@ pub const MJB_COLLATION_QUATERNARY: mjb_collation_strength = 3;
 pub const MJB_IDENTIFIER_DEFAULT: mjb_identifier_profile = 0;
 pub const MJB_IDENTIFIER_NFKC: mjb_identifier_profile = 1;
 
+pub const MJB_FILTER_NONE: mjb_filter_flags = 0x0;
+pub const MJB_FILTER_NORMALIZE: mjb_filter_flags = 0x1;
+pub const MJB_FILTER_SPACES: mjb_filter_flags = 0x2;
+pub const MJB_FILTER_COLLAPSE_SPACES: mjb_filter_flags = 0x4;
+pub const MJB_FILTER_CONTROLS: mjb_filter_flags = 0x8;
+pub const MJB_FILTER_NUMERIC: mjb_filter_flags = 0x10;
+pub const MJB_FILTER_LIMIT_COMBINING: mjb_filter_flags = 0x20;
+
+pub const MJB_EMOJI_SEQUENCE_NONE: mjb_emoji_sequence_type = 0;
+pub const MJB_EMOJI_SEQUENCE_BASIC: mjb_emoji_sequence_type = 1;
+pub const MJB_EMOJI_SEQUENCE_KEYCAP: mjb_emoji_sequence_type = 2;
+pub const MJB_EMOJI_SEQUENCE_FLAG: mjb_emoji_sequence_type = 3;
+pub const MJB_EMOJI_SEQUENCE_TAG: mjb_emoji_sequence_type = 4;
+pub const MJB_EMOJI_SEQUENCE_MODIFIER: mjb_emoji_sequence_type = 5;
+pub const MJB_EMOJI_SEQUENCE_ZWJ: mjb_emoji_sequence_type = 6;
+pub const MJB_EMOJI_SEQUENCE_TEXT_VARIATION: mjb_emoji_sequence_type = 7;
+pub const MJB_EMOJI_SEQUENCE_EMOJI_VARIATION: mjb_emoji_sequence_type = 8;
+
+pub const MJB_EMOJI_QUALIFICATION_NONE: mjb_emoji_qualification = 0;
+pub const MJB_EMOJI_QUALIFICATION_COMPONENT: mjb_emoji_qualification = 1;
+pub const MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED: mjb_emoji_qualification = 2;
+pub const MJB_EMOJI_QUALIFICATION_MINIMALLY_QUALIFIED: mjb_emoji_qualification = 3;
+pub const MJB_EMOJI_QUALIFICATION_UNQUALIFIED: mjb_emoji_qualification = 4;
+
+pub const MJB_SCRIPT_SET_EMPTY: mjb_script_set_kind = 0;
+pub const MJB_SCRIPT_SET_RESOLVED: mjb_script_set_kind = 1;
+pub const MJB_SCRIPT_SET_ALL: mjb_script_set_kind = 2;
+
 pub const MJB_LOCALE_NOT_SET: mjb_locale = 0;
 
 pub const MJB_DIRECTION_LTR: mjb_direction = 0;
@@ -524,6 +552,49 @@ mod layout {
                 );
             )*
         };
+    }
+
+    macro_rules! check_values {
+        ($($name:ident => $probe:ident),* $(,)?) => {
+            extern "C" {
+                $(
+                    fn $probe() -> c_int;
+                )*
+            }
+
+            $(
+                assert_eq!($name, unsafe { $probe() }, stringify!($name));
+            )*
+        };
+    }
+
+    #[test]
+    fn constants_match_c() {
+        check_values!(
+            MJB_FILTER_NORMALIZE => mjb_rs_value_MJB_FILTER_NORMALIZE,
+            MJB_FILTER_SPACES => mjb_rs_value_MJB_FILTER_SPACES,
+            MJB_FILTER_COLLAPSE_SPACES => mjb_rs_value_MJB_FILTER_COLLAPSE_SPACES,
+            MJB_FILTER_CONTROLS => mjb_rs_value_MJB_FILTER_CONTROLS,
+            MJB_FILTER_NUMERIC => mjb_rs_value_MJB_FILTER_NUMERIC,
+            MJB_FILTER_LIMIT_COMBINING => mjb_rs_value_MJB_FILTER_LIMIT_COMBINING,
+            MJB_EMOJI_SEQUENCE_BASIC => mjb_rs_value_MJB_EMOJI_SEQUENCE_BASIC,
+            MJB_EMOJI_SEQUENCE_KEYCAP => mjb_rs_value_MJB_EMOJI_SEQUENCE_KEYCAP,
+            MJB_EMOJI_SEQUENCE_FLAG => mjb_rs_value_MJB_EMOJI_SEQUENCE_FLAG,
+            MJB_EMOJI_SEQUENCE_TAG => mjb_rs_value_MJB_EMOJI_SEQUENCE_TAG,
+            MJB_EMOJI_SEQUENCE_MODIFIER => mjb_rs_value_MJB_EMOJI_SEQUENCE_MODIFIER,
+            MJB_EMOJI_SEQUENCE_ZWJ => mjb_rs_value_MJB_EMOJI_SEQUENCE_ZWJ,
+            MJB_EMOJI_SEQUENCE_TEXT_VARIATION => mjb_rs_value_MJB_EMOJI_SEQUENCE_TEXT_VARIATION,
+            MJB_EMOJI_SEQUENCE_EMOJI_VARIATION => mjb_rs_value_MJB_EMOJI_SEQUENCE_EMOJI_VARIATION,
+            MJB_EMOJI_QUALIFICATION_COMPONENT => mjb_rs_value_MJB_EMOJI_QUALIFICATION_COMPONENT,
+            MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED =>
+                mjb_rs_value_MJB_EMOJI_QUALIFICATION_FULLY_QUALIFIED,
+            MJB_EMOJI_QUALIFICATION_MINIMALLY_QUALIFIED =>
+                mjb_rs_value_MJB_EMOJI_QUALIFICATION_MINIMALLY_QUALIFIED,
+            MJB_EMOJI_QUALIFICATION_UNQUALIFIED => mjb_rs_value_MJB_EMOJI_QUALIFICATION_UNQUALIFIED,
+            MJB_SCRIPT_SET_RESOLVED => mjb_rs_value_MJB_SCRIPT_SET_RESOLVED,
+            MJB_SCRIPT_SET_ALL => mjb_rs_value_MJB_SCRIPT_SET_ALL,
+            MJB_IDENTIFIER_NFKC => mjb_rs_value_MJB_IDENTIFIER_NFKC,
+        );
     }
 
     #[test]

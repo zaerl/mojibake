@@ -7,7 +7,8 @@
 //! It covers what the Rust standard library leaves out: normalization, locale-aware casing and
 //! caseless matching, UAX #29 and UAX #14 segmentation, terminal width, character properties and
 //! names, encoding conversion with malformed-input policies, the bidirectional algorithm, DUCET
-//! collation, UTS #46 IDNA, and UTS #39 confusables.
+//! collation, UTS #46 IDNA, UTS #39 confusables and script sets, text filters, UAX #31
+//! identifiers, and UTS #51 emoji sequences.
 //!
 //! ```
 //! use mojibake::{Form, StrExt};
@@ -24,12 +25,16 @@ mod case;
 mod character;
 mod error;
 mod ffi;
+mod filter;
+mod identifier;
 mod normalize;
+mod property;
 mod segment;
 mod str_ext;
 mod width;
 
 pub mod bidi;
+pub mod emoji;
 pub mod encoding;
 
 #[cfg(feature = "collation")]
@@ -43,7 +48,10 @@ pub use case::{casefold, casefold_simple, caseless_eq, to_lowercase, to_titlecas
 pub use case::{CaselessMode, Locale};
 pub use character::{CharExt, EastAsianWidth, EmojiProperties, GeneralCategory};
 pub use error::{Diagnostic, Error, Result};
+pub use filter::{filter, Filter};
+pub use identifier::{is_identifier, IdentifierProfile};
 pub use normalize::{is_normalized, nfkc_casefold, normalize, Form, QuickCheck};
+pub use property::Property;
 pub use segment::{
     grapheme_count, graphemes, line_breaks, sentence_count, sentences, word_count, words,
     LineBreak, LineBreaks, Segments,

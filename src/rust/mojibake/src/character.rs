@@ -5,6 +5,7 @@
 use mojibake_sys as sys;
 
 use crate::ffi;
+use crate::property::Property;
 
 /// The `General_Category` property of a character.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -162,6 +163,30 @@ pub trait CharExt {
     fn is_xid_start(self) -> bool;
     /// UAX #31 `XID_Continue`.
     fn is_xid_continue(self) -> bool;
+    /// UAX #31 `ID_Start`.
+    fn is_id_start(self) -> bool;
+    /// UAX #31 `ID_Continue`.
+    fn is_id_continue(self) -> bool;
+    /// UAX #31 `Pattern_Syntax`.
+    fn is_pattern_syntax(self) -> bool;
+    /// UAX #31 `Pattern_White_Space`.
+    fn is_pattern_white_space(self) -> bool;
+    /// The ISO 15924 codes of the character's `Script_Extensions`, or of its `Script` when it has
+    /// no explicit extensions: `'ー'` (U+30FC) is used by both `"Hira"` and `"Kana"`.
+    fn script_extensions(self) -> Vec<&'static str>;
+    /// The value of a binary property, such as `Alphabetic`. False for a non-binary property.
+    fn has_property(self, property: Property) -> bool;
+    /// The value of an enumerated property in the C library's property table, as the raw C enum
+    /// value from `src/unicode.h`, such as an `mjb_script` for `Script`.
+    ///
+    /// The table holds `Script`, `East_Asian_Width`, `Grapheme_Cluster_Break`,
+    /// `Indic_Conjunct_Break`, `Joining_Type`, `Line_Break`, `Sentence_Break`, and `Word_Break`.
+    /// Other properties have dedicated methods, such as
+    /// [`general_category`](CharExt::general_category), or are not stored.
+    ///
+    /// `None` when the character has no stored value for the property, and for binary
+    /// properties, which [`has_property`](CharExt::has_property) reads.
+    fn property_value(self, property: Property) -> Option<i32>;
 }
 
 impl CharExt for char {
@@ -263,5 +288,51 @@ impl CharExt for char {
     fn is_xid_continue(self) -> bool {
         // SAFETY: a pure function of its argument.
         unsafe { sys::mjb_codepoint_is_xid_continue(self as u32) }
+    }
+
+    fn is_id_start(self) -> bool {
+        // SAFETY: a pure function of its argument.
+        unsafe { sys::mjb_codepoint_is_id_start(self as u32) }
+    }
+
+    fn is_id_continue(self) -> bool {
+        // SAFETY: a pure function of its argument.
+        unsafe { sys::mjb_codepoint_is_id_continue(self as u32) }
+    }
+
+    fn is_pattern_syntax(self) -> bool {
+        // SAFETY: a pure function of its argument.
+        unsafe { sys::mjb_codepoint_is_pattern_syntax(self as u32) }
+    }
+
+    fn is_pattern_white_space(self) -> bool {
+        // SAFETY: a pure function of its argument.
+        unsafe { sys::mjb_codepoint_is_pattern_white_space(self as u32) }
+    }
+
+    fn script_extensions(self) -> Vec<&'static str> {
+        ffi::scripts(|scripts, count| {
+            // SAFETY: `count` is valid, and `scripts` is NULL or has room for `count` values.
+            unsafe { sys::mjb_codepoint_script_extensions(self as u32, scripts, count) }
+        })
+        .unwrap_or_default()
+    }
+
+    fn has_property(self, property: Property) -> bool {
+        let mut value = false;
+        // SAFETY: the pointer is valid for the duration of the call.
+        let status =
+            unsafe { sys::mjb_codepoint_property_binary(self as u32, property.0, &mut value) };
+
+        status == sys::MJB_STATUS_OK && value
+    }
+
+    fn property_value(self, property: Property) -> Option<i32> {
+        let mut value = 0;
+        // SAFETY: the pointer is valid for the duration of the call.
+        let status =
+            unsafe { sys::mjb_codepoint_property_int(self as u32, property.0, &mut value) };
+
+        (status == sys::MJB_STATUS_OK).then_some(value)
     }
 }
