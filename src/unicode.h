@@ -676,8 +676,8 @@ typedef enum mjb_plane {
     MJB_PLANE_SMP = 1,
     MJB_PLANE_SIP = 2,
     MJB_PLANE_TIP = 3,
-    MJB_PLANE_SSP = 4,
-    MJB_PLANE_PUA_A = 5,
+    MJB_PLANE_SSP = 14,
+    MJB_PLANE_PUA_A = 15,
     MJB_PLANE_PUA_B = 16
 } mjb_plane;
 

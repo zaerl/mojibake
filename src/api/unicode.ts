@@ -622,8 +622,8 @@ export enum Plane {
   SMP =        1,
   SIP =        2,
   TIP =        3,
-  SSP =        4,
-  PUA_A =      5,
+  SSP =       14,
+  PUA_A =     15,
   PUA_B =     16
 };
 
