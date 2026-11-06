@@ -149,6 +149,17 @@ pub const MJB_SCRIPT_SET_ALL: mjb_script_set_kind = 2;
 
 pub const MJB_NUMBER_NOT_VALID: c_int = -1;
 
+pub const MJB_PLANE_NOT_VALID: mjb_plane = -1;
+pub const MJB_PLANE_BMP: mjb_plane = 0;
+pub const MJB_PLANE_SMP: mjb_plane = 1;
+pub const MJB_PLANE_SIP: mjb_plane = 2;
+pub const MJB_PLANE_TIP: mjb_plane = 3;
+pub const MJB_PLANE_SSP: mjb_plane = 14;
+pub const MJB_PLANE_PUA_A: mjb_plane = 15;
+pub const MJB_PLANE_PUA_B: mjb_plane = 16;
+pub const MJB_PLANE_NUM: c_int = 17;
+pub const MJB_PLANE_SIZE: c_int = 65536;
+
 pub type mjb_idna_error = u32;
 
 pub const MJB_IDNA_ERROR_NONE: mjb_idna_error = 0x0;
@@ -656,6 +667,16 @@ mod layout {
             MJB_SCRIPT_SET_ALL => mjb_rs_value_MJB_SCRIPT_SET_ALL,
             MJB_IDENTIFIER_NFKC => mjb_rs_value_MJB_IDENTIFIER_NFKC,
             MJB_NUMBER_NOT_VALID => mjb_rs_value_MJB_NUMBER_NOT_VALID,
+            MJB_PLANE_NOT_VALID => mjb_rs_value_MJB_PLANE_NOT_VALID,
+            MJB_PLANE_BMP => mjb_rs_value_MJB_PLANE_BMP,
+            MJB_PLANE_SMP => mjb_rs_value_MJB_PLANE_SMP,
+            MJB_PLANE_SIP => mjb_rs_value_MJB_PLANE_SIP,
+            MJB_PLANE_TIP => mjb_rs_value_MJB_PLANE_TIP,
+            MJB_PLANE_SSP => mjb_rs_value_MJB_PLANE_SSP,
+            MJB_PLANE_PUA_A => mjb_rs_value_MJB_PLANE_PUA_A,
+            MJB_PLANE_PUA_B => mjb_rs_value_MJB_PLANE_PUA_B,
+            MJB_PLANE_NUM => mjb_rs_value_MJB_PLANE_NUM,
+            MJB_PLANE_SIZE => mjb_rs_value_MJB_PLANE_SIZE,
             MJB_IDNA_ERROR_PUNYCODE as c_int => mjb_rs_value_MJB_IDNA_ERROR_PUNYCODE,
             MJB_IDNA_ERROR_EMPTY_LABEL as c_int => mjb_rs_value_MJB_IDNA_ERROR_EMPTY_LABEL,
             MJB_IDNA_ERROR_HYPHEN as c_int => mjb_rs_value_MJB_IDNA_ERROR_HYPHEN,

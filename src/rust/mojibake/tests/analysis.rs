@@ -264,3 +264,68 @@ fn prefixes() {
         assert_eq!(grapheme_prefix(text, count), expected, "{count}");
     }
 }
+
+#[test]
+fn planes() {
+    let named = [
+        (Plane::BMP, 0, "Basic Multilingual Plane", "BMP"),
+        (Plane::SMP, 1, "Supplementary Multilingual Plane", "SMP"),
+        (Plane::SIP, 2, "Supplementary Ideographic Plane", "SIP"),
+        (Plane::TIP, 3, "Tertiary Ideographic Plane", "TIP"),
+        (Plane::SSP, 14, "Supplementary Special-purpose Plane", "SSP"),
+        (
+            Plane::PUA_A,
+            15,
+            "Supplementary Private Use Area-A",
+            "PUA-A",
+        ),
+        (
+            Plane::PUA_B,
+            16,
+            "Supplementary Private Use Area-B",
+            "PUA-B",
+        ),
+    ];
+
+    for (plane, number, name, abbreviation) in named {
+        assert_eq!(plane.number(), number);
+        assert_eq!(Plane::new(number), Some(plane));
+        assert_eq!(plane.name(), Some(name));
+        assert_eq!(plane.abbreviation(), Some(abbreviation));
+        assert!(plane.is_assigned());
+    }
+
+    for number in 4..=13 {
+        let plane = Plane::new(number).unwrap();
+        assert_eq!((plane.name(), plane.abbreviation()), (None, None));
+        assert!(!plane.is_assigned());
+        assert_eq!(format!("{plane:?}"), format!("Plane({number})"));
+    }
+
+    assert_eq!(Plane::new(17), None);
+    assert_eq!(Plane::new(255), None);
+
+    assert_eq!('A'.plane(), Plane::BMP);
+    assert_eq!('😀'.plane(), Plane::SMP);
+    assert_eq!('\u{20000}'.plane(), Plane::SIP);
+    assert_eq!('\u{e0001}'.plane(), Plane::SSP); // LANGUAGE TAG
+    assert_eq!('\u{f0000}'.plane(), Plane::PUA_A);
+    assert_eq!('\u{10ffff}'.plane(), Plane::PUA_B);
+    // Noncharacters still belong to a plane.
+    assert_eq!('\u{ffff}'.plane(), Plane::BMP);
+    assert_eq!('\u{1fffe}'.plane(), Plane::SMP);
+
+    assert_eq!(Plane::BMP.codepoints(), 0..=0xffff);
+    assert_eq!(Plane::PUA_B.codepoints(), 0x10_0000..=0x10_ffff);
+    for number in 0..=16 {
+        let plane = Plane::new(number).unwrap();
+        let range = plane.codepoints();
+        assert_eq!(range.end() - range.start(), 0xffff);
+        // The first and last codepoints of every plane are scalar values.
+        assert_eq!(char::from_u32(*range.start()).unwrap().plane(), plane);
+        assert_eq!(char::from_u32(*range.end()).unwrap().plane(), plane);
+    }
+
+    assert!(Plane::BMP < Plane::SSP);
+    assert_eq!(format!("{:?}", Plane::PUA_A), "Plane(15, PUA-A)");
+}

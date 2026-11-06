@@ -29,6 +29,7 @@ mod filter;
 mod identifier;
 mod language_tag;
 mod normalize;
+mod plane;
 mod property;
 mod segment;
 mod str_ext;
@@ -57,6 +58,7 @@ pub use filter::{filter, Filter};
 pub use identifier::{is_identifier, IdentifierProfile};
 pub use language_tag::{Extensions, LanguageTag};
 pub use normalize::{is_normalized, nfkc_casefold, normalize, Form, QuickCheck};
+pub use plane::Plane;
 pub use property::Property;
 pub use segment::{
     grapheme_count, grapheme_prefix, graphemes, line_breaks, sentence_count, sentences, word_count,

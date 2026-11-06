@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   syllable and jamo predicates, `CharExt::{is_cjk_ideograph, is_cjk_extension_ideograph}`, and
   `grapheme_prefix` and `word_prefix`, which return the first N graphemes or word-break segments
   in one pass. `idna::IdnaError::errors` is now a typed `IdnaErrors` flag set instead of a `u32`
+- The `mojibake-rs` crate adds `Plane` and `CharExt::plane`, with the plane number, name,
+  abbreviation, and codepoint range. Planes 4 to 13 have no name. `mojibake-sys` adds the
+  `MJB_PLANE_*` constants, checked against C
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps
