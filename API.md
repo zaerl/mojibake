@@ -2986,6 +2986,8 @@ mjb_status mjb_bidi_reorder_line(
 );
 ```
 
+The levels stored in the paragraph already have rule L1 applied as if the whole paragraph were one line. For this line, whitespace and isolate formatting characters at its end are also reset to the paragraph level (L1) on a private copy of the levels before the L2 reversal; the paragraph itself is not modified.
+
 - `paragraph` - The resolved paragraph
 - `line_start` - Start index into paragraph->chars
 - `line_end` - End index (exclusive) into paragraph->chars
@@ -3027,11 +3029,18 @@ mjb_status mjb_bidi_line_runs(
 );
 ```
 
+Run levels use the same line levels as `mjb_bidi_reorder_line`: `visual_order` must be a permutation of one line, and whitespace and isolate formatting characters at the end of that line report the paragraph level (rule L1) even though the paragraph stores their paragraph-wide level.
+
 - `paragraph` - The resolved paragraph
 - `visual_order` - Visual order array from `mjb_bidi_reorder_line`
 - `count` - Length of visual_order
 - `runs` - Caller-allocated array, or NULL to only count
 - `run_count` - On output: number of runs written (or total if `runs` = `NULL`)
+
+**Returns**
+
+- `MJB_STATUS_OK` - The runs were counted or written
+- `MJB_STATUS_INVALID_ARGUMENT` - `paragraph` or `run_count` is NULL, `visual_order` is NULL with a non-zero `count`, or `visual_order` holds an index outside the paragraph
 
 **Example**
 

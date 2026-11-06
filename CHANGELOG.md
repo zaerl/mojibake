@@ -41,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_sentence_break_state`, and `mjb_line_break_state` are removed. Callers only set `index`
 
 ### Fixed
+- `mjb_bidi_reorder_line` skipped UAX #9 rule L1 for lines that end inside the paragraph:
+  whitespace and isolate formatting characters at the end of such a line kept their resolved level
+  and were reordered with the text before them. In an RTL paragraph, the space of the line `"abc "`
+  of `"abc def"` was placed after `c` instead of at the line end. The line levels are now reset on
+  a private copy, and `mjb_bidi_line_runs` reports the same levels. `mjb_bidi_line_runs` also
+  returns `MJB_STATUS_INVALID_ARGUMENT` for a visual-order index outside the paragraph. The
+  BidiTest.txt conformance test now checks every two-line split of each case
 - Grapheme segmentation split an emoji flag that followed another flag and a control, CR, or LF:
   `"🇮🇹\n🇮🇹"` gave four clusters instead of three. The regional indicator count now restarts at
   every codepoint that is not a regional indicator (GB12, GB13)

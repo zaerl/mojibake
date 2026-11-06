@@ -2997,6 +2997,10 @@ mjb_bidi_paragraph_free(&paragraph);`
     ],
     wasm: false,
     section: Section.Bidirectional,
+    details: 'The levels stored in the paragraph already have rule L1 applied as if the whole ' +
+      'paragraph were one line. For this line, whitespace and isolate formatting characters at ' +
+      'its end are also reset to the paragraph level (L1) on a private copy of the levels before ' +
+      'the L2 reversal; the paragraph itself is not modified.',
     examples: {
       c: `mjb_text input = mjb_text_utf8("\\xD7\\x90\\xD7\\x91\\xD7\\x92", MJB_NUL_TERMINATED); // אבג
 mjb_bidi_paragraph paragraph;
@@ -3054,6 +3058,16 @@ mjb_bidi_paragraph_free(&paragraph);`
     ],
     wasm: false,
     section: Section.Bidirectional,
+    details: 'Run levels use the same line levels as `mjb_bidi_reorder_line`: `visual_order` must ' +
+      'be a permutation of one line, and whitespace and isolate formatting characters at the end ' +
+      'of that line report the paragraph level (rule L1) even though the paragraph stores their ' +
+      'paragraph-wide level.',
+    returns: [
+      { value: 'MJB_STATUS_OK', description: 'The runs were counted or written' },
+      { value: 'MJB_STATUS_INVALID_ARGUMENT', description:
+        '`paragraph` or `run_count` is NULL, `visual_order` is NULL with a non-zero `count`, or ' +
+        '`visual_order` holds an index outside the paragraph' }
+    ],
     examples: {
       c: `mjb_text input = mjb_text_utf8("abc", 3);
 mjb_bidi_paragraph paragraph;
