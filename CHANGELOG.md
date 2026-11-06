@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   FFI, and `mojibake` adds a safe API for normalization, locale casing, caseless matching,
   segmentation, terminal width, character properties, collation, IDNA, and confusables. Run their
   tests with `make test-rust`
+- `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
+  `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
+  version. `src/rust/README.md` describes the release steps
 - `mjb_nul_terminated_length` returns the byte length of a string that ends at its first NUL code
   unit, in any input encoding
 

@@ -232,7 +232,7 @@ tidy: configure-tidy
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
 	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
 	test-ubsan test-no-names test-no-collation test-no-idna test-no-security test-wasm \
-	ctest ctest-cpp test-rust test-docker
+	ctest ctest-cpp test-rust vendor-rust package-rust test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -349,6 +349,25 @@ test-rust:
 	cd src/rust && cargo test
 	cd src/rust && cargo test -p mojibake --no-default-features
 
+# Copy the C sources into src/rust/mojibake-sys/csrc (git-ignored) so the crate is self-contained
+vendor-rust:
+	@rm -rf src/rust/mojibake-sys/csrc
+	@mkdir -p src/rust/mojibake-sys/csrc
+	@cp src/*.c src/*.h src/CMakeLists.txt LICENSE src/rust/mojibake-sys/csrc/
+
+# Package both Rust crates and verify that each builds from its .crate file. Nothing is published.
+# Cargo counts the git-ignored csrc/ copy as uncommitted, so --allow-dirty is always passed. The
+# check below stands in for Cargo's: the packaged sources must be committed, unless ALLOW_DIRTY=1
+package-rust: vendor-rust
+	@if [ "$(ALLOW_DIRTY)" != "1" ] && \
+		[ -n "$$(git status --porcelain --untracked-files=all -- src LICENSE)" ]; then \
+		git status --short --untracked-files=all -- src LICENSE; \
+		echo "Commit these changes first, or set ALLOW_DIRTY=1"; \
+		exit 1; \
+	fi
+	cd src/rust && cargo package --workspace --locked --allow-dirty $(ARGS)
+	cd src/rust && cargo publish --workspace --locked --dry-run --allow-dirty $(ARGS)
+
 # Run tests in Docker container
 test-docker:
 	docker build -t mojibake .
@@ -419,6 +438,8 @@ help:
 	@echo "  ctest                   - Build and run tests using CTest"
 	@echo "  ctest-cpp               - Build and run C++ tests using CTest"
 	@echo "  test-rust               - Test the Rust crates in src/rust with cargo"
+	@echo "  vendor-rust             - Copy the C sources into the mojibake-sys crate"
+	@echo "  package-rust            - Vendor, package and dry-run publish the Rust crates"
 	@echo "  generate                - Regenerate source files"
 	@echo "  generate-cpp            - Regenerate source files with the C++ generator"
 	@echo "  generate-locale         - Generate locale file"

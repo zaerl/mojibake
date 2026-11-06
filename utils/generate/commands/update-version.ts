@@ -46,6 +46,20 @@ export async function updateVersion() {
   fileContent = substituteBlock(fileContent, 'mojibake.version(), \'', '-WASM', v.version);
   writeFileSync('../../src/api/tests/browser.html', fileContent);
 
+  // Rust crates: the workspace version, the mojibake-sys dependency, and both lockfile entries
+  fileContent = readFileSync('../../src/rust/Cargo.toml', 'utf-8');
+  fileContent = substituteBlock(fileContent, '[workspace.package]\nversion = "', '"', v.version);
+  writeFileSync('../../src/rust/Cargo.toml', fileContent);
+
+  fileContent = readFileSync('../../src/rust/mojibake/Cargo.toml', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'path = "../mojibake-sys", version = "', '"', v.version);
+  writeFileSync('../../src/rust/mojibake/Cargo.toml', fileContent);
+
+  fileContent = readFileSync('../../src/rust/Cargo.lock', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'name = "mojibake"\nversion = "', '"', v.version);
+  fileContent = substituteBlock(fileContent, 'name = "mojibake-sys"\nversion = "', '"', v.version);
+  writeFileSync('../../src/rust/Cargo.lock', fileContent);
+
   const zip = `mojibake-amalgamation-${v.major}${v.minor}${v.revision}`;
   fileContent = readFileSync('../../README.md', 'utf-8');
   fileContent = substituteBlock(fileContent, 'Download it here [', '.zip)',
@@ -76,6 +90,7 @@ export async function updateVersion() {
   console.log(`\nVersion updated to ${v.version}`);
   console.log('make wasm');
   console.log('make amalgamation');
+  console.log('make package-rust');
   console.log('npm i in utils/generate');
   console.log('npm i in src/api');
   console.log(`Update CHANGELOG.md: add a [${v.version}] section`);

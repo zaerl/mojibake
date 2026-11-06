@@ -4,9 +4,15 @@
 
 //! Compile the Mojibake C library with the `cc` crate.
 //!
-//! The C sources are read from `MOJIBAKE_SRC_DIR` when it is set, else from the repository's
-//! `src/` directory. The source list is taken from the generated `SOURCES` block of
-//! `src/CMakeLists.txt`, so it cannot drift from the CMake build.
+//! The C sources are read from, in order:
+//!
+//! 1. `MOJIBAKE_SRC_DIR`, when it is set
+//! 2. the repository's `src/` directory, when the crate is built inside a Mojibake checkout
+//! 3. `csrc/`, the copy that `make vendor-rust` puts inside the crate for `cargo package`
+//!
+//! The checkout wins over `csrc/` so that in-tree builds never compile a stale copy. A published
+//! crate is never inside a checkout, so it always uses `csrc/`. The source list is taken from the
+//! generated `SOURCES` block of `CMakeLists.txt`, so it cannot drift from the CMake build.
 
 use std::env;
 use std::fs;
@@ -28,7 +34,26 @@ fn source_dir() -> PathBuf {
 
     let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     // src/rust/mojibake-sys -> src
-    manifest_dir.join("../..")
+    let checkout = manifest_dir.join("../..");
+    let in_checkout = manifest_dir.parent().and_then(Path::file_name) == Some("rust".as_ref())
+        && checkout.join("mojibake.h").is_file()
+        && checkout.join("CMakeLists.txt").is_file();
+
+    if in_checkout {
+        return checkout;
+    }
+
+    let vendored = manifest_dir.join("csrc");
+
+    if vendored.join("CMakeLists.txt").is_file() {
+        return vendored;
+    }
+
+    panic!(
+        "cannot find the Mojibake C sources: set MOJIBAKE_SRC_DIR, build inside the repository, \
+         or run `make vendor-rust` from the repository root to fill {}",
+        vendored.display()
+    );
 }
 
 fn c_sources(src: &Path) -> Vec<PathBuf> {
