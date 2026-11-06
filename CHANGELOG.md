@@ -14,8 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tests with `make test-rust`
 - `mojibake-sys` binds every public function except the variadic and `va_list` formatting ones.
   The declarations in `src/rust/mojibake-sys/src/functions.rs` are generated from
-  `utils/generate/functions.ts` by `make generate`, and by the C++ generator with
-  `make generate-cpp ARGS=rust-ffi`
+  `utils/generate/functions.ts` by `make generate`
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps

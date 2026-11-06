@@ -120,8 +120,8 @@ and `MJB_INSTALL` default to ON only when Mojibake is the top-level project. Ins
   When you did not intend to change generated data, `touch src/unicode-data.h` instead of
   regenerating.
 - `make clean` removes every Makefile-managed build directory **and** the downloaded
-  `unicode-data/` directory. Prefer `make clean-native`, `make clean-wasm`,
-  `make clean-amalgamation`, or `make clean-generator`, or delete a single `build-*` directory.
+  `unicode-data/` directory. Prefer `make clean-native`, `make clean-wasm`, or
+  `make clean-amalgamation`, or delete a single `build-*` directory.
 
 ## Testing
 
@@ -196,12 +196,6 @@ downloaded inputs from `unicode-data/`. `make generate` invokes
 `utils/generate/scripts/generate.sh`, which downloads any missing UCD, Unihan, emoji, collation,
 IDNA, and UTS #39 data, checks the IDNA and security data versions, and then generates the
 checked-in outputs.
-
-`utils/generator/` is a C++ port of the generator, built in `build-generator/` and driven by
-`make generate-cpp` (`ARGS=unicode-tables`, `amalgamation`, `generate-locale`, `rust-ffi`). `make
-update-version` uses it. When you change an emitter that both generators implement, keep them
-producing identical output. Both write `src/rust/mojibake-sys/src/functions.rs`: the TypeScript
-emitter from `functions.ts`, the C++ one from the generated declarations in `src/mojibake.h`.
 
 Important boundaries:
 

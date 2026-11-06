@@ -10,9 +10,6 @@ import functions from '../functions';
 import { iLog } from '../log';
 
 // Generate the raw `extern "C"` declarations of the mojibake-sys crate.
-//
-// The C++ generator (utils/generator/rust-ffi.cpp) emits the same file from the declarations
-// generated in src/mojibake.h. Keep the two in sync: they must produce identical output.
 
 export type RustFFIArg = {
   type: string;
