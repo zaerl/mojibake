@@ -14,21 +14,17 @@ use crate::ffi;
 /// Locales change casing only where Unicode's `SpecialCasing.txt` says so (for example Turkish,
 /// Azerbaijani, and Lithuanian). Every other valid tag behaves like [`Locale::ROOT`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
-pub struct Locale(sys::mjb_locale);
+pub struct Locale(pub(crate) sys::mjb_locale);
 
 impl Locale {
     /// Locale-independent casing.
     pub const ROOT: Self = Self(sys::MJB_LOCALE_NOT_SET);
 
     /// Parse a BCP 47 language tag such as `"tr"` or `"sr-Latn-RS"`.
+    ///
+    /// Use [`LanguageTag::parse`](crate::LanguageTag::parse) to read the tag's subtags.
     pub fn parse(tag: &str) -> Result<Self> {
-        let text = ffi::text(tag);
-        // SAFETY: mjb_locale_id is plain data; all-zero is a valid value.
-        let mut id: sys::mjb_locale_id = unsafe { std::mem::zeroed() };
-        // SAFETY: all pointers are valid for the duration of the call.
-        check(unsafe { sys::mjb_locale_parse(&text, &mut id) }, None)?;
-
-        Ok(Self(id.locale))
+        parse_tag(tag).map(|id| Self(id.locale))
     }
 
     /// The ISO 639-1 code of the matched locale, or `None` for [`Locale::ROOT`].
@@ -36,6 +32,17 @@ impl Locale {
         // SAFETY: mjb_locale_code returns NULL or a static string.
         unsafe { ffi::static_str(sys::mjb_locale_code(self.0)) }.filter(|code| !code.is_empty())
     }
+}
+
+/// Run `mjb_locale_parse` on `tag`.
+pub(crate) fn parse_tag(tag: &str) -> Result<sys::mjb_locale_id> {
+    let text = ffi::text(tag);
+    // SAFETY: mjb_locale_id is plain data; all-zero is a valid value.
+    let mut id: sys::mjb_locale_id = unsafe { std::mem::zeroed() };
+    // SAFETY: all pointers are valid for the duration of the call.
+    check(unsafe { sys::mjb_locale_parse(&text, &mut id) }, None)?;
+
+    Ok(id)
 }
 
 fn map_case(s: &str, kind: sys::mjb_map_case_type, locale: Locale) -> Result<Cow<'_, str>> {

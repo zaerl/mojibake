@@ -27,6 +27,7 @@ mod error;
 mod ffi;
 mod filter;
 mod identifier;
+mod language_tag;
 mod normalize;
 mod property;
 mod segment;
@@ -53,6 +54,7 @@ pub use character::{
 pub use error::{Diagnostic, Error, Result};
 pub use filter::{filter, Filter};
 pub use identifier::{is_identifier, IdentifierProfile};
+pub use language_tag::{Extensions, LanguageTag};
 pub use normalize::{is_normalized, nfkc_casefold, normalize, Form, QuickCheck};
 pub use property::Property;
 pub use segment::{

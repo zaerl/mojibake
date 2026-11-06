@@ -26,6 +26,7 @@ upper/lowercase mapping. These crates add what it leaves out:
 | Bidirectional text (UAX #9) | `bidi::Paragraph::{levels, reorder_line, runs, visual}`, resolved `BidiClass` per character |
 | Normalization (UAX #15) | `normalize`, `is_normalized`, `nfkc_casefold` |
 | Locale casing, titlecase, folding | `to_uppercase(s, Locale::parse("tr")?)`, `to_titlecase`, `casefold` |
+| BCP 47 language tags (RFC 5646) | `LanguageTag::{parse, language, script, region, variants, extensions, private_use, locale}` |
 | Caseless matching (D144-D147) | `caseless_eq`, `StrExt::caseless_eq` |
 | Segmentation (UAX #29, UAX #14) | `graphemes`, `words`, `sentences`, `line_breaks`, counts |
 | Terminal width (UAX #11) | `terminal_width`, `truncate_to_width` |
@@ -137,7 +138,7 @@ This is a scaffold. `mojibake-sys` declares every public function except the var
 layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
 Not done yet:
 
-- expose the remaining APIs in the safe crate: the parsed BCP 47 subtags of `mjb_locale_id`, typed IDNA error flags, Hangul and plane helpers, the `_into` variants, and
-  streaming decoders over `mjb_decode_next`
+- expose the remaining APIs in the safe crate: typed IDNA error flags, Hangul and plane helpers,
+  the `_into` variants, and streaming decoders over `mjb_decode_next`
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy
