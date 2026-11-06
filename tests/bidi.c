@@ -424,5 +424,83 @@ ATT_TEST(bidi) {
 
     mjb_bidi_paragraph_free(&para);
 
+    {
+        size_t out_of_range[1] = { 3 };
+        size_t run_count = 0;
+        text = mjb_text_utf8(ltr, strlen(ltr));
+        ATT_ASSERT_STATUS(mjb_bidi_resolve(&text, MJB_DIRECTION_LTR, &para), MJB_STATUS_OK,
+            "line runs range resolve");
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, out_of_range, 1, NULL, &run_count),
+            MJB_STATUS_INVALID_ARGUMENT, "line runs rejects an index outside the paragraph");
+        mjb_bidi_paragraph_free(&para);
+    }
+
+    // L1: whitespace at the end of a line inside the paragraph is reset to the paragraph level.
+    text = mjb_text_utf8("abc def", 7);
+    ATT_ASSERT_STATUS(mjb_bidi_resolve(&text, MJB_DIRECTION_RTL, &para), MJB_STATUS_OK,
+        "L1 RTL resolve");
+
+    if(para.count == 7) {
+        size_t order[4];
+        mjb_bidi_run runs[4];
+        size_t run_count = 0;
+
+        ATT_ASSERT(para.chars[3].level, (uint8_t)2, "L1 inner space keeps its paragraph level");
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 4, order), MJB_STATUS_OK,
+            "L1 RTL line reorder");
+        ATT_ASSERT(order[0], (size_t)3, "L1 RTL trailing space is visually first");
+        ATT_ASSERT(order[1], (size_t)0, "L1 RTL visual[1] = a");
+        ATT_ASSERT(order[2], (size_t)1, "L1 RTL visual[2] = b");
+        ATT_ASSERT(order[3], (size_t)2, "L1 RTL visual[3] = c");
+        ATT_ASSERT(para.chars[3].level, (uint8_t)2, "L1 reorder leaves the paragraph untouched");
+
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 4, runs, &run_count), MJB_STATUS_OK,
+            "L1 RTL line runs");
+        ATT_ASSERT(run_count, (size_t)2, "L1 RTL line has two runs");
+        ATT_ASSERT(runs[0].level, (uint8_t)1, "L1 RTL space run level");
+        ATT_ASSERT((unsigned int)runs[0].direction, (unsigned int)MJB_DIRECTION_RTL,
+            "L1 RTL space run direction");
+        ATT_ASSERT(runs[0].end, (size_t)1, "L1 RTL space run end");
+        ATT_ASSERT(runs[1].level, (uint8_t)2, "L1 RTL Latin run level");
+        ATT_ASSERT(runs[1].end, (size_t)4, "L1 RTL Latin run end");
+
+        // The last line ends the paragraph, so its levels are the paragraph levels.
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 4, 7, order), MJB_STATUS_OK,
+            "L1 RTL last line reorder");
+        ATT_ASSERT(order[0], (size_t)4, "L1 RTL last line visual[0] = d");
+        ATT_ASSERT(order[2], (size_t)6, "L1 RTL last line visual[2] = f");
+    }
+
+    mjb_bidi_paragraph_free(&para);
+
+    // L1 in an LTR paragraph: a Hebrew line ending in a space and an isolate.
+    const char *hebrew = "\xD7\x90\xD7\x91 \xE2\x81\xA9\xD7\x92"; // אב PDI ג
+    text = mjb_text_utf8(hebrew, strlen(hebrew));
+    ATT_ASSERT_STATUS(mjb_bidi_resolve(&text, MJB_DIRECTION_LTR, &para), MJB_STATUS_OK,
+        "L1 LTR resolve");
+
+    if(para.count == 5) {
+        size_t order[4];
+        mjb_bidi_run runs[4];
+        size_t run_count = 0;
+
+        ATT_ASSERT(para.chars[2].level, (uint8_t)1, "L1 LTR inner space is RTL");
+        ATT_ASSERT(para.chars[3].level, (uint8_t)1, "L1 LTR inner PDI is RTL");
+        ATT_ASSERT_STATUS(mjb_bidi_reorder_line(&para, 0, 4, order), MJB_STATUS_OK,
+            "L1 LTR line reorder");
+        ATT_ASSERT(order[0], (size_t)1, "L1 LTR visual[0] = bet");
+        ATT_ASSERT(order[1], (size_t)0, "L1 LTR visual[1] = alef");
+        ATT_ASSERT(order[2], (size_t)2, "L1 LTR space stays at the line end");
+        ATT_ASSERT(order[3], (size_t)3, "L1 LTR isolate stays at the line end");
+
+        ATT_ASSERT_STATUS(mjb_bidi_line_runs(&para, order, 4, runs, &run_count), MJB_STATUS_OK,
+            "L1 LTR line runs");
+        ATT_ASSERT(run_count, (size_t)2, "L1 LTR line has two runs");
+        ATT_ASSERT(runs[1].level, (uint8_t)0, "L1 LTR trailing run level");
+        ATT_ASSERT(runs[1].start, (size_t)2, "L1 LTR trailing run start");
+    }
+
+    mjb_bidi_paragraph_free(&para);
+
     read_bidi_test_file("./unicode-data/UCD/BidiCharacterTest.txt");
 }

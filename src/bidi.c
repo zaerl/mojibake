@@ -1401,6 +1401,33 @@ MJB_EXPORT void mjb_bidi_paragraph_free(mjb_bidi_paragraph *paragraph) {
     paragraph->count = 0;
 }
 
+/*
+    UAX #9 L1 item 4: return the logical index where the trailing run of whitespace and isolate
+    formatting characters of the line [line_start, line_end) begins (line_end when there is none).
+    Segment and paragraph separators are included: L1 already resets them and the whitespace before
+    them. Characters removed by X9 are not stored in the paragraph, so they are ignored here.
+*/
+static size_t bidi_line_trailing_start(const mjb_bidi_paragraph *paragraph, size_t line_start,
+    size_t line_end) {
+    size_t i = line_end;
+
+    while(i > line_start) {
+        mjb_bidi_class bc;
+        bool mirrored;
+
+        bidi_query(paragraph->chars[i - 1].codepoint, &bc, &mirrored);
+
+        if(bc != MJB_PR_BIDI_CLASS_WS && bc != MJB_PR_BIDI_CLASS_S && bc != MJB_PR_BIDI_CLASS_B &&
+            !is_isolate_initiator(bc) && bc != MJB_PR_BIDI_CLASS_PDI) {
+            break;
+        }
+
+        --i;
+    }
+
+    return i;
+}
+
 // Reorder a line visually (L1-L4); visual_order is caller-allocated.
 MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph, size_t line_start,
     size_t line_end, size_t *visual_order) {
@@ -1418,22 +1445,15 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
         visual_order[i] = line_start + i;
     }
 
-    // L1: reset levels of whitespace/paragraph separator at end of line
-    for(size_t i = n; i-- > 0;) {
-        size_t idx = visual_order[i];
-        mjb_bidi_class rc = paragraph->chars[idx].resolved_class;
+    /*
+        L1: the paragraph levels already have L1 applied as if the whole paragraph were one line
+        (segment/paragraph separators, the whitespace before them, and the trailing whitespace of
+        the paragraph). The only line-dependent part is item 4: whitespace and isolate formatting
+        characters at the end of this line are reset to the paragraph level. Work on a copy so the
+        paragraph stays untouched.
+    */
+    size_t trailing_start = bidi_line_trailing_start(paragraph, line_start, line_end);
 
-        if(rc == MJB_PR_BIDI_CLASS_WS || rc == MJB_PR_BIDI_CLASS_B || rc == MJB_PR_BIDI_CLASS_S ||
-            is_isolate_initiator(rc) || rc == MJB_PR_BIDI_CLASS_PDI) {
-            (void)para_level;
-            // Simplified: stop at first non-whitespace from end
-            break;
-        } else {
-            break;
-        }
-    }
-
-    // Build level array for the line
     uint8_t *levels = (uint8_t *)mjb_alloc(n * sizeof(uint8_t));
 
     if(!levels) {
@@ -1441,7 +1461,8 @@ MJB_EXPORT mjb_status mjb_bidi_reorder_line(const mjb_bidi_paragraph *paragraph,
     }
 
     for(size_t i = 0; i < n; ++i) {
-        levels[i] = paragraph->chars[line_start + i].level;
+        size_t idx = line_start + i;
+        levels[i] = idx >= trailing_start ? para_level : paragraph->chars[idx].level;
     }
 
     // Find max level and minimum odd level
@@ -1517,14 +1538,45 @@ MJB_EXPORT mjb_status mjb_bidi_line_runs(const mjb_bidi_paragraph *paragraph,
         return MJB_STATUS_OK;
     }
 
+    /*
+        The runs use the line levels mjb_bidi_reorder_line reorders with, so the L1 reset of the
+        trailing whitespace of the line has to be recomputed here (the paragraph is const and the
+        API carries no line levels). visual_order is a permutation of the line [line_start,
+        line_end), so its largest index gives line_end; the smallest gives line_start.
+    */
+    size_t line_start = SIZE_MAX;
+    size_t line_end = 0;
+
+    for(size_t i = 0; i < count; ++i) {
+        if(visual_order[i] >= paragraph->count) {
+            return MJB_STATUS_INVALID_ARGUMENT;
+        }
+
+        if(visual_order[i] < line_start) {
+            line_start = visual_order[i];
+        }
+
+        if(visual_order[i] + 1 > line_end) {
+            line_end = visual_order[i] + 1;
+        }
+    }
+
+    size_t trailing_start = bidi_line_trailing_start(paragraph, line_start, line_end);
+    uint8_t para_level = paragraph->paragraph_level;
     size_t nruns = 0;
 
     // Count or fill runs.
-    uint8_t cur_level = paragraph->chars[visual_order[0]].level;
+    uint8_t cur_level = visual_order[0] >= trailing_start ? para_level :
+                                                            paragraph->chars[visual_order[0]].level;
     size_t run_start = 0;
 
     for(size_t i = 1; i <= count; ++i) {
-        uint8_t next_level = (i < count) ? paragraph->chars[visual_order[i]].level : (uint8_t)255;
+        uint8_t next_level = (uint8_t)255;
+
+        if(i < count) {
+            size_t idx = visual_order[i];
+            next_level = idx >= trailing_start ? para_level : paragraph->chars[idx].level;
+        }
 
         if(next_level != cur_level || i == count) {
             if(runs) {
