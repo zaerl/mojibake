@@ -264,8 +264,8 @@ test-cpp-minimal:
 		FEATURE_CHARACTER_NAMES=OFF FEATURE_COLLATION=OFF FEATURE_IDNA=OFF \
 		FEATURE_SECURITY=OFF ARGS="$(ARGS)"
 
-# Build the API and run its Node and browser WASM tests
-test-wasm:
+# Rebuild and sync the WASM artifacts, then build the API and run its Node and browser tests
+test-wasm: sync-api-wasm
 	@cd ./src/api && npm run test
 
 # Run tests with AddressSanitizer
@@ -442,7 +442,7 @@ help:
 	@echo "  test-release            - Build and run optimized C tests"
 	@echo "  test-sanitizers         - Build and run sanitizer configurations"
 	@echo "  test-ubsan              - Build and run tests with UndefinedBehaviorSanitizer"
-	@echo "  test-wasm               - Run WASM Node and browser API tests"
+	@echo "  test-wasm               - Sync WASM and run the Node and browser API tests"
 	@echo "  fuzz                    - Fuzz the public API with libFuzzer in Docker"
 	@echo "  update-version          - Update version in source files"
 	@echo "  wasm                    - Build the project for WebAssembly"

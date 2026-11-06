@@ -158,8 +158,9 @@ You can run tests in multiple ways. On POSIX platforms:
 4. `make test-ubsan` run tests with [UndefinedBehaviorSanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html)
 5. `make ctest` run tests using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html)
 6. `make ctest-cpp` run C and C++ tests using `ctest`
-7. `make test-wasm` build the TypeScript package and test the WASM API in Node and a local
-   Chromium-based browser (set `MJB_BROWSER` if it is not on the default search path)
+7. `make test-wasm` rebuild the WASM module with Emscripten, build the TypeScript package, and
+   test the WASM API in Node and a local Chromium-based browser (set `MJB_BROWSER` if it is not on
+   the default search path)
 
 Windows 10/11:
 

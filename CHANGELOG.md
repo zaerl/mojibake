@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   text without a byte order mark, instead of iterating over replacement characters
 - The `state` and `in_error` members of `mjb_grapheme_break_state`, `mjb_word_break_state`,
   `mjb_sentence_break_state`, and `mjb_line_break_state` are removed. Callers only set `index`
+- `make test-wasm` and `nmake /F Makefile.nmake test-wasm` rebuild and sync the WASM artifacts
+  before testing, so they no longer test a stale `src/api/mojibake.wasm`
 
 ### Fixed
 - `mjb_bidi_reorder_line` skipped UAX #9 rule L1 for lines that end inside the paragraph:
