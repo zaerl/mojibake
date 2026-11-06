@@ -1,5 +1,9 @@
 # Mojibake for Rust
 
+[![crates.io](https://img.shields.io/crates/v/mojibake-rs.svg)](https://crates.io/crates/mojibake-rs)
+[![docs.rs](https://img.shields.io/docsrs/mojibake-rs)](https://docs.rs/mojibake-rs)
+[![Rust](https://img.shields.io/badge/rust-1.77.0%2B-blue.svg?maxAge=3600)](https://github.com/zaerl/mojibake)
+
 Two crates that expose Mojibake to Rust:
 
 - `mojibake-sys` compiles the C library with the [`cc`](https://crates.io/crates/cc) crate and
