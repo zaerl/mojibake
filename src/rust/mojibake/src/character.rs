@@ -6,6 +6,7 @@ use mojibake_sys as sys;
 
 use crate::bidi::BidiClass;
 use crate::ffi;
+use crate::plane::Plane;
 use crate::property::Property;
 
 /// The `General_Category` property of a character.
@@ -322,6 +323,8 @@ pub trait CharExt {
     fn is_xid_start(self) -> bool;
     /// UAX #31 `XID_Continue`.
     fn is_xid_continue(self) -> bool;
+    /// The Unicode plane that contains the character.
+    fn plane(self) -> Plane;
     /// True for a CJK unified ideograph: the main block, U+4E00 to U+9FFF, or one of its
     /// extensions. Compatibility ideographs are not included.
     fn is_cjk_ideograph(self) -> bool;
@@ -484,6 +487,10 @@ impl CharExt for char {
     fn is_xid_continue(self) -> bool {
         // SAFETY: a pure function of its argument.
         unsafe { sys::mjb_codepoint_is_xid_continue(self as u32) }
+    }
+
+    fn plane(self) -> Plane {
+        Plane::of(self)
     }
 
     fn is_cjk_ideograph(self) -> bool {

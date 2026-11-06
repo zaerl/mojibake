@@ -30,7 +30,8 @@ upper/lowercase mapping. These crates add what it leaves out:
 | Caseless matching (D144-D147) | `caseless_eq`, `StrExt::caseless_eq` |
 | Segmentation (UAX #29, UAX #14) | `graphemes`, `words`, `sentences`, `line_breaks`, counts, `grapheme_prefix`, `word_prefix` |
 | Terminal width (UAX #11) | `terminal_width`, `truncate_to_width` |
-| Character properties | `CharExt::{general_category, name, block, script, script_extensions, numeric_value, east_asian_width, emoji_properties}` |
+| Character properties | `CharExt::{general_category, name, block, plane, script, script_extensions, numeric_value, east_asian_width, emoji_properties}` |
+| Unicode planes | `Plane::{new, of, number, name, abbreviation, codepoints}` |
 | `UnicodeData.txt` record | `CharExt::info` → `CharInfo`, `CharExt::{canonical_combining_class, bidi_class, decomposition_type, simple_uppercase, ...}` |
 | Any binary or enumerated property | `Property::{from_name, all}`, `CharExt::{has_property, property_value}` |
 | Text filters | `filter(s, Filter::NORMALIZE \| Filter::COLLAPSE_SPACES)` |
@@ -139,8 +140,7 @@ This is a scaffold. `mojibake-sys` declares every public function except the var
 layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
 Not done yet:
 
-- expose the remaining APIs in the safe crate: plane names (after `MJB_PLANE_SSP` and
-  `MJB_PLANE_PUA_A` in `src/unicode.h` are fixed to planes 14 and 15), the `_into` variants, and
-  streaming decoders over `mjb_decode_next`
+- expose the remaining APIs in the safe crate: the `_into` variants and streaming decoders over
+  `mjb_decode_next`, if a use case appears; `String`, `Cow`, and `str` iterators cover them today
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy
