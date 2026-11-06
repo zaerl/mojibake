@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.6.0]
+Codename: [GRAVE ACCENT]
+
+### Added
 - Rust crates in `src/rust/`: `mojibake-sys` compiles the library with Cargo and declares the raw
   FFI, and `mojibake-rs` (imported as `mojibake`) adds a safe API for normalization, locale
   casing, caseless matching, segmentation, terminal width, character properties, collation, IDNA,

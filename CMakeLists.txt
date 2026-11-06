@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.14...3.31)
 
 project(
     Mojibake
-    VERSION 0.5.1
+    VERSION 0.6.0
     DESCRIPTION "Mojibake"
     HOMEPAGE_URL "https://mojibake.zaerl.com"
     LANGUAGES C

@@ -27,4 +27,4 @@ idna = ["mojibake-sys/idna"]
 security = ["mojibake-sys/security"]
 
 [dependencies]
-mojibake-sys = { path = "../mojibake-sys", version = "0.5.1", default-features = false }
+mojibake-sys = { path = "../mojibake-sys", version = "0.6.0", default-features = false }
