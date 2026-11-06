@@ -1,5 +1,5 @@
 [package]
-name = "mojibake"
+name = "mojibake-rs"
 description = "Safe Rust API for the Mojibake Unicode library"
 readme = "../README.md"
 keywords = ["unicode", "normalization", "segmentation", "collation", "idna"]
@@ -9,6 +9,11 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+
+# The package is published as mojibake-rs because the mojibake name is taken on crates.io.
+# The library keeps the name mojibake, so code still writes `use mojibake::...`.
+[lib]
+name = "mojibake"
 
 [features]
 default = ["names", "collation", "idna", "security"]
