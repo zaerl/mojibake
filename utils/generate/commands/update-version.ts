@@ -11,8 +11,7 @@ import { getVersion, substituteBlock } from '../utils';
 export async function updateVersion() {
   let fileContent = readFileSync('../../src/mojibake.h', 'utf-8');
   const v = getVersion();
-  const versionNumber = v.major << 8 | v.minor << 4 | v.revision;
-  const hexNumber = '0x' + versionNumber.toString(16).toUpperCase();
+  const hexNumber = '0x' + v.number.toString(16).toUpperCase();
 
   fileContent = substituteBlock(fileContent, '#define MJB_VERSION_NUMBER', '\n',
     ` ${hexNumber} // MAJOR << 8 | MINOR << 4 | REVISION`);
@@ -54,6 +53,10 @@ export async function updateVersion() {
   fileContent = readFileSync('../../src/rust/mojibake/Cargo.toml', 'utf-8');
   fileContent = substituteBlock(fileContent, 'path = "../mojibake-sys", version = "', '"', v.version);
   writeFileSync('../../src/rust/mojibake/Cargo.toml', fileContent);
+
+  fileContent = readFileSync('../../src/rust/README.md', 'utf-8');
+  fileContent = substituteBlock(fileContent, 'mojibake-rs = "', '"', v.versionShort);
+  writeFileSync('../../src/rust/README.md', fileContent);
 
   fileContent = readFileSync('../../src/rust/Cargo.lock', 'utf-8');
   fileContent = substituteBlock(fileContent, 'name = "mojibake-rs"\nversion = "', '"', v.version);

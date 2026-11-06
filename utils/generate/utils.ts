@@ -77,6 +77,8 @@ export function getVersion() {
     minor,
     revision,
     version: `${major}.${minor}.${revision}`,
+    versionShort: `${major}.${minor}`,
+    number: major << 8 | minor << 4 | revision,
   }
 }
 

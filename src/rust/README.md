@@ -14,7 +14,7 @@ Two crates that expose Mojibake to Rust:
 
   ```toml
   [dependencies]
-  mojibake-rs = "0.5"
+  mojibake-rs = "0.6"
   ```
 
 The Rust standard library has UTF-8 strings, simple character predicates, and full
