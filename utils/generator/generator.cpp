@@ -5,7 +5,8 @@
  *
  * Native replacement for utils/generate/commands/generate.ts.
  *
- * Usage: generator [-v|--verbose] [generate-locale|amalgamation|unicode-tables|update-version]
+ * Usage: generator [-v|--verbose]
+ *     [generate-locale|amalgamation|unicode-tables|update-version|rust-ffi]
  *
  * With no command the full generation runs.
  */
@@ -38,7 +39,8 @@ enum class Command : std::uint8_t {
     LOCALE,
     AMALGAMATION,
     UNICODE_TABLES,
-    UPDATE_VERSION
+    UPDATE_VERSION,
+    RUST_FFI
 };
 
 // generate-locale: refresh the CLDR locale data.
@@ -85,6 +87,7 @@ void usage(const char *program) {
         "  amalgamation     Generate the single-file amalgamation\n"
         "  unicode-tables   Generate the Unicode data tables\n"
         "  update-version   Update the version in every tracked file\n"
+        "  rust-ffi         Generate the mojibake-sys function declarations\n"
         "\n"
         "With no command the full generation runs.\n",
         program);
@@ -110,6 +113,8 @@ bool parse_args(int argc, char **argv, Command &command) {
             command = Command::UNICODE_TABLES;
         } else if(std::strcmp(arg, "update-version") == 0) {
             command = Command::UPDATE_VERSION;
+        } else if(std::strcmp(arg, "rust-ffi") == 0) {
+            command = Command::RUST_FFI;
         } else {
             std::fprintf(stderr, "Unknown argument: %s\n\n", arg);
             usage(argv[0]);
@@ -145,6 +150,14 @@ bool generate(Command command) {
             }
 
             break;
+        case Command::RUST_FFI:
+            ilog("Generate mojibake-sys functions.rs");
+
+            if(!mjb::generate_rust_ffi()) {
+                return false;
+            }
+
+            break;
         case Command::NONE:
             ilog("Build Unicode table data");
             build_unicode_table_data();
@@ -154,6 +167,11 @@ bool generate(Command command) {
             generate_api();
             generate_example_c();
             generate_wasm_dts();
+
+            if(!mjb::generate_rust_ffi()) {
+                return false;
+            }
+
             break;
     }
 

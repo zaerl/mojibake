@@ -4,9 +4,10 @@
 
 //! Raw FFI bindings to the Mojibake C library.
 //!
-//! These declarations mirror `src/mojibake.h`. C enums are exposed as `c_int` type aliases with
-//! constants rather than Rust enums, because receiving an out-of-range value in a Rust enum is
-//! undefined behavior. The layout tests at the bottom of this file compare every struct with the
+//! These declarations mirror `src/mojibake.h`. The functions are generated from
+//! `utils/generate/functions.ts` into `src/functions.rs`; the types and constants are written by
+//! hand. C enums are exposed as `c_int` type aliases with constants rather than Rust enums,
+//! because receiving an out-of-range value in a Rust enum is undefined behavior. The layout tests at the bottom of this file compare every struct with the
 //! C compiler's view through `shim/layout.c`.
 //!
 //! Use the safe `mojibake` crate unless you need the raw API.
@@ -14,7 +15,7 @@
 #![no_std]
 #![allow(non_camel_case_types)]
 
-use core::ffi::{c_char, c_int, c_uint, c_ushort, c_void};
+use core::ffi::{c_char, c_int, c_ushort, c_void};
 
 pub type mjb_codepoint = u32;
 pub type mjb_status = c_int;
@@ -39,6 +40,13 @@ pub type mjb_decomposition = c_int;
 pub type mjb_east_asian_width = c_int;
 pub type mjb_script = c_int;
 pub type mjb_block = c_int;
+pub type mjb_plane = c_int;
+pub type mjb_property = c_int;
+pub type mjb_filter_flags = c_int;
+pub type mjb_character_position = c_int;
+pub type mjb_direction = c_int;
+pub type mjb_bidi_class = c_int;
+pub type mjb_script_set_kind = c_int;
 
 pub const MJB_NUL_TERMINATED: usize = usize::MAX;
 
@@ -112,6 +120,32 @@ pub const MJB_IDENTIFIER_DEFAULT: mjb_identifier_profile = 0;
 pub const MJB_IDENTIFIER_NFKC: mjb_identifier_profile = 1;
 
 pub const MJB_LOCALE_NOT_SET: mjb_locale = 0;
+
+pub const MJB_DIRECTION_LTR: mjb_direction = 0;
+pub const MJB_DIRECTION_RTL: mjb_direction = 1;
+pub const MJB_DIRECTION_AUTO: mjb_direction = 2;
+
+pub type mjb_alloc_fn =
+    Option<unsafe extern "C" fn(context: *mut c_void, size: usize) -> *mut c_void>;
+pub type mjb_realloc_fn = Option<
+    unsafe extern "C" fn(
+        context: *mut c_void,
+        ptr: *mut c_void,
+        old_size: usize,
+        new_size: usize,
+    ) -> *mut c_void,
+>;
+pub type mjb_free_fn =
+    Option<unsafe extern "C" fn(context: *mut c_void, ptr: *mut c_void, size: usize)>;
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct mjb_allocator {
+    pub context: *mut c_void,
+    pub alloc: mjb_alloc_fn,
+    pub realloc: mjb_realloc_fn,
+    pub free: mjb_free_fn,
+}
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -257,218 +291,61 @@ impl Default for mjb_break_state {
     }
 }
 
+pub type mjb_for_each_codepoint_fn = Option<
+    unsafe extern "C" fn(
+        character: *const mjb_character,
+        position: mjb_character_position,
+        context: *mut c_void,
+    ) -> bool,
+>;
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default)]
+pub struct mjb_bidi_char {
+    pub codepoint: mjb_codepoint,
+    pub byte_offset: usize,
+    pub level: u8,
+    pub resolved_class: mjb_bidi_class,
+    pub mirroring_glyph: mjb_codepoint,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct mjb_bidi_paragraph {
+    pub chars: *mut mjb_bidi_char,
+    pub count: usize,
+    pub paragraph_level: u8,
+    pub direction: mjb_direction,
+}
+
+impl Default for mjb_bidi_paragraph {
+    fn default() -> Self {
+        Self {
+            chars: core::ptr::null_mut(),
+            count: 0,
+            paragraph_level: 0,
+            direction: MJB_DIRECTION_LTR,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default)]
+pub struct mjb_bidi_run {
+    pub start: usize,
+    pub end: usize,
+    pub level: u8,
+    pub direction: mjb_direction,
+}
+
 pub type mjb_grapheme_break_state = mjb_break_state;
 pub type mjb_word_break_state = mjb_break_state;
 pub type mjb_sentence_break_state = mjb_break_state;
 pub type mjb_line_break_state = mjb_break_state;
 
-extern "C" {
-    // Library information
-    pub fn mjb_version() -> *const c_char;
-    pub fn mjb_version_number() -> c_uint;
-    pub fn mjb_unicode_version() -> *const c_char;
-    pub fn mjb_status_message(status: mjb_status) -> *const c_char;
-    pub fn mjb_result_free(result: *mut mjb_result) -> mjb_status;
+mod functions;
 
-    // Encoding
-    pub fn mjb_validate_encoding(
-        text: *const mjb_text,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_convert_encoding(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        output_encoding: mjb_encoding,
-        result: *mut mjb_result,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_codepoint_count(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        count: *mut usize,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-
-    // Normalization
-    pub fn mjb_normalize(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        form: mjb_normalization,
-        output_encoding: mjb_encoding,
-        result: *mut mjb_result,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_normalization_quick_check(
-        text: *const mjb_text,
-        form: mjb_normalization,
-        quick_check: *mut mjb_quick_check_result,
-    ) -> mjb_status;
-    pub fn mjb_nfkc_casefold(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        output_encoding: mjb_encoding,
-        result: *mut mjb_result,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-
-    // Casing
-    pub fn mjb_map_case(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        type_: mjb_map_case_type,
-        locale: mjb_locale,
-        output_encoding: mjb_encoding,
-        result: *mut mjb_result,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_caseless_match(
-        first: *const mjb_text,
-        second: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        mode: mjb_caseless_mode,
-        matches: *mut bool,
-        first_diagnostic: *mut mjb_diagnostic,
-        second_diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-
-    // Locales
-    pub fn mjb_locale_parse(id: *const mjb_text, locale: *mut mjb_locale_id) -> mjb_status;
-    pub fn mjb_locale_code(locale: mjb_locale) -> *const c_char;
-
-    // Segmentation
-    pub fn mjb_grapheme_break_next(
-        text: *const mjb_text,
-        state: *mut mjb_grapheme_break_state,
-    ) -> mjb_break_type;
-    pub fn mjb_word_break_next(
-        text: *const mjb_text,
-        state: *mut mjb_word_break_state,
-    ) -> mjb_break_type;
-    pub fn mjb_sentence_break_next(
-        text: *const mjb_text,
-        state: *mut mjb_sentence_break_state,
-    ) -> mjb_break_type;
-    pub fn mjb_line_break_next(
-        text: *const mjb_text,
-        state: *mut mjb_line_break_state,
-    ) -> mjb_break_type;
-    pub fn mjb_grapheme_count(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        count: *mut usize,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_word_count(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        count: *mut usize,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_sentence_count(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        count: *mut usize,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-
-    // Width
-    pub fn mjb_terminal_width(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        profile: mjb_terminal_width_profile,
-        width: *mut usize,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_grapheme_prefix_length_for_width(
-        text: *const mjb_text,
-        profile: mjb_terminal_width_profile,
-        max_columns: usize,
-    ) -> usize;
-    pub fn mjb_codepoint_east_asian_width(
-        codepoint: mjb_codepoint,
-        width: *mut mjb_east_asian_width,
-    ) -> mjb_status;
-
-    // Character properties
-    pub fn mjb_codepoint_info(
-        codepoint: mjb_codepoint,
-        character: *mut mjb_character,
-    ) -> mjb_status;
-    pub fn mjb_codepoint_numeric_value(
-        codepoint: mjb_codepoint,
-        value: *mut mjb_numeric_value,
-    ) -> mjb_status;
-    pub fn mjb_codepoint_block(codepoint: mjb_codepoint, block: *mut mjb_block_info) -> mjb_status;
-    pub fn mjb_codepoint_script(codepoint: mjb_codepoint) -> mjb_script;
-    pub fn mjb_script_code(script: mjb_script) -> *const c_char;
-    pub fn mjb_codepoint_is_graphic(codepoint: mjb_codepoint) -> bool;
-    pub fn mjb_codepoint_is_combining(codepoint: mjb_codepoint) -> bool;
-    pub fn mjb_codepoint_is_id_start(codepoint: mjb_codepoint) -> bool;
-    pub fn mjb_codepoint_is_id_continue(codepoint: mjb_codepoint) -> bool;
-    pub fn mjb_codepoint_is_xid_start(codepoint: mjb_codepoint) -> bool;
-    pub fn mjb_codepoint_is_xid_continue(codepoint: mjb_codepoint) -> bool;
-    pub fn mjb_is_identifier(text: *const mjb_text, profile: mjb_identifier_profile) -> bool;
-
-    // Emoji
-    pub fn mjb_codepoint_emoji_properties(
-        codepoint: mjb_codepoint,
-        emoji: *mut mjb_emoji_properties,
-    ) -> mjb_status;
-    pub fn mjb_emoji_sequence_info(
-        text: *const mjb_text,
-        emoji: *mut mjb_emoji_sequence,
-    ) -> mjb_status;
-    pub fn mjb_is_rgi_emoji(text: *const mjb_text) -> bool;
-
-    // Collation
-    pub fn mjb_collation_compare(
-        first: *const mjb_text,
-        second: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        variable_weighting: mjb_collation_variable_weighting,
-        strength: mjb_collation_strength,
-        order: *mut c_int,
-        first_diagnostic: *mut mjb_diagnostic,
-        second_diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-    pub fn mjb_collation_key(
-        text: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        variable_weighting: mjb_collation_variable_weighting,
-        strength: mjb_collation_strength,
-        result: *mut mjb_result,
-        diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-
-    // IDNA
-    pub fn mjb_idna_to_ascii(
-        text: *const mjb_text,
-        output_encoding: mjb_encoding,
-        info: *mut mjb_idna_info,
-        result: *mut mjb_result,
-    ) -> mjb_status;
-    pub fn mjb_idna_to_unicode(
-        text: *const mjb_text,
-        output_encoding: mjb_encoding,
-        info: *mut mjb_idna_info,
-        result: *mut mjb_result,
-    ) -> mjb_status;
-
-    // Security
-    pub fn mjb_confusable_skeleton(
-        text: *const mjb_text,
-        output_encoding: mjb_encoding,
-        result: *mut mjb_result,
-    ) -> mjb_status;
-    pub fn mjb_confusable_match(
-        first: *const mjb_text,
-        second: *const mjb_text,
-        malformed_policy: mjb_malformed_policy,
-        confusable: *mut bool,
-        first_diagnostic: *mut mjb_diagnostic,
-        second_diagnostic: *mut mjb_diagnostic,
-    ) -> mjb_status;
-}
+pub use functions::*;
 
 #[cfg(test)]
 mod layout {
@@ -508,6 +385,14 @@ mod layout {
         mjb_rs_alignof_locale_id,
         mjb_rs_sizeof_idna_info,
         mjb_rs_alignof_idna_info,
+        mjb_rs_sizeof_allocator,
+        mjb_rs_alignof_allocator,
+        mjb_rs_sizeof_bidi_char,
+        mjb_rs_alignof_bidi_char,
+        mjb_rs_sizeof_bidi_paragraph,
+        mjb_rs_alignof_bidi_paragraph,
+        mjb_rs_sizeof_bidi_run,
+        mjb_rs_alignof_bidi_run,
         mjb_rs_sizeof_encoding,
         mjb_rs_sizeof_status,
         mjb_rs_offsetof_character_numeric,
@@ -576,6 +461,26 @@ mod layout {
             mjb_idna_info,
             mjb_rs_sizeof_idna_info,
             mjb_rs_alignof_idna_info
+        );
+        check!(
+            mjb_allocator,
+            mjb_rs_sizeof_allocator,
+            mjb_rs_alignof_allocator
+        );
+        check!(
+            mjb_bidi_char,
+            mjb_rs_sizeof_bidi_char,
+            mjb_rs_alignof_bidi_char
+        );
+        check!(
+            mjb_bidi_paragraph,
+            mjb_rs_sizeof_bidi_paragraph,
+            mjb_rs_alignof_bidi_paragraph
+        );
+        check!(
+            mjb_bidi_run,
+            mjb_rs_sizeof_bidi_run,
+            mjb_rs_alignof_bidi_run
         );
     }
 

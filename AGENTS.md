@@ -196,9 +196,10 @@ IDNA, and UTS #39 data, checks the IDNA and security data versions, and then gen
 checked-in outputs.
 
 `utils/generator/` is a C++ port of the generator, built in `build-generator/` and driven by
-`make generate-cpp` (`ARGS=unicode-tables`, `amalgamation`, `generate-locale`). `make
+`make generate-cpp` (`ARGS=unicode-tables`, `amalgamation`, `generate-locale`, `rust-ffi`). `make
 update-version` uses it. When you change an emitter that both generators implement, keep them
-producing identical output.
+producing identical output. Both write `src/rust/mojibake-sys/src/functions.rs`: the TypeScript
+emitter from `functions.ts`, the C++ one from the generated declarations in `src/mojibake.h`.
 
 Important boundaries:
 
@@ -228,8 +229,9 @@ Useful generation targets:
 Full generation updates generated sections or files including `src/unicode-data.h`,
 `src/unicode.h`, `src/mojibake.h`, `src/properties.c`, `src/bidi.c`, `src/locales.c`,
 `src/CMakeLists.txt`, `src/api/unicode.ts`, `src/api/locales.ts`, `src/api/mojibake.d.ts`,
-`API.md`, `tests/example.c`, and `tests/ext/cpp/example.cpp`. Follow the generated markers in those
-files; surrounding hand-written code remains editable.
+`API.md`, `tests/example.c`, `tests/ext/cpp/example.cpp`, and
+`src/rust/mojibake-sys/src/functions.rs`. Follow the generated markers in those files; surrounding
+hand-written code remains editable.
 
 When changing the generated table layout, make the change measurable and reversible:
 
@@ -301,8 +303,9 @@ the corresponding C module. When adding or changing a public function:
 3. Update the C++ wrapper and `tests/ext/cpp/` when the wrapper exposes the API.
 4. Set `wasm: true` and update `src/api/index.ts` and `src/api/tests/` when the API is exposed
    through WASM.
-5. Run `make generate` so `src/mojibake.h`, `API.md`, the WASM export list, declarations, and
-   generated examples stay in sync.
+5. Run `make generate` so `src/mojibake.h`, `API.md`, the WASM export list, declarations, the
+   `mojibake-sys` FFI, and generated examples stay in sync. A new C type in a signature needs a
+   hand-written Rust type in `src/rust/mojibake-sys/src/lib.rs`.
 6. Run generator and API typechecks plus the relevant native, C++, feature-disabled, and WASM
    tests.
 

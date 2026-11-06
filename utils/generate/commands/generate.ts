@@ -12,6 +12,7 @@ import { generateAPI } from '../file-generators/api-md';
 import { generateExampleC } from '../file-generators/example-c';
 import { generateExampleCPP } from '../file-generators/example-cpp';
 import { generateLocales } from '../file-generators/locales-h';
+import { generateRustFFI } from '../file-generators/rust-ffi';
 import { generateUnicodeDataHeader } from '../file-generators/unicode-data-h';
 import { generateWasmDTS } from '../file-generators/wasm-d-ts';
 import { generateHeader } from '../header';
@@ -174,6 +175,8 @@ for(let i = 2; i < process.argv.length; ++i) {
     generateTarget = 'unicode-tables';
   } else if(process.argv[i] === 'update-version') {
     generateTarget = 'update-version';
+  } else if(process.argv[i] === 'rust-ffi') {
+    generateTarget = 'rust-ffi';
   }
 }
 
@@ -216,6 +219,9 @@ async function generate() {
   } else if(generateTarget === 'update-version') {
     await updateVersion();
     return;
+  } else if(generateTarget === 'rust-ffi') {
+    generateRustFFI();
+    return;
   }
 
   const { blocks, properties } = await buildUnicodeTableData();
@@ -235,6 +241,7 @@ async function generate() {
   // iLog(`Unicode table rows: ${JSON.stringify(summary)}\n`);
 
   generateWasmDTS();
+  generateRustFFI();
 }
 
 generate();

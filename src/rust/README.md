@@ -68,12 +68,15 @@ build script reads the C sources from the repository's `src/` directory, or from
 
 ## Status
 
-This is a scaffold. The FFI declarations cover only the functions the safe API uses. Not done yet:
+This is a scaffold. `mojibake-sys` declares every public function except the variadic and
+`va_list` formatting ones. The declarations in `mojibake-sys/src/functions.rs` are generated from
+`utils/generate/functions.ts` by `make generate`; do not edit them. The types, constants, and
+layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
+Not done yet:
 
-- generate the `mojibake-sys` declarations from `utils/generate/functions.ts`, as the WASM exports
-  are, instead of writing them by hand
-- bind the remaining APIs: encoding conversion between UTF-8/16/32 with malformed-input policies,
-  bidi, filters, identifiers, emoji sequences, script sets, and the `_into` variants
+- expose the remaining APIs in the safe crate: encoding conversion between UTF-8/16/32 with
+  malformed-input policies, bidi, filters, identifiers, emoji sequences, script sets, and the
+  `_into` variants
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy
 - package the C sources (or the amalgamation) inside `mojibake-sys` so it can be published

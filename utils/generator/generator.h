@@ -52,6 +52,12 @@ std::optional<Version> get_version();
 // Return false if any file cannot be updated.
 bool update_version();
 
+// rust-ffi.cpp
+
+// Generate src/rust/mojibake-sys/src/functions.rs from the function declarations in
+// src/mojibake.h. Return false if the header cannot be parsed or the file cannot be written.
+bool generate_rust_ffi();
+
 } // namespace mjb
 
 #endif // MJB_GENERATOR_H
