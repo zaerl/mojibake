@@ -4,6 +4,7 @@
 
 use mojibake_sys as sys;
 
+use crate::bidi::BidiClass;
 use crate::ffi;
 use crate::property::Property;
 
@@ -117,6 +118,144 @@ pub struct EmojiProperties {
     pub extended_pictographic: bool,
 }
 
+/// The `Decomposition_Type` of a character with a decomposition mapping.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum DecompositionType {
+    /// A canonical decomposition, such as `é` to `e` + U+0301.
+    Canonical,
+    /// `<circle>`: an encircled form, such as `①`.
+    Circle,
+    /// `<compat>`: another compatibility form, such as `ﬁ`.
+    Compat,
+    /// `<final>`: an Arabic final presentation form.
+    Final,
+    /// `<font>`: a font variant, such as `ℌ`.
+    Font,
+    /// `<fraction>`: a vulgar fraction, such as `½`.
+    Fraction,
+    /// `<initial>`: an Arabic initial presentation form.
+    Initial,
+    /// `<isolated>`: an Arabic isolated presentation form.
+    Isolated,
+    /// `<medial>`: an Arabic medial presentation form.
+    Medial,
+    /// `<narrow>`: a halfwidth form, such as `ｱ`.
+    Narrow,
+    /// `<noBreak>`: a no-break version of a space or hyphen.
+    NoBreak,
+    /// `<small>`: a small variant, such as `﹐`.
+    Small,
+    /// `<square>`: a CJK squared form, such as `㎏`.
+    Square,
+    /// `<sub>`: a subscript, such as `₂`.
+    Sub,
+    /// `<super>`: a superscript, such as `²`.
+    Super,
+    /// `<vertical>`: a vertical layout presentation form.
+    Vertical,
+    /// `<wide>`: a fullwidth form, such as `Ａ`.
+    Wide,
+}
+
+impl DecompositionType {
+    fn from_raw(raw: sys::mjb_decomposition) -> Option<Self> {
+        Some(match raw {
+            sys::MJB_DECOMPOSITION_CANONICAL => Self::Canonical,
+            sys::MJB_DECOMPOSITION_CIRCLE => Self::Circle,
+            sys::MJB_DECOMPOSITION_COMPAT => Self::Compat,
+            sys::MJB_DECOMPOSITION_FINAL => Self::Final,
+            sys::MJB_DECOMPOSITION_FONT => Self::Font,
+            sys::MJB_DECOMPOSITION_FRACTION => Self::Fraction,
+            sys::MJB_DECOMPOSITION_INITIAL => Self::Initial,
+            sys::MJB_DECOMPOSITION_ISOLATED => Self::Isolated,
+            sys::MJB_DECOMPOSITION_MEDIAL => Self::Medial,
+            sys::MJB_DECOMPOSITION_NARROW => Self::Narrow,
+            sys::MJB_DECOMPOSITION_NOBREAK => Self::NoBreak,
+            sys::MJB_DECOMPOSITION_SMALL => Self::Small,
+            sys::MJB_DECOMPOSITION_SQUARE => Self::Square,
+            sys::MJB_DECOMPOSITION_SUB => Self::Sub,
+            sys::MJB_DECOMPOSITION_SUPER => Self::Super,
+            sys::MJB_DECOMPOSITION_VERTICAL => Self::Vertical,
+            sys::MJB_DECOMPOSITION_WIDE => Self::Wide,
+            _ => return None,
+        })
+    }
+
+    /// True for a canonical decomposition, false for a compatibility one.
+    pub fn is_canonical(self) -> bool {
+        self == Self::Canonical
+    }
+}
+
+/// The `UnicodeData.txt` record of an assigned character, read in one lookup by
+/// [`CharExt::info`].
+///
+/// ```
+/// use mojibake::bidi::BidiClass;
+/// use mojibake::{CharExt, DecompositionType};
+///
+/// let info = '½'.info().unwrap();
+/// assert_eq!(info.decomposition_type, Some(DecompositionType::Fraction));
+/// assert_eq!(info.numeric_value, Some(0.5));
+/// assert_eq!(info.bidi_class, BidiClass::OtherNeutral);
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
+pub struct CharInfo {
+    /// `General_Category`.
+    pub general_category: GeneralCategory,
+    /// `Canonical_Combining_Class`: 0 for starters, 230 for most marks above.
+    pub canonical_combining_class: u8,
+    /// `Bidi_Class`.
+    pub bidi_class: BidiClass,
+    /// `Bidi_Mirrored`: the glyph is mirrored in right-to-left text, as for `(`.
+    pub bidi_mirrored: bool,
+    /// `Decomposition_Type`, or `None` when the character has no decomposition mapping.
+    pub decomposition_type: Option<DecompositionType>,
+    /// The value of a decimal digit (`Numeric_Type=Decimal`), such as 4 for `'٤'`.
+    pub decimal_value: Option<u8>,
+    /// The value of a digit (`Numeric_Type=Decimal` or `Digit`), such as 2 for `'²'`.
+    pub digit_value: Option<u8>,
+    /// `Numeric_Value`, as in [`CharExt::numeric_value`].
+    pub numeric_value: Option<f64>,
+    /// `Simple_Uppercase_Mapping`: the character itself when it has none.
+    pub simple_uppercase: char,
+    /// `Simple_Lowercase_Mapping`: the character itself when it has none.
+    pub simple_lowercase: char,
+    /// `Simple_Titlecase_Mapping`: the uppercase mapping when it has none.
+    pub simple_titlecase: char,
+}
+
+impl CharInfo {
+    fn new(c: char, raw: &sys::mjb_character) -> Self {
+        let digit = |value: std::ffi::c_int| u8::try_from(value).ok().filter(|&v| v <= 9);
+        let mapping = |value: sys::mjb_codepoint, fallback: char| {
+            if value == 0 {
+                fallback
+            } else {
+                char::from_u32(value).unwrap_or(fallback)
+            }
+        };
+        let simple_uppercase = mapping(raw.uppercase, c);
+
+        Self {
+            general_category: GeneralCategory::from_raw(raw.category),
+            canonical_combining_class: u8::try_from(raw.combining).unwrap_or(0),
+            // `Bidi_Class` defaults to L; the library fills it for every assigned character.
+            bidi_class: BidiClass::from_raw(sys::mjb_bidi_class::from(raw.bidirectional))
+                .unwrap_or(BidiClass::LeftToRight),
+            bidi_mirrored: raw.mirrored,
+            decomposition_type: DecompositionType::from_raw(raw.decomposition),
+            decimal_value: digit(raw.decimal),
+            digit_value: digit(raw.digit),
+            numeric_value: parse_numeric(&ffi::array_str(&raw.numeric)),
+            simple_uppercase,
+            simple_lowercase: mapping(raw.lowercase, c),
+            simple_titlecase: mapping(raw.titlecase, simple_uppercase),
+        }
+    }
+}
+
 fn info(c: char) -> Option<sys::mjb_character> {
     // SAFETY: mjb_character is plain data; all-zero is a valid value.
     let mut character: sys::mjb_character = unsafe { std::mem::zeroed() };
@@ -140,8 +279,28 @@ fn parse_numeric(field: &str) -> Option<f64> {
 // `char` is `Copy`, so `is_*(self)` matches the standard library.
 #[allow(clippy::wrong_self_convention)]
 pub trait CharExt {
+    /// The `UnicodeData.txt` record of the character, or `None` if it is unassigned. Use it to
+    /// read several fields with one lookup.
+    fn info(self) -> Option<CharInfo>;
     /// The `General_Category` of the character.
     fn general_category(self) -> GeneralCategory;
+    /// The `Canonical_Combining_Class` of the character: 0 for starters and unassigned
+    /// characters, 230 for most marks above.
+    fn canonical_combining_class(self) -> u8;
+    /// The `Bidi_Class` of the character, or `None` if it is unassigned.
+    fn bidi_class(self) -> Option<BidiClass>;
+    /// True if the character is `Bidi_Mirrored`, as `(` and `<` are.
+    fn is_bidi_mirrored(self) -> bool;
+    /// The `Decomposition_Type` of the character, or `None` if it has no decomposition mapping.
+    fn decomposition_type(self) -> Option<DecompositionType>;
+    /// The `Simple_Uppercase_Mapping` of the character: one character, unlike
+    /// [`char::to_uppercase`]. The character itself when it has none.
+    fn simple_uppercase(self) -> char;
+    /// The `Simple_Lowercase_Mapping` of the character. The character itself when it has none.
+    fn simple_lowercase(self) -> char;
+    /// The `Simple_Titlecase_Mapping` of the character: `'ǆ'` becomes `'ǅ'`. The simple
+    /// uppercase mapping when it has none.
+    fn simple_titlecase(self) -> char;
     /// The character name, such as `"LATIN SMALL LETTER E WITH ACUTE"`, if it has one.
     #[cfg(feature = "names")]
     fn name(self) -> Option<String>;
@@ -190,6 +349,38 @@ pub trait CharExt {
 }
 
 impl CharExt for char {
+    fn info(self) -> Option<CharInfo> {
+        info(self).map(|raw| CharInfo::new(self, &raw))
+    }
+
+    fn canonical_combining_class(self) -> u8 {
+        self.info().map_or(0, |info| info.canonical_combining_class)
+    }
+
+    fn bidi_class(self) -> Option<BidiClass> {
+        self.info().map(|info| info.bidi_class)
+    }
+
+    fn is_bidi_mirrored(self) -> bool {
+        self.info().is_some_and(|info| info.bidi_mirrored)
+    }
+
+    fn decomposition_type(self) -> Option<DecompositionType> {
+        self.info().and_then(|info| info.decomposition_type)
+    }
+
+    fn simple_uppercase(self) -> char {
+        self.info().map_or(self, |info| info.simple_uppercase)
+    }
+
+    fn simple_lowercase(self) -> char {
+        self.info().map_or(self, |info| info.simple_lowercase)
+    }
+
+    fn simple_titlecase(self) -> char {
+        self.info().map_or(self, |info| info.simple_titlecase)
+    }
+
     fn general_category(self) -> GeneralCategory {
         info(self).map_or(GeneralCategory::Unassigned, |c| {
             GeneralCategory::from_raw(c.category)

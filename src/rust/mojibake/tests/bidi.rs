@@ -141,3 +141,25 @@ fn paragraph_is_send_and_sync() {
 
     assert_send_sync::<Paragraph<'static>>();
 }
+
+#[test]
+fn resolved_classes() {
+    use mojibake::bidi::BidiClass::*;
+    use mojibake::CharExt;
+
+    // W7 turns a European number after a strong L into L; N1 turns the space between two strong
+    // characters of the same direction into that direction.
+    let paragraph = Paragraph::new("a 1", Direction::Ltr).unwrap();
+    let classes: Vec<_> = paragraph.chars().map(|c| c.class).collect();
+    assert_eq!(classes, [LeftToRight, LeftToRight, LeftToRight]);
+    assert_eq!('1'.bidi_class(), Some(EuropeanNumber));
+
+    // After a strong R the number stays EN, and the space between R and EN resolves to R.
+    let paragraph = Paragraph::new("\u{5d0} 1", Direction::Rtl).unwrap();
+    let classes: Vec<_> = paragraph.chars().map(|c| c.class).collect();
+    assert_eq!(classes, [RightToLeft, RightToLeft, EuropeanNumber]);
+
+    // W3 resolves an Arabic letter to R.
+    let paragraph = Paragraph::new("\u{628}", Direction::Auto).unwrap();
+    assert_eq!(paragraph.chars().next().unwrap().class, RightToLeft);
+}

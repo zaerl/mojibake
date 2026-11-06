@@ -137,6 +137,71 @@ fn characters() {
     }
 }
 
+#[test]
+fn character_records() {
+    use mojibake::bidi::BidiClass;
+
+    assert_eq!('\u{301}'.canonical_combining_class(), 230);
+    assert_eq!('\u{327}'.canonical_combining_class(), 202);
+    assert_eq!('a'.canonical_combining_class(), 0);
+    assert_eq!('\u{378}'.canonical_combining_class(), 0);
+
+    for (c, class) in [
+        ('a', BidiClass::LeftToRight),
+        ('\u{5d0}', BidiClass::RightToLeft),
+        ('\u{628}', BidiClass::ArabicLetter),
+        ('1', BidiClass::EuropeanNumber),
+        ('\u{664}', BidiClass::ArabicNumber),
+        (' ', BidiClass::WhiteSpace),
+        ('\t', BidiClass::SegmentSeparator),
+        ('\u{2029}', BidiClass::ParagraphSeparator),
+        ('\u{301}', BidiClass::NonspacingMark),
+        ('!', BidiClass::OtherNeutral),
+        ('\u{2067}', BidiClass::RightToLeftIsolate),
+    ] {
+        assert_eq!(c.bidi_class(), Some(class), "{c:?}");
+    }
+    assert_eq!('\u{378}'.bidi_class(), None);
+    assert_eq!(BidiClass::ArabicLetter.abbreviation(), "AL");
+    assert!(BidiClass::ArabicLetter.is_strong() && !BidiClass::EuropeanNumber.is_strong());
+
+    assert!('('.is_bidi_mirrored() && '<'.is_bidi_mirrored() && !'a'.is_bidi_mirrored());
+
+    assert_eq!('é'.decomposition_type(), Some(DecompositionType::Canonical));
+    assert_eq!('ﬁ'.decomposition_type(), Some(DecompositionType::Compat));
+    assert_eq!('²'.decomposition_type(), Some(DecompositionType::Super));
+    assert_eq!('①'.decomposition_type(), Some(DecompositionType::Circle));
+    assert_eq!('Ａ'.decomposition_type(), Some(DecompositionType::Wide));
+    assert_eq!('a'.decomposition_type(), None);
+    assert!(DecompositionType::Canonical.is_canonical() && !DecompositionType::Wide.is_canonical());
+
+    assert_eq!('a'.simple_uppercase(), 'A');
+    assert_eq!('A'.simple_lowercase(), 'a');
+    assert_eq!('a'.simple_titlecase(), 'A');
+    assert_eq!('\u{1c6}'.simple_titlecase(), '\u{1c5}');
+    assert_eq!('\u{1c6}'.simple_uppercase(), '\u{1c4}');
+    // ß has no simple uppercase mapping; its full mapping is "SS".
+    assert_eq!('ß'.simple_uppercase(), 'ß');
+    assert_eq!('1'.simple_uppercase(), '1');
+    assert_eq!('\u{378}'.simple_lowercase(), '\u{378}');
+
+    let four = '\u{664}'.info().unwrap();
+    assert_eq!(four.general_category, GeneralCategory::DecimalNumber);
+    assert_eq!(four.decimal_value, Some(4));
+    assert_eq!(four.digit_value, Some(4));
+    assert_eq!(four.numeric_value, Some(4.0));
+
+    let two = '²'.info().unwrap();
+    assert_eq!(two.decimal_value, None);
+    assert_eq!(two.digit_value, Some(2));
+
+    let half = '½'.info().unwrap();
+    assert_eq!((half.decimal_value, half.digit_value), (None, None));
+    assert_eq!(half.numeric_value, Some(0.5));
+
+    assert!('\u{378}'.info().is_none());
+}
+
 #[cfg(feature = "collation")]
 #[test]
 fn collation() {

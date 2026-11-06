@@ -44,9 +44,12 @@ pub mod idna;
 #[cfg(feature = "security")]
 pub mod security;
 
+pub use bidi::BidiClass;
 pub use case::{casefold, casefold_simple, caseless_eq, to_lowercase, to_titlecase, to_uppercase};
 pub use case::{CaselessMode, Locale};
-pub use character::{CharExt, EastAsianWidth, EmojiProperties, GeneralCategory};
+pub use character::{
+    CharExt, CharInfo, DecompositionType, EastAsianWidth, EmojiProperties, GeneralCategory,
+};
 pub use error::{Diagnostic, Error, Result};
 pub use filter::{filter, Filter};
 pub use identifier::{is_identifier, IdentifierProfile};
