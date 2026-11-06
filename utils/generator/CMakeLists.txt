@@ -19,6 +19,7 @@ endif()
 add_executable(
     generator
     generator.cpp
+    rust-ffi.cpp
     update-version.cpp
     utils.cpp
 )
