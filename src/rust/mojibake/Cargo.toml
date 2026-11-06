@@ -1,0 +1,24 @@
+[package]
+name = "mojibake"
+description = "Safe Rust API for the Mojibake Unicode library"
+keywords = ["unicode", "normalization", "segmentation", "collation", "idna"]
+categories = ["text-processing", "internationalization", "api-bindings"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = ["names", "collation", "idna", "security"]
+# Character names (`CharExt::name`).
+names = ["mojibake-sys/names"]
+# DUCET collation (`collate`).
+collation = ["mojibake-sys/collation"]
+# UTS #46 IDNA (`idna`).
+idna = ["mojibake-sys/idna"]
+# UTS #39 confusables (`security`).
+security = ["mojibake-sys/security"]
+
+[dependencies]
+mojibake-sys = { path = "../mojibake-sys", version = "0.5.1", default-features = false }
