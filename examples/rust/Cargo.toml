@@ -1,0 +1,20 @@
+# The Mojibake library
+#
+# This file is distributed under the MIT License. See LICENSE for details.
+
+[package]
+name = "mojibake-example"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "example-rust"
+path = "example.rs"
+
+[dependencies]
+# Published as mojibake-rs on crates.io; the library is still imported as `mojibake`.
+mojibake-rs = { path = "../../src/rust/mojibake" }
+
+# A standalone workspace, so the example is not picked up by any parent workspace.
+[workspace]

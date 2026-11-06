@@ -5,8 +5,7 @@
 CPPFLAGS ?= -DNDEBUG
 CFLAGS ?= -O3
 CXXFLAGS ?= -O3
-RUSTFLAGS ?= -C opt-level=3
-RUSTC ?= rustc
+CARGO ?= cargo
 ZIG ?= zig
 
 FEATURE_CHARACTER_NAMES ?= 1
@@ -44,12 +43,15 @@ PYTHON_LIBRARY = $(EXAMPLE_BUILD_DIR)/libmojibake.so
 PYTHON_SHARED_FLAGS = -shared -fPIC
 endif
 
-# Rust files
-RUST_EXAMPLE_SOURCE = rust/example.rs
-RUST_LIBRARY_OBJECT = $(EXAMPLE_BUILD_DIR)/mojibake-rust.o
-RUST_LIBRARY = $(EXAMPLE_BUILD_DIR)/libmojibake-rust.a
+# Rust files. The example uses the safe crate in ../src/rust, which builds the C sources itself.
+RUST_MANIFEST = rust/Cargo.toml
+RUST_TARGET_DIR = $(EXAMPLE_BUILD_DIR)/rust
 RUST_EXAMPLE = $(EXAMPLE_BUILD_DIR)/example-rust
-RUST_EXAMPLE_DEPS = $(RUST_EXAMPLE_SOURCE) $(RUST_LIBRARY)
+RUST_FEATURES = $(strip \
+	$(if $(filter 1,$(FEATURE_CHARACTER_NAMES)),mojibake-rs/names) \
+	$(if $(filter 1,$(FEATURE_COLLATION)),mojibake-rs/collation) \
+	$(if $(filter 1,$(FEATURE_IDNA)),mojibake-rs/idna) \
+	$(if $(filter 1,$(FEATURE_SECURITY)),mojibake-rs/security))
 
 # Zig files
 ZIG_EXAMPLE_SOURCE = zig/example.zig
@@ -107,16 +109,13 @@ $(PYTHON_LIBRARY): $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE) | $(EXAMPLE_BUI
 	$(CC) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CFLAGS) -DMJB_SHARED=1 \
 		-DMJB_BUILDING_LIBRARY=1 $(PYTHON_SHARED_FLAGS) -o $@ $(AMALGAMATION_SOURCE)
 
-# Compile the Rust example program
-example-rust: $(RUST_EXAMPLE_DEPS)
-	$(RUSTC) $(RUSTFLAGS) --edition=2021 -L native=$(EXAMPLE_BUILD_DIR) \
-		-l static=mojibake-rust -o $(RUST_EXAMPLE) $(RUST_EXAMPLE_SOURCE)
-
-# Build the static library used by the Rust example
-$(RUST_LIBRARY): $(AMALGAMATION_HEADER) $(AMALGAMATION_SOURCE) | $(EXAMPLE_BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(EXAMPLE_CPPFLAGS) $(CFLAGS) -c \
-		-o $(RUST_LIBRARY_OBJECT) $(AMALGAMATION_SOURCE)
-	$(AR) rcs $@ $(RUST_LIBRARY_OBJECT)
+# Compile the Rust example program with Cargo and the mojibake crate
+example-rust: | $(EXAMPLE_BUILD_DIR)
+	$(CARGO) build --release --manifest-path $(RUST_MANIFEST) \
+		--target-dir $(RUST_TARGET_DIR) --no-default-features \
+		--features "$(RUST_FEATURES)"
+	cp $(RUST_TARGET_DIR)/release/example-rust$(if $(filter Windows_NT,$(OS)),.exe) \
+		$(RUST_EXAMPLE)$(if $(filter Windows_NT,$(OS)),.exe)
 
 # Compile the Zig example program
 example-zig: $(ZIG_EXAMPLE_DEPS) | $(EXAMPLE_BUILD_DIR)

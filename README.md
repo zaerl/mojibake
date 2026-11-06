@@ -232,6 +232,36 @@ size_t clusters = mjb::grapheme_count(u"A\U0001F1EE\U0001F1F9"); // 2
 
 See [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md) for details.
 
+### Rust crates
+
+`src/rust` holds two crates. `mojibake-sys` compiles the C library with the `cc` crate (no CMake
+needed) and declares the raw FFI. `mojibake-rs` is the safe API, built mostly from extension traits
+on `str` and `char`. It is published as `mojibake-rs` because the `mojibake` name is taken on
+crates.io, but its library is still imported as `mojibake`:
+
+```toml
+[dependencies]
+mojibake-rs = "0.5"
+```
+
+```rust
+use mojibake::{CharExt, Form, Locale, StrExt};
+
+let nfc = "Cafe\u{301}".normalize(Form::Nfc)?; // "Caf\u{e9}"
+let upper = "istanbul".to_uppercase_in(Locale::parse("tr")?)?; // "İSTANBUL"
+let folded = mojibake::nfkc_casefold("Straße")?; // "strasse"
+let clusters = "👨‍👩‍👧é".graphemes().count(); // 2
+let half = '½'.numeric_value(); // Some(0.5)
+```
+
+String transforms return `Cow<str>` and borrow the input when it is already in the requested
+form, casing takes an explicit `Locale` instead of the process-global one, and errors are a typed
+`mojibake::Error`. The `names`, `collation`, `idna`, and `security` Cargo features are on by
+default and map to the `MJB_FEATURE_*` options below; turn them off with
+`default-features = false`. Run `make test-rust` to test the crates. See
+[src/rust/README.md](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md) for the full
+API and design.
+
 ### WebAssembly and TypeScript
 
 `src/api` packages the library compiled with Emscripten behind a typed TypeScript API for Node and
@@ -241,7 +271,8 @@ browsers. It powers the [demo site](https://mojibake.zaerl.com).
 
 Mojibake has a plain C ABI, so any language with a C FFI can use it. The
 [examples](https://github.com/zaerl/mojibake/tree/main/examples) directory has small programs in C,
-C++, Python, Rust, and Zig.
+C++, Python, Rust, and Zig. The Rust example uses the safe `mojibake` crate; build it with
+`make -C examples example-rust`.
 
 ### CLI
 
@@ -341,6 +372,8 @@ Continuous integration covers:
 - [mojibake.zaerl.com](https://mojibake.zaerl.com): the same reference with live WASM examples
 - [src/cpp/README.md](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md): the C++20
   wrapper
+- [src/rust/README.md](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md): the Rust
+  crates
 - [INSTALL.md](https://github.com/zaerl/mojibake/blob/main/INSTALL.md): installing as a CMake package
 - [TESTS.md](https://github.com/zaerl/mojibake/blob/main/TESTS.md): test coverage and the Unicode
   test files used

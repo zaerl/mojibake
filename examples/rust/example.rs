@@ -2,177 +2,53 @@
 //
 // This file is distributed under the MIT License. See LICENSE for details.
 
-use std::os::raw::{c_char, c_int};
 use std::process::ExitCode;
-use std::slice;
 
-const MJB_STATUS_OK: c_int = 0;
-const MJB_ENC_UTF_8: c_int = 0x2;
-const MJB_NORMALIZATION_NFC: c_int = 0;
-const MJB_MALFORMED_STOP: c_int = 0;
+use mojibake::encoding::{self, Encoding, Malformed};
+use mojibake::{Form, StrExt};
 
-#[repr(C)]
-struct MjbText {
-    buffer: *const c_char,
-    byte_length: usize,
-    encoding: c_int,
-}
-
-#[repr(C)]
-struct MjbResult {
-    output: *mut c_char,
-    output_size: usize,
-    capacity: usize,
-    owned: bool,
-}
-
-impl MjbResult {
-    fn new() -> Self {
-        Self {
-            output: std::ptr::null_mut(),
-            output_size: 0,
-            capacity: 0,
-            owned: false,
-        }
-    }
-
-    fn as_bytes(&self) -> &[u8] {
-        if self.output_size == 0 {
-            return &[];
-        }
-
-        unsafe { slice::from_raw_parts(self.output.cast(), self.output_size) }
-    }
-}
-
-impl Drop for MjbResult {
-    fn drop(&mut self) {
-        unsafe {
-            mjb_result_free(self);
-        }
-    }
-}
-
-extern "C" {
-    fn mjb_normalize(
-        text: *const MjbText,
-        malformed_policy: c_int,
-        form: c_int,
-        output_encoding: c_int,
-        result: *mut MjbResult,
-        diagnostic: *mut std::ffi::c_void,
-    ) -> c_int;
-
-    fn mjb_nfkc_casefold(
-        text: *const MjbText,
-        malformed_policy: c_int,
-        output_encoding: c_int,
-        result: *mut MjbResult,
-        diagnostic: *mut std::ffi::c_void,
-    ) -> c_int;
-
-    fn mjb_codepoint_count(
-        text: *const MjbText,
-        malformed_policy: c_int,
-        count: *mut usize,
-        diagnostic: *mut std::ffi::c_void,
-    ) -> c_int;
-
-    fn mjb_result_free(result: *mut MjbResult) -> c_int;
-}
-
-// This is a simple Rust example of how to use the Mojibake library.
-// Run `make example-rust` from the examples directory to compile it.
+// This is a simple Rust example of how to use the Mojibake library through the safe `mojibake`
+// crate in src/rust. Run `make example-rust` from the examples directory to compile it.
 // ./build/example-rust to run it.
 fn main() -> ExitCode {
-    if run() {
-        ExitCode::SUCCESS
-    } else {
-        ExitCode::FAILURE
+    match run() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("error: {error}");
+            ExitCode::FAILURE
+        }
     }
 }
 
-fn run() -> bool {
-    let input = "Cafe\u{0301}".as_bytes();
-    let mut normalized = MjbResult::new();
-    let input_text = MjbText {
-        buffer: input.as_ptr().cast(),
-        byte_length: input.len(),
-        encoding: MJB_ENC_UTF_8,
-    };
+fn run() -> mojibake::Result<()> {
+    let input = "Cafe\u{0301}";
 
     // Normalize example: in NFC e + ◌́ -> é (U+00E9)
-    if unsafe {
-        mjb_normalize(
-            &input_text,
-            MJB_MALFORMED_STOP,
-            MJB_NORMALIZATION_NFC,
-            MJB_ENC_UTF_8,
-            &mut normalized,
-            std::ptr::null_mut(),
-        )
-    } != MJB_STATUS_OK
-    {
-        return false;
-    }
+    let normalized = input.normalize(Form::Nfc)?;
 
     // Cafe + ◌́ (U+0301, COMBINING ACUTE ACCENT) -> Café
-    print_string(input);
+    print_string(input.as_bytes());
 
     // Caf + é (U+00E9, LATIN SMALL LETTER E WITH ACUTE) -> Café
     print_string(normalized.as_bytes());
 
     let mojibake = "文字化け";
 
-    // Codepoint count example: mjb_codepoint_count counts Unicode codepoints, not bytes.
-    let mut codepoint_count: usize = 0;
-    let text = MjbText {
-        buffer: mojibake.as_ptr().cast(),
-        byte_length: mojibake.len(),
-        encoding: MJB_ENC_UTF_8,
-    };
-    let status = unsafe {
-        mjb_codepoint_count(
-            &text,
-            MJB_MALFORMED_STOP,
-            &mut codepoint_count,
-            std::ptr::null_mut(),
-        )
-    };
-    assert_eq!(status, MJB_STATUS_OK, "mjb_codepoint_count failed");
+    // Codepoint count example: codepoint_count counts Unicode codepoints, not bytes.
+    let codepoint_count =
+        encoding::codepoint_count(mojibake.as_bytes(), Encoding::Utf8, Malformed::Stop)?;
     println!(
         "\"{mojibake}\" encoded in UTF-8 is {} bytes long, and {codepoint_count} codepoints long",
         mojibake.len()
     );
 
     let case_input = "Straße";
-    let mut casefolded = MjbResult::new();
-    let case_text = MjbText {
-        buffer: case_input.as_ptr().cast(),
-        byte_length: case_input.len(),
-        encoding: MJB_ENC_UTF_8,
-    };
 
     // NFKC casefold example: in NFKC casefold, ß -> ss
-    if unsafe {
-        mjb_nfkc_casefold(
-            &case_text,
-            MJB_MALFORMED_STOP,
-            MJB_ENC_UTF_8,
-            &mut casefolded,
-            std::ptr::null_mut(),
-        )
-    } != MJB_STATUS_OK
-    {
-        return false;
-    }
+    let casefolded = mojibake::nfkc_casefold(case_input)?;
+    println!("{case_input} -> {casefolded}");
 
-    println!(
-        "{case_input} -> {}",
-        String::from_utf8_lossy(casefolded.as_bytes())
-    );
-
-    true
+    Ok(())
 }
 
 fn print_string(input: &[u8]) {

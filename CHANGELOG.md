@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unit, in any input encoding
 
 ### Changed
+- The Rust example in `examples/rust/` now uses the safe `mojibake` crate through Cargo instead of
+  hand-written FFI declarations, and `make -C examples example-rust` maps the `FEATURE_*` variables
+  to the crate's Cargo features. `README.md` documents the Rust crates
 - `mjb_text_make` and the `mjb_text_*` helpers resolve a `MJB_NUL_TERMINATED` length when the text
   is created, so it is scanned once. The sentinel is kept when the buffer is NULL or the encoding is
   invalid, and the function that takes the text reports the error
