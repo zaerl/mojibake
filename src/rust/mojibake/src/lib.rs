@@ -6,7 +6,8 @@
 //!
 //! It covers what the Rust standard library leaves out: normalization, locale-aware casing and
 //! caseless matching, UAX #29 and UAX #14 segmentation, terminal width, character properties and
-//! names, DUCET collation, UTS #46 IDNA, and UTS #39 confusables.
+//! names, encoding conversion with malformed-input policies, the bidirectional algorithm, DUCET
+//! collation, UTS #46 IDNA, and UTS #39 confusables.
 //!
 //! ```
 //! use mojibake::{Form, StrExt};
@@ -27,6 +28,9 @@ mod normalize;
 mod segment;
 mod str_ext;
 mod width;
+
+pub mod bidi;
+pub mod encoding;
 
 #[cfg(feature = "collation")]
 pub mod collate;

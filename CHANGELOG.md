@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The declarations in `src/rust/mojibake-sys/src/functions.rs` are generated from
   `utils/generate/functions.ts` by `make generate`, and by the C++ generator with
   `make generate-cpp ARGS=rust-ffi`
+- The `mojibake` crate adds `encoding`, which validates, decodes, encodes, counts, and converts
+  UTF-8, UTF-16LE/BE, and UTF-32LE/BE byte slices with a `Malformed` policy (stop with the byte
+  offset, replace with U+FFFD, or skip), and `bidi`, whose `Paragraph` resolves embedding levels
+  and reorders lines, splits them into runs, and renders them in visual order with mirroring
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps

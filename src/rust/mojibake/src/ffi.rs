@@ -87,7 +87,6 @@ impl Output {
         String::from_utf8(self.bytes().to_vec()).map_err(|_| Error::InvalidEncoding)
     }
 
-    #[cfg(feature = "collation")]
     pub(crate) fn into_vec(self) -> Vec<u8> {
         self.bytes().to_vec()
     }
