@@ -245,6 +245,36 @@ fn idna() {
         "example.com"
     );
     assert!(idna::to_ascii("xn--a.com").unwrap().is_err());
+
+    use idna::IdnaErrors;
+
+    let error = idna::to_ascii("a..b").unwrap().unwrap_err();
+    assert!(error.errors.contains(IdnaErrors::EMPTY_LABEL));
+    assert!(!error.errors.contains(IdnaErrors::BIDI));
+
+    let error = idna::to_ascii("-a.com").unwrap().unwrap_err();
+    assert_eq!(error.errors, IdnaErrors::HYPHEN);
+    assert_eq!(format!("{:?}", error.errors), "IdnaErrors(HYPHEN)");
+    assert_eq!(
+        error.to_string(),
+        "IDNA processing failed: IdnaErrors(HYPHEN)"
+    );
+
+    let long = "a".repeat(64);
+    let error = idna::to_ascii(&format!("{long}.com")).unwrap().unwrap_err();
+    assert!(error.errors.contains(IdnaErrors::LABEL_LENGTH));
+    // Lengths are only checked when converting to ASCII.
+    assert!(idna::to_unicode(&format!("{long}.com")).unwrap().is_ok());
+
+    let both = IdnaErrors::HYPHEN | IdnaErrors::STD3;
+    assert_eq!(
+        both.iter().collect::<Vec<_>>(),
+        [IdnaErrors::HYPHEN, IdnaErrors::STD3]
+    );
+    assert_eq!(format!("{both:?}"), "IdnaErrors(HYPHEN | STD3)");
+    assert_eq!(both.bits(), 0x44);
+    assert!(IdnaErrors::NONE.is_empty() && IdnaErrors::default().is_empty());
+    assert_eq!(format!("{:?}", IdnaErrors::NONE), "IdnaErrors(NONE)");
 }
 
 #[cfg(feature = "security")]

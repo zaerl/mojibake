@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mjb_locale_parse` and exposes its case-normalized language, extended language, script, region,
   variant, extension, private-use, and grandfathered subtags, and the casing `Locale` it selects.
   It implements `FromStr` and `Display`, which writes the tag in canonical case
+- The `mojibake-rs` crate adds `hangul::{compose, decompose, syllable_name}` and the Hangul
+  syllable and jamo predicates, `CharExt::{is_cjk_ideograph, is_cjk_extension_ideograph}`, and
+  `grapheme_prefix` and `word_prefix`, which return the first N graphemes or word-break segments
+  in one pass. `idna::IdnaError::errors` is now a typed `IdnaErrors` flag set instead of a `u32`
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps
