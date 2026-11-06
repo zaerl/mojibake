@@ -19,7 +19,7 @@ concurrency:
 jobs:
   format:
     name: Formatting
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -38,7 +38,7 @@ jobs:
 
   tidy:
     name: Static analysis
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 15
     # Advisory while the check set settles. Remove this line to make the job gating.
     continue-on-error: true
@@ -60,7 +60,7 @@ jobs:
 
   typecheck:
     name: TypeScript
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -91,7 +91,7 @@ jobs:
 
   generated:
     name: Generated files
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-zaerl
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
