@@ -61,6 +61,125 @@ impl Direction {
     }
 }
 
+/// The `Bidi_Class` of a character (UAX #9 table 4).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum BidiClass {
+    /// `L`: Strong left to right: most letters.
+    LeftToRight,
+    /// `R`: Strong right to left: Hebrew and other right-to-left letters.
+    RightToLeft,
+    /// `AL`: Strong right to left: Arabic, Syriac, and Thaana letters.
+    ArabicLetter,
+    /// `EN`: European digits.
+    EuropeanNumber,
+    /// `ES`: Plus and minus signs.
+    EuropeanSeparator,
+    /// `ET`: Currency, degree, and percent signs.
+    EuropeanTerminator,
+    /// `AN`: Arabic-Indic digits.
+    ArabicNumber,
+    /// `CS`: Commas, colons, and periods between numbers.
+    CommonSeparator,
+    /// `NSM`: Nonspacing marks, which take the class of the preceding character.
+    NonspacingMark,
+    /// `BN`: Default ignorables, removed by rule X9.
+    BoundaryNeutral,
+    /// `B`: Paragraph separators.
+    ParagraphSeparator,
+    /// `S`: Tabs.
+    SegmentSeparator,
+    /// `WS`: Spaces.
+    WhiteSpace,
+    /// `ON`: Other neutrals, such as most punctuation and symbols.
+    OtherNeutral,
+    /// `LRE`: U+202A LEFT-TO-RIGHT EMBEDDING.
+    LeftToRightEmbedding,
+    /// `LRO`: U+202D LEFT-TO-RIGHT OVERRIDE.
+    LeftToRightOverride,
+    /// `RLE`: U+202B RIGHT-TO-LEFT EMBEDDING.
+    RightToLeftEmbedding,
+    /// `RLO`: U+202E RIGHT-TO-LEFT OVERRIDE.
+    RightToLeftOverride,
+    /// `PDF`: U+202C POP DIRECTIONAL FORMATTING.
+    PopDirectionalFormat,
+    /// `LRI`: U+2066 LEFT-TO-RIGHT ISOLATE.
+    LeftToRightIsolate,
+    /// `RLI`: U+2067 RIGHT-TO-LEFT ISOLATE.
+    RightToLeftIsolate,
+    /// `FSI`: U+2068 FIRST STRONG ISOLATE.
+    FirstStrongIsolate,
+    /// `PDI`: U+2069 POP DIRECTIONAL ISOLATE.
+    PopDirectionalIsolate,
+}
+
+impl BidiClass {
+    pub(crate) fn from_raw(raw: sys::mjb_bidi_class) -> Option<Self> {
+        Some(match raw {
+            sys::MJB_PR_BIDI_CLASS_L => Self::LeftToRight,
+            sys::MJB_PR_BIDI_CLASS_R => Self::RightToLeft,
+            sys::MJB_PR_BIDI_CLASS_AL => Self::ArabicLetter,
+            sys::MJB_PR_BIDI_CLASS_EN => Self::EuropeanNumber,
+            sys::MJB_PR_BIDI_CLASS_ES => Self::EuropeanSeparator,
+            sys::MJB_PR_BIDI_CLASS_ET => Self::EuropeanTerminator,
+            sys::MJB_PR_BIDI_CLASS_AN => Self::ArabicNumber,
+            sys::MJB_PR_BIDI_CLASS_CS => Self::CommonSeparator,
+            sys::MJB_PR_BIDI_CLASS_NSM => Self::NonspacingMark,
+            sys::MJB_PR_BIDI_CLASS_BN => Self::BoundaryNeutral,
+            sys::MJB_PR_BIDI_CLASS_B => Self::ParagraphSeparator,
+            sys::MJB_PR_BIDI_CLASS_S => Self::SegmentSeparator,
+            sys::MJB_PR_BIDI_CLASS_WS => Self::WhiteSpace,
+            sys::MJB_PR_BIDI_CLASS_ON => Self::OtherNeutral,
+            sys::MJB_PR_BIDI_CLASS_LRE => Self::LeftToRightEmbedding,
+            sys::MJB_PR_BIDI_CLASS_LRO => Self::LeftToRightOverride,
+            sys::MJB_PR_BIDI_CLASS_RLE => Self::RightToLeftEmbedding,
+            sys::MJB_PR_BIDI_CLASS_RLO => Self::RightToLeftOverride,
+            sys::MJB_PR_BIDI_CLASS_PDF => Self::PopDirectionalFormat,
+            sys::MJB_PR_BIDI_CLASS_LRI => Self::LeftToRightIsolate,
+            sys::MJB_PR_BIDI_CLASS_RLI => Self::RightToLeftIsolate,
+            sys::MJB_PR_BIDI_CLASS_FSI => Self::FirstStrongIsolate,
+            sys::MJB_PR_BIDI_CLASS_PDI => Self::PopDirectionalIsolate,
+            _ => return None,
+        })
+    }
+
+    /// The short alias of the class, such as `"AL"`.
+    pub fn abbreviation(self) -> &'static str {
+        match self {
+            Self::LeftToRight => "L",
+            Self::RightToLeft => "R",
+            Self::ArabicLetter => "AL",
+            Self::EuropeanNumber => "EN",
+            Self::EuropeanSeparator => "ES",
+            Self::EuropeanTerminator => "ET",
+            Self::ArabicNumber => "AN",
+            Self::CommonSeparator => "CS",
+            Self::NonspacingMark => "NSM",
+            Self::BoundaryNeutral => "BN",
+            Self::ParagraphSeparator => "B",
+            Self::SegmentSeparator => "S",
+            Self::WhiteSpace => "WS",
+            Self::OtherNeutral => "ON",
+            Self::LeftToRightEmbedding => "LRE",
+            Self::LeftToRightOverride => "LRO",
+            Self::RightToLeftEmbedding => "RLE",
+            Self::RightToLeftOverride => "RLO",
+            Self::PopDirectionalFormat => "PDF",
+            Self::LeftToRightIsolate => "LRI",
+            Self::RightToLeftIsolate => "RLI",
+            Self::FirstStrongIsolate => "FSI",
+            Self::PopDirectionalIsolate => "PDI",
+        }
+    }
+
+    /// True for the strong classes `L`, `R`, and `AL`.
+    pub fn is_strong(self) -> bool {
+        matches!(
+            self,
+            Self::LeftToRight | Self::RightToLeft | Self::ArabicLetter
+        )
+    }
+}
+
 /// A character of a resolved paragraph.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BidiChar {
@@ -70,6 +189,9 @@ pub struct BidiChar {
     pub byte_offset: usize,
     /// Resolved embedding level. Odd levels are right to left.
     pub level: u8,
+    /// The class of the character after the weak and neutral rules (W1-W7, N1-N2) resolved it.
+    /// `ch.bidi_class()` gives its original `Bidi_Class`.
+    pub class: BidiClass,
     /// The Bidi_Mirroring_Glyph to display instead of `ch` (rule L4), when `ch` is mirrored and
     /// its level is odd.
     pub mirror: Option<char>,
@@ -159,6 +281,8 @@ impl<'a> Paragraph<'a> {
             ch: char::from_u32(c.codepoint).unwrap_or(char::REPLACEMENT_CHARACTER),
             byte_offset: c.byte_offset,
             level: c.level,
+            // The library always resolves a class; ON is only a defensive fallback.
+            class: BidiClass::from_raw(c.resolved_class).unwrap_or(BidiClass::OtherNeutral),
             mirror: if c.mirroring_glyph == 0 {
                 None
             } else {

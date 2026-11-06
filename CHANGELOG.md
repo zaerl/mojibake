@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `CharExt::property_value`. `CharExt` also gains `script_extensions`, `is_id_start`,
   `is_id_continue`, `is_pattern_syntax`, and `is_pattern_white_space`. `mojibake-sys` adds the
   filter, emoji sequence, emoji qualification, and script set constants, checked against C
+- The `mojibake-rs` crate exposes the whole `mjb_character` record: `CharExt::info` returns a
+  `CharInfo` with the general category, canonical combining class, `BidiClass`, `Bidi_Mirrored`,
+  `DecompositionType`, decimal, digit, and numeric values, and simple case mappings, and `CharExt`
+  gains `canonical_combining_class`, `bidi_class`, `is_bidi_mirrored`, `decomposition_type`, and
+  `simple_uppercase`, `simple_lowercase`, and `simple_titlecase`. `bidi::BidiChar` gains a
+  `class` field with the resolved bidi class. `mojibake-sys` adds the bidi class, decomposition
+  type, and `MJB_NUMBER_NOT_VALID` constants
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps
