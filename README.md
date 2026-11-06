@@ -3,14 +3,15 @@
 [![Test](https://github.com/zaerl/mojibake/actions/workflows/test.yml/badge.svg)](https://github.com/zaerl/mojibake/actions/workflows/test.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13557/badge)](https://www.bestpractices.dev/projects/13557)
 
-**Mojibake** is a small, fast, self-contained Unicode library written in C11. It gives C and C++
-programs normalization, case mapping, segmentation, bidirectional text, collation, IDNA, emoji,
+**Mojibake** is a small, fast, self-contained Unicode library written in C11. It gives C, C++ and
+Rust programs normalization, case mapping, segmentation, bidirectional text, collation, IDNA, emoji,
 confusable detection, and the full Unicode Character Database, all in one source file and one
 header, with zero dependencies. It is released under the MIT License.
 
 [Live demo and API reference](https://mojibake.zaerl.com) ·
 [API.md](https://github.com/zaerl/mojibake/blob/main/API.md) ·
 [C++ wrapper](https://github.com/zaerl/mojibake/blob/main/src/cpp/README.md) ·
+[Rust wrapper](https://github.com/zaerl/mojibake/blob/main/src/rust/README.md) ·
 [Changelog](https://github.com/zaerl/mojibake/blob/main/CHANGELOG.md) ·
 [Roadmap](https://github.com/zaerl/mojibake/blob/main/ROADMAP.md)
 
