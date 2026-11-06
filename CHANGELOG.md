@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `simple_uppercase`, `simple_lowercase`, and `simple_titlecase`. `bidi::BidiChar` gains a
   `class` field with the resolved bidi class. `mojibake-sys` adds the bidi class, decomposition
   type, and `MJB_NUMBER_NOT_VALID` constants
+- The `mojibake-rs` crate adds `LanguageTag`, which parses a BCP 47 tag strictly with
+  `mjb_locale_parse` and exposes its case-normalized language, extended language, script, region,
+  variant, extension, private-use, and grandfathered subtags, and the casing `Locale` it selects.
+  It implements `FromStr` and `Display`, which writes the tag in canonical case
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps
