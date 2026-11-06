@@ -56,6 +56,115 @@ static mjb_codepoint bidi_class_codepoint(const char *name) {
 }
 
 /*
+ * Reference L1 + L2 for the line [start, end) of a single-line conformance case. levels are the
+ * expected (paragraph-wide) levels and trailing marks WS, S, B and isolate formatting characters,
+ * both indexed by non-removed position. The expected levels already have L1 applied for the end
+ * of the paragraph, so a line only needs its own trailing run reset (UAX #9 L1 item 4).
+ */
+static void reference_line_order(const uint8_t *levels, const bool *trailing, size_t start,
+    size_t end, uint8_t para_level, uint8_t *line_levels, size_t *order) {
+    size_t n = end - start;
+    size_t t = end;
+
+    while(t > start && trailing[t - 1]) {
+        --t;
+    }
+
+    uint8_t max_level = 0;
+    uint8_t min_odd = 0xFF;
+
+    for(size_t i = 0; i < n; ++i) {
+        line_levels[i] = start + i >= t ? para_level : levels[start + i];
+        order[i] = start + i;
+
+        if(line_levels[i] > max_level) {
+            max_level = line_levels[i];
+        }
+
+        if((line_levels[i] & 1) && line_levels[i] < min_odd) {
+            min_odd = line_levels[i];
+        }
+    }
+
+    // L2: from the highest level down to the lowest odd level, reverse every maximal run of
+    // characters at that level or higher. line_levels stays in logical order.
+    for(unsigned int lv = max_level; min_odd != 0xFF && lv >= min_odd; --lv) {
+        size_t i = 0;
+
+        while(i < n) {
+            if(line_levels[i] < lv) {
+                ++i;
+                continue;
+            }
+
+            size_t j = i;
+
+            while(j < n && line_levels[j] >= lv) {
+                ++j;
+            }
+
+            for(size_t lo = i, hi = j - 1; lo < hi; ++lo, --hi) {
+                size_t tmp = order[lo];
+                order[lo] = order[hi];
+                order[hi] = tmp;
+            }
+
+            i = j;
+        }
+    }
+}
+
+/*
+ * Check mjb_bidi_reorder_line and mjb_bidi_line_runs for the line [start, end) of para against
+ * the reference L1 + L2 above.
+ */
+static bool check_line(const mjb_bidi_paragraph *para, const uint8_t *levels, const bool *trailing,
+    size_t start, size_t end) {
+    uint8_t line_levels[64];
+    size_t expected[64];
+    size_t order[64];
+    mjb_bidi_run runs[64];
+    size_t run_count = 0;
+    size_t n = end - start;
+
+    reference_line_order(levels, trailing, start, end, para->paragraph_level, line_levels,
+        expected);
+
+    if(mjb_bidi_reorder_line(para, start, end, order) != MJB_STATUS_OK) {
+        return false;
+    }
+
+    for(size_t v = 0; v < n; ++v) {
+        if(order[v] != expected[v]) {
+            return false;
+        }
+    }
+
+    if(mjb_bidi_line_runs(para, order, n, NULL, &run_count) != MJB_STATUS_OK || run_count > 64 ||
+        mjb_bidi_line_runs(para, order, n, runs, &run_count) != MJB_STATUS_OK) {
+        return false;
+    }
+
+    size_t covered = 0;
+
+    for(size_t r = 0; r < run_count; ++r) {
+        if(runs[r].start != covered || runs[r].end <= runs[r].start) {
+            return false;
+        }
+
+        for(size_t v = runs[r].start; v < runs[r].end; ++v) {
+            if(line_levels[order[v] - start] != runs[r].level) {
+                return false;
+            }
+        }
+
+        covered = runs[r].end;
+    }
+
+    return covered == n;
+}
+
+/*
  * BidiTest.txt: data lines are sequences of Bidi_Class names, checked against the current
  * @Levels and @Reorder directives for each paragraph direction in the bitset
  * (1 = auto-LTR, 2 = LTR, 4 = RTL).
@@ -78,6 +187,7 @@ static void read_bidi_class_test_file(const char *filename) {
     size_t non_removed = 0;
     size_t expected_order[64];
     size_t order_count = 0;
+    bool l1_trailing[64];
 
     static const mjb_direction directions[3] = { MJB_DIRECTION_AUTO, MJB_DIRECTION_LTR,
         MJB_DIRECTION_RTL };
@@ -169,6 +279,12 @@ static void read_bidi_class_test_file(const char *filename) {
 
             mjb_codepoint cp = bidi_class_codepoint(tok);
 
+            if(cp_count < 64) {
+                l1_trailing[cp_count] = strcmp(tok, "WS") == 0 || strcmp(tok, "S") == 0 ||
+                    strcmp(tok, "B") == 0 || strcmp(tok, "LRI") == 0 || strcmp(tok, "RLI") == 0 ||
+                    strcmp(tok, "FSI") == 0 || strcmp(tok, "PDI") == 0;
+            }
+
             if(cp == 0) {
                 skip = true;
                 break;
@@ -246,6 +362,31 @@ static void read_bidi_class_test_file(const char *filename) {
                         if(orig_pos[visual_order[v]] == expected_order[v]) {
                             ++successful;
                         }
+                    }
+                }
+
+                /*
+                 * The file has single-line paragraphs only. Split each one into two lines at
+                 * every position and check both lines, so the line-dependent part of L1
+                 * (trailing whitespace and isolates of a line inside the paragraph) is covered.
+                 */
+                uint8_t nr_levels[64];
+                bool nr_trailing[64];
+
+                for(size_t j = 0; j < nri; ++j) {
+                    nr_levels[j] = expected_levels[orig_pos[j]];
+                    nr_trailing[j] = l1_trailing[orig_pos[j]];
+                }
+
+                for(size_t k = 1; k < nri; ++k) {
+                    total += 2;
+
+                    if(check_line(&para, nr_levels, nr_trailing, 0, k)) {
+                        ++successful;
+                    }
+
+                    if(check_line(&para, nr_levels, nr_trailing, k, nri)) {
+                        ++successful;
                     }
                 }
             }
