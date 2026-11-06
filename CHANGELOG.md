@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Rust crates in `src/rust/`: `mojibake-sys` compiles the library with Cargo and declares the raw
+  FFI, and `mojibake` adds a safe API for normalization, locale casing, caseless matching,
+  segmentation, terminal width, character properties, collation, IDNA, and confusables. Run their
+  tests with `make test-rust`
 - `mjb_nul_terminated_length` returns the byte length of a string that ends at its first NUL code
   unit, in any input encoding
 

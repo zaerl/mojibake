@@ -232,7 +232,7 @@ tidy: configure-tidy
 .PHONY: test test-all test-native test-optimized test-release test-cpp-release \
 	test-features test-sanitizers test-minimal test-cpp test-cpp-minimal test-asan \
 	test-ubsan test-no-names test-no-collation test-no-idna test-no-security test-wasm \
-	ctest ctest-cpp test-docker
+	ctest ctest-cpp test-rust test-docker
 
 # Run tests
 test: $(UNICODE_DATA)
@@ -341,6 +341,14 @@ ctest-cpp: $(UNICODE_DATA)
 	@cmake --build $(TEST_CPP_BUILD_DIR) --config $(TEST_BUILD_TYPE)
 	cd $(TEST_CPP_BUILD_DIR) && ctest -C $(TEST_BUILD_TYPE) $(ARGS)
 
+# Run the Rust crates' tests, with every optional feature on and then off, plus clippy and rustfmt
+test-rust:
+	cd src/rust && cargo fmt --check
+	cd src/rust && cargo clippy --all-targets -- -D warnings
+	cd src/rust && cargo clippy --all-targets -p mojibake --no-default-features -- -D warnings
+	cd src/rust && cargo test
+	cd src/rust && cargo test -p mojibake --no-default-features
+
 # Run tests in Docker container
 test-docker:
 	docker build -t mojibake .
@@ -410,6 +418,7 @@ help:
 	@echo "  coverage                - Run coverage analysis"
 	@echo "  ctest                   - Build and run tests using CTest"
 	@echo "  ctest-cpp               - Build and run C++ tests using CTest"
+	@echo "  test-rust               - Test the Rust crates in src/rust with cargo"
 	@echo "  generate                - Regenerate source files"
 	@echo "  generate-cpp            - Regenerate source files with the C++ generator"
 	@echo "  generate-locale         - Generate locale file"

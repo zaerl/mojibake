@@ -26,6 +26,8 @@ The repository contains:
 
 - the C library and public headers in `src/`
 - a header-only C++20 wrapper in `src/cpp/mojibake.hpp` (namespace `mjb`, see `src/cpp/README.md`)
+- Rust crates in `src/rust/`: `mojibake-sys` (Cargo build of the C library plus raw FFI) and
+  `mojibake` (safe API); see `src/rust/README.md`
 - a native command-line client in `src/shell/`
 - an Emscripten/WASM module and TypeScript API in `src/api/`, plus a demo site in `src/site/`
 - a SwiftUI macOS/iOS demo app in `src/ui/Mojibake/` (Xcode project; not built by CMake or CI)
@@ -144,6 +146,7 @@ finishing:
 - `make test-all` - all of the above local native configurations
 - `make ctest` / `make ctest-cpp` - run the registered CMake tests, including CLI output checks
   (`tests/shell/`) and the embedded-project integration test (`tests/cmake/`)
+- `make test-rust` - run rustfmt, clippy, and the Rust crates' tests with features on and off
 - `make test-docker` - build and test in the Alpine Linux container
 - `FUZZ_TIME=60 make fuzz` - fuzz the public API with libFuzzer in Docker (`fuzz/fuzz.c`)
 
@@ -388,3 +391,4 @@ validation commands were run:
 | Generator | `tsc --noEmit` in `utils/generate`, `make generate`, then the native tests |
 | TypeScript API | `(cd src/api && npm run typecheck)` and `make test-wasm` |
 | CLI | `make build` and `make ctest` |
+| Rust crates, or C structs and enums they mirror | `make test-rust` |

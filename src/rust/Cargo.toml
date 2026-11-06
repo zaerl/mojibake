@@ -1,0 +1,10 @@
+[workspace]
+members = ["mojibake-sys", "mojibake"]
+resolver = "2"
+
+[workspace.package]
+version = "0.5.1"
+edition = "2021"
+rust-version = "1.77"
+license = "MIT"
+repository = "https://github.com/zaerl/mojibake"

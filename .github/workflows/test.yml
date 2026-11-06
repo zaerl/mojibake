@@ -85,6 +85,23 @@ jobs:
       - name: Test sanitizer configurations
         run: make test-sanitizers WARNINGS_AS_ERRORS=ON
 
+  rust:
+    name: Test (Rust / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Rust components
+        run: rustup component add clippy rustfmt
+
+      - name: Test Rust crates
+        run: make test-rust
+
   test-windows:
     name: Test (Windows / MSVC)
     runs-on: windows-latest
