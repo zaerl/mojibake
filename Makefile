@@ -27,10 +27,9 @@ TEST_NO_COLLATION_BUILD_DIR ?= $(BUILD_DIR)-test-no-collation
 TEST_NO_IDNA_BUILD_DIR ?= $(BUILD_DIR)-test-no-idna
 TEST_NO_SECURITY_BUILD_DIR ?= $(BUILD_DIR)-test-no-security
 
-# WASM, amalgamation and generator build directories
+# WASM and amalgamation build directories
 WASM_BUILD_DIR ?= build-wasm
 AMALGAMATION_BUILD_DIR ?= build-amalgamation
-GENERATOR_BUILD_DIR ?= build-generator
 
 # CMake build flags
 BUILD_TYPE ?= Release
@@ -73,14 +72,6 @@ GENERATE_SOURCES = \
 	utils/generate/scripts/* \
 	utils/generate/*.json \
 	utils/generate/*.ts \
-
-# C++ generator sources that trigger a rebuild.
-GENERATOR_SOURCES = \
-	utils/generator/CMakeLists.txt \
-	utils/generator/*.cpp \
-	utils/generator/*.h \
-
-GENERATOR_BIN = $(GENERATOR_BUILD_DIR)/generator
 
 UNICODE_DATA = src/unicode-data.h
 
@@ -141,22 +132,13 @@ build-ubsan: configure-ubsan
 build-wasm: configure-wasm
 	@cd $(WASM_BUILD_DIR) && emmake make
 
-.PHONY: generate generate-cpp generate-locale generate-unicode-tables \
+.PHONY: generate generate-locale generate-unicode-tables \
 		generate-site sync-api-wasm watch-site \
 		watch-api wasm coverage amalgamation update-version build-api
 
 # Generate source files
 generate: $(GENERATE_SOURCES)
 	@cd ./utils/generate && ./scripts/generate.sh $(ARGS)
-
-# Build the C++ generator
-$(GENERATOR_BIN): $(GENERATOR_SOURCES)
-	@cmake -S utils/generator -B $(GENERATOR_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-		-DMJB_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS)
-	@cmake --build $(GENERATOR_BUILD_DIR) --config $(BUILD_TYPE)
-
-generate-cpp: $(GENERATOR_BIN)
-	@cd ./utils/generate && ../../$(GENERATOR_BIN) $(ARGS)
 
 # Generate locale files
 generate-locale:
@@ -203,8 +185,8 @@ $(UNICODE_DATA): $(GENERATE_SOURCES)
 	@cd ./utils/generate && ./scripts/generate.sh $(ARGS)
 
 # Update version in source files
-update-version: $(GENERATOR_BIN)
-	@cd ./utils/generate && ../../$(GENERATOR_BIN) update-version
+update-version:
+	@cd ./utils/generate && npm run generate -- update-version
 
 .PHONY: lint tidy configure-tidy
 
@@ -382,7 +364,7 @@ fuzz:
 	docker build -f fuzz/Dockerfile -t mojibake-fuzz .
 	docker run --rm -e FUZZ_TIME=$(FUZZ_TIME) mojibake-fuzz
 
-.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean-generator clean-unicode-data clean
+.PHONY: clean-build clean-native clean-wasm clean-amalgamation clean-unicode-data clean
 
 # Clean targets
 clean-build:
@@ -405,15 +387,11 @@ clean-wasm:
 clean-amalgamation:
 	@rm -rf $(AMALGAMATION_BUILD_DIR)
 
-# Clean generator build
-clean-generator:
-	@rm -rf $(GENERATOR_BUILD_DIR)
-
 # Clean downloaded Unicode data
 clean-unicode-data:
 	@rm -rf unicode-data
 
-clean: clean-native clean-wasm clean-amalgamation clean-generator clean-unicode-data
+clean: clean-native clean-wasm clean-amalgamation clean-unicode-data
 
 .PHONY: help
 
@@ -430,7 +408,6 @@ help:
 	@echo "  clean                   - Remove build artifacts and downloaded Unicode data"
 	@echo "  clean-amalgamation      - Remove amalgamation build artifacts"
 	@echo "  clean-build             - Remove build artifacts"
-	@echo "  clean-generator         - Remove C++ generator build artifacts"
 	@echo "  clean-native            - Remove all build artifacts"
 	@echo "  clean-unicode-data      - Remove downloaded Unicode data"
 	@echo "  clean-wasm              - Remove WASM build artifacts"
@@ -441,7 +418,6 @@ help:
 	@echo "  vendor-rust             - Copy the C sources into the mojibake-sys crate"
 	@echo "  package-rust            - Vendor, package and dry-run publish the Rust crates"
 	@echo "  generate                - Regenerate source files"
-	@echo "  generate-cpp            - Regenerate source files with the C++ generator"
 	@echo "  generate-locale         - Generate locale file"
 	@echo "  generate-site           - Generate site"
 	@echo "  generate-unicode-tables - Generate embedded Unicode lookup tables"
