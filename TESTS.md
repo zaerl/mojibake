@@ -1,6 +1,6 @@
 # Test coverage
 
-Mojibake runs a total of **4,667,748** C assertions and **178** JavaScript assertions, including all
+Mojibake runs a total of **4,667,780** C assertions and **178** JavaScript assertions, including all
 the official tests included in the standard:
 
 1. [auxiliary/GraphemeBreakTest.txt](https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt)
@@ -23,10 +23,10 @@ the official tests included in the standard:
 | Test                                       | Coverage    |
 | ------------------------------------------ | ----------- |
 | `mjb_normalize_into`                       | 2824002     |
-| `mjb_bidi_resolve`                         | 582612      |
+| `mjb_bidi_resolve`                         | 582618      |
 | `mjb_normalize`                            | 424446      |
 | `mjb_collation_compare`                    | 424217      |
-| `mjb_bidi_reorder_line`                    | 91723       |
+| `mjb_bidi_reorder_line`                    | 91737       |
 | `mjb_codepoint_info`                       | 82678       |
 | `mjb_nfkc_casefold_into`                   | 74799       |
 | `mjb_line_break_next`                      | 38703       |
@@ -68,6 +68,7 @@ the official tests included in the standard:
 | `mjb_decode_next`                          | 33          |
 | `mjb_utf8_grapheme_snprintf`               | 31          |
 | `mjb_convert_encoding_into`                | 26          |
+| `mjb_bidi_line_runs`                       | 24          |
 | `mjb_decode_previous`                      | 24          |
 | `mjb_nul_terminated_length`                | 21          |
 | `mjb_utf8_snprintf`                        | 21          |
@@ -81,7 +82,6 @@ the official tests included in the standard:
 | `mjb_grapheme_prefix_length`               | 15          |
 | `mjb_hangul_syllable_compose`              | 14          |
 | `mjb_is_identifier`                        | 14          |
-| `mjb_bidi_line_runs`                       | 12          |
 | `mjb_detect_encoding`                      | 12          |
 | `mjb_grapheme_prefix_length_for_width`     | 11          |
 | `mjb_is_ascii`                             | 11          |
@@ -129,7 +129,7 @@ the official tests included in the standard:
 | `mjb_unicode_version`                      | 2           |
 | `mjb_version`                              | 2           |
 | `mjb_version_number`                       | 2           |
-| **Total**                                  | **4667748** |
+| **Total**                                  | **4667780** |
 
 ## JavaScript
 
