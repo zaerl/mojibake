@@ -4,7 +4,14 @@ Two crates that expose Mojibake to Rust:
 
 - `mojibake-sys` compiles the C library with the [`cc`](https://crates.io/crates/cc) crate and
   declares the raw FFI. No CMake is needed.
-- `mojibake` is the safe, idiomatic API, built mostly from extension traits on `str` and `char`.
+- `mojibake-rs` is the safe, idiomatic API, built mostly from extension traits on `str` and `char`.
+  It is published as `mojibake-rs` because the `mojibake` name is taken on crates.io, but its
+  library is still named `mojibake`, so code writes `use mojibake::...`:
+
+  ```toml
+  [dependencies]
+  mojibake-rs = "0.5"
+  ```
 
 The Rust standard library has UTF-8 strings, simple character predicates, and full
 upper/lowercase mapping. These crates add what it leaves out:
@@ -93,7 +100,7 @@ from the generated `SOURCES` block of `CMakeLists.txt`.
 `make package-rust` copies `src/*.c`, `src/*.h`, `src/CMakeLists.txt`, and `LICENSE` into
 `mojibake-sys/csrc/`, then runs `cargo package --workspace` and
 `cargo publish --workspace --dry-run`. Both crates are packaged and each is built from its
-`.crate` file, with `mojibake` resolving the unpublished `mojibake-sys` from Cargo's local staging
+`.crate` file, with `mojibake-rs` resolving the unpublished `mojibake-sys` from Cargo's local staging
 registry. CI runs it on every push. It needs Cargo 1.90 or newer for workspace packaging; users of
 the crates still need only Rust 1.77.
 
@@ -104,9 +111,9 @@ and instead refuses to run when `src/` or `LICENSE` has uncommitted or untracked
 To release the crates:
 
 1. Set `VERSION` and run `make update-version`. It sets the workspace version in `Cargo.toml`,
-   the `mojibake-sys` dependency of `mojibake`, and both entries in `Cargo.lock`.
+   the `mojibake-sys` dependency of `mojibake-rs`, and both entries in `Cargo.lock`.
 2. Commit the release and check that `make test-rust` and `make package-rust` pass.
-3. Publish from the same clean checkout. Cargo uploads `mojibake-sys` first, then `mojibake`:
+3. Publish from the same clean checkout. Cargo uploads `mojibake-sys` first, then `mojibake-rs`:
 
    ```sh
    make vendor-rust

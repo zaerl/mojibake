@@ -327,9 +327,9 @@ ctest-cpp: $(UNICODE_DATA)
 test-rust:
 	cd src/rust && cargo fmt --check
 	cd src/rust && cargo clippy --all-targets -- -D warnings
-	cd src/rust && cargo clippy --all-targets -p mojibake --no-default-features -- -D warnings
+	cd src/rust && cargo clippy --all-targets -p mojibake-rs --no-default-features -- -D warnings
 	cd src/rust && cargo test
-	cd src/rust && cargo test -p mojibake --no-default-features
+	cd src/rust && cargo test -p mojibake-rs --no-default-features
 
 # Copy the C sources into src/rust/mojibake-sys/csrc (git-ignored) so the crate is self-contained
 vendor-rust:

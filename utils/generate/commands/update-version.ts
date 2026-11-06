@@ -56,7 +56,7 @@ export async function updateVersion() {
   writeFileSync('../../src/rust/mojibake/Cargo.toml', fileContent);
 
   fileContent = readFileSync('../../src/rust/Cargo.lock', 'utf-8');
-  fileContent = substituteBlock(fileContent, 'name = "mojibake"\nversion = "', '"', v.version);
+  fileContent = substituteBlock(fileContent, 'name = "mojibake-rs"\nversion = "', '"', v.version);
   fileContent = substituteBlock(fileContent, 'name = "mojibake-sys"\nversion = "', '"', v.version);
   writeFileSync('../../src/rust/Cargo.lock', fileContent);
 
