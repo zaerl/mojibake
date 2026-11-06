@@ -161,12 +161,14 @@ For WASM/API work:
 - `make sync-api-wasm` - build with Emscripten and copy `mojibake.js` and `mojibake.wasm` into
   `src/api/`
 - `make build-api` - sync WASM and build the TypeScript package
-- `make test-wasm` - test the currently synced API artifacts in Node and a local browser
+- `make test-wasm` - sync WASM, build the TypeScript package, and test it in Node and a local
+  browser
 - `make wasm` - sync the WASM artifacts and generate the demo site
 - `make watch-site` - build, serve, and watch the demo at `http://localhost:6251`
 - `make watch-api` - watch the TypeScript API tests
 
-Run `make sync-api-wasm` before `make test-wasm` when C code, exports, or the WASM ABI changed.
+`make test-wasm` rebuilds the WASM artifacts first, so it needs Emscripten. To test the artifacts
+already in `src/api/` without rebuilding, run `(cd src/api && npm test)`.
 `MJB_BROWSER` can select a non-default Chromium-based browser for browser tests.
 
 ### Writing tests
