@@ -25,10 +25,14 @@ upper/lowercase mapping. These crates add what it leaves out:
 | Caseless matching (D144-D147) | `caseless_eq`, `StrExt::caseless_eq` |
 | Segmentation (UAX #29, UAX #14) | `graphemes`, `words`, `sentences`, `line_breaks`, counts |
 | Terminal width (UAX #11) | `terminal_width`, `truncate_to_width` |
-| Character properties | `CharExt::{general_category, name, block, script, numeric_value, east_asian_width, emoji_properties}` |
+| Character properties | `CharExt::{general_category, name, block, script, script_extensions, numeric_value, east_asian_width, emoji_properties}` |
+| Any binary or enumerated property | `Property::{from_name, all}`, `CharExt::{has_property, property_value}` |
+| Text filters | `filter(s, Filter::NORMALIZE \| Filter::COLLAPSE_SPACES)` |
+| Identifiers (UAX #31) | `is_identifier`, `CharExt::{is_id_start, is_xid_start, is_pattern_syntax, ...}` |
+| Emoji sequences (UTS #51) | `emoji::{sequence, is_sequence, is_rgi}` |
 | Collation (UTS #10) | `collate::{compare, sort_key, Collator}` |
 | IDNA (UTS #46) | `idna::{to_ascii, to_unicode}` |
-| Confusables (UTS #39) | `security::{skeleton, is_confusable}` |
+| Confusables and script sets (UTS #39) | `security::{skeleton, is_confusable, resolved_scripts}` |
 
 ```rust
 use mojibake::{CharExt, Form, Locale, StrExt};
@@ -128,7 +132,9 @@ This is a scaffold. `mojibake-sys` declares every public function except the var
 layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
 Not done yet:
 
-- expose the remaining APIs in the safe crate: filters, identifiers, emoji sequences, script sets,
-  the `_into` variants, and streaming decoders over `mjb_decode_next`
+- expose the remaining APIs in the safe crate: the full `mjb_character` record (combining class,
+  bidi class, decomposition type, simple case mappings), the parsed BCP 47 subtags of
+  `mjb_locale_id`, typed IDNA error flags, Hangul and plane helpers, the `_into` variants, and
+  streaming decoders over `mjb_decode_next`
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy

@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   UTF-8, UTF-16LE/BE, and UTF-32LE/BE byte slices with a `Malformed` policy (stop with the byte
   offset, replace with U+FFFD, or skip), and `bidi`, whose `Paragraph` resolves embedding levels
   and reorders lines, splits them into runs, and renders them in visual order with mirroring
+- The `mojibake-rs` crate adds `filter` with combinable `Filter` flags, `is_identifier` with an
+  `IdentifierProfile`, `emoji::{sequence, is_sequence, is_rgi}` for UTS #51 sequences,
+  `security::resolved_scripts` for UTS #39 mixed-script detection, and a `Property` type that
+  looks up any of the library's properties by name for `CharExt::has_property` and
+  `CharExt::property_value`. `CharExt` also gains `script_extensions`, `is_id_start`,
+  `is_id_continue`, `is_pattern_syntax`, and `is_pattern_white_space`. `mojibake-sys` adds the
+  filter, emoji sequence, emoji qualification, and script set constants, checked against C
 - `make package-rust` vendors the C sources into `mojibake-sys` and runs `cargo package` and
   `cargo publish --dry-run` for both crates, also in CI. `make update-version` sets the crates'
   version. `src/rust/README.md` describes the release steps

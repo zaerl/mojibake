@@ -24,6 +24,52 @@ pub fn skeleton(s: &str) -> Result<String> {
     output.into_string()
 }
 
+/// The UTS #39 resolved script set of a string. See [`resolved_scripts`].
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum ScriptSet {
+    /// Every script resolves the string: it is empty or holds only `Common` and `Inherited`
+    /// characters.
+    All,
+    /// The ISO 15924 codes of the scripts that resolve the string. It may include the
+    /// writing-system values `Hanb`, `Jpan`, and `Kore`.
+    Resolved(Vec<&'static str>),
+    /// No script resolves the string: it is mixed-script.
+    Empty,
+}
+
+impl ScriptSet {
+    /// True if no script resolves the string (UTS #39 section 5.1).
+    pub fn is_mixed_script(&self) -> bool {
+        matches!(self, Self::Empty)
+    }
+}
+
+/// Intersect the augmented `Script_Extensions` of every character of `s` (UTS #39 section 5.1).
+///
+/// ```
+/// use mojibake::security::{resolved_scripts, ScriptSet};
+///
+/// assert_eq!(resolved_scripts("Circle").unwrap(), ScriptSet::Resolved(vec!["Latn"]));
+/// assert!(resolved_scripts("Сirclе").unwrap().is_mixed_script()); // Cyrillic С and е
+/// assert_eq!(resolved_scripts("123").unwrap(), ScriptSet::All);
+/// ```
+pub fn resolved_scripts(s: &str) -> Result<ScriptSet> {
+    let text = ffi::text(s);
+    let mut kind = sys::MJB_SCRIPT_SET_EMPTY;
+
+    let scripts = ffi::scripts(|scripts, count| {
+        // SAFETY: all pointers are valid for the duration of the call, and `scripts` is NULL or
+        // has room for `count` values.
+        unsafe { sys::mjb_resolved_script_set(&text, scripts, count, &mut kind) }
+    })?;
+
+    Ok(match kind {
+        sys::MJB_SCRIPT_SET_ALL => ScriptSet::All,
+        sys::MJB_SCRIPT_SET_RESOLVED => ScriptSet::Resolved(scripts),
+        _ => ScriptSet::Empty,
+    })
+}
+
 /// True if `a` and `b` are visually confusable, such as `"paypal"` and `"pаypal"` (Cyrillic а).
 pub fn is_confusable(a: &str, b: &str) -> bool {
     let first = ffi::text(a);

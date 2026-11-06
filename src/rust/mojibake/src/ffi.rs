@@ -33,6 +33,29 @@ pub(crate) unsafe fn static_str(ptr: *const c_char) -> Option<&'static str> {
     CStr::from_ptr(ptr).to_str().ok()
 }
 
+/// The ISO 15924 code of an `mjb_script`, or `None` for an out-of-range value.
+pub(crate) fn script_code(script: sys::mjb_script) -> Option<&'static str> {
+    // SAFETY: mjb_script_code returns NULL or a static string.
+    unsafe { static_str(sys::mjb_script_code(script)) }.filter(|code| !code.is_empty())
+}
+
+/// Run a `(scripts, count)` query twice: once with NULL to size the buffer, then to fill it.
+pub(crate) fn scripts(
+    mut call: impl FnMut(*mut sys::mjb_script, &mut usize) -> sys::mjb_status,
+) -> Result<Vec<&'static str>> {
+    let mut count = 0;
+    check(call(std::ptr::null_mut(), &mut count), None)?;
+
+    let mut raw: Vec<sys::mjb_script> = vec![0; count];
+
+    if count != 0 {
+        check(call(raw.as_mut_ptr(), &mut count), None)?;
+        raw.truncate(count);
+    }
+
+    Ok(raw.into_iter().filter_map(script_code).collect())
+}
+
 /// Read a NUL-terminated fixed-size C array, stopping at its end if no NUL is present.
 pub(crate) fn array_str(array: &[c_char]) -> String {
     let bytes: Vec<u8> = array
