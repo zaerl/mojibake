@@ -87,15 +87,29 @@ export async function updateVersion() {
   // Update .claude/skills/*/SKILL.md version fields
   updateSkillMdFiles(path.resolve(__dirname, '../../../.claude/skills'));
 
-  console.log(`\nVersion updated to ${v.version}`);
-  console.log('make wasm');
-  console.log('make amalgamation');
-  console.log('make package-rust');
-  console.log('npm i in utils/generate');
-  console.log('npm i in src/api');
-  console.log(`Update CHANGELOG.md: add a [${v.version}] section`);
-  console.log(`git commit --signoff -am "Update version to ${v.version}"`);
-  console.log(`git tag v${v.version}`);
-  console.log(`git push && git push origin --tags`);
-  console.log('Deploy');
+  const steps = [
+    'make wasm',
+    'make amalgamation',
+    'npm i in utils/generate',
+    'npm i in src/api',
+    `Update CHANGELOG.md: add a [${v.version}] section`,
+    `git commit --signoff -am "Update version to ${v.version}"`,
+    // package-rust refuses to run while src/ has uncommitted changes, so it follows the commit
+    'make test-rust && make package-rust',
+    `git tag v${v.version}`,
+    'git push && git push origin --tags',
+    'Deploy',
+  ];
+
+  console.log(`\nVersion updated to ${v.version}\n`);
+  steps.forEach((step, i) => console.log(`${i + 1}. ${step}`));
+
+  console.log(`\nPublish the Rust crates ${v.version} to crates.io from the clean, tagged checkout`);
+  console.log('(requires `cargo login` with a crates.io token that owns mojibake-sys and mojibake-rs).');
+  console.log('Cargo uploads mojibake-sys first, then mojibake-rs:\n');
+  console.log('make vendor-rust');
+  console.log('(cd src/rust && cargo publish --workspace --locked --allow-dirty)');
+  console.log('\nPublished versions cannot be overwritten; check them at:');
+  console.log(`https://crates.io/crates/mojibake-sys/${v.version}`);
+  console.log(`https://crates.io/crates/mojibake-rs/${v.version}`);
 }
