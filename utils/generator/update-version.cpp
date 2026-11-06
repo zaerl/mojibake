@@ -118,6 +118,29 @@ bool update_version() {
         return false;
     }
 
+    // Rust crates: the workspace version, the mojibake-sys dependency, and both lockfile entries
+    if(!update_file(root_path("src/rust/Cargo.toml"),
+           {
+               { "[workspace.package]\nversion = \"", "\"", v.version },
+           })) {
+        return false;
+    }
+
+    if(!update_file(root_path("src/rust/mojibake/Cargo.toml"),
+           {
+               { "path = \"../mojibake-sys\", version = \"", "\"", v.version },
+           })) {
+        return false;
+    }
+
+    if(!update_file(root_path("src/rust/Cargo.lock"),
+           {
+               { "name = \"mojibake\"\nversion = \"", "\"", v.version },
+               { "name = \"mojibake-sys\"\nversion = \"", "\"", v.version },
+           })) {
+        return false;
+    }
+
     const std::string zip = "mojibake-amalgamation-" + std::to_string(v.major) +
         std::to_string(v.minor) + std::to_string(v.revision);
 
@@ -137,6 +160,7 @@ bool update_version() {
     std::printf("\nVersion updated to %s\n", v.version.c_str());
     std::puts("make wasm");
     std::puts("make amalgamation");
+    std::puts("make package-rust");
     std::puts("npm i in utils/generate");
     std::puts("npm i in src/api");
     std::printf("Update CHANGELOG.md: add a [%s] section\n", v.version.c_str());

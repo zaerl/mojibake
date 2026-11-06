@@ -3,6 +3,13 @@ name = "mojibake-sys"
 description = "Raw FFI bindings to the Mojibake Unicode library"
 links = "mojibake"
 build = "build.rs"
+readme = "../README.md"
+keywords = ["unicode", "ffi", "normalization", "collation", "idna"]
+categories = ["external-ffi-bindings", "text-processing", "internationalization"]
+# csrc/ is git-ignored and filled by `make vendor-rust`. An explicit include list packages it
+# anyway, since Cargo applies .gitignore only when no include list is given.
+include = ["Cargo.toml", "build.rs", "src/**/*.rs", "shim/*.c", "csrc/*.c", "csrc/*.h",
+    "csrc/CMakeLists.txt", "csrc/LICENSE"]
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

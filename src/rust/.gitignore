@@ -1,1 +1,3 @@
 /target/
+# C sources vendored by `make vendor-rust` for `cargo package`
+/mojibake-sys/csrc/
