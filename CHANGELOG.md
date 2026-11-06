@@ -64,6 +64,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   before testing, so they no longer test a stale `src/api/mojibake.wasm`
 
 ### Fixed
+- `mjb_plane` gave the Supplementary Special-purpose Plane and Supplementary Private Use Area-A
+  the values 4 and 5. They are now `MJB_PLANE_SSP = 14` and `MJB_PLANE_PUA_A = 15`, matching
+  `mjb_codepoint_plane`, so `mjb_plane_name(mjb_codepoint_plane(0xE0001), false)` returns
+  "Supplementary Special-purpose Plane" instead of "Unassigned", and planes 4 and 5 are now
+  "Unassigned". This changes the values of public enum constants (an ABI change); the TypeScript
+  `Plane` enum changes the same way
 - `mjb_bidi_reorder_line` skipped UAX #9 rule L1 for lines that end inside the paragraph:
   whitespace and isolate formatting characters at the end of such a line kept their resolved level
   and were reordered with the text before them. In an RTL paragraph, the space of the line `"abc "`

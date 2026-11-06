@@ -244,6 +244,9 @@ ATT_TEST(cpp_mojibake) {
     ATT_ASSERT(mjb::is_valid(MJB_PLANE_BMP), true, "is_valid plane");
     ATT_ASSERT(std::string(mjb::plane_name(MJB_PLANE_BMP, true)), std::string("BMP"),
         "plane_name");
+    ATT_ASSERT((int)mjb::plane(0xE0001), MJB_PLANE_SSP, "plane SSP");
+    ATT_ASSERT(std::string(mjb::plane_name(MJB_PLANE_PUA_A, false)),
+        std::string("Supplementary Private Use Area-A"), "plane_name PUA-A");
     ATT_ASSERT((int)mjb::east_asian_width('A'), MJB_EAW_NARROW, "east_asian_width");
     ATT_ASSERT(mjb::encode(0x1F642), std::string("\xF0\x9F\x99\x82"), "encode");
 

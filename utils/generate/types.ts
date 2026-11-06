@@ -353,8 +353,8 @@ export const planeValues = [
   1,
   2,
   3,
-  4,
-  5,
+  14,
+  15,
   16,
 ];
 

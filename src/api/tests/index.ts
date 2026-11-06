@@ -353,6 +353,8 @@ ATT_ASSERT(mojibake.bidiResolve('ABC', Direction.AUTO)?.direction, Direction.LTR
 ATT_ASSERT(mojibake.codepointPlane(0xFFFD), Plane.BMP, 'codepointPlane');
 ATT_ASSERT(mojibake.planeIsValid(Plane.SMP), true, 'planeIsValid');
 ATT_ASSERT(mojibake.planeName(Plane.BMP, true), 'BMP', 'planeName');
+ATT_ASSERT(mojibake.codepointPlane(0xE0001), Plane.SSP, 'codepointPlane SSP');
+ATT_ASSERT(mojibake.planeName(Plane.PUA_A, true), 'PUA-A', 'planeName PUA-A');
 ATT_ASSERT(mojibake.codepointIsIdStart(0x41), true, 'codepointIsIdStart');
 ATT_ASSERT(mojibake.codepointIsIdContinue(0x30), true, 'codepointIsIdContinue');
 ATT_ASSERT(mojibake.codepointIsXidStart(0x41), true, 'codepointIsXidStart');
