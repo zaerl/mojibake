@@ -398,6 +398,16 @@ mod layout {
         mjb_rs_offsetof_character_numeric,
         mjb_rs_offsetof_character_titlecase,
         mjb_rs_offsetof_locale_id_locale,
+        mjb_rs_offsetof_bidi_char_byte_offset,
+        mjb_rs_offsetof_bidi_char_level,
+        mjb_rs_offsetof_bidi_char_resolved_class,
+        mjb_rs_offsetof_bidi_char_mirroring_glyph,
+        mjb_rs_offsetof_bidi_paragraph_count,
+        mjb_rs_offsetof_bidi_paragraph_paragraph_level,
+        mjb_rs_offsetof_bidi_paragraph_direction,
+        mjb_rs_offsetof_bidi_run_end,
+        mjb_rs_offsetof_bidi_run_level,
+        mjb_rs_offsetof_bidi_run_direction,
     );
 
     macro_rules! check {
@@ -502,5 +512,33 @@ mod layout {
                 mjb_rs_offsetof_locale_id_locale()
             );
         }
+    }
+
+    macro_rules! check_offsets {
+        ($($ty:ident . $field:ident => $probe:ident),* $(,)?) => {
+            $(
+                assert_eq!(
+                    offset_of!($ty, $field),
+                    unsafe { $probe() },
+                    concat!("offset of ", stringify!($ty), ".", stringify!($field))
+                );
+            )*
+        };
+    }
+
+    #[test]
+    fn bidi_offsets_match_c() {
+        check_offsets!(
+            mjb_bidi_char.byte_offset => mjb_rs_offsetof_bidi_char_byte_offset,
+            mjb_bidi_char.level => mjb_rs_offsetof_bidi_char_level,
+            mjb_bidi_char.resolved_class => mjb_rs_offsetof_bidi_char_resolved_class,
+            mjb_bidi_char.mirroring_glyph => mjb_rs_offsetof_bidi_char_mirroring_glyph,
+            mjb_bidi_paragraph.count => mjb_rs_offsetof_bidi_paragraph_count,
+            mjb_bidi_paragraph.paragraph_level => mjb_rs_offsetof_bidi_paragraph_paragraph_level,
+            mjb_bidi_paragraph.direction => mjb_rs_offsetof_bidi_paragraph_direction,
+            mjb_bidi_run.end => mjb_rs_offsetof_bidi_run_end,
+            mjb_bidi_run.level => mjb_rs_offsetof_bidi_run_level,
+            mjb_bidi_run.direction => mjb_rs_offsetof_bidi_run_direction,
+        );
     }
 }

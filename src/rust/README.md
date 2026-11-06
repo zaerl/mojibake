@@ -6,11 +6,13 @@ Two crates that expose Mojibake to Rust:
   declares the raw FFI. No CMake is needed.
 - `mojibake` is the safe, idiomatic API, built mostly from extension traits on `str` and `char`.
 
-The Rust standard library has encoding, simple character predicates, and full upper/lowercase
-mapping. These crates add what it leaves out:
+The Rust standard library has UTF-8 strings, simple character predicates, and full
+upper/lowercase mapping. These crates add what it leaves out:
 
 | Area | API |
 | --- | --- |
+| Encodings and malformed input | `encoding::{decode, encode, convert, validate, codepoint_count, detect}` |
+| Bidirectional text (UAX #9) | `bidi::Paragraph::{levels, reorder_line, runs, visual}` |
 | Normalization (UAX #15) | `normalize`, `is_normalized`, `nfkc_casefold` |
 | Locale casing, titlecase, folding | `to_uppercase(s, Locale::parse("tr")?)`, `to_titlecase`, `casefold` |
 | Caseless matching (D144-D147) | `caseless_eq`, `StrExt::caseless_eq` |
@@ -31,6 +33,13 @@ assert_eq!("👨‍👩‍👧é".graphemes().count(), 2);
 assert_eq!("日本語".truncate_to_width(5), "日本");
 assert_eq!('½'.numeric_value(), Some(0.5));
 assert_eq!(mojibake::idna::to_ascii("bücher.de")?.unwrap(), "xn--bcher-kva.de");
+
+use mojibake::bidi::{Direction, Paragraph};
+use mojibake::encoding::{decode, Encoding, Malformed};
+
+assert_eq!(decode(b"a\x00\x00\xd8", Encoding::Utf16Le, Malformed::Replace)?, "a\u{fffd}");
+let paragraph = Paragraph::new("abc אבג", Direction::Auto)?;
+assert_eq!(paragraph.visual(0..paragraph.len())?, "abc גבא");
 ```
 
 ## Design
@@ -41,6 +50,13 @@ assert_eq!(mojibake::idna::to_ascii("bücher.de")?.unwrap(), "xn--bcher-kva.de")
 - Casing takes an explicit `Locale`, so the safe API never touches the C library's process-global
   casing locale.
 - Segment iterators wrap the C `mjb_*_break_state` iterators and yield `&str` slices of the input.
+- `encoding` works on byte slices. `Malformed::Stop` returns `Error::MalformedInput` with the byte
+  offset and length of the first ill-formed subsequence; `Replace` and `Skip` always succeed.
+  `Encoding::Utf16` and `Utf32` read the byte order from a BOM and consume it; the explicit
+  byte orders keep a BOM as U+FEFF.
+- `bidi::Paragraph` owns the C `mjb_bidi_paragraph` and frees it on drop. Its positions index the
+  characters left after rule X9 removes embedding controls; `BidiChar::byte_offset` and
+  `Paragraph::byte_range` map them back to the text.
 - C enums are `c_int` constants in `mojibake-sys`, never Rust enums, so an unexpected value from C
   cannot cause undefined behavior.
 - `mojibake-sys/shim/layout.c` statically asserts that the opaque Rust break-state storage fits
@@ -105,8 +121,7 @@ This is a scaffold. `mojibake-sys` declares every public function except the var
 layout tests in `mojibake-sys/src/lib.rs` and `mojibake-sys/shim/layout.c` are written by hand.
 Not done yet:
 
-- expose the remaining APIs in the safe crate: encoding conversion between UTF-8/16/32 with
-  malformed-input policies, bidi, filters, identifiers, emoji sequences, script sets, and the
-  `_into` variants
+- expose the remaining APIs in the safe crate: filters, identifiers, emoji sequences, script sets,
+  the `_into` variants, and streaming decoders over `mjb_decode_next`
 - route `mjb_set_allocator` through `std::alloc`. `mjb_realloc` and `mjb_free` already pass the
   exact block size that `Layout` needs, so owned results could become `String`s without a copy
